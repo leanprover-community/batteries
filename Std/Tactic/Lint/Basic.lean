@@ -25,10 +25,12 @@ metadata is stored in the `Linter` structure. We define two attributes:
    the linter with name `linterName`.
 -/
 
+/-- `@[nolint linterName]` omits the tagged declaration from being checked by
+the linter with name `linterName`. -/
 syntax (name := nolint) "nolint" (ppSpace ident)+ : attr
 
--- Defines the user attribute `nolint` for skipping `#lint`
-initialize nolintAttr : NameMapAttribute (Array Name) ←
+/-- Defines the user attribute `nolint` for skipping `#lint` -/
+initialize nolintAttr : NameMapExtension (Array Name) ←
   registerNameMapAttribute {
     name := `nolint
     descr := "Do not report this declaration in any of the tests of `#lint`"
@@ -63,28 +65,27 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
         return true
   pure false
 
-/--
-A linting test for the `#lint` command.
-
-`test` defines a test to perform on every declaration. It should never fail. Returning `none`
-signifies a passing test. Returning `some msg` reports a failing test with error `msg`.
-
-`noErrorsFound` is the message printed when all tests are negative, and `errorsFound` is printed
-when at least one test is positive.
-
-If `isFast` is false, this test will be omitted from `#lint-`.
--/
+/-- A linting test for the `#lint` command. -/
 structure Linter where
+  /-- `test` defines a test to perform on every declaration. It should never fail. Returning `none`
+  signifies a passing test. Returning `some msg` reports a failing test with error `msg`. -/
   test : Name → MetaM (Option MessageData)
+  /-- `noErrorsFound` is the message printed when all tests are negative -/
   noErrorsFound : MessageData
+  /-- `errorsFound` is printed when at least one test is positive -/
   errorsFound : MessageData
+  /-- If `isFast` is false, this test will be omitted from `#lint-`. -/
   isFast := true
 
+/-- A `NamedLinter` is a linter associated to a particular declaration. -/
 structure NamedLinter extends Linter where
+  /-- The linter declaration name -/
   declName : Name
 
+/-- The name of the named linter. This is just the declaration name without the namespace. -/
 def NamedLinter.name (l : NamedLinter) : Name := l.declName.updatePrefix Name.anonymous
 
+/-- Gets a linter by declaration name. -/
 def getLinter (declName : Name) : CoreM NamedLinter := unsafe
   return { ← evalConstCheck Linter ``Linter declName with declName }
 
@@ -93,7 +94,7 @@ and produces a list of linters. -/
 def getLinters (l : List Name) : CoreM (List NamedLinter) :=
   l.mapM getLinter
 
--- Defines the user attribute `stdLinter` for adding a linter to the default set.
+/-- Defines the user attribute `stdLinter` for adding a linter to the default set. -/
 initialize stdLinterAttr : TagAttribute ←
   registerTagAttribute
     (name := `stdLinter)

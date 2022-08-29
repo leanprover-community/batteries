@@ -7,55 +7,50 @@ import Lean
 
 namespace Lean
 
-/-- Maps declaration names to α. -/
+/-- Maps declaration names to `α`. -/
 def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (NameMap α)
 
 instance : Inhabited (NameMapExtension α) :=
   inferInstanceAs <| Inhabited (SimplePersistentEnvExtension ..)
 
+/-- Look up a value in the given extension in the environment. -/
 def NameMapExtension.find? (ext : NameMapExtension α) (env : Environment) : Name → Option α :=
   (SimplePersistentEnvExtension.getState ext env).find?
 
 /-- Add the given k,v pair to the NameMapExtension. -/
 def NameMapExtension.add [Monad M] [MonadEnv M] [MonadError M]
   (ext : NameMapExtension α) (k : Name) (v : α) :  M Unit := do
-  if let some _ := ext.find? (←getEnv) k then
+  if let some _ := ext.find? (← getEnv) k then
     throwError "Already exists entry for {ext.name} {k}"
   else
-     ext.addEntry (←getEnv) (k, v) |> setEnv
+     ext.addEntry (← getEnv) (k, v) |> setEnv
 
-def mkNameMapExtension (α) (name : Name): IO (NameMapExtension α) := do
+/-- Registers a new extension with the given name and type. -/
+def registerNameMapExtension (α) (name : Name) : IO (NameMapExtension α) := do
   registerSimplePersistentEnvExtension {
-    name          := name,
+    name
     addImportedFn := fun ass => ass.foldl (init := ∅) fun
                        | names, as => as.foldl (init := names) fun
-                         | names, (a,b) => names.insert a b,
-    addEntryFn    := fun s n => s.insert n.1 n.2 ,
+                         | names, (a,b) => names.insert a b
+    addEntryFn    := fun s n => s.insert n.1 n.2
     toArrayFn     := fun es => es.toArray
   }
 
+/-- The inputs to `registerNameMapAttribute`. -/
 structure NameMapAttributeImpl (α : Type) where
+  /-- The name of the attribute -/
   name : Name
+  /-- The description of the attribute -/
   descr : String
-  add : (src : Name) → (stx : Syntax) →  AttrM α
+  /-- This function is called when the attribute is applied.
+  It should produce a value of type `α` from the given attribute syntax. -/
+  add (src : Name) (stx : Syntax) : AttrM α
   deriving Inhabited
 
-/-- Similar to ParametricAttribute except that attributes do not
+/-- Similar to `registerParametricAttribute` except that attributes do not
 have to be assigned in the same file as the declaration. -/
-structure NameMapAttribute (α) where
-  impl : NameMapAttributeImpl α
-  ext : NameMapExtension α
-  deriving Inhabited
-
-def NameMapAttribute.find? (attr : NameMapAttribute α)
-  : (env : Environment) → Name → Option α := attr.ext.find?
-
-def NameMapAttribute.add [Monad M] [MonadEnv M] [MonadError M]
-  (attr : NameMapAttribute α) (k : Name) (v : α) : M Unit :=
-  attr.ext.add k v
-
-def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapAttribute α) := do
-  let ext ← mkNameMapExtension α impl.name
+def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExtension α) := do
+  let ext ← registerNameMapExtension α impl.name
   registerBuiltinAttribute {
     name := impl.name
     descr := impl.descr
@@ -63,10 +58,4 @@ def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapAttri
       let a : α ← impl.add src stx
       ext.add src a
   }
-  return {
-    impl := impl
-    ext := ext
-  }
-
-
-end Lean
+  return ext

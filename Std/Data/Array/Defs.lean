@@ -38,5 +38,3 @@ def reduceOption (l : Array (Option α)) : Array α :=
 /-- Turns `#[#[a₁, a₂, ⋯], #[b₁, b₂, ⋯], ⋯]` into `#[a₁, a₂, ⋯, b₁, b₂, ⋯]` -/
 def flatten (arr : Array (Array α)) : Array α :=
   arr.foldl (init := #[]) fun acc a => acc.append a
-
-end Array

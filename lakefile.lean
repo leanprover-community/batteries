@@ -2,7 +2,9 @@ import Lake
 
 open Lake DSL
 
-package std
+package std where
+  moreLeanArgs := #["-DwarningAsError=true", "-Dlinter.missingDocs=true"]
+  moreServerArgs := #["-Dlinter.missingDocs=true"]
 
 @[defaultTarget]
 lean_lib Std

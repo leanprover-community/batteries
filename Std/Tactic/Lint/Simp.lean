@@ -20,12 +20,18 @@ This files defines several linters that prevent common mistakes when declaring s
  * `simpComm` checks that commutativity lemmas are not marked as simplification lemmas.
 -/
 
+/-- The data associated to a simp theorem. -/
 structure SimpTheoremInfo where
+  /-- The hypotheses of the theorem -/
   hyps : Array Expr
+  /-- True if this is a conditional rewrite rule -/
   isConditional : Bool
+  /-- The thing to replace -/
   lhs : Expr
+  /-- The result of replacement -/
   rhs : Expr
 
+/-- Given the list of hypotheses, is this a conditional rewrite rule? -/
 def isConditionalHyps (eq : Expr) : List Expr → MetaM Bool
   | [] => pure false
   | h :: hs => do
@@ -37,15 +43,15 @@ def isConditionalHyps (eq : Expr) : List Expr → MetaM Bool
     isConditionalHyps eq hs
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
-def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM (Array α) := withReducible do
-  (← preprocess (← mkSorry ty true) ty (inv := false) (isGlobal := true))
-      |>.toArray.mapM fun (_, ty') => do
-    forallTelescopeReducing ty' fun hyps eq => do
-      let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
-      k {
-        hyps, lhs, rhs
-        isConditional := ← isConditionalHyps eq hyps.toList
-      }
+/-- Runs the continuation on all the simp theorems encoded in the given type. -/
+def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM (Array α) :=
+  withReducible do
+    let e ← preprocess (← mkSorry ty true) ty (inv := false) (isGlobal := true)
+    e.toArray.mapM fun (_, ty') => do
+      forallTelescopeReducing ty' fun hyps eq => do
+        let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
+        let isConditional ← isConditionalHyps eq hyps.toList
+        k { hyps, lhs, rhs, isConditional }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
@@ -55,49 +61,55 @@ def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
   if a.getAppFn.constName? != b.getAppFn.constName? then return false
   isDefEq a b
 
-def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) : MetaM (Option MessageData) := do
+/-- Constructs a message from all the simp theorems encoded in the given type. -/
+def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
+    MetaM (Option MessageData) := do
   let errors := (← withSimpTheoremInfos ty fun i => do (← k i).mapM addMessageContextFull).filterMap id
   if errors.isEmpty then
     return none
-  else
-    return MessageData.joinSep errors.toList Format.line
+  return MessageData.joinSep errors.toList Format.line
 
+/-- Returns true if this is a `@[simp]` declaration. -/
 def isSimpTheorem (declName : Name) : MetaM Bool := do
   pure $ (← getSimpTheorems).lemmaNames.contains declName
 
-open Lean.Meta.DiscrTree
-partial def trieElements : Trie α → StateT (Array α) Id Unit
-  | Trie.node vs children => do
-    modify (· ++ vs)
-    for (_, child) in children do
-      trieElements child
-
-def elements (d : DiscrTree α) : StateT (Array α) Id Unit := do
-  for (_, child) in d.root.toList do
-    trieElements child
+open Lean.Meta.DiscrTree in
+/-- Returns the list of elements in the discrimination tree. -/
+partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
+  d.root.foldl (init := #[]) fun arr _ => trieElements arr
+where
+  trieElements (arr)
+  | Trie.node vs children =>
+    children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
 
 open Std
 
--- In Lean 4, the simplifier adds auxiliary lemmas if the declaration is not an equation.
--- For example, for `decl : a ↔ b` it generates `decl._auxLemma.1 : a = b`.
--- This function computes the map ``{`decl._auxLemma.1 ↦ `decl}``
+/--
+In Lean 4, the simplifier adds auxiliary lemmas if the declaration is not an equation.
+For example, for `decl : a ↔ b` it generates `decl._auxLemma.1 : a = b`.
+This function computes the map ``{`decl._auxLemma.1 ↦ `decl}``
+-/
 def constToSimpDeclMap (ctx : Simp.Context) : HashMap Name Name := Id.run do
   let mut map : HashMap Name Name := {}
   for sls' in ctx.simpTheorems do
     for sls in [sls'.pre, sls'.post] do
-      for sl in ((elements sls).run #[]).2 do
+      for sl in sls.elements do
         if let some declName := sl.name? then
           if let some auxDeclName := sl.proof.getAppFn.constName? then
             map := map.insert auxDeclName declName
   return map
 
+/-- Is this an equation lemma, and if so, what is the declaration it is a lemma for? -/
 def isEqnLemma? (n : Name) : Option Name :=
   if n.isStr && n.getString!.startsWith "_eq_" then
     n.getPrefix
   else
     none
 
-def heuristicallyExtractSimpTheoremsCore (ctx : Simp.Context) (constToSimpDecl : HashMap Name Name) (prf : Expr) : Array Name := Id.run do
+/-- Try to reconstruct the list of used simp lemmas given the result of `simp`. -/
+def heuristicallyExtractSimpTheorems (ctx : Simp.Context)
+    (prf : Expr) : Array Name := Id.run do
+  let constToSimpDecl := constToSimpDeclMap ctx
   let mut cnsts : HashSet Name := {}
   for c in prf.getUsedConstants do
     if ctx.simpTheorems.isDeclToUnfold c then
@@ -110,12 +122,11 @@ def heuristicallyExtractSimpTheoremsCore (ctx : Simp.Context) (constToSimpDecl :
       cnsts := cnsts.insert c'
   return cnsts.toArray
 
-@[inline] def heuristicallyExtractSimpTheorems (ctx : Simp.Context) (prf : Expr) : Array Name :=
-  heuristicallyExtractSimpTheoremsCore ctx (constToSimpDeclMap ctx) prf
-
+/-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
+/-- Render the list of simp lemmas as a `MessageData`. -/
 def formatLemmas (lems : Array Name) : CoreM MessageData := do
   toMessageData <$> lems.mapM mkConstWithLevelParams
 

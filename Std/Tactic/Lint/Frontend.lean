@@ -47,6 +47,7 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
+/-- Get the list of declarations tagged with the tag attribute `attr`. -/
 def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array Name := Id.run do
   let st := attr.ext.toEnvExtension.getState env
   let mut decls := st.state.toArray
@@ -57,13 +58,14 @@ def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array
 namespace Std.Tactic.Lint
 open Lean Std
 
-/--
-Verbosity for the linter output.
-* `low`: only print failing checks, print nothing on success.
-* `medium`: only print failing checks, print confirmation on success.
-* `high`: print output of every check.
--/
-inductive LintVerbosity | low | medium | high
+/-- Verbosity for the linter output. -/
+inductive LintVerbosity
+  | /-- `low`: only print failing checks, print nothing on success. -/
+    low
+  | /-- `medium`: only print failing checks, print confirmation on success. -/
+    medium
+  | /-- `high`: print output of every check. -/
+    high
   deriving Inhabited, DecidableEq, Repr
 
 /-- `getChecks slow extra use_only` produces a list of linters.
@@ -77,6 +79,10 @@ def getChecks (slow : Bool) (extra : List Name) (useOnly : Bool) : CoreM (List N
   let default := if slow then default else default.filter (·.isFast)
   pure $ default ++ (← getLinters extra)
 
+/--
+Runs all the specified linters on all the specified declarations in parallel,
+producing a list of results.
+-/
 def lintCore (decls : Array Name) (linters : Array NamedLinter) :
     CoreM (Array (NamedLinter × HashMap Name MessageData)) := do
   let env ← getEnv
@@ -165,13 +171,16 @@ def formatLinterResults
   unless runSlowLinters do s := m!"{s}-- (slow linters skipped)\n"
   pure s
 
+/-- Get the list of declarations in the current module. -/
 def getDeclsInCurrModule : CoreM (Array Name) := do
   pure $ (← getEnv).constants.map₂.toList.toArray.map (·.1)
 
+/-- Get the list of all declarations in the environment. -/
 def getAllDecls : CoreM (Array Name) := do
   pure $ (← getDeclsInCurrModule) ++
     (← getEnv).constants.map₁.toArray.map (·.1)
 
+/-- Get the list of all declarations in the specified package. -/
 def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
   let mut decls ← getDeclsInCurrModule
   let modules := (← getEnv).header.moduleNames.map (pkg.isPrefixOf ·)

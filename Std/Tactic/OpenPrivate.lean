@@ -10,26 +10,30 @@ open Lean Parser.Tactic Elab Command
 
 namespace Lean
 
+/-- Collects the names of private declarations referenced in definition `n`. -/
 def Meta.collectPrivateIn [Monad m] [MonadEnv m] [MonadError m]
   (n : Name) (set := NameSet.empty) : m NameSet := do
   let c ← getConstInfo n
   let traverse value := Expr.foldConsts value set fun c a =>
-      if isPrivateName c then a.insert c else a
+    if isPrivateName c then a.insert c else a
   if let some value := c.value? then return traverse value
   if let some c := (← getEnv).find? (n ++ `_cstage1) then
     if let some value := c.value? then return traverse value
   return traverse c.type
 
+/-- Get the module index given a module name. -/
 def Environment.moduleIdxForModule? (env : Environment) (mod : Name) : Option ModuleIdx :=
   (env.allImportedModuleNames.indexOf? mod).map fun idx => idx.val
 
 instance : DecidableEq ModuleIdx := instDecidableEqNat
 
+/-- Get the list of declarations in a module (referenced by index). -/
 def Environment.declsInModuleIdx (env : Environment) (idx : ModuleIdx) : List Name :=
   env.const2ModIdx.fold (fun acc n i => if i = idx then n :: acc else acc) []
 
 namespace Elab.Command
 
+/-- Core elaborator for `open private` and `export private`. -/
 def elabOpenPrivateLike (ids : Array Syntax) (tgts mods : Option (Array Syntax))
   (f : (priv full user : Name) → CommandElabM Name) : CommandElabM Unit := do
   let mut names := NameSet.empty
@@ -71,8 +75,6 @@ def elabOpenPrivateLike (ids : Array Syntax) (tgts mods : Option (Array Syntax))
       openDecls := decl::openDecls
     { scope with openDecls := openDecls }
 
-syntax (name := openPrivate) "open private" ident* ("in" ident*)? ("from" ident*)? : command
-
 /--
 The command `open private a b c in foo bar` will look for private definitions named `a`, `b`, `c`
 in declarations `foo` and `bar` and open them in the current scope. This does not make the
@@ -84,12 +86,13 @@ name component.
 It is also possible to specify the module instead with
 `open private a b c from Other.Module`.
 -/
+syntax (name := openPrivate) "open private" ident* ("in" ident*)? ("from" ident*)? : command
+
+/-- Elaborator for `open private`. -/
 @[commandElab openPrivate] def elabOpenPrivate : CommandElab
 | `(open private $ids* $[in $tgts*]? $[from $mods*]?) =>
   elabOpenPrivateLike ids tgts mods fun c _ _ => pure c
 | _ => throwUnsupportedSyntax
-
-syntax (name := exportPrivate) "export private" ident* ("in" ident*)? ("from" ident*)? : command
 
 /--
 The command `export private a b c in foo bar` is similar to `open private`, but instead of opening
@@ -102,6 +105,9 @@ It will also open the newly created alias definition under the provided short na
 It is also possible to specify the module instead with
 `export private a b c from Other.Module`.
 -/
+syntax (name := exportPrivate) "export private" ident* ("in" ident*)? ("from" ident*)? : command
+
+/-- Elaborator for `export private`. -/
 @[commandElab exportPrivate] def elabExportPrivate : CommandElab
 | `(export private $ids* $[in $tgts*]? $[from $mods*]?) =>
   elabOpenPrivateLike ids tgts mods fun c name _ => do
