@@ -78,6 +78,7 @@ open Lean.Meta.DiscrTree in
 partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
   d.root.foldl (init := #[]) fun arr _ => trieElements arr
 where
+  /-- Returns the list of elements in the trie. -/
   trieElements (arr)
   | Trie.node vs children =>
     children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child

@@ -61,7 +61,10 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
       if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix,
-          "ndrec", "ndrecOn", "noConfusionType", "noConfusion"].any (· == s) then
+          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
+        ].any (· == s) then
+        return true
+      if let some _ := isSubobjectField? (← getEnv) n s then
         return true
   pure false
 
