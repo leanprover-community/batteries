@@ -1,4 +1,5 @@
 import Std.Data.Array.Defs
+import Std.Data.Queue
 import Std.Lean.NameMapAttribute
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
