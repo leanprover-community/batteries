@@ -140,38 +140,38 @@ protected theorem lt_of_sub_eq_succ (H : m - n = succ l) : n < m :=
 
 @[simp] protected theorem min_eq_min (a : Nat) : Nat.min a b = min a b := rfl
 
-protected theorem min_comm (a b : Nat) : Nat.min a b = Nat.min b a := by
-  simp [Nat.min]
+@[simp] protected theorem max_eq_max (a : Nat) : Nat.max a b = max a b := by
+  simp only [Nat.max, max, ← Nat.not_le]; split <;> rfl
+
+protected theorem min_comm (a b : Nat) : min a b = min b a := by
+  simp [min]
   by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
   · exact Nat.le_antisymm h₁ h₂
   · cases not_or_intro h₁ h₂ <| Nat.le_total ..
 
-protected theorem min_le_left (a b : Nat) : Nat.min a b ≤ a := by
-  simp [Nat.min]; by_cases h : a ≤ b <;> simp [h]
+protected theorem min_le_left (a b : Nat) : min a b ≤ a := by
+  simp [min]; by_cases h : a ≤ b <;> simp [h]
   exact Nat.le_of_not_le h
 
-protected theorem min_eq_left (h : a ≤ b) : Nat.min a b = a := by simp [Nat.min, h]
+protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [min, h]
 
-protected theorem min_eq_right (h : b ≤ a) : Nat.min a b = b := by
+protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by
   rw [Nat.min_comm a b]; exact Nat.min_eq_left h
 
 protected theorem zero_min (a : Nat) : min 0 a = 0 := Nat.min_eq_left (zero_le a)
 
 protected theorem min_zero (a : Nat) : min a 0 = 0 := Nat.min_eq_right (zero_le a)
 
-protected theorem max_comm (a b : Nat) : Nat.max a b = Nat.max b a := by
-  simp [Nat.max]
+protected theorem max_comm (a b : Nat) : max a b = max b a := by
+  simp only [← Nat.max_eq_max, Nat.max]
   by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
   · exact Nat.le_antisymm h₂ h₁
   · cases not_or_intro h₁ h₂ <| Nat.le_total ..
 
-@[simp] protected theorem max_eq_max (a : Nat) : Nat.max a b = max a b := by
-  simp only [Nat.max, max, ← Nat.not_le]; split <;> rfl
+protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : max a b = b := by
+  simp [max, h, Nat.not_lt.2 h]
 
-protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : Nat.max a b = b := by
-  simp [Nat.max, h]
-
-protected theorem max_eq_left {a b : Nat} (h : b ≤ a) : Nat.max a b = a := by
+protected theorem max_eq_left {a b : Nat} (h : b ≤ a) : max a b = a := by
   rw [← Nat.max_comm b a]; exact Nat.max_eq_right h
 
 -- Distribute succ over min
@@ -184,7 +184,7 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
   · rfl
 
 @[simp] protected theorem sub_add_min_cancel (n m : Nat) : n - m + min n m = n := by
-  rw [sub_eq_sub_min, ← Nat.min_eq_min, Nat.sub_add_cancel (Nat.min_le_left n m)]
+  rw [sub_eq_sub_min, Nat.sub_add_cancel (Nat.min_le_left n m)]
 
 /- mod -/
 
@@ -317,7 +317,7 @@ theorem one_pos : 0 < 1 := Nat.zero_lt_one
 
 /- subtraction -/
 
-protected theorem sub_add_eq_max {a b : Nat} : a - b + b = Nat.max a b := by
+protected theorem sub_add_eq_max {a b : Nat} : a - b + b = max a b := by
   match a.le_total b with
   | .inl hl => rw [Nat.max_eq_right hl, Nat.sub_eq_zero_iff_le.mpr hl, Nat.zero_add]
   | .inr hr => rw [Nat.max_eq_left hr, Nat.sub_add_cancel hr]
