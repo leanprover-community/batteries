@@ -105,7 +105,7 @@ Check that a named hypothesis has a given type and/or value.
 * `guardHyp h := v` checks value up to syntactic equality,
 * `guardHyp h :=ₐ v` checks the value up to alpha equality.
 -/
-syntax (name := guardHyp) "guard_hyp " ident (colon term)? (colonEq term)? : tactic
+syntax (name := guardHyp) "guard_hyp " term:max (colon term)? (colonEq term)? : tactic
 
 @[inheritDoc guardHyp, tactic guardHyp] def evalGuardHyp : Lean.Elab.Tactic.Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?) =>
