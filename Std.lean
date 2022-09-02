@@ -1,6 +1,7 @@
 import Std.Data.Array.Defs
 import Std.Data.BinomialHeap
 import Std.Data.DList
+import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
 import Std.Data.Queue
 import Std.Lean.NameMapAttribute

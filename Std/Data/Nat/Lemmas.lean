@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Jeremy Avigad
+Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
@@ -27,6 +27,8 @@ protected theorem eq_zero_of_add_eq_zero_left {n m : Nat} (h : n + m = 0) : m = 
 attribute [simp] Nat.pred_zero Nat.pred_succ
 
 /- properties of inequality -/
+
+theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 
 protected theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := (Nat.le_total a b).resolve_left
 
@@ -529,6 +531,12 @@ def dvd (a b : Nat) := ∃ c, b = a * c
 
 @[inheritDoc] scoped infix:50 " ∣ " => Nat.dvd
 
+protected theorem dvd_refl (a : Nat) : a ∣ a := ⟨1, by simp⟩
+
+protected theorem dvd_zero (a : Nat) : a ∣ 0 := ⟨0, by simp⟩
+
+protected theorem dvd_mul_left (a b : Nat) : a ∣ b * a := ⟨b, Nat.mul_comm b a⟩
+
 protected theorem dvd_mul_right (a b : Nat) : a ∣ a * b := ⟨b, rfl⟩
 
 protected theorem dvd_trans {a b c : Nat} (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
@@ -554,8 +562,17 @@ protected theorem dvd_add_iff_left {k m n : Nat} (h : k ∣ n) : k ∣ m ↔ k �
      exact Nat.dvd_add_iff_right h
 
 theorem dvd_sub {k m n : Nat} (H : n ≤ m) (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
-  (Nat.dvd_add_iff_left h₂).mpr $ by rw [Nat.sub_add_cancel H]
-                                        exact h₁
+  (Nat.dvd_add_iff_left h₂).2 <| by rwa [Nat.sub_add_cancel H]
+
+protected theorem mul_dvd_mul : a ∣ b → c ∣ d → a * c ∣ b * d
+  | ⟨e, he⟩, ⟨f, hf⟩ =>
+    ⟨e * f, by simp [he, hf, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]⟩
+
+protected theorem mul_dvd_mul_left (a : Nat) (h : b ∣ c) : a * b ∣ a * c :=
+  Nat.mul_dvd_mul (Nat.dvd_refl a) h
+
+protected theorem mul_dvd_mul_right (h: a ∣ b) (c : Nat) : a * c ∣ b * c :=
+  Nat.mul_dvd_mul h (Nat.dvd_refl c)
 
 theorem dvd_mod_iff {k m n : Nat} (h: k ∣ n) : k ∣ m % n ↔ k ∣ m :=
   let t := @Nat.dvd_add_iff_left _ (m % n) _ (Nat.dvd_trans h (Nat.dvd_mul_right n (m / n)))
