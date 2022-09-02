@@ -5,6 +5,8 @@ import Std.Data.Nat.Lemmas
 import Std.Data.Queue
 import Std.Lean.NameMapAttribute
 import Std.Logic
+import Std.Tactic.Basic
+import Std.Tactic.GuardExpr
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
