@@ -1,7 +1,10 @@
 import Std.Data.Array.Defs
+import Std.Data.BinomialHeap
 import Std.Data.DList
+import Std.Data.Nat.Lemmas
 import Std.Data.Queue
 import Std.Lean.NameMapAttribute
+import Std.Logic
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
