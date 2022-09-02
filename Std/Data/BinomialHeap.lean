@@ -47,6 +47,7 @@ def HeapNode.singleton (a : α) : HeapNode α := .node a .nil .nil
 It is also the depth of the forest.
 -/
 @[inline] def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
+  /-- Computes `s.rank + r` -/
   go : HeapNode α → Nat → Nat
   | .nil, r => r
   | .node _ _ s, r => go s (r + 1)
@@ -134,6 +135,7 @@ decreasing_by simp_wf; simp_arith [*]
 along the `sibling` spine.
 -/
 def HeapNode.toHeap (s : HeapNode α) : Heap α := go s s.rankTR .nil where
+  /-- Computes `s.toHeap ++ res` tail-recursively, assuming `n = s.rank`. -/
   go : HeapNode α → Nat → Heap α → Heap α
   | .nil, _, res => res
   | .node a c s, n, res => go s (n - 1) (.cons (n - 1) a c res)

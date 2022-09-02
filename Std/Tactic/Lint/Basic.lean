@@ -60,7 +60,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
     if (← getEnv).isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
-      if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix,
+      if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix, "ibelow",
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
         ].any (· == s) then
         return true
