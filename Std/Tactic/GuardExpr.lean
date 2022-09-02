@@ -82,7 +82,7 @@ elab (name := guardExprStrict) "guard_expr " r:term:51 eq:equal p:term : tactic 
     let r ← elabTerm r none
     let p ← elabTerm p none
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
-    if ← mk.isEq r p then throwError "failed: {r} != {p}"
+    unless ← mk.isEq r p do throwError "failed: {r} != {p}"
 
 /--
 Check the target agrees with a given expression.
@@ -95,7 +95,7 @@ elab (name := guardTargetStrict) "guard_target" eq:equal r:term : tactic =>
     let r ← elabTerm r none
     let t ← getMainTarget
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
-    if ← mk.isEq r t then throwError "target of main goal is {t}, not {r}"
+    unless ← mk.isEq r t do throwError "target of main goal is {t}, not {r}"
 
 /--
 Check that a named hypothesis has a given type and/or value.
@@ -119,7 +119,7 @@ syntax (name := guardHyp) "guard_hyp " term:max (colon term)? (colonEq term)? : 
         let some mk := colon.toMatchKind c | throwUnsupportedSyntax
         let e ← elabTerm p none
         let hty ← instantiateMVars lDecl.type
-        if ← mk.isEq e hty then throwError m!"hypothesis {h} has type {hty}"
+        unless ← mk.isEq e hty do throwError m!"hypothesis {h} has type {hty}, not {e}"
       match lDecl.value?, val with
       | none, some _        => throwError m!"{h} is not a let binding"
       | some _, none        => throwError m!"{h} is a let binding"
@@ -127,6 +127,6 @@ syntax (name := guardHyp) "guard_hyp " term:max (colon term)? (colonEq term)? : 
         let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
         let e ← elabTerm val none
         let hval ← instantiateMVars hval
-        if ← mk.isEq e hval then throwError m!"hypothesis {h} has value {hval}"
+        unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value {hval}, not {e}"
       | none, none          => pure ()
   | _ => throwUnsupportedSyntax
