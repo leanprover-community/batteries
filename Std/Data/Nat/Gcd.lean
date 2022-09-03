@@ -369,17 +369,16 @@ theorem coprime.eq_one_of_dvd {k m : Nat} (H : coprime k m) (d : k ∣ m) : k = 
   rw [← H.gcd_eq_one, gcd_eq_left d]
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
-private def prod_dvd_and_dvd_of_dvd_prod (H : k ∣ m * n) :
-  {d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1.val * d.2.val} := by
-  cases h0 : gcd k m with
-  | zero =>
-    cases eq_zero_of_gcd_eq_zero_left h0
-    cases eq_zero_of_gcd_eq_zero_right h0
-    exact ⟨⟨⟨0, Nat.dvd_refl 0⟩, ⟨n, Nat.dvd_refl n⟩⟩, (Nat.zero_mul n).symm⟩
-  | succ p =>
-    have hd : gcd k m * (k / gcd k m) = k := (Nat.mul_div_cancel' (gcd_dvd_left k m))
+def prod_dvd_and_dvd_of_dvd_prod (H : k ∣ m * n) :
+    {d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1.val * d.2.val} :=
+  if h0 : gcd k m = 0 then
+    ⟨⟨⟨0, eq_zero_of_gcd_eq_zero_right h0 ▸ Nat.dvd_refl 0⟩,
+      ⟨n, Nat.dvd_refl n⟩⟩,
+      eq_zero_of_gcd_eq_zero_left h0 ▸ (Nat.zero_mul n).symm⟩
+  else by
+    have hd : gcd k m * (k / gcd k m) = k := Nat.mul_div_cancel' (gcd_dvd_left k m)
     refine ⟨⟨⟨gcd k m, gcd_dvd_right k m⟩, ⟨k / gcd k m, ?_⟩⟩, hd.symm⟩
-    apply Nat.dvd_of_mul_dvd_mul_left (h0.symm ▸ Nat.zero_lt_succ _)
+    apply Nat.dvd_of_mul_dvd_mul_left (Nat.pos_of_ne_zero h0)
     rw [hd, ← gcd_mul_right]
     exact Nat.dvd_gcd (Nat.dvd_mul_right _ _) H
 
