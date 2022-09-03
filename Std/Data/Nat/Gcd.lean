@@ -348,6 +348,10 @@ theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 
 theorem coprime_one_right : ∀ n, coprime n 1 := gcd_one_right
 
+@[simp] theorem coprime_one_left_eq_true (n) : coprime 1 n = True := eq_true (coprime_one_left _)
+
+@[simp] theorem coprime_one_right_eq_true (n) : coprime 1 n = True := eq_true (coprime_one_right _)
+
 @[simp] theorem coprime_self (n : Nat) : coprime n n ↔ n = 1 := by simp [coprime]
 
 theorem coprime.pow_left (n : Nat) (H1 : coprime m k) : coprime (m ^ n) k := by
