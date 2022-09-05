@@ -55,9 +55,8 @@ open PrettyPrinter.Delaborator SubExpr
 
 /--
 This delaborator tries to elide functions which are known coercions.
-For example, `Int.ofNat` is a coercion, so instead of printing `ofNat n` we just print `n`,
-and when re-parsing this we can (usually) recover the fact that the coercion function
-should be inserted.
+For example, `Int.ofNat` is a coercion, so instead of printing `ofNat n` we just print `↑n`,
+and when re-parsing this we can (usually) recover the specific coercion being used.
 -/
 def coeDelaborator (info : CoeFnInfo) : Delab := whenPPOption getPPCoercions do
   match info.type with
@@ -101,8 +100,8 @@ def registerCoercion (name : Name) (info : Option CoeFnInfo := none) : MetaM Uni
 
 /--
 The `@[coe]` attribute on a function (which should also appear in a
-`instance : Coe A B := ⟨myFn⟩` declaration) allows the delaborator to elide
-applications of this function when printing expressions.
+`instance : Coe A B := ⟨myFn⟩` declaration) allows the delaborator to show
+applications of this function as `↑` when printing expressions.
 -/
 syntax (name := Attr.coe) "coe" : attr
 
