@@ -17,6 +17,7 @@ import Std.Tactic.Lint.Frontend
 import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
 import Std.Tactic.NoMatch
+import Std.Tactic.NormCast.Ext
 import Std.Tactic.OpenPrivate
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
