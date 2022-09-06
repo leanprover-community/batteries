@@ -5,13 +5,11 @@ Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.Int.Basic
-import Std.Tactic.NormCast.Ext
+import Std.Tactic.NormCast.Lemmas
 
 open Nat
 
 namespace Int
-
-attribute [coe] ofNat
 
 theorem ofNat_zero : ofNat 0 = 0 := rfl
 
