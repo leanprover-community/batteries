@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
--- import Std.Init.Algebra.Functions
+import Std.Data.Nat.Basic
 
 universe u
 
@@ -525,14 +525,6 @@ protected theorem mul_div_mul {m : Nat} (n k : Nat) (H : 0 < m) : m * n / (m * k
 
 /- dvd -/
 
-/--
-Divisibility of natural numbers. `a ∣ b` (typed as `\|`) says that
-there is some `c` such that `b = a * c`.
--/
-def dvd (a b : Nat) := ∃ c, b = a * c
-
-@[inheritDoc] scoped infix:50 " ∣ " => Nat.dvd
-
 protected theorem dvd_refl (a : Nat) : a ∣ a := ⟨1, by simp⟩
 
 protected theorem dvd_zero (a : Nat) : a ∣ 0 := ⟨0, by simp⟩
@@ -564,7 +556,7 @@ protected theorem dvd_add_iff_left {k m n : Nat} (h : k ∣ n) : k ∣ m ↔ k �
 theorem dvd_sub {k m n : Nat} (H : n ≤ m) (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
   (Nat.dvd_add_iff_left h₂).2 <| by rwa [Nat.sub_add_cancel H]
 
-protected theorem mul_dvd_mul : a ∣ b → c ∣ d → a * c ∣ b * d
+protected theorem mul_dvd_mul {a b c d : Nat} : a ∣ b → c ∣ d → a * c ∣ b * d
   | ⟨e, he⟩, ⟨f, hf⟩ =>
     ⟨e * f, by simp [he, hf, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]⟩
 
@@ -614,11 +606,11 @@ theorem dvd_iff_mod_eq_zero (m n : Nat) : m ∣ n ↔ n % m = 0 :=
 instance decidable_dvd : @DecidableRel Nat (·∣·) :=
   fun _ _ => decidable_of_decidable_of_iff (dvd_iff_mod_eq_zero _ _).symm
 
-protected theorem mul_div_cancel' (H : n ∣ m) : n * (m / n) = m := by
+protected theorem mul_div_cancel' {n m : Nat} (H : n ∣ m) : n * (m / n) = m := by
   have := mod_add_div m n
   rwa [mod_eq_zero_of_dvd H, Nat.zero_add] at this
 
-protected theorem div_mul_cancel (H: n ∣ m) : m / n * n = m := by
+protected theorem div_mul_cancel {n m : Nat} (H : n ∣ m) : m / n * n = m := by
   rw [Nat.mul_comm, Nat.mul_div_cancel' H]
 
 protected theorem mul_div_assoc (m : Nat) (H : k ∣ n) : m * n / k = m * (n / k) := by

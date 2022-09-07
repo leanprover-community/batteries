@@ -369,7 +369,7 @@ theorem coprime.eq_one_of_dvd {k m : Nat} (H : coprime k m) (d : k ∣ m) : k = 
   rw [← H.gcd_eq_one, gcd_eq_left d]
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
-def prod_dvd_and_dvd_of_dvd_prod (H : k ∣ m * n) :
+def prod_dvd_and_dvd_of_dvd_prod {k m n : Nat} (H : k ∣ m * n) :
     {d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1.val * d.2.val} :=
   if h0 : gcd k m = 0 then
     ⟨⟨⟨0, eq_zero_of_gcd_eq_zero_right h0 ▸ Nat.dvd_refl 0⟩,

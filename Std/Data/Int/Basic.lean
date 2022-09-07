@@ -3,6 +3,7 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Std.Classes.Dvd
 
 open Nat
 
@@ -102,3 +103,11 @@ This pair satisfies `div x y = round_to_zero (x / y)`.
 
 /-- Computes the greatest common divisor of two integers, as a `Nat`. -/
 def gcd (m n : Int) : Nat := m.natAbs.gcd n.natAbs
+
+/-! ## divisibility -/
+
+/--
+Divisibility of integers. `a ∣ b` (typed as `\|`) says that
+there is some `c` such that `b = a * c`.
+-/
+instance : Dvd Int := ⟨fun a b => ∃ c, b = a * c⟩
