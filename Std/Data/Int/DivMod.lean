@@ -585,6 +585,9 @@ protected theorem dvd_zero (n : Int) : n ∣ 0 := ⟨0, (Int.mul_zero _).symm⟩
 
 protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
 
+protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
+  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
+
 protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
   ⟨fun ⟨k, e⟩ => by rw [e, Int.zero_mul], fun h => h.symm ▸ Int.dvd_refl _⟩
 
@@ -600,6 +603,25 @@ protected theorem dvd_mul_right (a b : Int) : a ∣ a * b := ⟨_, rfl⟩
 
 protected theorem dvd_mul_left (a b : Int) : b ∣ a * b := ⟨_, Int.mul_comm ..⟩
 
+protected theorem dvd_add : ∀ {a b c : Int}, a ∣ b → a ∣ c → a ∣ b + c
+  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d + e, by rw [Int.mul_add]⟩
+
+protected theorem dvd_sub : ∀ {a b c : Int}, a ∣ b → a ∣ c → a ∣ b - c
+  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d - e, by rw [Int.mul_sub]⟩
+
+protected theorem dvd_add_left {a b c : Int} (H : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
+  ⟨fun h => by have := Int.dvd_sub h H; rwa [Int.add_sub_cancel] at this, (Int.dvd_add · H)⟩
+
+protected theorem dvd_add_right {a b c : Int} (H : a ∣ b) : a ∣ b + c ↔ a ∣ c := by
+  rw [Int.add_comm, Int.dvd_add_left H]
+
+protected theorem dvd_iff_dvd_of_dvd_sub {a b c : Int} (H : a ∣ b - c) : a ∣ b ↔ a ∣ c :=
+  ⟨fun h => Int.sub_sub_self b c ▸ Int.dvd_sub h H,
+   fun h => Int.sub_add_cancel b c ▸ Int.dvd_add H h⟩
+
+protected theorem dvd_iff_dvd_of_dvd_add {a b c : Int} (H : a ∣ b + c) : a ∣ b ↔ a ∣ c := by
+  rw [← Int.sub_neg] at H; rw [Int.dvd_iff_dvd_of_dvd_sub H, Int.dvd_neg]
+
 @[norm_cast] theorem ofNat_dvd {m n : Nat} : (↑m : Int) ∣ ↑n ↔ m ∣ n := by
   refine ⟨fun ⟨a, ae⟩ => ?_, fun ⟨k, e⟩ => ⟨k, by rw [e, Int.ofNat_mul]⟩⟩
   match Int.le_total a 0 with
@@ -610,18 +632,28 @@ protected theorem dvd_mul_left (a b : Int) : b ∣ a * b := ⟨_, Int.mul_comm .
   | .inr h => match a, eq_ofNat_of_zero_le h with
     | _, ⟨k, rfl⟩ => exact ⟨k, Int.ofNat.inj ae⟩
 
-@[simp] theorem natAbs_dvd {a b : Int} : natAbs a ∣ natAbs b ↔ a ∣ b := by
+@[simp] theorem natAbs_dvd_natAbs {a b : Int} : natAbs a ∣ natAbs b ↔ a ∣ b := by
   refine ⟨fun ⟨k, hk⟩ => ?_, fun ⟨k, hk⟩ => ⟨natAbs k, hk.symm ▸ natAbs_mul a k⟩⟩
   rw [← natAbs_ofNat k, ← natAbs_mul, natAbs_eq_natAbs_iff] at hk
   cases hk <;> subst b
   · apply Int.dvd_mul_right
   · rw [← Int.mul_neg]; apply Int.dvd_mul_right
 
+theorem natAbs_dvd {a b : Int} : (a.natAbs : Int) ∣ b ↔ a ∣ b :=
+  match natAbs_eq a with
+  | .inl e => by rw [← e]
+  | .inr e => by rw [← Int.neg_dvd, ← e]
+
+theorem dvd_natAbs {a b : Int} : a ∣ b.natAbs ↔ a ∣ b :=
+  match natAbs_eq b with
+  | .inl e => by rw [← e]
+  | .inr e => by rw [← Int.dvd_neg, ← e]
+
 theorem ofNat_dvd_left {n : Nat} {z : Int} : (↑n : Int) ∣ z ↔ n ∣ z.natAbs := by
-  rw [← natAbs_dvd, natAbs_ofNat]
+  rw [← natAbs_dvd_natAbs, natAbs_ofNat]
 
 theorem ofNat_dvd_right {n : Nat} {z : Int} : z ∣ (↑n : Int) ↔ z.natAbs ∣ n := by
-  rw [← natAbs_dvd, natAbs_ofNat]
+  rw [← natAbs_dvd_natAbs, natAbs_ofNat]
 
 theorem dvd_antisymm {a b : Int} (H1 : 0 ≤ a) (H2 : 0 ≤ b) : a ∣ b → b ∣ a → a = b := by
   rw [← natAbs_of_nonneg H1, ← natAbs_of_nonneg H2]
@@ -655,16 +687,6 @@ theorem dvd_sub_of_emod_eq {a b c : Int} (h : a.emod b = c) : b ∣ a - c := by
     rw [h]
   rw [Int.emod_emod, ← emod_sub_cancel_right c, Int.sub_self, zero_emod] at hx
   exact dvd_of_emod_eq_zero hx
-
-theorem nat_abs_dvd {a b : Int} : (a.natAbs : Int) ∣ b ↔ a ∣ b :=
-  match natAbs_eq a with
-  | .inl e => by rw [← e]
-  | .inr e => by rw [← Int.neg_dvd, ← e]
-
-theorem dvd_nat_abs {a b : Int} : a ∣ b.natAbs ↔ a ∣ b :=
-  match natAbs_eq b with
-  | .inl e => by rw [← e]
-  | .inr e => by rw [← Int.dvd_neg, ← e]
 
 protected theorem div_mul_cancel {a b : Int} (H : b ∣ a) : a / b * b = a :=
   div_mul_cancel_of_mod_eq_zero (mod_eq_zero_of_dvd H)

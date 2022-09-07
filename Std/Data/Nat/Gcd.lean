@@ -94,6 +94,12 @@ theorem gcd_pos_of_pos_left {m : Nat} (n : Nat) (mpos : 0 < m) : 0 < gcd m n :=
 theorem gcd_pos_of_pos_right (m : Nat) {n : Nat} (npos : 0 < n) : 0 < gcd m n :=
   pos_of_dvd_of_pos (gcd_dvd_right m n) npos
 
+theorem div_gcd_pos_of_pos_left (b : Nat) (h : 0 < a) : 0 < a / a.gcd b :=
+  (Nat.le_div_iff_mul_le <| Nat.gcd_pos_of_pos_left _ h).2 (Nat.one_mul _ ▸ Nat.gcd_le_left _ h)
+
+theorem div_gcd_pos_of_pos_right (a : Nat) (h : 0 < b) : 0 < b / a.gcd b :=
+  (Nat.le_div_iff_mul_le <| Nat.gcd_pos_of_pos_right _ h).2 (Nat.one_mul _ ▸ Nat.gcd_le_right _ h)
+
 theorem eq_zero_of_gcd_eq_zero_left {m n : Nat} (H : gcd m n = 0) : m = 0 :=
   match eq_zero_or_pos m with
   | .inl H0 => H0
@@ -317,7 +323,7 @@ theorem coprime.coprime_div_left (cmn : coprime m n) (dvd : a ∣ m) : coprime (
     rw [hk] at cmn
     exact cmn.coprime_mul_left
 
-theorem coprime.coprime_div_right  (cmn : coprime m n) (dvd : a ∣ n) : coprime m (n / a) :=
+theorem coprime.coprime_div_right (cmn : coprime m n) (dvd : a ∣ n) : coprime m (n / a) :=
   (cmn.symm.coprime_div_left dvd).symm
 
 theorem coprime_mul_iff_left : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=

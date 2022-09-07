@@ -9,6 +9,7 @@ import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
 import Std.Data.Queue
+import Std.Data.Rat
 import Std.Lean.NameMapAttribute
 import Std.Logic
 import Std.Tactic.Basic
