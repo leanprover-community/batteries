@@ -29,13 +29,6 @@ macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
   `(tactic| rw $rws:rwRuleSeq $[$loc:location]?; assumption)
 
 /--
-`by_cases h : p` makes a case distinction on `p`,
-resulting in two subgoals `h : p ⊢` and `h : ¬ p ⊢`.
--/
-macro "by_cases " h:ident ":" e:term : tactic =>
-  `(cases Decidable.em $e with | inl $h => ?pos | inr $h => ?neg)
-
-/--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
 -/
 elab (name := exacts) "exacts" "[" hs:term,* "]" : tactic => do
@@ -75,9 +68,9 @@ iterate
 -/
 syntax "iterate" (ppSpace num)? ppSpace tacticSeq : tactic
 macro_rules
-  | `(tactic|iterate $seq:tacticSeq) =>
-    `(tactic|try ($seq:tacticSeq); iterate $seq:tacticSeq)
-  | `(tactic|iterate $n $seq:tacticSeq) =>
+  | `(tactic| iterate $seq:tacticSeq) =>
+    `(tactic| try ($seq:tacticSeq); iterate $seq:tacticSeq)
+  | `(tactic| iterate $n $seq:tacticSeq) =>
     match n.1.toNat with
     | 0 => `(tactic| skip)
     | n+1 => `(tactic|($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
