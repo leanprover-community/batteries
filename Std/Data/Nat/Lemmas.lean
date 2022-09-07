@@ -188,6 +188,11 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
 @[simp] protected theorem sub_add_min_cancel (n m : Nat) : n - m + min n m = n := by
   rw [sub_eq_sub_min, Nat.sub_add_cancel (Nat.min_le_left n m)]
 
+/- multiplication -/
+
+protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
+  rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
+
 /- mod -/
 
 -- TODO mod_core_congr, mod_def
@@ -272,9 +277,11 @@ theorem one_add (n : Nat) : 1 + n = succ n := by simp [Nat.add_comm]
 theorem eq_zero_of_add_eq_zero {n m : Nat} (H : n + m = 0) : n = 0 ∧ m = 0 :=
   ⟨Nat.eq_zero_of_add_eq_zero_right H, Nat.eq_zero_of_add_eq_zero_left H⟩
 
-theorem eq_zero_of_mul_eq_zero : ∀ {n m : Nat}, n * m = 0 → n = 0 ∨ m = 0
-  | 0,   m, _ => .inl rfl
-  | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h)
+theorem mul_eq_zero {n m : Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 :=
+  ⟨fun h => match n, m, h with
+    | 0,   m, _ => .inl rfl
+    | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
+   fun | .inl h | .inr h => by simp [h]⟩
 
 /- properties of inequality -/
 

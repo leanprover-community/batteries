@@ -180,11 +180,38 @@ theorem natAbs_mul_natAbs_eq {a b : Int} {c : Nat}
 @[simp] theorem natAbs_mul_self' (a : Int) : (natAbs a * natAbs a : Int) = a * a := by
   rw [← Int.ofNat_mul, natAbs_mul_self]
 
+theorem natAbs_eq_natAbs_iff {a b : Int} : a.natAbs = b.natAbs ↔ a = b ∨ a = -b := by
+  constructor <;> intro h
+  · cases Int.natAbs_eq a with
+    | inl h₁ | inr h₁ =>
+      cases Int.natAbs_eq b with
+      | inl h₂ | inr h₂ => rw [h₁, h₂] <;> simp [h]
+  · cases h with (subst a; try rfl)
+    | inr h => rw [Int.natAbs_neg]
+
+theorem natAbs_eq_iff {a : Int} {n : Nat} : a.natAbs = n ↔ a = n ∨ a = -↑n := by
+  rw [← Int.natAbs_eq_natAbs_iff, Int.natAbs_ofNat]
+
 /- ## sign -/
 
 @[simp] theorem sign_zero : sign 0 = 0 := rfl
 @[simp] theorem sign_one : sign 1 = 1 := rfl
-@[simp] theorem sign_neg_one : sign (-1) = -1 := rfl
+theorem sign_neg_one : sign (-1) = -1 := rfl
+
+theorem sign_of_succ (n : Nat) : sign (Nat.succ n) = 1 := rfl
+
+theorem natAbs_sign (z : Int) : z.sign.natAbs = if z = 0 then 0 else 1 :=
+  match z with | 0 | succ _ | -[_+1] => rfl
+
+theorem natAbs_sign_of_nonzero {z : Int} (hz : z ≠ 0) : z.sign.natAbs = 1 := by
+  rw [Int.natAbs_sign, if_neg hz]
+
+theorem sign_ofNat_of_nonzero {n : Nat} (hn : n ≠ 0) : Int.sign n = 1 :=
+  match n, Nat.exists_eq_succ_of_ne_zero hn with
+  | _, ⟨n, rfl⟩ => Int.sign_of_succ n
+
+@[simp] theorem sign_neg (z : Int) : Int.sign (-z) = -Int.sign z := by
+  match z with | 0 | succ _ | -[_+1] => rfl
 
 /- # ring properties -/
 
@@ -327,6 +354,8 @@ protected theorem neg_sub (a b : Int) : -(a - b) = b - a := by
 protected theorem sub_sub_self (a b : Int) : a - (a - b) = b := by
   simp [Int.sub_eq_add_neg, ← Int.add_assoc]
 
+protected theorem sub_neg (a b : Int) : a - -b = a + b := by simp [Int.sub_eq_add_neg]
+
 /- ## multiplication -/
 
 @[simp] theorem ofNat_mul_negSucc (m n : Nat) : (m : Int) * -[n+1] = -↑(m * succ n) := rfl
@@ -355,6 +384,12 @@ attribute [local simp] ofNat_mul_negOfNat negOfNat_mul_ofNat
 
 protected theorem mul_assoc (a b c : Int) : a * b * c = a * (b * c) := by
   cases a <;> cases b <;> cases c <;> simp [Nat.mul_assoc]
+
+protected theorem mul_left_comm (a b c : Int) : a * (b * c) = b * (a * c) := by
+  rw [← Int.mul_assoc, ← Int.mul_assoc, Int.mul_comm a]
+
+protected theorem mul_right_comm (a b c : Int) : a * b * c = a * c * b := by
+  rw [Int.mul_assoc, Int.mul_assoc, Int.mul_comm b]
 
 protected theorem mul_zero (a : Int) : a * 0 = 0 := by cases a <;> rfl
 
@@ -472,6 +507,8 @@ protected theorem one_mul : ∀ a : Int, 1 * a = a
 
 protected theorem mul_one (a : Int) : a * 1 = a := by rw [Int.mul_comm, Int.one_mul]
 
+protected theorem mul_neg_one (a : Int) : a * -1 = -a := by rw [Int.mul_neg, Int.mul_one]
+
 protected theorem neg_eq_neg_one_mul : ∀ a : Int, -a = -1 * a
   | 0      => rfl
   | succ n => show _ = -[1 * n +1] by rw [Nat.one_mul] rfl
@@ -481,6 +518,10 @@ theorem sign_mul_natAbs : ∀ a : Int, sign a * natAbs a = a
   | 0      => rfl
   | succ _ => Int.one_mul _
   | -[_+1] => (Int.neg_eq_neg_one_mul _).symm
+
+@[simp] theorem sign_mul : ∀ a b, sign (a * b) = sign a * sign b
+  | a, 0 | 0, b => by simp [Int.mul_zero, Int.zero_mul]
+  | succ _, succ _ | succ _, -[_+1] | -[_+1], succ _ | -[_+1], -[_+1] => rfl
 
 /-! ## Order properties of the integers -/
 
@@ -1161,8 +1202,6 @@ theorem le_sub_one_of_lt {a b : Int} (H : a < b) : a ≤ b - 1 := Int.le_sub_rig
 
 theorem lt_of_le_sub_one {a b : Int} (H : a ≤ b - 1) : a < b := Int.add_le_of_le_sub_right H
 
-theorem sign_of_succ (n : Nat) : sign (Nat.succ n) = 1 := rfl
-
 theorem sign_eq_one_of_pos {a : Int} (h : 0 < a) : sign a = 1 :=
   match a, eq_succ_of_zero_lt h with
   | _, ⟨_, rfl⟩ => rfl
@@ -1220,3 +1259,6 @@ theorem eq_one_of_mul_eq_self_right {a b : Int} (Hpos : b ≠ 0) (H : b * a = b)
 theorem ofNat_natAbs_eq_of_nonneg : ∀ a : Int, 0 ≤ a → Int.ofNat (Int.natAbs a) = a
   | ofNat _, _ => rfl
   | -[n+1],  h => absurd (negSucc_lt_zero n) (Int.not_lt.2 h)
+
+theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
+  rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]
