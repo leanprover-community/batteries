@@ -15,6 +15,7 @@ import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.CoeExt
 import Std.Tactic.GuardExpr
+import Std.Tactic.HaveI
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
