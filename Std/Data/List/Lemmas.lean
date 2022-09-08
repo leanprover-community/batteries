@@ -13,7 +13,7 @@ open Nat
 attribute [simp] get! get? head? headD head tail! tail? tailD getLast! getLast?
   getLastD reverseAux eraseIdx isEmpty map map₂ join filterMap dropWhile find? findSome?
   replace elem lookup drop take takeWhile foldr zipWith unzip rangeAux enumFrom init
-  intersperse isPrefixOf isEqv dropLast
+  intersperse isPrefixOf isEqv dropLast iota
 
 @[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
@@ -21,8 +21,6 @@ attribute [simp] get! get? head? headD head tail! tail? tailD getLast! getLast?
 
 @[simp] theorem getLast_singleton {x : α} : [x].getLast (by simp) = x := rfl
 @[simp] theorem getLast_cons_cons {x : α} : (x::y::ys).getLast (by simp) = (y::ys).getLast (by simp) := rfl
-
-attribute [simp] iota
 
 @[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := fun.
 

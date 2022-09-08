@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import Std.Classes.SetNotation
+import Std.Tactic.NoMatch
 
 open Decidable List
-
-instance (α : Type u) : Inhabited (List α) :=
-  ⟨List.nil⟩
 
 variable {α : Type u} {β : Type v} {γ : Type w}
 
@@ -20,6 +18,20 @@ namespace List
 protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 instance : Subset (List α) := ⟨List.Subset⟩
+
+instance decidableBEx (p : α → Prop) [DecidablePred p] : ∀ l : List α, Decidable (∃ x ∈ l, p x)
+  | [] => isFalse fun.
+  | x :: xs =>
+    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
+      match decidableBEx p xs with
+      | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
+      | isFalse h₂ => isFalse fun
+        | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
+        | ⟨_, .head .., hp⟩ => h₁ hp
+
+instance decidableBAll (p : α → Prop) [DecidablePred p] (l : List α) : Decidable (∀ x ∈ l, p x) :=
+  if h : ∃ x ∈ l, ¬p x then isFalse <| let ⟨x, h, np⟩ := h; fun al => np (al x h)
+  else isTrue <| fun x hx => if h' : p x then h' else (h ⟨x, hx, h'⟩).elim
 
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,

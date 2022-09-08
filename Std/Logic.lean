@@ -21,7 +21,7 @@ theorem Not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_congr (h : a ↔ b) : ¬a ↔ ¬b := ⟨mt h.2, mt h.1⟩
 
-theorem not_not_not (a : Prop) : ¬¬¬a ↔ ¬a := ⟨mt not_not_intro, not_not_intro⟩
+theorem not_not_not : ¬¬¬a ↔ ¬a := ⟨mt not_not_intro, not_not_intro⟩
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a := mt Not.elim
 
