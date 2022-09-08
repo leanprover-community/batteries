@@ -75,14 +75,15 @@ def mkRat (num : Int) (den : Nat) : Rat :=
 
 namespace Rat
 
-instance : Coe Int Rat where
-  coe num := { num, reduced := Nat.coprime_one_right _ }
+/-- Embedding of `Int` in the rational numbers. -/
+@[coe] def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
 
-instance : OfNat Rat n where
-  ofNat := n
+instance : Coe Int Rat := ⟨ofInt⟩
+
+instance : OfNat Rat n := ⟨n⟩
 
 /-- Is this rational number integral? -/
-protected def isInt (a : Rat) : Bool := a.den == 1
+@[inline] protected def isInt (a : Rat) : Bool := a.den == 1
 
 /-- Rational number strictly less than relation, as a `Bool`. -/
 protected def blt (a b : Rat) : Bool :=
@@ -95,6 +96,16 @@ protected def blt (a b : Rat) : Bool :=
   else
     -- `a` and `b` must have the same sign
    a.num * b.den < b.num * a.den
+
+instance : LT Rat := ⟨(·.blt ·)⟩
+
+instance (a b : Rat) : Decidable (a < b) :=
+  inferInstanceAs (Decidable (_ = true))
+
+instance : LE Rat := ⟨fun a b => b.blt a = false⟩
+
+instance (a b : Rat) : Decidable (a ≤ b) :=
+  inferInstanceAs (Decidable (_ = false))
 
 /-- Multiplication of rational numbers. -/
 protected def mul (a b : Rat) : Rat :=
@@ -114,10 +125,9 @@ protected def mul (a b : Rat) : Rat :=
           |>.coprime_div_right (Nat.gcd_dvd_right ..)
       · exact (Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_left _ a.den_pos)).symm }
 
-instance : Mul Rat where
-  mul := Rat.mul
+instance : Mul Rat := ⟨Rat.mul⟩
 
-/-- The inverse of a rational numbers. Note: `inv 0 = 0`. -/
+/-- The inverse of a rational number. Note: `inv 0 = 0`. -/
 protected def inv (a : Rat) : Rat :=
   if h : a.num < 0 then
     { num := -a.den, den := a.num.natAbs
@@ -131,8 +141,7 @@ protected def inv (a : Rat) : Rat :=
     a
 
 /-- Division of rational numbers. Note: `div a 0 = 0`. -/
-instance : Div Rat where
-  div a b := a * b.inv
+instance : Div Rat := ⟨(· * ·.inv)⟩
 
 theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     (had : ad = a.den / g) (hbd : bd = b.den / g) :
@@ -178,15 +187,13 @@ protected def add (a b : Rat) : Rat :=
     have e : g1 = num.natAbs.gcd den := add.aux a b rfl rfl rfl
     Rat.maybeNormalize num den g1 (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
 
-instance : Add Rat where
-  add := Rat.add
+instance : Add Rat := ⟨Rat.add⟩
 
 /-- Negation of rational numbers. -/
 protected def neg (a : Rat) : Rat :=
   { a with num := -a.num, reduced := by rw [Int.natAbs_neg]; exact a.reduced }
 
-instance : Neg Rat where
-  neg := Rat.neg
+instance : Neg Rat := ⟨Rat.neg⟩
 
 theorem sub.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     (had : ad = a.den / g) (hbd : bd = b.den / g) :
@@ -212,8 +219,7 @@ protected def sub (a b : Rat) : Rat :=
     have e : g1 = num.natAbs.gcd den := sub.aux a b rfl rfl rfl
     Rat.maybeNormalize num den g1 (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
 
-instance : Sub Rat where
-  sub := Rat.sub
+instance : Sub Rat := ⟨Rat.sub⟩
 
 /-- The floor of a rational number `a` is the largest integer less than or equal to `a`. -/
 protected def floor (a : Rat) : Int :=
@@ -230,15 +236,3 @@ protected def ceil (a : Rat) : Int :=
   else
     let r := a.num / a.den
     if a.num > 0 then r + 1 else r
-
-instance : LT Rat where
-  lt a b := (Rat.blt a b) = true
-
-instance (a b : Rat) : Decidable (a < b) :=
-  inferInstanceAs (Decidable (_ = true))
-
-instance : LE Rat where
-  le a b := ¬(b < a)
-
-instance (a b : Rat) : Decidable (a ≤ b) :=
-  inferInstanceAs (Decidable (¬ _))
