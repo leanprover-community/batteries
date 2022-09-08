@@ -62,7 +62,8 @@ We skip all declarations that contain `sorry` in their value. -/
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none
-    if declName matches .str _ "parenthesizer" | .str _ "formatter" | .str _ "delaborator" then
+    if let .str _ s := declName then
+      if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
     let kind ← match ← getConstInfo declName with
       | .axiomInfo .. => pure "axiom"
