@@ -24,6 +24,8 @@ macro "_" : tactic => `({})
 -- Later we want to allow `rfl` to use all relations marked with an attribute.
 macro_rules | `(tactic| rfl) => `(tactic| exact Iff.rfl)
 
+macro_rules | `(tactic| rfl) => `(tactic| exact HEq.rfl)
+
 /-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
 macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
   `(tactic| rw $rws:rwRuleSeq $[$loc:location]?; assumption)
@@ -75,21 +77,28 @@ macro_rules
     | 0 => `(tactic| skip)
     | n+1 => `(tactic|($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
 
-private partial def repeat'Aux (seq : Syntax) : List MVarId → TacticM Unit
+private partial def repeat'Aux (tac : Syntax) : List MVarId → TacticM Unit
 | []    => pure ()
 | g::gs =>
   try
-    let subgs ← evalTacticAt seq g
+    let subgs ← evalTacticAt tac g
     appendGoals subgs
-    repeat'Aux seq (subgs ++ gs)
+    repeat'Aux tac (subgs ++ gs)
   catch _ =>
-    repeat'Aux seq gs
+    repeat'Aux tac gs
 
 /--
-`repeat' seq` runs `seq` on all of the goals to produce a new list of goals,
-then runs `seq` again on all of those goals, and repeats until all goals are closed.
+`repeat' tac` runs `tac` on all of the goals to produce a new list of goals,
+then runs `tac` again on all of those goals, and repeats until `tac` fails on all remaining goals.
 -/
-elab "repeat' " seq:tacticSeq : tactic => do repeat'Aux seq (← getGoals)
+elab "repeat' " tac:tacticSeq : tactic => do repeat'Aux tac (← getGoals)
+
+/-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
+elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
+
+/-- `split_ands` applies `And.intro` until it does not make progress. -/
+syntax "split_ands" : tactic
+macro_rules | `(tactic| split_ands) => `(tactic| repeat' (refine And.intro ?_ ?_))
 
 /--
 `fapply e` is like `apply e` but it adds goals in the order they appear,

@@ -13,10 +13,13 @@ import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
 import Std.Data.Queue
 import Std.Data.Rat
+import Std.Lean.Command
 import Std.Lean.NameMapAttribute
 import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.CoeExt
+import Std.Tactic.Ext
+import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
 import Std.Tactic.HaveI
 import Std.Tactic.Lint
