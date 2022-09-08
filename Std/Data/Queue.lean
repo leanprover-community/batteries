@@ -7,7 +7,6 @@ Simple queue implemented using two lists.
 Note: this is only a temporary placeholder.
 -/
 namespace Std
-universe u v w
 
 /--
 A functional queue data structure, using two back-to-back lists.

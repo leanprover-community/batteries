@@ -7,7 +7,6 @@ import Std.Logic
 import Std.Data.Nat.Lemmas
 import Std.Tactic.NoMatch
 
-universe u
 namespace Std.BinomialHeapImp
 
 /--
