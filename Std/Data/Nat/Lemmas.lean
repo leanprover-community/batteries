@@ -7,8 +7,6 @@ import Std.Logic
 import Std.Tactic.Basic
 import Std.Data.Nat.Basic
 
-universe u
-
 namespace Nat
 
 theorem succ_ne_self : ∀ n : Nat, succ n ≠ n
@@ -267,6 +265,12 @@ theorem eq_zero_or_eq_succ_pred (n : Nat) : n = 0 ∨ n = succ (pred n) := by
 theorem exists_eq_succ_of_ne_zero {n : Nat} (H : n ≠ 0) : ∃ k, n = succ k :=
   ⟨_, (eq_zero_or_eq_succ_pred _).resolve_left H⟩
 
+theorem succ_eq_one_add (n : Nat) : n.succ = 1 + n := by
+  rw [Nat.succ_eq_add_one, Nat.add_comm]
+
+theorem succ_inj' : succ n = succ m ↔ n = m :=
+  ⟨succ.inj, congrArg _⟩
+
 /- addition -/
 
 theorem succ_add_eq_succ_add (n m : Nat) : succ n + m = n + succ m := by
@@ -324,6 +328,25 @@ theorem lt_succ_of_lt (h : a < b) : a < succ b := le_succ_of_le h
 
 theorem one_pos : 0 < 1 := Nat.zero_lt_one
 
+protected theorem not_lt_of_le {n m : Nat} (h₁ : m ≤ n) : ¬ n < m := (Nat.not_le_of_gt · h₁)
+
+protected theorem not_le_of_lt {n m : Nat} : m < n → ¬ n ≤ m := Nat.not_le_of_gt
+
+protected theorem lt_of_not_le {a b : Nat} : ¬ a ≤ b → b < a := (Nat.lt_or_ge b a).resolve_right
+
+protected theorem le_of_not_lt {a b : Nat} : ¬ a < b → b ≤ a := (Nat.lt_or_ge a b).resolve_left
+
+protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := (Nat.lt_or_ge _ _).imp_left Nat.le_of_lt
+
+protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
+  (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
+
+theorem le_zero_iff {i : Nat} : i ≤ 0 ↔ i = 0 :=
+  ⟨Nat.eq_zero_of_le_zero, λ h => h ▸ Nat.le_refl i⟩
+
+theorem lt_succ_iff {m n : Nat} : m < succ n ↔ m ≤ n :=
+  ⟨le_of_lt_succ, lt_succ_of_le⟩
+
 /- subtraction -/
 
 protected theorem sub_add_eq_max {a b : Nat} : a - b + b = max a b := by
@@ -373,6 +396,32 @@ theorem pred_inj : ∀ {a b : Nat}, 0 < a → 0 < b → Nat.pred a = Nat.pred b 
 | a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
 | 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
 | 0,   0,   _,  _, _ => rfl
+
+theorem sub_lt_self {a b : Nat} (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b := by
+  apply sub_lt _ h₀
+  apply Nat.lt_of_lt_of_le h₀ h₁
+
+protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
+  rw [Nat.add_comm, Nat.sub_add_cancel h]
+
+protected theorem sub_lt_sub_left : ∀ {k m n : Nat}, k < m → k < n → m - n < m - k
+  | 0, m+1, n+1, _, _ => by rw [Nat.add_sub_add_right]; exact lt_succ_of_le (Nat.sub_le _ _)
+  | k+1, m+1, n+1, h1, h2 => by
+    rw [Nat.add_sub_add_right, Nat.add_sub_add_right]
+    exact Nat.sub_lt_sub_left (Nat.lt_of_succ_lt_succ h1) (Nat.lt_of_succ_lt_succ h2)
+
+protected theorem sub_lt_left_of_lt_add {n k m : Nat} (H : n ≤ k) (h : k < n + m) : k - n < m := by
+  have := Nat.sub_le_sub_right (succ_le_of_lt h) n
+  rwa [Nat.add_sub_cancel_left, Nat.succ_sub H] at this
+
+protected theorem add_le_of_le_sub_left {n k m : Nat} (H : m ≤ k) (h : n ≤ k - m) : m + n ≤ k :=
+  Nat.not_lt.1 fun h' => Nat.not_lt.2 h (Nat.sub_lt_left_of_lt_add H h')
+
+theorem le_sub_iff_add_le {x y k : Nat} (h : k ≤ y) : x ≤ y - k ↔ x + k ≤ y := by
+  rw [← Nat.add_sub_cancel x k, Nat.sub_le_sub_right_iff h, Nat.add_sub_cancel]
+
+theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
+  Nat.sub_le_sub_right h 1
 
 /- mod -/
 
@@ -529,6 +578,11 @@ protected theorem div_div_eq_div_mul (m n k : Nat) : m / n / k = m / (n * k) := 
 
 protected theorem mul_div_mul {m : Nat} (n k : Nat) (H : 0 < m) : m * n / (m * k) = n / k := by
   rw [← Nat.div_div_eq_div_mul, Nat.mul_div_cancel_left _ H]
+
+theorem mul_div_le (m n : Nat) : n * (m / n) ≤ m := by
+  match n, Nat.eq_zero_or_pos n with
+  | _, Or.inl rfl => rw [Nat.zero_mul]; exact m.zero_le
+  | n, Or.inr h => rw [Nat.mul_comm, ← Nat.le_div_iff_mul_le h]; exact Nat.le_refl _
 
 /- dvd -/
 
