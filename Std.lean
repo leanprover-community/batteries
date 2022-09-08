@@ -7,6 +7,7 @@ import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
+import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas

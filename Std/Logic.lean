@@ -43,6 +43,9 @@ theorem Or.resolve_right {a b : Prop} (h: a ∨ b) (nb : ¬ b) : a := h.elim id 
 
 theorem Or.neg_resolve_right (h : a ∨ ¬b) (nb : b) : a := h.elim id (absurd nb)
 
+theorem or_assoc (a b : Prop) : (a ∨ b) ∨ c ↔ a ∨ (b ∨ c) :=
+  ⟨.rec (.imp_right .inl) (.inr ∘ .inr), .rec (.inl ∘ .inl) (.imp_left .inr)⟩
+
 /- decidable -/
 
 protected theorem Decidable.not_not [Decidable a] : ¬¬a ↔ a :=

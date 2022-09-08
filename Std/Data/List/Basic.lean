@@ -15,6 +15,13 @@ variable {α : Type u} {β : Type v} {γ : Type w}
 namespace List
 
 /--
+`l₁ ⊆ l₂` means that every element of `l₁` is also an element of `l₂`, ignoring multiplicity.
+-/
+protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
+
+instance : Subset (List α) := ⟨List.Subset⟩
+
+/--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
 is identified, it is removed from `l₂`, so elements are counted with multiplicity.
@@ -116,3 +123,16 @@ def last! [Inhabited α] : List α → α
   | [a] => a
   | [_, b] => b
   | _ :: _ :: l => last! l
+
+/--
+`l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`.
+-/
+inductive Sublist {α} : List α → List α → Prop
+  | /-- the base case: `[]` is a sublist of `[]` -/
+    slnil : Sublist [] []
+  | /-- If `l₁` is a subsequence of `l₂`, then it is also a subsequence of `a :: l₂`. -/
+    cons a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
+  | /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
+    cons2 a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
+
+@[inheritDoc] scoped infixl:50 " <+ " => Sublist
