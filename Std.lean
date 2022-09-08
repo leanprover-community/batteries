@@ -1,4 +1,5 @@
 import Std.Classes.Dvd
+import Std.Classes.SetNotation
 import Std.Data.Array.Defs
 import Std.Data.BinomialHeap
 import Std.Data.DList

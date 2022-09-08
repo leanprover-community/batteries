@@ -108,13 +108,14 @@ elab_rules : command
     let name ← match name? with
       | some name => pure name.getId
       | none => liftMacroM do mkNameFromParserSyntax `binderTerm (mkNullNode stxParts)
+    let nameTk := name?.getD (mkIdentFrom tk name)
     /- The command `syntax [<kind>] ...` adds the current namespace to the syntax node kind.
     So, we must include current namespace when we create a pattern for the following
     `macro_rules` commands. -/
     let pat : TSyntax `binderPred := ⟨(mkNode ((← getCurrNamespace) ++ name) patArgs).1⟩
     elabCommand <|<-
     `($[$doc?:docComment]? $[@[$attrs?,*]]? $attrKind:attrKind syntax%$tk
-        (name := $(← mkIdentFromRef name)) (priority := $(quote prio)) $[$stxParts]* : binderPred
+        (name := $nameTk) (priority := $(quote prio)) $[$stxParts]* : binderPred
       $[$doc?:docComment]? macro_rules%$tk
         | `(satisfiesBinderPred% $$($x):term $pat:binderPred) => $rhs)
 
