@@ -99,7 +99,7 @@ def singletonUnexpander : Lean.PrettyPrinter.Unexpander
 /-- Unexpander for the `{ x, y, ... }` notation. -/
 @[appUnexpander insert]
 def insertUnexpander : Lean.PrettyPrinter.Unexpander
-  | `($_ $a { $ts,* }) => `({$a:term, $ts,*})
+  | `($_ $a { $ts:term,* }) => `({$a:term, $ts,*})
   | _ => throw ()
 
 /-- `insert x ∅ = {x}` -/
