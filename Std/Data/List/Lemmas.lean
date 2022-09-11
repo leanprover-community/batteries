@@ -12,11 +12,6 @@ open Nat
 
 /-! # Basic properties of Lists -/
 
-attribute [simp] get! get? head? headD head tail! tail? tailD getLast! getLast?
-  getLastD reverseAux eraseIdx isEmpty map map₂ join filterMap dropWhile find? findSome?
-  replace elem lookup drop take takeWhile foldr zipWith unzip rangeAux enumFrom init
-  intersperse isPrefixOf isEqv dropLast iota
-
 theorem cons_ne_nil (a : α) (l : List α) : a :: l ≠ [] := fun.
 
 theorem cons_ne_self (a : α) (l : List α) : a :: l ≠ l := mt (congrArg length) (Nat.succ_ne_self _)
@@ -32,13 +27,6 @@ theorem exists_cons_of_ne_nil : ∀ {l : List α}, l ≠ [] → ∃ b L, l = b :
   | c :: l', _ => ⟨c, l', rfl⟩
 
 /-! ### length -/
-
-theorem eq_nil_of_length_eq_zero (_ : length l = 0) : l = [] := match l with | [] => rfl
-
-theorem ne_nil_of_length_eq_succ (_ : length l = succ n) : l ≠ [] := fun _ => nomatch l
-
-theorem length_eq_zero : length l = 0 ↔ l = [] :=
-  ⟨eq_nil_of_length_eq_zero, fun h => h ▸ rfl⟩
 
 @[simp 1100] theorem length_singleton (a : α) : length [a] = 1 := rfl
 
@@ -99,8 +87,6 @@ theorem mem_constructor : ∀ {a : α} {l : List α}, a ∈ l → ∃ s t : List
 
 theorem append_eq_append : List.append l₁ l₂ = l₁ ++ l₂ := rfl
 
-@[simp 1100] theorem singleton_append : [x] ++ l = x :: l := rfl
-
 @[simp] theorem append_eq_nil : p ++ q = [] ↔ p = [] ∧ q = [] := by
   cases p <;> simp
 
@@ -128,34 +114,6 @@ theorem append_eq_append_iff {a b c d : List α} :
   | nil => simp; exact (or_iff_left_of_imp fun ⟨_, ⟨e, rfl⟩, h⟩ => e ▸ h.symm).symm
   | cons a as ih => cases c <;> simp [eq_comm, and_assoc, ih, and_or_left]
 
-theorem append_inj :
-    ∀ {s₁ s₂ t₁ t₂ : List α}, s₁ ++ t₁ = s₂ ++ t₂ → length s₁ = length s₂ → s₁ = s₂ ∧ t₁ = t₂
-  | [], [], t₁, t₂, h, _ => ⟨rfl, h⟩
-  | a :: s₁, b :: s₂, t₁, t₂, h, hl => by
-    simp [append_inj (cons.inj h).2 (Nat.succ.inj hl)] at h ⊢; exact h
-
-theorem append_inj_right (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : t₁ = t₂ :=
-  (append_inj h hl).right
-
-theorem append_inj_left (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length s₁ = length s₂) : s₁ = s₂ :=
-  (append_inj h hl).left
-
-theorem append_inj' (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ ∧ t₁ = t₂ :=
-  append_inj h <| @Nat.add_right_cancel _ (length t₁) _ <| by
-  let hap := congrArg length h; simp only [length_append, ← hl] at hap; exact hap
-
-theorem append_inj_right' (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : t₁ = t₂ :=
-  (append_inj' h hl).right
-
-theorem append_inj_left' (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
-  (append_inj' h hl).left
-
-theorem append_right_inj {s t₁ t₂ : List α} (h : s ++ t₁ = s ++ t₂) : t₁ = t₂ :=
-  append_inj_right h rfl
-
-theorem append_left_inj {s₁ s₂ t : List α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
-  append_inj_left' h rfl
-
 @[simp] theorem mem_append {a : α} {s t : List α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
   induction s <;> simp_all [or_assoc]
 
@@ -170,19 +128,7 @@ theorem mem_append_right {a : α} (l₁ : List α) {l₂ : List α} (h : a ∈ l
 
 /-! ### map -/
 
-theorem map_nil {f : α → β} : map f [] = [] := rfl
-
-theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
-
-@[simp] theorem map_append (f : α → β) : ∀ l₁ l₂, map f (l₁ ++ l₂) = map f l₁ ++ map f l₂ := by
-  intro l₁ <;> induction l₁ <;> intros <;> simp_all
-
 theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
-
-@[simp] theorem map_id (l : List α) : map id l = l := by induction l <;> simp_all
-
-@[simp] theorem map_map (g : β → γ) (f : α → β) (l : List α) :
-  map g (map f l) = map (g ∘ f) l := by induction l <;> simp_all
 
 theorem mem_map {f : α → β} : ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ b = f a
   | [] => by simp
@@ -219,15 +165,6 @@ theorem exists_of_mem_join : a ∈ join L → ∃ l, l ∈ L ∧ a ∈ l := mem_
 theorem mem_join_of_mem (lL : l ∈ L) (al : a ∈ l) : a ∈ join L := mem_join.2 ⟨l, lL, al⟩
 
 /-! ### bind -/
-
-@[simp] theorem nil_bind (f : α → List β) : List.bind [] f = [] := by simp [join, List.bind]
-
-@[simp] theorem cons_bind x xs (f : α → List β) :
-  List.bind (x :: xs) f = f x ++ List.bind xs f := by simp [join, List.bind]
-
-@[simp] theorem append_bind xs ys (f : α → List β) :
-  List.bind (xs ++ ys) f = List.bind xs f ++ List.bind ys f := by
-  induction xs; {rfl}; simp_all [cons_bind, append_assoc]
 
 theorem mem_bind {f : α → List β} {b} {l : List α} : b ∈ l.bind f ↔ ∃ a, a ∈ l ∧ b ∈ f a := by
   simp [List.bind, mem_map, mem_join]
@@ -396,15 +333,18 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
 
 /-! ### remove nth -/
 
-theorem length_removeNth : ∀ (l : List α) (i : Nat),
-  i < length l → length (removeNth l i) = length l - 1
-| [], _, _ => rfl
-| x::xs, 0, _ => by simp [removeNth]; rfl
-| x::xs, i+1, h => by
-  have : i < length xs := Nat.lt_of_succ_lt_succ h
-  simp [removeNth, ← Nat.add_one]
-  rw [length_removeNth xs i this,
-    Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]; rfl
+theorem length_removeNth_go (l : List α) {xs i} (acc) (h : i < length xs) :
+    length (removeNth.go l xs i acc) = acc.size + (length xs - 1) := by
+  match xs, i with
+  | x::xs, 0 => simp [removeNth.go]; rfl
+  | x::xs, i+1 =>
+    have : i < length xs := Nat.lt_of_succ_lt_succ h
+    simp [removeNth.go, length_removeNth_go _ _ this]
+    rw [Nat.add_right_comm, Nat.add_assoc,
+      Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]; rfl
+
+theorem length_removeNth (h : i < length l) : length (removeNth l i) = length l - 1 :=
+  (length_removeNth_go _ _ h).trans (Nat.zero_add _)
 
 /-! ### tail -/
 
@@ -418,18 +358,6 @@ theorem length_removeNth : ∀ (l : List α) (i : Nat),
   | succ n, _ :: l => by simp [Nat.min_succ_succ, add_one, length_take]
 
 theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
-
-@[simp] theorem length_drop : ∀ (i : Nat) (l : List α), length (drop i l) = length l - i
-  | 0, _ => rfl
-  | succ i, [] => Eq.symm (Nat.zero_sub (succ i))
-  | succ i, x :: l => calc
-    length (drop (succ i) (x :: l)) = length l - i := length_drop i l
-    _ = succ (length l) - succ i := (Nat.succ_sub_succ_eq_sub (length l) i).symm
-
-@[simp] theorem take_append_drop : ∀ (n : Nat) (l : List α), take n l ++ drop n l = l
-  | 0, _ => rfl
-  | _+1, [] => rfl
-  | n+1, x :: xs => congrArg (cons x) <| take_append_drop n xs
 
 theorem get_cons_drop : ∀ (l : List α) i, List.get l i :: List.drop (i + 1) l = List.drop i l
   | _::_, ⟨0, _⟩ => rfl

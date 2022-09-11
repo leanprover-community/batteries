@@ -1,12 +1,15 @@
 import Std.Classes.Dvd
 import Std.Classes.SetNotation
-import Std.Data.Array.Defs
+import Std.Data.Array.Basic
+import Std.Data.Array.Init.Basic
+import Std.Data.Array.Init.Lemmas
 import Std.Data.BinomialHeap
 import Std.Data.DList
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
+import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd

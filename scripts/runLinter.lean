@@ -1,5 +1,5 @@
 import Std.Tactic.Lint
-import Std.Data.Array.Defs
+import Std.Data.Array.Basic
 
 open Lean Core Elab Command Std.Tactic.Lint
 
