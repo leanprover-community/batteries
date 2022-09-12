@@ -1099,8 +1099,8 @@ protected theorem mul_lt_mul_of_pos_right {a b c : Int}
 
 protected theorem mul_le_mul_of_nonneg_left {a b c : Int}
     (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b := by
-  by_cases hba : b ≤ a; { rw [Int.le_antisymm hba h₁]; apply Int.le_refl }
-  by_cases hc0 : c ≤ 0; { simp [Int.le_antisymm hc0 h₂, Int.zero_mul] }
+  if hba : b ≤ a then rw [Int.le_antisymm hba h₁]; apply Int.le_refl else
+  if hc0 : c ≤ 0 then simp [Int.le_antisymm hc0 h₂, Int.zero_mul] else
   exact Int.le_of_lt <| Int.mul_lt_mul_of_pos_left
     (Int.lt_iff_le_not_le.2 ⟨h₁, hba⟩) (Int.lt_iff_le_not_le.2 ⟨h₂, hc0⟩)
 

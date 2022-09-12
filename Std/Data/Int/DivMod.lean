@@ -149,11 +149,12 @@ theorem add_mul_ediv_right (a b : Int) {c : Int} (H : c ≠ 0) : (a + b * c).edi
   | ofNat m => congrArg ofNat <| Nat.add_mul_div_right _ _ k.succ_pos
   | -[m+1] => by
     show ((n * k.succ : Nat) - m.succ : Int).ediv k.succ = n - (m / k.succ + 1 : Nat)
-    by_cases h : m < n * k.succ
-    · rw [← Int.ofNat_sub h, ← Int.ofNat_sub ((Nat.div_lt_iff_lt_mul k.succ_pos).2 h)]
+    if h : m < n * k.succ then
+      rw [← Int.ofNat_sub h, ← Int.ofNat_sub ((Nat.div_lt_iff_lt_mul k.succ_pos).2 h)]
       apply congrArg ofNat
       rw [Nat.mul_comm, Nat.mul_sub_div]; rwa [Nat.mul_comm]
-    · have h := Nat.not_lt.1 h
+    else
+      have h := Nat.not_lt.1 h
       have H {a b : Nat} (h : a ≤ b) : ↑a + -(↑b + 1) = -[↑(b - a) +1] := by
         rw [negSucc_ofNat_eq, Int.ofNat_sub h]
         simp only [Int.sub_eq_add_neg, Int.neg_add, Int.neg_neg, Int.add_left_comm, Int.add_assoc]

@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Tactic.NoMatch
 import Std.Tactic.GuardExpr
+import Std.Tactic.ByCases
 import Lean.Elab.Tactic.ElabTerm
 
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
@@ -29,12 +30,6 @@ macro_rules | `(tactic| rfl) => `(tactic| exact HEq.rfl)
 /-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
 macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
   `(tactic| rw $rws:rwRuleSeq $[$loc:location]?; assumption)
-
--- This is an improved version of `by_cases` from core that uses `Decidable` if possible
-macro_rules | `(tactic| by_cases $e) => `(tactic| by_cases h : $e)
-macro_rules
-  | `(tactic| by_cases $h : $e) =>
-    `(tactic| open Classical in refine if $h : $e then ?pos else ?neg)
 
 /--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.

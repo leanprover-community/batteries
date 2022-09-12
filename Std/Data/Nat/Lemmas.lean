@@ -694,13 +694,13 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 /- --- -/
 
 protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} (h₁ : a ≤ b) : c * a ≤ c * b := by
-  by_cases hba: b ≤ a; { simp [Nat.le_antisymm hba h₁] }
-  by_cases hc0 : c ≤ 0; { simp [Nat.le_antisymm hc0 (zero_le c), Nat.zero_mul] }
+  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
+  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.zero_mul] else
   exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_left (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
 
 protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} (h₁ : a ≤ b) : a * c ≤ b * c := by
-  by_cases hba : b ≤ a; { simp [Nat.le_antisymm hba h₁] }
-  by_cases hc0 : c ≤ 0; { simp [Nat.le_antisymm hc0 (zero_le c), Nat.mul_zero] }
+  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
+  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.mul_zero] else
   exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_right (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
 
 protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a * b < c * d :=
