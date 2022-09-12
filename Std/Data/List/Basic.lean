@@ -493,9 +493,9 @@ theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modi
   ext α f n l; simp [modifyNthTR, modifyNthTR_go_eq]
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
-@[simp] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
+@[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
-  go : List α → Array α → List α
+  @[specialize] go : List α → Array α → List α
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
@@ -604,7 +604,7 @@ partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2],
     | .inr b => go xs acc₁ (acc₂.push b)
 
 /-- `find p l` is the first element of `l` satisfying `p`, or `none` if no such element exists. -/
-@[simp] def find (p : α → Bool) : List α → Option α
+def find (p : α → Bool) : List α → Option α
   | [] => none
   | a :: l => bif p a then some a else find p l
 
@@ -850,7 +850,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   intros; apply Array.foldl_data_eq_map
 
 /-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
-@[simp] def erasep (p : α → Bool) : List α → List α
+def erasep (p : α → Bool) : List α → List α
   | [] => []
   | a :: l => bif p a then l else a :: erasep p l
 
@@ -1096,7 +1096,7 @@ forDiagM f [1, 2, 3] = do f 1 1; f 1 2; f 1 3; f 2 2; f 2 3; f 3 3
 
 /-- `getRest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
   If `l₁` is not a prefix of `l`, returns `none` -/
-@[simp] def getRest [DecidableEq α] : List α → List α → Option (List α)
+def getRest [DecidableEq α] : List α → List α → Option (List α)
   | l, [] => some l
   | [], _ => none
   | x :: l, y :: l₁ => if x = y then getRest l l₁ else none
