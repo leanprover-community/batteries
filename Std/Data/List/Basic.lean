@@ -5,7 +5,6 @@ Authors: Leonardo de Moura
 -/
 import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
-import Std.Tactic.Ext
 import Std.Data.Array.Init.Lemmas
 
 open Decidable List
@@ -27,7 +26,7 @@ attribute [local simp] concat_eq_append append_assoc
   | x::xs, acc => bif x == a then acc.toListAppend xs else go xs (acc.push x)
 
 @[csimp] theorem erase_eq_eraseTR : @List.erase = @eraseTR := by
-  ext α _ l a; simp [eraseTR]
+  funext α _ l a; simp [eraseTR]
   suffices ∀ xs acc, l = acc.data ++ xs → eraseTR.go l a xs acc = acc.data ++ xs.erase a from
     (this l #[] (by simp)).symm
   intro xs; induction xs with intro acc h
@@ -47,7 +46,7 @@ attribute [local simp] concat_eq_append append_assoc
   | a::as, n+1, acc => go as n (acc.push a)
 
 @[csimp] theorem eraseIdx_eq_eraseIdxTR : @eraseIdx = @eraseIdxTR := by
-  ext α l n; simp [eraseIdxTR]
+  funext α l n; simp [eraseIdxTR]
   suffices ∀ xs acc, l = acc.data ++ xs → eraseIdxTR.go l xs n acc = acc.data ++ xs.eraseIdx n from
     (this l #[] (by simp)).symm
   intro xs; induction xs generalizing n with intro acc h
@@ -67,7 +66,7 @@ attribute [local simp] concat_eq_append append_assoc
   | x::xs, acc => go xs (acc ++ f x)
 
 @[csimp] theorem bind_eq_bindTR : @List.bind = @bindTR := by
-  ext α β as f
+  funext α β as f
   let rec go : ∀ as acc, bindTR.go f as acc = acc.data ++ as.bind f
     | [], acc => by simp [bindTR.go, bind]
     | x::xs, acc => by simp [bindTR.go, bind, go xs]
@@ -77,7 +76,7 @@ attribute [local simp] concat_eq_append append_assoc
 @[inline] def joinTR (l : List (List α)) : List α := bindTR l id
 
 @[csimp] theorem join_eq_joinTR : @join = @joinTR := by
-  ext α l; rw [← List.bind_id, List.bind_eq_bindTR]; rfl
+  funext α l; rw [← List.bind_id, List.bind_eq_bindTR]; rfl
 
 /-- Tail recursive version of `filterMap`. -/
 @[inline] def filterMapTR (f : α → Option β) (l : List α) : List β := go l #[] where
@@ -89,7 +88,7 @@ attribute [local simp] concat_eq_append append_assoc
     | some b => go as (acc.push b)
 
 @[csimp] theorem filterMap_eq_filterMapTR : @List.filterMap = @filterMapTR := by
-  ext α β f l
+  funext α β f l
   let rec go : ∀ as acc, filterMapTR.go f as acc = acc.data ++ as.filterMap f
     | [], acc => by simp [filterMapTR.go, filterMap]
     | a::as, acc => by simp [filterMapTR.go, filterMap, go as]; split <;> simp [*]
@@ -104,7 +103,7 @@ attribute [local simp] concat_eq_append append_assoc
   | a::as, acc => bif a == b then acc.toListAppend (c::as) else go as (acc.push a)
 
 @[csimp] theorem replace_eq_replaceTR : @List.replace = @replaceTR := by
-  ext α _ l b c; simp [replaceTR]
+  funext α _ l b c; simp [replaceTR]
   suffices ∀ xs acc, l = acc.data ++ xs →
       replaceTR.go l b c xs acc = acc.data ++ xs.replace b c from
     (this l #[] (by simp)).symm
@@ -124,7 +123,7 @@ attribute [local simp] concat_eq_append append_assoc
   | a::as, n+1, acc => go as n (acc.push a)
 
 @[csimp] theorem take_eq_takeTR : @take = @takeTR := by
-  ext α n l; simp [takeTR]
+  funext α n l; simp [takeTR]
   suffices ∀ xs acc, l = acc.data ++ xs → takeTR.go l xs n acc = acc.data ++ xs.take n from
     (this l #[] (by simp)).symm
   intro xs; induction xs generalizing n with intro acc
@@ -142,7 +141,7 @@ attribute [local simp] concat_eq_append append_assoc
   | a::as, acc => bif p a then go as (acc.push a) else acc.toList
 
 @[csimp] theorem takeWhile_eq_takeWhileTR : @takeWhile = @takeWhileTR := by
-  ext α p l; simp [takeWhileTR]
+  funext α p l; simp [takeWhileTR]
   suffices ∀ xs acc, l = acc.data ++ xs →
       takeWhileTR.go p l xs acc = acc.data ++ xs.takeWhile p from
     (this l #[] (by simp)).symm
@@ -156,7 +155,7 @@ attribute [local simp] concat_eq_append append_assoc
 @[specialize] def foldrTR (f : α → β → β) (init : β) (l : List α) : β := l.toArray.foldr f init
 
 @[csimp] theorem foldr_eq_foldrTR : @foldr = @foldrTR := by
-  ext α β f init l; simp [foldrTR, Array.foldr_eq_foldr_data, -Array.size_toArray]
+  funext α β f init l; simp [foldrTR, Array.foldr_eq_foldr_data, -Array.size_toArray]
 
 /-- Tail recursive version of `zipWith`. -/
 @[inline] def zipWithTR (f : α → β → γ) (as : List α) (bs : List β) : List γ := go as bs #[] where
@@ -166,14 +165,14 @@ attribute [local simp] concat_eq_append append_assoc
   | _, _, acc => acc.toList
 
 @[csimp] theorem zipWith_eq_zipWithTR : @zipWith = @zipWithTR := by
-  ext α β γ f as bs
+  funext α β γ f as bs
   let rec go : ∀ as bs acc, zipWithTR.go f as bs acc = acc.data ++ as.zipWith f bs
     | [], _, acc | _::_, [], acc => by simp [zipWithTR.go, zipWith]
     | a::as, b::bs, acc => by simp [zipWithTR.go, zipWith, go as bs]
   exact (go as bs #[]).symm
 
 theorem map₂_eq_zipWith : @map₂ = @zipWith := by
-  ext α β γ f l₁ l₂
+  funext α β γ f l₁ l₂
   induction l₁ generalizing l₂ <;> cases l₂ <;> simp [zipWith, map₂, *]
 
 @[csimp] theorem map₂_eq_zipWithTR : @map₂ = @zipWithTR :=
@@ -184,7 +183,7 @@ def unzipTR (l : List (α × β)) : List α × List β :=
   l.foldr (fun (a, b) (al, bl) => (a::al, b::bl)) ([], [])
 
 @[csimp] theorem unzip_eq_unzipTR : @unzip = @unzipTR := by
-  ext α β l; simp [unzipTR]; induction l <;> simp [*]
+  funext α β l; simp [unzipTR]; induction l <;> simp [*]
 
 /-- Tail recursive version of `enumFrom`. -/
 def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
@@ -192,7 +191,7 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
   (arr.foldr (fun a (n, acc) => (n-1, (n-1, a) :: acc)) (n + arr.size, [])).2
 
 @[csimp] theorem enumFrom_eq_enumFromTR : @enumFrom = @enumFromTR := by
-  ext α n l; simp [enumFromTR, -Array.size_toArray]
+  funext α n l; simp [enumFromTR, -Array.size_toArray]
   let f := fun (a : α) (n, acc) => (n-1, (n-1, a) :: acc)
   let rec go : ∀ l n, l.foldr f (n + l.length, []) = (n, enumFrom n l)
     | [], n => rfl
@@ -203,10 +202,10 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
 /-- Tail recursive version of `dropLast`. -/
 @[inline] def dropLastTR (l : List α) : List α := l.toArray.pop.toList
 
-@[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by ext α l; simp [dropLastTR]
+@[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by funext α l; simp [dropLastTR]
 
 theorem init_eq_dropLast : @init = @dropLast := by
-  ext α l; induction l with
+  funext α l; induction l with
   | nil => simp [dropLast, init, *]
   | cons a l ih => cases l <;> simp [dropLast, init, *]
 
@@ -220,7 +219,7 @@ def intersperseTR (sep : α) : List α → List α
   | x::y::xs => x :: sep :: y :: xs.foldr (fun a r => sep :: a :: r) []
 
 @[csimp] theorem intersperse_eq_intersperseTR : @intersperse = @intersperseTR := by
-  ext α sep l; simp [intersperseTR]
+  funext α sep l; simp [intersperseTR]
   match l with
   | [] | [_] => rfl
   | x::y::xs => simp [intersperse]; induction xs generalizing y <;> simp [*]
@@ -238,7 +237,7 @@ where
   | x, y::xs, acc => go sep y xs (acc ++ x ++ sep)
 
 @[csimp] theorem intercalate_eq_intercalateTR : @intercalate = @intercalateTR := by
-  ext α sep l; simp [intercalate, intercalateTR]
+  funext α sep l; simp [intercalate, intercalateTR]
   match l with
   | [] => rfl
   | [_] => simp
@@ -356,7 +355,7 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
   | x :: xs, i+1, acc => go xs i (acc.push x)
 
 @[csimp] theorem removeNth_eq_removeNthTR : @removeNth = @removeNthTR := by
-  ext α l n; simp [removeNthTR]
+  funext α l n; simp [removeNthTR]
   suffices ∀ xs acc, l = acc.data ++ xs →
       removeNthTR.go l xs n acc = acc.data ++ xs.removeNth n from
     (this l #[] (by simp)).symm
@@ -490,7 +489,7 @@ theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modi
   | a :: l, n+1 => by simp [modifyNthTR.go, modifyNth, modifyNthTR_go_eq l]
 
 @[csimp] theorem modifyNth_eq_modifyNthTR : @modifyNth = @modifyNthTR := by
-  ext α f n l; simp [modifyNthTR, modifyNthTR_go_eq]
+  funext α f n l; simp [modifyNthTR, modifyNthTR_go_eq]
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
@@ -522,7 +521,7 @@ theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ inse
   | n+1, a :: l => by simp [insertNthTR.go, insertNth, insertNthTR_go_eq n l]
 
 @[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
-  ext α f n l; simp [insertNthTR, insertNthTR_go_eq]
+  funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
 
 /--
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
@@ -548,7 +547,7 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l
   | _+1, _::l => by simp [takeDTR.go, takeDTR_go_eq _ l]
 
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
-  ext α f n l; simp [takeDTR, takeDTR_go_eq]
+  funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
@@ -572,7 +571,7 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
 @[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  ext α f n l; simp [scanlTR, scanlTR_go_eq]
+  funext α f n l; simp [scanlTR, scanlTR_go_eq]
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -715,7 +714,7 @@ def initsTR (l : List α) : List (List α) :=
   l.foldr (fun a arrs => (arrs.map fun t => a :: t).push []) #[[]] |>.toListRev
 
 @[csimp] theorem inits_eq_initsTR : @inits = @initsTR := by
-  ext α l; simp [initsTR]; induction l <;> simp [*]
+  funext α l; simp [initsTR]; induction l <;> simp [*]
 
 /--
 `tails l` is the list of terminal segments of `l`.
@@ -736,7 +735,7 @@ def tailsTR (l : List α) : List (List α) := go l #[] where
     | _::xs => go xs (acc.push l)
 
 @[csimp] theorem tails_eq_tailsTR : @tails = @tailsTR := by
-  ext α
+  funext α
   have H (l : List α) : ∀ acc, tailsTR.go l acc = acc.toList ++ tails l := by
     induction l <;> simp [*, tailsTR.go]
   simp [tailsTR, H]
@@ -842,7 +841,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
 
 @[csimp] theorem sections_eq_sectionsTR : @sections = @sectionsTR := by
-  ext α L; simp [sectionsTR]
+  funext α L; simp [sectionsTR]
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go, Array.foldl_eq_foldl_data]
@@ -863,7 +862,7 @@ def erasep (p : α → Bool) : List α → List α
   | a :: l, acc => bif p a then acc.toListAppend l else go l (acc.push a)
 
 @[csimp] theorem erasep_eq_erasepTR : @erasep = @erasepTR := by
-  ext α p l; simp [erasepTR]
+  funext α p l; simp [erasepTR]
   let rec go (acc) : ∀ xs, l = acc.data ++ xs →
     erasepTR.go p l xs acc = acc.data ++ xs.erasep p
   | [] => fun h => by simp [erasepTR.go, erasep, h]
@@ -906,7 +905,7 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  ext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp [product, productTR]
   rw [Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
@@ -922,7 +921,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  ext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
   rw [Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
@@ -1023,7 +1022,7 @@ def Nodup : List α → Prop := Pairwise (· ≠ ·)
   | n+1, e, acc => go n (e-1) ((e-1) :: acc)
 
 @[csimp] theorem range'_eq_range'TR : @range' = @range'TR := by
-  ext s n
+  funext s n
   let rec go (s) : ∀ n m, range'TR.go n (s + n) (range' (s + n) m) = range' s (n + m)
   | 0, m => by simp [range'TR.go]
   | n+1, m => (go s n (m + 1)).trans <| congrArg _ (Nat.add_right_comm n m 1)
@@ -1125,7 +1124,7 @@ theorem dropSlice_zero₂ : ∀ n l, @dropSlice α n 0 l = l
   | n+1, x::xs => by simp [dropSlice, dropSlice_zero₂]
 
 @[csimp] theorem dropSlice_eq_dropSliceTR : @dropSlice = @dropSliceTR := by
-  ext α n m l; simp [dropSliceTR]
+  funext α n m l; simp [dropSliceTR]
   split; { rw [dropSlice_zero₂] }
   rename_i m
   let rec go (acc) : ∀ xs n, l = acc.data ++ xs →
@@ -1160,7 +1159,7 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   | a :: as, b :: bs, acc => go as bs (acc.push (f a (some b)))
 
 @[csimp] theorem zipWithLeft'_eq_zipWithLeft'TR : @zipWithLeft' = @zipWithLeft'TR := by
-  ext α β γ f as bs; simp [zipWithLeft'TR]
+  funext α β γ f as bs; simp [zipWithLeft'TR]
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
@@ -1230,7 +1229,7 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   | a :: as, b :: bs, acc => go as bs (acc.push (f a (some b)))
 
 @[csimp] theorem zipWithLeft_eq_zipWithLeftTR : @zipWithLeft = @zipWithLeftTR := by
-  ext α β γ f as bs; simp [zipWithLeftTR]
+  funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
   | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_data_eq_map]
@@ -1308,7 +1307,7 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
   | none :: as, a :: as', acc => go as as' (acc.push a)
 
 @[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  ext α as as'; simp [fillNonesTR]
+  funext α as as'; simp [fillNonesTR]
   let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.data ++ as.fillNones as'
   | [], _ => by simp [fillNonesTR.go]
   | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
@@ -1345,7 +1344,7 @@ def takeList {α} : List α → List Nat → List (List α) × List α
     go ns xs₂ (acc.push xs₁)
 
 @[csimp] theorem takeList_eq_takeListTR : @takeList = @takeListTR := by
-  ext α xs ns; simp [takeListTR]
+  funext α xs ns; simp [takeListTR]
   let rec go (acc) : ∀ ns xs, @takeListTR.go α ns xs acc =
       let (l, r) := xs.takeList ns; (acc.toList ++ l, r)
   | [], xs => by simp [takeListTR.go, takeList]
