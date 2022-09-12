@@ -50,6 +50,10 @@ instance {p : α → Prop} [DecidablePred p] : ∀ o : Option α, Decidable (∃
 | none => isFalse fun.
 | some a => if h : p a then isTrue ⟨_, rfl, h⟩ else isFalse fun ⟨_, ⟨rfl, hn⟩⟩ => h hn
 
+/-- Extracts the value `a` from an option that is known to be `some a` for some `a`. -/
+def get {α : Type u} : (o : Option α) → isSome o → α
+  | some x, _ => x
+
 /-- `guard p a` returns `some a` if `p a` holds, otherwise `none`. -/
 def guard (p : α → Prop) [DecidablePred p] (a : α) : Option α := if p a then some a else none
 
