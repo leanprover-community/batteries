@@ -1,4 +1,5 @@
 import Std.Classes.Dvd
+import Std.Classes.LawfulMonad
 import Std.Classes.SetNotation
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
@@ -14,6 +15,7 @@ import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
+import Std.Data.Option.Basic
 import Std.Data.Rat
 import Std.Lean.Command
 import Std.Lean.NameMapAttribute
