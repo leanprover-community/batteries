@@ -476,7 +476,7 @@ modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
 def modifyNth (f : α → α) : Nat → List α → List α :=
   modifyNthTail (modifyHead f)
 
-/-- Apply `f` to the nth element of the list, if it exists. -/
+/-- Tail-recursive version of `modifyNth`. -/
 def modifyNthTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] where
   /-- Auxiliary for `modifyNthTR`: `modifyNthTR.go f l n acc = acc.toList ++ modifyNth f n l`. -/
   go : List α → Nat → Array α → List α
@@ -506,12 +506,23 @@ theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modi
 insertNth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
 ```
 -/
-@[inline] def insertNth (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
-  /-- Auxiliary for `insertNth`: `insertNth.go a n l acc = acc.toList ++ insertNth n a l`. -/
+def insertNth (n : Nat) (a : α) : List α → List α :=
+  modifyNthTail (cons a) n
+
+/-- Tail-recursive version of `insertNth`. -/
+@[inline] def insertNthTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
+  /-- Auxiliary for `insertNthTR`: `insertNthTR.go a n l acc = acc.toList ++ insertNth n a l`. -/
   go : Nat → List α → Array α → List α
   | 0, l, acc => acc.toListAppend (a :: l)
   | _, [], acc => acc.toList
   | n+1, a :: l, acc => go n l (acc.push a)
+
+theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ insertNth n a l
+  | 0, l | _+1, [] => by simp [insertNthTR.go, insertNth]
+  | n+1, a :: l => by simp [insertNthTR.go, insertNth, insertNthTR_go_eq n l]
+
+@[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
+  ext α f n l; simp [insertNthTR, insertNthTR_go_eq]
 
 /--
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
