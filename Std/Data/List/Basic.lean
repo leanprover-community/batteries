@@ -341,13 +341,30 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
 
 /-- Removes the `n`th element of `l`, or the original list if `n` is out of bounds. -/
-@[inline] def removeNth (l : List α) (n : Nat) : List α := go l n #[] where
-  /-- Auxiliary for `removeNth`:
-  `removeNth.go l xs n acc = acc.toList ++ removeNth xs n` if `n < length xs`, else `l`. -/
+@[simp] def removeNth : List α → Nat → List α
+  | [], _ => []
+  | _ :: xs, 0 => xs
+  | x :: xs, i+1 => x :: removeNth xs i
+
+/-- Tail recursive version of `removeNth`. -/
+@[inline] def removeNthTR (l : List α) (n : Nat) : List α := go l n #[] where
+  /-- Auxiliary for `removeNthTR`:
+  `removeNthTR.go l xs n acc = acc.toList ++ removeNth xs n` if `n < length xs`, else `l`. -/
   go : List α → Nat → Array α → List α
   | [], _, _ => l
   | _ :: xs, 0, acc => acc.toListAppend xs
   | x :: xs, i+1, acc => go xs i (acc.push x)
+
+@[csimp] theorem removeNth_eq_removeNthTR : @removeNth = @removeNthTR := by
+  ext α l n; simp [removeNthTR]
+  suffices ∀ xs acc, l = acc.data ++ xs →
+      removeNthTR.go l xs n acc = acc.data ++ xs.removeNth n from
+    (this l #[] (by simp)).symm
+  intro xs; induction xs generalizing n with intro acc
+  | nil => simp [removeNth, removeNthTR.go]; exact id
+  | cons x xs IH =>
+    cases n <;> simp [removeNth, removeNthTR.go, *]
+    · intro h; rw [IH]; simp; simp; exact h
 
 /-- Calculates the OR of a list of bools. -/
 @[inline] def bor (l : List Bool) : Bool := any l id

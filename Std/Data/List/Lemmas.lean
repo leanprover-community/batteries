@@ -39,11 +39,11 @@ theorem exists_mem_of_length_pos : ∀ {l : List α}, 0 < length l → ∃ a, a 
 theorem length_pos_iff_exists_mem {l : List α} : 0 < length l ↔ ∃ a, a ∈ l :=
   ⟨exists_mem_of_length_pos, fun ⟨_, h⟩ => length_pos_of_mem h⟩
 
-theorem length_pos_iff_ne_nil {l : List α} : 0 < length l ↔ l ≠ [] :=
+theorem length_pos {l : List α} : 0 < length l ↔ l ≠ [] :=
   Nat.pos_iff_ne_zero.trans (not_congr length_eq_zero)
 
 theorem exists_mem_of_ne_nil (l : List α) (h : l ≠ []) : ∃ x, x ∈ l :=
-  exists_mem_of_length_pos (length_pos_iff_ne_nil.2 h)
+  exists_mem_of_length_pos (length_pos.2 h)
 
 theorem length_eq_one {l : List α} : length l = 1 ↔ ∃ a, l = [a] :=
   ⟨fun h => match l, h with | [_], _ => ⟨_, rfl⟩, fun ⟨_, h⟩ => by simp [h]⟩
@@ -191,10 +191,10 @@ theorem exists_mem_nil (p : α → Prop) : ¬∃ x ∈ @nil α, p x := fun.
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x := fun.
 
-theorem exists_mem_cons (p : α → Prop) (a : α) (l : List α) :
+theorem exists_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x := by simp
 
-theorem forall_mem_cons (p : α → Prop) (a : α) (l : List α) :
+theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x := by simp
 
 theorem forall_mem_singleton {p : α → Prop} {a : α} : (∀ x ∈ [a], p x) ↔ p a := by
@@ -333,18 +333,14 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
 
 /-! ### remove nth -/
 
-theorem length_removeNth_go (l : List α) {xs i} (acc) (h : i < length xs) :
-    length (removeNth.go l xs i acc) = acc.size + (length xs - 1) := by
-  match xs, i with
-  | x::xs, 0 => simp [removeNth.go]; rfl
-  | x::xs, i+1 =>
+theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i) = length l - 1
+  | [], _, _ => rfl
+  | x::xs, 0, _ => by simp [removeNth]; rfl
+  | x::xs, i+1, h => by
     have : i < length xs := Nat.lt_of_succ_lt_succ h
-    simp [removeNth.go, length_removeNth_go _ _ this]
-    rw [Nat.add_right_comm, Nat.add_assoc,
+    simp [removeNth, ← Nat.add_one]
+    rw [length_removeNth this,
       Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]; rfl
-
-theorem length_removeNth (h : i < length l) : length (removeNth l i) = length l - 1 :=
-  (length_removeNth_go _ _ h).trans (Nat.zero_add _)
 
 /-! ### tail -/
 
