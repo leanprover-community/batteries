@@ -14,7 +14,6 @@ import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
-import Std.Data.Queue
 import Std.Data.Rat
 import Std.Lean.Command
 import Std.Lean.NameMapAttribute
