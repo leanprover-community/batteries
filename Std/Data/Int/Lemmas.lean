@@ -71,7 +71,7 @@ theorem ofNat_eq_zero : ofNat n = 0 ↔ n = 0 := ofNat_inj
 
 theorem ofNat_ne_zero : ofNat n ≠ 0 ↔ n ≠ 0 := not_congr ofNat_eq_zero
 
-theorem negSucc_ofNat_inj_iff : negSucc m = negSucc n ↔ m = n := ⟨negSucc.inj, λ H => by simp [H]⟩
+theorem negSucc_ofNat_inj_iff : negSucc m = negSucc n ↔ m = n := ⟨negSucc.inj, fun H => by simp [H]⟩
 
 theorem negSucc_ofNat_eq (n : Nat) : -[n+1] = -(↑n + 1) := rfl
 

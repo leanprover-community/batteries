@@ -9,6 +9,8 @@ import Std.Data.Nat.Basic
 
 namespace Nat
 
+attribute [simp] succ_ne_zero lt_succ_self
+
 theorem succ_ne_self : ∀ n : Nat, succ n ≠ n
 | 0,   h => absurd h (succ_ne_zero 0)
 | n+1, h => succ_ne_self n (Nat.noConfusion h id)
@@ -197,9 +199,8 @@ protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
 
 theorem mod_two_eq_zero_or_one (n : Nat) : n % 2 = 0 ∨ n % 2 = 1 :=
   match n % 2, @Nat.mod_lt n 2 (by simp) with
-  | 0,   _ => Or.inl rfl
-  | 1,   _ => Or.inr rfl
-  | k+2, h => absurd h (λ h => not_lt_zero k (lt_of_succ_lt_succ (lt_of_succ_lt_succ h)))
+  | 0, _ => .inl rfl
+  | 1, _ => .inr rfl
 
 /- div & mod -/
 
@@ -342,7 +343,7 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
   (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
 
 theorem le_zero_iff {i : Nat} : i ≤ 0 ↔ i = 0 :=
-  ⟨Nat.eq_zero_of_le_zero, λ h => h ▸ Nat.le_refl i⟩
+  ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
 
 theorem lt_succ_iff {m n : Nat} : m < succ n ↔ m ≤ n :=
   ⟨le_of_lt_succ, lt_succ_of_le⟩
@@ -609,7 +610,7 @@ protected theorem dvd_add_iff_right {k m n : Nat} (h : k ∣ m) : k ∣ n ↔ k 
   ⟨Nat.dvd_add h,
     match m, h with
     | _, ⟨d, rfl⟩ => fun ⟨e, he⟩ =>
-      ⟨e - d, by rw [Nat.mul_sub_left_distrib, ←he, Nat.add_sub_cancel_left]⟩⟩
+      ⟨e - d, by rw [Nat.mul_sub_left_distrib, ← he, Nat.add_sub_cancel_left]⟩⟩
 
 protected theorem dvd_add_iff_left {k m n : Nat} (h : k ∣ n) : k ∣ m ↔ k ∣ m + n := by
   rw [Nat.add_comm]; exact Nat.dvd_add_iff_right h
