@@ -56,11 +56,11 @@ theorem append_inj_right' (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = 
 theorem append_inj_left' (h : s₁ ++ t₁ = s₂ ++ t₂) (hl : length t₁ = length t₂) : s₁ = s₂ :=
   (append_inj' h hl).left
 
-theorem append_right_inj {s t₁ t₂ : List α} (h : s ++ t₁ = s ++ t₂) : t₁ = t₂ :=
-  append_inj_right h rfl
+theorem append_right_inj {t₁ t₂ : List α} (s) : s ++ t₁ = s ++ t₂ ↔ t₁ = t₂ :=
+  ⟨fun h => append_inj_right h rfl, congrArg _⟩
 
-theorem append_left_inj {s₁ s₂ t : List α} (h : s₁ ++ t = s₂ ++ t) : s₁ = s₂ :=
-  append_inj_left' h rfl
+theorem append_left_inj {s₁ s₂ : List α} (t) : s₁ ++ t = s₂ ++ t ↔ s₁ = s₂ :=
+  ⟨fun h => append_inj_left' h rfl, congrArg (· ++ _)⟩
 
 /-! ### map -/
 
@@ -126,7 +126,7 @@ theorem take_length_le {l : List α} (h : l.length ≤ i) : take i l = l := by
 
 theorem take_concat_get (l : List α) (i : Nat) (h : i < l.length) :
     (l.take i).concat l[i] = l.take (i+1) :=
-  Eq.symm <| append_left_inj <| (take_append_drop (i+1) l).trans <| by
+  Eq.symm <| (append_left_inj _).1 <| (take_append_drop (i+1) l).trans <| by
     rw [concat_eq_append, append_assoc, singleton_append, get_drop_eq_drop, take_append_drop]
 
 @[simp] theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.reverse := by
