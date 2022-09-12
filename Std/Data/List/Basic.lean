@@ -839,12 +839,27 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   intros; apply Array.foldl_data_eq_map
 
 /-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
-def erasep (p : α → Bool) (l : List α) : List α := go l #[] where
-  /-- Auxiliary for `erasep`: `erasep.go p l xs acc = acc.toList ++ erasep p xs`,
+@[simp] def erasep (p : α → Bool) : List α → List α
+  | [] => []
+  | a :: l => bif p a then l else a :: erasep p l
+
+/-- Tail-recursive version of `erasep`. -/
+@[inline] def erasepTR (p : α → Bool) (l : List α) : List α := go l #[] where
+  /-- Auxiliary for `erasepTR`: `erasepTR.go p l xs acc = acc.toList ++ erasep p xs`,
   unless `xs` does not contain any elements satisfying `p`, where it returns `l`. -/
-  go : List α → Array α → List α
+  @[specialize] go : List α → Array α → List α
   | [], _ => l
   | a :: l, acc => bif p a then acc.toListAppend l else go l (acc.push a)
+
+@[csimp] theorem erasep_eq_erasepTR : @erasep = @erasepTR := by
+  ext α p l; simp [erasepTR]
+  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
+    erasepTR.go p l xs acc = acc.data ++ xs.erasep p
+  | [] => fun h => by simp [erasepTR.go, erasep, h]
+  | x::xs => by
+    simp [erasepTR.go, erasep]; cases p x <;> simp
+    · intro h; rw [go _ xs]; {simp}; simp [h]
+  exact (go #[] _ rfl).symm
 
 /--
 `extractp p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -1372,7 +1387,7 @@ These can also be written in terms of `List.zip` or `List.zipWith`.
 For example, `zipWith₃ f xs ys zs` could also be written as
 `zipWith id (zipWith f xs ys) zs`
 or as
-`(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
+`(zip xs <| zip ys zs).map fun ⟨x, y, z⟩ => f x y z`.
 -/
 
 -- TODO(Mario): tail recursive
