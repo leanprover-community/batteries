@@ -129,3 +129,6 @@ Unlike `trivial` or `trivial'`, does not use the `contradiction` tactic.
 -/
 macro (name := triv) "triv" : tactic =>
   `(tactic| first | exact trivial | rfl | fail "triv tactic failed")
+
+/-- `conv` tactic to close a goal using an equality theorem. -/
+macro (name := Conv.exact) "exact" t:term : conv => `(conv| tactic => exact $t)
