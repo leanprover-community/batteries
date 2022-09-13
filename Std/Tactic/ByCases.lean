@@ -54,8 +54,8 @@ if a tactic sequence is provided for `tac1` or `tac2` then it will require the g
 by the end of the block.
 -/
 syntax (name := tacDepIfThenElse)
-  ppRealGroup(ppRealFill(ppIndent("if " ident " : " term " then") ppSpace tacticSeq)
-    ppDedent(ppSpace) ppRealFill("else " tacticSeq)) : tactic
+  ppRealGroup(ppRealFill(ppIndent("if " ident " : " term " then") ppSpace matchRhs)
+    ppDedent(ppSpace) ppRealFill("else " matchRhs)) : tactic
 
 /--
 In tactic mode, `if t then tac1 else tac2` is alternative syntax for:

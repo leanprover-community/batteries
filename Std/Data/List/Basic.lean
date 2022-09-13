@@ -199,6 +199,11 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]; simp; rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
+theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
+  | 0 => rfl
+  | n+1 => by rw [← replicateTR_loop_replicate_eq _ 1 n, replicate, replicate,
+    replicateTR.loop, replicateTR_loop_eq n, replicateTR_loop_eq n, append_assoc]; rfl
+
 /-- Tail recursive version of `dropLast`. -/
 @[inline] def dropLastTR (l : List α) : List α := l.toArray.pop.toList
 
@@ -257,7 +262,8 @@ protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a
 
 instance : Subset (List α) := ⟨List.Subset⟩
 
-instance decidableBEx (p : α → Prop) [DecidablePred p] : ∀ l : List α, Decidable (∃ x ∈ l, p x)
+instance decidableBEx (p : α → Prop) [DecidablePred p] :
+    ∀ l : List α, Decidable (∃ x ∈ l, p x)
   | [] => isFalse fun.
   | x :: xs =>
     if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
@@ -267,9 +273,17 @@ instance decidableBEx (p : α → Prop) [DecidablePred p] : ∀ l : List α, Dec
         | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
         | ⟨_, .head .., hp⟩ => h₁ hp
 
-instance decidableBAll (p : α → Prop) [DecidablePred p] (l : List α) : Decidable (∀ x ∈ l, p x) :=
-  if h : ∃ x ∈ l, ¬p x then isFalse <| let ⟨x, h, np⟩ := h; fun al => np (al x h)
-  else isTrue <| fun x hx => if h' : p x then h' else (h ⟨x, hx, h'⟩).elim
+instance decidableBAll (p : α → Prop) [DecidablePred p] :
+    ∀ l : List α, Decidable (∀ x ∈ l, p x)
+  | [] => isTrue fun.
+  | x :: xs =>
+    if h₁ : p x then
+      match decidableBAll p xs with
+      | isTrue h₂ => isTrue fun
+        | y, .tail _ h => h₂ y h
+        | _, .head .. => h₁
+      | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
+    else isFalse fun H => h₁ <| H x (.head ..)
 
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
@@ -399,7 +413,7 @@ inductive Sublist {α} : List α → List α → Prop
   | /-- If `l₁` is a subsequence of `l₂`, then it is also a subsequence of `a :: l₂`. -/
     cons a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
   | /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
-    cons2 a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
+    cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
 
 @[inheritDoc] scoped infixl:50 " <+ " => Sublist
 
@@ -548,6 +562,19 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l
 
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
+
+/--
+Pads `l : List α` with repeated occurrences of `a : α` until it is of length `n`.
+If `l` is initially larger than `n`, just return `l`.
+-/
+def leftpad (n : Nat) (a : α) (l : List α) : List α := replicate (n - length l) a ++ l
+
+/-- Optimized version of `leftpad`. -/
+@[inline] def leftpadTR (n : Nat) (a : α) (l : List α) : List α :=
+  replicateTR.loop a (n - length l) l
+
+@[csimp] theorem leftpad_eq_leftpadTR : @leftpad = @leftpadTR := by
+  funext α n a l; simp [leftpad, leftpadTR, replicateTR_loop_eq]
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
@@ -938,7 +965,7 @@ def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
 /-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
-def disjoint (l₁ l₂ : List α) : Prop :=
+def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
 section Pairwise
@@ -957,9 +984,25 @@ and if `R = (·<·)` then it asserts that `l` is (strictly) sorted.
 inductive Pairwise : List α → Prop
   | /-- All elements of the empty list are vacuously pairwise related. -/
     nil : Pairwise []
-  | /-- `a :: l` is `Pairwise R` if `a` `Rrelates to every element of `l`,
+  | /-- `a :: l` is `Pairwise R` if `a` `R`-relates to every element of `l`,
     and `l` is `Pairwise R`. -/
     cons : ∀ {a : α} {l : List α}, (∀ a' ∈ l, R a a') → Pairwise l → Pairwise (a :: l)
+
+variable {R}
+
+@[simp] theorem Pairwise_cons : Pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ Pairwise R l :=
+  ⟨fun | .cons h₁ h₂ => ⟨h₁, h₂⟩, fun ⟨h₁, h₂⟩ => h₂.cons h₁⟩
+
+instance instDecidablePairwise [DecidableRel R] :
+    (l : List α) → Decidable (Pairwise R l)
+  | [] => isTrue .nil
+  | hd :: tl =>
+    match instDecidablePairwise tl with
+    | isTrue ht =>
+      match decidableBAll (R hd) tl with
+      | isFalse hf => isFalse fun hf' => hf (Pairwise_cons.1 hf').1
+      | isTrue ht' => isTrue <| Pairwise_cons.mpr (And.intro ht' ht)
+    | isFalse hf => isFalse fun | .cons _ ih => hf ih
 
 end Pairwise
 
@@ -1001,6 +1044,9 @@ end Chain
 /-- `Nodup l` means that `l` has no duplicates, that is, any element appears at most
   once in the List. It is defined as `Pairwise (≠)`. -/
 def Nodup : List α → Prop := Pairwise (· ≠ ·)
+
+instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) :=
+  instDecidablePairwise
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
   Defined as `pwFilter (≠)`.
