@@ -18,6 +18,9 @@ def repeat' [Monad m] [MonadError m] [MonadMCtx m]
   let acc ← go maxIters gs [] #[]
   pure (← acc.filterM fun g => not <$> g.isAssigned).toList
 where
+  /-- Auxiliary for `repeat'`. `repeat'.go f maxIters gs stk acc` evaluates to
+  essentially `acc.toList ++ repeat' f (gs::stk).join maxIters`: that is, `acc` are goals we will
+  not revisit, and `(gs::stk).join` is the accumulated todo list of subgoals. -/
   go : Nat → List MVarId → List (List MVarId) → Array MVarId → m (Array MVarId)
   | _, [], [], acc => pure acc
   | n, [], gs::stk, acc => go n gs stk acc
