@@ -56,7 +56,7 @@ theorem foldrM_eq_reverse_foldlM_data [Monad m] (f : α → β → m β) (init :
   match arr, this with | _, .inl rfl => rfl | arr, .inr h => ?_
   simp [foldrM, h, ← foldrM_eq_reverse_foldlM_data.aux, List.take_length]
 
-theorem foldrM_eq_foldrM_data [Monad m] [LawfulMonad m]
+theorem foldrM_eq_foldrM_data [Monad m]
     (f : α → β → m β) (init : β) (arr : Array α) :
     arr.foldrM f init = arr.data.foldrM f init := by
   rw [foldrM_eq_reverse_foldlM_data, List.foldlM_reverse]; rfl

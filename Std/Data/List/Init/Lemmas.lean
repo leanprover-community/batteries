@@ -16,10 +16,10 @@ New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by
 -/
 
 attribute [simp] get get! get? head? headD head tail! tail? tailD getLast! getLast?
-  getLastD reverseAux eraseIdx map map₂ join filterMap dropWhile find? findSome?
-  replace elem lookup drop take takeWhile foldl foldr zipWith unzip rangeAux enumFrom init
+  getLastD reverseAux eraseIdx map join filterMap dropWhile find? findSome?
+  replace elem lookup drop take takeWhile foldl foldr zipWith unzip rangeAux enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM mapA List.forM forA filterAuxM filterMapM.loop
-  List.foldlM foldrM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
+  List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
 
 /-! ### length -/
 
@@ -132,16 +132,21 @@ theorem take_concat_get (l : List α) (i : Nat) (h : i < l.length) :
 @[simp] theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.reverse := by
   rw [concat_eq_append, reverse_append]; rfl
 
-theorem foldlM_reverseAux [Monad m] [LawfulMonad m] (f : β → α → m β) :
-    ∀ (l l' : List α) (b : β),
-    (l.reverseAux l').foldlM f b = l.foldrM (fun x y => f y x) b >>= l'.foldlM f
-  | [], l', b => by simp
-  | a::l, l', b => by simp [foldlM_reverseAux f l]
+@[simp] theorem foldlM_reverse [Monad m] (l : List α) (f : β → α → m β) (b) :
+    l.reverse.foldlM f b = l.foldrM (fun x y => f y x) b := rfl
 
-@[simp] theorem foldlM_reverse [Monad m] [LawfulMonad m] (l : List α) (f : β → α → m β) (b) :
-    l.reverse.foldlM f b = l.foldrM (fun x y => f y x) b := by simp [reverse, foldlM_reverseAux]
+@[simp] theorem foldlM_append [Monad m] [LawfulMonad m] (f : β → α → m β) (b) (l l' : List α) :
+    (l ++ l').foldlM f b = l.foldlM f b >>= l'.foldlM f := by
+  induction l generalizing b <;> simp [*]
 
-@[simp] theorem foldrM_reverse [Monad m] [LawfulMonad m] (l : List α) (f : α → β → m β) (b) :
+@[simp] theorem foldrM_nil [Monad m] (f : α → β → m β) (b) : [].foldrM f b = pure b := rfl
+
+@[simp] theorem foldrM_cons [Monad m] [LawfulMonad m] (a : α) (l) (f : α → β → m β) (b) :
+    (a :: l).foldrM f b = l.foldrM f b >>= f a := by
+  simp only [foldrM]
+  induction l <;> simp_all
+
+@[simp] theorem foldrM_reverse [Monad m] (l : List α) (f : α → β → m β) (b) :
     l.reverse.foldrM f b = l.foldlM (fun x y => f y x) b :=
   (foldlM_reverse ..).symm.trans <| by simp
 
@@ -159,10 +164,6 @@ theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
 @[simp] theorem foldr_reverse (l : List α) (f : α → β → β) (b) :
     l.reverse.foldr f b = l.foldl (fun x y => f y x) b :=
   (foldl_reverse ..).symm.trans <| by simp
-
-@[simp] theorem foldlM_append [Monad m] [LawfulMonad m] (f : β → α → m β) (b) (l l' : List α) :
-    (l ++ l').foldlM f b = l.foldlM f b >>= l'.foldlM f := by
-  induction l generalizing b <;> simp [*]
 
 @[simp] theorem foldrM_append [Monad m] [LawfulMonad m] (f : α → β → m β) (b) (l l' : List α) :
     (l ++ l').foldrM f b = l'.foldrM f b >>= l.foldrM f := by

@@ -171,13 +171,6 @@ attribute [local simp] concat_eq_append append_assoc
     | a::as, b::bs, acc => by simp [zipWithTR.go, zipWith, go as bs]
   exact (go as bs #[]).symm
 
-theorem map₂_eq_zipWith : @map₂ = @zipWith := by
-  funext α β γ f l₁ l₂
-  induction l₁ generalizing l₂ <;> cases l₂ <;> simp [zipWith, map₂, *]
-
-@[csimp] theorem map₂_eq_zipWithTR : @map₂ = @zipWithTR :=
-  map₂_eq_zipWith.trans zipWith_eq_zipWithTR
-
 /-- Tail recursive version of `unzip`. -/
 def unzipTR (l : List (α × β)) : List α × List β :=
   l.foldr (fun (a, b) (al, bl) => (a::al, b::bl)) ([], [])
@@ -208,14 +201,6 @@ theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++
 @[inline] def dropLastTR (l : List α) : List α := l.toArray.pop.toList
 
 @[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by funext α l; simp [dropLastTR]
-
-theorem init_eq_dropLast : @init = @dropLast := by
-  funext α l; induction l with
-  | nil => simp [dropLast, init, *]
-  | cons a l ih => cases l <;> simp [dropLast, init, *]
-
-@[csimp] theorem init_eq_dropLastTR : @init = @dropLastTR :=
-  init_eq_dropLast.trans dropLast_eq_dropLastTR
 
 /-- Tail recursive version of `intersperse`. -/
 def intersperseTR (sep : α) : List α → List α

@@ -146,9 +146,9 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : List.map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
 
-@[simp] theorem length_map₂ (f : α → β → γ) l₁ :
-  ∀ l₂, length (map₂ f l₁ l₂) = min (length l₁) (length l₂) := by
-  induction l₁ <;> intro l₂ <;> cases l₂ <;>
+@[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
+    length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
 /-! ### join -/

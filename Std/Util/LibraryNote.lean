@@ -24,12 +24,6 @@ initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array
     addImportedFn := Array.concatMap id
   }
 
-/-- Extract the doc-comment from a `Syntax`. -/
--- TODO move?
-def getDocCommentContent (stx : Syntax) : String :=
-  let val := stx[1].getAtomVal!
-  val.extract 0 (val.endPos - ⟨2⟩)
-
 open Lean Parser Command in
 /--
 ```
@@ -43,4 +37,4 @@ creates a new "library note", which can then be cross-referenced using
 in doc-comments.
 -/
 elab "library_note " title:strLit ppSpace text:docComment : command => do
-  modifyEnv (libraryNoteExt.addEntry · (title.1.isStrLit?.get!, getDocCommentContent text))
+  modifyEnv (libraryNoteExt.addEntry · (title.getString, text.getDocString))
