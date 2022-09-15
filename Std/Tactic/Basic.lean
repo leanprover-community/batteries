@@ -7,6 +7,8 @@ import Std.Tactic.NoMatch
 import Std.Tactic.GuardExpr
 import Std.Tactic.ByCases
 import Lean.Elab.Tactic.ElabTerm
+import Std.Lean.Meta
+import Std.Lean.Tactic
 
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
 
@@ -78,28 +80,19 @@ macro_rules
     | 0 => `(tactic| skip)
     | n+1 => `(tactic|($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
 
-private partial def repeat'Aux (tac : Syntax) : List MVarId → TacticM Unit
-| []    => pure ()
-| g::gs =>
-  try
-    let subgs ← evalTacticAt tac g
-    appendGoals subgs
-    repeat'Aux tac (subgs ++ gs)
-  catch _ =>
-    repeat'Aux tac gs
-
 /--
 `repeat' tac` runs `tac` on all of the goals to produce a new list of goals,
 then runs `tac` again on all of those goals, and repeats until `tac` fails on all remaining goals.
 -/
-elab "repeat' " tac:tacticSeq : tactic => do repeat'Aux tac (← getGoals)
+elab "repeat' " tac:tacticSeq : tactic => do
+  setGoals (← repeat' (evalTacticAtRaw tac) (← getGoals))
 
 /-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
 elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
 
 /-- `split_ands` applies `And.intro` until it does not make progress. -/
 syntax "split_ands" : tactic
-macro_rules | `(tactic| split_ands) => `(tactic| repeat' (refine And.intro ?_ ?_))
+macro_rules | `(tactic| split_ands) => `(tactic| repeat' refine And.intro ?_ ?_)
 
 /--
 `fapply e` is like `apply e` but it adds goals in the order they appear,
