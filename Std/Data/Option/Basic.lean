@@ -9,15 +9,6 @@ import Std.Tactic.NoMatch
 
 namespace Option
 
-instance : LawfulMonad Option := LawfulMonad.mk'
-  (id_map := fun x => Option.rec rfl (λ x => rfl) x)
-  (pure_bind := fun x f => rfl)
-  (bind_assoc := fun x f g => Option.rec rfl (fun x => rfl) x)
-  (bind_pure_comp := fun f x => by cases x <;> rfl)
-
-instance : LawfulApplicative Option := inferInstance
-instance : LawfulFunctor Option := inferInstance
-
 /-- An elimination principle for `Option`. It is a nondependent version of `Option.recOn`. -/
 @[simp] protected def elim : Option α → β → (α → β) → β
   | some x, _, f => f x
