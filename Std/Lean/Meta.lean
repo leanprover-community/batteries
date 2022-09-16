@@ -29,7 +29,7 @@ where
       go n gs stk acc
     else
       match n with
-      | 0 => pure (acc ++ gs)
+      | 0 => pure (acc ++ g::gs ++ stk.join)
       | n+1 =>
         match ← observing (f g) with
         | .ok gs' => go n gs' (gs::stk) acc
