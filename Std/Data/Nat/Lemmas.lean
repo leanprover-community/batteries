@@ -30,6 +30,8 @@ attribute [simp] Nat.pred_zero Nat.pred_succ
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 
+theorem succ_le {n m : Nat} : succ n ≤ m ↔ n < m := .rfl
+
 protected theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := (Nat.le_total a b).resolve_left
 
 protected theorem pos_of_ne_zero {n : Nat} : n ≠ 0 → 0 < n := (eq_zero_or_pos n).resolve_left
@@ -38,6 +40,10 @@ protected theorem pos_iff_ne_zero {n : Nat} : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, 
 
 protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun h => Nat.gt_of_not_le h.2⟩
+
+protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :=
+  Nat.lt_iff_le_not_le.trans (and_congr_right fun h =>
+    not_congr ⟨Nat.le_antisymm h, fun e => e ▸ Nat.le_refl _⟩)
 
 @[simp] protected theorem not_le {a b : Nat} : ¬ a ≤ b ↔ b < a :=
   ⟨Nat.gt_of_not_le, Nat.not_le_of_gt⟩
@@ -342,10 +348,10 @@ protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := (Nat.lt_or_ge _ 
 protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
   (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
 
-theorem le_zero_iff {i : Nat} : i ≤ 0 ↔ i = 0 :=
+theorem le_zero {i : Nat} : i ≤ 0 ↔ i = 0 :=
   ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
 
-theorem lt_succ_iff {m n : Nat} : m < succ n ↔ m ≤ n :=
+theorem lt_succ {m n : Nat} : m < succ n ↔ m ≤ n :=
   ⟨le_of_lt_succ, lt_succ_of_le⟩
 
 /- subtraction -/

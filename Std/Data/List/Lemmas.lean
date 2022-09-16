@@ -483,7 +483,7 @@ theorem get?_append_right : ∀ {l₁ l₂ : List α} {n : Nat}, l₁.length ≤
 | [], _, n, _ => rfl
 | a :: l, _, n+1, h₁ => by
   rw [cons_append]; simp
-  rw [Nat.add_sub_add_right, get?_append_right (Nat.lt_succ_iff.mp h₁)]
+  rw [Nat.add_sub_add_right, get?_append_right (Nat.lt_succ.1 h₁)]
 
 theorem get_append_right_aux {l₁ l₂ : List α} {n : Nat}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length := by
@@ -533,6 +533,21 @@ theorem ext_get {l₁ l₂ : List α} (hl : length l₁ = length l₂)
     else by
       have h₁ := Nat.le_of_not_lt h₁
       rw [get?_len_le h₁, get?_len_le]; rwa [← hl]
+
+theorem get?_reverse' : ∀ {l : List α} (i j), i + j + 1 = length l →
+    get? l.reverse i = get? l j
+  | [], _, _, _ => rfl
+  | a::l, i, 0, h => by simp at h; simp [h, get?_append_right]
+  | a::l, i, j+1, h => by
+    have := Nat.succ.inj h; simp at this ⊢
+    rw [get?_append, get?_reverse' _ j this]
+    rw [length_reverse, ← this]; apply Nat.lt_add_of_pos_right (Nat.succ_pos _)
+
+theorem get?_reverse {l : List α} (i) (h : i < length l) :
+    get? l.reverse i = get? l (l.length - 1 - i) :=
+  get?_reverse' _ _ <| by
+    rw [Nat.add_sub_of_le (Nat.le_pred_of_lt h),
+      Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
 
 /-! ### modify nth -/
 
@@ -589,11 +604,23 @@ theorem modifyNth_eq_set (f : α → α) :
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
   simp only [set_eq_modifyNth, get?_modifyNth_eq]
 
-theorem get?_set_of_lt (a : α) {n} {l : List α} (h : n < length l) :
+theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
   (set l n a).get? n = some a := by rw [get?_set_eq, get?_eq_get h]; rfl
 
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
   simp only [set_eq_modifyNth, get?_modifyNth_ne _ _ h]
+
+theorem get?_set (a : α) {m n} (l : List α) :
+    (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
+  by_cases m = n <;> simp [*, get?_set_eq, get?_set_ne]
+
+theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
+    (set l m a).get? n = if m = n then some a else l.get? n := by
+  simp [get?_set, get?_eq_get h]
+
+theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
+    (set l m a).get? n = if m = n then some a else l.get? n := by
+  simp [get?_set]; split <;> subst_vars <;> simp [*, get?_eq_get h]
 
 @[simp] theorem set_nil (n : Nat) (a : α) : [].set n a = [] := rfl
 
