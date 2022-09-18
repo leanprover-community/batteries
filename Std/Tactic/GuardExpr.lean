@@ -73,11 +73,9 @@ def MatchKind.isEq (a b : Expr) : MatchKind → MetaM Bool
 
 /--
 Check equality of two expressions.
-* `guard_expr e == e'` checks that `e` and `e'` are syntactically equal.
-* `guard_expr e =ₐ e'` checks that `e` and `e'` are alpha-equivalent.
-* `guard_expr e = e'` checks that `e` and `e'` are definitionally equal.
 -/
-elab (name := guardExprStrict) "guard_expr " r:term:51 eq:equal p:term : tactic =>
+def evalGuardExpr (eq : TSyntax `Std.Tactic.GuardExpr.equal) (r : TSyntax `term)
+  (p : TSyntax `term) : TacticM Unit :=
   withMainContext do
     let r ← elabTerm r none
     let p ← elabTerm p none
@@ -85,17 +83,31 @@ elab (name := guardExprStrict) "guard_expr " r:term:51 eq:equal p:term : tactic 
     unless ← mk.isEq r p do throwError "failed: {r} != {p}"
 
 /--
-Check the target agrees with a given expression.
-* `guard_target == e` checks that the target is syntactically equal to `e`.
-* `guard_target =ₐ e` checks that the target is alpha-equivalent to `e`.
-* `guard_target = e` checks that the target is definitionally equal to `e`.
+Check equality of two expressions.
+* `guard_expr e == e'` checks that `e` and `e'` are syntactically equal.
+* `guard_expr e =ₐ e'` checks that `e` and `e'` are alpha-equivalent.
+* `guard_expr e = e'` checks that `e` and `e'` are definitionally equal.
 -/
-elab (name := guardTargetStrict) "guard_target" eq:equal r:term : tactic =>
+elab (name := guardExprStrict) "guard_expr " r:term:51 eq:equal p:term : tactic =>
+  evalGuardExpr eq r p
+
+/--
+Check equality of an expression with the target.
+-/
+def evalGuardTarget (eq : TSyntax `Std.Tactic.GuardExpr.equal) (r : TSyntax `term) : TacticM Unit :=
   withMainContext do
     let r ← elabTerm r none
     let t ← getMainTarget
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
     unless ← mk.isEq r t do throwError "target of main goal is {t}, not {r}"
+
+/--
+Check the target agrees with a given expression.
+* `guard_target == e` checks that the target is syntactically equal to `e`.
+* `guard_target =ₐ e` checks that the target is alpha-equivalent to `e`.
+* `guard_target = e` checks that the target is definitionally equal to `e`.
+-/
+elab (name := guardTargetStrict) "guard_target" eq:equal r:term : tactic => evalGuardTarget eq r
 
 /--
 Check that a named hypothesis has a given type and/or value.
@@ -107,26 +119,31 @@ Check that a named hypothesis has a given type and/or value.
 -/
 syntax (name := guardHyp) "guard_hyp " term:max (colon term)? (colonEq term)? : tactic
 
-@[inheritDoc guardHyp, tactic guardHyp] def evalGuardHyp : Lean.Elab.Tactic.Tactic := fun
-  | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?) =>
-    withMainContext do
-      let fvarid ← getFVarId h
-      let lDecl ←
-        match (← getLCtx).find? fvarid with
-        | none => throwError m!"hypothesis {h} not found"
-        | some lDecl => pure lDecl
-      if let (some c, some p) := (c, ty) then
-        let some mk := colon.toMatchKind c | throwUnsupportedSyntax
-        let e ← elabTerm p none
-        let hty ← instantiateMVars lDecl.type
-        unless ← mk.isEq e hty do throwError m!"hypothesis {h} has type {hty}, not {e}"
-      match lDecl.value?, val with
-      | none, some _        => throwError m!"{h} is not a let binding"
-      | some _, none        => throwError m!"{h} is a let binding"
-      | some hval, some val =>
-        let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
-        let e ← elabTerm val none
-        let hval ← instantiateMVars hval
-        unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value {hval}, not {e}"
-      | none, none          => pure ()
+@[inheritDoc guardHyp] def evalGuardHyp (h : TSyntax `term)
+  (c : Option (TSyntax `Std.Tactic.GuardExpr.colon)) (ty : Option (TSyntax `term))
+  (eq : Option (TSyntax `Std.Tactic.GuardExpr.colonEq)) (val : Option (TSyntax `term)) :
+  TacticM Unit :=
+  withMainContext do
+    let fvarid ← getFVarId h
+    let lDecl ←
+      match (← getLCtx).find? fvarid with
+      | none => throwError m!"hypothesis {h} not found"
+      | some lDecl => pure lDecl
+    if let (some c, some p) := (c, ty) then
+      let some mk := colon.toMatchKind c | throwUnsupportedSyntax
+      let e ← elabTerm p none
+      let hty ← instantiateMVars lDecl.type
+      unless ← mk.isEq e hty do throwError m!"hypothesis {h} has type {hty}, not {e}"
+    match lDecl.value?, val with
+    | none, some _        => throwError m!"{h} is not a let binding"
+    | some _, none        => throwError m!"{h} is a let binding"
+    | some hval, some val =>
+      let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
+      let e ← elabTerm val none
+      let hval ← instantiateMVars hval
+      unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value {hval}, not {e}"
+    | none, none          => pure ()
+
+@[inheritDoc guardHyp, tactic guardHyp] def evalGuardHyp' : Lean.Elab.Tactic.Tactic := fun
+  | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?) => evalGuardHyp h c ty eq val
   | _ => throwUnsupportedSyntax
