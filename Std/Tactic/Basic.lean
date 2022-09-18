@@ -22,6 +22,11 @@ such as `by _` to make it syntactically correct and show the current goal.
 -/
 macro "_" : tactic => `({})
 
+@[inheritDoc failIfSuccess]
+syntax (name := failIfSuccessConv) "fail_if_success " Conv.convSeq : conv
+
+attribute [tactic failIfSuccessConv] evalFailIfSuccess
+
 /-- We allow the `rfl` tactic to also use `Iff.rfl`. -/
 -- `rfl` was defined earlier in Lean4, at src/Lean/Init/Tactics.lean
 -- Later we want to allow `rfl` to use all relations marked with an attribute.
@@ -78,7 +83,7 @@ macro_rules
   | `(tactic| iterate $n $seq:tacticSeq) =>
     match n.1.toNat with
     | 0 => `(tactic| skip)
-    | n+1 => `(tactic|($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
+    | n+1 => `(tactic| ($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
 
 /--
 `repeat' tac` runs `tac` on all of the goals to produce a new list of goals,
