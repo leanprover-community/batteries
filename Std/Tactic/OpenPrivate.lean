@@ -110,7 +110,7 @@ syntax (name := exportPrivate) "export private" ident* ("in" ident*)? ("from" id
 /-- Elaborator for `export private`. -/
 @[commandElab exportPrivate] def elabExportPrivate : CommandElab
 | `(export private $ids* $[in $tgts*]? $[from $mods*]?) =>
-  elabOpenPrivateLike ids tgts mods fun c name _ => do
+  elabOpenPrivateLike ids tgts mods fun c name _ => liftCoreM do
     let cinfo ← getConstInfo c
     if (← getEnv).contains name then
       throwError s!"'{name}' has already been declared"

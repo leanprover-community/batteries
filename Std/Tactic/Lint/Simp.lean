@@ -3,6 +3,7 @@ Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
+import Lean.Meta.Tactic.Simp.Main
 import Std.Tactic.Lint.Basic
 import Std.Tactic.OpenPrivate
 import Std.Util.LibraryNote
