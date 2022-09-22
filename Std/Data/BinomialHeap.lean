@@ -392,7 +392,6 @@ theorem Heap.WellFormed.merge'
     · let ⟨ih₁, ih₂⟩ := merge' (s₂ := .cons ..) (ht₁.of_le (Nat.le_succ_of_le hr₁))
         ⟨Nat.le_succ_of_le hr₁, this, ht₂.of_rankGT hl₂⟩
       exact ⟨ih₁, fun _ => ih₂ ⟨fun h => Nat.lt_succ_of_le hr₁, fun _ => ht₁.rankGT.le_trans hr₁⟩⟩
-    save
     · let ⟨ih₁, ih₂⟩ := merge' ht₁ ht₂
       exact ⟨⟨Nat.le_succ_of_le hr₁, this, ih₁.of_rankGT (ih₂ (iff_of_false hl₁ hl₂))⟩,
         fun _ => Nat.lt_succ_of_le hr₁⟩

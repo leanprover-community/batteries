@@ -177,62 +177,23 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
 @[simp] theorem size_swap! (a : Array α) (i j) (hi : i < a.size) (hj : j < a.size) :
     (a.swap! i j).size = a.size := by simp [swap!, hi, hj]
 
-theorem size_reverse_rev (mid i) (a : Array α) (h : mid ≤ a.size) :
-    (Array.reverse.rev a.size mid a i).size = a.size :=
-  if hi : i < mid then by
-    unfold Array.reverse.rev
-    have : i < a.size := Nat.lt_of_lt_of_le hi h
-    have : a.size - i - 1 < a.size := Nat.sub_lt_self i.zero_lt_succ this
-    have := Array.size_reverse_rev mid (i+1) (a.swap! i (a.size - i - 1))
-    simp_all
-  else by
-    unfold Array.reverse.rev
-    simp [dif_neg hi]
-termination_by _ => mid - i
-
 @[simp] theorem size_reverse (a : Array α) : a.reverse.size = a.size := by
-  have := size_reverse_rev (a.size / 2) 0 a (Nat.div_le_self ..)
-  simp only [reverse, this]
-
-theorem reverse'.termination {i j : Nat} (h : i < j) : j - 1 - (i + 1) < j - i := by
-  rw [Nat.sub_sub, Nat.add_comm]
-  exact Nat.lt_of_le_of_lt (Nat.pred_le _) (Nat.sub_succ_lt_self _ _ h)
-
-/-- Reverse of an array. TODO: remove when this lands in core -/
-def reverse' (as : Array α) : Array α :=
-  if h : as.size ≤ 1 then
-    as
-  else
-    loop as 0 ⟨as.size - 1, Nat.pred_lt (mt (fun h : as.size = 0 => h ▸ by decide) h)⟩
-where
-  /-- Reverses the subsegment `as[i:j+1]` (that is, indices `i` to `j` inclusive) of `as`. -/
-  loop (as : Array α) (i : Nat) (j : Fin as.size) :=
+  let rec go (as : Array α) (i j) : (reverse.loop as i j).size = as.size := by
+    rw [reverse.loop]
     if h : i < j then
-      have := reverse'.termination h
-      let as := as.swap ⟨i, Nat.lt_trans h j.2⟩ j
-      have : j-1 < as.size := by rw [size_swap]; exact Nat.lt_of_le_of_lt (Nat.pred_le _) j.2
-      loop as (i+1) ⟨j-1, this⟩
-    else
-      as
-termination_by _ => j - i
-
-@[simp] theorem size_reverse' (a : Array α) : a.reverse'.size = a.size := by
-  let rec go (as : Array α) (i j) : (reverse'.loop as i j).size = as.size := by
-    rw [reverse'.loop]
-    if h : i < j then
-      have := reverse'.termination h
+      have := reverse.termination h
       simp [(go · (i+1) ⟨j-1, ·⟩), h]
     else simp [h]
-  simp only [reverse']; split <;> simp [go]
+  simp only [reverse]; split <;> simp [go]
 termination_by _ => j - i
 
-@[simp] theorem reverse'_data (a : Array α) : a.reverse'.data = a.data.reverse := by
+@[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
       (h : i + j + 1 = a.size) (h₂ : as.size = a.size)
       (H : ∀ k, as.data.get? k = if i ≤ k ∧ k ≤ j then a.data.get? k else a.data.reverse.get? k)
-      (k) : (reverse'.loop as i ⟨j, hj⟩).data.get? k = a.data.reverse.get? k := by
-    rw [reverse'.loop]; dsimp; split <;> rename_i h₁
-    · have := reverse'.termination h₁
+      (k) : (reverse.loop as i ⟨j, hj⟩).data.get? k = a.data.reverse.get? k := by
+    rw [reverse.loop]; dsimp; split <;> rename_i h₁
+    · have := reverse.termination h₁
       match j with | j+1 => ?_
       simp at *
       simp; rw [(go · (i+1) j)]
@@ -254,7 +215,7 @@ termination_by _ => j - i
         cases Nat.le_antisymm h₂.1 h₂.2
         exact (List.get?_reverse' _ _ h).symm
       · rfl
-  simp only [reverse']; split
+  simp only [reverse]; split
   case _ h => match a, h with | ⟨[]⟩, _ | ⟨[_]⟩, _ => rfl
   case _ =>
     have := Nat.sub_add_cancel (Nat.le_of_not_le ‹_›)

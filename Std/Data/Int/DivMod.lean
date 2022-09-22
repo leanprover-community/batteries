@@ -155,10 +155,10 @@ theorem add_mul_ediv_right (a b : Int) {c : Int} (H : c ≠ 0) : (a + b * c).edi
       rw [Nat.mul_comm, Nat.mul_sub_div]; rwa [Nat.mul_comm]
     else
       have h := Nat.not_lt.1 h
-      have H {a b : Nat} (h : a ≤ b) : ↑a + -(↑b + 1) = -[↑(b - a) +1] := by
+      have H {a b : Nat} (h : a ≤ b) : (a : Int) + -((b : Int) + 1) = -[b - a +1] := by
         rw [negSucc_ofNat_eq, Int.ofNat_sub h]
         simp only [Int.sub_eq_add_neg, Int.neg_add, Int.neg_neg, Int.add_left_comm, Int.add_assoc]
-      show ediv (↑(n * succ k) + -(↑m + 1)) (succ k) = n + -(↑(m / succ k) + 1)
+      show ediv (↑(n * succ k) + -((m : Int) + 1)) (succ k) = n + -(↑(m / succ k) + 1 : Int)
       rw [H h, H ((Nat.le_div_iff_mul_le k.succ_pos).2 h)]
       apply congrArg negSucc
       rw [Nat.mul_comm, Nat.sub_mul_div]; rwa [Nat.mul_comm]
@@ -263,11 +263,11 @@ theorem mod_add_div : ∀ a b : Int, a % b + b * (a / b) = a
     rw [Int.neg_mul_neg] <;> exact congrArg ofNat (Nat.mod_add_div ..)
   | -[_+1], 0 => rfl
   | -[m+1], ofNat n => by
-    show -↑((succ m) % n) + ↑n * -↑(succ m / n) = -↑(succ m)
+    show -(↑((succ m) % n) : Int) + ↑n * -↑(succ m / n) = -↑(succ m)
     rw [Int.mul_neg, ← Int.neg_add]
     exact congrArg (-ofNat ·) (Nat.mod_add_div ..)
   | -[m+1], -[n+1] => by
-    show -↑(succ m % succ n) + -↑(succ n) * ↑(succ m / succ n) = -↑(succ m)
+    show -(↑(succ m % succ n) : Int) + -↑(succ n) * ↑(succ m / succ n) = -↑(succ m)
     rw [Int.neg_mul, ← Int.neg_add]
     exact congrArg (-ofNat ·) (Nat.mod_add_div ..)
 
@@ -285,7 +285,7 @@ theorem fmod_add_fdiv : ∀ a b : Int, a.fmod b + b * a.fdiv b = a
     rw [Int.subNatNat_eq_coe, ← Int.sub_sub, ← Int.neg_sub, Int.sub_sub, Int.sub_sub_self]
     exact congrArg (-ofNat ·) <| Nat.succ_add .. ▸ Nat.mod_add_div .. ▸ rfl
   | -[m+1], -[n+1] => by
-    show -↑(succ m % succ n) + -↑(succ n * (succ m / succ n)) = -↑(succ m)
+    show -(↑(succ m % succ n) : Int) + -↑(succ n * (succ m / succ n)) = -↑(succ m)
     rw [← Int.neg_add]; exact congrArg (-ofNat ·) <| Nat.mod_add_div ..
 
 theorem emod_add_ediv : ∀ a b : Int, a.emod b + b * a.ediv b = a

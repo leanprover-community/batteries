@@ -73,7 +73,7 @@ theorem ofNat_ne_zero : ofNat n ≠ 0 ↔ n ≠ 0 := not_congr ofNat_eq_zero
 
 theorem negSucc_ofNat_inj_iff : negSucc m = negSucc n ↔ m = n := ⟨negSucc.inj, fun H => by simp [H]⟩
 
-theorem negSucc_ofNat_eq (n : Nat) : -[n+1] = -(↑n + 1) := rfl
+theorem negSucc_ofNat_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 
 @[simp] theorem negSucc_ne_zero (n : Nat) : -[n+1] ≠ 0 := fun.
 
@@ -511,8 +511,8 @@ protected theorem mul_neg_one (a : Int) : a * -1 = -a := by rw [Int.mul_neg, Int
 
 protected theorem neg_eq_neg_one_mul : ∀ a : Int, -a = -1 * a
   | 0      => rfl
-  | succ n => show _ = -[1 * n +1] by rw [Nat.one_mul] rfl
-  | -[n+1] => show _ = ofNat _ by rw [Nat.one_mul] rfl
+  | succ n => show _ = -[1 * n +1] by rw [Nat.one_mul]; rfl
+  | -[n+1] => show _ = ofNat _ by rw [Nat.one_mul]; rfl
 
 theorem sign_mul_natAbs : ∀ a : Int, sign a * natAbs a = a
   | 0      => rfl
