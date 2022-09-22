@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Basic
 import Std.Tactic.Ext.Attr
 import Std.Logic
@@ -32,10 +33,6 @@ theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
 | some _, _ => rfl
 
 @[simp] theorem get_some (x : α) (h : isSome (some x)) : (some x).get h = x := rfl
-
-@[simp] theorem getD_some (x y : α) : (some x).getD y = x := rfl
-
-@[simp] theorem getD_none (x : α) : none.getD x = x := rfl
 
 theorem getD_of_ne_none {x : Option α} (hx : x ≠ none) (y : α) : some (x.getD y) = x := by
   cases x; {contradiction}; rw [getD_some]

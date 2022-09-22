@@ -266,14 +266,14 @@ theorem eq_of_mem_replicate {a b : α} {n} (h : b ∈ replicate n a) : b = a := 
 
 /-! ### getLast -/
 
-theorem getLast_cons {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil),
+theorem getLast_cons' {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil),
   getLast (a :: l) h₁ = getLast l h₂ := by
   induction l <;> intros; {contradiction}; rfl
 
 @[simp] theorem getLast_append {a : α} : ∀ (l : List α) h, getLast (l ++ [a]) h = a
   | [], _ => rfl
   | a::t, h => by
-    simp [getLast_cons _ fun H => cons_ne_nil _ _ (append_eq_nil.1 H).2, getLast_append t]
+    simp [getLast_cons' _ fun H => cons_ne_nil _ _ (append_eq_nil.1 H).2, getLast_append t]
 
 theorem getLast_concat : (h : concat l a ≠ []) → getLast (concat l a) h = a :=
   concat_eq_append .. ▸ getLast_append _
@@ -371,16 +371,61 @@ theorem Sublist.length_le : l₁ <+ l₂ → length l₁ ≤ length l₂
   | .cons _l s => le_succ_of_le (length_le s)
   | .cons₂ _ s => succ_le_succ (length_le s)
 
+/-! ### head -/
+
+theorem head!_of_head? [Inhabited α] : ∀ {l : List α}, head? l = some a → head! l = a
+  | _a::_l, rfl => rfl
+
+theorem head?_eq_head : ∀ l h, @head? α l = some (head l h)
+  | [], h => nomatch h rfl
+  | _::_, _ => rfl
+
+/-! ### tail -/
+
+@[simp] theorem tailD_eq_tail? (l l' : List α) : tailD l l' = (tail? l).getD l' := by
+  cases l <;> rfl
+
+theorem tail_eq_tailD (l) : @tail α l = tailD l [] := by cases l <;> rfl
+
+theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_tailD]
+
+/-! ### getLast -/
+
+@[simp] theorem getLastD_nil (a) : @getLastD α [] a = a := rfl
+@[simp] theorem getLastD_cons (a b l) : @getLastD α (b::l) a = getLastD l b := by cases l <;> rfl
+
+@[simp] theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
+  cases l <;> rfl
+
+theorem getLast_singleton (a h) : @getLast α [a] h = a := rfl
+
+@[simp] theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
+  simp [getLast!]
+
+@[simp] theorem getLast?_nil : @getLast? α [] = none := rfl
+@[simp] theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by simp [getLast?]
+
+theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
+  | [], h => nomatch h rfl
+  | _::_, _ => rfl
+
+/-! ### dropLast -/
+
+@[simp] theorem dropLast_nil : @dropLast α [] = [] := rfl
+@[simp] theorem dropLast_single : dropLast [a] = [] := rfl
+@[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
+
+@[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
+  induction l₁ <;> simp [*]
+
+@[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
+
 /-! ### nth element -/
 
 @[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
   (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
-
-@[simp] theorem getLast_singleton : [x].getLast (by simp) = x := rfl
-
-@[simp] theorem getLast_cons_cons : (x::y::ys).getLast (by simp) = (y::ys).getLast (by simp) := rfl
 
 theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
@@ -507,11 +552,18 @@ theorem getLast_eq_get : ∀ (l : List α) (h : l ≠ []),
     getLast l h = l.get ⟨l.length - 1, Nat.sub_lt (length_pos.2 h) Nat.one_pos⟩
   | [a], h => by
     rw [getLast_singleton, get_singleton]
-  | a :: b :: l, h => by rw [getLast_cons, getLast_eq_get (b :: l)]; {rfl}; exact cons_ne_nil b l
+  | a :: b :: l, h => by rw [getLast_cons', getLast_eq_get (b :: l)]; {rfl}; exact cons_ne_nil b l
+
+theorem getLast?_eq_get? : ∀ (l : List α), getLast? l = l.get? (l.length - 1)
+  | [] => rfl
+  | a::l => by rw [getLast?_eq_getLast (a::l) fun., getLast_eq_get, get?_eq_get]
 
 @[simp] theorem get?_concat_length : ∀ (l : List α) (a : α), (l ++ [a]).get? l.length = some a
   | [], a => rfl
   | b :: l, a => by rw [cons_append, length_cons]; simp only [get?, get?_concat_length]
+
+@[simp] theorem getLast?_concat (l : List α) : getLast? (l ++ [a]) = some a := by
+  simp [getLast?_eq_get?]
 
 theorem get_cons_length (x : α) (xs : List α) (n : Nat) (h : n = xs.length) :
     (x :: xs).get ⟨n, by simp [h]⟩ = (x :: xs).getLast (cons_ne_nil x xs) := by
@@ -549,12 +601,21 @@ theorem get?_reverse {l : List α} (i) (h : i < length l) :
     rw [Nat.add_sub_of_le (Nat.le_pred_of_lt h),
       Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
 
+theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
+  | _a::_, 0, rfl => rfl
+  | _::l, _+1, e => get!_of_get? (l := l) e
+
+theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
+  | [], _, _ => rfl
+  | _a::_, 0, _ => rfl
+  | _::l, _+1, _ => getD_eq_get? (l := l) ..
+
 /-! ### modify nth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
   | _+1, [] => rfl
-  | n+1, a :: l => congrArg (List.cons a) (modifyNthTail_id n l)
+  | n+1, a :: l => congrArg (cons a) (modifyNthTail_id n l)
 
 theorem removeNth_eq_nth_tail : ∀ n (l : List α), removeNth l n = modifyNthTail tail n l
   | 0, l => by cases l <;> rfl
@@ -657,8 +718,7 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
   | x::xs, i+1, h => by
     have : i < length xs := Nat.lt_of_succ_lt_succ h
     simp [removeNth, ← Nat.add_one]
-    rw [length_removeNth this,
-      Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]; rfl
+    rw [length_removeNth this, Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]
 
 /-! ### tail -/
 
@@ -825,8 +885,6 @@ theorem mem_of_mem_erasep {l : List α} : a ∈ l.erasep p → a ∈ l := (erase
 theorem erasep_map (f : β → α) : ∀ (l : List β), (map f l).erasep p = map f (l.erasep (p ∘ f))
   | [] => rfl
   | b::l => by by_cases h : p (f b) <;> simp [h, erasep_map f l, erasep_cons_of_pos]
-
-attribute [local simp] concat_eq_append append_assoc
 
 @[simp] theorem extractp_eq_find_erasep (l : List α) : extractp p l = (find p l, erasep p l) := by
   let rec go (acc) : ∀ xs, l = acc.data ++ xs →

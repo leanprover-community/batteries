@@ -5,17 +5,30 @@ Authors: Leonardo de Moura
 -/
 import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
+import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
-
-open Decidable List
-
-variable {α : Type u} {β : Type v} {γ : Type w}
 
 namespace List
 
-attribute [local simp] concat_eq_append append_assoc
-
 /-! ## Tail recursive implementations for definitions from core -/
+
+/-- Tail recursive version of `erase`. -/
+@[inline] def setTR (l : List α) (n : Nat) (a : α) : List α := go l n #[] where
+  /-- Auxiliary for `setTR`: `setTR.go l a xs n acc = acc.toList ++ set xs a`,
+  unless `n ≥ l.length` in which case it returns `l` -/
+  go : List α → Nat → Array α → List α
+  | [], _, _ => l
+  | _::xs, 0, acc => acc.toListAppend (a::xs)
+  | x::xs, n+1, acc => go xs n (acc.push x)
+
+@[csimp] theorem set_eq_setTR : @set = @setTR := by
+  funext α l n a; simp [setTR]
+  let rec go (acc) : ∀ xs n, l = acc.data ++ xs →
+    setTR.go l a xs n acc = acc.data ++ xs.set n a
+  | [], _ => fun h => by simp [setTR.go, set, h]
+  | x::xs, 0 => by simp [setTR.go, set]
+  | x::xs, n+1 => fun h => by simp [setTR.go, set]; rw [go _ xs]; {simp}; simp [h]
+  exact (go #[] _ _ rfl).symm
 
 /-- Tail recursive version of `erase`. -/
 @[inline] def eraseTR [BEq α] (l : List α) (a : α) : List α := go l #[] where
@@ -200,7 +213,8 @@ theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++
 /-- Tail recursive version of `dropLast`. -/
 @[inline] def dropLastTR (l : List α) : List α := l.toArray.pop.toList
 
-@[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by funext α l; simp [dropLastTR]
+@[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by
+  funext α l; simp [dropLastTR]
 
 /-- Tail recursive version of `intersperse`. -/
 def intersperseTR (sep : α) : List α → List α
@@ -522,13 +536,19 @@ theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ inse
 @[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
   funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
 
+@[simp] theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
+
 /--
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
 elements `x`.
 -/
-@[simp] def takeD : Nat → List α → α → List α
+def takeD : Nat → List α → α → List α
   | 0, _, _ => []
   | n+1, l, x => l.headD x :: takeD n l.tail x
+
+@[simp] theorem takeD_zero (l) (a : α) : takeD 0 l a = [] := rfl
+@[simp] theorem takeD_succ (l) (a : α) :
+    takeD (n+1) l a = l.head?.getD a :: takeD n l.tail a := by simp [takeD]
 
 @[simp] theorem takeD_nil (n) (a : α) : takeD n [] a = replicate n a := by induction n <;> simp [*]
 

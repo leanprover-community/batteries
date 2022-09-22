@@ -65,7 +65,8 @@ theorem foldr_eq_foldr_data (f : α → β → β) (init : β) (arr : Array α) 
     arr.foldr f init = arr.data.foldr f init :=
   List.foldr_eq_foldrM .. ▸ foldrM_eq_foldrM_data ..
 
-@[simp] theorem push_data (arr : Array α) (a : α) : (arr.push a).data = arr.data.concat a := rfl
+@[simp] theorem push_data (arr : Array α) (a : α) : (arr.push a).data = arr.data ++ [a] := by
+  simp [push, List.concat_eq_append]
 
 theorem foldrM_push [Monad m] (f : α → β → m β) (init : β) (arr : Array α) (a : α) :
     (arr.push a).foldrM f init = f a init >>= arr.foldrM f := by
@@ -96,7 +97,7 @@ theorem foldr_push (f : α → β → β) (init : β) (arr : Array α) (a : α) 
 @[simp] theorem map_data (f : α → β) (arr : Array α) : (arr.map f).data = arr.data.map f := by
   apply congrArg data (foldl_eq_foldl_data (fun bs a => push bs (f a)) #[] arr) |>.trans
   have H (l arr) : List.foldl (fun bs a => push bs (f a)) arr l = ⟨arr.data ++ l.map f⟩ := by
-    induction l generalizing arr <;> simp [*, List.concat_eq_append, List.append_assoc]
+    induction l generalizing arr <;> simp [*]
   simp [H]
 
 @[simp] theorem pop_data (arr : Array α) : arr.pop.data = arr.data.dropLast := rfl
@@ -107,7 +108,7 @@ theorem foldr_push (f : α → β → β) (init : β) (arr : Array α) (a : α) 
     (arr ++ arr').data = arr.data ++ arr'.data := by
   rw [← append_eq_append]; unfold Array.append
   rw [foldl_eq_foldl_data]
-  induction arr'.data generalizing arr <;> simp [*, List.concat_eq_append, List.append_assoc]
+  induction arr'.data generalizing arr <;> simp [*]
 
 @[simp] theorem appendList_eq_append
     (arr : Array α) (l : List α) : arr.appendList l = arr ++ l := rfl
@@ -115,14 +116,14 @@ theorem foldr_push (f : α → β → β) (init : β) (arr : Array α) (a : α) 
 @[simp] theorem appendList_data (arr : Array α) (l : List α) :
     (arr ++ l).data = arr.data ++ l := by
   rw [← appendList_eq_append]; unfold Array.appendList
-  induction l generalizing arr <;> simp [*, List.concat_eq_append, List.append_assoc]
+  induction l generalizing arr <;> simp [*]
 
 theorem foldl_data_eq_bind (l : List α) (acc : Array β)
     (F : Array β → α → Array β) (G : α → List β)
     (H : ∀ acc a, (F acc a).data = acc.data ++ G a) :
     (l.foldl F acc).data = acc.data ++ l.bind G := by
-  induction l generalizing acc <;> simp [*, List.concat_eq_append, List.append_assoc, List.bind]
+  induction l generalizing acc <;> simp [*, List.bind]
 
 theorem foldl_data_eq_map (l : List α) (acc : Array β) (G : α → β) :
     (l.foldl (fun acc a => acc.push (G a)) acc).data = acc.data ++ l.map G := by
-  induction l generalizing acc <;> simp [*, List.concat_eq_append, List.append_assoc]
+  induction l generalizing acc <;> simp [*]

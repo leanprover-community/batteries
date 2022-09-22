@@ -17,6 +17,7 @@ import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
+import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
 import Std.Data.Rat
 import Std.Lean.Command

@@ -15,11 +15,20 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get get! get? head? headD head tail! tail? tailD getLast! getLast?
-  getLastD reverseAux eraseIdx map join filterMap dropWhile find? findSome?
+attribute [simp] get get! get? reverseAux eraseIdx map join filterMap dropWhile find? findSome?
   replace elem lookup drop take takeWhile foldl foldr zipWith unzip rangeAux enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM mapA List.forM forA filterAuxM filterMapM.loop
   List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
+  concat_eq_append append_assoc
+
+@[simp] theorem head?_nil : @head? α [] = none := rfl
+@[simp] theorem head?_cons : @head? α (a::l) = some a := rfl
+@[simp 1100] theorem headD_nil : @headD α [] d = d := rfl
+@[simp 1100] theorem headD_cons : @headD α (a::l) d = a := rfl
+@[simp] theorem head_cons : @head α (a::l) h = a := rfl
+@[simp] theorem tail!_cons : @tail! α (a::l) = l := rfl
+@[simp 1100] theorem tailD_nil : @tailD α [] l' = l' := rfl
+@[simp 1100] theorem tailD_cons : @tailD α (a::l) l' = l := rfl
 
 /-! ### length -/
 
@@ -129,7 +138,7 @@ theorem take_concat_get (l : List α) (i : Nat) (h : i < l.length) :
   Eq.symm <| (append_left_inj _).1 <| (take_append_drop (i+1) l).trans <| by
     rw [concat_eq_append, append_assoc, singleton_append, get_drop_eq_drop, take_append_drop]
 
-@[simp] theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.reverse := by
+theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.reverse := by
   rw [concat_eq_append, reverse_append]; rfl
 
 @[simp] theorem foldlM_reverse [Monad m] (l : List α) (f : β → α → m β) (b) :

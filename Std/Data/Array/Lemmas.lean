@@ -26,14 +26,18 @@ theorem getElem?_pos [GetElem Cont Idx Elem Dom]
 theorem getElem?_neg [GetElem Cont Idx Elem Dom]
     (a : Cont) (i : Idx) (h : ¬Dom a i) [Decidable (Dom a i)] : a[i]? = none := dif_neg h
 
+@[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
+
 namespace Array
+
+attribute [simp] isEmpty uget
+
+@[simp] theorem singleton_def (v : α) : singleton v = #[v] := rfl
 
 @[simp] theorem toArray_data : (a : Array α) → a.data.toArray = a
   | ⟨l⟩ => ext' (data_toArray l)
 
-@[simp] theorem get_eq_getElem (a : Array α) (i : Nat) (h) : a.get ⟨i, h⟩ = a[i] := rfl
-@[simp] theorem getElem_fin_eq_getElem (a : Array α) (i : Fin a.size) : a[i] = a[i.1] := rfl
-@[simp] theorem getElem?_fin_eq_get? (a : Array α) (i : Fin a.size) : a[i]? = a.get? i := rfl
+@[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
 @[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
 
@@ -51,6 +55,22 @@ theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i :
 
 theorem get?_eq_data_get? (a : Array α) (i : Nat) : a.get? i = a.data.get? i :=
   getElem?_eq_data_get? ..
+
+@[simp] theorem getD_eq_get? (a : Array α) (n d) : a.getD n d = (a.get? n).getD d := by
+  simp [get?, getD]; split <;> simp
+
+theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default := rfl
+
+@[simp] theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
+  simp [get!_eq_getD]
+
+@[simp] theorem back_eq_back? [Inhabited α] (a : Array α) : a.back = a.back?.getD default := by
+  simp [back, back?]
+
+@[simp] theorem back?_push (a : Array α) : (a.push x).back? = some x := by
+  simp [back?, getElem?_eq_data_get?]
+
+theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
 theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     haveI : i < (a.push x).size := by simp [*, Nat.lt_succ, Nat.le_of_lt]
@@ -76,29 +96,58 @@ theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
     have : i = a.size := by apply Nat.le_antisymm <;> simp_all [Nat.lt_succ]
     simp [get_push_lt, this]
 
-@[simp] theorem get_set_eq (a : Array α) (i : Nat) (h : i < a.size) (v : α) :
-    (a.set ⟨i, h⟩ v)[i]'(by simp [*]) = v := by
+@[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
+
+@[simp] theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+    (a.set i v)[i.1]'(by simp [i.2]) = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
 
-@[simp] theorem get_set_ne (a : Array α) {i j : Nat} (v : α) (hi : i < a.size) (hj : j < a.size)
-    (h : i ≠ j) : (a.set ⟨i, hi⟩ v)[j]'(by simp [*]) = a[j] := by
+@[simp] theorem get_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α) (hj : j < a.size)
+    (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
   simp only [set, getElem_eq_data_get, List.get_set_ne h]
 
-@[simp] theorem get?_set_eq (a : Array α) (i : Nat) (h : i < a.size) (v : α) :
-    (a.set ⟨i, h⟩ v)[i]? = v := by
-  simp [getElem?_pos, *]
+@[simp] theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+    (a.set i v)[i.1]? = v := by simp [getElem?_pos, i.2]
 
-@[simp] theorem get?_set_ne (a : Array α) {i j : Nat} (v : α) (hi : i < a.size)
-    (h : i ≠ j) : (a.set ⟨i, hi⟩ v)[j]? = a[j]? := by
+@[simp] theorem get?_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α)
+    (h : i.1 ≠ j) : (a.set i v)[j]? = a[j]? := by
   by_cases j < a.size <;> simp [getElem?_pos, getElem?_neg, *]
 
-theorem get?_set (a : Array α) (i j : Nat) (hi : i < a.size) (v : α) :
-    (a.set ⟨i, hi⟩ v)[j]? = if i = j then some v else a[j]? := by
-  by_cases i = j <;> simp [*]
+theorem get?_set (a : Array α) (i : Fin a.size) (j : Nat) (v : α) :
+    (a.set i v)[j]? = if i.1 = j then some v else a[j]? := by
+  if h : i.1 = j then subst j; simp [*] else simp [*]
 
-theorem get_set (a : Array α) (i j : Nat) (hi : i < a.size) (hj : j < a.size) (v : α) :
-    (a.set ⟨i, hi⟩ v)[j]'(by simp [*]) = if i = j then v else a[j] := by
-  by_cases i = j <;> simp [*]
+theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v : α) :
+    (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
+  if h : i.1 = j then subst j; simp [*] else simp [*]
+
+attribute [simp] uset
+
+private theorem fin_cast_val (e : n = n') (i : Fin n) : e ▸ i = ⟨i.1, e ▸ i.2⟩ := by cases e; rfl
+
+theorem swap_def (a : Array α) (i j : Fin a.size) :
+    a.swap i j = (a.set i (a.get j)).set ⟨j.1, by simp [j.2]⟩ (a.get i) := by
+  simp [swap, fin_cast_val]
+
+theorem data_swap (a : Array α) (i j : Fin a.size) :
+    (a.swap i j).data = (a.data.set i (a.get j)).set j (a.get i) := by simp [swap_def]
+
+theorem get?_swap (a : Array α) (i j : Fin a.size) (k : Nat) : (a.swap i j)[k]? =
+    if j = k then some a[i.1] else if i = k then some a[j.1] else a[k]? := by
+  simp [swap_def, get?_set, ← getElem_fin_eq_data_get]
+
+@[simp] theorem swapAt_def (a : Array α) (i : Fin a.size) (v : α) :
+    a.swapAt i v = (a[i.1], a.set i v) := rfl
+
+-- @[simp] -- FIXME: gives a weird linter error
+theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
+    a.swapAt! i v = (a[i], a.set ⟨i, h⟩ v) := by simp [swapAt!, h]
+
+@[simp] theorem data_pop (a : Array α) : a.pop.data = a.data.dropLast := by simp [pop]
+
+@[simp] theorem pop_empty : (#[] : Array α).pop = #[] := rfl
+
+@[simp] theorem pop_push (a : Array α) : (a.push x).pop = a := by simp [pop]
 
 theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as.size → α → m β)
     (p : Fin as.size → α → β → Prop) (hp : ∀ i a, SatisfiesM (p i a) (f i a)) :
@@ -167,8 +216,6 @@ where
       as
 termination_by _ => j - i
 
-private theorem fin_cast_val (e : n = n') (i : Fin n) : (e ▸ i).1 = i.1 := by cases e; rfl
-
 @[simp] theorem size_reverse' (a : Array α) : a.reverse'.size = a.size := by
   let rec go (as : Array α) (i j) : (reverse'.loop as i j).size = as.size := by
     rw [reverse'.loop]
@@ -187,14 +234,13 @@ termination_by _ => j - i
     rw [reverse'.loop]; dsimp; split <;> rename_i h₁
     · have := reverse'.termination h₁
       match j with | j+1 => ?_
-      simp [Nat.add_sub_cancel] at *
+      simp at *
       simp; rw [(go · (i+1) j)]
       · rwa [Nat.add_right_comm i]
       · simp [size_swap, h₂]
       · intro k
-        rw [swap, ← getElem?_eq_data_get?, get?_set, get?_set]
-        simp [getElem?_eq_data_get?, getElem_eq_data_get, ← List.get?_eq_get, fin_cast_val, H,
-          Nat.le_of_lt h₁]
+        rw [← getElem?_eq_data_get?, get?_swap]
+        simp [getElem?_eq_data_get?, getElem_eq_data_get, ← List.get?_eq_get, H, Nat.le_of_lt h₁]
         split <;> rename_i h₂
         · simp [← h₂, Nat.not_le.2 (Nat.lt_succ_self _)]
           exact (List.get?_reverse' _ _ (Eq.trans (by simp_arith) h)).symm
@@ -229,7 +275,7 @@ termination_by _ => j - i
     have : n - i = 0 := Nat.sub_eq_zero_of_le (Nat.le_of_not_lt hin)
     unfold ofFn.go
     simp [hin, this]
-termination_by size_ofFn_go n f i acc => n - i
+termination_by _ => n - i
 
 @[simp] theorem size_ofFn (f : Fin n → α) : (ofFn f).size = n := by simp [ofFn]
 
@@ -249,7 +295,7 @@ theorem getElem_ofFn_go (f : Fin n → α) (i) {acc k}
     | inr hj => simp [get_push, *]
   else
     simp [hin, hacc k (Nat.lt_of_lt_of_le hki (Nat.le_of_not_lt (hi ▸ hin)))]
-termination_by _ _ i _ _ _ _ _ _ => n - i
+termination_by _ => n - i
 
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
