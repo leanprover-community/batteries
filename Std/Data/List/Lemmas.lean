@@ -797,26 +797,26 @@ theorem eq_or_mem_of_mem_insert {l : List α} (h : a ∈ l.insert b) : a = b ∨
 
 end insert
 
-/-! ### erasep -/
+/-! ### eraseP -/
 
-@[simp] theorem erasep_nil : [].erasep p = [] := rfl
+@[simp] theorem eraseP_nil : [].eraseP p = [] := rfl
 
-theorem erasep_cons (a : α) (l : List α) :
-    (a :: l).erasep p = bif p a then l else a :: l.erasep p := rfl
+theorem eraseP_cons (a : α) (l : List α) :
+    (a :: l).eraseP p = bif p a then l else a :: l.eraseP p := rfl
 
-@[simp] theorem erasep_cons_of_pos {l : List α} (p) (h : p a) : (a :: l).erasep p = l := by
-  simp [erasep_cons, h]
+@[simp] theorem eraseP_cons_of_pos {l : List α} (p) (h : p a) : (a :: l).eraseP p = l := by
+  simp [eraseP_cons, h]
 
-@[simp] theorem erasep_cons_of_neg {l : List α} (p) (h : ¬p a) :
-    (a :: l).erasep p = a :: l.erasep p := by simp [erasep_cons, h]
+@[simp] theorem eraseP_cons_of_neg {l : List α} (p) (h : ¬p a) :
+    (a :: l).eraseP p = a :: l.eraseP p := by simp [eraseP_cons, h]
 
-theorem erasep_of_forall_not {l : List α} (h : ∀ a, a ∈ l → ¬p a) : l.erasep p = l := by
+theorem eraseP_of_forall_not {l : List α} (h : ∀ a, a ∈ l → ¬p a) : l.eraseP p = l := by
   induction l with
   | nil => rfl
   | cons _ _ ih => simp [h _ (.head ..), ih (forall_mem_cons.1 h).2]
 
-theorem exists_of_erasep : ∀ {l : List α} {a} (al : a ∈ l) (pa : p a),
-    ∃ a l₁ l₂, (∀ b ∈ l₁, ¬p b) ∧ p a ∧ l = l₁ ++ a :: l₂ ∧ l.erasep p = l₁ ++ l₂
+theorem exists_of_eraseP : ∀ {l : List α} {a} (al : a ∈ l) (pa : p a),
+    ∃ a l₁ l₂, (∀ b ∈ l₁, ¬p b) ∧ p a ∧ l = l₁ ++ a :: l₂ ∧ l.eraseP p = l₁ ++ l₂
   | b :: l, a, al, pa =>
     if pb : p b then
       ⟨b, [], l, forall_mem_nil _, pb, by simp [pb]⟩
@@ -824,74 +824,75 @@ theorem exists_of_erasep : ∀ {l : List α} {a} (al : a ∈ l) (pa : p a),
       match al with
       | .head .. => nomatch pb pa
       | .tail _ al =>
-        let ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩ := exists_of_erasep al pa
+        let ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩ := exists_of_eraseP al pa
         ⟨c, b::l₁, l₂, (forall_mem_cons ..).2 ⟨pb, h₁⟩,
           h₂, by rw [h₃, cons_append], by simp [pb, h₄]⟩
 
-theorem exists_or_eq_self_of_erasep (p) (l : List α) :
-    l.erasep p = l ∨
-    ∃ a l₁ l₂, (∀ b ∈ l₁, ¬p b) ∧ p a ∧ l = l₁ ++ a :: l₂ ∧ l.erasep p = l₁ ++ l₂ :=
+theorem exists_or_eq_self_of_eraseP (p) (l : List α) :
+    l.eraseP p = l ∨
+    ∃ a l₁ l₂, (∀ b ∈ l₁, ¬p b) ∧ p a ∧ l = l₁ ++ a :: l₂ ∧ l.eraseP p = l₁ ++ l₂ :=
   if h : ∃ a ∈ l, p a then
     let ⟨_, ha, pa⟩ := h
-    .inr (exists_of_erasep ha pa)
+    .inr (exists_of_eraseP ha pa)
   else
-    .inl (erasep_of_forall_not (h ⟨·, ·, ·⟩))
+    .inl (eraseP_of_forall_not (h ⟨·, ·, ·⟩))
 
-@[simp] theorem length_erasep_of_mem (al : a ∈ l) (pa : p a) :
-    length (l.erasep p) = Nat.pred (length l) := by
-  let ⟨_, l₁, l₂, _, _, e₁, e₂⟩ := exists_of_erasep al pa
+@[simp] theorem length_eraseP_of_mem (al : a ∈ l) (pa : p a) :
+    length (l.eraseP p) = Nat.pred (length l) := by
+  let ⟨_, l₁, l₂, _, _, e₁, e₂⟩ := exists_of_eraseP al pa
   rw [e₂]; simp [length_append, e₁]; rfl
 
-theorem erasep_append_left {a : α} (pa : p a) :
-    ∀ {l₁ : List α} l₂, a ∈ l₁ → (l₁++l₂).erasep p = l₁.erasep p ++ l₂
+theorem eraseP_append_left {a : α} (pa : p a) :
+    ∀ {l₁ : List α} l₂, a ∈ l₁ → (l₁++l₂).eraseP p = l₁.eraseP p ++ l₂
   | x :: xs, l₂, h => by
     by_cases h' : p x <;> simp [h']
-    rw [erasep_append_left pa l₂ ((mem_cons.1 h).resolve_left (mt _ h'))]
+    rw [eraseP_append_left pa l₂ ((mem_cons.1 h).resolve_left (mt _ h'))]
     intro | rfl => exact pa
 
-theorem erasep_append_right :
-    ∀ {l₁ : List α} l₂, (∀ b ∈ l₁, ¬p b) → erasep p (l₁++l₂) = l₁ ++ l₂.erasep p
+theorem eraseP_append_right :
+    ∀ {l₁ : List α} l₂, (∀ b ∈ l₁, ¬p b) → eraseP p (l₁++l₂) = l₁ ++ l₂.eraseP p
   | [],      l₂, _ => rfl
   | (x::xs), l₂, h => by
-    simp [(forall_mem_cons.1 h).1, erasep_append_right _ (forall_mem_cons.1 h).2]
+    simp [(forall_mem_cons.1 h).1, eraseP_append_right _ (forall_mem_cons.1 h).2]
 
-theorem erasep_sublist (l : List α) : l.erasep p <+ l := by
-  match exists_or_eq_self_of_erasep p l with
+theorem eraseP_sublist (l : List α) : l.eraseP p <+ l := by
+  match exists_or_eq_self_of_eraseP p l with
   | .inl h => rw [h]; apply Sublist.refl
   | .inr ⟨c, l₁, l₂, _, _, h₃, h₄⟩ => rw [h₄, h₃]; simp
 
-theorem erasep_subset (l : List α) : l.erasep p ⊆ l := (erasep_sublist l).subset
+theorem eraseP_subset (l : List α) : l.eraseP p ⊆ l := (eraseP_sublist l).subset
 
-theorem Sublist.erasep : ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → l₁.erasep p <+ l₂.erasep p
+theorem Sublist.eraseP : ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → l₁.eraseP p <+ l₂.eraseP p
   | _, _, .slnil => Sublist.refl _
   | _, _, .cons a s => by
     by_cases h : p a <;> simp [h]
-    exacts [s.erasep.trans (erasep_sublist _), s.erasep.cons _]
+    exacts [s.eraseP.trans (eraseP_sublist _), s.eraseP.cons _]
   | _, _, .cons₂ a s => by
     by_cases h : p a <;> simp [h]
-    exacts [s, s.erasep.cons₂ _]
+    exacts [s, s.eraseP.cons₂ _]
 
-theorem mem_of_mem_erasep {l : List α} : a ∈ l.erasep p → a ∈ l := (erasep_subset _ ·)
+theorem mem_of_mem_eraseP {l : List α} : a ∈ l.eraseP p → a ∈ l := (eraseP_subset _ ·)
 
-@[simp] theorem mem_erasep_of_neg {l : List α} (pa : ¬p a) : a ∈ l.erasep p ↔ a ∈ l := by
-  refine ⟨mem_of_mem_erasep, fun al => ?_⟩
-  match exists_or_eq_self_of_erasep p l with
+@[simp] theorem mem_eraseP_of_neg {l : List α} (pa : ¬p a) : a ∈ l.eraseP p ↔ a ∈ l := by
+  refine ⟨mem_of_mem_eraseP, fun al => ?_⟩
+  match exists_or_eq_self_of_eraseP p l with
   | .inl h => rw [h]; assumption
   | .inr ⟨c, l₁, l₂, h₁, h₂, h₃, h₄⟩ =>
     rw [h₄]; rw [h₃] at al
     have : a ≠ c := fun h => (h ▸ pa).elim h₂
     simp [this] at al; simp [al]
 
-theorem erasep_map (f : β → α) : ∀ (l : List β), (map f l).erasep p = map f (l.erasep (p ∘ f))
+theorem eraseP_map (f : β → α) : ∀ (l : List β), (map f l).eraseP p = map f (l.eraseP (p ∘ f))
   | [] => rfl
-  | b::l => by by_cases h : p (f b) <;> simp [h, erasep_map f l, erasep_cons_of_pos]
+  | b::l => by by_cases h : p (f b) <;> simp [h, eraseP_map f l, eraseP_cons_of_pos]
 
-@[simp] theorem extractp_eq_find_erasep (l : List α) : extractp p l = (find p l, erasep p l) := by
+@[simp] theorem extractP_eq_find?_eraseP
+    (l : List α) : extractP p l = (find? p l, eraseP p l) := by
   let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    extractp.go p l xs acc = (xs.find p, acc.data ++ xs.erasep p)
-  | [] => fun h => by simp [extractp.go, find, erasep, h]
+    extractP.go p l xs acc = (xs.find? p, acc.data ++ xs.eraseP p)
+  | [] => fun h => by simp [extractP.go, find?, eraseP, h]
   | x::xs => by
-    simp [extractp.go, find, erasep]; cases p x <;> simp
+    simp [extractP.go, find?, eraseP]; cases p x <;> simp
     · intro h; rw [go _ xs]; {simp}; simp [h]
   exact go #[] _ rfl
 
@@ -913,10 +914,10 @@ theorem erase_cons (a b : α) (l : List α) :
 @[simp] theorem erase_cons_tail {a b : α} (l : List α) (h : b ≠ a) :
     (b :: l).erase a = b :: l.erase a := by simp only [erase_cons, if_neg h]
 
-theorem erase_eq_erasep (a : α) : ∀ l : List α, l.erase a = l.erasep (Eq a)
+theorem erase_eq_eraseP (a : α) : ∀ l : List α, l.erase a = l.eraseP (Eq a)
   | [] => rfl
   | b :: l => by
-    if h : a = b then simp [h] else simp [h, Ne.symm h, erase_eq_erasep a l]
+    if h : a = b then simp [h] else simp [h, Ne.symm h, erase_eq_eraseP a l]
 
 theorem erase_of_not_mem {a : α} : ∀ {l : List α}, a ∉ l → l.erase a = l
   | [], _ => rfl
@@ -926,34 +927,34 @@ theorem erase_of_not_mem {a : α} : ∀ {l : List α}, a ∉ l → l.erase a = l
 
 theorem exists_erase_eq {a : α} {l : List α} (h : a ∈ l) :
     ∃ l₁ l₂, a ∉ l₁ ∧ l = l₁ ++ a :: l₂ ∧ l.erase a = l₁ ++ l₂ := by
-  let ⟨_, l₁, l₂, h₁, e, h₂, h₃⟩ := exists_of_erasep h (beq_self_eq_true _)
-  rw [erase_eq_erasep]; exact ⟨l₁, l₂, fun h => h₁ _ h (beq_self_eq_true _), eq_of_beq e ▸ h₂, h₃⟩
+  let ⟨_, l₁, l₂, h₁, e, h₂, h₃⟩ := exists_of_eraseP h (beq_self_eq_true _)
+  rw [erase_eq_eraseP]; exact ⟨l₁, l₂, fun h => h₁ _ h (beq_self_eq_true _), eq_of_beq e ▸ h₂, h₃⟩
 
 @[simp] theorem length_erase_of_mem {a : α} {l : List α} (h : a ∈ l) :
     length (l.erase a) = Nat.pred (length l) := by
-  rw [erase_eq_erasep]; exact length_erasep_of_mem h (decide_eq_true rfl)
+  rw [erase_eq_eraseP]; exact length_eraseP_of_mem h (decide_eq_true rfl)
 
 theorem erase_append_left {l₁ : List α} (l₂) (h : a ∈ l₁) :
     (l₁ ++ l₂).erase a = l₁.erase a ++ l₂ := by
-  simp [erase_eq_erasep]; exact erasep_append_left (by exact decide_eq_true rfl) l₂ h
+  simp [erase_eq_eraseP]; exact eraseP_append_left (by exact decide_eq_true rfl) l₂ h
 
 theorem erase_append_right {a : α} {l₁ : List α} (l₂ : List α) (h : a ∉ l₁) :
     (l₁ ++ l₂).erase a = (l₁ ++ l₂.erase a) := by
-  rw [erase_eq_erasep, erase_eq_erasep, erasep_append_right]
+  rw [erase_eq_eraseP, erase_eq_eraseP, eraseP_append_right]
   intros b h' h''; rw [of_decide_eq_true h''] at h; exact h h'
 
 theorem erase_sublist (a : α) (l : List α) : l.erase a <+ l :=
-  erase_eq_erasep a l ▸ erasep_sublist l
+  erase_eq_eraseP a l ▸ eraseP_sublist l
 
 theorem erase_subset (a : α) (l : List α) : l.erase a ⊆ l := (erase_sublist a l).subset
 
 theorem sublist.erase (a : α) {l₁ l₂ : List α} (h : l₁ <+ l₂) : l₁.erase a <+ l₂.erase a := by
-  simp only [erase_eq_erasep]; exact h.erasep
+  simp only [erase_eq_eraseP]; exact h.eraseP
 
 theorem mem_of_mem_erase {a b : α} {l : List α} (h : a ∈ l.erase b) : a ∈ l := erase_subset _ _ h
 
 @[simp] theorem mem_erase_of_ne {a b : α} {l : List α} (ab : a ≠ b) : a ∈ l.erase b ↔ a ∈ l :=
-  erase_eq_erasep b l ▸ mem_erasep_of_neg (mt of_decide_eq_true ab.symm)
+  erase_eq_eraseP b l ▸ mem_eraseP_of_neg (mt of_decide_eq_true ab.symm)
 
 theorem erase_comm (a b : α) (l : List α) : (l.erase a).erase b = (l.erase b).erase a := by
   if ab : a = b then rw [ab] else ?_

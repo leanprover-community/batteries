@@ -29,6 +29,14 @@ attribute [simp] get get! get? reverseAux eraseIdx map join filterMap dropWhile 
 @[simp] theorem tail!_cons : @tail! α (a::l) = l := rfl
 @[simp 1100] theorem tailD_nil : @tailD α [] l' = l' := rfl
 @[simp 1100] theorem tailD_cons : @tailD α (a::l) l' = l := rfl
+@[simp] theorem any_nil : [].any f = false := rfl
+@[simp] theorem any_cons : (a::l).any f = (f a || l.any f) := rfl
+@[simp] theorem all_nil : [].all f = true := rfl
+@[simp] theorem all_cons : (a::l).all f = (f a && l.all f) := rfl
+@[simp] theorem or_nil : [].or = false := rfl
+@[simp] theorem or_cons : (a::l).or = (a || l.or) := rfl
+@[simp] theorem and_nil : [].and = true := rfl
+@[simp] theorem and_cons : (a::l).and = (a && l.and) := rfl
 
 /-! ### length -/
 

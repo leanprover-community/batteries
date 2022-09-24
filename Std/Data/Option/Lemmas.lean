@@ -86,10 +86,6 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
       simp [some_get] at this ⊢
       exact this⟩
 
-@[simp] theorem none_bind (f : α → Option β) : none.bind f = none := rfl
-
-@[simp] theorem some_bind (a : α) (f : α → Option β) : (some a).bind f = f a := rfl
-
 @[simp] theorem bind_some (x : Option α) : x.bind some = x := by cases x <;> rfl
 
 @[simp] theorem bind_eq_some : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b := by
@@ -126,10 +122,6 @@ theorem map_none : f <$> none = none := rfl
 
 theorem map_some : f <$> some a = some (f a) := rfl
 
-@[simp] theorem map_none' : none.map f = none := rfl
-
-@[simp] theorem map_some' : (some a).map f = some (f a) := rfl
-
 @[simp] theorem map_eq_some' : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b := by cases x <;> simp
 
 theorem map_eq_some : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b := map_eq_some'
@@ -154,7 +146,7 @@ theorem comp_map (h : β → γ) (g : α → β) (x : Option α) : x.map (h ∘ 
 @[simp] theorem map_comp_map (f : α → β) (g : β → γ) :
     Option.map g ∘ Option.map f = Option.map (g ∘ f) := by funext x; simp
 
-theorem mem_map_of_mem {x : Option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g := h.symm ▸ map_some'
+theorem mem_map_of_mem (g : α → β) (h : a ∈ x) : g a ∈ Option.map g x := h.symm ▸ map_some' ..
 
 theorem bind_map_comm {α β} {x : Option (Option α)} {f : α → β} :
     x.bind (Option.map f) = (x.map (Option.map f)).bind id := by cases x <;> simp

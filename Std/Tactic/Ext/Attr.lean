@@ -36,12 +36,13 @@ initialize registerBuiltinAttribute {
     else MetaM.run' do
       let declTy := (← getConstInfo decl).type
       let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing declTy
-      unless declTy.isAppOfArity ``Eq 3 && (declTy.getArg! 1).isMVar && (declTy.getArg! 2).isMVar do
-        throwError "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
-      let ty := declTy.getArg! 0
+      let failNotEq := throwError
+        "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
+      let some (ty, lhs, rhs) := declTy.eq? | failNotEq
+      unless lhs.isMVar && rhs.isMVar do failNotEq
       let key ←
         if (← withReducible <| whnf ty).isForall then
-          pure #[DiscrTree.Key.star] -- FIXME: workaround
+          pure #[.star] -- FIXME: workaround
         else
           withReducible <| DiscrTree.mkPath ty
       extExtension.add (decl, key) kind }

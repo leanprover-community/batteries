@@ -83,7 +83,7 @@ theorem gcd_assoc (m n k : Nat) : gcd (gcd m n) k = gcd m (gcd n k) :=
 theorem gcd_mul_left (m n k : Nat) : gcd (m * n) (m * k) = m * gcd n k := by
   induction n, k using gcd.induction with
   | H0 k => simp
-  | H1 n k _ IH => rwa [←mul_mod_mul_left, ←gcd_rec, ←gcd_rec] at IH
+  | H1 n k _ IH => rwa [← mul_mod_mul_left, ← gcd_rec, ← gcd_rec] at IH
 
 theorem gcd_mul_right (m n k : Nat) : gcd (m * n) (k * n) = gcd m k * n := by
   rw [Nat.mul_comm m n, Nat.mul_comm k n, Nat.mul_comm (gcd m k) n, gcd_mul_left]

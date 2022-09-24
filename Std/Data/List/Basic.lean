@@ -378,11 +378,33 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
     cases n <;> simp [removeNth, removeNthTR.go, *]
     · intro h; rw [IH]; simp; simp; exact h
 
-/-- Calculates the OR of a list of bools. -/
-@[inline] def bor (l : List Bool) : Bool := any l id
+/-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
+@[simp] def replaceF (f : α → Option α) : List α → List α
+  | [] => []
+  | x :: xs => match f x with
+    | none => x :: replaceF f xs
+    | some a => a :: xs
 
-/-- Calculates the AND of a list of bools. -/
-@[inline] def band (l : List Bool) : Bool := all l id
+/-- Tail recursive version of `replaceF`. -/
+@[inline] def replaceFTR (f : α → Option α) (l : List α) : List α := go l #[] where
+  /-- Auxiliary for `replaceFTR`:
+  `replaceFTR.go f l xs acc = acc.toList ++ replaceF f xs` if `f` returns `some`, else `l`. -/
+  go : List α → Array α → List α
+  | [], _ => l
+  | x :: xs, acc => match f x with
+    | none => go xs (acc.push x)
+    | some a => acc.toListAppend (a :: xs)
+
+@[csimp] theorem replaceF_eq_replaceFTR : @replaceF = @replaceFTR := by
+  funext α f l; simp [replaceFTR]
+  suffices ∀ xs acc, l = acc.data ++ xs →
+      replaceFTR.go f l xs acc = acc.data ++ xs.replaceF f from
+    (this l #[] (by simp)).symm
+  intro xs; induction xs with intro acc
+  | nil => simp [replaceF, replaceFTR.go]; exact id
+  | cons x xs IH =>
+    simp [replaceF, replaceFTR.go]; split <;> simp [*]
+    · intro h; rw [IH]; simp; simp; exact h
 
 /-- Inserts an element into a list without duplication. -/
 @[inline] protected def insert [DecidableEq α] (a : α) (l : List α) : List α :=
@@ -634,11 +656,6 @@ partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2],
     | .inl a => go xs (acc₁.push a) acc₂
     | .inr b => go xs acc₁ (acc₂.push b)
 
-/-- `find p l` is the first element of `l` satisfying `p`, or `none` if no such element exists. -/
-def find (p : α → Bool) : List α → Option α
-  | [] => none
-  | a :: l => bif p a then some a else find p l
-
 /--
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
@@ -880,37 +897,37 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   rw [Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
-/-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
-def erasep (p : α → Bool) : List α → List α
+/-- `eraseP p l` removes the first element of `l` satisfying the predicate `p`. -/
+def eraseP (p : α → Bool) : List α → List α
   | [] => []
-  | a :: l => bif p a then l else a :: erasep p l
+  | a :: l => bif p a then l else a :: eraseP p l
 
-/-- Tail-recursive version of `erasep`. -/
-@[inline] def erasepTR (p : α → Bool) (l : List α) : List α := go l #[] where
-  /-- Auxiliary for `erasepTR`: `erasepTR.go p l xs acc = acc.toList ++ erasep p xs`,
+/-- Tail-recursive version of `eraseP`. -/
+@[inline] def erasePTR (p : α → Bool) (l : List α) : List α := go l #[] where
+  /-- Auxiliary for `erasePTR`: `erasePTR.go p l xs acc = acc.toList ++ eraseP p xs`,
   unless `xs` does not contain any elements satisfying `p`, where it returns `l`. -/
   @[specialize] go : List α → Array α → List α
   | [], _ => l
   | a :: l, acc => bif p a then acc.toListAppend l else go l (acc.push a)
 
-@[csimp] theorem erasep_eq_erasepTR : @erasep = @erasepTR := by
-  funext α p l; simp [erasepTR]
+@[csimp] theorem eraseP_eq_erasePTR : @eraseP = @erasePTR := by
+  funext α p l; simp [erasePTR]
   let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    erasepTR.go p l xs acc = acc.data ++ xs.erasep p
-  | [] => fun h => by simp [erasepTR.go, erasep, h]
+    erasePTR.go p l xs acc = acc.data ++ xs.eraseP p
+  | [] => fun h => by simp [erasePTR.go, eraseP, h]
   | x::xs => by
-    simp [erasepTR.go, erasep]; cases p x <;> simp
+    simp [erasePTR.go, eraseP]; cases p x <;> simp
     · intro h; rw [go _ xs]; {simp}; simp [h]
   exact (go #[] _ rfl).symm
 
 /--
-`extractp p l` returns a pair of an element `a` of `l` satisfying the predicate
+`extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
 `p`, and `l`, with `a` removed. If there is no such element `a` it returns `(none, l)`.
 -/
-def extractp (p : α → Bool) (l : List α) : Option α × List α := go l #[] where
-  /-- Auxiliary for `extractp`:
-  `extractp.go p l xs acc = (some a, acc.toList ++ out)` if `extractp p xs = (some a, out)`,
-  and `extractp.go p l xs acc = (none, l)` if `extractp p xs = (none, _)`. -/
+def extractP (p : α → Bool) (l : List α) : Option α × List α := go l #[] where
+  /-- Auxiliary for `extractP`:
+  `extractP.go p l xs acc = (some a, acc.toList ++ out)` if `extractP p xs = (some a, out)`,
+  and `extractP.go p l xs acc = (none, l)` if `extractP p xs = (none, _)`. -/
   go : List α → Array α → Option α × List α
   | [], _ => (none, l)
   | a :: l, acc => bif p a then (some a, acc.toListAppend l) else go l (acc.push a)
