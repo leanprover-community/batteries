@@ -732,8 +732,3 @@ theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
     (a b : α) : (a == b) = false ↔ a ≠ b := by
   rw [ne_eq, ← beq_iff_eq a b]
   cases a == b <;> decide
-
-/-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
-class TotalBLE (le : α → α → Bool) : Prop where
-  /-- `le` is total: either `le a b` or `le b a`. -/
-  total : le a b ∨ le b a

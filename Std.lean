@@ -20,6 +20,7 @@ import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
+import Std.Data.RBMap
 import Std.Data.Rat
 import Std.Lean.Command
 import Std.Lean.Meta
@@ -27,6 +28,7 @@ import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.Tactic
 import Std.Logic
+import Std.Order
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
