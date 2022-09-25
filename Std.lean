@@ -44,7 +44,9 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.RCases
+import Std.Tactic.ShowTerm
 import Std.Tactic.Simpa
+import Std.Tactic.TryThis
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
