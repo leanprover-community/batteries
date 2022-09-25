@@ -123,16 +123,16 @@ the type being destructed, the extra patterns will match on the last element, me
 type with 3 constructors,  `p1 | (p2 | p3)` will act like `p1 | (p2 | p3) | _` instead.
 -/
 inductive RCasesPatt : Type
-  | /-- A named pattern like `foo` -/
-    one (ref : Syntax) : Name → RCasesPatt
-  | /-- A hyphen `-`, which clears the active hypothesis and any dependents. -/
-    clear (ref : Syntax) : RCasesPatt
-  | /-- A type ascription like `pat : ty` (parentheses are optional) -/
-    typed (ref : Syntax) : RCasesPatt → Term → RCasesPatt
-  | /-- A tuple constructor like `⟨p1, p2, p3⟩` -/
-    tuple (ref : Syntax) : ListΠ RCasesPatt → RCasesPatt
-  | /-- An alternation / variant pattern `p1 | p2 | p3` -/
-    alts (ref : Syntax) : ListΣ RCasesPatt → RCasesPatt
+  /-- A named pattern like `foo` -/
+  | one (ref : Syntax) : Name → RCasesPatt
+  /-- A hyphen `-`, which clears the active hypothesis and any dependents. -/
+  | clear (ref : Syntax) : RCasesPatt
+  /-- A type ascription like `pat : ty` (parentheses are optional) -/
+  | typed (ref : Syntax) : RCasesPatt → Term → RCasesPatt
+  /-- A tuple constructor like `⟨p1, p2, p3⟩` -/
+  | tuple (ref : Syntax) : ListΠ RCasesPatt → RCasesPatt
+  /-- An alternation / variant pattern `p1 | p2 | p3` -/
+  | alts (ref : Syntax) : ListΣ RCasesPatt → RCasesPatt
   deriving Repr
 
 namespace RCasesPatt

@@ -429,12 +429,12 @@ instance [DecidableEq α] : Inter (List α) := ⟨List.inter⟩
 
 /-- `l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`. -/
 inductive Sublist {α} : List α → List α → Prop
-  | /-- the base case: `[]` is a sublist of `[]` -/
-    slnil : Sublist [] []
-  | /-- If `l₁` is a subsequence of `l₂`, then it is also a subsequence of `a :: l₂`. -/
-    cons a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
-  | /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
-    cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
+  /-- the base case: `[]` is a sublist of `[]` -/
+  | slnil : Sublist [] []
+  /-- If `l₁` is a subsequence of `l₂`, then it is also a subsequence of `a :: l₂`. -/
+  | cons a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
+  /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
+  | cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
 
 @[inheritDoc] scoped infixl:50 " <+ " => Sublist
 
@@ -824,11 +824,11 @@ and whenever `a` is the nth element of `l₁`, and `b` is the nth element of `l�
 then `R a b` is satisfied.
 -/
 inductive Forall₂ (R : α → β → Prop) : List α → List β → Prop
-  | /-- Two nil lists are `Forall₂`-related -/
-    nil : Forall₂ R [] []
-  | /-- Two cons lists are related by `Forall₂ R`
-    if the heads are related by `R` and the tails are related by `Forall₂ R` -/
-    cons {a b l₁ l₂} : R a b → Forall₂ R l₁ l₂ → Forall₂ R (a :: l₁) (b :: l₂)
+  /-- Two nil lists are `Forall₂`-related -/
+  | nil : Forall₂ R [] []
+  /-- Two cons lists are related by `Forall₂ R`
+  if the heads are related by `R` and the tails are related by `Forall₂ R` -/
+  | cons {a b l₁ l₂} : R a b → Forall₂ R l₁ l₂ → Forall₂ R (a :: l₁) (b :: l₂)
 
 attribute [simp] Forall₂.nil
 
@@ -1004,11 +1004,11 @@ For example if `R = (·≠·)` then it asserts `l` has no duplicates,
 and if `R = (·<·)` then it asserts that `l` is (strictly) sorted.
 -/
 inductive Pairwise : List α → Prop
-  | /-- All elements of the empty list are vacuously pairwise related. -/
-    nil : Pairwise []
-  | /-- `a :: l` is `Pairwise R` if `a` `R`-relates to every element of `l`,
-    and `l` is `Pairwise R`. -/
-    cons : ∀ {a : α} {l : List α}, (∀ a' ∈ l, R a a') → Pairwise l → Pairwise (a :: l)
+  /-- All elements of the empty list are vacuously pairwise related. -/
+  | nil : Pairwise []
+  /-- `a :: l` is `Pairwise R` if `a` `R`-relates to every element of `l`,
+  and `l` is `Pairwise R`. -/
+  | cons : ∀ {a : α} {l : List α}, (∀ a' ∈ l, R a a') → Pairwise l → Pairwise (a :: l)
 
 variable {R}
 
@@ -1048,10 +1048,10 @@ variable (R : α → α → Prop)
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
 inductive Chain : α → List α → Prop
-  | /-- A chain of length 1 is trivially a chain. -/
-    nil {a : α} : Chain a []
-  | /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-    cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+  /-- A chain of length 1 is trivially a chain. -/
+  | nil {a : α} : Chain a []
+  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```

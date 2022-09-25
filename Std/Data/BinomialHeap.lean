@@ -21,12 +21,12 @@ Each edge in this forest denotes a `le a b` relation that has been checked, so
 the root is smaller than everything else under it.
 -/
 inductive HeapNode (α : Type u) where
-  | /-- An empty forest, which has depth `0`. -/
-    nil : HeapNode α
-  | /-- A forest of rank `r + 1` consists of a root `a`,
-    a forest `child` of rank `r` elements greater than `a`,
-    and another forest `sibling` of rank `r`. -/
-    node (a : α) (child sibling : HeapNode α) : HeapNode α
+  /-- An empty forest, which has depth `0`. -/
+  | nil : HeapNode α
+  /-- A forest of rank `r + 1` consists of a root `a`,
+  a forest `child` of rank `r` elements greater than `a`,
+  and another forest `sibling` of rank `r`. -/
+  | node (a : α) (child sibling : HeapNode α) : HeapNode α
   deriving Repr
 
 /--
@@ -56,11 +56,11 @@ A `Heap` is the top level structure in a binomial heap.
 It consists of a forest of `HeapNode`s with strictly increasing ranks.
 -/
 inductive Heap (α : Type u) where
-  | /-- An empty heap. -/
-    nil : Heap α
-  | /-- A cons node contains a tree of root `val`, children `node` and rank `rank`,
-    and then `next` which is the rest of the forest. -/
-    cons (rank : Nat) (val : α) (node : HeapNode α) (next : Heap α) : Heap α
+  /-- An empty heap. -/
+  | nil : Heap α
+  /-- A cons node contains a tree of root `val`, children `node` and rank `rank`,
+  and then `next` which is the rest of the forest. -/
+  | cons (rank : Nat) (val : α) (node : HeapNode α) (next : Heap α) : Heap α
   deriving Repr
 
 /--

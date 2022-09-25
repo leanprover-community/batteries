@@ -18,13 +18,13 @@ namespace Tactic.NormCast
 * squash lemma: LHS has ≥ 1 head coes and 0 internal coes, RHS has fewer head coes
 -/
 inductive Label
-  | /-- elim lemma: LHS has 0 head coes and ≥ 1 internal coe -/
-    elim
-  | /-- move lemma: LHS has 1 head coe and 0 internal coes,
-    RHS has 0 head coes and ≥ 1 internal coes -/
-    move
-  | /-- squash lemma: LHS has ≥ 1 head coes and 0 internal coes, RHS has fewer head coes -/
-    squash
+  /-- elim lemma: LHS has 0 head coes and ≥ 1 internal coe -/
+  | elim
+  /-- move lemma: LHS has 1 head coe and 0 internal coes,
+  RHS has 0 head coes and ≥ 1 internal coes -/
+  | move
+  /-- squash lemma: LHS has ≥ 1 head coes and 0 internal coes, RHS has fewer head coes -/
+  | squash
   deriving DecidableEq, Repr, Inhabited
 
 /-- Assuming `e` is an application, returns the list of subterms that `simp` will rewrite in. -/

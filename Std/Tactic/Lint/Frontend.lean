@@ -60,12 +60,12 @@ open Lean Std
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
-  | /-- `low`: only print failing checks, print nothing on success. -/
-    low
-  | /-- `medium`: only print failing checks, print confirmation on success. -/
-    medium
-  | /-- `high`: print output of every check. -/
-    high
+  /-- `low`: only print failing checks, print nothing on success. -/
+  | low
+  /-- `medium`: only print failing checks, print confirmation on success. -/
+  | medium
+  /-- `high`: print output of every check. -/
+  | high
   deriving Inhabited, DecidableEq, Repr
 
 /-- `getChecks slow extra use_only` produces a list of linters.

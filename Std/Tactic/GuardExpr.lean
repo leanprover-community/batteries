@@ -15,12 +15,12 @@ have to be to pass the tactic.
 This inductive gives the different specifiers that can be selected.
 -/
 inductive MatchKind
-| /-- A syntactic match means that the `Expr`s are `==` after stripping `MData` -/
-  syntactic
-| /-- A defeq match `isDefEqGuarded` returns true. (Note that unification is allowed here.) -/
-  defEq
-| /-- An alpha-eq match means that `Expr.eqv` returns true. -/
-  alphaEq
+/-- A syntactic match means that the `Expr`s are `==` after stripping `MData` -/
+| syntactic
+/-- A defeq match `isDefEqGuarded` returns true. (Note that unification is allowed here.) -/
+| defEq
+/-- An alpha-eq match means that `Expr.eqv` returns true. -/
+| alphaEq
 
 /-- Syntactic matching for `guard_hyp` types -/
 syntax colonS := " : "

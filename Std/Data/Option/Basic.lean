@@ -68,10 +68,10 @@ def liftOrGet (f : α → α → α) : Option α → Option α → Option α
 /-- Lifts a relation `α → β → Prop` to a relation `Option α → Option β → Prop` by just adding
 `none ~ none`. -/
 inductive Rel (r : α → β → Prop) : Option α → Option β → Prop
-  | /-- If `a ~ b`, then `some a ~ some b` -/
-    some {a b} : r a b → Rel r (some a) (some b)
-  | /-- `none ~ none` -/
-    none : Rel r none none
+  /-- If `a ~ b`, then `some a ~ some b` -/
+  | some {a b} : r a b → Rel r (some a) (some b)
+  /-- `none ~ none` -/
+  | none : Rel r none none
 
 /--
 Partial bind. If for some `x : Option α`, `f : Π (a : α), a ∈ x → Option β` is a

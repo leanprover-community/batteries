@@ -15,10 +15,10 @@ It is mainly intended as a component of `HashMap`, but it can also be used as a 
 key-value map.
 -/
 inductive AssocList (α : Type u) (β : Type v) where
-  | /-- An empty list -/
-    nil
-  | /-- Add a `key, value` pair to the list -/
-    cons (key : α) (value : β) (tail : AssocList α β)
+  /-- An empty list -/
+  | nil
+  /-- Add a `key, value` pair to the list -/
+  | cons (key : α) (value : β) (tail : AssocList α β)
   deriving Inhabited
 
 namespace AssocList

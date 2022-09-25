@@ -10,12 +10,12 @@ namespace Tactic.NormCast
 
 /-- The different types of coercions that are supported by the `coe` attribute. -/
 inductive CoeFnType
-  | /-- The basic coercion `↑x`, see `CoeT.coe` -/
-    coe
-  | /-- The coercion to a function type, see `CoeFun.coe` -/
-    coeFun
-  | /-- The coercion to a type, see `CoeSort.coe` -/
-    coeSort
+  /-- The basic coercion `↑x`, see `CoeT.coe` -/
+  | coe
+  /-- The coercion to a function type, see `CoeFun.coe` -/
+  | coeFun
+  /-- The coercion to a type, see `CoeSort.coe` -/
+  | coeSort
   deriving Inhabited, Repr, DecidableEq
 
 instance : ToExpr CoeFnType where
