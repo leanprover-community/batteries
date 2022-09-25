@@ -17,7 +17,7 @@ open Lean Parser.Tactic
 macro_rules | `(tactic| by_cases $e) => `(tactic| by_cases h : $e)
 macro_rules
   | `(tactic| by_cases $h : $e) =>
-    `(tactic| open Classical in refine if $h : $e then ?pos else ?neg)
+    `(tactic| open Classical in refine if $h:ident : $e then ?pos else ?neg)
 
 private def expandIfThenElse
     (ifTk thenTk elseTk pos neg : Syntax)
@@ -54,7 +54,7 @@ if a tactic sequence is provided for `tac1` or `tac2` then it will require the g
 by the end of the block.
 -/
 syntax (name := tacDepIfThenElse)
-  ppRealGroup(ppRealFill(ppIndent("if " ident " : " term " then") ppSpace matchRhs)
+  ppRealGroup(ppRealFill(ppIndent("if " binderIdent " : " term " then") ppSpace matchRhs)
     ppDedent(ppSpace) ppRealFill("else " matchRhs)) : tactic
 
 /--
