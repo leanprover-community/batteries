@@ -22,7 +22,6 @@ inductive AssocList (α : Type u) (β : Type v) where
   deriving Inhabited
 
 namespace AssocList
-variable {α : Type u} {β : Type v} {δ : Type w} {m : Type w → Type w} [Monad m]
 
 /--
 `O(n)`. Convert an `AssocList α β` into the equivalent `List (α × β)`.
@@ -46,11 +45,11 @@ def isEmpty : AssocList α β → Bool
   cases l <;> simp [*, isEmpty, List.isEmpty]
 
 /-- `O(n)`. Fold a monadic function over the list, from head to tail. -/
-@[specialize] def foldlM (f : δ → α → β → m δ) : (init : δ) → AssocList α β → m δ
+@[specialize] def foldlM [Monad m] (f : δ → α → β → m δ) : (init : δ) → AssocList α β → m δ
   | d, nil         => pure d
   | d, cons a b es => do foldlM f (← f d a b) es
 
-@[simp] theorem foldlM_eq (f : δ → α → β → m δ) (init l) :
+@[simp] theorem foldlM_eq [Monad m] (f : δ → α → β → m δ) (init l) :
     foldlM f init l = l.toList.foldlM (fun d (a, b) => f d a b) init := by
   induction l generalizing init <;> simp [*, foldlM]
 
@@ -71,11 +70,11 @@ def toListTR (as : AssocList α β) : List (α × β) :=
   exact .symm <| (Array.foldl_data_eq_map (toList as) _ id).trans (List.map_id _)
 
 /-- `O(n)`. Run monadic function `f` on all elements in the list, from head to tail. -/
-@[specialize] def forM (f : α → β → m PUnit) : AssocList α β → m PUnit
+@[specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit
   | nil         => pure ⟨⟩
   | cons a b es => do f a b; forM f es
 
-@[simp] theorem forM_eq (f : α → β → m PUnit) (l) :
+@[simp] theorem forM_eq [Monad m] (f : α → β → m PUnit) (l) :
     forM f l = l.toList.forM (fun (a, b) => f a b) := by
   induction l <;> simp [*, forM]
 
@@ -182,7 +181,7 @@ with key equal to `a` to have key `a` and value `b`.
     (erase a l).toList = l.toList.eraseP (·.1 == a) := eraseP_toList ..
 
 /-- The implementation of `ForIn`, which enables `for (k, v) in aList do ...` notation. -/
-@[inline] protected def forIn [Monad m]
+@[specialize] protected def forIn [Monad m]
     (as : AssocList α β) (init : δ) (f : (α × β) → δ → m (ForInStep δ)) : m δ :=
   match as with
   | nil => pure init
@@ -194,8 +193,8 @@ with key equal to `a` to have key `a` and value `b`.
 instance : ForIn m (AssocList α β) (α × β) where
   forIn := AssocList.forIn
 
-@[simp] theorem forIn_eq (l : AssocList α β) (init : δ) (f : (α × β) → δ → m (ForInStep δ)) :
-    forIn l init f = forIn l.toList init f := by
+@[simp] theorem forIn_eq [Monad m] (l : AssocList α β) (init : δ)
+    (f : (α × β) → δ → m (ForInStep δ)) : forIn l init f = forIn l.toList init f := by
   simp [forIn, List.forIn]
   induction l generalizing init <;> simp [AssocList.forIn, List.forIn.loop]
   congr; funext a; split <;> simp [*]

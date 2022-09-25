@@ -24,7 +24,6 @@ set_option linter.missingDocs false -- FIXME
 
 namespace Std
 namespace New -- TODO: lean4#1645
-universe u v w w'
 
 inductive RBColor where
   | red | black

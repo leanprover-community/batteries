@@ -173,21 +173,21 @@ def formatLinterResults
 
 /-- Get the list of declarations in the current module. -/
 def getDeclsInCurrModule : CoreM (Array Name) := do
-  pure $ (← getEnv).constants.map₂.toList.toArray.map (·.1)
+  pure $ (← getEnv).constants.map₂.foldl (init := #[]) fun r k _ => r.push k
 
 /-- Get the list of all declarations in the environment. -/
 def getAllDecls : CoreM (Array Name) := do
-  pure $ (← getDeclsInCurrModule) ++
-    (← getEnv).constants.map₁.toArray.map (·.1)
+  pure $ (← getEnv).constants.map₁.fold (init := ← getDeclsInCurrModule) fun r k _ => r.push k
 
 /-- Get the list of all declarations in the specified package. -/
 def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
+  let env ← getEnv
   let mut decls ← getDeclsInCurrModule
-  let modules := (← getEnv).header.moduleNames.map (pkg.isPrefixOf ·)
-  for (declName, moduleIdx) in (← getEnv).const2ModIdx.toArray do
-    if modules[(id moduleIdx : Nat)]? == true then
-      decls := decls.push declName
-  pure decls
+  let modules := env.header.moduleNames.map (pkg.isPrefixOf ·)
+  return env.constants.map₂.foldl (init := decls) fun decls declName _ =>
+    if modules[env.const2ModIdx[declName].get! (α := Nat)]! then
+      decls.push declName
+    else decls
 
 open Elab Command in
 /-- The command `#lint` runs the linters on the current file (by default). -/
