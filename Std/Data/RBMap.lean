@@ -20,48 +20,73 @@ but the function does not have to satisfy `cmp x y = .eq → x = y`, and in the 
 `α` is a key-value pair and the `cmp` function only compares the keys.
 -/
 
-set_option linter.missingDocs false -- FIXME
-
 namespace Std
 namespace New -- TODO: lean4#1645
 
+/--
+In a red-black tree, every node has a color which is either "red" or "black"
+(this particular choice of colors is conventional). A nil node is considered black.
+-/
 inductive RBColor where
-  | red | black
+  /-- A red node is required to have black children. -/
+  | red
+  /-- Every path from the root to a leaf must pass through the same number of black nodes. -/
+  | black
 
+/--
+A red-black tree. (This is an internal implementation detail of the `RBTree` type,
+which includes the invariants of the tree.) This is a binary search tree augmented with
+a "color" field which is either red or black for each node and used to implement
+the re-balancing operations.
+See: [Red–black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
+-/
 inductive RBNode (α : Type u) where
+  /-- An empty tree. -/
   | nil
+  /-- A node consists of a value `v`, a subtree `l` of smaller items,
+  and a subtree `r` of larger items. The color `c` is either `red` or `black`
+  and participates in the red-black balance invariant (see `Balanced`). -/
   | node (c : RBColor) (l : RBNode α) (v : α) (r : RBNode α)
 
 namespace RBNode
-variable {α : Type u} {β : α → Type v} {σ : Type w}
 open RBColor
 
+/-- The minimum element of a tree is the left-most value. -/
 protected def min : RBNode α → Option α
   | nil            => none
   | node _ nil v _ => some v
   | node _ l _ _   => l.min
 
+/-- The maximum element of a tree is the right-most value. -/
 protected def max : RBNode α → Option α
   | nil            => none
   | node _ _ v nil => some v
   | node _ _ _ r   => r.max
 
+/--
+Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
+`f` is used to combine results at branching nodes.
+-/
 @[specialize] def fold (v₀ : σ) (f : σ → α → σ → σ) : RBNode α → σ
   | nil          => v₀
   | node _ l v r => f (l.fold v₀ f) v (r.fold v₀ f)
 
+/-- Fold a function on the values from left to right (in increasing order). -/
 @[specialize] def foldl (f : σ → α → σ) : (init : σ) → RBNode α → σ
   | b, nil          => b
   | b, node _ l v r => foldl f (f (foldl f b l) v) r
 
+/-- Run monadic function `f` on each element of the tree (in increasing order). -/
 @[specialize] def forM [Monad m] (f : α → m Unit) : RBNode α → m Unit
   | nil          => pure ()
   | node _ l v r => do forM f l; f v; forM f r
 
+/-- Fold a monadic function on the values from left to right (in increasing order). -/
 @[specialize] def foldlM [Monad m] (f : σ → α → m σ) : (init : σ) → RBNode α → m σ
   | b, nil          => pure b
   | b, node _ l v r => do foldlM f (← f (← foldlM f b l) v) r
 
+/-- Implementation of `for x in t` loops over a `RBNode` (in increasing order). -/
 @[inline] protected def forIn [Monad m]
     (as : RBNode α) (init : σ) (f : α → σ → m (ForInStep σ)) : m σ := do
   let rec @[specialize] visit : RBNode α → σ → m (ForInStep σ)
@@ -77,62 +102,93 @@ protected def max : RBNode α → Option α
   | .done b  => pure b
   | .yield b => pure b
 
+/-- Fold a function on the values from right to left (in decreasing order). -/
 @[specialize] def foldr (f : α → σ → σ) : RBNode α → (init : σ) → σ
   | nil,          b => b
   | node _ l v r, b => l.foldr f (f v (r.foldr f b))
 
+/-- Returns `true` iff every element of the tree satisfies `p`. -/
 @[specialize] def all (p : α → Bool) : RBNode α → Bool
   | nil          => true
   | node _ l v r => p v && all p l && all p r
 
+/-- Returns `true` iff any element of the tree satisfies `p`. -/
 @[specialize] def any (p : α → Bool) : RBNode α → Bool
   | nil          => false
   | node _ l v r => p v || any p l || any p r
 
+/-- Asserts that `p` holds on every element of the tree. -/
 @[simp] def All (p : α → Prop) : RBNode α → Prop
   | nil          => True
   | node _ l v r => p v ∧ All p l ∧ All p r
 
-theorem All.imp (H : ∀ {x}, p x → q x) : ∀ {x : RBNode α}, x.All p → x.All q
+theorem All.imp (H : ∀ {x : α}, p x → q x) : ∀ {t : RBNode α}, t.All p → t.All q
   | nil => id
   | node .. => fun ⟨h, hl, hr⟩ => ⟨H h, hl.imp H, hr.imp H⟩
 
+/-- Asserts that `p` holds on some element of the tree. -/
 @[simp] def Any (p : α → Prop) : RBNode α → Prop
   | nil          => False
   | node _ l v r => p v ∨ Any p l ∨ Any p r
 
+/--
+The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
+and the black-height (the number of black nodes on any path from the root) of the tree is `n`.
+Additionally, every red node must have black children.
+-/
 inductive Balanced : RBNode α → RBColor → Nat → Prop where
+  /-- A nil node is balanced with black-height 0, and it is considered black. -/
   | protected nil : Balanced nil black 0
+  /-- A red node is balanced with black-height `n`
+  if its children are both black with with black-height `n`. -/
   | protected red : Balanced x black n → Balanced y black n → Balanced (node red x v y) red n
+  /-- A black node is balanced with black-height `n + 1`
+  if its children both have black-height `n`. -/
   | protected black : Balanced x c₁ n → Balanced y c₂ n → Balanced (node black x v y) black (n + 1)
 
-def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop :=
-  Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
+/--
+We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 
-abbrev cmpGt (cmp : α → α → Ordering) (y x : α) : Prop := cmpLt cmp x y
+* In order to avoid assuming the comparator is always lawful, we use a
+  local `∀ [TransCmp cmp]` binder in the relation so that the ordering
+  properties of the tree only need to hold if the comparator is lawful.
+* The `Nonempty` wrapper is a no-op because this is already a proposition,
+  but it prevents the `[TransCmp cmp]` binder from being introduced when we don't want it.
+-/
+def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
 
 theorem cmpLt.trans (h₁ : cmpLt cmp x y) (h₂ : cmpLt cmp y z) : cmpLt cmp x z :=
   ⟨TransCmp.lt_trans h₁.1 h₂.1⟩
 
-theorem cmpLt.trans_l (H : cmpLt cmp x y) {a : RBNode α}
-    (h : a.All (cmpLt cmp y)) : a.All (cmpLt cmp x) := h.imp fun h => H.trans h
+theorem cmpLt.trans_l {cmp x y} (H : cmpLt cmp x y) {t : RBNode α}
+    (h : t.All (cmpLt cmp y ·)) : t.All (cmpLt cmp x ·) := h.imp fun h => H.trans h
 
-theorem cmpLt.trans_r (H : cmpLt cmp x y) {a : RBNode α}
-    (h : a.All (cmpGt cmp x)) : a.All (cmpGt cmp y) := h.imp fun h => h.trans H
+theorem cmpLt.trans_r {cmp x y} (H : cmpLt cmp x y) {a : RBNode α}
+    (h : a.All (cmpLt cmp · x)) : a.All (cmpLt cmp · y) := h.imp fun h => h.trans H
 
-variable (cmp : α → α → Ordering) in
-def Ordered : RBNode α → Prop
+/--
+The ordering invariant of a red-black tree, which is a binary search tree.
+This says that every element of a left subtree is less than the root, and
+every element in the right subtree is greater than the root, where the
+less than relation `x < y` is understood to mean `cmp x y = .lt`.
+
+Because we do not assume that `cmp` is lawful when stating this property,
+we write it in such a way that if `cmp` is not lawful then the condition holds trivially.
+That way we can prove the ordering invariants without assuming `cmp` is lawful.
+-/
+def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
   | nil => True
-  | node _ a x b => a.All (cmpGt cmp x) ∧ b.All (cmpLt cmp x) ∧ a.Ordered ∧ b.Ordered
+  | node _ a x b => a.All (cmpLt cmp · x) ∧ b.All (cmpLt cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
 
--- the first half of Okasaki's `balance`, concerning red-red sequences in the left child
+/-- The first half of Okasaki's `balance`, concerning red-red sequences in the left child. -/
 @[inline] def balance1 : RBNode α → α → RBNode α → RBNode α
   | node red (node red a x b) y c, z, d
   | node red a x (node red b y c), z, d => node red (node black a x b) y (node black c z d)
   | a,                             x, b => node black a x b
 
+/-- The `balance1` function preserves the ordering invariants. -/
 theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpGt cmp v)) (vr : r.All (cmpLt cmp v))
+    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance1 l v r).Ordered cmp := by
   unfold balance1; split
   case _ a x b y c =>
@@ -147,14 +203,15 @@ theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     (balance1 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
   unfold balance1; split <;> simp [and_assoc, and_left_comm]
 
--- the second half, concerning red-red sequences in the right child
+/-- The second half of Okasaki's `balance`, concerning red-red sequences in the right child. -/
 @[inline] def balance2 : RBNode α → α → RBNode α → RBNode α
   | a, x, node red (node red b y c) z d
   | a, x, node red b y (node red c z d) => node red (node black a x b) y (node black c z d)
   | a, x, b                             => node black a x b
 
+/-- The `balance2` function preserves the ordering invariants. -/
 theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpGt cmp v)) (vr : r.All (cmpLt cmp v))
+    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance2 l v r).Ordered cmp := by
   unfold balance2; split
   case _ b y c z d =>
@@ -169,17 +226,17 @@ theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (balance2 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
   unfold balance2; split <;> simp [and_assoc, and_left_comm]
 
+/-- An auxiliary function to test if the root is red. -/
 def isRed : RBNode α → Bool
   | node red .. => true
   | _           => false
 
-protected theorem Balanced.isRed (h : Balanced t red n) : isRed t := by cases h <;> rfl
-theorem Balanced.not_isRed (h : Balanced t black n) : ¬ isRed t := by cases h <;> intro.
-
+/-- An auxiliary function to test if the root is black (and non-nil). -/
 def isBlack : RBNode α → Bool
   | node black .. => true
   | _             => false
 
+/-- Change the color of the root to `black`. -/
 def setBlack : RBNode α → RBNode α
   | nil          => nil
   | node _ l v r => node black l v r
@@ -193,18 +250,24 @@ protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Ba
 
 section Insert
 
-variable (cmp : α → α → Ordering) in
-@[specialize] def ins (x : α) : RBNode α → RBNode α
+/--
+The core of the `insert` function. This adds an element `x` to a balanced red-black tree.
+Importantly, the result of callign `ins` is not a proper red-black tree,
+because it has a broken balance invariant.
+(See `InsBalanced` for the balance invariant of `ins`.)
+The `insert` function does the final fixup needed to restore the invariant.
+-/
+@[specialize] def ins (cmp : α → α → Ordering) (x : α) : RBNode α → RBNode α
   | nil => node red nil x nil
   | node red a y b =>
     match cmp x y with
-    | Ordering.lt => node red (ins x a) y b
-    | Ordering.gt => node red a y (ins x b)
+    | Ordering.lt => node red (ins cmp x a) y b
+    | Ordering.gt => node red a y (ins cmp x b)
     | Ordering.eq => node red a x b
   | node black a y b =>
     match cmp x y with
-    | Ordering.lt => balance1 (ins x a) y b
-    | Ordering.gt => balance2 a y (ins x b)
+    | Ordering.lt => balance1 (ins cmp x a) y b
+    | Ordering.gt => balance2 a y (ins cmp x b)
     | Ordering.eq => node black a x b
 
 protected theorem All.ins {x : α} {t : RBNode α}
@@ -212,6 +275,7 @@ protected theorem All.ins {x : α} {t : RBNode α}
   induction t <;> unfold ins <;> simp [*] <;> split <;>
     cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
 
+/-- The `ins` function preserves the ordering invariants. -/
 protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp
   | nil, _ => ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
@@ -229,19 +293,39 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
       ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
       yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
 
+/--
+`insert cmp t v` inserts element `v` into the tree, using the provided comparator
+`cmp` to put it in the right place and automatically rebalancing the tree as necessary.
+-/
 @[specialize] def insert (cmp : α → α → Ordering) (t : RBNode α) (v : α) : RBNode α :=
   bif isRed t then (ins cmp v t).setBlack else ins cmp v t
 
+/-- The `insert` function preserves the ordering invariants. -/
 protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
   unfold RBNode.insert cond; split <;> simp [Ordered.setBlack, h.ins (x := v)]
 
+/--
+The balance invariant of the `ins` function.
+`InsBalanced t₀ t n` is a property that should hold of `t` when inserting an element into `t₀`.
+`n` is the black-height of `t₀`, and also of `t` (because `ins` does not change the black-height).
+The result of inserting into the tree either yields a balanced tree,
+or a tree which is almost balanced except that it has a red-red violation at the root.
+-/
 inductive InsBalanced : RBNode α → RBNode α → Nat → Prop where
+  /-- A balanced tree is `ins`-balanced. -/
   | balanced : Balanced t c n → InsBalanced t₀ t n
+  /-- The case where `t` has the form `red (red a b) c` violates the balance invariant,
+  but it is otherwise valid (`a, b, c` are all balanced and black).
+  Additionally, this case can only occur if `t₀` was red to begin with. -/
   | redL : Balanced a black n → Balanced b black n → Balanced c black n →
     InsBalanced (node red a₀ v₀ b₀) (node red (node red a x b) y c) n
+  /-- The case where `t` has the form `red a (red b c)` violates the balance invariant,
+  but it is otherwise valid (`a, b, c` are all balanced and black).
+  Additionally, this case can only occur if `t₀` was red to begin with. -/
   | redR : Balanced a black n → Balanced b black n → Balanced c black n →
     InsBalanced (node red a₀ v₀ b₀) (node red a x (node red b y c)) n
 
+/-- The `ins` function is `ins`-balanced if the input is balanced. -/
 protected theorem Balanced.ins (cmp v) {t : RBNode α}
     (h : t.Balanced c n) : t.InsBalanced (ins cmp v t) n := by
   induction h with
@@ -279,6 +363,11 @@ protected theorem Balanced.ins (cmp v) {t : RBNode α}
         | _, .redL .., H, _ | _, .redR .., _, H => cases H _ _ _ _ _ rfl
     · exact .balanced (.black hl hr)
 
+/--
+The `insert` function is balanced if the input is balanced.
+(We lose track of both the color and the black-height of the result,
+so this is only suitable for use on the root of the tree.)
+-/
 theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
   unfold insert cond; match ins cmp v t, h.ins cmp v with
@@ -288,7 +377,19 @@ theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
 
 end Insert
 
--- Okasaki's full `balance`
+/-- The property of a cut function `cut` which ensures it can be used to find elements. -/
+class IsCut (cmp : α → α → Ordering) (cut : α → Ordering) : Prop where
+  /-- The set `{x | cut x = .lt}` is downward-closed. -/
+  lt_trans : cmpLt cmp x y → cut x = .lt → cut y = .lt
+  /-- The set `{x | cut x = .gt}` is upward-closed. -/
+  gt_trans : cmpLt cmp x y → cut y = .gt → cut x = .gt
+
+/-- A "representable cut" is one generated by `cmp a` for some `a`. This is always a valid cut. -/
+instance (cmp) [TransCmp cmp] (a : α) : IsCut cmp (cmp a) where
+  lt_trans h₁ h₂ := TransCmp.lt_trans h₂ h₁.1
+  gt_trans h₁ h₂ := TransCmp.gt_trans h₂ (LawfulCmp.cmp_eq_gt.2 h₁.1)
+
+/-- Okasaki's full `balance` function. This is a combination of `balance1` and `balance2`. -/
 def balance (a : RBNode α) (v : α) (d : RBNode α) : RBNode α :=
   match a with
   | node red (node red a x b) y c
@@ -298,10 +399,12 @@ def balance (a : RBNode α) (v : α) (d : RBNode α) : RBNode α :=
     | node red (node red b y c) z d => node red (node black a v b) y (node black c z d)
     | _                             => node black a v d
 
+/-- Recolor the root of the tree to `red` if possible. -/
 def setRed : RBNode α → RBNode α
   | node _ a v b => node red a v b
-  | e            => e
+  | nil          => nil
 
+/-- Rebalancing a tree which has shrunk on the left. -/
 def balLeft (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
   match l with
   | node red a x b => node red (node black a x b) v r
@@ -310,6 +413,7 @@ def balLeft (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
     | node red (node black a y b) z c => node red (node black l v a) y (balance b z (setRed c))
     | r                               => node red l v r -- unreachable
 
+/-- Rebalancing a tree which has shrunk on the right. -/
 def balRight (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
   match r with
   | node red b y c => node red l v (node black b y c)
@@ -318,13 +422,14 @@ def balRight (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
     | node red a x (node black b y c) => node red (balance (setRed a) x b) y (node black c v r)
     | l                               => node red l v r -- unreachable
 
+/-- The number of nodes in the tree. -/
 @[simp] def size : RBNode α → Nat
   | nil => 0
   | node _ x _ y => x.size + y.size + 1
 
+/-- Concatenate two trees with the same black-height. -/
 def appendTrees : RBNode α → RBNode α → RBNode α
-  | nil, x => x
-  | x, nil => x
+  | nil, x | x, nil => x
   | node red a x b, node red c y d =>
     match appendTrees b c with
     | node red b' z c' => node red (node red a x b') z (node red c' y d)
@@ -339,42 +444,57 @@ termination_by _ x y => x.size + y.size
 
 /-! ## erase -/
 
-@[specialize] def del (cmp : α → Ordering) : RBNode α → RBNode α
+/--
+The core of the `erase` function. The tree returned from this function has a broken invariant,
+which is restored in `erase`.
+-/
+@[specialize] def del (cut : α → Ordering) : RBNode α → RBNode α
   | nil           => nil
   | node _ a y b =>
-    match cmp y with
-    | .lt => if a.isBlack then balLeft (del cmp a) y b else node red (del cmp a) y b
-    | .gt => if b.isBlack then balRight a y (del cmp b) else node red a y (del cmp b)
+    match cut y with
+    | .lt => if a.isBlack then balLeft (del cut a) y b else node red (del cut a) y b
+    | .gt => if b.isBlack then balRight a y (del cut b) else node red a y (del cut b)
     | .eq => appendTrees a b
 
-@[specialize] def erase (cmp : α → Ordering) (t : RBNode α) : RBNode α := (del cmp t).setBlack
+/--
+The `erase cut t` function removes an element from the tree `t`.
+The `cut` function is used to locate an element in the tree:
+it returns `.gt` if we go too high and `.lt` if we go too low;
+if it returns `.eq` we will remove the element.
+(The function `cmp k` for some key `k` is a valid cut function, but we can also use cuts that
+are not of this form as long as they are suitably monotonic.)
+-/
+@[specialize] def erase (cut : α → Ordering) (t : RBNode α) : RBNode α := (del cut t).setBlack
 
 section Membership
 
-@[specialize] def find? (cmp : α → Ordering) : RBNode α → Option α
+/-- Finds an element in the tree satisfying the `cut` function. -/
+@[specialize] def find? (cut : α → Ordering) : RBNode α → Option α
   | nil => none
   | node _ a y b =>
-    match cmp y with
-    | .lt => find? cmp a
-    | .gt => find? cmp b
+    match cut y with
+    | .lt => find? cut a
+    | .gt => find? cut b
     | .eq => some y
 
-/-- `lowerBound? cmp` retrieves the largest entry smaller than or equal to `cmp`, if it exists. -/
-@[specialize] def lowerBound? (cmp : α → Ordering) : RBNode α → Option α → Option α
+/-- `lowerBound? cut` retrieves the largest entry smaller than or equal to `cut`, if it exists. -/
+@[specialize] def lowerBound? (cut : α → Ordering) : RBNode α → Option α → Option α
   | nil,          lb => lb
   | node _ a y b, lb =>
-    match cmp y with
-    | .lt => lowerBound? cmp a lb
-    | .gt => lowerBound? cmp b (some y)
+    match cut y with
+    | .lt => lowerBound? cut a lb
+    | .gt => lowerBound? cut b (some y)
     | .eq => some y
 
 end Membership
 
-@[specialize] def map {α : Type u} (f : α → α) : RBNode α → RBNode α
+/-- Map a function on every value in the tree. This can break the order invariant  -/
+@[specialize] def map (f : α → β) : RBNode α → RBNode β
   | nil => nil
   | node c l v r => node c (l.map f) (f v) (r.map f)
 
-def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push)
+/-- Converts the tree into an array in increasing sorted order. -/
+def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push ·)
 
 instance : EmptyCollection (RBNode α) := ⟨nil⟩
 
@@ -382,51 +502,65 @@ end RBNode
 
 open RBNode
 
+/--
+An `RBTree` is a self-balancing binary search tree.
+The `cmp` function is the comparator that will be used for performing searches;
+it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
+-/
 def RBTree (α : Type u) (cmp : α → α → Ordering) : Type u :=
   {t : RBNode α // t.Ordered cmp ∧ ∃ c n, t.Balanced c n}
 
+/-- `O(1)`. Construct a new empty tree. -/
 @[inline] def mkRBTree (α : Type u) (cmp : α → α → Ordering) : RBTree α cmp :=
   ⟨.nil, ⟨⟩, _, _, .nil⟩
 
 namespace RBTree
 
+/-- `O(1)`. Construct a new empty tree. -/
 @[inline] def empty : RBTree α cmp := mkRBTree ..
 
-instance (α : Type u) (cmp : α → α → Ordering) : EmptyCollection (RBTree α cmp) :=
-  ⟨empty⟩
+instance (α : Type u) (cmp : α → α → Ordering) : EmptyCollection (RBTree α cmp) := ⟨empty⟩
 
 instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBTree α cmp) := ⟨∅⟩
 
-@[inline] def foldl (f : σ → α → σ) : (init : σ) → RBTree α cmp → σ
-  | b, ⟨t, _⟩ => t.foldl f b
+/-- `O(1)`. Construct a new tree with one element `v`. -/
+@[inline] def single (v : α) : RBTree α cmp :=
+  ⟨.node .red .nil v .nil, ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩, _, _, .red .nil .nil⟩
 
-@[inline] def foldr (f : α → σ → σ) : (init : σ) → RBTree α cmp → σ
-  | b, ⟨t, _⟩ => t.foldr f b
+/-- `O(n)`. Fold a function on the values from left to right (in increasing order). -/
+@[inline] def foldl (f : σ → α → σ) (init : σ) (t : RBTree α cmp) : σ := t.1.foldl f init
 
-@[inline] def foldlM [Monad m] (f : σ → α → m σ) : (init : σ) → RBTree α cmp → m σ
-  | b, ⟨t, _⟩ => t.foldlM f b
+/-- `O(n)`. Fold a function on the values from right to left (in decreasing order). -/
+@[inline] def foldr (f : α → σ → σ) (init : σ) (t : RBTree α cmp) : σ := t.1.foldr f init
 
-@[inline] def forM [Monad m] (f : α → m PUnit) (t : RBTree α cmp) : m PUnit :=
-  t.foldlM (fun _ v => f v) ⟨⟩
+/-- `O(n)`. Fold a monadic function on the values from left to right (in increasing order). -/
+@[inline] def foldlM [Monad m] (f : σ → α → m σ) (init : σ) (t : RBTree α cmp) : m σ :=
+  t.1.foldlM f init
+
+/-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
+@[inline] def forM [Monad m] (f : α → m PUnit) (t : RBTree α cmp) : m PUnit := t.1.forM f
 
 instance : ForIn m (RBTree α cmp) α where
-  forIn t init f := t.val.forIn init f
+  forIn t init f := t.1.forIn init f
 
+/-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBTree α cmp → Bool
   | ⟨nil, _⟩ => true
   | _        => false
 
+/-- `O(n)`. Convert the tree to a list in ascending order. -/
 @[specialize] def toList (t : RBTree α cmp) : List α := t.1.foldr (·::·) []
 
-/-- Returns the entry `a` such that `a ≤ k` for all keys in the RBTree. -/
+/-- `O(log n)`. Returns the entry `a` such that `a ≤ k` for all keys in the RBTree. -/
 @[inline] protected def min (t : RBTree α cmp) : Option α := t.1.min
 
-/-- Returns the entry `a` such that `a ≥ k` for all keys in the RBTree. -/
+/-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBTree. -/
 @[inline] protected def max (t : RBTree α cmp) : Option α := t.1.max
 
 instance [Repr α] : Repr (RBTree α cmp) where
   reprPrec m prec := Repr.addAppParen ("Std.rbmapOf " ++ repr m.toList) prec
 
+/-- `O(log n)`. Insert element `v` into the tree. -/
 @[inline] def insert (t : RBTree α cmp) (v : α) : RBTree α cmp :=
   ⟨t.1.insert cmp v, let ⟨o, _, _, h⟩ := t.2; ⟨o.insert, h.insert⟩⟩
 
@@ -434,63 +568,81 @@ instance [Repr α] : Repr (RBTree α cmp) where
 -- @[inline] def erase : RBTree α cmp → α → RBTree α cmp
 --   | ⟨t, w⟩, k => ⟨t.erase cmp k, WellFormed.eraseWff w rfl⟩
 
+/-- `O(log n)`. Find an element in the tree using a cut function. -/
 @[inline] def findP? (t : RBTree α cmp) (cut : α → Ordering) : Option α := t.1.find? cut
 
+/-- `O(log n)`. Returns an element in the tree equivalent to `x` if one exists. -/
 @[inline] def find? (t : RBTree α cmp) (x : α) : Option α := t.1.find? (cmp x)
 
+/-- `O(log n)`. Find an element in the tree, or return a default value `v₀`. -/
 @[inline] def findPD (t : RBTree α cmp) (cut : α → Ordering) (v₀ : α) : α := (t.findP? cut).getD v₀
 
 /--
-`lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`, if it exists.
+`O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
+if it exists.
 -/
 @[inline] def lowerBoundP? (t : RBTree α cmp) (cut : α → Ordering) : Option α :=
   t.1.lowerBound? cut none
 
-/-- `lowerBound? k` retrieves the largest entry smaller than or equal to `k`, if it exists. -/
+/--
+`O(log n)`. `lowerBound? k` retrieves the largest entry smaller than or equal to `k`,
+if it exists.
+-/
 @[inline] def lowerBound? (t : RBTree α cmp) (k : α) : Option α := t.1.lowerBound? (cmp k) none
 
-/-- Returns true if the given cut returns `eq` for something in the RBTree. -/
+/-- `O(log n)`. Returns true if the given cut returns `eq` for something in the RBTree. -/
 @[inline] def containsP (t : RBTree α cmp) (cut : α → Ordering) : Bool := (t.findP? cut).isSome
 
-/-- Returns true if the given key `a` is in the RBTree. -/
+/-- `O(log n)`. Returns true if the given key `a` is in the RBTree. -/
 @[inline] def contains (t : RBTree α cmp) (a : α) : Bool := (t.find? a).isSome
 
+/-- `O(n log n)`. Build a tree from an unsorted list by inserting them one at a time. -/
 @[inline] def ofList (l : List α) (cmp : α → α → Ordering) : RBTree α cmp :=
   l.foldl (fun r p => r.insert p) (mkRBTree α cmp)
 
+/-- `O(n log n)`. Build a tree from an unsorted array by inserting them one at a time. -/
 @[inline] def ofArray (l : Array α) (cmp : α → α → Ordering) : RBTree α cmp :=
   l.foldl (fun r p => r.insert p) (mkRBTree α cmp)
 
-/-- Returns true if the given predicate is true for all items in the RBTree. -/
+/-- `O(n)`. Returns true if the given predicate is true for all items in the RBTree. -/
 @[inline] def all (t : RBTree α cmp) (p : α → Bool) : Bool := t.1.all p
 
-/-- Returns true if the given predicate is true for any item in the RBTree. -/
+/-- `O(n)`. Returns true if the given predicate is true for any item in the RBTree. -/
 @[inline] def any (t : RBTree α cmp) (p : α → Bool) : Bool := t.1.any p
 
-/-- The number of items in the RBTree. -/
+/-- `O(n)`. The number of items in the RBTree. -/
 def size (m : RBTree α cmp) : Nat := m.1.size
 
-@[inline] def min! [Inhabited α] (t : RBTree α cmp) : α := t.min.getD (panic! "map is empty")
+/-- `O(log n)`. Returns the minimum element of the tree, or panics if the tree is empty. -/
+@[inline] def min! [Inhabited α] (t : RBTree α cmp) : α := t.min.getD (panic! "tree is empty")
 
-@[inline] def max! [Inhabited α] (t : RBTree α cmp) : α := t.max.getD (panic! "map is empty")
-
-/-- Attempts to find the value with key `k : α` in `t` and panics if there is no such key. -/
-@[inline] def findP! [Inhabited α] (t : RBTree α cmp) (cut : α → Ordering) : α :=
-  (t.findP? cut).getD (panic! "key is not in the map")
-
-/-- Attempts to find the value with key `k : α` in `t` and panics if there is no such key. -/
-@[inline] def find! [Inhabited α] (t : RBTree α cmp) (k : α) : α :=
-  (t.find? k).getD (panic! "key is not in the map")
+/-- `O(log n)`. Returns the maximum element of the tree, or panics if the tree is empty. -/
+@[inline] def max! [Inhabited α] (t : RBTree α cmp) : α := t.max.getD (panic! "tree is empty")
 
 /--
-Merges the maps `t₁` and `t₂`. If equal keys exist in both,
+`O(log n)`. Attempts to find the value with key `k : α` in `t` and panics if there is no such key.
+-/
+@[inline] def findP! [Inhabited α] (t : RBTree α cmp) (cut : α → Ordering) : α :=
+  (t.findP? cut).getD (panic! "key is not in the tree")
+
+/--
+`O(log n)`. Attempts to find the value with key `k : α` in `t` and panics if there is no such key.
+-/
+@[inline] def find! [Inhabited α] (t : RBTree α cmp) (k : α) : α :=
+  (t.find? k).getD (panic! "key is not in the tree")
+
+/--
+`O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`. If equal keys exist in both,
 then use `mergeFn a₁ a₂` to produce the new merged value.
 -/
 def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBTree α cmp) : RBTree α cmp :=
   t₂.foldl (init := t₁) fun t₁ a₂ =>
     t₁.insert <| match t₁.find? a₂ with | some a₁ => mergeFn a₁ a₂ | none => a₂
 
-/-- Intersects the maps `t₁` and `t₂` using `mergeFn a b` to produce the new value. -/
+/--
+`O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
+using `mergeFn a b` to produce the new value.
+-/
 def intersectBy (cmp : α → β → Ordering) (mergeFn : α → β → γ)
     (t₁ : RBTree α cmpα) (t₂ : RBTree β cmpβ) : RBTree γ cmpγ :=
   t₁.foldl (init := ∅) fun acc a =>
@@ -502,12 +654,19 @@ end RBTree
 
 /- TODO(Leo): define dRBMap -/
 
+/--
+An `RBTree` is a self-balancing binary search tree, used to store a key-value map.
+The `cmp` function is the comparator that will be used for performing searches;
+it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
+-/
 def RBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Type (max u v) :=
   RBTree (α × β) (fun a b => cmp a.1 b.1)
 
+/-- `O(1)`. Construct a new empty map. -/
 @[inline] def mkRBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : RBMap α β cmp :=
   mkRBTree ..
 
+/-- `O(1)`. Construct a new empty map. -/
 @[inline] def RBMap.empty {α : Type u} {β : Type v} {cmp : α → α → Ordering} : RBMap α β cmp :=
   mkRBMap ..
 
@@ -516,86 +675,110 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
+/-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
+@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBTree.single (k, v)
+
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}
 
+/-- `O(n)`. Fold a function on the values from left to right (in increasing order). -/
 @[inline] def foldl (f : σ → α → β → σ) : (init : σ) → RBMap α β cmp → σ
   | b, ⟨t, _⟩ => t.foldl (fun s (a, b) => f s a b) b
 
+/-- `O(n)`. Fold a function on the values from right to left (in decreasing order). -/
 @[inline] def foldr (f : α → β → σ → σ) : (init : σ) → RBMap α β cmp → σ
   | b, ⟨t, _⟩ => t.foldr (fun (a, b) s => f a b s) b
 
+/-- `O(n)`. Fold a monadic function on the values from left to right (in increasing order). -/
 @[inline] def foldlM [Monad m] (f : σ → α → β → m σ) : (init : σ) → RBMap α β cmp → m σ
   | b, ⟨t, _⟩ => t.foldlM (fun s (a, b) => f s a b) b
 
+/-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (t : RBMap α β cmp) : m PUnit :=
   t.foldlM (fun _ k v => f k v) ⟨⟩
 
 instance : ForIn m (RBMap α β cmp) (α × β) where
   forIn t init f := t.val.forIn init f
 
+/-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBTree.isEmpty
 
+/-- `O(n)`. Convert the tree to a list in ascending order. -/
 @[inline] def toList : RBMap α β cmp → List (α × β) := RBTree.toList
 
-/-- Returns the kv pair `(a,b)` such that `a ≤ k` for all keys in the RBMap. -/
+/-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≤ k` for all keys in the RBMap. -/
 @[inline] protected def min : RBMap α β cmp → Option (α × β) := RBTree.min
 
-/-- Returns the kv pair `(a,b)` such that `a ≥ k` for all keys in the RBMap. -/
+/-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≥ k` for all keys in the RBMap. -/
 @[inline] protected def max : RBMap α β cmp → Option (α × β) := RBTree.max
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.fromList " ++ repr m.toList) prec
 
+/-- `O(log n)`. Insert key-value pair `(k,v)` into the tree. -/
 @[inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBTree.insert t (k, v)
 
 -- TODO
 -- @[inline] def erase : RBMap α β cmp → α → RBMap α β cmp
 --   | ⟨t, w⟩, k => ⟨t.erase cmp k, WellFormed.eraseWff w rfl⟩
 
+/-- `O(n log n)`. Build a tree from an unsorted list by inserting them one at a time. -/
 @[inline] def ofList (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
   RBTree.ofList l _
 
+/-- `O(n log n)`. Build a tree from an unsorted array by inserting them one at a time. -/
 @[inline] def ofArray (l : Array (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
   RBTree.ofArray l _
 
+/-- `O(log n)`. Find an entry in the tree with key equal to `k`. -/
 @[inline] def findEntry? (t : RBMap α β cmp) (k : α) : Option (α × β) := t.findP? (cmp k ·.1)
 
+/-- `O(log n)`. Find the value corresponding to key `k`. -/
 @[inline] def find? (t : RBMap α β cmp) (k : α) : Option β := t.findEntry? k |>.map (·.2)
 
+/-- `O(log n)`. Find the value corresponding to key `k`, or return `v₀` if it is not in the map. -/
 @[inline] def findD (t : RBMap α β cmp) (k : α) (v₀ : β) : β := (t.find? k).getD v₀
 
-/-- (lowerBound k) retrieves the kv pair of the largest key smaller than or equal to `k`,
-    if it exists. -/
-@[inline] def lowerBound (t : RBMap α β cmp) (k : α) : Option (α × β) :=
+/--
+`O(log n)`. `lowerBound? k` retrieves the key-value pair of the largest key
+smaller than or equal to `k`, if it exists.
+-/
+@[inline] def lowerBound? (t : RBMap α β cmp) (k : α) : Option (α × β) :=
    RBTree.lowerBoundP? t (cmp k ·.1)
 
-/-- Returns true if the given key `a` is in the RBMap.-/
+/-- `O(log n)`. Returns true if the given key `a` is in the RBMap. -/
 @[inline] def contains (t : RBMap α β cmp) (a : α) : Bool := (t.findEntry? a).isSome
 
-/-- Returns true if the given predicate is true for all items in the RBMap. -/
+/-- `O(n)`. Returns true if the given predicate is true for all items in the RBMap. -/
 @[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBTree.all t fun (a, b) => p a b
 
-/-- Returns true if the given predicate is true for any item in the RBMap. -/
+/-- `O(n)`. Returns true if the given predicate is true for any item in the RBMap. -/
 @[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBTree.all t fun (a, b) => p a b
 
-/-- The number of items in the RBMap. -/
+/-- `O(n)`. The number of items in the RBMap. -/
 def size : RBMap α β cmp → Nat := RBTree.size
 
+/-- `O(log n)`. Returns the minimum element of the map, or panics if the map is empty. -/
 @[inline] def min! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBTree.min!
 
+/-- `O(log n)`. Returns the maximum element of the map, or panics if the map is empty. -/
 @[inline] def max! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBTree.max!
 
 /-- Attempts to find the value with key `k : α` in `t` and panics if there is no such key. -/
 @[inline] def find! [Inhabited β] (t : RBMap α β cmp) (k : α) : β :=
   (t.find? k).getD (panic! "key is not in the map")
 
-/-- Merges the maps `t₁` and `t₂`, if a key `a : α` exists in both,
-then use `mergeFn a b₁ b₂` to produce the new merged value. -/
+/--
+`O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`, if a key `a : α` exists in both,
+then use `mergeFn a b₁ b₂` to produce the new merged value.
+-/
 def mergeBy (mergeFn : α → β → β → β) (t₁ t₂ : RBMap α β cmp) : RBMap α β cmp :=
   RBTree.mergeBy (fun (_, b₁) (a, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
-/-- Intersects the maps `t₁` and `t₂` using `mergeFn a b₁ b₂` to produce the new value. -/
+/--
+`O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
+using `mergeFn a b` to produce the new value.
+-/
 def intersectBy (mergeFn : α → β → γ → δ)
     (t₁ : RBMap α β cmp) (t₂ : RBMap α γ cmp) : RBMap α δ cmp :=
   RBTree.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
@@ -604,4 +787,6 @@ end RBMap
 end Std.New
 open Std.New
 
-def List.toRBMap (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp := RBMap.ofList l cmp
+@[inheritDoc RBMap.ofList]
+abbrev List.toRBMap (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
+  RBMap.ofList l cmp

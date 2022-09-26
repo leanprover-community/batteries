@@ -66,6 +66,9 @@ theorem lt_asymm (h : cmp x y = .lt) : cmp y x ≠ .lt :=
 theorem lt_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans (lt_asymm h₁) h₃ h₂
 
+theorem gt_trans (h₁ : cmp x y = .gt) (h₂ : cmp y z = .gt) : cmp x z = .gt := by
+  rw [cmp_eq_gt] at h₁ h₂ ⊢; exact lt_trans h₂ h₁
+
 theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
   match yz : cmp y z with
   | .lt => byContradiction (ge_trans (nomatch ·.symm.trans (cmp_eq_eq_symm.1 xy)) · yz)
