@@ -72,7 +72,7 @@ def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option 
 
 /-- Returns true if this is a `@[simp]` declaration. -/
 def isSimpTheorem (declName : Name) : MetaM Bool := do
-  pure $ (← getSimpTheorems).lemmaNames.contains declName
+  pure $ (← getSimpTheorems).lemmaNames.contains (.decl declName)
 
 open Lean.Meta.DiscrTree in
 /-- Returns the list of elements in the discrimination tree. -/
@@ -96,7 +96,7 @@ def constToSimpDeclMap (ctx : Simp.Context) : HashMap Name Name := Id.run do
   for sls' in ctx.simpTheorems do
     for sls in [sls'.pre, sls'.post] do
       for sl in sls.elements do
-        if let some declName := sl.name? then
+        if let .decl declName := sl.origin then
           if let some auxDeclName := sl.proof.getAppFn.constName? then
             map := map.insert auxDeclName declName
   return map
@@ -145,10 +145,10 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     let ctx ← Simp.Context.mkDefault
     let ctx := { ctx with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
-    let ⟨lhs', prf1, _⟩ ← decorateError "simplify fails on left-hand side:" <| simp lhs ctx
+    let (⟨lhs', prf1, _⟩, _) ← decorateError "simplify fails on left-hand side:" <| simp lhs ctx
     let prf1_lems := heuristicallyExtractSimpTheorems ctx (prf1.getD (mkBVar 0))
     if prf1_lems.contains declName then return none
-    let ⟨rhs', prf2, _⟩ ← decorateError "simplify fails on right-hand side:" <| simp rhs ctx
+    let (⟨rhs', prf2, _⟩, _) ← decorateError "simplify fails on right-hand side:" <| simp rhs ctx
     let lhs'_eq_rhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
     let lhs_in_nf ← isSimpEq lhs' lhs
     if lhs'_eq_rhs' then do
