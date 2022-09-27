@@ -86,51 +86,20 @@ where
 
 open Std
 
-/--
-In Lean 4, the simplifier adds auxiliary lemmas if the declaration is not an equation.
-For example, for `decl : a ↔ b` it generates `decl._auxLemma.1 : a = b`.
-This function computes the map ``{`decl._auxLemma.1 ↦ `decl}``
--/
-def constToSimpDeclMap (ctx : Simp.Context) : HashMap Name Name := Id.run do
-  let mut map : HashMap Name Name := {}
-  for sls' in ctx.simpTheorems do
-    for sls in [sls'.pre, sls'.post] do
-      for sl in sls.elements do
-        if let .decl declName := sl.origin then
-          if let some auxDeclName := sl.proof.getAppFn.constName? then
-            map := map.insert auxDeclName declName
-  return map
-
-/-- Is this an equation lemma, and if so, what is the declaration it is a lemma for? -/
-def isEqnLemma? (n : Name) : Option Name :=
-  if n.isStr && n.getString!.startsWith "_eq_" then
-    n.getPrefix
-  else
-    none
-
-/-- Try to reconstruct the list of used simp lemmas given the result of `simp`. -/
-def heuristicallyExtractSimpTheorems (ctx : Simp.Context)
-    (prf : Expr) : Array Name := Id.run do
-  let constToSimpDecl := constToSimpDeclMap ctx
-  let mut cnsts : HashSet Name := {}
-  for c in prf.getUsedConstants do
-    if ctx.simpTheorems.isDeclToUnfold c then
-      cnsts := cnsts.insert c
-    else if ctx.congrTheorems.lemmas.contains c then
-      cnsts := cnsts.insert c
-    else if let some c' := constToSimpDecl.find? c then
-      cnsts := cnsts.insert c'
-    else if let some c' := isEqnLemma? c then
-      cnsts := cnsts.insert c'
-  return cnsts.toArray
-
 /-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
-/-- Render the list of simp lemmas as a `MessageData`. -/
-def formatLemmas (lems : Array Name) : CoreM MessageData := do
-  toMessageData <$> lems.mapM mkConstWithLevelParams
+open TSyntax.Compat in
+/-- Render the list of simp lemmas as a `Syntax`. -/
+def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM Syntax := do
+  let mut args : Array Syntax := #[]
+  let env ← getEnv
+  for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
+    if let .decl declName := thm then
+      if env.contains declName && declName != ``eq_self then
+        args := args.push (mkIdent (← unresolveNameGlobal declName))
+  `(tactic| simp only [$[$args:ident],*])
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[stdLinter] def simpNF : Linter where
@@ -141,28 +110,23 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
 
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    -- TODO: equation lemmas
-    let ctx ← Simp.Context.mkDefault
-    let ctx := { ctx with config.decide := false }
+    let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
-    let (⟨lhs', prf1, _⟩, _) ← decorateError "simplify fails on left-hand side:" <| simp lhs ctx
-    let prf1_lems := heuristicallyExtractSimpTheorems ctx (prf1.getD (mkBVar 0))
-    if prf1_lems.contains declName then return none
-    let (⟨rhs', prf2, _⟩, _) ← decorateError "simplify fails on right-hand side:" <| simp rhs ctx
+    let (⟨lhs', prf1, _⟩, prf1_lems) ←
+      decorateError "simplify fails on left-hand side:" <| simp lhs ctx
+    if prf1_lems.contains (.decl declName) then return none
+    let (⟨rhs', _, _⟩, used_lemmas) ←
+      decorateError "simplify fails on right-hand side:" <| simp rhs ctx (usedSimps := prf1_lems)
     let lhs'_eq_rhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
     let lhs_in_nf ← isSimpEq lhs' lhs
-    if lhs'_eq_rhs' then do
-      if prf1.isNone then return none -- TODO: cannot detect used rfl-lemmas
-      if let .str _n "sizeOf_spec" := declName then
-        return none -- HACK: these often use rfl-lemmas but are not rfl
-      let used_lemmas := heuristicallyExtractSimpTheorems ctx <|
-        mkApp (prf1.getD (mkBVar 0)) (prf2.getD (mkBVar 0))
+    if lhs'_eq_rhs' then
+      if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
       return m!"simp can prove this:
-  by simp only {← formatLemmas used_lemmas}
+  by {← formatLemmas used_lemmas}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
 "
-    else if ¬ lhs_in_nf then do
+    else if ¬ lhs_in_nf then
       return m!"Left-hand side simplifies from
   {lhs}
 to
