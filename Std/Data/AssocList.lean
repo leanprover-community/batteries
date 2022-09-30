@@ -6,7 +6,6 @@ Author: Leonardo de Moura, Mario Carneiro
 import Std.Data.List.Basic
 
 namespace Std
-namespace New -- TODO: lean4#1645
 
 /--
 `AssocList α β` is "the same as" `List (α × β)`, but flattening the structure
@@ -200,12 +199,12 @@ instance : ForIn m (AssocList α β) (α × β) where
   congr; funext a; split <;> simp [*]
 
 /-- Converts a list into an `AssocList`. This is the inverse function to `AssocList.toList`. -/
-@[simp] def _root_.List.toAssocList' : List (α × β) → AssocList α β
+@[simp] def _root_.List.toAssocList : List (α × β) → AssocList α β
   | []          => nil
-  | (a,b) :: es => cons a b (toAssocList' es)
+  | (a,b) :: es => cons a b (toAssocList es)
 
-theorem _root_.List.toAssocList'_toList (l : List (α × β)) : l.toAssocList'.toList = l := by
+theorem _root_.List.toAssocList_toList (l : List (α × β)) : l.toAssocList.toList = l := by
   induction l <;> simp [*]
 
-theorem toList_toAssocList' (l : AssocList α β) : l.toList.toAssocList' = l := by
+theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]

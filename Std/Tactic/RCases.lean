@@ -367,7 +367,7 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
       | ConstantInfo.quotInfo info, _ => do
         unless info.kind matches QuotKind.type do failK ()
         let pat := pat.asAlts.headD default
-        let ([x], ps) := processConstructor pat.ref 1 pat.asTuple | panic! "rcases"
+        let ([x], ps) := processConstructor pat.ref 1 pat.asTuple | unreachable!
         let (vars, g) ← g.revert (← getFVarsToGeneralize #[e])
         g.withContext do
           let elimInfo ← getElimInfo `Quot.ind
@@ -375,7 +375,7 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
           let elimArgs := res.elimApp.getAppArgs
           ElimApp.setMotiveArg g elimArgs[elimInfo.motivePos]!.mvarId! #[e.fvarId!]
           g.assign res.elimApp
-          let #[(n, g)] := res.alts | panic! "rcases"
+          let #[{ name := n, mvarId := g, .. }] := res.alts | unreachable!
           let (v, g) ← g.intro x
           let (varsOut, g) ← g.introNP vars.size
           let fs' := (vars.zip varsOut).foldl (init := fs) fun fs (v, w) => fs.insert v (mkFVar w)

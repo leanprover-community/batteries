@@ -124,7 +124,7 @@ In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : 
 FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality instance.
 It will ignore `nm₀.proof_i` declarations.
 -/
-private def univParamsGrouped (e : Expr) (nm₀ : Name) : BaseIO (Std.HashSet (Array Name)) := do
+private def univParamsGrouped (e : Expr) (nm₀ : Name) : BaseIO (Lean.HashSet (Array Name)) := do
   let res ← IO.mkRef {}
   e.forEach fun
     | e@(Expr.sort ..) =>

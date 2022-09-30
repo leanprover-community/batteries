@@ -21,7 +21,6 @@ but the function does not have to satisfy `cmp x y = .eq → x = y`, and in the 
 -/
 
 namespace Std
-namespace New -- TODO: lean4#1645
 
 /--
 In a red-black tree, every node has a color which is either "red" or "black"
@@ -893,8 +892,8 @@ def intersectBy (mergeFn : α → β → γ → δ)
   RBTree.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
 end RBMap
-end Std.New
-open Std.New
+end Std
+open Std
 
 @[inheritDoc RBMap.ofList]
 abbrev List.toRBMap (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
