@@ -817,6 +817,22 @@ def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push ·)
 
 instance : EmptyCollection (RBNode α) := ⟨nil⟩
 
+/--
+The well-formedness invariant for a red-black tree. The first constructor is the "real" invariant,
+and the others allow us to "cheat" in this file and define `insert` and `erase`,
+which have more complex proofs that are delayed to `Std.Data.RBMap.Lemmas`.
+-/
+inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
+  /-- The actual well-formedness invariant: a red-black tree has the
+  ordering and balance invariants. -/
+  | mk : t.Ordered cmp → t.Balanced c n → WF cmp t
+  /-- Inserting into a well-formed tree yields another well-formed tree.
+  (See `Ordered.insert` and `Balanced.insert` for the actual proofs.) -/
+  | insert : WF cmp t → WF cmp (t.insert cmp a)
+  /-- Erasing from a well-formed tree yields another well-formed tree.
+  (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
+  | erase : WF cmp t → WF cmp (t.erase cut)
+
 end RBNode
 
 open RBNode
@@ -827,11 +843,11 @@ The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
 def RBTree (α : Type u) (cmp : α → α → Ordering) : Type u :=
-  {t : RBNode α // t.Ordered cmp ∧ ∃ c n, t.Balanced c n}
+  {t : RBNode α // t.WF cmp}
 
 /-- `O(1)`. Construct a new empty tree. -/
 @[inline] def mkRBTree (α : Type u) (cmp : α → α → Ordering) : RBTree α cmp :=
-  ⟨.nil, ⟨⟩, _, _, .nil⟩
+  ⟨.nil, .mk ⟨⟩ .nil⟩
 
 namespace RBTree
 
@@ -844,7 +860,7 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBTree α cmp
 
 /-- `O(1)`. Construct a new tree with one element `v`. -/
 @[inline] def single (v : α) : RBTree α cmp :=
-  ⟨.node .red .nil v .nil, ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩, _, _, .red .nil .nil⟩
+  ⟨.node .red .nil v .nil, .mk ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ (.red .nil .nil)⟩
 
 /-- `O(n)`. Fold a function on the values from left to right (in increasing order). -/
 @[inline] def foldl (f : σ → α → σ) (init : σ) (t : RBTree α cmp) : σ := t.1.foldl f init
@@ -880,8 +896,7 @@ instance [Repr α] : Repr (RBTree α cmp) where
   reprPrec m prec := Repr.addAppParen ("Std.rbmapOf " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert element `v` into the tree. -/
-@[inline] def insert (t : RBTree α cmp) (v : α) : RBTree α cmp :=
-  ⟨t.1.insert cmp v, let ⟨o, _, _, h⟩ := t.2; ⟨o.insert, h.insert⟩⟩
+@[inline] def insert (t : RBTree α cmp) (v : α) : RBTree α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
 
 /--
 `O(log n)`. Remove an element from the tree using a cut function.
@@ -892,7 +907,7 @@ if it returns `.eq` we will remove the element.
 are not of this form as long as they are suitably monotonic.)
 -/
 @[inline] def erase (t : RBTree α cmp) (cut : α → Ordering) : RBTree α cmp :=
-  ⟨t.1.erase cut, let ⟨o, _, _, h⟩ := t.2; ⟨o.erase, _, h.erase⟩⟩
+  ⟨t.1.erase cut, t.2.erase⟩
 
 /-- `O(log n)`. Find an element in the tree using a cut function. -/
 @[inline] def findP? (t : RBTree α cmp) (cut : α → Ordering) : Option α := t.1.find? cut
