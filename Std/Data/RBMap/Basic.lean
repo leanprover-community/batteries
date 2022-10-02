@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Order
-import Std.Logic
-import Std.Tactic.ShowTerm
 
 /-!
 # Red-black trees
@@ -158,15 +156,6 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 -/
 def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
 
-theorem cmpLt.trans (h₁ : cmpLt cmp x y) (h₂ : cmpLt cmp y z) : cmpLt cmp x z :=
-  ⟨TransCmp.lt_trans h₁.1 h₂.1⟩
-
-theorem cmpLt.trans_l {cmp x y} (H : cmpLt cmp x y) {t : RBNode α}
-    (h : t.All (cmpLt cmp y ·)) : t.All (cmpLt cmp x ·) := h.imp fun h => H.trans h
-
-theorem cmpLt.trans_r {cmp x y} (H : cmpLt cmp x y) {a : RBNode α}
-    (h : a.All (cmpLt cmp · x)) : a.All (cmpLt cmp · y) := h.imp fun h => h.trans H
-
 /--
 The ordering invariant of a red-black tree, which is a binary search tree.
 This says that every element of a left subtree is less than the root, and
@@ -187,45 +176,11 @@ def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
   | node red a x (node red b y c), z, d => node red (node black a x b) y (node black c z d)
   | a,                             x, b => node black a x b
 
-/-- The `balance1` function preserves the ordering invariants. -/
-protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance1 l v r).Ordered cmp := by
-  unfold balance1; split
-  case _ a x b y c =>
-    have ⟨yv, _, cv⟩ := lv; have ⟨xy, yc, hx, hc⟩ := hl
-    exact ⟨xy, ⟨yv, yc, yv.trans_l vr⟩, hx, cv, vr, hc, hr⟩
-  case _ a x b y c _ =>
-    have ⟨_, _, yv, _, cv⟩ := lv; have ⟨ax, ⟨xy, xb, _⟩, ha, by_, yc, hb, hc⟩ := hl
-    exact ⟨⟨xy, xy.trans_r ax, by_⟩, ⟨yv, yc, yv.trans_l vr⟩, ⟨ax, xb, ha, hb⟩, cv, vr, hc, hr⟩
-  case _ => exact ⟨lv, vr, hl, hr⟩
-
-@[simp] theorem balance1_All {l : RBNode α} {v : α} {r : RBNode α} :
-    (balance1 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
-  unfold balance1; split <;> simp [and_assoc, and_left_comm]
-
 /-- The second half of Okasaki's `balance`, concerning red-red sequences in the right child. -/
 @[inline] def balance2 : RBNode α → α → RBNode α → RBNode α
   | a, x, node red (node red b y c) z d
   | a, x, node red b y (node red c z d) => node red (node black a x b) y (node black c z d)
   | a, x, b                             => node black a x b
-
-/-- The `balance2` function preserves the ordering invariants. -/
-protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance2 l v r).Ordered cmp := by
-  unfold balance2; split
-  case _ b y c z d =>
-    have ⟨_, ⟨vy, vb, _⟩, _⟩ := vr; have ⟨⟨yz, _, cz⟩, zd, ⟨by_, yc, hy, hz⟩, hd⟩ := hr
-    refine' ⟨⟨vy, vy.trans_r lv, by_⟩, ⟨yz, yc, yz.trans_l zd⟩, ⟨lv, vb, hl, hy⟩, cz, zd, hz, hd⟩
-  case _ a x b y c _ =>
-    have ⟨vx, va, _⟩ := vr; have ⟨ax, xy, ha, hy⟩ := hr
-    exact ⟨⟨vx, vx.trans_r lv, ax⟩, xy, ⟨lv, va, hl, ha⟩, hy⟩
-  case _ => exact ⟨lv, vr, hl, hr⟩
-
-@[simp] theorem balance2_All {l : RBNode α} {v : α} {r : RBNode α} :
-    (balance2 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
-  unfold balance2; split <;> simp [and_assoc, and_left_comm]
 
 /-- An auxiliary function to test if the root is red. -/
 def isRed : RBNode α → Bool
@@ -271,29 +226,6 @@ The `insert` function does the final fixup needed to restore the invariant.
     | Ordering.gt => balance2 a y (ins cmp x b)
     | Ordering.eq => node black a x b
 
-protected theorem All.ins {x : α} {t : RBNode α}
-  (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
-  induction t <;> unfold ins <;> simp [*] <;> split <;>
-    cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
-
-/-- The `ins` function preserves the ordering invariants. -/
-protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp
-  | nil, _ => ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩
-  | node red a y b, ⟨ay, yb, ha, hb⟩ => by
-    unfold ins; split
-    case _ h => exact ⟨ay.ins ⟨h⟩, yb, ha.ins, hb⟩
-    case _ h => exact ⟨ay, yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩, ha, hb.ins⟩
-    case _ h => exact (⟨
-      ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-      yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
-  | node black a y b, ⟨ay, yb, ha, hb⟩ => by
-    unfold ins; split
-    case _ h => exact ha.ins.balance1 (ay.ins ⟨h⟩) yb hb
-    case _ h => exact ha.balance2 ay (yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩) hb.ins
-    case _ h => exact (⟨
-      ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-      yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
-
 /--
 `insert cmp t v` inserts element `v` into the tree, using the provided comparator
 `cmp` to put it in the right place and automatically rebalancing the tree as necessary.
@@ -301,145 +233,7 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
 @[specialize] def insert (cmp : α → α → Ordering) (t : RBNode α) (v : α) : RBNode α :=
   bif isRed t then (ins cmp v t).setBlack else ins cmp v t
 
-/-- The `insert` function preserves the ordering invariants. -/
-protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
-  unfold RBNode.insert cond; split <;> simp [Ordered.setBlack, h.ins (x := v)]
-
-/--
-The red-red invariant is a weakening of the red-black balance invariant which allows
-the root to be red with red children, but does not allow any other violations.
-It occurs as a temporary condition in the `insert` and `erase` functions.
-
-The `p` parameter allows the `.redred` case to be dependent on an additional condition.
-If it is false, then this is equivalent to the usual red-black invariant.
--/
-inductive RedRed (p : Prop) : RBNode α → Nat → Prop where
-  /-- A balanced tree has the red-red invariant. -/
-  | balanced : Balanced t c n → RedRed p t n
-  /-- A red node with balanced red children has the red-red invariant (if `p` is true). -/
-  | redred : p → Balanced a c₁ n → Balanced b c₂ n → RedRed p (node red a x b) n
-
-/-- When `p` is false, the red-red case is impossible so the tree is balanced. -/
-protected theorem RedRed.of_false (h : ¬p) : RedRed p t n → ∃ c, Balanced t c n
-  | .balanced h => ⟨_, h⟩
-  | .redred hp .. => nomatch h hp
-
-/-- A `red` node with the red-red invariant has balanced children. -/
-protected theorem RedRed.of_red : RedRed p (node red a x b) n →
-    ∃ c₁ c₂, Balanced a c₁ n ∧ Balanced b c₂ n
-  | .balanced (.red ha hb) | .redred _ ha hb => ⟨_, _, ha, hb⟩
-
-/-- The red-red invariant is monotonic in `p`. -/
-protected theorem RedRed.imp (h : p → q) : RedRed p t n → RedRed q t n
-  | .balanced h => .balanced h
-  | .redred hp ha hb => .redred (h hp) ha hb
-
-/-- If `t` has the red-red invariant, then setting the root to black yields a balanced tree. -/
-protected theorem RedRed.setBlack : t.RedRed p n → ∃ n', (setBlack t).Balanced black n'
-  | .balanced h => h.setBlack
-  | .redred _ hl hr => ⟨_, hl.black hr⟩
-
-/-- The `balance1` function repairs the balance invariant when the first argument is red-red. -/
-protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
-    (hl : l.RedRed p n) (hr : r.Balanced c n) : ∃ c, (balance1 l v r).Balanced c (n + 1) := by
-  unfold balance1; split
-  case _ a x b y c => match hl with
-    | .redred _ (.red ha hb) hc => exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
-  case _ a x b y c _ => match hl with
-    | .redred _ ha (.red hb hc) => exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
-  case _ H1 H2 => match hl with
-    | .balanced hl => exact ⟨_, .black hl hr⟩
-    | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black (.red ha hb) hr⟩
-    | .redred _ (c₁ := red) (.red ..) _ => cases H1 _ _ _ _ _ rfl
-    | .redred _ (c₂ := red) _ (.red ..) => cases H2 _ _ _ _ _ rfl
-
-/-- The `balance2` function repairs the balance invariant when the second argument is red-red. -/
-protected theorem RedRed.balance2 {l : RBNode α} {v : α} {r : RBNode α}
-    (hl : l.Balanced c n) (hr : r.RedRed p n) : ∃ c, (balance2 l v r).Balanced c (n + 1) := by
-  unfold balance2; split
-  case _ a x b y c => match hr with
-    | .redred _ (.red ha hb) hc => exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
-  case _ a x b y c _ => match hr with
-    | .redred _ ha (.red hb hc) => exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
-  case _ H1 H2 => match hr with
-    | .balanced hr => exact ⟨_, .black hl hr⟩
-    | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black hl (.red ha hb)⟩
-    | .redred _ (c₁ := red) (.red ..) _ => cases H1 _ _ _ _ _ rfl
-    | .redred _ (c₂ := red) _ (.red ..) => cases H2 _ _ _ _ _ rfl
-
-/--
-The balance invariant of the `ins` function.
-`InsBalanced t₀ t n` is a property that should hold of `t` when inserting an element into `t₀`.
-`n` is the black-height of `t₀`, and also of `t` (because `ins` does not change the black-height).
-The result of inserting into the tree either yields a balanced tree,
-or a tree which is almost balanced except that it has a red-red violation at the root.
--/
-inductive InsBalanced : RBNode α → RBNode α → Nat → Prop where
-  /-- A balanced tree is `ins`-balanced. -/
-  | balanced : Balanced t c n → InsBalanced t₀ t n
-  /-- The case where `t` has the form `red (red a b) c` violates the balance invariant,
-  but it is otherwise valid (`a, b, c` are all balanced and black).
-  Additionally, this case can only occur if `t₀` was red to begin with. -/
-  | redL : Balanced a black n → Balanced b black n → Balanced c black n →
-    InsBalanced (node red a₀ v₀ b₀) (node red (node red a x b) y c) n
-  /-- The case where `t` has the form `red a (red b c)` violates the balance invariant,
-  but it is otherwise valid (`a, b, c` are all balanced and black).
-  Additionally, this case can only occur if `t₀` was red to begin with. -/
-  | redR : Balanced a black n → Balanced b black n → Balanced c black n →
-    InsBalanced (node red a₀ v₀ b₀) (node red a x (node red b y c)) n
-
-protected theorem InsBalanced.redred {t₀ t : RBNode α} : t₀.InsBalanced t n → t.RedRed True n
-  | .balanced h => .balanced h
-  | .redL ha hb hc => .redred ⟨⟩ (.red ha hb) hc
-  | .redR ha hb hc => .redred ⟨⟩ ha (.red hb hc)
-
-/-- The `ins` function is `ins`-balanced if the input is balanced. -/
-protected theorem Balanced.ins (cmp v) {t : RBNode α}
-    (h : t.Balanced c n) : t.InsBalanced (ins cmp v t) n := by
-  induction h with
-  | nil => exact .balanced (.red .nil .nil)
-  | @red a n b x hl hr ihl ihr =>
-    simp [ins]; split
-    · match ins cmp v a, ihl with
-      | _, .balanced .nil => exact .balanced (.red .nil hr)
-      | _, .balanced (.red ha hb) => exact .redL ha hb hr
-      | _, .balanced (.black ha hb) => exact .balanced (.red (.black ha hb) hr)
-    · match ins cmp v b, ihr with
-      | _, .balanced .nil => exact .balanced (.red hl .nil)
-      | _, .balanced (.red ha hb) => exact .redR hl ha hb
-      | _, .balanced (.black ha hb) => exact .balanced (.red hl (.black ha hb))
-    · exact .balanced (.red hl hr)
-  | @black a ca n b cb x hl hr ihl ihr =>
-    simp [ins]; split
-    · let ⟨c, h⟩ := ihl.redred.balance1 (v := x) hr; exact .balanced h
-    · let ⟨c, h⟩ := ihr.redred.balance2 (v := x) hl; exact .balanced h
-    · exact .balanced (.black hl hr)
-
-/--
-The `insert` function is balanced if the input is balanced.
-(We lose track of both the color and the black-height of the result,
-so this is only suitable for use on the root of the tree.)
--/
-theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
-    ∃ c' n', (insert cmp t v).Balanced c' n' := by
-  unfold insert cond; match ins cmp v t, h.ins cmp v with
-  | _, .balanced h => split; {exact ⟨_, h.setBlack⟩}; {exact ⟨_, _, h⟩}
-  | _, .redL ha hb hc => simp [isRed, setBlack]; exact ⟨_, _, .black (.red ha hb) hc⟩
-  | _, .redR ha hb hc => simp [isRed, setBlack]; exact ⟨_, _, .black ha (.red hb hc)⟩
-
 end Insert
-
-/-- The property of a cut function `cut` which ensures it can be used to find elements. -/
-class IsCut (cmp : α → α → Ordering) (cut : α → Ordering) : Prop where
-  /-- The set `{x | cut x = .lt}` is downward-closed. -/
-  lt_trans : cmpLt cmp x y → cut x = .lt → cut y = .lt
-  /-- The set `{x | cut x = .gt}` is upward-closed. -/
-  gt_trans : cmpLt cmp x y → cut y = .gt → cut x = .gt
-
-/-- A "representable cut" is one generated by `cmp a` for some `a`. This is always a valid cut. -/
-instance (cmp) [TransCmp cmp] (a : α) : IsCut cmp (cmp a) where
-  lt_trans h₁ h₂ := TransCmp.lt_trans h₂ h₁.1
-  gt_trans h₁ h₂ := TransCmp.gt_trans h₂ (LawfulCmp.cmp_eq_gt.2 h₁.1)
 
 /-- Okasaki's full `balance` function. This is a combination of `balance1` and `balance2`. -/
 def balance (a : RBNode α) (v : α) (d : RBNode α) : RBNode α :=
@@ -448,25 +242,10 @@ def balance (a : RBNode α) (v : α) (d : RBNode α) : RBNode α :=
   | node red a x (node red b y c) => node red (node black a x b) y (node black c v d)
   | a => balance2 a v d
 
-/-- The `balance` function preserves the ordering invariants. -/
-protected theorem Ordered.balance {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance l v r).Ordered cmp := by
-  have := hl.balance1 lv vr hr; revert this
-  unfold balance1 balance; split <;> simp [*]
-  · intro; exact hl.balance2 lv vr hr
-
 /-- Recolor the root of the tree to `red` if possible. -/
 def setRed : RBNode α → RBNode α
   | node _ a v b => node red a v b
   | nil          => nil
-
-protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p := by
-  unfold setRed; split <;> simp_all
-
-/-- The `setRed` function preserves the ordering invariants. -/
-protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.Ordered cmp := by
-  unfold setRed; split <;> simp [Ordered]
 
 /-- Rebalancing a tree which has shrunk on the left. -/
 def balLeft (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
@@ -477,47 +256,6 @@ def balLeft (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
     | node red (node black a y b) z c => node red (node black l v a) y (balance2 b z (setRed c))
     | r                               => node red l v r -- unreachable
 
-protected theorem All.balLeft
-    (hl : l.All p) (hv : p v) (hr : r.All p) : (balLeft l v r).All p := by
-  unfold balLeft; split <;> simp_all; split <;> simp_all [All.setRed]
-
-/-- The `balLeft` function preserves the ordering invariants. -/
-protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balLeft l v r).Ordered cmp := by
-  unfold balLeft; split
-  · exact ⟨lv, vr, hl, hr⟩
-  split
-  · exact hl.balance2 lv vr hr
-  · have ⟨vy, va, _⟩ := vr.2.1; have ⟨⟨yz, _, bz⟩, zc, ⟨ay, yb, ha, hb⟩, hc⟩ := hr
-    exact ⟨⟨vy, vy.trans_r lv, ay⟩, balance2_All.2 ⟨yz, yb, (yz.trans_l zc).setRed⟩,
-      ⟨lv, va, hl, ha⟩, hb.balance2 bz zc.setRed (Ordered.setRed.2 hc)⟩
-  · exact ⟨lv, vr, hl, hr⟩
-
-/-- The balancing properties of the `balLeft` function. -/
-protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n + 1)) :
-    (balLeft l v r).RedRed (cr = red) (n + 1) := by
-  unfold balLeft; split
-  case _ a x b => exact
-    let ⟨ca, cb, ha, hb⟩ := hl.of_red
-    match cr with
-    | red => .redred rfl (.black ha hb) hr
-    | black => .balanced (.red (.black ha hb) hr)
-  case _ H =>
-    exact match hr with
-    | .black ha hb =>
-      match hl with
-      | .balanced hl => let ⟨c, h⟩ := RedRed.balance2 hl (.redred trivial ha hb); .balanced h
-      | .redred .. => nomatch H _ _ _ rfl
-    | .red (.black ha hb) hc =>
-      match hl with
-      | .balanced hl =>
-        match hc with
-        | .black hc hd =>
-          let ⟨c, h⟩ := RedRed.balance2 hb (.redred trivial hc hd)
-          .redred rfl (.black hl ha) h
-      | .redred .. => nomatch H _ _ _ rfl
-
 /-- Rebalancing a tree which has shrunk on the right. -/
 def balRight (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
   match r with
@@ -527,61 +265,10 @@ def balRight (l : RBNode α) (v : α) (r : RBNode α) : RBNode α :=
     | node red a x (node black b y c) => node red (balance1 (setRed a) x b) y (node black c v r)
     | l                               => node red l v r -- unreachable
 
-protected theorem All.balRight
-    (hl : l.All p) (hv : p v) (hr : r.All p) : (balRight l v r).All p := by
-  unfold balRight; split <;> simp_all; split <;> simp_all [All.setRed]
-
-/-- The `balRight` function preserves the ordering invariants. -/
-protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balRight l v r).Ordered cmp := by
-  unfold balRight; split
-  · exact ⟨lv, vr, hl, hr⟩
-  split
-  · exact hl.balance1 lv vr hr
-  · have ⟨yv, _, cv⟩ := lv.2.2; have ⟨ax, ⟨xy, xb, _⟩, ha, by_, yc, hb, hc⟩ := hl
-    exact ⟨balance1_All.2 ⟨xy, (xy.trans_r ax).setRed, by_⟩, ⟨yv, yc, yv.trans_l vr⟩,
-      (Ordered.setRed.2 ha).balance1 ax.setRed xb hb, cv, vr, hc, hr⟩
-  · exact ⟨lv, vr, hl, hr⟩
-
-/-- The balancing properties of the `balRight` function. -/
-protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed True n) :
-    (balRight l v r).RedRed (cl = red) (n + 1) := by
-  unfold balRight; split
-  case _ b y c => exact
-    let ⟨cb, cc, hb, hc⟩ := hr.of_red
-    match cl with
-    | red => .redred rfl hl (.black hb hc)
-    | black => .balanced (.red hl (.black hb hc))
-  case _ H =>
-    exact match hl with
-    | .black hb hc =>
-      match hr with
-      | .balanced hr => let ⟨c, h⟩ := RedRed.balance1 (.redred trivial hb hc) hr; .balanced h
-      | .redred .. => nomatch H _ _ _ rfl
-    | .red hb (.black hc hd) =>
-      match hr with
-      | .balanced hr =>
-        match hb with
-        | .black ha hb =>
-          let ⟨c, h⟩ := RedRed.balance1 (.redred trivial ha hb) hc
-          .redred rfl h (.black hd hr)
-      | .redred .. => nomatch H _ _ _ rfl
-
 /-- The number of nodes in the tree. -/
 @[simp] def size : RBNode α → Nat
   | nil => 0
   | node _ x _ y => x.size + y.size + 1
-
-/--
-The invariant of the `append` function. The main theorem is `Balanced.append`:
-if `l.Balanced c₁ n` and `r.Balanced c₂ n` then `(l.append r).AppendProp c₁ c₂ n`.
--/
-def AppendProp (c₁ c₂ : RBColor) (t : RBNode α) := t.RedRed (c₁ = black → c₂ ≠ black)
-
-/-- The result of the append function is a red-black tree when both inputs are black. -/
-theorem AppendProp.of_black (h : AppendProp black black t n) : ∃ c, Balanced t c n :=
-  h.of_false (· rfl rfl)
 
 /-- Concatenate two trees with the same black-height. -/
 def append : RBNode α → RBNode α → RBNode α
@@ -598,110 +285,7 @@ def append : RBNode α → RBNode α → RBNode α
   | node red a x b, c@(node black ..) => node red a x (append b c)
 termination_by _ x y => x.size + y.size
 
-protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p := by
-  unfold append; split <;> simp [*]
-  · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
-    have := hb.append hc; split <;> simp_all
-  · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
-    have := hb.append hc; split <;> simp_all [All.balLeft]
-  · simp_all [hl.append hr.2.1]
-  · simp_all [hl.2.2.append hr]
-termination_by _ => l.size + r.size
-
-/-- The `append` function preserves the ordering invariants. -/
-protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (append l r).Ordered cmp := by
-  unfold append; split
-  · exact hr
-  · exact hl
-  · have ⟨xv, _, bv⟩ := lv; have ⟨ax, xb, ha, hb⟩ := hl
-    have ⟨vy, vc, _⟩ := vr; have ⟨cy, yd, hc, hd⟩ := hr
-    have : _ ∧ _ ∧ _ := ⟨hb.append bv vc hc, xb.append (xv.trans_l vc), (vy.trans_r bv).append cy⟩
-    split
-    case _ H =>
-      have ⟨⟨b'z, c'z, hb', hc'⟩, ⟨xz, xb', _⟩, zy, _, c'y⟩ := H ▸ this
-      have az := xz.trans_r ax; have zd := zy.trans_l yd
-      exact ⟨⟨xz, az, b'z⟩, ⟨zy, c'z, zd⟩, ⟨ax, xb', ha, hb'⟩, c'y, yd, hc', hd⟩
-    · have ⟨hbc, xbc, bcy⟩ := this; have xy := xv.trans vy
-      exact ⟨ax, ⟨xy, xbc, xy.trans_l yd⟩, ha, bcy, yd, hbc, hd⟩
-  · have ⟨xv, _, bv⟩ := lv; have ⟨ax, xb, ha, hb⟩ := hl
-    have ⟨vy, vc, _⟩ := vr; have ⟨cy, yd, hc, hd⟩ := hr
-    have : _ ∧ _ ∧ _ := ⟨hb.append bv vc hc, xb.append (xv.trans_l vc), (vy.trans_r bv).append cy⟩
-    split
-    case _ H =>
-      have ⟨⟨b'z, c'z, hb', hc'⟩, ⟨xz, xb', _⟩, zy, _, c'y⟩ := H ▸ this
-      have az := xz.trans_r ax; have zd := zy.trans_l yd
-      exact ⟨⟨xz, az, b'z⟩, ⟨zy, c'z, zd⟩, ⟨ax, xb', ha, hb'⟩, c'y, yd, hc', hd⟩
-    · have ⟨hbc, xbc, bcy⟩ := this; have xy := xv.trans vy
-      exact ha.balLeft ax ⟨xy, xbc, xy.trans_l yd⟩ ⟨bcy, yd, hbc, hd⟩
-  · have ⟨vx, vb, _⟩ := vr; have ⟨bx, yc, hb, hc⟩ := hr
-    exact ⟨(vx.trans_r lv).append bx, yc, hl.append lv vb hb, hc⟩
-  · have ⟨xv, _, bv⟩ := lv; have ⟨ax, xb, ha, hb⟩ := hl
-    refine' ⟨ax, xb.append (xv.trans_l vr), ha, hb.append bv vr hr⟩
-termination_by _ l _ r _ _ _ _ => l.size + r.size
-
-/-- The balance properties of the `append` function. -/
-protected theorem Balanced.append {l r : RBNode α}
-    (hl : l.Balanced c₁ n) (hr : r.Balanced c₂ n) :
-    (l.append r).RedRed (c₁ = black → c₂ ≠ black) n := by
-  unfold append; split
-  case _ x => exact .balanced hr
-  case _ x _ => exact .balanced hl
-  case _ a x b c y d =>
-    have .red ha hb := hl; have .red hc hd := hr
-    have ⟨_, IH⟩ := (hb.append hc).of_false (· rfl rfl); split
-    case _ b' z c' e =>
-      have .red hb' hc' := e ▸ IH
-      exact .redred (fun.) (.red ha hb') (.red hc' hd)
-    case _ bcc _ H =>
-      match bcc, append b c, IH, H with
-      | black, _, IH, _ => refine' .redred (fun.) ha (.red IH hd)
-      | red, _, .red .., H => cases H _ _ _ rfl
-  case _ a x b c y d =>
-    have .black ha hb := hl; have .black hc hd := hr
-    have IH := hb.append hc; split
-    case _ b' z c' e => match e ▸ IH with
-      | .balanced (.red hb' hc') | .redred _ hb' hc' =>
-        exact .balanced (.red (.black ha hb') (.black hc' hd))
-    case _ cc dc _ H =>
-      match append b c, IH, H with
-      | bc, .balanced hbc, _ =>
-        unfold balLeft; split
-        case _ a' x b' =>
-          have .red ha' hb' := ha
-          exact .balanced (.red (.black ha' hb') (.black hbc hd))
-        case _ _ x b =>
-          exact have ⟨c, h⟩ := RedRed.balance2 ha (.redred trivial hbc hd); .balanced h
-      | _, .redred .., H => cases H _ _ _ rfl
-  case _ a x b c y d =>
-    have .red hc hd := hr; have IH := hl.append hc
-    have .black ha hb := hl; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
-    exact .redred (fun.) IH hd
-  case _ a x b c y d =>
-    have .red ha hb := hl; have IH := hb.append hr
-    have .black hc hd := hr; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
-    exact .redred (fun.) ha IH
-termination_by _ x y _ _ => x.size + y.size
-
 /-! ## erase -/
-
-/--
-The invariant of the `del` function.
-* If the input tree is black, then the result of deletion is a red-red tree with
-  black-height lowered by 1.
-* If the input tree is red or nil, then the result of deletion is a balanced tree with
-  some color and the same black-height.
--/
-def DelProp (t₀ t : RBNode α) (n : Nat) : Prop :=
-  bif t₀.isBlack then ∃ n', n = n' + 1 ∧ RedRed True t n' else ∃ c, Balanced t c n
-
-/-- The `DelProp` property is a strengthened version of the red-red invariant. -/
-theorem DelProp.redred (h : DelProp t₀ t n) : ∃ n', RedRed t₀.isBlack t n' := by
-  unfold DelProp at h
-  exact match t₀.isBlack, h with
-  | false, ⟨_, h⟩ => ⟨_, .balanced h⟩
-  | true, ⟨_, _, h⟩ => ⟨_, h.imp fun _ => rfl⟩
 
 /--
 The core of the `erase` function. The tree returned from this function has a broken invariant,
@@ -715,57 +299,6 @@ which is restored in `erase`.
     | .gt => bif b.isBlack then balRight a y (del cut b) else node red a y (del cut b)
     | .eq => append a b
 
-protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
-  | .nil, h => h
-  | .node .., ⟨hy, ha, hb⟩ => by
-    unfold del; split
-    · unfold cond; split
-      · exact ha.del.balLeft hy hb
-      · exact ⟨hy, ha.del, hb⟩
-    · unfold cond; split
-      · exact ha.balRight hy hb.del
-      · exact ⟨hy, ha, hb.del⟩
-    · exact ha.append hb
-
-/-- The `del` function preserves the ordering invariants. -/
-protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut t).Ordered cmp
-  | .nil, _ => ⟨⟩
-  | .node _ a y b, ⟨ay, yb, ha, hb⟩ => by
-    unfold del; split
-    · unfold cond; split
-      · exact ha.del.balLeft ay.del yb hb
-      · exact ⟨ay.del, yb, ha.del, hb⟩
-    · unfold cond; split
-      · exact ha.balRight ay yb.del hb.del
-      · exact ⟨ay, yb.del, ha, hb.del⟩
-    · exact ha.append ay yb hb
-
-/-- The `del` function has the `DelProp` property. -/
-protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) : t.DelProp (t.del cut) n := by
-  induction h with
-  | nil => exact ⟨_, .nil⟩
-  | @black a ca n b cb v ha hb iha ihb =>
-    refine ⟨_, rfl, ?_⟩
-    unfold del; split
-    · exact match a, n, iha with
-      | .nil, _, ⟨c, ha⟩
-      | .node red .., _, ⟨c, ha⟩ => .redred ⟨⟩ ha hb
-      | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).imp fun _ => ⟨⟩
-    · exact match b, n, ihb with
-      | .nil, _, ⟨c, hb⟩
-      | .node .red .., _, ⟨c, hb⟩ => .redred ⟨⟩ ha hb
-      | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).imp fun _ => ⟨⟩
-    · exact (ha.append hb).imp fun _ => ⟨⟩
-  | @red a n b v ha hb iha ihb =>
-    unfold del; split
-    · exact match a, n, iha with
-      | .nil, _, _ => ⟨_, .red ha hb⟩
-      | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).of_false (fun.)
-    · exact match b, n, ihb with
-      | .nil, _, _ => let .nil := hb; ⟨_, .red ha .nil⟩
-      | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).of_false (fun.)
-    · exact (ha.append hb).of_false (· rfl rfl)
-
 /--
 The `erase cut t` function removes an element from the tree `t`.
 The `cut` function is used to locate an element in the tree:
@@ -775,15 +308,6 @@ if it returns `.eq` we will remove the element.
 are not of this form as long as they are suitably monotonic.)
 -/
 @[specialize] def erase (cut : α → Ordering) (t : RBNode α) : RBNode α := (del cut t).setBlack
-
-/-- The `erase` function preserves the ordering invariants. -/
-protected theorem Ordered.erase {t : RBNode α} (h : t.Ordered cmp) : (erase cut t).Ordered cmp :=
-  Ordered.setBlack.2 h.del
-
-/-- The `erase` function preserves the balance invariants. -/
-protected theorem Balanced.erase {t : RBNode α}
-    (h : t.Balanced c n) : ∃ n, (t.erase cut).Balanced black n :=
-  have ⟨_, h⟩ := (h.del (cut := cut)).redred; h.setBlack
 
 section Membership
 
