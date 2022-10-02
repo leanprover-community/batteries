@@ -208,9 +208,9 @@ section Insert
 
 /--
 The core of the `insert` function. This adds an element `x` to a balanced red-black tree.
-Importantly, the result of callign `ins` is not a proper red-black tree,
+Importantly, the result of calling `ins` is not a proper red-black tree,
 because it has a broken balance invariant.
-(See `InsBalanced` for the balance invariant of `ins`.)
+(See `Balanced.ins` for the balance invariant of `ins`.)
 The `insert` function does the final fixup needed to restore the invariant.
 -/
 @[specialize] def ins (cmp : α → α → Ordering) (x : α) : RBNode α → RBNode α
@@ -342,7 +342,7 @@ def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push ·)
 instance : EmptyCollection (RBNode α) := ⟨nil⟩
 
 /--
-The well-formedness invariant for a red-black tree. The first constructor is the "real" invariant,
+The well-formedness invariant for a red-black tree. The first constructor is the real invariant,
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
 which have more complex proofs that are delayed to `Std.Data.RBMap.Lemmas`.
 -/
