@@ -278,16 +278,6 @@ protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed 
       | .red (.black ha hb) (.black hc hd) =>
         let ⟨c, h⟩ := RedRed.balance1 (.redred trivial ha hb) hc; .redred rfl h (.black hd hr)
 
-/--
-The invariant of the `append` function. The main theorem is `Balanced.append`:
-if `l.Balanced c₁ n` and `r.Balanced c₂ n` then `(l.append r).AppendProp c₁ c₂ n`.
--/
-def AppendProp (c₁ c₂ : RBColor) (t : RBNode α) := t.RedRed (c₁ = black → c₂ ≠ black)
-
-/-- The result of the append function is a red-black tree when both inputs are black. -/
-theorem AppendProp.of_black (h : AppendProp black black t n) : ∃ c, Balanced t c n :=
-  h.of_false (· rfl rfl)
-
 protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p := by
   unfold append; split <;> simp [*]
   · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
