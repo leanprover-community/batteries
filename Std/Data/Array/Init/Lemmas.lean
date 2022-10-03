@@ -15,7 +15,7 @@ This file contains some theorems about `Array` and `List` needed for `Std.List.B
 
 namespace Array
 
-attribute [simp] data_toArray
+attribute [simp] data_toArray uset
 
 @[simp] theorem mkEmpty_eq (α n) : @mkEmpty α n = #[] := rfl
 
@@ -127,3 +127,5 @@ theorem foldl_data_eq_bind (l : List α) (acc : Array β)
 theorem foldl_data_eq_map (l : List α) (acc : Array β) (G : α → β) :
     (l.foldl (fun acc a => acc.push (G a)) acc).data = acc.data ++ l.map G := by
   induction l generalizing acc <;> simp [*]
+
+theorem size_uset (a : Array α) (v i h) : (uset a i v h).size = a.size := by simp
