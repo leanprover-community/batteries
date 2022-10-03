@@ -235,13 +235,6 @@ The `insert` function does the final fixup needed to restore the invariant.
 
 end Insert
 
-/-- Okasaki's full `balance` function. This is a combination of `balance1` and `balance2`. -/
-def balance (a : RBNode α) (v : α) (d : RBNode α) : RBNode α :=
-  match a with
-  | node red (node red a x b) y c
-  | node red a x (node red b y c) => node red (node black a x b) y (node black c v d)
-  | a => balance2 a v d
-
 /-- Recolor the root of the tree to `red` if possible. -/
 def setRed : RBNode α → RBNode α
   | node _ a v b => node red a v b
@@ -366,12 +359,10 @@ An `RBTree` is a self-balancing binary search tree.
 The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
-def RBTree (α : Type u) (cmp : α → α → Ordering) : Type u :=
-  {t : RBNode α // t.WF cmp}
+def RBTree (α : Type u) (cmp : α → α → Ordering) : Type u := {t : RBNode α // t.WF cmp}
 
 /-- `O(1)`. Construct a new empty tree. -/
-@[inline] def mkRBTree (α : Type u) (cmp : α → α → Ordering) : RBTree α cmp :=
-  ⟨.nil, .mk ⟨⟩ .nil⟩
+@[inline] def mkRBTree (α : Type u) (cmp : α → α → Ordering) : RBTree α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
 
 namespace RBTree
 
@@ -511,9 +502,9 @@ using `mergeFn a b` to produce the new value.
 def intersectBy (cmp : α → β → Ordering) (mergeFn : α → β → γ)
     (t₁ : RBTree α cmpα) (t₂ : RBTree β cmpβ) : RBTree γ cmpγ :=
   t₁.foldl (init := ∅) fun acc a =>
-      match t₂.findP? (cmp a) with
-      | some b => acc.insert <| mergeFn a b
-      | none => acc
+    match t₂.findP? (cmp a) with
+    | some b => acc.insert <| mergeFn a b
+    | none => acc
 
 end RBTree
 

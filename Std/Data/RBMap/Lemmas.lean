@@ -203,14 +203,6 @@ instance (cmp) [TransCmp cmp] (a : α) : IsCut cmp (cmp a) where
   lt_trans h₁ h₂ := TransCmp.lt_trans h₂ h₁.1
   gt_trans h₁ h₂ := TransCmp.gt_trans h₂ (LawfulCmp.cmp_eq_gt.2 h₁.1)
 
-/-- The `balance` function preserves the ordering invariants. -/
-protected theorem Ordered.balance {l : RBNode α} {v : α} {r : RBNode α}
-    (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
-    (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance l v r).Ordered cmp := by
-  have := hl.balance1 lv vr hr; revert this
-  unfold balance1 balance; split <;> simp [*]
-  · intro; exact hl.balance2 lv vr hr
-
 protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p := by
   unfold setRed; split <;> simp_all
 
@@ -244,20 +236,13 @@ protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n
     match cr with
     | red => .redred rfl (.black ha hb) hr
     | black => .balanced (.red (.black ha hb) hr)
-  case _ H =>
-    exact match hr with
-    | .black ha hb =>
-      match hl with
-      | .balanced hl => let ⟨c, h⟩ := RedRed.balance2 hl (.redred trivial ha hb); .balanced h
-      | .redred .. => nomatch H _ _ _ rfl
-    | .red (.black ha hb) hc =>
-      match hl with
-      | .balanced hl =>
-        match hc with
-        | .black hc hd =>
-          let ⟨c, h⟩ := RedRed.balance2 hb (.redred trivial hc hd)
-          .redred rfl (.black hl ha) h
-      | .redred .. => nomatch H _ _ _ rfl
+  case _ H => exact match hl with
+    | .redred .. => nomatch H _ _ _ rfl
+    | .balanced hl => match hr with
+      | .black ha hb =>
+        let ⟨c, h⟩ := RedRed.balance2 hl (.redred trivial ha hb); .balanced h
+      | .red (.black ha hb) (.black hc hd) =>
+        let ⟨c, h⟩ := RedRed.balance2 hb (.redred trivial hc hd); .redred rfl (.black hl ha) h
 
 protected theorem All.balRight
     (hl : l.All p) (hv : p v) (hr : r.All p) : (balRight l v r).All p := by
@@ -285,20 +270,13 @@ protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed 
     match cl with
     | red => .redred rfl hl (.black hb hc)
     | black => .balanced (.red hl (.black hb hc))
-  case _ H =>
-    exact match hl with
-    | .black hb hc =>
-      match hr with
-      | .balanced hr => let ⟨c, h⟩ := RedRed.balance1 (.redred trivial hb hc) hr; .balanced h
-      | .redred .. => nomatch H _ _ _ rfl
-    | .red hb (.black hc hd) =>
-      match hr with
-      | .balanced hr =>
-        match hb with
-        | .black ha hb =>
-          let ⟨c, h⟩ := RedRed.balance1 (.redred trivial ha hb) hc
-          .redred rfl h (.black hd hr)
-      | .redred .. => nomatch H _ _ _ rfl
+  case _ H => exact match hr with
+    | .redred .. => nomatch H _ _ _ rfl
+    | .balanced hr => match hl with
+      | .black hb hc =>
+        let ⟨c, h⟩ := RedRed.balance1 (.redred trivial hb hc) hr; .balanced h
+      | .red (.black ha hb) (.black hc hd) =>
+        let ⟨c, h⟩ := RedRed.balance1 (.redred trivial ha hb) hc; .redred rfl h (.black hd hr)
 
 /--
 The invariant of the `append` function. The main theorem is `Balanced.append`:
@@ -351,7 +329,7 @@ protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
     exact ⟨(vx.trans_r lv).append bx, yc, hl.append lv vb hb, hc⟩
   · have ⟨xv, _, bv⟩ := lv; have ⟨ax, xb, ha, hb⟩ := hl
     exact ⟨ax, xb.append (xv.trans_l vr), ha, hb.append bv vr hr⟩
-termination_by _ l _ r _ _ _ _ => l.size + r.size
+termination_by _ => l.size + r.size
 
 /-- The balance properties of the `append` function. -/
 protected theorem Balanced.append {l r : RBNode α}
@@ -363,7 +341,7 @@ protected theorem Balanced.append {l r : RBNode α}
   case _ b c _ _ =>
     have .red ha hb := hl; have .red hc hd := hr
     have ⟨_, IH⟩ := (hb.append hc).of_false (· rfl rfl); split
-    case _ b' z c' e =>
+    case _ e =>
       have .red hb' hc' := e ▸ IH
       exact .redred (fun.) (.red ha hb') (.red hc' hd)
     case _ bcc _ H =>
@@ -380,11 +358,9 @@ protected theorem Balanced.append {l r : RBNode α}
       match append b c, IH, H with
       | bc, .balanced hbc, _ =>
         unfold balLeft; split
-        case _ a' x b' =>
-          have .red ha' hb' := ha
+        · have .red ha' hb' := ha
           exact .balanced (.red (.black ha' hb') (.black hbc hd))
-        case _ _ x b =>
-          exact have ⟨c, h⟩ := RedRed.balance2 ha (.redred trivial hbc hd); .balanced h
+        · exact have ⟨c, h⟩ := RedRed.balance2 ha (.redred trivial hbc hd); .balanced h
       | _, .redred .., H => cases H _ _ _ rfl
   · have .red hc hd := hr; have IH := hl.append hc
     have .black ha hb := hl; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
@@ -392,7 +368,7 @@ protected theorem Balanced.append {l r : RBNode α}
   · have .red ha hb := hl; have IH := hb.append hr
     have .black hc hd := hr; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
     exact .redred (fun.) ha IH
-termination_by _ x y _ _ => x.size + y.size
+termination_by _ => l.size + r.size
 
 /-! ## erase -/
 
