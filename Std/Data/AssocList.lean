@@ -141,10 +141,8 @@ theorem find?_eq_findEntry? [BEq α] (a : α) (l : AssocList α β) :
 @[simp] theorem all_eq (p : α → β → Bool) (l : AssocList α β) :
     all p l = l.toList.all fun (a, b) => p a b := by induction l <;> simp [all, *]
 
-/-- `O(n)`. Returns true if every entry in the list satisfies `p`. -/
-@[specialize] def All (p : α → β → Prop) : AssocList α β → Prop
-  | nil         => True
-  | cons k v es => p k v ∧ All p es
+/-- Returns true if every entry in the list satisfies `p`. -/
+def All (p : α → β → Prop) (l : AssocList α β) : Prop := ∀ a ∈ l.toList, p a.1 a.2
 
 /-- `O(n)`. Returns true if there is an element in the list whose key is equal to `a`. -/
 @[inline] def contains [BEq α] (a : α) (l : AssocList α β) : Bool := any (fun k _ => k == a) l

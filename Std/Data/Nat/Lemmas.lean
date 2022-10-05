@@ -748,3 +748,10 @@ theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
     simp [pow_succ, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
 
 theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
+
+/-! ### sum -/
+
+@[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
+@[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
+@[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
+  induction l₁ <;> simp [*, Nat.add_assoc]

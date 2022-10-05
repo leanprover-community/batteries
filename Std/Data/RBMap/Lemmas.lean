@@ -126,10 +126,8 @@ protected theorem RedRed.setBlack : t.RedRed p n → ∃ n', (setBlack t).Balanc
 protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.RedRed p n) (hr : r.Balanced c n) : ∃ c, (balance1 l v r).Balanced c (n + 1) := by
   unfold balance1; split
-  case _ a x b y c => match hl with
-    | .redred _ (.red ha hb) hc => exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
-  case _ a x b y c _ => match hl with
-    | .redred _ ha (.red hb hc) => exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
+  · have .redred _ (.red ha hb) hc := hl; exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
+  · have .redred _ ha (.red hb hc) := hl; exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
   case _ H1 H2 => match hl with
     | .balanced hl => exact ⟨_, .black hl hr⟩
     | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black (.red ha hb) hr⟩
@@ -140,10 +138,8 @@ protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
 protected theorem RedRed.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.Balanced c n) (hr : r.RedRed p n) : ∃ c, (balance2 l v r).Balanced c (n + 1) := by
   unfold balance2; split
-  case _ a x b y c => match hr with
-    | .redred _ (.red ha hb) hc => exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
-  case _ a x b y c _ => match hr with
-    | .redred _ ha (.red hb hc) => exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
+  · have .redred _ (.red ha hb) hc := hr; exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
+  · have .redred _ ha (.red hb hc) := hr; exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
   case _ H1 H2 => match hr with
     | .balanced hr => exact ⟨_, .black hl hr⟩
     | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black hl (.red ha hb)⟩
@@ -162,7 +158,7 @@ protected theorem Balanced.ins (cmp v) {t : RBNode α}
   induction h with
   | nil => exact .balanced (.red .nil .nil)
   | @red a n b x hl hr ihl ihr =>
-    simp [ins]; split
+    unfold ins; split
     · match ins cmp v a, ihl with
       | _, .balanced .nil => exact .balanced (.red .nil hr)
       | _, .balanced (.red ha hb) => exact .redred rfl (.red ha hb) hr
@@ -175,7 +171,7 @@ protected theorem Balanced.ins (cmp v) {t : RBNode α}
       | _, .redred h .. => cases hr <;> cases h
     · exact .balanced (.red hl hr)
   | @black a ca n b cb x hl hr ihl ihr =>
-    simp [ins]; split
+    unfold ins; split
     · exact have ⟨c, h⟩ := ihl.balance1 hr; .balanced h
     · exact have ⟨c, h⟩ := ihr.balance2 hl; .balanced h
     · exact .balanced (.black hl hr)
@@ -412,12 +408,10 @@ protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) : t.DelProp 
     refine ⟨_, rfl, ?_⟩
     unfold del; split
     · exact match a, n, iha with
-      | .nil, _, ⟨c, ha⟩
-      | .node red .., _, ⟨c, ha⟩ => .redred ⟨⟩ ha hb
+      | .nil, _, ⟨c, ha⟩ | .node red .., _, ⟨c, ha⟩ => .redred ⟨⟩ ha hb
       | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).imp fun _ => ⟨⟩
     · exact match b, n, ihb with
-      | .nil, _, ⟨c, hb⟩
-      | .node .red .., _, ⟨c, hb⟩ => .redred ⟨⟩ ha hb
+      | .nil, _, ⟨c, hb⟩ | .node .red .., _, ⟨c, hb⟩ => .redred ⟨⟩ ha hb
       | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).imp fun _ => ⟨⟩
     · exact (ha.append hb).imp fun _ => ⟨⟩
   | @red a n b _ ha hb iha ihb =>
@@ -426,7 +420,7 @@ protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) : t.DelProp 
       | .nil, _, _ => ⟨_, .red ha hb⟩
       | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).of_false (fun.)
     · exact match b, n, ihb with
-      | .nil, _, _ => let .nil := hb; ⟨_, .red ha .nil⟩
+      | .nil, _, _ => ⟨_, .red ha hb⟩
       | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).of_false (fun.)
     · exact (ha.append hb).of_false (· rfl rfl)
 

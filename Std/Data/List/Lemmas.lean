@@ -539,6 +539,13 @@ theorem get_append_right' {l₁ l₂ : List α} {n : Nat} (h₁ : l₁.length �
     (l₁ ++ l₂).get ⟨n, h₂⟩ = l₂.get ⟨n - l₁.length, get_append_right_aux h₁ h₂⟩ :=
 Option.some.inj <| by rw [← get?_eq_get, ← get?_eq_get, get?_append_right h₁]
 
+theorem get_of_append_proof {l : List α}
+    (eq : l = l₁ ++ a :: l₂) (h : l₁.length = n) : n < length l := eq ▸ h ▸ by simp_arith
+
+theorem get_of_append {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.length = n) :
+    l.get ⟨n, get_of_append_proof eq h⟩ = a := Option.some.inj <| by
+  rw [← get?_eq_get, eq, get?_append_right (h ▸ Nat.le_refl _), h, Nat.sub_self]; rfl
+
 @[simp] theorem get_replicate (a : α) {n : Nat} (m : Fin _) : (List.replicate n a).get m = a :=
   eq_of_mem_replicate (get_mem _ _ _)
 
@@ -610,6 +617,36 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | _a::_, 0, _ => rfl
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
+/-! ### take and drop -/
+
+@[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
+  | 0, l => by simp [Nat.zero_min]
+  | succ n, [] => by simp [Nat.min_zero]
+  | succ n, _ :: l => by simp [Nat.min_succ_succ, add_one, length_take]
+
+theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
+
+theorem length_take_of_le (h : n ≤ length l) : length (take n l) = n := by simp [Nat.min_eq_left h]
+
+theorem get_cons_drop : ∀ (l : List α) i, List.get l i :: List.drop (i + 1) l = List.drop i l
+  | _::_, ⟨0, _⟩ => rfl
+  | _::_, ⟨i+1, _⟩ => get_cons_drop _ ⟨i, _⟩
+
+theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
+    (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ := by
+  have := h
+  rw [← take_append_drop (length s₁) l] at this ⊢
+  rw [map_append] at this
+  refine ⟨_, _, rfl, append_inj this ?_⟩
+  rw [length_map, length_take, Nat.min_eq_left]
+  rw [← length_map l f, h, length_append]
+  apply Nat.le_add_right
+
+-- TODO: original proof: drop_subset n l h
+theorem mem_of_mem_drop : ∀ {n} {l : List α}, a ∈ l.drop n → a ∈ l
+  | 0, _, h => h
+  | _+1, _::_, h => .tail _ (mem_of_mem_drop h)
+
 /-! ### modify nth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
@@ -638,6 +675,16 @@ theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) 
   | _+1, [] => rfl
   | _+1, _ :: _ => congrArg (·+1) (modifyNthTail_length _ H _ _)
 
+theorem modifyNthTail_add (f : List α → List α) (n) (l₁ l₂ : List α) :
+    modifyNthTail f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyNthTail f n l₂ := by
+  induction l₁ <;> simp [*, Nat.succ_add]
+
+theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h : n ≤ l.length) :
+    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n ∧ modifyNthTail f n l = l₁ ++ f l₂ :=
+  have ⟨_, _, eq, hl⟩ : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
+    ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
+  ⟨_, _, eq, hl, hl ▸ eq ▸ modifyNthTail_add (n := 0) ..⟩
+
 @[simp] theorem modify_get?_length (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
   modifyNthTail_length _ fun l => by cases l <;> rfl
 
@@ -649,6 +696,12 @@ theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) 
     (modifyNth f m l).get? n = l.get? n := by
   simp only [get?_modifyNth, if_neg h, id_map']
 
+theorem exists_of_modifyNth (f : α → α) {n} {l : List α} (h : n < l.length) :
+    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modifyNth f n l = l₁ ++ f a :: l₂ :=
+  match exists_of_modifyNthTail _ (Nat.le_of_lt h) with
+  | ⟨_, _::_, eq, hl, H⟩ => ⟨_, _, _, eq, hl, H⟩
+  | ⟨_, [], eq, hl, _⟩ => nomatch Nat.ne_of_gt h (eq ▸ append_nil _ ▸ hl)
+
 /-! ### set -/
 
 theorem set_eq_modifyNth (a : α) : ∀ n (l : List α), set l n a = modifyNth (fun _ => a) n l
@@ -656,11 +709,24 @@ theorem set_eq_modifyNth (a : α) : ∀ n (l : List α), set l n a = modifyNth (
   | n+1, [] => rfl
   | n+1, b :: l => congrArg (cons _) (set_eq_modifyNth _ _ _)
 
-theorem modifyNth_eq_set (f : α → α) :
+theorem modifyNth_eq_set_get? (f : α → α) :
     ∀ n (l : List α), l.modifyNth f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
   | 0, l => by cases l <;> rfl
   | n+1, [] => rfl
-  | n+1, b :: l => (congrArg (cons _) (modifyNth_eq_set ..)).trans <| by cases l.get? n <;> rfl
+  | n+1, b :: l =>
+    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases l.get? n <;> rfl
+
+theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
+    l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
+  rw [modifyNth_eq_set_get?, get?_eq_get h]; rfl
+
+theorem exists_of_set {l : List α} (h : n < l.length) :
+    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
+  rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
+
+theorem exists_of_set' {l : List α} (h : n < l.length) :
+    ∃ l₁ l₂, l = l₁ ++ l.get ⟨n, h⟩ :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ :=
+  have ⟨_, _, _, h₁, h₂, h₃⟩ := List.exists_of_set h; ⟨_, _, get_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
 
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
   simp only [set_eq_modifyNth, get?_modifyNth_eq]
@@ -724,33 +790,11 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 @[simp] theorem length_tail (l : List α) : length (tail l) = length l - 1 := by cases l <;> rfl
 
-/-! ### take and drop -/
+/-! ### all / any -/
 
-@[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
-  | 0, l => by simp [Nat.zero_min]
-  | succ n, [] => by simp [Nat.min_zero]
-  | succ n, _ :: l => by simp [Nat.min_succ_succ, add_one, length_take]
+@[simp] theorem all_eq_true {l : List α} : l.all p ↔ ∀ x ∈ l, p x := by induction l <;> simp [*]
 
-theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
-
-theorem get_cons_drop : ∀ (l : List α) i, List.get l i :: List.drop (i + 1) l = List.drop i l
-  | _::_, ⟨0, _⟩ => rfl
-  | _::_, ⟨i+1, _⟩ => get_cons_drop _ ⟨i, _⟩
-
-theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
-    (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ := by
-  have := h
-  rw [← take_append_drop (length s₁) l] at this ⊢
-  rw [map_append] at this
-  refine ⟨_, _, rfl, append_inj this ?_⟩
-  rw [length_map, length_take, Nat.min_eq_left]
-  rw [← length_map l f, h, length_append]
-  apply Nat.le_add_right
-
--- TODO: original proof: drop_subset n l h
-theorem mem_of_mem_drop : ∀ {n} {l : List α}, a ∈ l.drop n → a ∈ l
-  | 0, _, h => h
-  | _+1, _::_, h => .tail _ (mem_of_mem_drop h)
+@[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
 
 /-! ### reverse -/
 
@@ -990,6 +1034,11 @@ theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
   | [] => by simp [partitionAux, filter]
   | a :: l => by cases pa : p a <;> simp [partitionAux, pa, aux, filter, append_assoc]
 
+/-! ### replaceF -/
+
+@[simp] theorem length_replaceF : length (replaceF f l) = length l := by
+  induction l <;> simp; split <;> simp [*]
+
 /-! ### disjoint -/
 
 theorem disjoint_symm (d : Disjoint l₁ l₂) : Disjoint l₂ l₁ := fun _ i₂ i₁ => d i₁ i₂
@@ -1058,6 +1107,24 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
     cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
       exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
+
+/-! ### foldl / foldr -/
+
+theorem foldl_map (f : β₁ → β₂) (g : α → β₂ → α) (l : List β₁) (init : α) :
+    (l.map f).foldl g init = l.foldl (fun x y => g x (f y)) init := by
+  induction l generalizing init <;> simp [*]
+
+theorem foldr_map (f : α₁ → α₂) (g : α₂ → β → β) (l : List α₁) (init : β) :
+    (l.map f).foldr g init = l.foldr (fun x y => g (f x) y) init := by
+  induction l generalizing init <;> simp [*]
+
+theorem foldl_hom (f : α₁ → α₂) (g₁ : α₁ → β → α₁) (g₂ : α₂ → β → α₂) (l : List β) (init : α₁)
+    (H : ∀ x y, g₂ (f x) y = f (g₁ x y)) : l.foldl g₂ (f init) = f (l.foldl g₁ init) := by
+  induction l generalizing init <;> simp [*, H]
+
+theorem foldr_hom (f : β₁ → β₂) (g₁ : α → β₁ → β₁) (g₂ : α → β₂ → β₂) (l : List α) (init : β₁)
+    (H : ∀ x y, g₂ x (f y) = f (g₁ x y)) : l.foldr g₂ (f init) = f (l.foldr g₁ init) := by
+  induction l <;> simp [*, H]
 
 /-! ### union -/
 

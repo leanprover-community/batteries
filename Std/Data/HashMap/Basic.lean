@@ -4,16 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.AssocList
+import Std.Data.Nat.Basic
 
-namespace Std
-universe u v w
-
-namespace HashMap
+namespace Std.HashMap
 
 /-- A hash is lawful if elements which compare equal under `==` have equal hash. -/
 class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
   /-- Two elements which compare equal under the `BEq` instance have equal hash. -/
   hash_eq {a b : α} : a == b → hash a = hash b
+
+namespace Imp
 
 /--
 The bucket array of a `HashMap` is a nonempty array of `AssocList`s.
@@ -36,18 +36,22 @@ def update (data : Bucket α β) (i : USize)
 The number of elements in the bucket array.
 Note: this is marked `noncomputable` because it is only intended for specification.
 -/
-noncomputable def size (data : Bucket α β) : Nat :=
-  data.1.data.map (·.toList.length) |>.foldl (· + ·) 0
+noncomputable def size (data : Bucket α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
-def WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop :=
-  ∀ [LawfulHashable α] (i : USize) (h : i.toNat < buckets.1.size),
+structure WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop where
+  /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
+  distinct (i : USize) (h : i.toNat < buckets.1.size) :
+    ∀ bucket ∈ buckets.1.data, bucket.toList.Pairwise fun a b => (a.1 == b.1) = false
+  /-- Every element in a bucket should hash to its location. -/
+  hash_self [LawfulHashable α] (i : USize) (h : i.toNat < buckets.1.size) :
     buckets.1[i].All fun k _ => (hash k).toUSize % buckets.1.size = i
 
 end Bucket
+end Imp
 
 /-- `HashMap.Imp α β` is the internal implementation type of `HashMap α β`. -/
 structure Imp (α : Type u) (β : Type v) where
@@ -56,7 +60,7 @@ structure Imp (α : Type u) (β : Type v) where
   use the size to determine when to resize the map. -/
   size    : Nat
   /-- The bucket array of the `HashMap`. -/
-  buckets : Bucket α β
+  buckets : Imp.Bucket α β
 
 namespace Imp
 
@@ -149,7 +153,7 @@ If an element equal to `a` is already in the map, it is replaced by `b`.
   let ⟨size, buckets⟩ := m
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
-  if bkt.contains a then
+  bif bkt.contains a then
     ⟨size, buckets.update i (bkt.replace a b) h⟩
   else
     let size' := size + 1
@@ -166,7 +170,7 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let ⟨size, buckets⟩ := m
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
-  if bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
+  bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
 
 /--
 The well-formedness invariant for a hash map. The first constructor is the real invariant,
