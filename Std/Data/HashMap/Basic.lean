@@ -292,6 +292,18 @@ private unsafe def mapValImpl (f : α → β → γ) (self : HashMap α β) : Ha
 /-- Folds a function over the elements in the map (in arbitrary order). -/
 @[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ := self.1.fold f init
 
+/-- Combines two hashmaps using a monadic function `f` to combine two values at a key. -/
+@[specialize] def mergeWithM [Monad m] (f : α → β → β → m β)
+    (self other : HashMap α β) : m (HashMap α β) :=
+  other.foldM (init := self) fun m k v₂ =>
+    match m.find? k with
+    | none => return m.insert k v₂
+    | some v₁ => return m.insert k (← f k v₁ v₂)
+
+/-- Combines two hashmaps using function `f` to combine two values at a key. -/
+@[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
+  Id.run (mergeWithM f self other)
+
 /-- Runs a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (self : HashMap α β) : m PUnit := self.1.forM f
 
