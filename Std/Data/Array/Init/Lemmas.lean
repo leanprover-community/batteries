@@ -100,6 +100,9 @@ theorem foldr_push (f : α → β → β) (init : β) (arr : Array α) (a : α) 
     induction l generalizing arr <;> simp [*]
   simp [H]
 
+@[simp] theorem size_map (f : α → β) (arr : Array α) : (arr.map f).size = arr.size := by
+  simp [size]
+
 @[simp] theorem pop_data (arr : Array α) : arr.pop.data = arr.data.dropLast := rfl
 
 @[simp] theorem append_eq_append (arr arr' : Array α) : arr.append arr' = arr ++ arr' := rfl

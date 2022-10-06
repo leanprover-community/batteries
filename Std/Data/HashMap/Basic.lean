@@ -38,14 +38,17 @@ Note: this is marked `noncomputable` because it is only intended for specificati
 -/
 noncomputable def size (data : Bucket α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
+/-- Map a function over the values in the map. -/
+@[specialize] def mapVal (f : α → β → γ) (self : Bucket α β) : Bucket α γ :=
+  ⟨self.1.map (.mapVal f), by simp [self.2]⟩
+
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
 structure WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop where
   /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
-  distinct (i : USize) (h : i.toNat < buckets.1.size) :
-    ∀ bucket ∈ buckets.1.data, bucket.toList.Pairwise fun a b => (a.1 == b.1) = false
+  distinct : ∀ bucket ∈ buckets.1.data, bucket.toList.Pairwise fun a b => (a.1 == b.1) = false
   /-- Every element in a bucket should hash to its location. -/
   hash_self [LawfulHashable α] (i : USize) (h : i.toNat < buckets.1.size) :
     buckets.1[i].All fun k _ => (hash k).toUSize % buckets.1.size = i
@@ -172,6 +175,10 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let bkt := buckets.1[i]
   bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
 
+/-- Map a function over the values in the map. -/
+@[inline] def mapVal (f : α → β → γ) (self : Imp α β) : Imp α γ :=
+  { size := self.size, buckets := self.buckets.mapVal f }
+
 /--
 The well-formedness invariant for a hash map. The first constructor is the real invariant,
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
@@ -191,6 +198,9 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
   | erase : WF m → WF (erase m a)
 
 theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by unfold empty; apply empty'
+
+-- FIXME
+-- theorem WF.mapVal [BEq α] [Hashable α] {m : Imp α β} (H : WF m) : WF (mapVal f m) := sorry
 
 end Imp
 
@@ -264,6 +274,16 @@ instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
 
 /-- Returns true if the element `a` is in the map. -/
 @[inline] def contains (self : HashMap α β) (a : α) : Bool := self.1.contains a
+
+-- /-- Map a function over the values in the map. -/
+-- @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
+--   ⟨self.1.mapVal f, self.2.mapVal⟩
+
+private unsafe def mapValImpl (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
+  ⟨self.1.mapVal f, lcProof⟩ -- FIXME: add proof
+
+/-- Map a function over the values in the map. -/
+@[implementedBy mapValImpl] opaque mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def foldM [Monad m] (f : δ → α → β → m δ) (init : δ) (self : HashMap α β) : m δ :=

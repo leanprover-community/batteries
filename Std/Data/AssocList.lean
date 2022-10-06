@@ -87,12 +87,12 @@ def toListTR (as : AssocList α β) : List (α × β) :=
   induction l <;> simp [*]
 
 /-- `O(n)`. Map a function `f` over the values of the list. -/
-@[simp] def mapVal (f : β → δ) : AssocList α β → AssocList α δ
+@[simp] def mapVal (f : α → β → δ) : AssocList α β → AssocList α δ
   | nil        => nil
-  | cons k v t => cons k (f v) (mapVal f t)
+  | cons k v t => cons k (f k v) (mapVal f t)
 
-@[simp] theorem mapVal_toList (f : β → δ) (l : AssocList α β) :
-    (mapVal f l).toList = l.toList.map (fun (a, b) => (a, f b)) := by
+@[simp] theorem mapVal_toList (f : α → β → δ) (l : AssocList α β) :
+    (mapVal f l).toList = l.toList.map (fun (a, b) => (a, f a b)) := by
   induction l <;> simp [*]
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/

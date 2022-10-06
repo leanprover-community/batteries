@@ -33,7 +33,7 @@ theorem mk_size (h) : (mk n h : Bucket α β).size = 0 := by
 end Bucket
 
 theorem empty'_WF [BEq α] [Hashable α] : (empty' n h : Imp α β).buckets.WF := by
-  refine ⟨fun _ _ _ h => ?_, fun i h => ?_⟩
+  refine ⟨fun _ h => ?_, fun i h => ?_⟩
   · simp [Bucket.mk, empty', mkArray, List.mem_replicate] at h
     simp [h, List.Pairwise.nil]
   · simp [Bucket.mk, empty', mkArray, Array.getElem_eq_data_get, AssocList.All]
