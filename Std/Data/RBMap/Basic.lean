@@ -11,7 +11,7 @@ import Std.Order
 This module implements a type `RBMap α β cmp` which is a functional data structure for
 storing a key-value store in a binary search tree.
 
-It is built on the simpler `RBTree α cmp` type, which stores a set of values of type `α`
+It is built on the simpler `RBSet α cmp` type, which stores a set of values of type `α`
 using the function `cmp : α → α → Ordering` for determining the ordering relation.
 The tree will never store two elements that compare `.eq` under the `cmp` function,
 but the function does not have to satisfy `cmp x y = .eq → x = y`, and in the map case
@@ -31,7 +31,7 @@ inductive RBColor where
   | black
 
 /--
-A red-black tree. (This is an internal implementation detail of the `RBTree` type,
+A red-black tree. (This is an internal implementation detail of the `RBSet` type,
 which includes the invariants of the tree.) This is a binary search tree augmented with
 a "color" field which is either red or black for each node and used to implement
 the re-balancing operations.
@@ -355,63 +355,63 @@ end RBNode
 open RBNode
 
 /--
-An `RBTree` is a self-balancing binary search tree.
+An `RBSet` is a self-balancing binary search tree.
 The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
-def RBTree (α : Type u) (cmp : α → α → Ordering) : Type u := {t : RBNode α // t.WF cmp}
+def RBSet (α : Type u) (cmp : α → α → Ordering) : Type u := {t : RBNode α // t.WF cmp}
 
 /-- `O(1)`. Construct a new empty tree. -/
-@[inline] def mkRBTree (α : Type u) (cmp : α → α → Ordering) : RBTree α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
+@[inline] def mkRBSet (α : Type u) (cmp : α → α → Ordering) : RBSet α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
 
-namespace RBTree
+namespace RBSet
 
 /-- `O(1)`. Construct a new empty tree. -/
-@[inline] def empty : RBTree α cmp := mkRBTree ..
+@[inline] def empty : RBSet α cmp := mkRBSet ..
 
-instance (α : Type u) (cmp : α → α → Ordering) : EmptyCollection (RBTree α cmp) := ⟨empty⟩
+instance (α : Type u) (cmp : α → α → Ordering) : EmptyCollection (RBSet α cmp) := ⟨empty⟩
 
-instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBTree α cmp) := ⟨∅⟩
+instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one element `v`. -/
-@[inline] def single (v : α) : RBTree α cmp :=
+@[inline] def single (v : α) : RBSet α cmp :=
   ⟨.node .red .nil v .nil, .mk ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ (.red .nil .nil)⟩
 
 /-- `O(n)`. Fold a function on the values from left to right (in increasing order). -/
-@[inline] def foldl (f : σ → α → σ) (init : σ) (t : RBTree α cmp) : σ := t.1.foldl f init
+@[inline] def foldl (f : σ → α → σ) (init : σ) (t : RBSet α cmp) : σ := t.1.foldl f init
 
 /-- `O(n)`. Fold a function on the values from right to left (in decreasing order). -/
-@[inline] def foldr (f : α → σ → σ) (init : σ) (t : RBTree α cmp) : σ := t.1.foldr f init
+@[inline] def foldr (f : α → σ → σ) (init : σ) (t : RBSet α cmp) : σ := t.1.foldr f init
 
 /-- `O(n)`. Fold a monadic function on the values from left to right (in increasing order). -/
-@[inline] def foldlM [Monad m] (f : σ → α → m σ) (init : σ) (t : RBTree α cmp) : m σ :=
+@[inline] def foldlM [Monad m] (f : σ → α → m σ) (init : σ) (t : RBSet α cmp) : m σ :=
   t.1.foldlM f init
 
 /-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
-@[inline] def forM [Monad m] (f : α → m PUnit) (t : RBTree α cmp) : m PUnit := t.1.forM f
+@[inline] def forM [Monad m] (f : α → m PUnit) (t : RBSet α cmp) : m PUnit := t.1.forM f
 
-instance : ForIn m (RBTree α cmp) α where
+instance : ForIn m (RBSet α cmp) α where
   forIn t init f := t.1.forIn init f
 
 /-- `O(1)`. Is the tree empty? -/
-@[inline] def isEmpty : RBTree α cmp → Bool
+@[inline] def isEmpty : RBSet α cmp → Bool
   | ⟨nil, _⟩ => true
   | _        => false
 
 /-- `O(n)`. Convert the tree to a list in ascending order. -/
-@[specialize] def toList (t : RBTree α cmp) : List α := t.1.foldr (·::·) []
+@[specialize] def toList (t : RBSet α cmp) : List α := t.1.foldr (·::·) []
 
-/-- `O(log n)`. Returns the entry `a` such that `a ≤ k` for all keys in the RBTree. -/
-@[inline] protected def min (t : RBTree α cmp) : Option α := t.1.min
+/-- `O(log n)`. Returns the entry `a` such that `a ≤ k` for all keys in the RBSet. -/
+@[inline] protected def min (t : RBSet α cmp) : Option α := t.1.min
 
-/-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBTree. -/
-@[inline] protected def max (t : RBTree α cmp) : Option α := t.1.max
+/-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBSet. -/
+@[inline] protected def max (t : RBSet α cmp) : Option α := t.1.max
 
-instance [Repr α] : Repr (RBTree α cmp) where
+instance [Repr α] : Repr (RBSet α cmp) where
   reprPrec m prec := Repr.addAppParen ("Std.rbmapOf " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert element `v` into the tree. -/
-@[inline] def insert (t : RBTree α cmp) (v : α) : RBTree α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
+@[inline] def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
 
 /--
 `O(log n)`. Remove an element from the tree using a cut function.
@@ -421,77 +421,84 @@ if it returns `.eq` we will remove the element.
 (The function `cmp k` for some key `k` is a valid cut function, but we can also use cuts that
 are not of this form as long as they are suitably monotonic.)
 -/
-@[inline] def erase (t : RBTree α cmp) (cut : α → Ordering) : RBTree α cmp :=
+@[inline] def erase (t : RBSet α cmp) (cut : α → Ordering) : RBSet α cmp :=
   ⟨t.1.erase cut, t.2.erase⟩
 
 /-- `O(log n)`. Find an element in the tree using a cut function. -/
-@[inline] def findP? (t : RBTree α cmp) (cut : α → Ordering) : Option α := t.1.find? cut
+@[inline] def findP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.find? cut
 
 /-- `O(log n)`. Returns an element in the tree equivalent to `x` if one exists. -/
-@[inline] def find? (t : RBTree α cmp) (x : α) : Option α := t.1.find? (cmp x)
+@[inline] def find? (t : RBSet α cmp) (x : α) : Option α := t.1.find? (cmp x)
 
 /-- `O(log n)`. Find an element in the tree, or return a default value `v₀`. -/
-@[inline] def findPD (t : RBTree α cmp) (cut : α → Ordering) (v₀ : α) : α := (t.findP? cut).getD v₀
+@[inline] def findPD (t : RBSet α cmp) (cut : α → Ordering) (v₀ : α) : α := (t.findP? cut).getD v₀
 
 /--
 `O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
 if it exists.
 -/
-@[inline] def lowerBoundP? (t : RBTree α cmp) (cut : α → Ordering) : Option α :=
+@[inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α :=
   t.1.lowerBound? cut none
 
 /--
 `O(log n)`. `lowerBound? k` retrieves the largest entry smaller than or equal to `k`,
 if it exists.
 -/
-@[inline] def lowerBound? (t : RBTree α cmp) (k : α) : Option α := t.1.lowerBound? (cmp k) none
+@[inline] def lowerBound? (t : RBSet α cmp) (k : α) : Option α := t.1.lowerBound? (cmp k) none
 
-/-- `O(log n)`. Returns true if the given cut returns `eq` for something in the RBTree. -/
-@[inline] def containsP (t : RBTree α cmp) (cut : α → Ordering) : Bool := (t.findP? cut).isSome
+/-- `O(log n)`. Returns true if the given cut returns `eq` for something in the RBSet. -/
+@[inline] def containsP (t : RBSet α cmp) (cut : α → Ordering) : Bool := (t.findP? cut).isSome
 
-/-- `O(log n)`. Returns true if the given key `a` is in the RBTree. -/
-@[inline] def contains (t : RBTree α cmp) (a : α) : Bool := (t.find? a).isSome
+/-- `O(log n)`. Returns true if the given key `a` is in the RBSet. -/
+@[inline] def contains (t : RBSet α cmp) (a : α) : Bool := (t.find? a).isSome
 
 /-- `O(n log n)`. Build a tree from an unsorted list by inserting them one at a time. -/
-@[inline] def ofList (l : List α) (cmp : α → α → Ordering) : RBTree α cmp :=
-  l.foldl (fun r p => r.insert p) (mkRBTree α cmp)
+@[inline] def ofList (l : List α) (cmp : α → α → Ordering) : RBSet α cmp :=
+  l.foldl (fun r p => r.insert p) (mkRBSet α cmp)
 
 /-- `O(n log n)`. Build a tree from an unsorted array by inserting them one at a time. -/
-@[inline] def ofArray (l : Array α) (cmp : α → α → Ordering) : RBTree α cmp :=
-  l.foldl (fun r p => r.insert p) (mkRBTree α cmp)
+@[inline] def ofArray (l : Array α) (cmp : α → α → Ordering) : RBSet α cmp :=
+  l.foldl (fun r p => r.insert p) (mkRBSet α cmp)
 
-/-- `O(n)`. Returns true if the given predicate is true for all items in the RBTree. -/
-@[inline] def all (t : RBTree α cmp) (p : α → Bool) : Bool := t.1.all p
+/-- `O(n)`. Returns true if the given predicate is true for all items in the RBSet. -/
+@[inline] def all (t : RBSet α cmp) (p : α → Bool) : Bool := t.1.all p
 
-/-- `O(n)`. Returns true if the given predicate is true for any item in the RBTree. -/
-@[inline] def any (t : RBTree α cmp) (p : α → Bool) : Bool := t.1.any p
+/-- `O(n)`. Returns true if the given predicate is true for any item in the RBSet. -/
+@[inline] def any (t : RBSet α cmp) (p : α → Bool) : Bool := t.1.any p
 
-/-- `O(n)`. The number of items in the RBTree. -/
-def size (m : RBTree α cmp) : Nat := m.1.size
+/-- `O(n)`. The number of items in the RBSet. -/
+def size (m : RBSet α cmp) : Nat := m.1.size
 
 /-- `O(log n)`. Returns the minimum element of the tree, or panics if the tree is empty. -/
-@[inline] def min! [Inhabited α] (t : RBTree α cmp) : α := t.min.getD (panic! "tree is empty")
+@[inline] def min! [Inhabited α] (t : RBSet α cmp) : α := t.min.getD (panic! "tree is empty")
 
 /-- `O(log n)`. Returns the maximum element of the tree, or panics if the tree is empty. -/
-@[inline] def max! [Inhabited α] (t : RBTree α cmp) : α := t.max.getD (panic! "tree is empty")
+@[inline] def max! [Inhabited α] (t : RBSet α cmp) : α := t.max.getD (panic! "tree is empty")
 
 /--
 `O(log n)`. Attempts to find the value with key `k : α` in `t` and panics if there is no such key.
 -/
-@[inline] def findP! [Inhabited α] (t : RBTree α cmp) (cut : α → Ordering) : α :=
+@[inline] def findP! [Inhabited α] (t : RBSet α cmp) (cut : α → Ordering) : α :=
   (t.findP? cut).getD (panic! "key is not in the tree")
 
 /--
 `O(log n)`. Attempts to find the value with key `k : α` in `t` and panics if there is no such key.
 -/
-@[inline] def find! [Inhabited α] (t : RBTree α cmp) (k : α) : α :=
+@[inline] def find! [Inhabited α] (t : RBSet α cmp) (k : α) : α :=
   (t.find? k).getD (panic! "key is not in the tree")
+
+/--
+`O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`.
+If equal keys exist in both, the key from `t₂` is preferred.
+-/
+def union (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
+  t₂.foldl .insert t₁
 
 /--
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`. If equal keys exist in both,
 then use `mergeFn a₁ a₂` to produce the new merged value.
 -/
-def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBTree α cmp) : RBTree α cmp :=
+def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
   t₂.foldl (init := t₁) fun t₁ a₂ =>
     t₁.insert <| match t₁.find? a₂ with | some a₁ => mergeFn a₁ a₂ | none => a₂
 
@@ -500,27 +507,27 @@ def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBTree α cmp) : RBTree α
 using `mergeFn a b` to produce the new value.
 -/
 def intersectBy (cmp : α → β → Ordering) (mergeFn : α → β → γ)
-    (t₁ : RBTree α cmpα) (t₂ : RBTree β cmpβ) : RBTree γ cmpγ :=
+    (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : RBSet γ cmpγ :=
   t₁.foldl (init := ∅) fun acc a =>
     match t₂.findP? (cmp a) with
     | some b => acc.insert <| mergeFn a b
     | none => acc
 
-end RBTree
+end RBSet
 
 /- TODO(Leo): define dRBMap -/
 
 /--
-An `RBTree` is a self-balancing binary search tree, used to store a key-value map.
+An `RBSet` is a self-balancing binary search tree, used to store a key-value map.
 The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
 def RBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Type (max u v) :=
-  RBTree (α × β) (fun a b => cmp a.1 b.1)
+  RBSet (α × β) (fun a b => cmp a.1 b.1)
 
 /-- `O(1)`. Construct a new empty map. -/
 @[inline] def mkRBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : RBMap α β cmp :=
-  mkRBTree ..
+  mkRBSet ..
 
 /-- `O(1)`. Construct a new empty map. -/
 @[inline] def RBMap.empty {α : Type u} {β : Type v} {cmp : α → α → Ordering} : RBMap α β cmp :=
@@ -532,7 +539,7 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
-@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBTree.single (k, v)
+@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
 
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}
@@ -557,33 +564,33 @@ instance : ForIn m (RBMap α β cmp) (α × β) where
   forIn t init f := t.val.forIn init f
 
 /-- `O(1)`. Is the tree empty? -/
-@[inline] def isEmpty : RBMap α β cmp → Bool := RBTree.isEmpty
+@[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty
 
 /-- `O(n)`. Convert the tree to a list in ascending order. -/
-@[inline] def toList : RBMap α β cmp → List (α × β) := RBTree.toList
+@[inline] def toList : RBMap α β cmp → List (α × β) := RBSet.toList
 
 /-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≤ k` for all keys in the RBMap. -/
-@[inline] protected def min : RBMap α β cmp → Option (α × β) := RBTree.min
+@[inline] protected def min : RBMap α β cmp → Option (α × β) := RBSet.min
 
 /-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≥ k` for all keys in the RBMap. -/
-@[inline] protected def max : RBMap α β cmp → Option (α × β) := RBTree.max
+@[inline] protected def max : RBMap α β cmp → Option (α × β) := RBSet.max
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.fromList " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert key-value pair `(k,v)` into the tree. -/
-@[inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBTree.insert t (k, v)
+@[inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBSet.insert t (k, v)
 
 /-- `O(log n)`. Remove an element `k` from the map. -/
-@[inline] def erase (t : RBMap α β cmp) (k : α) : RBMap α β cmp := RBTree.erase t (cmp k ·.1)
+@[inline] def erase (t : RBMap α β cmp) (k : α) : RBMap α β cmp := RBSet.erase t (cmp k ·.1)
 
 /-- `O(n log n)`. Build a tree from an unsorted list by inserting them one at a time. -/
 @[inline] def ofList (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
-  RBTree.ofList l _
+  RBSet.ofList l _
 
 /-- `O(n log n)`. Build a tree from an unsorted array by inserting them one at a time. -/
 @[inline] def ofArray (l : Array (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
-  RBTree.ofArray l _
+  RBSet.ofArray l _
 
 /-- `O(log n)`. Find an entry in the tree with key equal to `k`. -/
 @[inline] def findEntry? (t : RBMap α β cmp) (k : α) : Option (α × β) := t.findP? (cmp k ·.1)
@@ -599,25 +606,25 @@ instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
 smaller than or equal to `k`, if it exists.
 -/
 @[inline] def lowerBound? (t : RBMap α β cmp) (k : α) : Option (α × β) :=
-   RBTree.lowerBoundP? t (cmp k ·.1)
+   RBSet.lowerBoundP? t (cmp k ·.1)
 
 /-- `O(log n)`. Returns true if the given key `a` is in the RBMap. -/
 @[inline] def contains (t : RBMap α β cmp) (a : α) : Bool := (t.findEntry? a).isSome
 
 /-- `O(n)`. Returns true if the given predicate is true for all items in the RBMap. -/
-@[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBTree.all t fun (a, b) => p a b
+@[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
 
 /-- `O(n)`. Returns true if the given predicate is true for any item in the RBMap. -/
-@[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBTree.all t fun (a, b) => p a b
+@[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
 
 /-- `O(n)`. The number of items in the RBMap. -/
-def size : RBMap α β cmp → Nat := RBTree.size
+def size : RBMap α β cmp → Nat := RBSet.size
 
 /-- `O(log n)`. Returns the minimum element of the map, or panics if the map is empty. -/
-@[inline] def min! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBTree.min!
+@[inline] def min! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBSet.min!
 
 /-- `O(log n)`. Returns the maximum element of the map, or panics if the map is empty. -/
-@[inline] def max! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBTree.max!
+@[inline] def max! [Inhabited α] [Inhabited β] : RBMap α β cmp → α × β := RBSet.max!
 
 /-- Attempts to find the value with key `k : α` in `t` and panics if there is no such key. -/
 @[inline] def find! [Inhabited β] (t : RBMap α β cmp) (k : α) : β :=
@@ -628,7 +635,7 @@ def size : RBMap α β cmp → Nat := RBTree.size
 then use `mergeFn a b₁ b₂` to produce the new merged value.
 -/
 def mergeBy (mergeFn : α → β → β → β) (t₁ t₂ : RBMap α β cmp) : RBMap α β cmp :=
-  RBTree.mergeBy (fun (_, b₁) (a, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
+  RBSet.mergeBy (fun (_, b₁) (a, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
 /--
 `O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
@@ -636,7 +643,7 @@ using `mergeFn a b` to produce the new value.
 -/
 def intersectBy (mergeFn : α → β → γ → δ)
     (t₁ : RBMap α β cmp) (t₂ : RBMap α γ cmp) : RBMap α δ cmp :=
-  RBTree.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
+  RBSet.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
 end RBMap
 end Std
