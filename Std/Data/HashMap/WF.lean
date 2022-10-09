@@ -250,18 +250,24 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     have ⟨a, h₁, h₂⟩ := H
     refine have ⟨_, _, _, _, _, h, eq⟩ := List.exists_of_eraseP h₁ h₂; eq ▸ ?_
     simp [h]; rfl
-  case h_2 => exact h
+  · exact h
 
--- TODO
--- theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
---     (h : m.buckets.WF) : (erase m k).buckets.WF := by
---   sorry
+theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
+    (h : m.buckets.WF) : (erase m k).buckets.WF := by
+  unfold erase; dsimp [cond]; split
+  · refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
+    · simp; exact H.sublist (List.eraseP_sublist _)
+    · exact H _ (List.mem_of_mem_eraseP h)
+  · exact h
 
--- theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
---     m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF := by
---   refine ⟨fun h => ?_, fun ⟨h₁, h₂⟩ => .mk h₁ h₂⟩
---   induction h with
---   | mk h₁ h₂ => exact ⟨h₁, h₂⟩
---   | @empty' _ h => exact ⟨(Bucket.mk_size h).symm, .mk' h⟩
---   | insert _ ih => exact ⟨insert_size ih.1, insert_WF ih.2⟩
---   | erase _ ih => exact ⟨erase_size ih.1, erase_WF ih.2⟩
+theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
+    m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF := by
+  refine ⟨fun h => ?_, fun ⟨h₁, h₂⟩ => .mk h₁ h₂⟩
+  induction h with
+  | mk h₁ h₂ => exact ⟨h₁, h₂⟩
+  | @empty' _ h => exact ⟨(Bucket.mk_size h).symm, .mk' h⟩
+  | insert _ ih => exact ⟨insert_size ih.1, insert_WF ih.2⟩
+  | erase _ ih => exact ⟨erase_size ih.1, erase_WF ih.2⟩
+
+/-- Foo-/
+axiom WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α] {m : Imp α β} (H : WF m) : WF (mapVal f m)

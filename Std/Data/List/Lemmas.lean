@@ -1039,6 +1039,13 @@ theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
   | [] => by simp [partitionAux, filter]
   | a :: l => by cases pa : p a <;> simp [partitionAux, pa, aux, filter, append_assoc]
 
+/-! ### pairwise -/
+
+theorem Pairwise.sublist : l₁ <+ l₂ → l₂.Pairwise R → l₁.Pairwise R
+  | .slnil, h => h
+  | .cons _ s, .cons _ h₂ => h₂.sublist s
+  | .cons₂ _ s, .cons h₁ h₂ => (h₂.sublist s).cons fun _ h => h₁ _ (s.subset h)
+
 /-! ### replaceF -/
 
 @[simp] theorem length_replaceF : length (replaceF f l) = length l := by
