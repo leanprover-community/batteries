@@ -513,6 +513,15 @@ def intersectBy (cmp : α → β → Ordering) (mergeFn : α → β → γ)
     | some b => acc.insert <| mergeFn a b
     | none => acc
 
+/-- `O(n * log n)`. Constructs the set of all elements satisfying `p`. -/
+def filter (t : RBSet α cmp) (p : α → Bool) : RBSet α cmp :=
+  t.foldl (init := ∅) fun acc a => bif p a then acc.insert a else acc
+
+/--
+`O(n₁ * (log n₁ + log n₂))`. Constructs the set of all elements of `t₁` that are not in `t₂`.
+-/
+def sdiff (t₁ t₂ : RBSet α cmp) : RBSet α cmp := t₁.filter (!t₂.contains ·)
+
 end RBSet
 
 /- TODO(Leo): define dRBMap -/
@@ -644,6 +653,15 @@ using `mergeFn a b` to produce the new value.
 def intersectBy (mergeFn : α → β → γ → δ)
     (t₁ : RBMap α β cmp) (t₂ : RBMap α γ cmp) : RBMap α δ cmp :=
   RBSet.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
+
+/-- `O(n * log n)`. Constructs the set of all elements satisfying `p`. -/
+def filter (t : RBMap α β cmp) (p : α → β → Bool) : RBMap α β cmp :=
+  RBSet.filter t fun (a, b) => p a b
+
+/--
+`O(n₁ * (log n₁ + log n₂))`. Constructs the set of all elements of `t₁` that are not in `t₂`.
+-/
+def sdiff (t₁ t₂ : RBMap α β cmp) : RBMap α β cmp := t₁.filter fun a _ => !t₂.contains a
 
 end RBMap
 end Std
