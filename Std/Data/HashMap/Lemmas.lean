@@ -55,7 +55,7 @@ where
         .sum (source.data.map (·.toList.length)) + target.size := by
     unfold expand.go; split
     case _ H =>
-      refine (go (i+1) _ _ fun j hj => ?a).trans ?b; simp
+      refine (go (i+1) _ _ fun j hj => ?a).trans ?b <;> simp
       case a =>
         simp [List.getD_eq_get?, List.get?_set]; split
         case _ => cases List.get? .. <;> rfl

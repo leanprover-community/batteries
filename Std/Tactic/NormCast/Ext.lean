@@ -90,7 +90,7 @@ def classifyType (ty : Expr) : MetaM Label :=
 
 /-- The `push_cast` simp attribute. -/
 initialize pushCastExt : SimpExtension ←
-  registerSimpAttr `push_cast (extName := decl_name%) <|
+  registerSimpAttr `push_cast <|
     "The `push_cast` simp attribute uses `norm_cast` lemmas " ++
     "to move casts toward the leaf nodes of the expression."
 
