@@ -121,7 +121,7 @@ namespace List
       replaceTR.go l b c xs acc = acc.data ++ xs.replace b c from
     (this l #[] (by simp)).symm
   intro xs; induction xs with intro acc
-  | nil => simp [replace, replaceTR.go]; exact id
+  | nil => simp [replace, replaceTR.go]
   | cons x xs IH =>
     simp [replace, replaceTR.go]; split <;> simp [*]
     · intro h; rw [IH]; simp; simp; exact h
@@ -140,7 +140,7 @@ namespace List
   suffices ∀ xs acc, l = acc.data ++ xs → takeTR.go l xs n acc = acc.data ++ xs.take n from
     (this l #[] (by simp)).symm
   intro xs; induction xs generalizing n with intro acc
-  | nil => cases n <;> (simp [take, takeTR.go]; exact id)
+  | nil => cases n <;> simp [take, takeTR.go]
   | cons x xs IH =>
     cases n with simp [take, takeTR.go]
     | succ n => intro h; rw [IH]; simp; simp; exact h
@@ -159,7 +159,7 @@ namespace List
       takeWhileTR.go p l xs acc = acc.data ++ xs.takeWhile p from
     (this l #[] (by simp)).symm
   intro xs; induction xs with intro acc
-  | nil => simp [takeWhile, takeWhileTR.go]; exact id
+  | nil => simp [takeWhile, takeWhileTR.go]
   | cons x xs IH =>
     simp [takeWhile, takeWhileTR.go]; split <;> simp [*]
     · intro h; rw [IH]; simp; simp; exact h
@@ -373,7 +373,7 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
       removeNthTR.go l xs n acc = acc.data ++ xs.removeNth n from
     (this l #[] (by simp)).symm
   intro xs; induction xs generalizing n with intro acc
-  | nil => simp [removeNth, removeNthTR.go]; exact id
+  | nil => simp [removeNth, removeNthTR.go]
   | cons x xs IH =>
     cases n <;> simp [removeNth, removeNthTR.go, *]
     · intro h; rw [IH]; simp; simp; exact h
@@ -401,7 +401,7 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
       replaceFTR.go f l xs acc = acc.data ++ xs.replaceF f from
     (this l #[] (by simp)).symm
   intro xs; induction xs with intro acc
-  | nil => simp [replaceF, replaceFTR.go]; exact id
+  | nil => simp [replaceF, replaceFTR.go]
   | cons x xs IH =>
     simp [replaceF, replaceFTR.go]; split <;> simp [*]
     · intro h; rw [IH]; simp; simp; exact h

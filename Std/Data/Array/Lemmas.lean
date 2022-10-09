@@ -50,9 +50,6 @@ theorem getElem?_eq_getElem (a : Array α) (i : Nat) (h : i < a.size) : a[i]? = 
 theorem get?_len_le (a : Array α) (i : Nat) (h : a.size ≤ i) : a[i]? = none := by
   simp [getElem?_neg, h]
 
-theorem getElem_eq_data_get (a : Array α) (h : i < a.size) : a[i] = a.data.get ⟨i, h⟩ := by
-  by_cases i < a.size <;> simp [*] <;> rfl
-
 theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
   simp [getElem_eq_data_get, List.get_mem]
 
@@ -78,29 +75,12 @@ theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default
 
 theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
-theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
-    haveI : i < (a.push x).size := by simp [*, Nat.lt_succ, Nat.le_of_lt]
-    (a.push x)[i] = a[i] := by
-  simp only [push, getElem_eq_data_get, List.concat_eq_append, List.get_append, h]
-
-@[simp] theorem get_push_eq (a : Array α) (x : α) : (a.push x)[a.size] = x := by
-  simp only [push, getElem_eq_data_get, List.concat_eq_append]
-  rw [List.get_append_right] <;> simp [getElem_eq_data_get]
-
 theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     (a.push x)[i]? = some a[i] := by
   rw [getElem?_pos, get_push_lt]
 
 theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := by
   rw [getElem?_pos, get_push_eq]
-
-theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
-    (a.push x)[i] = if h : i < a.size then a[i] else x := by
-  if h : i < a.size then
-    simp [get_push_lt, h]
-  else
-    have : i = a.size := by apply Nat.le_antisymm <;> simp_all [Nat.lt_succ]
-    simp [get_push_lt, this]
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
@@ -153,30 +133,75 @@ theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
 
 @[simp] theorem pop_push (a : Array α) : (a.push x).pop = a := by simp [pop]
 
+theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
+    {as : Array α} (motive : Nat → β → Prop)
+    {init : β} (h0 : motive as.size init) {f : α → β → m β}
+    (hf : ∀ i : Fin as.size, ∀ b, motive (i.1 + 1) b → SatisfiesM (motive i.1) (f as[i] b)) :
+    SatisfiesM (motive 0) (as.foldrM f init) := by
+  let rec go {i b} (hi : i ≤ as.size) (H : motive i b) :
+    SatisfiesM (motive 0) (foldrM.fold f as 0 i hi b) := by
+    unfold foldrM.fold; simp; split
+    case _ hi => exact .pure (hi ▸ H)
+    case _ hi =>
+      split; {simp at hi}
+      case _ i hi' =>
+      · exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
+  simp [foldrM]; split; {exact go _ h0}
+  case _ h => exact .pure (Nat.eq_zero_of_nonpos _ h ▸ h0)
+
+theorem foldr_induction
+    {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive as.size init) {f : α → β → β}
+    (hf : ∀ i : Fin as.size, ∀ b, motive (i.1 + 1) b → motive i.1 (f as[i] b)) :
+    motive 0 (as.foldr f init) := by
+  have := SatisfiesM_foldrM (m := Id) (as := as) (f := f) motive h0
+  simp [SatisfiesM_Id_eq] at this
+  exact this hf
+
 theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as.size → α → m β)
-    (p : Fin as.size → α → β → Prop) (hp : ∀ i a, SatisfiesM (p i a) (f i a)) :
-    SatisfiesM (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (as[i]'h) (arr[i]'(eq ▸ h)))
+    (motive : Nat → Prop) (h0 : motive 0)
+    (p : Fin as.size → β → Prop)
+    (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f i as[i])) :
+    SatisfiesM
+      (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
       (Array.mapIdxM as f) := by
-  let rec go {bs i j h} (h₁ : j = bs.size) (h₂ : ∀ i h h', p ⟨i, h⟩ (as[i]'h) bs[i]) :
-    SatisfiesM (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (as[i]'h) (arr[i]'(eq ▸ h)))
+  let rec go {bs i j h} (h₁ : j = bs.size) (h₂ : ∀ i h h', p ⟨i, h⟩ bs[i]) (hm : motive j) :
+    SatisfiesM
+      (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
       (Array.mapIdxM.map as f i j h bs) := by
     induction i generalizing j bs with simp [mapIdxM.map]
-    | zero => exact .pure ⟨h₁ ▸ (Nat.zero_add _).symm.trans h, fun _ _ => h₂ ..⟩
+    | zero =>
+      have := (Nat.zero_add _).symm.trans h
+      exact .pure ⟨this ▸ hm, h₁ ▸ this, fun _ _ => h₂ ..⟩
     | succ i ih =>
-      refine (hp _ _).bind fun b hb => ih (by simp [h₁]) fun i hi hi' => ?_
+      refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
       simp at hi'; simp [get_push]; split
       case _ h => exact h₂ _ _ h
-      case _ h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb
-  simp [mapIdxM]; exact go rfl fun.
+      case _ h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb.1
+  simp [mapIdxM]; exact go rfl (fun.) h0
+
+theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
+    (motive : Nat → Prop) (h0 : motive 0)
+    (p : Fin as.size → β → Prop)
+    (hs : ∀ i, motive i.1 → p i (f i as[i]) ∧ motive (i + 1)) :
+    motive as.size ∧ ∃ eq : (Array.mapIdx as f).size = as.size,
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) := by
+  have := SatisfiesM_mapIdxM (m := Id) (as := as) (f := f) motive h0
+  simp [SatisfiesM_Id_eq] at this
+  exact this _ hs
+
+theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
+    (p : Fin as.size → β → Prop) (hs : ∀ i, p i (f i as[i])) :
+    ∃ eq : (Array.mapIdx as f).size = as.size,
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) :=
+  (mapIdx_induction _ _ (fun _ => True) trivial p fun _ _ => ⟨hs .., trivial⟩).2
 
 @[simp] theorem size_mapIdx (a : Array α) (f : Fin a.size → α → β) : (a.mapIdx f).size = a.size :=
-  (SatisfiesM_Id_eq.1 (SatisfiesM_mapIdxM _ _ _ fun _ _ => .trivial)).1
+  (mapIdx_induction' (p := fun _ _ => True) _ _ fun _ => trivial).1
 
 @[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat) (h) :
     haveI : i < a.size := by simp_all
-    (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] := by
-  have := SatisfiesM_mapIdxM a f (fun i a b => b = f i a) fun _ _ => SatisfiesM_Id_eq.2 rfl
-  exact (SatisfiesM_Id_eq.1 this).2 i _
+    (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
+  (mapIdx_induction' _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
 
 @[simp] theorem size_swap! (a : Array α) (i j) (hi : i < a.size) (hj : j < a.size) :
     (a.swap! i j).size = a.size := by simp [swap!, hi, hj]

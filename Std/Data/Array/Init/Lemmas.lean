@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Tactic.NoMatch
+import Std.Tactic.HaveI
+import Std.Classes.LawfulMonad
 import Std.Data.List.Init.Lemmas
 import Std.Data.Array.Init.Basic
 
@@ -20,6 +22,9 @@ attribute [simp] data_toArray uset
 @[simp] theorem mkEmpty_eq (α n) : @mkEmpty α n = #[] := rfl
 
 @[simp] theorem size_toArray (as : List α) : as.toArray.size = as.length := by simp [size]
+
+theorem getElem_eq_data_get (a : Array α) (h : i < a.size) : a[i] = a.data.get ⟨i, h⟩ := by
+  by_cases i < a.size <;> simp [*] <;> rfl
 
 theorem foldlM_eq_foldlM_data.aux [Monad m]
     (f : β → α → m β) (arr : Array α) (i j) (H : arr.size ≤ i + j) (b) :
@@ -93,6 +98,75 @@ theorem foldr_push (f : α → β → β) (init : β) (arr : Array α) (a : α) 
 
 @[simp] theorem toListRev_eq (arr : Array α) : arr.toListRev = arr.data.reverse := by
   rw [toListRev, foldl_eq_foldl_data, ← List.foldr_reverse, List.foldr_self]
+
+theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m]
+    {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive 0 init) {f : β → α → m β}
+    (hf : ∀ i : Fin as.size, ∀ b, motive i.1 b → SatisfiesM (motive (i.1 + 1)) (f b as[i])) :
+    SatisfiesM (motive as.size) (as.foldlM f init) := by
+  let rec go {i j b} (h₁ : j ≤ as.size) (h₂ : as.size ≤ i + j) (H : motive j b) :
+    SatisfiesM (motive as.size) (foldlM.loop f as as.size (Nat.le_refl _) i j b) := by
+    unfold foldlM.loop; split
+    case _ hj =>
+      split
+      · cases Nat.not_le_of_gt (by simp [hj]) h₂
+      · exact (hf ⟨j, hj⟩ b H).bind fun _ => go hj (by rwa [Nat.succ_add] at h₂)
+    case _ hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
+  simp [foldlM]; exact go (Nat.zero_le _) (Nat.le_refl _) h0
+
+theorem foldl_induction
+    {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive 0 init) {f : β → α → β}
+    (hf : ∀ i : Fin as.size, ∀ b, motive i.1 b → motive (i.1 + 1) (f b as[i])) :
+    motive as.size (as.foldl f init) := by
+  have := SatisfiesM_foldlM (m := Id) (as := as) (f := f) motive h0
+  simp [SatisfiesM_Id_eq] at this
+  exact this hf
+
+theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
+    haveI : i < (a.push x).size := by simp [*, Nat.lt_succ_of_le, Nat.le_of_lt]
+    (a.push x)[i] = a[i] := by
+  simp only [push, getElem_eq_data_get, List.concat_eq_append, List.get_append_left, h]
+
+@[simp] theorem get_push_eq (a : Array α) (x : α) : (a.push x)[a.size] = x := by
+  simp only [push, getElem_eq_data_get, List.concat_eq_append]
+  rw [List.get_append_right] <;> simp [getElem_eq_data_get]
+
+theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
+    (a.push x)[i] = if h : i < a.size then a[i] else x := by
+  if h' : i < a.size then
+    simp [get_push_lt, h']
+  else
+    simp at h
+    simp [get_push_lt, Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.ge_of_not_lt h')]
+
+theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
+    (motive : Nat → Prop) (h0 : motive 0)
+    (p : Fin as.size → β → Prop)
+    (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f as[i])) :
+    SatisfiesM
+      (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
+      (Array.mapM f as) := by
+  unfold mapM
+  refine SatisfiesM_foldlM (m := m) (β := Array β)
+    (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
+    |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
+  case z => exact ⟨h0, rfl, fun.⟩
+  case s =>
+    intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
+    refine (hs _ ih₁).bind fun b ⟨h₁, h₂⟩ => .pure ⟨h₂, by simp [eq], fun j hj => ?_⟩
+    simp [get_push] at hj ⊢; split; {apply ih₂}
+    cases j; cases (Nat.le_or_eq_or_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
+
+theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
+    (p : Fin as.size → β → Prop)
+    (hs : ∀ i, SatisfiesM (p i) (f as[i])) :
+    SatisfiesM
+      (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
+      (Array.mapM f as) :=
+  (SatisfiesM_mapM _ _ (fun _ => True) trivial _ (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
+
+theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
+  (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
 
 @[simp] theorem map_data (f : α → β) (arr : Array α) : (arr.map f).data = arr.data.map f := by
   apply congrArg data (foldl_eq_foldl_data (fun bs a => push bs (f a)) #[] arr) |>.trans

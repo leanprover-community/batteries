@@ -182,6 +182,31 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   { size := self.size, buckets := self.buckets.mapVal f }
 
 /--
+Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+`a, c` is pushed into the new map; else the key is removed from the map.
+-/
+@[specialize] def filterMap {α : Type u} {β : Type v} {γ : Type w}
+    (f : α → β → Option γ) (m : Imp α β) : Imp α γ :=
+  let m' := m.buckets.1.mapM (m := StateT (ULift Nat) Id) (go · · .nil) |>.run ⟨0⟩ |>.run
+  have : m'.1.size > 0 := by
+    have := Array.size_mapM (m := StateT (ULift Nat) Id) (go · · .nil) m.buckets.1
+    simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
+    simp [this, Id.run, StateT.run, m.2.2]
+  ⟨m'.2.1, m'.1, this⟩
+where
+  /-- Inner loop of `filterMap`. Note that this reverses the bucket lists,
+  but this is fine since bucket lists are unordered. -/
+  @[specialize] go : AssocList α β → ULift Nat → AssocList α γ → AssocList α γ × ULift Nat
+  | .nil, n, acc => (acc, n)
+  | .cons a b l, n, acc => match f a b with
+    | none => go l n acc
+    | some c => go l ⟨n.1 + 1⟩ (.cons a c acc)
+
+/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+@[inline] def filter (f : α → β → Bool) (m : Imp α β) : Imp α β :=
+  m.filterMap fun a b => bif f a b then some b else none
+
+/--
 The well-formedness invariant for a hash map. The first constructor is the real invariant,
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
 which have more complex proofs that are delayed to `Std.Data.HashMap.Lemmas`.
@@ -286,6 +311,20 @@ private unsafe def mapValImpl (f : α → β → γ) (self : HashMap α β) : Ha
 
 /-- Map a function over the values in the map. -/
 @[implementedBy mapValImpl] opaque mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ
+
+private unsafe def filterMapImpl (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
+  ⟨self.1.filterMap f, lcProof⟩ -- FIXME: add proof
+
+/--
+Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+`a, c` is pushed into the new map; else the key is removed from the map.
+-/
+@[implementedBy filterMapImpl]
+opaque filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ
+
+/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+@[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
+  self.filterMap fun a b => bif f a b then some b else none
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def foldM [Monad m] (f : δ → α → β → m δ) (init : δ) (self : HashMap α β) : m δ :=
