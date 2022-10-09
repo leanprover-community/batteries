@@ -1010,6 +1010,8 @@ inductive Pairwise : List α → Prop
   and `l` is `Pairwise R`. -/
   | cons : ∀ {a : α} {l : List α}, (∀ a' ∈ l, R a a') → Pairwise l → Pairwise (a :: l)
 
+attribute [simp] Pairwise.nil
+
 variable {R}
 
 @[simp] theorem Pairwise_cons : Pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ Pairwise R l :=

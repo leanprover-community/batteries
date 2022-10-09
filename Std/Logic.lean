@@ -724,11 +724,7 @@ theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
   | true => .inl rfl
   | false => .inr rfl
 
+theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
+  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
+
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
-
-/-! ## Boolean equality -/
-
-@[simp] theorem beq_eq_false_iff_ne [BEq α] [LawfulBEq α]
-    (a b : α) : (a == b) = false ↔ a ≠ b := by
-  rw [ne_eq, ← beq_iff_eq a b]
-  cases a == b <;> decide

@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.AssocList
 import Std.Data.Nat.Basic
+import Std.Classes.BEq
 
 namespace Std.HashMap
 
@@ -48,10 +49,11 @@ The well-formedness invariant for the bucket array says that every element hashe
 -/
 structure WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop where
   /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
-  distinct : ∀ bucket ∈ buckets.1.data, bucket.toList.Pairwise fun a b => (a.1 == b.1) = false
+  distinct [LawfulHashable α] [PartialEquivBEq α] : ∀ bucket ∈ buckets.1.data,
+    bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
   /-- Every element in a bucket should hash to its location. -/
-  hash_self [LawfulHashable α] (i : USize) (h : i.toNat < buckets.1.size) :
-    buckets.1[i].All fun k _ => (hash k).toUSize % buckets.1.size = i
+  hash_self (i : Nat) (h : i < buckets.1.size) :
+    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
 
 end Bucket
 end Imp
@@ -94,9 +96,9 @@ def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
 Inserts a key-value pair into the bucket array. This function assumes that the data is not
 already in the array, which is appropriate when reinserting elements into the array after a resize.
 -/
-@[inline] def reinsertAux
-    (hashFn : α → UInt64) (data : Bucket α β) (a : α) (b : β) : Bucket α β :=
-  let ⟨i, h⟩ := mkIdx data.2 (hashFn a |>.toUSize)
+@[inline] def reinsertAux [Hashable α]
+    (data : Bucket α β) (a : α) (b : β) : Bucket α β :=
+  let ⟨i, h⟩ := mkIdx data.2 (hash a |>.toUSize)
   data.update i (.cons a b data.1[i]) h
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
@@ -143,7 +145,7 @@ where
       -- We remove `es` from `source` to make sure we can reuse its memory cells
       -- when performing es.foldl
       let source := source.set idx .nil
-      let target := es.foldl (reinsertAux hash) target
+      let target := es.foldl reinsertAux target
       go (i+1) source target
     else target
 termination_by _ i source _ => source.size - i

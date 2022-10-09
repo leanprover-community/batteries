@@ -38,4 +38,7 @@ namespace USize
 
 theorem mod_lt (a b : USize) (h : 0 < b) : a % b < b := USize.modn_lt _ (by simp at h; exact h)
 
+theorem toNat.inj : ∀ {a b : USize}, a.toNat = b.toNat → a = b
+  | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
+
 end USize

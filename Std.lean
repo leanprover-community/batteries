@@ -1,5 +1,7 @@
+import Std.Classes.BEq
 import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
+import Std.Classes.Order
 import Std.Classes.SetNotation
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
@@ -34,7 +36,6 @@ import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.Tactic
 import Std.Logic
-import Std.Order
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
