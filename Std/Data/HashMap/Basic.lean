@@ -226,9 +226,6 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
 
 theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by unfold empty; apply empty'
 
--- FIXME
--- theorem WF.mapVal [BEq α] [Hashable α] {m : Imp α β} (H : WF m) : WF (mapVal f m) := sorry
-
 end Imp
 
 /--
@@ -301,16 +298,6 @@ instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
 
 /-- Returns true if the element `a` is in the map. -/
 @[inline] def contains (self : HashMap α β) (a : α) : Bool := self.1.contains a
-
--- /-- Map a function over the values in the map. -/
--- @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
---   ⟨self.1.mapVal f, self.2.mapVal⟩
-
-private unsafe def mapValImpl (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
-  ⟨self.1.mapVal f, lcProof⟩ -- FIXME: add proof
-
-/-- Map a function over the values in the map. -/
-@[implementedBy mapValImpl] opaque mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ
 
 private unsafe def filterMapImpl (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.filterMap f, lcProof⟩ -- FIXME: add proof

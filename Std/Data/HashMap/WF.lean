@@ -8,7 +8,8 @@ import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
 import Std.Tactic.ShowTerm
 
-namespace Std.HashMap.Imp
+namespace Std.HashMap
+namespace Imp
 
 attribute [-simp] Bool.not_eq_true
 
@@ -260,14 +261,32 @@ theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     · exact H _ (List.mem_of_mem_eraseP h)
   · exact h
 
-theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
-    m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF := by
-  refine ⟨fun h => ?_, fun ⟨h₁, h₂⟩ => .mk h₁ h₂⟩
+theorem WF.out [BEq α] [Hashable α] {m : Imp α β} (h : m.WF) :
+    m.size = m.buckets.size ∧ m.buckets.WF := by
   induction h with
   | mk h₁ h₂ => exact ⟨h₁, h₂⟩
   | @empty' _ h => exact ⟨(Bucket.mk_size h).symm, .mk' h⟩
   | insert _ ih => exact ⟨insert_size ih.1, insert_WF ih.2⟩
   | erase _ ih => exact ⟨erase_size ih.1, erase_WF ih.2⟩
 
-/-- Foo-/
-axiom WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α] {m : Imp α β} (H : WF m) : WF (mapVal f m)
+theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
+    m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF :=
+  ⟨(·.out), fun ⟨h₁, h₂⟩ => .mk h₁ h₂⟩
+
+theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
+    {m : Imp α β} (H : WF m) : WF (mapVal f m) := by
+  have ⟨h₁, h₂⟩ := H.out
+  simp [Imp.mapVal, Bucket.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
+  · simp [Bucket.size]; congr; funext l; simp
+  · simp [List.forall_mem_map_iff, List.pairwise_map]
+    exact fun _ => h₂.1 _
+  · simp [AssocList.All, List.forall_mem_map_iff] at h ⊢
+    exact h₂.2 _ h
+
+end Imp
+
+variable {_ : BEq α} {_ : Hashable α}
+
+/-- Map a function over the values in the map. -/
+@[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
+  ⟨self.1.mapVal f, self.2.mapVal⟩

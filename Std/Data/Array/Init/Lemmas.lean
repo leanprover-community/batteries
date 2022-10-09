@@ -177,6 +177,12 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
 @[simp] theorem size_map (f : α → β) (arr : Array α) : (arr.map f).size = arr.size := by
   simp [size]
 
+@[simp] theorem getElem_map (f : α → β) (arr : Array α) (i : Nat) (h) :
+    ((arr.map f)[i]'h) = f (arr[i]'(size_map .. ▸ h)) := by
+  have := SatisfiesM_mapM' (m := Id) arr f (fun i b => b = f (arr[i]))
+  simp [SatisfiesM_Id_eq] at this
+  exact this.2 i (size_map .. ▸ h)
+
 @[simp] theorem pop_data (arr : Array α) : arr.pop.data = arr.data.dropLast := rfl
 
 @[simp] theorem append_eq_append (arr arr' : Array α) : arr.append arr' = arr ++ arr' := rfl

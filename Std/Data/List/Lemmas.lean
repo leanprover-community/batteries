@@ -1046,6 +1046,10 @@ theorem Pairwise.sublist : l₁ <+ l₂ → l₂.Pairwise R → l₁.Pairwise R
   | .cons _ s, .cons _ h₂ => h₂.sublist s
   | .cons₂ _ s, .cons h₁ h₂ => (h₂.sublist s).cons fun _ h => h₁ _ (s.subset h)
 
+theorem pairwise_map {l : List α} :
+    (l.map f).Pairwise R ↔ l.Pairwise (fun a b => R (f a) (f b)) := by
+  induction l <;> simp [forall_mem_map_iff, *]
+
 /-! ### replaceF -/
 
 @[simp] theorem length_replaceF : length (replaceF f l) = length l := by
