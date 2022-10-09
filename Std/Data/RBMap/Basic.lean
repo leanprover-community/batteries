@@ -491,7 +491,7 @@ def size (m : RBSet α cmp) : Nat := m.1.size
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`.
 If equal keys exist in both, the key from `t₂` is preferred.
 -/
-def union (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
+def union (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
   t₂.foldl .insert t₁
 
 /--
