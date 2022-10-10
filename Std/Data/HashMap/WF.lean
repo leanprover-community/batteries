@@ -283,6 +283,49 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   · simp [AssocList.All, List.forall_mem_map_iff] at h ⊢
     exact h₂.2 _ h
 
+theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
+    {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
+  let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
+  have H1 (l n acc) : filterMap.go f acc l n =
+      (((g₁ l).reverse ++ acc.toList).toAssocList, ⟨n.1 + (g₁ l).length⟩) := by
+    induction l generalizing n acc with simp [filterMap.go, *]
+    | cons a b l => match f a b with
+      | none => rfl
+      | some c => simp; rw [Nat.add_right_comm]; rfl
+  let g l := (g₁ l).reverse.toAssocList
+  let M := StateT (ULift Nat) Id
+  have H2 (l : List (AssocList α β)) n :
+      l.mapM (m := M) (filterMap.go f .nil) n =
+      (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
+    induction l generalizing n with
+    | nil => rfl
+    | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc]; rfl
+  have H3 (l : List _) :
+    (l.filterMap (fun (a, b) => (f a b).map (a, ·))).map (fun a => a.fst)
+     |>.Sublist (l.map (·.1)) := by
+    induction l with
+    | nil => exact .slnil
+    | cons a l ih =>
+      simp; exact match f a.1 a.2 with
+      | none => .cons _ ih
+      | some b => .cons₂ _ ih
+  suffices ∀ bk sz (h : 0 < bk.length),
+    m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
+    WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
+  simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]
+  intro bk sz h e'; cases e'
+  refine .mk (by simp [Bucket.size]) ⟨?_, fun i h => ?_⟩
+  · simp [List.forall_mem_map_iff]
+    refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
+    have := H.out.2.1 _ h
+    rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
+    exact this.sublist (H3 l.toList)
+  · simp [Array.getElem_eq_data_get] at h ⊢
+    have := H.out.2.2 _ h; simp [AssocList.All] at this ⊢
+    rw [← List.forall_mem_map_iff
+      (P := fun a => ((hash a).toUSize % m.buckets.val.data.length).toNat = i)] at this ⊢
+    exact fun _ h' => this _ ((H3 _).subset h')
+
 end Imp
 
 variable {_ : BEq α} {_ : Hashable α}
@@ -290,3 +333,14 @@ variable {_ : BEq α} {_ : Hashable α}
 /-- Map a function over the values in the map. -/
 @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.mapVal f, self.2.mapVal⟩
+
+/--
+Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+`a, c` is pushed into the new map; else the key is removed from the map.
+-/
+@[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
+  ⟨self.1.filterMap f, self.2.filterMap⟩
+
+/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+@[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
+  self.filterMap fun a b => bif f a b then some b else none

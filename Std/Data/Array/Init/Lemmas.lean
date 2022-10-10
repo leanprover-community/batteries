@@ -48,14 +48,14 @@ theorem foldl_eq_foldl_data (f : β → α → β) (init : β) (arr : Array α) 
 
 theorem foldrM_eq_reverse_foldlM_data.aux [Monad m]
     (f : α → β → m β) (arr : Array α) (init : β) (i h) :
-    (arr.data.take i).reverse.foldlM (flip f) init = foldrM.fold f arr 0 i h init := by
+    (arr.data.take i).reverse.foldlM (fun x y => f y x) init = foldrM.fold f arr 0 i h init := by
   unfold foldrM.fold
   match i with
   | 0 => simp [List.foldlM, List.take]
   | i+1 => rw [← List.take_concat_get _ _ h]; simp [← (aux f arr · i)]; rfl
 
 theorem foldrM_eq_reverse_foldlM_data [Monad m] (f : α → β → m β) (init : β) (arr : Array α) :
-    arr.foldrM f init = arr.data.reverse.foldlM (flip f) init := by
+    arr.foldrM f init = arr.data.reverse.foldlM (fun x y => f y x) init := by
   have : arr = #[] ∨ 0 < arr.size :=
     match arr with | ⟨[]⟩ => .inl rfl | ⟨a::l⟩ => .inr (Nat.zero_lt_succ _)
   match arr, this with | _, .inl rfl => rfl | arr, .inr h => ?_
@@ -64,7 +64,7 @@ theorem foldrM_eq_reverse_foldlM_data [Monad m] (f : α → β → m β) (init :
 theorem foldrM_eq_foldrM_data [Monad m]
     (f : α → β → m β) (init : β) (arr : Array α) :
     arr.foldrM f init = arr.data.foldrM f init := by
-  rw [foldrM_eq_reverse_foldlM_data, List.foldlM_reverse]; rfl
+  rw [foldrM_eq_reverse_foldlM_data, List.foldlM_reverse]
 
 theorem foldr_eq_foldr_data (f : α → β → β) (init : β) (arr : Array α) :
     arr.foldr f init = arr.data.foldr f init :=
@@ -75,7 +75,7 @@ theorem foldr_eq_foldr_data (f : α → β → β) (init : β) (arr : Array α) 
 
 theorem foldrM_push [Monad m] (f : α → β → m β) (init : β) (arr : Array α) (a : α) :
     (arr.push a).foldrM f init = f a init >>= arr.foldrM f := by
-  simp [foldrM_eq_reverse_foldlM_data, -size_push, flip]
+  simp [foldrM_eq_reverse_foldlM_data, -size_push]
 
 @[simp] theorem foldrM_push' [Monad m] (f : α → β → m β) (init : β) (arr : Array α) (a : α) :
     (arr.push a).foldrM f init (start := arr.size + 1) = f a init >>= arr.foldrM f := by

@@ -1050,6 +1050,19 @@ theorem pairwise_map {l : List α} :
     (l.map f).Pairwise R ↔ l.Pairwise (fun a b => R (f a) (f b)) := by
   induction l <;> simp [forall_mem_map_iff, *]
 
+theorem pairwise_append {l₁ l₂ : List α} :
+    (l₁ ++ l₂).Pairwise R ↔ l₁.Pairwise R ∧ l₂.Pairwise R ∧ ∀ a ∈ l₁, ∀ b ∈ l₂, R a b := by
+  induction l₁ <;> simp [*, or_imp, forall_and, and_assoc, and_left_comm]
+
+theorem pairwise_reverse {l : List α} :
+    l.reverse.Pairwise R ↔ l.Pairwise (fun a b => R b a) := by
+  induction l <;> simp [*, pairwise_append, and_comm]
+
+theorem Pairwise.imp {α R S} (H : ∀ {a b}, R a b → S a b) :
+    ∀ {l : List α}, l.Pairwise R → l.Pairwise S
+  | _, .nil => .nil
+  | _, .cons h₁ h₂ => .cons (H ∘ h₁ ·) (h₂.imp H)
+
 /-! ### replaceF -/
 
 @[simp] theorem length_replaceF : length (replaceF f l) = length l := by

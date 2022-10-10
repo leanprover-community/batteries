@@ -157,6 +157,14 @@ theorem foldr_induction
   simp [SatisfiesM_Id_eq] at this
   exact this hf
 
+theorem mapM_eq_mapM_data [Monad m] [LawfulMonad m] (f : α → m β) (arr : Array α) :
+    arr.mapM f = return mk (← arr.data.mapM f) := by
+  rw [mapM, foldlM_eq_foldlM_data, ← List.foldrM_reverse, mkEmpty_eq]
+  conv => rhs; rw [← List.reverse_reverse arr.data]
+  induction arr.data.reverse with
+  | nil => simp; rfl
+  | cons a l ih => simp [ih]; simp [push]
+
 theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as.size → α → m β)
     (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop)

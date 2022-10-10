@@ -206,8 +206,8 @@ instance : ForIn m (AssocList α β) (α × β) where
   | []          => nil
   | (a,b) :: es => cons a b (toAssocList es)
 
-theorem _root_.List.toAssocList_toList (l : List (α × β)) : l.toAssocList.toList = l := by
+@[simp] theorem _root_.List.toAssocList_toList (l : List (α × β)) : l.toAssocList.toList = l := by
   induction l <;> simp [*]
 
-theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
+@[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]

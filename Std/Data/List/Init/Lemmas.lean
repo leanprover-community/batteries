@@ -17,8 +17,8 @@ New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by
 
 attribute [simp] get get! get? reverseAux eraseIdx map join filterMap dropWhile find? findSome?
   replace elem lookup drop take takeWhile foldl foldr zipWith unzip rangeAux enumFrom
-  intersperse isPrefixOf isEqv dropLast iota mapM mapA List.forM forA filterAuxM filterMapM.loop
-  List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
+  intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
+  filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
   concat_eq_append append_assoc
 
 @[simp] theorem head?_nil : @head? α [] = none := rfl
@@ -196,3 +196,22 @@ theorem foldr_append (f : α → β → β) (b) (l l' : List α) :
   induction l <;> simp [*]
 
 theorem foldr_self (l : List α) : l.foldr cons [] = l := by simp
+
+/-- Alternate (non-tail-recursive) form of mapM for proofs. -/
+@[simp] def mapM' [Monad m] (f : α → m β) : List α → m (List β)
+  | [] => pure []
+  | a :: l => return (← f a) :: (← l.mapM' f)
+
+theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) :
+    mapM' f l = mapM f l := by simp [go, mapM] where
+  go : ∀ l acc, mapM.loop f l acc = return acc.reverse ++ (← mapM' f l)
+    | [], acc => by simp
+    | a::l, acc => by simp [go l]
+
+@[simp] theorem mapM_nil [Monad m] (f : α → m β) : [].mapM f = pure [] := rfl
+
+@[simp] theorem mapM_cons [Monad m] [LawfulMonad m] (f : α → m β) :
+    (a :: l).mapM f = (return (← f a) :: (← l.mapM f)) := by simp [← mapM'_eq_mapM]
+
+@[simp] theorem mapM_append [Monad m] [LawfulMonad m] (f : α → m β) {l₁ l₂ : List α} :
+    (l₁ ++ l₂).mapM f = (return (← l₁.mapM f) ++ (← l₂.mapM f)) := by induction l₁ <;> simp [*]
