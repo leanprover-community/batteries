@@ -103,6 +103,33 @@ where
         | r@(.done _) => return r
         | .yield b    => visit r b
 
+instance : ForIn m (RBNode α) α where
+  forIn := RBNode.forIn
+
+/--
+An auxiliary data structure (an iterator) over an `RBNode` which lazily
+pulls elements from the left.
+-/
+protected inductive Stream (α : Type _)
+  | /-- The stream is empty. -/
+    nil
+  | /-- We are ready to deliver element `v` with right child `r`,
+    and where `tail` represents all the subtrees we have yet to destructure. -/
+    cons (v : α) (r : RBNode α) (tail : RBNode.Stream α)
+
+/-- `O(log n)`. Turn a node into a stream, by descending along the left spine. -/
+def toStream : RBNode α → (_ : RBNode.Stream α := .nil) → RBNode.Stream α
+  | nil, acc => acc
+  | node _ l v r, acc => toStream l (.cons v r acc)
+
+/-- `O(1)` amortized, `O(log n)` worst case: Get the next element from the stream. -/
+def Stream.next? : RBNode.Stream α → Option (α × RBNode.Stream α)
+  | nil => none
+  | cons v r tail => some (v, toStream r tail)
+
+instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
+instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
+
 /-- Fold a function on the values from right to left (in decreasing order). -/
 @[specialize] def foldr (f : α → σ → σ) : RBNode α → (init : σ) → σ
   | nil,          b => b
@@ -390,7 +417,9 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp)
 @[inline] def forM [Monad m] (f : α → m PUnit) (t : RBSet α cmp) : m PUnit := t.1.forM f
 
 instance : ForIn m (RBSet α cmp) α where
-  forIn t init f := t.1.forIn init f
+  forIn t := t.1.forIn
+
+instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBSet α cmp → Bool
@@ -568,8 +597,10 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (t : RBMap α β cmp) : m PUnit :=
   t.foldlM (fun _ k v => f k v) ⟨⟩
 
-instance : ForIn m (RBMap α β cmp) (α × β) where
-  forIn t init f := t.val.forIn init f
+instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
+
+instance : ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
+  inferInstanceAs (ToStream (RBSet ..) _)
 
 /-- `O(n)`. Constructs the array of keys of the map. -/
 @[inline] def keysArray (t : RBMap α β cmp) : Array α :=
@@ -605,6 +636,21 @@ instance : ForIn m (Keys α β cmp) α where
 instance : ForM m (Keys α β cmp) α where
   forM t f := t.val.forM (f ·.1)
 
+/-- The result of `toStream` on a `Keys`. -/
+def Keys.Stream (α β) := RBNode.Stream (α × β)
+
+/-- A stream over the iterator. -/
+def Keys.toStream (t : Keys α β cmp) : Keys.Stream α β := t.1.toStream
+
+/-- `O(1)` amortized, `O(log n)` worst case: Get the next element from the stream. -/
+def Keys.Stream.next? (t : Stream α β) : Option (α × Stream α β) :=
+  match inline (RBNode.Stream.next? t) with
+  | none => none
+  | some ((a, _), t) => some (a, t)
+
+instance : ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
+instance : Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
+
 /-- `O(n)`. Constructs the array of values of the map. -/
 @[inline] def valuesArray (t : RBMap α β cmp) : Array β :=
   t.1.foldl (init := #[]) (·.push ·.2)
@@ -638,6 +684,21 @@ instance : ForIn m (Values α β cmp) β where
 
 instance : ForM m (Values α β cmp) β where
   forM t f := t.val.forM (f ·.2)
+
+/-- The result of `toStream` on a `Values`. -/
+def Values.Stream (α β) := RBNode.Stream (α × β)
+
+/-- A stream over the iterator. -/
+def Values.toStream (t : Values α β cmp) : Values.Stream α β := t.1.toStream
+
+/-- `O(1)` amortized, `O(log n)` worst case: Get the next element from the stream. -/
+def Values.Stream.next? (t : Stream α β) : Option (β × Stream α β) :=
+  match inline (RBNode.Stream.next? t) with
+  | none => none
+  | some ((_, b), t) => some (b, t)
+
+instance : ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
+instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty
