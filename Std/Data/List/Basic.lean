@@ -742,11 +742,11 @@ substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, 
 -/
 def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inherit_doc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] scoped infixl:50 " <+: " => isPrefix
 
-@[inherit_doc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] scoped infixl:50 " <:+ " => isSuffix
 
-@[inherit_doc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] scoped infixl:50 " <:+: " => isInfix
 
 /--
 `inits l` is the list of initial segments of `l`.

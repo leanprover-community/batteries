@@ -1063,6 +1063,20 @@ theorem Pairwise.imp {α R S} (H : ∀ {a b}, R a b → S a b) :
   | _, .nil => .nil
   | _, .cons h₁ h₂ => .cons (H ∘ h₁ ·) (h₂.imp H)
 
+theorem pairwise_append_comm_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {l₁ l₂ : List α} :
+    Pairwise R (l₁ ++ l₂) ↔ Pairwise R (l₂ ++ l₁) := by
+  have : ∀ l₁ l₂ : List α, (∀ x : α, x ∈ l₁ → ∀ y : α, y ∈ l₂ → R x y) →
+    ∀ x : α, x ∈ l₂ → ∀ y : α, y ∈ l₁ → R x y := fun l₁ l₂ a x xm y ym => s (a y ym x xm)
+  simp only [pairwise_append, and_left_comm] <;> rw [Iff.intro (this l₁ l₂) (this l₂ l₁)]
+
+theorem pairwise_middle_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {a : α} {l₁ l₂ : List α} :
+    Pairwise R (l₁ ++ a :: l₂) ↔ Pairwise R (a :: (l₁ ++ l₂)) :=
+  show Pairwise R (l₁ ++ ([a] ++ l₂)) ↔ Pairwise R ([a] ++ l₁ ++ l₂) by
+    rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁),
+      pairwise_append_comm_of_symm s]
+    simp only [mem_append, or_comm]
+    rfl
+
 /-! ### replaceF -/
 
 @[simp] theorem length_replaceF : length (replaceF f l) = length l := by

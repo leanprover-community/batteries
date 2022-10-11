@@ -20,6 +20,7 @@ import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.List.Perm
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
