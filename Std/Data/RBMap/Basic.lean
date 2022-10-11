@@ -572,6 +572,74 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 instance : ForIn m (RBMap α β cmp) (α × β) where
   forIn t init f := t.val.forIn init f
 
+/-- `O(n)`. Constructs the array of keys of the map. -/
+@[inline] def keysArray (t : RBMap α β cmp) : Array α :=
+  t.1.foldl (init := #[]) (·.push ·.1)
+
+/-- `O(n)`. Constructs the list of keys of the map. -/
+@[inline] def keysList (t : RBMap α β cmp) : List α :=
+  t.1.foldr (init := []) (·.1 :: ·)
+
+/--
+An "iterator" over the keys of the map. This is a trivial wrapper over the underlying map,
+but it comes with a small API to use it in a `for` loop or convert it to an array or list.
+-/
+def Keys (α β cmp) := RBMap α β cmp
+
+/--
+The keys of the map. This is an `O(1)` wrapper operation, which
+can be used in `for` loops or converted to an array or list.
+-/
+@[inline] def keys (t : RBMap α β cmp) : Keys α β cmp := t
+
+@[inline, inheritDoc keysArray] def Keys.toArray := @keysArray
+
+@[inline, inheritDoc keysList] def Keys.toList := @keysList
+
+instance : Coe (Keys α β cmp) (Array α) := ⟨keysArray⟩
+
+instance : Coe (Keys α β cmp) (List α) := ⟨keysList⟩
+
+instance : ForIn m (Keys α β cmp) α where
+  forIn t init f := t.val.forIn init (f ·.1)
+
+instance : ForM m (Keys α β cmp) α where
+  forM t f := t.val.forM (f ·.1)
+
+/-- `O(n)`. Constructs the array of values of the map. -/
+@[inline] def valuesArray (t : RBMap α β cmp) : Array β :=
+  t.1.foldl (init := #[]) (·.push ·.2)
+
+/-- `O(n)`. Constructs the list of values of the map. -/
+@[inline] def valuesList (t : RBMap α β cmp) : List β :=
+  t.1.foldr (init := []) (·.2 :: ·)
+
+/--
+An "iterator" over the values of the map. This is a trivial wrapper over the underlying map,
+but it comes with a small API to use it in a `for` loop or convert it to an array or list.
+-/
+def Values (α β cmp) := RBMap α β cmp
+
+/--
+The "keys" of the map. This is an `O(1)` wrapper operation, which
+can be used in `for` loops or converted to an array or list.
+-/
+@[inline] def values (t : RBMap α β cmp) : Values α β cmp := t
+
+@[inline, inheritDoc valuesArray] def Values.toArray := @valuesArray
+
+@[inline, inheritDoc valuesList] def Values.toList := @valuesList
+
+instance : Coe (Values α β cmp) (Array β) := ⟨valuesArray⟩
+
+instance : Coe (Values α β cmp) (List β) := ⟨valuesList⟩
+
+instance : ForIn m (Values α β cmp) β where
+  forIn t init f := t.val.forIn init (f ·.2)
+
+instance : ForM m (Values α β cmp) β where
+  forM t f := t.val.forM (f ·.2)
+
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty
 
