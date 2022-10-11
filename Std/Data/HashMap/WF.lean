@@ -173,12 +173,12 @@ termination_by go i source _ _ _ _ => source.size - i
 theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.size = m.buckets.size) :
     (insert m k v).size = (insert m k v).buckets.size := by
-  unfold insert; dsimp [cond]; split
-  · dsimp [Bucket.size]
+  dsimp [insert, cond]; split
+  · unfold Bucket.size
     refine have ⟨_, _, h₁, _, eq⟩ := Bucket.exists_of_update ..; eq ▸ ?_
     simp [h, h₁, Bucket.size_eq]
   split
-  · dsimp [Bucket.size]
+  · unfold Bucket.size
     refine have ⟨_, _, h₁, _, eq⟩ := Bucket.exists_of_update ..; eq ▸ ?_
     simp [h, h₁, Bucket.size_eq, Nat.succ_add]; rfl
   · rw [expand_size]; simp [h, expand, Bucket.size]
@@ -219,7 +219,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
 
 theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.buckets.WF) : (insert m k v).buckets.WF := by
-  unfold insert; dsimp [cond]; split
+  dsimp [insert, cond]; split
   case _ h₁ =>
     simp at h₁; have ⟨x, hx₁, hx₂⟩ := h₁
     refine h.update (fun H => ?_) (fun H a h => ?_)
@@ -240,7 +240,7 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
 theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     (h : m.size = m.buckets.size) :
     (erase m k).size = (erase m k).buckets.size := by
-  unfold erase; dsimp [cond]; split
+  dsimp [erase, cond]; split
   case _ H =>
     simp [h, Bucket.size]
     refine have ⟨_, _, h₁, _, eq⟩ := Bucket.exists_of_update ..; eq ▸ ?_
@@ -255,7 +255,7 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
 
 theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     (h : m.buckets.WF) : (erase m k).buckets.WF := by
-  unfold erase; dsimp [cond]; split
+  dsimp [erase, cond]; split
   · refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
     · simp; exact H.sublist (List.eraseP_sublist _)
     · exact H _ (List.mem_of_mem_eraseP h)
