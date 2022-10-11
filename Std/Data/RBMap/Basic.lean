@@ -76,8 +76,8 @@ Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
   | b, node _ l v r => foldl f (f (foldl f b l) v) r
 
 /-- Run monadic function `f` on each element of the tree (in increasing order). -/
-@[specialize] def forM [Monad m] (f : α → m Unit) : RBNode α → m Unit
-  | nil          => pure ()
+@[specialize] def forM [Monad m] (f : α → m PUnit) : RBNode α → m PUnit
+  | nil          => pure ⟨⟩
   | node _ l v r => do forM f l; f v; forM f r
 
 /-- Fold a monadic function on the values from left to right (in increasing order). -/
@@ -158,6 +158,19 @@ theorem All.imp (H : ∀ {x : α}, p x → q x) : ∀ {t : RBNode α}, t.All p �
 @[simp] def Any (p : α → Prop) : RBNode α → Prop
   | nil          => False
   | node _ l v r => p v ∨ Any p l ∨ Any p r
+
+/--
+Asserts that `t₁` and `t₂` have the same number of elements in the same order,
+and `R` holds pairwise between them. The tree structure is ignored.
+-/
+@[specialize] def all₂ (R : α → β → Bool) (t₁ : RBNode α) (t₂ : RBNode β) : Bool :=
+  let result := StateT.run (s := t₂.toStream) <| t₁.forM fun a s => do
+    let (b, s) ← s.next?
+    bif R a b then pure (⟨⟩, s) else none
+  result matches some (_, .nil)
+
+instance [BEq α] : BEq (RBNode α) where
+  beq a b := a.all₂ (· == ·) b
 
 /--
 The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
@@ -494,6 +507,20 @@ if it exists.
 /-- `O(n)`. Returns true if the given predicate is true for any item in the RBSet. -/
 @[inline] def any (t : RBSet α cmp) (p : α → Bool) : Bool := t.1.any p
 
+/--
+Asserts that `t₁` and `t₂` have the same number of elements in the same order,
+and `R` holds pairwise between them. The tree structure is ignored.
+-/
+@[inline] def all₂ (R : α → β → Bool) (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : Bool :=
+  t₁.1.all₂ R t₂.1
+
+/--
+Returns true if `t₁` and `t₂` are equal as sets (assuming `cmp` and `==` are compatible),
+ignoring the internal tree structure.
+-/
+instance [BEq α] : BEq (RBSet α cmp) where
+  beq a b := a.all₂ (· == ·) b
+
 /-- `O(n)`. The number of items in the RBSet. -/
 def size (m : RBSet α cmp) : Nat := m.1.size
 
@@ -753,6 +780,23 @@ smaller than or equal to `k`, if it exists.
 
 /-- `O(n)`. Returns true if the given predicate is true for any item in the RBMap. -/
 @[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
+
+/--
+Asserts that `t₁` and `t₂` have the same number of elements in the same order,
+and `R` holds pairwise between them. The tree structure is ignored.
+-/
+@[inline] def all₂ (R : α × β → γ × δ → Bool) (t₁ : RBMap α β cmpα) (t₂ : RBMap γ δ cmpγ) : Bool :=
+  RBSet.all₂ R t₁ t₂
+
+/-- Asserts that `t₁` and `t₂` have the same set of keys (up to equality). -/
+@[inline] def eqKeys (t₁ : RBMap α β cmp) (t₂ : RBMap α γ cmp) : Bool :=
+  t₁.all₂ (cmp ·.1 ·.1 = .eq) t₂
+
+/--
+Returns true if `t₁` and `t₂` have the same keys and values
+(assuming `cmp` and `==` are compatible), ignoring the internal tree structure.
+-/
+instance [BEq α] [BEq β] : BEq (RBMap α β cmp) := inferInstanceAs (BEq (RBSet ..))
 
 /-- `O(n)`. The number of items in the RBMap. -/
 def size : RBMap α β cmp → Nat := RBSet.size
