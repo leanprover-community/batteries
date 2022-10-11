@@ -53,16 +53,16 @@ introducing a hypothesis `h : ¬p` and proving `False`.
 * If `p` is decidable, it uses `Decidable.byContradiction` instead of `Classical.byContradiction`.
 * If `h` is omitted, the introduced variable `_: ¬p` will be anonymous.
 -/
-syntax (name := byContra) "by_contra" (ppSpace colGt ident)? : tactic
-macro_rules
-  | `(tactic| by_contra) => `(tactic| (guard_target = Not _; intro))
-  | `(tactic| by_contra $e) => `(tactic| (guard_target = Not _; intro $e:ident))
-macro_rules
-  | `(tactic| by_contra) => `(tactic| (apply Decidable.byContradiction; intro))
-  | `(tactic| by_contra $e) => `(tactic| (apply Decidable.byContradiction; intro $e:ident))
-macro_rules
-  | `(tactic| by_contra) => `(tactic| (apply Classical.byContradiction; intro))
-  | `(tactic| by_contra $e) => `(tactic| (apply Classical.byContradiction; intro $e:ident))
+macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic => do
+  let e := match e? with
+    | some e => match e with
+      | `(binderIdent| $e:ident) => e
+      | e => Unhygienic.run `(_%$e) -- HACK: hover fails without Unhygienic here
+    | none => Unhygienic.run `(_%$tk)
+  `(tactic| first
+    | guard_target = Not _; intro $e:term
+    | refine Decidable.byContradiction fun $e => ?_
+    | refine Classical.byContradiction fun $e => ?_)
 
 /--
 `iterate n tac` runs `tac` exactly `n` times.
