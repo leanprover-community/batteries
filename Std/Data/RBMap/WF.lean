@@ -433,13 +433,82 @@ protected theorem Balanced.erase {t : RBNode α}
     (h : t.Balanced c n) : ∃ n, (t.erase cut).Balanced black n :=
   have ⟨_, h⟩ := h.del.redred; h.setBlack
 
-/--
-The well-formedness invariant for a red-black tree is exactly the `mk` constructor,
-because the other constructors of `WF` are redundant.
--/
-@[simp] theorem WF_def {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
-  refine ⟨fun h => ?_, fun ⟨o, _, _, h⟩ => .mk o h⟩
+/-- The well-formedness invariant implies the ordering and balance properties. -/
+theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
   induction h with
   | mk o h => exact ⟨o, _, _, h⟩
   | insert _ ih => have ⟨o, _, _, h⟩ := ih; exact ⟨o.insert, h.insert⟩
   | erase _ ih => have ⟨o, _, _, h⟩ := ih; exact ⟨o.erase, _, h.erase⟩
+
+/--
+The well-formedness invariant for a red-black tree is exactly the `mk` constructor,
+because the other constructors of `WF` are redundant.
+-/
+@[simp] theorem WF_iff {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
+  ⟨fun h => h.out, fun ⟨o, _, _, h⟩ => .mk o h⟩
+
+/-- The `map` function preserves the balance invariants. -/
+protected theorem Balanced.map {t : RBNode α} : t.Balanced c n → (t.map f).Balanced c n
+  | .nil => .nil
+  | .red hl hr => .red hl.map hr.map
+  | .black hl hr => .black hl.map hr.map
+
+/-- The property of a map function `f` which ensures the `map` operation is valid. -/
+class IsMonotone (cmpα cmpβ) (f : α → β) : Prop where
+  /-- If `x < y` then `f x < f y`. -/
+  lt_mono : cmpLt cmpα x y → cmpLt cmpβ (f x) (f y)
+
+/-- Sufficient condition for `map` to preserve an `All` quantifier. -/
+protected theorem All.map {f : α → β} (H : ∀ {x}, p x → q (f x)) :
+    ∀ {t : RBNode α}, t.All p → (t.map f).All q
+  | nil, _ => ⟨⟩
+  | node .., ⟨hx, ha, hb⟩ => ⟨H hx, ha.map H, hb.map H⟩
+
+/-- The `map` function preserves the order invariants if `f` is monotone. -/
+protected theorem Ordered.map (f : α → β) [IsMonotone cmpα cmpβ f] :
+    ∀ {t : RBNode α}, t.Ordered cmpα → (t.map f).Ordered cmpβ
+  | nil, _ => ⟨⟩
+  | node _ a x b, ⟨ax, xb, ha, hb⟩ => by
+    refine ⟨ax.map ?_, xb.map ?_, ha.map f, hb.map f⟩ <;> exact IsMonotone.lt_mono
+
+end RBNode
+
+namespace RBSet
+export RBNode (IsMonotone IsCut)
+
+/--
+`O(n)`. Map a function on every value in the tree.
+This requires `IsMonotone` on the function in order to preserve the order invariant.
+-/
+@[inline] def map (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
+  ⟨t.1.map f, have ⟨h₁, _, _, h₂⟩ := t.2.out; .mk (h₁.map _) h₂.map⟩
+
+end RBSet
+
+namespace RBMap
+export RBNode (IsMonotone IsCut)
+
+namespace Imp
+
+/--
+Applies `f` to the second component.
+We extract this as a function so that `IsMonotone (mapSnd f)` can be an instance.
+-/
+@[inline] def mapSnd (f : α → β → γ) := fun (a, b) => (a, f a b)
+
+instance (cmp : α → α → Ordering) (f : α → β → γ) :
+    IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
+  lt_mono | ⟨h⟩ => ⟨@fun _ => @h {
+    symm := fun (a₁, b₁) (a₂, b₂) =>
+      LawfulCmp.symm (cmp := byKey Prod.fst cmp) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
+    le_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
+      TransCmp.le_trans (cmp := byKey Prod.fst cmp)
+        (x := (a₁, f a₁ b₁)) (y := (a₂, f a₂ b₂)) (z := (a₃, f a₃ b₃))
+  }⟩
+
+end Imp
+
+/-- `O(n)`. Map a function on the values in the map. -/
+def mapVal (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.map (Imp.mapSnd f)
+
+end RBMap

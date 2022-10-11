@@ -48,6 +48,8 @@ inductive RBNode (α : Type u) where
 namespace RBNode
 open RBColor
 
+instance : EmptyCollection (RBNode α) := ⟨nil⟩
+
 /-- The minimum element of a tree is the left-most value. -/
 protected def min : RBNode α → Option α
   | nil            => none
@@ -302,8 +304,6 @@ are not of this form as long as they are suitably monotonic.)
 -/
 @[specialize] def erase (cut : α → Ordering) (t : RBNode α) : RBNode α := (del cut t).setBlack
 
-section Membership
-
 /-- Finds an element in the tree satisfying the `cut` function. -/
 @[specialize] def find? (cut : α → Ordering) : RBNode α → Option α
   | nil => none
@@ -322,17 +322,16 @@ section Membership
     | .gt => lowerBound? cut b (some y)
     | .eq => some y
 
-end Membership
-
-/-- Map a function on every value in the tree. This can break the order invariant  -/
+/--
+`O(n)`. Map a function on every value in the tree.
+This requires `IsMonotone` on the function in order to preserve the order invariant.
+-/
 @[specialize] def map (f : α → β) : RBNode α → RBNode β
   | nil => nil
   | node c l v r => node c (l.map f) (f v) (r.map f)
 
 /-- Converts the tree into an array in increasing sorted order. -/
 def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push ·)
-
-instance : EmptyCollection (RBNode α) := ⟨nil⟩
 
 /--
 The well-formedness invariant for a red-black tree. The first constructor is the real invariant,
@@ -532,7 +531,7 @@ The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
 def RBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Type (max u v) :=
-  RBSet (α × β) (fun a b => cmp a.1 b.1)
+  RBSet (α × β) (byKey Prod.fst cmp)
 
 /-- `O(1)`. Construct a new empty map. -/
 @[inline] def mkRBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : RBMap α β cmp :=

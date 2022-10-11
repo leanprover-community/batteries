@@ -5,11 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Tactic.Simpa
 
-/-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
-class TotalBLE (le : α → α → Bool) : Prop where
-  /-- `le` is total: either `le a b` or `le b a`. -/
-  total : le a b ∨ le b a
-
 /-! ## Ordering -/
 
 deriving instance DecidableEq for Ordering
@@ -25,11 +20,18 @@ def Ordering.swap : Ordering → Ordering
 @[simp] theorem Ordering.swap_inj {o₁ o₂ : Ordering} : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
   ⟨fun h => by simpa using congrArg swap h, congrArg _⟩
 
+namespace Std
+
+/-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
+class TotalBLE (le : α → α → Bool) : Prop where
+  /-- `le` is total: either `le a b` or `le b a`. -/
+  total : le a b ∨ le b a
+
 /-- `LawfulCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
-class LawfulCmp (cmp : α → α → Ordering) where
+class LawfulCmp (cmp : α → α → Ordering) : Prop where
   /-- The comparator operation is symmetric, in the sense that if `cmp x y` equals `.lt` then
   `cmp y x = .gt` and vice versa. -/
-  symm : (cmp x y).swap = cmp y x
+  symm (x y) : (cmp x y).swap = cmp y x
 
 namespace LawfulCmp
 
@@ -48,7 +50,7 @@ theorem cmp_refl [LawfulCmp cmp] : cmp x x = .eq :=
 end LawfulCmp
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
-class TransCmp (cmp : α → α → Ordering) extends LawfulCmp cmp where
+class TransCmp (cmp : α → α → Ordering) extends LawfulCmp cmp : Prop where
   /-- The comparator operation is transitive. -/
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
@@ -82,3 +84,15 @@ theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z 
   rw [← Ordering.swap_inj, symm, symm, cmp_congr_left yz]
 
 end TransCmp
+
+/-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
+@[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
+
+instance (f : α → β) (cmp : β → β → Ordering) [LawfulCmp cmp] : LawfulCmp (byKey f cmp) where
+  symm a b := LawfulCmp.symm (f a) (f b)
+
+instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
+  le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
+
+instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
+  le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
