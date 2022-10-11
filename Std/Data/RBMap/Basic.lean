@@ -498,7 +498,7 @@ def union (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`. If equal keys exist in both,
 then use `mergeFn a₁ a₂` to produce the new merged value.
 -/
-def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
+def mergeWith (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
   t₂.foldl (init := t₁) fun t₁ a₂ =>
     t₁.insert <| match t₁.find? a₂ with | some a₁ => mergeFn a₁ a₂ | none => a₂
 
@@ -506,7 +506,7 @@ def mergeBy (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α c
 `O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
 using `mergeFn a b` to produce the new value.
 -/
-def intersectBy (cmp : α → β → Ordering) (mergeFn : α → β → γ)
+def intersectWith (cmp : α → β → Ordering) (mergeFn : α → β → γ)
     (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : RBSet γ cmpγ :=
   t₁.foldl (init := ∅) fun acc a =>
     match t₂.findP? (cmp a) with
@@ -711,16 +711,16 @@ def size : RBMap α β cmp → Nat := RBSet.size
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`, if a key `a : α` exists in both,
 then use `mergeFn a b₁ b₂` to produce the new merged value.
 -/
-def mergeBy (mergeFn : α → β → β → β) (t₁ t₂ : RBMap α β cmp) : RBMap α β cmp :=
-  RBSet.mergeBy (fun (_, b₁) (a, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
+def mergeWith (mergeFn : α → β → β → β) (t₁ t₂ : RBMap α β cmp) : RBMap α β cmp :=
+  RBSet.mergeWith (fun (_, b₁) (a, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
 /--
 `O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
 using `mergeFn a b` to produce the new value.
 -/
-def intersectBy (mergeFn : α → β → γ → δ)
+def intersectWith (mergeFn : α → β → γ → δ)
     (t₁ : RBMap α β cmp) (t₂ : RBMap α γ cmp) : RBMap α δ cmp :=
-  RBSet.intersectBy (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
+  RBSet.intersectWith (cmp ·.1 ·.1) (fun (a, b₁) (_, b₂) => (a, mergeFn a b₁ b₂)) t₁ t₂
 
 /-- `O(n * log n)`. Constructs the set of all elements satisfying `p`. -/
 def filter (t : RBMap α β cmp) (p : α → β → Bool) : RBMap α β cmp :=
