@@ -207,12 +207,12 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
   induction hx₁ with
   | head => simp_all; exact (H.1 · · ∘ PartialEquivBEq.trans hx₂)
   | tail _ _ ih =>
-    simp at H ⊢; have ih := ih hx₂ H.2
+    simp at H ⊢
     generalize e : cond .. = z; revert e
     unfold cond; split <;> (intro h; subst h; simp)
     case _ e => exact ⟨(H.1 · · ∘ PartialEquivBEq.trans e), H.2⟩
     case _ e =>
-      refine ⟨fun a h => ?_, ih⟩
+      refine ⟨fun a h => ?_, ih H.2⟩
       match mem_replaceF h with
       | .inl eq => exact eq ▸ ne_true_of_eq_false e
       | .inr h => exact H.1 a h

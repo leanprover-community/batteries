@@ -81,7 +81,7 @@ theorem eq_or_ne_mem_of_mem {a b : α} {l : List α} (h' : a ∈ b :: l) : a = b
 theorem ne_nil_of_mem {a : α} {l : List α} (h : a ∈ l) : l ≠ [] := by cases h <;> intro.
 
 theorem mem_constructor : ∀ {a : α} {l : List α}, a ∈ l → ∃ s t : List α, l = s ++ a :: t
-  | _, _, .head _ l => ⟨[], l, rfl⟩
+  | _, _, .head l => ⟨[], l, rfl⟩
   | _, _, .tail b hmem =>
     let ⟨s, t, h'⟩ := mem_constructor hmem; ⟨b::s, t, by rw [h', cons_append]⟩
 
