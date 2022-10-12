@@ -1132,8 +1132,8 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
   | x :: xs, hl, h => by
     cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
       drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
-    case succ.zero => cases h
-    cases hl with | cons h₀ h₁ =>
+    · case succ.zero => cases h
+    · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
       exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
 

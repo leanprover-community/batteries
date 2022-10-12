@@ -106,11 +106,11 @@ theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m]
   let rec go {i j b} (h₁ : j ≤ as.size) (h₂ : as.size ≤ i + j) (H : motive j b) :
     SatisfiesM (motive as.size) (foldlM.loop f as as.size (Nat.le_refl _) i j b) := by
     unfold foldlM.loop; split
-    case _ hj =>
+    · next hj =>
       split
       · cases Nat.not_le_of_gt (by simp [hj]) h₂
       · exact (hf ⟨j, hj⟩ b H).bind fun _ => go hj (by rwa [Nat.succ_add] at h₂)
-    case _ hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
+    · next hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
   simp [foldlM]; exact go (Nat.zero_le _) (Nat.le_refl _) h0
 
 theorem foldl_induction
@@ -149,8 +149,8 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
   refine SatisfiesM_foldlM (m := m) (β := Array β)
     (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
     |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
-  case z => exact ⟨h0, rfl, fun.⟩
-  case s =>
+  · case z => exact ⟨h0, rfl, fun.⟩
+  · case s =>
     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
     refine (hs _ ih₁).bind fun b ⟨h₁, h₂⟩ => .pure ⟨h₂, by simp [eq], fun j hj => ?_⟩
     simp [get_push] at hj ⊢; split; {apply ih₂}

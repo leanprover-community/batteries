@@ -141,13 +141,13 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
   let rec go {i b} (hi : i ≤ as.size) (H : motive i b) :
     SatisfiesM (motive 0) (foldrM.fold f as 0 i hi b) := by
     unfold foldrM.fold; simp; split
-    case _ hi => exact .pure (hi ▸ H)
-    case _ hi =>
+    · next hi => exact .pure (hi ▸ H)
+    · next hi =>
       split; {simp at hi}
-      case _ i hi' =>
-      · exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
+      · next i hi' =>
+        exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
   simp [foldrM]; split; {exact go _ h0}
-  case _ h => exact .pure (Nat.eq_zero_of_nonpos _ h ▸ h0)
+  · next h => exact .pure (Nat.eq_zero_of_nonpos _ h ▸ h0)
 
 theorem foldr_induction
     {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive as.size init) {f : α → β → β}
@@ -183,8 +183,8 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
     | succ i ih =>
       refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
       simp at hi'; simp [get_push]; split
-      case _ h => exact h₂ _ _ h
-      case _ h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb.1
+      · next h => exact h₂ _ _ h
+      · next h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb.1
   simp [mapIdxM]; exact go rfl (fun.) h0
 
 theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
@@ -253,9 +253,8 @@ termination_by _ => j - i
         exact (List.get?_reverse' _ _ h).symm
       · rfl
   simp only [reverse]; split
-  case _ h => match a, h with | ⟨[]⟩, _ | ⟨[_]⟩, _ => rfl
-  case _ =>
-    have := Nat.sub_add_cancel (Nat.le_of_not_le ‹_›)
+  · match a with | ⟨[]⟩ | ⟨[_]⟩ => rfl
+  · have := Nat.sub_add_cancel (Nat.le_of_not_le ‹_›)
     refine List.ext <| go _ _ _ _ (by simp [this]) rfl fun k => ?_
     split; {rfl}; rename_i h
     simp [← show k < _ + 1 ↔ _ from Nat.lt_succ (n := a.size - 1), this] at h

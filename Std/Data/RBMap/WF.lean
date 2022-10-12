@@ -32,13 +32,13 @@ protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance1 l v r).Ordered cmp := by
   unfold balance1; split
-  case _ a x b y c =>
+  · next a x b y c =>
     have ⟨yv, _, cv⟩ := lv; have ⟨xy, yc, hx, hc⟩ := hl
     exact ⟨xy, ⟨yv, yc, yv.trans_l vr⟩, hx, cv, vr, hc, hr⟩
-  case _ a x b y c _ =>
+  · next a x b y c _ =>
     have ⟨_, _, yv, _, cv⟩ := lv; have ⟨ax, ⟨xy, xb, _⟩, ha, by_, yc, hb, hc⟩ := hl
     exact ⟨⟨xy, xy.trans_r ax, by_⟩, ⟨yv, yc, yv.trans_l vr⟩, ⟨ax, xb, ha, hb⟩, cv, vr, hc, hr⟩
-  case _ => exact ⟨lv, vr, hl, hr⟩
+  · exact ⟨lv, vr, hl, hr⟩
 
 @[simp] theorem balance1_All {l : RBNode α} {v : α} {r : RBNode α} :
     (balance1 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
@@ -49,13 +49,13 @@ protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLt cmp · v)) (vr : r.All (cmpLt cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance2 l v r).Ordered cmp := by
   unfold balance2; split
-  case _ b y c z d =>
+  · next b y c z d =>
     have ⟨_, ⟨vy, vb, _⟩, _⟩ := vr; have ⟨⟨yz, _, cz⟩, zd, ⟨by_, yc, hy, hz⟩, hd⟩ := hr
     exact ⟨⟨vy, vy.trans_r lv, by_⟩, ⟨yz, yc, yz.trans_l zd⟩, ⟨lv, vb, hl, hy⟩, cz, zd, hz, hd⟩
-  case _ a x b y c _ =>
+  · next a x b y c _ =>
     have ⟨vx, va, _⟩ := vr; have ⟨ax, xy, ha, hy⟩ := hr
     exact ⟨⟨vx, vx.trans_r lv, ax⟩, xy, ⟨lv, va, hl, ha⟩, hy⟩
-  case _ => exact ⟨lv, vr, hl, hr⟩
+  · exact ⟨lv, vr, hl, hr⟩
 
 @[simp] theorem balance2_All {l : RBNode α} {v : α} {r : RBNode α} :
     (balance2 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
@@ -71,18 +71,18 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
   | nil, _ => ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
-    case _ h => exact ⟨ay.ins ⟨h⟩, yb, ha.ins, hb⟩
-    case _ h => exact ⟨ay, yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩, ha, hb.ins⟩
-    case _ h => exact (⟨
-      ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-      yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+    · next h => exact ⟨ay.ins ⟨h⟩, yb, ha.ins, hb⟩
+    · next h => exact ⟨ay, yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩, ha, hb.ins⟩
+    · next h => exact (⟨
+        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
   | node black a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
-    case _ h => exact ha.ins.balance1 (ay.ins ⟨h⟩) yb hb
-    case _ h => exact ha.balance2 ay (yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩) hb.ins
-    case _ h => exact (⟨
-      ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-      yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+    · next h => exact ha.ins.balance1 (ay.ins ⟨h⟩) yb hb
+    · next h => exact ha.balance2 ay (yb.ins ⟨LawfulCmp.cmp_eq_gt.1 h⟩) hb.ins
+    · next h => exact (⟨
+        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
 
 /-- The `insert` function preserves the ordering invariants. -/
 protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
@@ -128,7 +128,7 @@ protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
   unfold balance1; split
   · have .redred _ (.red ha hb) hc := hl; exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
   · have .redred _ ha (.red hb hc) := hl; exact ⟨_, .red (.black ha hb) (.black hc hr)⟩
-  case _ H1 H2 => match hl with
+  · next H1 H2 => match hl with
     | .balanced hl => exact ⟨_, .black hl hr⟩
     | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black (.red ha hb) hr⟩
     | .redred _ (c₁ := red) (.red ..) _ => cases H1 _ _ _ _ _ rfl
@@ -140,7 +140,7 @@ protected theorem RedRed.balance2 {l : RBNode α} {v : α} {r : RBNode α}
   unfold balance2; split
   · have .redred _ (.red ha hb) hc := hr; exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
   · have .redred _ ha (.red hb hc) := hr; exact ⟨_, .red (.black hl ha) (.black hb hc)⟩
-  case _ H1 H2 => match hr with
+  · next H1 H2 => match hr with
     | .balanced hr => exact ⟨_, .black hl hr⟩
     | .redred _ (c₁ := black) (c₂ := black) ha hb => exact ⟨_, .black hl (.red ha hb)⟩
     | .redred _ (c₁ := red) (.red ..) _ => cases H1 _ _ _ _ _ rfl
@@ -227,12 +227,12 @@ protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
 protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n + 1)) :
     (balLeft l v r).RedRed (cr = red) (n + 1) := by
   unfold balLeft; split
-  case _ a x b => exact
+  · next a x b => exact
     let ⟨ca, cb, ha, hb⟩ := hl.of_red
     match cr with
     | red => .redred rfl (.black ha hb) hr
     | black => .balanced (.red (.black ha hb) hr)
-  case _ H => exact match hl with
+  · next H => exact match hl with
     | .redred .. => nomatch H _ _ _ rfl
     | .balanced hl => match hr with
       | .black ha hb =>
@@ -261,12 +261,12 @@ protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
 protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed True n) :
     (balRight l v r).RedRed (cl = red) (n + 1) := by
   unfold balRight; split
-  case _ b y c => exact
+  · next b y c => exact
     let ⟨cb, cc, hb, hc⟩ := hr.of_red
     match cl with
     | red => .redred rfl hl (.black hb hc)
     | black => .balanced (.red hl (.black hb hc))
-  case _ H => exact match hr with
+  · next H => exact match hr with
     | .redred .. => nomatch H _ _ _ rfl
     | .balanced hr => match hl with
       | .black hb hc =>
@@ -295,7 +295,7 @@ protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
     have ⟨vy, vc, _⟩ := vr; have ⟨cy, yd, hc, hd⟩ := hr
     have : _ ∧ _ ∧ _ := ⟨hb.append bv vc hc, xb.append (xv.trans_l vc), (vy.trans_r bv).append cy⟩
     split
-    case _ H =>
+    · next H =>
       have ⟨⟨b'z, c'z, hb', hc'⟩, ⟨xz, xb', _⟩, zy, _, c'y⟩ := H ▸ this
       have az := xz.trans_r ax; have zd := zy.trans_l yd
       exact ⟨⟨xz, az, b'z⟩, ⟨zy, c'z, zd⟩, ⟨ax, xb', ha, hb'⟩, c'y, yd, hc', hd⟩
@@ -305,7 +305,7 @@ protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
     have ⟨vy, vc, _⟩ := vr; have ⟨cy, yd, hc, hd⟩ := hr
     have : _ ∧ _ ∧ _ := ⟨hb.append bv vc hc, xb.append (xv.trans_l vc), (vy.trans_r bv).append cy⟩
     split
-    case _ H =>
+    · next H =>
       have ⟨⟨b'z, c'z, hb', hc'⟩, ⟨xz, xb', _⟩, zy, _, c'y⟩ := H ▸ this
       have az := xz.trans_r ax; have zd := zy.trans_l yd
       exact ⟨⟨xz, az, b'z⟩, ⟨zy, c'z, zd⟩, ⟨ax, xb', ha, hb'⟩, c'y, yd, hc', hd⟩
@@ -324,23 +324,23 @@ protected theorem Balanced.append {l r : RBNode α}
   unfold append; split
   · exact .balanced hr
   · exact .balanced hl
-  case _ b c _ _ =>
+  · next b c _ _ =>
     have .red ha hb := hl; have .red hc hd := hr
     have ⟨_, IH⟩ := (hb.append hc).of_false (· rfl rfl); split
-    case _ e =>
+    · next e =>
       have .red hb' hc' := e ▸ IH
       exact .redred (fun.) (.red ha hb') (.red hc' hd)
-    case _ bcc _ H =>
+    · next bcc _ H =>
       match bcc, append b c, IH, H with
       | black, _, IH, _ => exact .redred (fun.) ha (.red IH hd)
       | red, _, .red .., H => cases H _ _ _ rfl
-  case _ b c _ _ =>
+  · next b c _ _ =>
     have .black ha hb := hl; have .black hc hd := hr
     have IH := hb.append hc; split
-    case _ e => match e ▸ IH with
+    · next e => match e ▸ IH with
       | .balanced (.red hb' hc') | .redred _ hb' hc' =>
         exact .balanced (.red (.black ha hb') (.black hc' hd))
-    case _ H =>
+    · next H =>
       match append b c, IH, H with
       | bc, .balanced hbc, _ =>
         unfold balLeft; split
