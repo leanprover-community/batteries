@@ -29,6 +29,7 @@ inductive RBColor where
   | red
   /-- Every path from the root to a leaf must pass through the same number of black nodes. -/
   | black
+  deriving Repr
 
 /--
 A red-black tree. (This is an internal implementation detail of the `RBSet` type,
@@ -44,6 +45,7 @@ inductive RBNode (α : Type u) where
   and a subtree `r` of larger items. The color `c` is either `red` or `black`
   and participates in the red-black balance invariant (see `Balanced`). -/
   | node (c : RBColor) (l : RBNode α) (v : α) (r : RBNode α)
+  deriving Repr
 
 namespace RBNode
 open RBColor
@@ -197,6 +199,9 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
   but it prevents the `[TransCmp cmp]` binder from being introduced when we don't want it.
 -/
 def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
+
+/-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLt`. -/
+def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
 
 /--
 The ordering invariant of a red-black tree, which is a binary search tree.
@@ -374,6 +379,120 @@ This requires `IsMonotone` on the function in order to preserve the order invari
 def toArray (n : RBNode α) : Array α := n.foldl (init := #[]) (·.push ·)
 
 /--
+A `RBNode.Path α` is a "cursor" into an `RBNode` which represents the path
+from the root to a subtree. Note that the path goes from the target subtree
+up to the root, which is reversed from the normal way data is stored in the tree.
+See [Zipper](https://en.wikipedia.org/wiki/Zipper_(data_structure)) for more information.
+-/
+inductive Path (α : Type u) where
+  /-- The root of the tree, which is the end of the path of parents. -/
+  | root
+  /-- A path that goes down the left subtree. -/
+  | left (c : RBColor) (parent : Path α) (v : α) (r : RBNode α)
+  /-- A path that goes down the right subtree. -/
+  | right (c : RBColor) (l : RBNode α) (v : α) (parent : Path α)
+
+/-- Fills the `Path` with a subtree. -/
+def Path.fill : Path α → RBNode α → RBNode α
+  | .root, t => t
+  | .left c parent y b, a
+  | .right c a y parent, b => parent.fill (node c a y b)
+
+/--
+Like `find?`, but instead of just returning the element, it returns the entire subtree
+at the element and a path back to the root for reconstructing the tree.
+-/
+@[specialize] def zoom (cut : α → Ordering) : RBNode α → (e : Path α := .root) → RBNode α × Path α
+  | nil, path => (nil, path)
+  | n@(node c a y b), path =>
+    match cut y with
+    | .lt => zoom cut a (.left c path y b)
+    | .gt => zoom cut b (.right c a y path)
+    | .eq => (n, path)
+
+/--
+This function does the second part of `RBNode.ins`,
+which unwinds the stack and rebuilds the tree.
+-/
+def Path.ins : Path α → RBNode α → RBNode α
+  | .root, t => t.setBlack
+  | .left red parent y b, a
+  | .right red a y parent, b => parent.ins (node red a y b)
+  | .left black parent y b, a => parent.ins (balance1 a y b)
+  | .right black a y parent, b => parent.ins (balance2 a y b)
+
+/--
+`path.insertNew v` inserts element `v` into the tree, assuming that `path` is zoomed in
+on a `nil` node such that inserting a new element at this position is valid.
+-/
+@[inline] def Path.insertNew (path : Path α) (v : α) : RBNode α :=
+  path.ins (node red nil v nil)
+
+/--
+`path.insert t v` inserts element `v` into the tree, assuming that `(t, path)` was the result of a
+previous `zoom` operation (so either the root of `t` is equivalent to `v` or it is empty).
+-/
+def Path.insert (path : Path α) (t : RBNode α) (v : α) : RBNode α :=
+  match t with
+  | nil => path.insertNew v
+  | node c a _ b => path.fill (node c a v b)
+
+/--
+`path.del t c` does the second part of `RBNode.del`, which unwinds the stack
+and rebuilds the tree. The `c` argument is the color of the node before the deletion
+(we used `t₀.isBlack` for this in `RBNode.del` but the original tree is no longer
+available in this formulation).
+-/
+def Path.del : Path α → RBNode α → RBColor → RBNode α
+  | .root, t, _ => t.setBlack
+  | .left c parent y b, a, red
+  | .right c a y parent, b, red => parent.del (node red a y b) c
+  | .left c parent y b, a, black => parent.del (balLeft a y b) c
+  | .right c a y parent, b, black => parent.del (balRight a y b) c
+
+/--
+`path.erase t v` removes the root element of `t` from the tree, assuming that `(t, path)` was
+the result of a previous `zoom` operation.
+-/
+def Path.erase (path : Path α) (t : RBNode α) : RBNode α :=
+  match t with
+  | nil => path.fill nil
+  | node c a _ b => path.del (a.append b) c
+
+/--
+`modify cut f t` uses `cut` to find an element,
+then modifies the element using `f` and reinserts it into the tree.
+
+Because the tree structure is not modified,
+`f` must not modify the ordering properties of the element.
+
+The element in `t` is used linearly if `t` is unshared.
+-/
+@[specialize] def modify (cut : α → Ordering) (f : α → α) (t : RBNode α) : RBNode α :=
+  match zoom cut t with
+  | (nil, _) => t -- TODO: profile whether it would be better to use `path.fill nil` here
+  | (node c a x b, path) => path.fill (node c a (f x) b)
+
+/--
+`alter cut f t` simultaneously handles inserting, erasing and replacing an element
+using a function `f : Option α → Option α`. It is passed the result of `t.find? cut`
+and can either return `none` to remove the element or `some a` to replace/insert
+the element with `a` (which must have the same ordering properties as the original element).
+
+The element is used linearly if `t` is unshared.
+-/
+@[specialize] def alter (cut : α → Ordering) (f : Option α → Option α) (t : RBNode α) : RBNode α :=
+  match zoom cut t with
+  | (nil, path) =>
+    match f none with
+    | none => t -- TODO: profile whether it would be better to use `path.fill nil` here
+    | some y => path.insertNew y
+  | (node c a x b, path) =>
+    match f (some x) with
+    | none => path.del (a.append b) c
+    | some y => path.fill (node c a y b)
+
+/--
 The well-formedness invariant for a red-black tree. The first constructor is the real invariant,
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
 which have more complex proofs that are delayed to `Std.Data.RBMap.Lemmas`.
@@ -388,6 +507,18 @@ inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
   /-- Erasing from a well-formed tree yields another well-formed tree.
   (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
   | erase : WF cmp t → WF cmp (t.erase cut)
+--   /-- `alter` on a well-formed tree yields another well-formed tree,
+--   as long as the replacement compares equal to the original value.
+--   (See `Ordered.alter` and `Balanced.alter` for the actual proofs.) -/
+--   | alter : (∀ {x y}, t.find? cut = some x → f (some x) = some y → cmpEq cmp y x) →
+--     WF cmp t → WF cmp (t.alter cut f)
+
+theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
+  simp [modify, alter]; split <;> simp [Option.map]
+
+-- theorem WF.modify {t : RBNode α} (H : ∀ {x}, t.find? cut = some x → cmpEq cmp (f x) x)
+--     (wf : WF cmp t) : WF cmp (t.modify cut f) :=
+--   modify_eq_alter _ ▸ wf.alter fun | h, rfl => H h
 
 end RBNode
 
@@ -541,6 +672,56 @@ def size (m : RBSet α cmp) : Nat := m.1.size
 -/
 @[inline] def find! [Inhabited α] (t : RBSet α cmp) (k : α) : α :=
   (t.find? k).getD (panic! "key is not in the tree")
+
+/-- The predicate asserting that the result of `modifyP` is safe to construct. -/
+class ModifyWF (t : RBSet α cmp) (cut : α → Ordering) (f : α → α) : Prop where
+  /-- The resulting tree is well formed. -/
+  wf : (t.1.modify cut f).WF cmp
+
+-- /--
+-- A sufficient condition for `ModifyWF` is that the new element compares equal to the original.
+-- -/
+-- theorem ModifyWF.of_eq {t : RBSet α cmp}
+--     (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f :=
+--   ⟨.modify H t.2⟩
+
+/--
+`O(log n)`. In-place replace an element found by `cut`.
+This takes the element out of the tree while `f` runs,
+so it uses the element linearly if `t` is unshared.
+
+The `ModifyWF` assumption is required because `f` may change
+the ordering properties of the element, which would break the invariants.
+-/
+def modifyP (t : RBSet α cmp) (cut : α → Ordering) (f : α → α)
+    [wf : ModifyWF t cut f] : RBSet α cmp := ⟨t.1.modify cut f, wf.wf⟩
+
+/-- The predicate asserting that the result of `alterP` is safe to construct. -/
+class AlterWF (t : RBSet α cmp) (cut : α → Ordering) (f : Option α → Option α) : Prop where
+  /-- The resulting tree is well formed. -/
+  wf : (t.1.alter cut f).WF cmp
+
+-- /--
+-- A sufficient condition for `AlterWF` is that the new element compares equal to the original.
+-- -/
+-- theorem AlterWF.of_eq {t : RBSet α cmp}
+--     (H : ∀ {x y}, t.findP? cut = some x → f (some x) = some y → cmpEq cmp y x) :
+--     AlterWF t cut f :=
+--   ⟨.alter H t.2⟩
+
+/--
+`O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element
+using a function `f : Option α → Option α`. It is passed the result of `t.findP? cut`
+and can either return `none` to remove the element or `some a` to replace/insert
+the element with `a` (which must have the same ordering properties as the original element).
+
+The element is used linearly if `t` is unshared.
+
+The `AlterWF` assumption is required because `f` may change
+the ordering properties of the element, which would break the invariants.
+-/
+def alterP (t : RBSet α cmp) (cut : α → Ordering) (f : Option α → Option α)
+    [wf : AlterWF t cut f] : RBSet α cmp := ⟨t.1.alter cut f, wf.wf⟩
 
 /--
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`.
@@ -774,6 +955,58 @@ smaller than or equal to `k`, if it exists.
 
 /-- `O(log n)`. Returns true if the given key `a` is in the RBMap. -/
 @[inline] def contains (t : RBMap α β cmp) (a : α) : Bool := (t.findEntry? a).isSome
+
+-- TODO: add proof
+private unsafe def modifyImpl (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
+  t.modifyP (cmp k ·.1) (fun (a, b) => (a, f b)) (wf := lcProof)
+
+/--
+`O(log n)`. In-place replace the corresponding to key `k`.
+This takes the element out of the tree while `f` runs,
+so it uses the element linearly if `t` is unshared.
+-/
+@[implementedBy modifyImpl] opaque modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp
+
+-- def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
+--   t.modifyP (cmp k ·.1) (fun (a, b) => (a, f b))
+--     (wf := .of_eq fun _ => ⟨LawfulCmp.cmp_refl (cmp := byKey Prod.fst cmp)⟩)
+
+/-- Auxiliary definition for `alter`. -/
+def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → Option (α × β)
+  | none =>
+    match f none with
+    | none => none
+    | some v => some (k, v)
+  | some (k', v') =>
+    match f (some v') with
+    | none => none
+    | some v => some (k', v)
+
+-- TODO: add proof
+@[specialize] private unsafe def alterImpl (t : RBMap α β cmp) (k : α) (f : Option β → Option β) :
+    RBMap α β cmp :=
+  t.alterP (cmp k ·.1) (alter.adapt k f) (wf := lcProof)
+
+/--
+`O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element
+using a function `f : Option α → Option α`. It is passed the result of `t.findP? cut`
+and can either return `none` to remove the element or `some a` to replace/insert
+the element with `a` (which must have the same ordering properties as the original element).
+
+The element is used linearly if `t` is unshared.
+
+The `AlterWF` assumption is required because `f` may change
+the ordering properties of the element, which would break the invariants.
+-/
+@[implementedBy alterImpl]
+opaque alter (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp
+
+-- @[specialize] def alter
+--     (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
+--   refine t.alterP (cmp k ·.1) (alter.adapt k f)
+--     (wf := .of_eq @fun (k, v) y _ h => ⟨@fun _ => ?_⟩)
+--   revert h; simp [alter.adapt]; split <;> intro h <;> cases h
+--   exact LawfulCmp.cmp_refl (cmp := byKey Prod.fst cmp)
 
 /-- `O(n)`. Returns true if the given predicate is true for all items in the RBMap. -/
 @[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
