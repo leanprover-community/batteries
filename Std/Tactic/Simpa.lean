@@ -54,6 +54,6 @@ elab_rules : tactic
     evalTactic <|← simpTac (← `(location| at this))
     evalTactic <|← `(tactic| assumption)
   | some e =>
-    evalTactic <|← `(tactic| have h := $e)
+    evalTactic <|← `(tactic| have' h := $e)
     evalTactic <|← simpTac (← `(location| at h))
     evalTactic <|← `(tactic| exact h)
