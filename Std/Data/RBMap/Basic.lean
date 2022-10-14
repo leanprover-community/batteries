@@ -175,21 +175,6 @@ instance [BEq α] : BEq (RBNode α) where
   beq a b := a.all₂ (· == ·) b
 
 /--
-The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
-and the black-height (the number of black nodes on any path from the root) of the tree is `n`.
-Additionally, every red node must have black children.
--/
-inductive Balanced : RBNode α → RBColor → Nat → Prop where
-  /-- A nil node is balanced with black-height 0, and it is considered black. -/
-  | protected nil : Balanced nil black 0
-  /-- A red node is balanced with black-height `n`
-  if its children are both black with with black-height `n`. -/
-  | protected red : Balanced x black n → Balanced y black n → Balanced (node red x v y) red n
-  /-- A black node is balanced with black-height `n + 1`
-  if its children both have black-height `n`. -/
-  | protected black : Balanced x c₁ n → Balanced y c₂ n → Balanced (node black x v y) black (n + 1)
-
-/--
 We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 
 * In order to avoid assuming the comparator is always lawful, we use a
@@ -202,20 +187,6 @@ def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [Tra
 
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLt`. -/
 def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
-
-/--
-The ordering invariant of a red-black tree, which is a binary search tree.
-This says that every element of a left subtree is less than the root, and
-every element in the right subtree is greater than the root, where the
-less than relation `x < y` is understood to mean `cmp x y = .lt`.
-
-Because we do not assume that `cmp` is lawful when stating this property,
-we write it in such a way that if `cmp` is not lawful then the condition holds trivially.
-That way we can prove the ordering invariants without assuming `cmp` is lawful.
--/
-def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
-  | nil => True
-  | node _ a x b => a.All (cmpLt cmp · x) ∧ b.All (cmpLt cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
 
 /-- The first half of Okasaki's `balance`, concerning red-red sequences in the left child. -/
 @[inline] def balance1 : RBNode α → α → RBNode α → RBNode α
@@ -243,13 +214,6 @@ def isBlack : RBNode α → Bool
 def setBlack : RBNode α → RBNode α
   | nil          => nil
   | node _ l v r => node black l v r
-
-protected theorem Ordered.setBlack {t : RBNode α} : (setBlack t).Ordered cmp ↔ t.Ordered cmp := by
-  unfold setBlack; split <;> simp [Ordered]
-
-protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Balanced black n'
-  | .nil => ⟨_, .nil⟩
-  | .black hl hr | .red hl hr => ⟨_, hl.black hr⟩
 
 section Insert
 
@@ -491,6 +455,35 @@ The element is used linearly if `t` is unshared.
     match f (some x) with
     | none => path.del (a.append b) c
     | some y => path.fill (node c a y b)
+
+/--
+The ordering invariant of a red-black tree, which is a binary search tree.
+This says that every element of a left subtree is less than the root, and
+every element in the right subtree is greater than the root, where the
+less than relation `x < y` is understood to mean `cmp x y = .lt`.
+
+Because we do not assume that `cmp` is lawful when stating this property,
+we write it in such a way that if `cmp` is not lawful then the condition holds trivially.
+That way we can prove the ordering invariants without assuming `cmp` is lawful.
+-/
+def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
+  | nil => True
+  | node _ a x b => a.All (cmpLt cmp · x) ∧ b.All (cmpLt cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
+
+/--
+The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
+and the black-height (the number of black nodes on any path from the root) of the tree is `n`.
+Additionally, every red node must have black children.
+-/
+inductive Balanced : RBNode α → RBColor → Nat → Prop where
+  /-- A nil node is balanced with black-height 0, and it is considered black. -/
+  | protected nil : Balanced nil black 0
+  /-- A red node is balanced with black-height `n`
+  if its children are both black with with black-height `n`. -/
+  | protected red : Balanced x black n → Balanced y black n → Balanced (node red x v y) red n
+  /-- A black node is balanced with black-height `n + 1`
+  if its children both have black-height `n`. -/
+  | protected black : Balanced x c₁ n → Balanced y c₂ n → Balanced (node black x v y) black (n + 1)
 
 /--
 The well-formedness invariant for a red-black tree. The first constructor is the real invariant,
