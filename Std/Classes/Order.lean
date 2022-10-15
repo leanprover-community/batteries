@@ -27,36 +27,36 @@ class TotalBLE (le : α → α → Bool) : Prop where
   /-- `le` is total: either `le a b` or `le b a`. -/
   total : le a b ∨ le b a
 
-/-- `LawfulCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
-class LawfulCmp (cmp : α → α → Ordering) : Prop where
+/-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
+class OrientedCmp (cmp : α → α → Ordering) : Prop where
   /-- The comparator operation is symmetric, in the sense that if `cmp x y` equals `.lt` then
   `cmp y x = .gt` and vice versa. -/
   symm (x y) : (cmp x y).swap = cmp y x
 
-namespace LawfulCmp
+namespace OrientedCmp
 
-theorem cmp_eq_gt [LawfulCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
+theorem cmp_eq_gt [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_eq_eq_symm [LawfulCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
+theorem cmp_eq_eq_symm [OrientedCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_refl [LawfulCmp cmp] : cmp x x = .eq :=
+theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   match e : cmp x x with
   | .lt => nomatch e.symm.trans (cmp_eq_gt.2 e)
   | .eq => rfl
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
-end LawfulCmp
+end OrientedCmp
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
-class TransCmp (cmp : α → α → Ordering) extends LawfulCmp cmp : Prop where
+class TransCmp (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
   /-- The comparator operation is transitive. -/
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
 namespace TransCmp
 variable [TransCmp cmp]
-open LawfulCmp Decidable
+open OrientedCmp Decidable
 
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
   have := @TransCmp.le_trans _ cmp _ z y x
@@ -88,8 +88,8 @@ end TransCmp
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
 @[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [LawfulCmp cmp] : LawfulCmp (byKey f cmp) where
-  symm a b := LawfulCmp.symm (f a) (f b)
+instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
+  symm a b := OrientedCmp.symm (f a) (f b)
 
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
