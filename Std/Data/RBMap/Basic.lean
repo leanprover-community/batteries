@@ -200,15 +200,18 @@ def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [Tra
   | a, x, node red b y (node red c z d) => node red (node black a x b) y (node black c z d)
   | a, x, b                             => node black a x b
 
-/-- An auxiliary function to test if the root is red. -/
-def isRed : RBNode α → Bool
-  | node red .. => true
-  | _           => false
+/-- Returns `red` if the node is red, otherwise `black`. (Nil nodes are treated as `black`.) -/
+@[inline] def isRed : RBNode α → RBColor
+  | node c .. => c
+  | _         => black
 
-/-- An auxiliary function to test if the root is black (and non-nil). -/
-def isBlack : RBNode α → Bool
-  | node black .. => true
-  | _             => false
+/--
+Returns `black` if the node is black, otherwise `red`.
+(Nil nodes are treated as `red`, which is not the usual convention but useful for deletion.)
+-/
+@[inline] def isBlack : RBNode α → RBColor
+  | node c .. => c
+  | _         => red
 
 /-- Change the color of the root to `black`. -/
 def setBlack : RBNode α → RBNode α
@@ -242,7 +245,9 @@ The `insert` function does the final fixup needed to restore the invariant.
 `cmp` to put it in the right place and automatically rebalancing the tree as necessary.
 -/
 @[specialize] def insert (cmp : α → α → Ordering) (t : RBNode α) (v : α) : RBNode α :=
-  bif isRed t then (ins cmp v t).setBlack else ins cmp v t
+  match isRed t with
+  | red => (ins cmp v t).setBlack
+  | black => ins cmp v t
 
 end Insert
 
@@ -299,8 +304,12 @@ which is restored in `erase`.
   | nil          => nil
   | node _ a y b =>
     match cut y with
-    | .lt => bif a.isBlack then balLeft (del cut a) y b else node red (del cut a) y b
-    | .gt => bif b.isBlack then balRight a y (del cut b) else node red a y (del cut b)
+    | .lt => match a.isBlack with
+      | black => balLeft (del cut a) y b
+      | red => node red (del cut a) y b
+    | .gt => match b.isBlack with
+      | black => balRight a y (del cut b)
+      | red => node red a y (del cut b)
     | .eq => append a b
 
 /--

@@ -72,7 +72,7 @@ theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by c
 
 theorem insert_setBlack {t : RBNode α} :
     (t.insert cmp v).setBlack = (t.ins cmp v).setBlack := by
-  unfold insert cond; split <;> simp [setBlack_idem]
+  unfold insert; split <;> simp [setBlack_idem]
 
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
@@ -99,7 +99,7 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
 
 /-- The `insert` function preserves the ordering invariants. -/
 protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
-  unfold RBNode.insert cond; split <;> simp [Ordered.setBlack, h.ins (x := v)]
+  unfold RBNode.insert; split <;> simp [Ordered.setBlack, h.ins (x := v)]
 
 /--
 The red-red invariant is a weakening of the red-black balance invariant which allows
@@ -177,7 +177,7 @@ The result of inserting into the tree either yields a balanced tree,
 or a tree which is almost balanced except that it has a red-red violation at the root.
 -/
 protected theorem Balanced.ins (cmp v) {t : RBNode α}
-    (h : t.Balanced c n) : (ins cmp v t).RedRed t.isRed n := by
+    (h : t.Balanced c n) : (ins cmp v t).RedRed (t.isRed = red) n := by
   induction h with
   | nil => exact .balanced (.red .nil .nil)
   | @red a n b x hl hr ihl ihr =>
@@ -206,7 +206,7 @@ so this is only suitable for use on the root of the tree.)
 -/
 theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
-  unfold insert cond; match ins cmp v t, h.ins cmp v with
+  unfold insert; match ins cmp v t, h.ins cmp v with
   | _, .balanced h => split; {exact ⟨_, h.setBlack⟩}; {exact ⟨_, _, h⟩}
   | _, .redred _ ha hb => have .node red .. := t; exact ⟨_, _, .black ha hb⟩
 
@@ -388,24 +388,26 @@ The invariant of the `del` function.
 * If the input tree is red or nil, then the result of deletion is a balanced tree with
   some color and the same black-height.
 -/
-def DelProp (t₀ t : RBNode α) (n : Nat) : Prop :=
-  bif t₀.isBlack then ∃ n', n = n' + 1 ∧ RedRed True t n' else ∃ c, Balanced t c n
+def DelProp (p : RBColor) (t : RBNode α) (n : Nat) : Prop :=
+  match p with
+  | black => ∃ n', n = n' + 1 ∧ RedRed True t n'
+  | red => ∃ c, Balanced t c n
 
 /-- The `DelProp` property is a strengthened version of the red-red invariant. -/
-theorem DelProp.redred (h : DelProp t₀ t n) : ∃ n', RedRed t₀.isBlack t n' := by
+theorem DelProp.redred (h : DelProp c t n) : ∃ n', RedRed (c = black) t n' := by
   unfold DelProp at h
-  exact match t₀.isBlack, h with
-  | false, ⟨_, h⟩ => ⟨_, .balanced h⟩
-  | true, ⟨_, _, h⟩ => ⟨_, h.imp fun _ => rfl⟩
+  exact match c, h with
+  | red, ⟨_, h⟩ => ⟨_, .balanced h⟩
+  | black, ⟨_, _, h⟩ => ⟨_, h.imp fun _ => rfl⟩
 
 protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
   | .nil, h => h
   | .node .., ⟨hy, ha, hb⟩ => by
     unfold del; split
-    · unfold cond; split
+    · split
       · exact ha.del.balLeft hy hb
       · exact ⟨hy, ha.del, hb⟩
-    · unfold cond; split
+    · split
       · exact ha.balRight hy hb.del
       · exact ⟨hy, ha, hb.del⟩
     · exact ha.append hb
@@ -415,16 +417,17 @@ protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut 
   | .nil, _ => ⟨⟩
   | .node _ a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold del; split
-    · unfold cond; split
+    · split
       · exact ha.del.balLeft ay.del yb hb
       · exact ⟨ay.del, yb, ha.del, hb⟩
-    · unfold cond; split
+    · split
       · exact ha.balRight ay yb.del hb.del
       · exact ⟨ay, yb.del, ha, hb.del⟩
     · exact ha.append ay yb hb
 
 /-- The `del` function has the `DelProp` property. -/
-protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) : t.DelProp (t.del cut) n := by
+protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
+    (t.del cut).DelProp t.isBlack n := by
   induction h with
   | nil => exact ⟨_, .nil⟩
   | @black a _ n b _ _ ha hb iha ihb =>
@@ -473,6 +476,13 @@ def setRoot (v : α) : RBNode α → RBNode α
   | nil => node red nil v nil
   | node c a _ b => node c a v b
 
+/--
+Auxiliary definition for `zoom_ins`: set the root of the tree to `v`, creating a node if necessary.
+-/
+def delRoot : RBNode α → RBNode α
+  | nil => nil
+  | node _ a _ b => a.append b
+
 namespace Path
 
 /-- Same as `fill` but taking its arguments in a pair for easier composition with `zoom`. -/
@@ -482,7 +492,7 @@ theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
     fill' (zoom cut t path) = path.fill t := by
   induction t generalizing path with
   | nil => rfl
-  | node c a y b iha ihb => unfold zoom; split; {apply iha}; {apply ihb}; {rfl}
+  | node _ _ _ _ iha ihb => unfold zoom; split; {apply iha}; {apply ihb}; {rfl}
 
 theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
@@ -498,18 +508,36 @@ theorem zoom_zoomed (H : zoom cut t path = (t', path')) : t'.Zoomed cut :=
 
 theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
     t.zoom (cmp v) path = (t', path') →
-    path.ins (t.ins cmp v) = ins path' (t'.setRoot v) := by
+    path.ins (t.ins cmp v) = path'.ins (t'.setRoot v) := by
   unfold RBNode.ins; split <;> simp [zoom]
   · intro | rfl, rfl => rfl
   all_goals
   · split
-    · refine zoom_ins
-    · refine zoom_ins
+    · exact zoom_ins
+    · exact zoom_ins
     · intro | rfl => rfl
 
 theorem insertNew_eq_insert (h : zoom (cmp v) t = (nil, path)) :
     path.insertNew v = (t.insert cmp v).setBlack :=
   insert_setBlack .. ▸ (zoom_ins h).symm
+
+theorem zoom_del {t : RBNode α} :
+    t.zoom cut path = (t', path') →
+    path.del (t.del cut) (match t with | node c .. => c | _ => red) =
+    path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
+  unfold RBNode.del; split <;> simp [zoom]
+  · intro | rfl, rfl => rfl
+  · next c a y b =>
+    split
+    · have IH := @zoom_del (t := a)
+      match a with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · have IH := @zoom_del (t := b)
+      match b with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · intro | rfl => rfl
 
 variable (c₀ : RBColor) (n₀ : Nat) in
 /--
@@ -599,6 +627,25 @@ theorem zoom_insert {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
   | red hl hr => rw [← ins_eq_fill hp' (.red hl hr), insert_setBlack]; exact (zoom_ins H).symm
   | black hl hr => rw [← ins_eq_fill hp' (.black hl hr), insert_setBlack]; exact (zoom_ins H).symm
 
+protected theorem Balanced.del {path : Path α}
+    (hp : path.Balanced c₀ n₀ c n) (ht : t.DelProp c' n) (hc : c = black → c' ≠ red) :
+    ∃ n, (path.del t c').Balanced black n := by
+  induction hp generalizing t c' with
+  | root => match c', ht with
+    | red, ⟨_, h⟩ | black, ⟨_, _, h⟩ => exact h.setBlack
+  | @redL _ n _ _ hb hp ih => match c', n, ht with
+    | red, _, _ => cases hc rfl rfl
+    | black, _, ⟨_, rfl, ha⟩ => exact ih ((hb.balLeft ha).of_false (fun.)) (fun.)
+  | @redR _ n _ _ ha hp ih => match c', n, ht with
+    | red, _, _ => cases hc rfl rfl
+    | black, _, ⟨_, rfl, hb⟩ => exact ih ((ha.balRight hb).of_false (fun.)) (fun.)
+  | @blackL _ _ n _ _ _ hb hp ih => match c', n, ht with
+    | red, _, ⟨_, ha⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ (fun.)
+    | black, _, ⟨_, rfl, ha⟩ => exact ih ⟨_, rfl, (hb.balLeft ha).imp fun _ => ⟨⟩⟩ (fun.)
+  | @blackR _ _ n _ _ _ ha hp ih =>  match c', n, ht with
+    | red, _, ⟨_, hb⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ (fun.)
+    | black, _, ⟨_, rfl, hb⟩ => exact ih ⟨_, rfl, (ha.balRight hb).imp fun _ => ⟨⟩⟩ (fun.)
+
 end Path
 
 /-! ## alter -/
@@ -609,10 +656,24 @@ end Path
 --     (h : t.Ordered cmp) : (alter cut f t).Ordered cmp :=
 --   sorry
 
--- /-- The `alter` function preserves the balance invariants. -/
--- protected theorem Balanced.alter {t : RBNode α}
---     (h : t.Balanced c n) : ∃ c n, (t.alter cut f).Balanced c n :=
---   sorry
+/-- The `alter` function preserves the balance invariants. -/
+protected theorem Balanced.alter {t : RBNode α}
+    (h : t.Balanced c n) : ∃ c n, (t.alter cut f).Balanced c n := by
+  simp [alter]; split
+  · next path eq =>
+    split
+    · exact ⟨_, _, h⟩
+    · have ⟨_, _, .nil, h⟩ := h.zoom .root eq
+      exact ⟨_, h.insertNew⟩
+  · next path eq =>
+    have ⟨_, _, h, hp⟩ := h.zoom .root eq
+    split
+    · match h with
+      | .red ha hb => exact ⟨_, hp.del ((ha.append hb).of_false (· rfl rfl)) (fun.)⟩
+      | .black ha hb => exact ⟨_, hp.del ⟨_, rfl, (ha.append hb).imp fun _ => ⟨⟩⟩ (fun.)⟩
+    · match h with
+      | .red ha hb => exact ⟨_, _, hp.fill (.red ha hb)⟩
+      | .black ha hb => exact ⟨_, _, hp.fill (.black ha hb)⟩
 
 /-- The well-formedness invariant implies the ordering and balance properties. -/
 theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
