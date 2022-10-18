@@ -20,8 +20,8 @@ structure NonemptyList (α : Type u) where
 namespace NonemptyList
 
 /-- Convert from a standard `List α`. Requires a proof that the list is nonempty,
-which we attempt to close by `trivial`. -/
-def ofList (L : List α) (h : L ≠ [] := by trivial) : NonemptyList α :=
+which we attempt to close by `simp`. -/
+def ofList (L : List α) (h : L ≠ [] := by simp) : NonemptyList α :=
   match L, h with
   | [],     _ => by contradiction
   | x::xs,  _ => ⟨x,xs⟩
