@@ -1024,6 +1024,26 @@ end erase
 
 /-! ### filter and partition -/
 
+section filter
+
+@[simp] theorem filter_nil (p : α → Bool) : filter p [] = [] := rfl
+
+@[simp] theorem filter_cons_of_pos (l : List α) : p a → filter p (a::l) = a :: filter p l :=
+  fun h => by simp [filter, h]
+
+@[simp] theorem filter_cons_of_neg (l : List α) : ¬ p a → filter p (a::l) = filter p l :=
+  fun h => by simp [filter, h]
+
+@[simp] theorem filter_append : ∀ (l₁ l₂ : List α), filter p (l₁++l₂) = filter p l₁ ++ filter p l₂
+  | [],      _  => rfl
+  | (a::l₁), l₂ => by cases hP : p a <;> simp [hP, filter_append]
+
+theorem filter_sublist : ∀ (l : List α), filter p l <+ l
+  | []     => Sublist.slnil
+  | (a::l) => if pa : p a
+    then by simp [pa, Sublist.cons₂, filter_sublist l]
+    else by simp [pa, Sublist.cons, filter_sublist l]
+
 theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
   induction as with
   | nil => simp [filter]
@@ -1032,12 +1052,29 @@ theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
     · exact or_congr_left (and_iff_left_of_imp fun | rfl => ‹_›).symm
     · exact (or_iff_right fun ⟨rfl, h⟩ => (Bool.not_eq_true _).mpr ‹_› h).symm
 
+theorem filter_eq_self : filter p as = as ↔ ∀ a ∈ as, p a := by
+  induction as with
+  | nil => exact iff_of_true rfl (fun _ h => nomatch h)
+  | cons a as ih =>
+    rw [forall_mem_cons]
+    cases hP : p a with
+    | true =>
+      rw [filter_cons_of_pos _ hP, cons_inj, ih, and_iff_right rfl]
+    | false =>
+      refine iff_of_false ?_ (nomatch ·)
+      intro hL
+      refine Bool.eq_false_iff.mp hP ?_
+      refine mem_filter (as := a :: as) |>.mp ?_ |>.right
+      simp [mem_cons_self, hL]
+
 @[simp] theorem partition_eq_filter_filter (p : α → Bool) (l : List α) :
     partition p l = (filter p l, filter (not ∘ p) l) := by simp [partition, aux] where
   aux : ∀ l {as bs}, partitionAux p l (as, bs) =
     (as.reverse ++ filter p l, bs.reverse ++ filter (not ∘ p) l)
   | [] => by simp [partitionAux, filter]
   | a :: l => by cases pa : p a <;> simp [partitionAux, pa, aux, filter, append_assoc]
+
+end filter
 
 /-! ### pairwise -/
 
