@@ -343,50 +343,65 @@ variable {p q : α → Prop} {b : Prop}
 theorem forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 fun h' a => h a (h' a)
 
+theorem Exists.imp (h : ∀ a, p a → q a) : (∃ a, p a) → ∃ a, q a
+  | ⟨a, hp⟩ => ⟨a, h a hp⟩
+
+theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) :
+    (∃ a, p a) → ∃ b, q b
+  | ⟨_, hp⟩ => ⟨_, hpq _ hp⟩
+
+@[simp] theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
+  ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
+
+section forall_congr
+
 -- Port note: this is `forall_congr` from Lean 3. In Lean 4, there is already something
 -- with that name and a slightly different type.
 theorem forall_congr' (h : ∀ a, p a ↔ q a) : (∀ a, p a) ↔ ∀ a, q a :=
   ⟨fun H a => (h a).1 (H a), fun H a => (h a).2 (H a)⟩
 
-theorem forall₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∀ a b, p a b) ↔ (∀ a b, q a b) :=
-forall_congr' (fun a => forall_congr' (h a))
-
-theorem forall₃_congr {γ : Sort _} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∀ a b c, p a b c) ↔ (∀ a b c, q a b c) :=
-forall_congr' (fun a => forall₂_congr (h a))
-
-theorem forall₄_congr {γ δ : Sort _} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∀ a b c d, p a b c d) ↔ (∀ a b c d, q a b c d) :=
-forall_congr' (fun a => forall₃_congr (h a))
-
-theorem Exists.imp (h : ∀ a, p a → q a) : (∃ a, p a) → ∃ a, q a
-  | ⟨a, hp⟩ => ⟨a, h a hp⟩
-
-theorem Exists.imp' {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) :  (∃ a, p a) → ∃ b, q b
-  | ⟨_, hp⟩ => ⟨_, hpq _ hp⟩
-
 theorem exists_congr (h : ∀ a, p a ↔ q a) : (∃ a, p a) ↔ ∃ a, q a :=
   ⟨Exists.imp fun x => (h x).1, Exists.imp fun x => (h x).2⟩
 
-theorem exists₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-    (∃ a b, p a b) ↔ (∃ a b, q a b) :=
-  exists_congr fun a => exists_congr (h a)
+variable {β : α → Sort _}
+theorem forall₂_congr {p q : ∀ a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
+    (∀ a b, p a b) ↔ ∀ a b, q a b :=
+  forall_congr' fun a => forall_congr' <| h a
 
-theorem exists₃_congr {γ : Sort _} {p q : α → β → γ → Prop}
-    (h : ∀ a b c, p a b c ↔ q a b c) :
-    (∃ a b c, p a b c) ↔ (∃ a b c, q a b c) :=
-  exists_congr fun a => exists₂_congr (h a)
+theorem exists₂_congr {p q : ∀ a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
+    (∃ a b, p a b) ↔ ∃ a b, q a b :=
+  exists_congr fun a => exists_congr <| h a
 
-theorem exists₄_congr {γ δ : Sort _} {p q : α → β → γ → δ → Prop}
-    (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-    (∃ a b c d, p a b c d) ↔ (∃ a b c d, q a b c d) :=
-  exists_congr fun a => exists₃_congr (h a)
+variable {γ : ∀ a, β a → Sort _}
+theorem forall₃_congr {p q : ∀ a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+    (∀ a b c, p a b c) ↔ ∀ a b c, q a b c :=
+  forall_congr' fun a => forall₂_congr <| h a
 
-@[simp] theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
-  ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
+theorem exists₃_congr {p q : ∀ a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+    (∃ a b c, p a b c) ↔ ∃ a b c, q a b c :=
+  exists_congr fun a => exists₂_congr <| h a
+
+variable {δ : ∀ a b, γ a b → Sort _}
+theorem forall₄_congr {p q : ∀ a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+    (∀ a b c d, p a b c d) ↔ ∀ a b c d, q a b c d :=
+  forall_congr' fun a => forall₃_congr <| h a
+
+theorem exists₄_congr {p q : ∀ a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+    (∃ a b c d, p a b c d) ↔ ∃ a b c d, q a b c d :=
+  exists_congr fun a => exists₃_congr <| h a
+
+variable {ε : ∀ a b c, δ a b c → Sort _}
+theorem forall₅_congr {p q : ∀ a b c d, ε a b c d → Prop}
+    (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+    (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
+  forall_congr' fun a => forall₄_congr <| h a
+
+theorem exists₅_congr {p q : ∀ a b c d, ε a b c d → Prop}
+    (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+    (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
+  exists_congr fun a => exists₄_congr <| h a
+
+end forall_congr
 
 @[simp] theorem not_exists : (¬∃ x, p x) ↔ ∀ x, ¬p x := exists_imp
 
