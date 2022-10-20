@@ -17,7 +17,7 @@ Along the same lines, `fun.` is a nullary pattern matching function; it is equiv
 impossible pattern. The `match x with.` and `intro.` tactics do the same thing but in tactic mode.
 -/
 namespace Std.Tactic
-open Lean Elab Term
+open Lean Elab Term Parser.Term
 
 /--
 The syntax `match x with.` is a variant of `nomatch x` which supports pattern matching on multiple
@@ -27,7 +27,7 @@ syntax:lead (name := noMatch) "match " matchDiscr,* " with" "." : term
 
 open private elabMatchAux waitExpectedType from Lean.Elab.Match in
 /-- Elaborator for `match x with.` -/
-@[termElab noMatch] def elabNoMatch' : TermElab
+@[term_elab noMatch] def elabNoMatch' : TermElab
 | `(match $discrs,* with.), expectedType? => do
   let discrs := discrs.getElems
   for h : i in [0:discrs.size] do
@@ -53,9 +53,9 @@ elab (name := noFun) tk:"fun" "." : term <= expectedType => do
         return ((⟨← `(a)⟩ : Ident), ← `(matchDiscr| a))
   elabTerm (← `(@fun%$tk $binders:ident* => match%$tk $discrs:matchDiscr,* with.)) expectedType
 
-@[inheritDoc noFun] macro tk:"λ" "." : term => `(fun%$tk .)
+@[inherit_doc noFun] macro tk:"λ" "." : term => `(fun%$tk .)
 
-@[inheritDoc noMatch] macro "match " discrs:matchDiscr,* " with" "." : tactic =>
+@[inherit_doc noMatch] macro "match " discrs:matchDiscr,* " with" "." : tactic =>
   `(tactic| exact match $discrs,* with.)
 
 /--

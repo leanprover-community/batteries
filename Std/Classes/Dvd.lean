@@ -9,4 +9,4 @@ class Dvd (α : Type _) where
   /-- Divisibility. `a ∣ b` (typed as `\|`) means that there is some `c` such that `b = a * c`. -/
   dvd : α → α → Prop
 
-@[inheritDoc] infix:50 " ∣ " => Dvd.dvd
+@[inherit_doc] infix:50 " ∣ " => Dvd.dvd

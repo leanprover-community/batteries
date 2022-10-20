@@ -30,11 +30,11 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
 #TODO: implement `?`
 -/
 syntax (name := simpa) "simpa" "?"? "!"? simpaArgsRest : tactic
-@[inheritDoc simpa] macro "simpa!" rest:simpaArgsRest : tactic =>
+@[inherit_doc simpa] macro "simpa!" rest:simpaArgsRest : tactic =>
   `(tactic| simpa ! $rest:simpaArgsRest)
-@[inheritDoc simpa] macro "simpa?" rest:simpaArgsRest : tactic =>
+@[inherit_doc simpa] macro "simpa?" rest:simpaArgsRest : tactic =>
   `(tactic| simpa ? $rest:simpaArgsRest)
-@[inheritDoc simpa] macro "simpa?!" rest:simpaArgsRest : tactic =>
+@[inherit_doc simpa] macro "simpa?!" rest:simpaArgsRest : tactic =>
   `(tactic| simpa ?! $rest:simpaArgsRest)
 
 elab_rules : tactic

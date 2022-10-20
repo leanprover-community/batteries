@@ -17,7 +17,6 @@ syntax "declare_ext_theorems_for" ident : command
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension : SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    name := `ext
     addEntry := fun dt (n, ks) => dt.insertCore ks n
     initial := {}
   }

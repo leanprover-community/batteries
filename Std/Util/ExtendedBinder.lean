@@ -121,7 +121,7 @@ elab_rules : command
 
 open Linter.MissingDocs Parser Term in
 /-- Missing docs handler for `binder_predicate` -/
-@[missingDocsHandler binderPredicate]
+@[missing_docs_handler binderPredicate]
 def checkBinderPredicate : SimpleHandler := fun stx => do
   if stx[0].isNone && stx[2][0][0].getKind != ``«local» then
     if stx[4].isNone then lint stx[3] "binder predicate"

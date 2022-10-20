@@ -6,10 +6,10 @@ package std where
   moreLeanArgs := #["-DwarningAsError=true", "-Dlinter.missingDocs=true"]
   moreServerArgs := #["-Dlinter.missingDocs=true"]
 
-@[defaultTarget]
+@[default_target]
 lean_lib Std
 
-@[defaultTarget]
+@[default_target]
 lean_exe runLinter where
   root := `scripts.runLinter
   supportInterpreter := true

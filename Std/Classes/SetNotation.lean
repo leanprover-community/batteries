@@ -96,13 +96,13 @@ macro_rules
   | `({$x:term, $xs:term,*}) => `(insert $x {$xs:term,*})
 
 /-- Unexpander for the `{ x }` notation. -/
-@[appUnexpander singleton]
+@[app_unexpander singleton]
 def singletonUnexpander : Lean.PrettyPrinter.Unexpander
   | `($_ $a) => `({ $a:term })
   | _ => throw ()
 
 /-- Unexpander for the `{ x, y, ... }` notation. -/
-@[appUnexpander insert]
+@[app_unexpander insert]
 def insertUnexpander : Lean.PrettyPrinter.Unexpander
   | `($_ $a { $ts,* }) => `({$a:term, $ts,*})
   | _ => throw ()

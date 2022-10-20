@@ -77,9 +77,9 @@ Check equality of two expressions.
 * `guard_expr e = e'` checks that `e` and `e'` are definitionally equal.
 -/
 syntax (name := guardExpr) "guard_expr " term:51 equal term : tactic
-@[inheritDoc guardExpr] syntax (name := guardExprConv) "guard_expr " term:51 equal term : conv
+@[inherit_doc guardExpr] syntax (name := guardExprConv) "guard_expr " term:51 equal term : conv
 
-@[inheritDoc guardExpr, tactic guardExpr, tactic guardExprConv]
+@[inherit_doc guardExpr, tactic guardExpr, tactic guardExprConv]
 def evalGuardExpr : Tactic := fun
   | `(tactic| guard_expr $r $eq:equal $p)
   | `(conv| guard_expr $r $eq:equal $p) => withMainContext do
@@ -96,9 +96,9 @@ Check the target agrees with a given expression.
 * `guard_target = e` checks that the target is definitionally equal to `e`.
 -/
 syntax (name := guardTarget) "guard_target " equal term : tactic
-@[inheritDoc guardTarget] syntax (name := guardTargetConv) "guard_target " equal term : conv
+@[inherit_doc guardTarget] syntax (name := guardTargetConv) "guard_target " equal term : conv
 
-@[inheritDoc guardTarget, tactic guardTarget, tactic guardTargetConv]
+@[inherit_doc guardTarget, tactic guardTarget, tactic guardTargetConv]
 def evalGuardTarget : Tactic :=
   let go eq r getTgt := withMainContext do
     let r ← elabTerm r none
@@ -120,10 +120,10 @@ Check that a named hypothesis has a given type and/or value.
 -/
 syntax (name := guardHyp)
   "guard_hyp " term:max (colon term)? (colonEq term)? : tactic
-@[inheritDoc guardHyp] syntax (name := guardHypConv)
+@[inherit_doc guardHyp] syntax (name := guardHypConv)
   "guard_hyp " term:max (colon term)? (colonEq term)? : conv
 
-@[inheritDoc guardHyp, tactic guardHyp, tactic guardHypConv]
+@[inherit_doc guardHyp, tactic guardHyp, tactic guardHypConv]
 def evalGuardHyp : Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?)
   | `(conv| guard_hyp $h $[$c $ty]? $[$eq $val]?) => withMainContext do

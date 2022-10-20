@@ -89,7 +89,7 @@ It is also possible to specify the module instead with
 syntax (name := openPrivate) "open private" ident* ("in" ident*)? ("from" ident*)? : command
 
 /-- Elaborator for `open private`. -/
-@[commandElab openPrivate] def elabOpenPrivate : CommandElab
+@[command_elab openPrivate] def elabOpenPrivate : CommandElab
 | `(open private $ids* $[in $tgts*]? $[from $mods*]?) =>
   elabOpenPrivateLike ids tgts mods fun c _ _ => pure c
 | _ => throwUnsupportedSyntax
@@ -108,7 +108,7 @@ It is also possible to specify the module instead with
 syntax (name := exportPrivate) "export private" ident* ("in" ident*)? ("from" ident*)? : command
 
 /-- Elaborator for `export private`. -/
-@[commandElab exportPrivate] def elabExportPrivate : CommandElab
+@[command_elab exportPrivate] def elabExportPrivate : CommandElab
 | `(export private $ids* $[in $tgts*]? $[from $mods*]?) =>
   elabOpenPrivateLike ids tgts mods fun c name _ => liftCoreM do
     let cinfo ← getConstInfo c

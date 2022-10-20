@@ -17,7 +17,7 @@ theorem gcd_rec (m n : Nat) : gcd m n = gcd (n % m) m :=
   | 0 => by have := (mod_zero n).symm; rwa [gcd_zero_right]
   | _ + 1 => by simp [gcd_succ]
 
-@[elabAsElim] theorem gcd.induction {P : Nat → Nat → Prop} (m n : Nat)
+@[elab_as_elim] theorem gcd.induction {P : Nat → Nat → Prop} (m n : Nat)
     (H0 : ∀n, P 0 n) (H1 : ∀ m n, 0 < m → P (n % m) m → P m n) : P m n :=
   Nat.strongInductionOn (motive := fun m => ∀ n, P m n) m
     (fun

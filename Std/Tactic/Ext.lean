@@ -111,7 +111,7 @@ macro_rules
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
 of recursing as much as possible.
 -/
-macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic => `(tactic| apply_ext_lemma; rintro $xs*)
+macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic => `(tactic| (apply_ext_lemma; rintro $xs*))
 
 -- TODO
 /-- `ext1? pat*` is like `ext1 pat*` but gives a suggestion on what pattern to use -/

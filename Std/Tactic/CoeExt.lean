@@ -42,7 +42,6 @@ instance : ToExpr CoeFnInfo where
 /-- The environment extension for tracking coercion functions for delaboration -/
 initialize coeExt : SimpleScopedEnvExtension (Name × CoeFnInfo) (NameMap CoeFnInfo) ←
   registerSimpleScopedEnvExtension {
-    name := `coe
     addEntry := fun st (n, i) => st.insert n i
     initial := {}
   }

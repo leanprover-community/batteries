@@ -436,7 +436,7 @@ inductive Sublist {α} : List α → List α → Prop
   /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
   | cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
 
-@[inheritDoc] scoped infixl:50 " <+ " => Sublist
+@[inherit_doc] scoped infixl:50 " <+ " => Sublist
 
 /--
 Split a list at an index.
@@ -742,11 +742,11 @@ substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, 
 -/
 def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inheritDoc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] infixl:50 " <+: " => isPrefix
 
-@[inheritDoc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] infixl:50 " <:+ " => isSuffix
 
-@[inheritDoc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] infixl:50 " <:+: " => isInfix
 
 /--
 `inits l` is the list of initial segments of `l`.

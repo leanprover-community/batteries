@@ -197,11 +197,11 @@ Don't do this unless you understand what you are doing.
 A full description of the tactic, and the use of each lemma category, can be found at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
 -/
-syntax (name := normCast) "norm_cast" (ppSpace normCastLabel)? (ppSpace num)? : attr
+syntax (name := norm_cast) "norm_cast" (ppSpace normCastLabel)? (ppSpace num)? : attr
 end Attr
 
 initialize registerBuiltinAttribute {
-  name := `normCast
+  name := `norm_cast
   descr := "attribute for norm_cast"
   add := fun decl stx kind => MetaM.run' do
     let `(attr| norm_cast $[$label:normCastLabel]? $[$prio]?) := stx | unreachable!

@@ -19,7 +19,6 @@ def LibraryNoteEntry := String × String
 /-- Environment extension supporting `library_note`. -/
 initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array LibraryNoteEntry) ←
   registerSimplePersistentEnvExtension {
-    name := `library_note
     addEntryFn := Array.push
     addImportedFn := Array.concatMap id
   }

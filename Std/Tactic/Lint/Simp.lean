@@ -102,7 +102,7 @@ def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM Syntax := do
   `(tactic| simp only [$[$args:ident],*])
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
-@[stdLinter] def simpNF : Linter where
+@[std_linter] def simpNF : Linter where
   noErrorsFound := "All left-hand sides of simp lemmas are in simp-normal form."
   errorsFound := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 see note [simp-normal form] for tips how to debug this.
@@ -193,7 +193,7 @@ Here are some tips depending on the error raised by the linter:
 A linter for simp lemmas whose lhs has a variable as head symbol,
 and which hence never fire.
 -/
-@[stdLinter] def simpVarHead : Linter where
+@[std_linter] def simpVarHead : Linter where
   noErrorsFound :=
     "No left-hand sides of a simp lemma has a variable as head symbol."
   errorsFound := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.
@@ -206,7 +206,7 @@ Some simp lemmas have a variable as head symbol of the left-hand side:"
     return m!"Left-hand side has variable as head symbol: {headSym}"
 
 /-- A linter for commutativity lemmas that are marked simp. -/
-@[stdLinter] def simpComm : Linter where
+@[std_linter] def simpComm : Linter where
   noErrorsFound := "No commutativity lemma is marked simp."
   errorsFound := "COMMUTATIVITY LEMMA IS SIMP.
 Some commutativity lemmas are simp lemmas:"

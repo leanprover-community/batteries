@@ -96,10 +96,10 @@ and produces a list of linters. -/
 def getLinters (l : List Name) : CoreM (List NamedLinter) :=
   l.mapM getLinter
 
-/-- Defines the user attribute `stdLinter` for adding a linter to the default set. -/
+/-- Defines the `std_linter` attribute for adding a linter to the default set. -/
 initialize stdLinterAttr : TagAttribute ←
   registerTagAttribute
-    (name := `stdLinter)
+    (name := `std_linter)
     (descr := "Use this declaration as a linting test in #lint")
     (validate := fun name => do
       let constInfo ← getConstInfo name

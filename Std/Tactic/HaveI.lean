@@ -17,9 +17,9 @@ and subgoals, where the extra binding is inconvenient.
 namespace Std.Tactic
 
 /-- `haveI` behaves like `have`, but inlines the value instead of producing a `let_fun` term. -/
-@[termParser] def «haveI» := leading_parser withPosition ("haveI " >> haveDecl) >> optSemicolon termParser
+@[term_parser] def «haveI» := leading_parser withPosition ("haveI " >> haveDecl) >> optSemicolon termParser
 /-- `letI` behaves like `let`, but inlines the value instead of producing a `let_fun` term. -/
-@[termParser] def «letI» := leading_parser withPosition ("letI " >> haveDecl) >> optSemicolon termParser
+@[term_parser] def «letI» := leading_parser withPosition ("letI " >> haveDecl) >> optSemicolon termParser
 
 macro_rules
   | `(haveI $_ : $_ := $_; $_) => throwUnsupported -- handled by elab
@@ -48,6 +48,6 @@ elab_rules <= expectedType
       return (← (← elabTerm body expectedType).abstractM #[x]).instantiate #[val]
 
 /-- `haveI` behaves like `have`, but inlines the value instead of producing a `let_fun` term. -/
-macro "haveI " d:haveDecl : tactic => `(refine_lift haveI $d:haveDecl; ?_)
+macro "haveI " d:haveDecl : tactic => `(tactic| refine_lift haveI $d:haveDecl; ?_)
 /-- `letI` behaves like `let`, but inlines the value instead of producing a `let_fun` term. -/
-macro "letI " d:haveDecl : tactic => `(refine_lift letI $d:haveDecl; ?_)
+macro "letI " d:haveDecl : tactic => `(tactic| refine_lift letI $d:haveDecl; ?_)

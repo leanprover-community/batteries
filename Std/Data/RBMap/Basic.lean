@@ -832,9 +832,9 @@ can be used in `for` loops or converted to an array or list.
 -/
 @[inline] def keys (t : RBMap α β cmp) : Keys α β cmp := t
 
-@[inline, inheritDoc keysArray] def Keys.toArray := @keysArray
+@[inline, inherit_doc keysArray] def Keys.toArray := @keysArray
 
-@[inline, inheritDoc keysList] def Keys.toList := @keysList
+@[inline, inherit_doc keysList] def Keys.toList := @keysList
 
 instance : Coe (Keys α β cmp) (Array α) := ⟨keysArray⟩
 
@@ -881,9 +881,9 @@ can be used in `for` loops or converted to an array or list.
 -/
 @[inline] def values (t : RBMap α β cmp) : Values α β cmp := t
 
-@[inline, inheritDoc valuesArray] def Values.toArray := @valuesArray
+@[inline, inherit_doc valuesArray] def Values.toArray := @valuesArray
 
-@[inline, inheritDoc valuesList] def Values.toList := @valuesList
+@[inline, inherit_doc valuesList] def Values.toList := @valuesList
 
 instance : Coe (Values α β cmp) (Array β) := ⟨valuesArray⟩
 
@@ -967,7 +967,7 @@ private unsafe def modifyImpl (t : RBMap α β cmp) (k : α) (f : β → β) : R
 This takes the element out of the tree while `f` runs,
 so it uses the element linearly if `t` is unshared.
 -/
-@[implementedBy modifyImpl] opaque modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp
+@[implemented_by modifyImpl] opaque modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp
 
 -- def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
 --   t.modifyP (cmp k ·.1) (fun (a, b) => (a, f b))
@@ -1000,7 +1000,7 @@ The element is used linearly if `t` is unshared.
 The `AlterWF` assumption is required because `f` may change
 the ordering properties of the element, which would break the invariants.
 -/
-@[implementedBy alterImpl]
+@[implemented_by alterImpl]
 opaque alter (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp
 
 -- @[specialize] def alter
@@ -1074,6 +1074,6 @@ end RBMap
 end Std
 open Std
 
-@[inheritDoc RBMap.ofList]
+@[inherit_doc RBMap.ofList]
 abbrev List.toRBMap (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
   RBMap.ofList l cmp

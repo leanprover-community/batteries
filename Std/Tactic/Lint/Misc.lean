@@ -19,7 +19,7 @@ This file defines several small linters.
 -/
 
 /-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
-@[stdLinter] def dupNamespace : Linter where
+@[std_linter] def dupNamespace : Linter where
   noErrorsFound := "No declarations have a duplicate namespace."
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
@@ -32,7 +32,7 @@ This file defines several small linters.
 
 /-- A linter object for checking for unused arguments.
 We skip all declarations that contain `sorry` in their value. -/
-@[stdLinter] def unusedArguments : Linter where
+@[std_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
   errorsFound := "UNUSED ARGUMENTS."
   test declName := do
@@ -56,7 +56,7 @@ We skip all declarations that contain `sorry` in their value. -/
           return m!"argument {i+1} {arg} : {← inferType arg}") m!", "
 
 /-- A linter for checking definition doc strings -/
-@[stdLinter] def docBlame : Linter where
+@[std_linter] def docBlame : Linter where
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
@@ -89,7 +89,7 @@ def docBlameThm : Linter where
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
-@[stdLinter] def defLemma : Linter where
+@[std_linter] def defLemma : Linter where
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
@@ -107,7 +107,7 @@ has been used. -/
     | _, _ => return none
 
 /-- A linter for missing checking whether statements of declarations are well-typed. -/
-@[stdLinter] def checkType : Linter where
+@[std_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
@@ -160,7 +160,7 @@ occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alo
 `(α : Type u) (β : Type (max u v))` is a occasionally useful method of saying that `β` lives in
 a higher universe level than `α`.
 -/
-@[stdLinter] def checkUnivs : Linter where
+@[std_linter] def checkUnivs : Linter where
   noErrorsFound :=
     "All declarations have good universe levels."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
@@ -185,7 +185,7 @@ where `e₁` and `e₂` are identical exprs.
 We call declarations of this form syntactic tautologies.
 Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
 with rfl when elaboration results in a different term than the user intended. -/
-@[stdLinter] def synTaut : Linter where
+@[std_linter] def synTaut : Linter where
   noErrorsFound :=
     "No declarations are syntactic tautologies."
   errorsFound := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
@@ -225,7 +225,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
 tag this as `@[stdLlinter]` so that it is not in the default linter set as it is slow and an
 uncommon problem. -/
-@[stdLinter] def unusedHavesSuffices : Linter where
+@[std_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
   errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. " ++
     "In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not " ++

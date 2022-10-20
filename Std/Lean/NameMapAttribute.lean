@@ -26,7 +26,8 @@ def NameMapExtension.add [Monad M] [MonadEnv M] [MonadError M]
      ext.addEntry (← getEnv) (k, v) |> setEnv
 
 /-- Registers a new extension with the given name and type. -/
-def registerNameMapExtension (α) (name : Name) : IO (NameMapExtension α) := do
+def registerNameMapExtension (α) (name : Name := by exact decl_name%) :
+    IO (NameMapExtension α) := do
   registerSimplePersistentEnvExtension {
     name
     addImportedFn := fun ass => ass.foldl (init := ∅) fun
@@ -40,6 +41,8 @@ def registerNameMapExtension (α) (name : Name) : IO (NameMapExtension α) := do
 structure NameMapAttributeImpl (α : Type) where
   /-- The name of the attribute -/
   name : Name
+  /-- The declaration which creates the attribute -/
+  ref : Name := by exact decl_name%
   /-- The description of the attribute -/
   descr : String
   /-- This function is called when the attribute is applied.
@@ -50,7 +53,7 @@ structure NameMapAttributeImpl (α : Type) where
 /-- Similar to `registerParametricAttribute` except that attributes do not
 have to be assigned in the same file as the declaration. -/
 def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExtension α) := do
-  let ext ← registerNameMapExtension α impl.name
+  let ext ← registerNameMapExtension α impl.ref
   registerBuiltinAttribute {
     name := impl.name
     descr := impl.descr
