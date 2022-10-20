@@ -216,7 +216,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   forEachExpr e fun e => do
     let some e := letFunAnnotation? e | return
     let Expr.app (Expr.lam n t b ..) _ .. := e | return
-    if n.getRoot == `_fun_discr then return
+    if n.isImplementationDetail then return
     if b.hasLooseBVars then return
     let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
     res.modify (·.push msg)
