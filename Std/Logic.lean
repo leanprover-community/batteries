@@ -339,6 +339,7 @@ theorem not_and_of_not_or_not (h : ¬a ∨ ¬b) : ¬(a ∧ b) := h.elim (mt (·.
 
 section quantifiers
 variable {p q : α → Prop} {b : Prop}
+variable {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _} {ε : ∀ a b c, δ a b c → Sort _}
 
 theorem forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 fun h' a => h a (h' a)
@@ -348,42 +349,44 @@ fun h' a => h a (h' a)
 theorem forall_congr' (h : ∀ a, p a ↔ q a) : (∀ a, p a) ↔ ∀ a, q a :=
   ⟨fun H a => (h a).1 (H a), fun H a => (h a).2 (H a)⟩
 
-theorem forall₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∀ a b, p a b) ↔ (∀ a b, q a b) :=
-forall_congr' (fun a => forall_congr' (h a))
+theorem forall₂_congr {p q : ∀ a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) : (∀ a b, p a b) ↔ ∀ a b, q a b :=
+  forall_congr' fun a => forall_congr' <| h a
 
-theorem forall₃_congr {γ : Sort _} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∀ a b c, p a b c) ↔ (∀ a b c, q a b c) :=
-forall_congr' (fun a => forall₂_congr (h a))
+theorem forall₃_congr {p q : ∀ a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+    (∀ a b c, p a b c) ↔ ∀ a b c, q a b c :=
+  forall_congr' fun a => forall₂_congr <| h a
 
-theorem forall₄_congr {γ δ : Sort _} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∀ a b c d, p a b c d) ↔ (∀ a b c d, q a b c d) :=
-forall_congr' (fun a => forall₃_congr (h a))
+theorem forall₄_congr {p q : ∀ a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+    (∀ a b c d, p a b c d) ↔ ∀ a b c d, q a b c d :=
+  forall_congr' fun a => forall₃_congr <| h a
+
+theorem forall₅_congr {p q : ∀ a b c d, ε a b c d → Prop} (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+    (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
+  forall_congr' fun a => forall₄_congr <| h a
 
 theorem Exists.imp (h : ∀ a, p a → q a) : (∃ a, p a) → ∃ a, q a
   | ⟨a, hp⟩ => ⟨a, h a hp⟩
 
-theorem Exists.imp' {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) :  (∃ a, p a) → ∃ b, q b
+theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) :  (∃ a, p a) → ∃ b, q b
   | ⟨_, hp⟩ => ⟨_, hpq _ hp⟩
 
 theorem exists_congr (h : ∀ a, p a ↔ q a) : (∃ a, p a) ↔ ∃ a, q a :=
   ⟨Exists.imp fun x => (h x).1, Exists.imp fun x => (h x).2⟩
 
-theorem exists₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-    (∃ a b, p a b) ↔ (∃ a b, q a b) :=
-  exists_congr fun a => exists_congr (h a)
+theorem exists₂_congr {p q : ∀ a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) : (∃ a b, p a b) ↔ ∃ a b, q a b :=
+  exists_congr fun a => exists_congr <| h a
 
-theorem exists₃_congr {γ : Sort _} {p q : α → β → γ → Prop}
-    (h : ∀ a b c, p a b c ↔ q a b c) :
-    (∃ a b c, p a b c) ↔ (∃ a b c, q a b c) :=
-  exists_congr fun a => exists₂_congr (h a)
+theorem exists₃_congr {p q : ∀ a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+    (∃ a b c, p a b c) ↔ ∃ a b c, q a b c :=
+  exists_congr fun a => exists₂_congr <| h a
 
-theorem exists₄_congr {γ δ : Sort _} {p q : α → β → γ → δ → Prop}
-    (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-    (∃ a b c d, p a b c d) ↔ (∃ a b c d, q a b c d) :=
-  exists_congr fun a => exists₃_congr (h a)
+theorem exists₄_congr {p q : ∀ a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+    (∃ a b c d, p a b c d) ↔ ∃ a b c d, q a b c d :=
+  exists_congr fun a => exists₃_congr <| h a
+
+theorem exists₅_congr {p q : ∀ a b c d, ε a b c d → Prop} (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+    (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
+  exists_congr fun a => exists₄_congr <| h a
 
 @[simp] theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
   ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
@@ -454,7 +457,7 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 @[simp] theorem exists_prop : (∃ _h : a, b) ↔ a ∧ b :=
   ⟨fun ⟨hp, hq⟩ => ⟨hp, hq⟩, fun ⟨hp, hq⟩ => ⟨hp, hq⟩⟩
 
-@[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩
+@[simp] theorem exists_apply_eq_apply {β} (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩
 
 theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
   @forall_const (q h) p ⟨h⟩
