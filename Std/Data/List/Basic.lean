@@ -259,7 +259,7 @@ where
 -/
 protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
-instance : Subset (List α) := ⟨List.Subset⟩
+instance : HasSubset (List α) := ⟨List.Subset⟩
 
 instance decidableBEx (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∃ x ∈ l, p x)

@@ -6,30 +6,32 @@ Authors: Mario Carneiro
 import Std.Util.ExtendedBinder
 
 /-- Notation type class for the subset relation `⊆`. -/
-class Subset (α : Type u) where
+class HasSubset (α : Type u) where
   /-- Subset relation: `a ⊆ b`  -/
-  subset : α → α → Prop
+  Subset : α → α → Prop
+export HasSubset (Subset)
 
 /-- Subset relation: `a ⊆ b`  -/
-infix:50 " ⊆ " => Subset.subset
+infix:50 " ⊆ " => HasSubset.Subset
 
 /-- Notation type class for the strict subset relation `⊂`. -/
-class SSubset (α : Type u) where
+class HasSSubset (α : Type u) where
   /-- Strict subset relation: `a ⊂ b`  -/
-  ssubset : α → α → Prop
+  SSubset : α → α → Prop
+export HasSSubset (SSubset)
 
 /-- Strict subset relation: `a ⊂ b`  -/
-infix:50 " ⊂ " => SSubset.ssubset
+infix:50 " ⊂ " => HasSSubset.SSubset
 
 /-- Superset relation: `a ⊇ b`  -/
-abbrev superset [Subset α] (a b : α) := b ⊆ a
+abbrev Superset [HasSubset α] (a b : α) := b ⊆ a
 /-- Superset relation: `a ⊇ b`  -/
-infix:50 " ⊇ " => superset
+infix:50 " ⊇ " => Superset
 
 /-- Strict superset relation: `a ⊃ b`  -/
-abbrev ssuperset [SSubset α] (a b : α) := b ⊂ a
+abbrev SSuperset [HasSSubset α] (a b : α) := b ⊂ a
 /-- Strict superset relation: `a ⊃ b`  -/
-infix:50 " ⊃ " => ssuperset
+infix:50 " ⊃ " => SSuperset
 
 /-- Notation type class for the union operation `∪`. -/
 class Union (α : Type u) where
@@ -46,7 +48,7 @@ class Inter (α : Type u) where
 infixl:70 " ∩ " => Inter.inter
 
 /-- Notation type class for the set difference `\`. -/
-class Sdiff (α : Type u) where
+class SDiff (α : Type u) where
   /--
   `a \ b` is the set difference of `a` and `b`,
   consisting of all elements in `a` that are not in `b`.
@@ -56,7 +58,7 @@ class Sdiff (α : Type u) where
 `a \ b` is the set difference of `a` and `b`,
 consisting of all elements in `a` that are not in `b`.
 -/
-infix:70 " \\ " => Sdiff.sdiff
+infix:70 " \\ " => SDiff.sdiff
 
 /--
 Type class for the `insert` operation.
