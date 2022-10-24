@@ -65,6 +65,9 @@ theorem isSome_iff_exists : isSome x ↔ ∃ a, x = some a := by
 theorem eq_some_iff_get_eq : o = some a ↔ ∃ h : o.isSome, o.get h = a := by
   cases o <;> simp; intro.
 
+theorem eq_some_of_isSome : ∀ {o : Option α} (h : o.isSome), o = some (o.get h)
+  | some _, _ => rfl
+
 theorem not_isSome_iff_eq_none : ¬o.isSome ↔ o = none := by
   cases o <;> simp
 
