@@ -45,6 +45,10 @@ instance {p : α → Prop} [DecidablePred p] : ∀ o : Option α, Decidable (∃
 def get {α : Type u} : (o : Option α) → isSome o → α
   | some x, _ => x
 
+theorem eq_some_of_isSome {α : Type u} :
+    ∀ {o : Option α} (h : Option.isSome o), o = some (Option.get _ h)
+  | some _, _ => rfl
+
 /-- `guard p a` returns `some a` if `p a` holds, otherwise `none`. -/
 def guard (p : α → Prop) [DecidablePred p] (a : α) : Option α := if p a then some a else none
 
