@@ -49,23 +49,23 @@ An `Iterable` for which the iterator object has some well-ordered
 notion of size, which decreases at each `step`. This is used to
 automatically generate `Fold` implementations for `Iterable`s.
 -/
-class FinIterable (C : Type u) (τ : Type v) extends Iterable C τ where
+class WFIterable (C : Type u) (τ : Type v) extends Iterable C τ where
   /-- Iterator type `ρ` has a well-founded relation. -/
   wf : WellFoundedRelation ρ
   /-- Iterable `step` function respects the well-founded relation. -/
   h_step : ∀ r x r', Iterable.step r = some (x, r') → wf.rel r' r
 
-attribute [instance] FinIterable.wf
+attribute [instance] WFIterable.wf
 
 @[default_instance]
-instance [FinIterable C τ] : Fold C τ where
+instance [WFIterable C τ] : Fold C τ where
   fold β f init c :=
     let rec loop (r : Iterable.ρ C τ) (acc : β) :=
       match h : Iterable.step r with
       | none => acc
       | some (x, r') =>
-        have : FinIterable.wf.rel r' r :=
-          FinIterable.h_step r x r' h
+        have : WFIterable.wf.rel r' r :=
+          WFIterable.h_step r x r' h
         loop r' (f acc x)
     loop (Iterable.toIterator c) init
 termination_by loop r _ => r
