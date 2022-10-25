@@ -106,8 +106,8 @@ already in the array, which is appropriate when reinserting elements into the ar
   map.buckets.1.foldlM (init := d) fun d b => b.foldlM f d
 
 /-- Folds a function over the elements in the map (in arbitrary order). -/
-@[inline] def fold (f : δ → α → β → δ) (d : δ) (m : Imp α β) : δ :=
-  Id.run $ foldM f d m
+@[inline] def fold (f : δ → α → β → δ) (d : δ) (map : Imp α β) : δ :=
+  map.buckets.1.foldl (init := d) fun d b => b.foldl f d
 
 /-- Runs a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (h : Imp α β) : m PUnit :=
