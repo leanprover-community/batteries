@@ -37,6 +37,8 @@ theorem ofNat_succ (n : Nat) : ofNat (succ n) = ofNat n + 1 := rfl
 
 theorem negSucc_ofNat_coe (n : Nat) : -[n+1] = -↑(n + 1) := rfl
 
+theorem negOfNat_eq : negOfNat n = -ofNat n := rfl
+
 /- ## These are only for internal use -/
 
 @[simp] theorem add_def {a b : Int} : Int.add a b = a + b := rfl
