@@ -102,46 +102,8 @@ instance : WFIterable (List α) α where
       simp [List.length]
       apply Nat.lt_succ_self
 
-instance : WFIterable Range Nat where
-  ρ := Range
-  toIterator r :=
-    if r.step = 0 then ⟨0,0,1⟩ else r
-  step := λ ⟨start, stop, step⟩ =>
-    if start < stop
-    then some (start, ⟨start+step, stop, step⟩)
-    else none
-  dom r := r.step > 0
-  wf := invImage (fun r => r.stop + r.step - r.start) Nat.lt_wfRel
-  h_toIterator r := by
-    simp [Iterable.toIterator]
-    split
-    . simp
-    . apply Nat.zero_lt_of_ne_zero
-      assumption
-  h_step r hr x r' h := by
-    simp [InvImage, WellFoundedRelation.rel, Nat.lt_wfRel]
-    simp [Iterable.step] at h
-    split at h
-    . next hstart =>
-      cases r; case mk start stop step =>
-      cases r'
-      simp at h hr hstart ⊢
-      match h with
-      | ⟨h1, h2, h3, h4⟩ =>
-      clear h; cases h1; cases h2; cases h3; cases h4
-      rw [Nat.add_sub_add_right]
-      refine ⟨?_, hr⟩
-      apply Nat.lt_of_lt_of_le
-      . have := Nat.add_lt_add_right hr (stop - x)
-        simp at this
-        exact this
-      . rw [Nat.add_comm stop, Nat.add_sub_assoc]
-        . apply Nat.le_refl
-        . apply Nat.le_of_lt hstart
-    . contradiction
-
 /-- Fold with dependent motive. -/
-def fold'' [WFIterable C τ]
+def foldD [WFIterable C τ]
   (motive : (r : Iterable.ρ C) → Sort u)
   (c : C)
   (f : (r : Iterable.ρ C) → WFIterable.dom r →
@@ -180,7 +142,7 @@ termination_by loop r _ _ => r
 
 TODO: Can generalize motive universe, but should we?
 -/
-def forIn'' [WFIterable.{uC, uT, uR} C τ] [Monad m]
+def forInD [WFIterable.{uC, uT, uR} C τ] [Monad m]
   (motive : (r : Iterable.ρ C) → Type uR)
   (c : C)
   (b : motive (Iterable.toIterator c))
@@ -208,6 +170,5 @@ def forInWithInv [WFIterable.{uC, uT, uR} C τ] [Monad m]
         (x : τ) → (r' : Iterable.ρ C) → Iterable.step r = some (x,r') →
         (acc : β) → inv r acc → m ((b : β) ×' inv r' b))
   : m (Σ' r, PProd (WFIterable.dom r ∧ Iterable.step r = none) ((b : β) ×' inv r b))
-  := forIn'' (motive := fun r => (b : β) ×' inv r b)
+  := forInD (motive := fun r => (b : β) ×' inv r b)
       c ⟨b,hb⟩ (fun r hd x r' hr ⟨acc,hacc⟩ => f r hd x r' hr acc hacc)
-
