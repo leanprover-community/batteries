@@ -30,7 +30,7 @@ This file defines several small linters.
       | return none
     return m!"The namespace {dup} is duplicated in the name"
 
-/-- A linter object for checking for unused arguments.
+/-- A linter for checking for unused arguments.
 We skip all declarations that contain `sorry` in their value. -/
 @[std_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
@@ -55,7 +55,7 @@ We skip all declarations that contain `sorry` in their value. -/
       addMessageContextFull <| .joinSep (← unused.toList.mapM fun (arg, i) =>
           return m!"argument {i+1} {arg} : {← inferType arg}") m!", "
 
-/-- A linter for checking definition doc strings -/
+/-- A linter for checking definition doc strings. -/
 @[std_linter] def docBlame : Linter where
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
@@ -74,8 +74,8 @@ We skip all declarations that contain `sorry` in their value. -/
     let (none) ← findDocString? (← getEnv) declName | return none
     return m!"{kind} missing documentation string"
 
-/-- A linter for checking theorem doc strings -/
-def docBlameThm : Linter where
+/-- A linter for checking theorem doc strings. -/
+@[std_linter disabled] def docBlameThm : Linter where
   noErrorsFound := "No theorems are missing documentation."
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
@@ -120,9 +120,9 @@ has been used. -/
 /--
 `univParamsGrouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
 and returns the corresponding set of lists of parameters.
-In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
-FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality instance.
-It will ignore `nm₀.proof_i` declarations.
+In pseudo-mathematical form, this returns `{{p : parameter | p ∈ u} | (u : level) ∈ e}`
+FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality
+instance. It will ignore `nm₀.proof_i` declarations.
 -/
 private def univParamsGrouped (e : Expr) (nm₀ : Name) : BaseIO (Lean.HashSet (Array Name)) := do
   let res ← IO.mkRef {}
@@ -204,9 +204,6 @@ with rfl when elaboration results in a different term than the user intended. -/
         return m!"LHS equals RHS syntactically"
       return none
 
-attribute [nolint synTaut] rfl
-
-
 /--
 Return a list of unused have/suffices/let_fun terms in an expression.
 This actually finds all beta-redexes.
@@ -223,7 +220,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   res.get
 
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
-tag this as `@[stdLlinter]` so that it is not in the default linter set as it is slow and an
+tag this as `@[std_linter]` so that it is not in the default linter set as it is slow and an
 uncommon problem. -/
 @[std_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
@@ -251,7 +248,7 @@ uncommon problem. -/
 A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
 variables should be implicit instead.
 -/
-def explicitVarsOfIff : Linter where
+@[std_linter disabled] def explicitVarsOfIff : Linter where
   noErrorsFound := "No explicit variables on both sides of iff"
   errorsFound := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF"
   test declName := do

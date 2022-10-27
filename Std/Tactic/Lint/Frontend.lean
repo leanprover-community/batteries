@@ -73,11 +73,16 @@ inductive LintVerbosity
 If `useOnly` is true, it only uses the linters in `extra`.
 Otherwise, it uses all linters in the environment tagged with `@[linter]`.
 If `slow` is false, it only uses the fast default tests. -/
-def getChecks (slow : Bool) (extra : List Name) (useOnly : Bool) : CoreM (List NamedLinter) := do
-  let default ← if useOnly then pure [] else
-    getLinters (stdLinterAttr.getDecls (← getEnv)).toList
-  let default := if slow then default else default.filter (·.isFast)
-  pure $ default ++ (← getLinters extra)
+def getChecks (slow : Bool) (useOnly : Bool) : CoreM (Array NamedLinter) := do
+  let mut result := #[]
+  unless useOnly do
+    for (name, declName, dflt) in stdLinterExt.getState (← getEnv) do
+      if dflt then
+        let linter ← getLinter name declName
+        if slow || linter.isFast then
+          let _ := Inhabited.mk linter
+          result := result.binInsert (·.name.lt ·.name) linter
+  pure result
 
 /--
 Runs all the specified linters on all the specified declarations in parallel,
@@ -212,15 +217,21 @@ elab "#lint"
     | _ => throwUnsupportedSyntax
   let fast := fast.isSome
   let only := only.isSome
-  let extraLinters ← linters.mapM fun id =>
-    withScope ({ · with currNamespace := `Std.Tactic.Lint }) <|
-      resolveGlobalConstNoOverload id
-  let linters ← liftCoreM <| getChecks (slow := !fast) extraLinters.toList only
-  let results ← liftCoreM <| lintCore decls linters.toArray
+  let linters ← liftCoreM do
+    let mut result ← getChecks (slow := !fast) only
+    let linterState := stdLinterExt.getState (← getEnv)
+    for id in linters do
+      let name := id.getId.eraseMacroScopes
+      let some (declName, _) := linterState.find? name | throwErrorAt id "not a linter: {name}"
+      let linter ← getLinter name declName
+      let _ := Inhabited.mk linter
+      result := result.binInsert (·.name.lt ·.name) linter
+    pure result
+  let results ← liftCoreM <| lintCore decls linters
   let failed := results.any (!·.2.isEmpty)
   let mut fmtResults ← liftCoreM <|
     formatLinterResults results decls (groupByFilename := groupByFilename)
-      whereDesc (runSlowLinters := !fast) verbosity linters.length
+      whereDesc (runSlowLinters := !fast) verbosity linters.size
   if failed then
     logError fmtResults
   else if verbosity != LintVerbosity.low then
@@ -229,12 +240,10 @@ elab "#lint"
 open Elab Command in
 /-- The command `#list_linters` prints a list of all available linters. -/
 elab "#list_linters" : command => do
-  let env ← getEnv
-  let ns : Array Name := env.constants.fold (init := #[]) fun ns n ci =>
-    if n.getPrefix == `Std.Tactic.Lint && ci.type == mkConst ``Std.Tactic.Lint.Linter
-      then ns.push n else ns
-  let linters ← ns.mapM fun n => do
-    let b := stdLinterAttr.hasTag (← getEnv) n
-    pure $ toString (n.updatePrefix Name.anonymous) ++ if b then " (*)" else ""
-  logInfo m!"Available linters (linters marked with (*) are in the default lint set):\n{
-    Format.joinSep linters.toList Format.line}"
+  let mut result := #[]
+  for (name, _, dflt) in stdLinterExt.getState (← getEnv) do
+    result := result.binInsert (·.1.lt ·.1) (name, dflt)
+  let mut msg := m!"Available linters (linters marked with (*) are in the default lint set):"
+  for (name, dflt) in result do
+    msg := msg ++ m!"\n{name}{if dflt then " (*)" else ""}"
+  logInfo msg

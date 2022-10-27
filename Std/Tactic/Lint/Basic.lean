@@ -18,32 +18,11 @@ framework.  A linter essentially consists of a function
 `(declaration : Name) → MetaM (Option MessageData)`, this function together with some
 metadata is stored in the `Linter` structure. We define two attributes:
 
- * `@[stdLinter]` applies to a declaration of type `Linter` and adds it to the default linter set.
+ * `@[std_linter]` applies to a declaration of type `Linter` and adds it to the default linter set.
 
  * `@[nolint linterName]` omits the tagged declaration from being checked by
    the linter with name `linterName`.
 -/
-
-/-- `@[nolint linterName]` omits the tagged declaration from being checked by
-the linter with name `linterName`. -/
-syntax (name := nolint) "nolint" (ppSpace ident)+ : attr
-
-/-- Defines the user attribute `nolint` for skipping `#lint` -/
-initialize nolintAttr : NameMapExtension (Array Name) ←
-  registerNameMapAttribute {
-    name := `nolint
-    descr := "Do not report this declaration in any of the tests of `#lint`"
-    add := fun _decl stx =>
-      match stx with
-        -- TODO: validate linter names
-        | `(attr|nolint $[$ids]*) => pure $ ids.map (·.getId.eraseMacroScopes)
-        | _ => throwError "unexpected nolint syntax {stx}"
-  }
-
-/-- Returns true if `decl` should be checked
-using `linter`, i.e., if there is no `nolint` attribute. -/
-def shouldBeLinted [Monad m] [MonadEnv m] (linter : Name) (decl : Name) : m Bool :=
-  return !((nolintAttr.find? (← getEnv) decl).getD {}).contains linter
 
 /--
 Returns true if `decl` is an automatically generated declaration.
@@ -81,27 +60,72 @@ structure Linter where
 
 /-- A `NamedLinter` is a linter associated to a particular declaration. -/
 structure NamedLinter extends Linter where
+  /-- The name of the named linter. This is just the declaration name without the namespace. -/
+  name : Name
   /-- The linter declaration name -/
   declName : Name
 
-/-- The name of the named linter. This is just the declaration name without the namespace. -/
-def NamedLinter.name (l : NamedLinter) : Name := l.declName.updatePrefix Name.anonymous
-
 /-- Gets a linter by declaration name. -/
-def getLinter (declName : Name) : CoreM NamedLinter := unsafe
-  return { ← evalConstCheck Linter ``Linter declName with declName }
+def getLinter (name declName : Name) : CoreM NamedLinter := unsafe
+  return { ← evalConstCheck Linter ``Linter declName with name, declName }
 
-/-- Takes a list of names that resolve to declarations of type `linter`,
-and produces a list of linters. -/
-def getLinters (l : List Name) : CoreM (List NamedLinter) :=
-  l.mapM getLinter
+/-- Defines the `std_linter` extension for adding a linter to the default set. -/
+initialize stdLinterExt :
+    PersistentEnvExtension (Name × Bool) (Name × Bool) (NameMap (Name × Bool)) ←
+  let addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
+  registerPersistentEnvExtension {
+    mkInitial := pure {}
+    addImportedFn := fun nss => pure <|
+      nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
+    addEntryFn
+    exportEntriesFn := fun es => es.fold (fun a _ e => a.push e) #[]
+  }
 
-/-- Defines the `std_linter` attribute for adding a linter to the default set. -/
-initialize stdLinterAttr : TagAttribute ←
-  registerTagAttribute
-    (name := `std_linter)
-    (descr := "Use this declaration as a linting test in #lint")
-    (validate := fun name => do
-      let constInfo ← getConstInfo name
-      unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
-        throwError "must have type Linter, got {constInfo.type}")
+/--
+Defines the `@[std_linter]` attribute for adding a linter to the default set.
+The form `@[std_linter disabled]` will not add the linter to the default set,
+but it will be shown by `#list_linters` and can be selected by the `#lint` command.
+
+Linters are named using their declaration names, without the namespace. These must be distinct.
+-/
+syntax (name := std_linter) "std_linter" &"disabled"? : attr
+
+initialize registerBuiltinAttribute {
+  name := `std_linter
+  descr := "Use this declaration as a linting test in #lint"
+  add   := fun decl stx kind => do
+    let dflt := stx[1].isNone
+    unless kind == .global do throwError "invalid attribute 'std_linter', must be global"
+    let shortName := decl.updatePrefix .anonymous
+    if let some (declName, _) := (stdLinterExt.getState (← getEnv)).find? shortName then
+      Elab.addConstInfo stx declName
+      throwError "invalid attribute 'std_linter', linter '{shortName}' has already been declared"
+    let constInfo ← getConstInfo decl
+    unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
+      throwError "must have type Linter, got {constInfo.type}"
+    modifyEnv fun env => stdLinterExt.addEntry env (decl, dflt)
+}
+
+/-- `@[nolint linterName]` omits the tagged declaration from being checked by
+the linter with name `linterName`. -/
+syntax (name := nolint) "nolint" (ppSpace ident)+ : attr
+
+/-- Defines the user attribute `nolint` for skipping `#lint` -/
+initialize nolintAttr : ParametricAttribute (Array Name) ←
+  registerParametricAttribute {
+    name := `nolint
+    descr := "Do not report this declaration in any of the tests of `#lint`"
+    getParam := fun _ => fun
+      | `(attr| nolint $[$ids]*) => ids.mapM fun id => withRef id <| do
+        let shortName := id.getId.eraseMacroScopes
+        let some (declName, _) := (stdLinterExt.getState (← getEnv)).find? shortName
+          | throwError "linter '{shortName}' not found"
+        Elab.addConstInfo id declName
+        pure shortName
+      | _ => Elab.throwUnsupportedSyntax
+  }
+
+/-- Returns true if `decl` should be checked
+using `linter`, i.e., if there is no `nolint` attribute. -/
+def shouldBeLinted [Monad m] [MonadEnv m] (linter : Name) (decl : Name) : m Bool :=
+  return !((nolintAttr.getParam? (← getEnv) decl).getD #[]).contains linter

@@ -30,9 +30,9 @@ def registerNameMapExtension (α) (name : Name := by exact decl_name%) :
     IO (NameMapExtension α) := do
   registerSimplePersistentEnvExtension {
     name
-    addImportedFn := fun ass => ass.foldl (init := ∅) fun
-                       | names, as => as.foldl (init := names) fun
-                         | names, (a,b) => names.insert a b
+    addImportedFn := fun ass =>
+      ass.foldl (init := ∅) fun names as =>
+        as.foldl (init := names) fun names (a, b) => names.insert a b
     addEntryFn    := fun s n => s.insert n.1 n.2
     toArrayFn     := fun es => es.toArray
   }

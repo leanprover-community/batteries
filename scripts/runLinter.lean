@@ -9,7 +9,7 @@ abbrev NoLints := Array (Name × Name)
 /-- Read the given file path and deserialize it as JSON. -/
 def readJsonFile (α) [FromJson α] (path : System.FilePath) : IO α := do
   let _ : MonadExceptOf String IO := ⟨throw ∘ IO.userError, fun x _ => x⟩
-  liftExcept <| fromJson? <|<- liftExcept <| Json.parse <|<- IO.FS.readFile path
+  liftExcept <| fromJson? <|← liftExcept <| Json.parse <|← IO.FS.readFile path
 
 /-- Serialize the given value `a : α` to the file as JSON. -/
 def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
@@ -25,7 +25,7 @@ elab "compile_time_search_path" : term =>
   return toExpr (← searchPathRef.get)
 
 /--
-Usage: `runLinter [--update] [Std.Data.Nat]`
+Usage: `runLinter [--update] [Std.Data.Nat.Basic]`
 
 Runs the linters on all declarations in the given module (or `Std` by default).
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
@@ -41,7 +41,7 @@ unsafe def main (args : List String) : IO Unit := do
       | [] => some `Std
       | [mod] => Syntax.decodeNameLit s!"`{mod}"
       | _ => none
-    | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat]" *> IO.Process.exit 1
+    | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat.Basic]" *> IO.Process.exit 1
   let nolintsFile := "scripts/nolints.json"
   let nolints ← readJsonFile NoLints nolintsFile
   searchPathRef.set compile_time_search_path
@@ -50,11 +50,11 @@ unsafe def main (args : List String) : IO Unit := do
     let state := {env}
     Prod.fst <$> (CoreM.toIO · ctx state) do
       let decls ← getDeclsInPackage `Std
-      let linters ← getChecks (slow := true) (extra := []) (useOnly := false)
-      let results ← lintCore decls linters.toArray
+      let linters ← getChecks (slow := true) (useOnly := false)
+      let results ← lintCore decls linters
       if update then
         writeJsonFile (α := NoLints) nolintsFile <|
-          .qsort (lt := fun (a,b) (c,d) => a.lt c || (a == c && b.lt d)) <|
+          .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
           .flatten <| results.map fun (linter, decls) =>
           decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
       let results := results.map fun (linter, decls) =>
@@ -64,8 +64,8 @@ unsafe def main (args : List String) : IO Unit := do
       if failed then
         let fmtResults ←
           formatLinterResults results decls (groupByFilename := true)
-            "in Std" (runSlowLinters := true) .medium linters.length
+            "in Std" (runSlowLinters := true) .medium linters.size
         IO.print (← fmtResults.toString)
         IO.Process.exit 1
       else
-        IO.print "-- Linting passed."
+        IO.println "-- Linting passed."
