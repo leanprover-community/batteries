@@ -85,6 +85,15 @@ instance : OfNat Rat n := ⟨n⟩
 /-- Is this rational number integral? -/
 @[inline] protected def isInt (a : Rat) : Bool := a.den == 1
 
+/-- Implements "scientific notation" `123.4e-5` for rational numbers. -/
+protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
+  if s then
+    Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide)
+  else
+    (m * 10 ^ e : Nat)
+
+instance : OfScientific Rat where ofScientific := Rat.ofScientific
+
 /-- Rational number strictly less than relation, as a `Bool`. -/
 protected def blt (a b : Rat) : Bool :=
   if a.num < 0 && 0 ≤ b.num then
