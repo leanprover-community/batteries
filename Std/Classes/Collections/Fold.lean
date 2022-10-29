@@ -14,7 +14,7 @@ TODO: leave β universe polymorphic?
 -/
 class Foldl (C : Type u) (τ : outParam (Type v)) where
   /-- Left fold function, parametric over accumulator type `β`. -/
-  foldl : ∀ (β : Type w), (β → τ → β) → β → C → β
+  foldl : ∀ {β : Type w}, (β → τ → β) → β → C → β
 
 /-- `Foldr C τ` for collections `C` which can be folded over elements of type `τ`.
 
@@ -24,11 +24,21 @@ TODO: leave β universe polymorphic?
 -/
 class Foldr (C : Type u) (τ : outParam (Type v)) where
   /-- Right fold function, parametric over accumulator type `β`. -/
-  foldr : ∀ (β : Type w), (τ → β → β) → β → C → β
+  foldr : ∀ {β : Type w}, (τ → β → β) → β → C → β
 
 /-- Undirected fold class. For classes with directed folds, this class
 is intended to be the more performant of the two.
 -/
 class Fold (C : Type u) (τ : outParam (Type v)) where
   /-- Fold function, parametric over accumulator type `β`. -/
-  fold : ∀ (β : Type w), (β → τ → β) → β → C → β
+  fold : ∀ {β : Type w}, (β → τ → β) → β → C → β
+
+
+instance : Foldl (List τ) τ where
+  foldl := @List.foldl (β := τ)
+
+instance : Foldr (List τ) τ where
+  foldr := @List.foldr (α := τ)
+
+instance : Fold (List τ) τ where
+  fold := @List.foldl (β := τ)
