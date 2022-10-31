@@ -20,6 +20,28 @@ def Ordering.swap : Ordering → Ordering
 @[simp] theorem Ordering.swap_inj {o₁ o₂ : Ordering} : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
   ⟨fun h => by simpa using congrArg swap h, congrArg _⟩
 
+/--
+If `o₁` and `o₂` are `Ordering`, then `o₁.then o₂` returns `o₁` unless it is `.eq`,
+in which case it returns `o₂`. Additionally, it has "short-circuiting" semantics similar to
+boolean `x && y`: if `o₁` is not `.eq` then the expression for `o₂` is not evaluated.
+This is a useful primitive for constructing lexicographic comparator functions:
+```
+structure Person where
+  name : String
+  age : Nat
+
+instance : Ord Person where
+  compare a b := (compare a.name b.name).then (compare b.age a.age)
+```
+This example will sort people first by name (in ascending order) and will sort people with
+the same name by age (in descending order). (If all fields are sorted ascending and in the same
+order as they are listed in the structure, you can also use `deriving Ord` on the structure
+definition for the same effect.)
+-/
+@[macro_inline] def Ordering.then : Ordering → Ordering → Ordering
+  | .eq, f => f
+  | o, _ => o
+
 namespace Std
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
