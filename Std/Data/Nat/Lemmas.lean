@@ -754,3 +754,165 @@ theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.on
 @[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
+
+/-! ### sqrt -/
+
+theorem pow_monotonic {n m p : Nat}
+  : n ≤ m → p > 0 → n^p ≤ m^p
+  := by
+  intro h hp
+  match p with
+  | 0 => contradiction
+  | p+1 =>
+  clear hp
+  induction p with
+  | zero => simp [Nat.pow_succ, Nat.pow_zero]; assumption
+  | succ p ih =>
+    conv => lhs; rw [Nat.pow_succ]
+    conv => rhs; rw [Nat.pow_succ]
+    apply Nat.mul_le_mul
+    . assumption
+    . assumption
+
+theorem pow_lt_of_lt {n m p : Nat}
+  : n < m → p > 0 → n ^ p < m ^ p := by
+  intro h hp
+  have := pow_monotonic h hp
+  apply Nat.lt_of_lt_of_le _ this
+  clear this
+  match p with
+  | 0 => contradiction
+  | p+1 =>
+  clear hp
+  induction p with
+  | zero => simp [Nat.pow_succ,Nat.pow_zero]
+  | succ p ih =>
+  simp [Nat.pow_succ, Nat.pow_zero] at ih ⊢
+  apply Nat.mul_lt_mul' (Nat.le_of_lt ih) (Nat.le_refl _) (Nat.lt_of_le_of_lt (Nat.zero_le _) ih)
+
+theorem eq_of_pow_eq (n m p : Nat)
+  : p > 0 → n ^ p = m ^ p → n = m := by
+  intro hp h
+  match Nat.lt_trichotomy n m with
+  | .inl h =>
+    have := Nat.ne_of_lt (Nat.pow_lt_of_lt h hp)
+    contradiction
+  | .inr (.inl h) =>
+    assumption
+  | .inr (.inr h) =>
+    have := Ne.symm <| Nat.ne_of_lt (Nat.pow_lt_of_lt h hp)
+    contradiction
+
+theorem sqrt_pow_2_le (n)
+  : (sqrt n) ^ 2 ≤ n
+  :=
+  match n with
+  | 0 | 1 => by simp
+  | n+2 =>
+  let rec iter n (guess) (g_pos : guess > 0) (g_le_n : guess ≤ n)
+    : (sqrt.iter n guess) ^ 2 ≤ n
+    :=
+    let next := (guess + n / guess) / 2
+    if h : guess ≤ next then by
+      unfold sqrt.iter
+      simp [h, Nat.pow_succ, Nat.pow_zero]
+      apply (le_div_iff_mul_le g_pos).mp
+      apply Nat.le_of_add_le_add_left (a := guess)
+      have : guess + guess = 2 * guess := by simp [succ_mul]
+      rw [this]
+      rw [Nat.mul_comm]
+      apply (le_div_iff_mul_le (by decide)).mp
+      exact h
+    else
+      have : next < guess := Nat.gt_of_not_le h
+      have next_pos : next > 0 := by
+        have : n / guess = succ _ := by
+          conv => lhs; simp [Div.div, HDiv.hDiv]; unfold Nat.div
+          simp [g_pos, g_le_n]
+          rfl
+        cases guess <;> simp at this
+        simp [this, succ_add, add_succ]
+        simp [succ_eq_add_one, Nat.add_assoc]
+        rw [(by decide : 1 + 1 = 2)]
+        simp [←Nat.add_assoc]
+        apply succ_le_succ (zero_le _)
+      have next_le_n : next ≤ n := by
+        simp
+        apply Nat.div_le_of_le_mul
+        simp [succ_mul]
+        apply Nat.add_le_add
+        assumption
+        apply Nat.div_le_self
+      have := iter n next next_pos next_le_n
+      by unfold sqrt.iter; simp [h, this]
+  have := iter (n+2) ((n+2)/2)
+    (by simp; apply succ_le_succ; simp)
+    (Nat.div_le_self _ _)
+  by simp [sqrt] at this ⊢; exact this
+termination_by iter guess _ _ => guess
+
+theorem square_succ_sqrt_gt_self (n)
+  : n < ((sqrt n)+1) ^ 2
+  :=
+  match n with
+  | 0 | 1 => by simp
+  | n+2 =>
+  let rec iter n (guess) (g_succ_gt_n : (guess+1) ^ 2 > n)
+    : n < (sqrt.iter n guess + 1) ^ 2
+    :=
+    let next := (guess + n / guess) / 2
+    if h : guess ≤ next then by
+      unfold sqrt.iter
+      simp [h, g_succ_gt_n]
+    else
+      have : next < guess := Nat.gt_of_not_le h
+      have : (next + 1) ^ 2 > n := by
+        have : (next + 1) ^ 2 ≤ guess ^ 2 := Nat.pow_monotonic this (by decide)
+        have : n < guess^2 := by
+          apply Nat.lt_of_lt_of_le _ this
+          simp
+          sorry
+        sorry
+      have := iter n next this
+      by unfold sqrt.iter; simp [h, this]
+  have := iter (n+2) ((n+2)/2) (by
+    simp [Nat.pow_succ, Nat.pow_zero]
+    have : n ≤ 2 * (n / 2) + 1 := by
+      apply Nat.le_trans (m := 2 * (n / 2) + n % 2)
+      rw [Nat.div_add_mod]; apply Nat.le_refl
+      apply Nat.add_le_add; apply Nat.le_refl
+      apply Nat.le_of_succ_le_succ
+      simp [(by decide : succ 1 = 2)]
+      apply Nat.mod_lt
+      decide
+    simp [succ_mul, mul_succ] at this ⊢
+    simp [succ_add, add_succ]
+    apply succ_le_succ; apply succ_le_succ; apply succ_le_succ
+    apply Nat.le_trans this
+    apply succ_le_succ
+    simp
+    apply Nat.add_le_add_right
+    apply Nat.le_add_left)
+  by simp [sqrt] at this ⊢; exact this
+termination_by iter guess _ _ => guess
+
+@[simp]
+theorem sqrt_of_pow_2 (n) : Nat.sqrt (n^2) = n := by
+  match Nat.lt_trichotomy (Nat.sqrt (n^2)) n with
+  | .inr (.inl h) => assumption
+  | .inl h =>
+    apply False.elim
+    have h1 := Nat.pow_monotonic h (by decide : 2 > 0)
+    have h2 := square_succ_sqrt_gt_self (n^2)
+    have := Nat.lt_of_lt_of_le h2 h1
+    apply Nat.lt_irrefl _ this
+  | .inr (.inr h) =>
+    apply False.elim
+    have h1 := Nat.pow_monotonic h (by decide : 2 > 0)
+    have h2 := sqrt_pow_2_le (n^2)
+    have := Nat.le_trans h1 h2
+    simp [Nat.pow_succ, Nat.pow_zero, Nat.succ_mul, Nat.mul_succ,
+          Nat.add_succ] at this
+    apply Nat.lt_irrefl (n*n)
+    apply Nat.lt_of_le_of_lt (Nat.le_trans (Nat.le_add_right _ _) (Nat.le_add_right _ _))
+    exact this
