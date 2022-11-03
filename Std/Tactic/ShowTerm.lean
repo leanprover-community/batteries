@@ -3,15 +3,11 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro
 -/
-import Lean.Elab.Tactic.Basic
+import Lean.Elab.ElabRules
 import Std.Tactic.TryThis
 
-open Lean
-open Lean.Meta
-open Lean Elab Tactic
-open Tactic.TryThis
-
 namespace Std.Tactic
+open Lean Elab Tactic TryThis
 
 /--
 `show_term tac` runs `tac`, then prints the generated term in the form

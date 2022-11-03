@@ -93,14 +93,20 @@ A multi argument binder `(pat1 pat2 : ty)` binds a list of patterns and gives th
 -/
 syntax (name := rintroPat.binder) "(" rintroPat+ (" : " term)? ")" : rintroPat
 
+instance : Coe Ident (TSyntax `rcasesPat) where
+  coe stx := Unhygienic.run `(rcasesPat| $stx:ident)
+instance : Coe (TSyntax `rcasesPat) (TSyntax ``rcasesPatMed) where
+  coe stx := Unhygienic.run `(rcasesPatMed| $stx:rcasesPat)
+instance : Coe (TSyntax ``rcasesPatMed) (TSyntax ``rcasesPatLo) where
+  coe stx := Unhygienic.run `(rcasesPatLo| $stx:rcasesPatMed)
+instance : Coe (TSyntax `rcasesPat) (TSyntax `rintroPat) where
+  coe stx := Unhygienic.run `(rintroPat| $stx:rcasesPat)
+
 /-- A list, with a disjunctive meaning (like a list of inductive constructors, or subgoals) -/
 local notation "ListΣ" => List
 
 /-- A list, with a conjunctive meaning (like a list of constructor arguments, or hypotheses) -/
 local notation "ListΠ" => List
-
--- FIXME: remove this after the next nightly
-deriving instance Repr for TSyntax
 
 /--
 An `rcases` pattern can be one of the following, in a nested combination:
@@ -503,6 +509,28 @@ def obtainNone (pat : RCasesPatt) (ty : Syntax) (g : MVarId) : TermElabM (List M
   pure (g₁.mvarId! :: gs.toList)
 
 mutual
+variable [Monad m] [MonadQuotation m]
+
+/-- Expand a `rintroPat` into an equivalent list of `rcasesPat` patterns. -/
+partial def expandRIntroPat (pat : TSyntax `rintroPat)
+    (acc : Array (TSyntax `rcasesPat) := #[]) (ty? : Option Term := none) :
+    m (Array (TSyntax `rcasesPat)) := do
+  match pat with
+  | `(rintroPat| $p:rcasesPat) => match ty? with
+    | some ty => return acc.push (← `(rcasesPat| ($p:rcasesPat : $ty)))
+    | none => return acc.push p
+  | `(rintroPat| ($(pats)* $[: $ty?']?)) => expandRIntroPats pats acc (ty?' <|> ty?)
+  | _ => return acc
+
+/-- Expand a list of `rintroPat` into an equivalent list of `rcasesPat` patterns. -/
+partial def expandRIntroPats (pats : Array (TSyntax `rintroPat))
+    (acc : Array (TSyntax `rcasesPat) := #[]) (ty? : Option Term := none) :
+    m (Array (TSyntax `rcasesPat)) := do
+  pats.foldlM (fun acc p => expandRIntroPat p acc ty?) acc
+
+end
+
+mutual
 
 /--
 This introduces the pattern `pat`. It has the same arguments as `rcasesCore`, plus:
@@ -516,8 +544,8 @@ partial def rintroCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (a 
     let pat := (← RCasesPatt.parse pat).typed? ref ty?
     let (v, g) ← g.intro (pat.name?.getD `_)
     rcasesCore g fs clears v a pat cont
-  | `(rintroPat| ($(pats)* $[: $ty?]?)) =>
-    rintroContinue g fs clears pat pats ty? a cont
+  | `(rintroPat| ($(pats)* $[: $ty?']?)) =>
+    rintroContinue g fs clears pat pats (ty?' <|> ty?) a cont
   | _ => throwUnsupportedSyntax
 
 /--

@@ -11,9 +11,9 @@ open Nat
 
 namespace Int
 
-theorem ofNat_zero : ofNat 0 = 0 := rfl
+@[simp] theorem ofNat_zero : ofNat 0 = 0 := rfl
 
-theorem ofNat_one  : ofNat 1 = 1 := rfl
+@[simp] theorem ofNat_one  : ofNat 1 = 1 := rfl
 
 @[simp] theorem default_eq_zero : default = (0 : Int) := rfl
 

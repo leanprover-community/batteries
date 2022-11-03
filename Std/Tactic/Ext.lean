@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner, Mario Carnteiro
+Authors: Gabriel Ebner, Mario Carneiro
 -/
+import Std.Tactic.Basic
+import Std.Tactic.RCases
 import Std.Tactic.Ext.Attr
 
 namespace Std.Tactic.Ext
-open Lean Meta
+open Lean Meta Elab Tactic
+
 
 /--
 Constructs the hypotheses for the extensionality lemma.
@@ -39,7 +42,7 @@ Creates the type of the extensionality lemma for the given structure,
 elaborating to `x.1 = y.1 → x.2 = y.2 → x = y`, for example.
 -/
 scoped elab "ext_type%" struct:ident : term => do
-  withExtHyps (← Elab.resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
+  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
     let ty := hyps.foldr (init := ← mkEq x y) fun (f, h) ty =>
       mkForall f BinderInfo.default h ty
     mkForallFVars (params |>.push x |>.push y) ty
@@ -58,13 +61,15 @@ Creates the type of the iff-variant of the extensionality lemma for the given st
 elaborating to `x = y ↔ x.1 = y.1 ∧ x.2 = y.2`, for example.
 -/
 scoped elab "ext_iff_type%" struct:ident : term => do
-  withExtHyps (← Elab.resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
+  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
     mkForallFVars (params |>.push x |>.push y) <|
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList
 
 macro_rules | `(declare_ext_theorems_for $struct:ident) => do
-  let extName := mkIdent <| struct.getId.eraseMacroScopes.mkStr "ext"
-  let extIffName := mkIdent <| struct.getId.eraseMacroScopes.mkStr "ext_iff"
+  let extName := mkIdentFrom struct (canonical := true) <|
+    struct.getId.eraseMacroScopes.mkStr "ext"
+  let extIffName := mkIdentFrom struct (canonical := true) <|
+    struct.getId.eraseMacroScopes.mkStr "ext_iff"
   `(@[ext] protected theorem $extName:ident : ext_type% $struct:ident :=
       fun {..} {..} => by intros; subst_eqs; rfl
     protected theorem $extIffName:ident : ext_iff_type% $struct:ident :=
@@ -72,28 +77,44 @@ macro_rules | `(declare_ext_theorems_for $struct:ident) => do
         ⟨fun _ => by subst_eqs; split_ands <;> rfl,
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
 
-open Lean.Elab.Tactic in
-/-- Apply a single extensionality lemma to the current goal. -/
-elab "apply_ext_lemma" : tactic => do
-  let tgt ← getMainTarget
+/-- Apply a single extensionality lemma to `goal`. -/
+def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
+  let tgt ← goal.getType'
   unless tgt.isAppOfArity ``Eq 3 do
     throwError "applyExtLemma only applies to equations, not{indentExpr tgt}"
   let ty := tgt.getArg! 0
   let s ← saveState
   for lem in ← getExtLemmas ty do
     try
-      liftMetaTactic (·.apply (← mkConstWithFreshMVarLevels lem))
-      return
+      return ← goal.apply (← mkConstWithFreshMVarLevels lem)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
+
+/-- Apply a single extensionality lemma to the current goal. -/
+elab "apply_ext_lemma" : tactic => liftMetaTactic applyExtLemma
+
+/--
+Runs continuation `k` in each subgoal produced by `ext pats`.
+The continuation is passed the list of remaining patterns.
+-/
+def withExt [Monad m] [MonadLift TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
+    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+  for g in ← repeat' (m := MetaM) applyExtLemma [g] do
+    match pats with
+    | [] => k g []
+    | p::ps =>
+      for g in ← RCases.rintro mkNullNode #[p] none g do
+        withExt g ps k
 
 /--
 Apply extensionality lemmas as much as possible, using `pats` to introduce the variables
 in extensionality lemmas like `funext`.
 -/
-scoped macro "ext_or_skip" pats:(ppSpace rintroPat)* : tactic => do
-  pats.foldrM (β := TSyntax `tactic) (init := ← `(tactic| repeat apply_ext_lemma)) fun pat tac =>
-    `(tactic| (repeat apply_ext_lemma) <;> rintro $pat <;> $tac)
+scoped elab "ext_or_skip" pats:(ppSpace rintroPat)* : tactic => do
+  let pats ← RCases.expandRIntroPats pats
+  let (_, gs) ← StateT.run (m := TermElabM) (s := #[]) <|
+    withExt (← getMainGoal) pats.toList fun g _ => modify (·.push g)
+  replaceMainGoal gs.toList
 
 -- TODO: support `ext : n`
 
@@ -104,8 +125,8 @@ scoped macro "ext_or_skip" pats:(ppSpace rintroPat)* : tactic => do
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 macro_rules
-| `(tactic| ext) => `(tactic| repeat (first | (intro) | apply_ext_lemma))
-| `(tactic| ext $xs*) => `(tactic| ext_or_skip $xs*)
+  | `(tactic| ext) => `(tactic| repeat (first | (intro) | apply_ext_lemma))
+  | `(tactic| ext $xs*) => `(tactic| ext_or_skip $xs*)
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead

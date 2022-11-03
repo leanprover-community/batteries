@@ -3,10 +3,8 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Mario Carnteiro
 -/
-import Std.Tactic.Basic
 import Std.Tactic.RCases
 import Std.Lean.Command
-import Lean
 
 namespace Std.Tactic.Ext
 open Lean Meta
@@ -28,10 +26,10 @@ initialize extExtension : SimpleScopedEnvExtension (Name × Array DiscrTree.Key)
 initialize registerBuiltinAttribute {
   name := `ext
   descr := "Marks a lemma as extensionality lemma"
-  add := fun decl _stx kind => do
+  add := fun decl stx kind => do
     if isStructure (← getEnv) decl then
       liftCommandElabM <| Elab.Command.elabCommand <|
-        ← `(declare_ext_theorems_for $(mkIdent decl))
+        ← `(declare_ext_theorems_for $(mkCIdentFrom stx decl))
     else MetaM.run' do
       let declTy := (← getConstInfo decl).type
       let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing declTy

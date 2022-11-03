@@ -3,7 +3,7 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean
+import Lean.PrettyPrinter.Delaborator.Basic
 
 /-!
 # Stub for try-this support
@@ -13,7 +13,7 @@ to present tactic suggestions in the editor.
 This file contains a preliminary API
 that tactics can call to show suggestions.
 -/
-namespace Tactic.TryThis
+namespace Std.Tactic.TryThis
 
 open Lean Elab Elab.Tactic PrettyPrinter Meta
 
@@ -32,7 +32,7 @@ def addSuggestion [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
   logInfoAt origStx m!"{suggestion}"
 
 /-- Add a `exact e` or `refine e` suggestion. (TODO: this depends on code action support) -/
-def addExactSuggestion (origTac : Syntax) (e : Expr) : TacticM Unit := do
+def addExactSuggestion (origTac : Syntax) (e : Expr) : TermElabM Unit := do
   let stx ← delabToRefinableSyntax e
   let tac ← if e.hasExprMVar then `(tactic| refine $stx) else `(tactic| exact $stx)
   addSuggestion origTac tac
