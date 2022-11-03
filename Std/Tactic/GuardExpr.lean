@@ -7,7 +7,7 @@ import Lean.Elab.Tactic.Conv.Basic
 import Lean.Meta.Basic
 
 namespace Std.Tactic.GuardExpr
-open Lean Elab Tactic
+open Lean Meta Elab Tactic
 
 /--
 The various `guard_*` tactics have similar matching specifiers for how equal expressions
@@ -18,49 +18,64 @@ inductive MatchKind
 /-- A syntactic match means that the `Expr`s are `==` after stripping `MData` -/
 | syntactic
 /-- A defeq match `isDefEqGuarded` returns true. (Note that unification is allowed here.) -/
-| defEq
+| defEq (red : TransparencyMode := .reducible)
 /-- An alpha-eq match means that `Expr.eqv` returns true. -/
 | alphaEq
 
+/-- Reducible defeq matching for `guard_hyp` types -/
+syntax colonR := " : "
+/-- Default-reducibility defeq matching for `guard_hyp` types -/
+syntax colonD := " :~ "
 /-- Syntactic matching for `guard_hyp` types -/
-syntax colonS := " : "
+syntax colonS := " :ₛ "
 /-- Alpha-eq matching for `guard_hyp` types -/
 syntax colonA := " :ₐ "
-/-- The `guard_hyp` type specifier, either `:` or `:ₐ` -/
-syntax colon := colonS <|> colonA
+/-- The `guard_hyp` type specifier, one of `:`, `:~`, `:ₛ`, `:ₐ` -/
+syntax colon := colonR <|> colonD <|> colonS <|> colonA
 
+/-- Reducible defeq matching for `guard_hyp` values -/
+syntax colonEqR := " := "
+/-- Default-reducibility defeq matching for `guard_hyp` values -/
+syntax colonEqD := " :=~ "
 /-- Syntactic matching for `guard_hyp` values -/
-syntax colonEqS := " := "
+syntax colonEqS := " :=ₛ "
 /-- Alpha-eq matching for `guard_hyp` values -/
 syntax colonEqA := " :=ₐ "
-/-- The `guard_hyp` value specifier, either `:=` or `:=ₐ` -/
-syntax colonEq := colonEqS <|> colonEqA
+/-- The `guard_hyp` value specifier, one of `:=`, `:=~`, `:=ₛ`, `:=ₐ` -/
+syntax colonEq := colonEqR <|> colonEqD <|> colonEqS <|> colonEqA
 
+/-- Reducible defeq matching for `guard_expr` -/
+syntax equalR := " = "
+/-- Default-reducibility defeq matching for `guard_expr` -/
+syntax equalD := " =~ "
 /-- Syntactic matching for `guard_expr` -/
-syntax equalS := " == "
-/-- Def-eq matching for `guard_expr` -/
-syntax equalD := " = "
+syntax equalS := " =ₛ "
 /-- Alpha-eq matching for `guard_expr` -/
 syntax equalA := " =ₐ "
-/-- The `guard_expr` matching specifier, either `==`, `=`, or `=ₐ` -/
-syntax equal := equalS <|> equalD <|> equalA
+/-- The `guard_expr` matching specifier, one of `=`, `=~`, `=ₛ`, `=ₐ` -/
+syntax equal := equalR <|> equalD <|> equalS <|> equalA
 
 /-- Converts a `colon` syntax into a `MatchKind` -/
 def colon.toMatchKind : TSyntax ``colon → Option MatchKind
-  | `(colon| :) => some .syntactic
+  | `(colon| :) => some .defEq
+  | `(colon| :~) => some (.defEq .default)
+  | `(colon| :ₛ) => some .syntactic
   | `(colon| :ₐ) => some .alphaEq
   | _ => none
 
 /-- Converts a `colonEq` syntax into a `MatchKind` -/
 def colonEq.toMatchKind : TSyntax ``colonEq → Option MatchKind
-  | `(colonEq| :=) => some .syntactic
+  | `(colonEq| :=) => some .defEq
+  | `(colonEq| :=~) => some (.defEq .default)
+  | `(colonEq| :=ₛ) => some .syntactic
   | `(colonEq| :=ₐ) => some .alphaEq
   | _ => none
 
 /-- Converts a `equal` syntax into a `MatchKind` -/
 def equal.toMatchKind : TSyntax ``equal → Option MatchKind
   | `(equal| =) => some .defEq
-  | `(equal| ==) => some .syntactic
+  | `(equal| =~) => some (.defEq .default)
+  | `(equal| =ₛ) => some .syntactic
   | `(equal| =ₐ) => some .alphaEq
   | _ => none
 
@@ -68,13 +83,14 @@ def equal.toMatchKind : TSyntax ``equal → Option MatchKind
 def MatchKind.isEq (a b : Expr) : MatchKind → MetaM Bool
   | .syntactic => return a.consumeMData == b.consumeMData
   | .alphaEq => return a.eqv b
-  | .defEq => withoutModifyingState <| Lean.Meta.isDefEqGuarded a b
+  | .defEq red => withoutModifyingState <| withTransparency red <| Lean.Meta.isDefEqGuarded a b
 
 /--
 Check equality of two expressions.
-* `guard_expr e == e'` checks that `e` and `e'` are syntactically equal.
+* `guard_expr e = e'` checks that `e` and `e'` are defeq at reducible transparency.
+* `guard_expr e =~ e'` checks that `e` and `e'` are defeq at default transparency.
+* `guard_expr e =ₛ e'` checks that `e` and `e'` are syntactically equal.
 * `guard_expr e =ₐ e'` checks that `e` and `e'` are alpha-equivalent.
-* `guard_expr e = e'` checks that `e` and `e'` are definitionally equal.
 -/
 syntax (name := guardExpr) "guard_expr " term:51 equal term : tactic
 @[inherit_doc guardExpr] syntax (name := guardExprConv) "guard_expr " term:51 equal term : conv
@@ -91,9 +107,10 @@ def evalGuardExpr : Tactic := fun
 
 /--
 Check the target agrees with a given expression.
-* `guard_target == e` checks that the target is syntactically equal to `e`.
+* `guard_target = e` checks that the target is defeq at reducible transparency to `e`.
+* `guard_target =~ e` checks that the target is defeq at default transparency to `e`.
+* `guard_target =ₛ e` checks that the target is syntactically equal to `e`.
 * `guard_target =ₐ e` checks that the target is alpha-equivalent to `e`.
-* `guard_target = e` checks that the target is definitionally equal to `e`.
 -/
 syntax (name := guardTarget) "guard_target " equal term : tactic
 @[inherit_doc guardTarget] syntax (name := guardTargetConv) "guard_target " equal term : conv
@@ -113,9 +130,13 @@ def evalGuardTarget : Tactic :=
 /--
 Check that a named hypothesis has a given type and/or value.
 
-* `guard_hyp h : t` checks the type up to syntactic equality,
+* `guard_hyp h : t` checks the type up to reducible defeq,
+* `guard_hyp h :~ t` checks the type up to default defeq,
+* `guard_hyp h :ₛ t` checks the type up to syntactic equality,
 * `guard_hyp h :ₐ t` checks the type up to alpha equality.
-* `guard_hyp h := v` checks value up to syntactic equality,
+* `guard_hyp h := v` checks value up to reducible defeq,
+* `guard_hyp h :=~ v` checks value up to default defeq,
+* `guard_hyp h :=ₛ v` checks value up to syntactic equality,
 * `guard_hyp h :=ₐ v` checks the value up to alpha equality.
 -/
 syntax (name := guardHyp)

@@ -11,6 +11,6 @@ example (n : Nat) : Nat × Nat := by
     exact n
     exact 37
 
-example (n : Nat) : Nat × Nat := by
+example : Nat × Nat := by
   show_term constructor
   repeat exact 42

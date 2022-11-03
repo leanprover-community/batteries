@@ -3,18 +3,18 @@ import Std.Tactic.Basic
 private def nonDecid (P : Prop) (x : P) : P := by
   by_contra h
   guard_hyp h : ¬P
-  guard_target == False
+  guard_target = False
   exact h x
 
 private def decid (P : Prop) [Decidable P] (x : P) : P := by
   by_contra h
   guard_hyp h : ¬P
-  guard_target == False
+  guard_target = False
   exact h x
 
 example (P : Prop) [Decidable P] : nonDecid P = decid P := by
   delta nonDecid nonDecid.proof_1 decid decid.proof_1
-  guard_target ==
+  guard_target =
     (fun x : P => Classical.byContradiction fun h => h x) =
     (fun x : P => Decidable.byContradiction fun h => h x)
   rfl
