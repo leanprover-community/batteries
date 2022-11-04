@@ -19,7 +19,7 @@ example (x : α × β × γ) : True := by
   trivial
 
 example (x : (α × β) × γ) : True := by
-  fail_if_success rcases x with ⟨a, b, c⟩
+  fail_if_success rcases x with ⟨_a, b, c⟩
   fail_if_success rcases x with ⟨⟨a:β, b⟩, c⟩
   rcases x with ⟨⟨a:α, b⟩, c⟩
   guard_hyp a : α
@@ -66,7 +66,7 @@ example (s : α ⊕ Empty) : True := by
   guard_hyp s : α; trivial
 
 example : True := by
-  obtain ⟨n : Nat, h : n = n, -⟩ : ∃ n : Nat, n = n ∧ True
+  obtain ⟨n : Nat, _h : n = n, -⟩ : ∃ n : Nat, n = n ∧ True
   · exact ⟨0, rfl, trivial⟩
   trivial
 
@@ -114,11 +114,11 @@ example (x : Quot fun _ _ : α => True) (h : x = x): x = x := by
   exact h
 
 example (n : Nat) : True := by
-  obtain one_lt_n | n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := Nat.lt_or_ge 1 (n + 1)
+  obtain _one_lt_n | _n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := Nat.lt_or_ge 1 (n + 1)
   {trivial}; trivial
 
 example (n : Nat) : True := by
-  obtain one_lt_n | (n_le_one : n + 1 ≤ 1) := Nat.lt_or_ge 1 (n + 1)
+  obtain _one_lt_n | (_n_le_one : n + 1 ≤ 1) := Nat.lt_or_ge 1 (n + 1)
   {trivial}; trivial
 
 open Lean Elab Tactic in

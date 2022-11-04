@@ -98,7 +98,8 @@ syntax (name := rintroPat.one) rcasesPat : rintroPat
 /--
 A multi argument binder `(pat1 pat2 : ty)` binds a list of patterns and gives them all type `ty`.
 -/
-syntax (name := rintroPat.binder) "(" rintroPat+ (" : " term)? ")" : rintroPat
+syntax(name := rintroPat.binder) (priority := default+1) -- to override rcasesPat.paren
+  "(" rintroPat+ (" : " term)? ")" : rintroPat
 
 instance : Coe Ident (TSyntax `rcasesPat) where
   coe stx := Unhygienic.run `(rcasesPat| $stx:ident)
@@ -136,6 +137,8 @@ the type being destructed, the extra patterns will match on the last element, me
 type with 3 constructors,  `p1 | (p2 | p3)` will act like `p1 | (p2 | p3) | _` instead.
 -/
 inductive RCasesPatt : Type
+  /-- A parenthesized expression, used for hovers -/
+  | paren (ref : Syntax) : RCasesPatt → RCasesPatt
   /-- A named pattern like `foo` -/
   | one (ref : Syntax) : Name → RCasesPatt
   /-- A hyphen `-`, which clears the active hypothesis and any dependents. -/
@@ -159,12 +162,14 @@ partial def name? : RCasesPatt → Option Name
   | one _ `_    => none
   | one _ `rfl  => none
   | one _ n     => n
-  | typed _ p _ => p.name?
+  | paren _ p
+  | typed _ p _
   | alts _ [p]  => p.name?
   | _           => none
 
 /-- Get the syntax node from which this pattern was parsed. Used for error messages -/
 def ref : RCasesPatt → Syntax
+  | paren ref _
   | one ref _
   | clear ref
   | explicit ref _
@@ -176,6 +181,7 @@ def ref : RCasesPatt → Syntax
 Interpret an rcases pattern as a tuple, where `p` becomes `⟨p⟩` if `p` is not already a tuple.
 -/
 def asTuple : RCasesPatt → Bool × ListΠ RCasesPatt
+  | paren _ p    => p.asTuple
   | explicit _ p => (true, p.asTuple.2)
   | tuple _ ps   => (false, ps)
   | p            => (false, [p])
@@ -185,6 +191,7 @@ Interpret an rcases pattern as an alternation, where non-alternations are treate
 alternative.
 -/
 def asAlts : RCasesPatt → ListΣ RCasesPatt
+  | paren _ p => p.asAlts
   | alts _ ps => ps
   | p         => [p]
 
@@ -262,6 +269,7 @@ partial instance : ToMessageData RCasesPatt := ⟨fmt 0⟩ where
     if tgt < p then m.paren else m
   /-- format an `RCasesPatt` with the given precedence: 0 = lo, 1 = med, 2 = hi -/
   fmt : Nat → RCasesPatt → MessageData
+  | p, paren _ pat => fmt p pat
   | _, one _ n => n
   | _, clear _ => "-"
   | _, explicit _ pat => m!"@{fmt 2 pat}"
@@ -363,19 +371,27 @@ This will match a pattern `pat` against a local hypothesis `e`.
   match, with updated values for `g` , `fs`, `clears`, and `a`.
 -/
 partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e : FVarId) (a : α)
-  (pat : RCasesPatt) (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) : TermElabM α :=
+    (pat : RCasesPatt) (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) :
+    TermElabM α := do
   let translate e : MetaM _ := do
     let e := fs.get e
     unless e.isFVar do
       throwError "rcases tactic failed: {e} is not a fvar"
     pure e
-  withRef pat.ref <| g.withContext <| match pat with
-  | RCasesPatt.one _ `rfl => do
+  withRef pat.ref <| g.withContext do match pat with
+  | .one ref `rfl =>
+    -- Note: the mdata prevents the span from getting highlighted like a variable
+    Term.addTermInfo' ref (.mdata {} <| .fvar e)
     let (fs, g) ← subst' g (← translate e).fvarId! fs
     cont g fs clears a
-  | RCasesPatt.one _ _ => cont g fs clears a
-  | RCasesPatt.clear _ => cont g fs (clears.push e) a
-  | RCasesPatt.typed _ pat ty => do
+  | .one ref _ =>
+    Term.addLocalVarInfo ref (.fvar e)
+    cont g fs clears a
+  | .clear ref =>
+    Term.addTermInfo' ref (.mdata {} <| .fvar e)
+    cont g fs (clears.push e) a
+  | .typed ref pat ty =>
+    Term.addTermInfo' ref (.mdata {} <| .fvar e)
     let expected ← Term.elabType ty
     let e ← translate e
     let etype ← inferType e
@@ -383,8 +399,12 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
       Term.throwTypeMismatchError "rcases: scrutinee" expected etype e
     let g ← g.replaceLocalDeclDefEq e.fvarId! expected
     rcasesCore g fs clears e.fvarId! a pat cont
-  | RCasesPatt.alts _ [p] => rcasesCore g fs clears e a p cont
-  | _ => do
+  | .paren ref p
+  | .alts ref [p] =>
+    Term.addTermInfo' ref (.mdata {} <| .fvar e)
+    rcasesCore g fs clears e a p cont
+  | _ =>
+    Term.addTermInfo' pat.ref (.mdata {} <| .fvar e)
     let e ← translate e
     let type ← whnfD (← inferType e)
     let failK {α} _ : TermElabM α :=
@@ -472,11 +492,11 @@ partial def RCasesPatt.parse (stx : Syntax) : MetaM RCasesPatt :=
   | `(rcasesPatLo| $pat:rcasesPatMed : $t:term) => return .typed stx (← parse pat) t
   | `(rcasesPatLo| $pat:rcasesPatMed) => parse pat
   | `(rcasesPat| _) => return .one stx `_
-  | `(rcasesPat| $h:ident) => return .one stx h.getId
+  | `(rcasesPat| $h:ident) => return .one h h.getId
   | `(rcasesPat| -) => return .clear stx
   | `(rcasesPat| @$pat) => return .explicit stx (← parse pat)
   | `(rcasesPat| ⟨$ps,*⟩) => return .tuple stx (← ps.getElems.toList.mapM (parse ·.raw))
-  | `(rcasesPat| ($pat)) => parse pat
+  | `(rcasesPat| ($pat)) => return .paren stx (← parse pat)
   | _ => throwUnsupportedSyntax
 
 -- extracted from elabCasesTargets
@@ -507,7 +527,7 @@ def rcases (tgts : Array (Option Name × Syntax))
   | _ => pure (processConstructor pat.ref (tgts.map fun _ => {}) false 0 pat.asTuple.2).2
   let (pats, args) := Array.unzip <|← (tgts.zip pats.toArray).mapM fun ((hName?, tgt), pat) => do
     let (pat, ty) ← match pat with
-    | RCasesPatt.typed ref pat ty => pure (pat, some (← withRef ref <| Term.elabType ty))
+    | .typed ref pat ty => pure (pat, some (← withRef ref <| Term.elabType ty))
     | _ => pure (pat, none)
     let expr ← Term.ensureHasType ty (← Term.elabTerm tgt ty)
     pure (pat, { expr, xName? := pat.name?, hName? : GeneralizeArg })
@@ -564,7 +584,8 @@ partial def rintroCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (a 
     let (v, g) ← g.intro (pat.name?.getD `_)
     rcasesCore g fs clears v a pat cont
   | `(rintroPat| ($(pats)* $[: $ty?']?)) =>
-    rintroContinue g fs clears pat pats (ty?' <|> ty?) a cont
+    let ref := if pats.size == 1 then pat.raw else .missing
+    rintroContinue g fs clears ref pats (ty?' <|> ty?) a cont
   | _ => throwUnsupportedSyntax
 
 /--
@@ -588,9 +609,9 @@ end
 The implementation of the `rintro` tactic. It takes a list of patterns `pats` and
 an optional type ascription `ty?` and introduces the patterns, resulting in zero or more goals.
 -/
-def rintro (ref : Syntax) (pats : TSyntaxArray `rintroPat) (ty? : Option Term)
+def rintro (pats : TSyntaxArray `rintroPat) (ty? : Option Term)
   (g : MVarId) : TermElabM (List MVarId) :=
-  (·.toList) <$> rintroContinue g {} #[] ref pats ty? #[] finish
+  (·.toList) <$> rintroContinue g {} #[] .missing pats ty? #[] finish
 
 end RCases
 
@@ -718,4 +739,4 @@ and type-ascripting multiple variables at once, similar to binders.
 elab (name := rintro) "rintro" pats:(ppSpace colGt rintroPat)+ ty:((" : " term)?) : tactic => do
   let ty? := if ty.raw.isNone then none else some ⟨ty.raw[1]⟩
   let g ← getMainGoal
-  g.withContext do replaceMainGoal (← RCases.rintro ty pats ty? g)
+  g.withContext do replaceMainGoal (← RCases.rintro pats ty? g)
