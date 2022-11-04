@@ -37,9 +37,5 @@ initialize registerBuiltinAttribute {
         "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
-      let key ←
-        if (← withReducible <| whnf ty).isForall then
-          pure #[.star] -- FIXME: workaround
-        else
-          withReducible <| DiscrTree.mkPath ty
+      let key ← withReducible <| DiscrTree.mkPath ty
       extExtension.add (decl, key) kind }

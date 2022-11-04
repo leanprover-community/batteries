@@ -553,19 +553,19 @@ variable [Monad m] [MonadQuotation m]
 /-- Expand a `rintroPat` into an equivalent list of `rcasesPat` patterns. -/
 partial def expandRIntroPat (pat : TSyntax `rintroPat)
     (acc : Array (TSyntax `rcasesPat) := #[]) (ty? : Option Term := none) :
-    m (Array (TSyntax `rcasesPat)) := do
+    Array (TSyntax `rcasesPat) :=
   match pat with
   | `(rintroPat| $p:rcasesPat) => match ty? with
-    | some ty => return acc.push (← `(rcasesPat| ($p:rcasesPat : $ty)))
-    | none => return acc.push p
+    | some ty => acc.push <| Unhygienic.run <| withRef p `(rcasesPat| ($p:rcasesPat : $ty))
+    | none => acc.push p
   | `(rintroPat| ($(pats)* $[: $ty?']?)) => expandRIntroPats pats acc (ty?' <|> ty?)
-  | _ => return acc
+  | _ => acc
 
 /-- Expand a list of `rintroPat` into an equivalent list of `rcasesPat` patterns. -/
 partial def expandRIntroPats (pats : Array (TSyntax `rintroPat))
     (acc : Array (TSyntax `rcasesPat) := #[]) (ty? : Option Term := none) :
-    m (Array (TSyntax `rcasesPat)) := do
-  pats.foldlM (fun acc p => expandRIntroPat p acc ty?) acc
+    Array (TSyntax `rcasesPat) :=
+  pats.foldl (fun acc p => expandRIntroPat p acc ty?) acc
 
 end
 

@@ -86,7 +86,15 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
   let s ← saveState
   for lem in ← getExtLemmas ty do
     try
-      return ← goal.apply (← mkConstWithFreshMVarLevels lem)
+      let c ← mkConstWithFreshMVarLevels lem
+      -- Note: We have to do this extra check to ensure that we don't apply e.g.
+      -- funext to a goal `(?a₁ : ?b) = ?a₂` to produce `(?a₁ x : ?b') = ?a₂ x`,
+      -- since this will loop.
+      -- We require that the type of the equality is not changed by the `goal.apply c` line
+      withNewMCtxDepth do
+        let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
+        guard (← isDefEq tgt declTy)
+      return ← goal.apply c
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 
@@ -94,29 +102,55 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
 elab "apply_ext_lemma" : tactic => liftMetaTactic applyExtLemma
 
 /--
-Runs continuation `k` in each subgoal produced by `ext pats`.
-The continuation is passed the list of remaining patterns.
+Postprocessor for `withExt` which runs `rintro` with the given patterns when the target is a
+pi type.
 -/
-def withExt [Monad m] [MonadLift TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
+def tryIntros [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
-  for g in ← repeat' (m := MetaM) applyExtLemma [g] do
-    match pats with
-    | [] => k g []
-    | p::ps =>
+  match pats with
+  | [] => k (← (g.intros : TermElabM _)).2 []
+  | p::ps =>
+    if (← (g.withContext g.getType' : TermElabM _)).isForall then
       for g in ← RCases.rintro #[p] none g do
-        withExt g ps k
+        k g ps
+    else k g pats
+
+/--
+Applies a single extensionality lemma, using `pats` to introduce variables in the result.
+Runs continuation `k` on each subgoal.
+-/
+def withExt1 [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
+    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+  for g in ← (applyExtLemma g : TermElabM _) do
+    tryIntros g pats k
+
+/--
+Applies a extensionality lemmas recursively, using `pats` to introduce variables in the result.
+Runs continuation `k` on each subgoal.
+-/
+def withExtN [Monad m] [MonadLiftT TermElabM m] [MonadExcept Exception m]
+    (g : MVarId) (pats : List (TSyntax `rcasesPat))
+    (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
+    (depth := 1000000) (failIfUnchanged := true) : m Unit :=
+  match depth with
+  | 0 => k g pats
+  | depth+1 => do
+    if failIfUnchanged then
+      withExt1 g pats fun g pats => withExtN g pats k depth (failIfUnchanged := false)
+    else try
+      withExt1 g pats fun g pats => withExtN g pats k depth (failIfUnchanged := false)
+    catch _ => k g pats
 
 /--
 Apply extensionality lemmas as much as possible, using `pats` to introduce the variables
-in extensionality lemmas like `funext`.
+in extensionality lemmas like `funext`. Returns a list of subgoals,
+and the unconsumed patterns in each of those subgoals.
 -/
-scoped elab "ext_or_skip" pats:(ppSpace rintroPat)* : tactic => do
-  let pats ← RCases.expandRIntroPats pats
-  let (_, gs) ← StateT.run (m := TermElabM) (s := #[]) <|
-    withExt (← getMainGoal) pats.toList fun g _ => modify (·.push g)
-  replaceMainGoal gs.toList
-
--- TODO: support `ext : n`
+def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
+  (depth := 1000000) (failIfUnchanged := true) :
+  TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
+  (·.2) <$> StateT.run (m := TermElabM) (s := #[])
+    (withExtN g pats (fun g qs => modify (·.push (g, qs))) depth failIfUnchanged)
 
 /--
 * `ext pat*`: Apply extensionality lemmas as much as possible,
@@ -124,15 +158,20 @@ scoped elab "ext_or_skip" pats:(ppSpace rintroPat)* : tactic => do
 * `ext`: introduce anonymous variables whenever needed.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
-macro_rules
-  | `(tactic| ext) => `(tactic| repeat (first | (intro) | apply_ext_lemma))
-  | `(tactic| ext $xs*) => `(tactic| ext_or_skip $xs*)
+elab_rules : tactic
+  | `(tactic| ext $pats* $[: $n]?) => do
+    let pats := RCases.expandRIntroPats pats
+    let depth := n.map (·.getNat) |>.getD 1000000
+    let gs ← extCore (← getMainGoal) pats.toList depth !pats.isEmpty
+    replaceMainGoal <| gs.map (·.1) |>.toList
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
 of recursing as much as possible.
 -/
-macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic => `(tactic| (apply_ext_lemma; rintro $xs*))
+macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
+  if xs.isEmpty then `(tactic| apply_ext_lemma <;> intros)
+  else `(tactic| apply_ext_lemma <;> rintro $xs*)
 
 -- TODO
 /-- `ext1? pat*` is like `ext1 pat*` but gives a suggestion on what pattern to use -/
