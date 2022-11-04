@@ -103,7 +103,7 @@ def withExt [Monad m] [MonadLift TermElabM m] (g : MVarId) (pats : List (TSyntax
     match pats with
     | [] => k g []
     | p::ps =>
-      for g in ← RCases.rintro mkNullNode #[p] none g do
+      for g in ← RCases.rintro #[p] none g do
         withExt g ps k
 
 /--
