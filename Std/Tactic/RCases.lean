@@ -30,6 +30,8 @@ the input expression). An `rcases` pattern has the following grammar:
   of nested conjunctions or existentials. For example if the active hypothesis is `a ∧ b ∧ c`,
   then the conjunction will be destructured, and `p1` will be matched against `a`, `p2` against `b`
   and so on.
+* A `@` before a tuple pattern as in `@⟨p1, p2, p3⟩` will bind all arguments in the constructor,
+  while leaving the `@` off will only use the patterns on the explicit arguments.
 * An alternation pattern `p1 | p2 | p3`, which matches an inductive type with multiple constructors,
   or a nested disjunction like `a ∨ b ∨ c`.
 
@@ -76,6 +78,11 @@ syntax (name := rcasesPat.one) ident : rcasesPat
 syntax (name := rcasesPat.ignore) "_" : rcasesPat
 /-- `-` is a pattern which removes the value from the context -/
 syntax (name := rcasesPat.clear) "-" : rcasesPat
+/--
+A `@` before a tuple pattern as in `@⟨p1, p2, p3⟩` will bind all arguments in the constructor,
+while leaving the `@` off will only use the patterns on the explicit arguments.
+-/
+syntax (name := rcasesPat.explicit) "@" rcasesPat : rcasesPat
 /--
 `⟨pat, ...⟩` is a pattern which matches on a tuple-like constructor
 or multi-argument inductive constructor
@@ -133,6 +140,8 @@ inductive RCasesPatt : Type
   | one (ref : Syntax) : Name → RCasesPatt
   /-- A hyphen `-`, which clears the active hypothesis and any dependents. -/
   | clear (ref : Syntax) : RCasesPatt
+  /-- An explicit pattern `@pat`. -/
+  | explicit (ref : Syntax) : RCasesPatt → RCasesPatt
   /-- A type ascription like `pat : ty` (parentheses are optional) -/
   | typed (ref : Syntax) : RCasesPatt → Term → RCasesPatt
   /-- A tuple constructor like `⟨p1, p2, p3⟩` -/
@@ -158,6 +167,7 @@ partial def name? : RCasesPatt → Option Name
 def ref : RCasesPatt → Syntax
   | one ref _
   | clear ref
+  | explicit ref _
   | typed ref _ _
   | tuple ref _
   | alts ref _ => ref
@@ -165,9 +175,10 @@ def ref : RCasesPatt → Syntax
 /--
 Interpret an rcases pattern as a tuple, where `p` becomes `⟨p⟩` if `p` is not already a tuple.
 -/
-def asTuple : RCasesPatt → ListΠ RCasesPatt
-  | tuple _ ps => ps
-  | p          => [p]
+def asTuple : RCasesPatt → Bool × ListΠ RCasesPatt
+  | explicit _ p => (true, p.asTuple.2)
+  | tuple _ ps   => (false, ps)
+  | p            => (false, [p])
 
 /--
 Interpret an rcases pattern as an alternation, where non-alternations are treated as one
@@ -253,6 +264,7 @@ partial instance : ToMessageData RCasesPatt := ⟨fmt 0⟩ where
   fmt : Nat → RCasesPatt → MessageData
   | _, one _ n => n
   | _, clear _ => "-"
+  | _, explicit _ pat => m!"@{fmt 2 pat}"
   | p, typed _ pat ty => parenAbove 0 p m!"{fmt 1 pat}: {ty}"
   | _, tuple _ pats => bracket "⟨" (joinSep (pats.map (fmt 0)) ("," ++ Format.line)) "⟩"
   | p, alts _ pats => parenAbove 1 p (joinSep (pats.map (fmt 2)) " | ")
@@ -266,14 +278,22 @@ constructor. The `name` is the name which will be used in the top-level `cases` 
 `rcases_patt` is the pattern which the field will be matched against by subsequent `cases`
 tactics.
 -/
-def processConstructor (ref : Syntax) : Nat → ListΠ RCasesPatt → ListΠ Name × ListΠ RCasesPatt
-  | 0,     _       => ([], [])
-  | 1,     []      => ([`_], [default])
-  | 1,     [p]     => ([p.name?.getD `_], [p])
-  | 1,     ps      => ([`_], [RCasesPatt.tuple ref ps])
-  | n + 1, p :: ps => let (ns, tl) := processConstructor ref n ps
-                      (p.name?.getD `_ :: ns, p :: tl)
-  | _,     _       => ([], [])
+def processConstructor (ref : Syntax) (info : Array ParamInfo)
+    (explicit : Bool) (idx : Nat) (ps : ListΠ RCasesPatt) : ListΠ Name × ListΠ RCasesPatt :=
+  if _ : idx < info.size then
+    if !explicit && info[idx].binderInfo != .default then
+      let (ns, tl) := processConstructor ref info explicit (idx+1) ps
+      (`_ :: ns, default :: tl)
+    else if idx+1 < info.size then
+      let p := ps.headD default
+      let (ns, tl) := processConstructor ref info explicit (idx+1) (ps.tailD [])
+      (p.name?.getD `_ :: ns, p :: tl)
+    else match ps with
+      | []  => ([`_], [default])
+      | [p] => ([p.name?.getD `_], [p])
+      | ps  => ([`_], [(bif explicit then .explicit ref else id) (.tuple ref ps)])
+  else ([], [])
+termination_by _ => info.size - idx
 
 /--
 Takes a list of constructor names, and an (alternation) list of patterns, and matches each
@@ -285,14 +305,14 @@ def processConstructors (ref : Syntax) (params : Nat) (altVarNames : Array AltVa
     ListΣ Name → ListΣ RCasesPatt → MetaM (Array AltVarNames × ListΣ (Name × ListΠ RCasesPatt))
   | [], _ => pure (altVarNames, [])
   | c :: cs, ps => do
-    let n := FunInfo.getArity $ ← getFunInfo (← mkConstWithLevelParams c)
+    let info := (← getFunInfo (← mkConstWithLevelParams c)).paramInfo
     let p := ps.headD default
     let t := ps.tailD []
-    let (h, t) := match cs, t with
-    | [], _ :: _ => ([RCasesPatt.alts ref ps], [])
+    let ((explicit, h), t) := match cs, t with
+    | [], _ :: _ => ((false, [RCasesPatt.alts ref ps]), [])
     | _,  _      => (p.asTuple, t)
-    let (ns, ps) := processConstructor p.ref (n - params) h
-    let (altVarNames, r)  ← processConstructors ref params (altVarNames.push ⟨true, ns⟩) cs t
+    let (ns, ps) := processConstructor p.ref info explicit params h
+    let (altVarNames, r) ← processConstructors ref params (altVarNames.push ⟨true, ns⟩) cs t
     pure (altVarNames, (c, ps) :: r)
 
 open Elab Tactic
@@ -373,7 +393,8 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
       | ConstantInfo.quotInfo info, _ => do
         unless info.kind matches QuotKind.type do failK ()
         let pat := pat.asAlts.headD default
-        let ([x], ps) := processConstructor pat.ref 1 pat.asTuple | unreachable!
+        let (explicit, pat₁) := pat.asTuple
+        let ([x], ps) := processConstructor pat.ref #[{}] explicit 0 pat₁ | unreachable!
         let (vars, g) ← g.revert (← getFVarsToGeneralize #[e])
         g.withContext do
           let elimInfo ← getElimInfo `Quot.ind
@@ -447,16 +468,14 @@ open Elab
 /-- Parses a `Syntax` into the `RCasesPatt` type used by the `RCases` tactic. -/
 partial def RCasesPatt.parse (stx : Syntax) : MetaM RCasesPatt :=
   match stx with
-  | `(rcasesPatMed| $ps:rcasesPat|*) => do
-    pure $ RCasesPatt.alts' stx (← ps.getElems.toList.mapM (parse ·.raw))
-  | `(rcasesPatLo| $pat:rcasesPatMed : $t:term) => do
-    pure $ RCasesPatt.typed stx (← parse pat) t
+  | `(rcasesPatMed| $ps:rcasesPat|*) => return .alts' stx (← ps.getElems.toList.mapM (parse ·.raw))
+  | `(rcasesPatLo| $pat:rcasesPatMed : $t:term) => return .typed stx (← parse pat) t
   | `(rcasesPatLo| $pat:rcasesPatMed) => parse pat
-  | `(rcasesPat| _) => pure $ RCasesPatt.one stx `_
-  | `(rcasesPat| $h:ident) => pure $ RCasesPatt.one stx h.getId
-  | `(rcasesPat| -) => pure $ RCasesPatt.clear stx
-  | `(rcasesPat| ⟨$ps,*⟩) => do
-    pure $ RCasesPatt.tuple stx (← ps.getElems.toList.mapM (parse ·.raw))
+  | `(rcasesPat| _) => return .one stx `_
+  | `(rcasesPat| $h:ident) => return .one stx h.getId
+  | `(rcasesPat| -) => return .clear stx
+  | `(rcasesPat| @$pat) => return .explicit stx (← parse pat)
+  | `(rcasesPat| ⟨$ps,*⟩) => return .tuple stx (← ps.getElems.toList.mapM (parse ·.raw))
   | `(rcasesPat| ($pat)) => parse pat
   | _ => throwUnsupportedSyntax
 
@@ -485,7 +504,7 @@ def rcases (tgts : Array (Option Name × Syntax))
   let pats ← match tgts.size with
   | 0 => return [g]
   | 1 => pure [pat]
-  | _ => pure (processConstructor pat.ref tgts.size pat.asTuple).2
+  | _ => pure (processConstructor pat.ref (tgts.map fun _ => {}) false 0 pat.asTuple.2).2
   let (pats, args) := Array.unzip <|← (tgts.zip pats.toArray).mapM fun ((hName?, tgt), pat) => do
     let (pat, ty) ← match pat with
     | RCasesPatt.typed ref pat ty => pure (pat, some (← withRef ref <| Term.elabType ty))
@@ -610,6 +629,8 @@ the input expression). An `rcases` pattern has the following grammar:
   of nested conjunctions or existentials. For example if the active hypothesis is `a ∧ b ∧ c`,
   then the conjunction will be destructured, and `p1` will be matched against `a`, `p2` against `b`
   and so on.
+* A `@` before a tuple pattern as in `@⟨p1, p2, p3⟩` will bind all arguments in the constructor,
+  while leaving the `@` off will only use the patterns on the explicit arguments.
 * An alteration pattern `p1 | p2 | p3`, which matches an inductive type with multiple constructors,
   or a nested disjunction like `a ∨ b ∨ c`.
 
