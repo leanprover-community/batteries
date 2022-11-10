@@ -88,9 +88,9 @@ def empty (capacity := 0) : Imp α β :=
     else ⟨nbuckets, Nat.zero_lt_of_ne_zero h⟩
   empty' n n.2
 
-/-- Calculates the bucket index from a hash value `u`. -/
-def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
-  ⟨u % n, USize.modn_lt _ h⟩
+/-- Calculates the bucket index for the key `a`. -/
+def mkIdx [Hashable α] {n : Nat} (h : 0 < n) (a : α) : {u : USize // u.toNat < n} :=
+  ⟨(hash a |>.toUSize) % n, USize.modn_lt _ h⟩
 
 /--
 Inserts a key-value pair into the bucket array. This function assumes that the data is not
@@ -98,7 +98,7 @@ already in the array, which is appropriate when reinserting elements into the ar
 -/
 @[inline] def reinsertAux [Hashable α]
     (data : Bucket α β) (a : α) (b : β) : Bucket α β :=
-  let ⟨i, h⟩ := mkIdx data.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx data.2 a
   data.update i (.cons a b data.1[i]) h
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
@@ -116,19 +116,19 @@ already in the array, which is appropriate when reinserting elements into the ar
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
 def findEntry? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option (α × β) :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx buckets.2 a
   buckets.1[i].findEntry? a
 
 /-- Looks up an element in the map with key `a`. -/
 def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx buckets.2 a
   buckets.1[i].find? a
 
 /-- Returns true if the element `a` is in the map. -/
 def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx buckets.2 a
   buckets.1[i].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
@@ -156,7 +156,7 @@ If an element equal to `a` is already in the map, it is replaced by `b`.
 -/
 @[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (a : α) (b : β) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx buckets.2 a
   let bkt := buckets.1[i]
   bif bkt.contains a then
     ⟨size, buckets.update i (bkt.replace a b) h⟩
@@ -173,7 +173,7 @@ Removes key `a` from the map. If it does not exist in the map, the map is return
 -/
 def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let ⟨i, h⟩ := mkIdx buckets.2 a
   let bkt := buckets.1[i]
   bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
 
