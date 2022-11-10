@@ -20,34 +20,34 @@ namespace Imp
 The bucket array of a `HashMap` is a nonempty array of `AssocList`s.
 (This type is an internal implementation detail of `HashMap`.)
 -/
-def Bucket (α : Type u) (β : Type v) := {b : Array (AssocList α β) // 0 < b.size}
+def Buckets (α : Type u) (β : Type v) := {b : Array (AssocList α β) // 0 < b.size}
 
-namespace Bucket
+namespace Buckets
 
 /-- Construct a new empty bucket array with the specified capacity. -/
-def mk (buckets := 8) (h : 0 < buckets := by decide) : Bucket α β :=
+def mk (buckets := 8) (h : 0 < buckets := by decide) : Buckets α β :=
   ⟨mkArray buckets .nil, by simp [h]⟩
 
 /-- Update one bucket in the bucket array with a new value. -/
-def update (data : Bucket α β) (i : USize)
-    (d : AssocList α β) (h : i.toNat < data.1.size) : Bucket α β :=
+def update (data : Buckets α β) (i : USize)
+    (d : AssocList α β) (h : i.toNat < data.1.size) : Buckets α β :=
   ⟨data.1.uset i d h, (Array.size_uset ..).symm ▸ data.2⟩
 
 /--
 The number of elements in the bucket array.
 Note: this is marked `noncomputable` because it is only intended for specification.
 -/
-noncomputable def size (data : Bucket α β) : Nat := .sum (data.1.data.map (·.toList.length))
+noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
 /-- Map a function over the values in the map. -/
-@[specialize] def mapVal (f : α → β → γ) (self : Bucket α β) : Bucket α γ :=
+@[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
   ⟨self.1.map (.mapVal f), by simp [self.2]⟩
 
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
-structure WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop where
+structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
   /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
   distinct [LawfulHashable α] [PartialEquivBEq α] : ∀ bucket ∈ buckets.1.data,
     bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
@@ -55,7 +55,7 @@ structure WF [BEq α] [Hashable α] (buckets : Bucket α β) : Prop where
   hash_self (i : Nat) (h : i < buckets.1.size) :
     buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
 
-end Bucket
+end Buckets
 end Imp
 
 /-- `HashMap.Imp α β` is the internal implementation type of `HashMap α β`. -/
@@ -65,7 +65,7 @@ structure Imp (α : Type u) (β : Type v) where
   use the size to determine when to resize the map. -/
   size    : Nat
   /-- The bucket array of the `HashMap`. -/
-  buckets : Imp.Bucket α β
+  buckets : Imp.Buckets α β
 
 namespace Imp
 
@@ -97,7 +97,7 @@ Inserts a key-value pair into the bucket array. This function assumes that the d
 already in the array, which is appropriate when reinserting elements into the array after a resize.
 -/
 @[inline] def reinsertAux [Hashable α]
-    (data : Bucket α β) (a : α) (b : β) : Bucket α β :=
+    (data : Buckets α β) (a : α) (b : β) : Buckets α β :=
   let ⟨i, h⟩ := mkIdx data.2 a
   data.update i (.cons a b data.1[i]) h
 
@@ -132,13 +132,13 @@ def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
   buckets.1[i].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
-def expand [Hashable α] (size : Nat) (buckets : Bucket α β) : Imp α β :=
+def expand [Hashable α] (size : Nat) (buckets : Buckets α β) : Imp α β :=
   let nbuckets := buckets.1.size * 2
   { size, buckets := go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide))) }
 where
   /-- Inner loop of `expand`. Copies elements `source[i:]` into `target`,
   destroying `source` in the process. -/
-  go (i : Nat) (source : Array (AssocList α β)) (target : Bucket α β) : Bucket α β :=
+  go (i : Nat) (source : Array (AssocList α β)) (target : Buckets α β) : Buckets α β :=
     if h : i < source.size then
       let idx : Fin source.size := ⟨i, h⟩
       let es := source.get idx
