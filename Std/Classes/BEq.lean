@@ -18,9 +18,9 @@ class PartialEquivBEq (α) [BEq α] : Prop where
   /-- Transitivity for `BEq`. If `a == b` and `b == c` then `a == c`. -/
   trans : (a : α) == b → b == c → a == c
 
-theorem bne_symm [BEq α] [PartialEquivBEq α] (a b : α) : a != b → b != a :=
+theorem bne_symm [BEq α] [PartialEquivBEq α] {a b : α} : a != b → b != a :=
   fun h => Bool.not_eq_true_iff_ne_true.mpr fun h' =>
-    Bool.not_bne_of_beq (PartialEquivBEq.symm h') h
+    Bool.bne_iff_not_beq.mp h (PartialEquivBEq.symm h')
 
 @[simp] theorem beq_eq_false_iff_ne [BEq α] [LawfulBEq α]
     (a b : α) : (a == b) = false ↔ a ≠ b := by

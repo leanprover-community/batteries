@@ -704,8 +704,8 @@ theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
 theorem Bool.not_eq_true_iff_ne_true {b : Bool} : (!b) = true ↔ ¬(b = true) := by
   cases b <;> decide
 
-theorem Bool.not_bne_of_beq [BEq α] {a a' : α} : a == a' → a != a' → False :=
-  fun hEq hNe => Bool.not_eq_true_iff_ne_true.mp hNe hEq
+theorem Bool.bne_iff_not_beq [BEq α] {a a' : α} : a != a' ↔ ¬(a == a')  :=
+  Bool.not_eq_true_iff_ne_true
 
 /-! ## miscellaneous -/
 
