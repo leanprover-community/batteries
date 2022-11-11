@@ -5,12 +5,13 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Nat.Gcd
 import Std.Data.Int.DivMod
+import Std.Tactic.Ext
 
 /--
 Rational numbers, implemented as a pair of integers `num / den` such that the
 denominator is positive and the numerator and denominator are coprime.
 -/
-structure Rat where
+@[ext] structure Rat where
   /-- The numerator of the rational number is an integer. -/
   num : Int
   /-- The denominator of the rational number is a natural number. -/
