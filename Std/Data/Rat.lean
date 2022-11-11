@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Nat.Gcd
 import Std.Data.Int.DivMod
+import Std.Tactic.Ext
 
 /--
 Rational numbers, implemented as a pair of integers `num / den` such that the
@@ -75,6 +76,9 @@ def mkRat (num : Int) (den : Nat) : Rat :=
 
 namespace Rat
 
+/-- The rational numbers -/
+notation "ℚ" => Rat
+
 /-- Embedding of `Int` in the rational numbers. -/
 @[coe] def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
 
@@ -93,6 +97,15 @@ protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
     (m * 10 ^ e : Nat)
 
 instance : OfScientific Rat where ofScientific := Rat.ofScientific
+
+theorem ext_iff {p q : ℚ} : p = q ↔ p.num = q.num ∧ p.den = q.den := by
+  cases p
+  cases q
+  simp
+
+@[ext]
+theorem ext {p q : ℚ} (hn : p.num = q.num) (hd : p.den = q.den) : p = q :=
+  Rat.ext_iff.mpr ⟨hn, hd⟩
 
 /-- Rational number strictly less than relation, as a `Bool`. -/
 protected def blt (a b : Rat) : Bool :=
