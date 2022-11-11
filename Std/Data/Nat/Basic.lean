@@ -24,10 +24,9 @@ def sqrt (n : Nat) : Nat :=
   if guess = 0 then n else
   let rec iter (guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
-    if h : guess ≤ next then
-      guess
-    else
-      have : next < guess := Nat.gt_of_not_le h
+    if _ : next < guess then
       iter next
+    else
+      guess
   iter guess
 termination_by iter guess => guess

@@ -811,20 +811,9 @@ theorem sqrt_pow_2_le (n)
   | n+2 =>
   let rec iter n (guess) (g_pos : guess > 0) (g_le_n : guess ≤ n)
     : (sqrt.iter n guess) ^ 2 ≤ n
-    :=
+    := by
     let next := (guess + n / guess) / 2
-    if h : guess ≤ next then by
-      unfold sqrt.iter
-      simp [h, Nat.pow_succ, Nat.pow_zero]
-      apply (le_div_iff_mul_le g_pos).mp
-      apply Nat.le_of_add_le_add_left (a := guess)
-      have : guess + guess = 2 * guess := by simp [succ_mul]
-      rw [this]
-      rw [Nat.mul_comm]
-      apply (le_div_iff_mul_le (by decide)).mp
-      exact h
-    else
-      have : next < guess := Nat.gt_of_not_le h
+    if h : next < guess then
       have next_pos : next > 0 := by
         have : n / guess = succ _ := by
           conv => lhs; simp [Div.div, HDiv.hDiv]; unfold Nat.div
@@ -844,38 +833,49 @@ theorem sqrt_pow_2_le (n)
         assumption
         apply Nat.div_le_self
       have := iter n next next_pos next_le_n
-      by unfold sqrt.iter; simp [h, this]
+      unfold sqrt.iter; simp [h, this]
+    else
+      unfold sqrt.iter
+      simp [h, Nat.pow_succ, Nat.pow_zero]
+      apply (le_div_iff_mul_le g_pos).mp
+      apply Nat.le_of_add_le_add_left (a := guess)
+      have : guess + guess = 2 * guess := by simp [succ_mul]
+      rw [this]
+      rw [Nat.mul_comm]
+      apply (le_div_iff_mul_le (by decide)).mp
+      exact Nat.ge_of_not_lt h
   have := iter (n+2) ((n+2)/2)
     (by simp; apply succ_le_succ; simp)
     (Nat.div_le_self _ _)
   by simp [sqrt] at this ⊢; exact this
 termination_by iter guess _ _ => guess
 
+theorem lemma (hn : n > 1) (h_x : x ≤ n)
+  (h_low : n < (x+1)^2) (h_dec : (x + n / x) / 2 < x)
+  : n < ((x + n / x) / 2 + 1)^2
+  := sorry
+
 theorem square_succ_sqrt_gt_self (n)
   : n < ((sqrt n)+1) ^ 2
-  :=
+  := if h : _ then h else by
   match n with
-  | 0 | 1 => by simp
+  | 0 | 1 => simp
   | n+2 =>
-  let rec iter n (guess) (g_succ_gt_n : (guess+1) ^ 2 > n)
+  let rec iter n (hn : n > 1) (guess) (hx : guess ≤ n) (g_succ_gt_n : (guess+1)^2 > n)
     : n < (sqrt.iter n guess + 1) ^ 2
-    :=
+    := by
     let next := (guess + n / guess) / 2
-    if h : guess ≤ next then by
+    if h : next < guess then
+      unfold sqrt.iter; simp [h]
+      have : (next + 1) ^ 2 > n := by
+        have : (next + 1) ^ 2 ≤ guess ^ 2 := Nat.pow_monotonic h (by decide)
+        exact lemma hn hx g_succ_gt_n h
+      have := iter n hn next (Nat.le_trans (Nat.le_of_lt h) hx) this
+      simp [h, this]
+    else
       unfold sqrt.iter
       simp [h, g_succ_gt_n]
-    else
-      have : next < guess := Nat.gt_of_not_le h
-      have : (next + 1) ^ 2 > n := by
-        have : (next + 1) ^ 2 ≤ guess ^ 2 := Nat.pow_monotonic this (by decide)
-        have : n < guess^2 := by
-          apply Nat.lt_of_lt_of_le _ this
-          simp
-          sorry
-        sorry
-      have := iter n next this
-      by unfold sqrt.iter; simp [h, this]
-  have := iter (n+2) ((n+2)/2) (by
+  have := iter (n+2) (Nat.le_add_left _ _) ((n+2)/2) (Nat.div_le_self _ _) (by
     simp [Nat.pow_succ, Nat.pow_zero]
     have : n ≤ 2 * (n / 2) + 1 := by
       apply Nat.le_trans (m := 2 * (n / 2) + n % 2)
@@ -893,7 +893,7 @@ theorem square_succ_sqrt_gt_self (n)
     simp
     apply Nat.add_le_add_right
     apply Nat.le_add_left)
-  by simp [sqrt] at this ⊢; exact this
+  simp [sqrt] at this ⊢; exact this
 termination_by iter guess _ _ => guess
 
 @[simp]
