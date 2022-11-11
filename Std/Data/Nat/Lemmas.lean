@@ -850,7 +850,7 @@ theorem sqrt_pow_2_le (n)
   by simp [sqrt] at this ⊢; exact this
 termination_by iter guess _ _ => guess
 
-theorem lemma (hn : n > 1) (h_x : x ≤ n)
+theorem lemma (hn : n > 1) (_ : x ≤ n)
   (h_low : n < (x+1)^2) (h_dec : (x + n / x) / 2 < x)
   : n < ((x + n / x) / 2 + 1)^2
   := sorry
