@@ -156,7 +156,7 @@ theorem add_mul_ediv_right (a b : Int) {c : Int} (H : c ≠ 0) : (a + b * c).edi
     else
       have h := Nat.not_lt.1 h
       have H {a b : Nat} (h : a ≤ b) : (a : Int) + -((b : Int) + 1) = -[b - a +1] := by
-        rw [negSucc_ofNat_eq, Int.ofNat_sub h]
+        rw [negSucc_eq, Int.ofNat_sub h]
         simp only [Int.sub_eq_add_neg, Int.neg_add, Int.neg_neg, Int.add_left_comm, Int.add_assoc]
       show ediv (↑(n * succ k) + -((m : Int) + 1)) (succ k) = n + -(↑(m / succ k) + 1 : Int)
       rw [H h, H ((Nat.le_div_iff_mul_le k.succ_pos).2 h)]
@@ -298,7 +298,7 @@ theorem emod_add_ediv : ∀ a b : Int, a.emod b + b * a.ediv b = a
   | -[m+1], -[n+1] => aux m n.succ
 where
   aux (m n : Nat) : n - (emod m n + 1) - (n * ediv m n + n) = -[m+1] := by
-    rw [← ofNat_emod, ← ofNat_ediv, ← Int.sub_sub, negSucc_ofNat_eq, Int.sub_sub n,
+    rw [← ofNat_emod, ← ofNat_ediv, ← Int.sub_sub, negSucc_eq, Int.sub_sub n,
       ← Int.neg_neg (_-_), Int.neg_sub, Int.sub_sub_self, Int.add_right_comm]
     exact congrArg (fun x => -(ofNat x + 1)) (Nat.mod_add_div ..)
 
