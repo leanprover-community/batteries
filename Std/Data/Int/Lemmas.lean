@@ -5,7 +5,9 @@ Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.Int.Basic
+import Std.Data.Option.Basic
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.RCases
 
 open Nat
 
@@ -228,6 +230,9 @@ protected theorem add_comm : ∀ a b : Int, a + b = b + a
 
 @[local simp] protected theorem zero_add (a : Int) : 0 + a = a := Int.add_comm .. ▸ a.add_zero
 
+theorem ofNat_add_negSucc_of_lt (h : m < n.succ) : ofNat m + -[n+1] = -[n - m+1] :=
+  show subNatNat .. = _ by simp [succ_sub (le_of_lt_succ h), subNatNat]
+
 theorem subNatNat_sub (h : n ≤ m) (k : Nat) : subNatNat (m - n) k = subNatNat m (k + n) := by
   rwa [← subNatNat_add_add _ _ n, Nat.sub_add_cancel]
 
@@ -240,7 +245,8 @@ theorem subNatNat_add (m n k : Nat) : subNatNat (m + n) k = ofNat m + subNatNat 
   | inr h' => simp [subNatNat_of_le h',
       subNatNat_of_le (Nat.le_trans h' (le_add_left ..)), Nat.add_sub_assoc h']
 
-theorem subNatNat_add_negSucc (m n k : Nat) : subNatNat m n + -[k+1] = subNatNat m (n + succ k) := by
+theorem subNatNat_add_negSucc (m n k : Nat) :
+    subNatNat m n + -[k+1] = subNatNat m (n + succ k) := by
   have h := Nat.lt_or_ge m n
   cases h with
   | inr h' =>
@@ -332,6 +338,10 @@ protected theorem add_left_cancel {a b c : Int} (h : a + b = a + c) : b = c := b
 
 protected theorem sub_self (a : Int) : a - a = 0 := by
   rw [Int.sub_eq_add_neg, Int.add_right_neg]
+
+protected theorem sub_zero (a : Int) : a - 0 = a := by simp [Int.sub_eq_add_neg]
+
+protected theorem zero_sub (a : Int) : 0 - a = -a := by simp [Int.sub_eq_add_neg]
 
 protected theorem sub_eq_zero_of_eq {a b : Int} (h : a = b) : a - b = 0 := by
   rw [h, Int.sub_self]
@@ -469,10 +479,10 @@ protected theorem sub_mul (a b c : Int) : (a - b) * c = a * c - b * c := by
 
 protected theorem zero_ne_one : (0 : Int) ≠ 1 := fun.
 
-protected theorem sub_add_cancel (a b : Int) : a - b + b = a :=
+@[simp] protected theorem sub_add_cancel (a b : Int) : a - b + b = a :=
   Int.neg_add_cancel_right a b
 
-protected theorem add_sub_cancel (a b : Int) : a + b - b = a :=
+@[simp] protected theorem add_sub_cancel (a b : Int) : a + b - b = a :=
   Int.add_neg_cancel_right a b
 
 protected theorem add_sub_assoc (a b c : Int) : a + b - c = a + (b - c) := by
@@ -592,7 +602,7 @@ theorem ofNat_nonneg (n : Nat) : 0 ≤ ofNat n := ⟨_⟩
 
 theorem ofNat_succ_pos (n : Nat) : 0 < (Nat.succ n : Int) := ofNat_lt.2 <| Nat.succ_pos _
 
-protected theorem le_refl (a : Int) : a ≤ a :=
+@[simp] protected theorem le_refl (a : Int) : a ≤ a :=
   le.intro _ (Int.add_zero a)
 
 protected theorem le_trans {a b c : Int} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
@@ -666,6 +676,43 @@ protected theorem lt_of_lt_of_le {a b c : Int} (h₁ : a < b) (h₂ : b ≤ c) :
 
 protected theorem lt_trans {a b c : Int} (h₁ : a < b) (h₂ : b < c) : a < c :=
   Int.lt_of_le_of_lt (Int.le_of_lt h₁) h₂
+
+protected theorem le_of_not_le {a b : Int} : ¬ a ≤ b → b ≤ a := (Int.le_total a b).resolve_left
+
+protected theorem min_def (n m : Int) : min n m = if n ≤ m then n else m := rfl
+
+protected theorem max_def (n m : Int) : max n m = if n ≤ m then m else n := rfl
+
+protected theorem min_comm (a b : Int) : min a b = min b a := by
+  simp [Int.min_def]
+  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
+  · exact Int.le_antisymm h₁ h₂
+  · cases not_or_intro h₁ h₂ <| Int.le_total ..
+
+protected theorem min_le_right (a b : Int) : min a b ≤ b := by rw [Int.min_def]; split <;> simp [*]
+
+protected theorem min_le_left (a b : Int) : min a b ≤ a := Int.min_comm .. ▸ Int.min_le_right ..
+
+protected theorem min_eq_left {a b : Int} (h : a ≤ b) : min a b = a := by simp [Int.min_def, h]
+
+protected theorem min_eq_right {a b : Int} (h : b ≤ a) : min a b = b := by
+  rw [Int.min_comm a b]; exact Int.min_eq_left h
+
+protected theorem max_comm (a b : Int) : max a b = max b a := by
+  simp only [Int.max_def]
+  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
+  · exact Int.le_antisymm h₂ h₁
+  · cases not_or_intro h₁ h₂ <| Int.le_total ..
+
+protected theorem le_max_left (a b : Int) : a ≤ max a b := by rw [Int.max_def]; split <;> simp [*]
+
+protected theorem le_max_right (a b : Int) : b ≤ max a b := Int.max_comm .. ▸ Int.le_max_left ..
+
+protected theorem max_eq_right {a b : Int} (h : a ≤ b) : max a b = b := by
+  simp [Int.max_def, h, Int.not_lt.2 h]
+
+protected theorem max_eq_left {a b : Int} (h : b ≤ a) : max a b = a := by
+  rw [← Int.max_comm b a]; exact Int.max_eq_right h
 
 theorem eq_natAbs_of_zero_le {a : Int} (h : 0 ≤ a) : a = natAbs a := by
   let ⟨n, e⟩ := eq_ofNat_of_zero_le h
@@ -1259,9 +1306,90 @@ theorem eq_one_of_mul_eq_self_left {a b : Int} (Hpos : a ≠ 0) (H : b * a = a) 
 theorem eq_one_of_mul_eq_self_right {a b : Int} (Hpos : b ≠ 0) (H : b * a = b) : a = 1 :=
   Int.eq_of_mul_eq_mul_left Hpos <| by rw [Int.mul_one, H]
 
+/-! ### nat abs -/
+
 theorem ofNat_natAbs_eq_of_nonneg : ∀ a : Int, 0 ≤ a → Int.ofNat (Int.natAbs a) = a
   | ofNat _, _ => rfl
   | -[n+1],  h => absurd (negSucc_lt_zero n) (Int.not_lt.2 h)
 
 theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
   rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]
+
+theorem natAbs_add_le (a b : Int) : natAbs (a + b) ≤ natAbs a + natAbs b := by
+  suffices ∀ a b : Nat, natAbs (subNatNat a b.succ) ≤ (a + b).succ by
+    match a, b with
+    | ofNat a, ofNat b => simp
+    | ofNat a, negSucc b => simp; apply this
+    | negSucc a, ofNat b => simp [Nat.succ_add, Nat.add_comm a b]; apply this
+    | negSucc a, negSucc b => simp [Nat.succ_add]; apply Nat.le_refl
+  refine fun a b => subNatNat_elim a b.succ
+    (fun m n i => n = b.succ → natAbs i ≤ (m + b).succ) ?_
+    (fun i n (e : (n + i).succ = _) => ?_) rfl
+  · rintro i n rfl
+    rw [Nat.add_comm _ i, Nat.add_assoc]
+    exact Nat.le_add_right i (b.succ + b).succ
+  · apply succ_le_succ
+    rw [← succ.inj e, ← Nat.add_assoc, Nat.add_comm]
+    apply Nat.le_add_right
+
+theorem natAbs_sub_le (a b : Int) : natAbs (a - b) ≤ natAbs a + natAbs b := by
+  rw [← Int.natAbs_neg b]; apply natAbs_add_le
+
+theorem negSucc_eq' (m : Nat) : -[m+1] = -m - 1 := by simp only [negSucc_eq, Int.neg_add]; rfl
+
+theorem natAbs_lt_natAbs_of_nonneg_of_lt {a b : Int}
+    (w₁ : 0 ≤ a) (w₂ : a < b) : a.natAbs < b.natAbs :=
+  match a, b, eq_ofNat_of_zero_le w₁, eq_ofNat_of_zero_le (Int.le_trans w₁ (Int.le_of_lt w₂)) with
+  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => ofNat_lt.1 w₂
+
+/-! ### toNat -/
+
+theorem toNat_eq_max : ∀ a : Int, (toNat a : Int) = max a 0
+  | (n : Nat) => (Int.max_eq_left (ofNat_zero_le n)).symm
+  | -[n+1] => (Int.max_eq_right (Int.le_of_lt (negSucc_lt_zero n))).symm
+
+@[simp] theorem toNat_zero : (0 : Int).toNat = 0 := rfl
+
+@[simp] theorem toNat_one : (1 : Int).toNat = 1 := rfl
+
+@[simp] theorem toNat_of_nonneg {a : Int} (h : 0 ≤ a) : (toNat a : Int) = a := by
+  rw [toNat_eq_max, Int.max_eq_left h]
+
+@[simp] theorem toNat_ofNat (n : Nat) : toNat ↑n = n := rfl
+
+@[simp] theorem toNat_ofNat_add_one {n : Nat} : ((n : Int) + 1).toNat = n + 1 := rfl
+
+theorem self_le_toNat (a : Int) : a ≤ toNat a := by rw [toNat_eq_max] <;> apply Int.le_max_left
+
+@[simp] theorem le_toNat {n : Nat} {z : Int} (h : 0 ≤ z) : n ≤ z.toNat ↔ (n : Int) ≤ z := by
+  rw [← Int.ofNat_le, Int.toNat_of_nonneg h]
+
+theorem toNat_add {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : (a + b).toNat = a.toNat + b.toNat :=
+  match a, b, eq_ofNat_of_zero_le ha, eq_ofNat_of_zero_le hb with
+  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => rfl
+
+theorem toNat_add_nat {a : Int} (ha : 0 ≤ a) (n : Nat) : (a + n).toNat = a.toNat + n :=
+  match a, eq_ofNat_of_zero_le ha with | _, ⟨_, rfl⟩ => rfl
+
+@[simp] theorem pred_toNat : ∀ i : Int, (i - 1).toNat = i.toNat - 1
+  | 0 => rfl
+  | (n+1:Nat) => by simp [ofNat_add]
+  | -[n+1] => rfl
+
+@[simp] theorem toNat_sub_toNat_neg : ∀ n : Int, ↑n.toNat - ↑(-n).toNat = n
+  | 0 => rfl
+  | (_+1:Nat) => Int.sub_zero _
+  | -[_+1] => Int.zero_sub _
+
+@[simp] theorem toNat_add_toNat_neg_eq_nat_abs : ∀ n : Int, n.toNat + (-n).toNat = n.natAbs
+  | 0 => rfl
+  | (_+1:Nat) => add_zero _
+  | -[_+1] => Nat.zero_add _
+
+theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
+  | (m : Nat), n => Option.some_inj.trans ofNat_inj.symm
+  | -[m+1], n => by constructor <;> intro.
+
+@[simp] theorem toNat_neg_nat : ∀ n : Nat, (-(n : Int)).toNat = 0
+  | 0 => rfl
+  | _+1 => rfl

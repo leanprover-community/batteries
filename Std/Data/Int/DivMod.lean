@@ -228,6 +228,8 @@ theorem mod_def' (m n : Int) : m % n = mod m n := rfl
 
 @[simp, norm_cast] theorem ofNat_mod (m n : Nat) : ofNat (m % n) = m % n := rfl
 
+theorem ofNat_mod_ofNat (m n : Nat) : (m % n : Int) = ofNat (m % n) := rfl
+
 theorem ofNat_fmod (m n : Nat) : ofNat (m % n) = fmod m n := by cases m <;> simp [fmod]
 
 theorem ofNat_emod (m n : Nat) : ofNat (m % n) = emod m n := rfl

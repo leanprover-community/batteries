@@ -26,6 +26,16 @@ def sign : Int → Int
   | 0      => 0
   | -[_+1] => -1
 
+/-! ## toNat' -/
+
+/--
+* If `n : Nat`, then `int.toNat' n = some n`
+* If `n : Int` is negative, then `int.toNat' n = none`.
+-/
+def toNat' : Int → Option Nat
+  | (n : Nat) => some n
+  | -[_+1] => none
+
 /-! ## Quotient and remainder
 
 There are three main conventions for integer division,

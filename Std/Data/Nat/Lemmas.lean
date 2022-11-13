@@ -151,14 +151,13 @@ protected theorem min_eq_min (a : Nat) : Nat.min a b = min a b := rfl
 protected theorem max_eq_max (a : Nat) : Nat.max a b = max a b := rfl
 
 protected theorem min_comm (a b : Nat) : min a b = min b a := by
-  simp [Nat.min_def]
-  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
-  · exact Nat.le_antisymm h₁ h₂
-  · cases not_or_intro h₁ h₂ <| Nat.le_total ..
+  simp [Nat.min_def]; split <;> split <;> simp [*]
+  · next h₁ h₂ => exact Nat.le_antisymm h₁ h₂
+  · next h₁ h₂ => cases not_or_intro h₁ h₂ <| Nat.le_total ..
 
-protected theorem min_le_left (a b : Nat) : min a b ≤ a := by
-  simp [Nat.min_def]; by_cases h : a ≤ b <;> simp [h]
-  exact Nat.le_of_not_le h
+protected theorem min_le_right (a b : Nat) : min a b ≤ b := by rw [Nat.min_def]; split <;> simp [*]
+
+protected theorem min_le_left (a b : Nat) : min a b ≤ a := Nat.min_comm .. ▸ Nat.min_le_right ..
 
 protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [Nat.min_def, h]
 
@@ -174,6 +173,10 @@ protected theorem max_comm (a b : Nat) : max a b = max b a := by
   by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
   · exact Nat.le_antisymm h₂ h₁
   · cases not_or_intro h₁ h₂ <| Nat.le_total ..
+
+protected theorem le_max_left (a b : Nat) : a ≤ max a b := by rw [Nat.max_def]; split <;> simp [*]
+
+protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. ▸ Nat.le_max_left ..
 
 protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : max a b = b := by
   simp [Nat.max_def, h, Nat.not_lt.2 h]
