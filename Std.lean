@@ -37,6 +37,8 @@ import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Linter
+import Std.Linter.UnreachableTactic
 import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.ByCases

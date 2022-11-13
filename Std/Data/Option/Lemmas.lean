@@ -52,8 +52,7 @@ theorem eq_none_iff_forall_not_mem : o = none ↔ ∀ a, a ∉ o :=
 
 @[simp] theorem isSome_some : isSome (some a) = true := rfl
 
-theorem isSome_iff_exists : isSome x ↔ ∃ a, x = some a := by
-  cases x <;> simp [isSome] <;> exact ⟨_, rfl⟩
+theorem isSome_iff_exists : isSome x ↔ ∃ a, x = some a := by cases x <;> simp [isSome]
 
 @[simp] theorem isNone_none : @isNone α none = true := rfl
 
