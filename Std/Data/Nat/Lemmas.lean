@@ -9,7 +9,7 @@ import Std.Data.Nat.Basic
 
 namespace Nat
 
-attribute [simp] succ_ne_zero lt_succ_self Nat.add_sub_cancel
+attribute [simp] succ_ne_zero lt_succ_self Nat.add_sub_cancel succ_sub_succ_eq_sub
 
 theorem succ_ne_self : ∀ n : Nat, succ n ≠ n
 | 0,   h => absurd h (succ_ne_zero 0)

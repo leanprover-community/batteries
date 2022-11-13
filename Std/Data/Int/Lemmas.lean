@@ -49,7 +49,7 @@ theorem negOfNat_eq : negOfNat n = -ofNat n := rfl
     ofNat m + -[n+1] = subNatNat m (succ n) := rfl
 @[local simp] theorem negSucc_add_ofNat (m n : Nat) :
     -[m+1] + ofNat n = subNatNat n (succ m) := rfl
-@[local simp] theorem negSucc_add_negSucc (m n : Nat) :
+@[simp] theorem negSucc_add_negSucc (m n : Nat) :
     -[m+1] + -[n+1] = -[succ (m + n) +1] := rfl
 
 @[simp] theorem mul_def {a b : Int} : Int.mul a b = a * b := rfl
@@ -136,19 +136,18 @@ theorem subNatNat_of_lt {m n : Nat} (h : m < n) : subNatNat m n = -[pred (n - m)
 
 /- ## natAbs -/
 
-theorem natAbs_ofNat (n : Nat) : natAbs ↑n = n := rfl
+@[simp] theorem natAbs_ofNat (n : Nat) : natAbs ↑n = n := rfl
+@[simp] theorem natAbs_negSucc (n : Nat) : natAbs -[n+1] = n.succ := rfl
+@[simp] theorem natAbs_zero : natAbs (0 : Int) = (0 : Nat) := rfl
+@[simp] theorem natAbs_one : natAbs (1 : Int) = (1 : Nat) := rfl
 
-theorem natAbs_zero : natAbs (0 : Int) = (0 : Nat) := rfl
-
-theorem natAbs_one : natAbs (1 : Int) = (1 : Nat) := rfl
-
-theorem natAbs_eq_zero : natAbs a = 0 ↔ a = 0 :=
+@[simp] theorem natAbs_eq_zero : natAbs a = 0 ↔ a = 0 :=
   ⟨fun H => match a with
     | ofNat _ => congrArg ofNat H
     | -[_+1]  => absurd H (succ_ne_zero _),
   fun e => e ▸ rfl⟩
 
-theorem natAbs_ne_zero {a : Int} : a.natAbs ≠ 0 ↔ a ≠ 0 := not_congr Int.natAbs_eq_zero
+@[simp] theorem natAbs_ne_zero {a : Int} : a.natAbs ≠ 0 ↔ a ≠ 0 := not_congr Int.natAbs_eq_zero
 
 theorem natAbs_pos : 0 < natAbs a ↔ a ≠ 0 := by rw [Nat.pos_iff_ne_zero, Ne, natAbs_eq_zero]
 

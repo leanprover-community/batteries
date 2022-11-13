@@ -527,9 +527,7 @@ theorem get_append : ∀ {l₁ l₂ : List α} (n : Nat) (h : n < l₁.length),
 theorem get?_append_right : ∀ {l₁ l₂ : List α} {n : Nat}, l₁.length ≤ n →
   (l₁ ++ l₂).get? n = l₂.get? (n - l₁.length)
 | [], _, n, _ => rfl
-| a :: l, _, n+1, h₁ => by
-  rw [cons_append]; simp
-  rw [Nat.add_sub_add_right, get?_append_right (Nat.lt_succ.1 h₁)]
+| a :: l, _, n+1, h₁ => by rw [cons_append]; simp [get?_append_right (Nat.lt_succ.1 h₁)]
 
 theorem get_append_right_aux {l₁ l₂ : List α} {n : Nat}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length := by
@@ -785,7 +783,7 @@ theorem mem_or_eq_of_mem_set : ∀ {l : List α} {n : Nat} {a b : α}, a ∈ l.s
 
 theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i) = length l - 1
   | [], _, _ => rfl
-  | x::xs, 0, _ => by simp [removeNth]; rfl
+  | _::_, 0, _ => by simp [removeNth]
   | x::xs, i+1, h => by
     have : i < length xs := Nat.lt_of_succ_lt_succ h
     simp [removeNth, ← Nat.add_one]
