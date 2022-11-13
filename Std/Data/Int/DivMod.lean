@@ -64,12 +64,12 @@ theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = a / b
   fdiv_eq_ediv _ Hb ▸ ediv_eq_div Ha Hb
 
 @[simp] protected theorem div_neg : ∀ a b : Int, a / (-b) = -(a / b)
-  | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero] <;> rfl
+  | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero]; rfl
   | ofNat m, -[n+1] | -[m+1], succ n => (Int.neg_neg _).symm
   | ofNat m, succ n | -[m+1], 0 | -[m+1], -[n+1] => rfl
 
 @[simp] protected theorem ediv_neg : ∀ a b : Int, a.ediv (-b) = -(a.ediv b)
-  | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero] <;> rfl
+  | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero]; rfl
   | ofNat m, -[n+1] => (Int.neg_neg _).symm
   | ofNat m, succ n | -[m+1], 0 | -[m+1], succ n | -[m+1], -[n+1] => rfl
 
@@ -262,7 +262,7 @@ theorem mod_add_div : ∀ a b : Int, a % b + b * (a / b) = a
   | ofNat _, ofNat _ => congrArg ofNat (Nat.mod_add_div ..)
   | ofNat m, -[n+1] => by
     show (m % succ n + -↑(succ n) * -↑(m / succ n) : Int) = m
-    rw [Int.neg_mul_neg] <;> exact congrArg ofNat (Nat.mod_add_div ..)
+    rw [Int.neg_mul_neg]; exact congrArg ofNat (Nat.mod_add_div ..)
   | -[_+1], 0 => rfl
   | -[m+1], ofNat n => by
     show -(↑((succ m) % n) : Int) + ↑n * -↑(succ m / n) = -↑(succ m)
@@ -755,11 +755,11 @@ protected theorem ediv_eq_iff_eq_mul_right {a b c : Int}
 
 protected theorem div_eq_iff_eq_mul_left {a b c : Int}
     (H : b ≠ 0) (H' : b ∣ a) : a / b = c ↔ a = c * b := by
-  rw [Int.mul_comm] <;> exact Int.div_eq_iff_eq_mul_right H H'
+  rw [Int.mul_comm]; exact Int.div_eq_iff_eq_mul_right H H'
 
 protected theorem ediv_eq_iff_eq_mul_left {a b c : Int}
     (H : b ≠ 0) (H' : b ∣ a) : a.ediv b = c ↔ a = c * b := by
-  rw [Int.mul_comm] <;> exact Int.ediv_eq_iff_eq_mul_right H H'
+  rw [Int.mul_comm]; exact Int.ediv_eq_iff_eq_mul_right H H'
 
 protected theorem eq_mul_of_div_eq_left {a b c : Int}
     (H1 : b ∣ a) (H2 : a / b = c) : a = c * b := by

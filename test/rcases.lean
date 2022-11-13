@@ -153,9 +153,9 @@ structure Baz {α : Type _} (f : α → α) : Prop where
   [inst : Nonempty α]
   h : f ∘ f = id
 
-example {α} (f : α → α) (h : Baz f) : True := by rcases h with ⟨_⟩ <;> trivial
+example {α} (f : α → α) (h : Baz f) : True := by rcases h with ⟨_⟩; trivial
 
-example {α} (f : α → α) (h : Baz f) : True := by rcases h with @⟨_, _⟩ <;> trivial
+example {α} (f : α → α) (h : Baz f) : True := by rcases h with @⟨_, _⟩; trivial
 
 inductive Test : Nat → Prop
   | a (n) : Test (2 + n)

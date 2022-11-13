@@ -38,6 +38,7 @@ import Std.Lean.Parser
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter
+import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
 import Std.Logic
 import Std.Tactic.Basic

@@ -186,7 +186,7 @@ theorem natAbs_eq_natAbs_iff {a b : Int} : a.natAbs = b.natAbs ↔ a = b ∨ a =
   · cases Int.natAbs_eq a with
     | inl h₁ | inr h₁ =>
       cases Int.natAbs_eq b with
-      | inl h₂ | inr h₂ => rw [h₁, h₂] <;> simp [h]
+      | inl h₂ | inr h₂ => rw [h₁, h₂]; simp [h]
   · cases h with (subst a; try rfl)
     | inr h => rw [Int.natAbs_neg]
 
@@ -582,7 +582,7 @@ theorem eq_ofNat_of_zero_le {a : Int} (h : 0 ≤ a) : ∃ n : Nat, a = n := by
 
 theorem eq_succ_of_zero_lt {a : Int} (h : 0 < a) : ∃ n : Nat, a = n.succ :=
   let ⟨n, (h : ↑(1 + n) = a)⟩ := le.dest h
-  ⟨n, by rw [Nat.add_comm] at h <;> exact h.symm⟩
+  ⟨n, by rw [Nat.add_comm] at h; exact h.symm⟩
 
 theorem lt_add_succ (a : Int) (n : Nat) : a < a + Nat.succ n :=
   le.intro n <| by rw [Int.add_comm, Int.add_left_comm]; rfl
@@ -1359,7 +1359,7 @@ theorem toNat_eq_max : ∀ a : Int, (toNat a : Int) = max a 0
 
 @[simp] theorem toNat_ofNat_add_one {n : Nat} : ((n : Int) + 1).toNat = n + 1 := rfl
 
-theorem self_le_toNat (a : Int) : a ≤ toNat a := by rw [toNat_eq_max] <;> apply Int.le_max_left
+theorem self_le_toNat (a : Int) : a ≤ toNat a := by rw [toNat_eq_max]; apply Int.le_max_left
 
 @[simp] theorem le_toNat {n : Nat} {z : Int} (h : 0 ≤ z) : n ≤ z.toNat ↔ (n : Int) ≤ z := by
   rw [← Int.ofNat_le, Int.toNat_of_nonneg h]
