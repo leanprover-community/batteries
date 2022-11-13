@@ -1364,6 +1364,9 @@ theorem self_le_toNat (a : Int) : a ≤ toNat a := by rw [toNat_eq_max]; apply I
 @[simp] theorem le_toNat {n : Nat} {z : Int} (h : 0 ≤ z) : n ≤ z.toNat ↔ (n : Int) ≤ z := by
   rw [← Int.ofNat_le, Int.toNat_of_nonneg h]
 
+@[simp] theorem toNat_lt {n : Nat} {z : Int} (h : 0 ≤ z) : z.toNat < n ↔ z < (n : Int) := by
+  rw [← Int.not_le, ← Nat.not_le, Int.le_toNat h]
+
 theorem toNat_add {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : (a + b).toNat = a.toNat + b.toNat :=
   match a, b, eq_ofNat_of_zero_le ha, eq_ofNat_of_zero_le hb with
   | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => rfl
