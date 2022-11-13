@@ -47,14 +47,6 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-/-- Get the list of declarations tagged with the tag attribute `attr`. -/
-def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array Name := Id.run do
-  let st := attr.ext.toEnvExtension.getState env
-  let mut decls := st.state.toArray
-  for ds in st.importedEntries do
-    decls := decls ++ ds
-  decls
-
 namespace Std.Tactic.Lint
 open Lean Std
 

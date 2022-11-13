@@ -30,11 +30,13 @@ import Std.Data.RBMap
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.WF
 import Std.Data.Rat
+import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Meta
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.Tactic
+import Std.Lean.TagAttribute
 import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
