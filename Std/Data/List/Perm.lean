@@ -90,6 +90,20 @@ theorem perm_insertNth {x : α} : ∀ {l : List α} {n : Nat}, n ≤ l.length �
 theorem Perm.mem_iff {a : α} {l₁ l₂ : List α} (h : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ :=
   Iff.intro (fun m => h.subset m) fun m => h.symm.subset m
 
+theorem Perm.append_right {l₁ l₂ : List α} (t : List α) (p : l₁ ~ l₂) : l₁++t ~ l₂++t :=
+  p.recOn
+    (Perm.refl ([] ++ t))
+    (fun x _ _ _ q => q.cons x)
+    (fun x y l => swap x y (l ++ t))
+    (fun _ _ q r => trans q r)
+
+theorem Perm.append_left {t₁ t₂ : List α} : ∀ (l : List α), t₁ ~ t₂ → l++t₁ ~ l++t₂
+  | [],    p => p
+  | x::xs, p => (append_left xs p).cons x
+
+theorem Perm.append {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁++t₁ ~ l₂++t₂ :=
+  (p₁.append_right t₁).trans (p₂.append_left l₂)
+
 /-- The way Lean 4 computes the motive with `elabAsElim` has changed
 relative to the behaviour of `elab_as_eliminator` in Lean 3.
 See

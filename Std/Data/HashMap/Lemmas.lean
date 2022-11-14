@@ -72,6 +72,16 @@ theorem List.map_replicate (n : Nat) (a : α) (f : α → β)
     : (replicate n a).map f = replicate n (f a) := by
   induction n <;> simp [*]
 
+theorem List.drop_eq_cons (l : List α) (i : Nat) (h : i < l.length)
+    : l.drop i = l[i] :: l.drop (i + 1) :=
+  go i l h
+where go : (i : Nat) → (l : List α) → (h : i < l.length) → l.drop i = l[i] :: l.drop (i + 1)
+  | 0,   _::_,  _ => by simp
+  | n+1, _::as, h => by
+    have : n < length as := Nat.lt_of_succ_lt_succ h
+    have ih := go n as this
+    simp [ih]
+
 @[simp]
 theorem List.get?_drop (l : List α) (n i : Nat) : (l.drop n).get? i = l.get? (n + i) :=
   go n l
@@ -110,6 +120,7 @@ open List
 
 -- NOTE(WN): These would ideally be solved by a congruence-closure-for-PERs tactic
 -- See https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Rewriting.20congruent.20relations
+-- Same for proofs about List.Perm
 private theorem beq_nonsense_1 {a b c : α} : a != b → a == c → b != c :=
   fun h₁ h₂ => Bool.bne_iff_not_beq.mpr fun h₃ =>
     Bool.bne_iff_not_beq.mp h₁ (PartialEquivBEq.trans h₂ (PartialEquivBEq.symm h₃))
@@ -209,10 +220,27 @@ theorem toListModel_mk (size : Nat) (h : 0 < size)
   simp only [mkArray_data, foldl_append_fn, nil_append]
   induction size <;> simp [*]
 
-theorem toListModel_reinsert (bkt : List (α × β)) (tgt : Buckets α β)
+theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β)
+    : (reinsertAux tgt a b).toListModel ~ (a, b) :: tgt.toListModel := by
+  unfold reinsertAux toListModel
+  rw [Array.foldl_eq_foldl_data, Array.foldl_eq_foldl_data]
+  have ⟨l₁, l₂, hTgt, _, hUpd⟩ :=
+    haveI := mkIdx tgt.property a
+    exists_of_update tgt this.1 (.cons a b (tgt.1[this.1]'this.2)) this.2
+  rw [hUpd, hTgt]
+  simp [List.perm_middle]
+
+theorem toListModel_foldl_reinsertAux (bkt : List (α × β)) (tgt : Buckets α β)
     : (bkt.foldl (init := tgt) fun acc x => reinsertAux acc x.fst x.snd).toListModel
-    ~ tgt.toListModel ++ bkt :=
-  sorry
+    ~ tgt.toListModel ++ bkt := by
+  induction bkt generalizing tgt with
+  | nil => simp [List.Perm.refl]
+  | cons p ps ih =>
+    refine List.Perm.trans (ih _) ?_
+    refine List.Perm.trans (List.Perm.append_right ps (toListModel_reinsertAux _ _ _)) ?_
+    rw [List.cons_append]
+    refine List.Perm.trans (List.Perm.symm perm_middle) ?_
+    apply List.Perm.append_left _ (List.Perm.refl _)
 
 theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
     : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
@@ -232,13 +260,17 @@ where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
       apply get?_set_ne _ _ (Nat.ne_of_lt <| Nat.lt_of_succ_le hJ)
     have h₁ : (drop i src.data).bind (·.toList) = src.data[i].toList
         ++ (drop (i + 1) src.data).bind (·.toList) := by
-      sorry
+      have : i < src.data.length := by simp [hI]
+      simp [List.drop_eq_cons _ _ this]
     simp [h₀, h₁]
     rw [← List.append_assoc]
-    rw [toListModel_reinsert (AssocList.toList src[i])]
-    sorry
+    refine List.Perm.append ?_ (List.Perm.refl _)
+    refine List.Perm.trans (toListModel_foldl_reinsertAux (AssocList.toList src[i]) _) ?_
+    exact List.Perm.refl _
   case inr hI =>
-    sorry
+    have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
+    simp [List.Perm.refl, List.drop_eq_nil_of_le this]
+  termination_by go i src _ => src.size - i
 
 end Buckets
 
