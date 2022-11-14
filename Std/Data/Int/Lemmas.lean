@@ -1386,7 +1386,7 @@ theorem toNat_add_nat {a : Int} (ha : 0 ≤ a) (n : Nat) : (a + n).toNat = a.toN
 
 @[simp] theorem toNat_add_toNat_neg_eq_nat_abs : ∀ n : Int, n.toNat + (-n).toNat = n.natAbs
   | 0 => rfl
-  | (_+1:Nat) => add_zero _
+  | (_+1:Nat) => Nat.add_zero _
   | -[_+1] => Nat.zero_add _
 
 theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
