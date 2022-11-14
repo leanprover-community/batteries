@@ -67,6 +67,29 @@ theorem List.foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List 
     l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
   induction l₁ generalizing l₂ <;> simp [*]
 
+@[simp]
+theorem List.map_replicate (n : Nat) (a : α) (f : α → β)
+    : (replicate n a).map f = replicate n (f a) := by
+  induction n <;> simp [*]
+
+@[simp]
+theorem List.get?_drop (l : List α) (n i : Nat) : (l.drop n).get? i = l.get? (n + i) :=
+  go n l
+where go : (n : Nat) → (l : List α) → (l.drop n).get? i = l.get? (n + i)
+  | 0,   a     => by simp
+  | _+1, []    => by simp
+  | n+1, _::as => by
+    have : n + 1 + i = n + i + 1 := by
+      rw [Nat.add_assoc, Nat.add_comm 1 i, ← Nat.add_assoc]
+    simp [go n as, this]
+
+theorem List.drop_ext (l₁ l₂ : List α) (j : Nat)
+    : (∀ i ≥ j, l₁.get? i = l₂.get? i) → l₁.drop j = l₂.drop j := by
+  intro H
+  apply List.ext fun k => ?_
+  rw [List.get?_drop, List.get?_drop]
+  apply H _ (Nat.le_add_right _ _)
+
 theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
     : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] := by
   rw [← Array.toList_eq, Array.toList]
@@ -177,9 +200,45 @@ theorem Pairwise_bne_toListModel' (bkts : Buckets α β) (H : bkts.WF) (a : α)
     : bkts.toListModel.Pairwise (fun p q => p.1 == a → q.1 != a) :=
   List.Pairwise.imp beq_nonsense_1 (Pairwise_bne_toListModel bkts H)
 
-theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
-    : (expand size bkts).buckets.toListModel ~ bkts.toListModel :=
+@[simp]
+theorem toListModel_mk (size : Nat) (h : 0 < size)
+    : (Buckets.mk (α := α) (β := β) size h).toListModel = [] := by
+  dsimp [Buckets.mk, toListModel]
+  clear h
+  rw [Array.foldl_eq_foldl_data]
+  simp only [mkArray_data, foldl_append_fn, nil_append]
+  induction size <;> simp [*]
+
+theorem toListModel_reinsert (bkt : List (α × β)) (tgt : Buckets α β)
+    : (bkt.foldl (init := tgt) fun acc x => reinsertAux acc x.fst x.snd).toListModel
+    ~ tgt.toListModel ++ bkt :=
   sorry
+
+theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
+    : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
+  refine (go _ _ _).trans ?_
+  conv => rhs; rw [toListModel]
+  simp [toListModel_mk, Array.foldl_eq_foldl_data, List.Perm.refl]
+
+where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
+    : (expand.go i src target).toListModel
+      ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
+  unfold expand.go; split
+  case inl hI =>
+    refine (go (i +1) _ _).trans ?_
+    have h₀ : (src.data.set i AssocList.nil).drop (i + 1) = src.data.drop (i + 1) := by
+      apply List.drop_ext
+      intro j hJ
+      apply get?_set_ne _ _ (Nat.ne_of_lt <| Nat.lt_of_succ_le hJ)
+    have h₁ : (drop i src.data).bind (·.toList) = src.data[i].toList
+        ++ (drop (i + 1) src.data).bind (·.toList) := by
+      sorry
+    simp [h₀, h₁]
+    rw [← List.append_assoc]
+    rw [toListModel_reinsert (AssocList.toList src[i])]
+    sorry
+  case inr hI =>
+    sorry
 
 end Buckets
 
