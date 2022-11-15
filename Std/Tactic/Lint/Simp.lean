@@ -197,10 +197,11 @@ and which hence never fire.
   noErrorsFound :=
     "No left-hand sides of a simp lemma has a variable as head symbol."
   errorsFound := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.
-Some simp lemmas have a variable as head symbol of the left-hand side:"
+Some simp lemmas have a variable as head symbol of the left-hand side (after whnfR):"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, ..} => do
+    let lhs ← whnfR lhs
     let headSym := lhs.getAppFn
     unless headSym.isFVar do return none
     return m!"Left-hand side has variable as head symbol: {headSym}"
