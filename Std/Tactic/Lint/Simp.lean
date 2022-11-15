@@ -197,13 +197,20 @@ and which hence never fire.
   noErrorsFound :=
     "No left-hand sides of a simp lemma has a variable as head symbol."
   errorsFound := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.
-Some simp lemmas have a variable as head symbol of the left-hand side:"
+Some simp lemmas have a variable as head symbol of the left-hand side (after whnfR):"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, ..} => do
+    let lhs ← whnfR lhs
     let headSym := lhs.getAppFn
     unless headSym.isFVar do return none
     return m!"Left-hand side has variable as head symbol: {headSym}"
+
+private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
+  | .app (.app (.app (.const ``Eq _) _) lhs) rhs
+  | .app (.app (.const ``Iff _) lhs) rhs
+    => (lhs, rhs)
+  | _ => none
 
 /-- A linter for commutativity lemmas that are marked simp. -/
 @[std_linter] def simpComm : Linter where
@@ -213,11 +220,11 @@ Some commutativity lemmas are simp lemmas:"
   test := fun declName => withReducible do
     unless ← isSimpTheorem declName do return none
     let ty := (← getConstInfo declName).type
-    forallTelescopeReducing ty fun _ ty => do
-    let some (_, lhs, rhs) := ty.eq? | return none
+    forallTelescopeReducing ty fun _ ty' => do
+    let some (lhs, rhs) := ty'.eqOrIff? | return none
     unless lhs.getAppFn.constName? == rhs.getAppFn.constName? do return none
     let (_, _, ty') ← forallMetaTelescopeReducing ty
-    let some (_, lhs', rhs') := ty'.eq? | return none
+    let some (lhs', rhs') := ty'.eqOrIff? | return none
     unless ← isDefEq rhs lhs' do return none
     unless ← withNewMCtxDepth (isDefEq rhs lhs') do return none
     -- ensure that the second application makes progress:
