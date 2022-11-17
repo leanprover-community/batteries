@@ -243,7 +243,8 @@ theorem Heap.realSize_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s'
   | { before, val, node, next } =>
     intro ⟨m, ih₁, ih₂⟩
     rw [realSize, Nat.add_right_comm, ih₂]
-    simp only [realSize_merge, HeapNode.realSize_toHeap, ih₁, Nat.add_assoc, Nat.add_left_comm]
+    simp at ih₁
+    simp [realSize_merge, HeapNode.realSize_toHeap, ih₁, Nat.add_assoc, Nat.add_left_comm]
 
 theorem Heap.realSize_tail? {s : Heap α} : s.tail? le = some s' →
     s.realSize = s'.realSize + 1 := by

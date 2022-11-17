@@ -13,7 +13,8 @@ open Lean Meta
 syntax "declare_ext_theorems_for" ident : command
 
 /-- The environment extension to track `@[ext]` lemmas. -/
-initialize extExtension : SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
+initialize extExtension :
+    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key true)) (DiscrTree Name true) ←
   registerSimpleScopedEnvExtension {
     addEntry := fun dt (n, ks) => dt.insertCore ks n
     initial := {}

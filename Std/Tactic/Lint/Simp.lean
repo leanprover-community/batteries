@@ -76,7 +76,7 @@ def isSimpTheorem (declName : Name) : MetaM Bool := do
 
 open Lean.Meta.DiscrTree in
 /-- Returns the list of elements in the discrimination tree. -/
-partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
+partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α s) : Array α :=
   d.root.foldl (init := #[]) fun arr _ => trieElements arr
 where
   /-- Returns the list of elements in the trie. -/
