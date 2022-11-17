@@ -23,6 +23,8 @@ attribute [simp] data_toArray uset
 
 @[simp] theorem size_toArray (as : List α) : as.toArray.size = as.length := by simp [size]
 
+@[simp] theorem size_mk (as : List α) : (Array.mk as).size = as.length := by simp [size]
+
 theorem getElem_eq_data_get (a : Array α) (h : i < a.size) : a[i] = a.data.get ⟨i, h⟩ := by
   by_cases i < a.size <;> simp [*] <;> rfl
 
