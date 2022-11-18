@@ -21,11 +21,14 @@ Integer square root function. Implemented via Newton's method.
 -/
 def sqrt (n : Nat) : Nat :=
   if n ≤ 1 then n else
-  let rec iter (guess : Nat) : Nat :=
+  iter n (n / 2)
+where
+  /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
+  returns the integer square root of `n`. -/
+  iter n (guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
     if _h : next < guess then
-      iter next
+      iter n next
     else
       guess
-  iter (n / 2)
 termination_by iter guess => guess
