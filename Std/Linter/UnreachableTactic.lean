@@ -28,29 +28,36 @@ namespace UnreachableTactic
 def getLinterUnreachableTactic (o : Options) : Bool := getLinterValue linter.unreachableTactic o
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (HashMap String.Range Syntax) (ST ω)
+abbrev M := StateRefT (HashMap String.Range Syntax) IO
 
 /--
 A list of blacklisted syntax kinds, which are expected to have subterms that contain
 unevaluated tactics.
 -/
-initialize ignoreTacticKinds : NameHashSet ←
-  pure <| HashSet.empty
+initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
+  IO.mkRef <| HashSet.empty
     |>.insert ``Parser.Term.binderTactic
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq
 
 /-- Is this a syntax kind that contains intentionally unevaluated tactic subterms? -/
-def isIgnoreTacticKind (k : SyntaxNodeKind) : Bool :=
+def isIgnoreTacticKind (ignoreTacticKinds : NameHashSet) (k : SyntaxNodeKind) : Bool :=
   match k with
   | .str _ "quot" => true
   | _ => ignoreTacticKinds.contains k
 
-variable (isTacKind : SyntaxNodeKind → Bool) in
+/--
+Adds a new syntax kind whose children will be ignored by the `unreachableTactic` linter.
+This should be called from an `initialize` block.
+-/
+def addIgnoreTacticKind (kind : SyntaxNodeKind) : IO Unit :=
+  ignoreTacticKindsRef.modify (·.insert kind)
+
+variable (ignoreTacticKinds : NameHashSet) (isTacKind : SyntaxNodeKind → Bool) in
 /-- Accumulates the set of tactic syntaxes that should be evaluated at least once. -/
-@[specialize] partial def getTactics {ω} (stx : Syntax) : M ω Unit := do
+@[specialize] partial def getTactics (stx : Syntax) : M Unit := do
   if let .node _ k args := stx then
-    if !isIgnoreTacticKind k then
+    if !isIgnoreTacticKind ignoreTacticKinds k then
       args.forM getTactics
     if isTacKind k then
       if let some r := stx.getRange? true then
@@ -59,11 +66,11 @@ variable (isTacKind : SyntaxNodeKind → Bool) in
 mutual
 variable (isTacKind : SyntaxNodeKind → Bool)
 /-- Search for tactic executions in the info tree and remove executed tactic syntaxes. -/
-partial def eraseUsedTacticsList (trees : PersistentArray InfoTree) : M ω Unit :=
+partial def eraseUsedTacticsList (trees : PersistentArray InfoTree) : M Unit :=
   trees.forM eraseUsedTactics
 
 /-- Search for tactic executions in the info tree and remove executed tactic syntaxes. -/
-partial def eraseUsedTactics : InfoTree → M ω Unit
+partial def eraseUsedTactics : InfoTree → M Unit
   | .node i c => do
     if let .ofTacticInfo i := i then
       if let some r := i.stx.getRange? true then
@@ -84,10 +91,10 @@ partial def unreachableTacticLinter : Linter := fun stx => do
   let tactics := cats.find! `tactic |>.kinds
   let convs := cats.find! `conv |>.kinds
   let trees ← getInfoTrees
-  let go {ω} : M ω Unit := do
-    getTactics (fun k => tactics.contains k || convs.contains k) stx
+  let go : M Unit := do
+    getTactics (← ignoreTacticKindsRef.get) (fun k => tactics.contains k || convs.contains k) stx
     eraseUsedTacticsList trees
-  let (_, map) := runST fun _ => go.run {}
+  let (_, map) ← go.run {}
   let unreachable := map.toArray
   let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
   let mut last : String.Range := ⟨0, 0⟩
