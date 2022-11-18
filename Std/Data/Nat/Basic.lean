@@ -25,7 +25,7 @@ def sqrt (n : Nat) : Nat :=
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
   returns the integer square root of `n`. -/
-  iter n (guess : Nat) : Nat :=
+  iter (n guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
     if _h : next < guess then
       iter n next
