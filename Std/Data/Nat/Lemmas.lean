@@ -751,6 +751,28 @@ theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
 
 theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
 
+/-! ### log2 -/
+
+attribute [simp] Nat.pow_zero
+
+theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
+  match k with
+  | 0 => simp [show 1 ≤ n from Nat.pos_of_ne_zero h]
+  | k+1 =>
+    rw [log2]; split
+    · have n0 : 0 < n / 2 := (Nat.le_div_iff_mul_le (by decide)).2 ‹_›
+      simp [Nat.add_le_add_iff_le_right, le_log2 (Nat.ne_of_gt n0), le_div_iff_mul_le, Nat.pow_succ]
+    · simp only [le_zero_eq, succ_ne_zero, false_iff]
+      refine mt (Nat.le_trans ?_) ‹_›
+      exact Nat.pow_le_pow_of_le_right (Nat.succ_pos 1) (Nat.le_add_left 1 k)
+
+theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
+  rw [← Nat.not_le, ← Nat.not_le, le_log2 h]
+
+theorem log2_self_le (h : n ≠ 0) : 2 ^ n.log2 ≤ n := (le_log2 h).1 (Nat.le_refl _)
+
+theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.le_refl _)
+
 /-! ### sum -/
 
 @[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
