@@ -170,7 +170,7 @@ instance : Membership α (RBNode α) := ⟨EMem⟩
 def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 
 /-- True if `x` is equivalent to an element of `t`. -/
-def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
+@[reducible] def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
 
 /--
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,

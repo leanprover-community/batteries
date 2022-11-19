@@ -87,8 +87,17 @@ theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠
 theorem lt_asymm (h : cmp x y = .lt) : cmp y x ≠ .lt :=
   fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
 
+theorem gt_asymm (h : cmp x y = .gt) : cmp y x ≠ .gt :=
+  mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
+
+theorem le_lt_trans (h₁ : cmp x y ≠ .gt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
+  byContradiction fun h₃ => ge_trans (mt cmp_eq_gt.2 h₁) h₃ h₂
+
+theorem lt_le_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z ≠ .gt) : cmp x z = .lt :=
+  byContradiction fun h₃ => ge_trans h₃ (mt cmp_eq_gt.2 h₂) h₁
+
 theorem lt_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
-  byContradiction fun h₃ => ge_trans (lt_asymm h₁) h₃ h₂
+  le_lt_trans (gt_asymm <| cmp_eq_gt.2 h₁) h₂
 
 theorem gt_trans (h₁ : cmp x y = .gt) (h₂ : cmp y z = .gt) : cmp x z = .gt := by
   rw [cmp_eq_gt] at h₁ h₂ ⊢; exact lt_trans h₂ h₁
