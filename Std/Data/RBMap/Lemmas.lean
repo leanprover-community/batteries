@@ -211,3 +211,113 @@ theorem Ordered.mem_find? [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered
 
 end Find
 
+section LowerBound
+
+/-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
+theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt) :
+    x ∈ t.lowerBound? cut lb → cut x ≠ .lt := by
+  induction t generalizing lb with
+  | nil => exact H
+  | node _ _ _ _ ihl ihr =>
+    simp [lowerBound?]; split
+    · exact ihl H
+    · next hv => exact ihr fun | rfl, e => nomatch hv.symm.trans e
+    · next hv => intro | rfl, e => cases hv.symm.trans e
+
+/-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
+theorem lowerBound?_le {t : RBNode α} : x ∈ t.lowerBound? cut none → cut x ≠ .lt :=
+  lowerBound?_le' (fun.)
+
+theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb → p x) :
+    x ∈ t.lowerBound? cut lb → p x := by
+  induction t generalizing lb with
+  | nil => exact H
+  | node _ _ _ _ ihl ihr =>
+    simp [lowerBound?]; split
+    · exact ihl hp.2.1 H
+    · exact ihr hp.2.2 fun | rfl => hp.1
+    · exact fun | rfl => hp.1
+
+theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : x ∈ t.lowerBound? cut none → p x :=
+  hp.lowerBound?_lb (fun.)
+
+theorem lowerBound?_mem_lb {t : RBNode α}
+    (h : x ∈ t.lowerBound? cut lb) : x ∈ t ∨ x ∈ lb :=
+  All.lowerBound?_lb (p := fun x => x ∈ t ∨ x ∈ lb) (All_def.2 fun _ => .inl) Or.inr h
+
+theorem lowerBound?_mem {t : RBNode α} (h : x ∈ t.lowerBound? cut none) : x ∈ t :=
+  (lowerBound?_mem_lb h).resolve_right (fun.)
+
+theorem lowerBound?_of_some {t : RBNode α} : ∃ x, x ∈ t.lowerBound? cut (some y) := by
+  simp; induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
+
+theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t) :
+    (∃ x, x ∈ t.lowerBound? cut none) ↔ ∃ x ∈ t, cut x ≠ .lt := by
+  refine ⟨fun ⟨x, hx⟩ => ⟨_, lowerBound?_mem hx, lowerBound?_le hx⟩, fun H => ?_⟩
+  obtain ⟨x, hx, e⟩ := H
+  induction t generalizing x with
+  | nil => cases hx
+  | node _ _ _ _ ihl =>
+    simp [lowerBound?]; split
+    · rcases hx with rfl | hx | hx
+      · contradiction
+      · exact ihl h.2.2.1 _ hx e
+      · next hv => cases e <| IsCut.lt_trans (All_def.1 h.2.1 _ hx).1 hv
+    · exact lowerBound?_of_some
+    · exact ⟨_, rfl⟩
+
+theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t)
+    (hlb : ∀ {x}, x ∈ lb → t.All (cmpLt cmp x ·)) :
+    x ∈ t.lowerBound? cut lb → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
+  induction t generalizing lb with
+  | nil => intro.
+  | node _ _ _ _ ihl ihr =>
+    simp [lowerBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
+    · exact hv
+    · exact ihl h.2.2.1 (fun h => (hlb h).2.1) h₁ hy' hx h₂
+    · exact IsCut.lt_trans (cut := cut) (cmp := cmp) (All_def.1 h.2.1 _ hy').1 hv
+    · rcases lowerBound?_mem_lb h₁ with h₁ | ⟨⟨⟩⟩
+      · cases TransCmp.lt_asymm h₂ (All_def.1 h.2.1 _ h₁).1
+      · cases TransCmp.lt_asymm h₂ h₂
+    · refine (TransCmp.lt_asymm h₂ ?_).elim; have := (All_def.1 h.1 _ hy').1
+      rcases lowerBound?_mem_lb h₁ with h₁ | ⟨⟨⟩⟩
+      · exact TransCmp.lt_trans this (All_def.1 h.2.1 _ h₁).1
+      · exact this
+    · exact ihr h.2.2.2 (by rintro _ ⟨⟨⟩⟩; exact h.2.1) h₁ hy' hx h₂
+    · cases h₁; cases TransCmp.lt_asymm h₂ h₂
+    · cases h₁; cases hx.symm.trans hv
+    · cases h₁; cases hx.symm.trans hv
+
+/--
+A statement of the least-ness of the result of `lowerBound?`. If `x` is the return value of
+`lowerBound?` and it is strictly less than the cut, then any other `y > x` in the tree is in fact
+strictly greater than the cut (so there is no exact match, and nothing closer to the cut).
+-/
+theorem Ordered.lowerBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
+    (H : x ∈ t.lowerBound? cut none) (hy : y ∈ t)
+    (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
+  ht.lowerBound?_least_lb (by exact fun.) H hy hx xy
+
+theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
+    t.MemP cut ↔ ∃ x ∈ t.lowerBound? cut none, cut x = .eq := by
+  refine memP_def.trans ⟨fun ⟨y, hy, ey⟩ => ?_, fun ⟨x, hx, e⟩ => ⟨_, lowerBound?_mem hx, e⟩⟩
+  have ⟨x, hx⟩ := ht.lowerBound?_exists.2 ⟨_, hy, fun h => nomatch ey.symm.trans h⟩
+  refine ⟨x, hx, ?_⟩; cases ex : cut x
+  · cases lowerBound?_le hx ex
+  · rfl
+  · cases e : cmp x y
+    · cases ey.symm.trans <| ht.lowerBound?_least hx hy e ex
+    · cases ey.symm.trans <| IsCut.congr e |>.symm.trans ex
+    · cases ey.symm.trans <| IsCut.gt_trans (OrientedCmp.cmp_eq_gt.1 e) ex
+
+/-- A stronger version of `lowerBound?_least` that holds when the cut is strict. -/
+theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t)
+    (H : x ∈ t.lowerBound? cut none) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt := by
+  refine ⟨fun h => ?_, fun h => OrientedCmp.cmp_eq_gt.1 ?_⟩
+  · cases e : cut x
+    · cases lowerBound?_le H e
+    · exact IsStrictCut.exact e |>.symm.trans h
+    · exact ht.lowerBound?_least H hy h e
+  · by_contra h'; exact lowerBound?_le H <| IsCut.le_lt_trans (cmp := cmp) (cut := cut) h' h
+
+end LowerBound
