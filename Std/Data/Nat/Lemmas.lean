@@ -159,6 +159,10 @@ protected theorem min_le_right (a b : Nat) : min a b ≤ b := by rw [Nat.min_def
 
 protected theorem min_le_left (a b : Nat) : min a b ≤ a := Nat.min_comm .. ▸ Nat.min_le_right ..
 
+protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
+  ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
+   fun ⟨h₁, h₂⟩ => by rw [Nat.min_def]; split <;> assumption⟩
+
 protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [Nat.min_def, h]
 
 protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by
@@ -177,6 +181,10 @@ protected theorem max_comm (a b : Nat) : max a b = max b a := by
 protected theorem le_max_left (a b : Nat) : a ≤ max a b := by rw [Nat.max_def]; split <;> simp [*]
 
 protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. ▸ Nat.le_max_left ..
+
+protected theorem max_le {a b c : Nat} : max a b ≤ c ↔ a ≤ c ∧ b ≤ c :=
+  ⟨fun h => ⟨Nat.le_trans (Nat.le_max_left ..) h, Nat.le_trans (Nat.le_max_right ..) h⟩,
+   fun ⟨h₁, h₂⟩ => by rw [Nat.max_def]; split <;> assumption⟩
 
 protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : max a b = b := by
   simp [Nat.max_def, h, Nat.not_lt.2 h]
@@ -200,6 +208,10 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
 
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
+
+protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
+
+protected theorem two_mul (n : Nat) : 2 * n = n + n := by simp [Nat.succ_mul]
 
 /- mod -/
 

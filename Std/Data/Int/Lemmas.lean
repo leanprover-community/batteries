@@ -693,6 +693,10 @@ protected theorem min_le_right (a b : Int) : min a b ≤ b := by rw [Int.min_def
 
 protected theorem min_le_left (a b : Int) : min a b ≤ a := Int.min_comm .. ▸ Int.min_le_right ..
 
+protected theorem le_min {a b c : Int} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
+  ⟨fun h => ⟨Int.le_trans h (Int.min_le_left ..), Int.le_trans h (Int.min_le_right ..)⟩,
+   fun ⟨h₁, h₂⟩ => by rw [Int.min_def]; split <;> assumption⟩
+
 protected theorem min_eq_left {a b : Int} (h : a ≤ b) : min a b = a := by simp [Int.min_def, h]
 
 protected theorem min_eq_right {a b : Int} (h : b ≤ a) : min a b = b := by
@@ -707,6 +711,10 @@ protected theorem max_comm (a b : Int) : max a b = max b a := by
 protected theorem le_max_left (a b : Int) : a ≤ max a b := by rw [Int.max_def]; split <;> simp [*]
 
 protected theorem le_max_right (a b : Int) : b ≤ max a b := Int.max_comm .. ▸ Int.le_max_left ..
+
+protected theorem max_le {a b c : Int} : max a b ≤ c ↔ a ≤ c ∧ b ≤ c :=
+  ⟨fun h => ⟨Int.le_trans (Int.le_max_left ..) h, Int.le_trans (Int.le_max_right ..) h⟩,
+   fun ⟨h₁, h₂⟩ => by rw [Int.max_def]; split <;> assumption⟩
 
 protected theorem max_eq_right {a b : Int} (h : a ≤ b) : max a b = b := by
   simp [Int.max_def, h, Int.not_lt.2 h]

@@ -28,6 +28,7 @@ import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
 import Std.Data.RBMap
 import Std.Data.RBMap.Basic
+import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
 import Std.Data.Rat
 import Std.Lean.AttributeExtra
