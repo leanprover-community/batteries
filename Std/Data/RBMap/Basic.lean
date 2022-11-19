@@ -161,6 +161,17 @@ theorem All.imp (H : ∀ {x : α}, p x → q x) : ∀ {t : RBNode α}, t.All p �
   | nil          => False
   | node _ l v r => p v ∨ Any p l ∨ Any p r
 
+/-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
+def EMem (x : α) (t : RBNode α) : Prop := t.Any (x = ·)
+
+instance : Membership α (RBNode α) := ⟨EMem⟩
+
+/-- True if the specified `cut` matches at least one element of of `t`. -/
+def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
+
+/-- True if `x` is equivalent to an element of `t`. -/
+def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
+
 /--
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,
 and `R` holds pairwise between them. The tree structure is ignored.
@@ -647,6 +658,17 @@ and `R` holds pairwise between them. The tree structure is ignored.
 @[inline] def all₂ (R : α → β → Bool) (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : Bool :=
   t₁.1.all₂ R t₂.1
 
+/-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
+def EMem (x : α) (t : RBSet α cmp) : Prop := t.1.EMem x
+
+/-- True if the specified `cut` matches at least one element of of `t`. -/
+def MemP (cut : α → Ordering) (t : RBSet α cmp) : Prop := t.1.MemP cut
+
+/-- True if `x` is equivalent to an element of `t`. -/
+def Mem (x : α) (t : RBSet α cmp) : Prop := MemP (cmp x) t
+
+instance : Membership α (RBSet α cmp) := ⟨Mem⟩
+
 /--
 Returns true if `t₁` and `t₂` are equal as sets (assuming `cmp` and `==` are compatible),
 ignoring the internal tree structure.
@@ -765,7 +787,7 @@ end RBSet
 /- TODO(Leo): define dRBMap -/
 
 /--
-An `RBSet` is a self-balancing binary search tree, used to store a key-value map.
+An `RBMap` is a self-balancing binary search tree, used to store a key-value map.
 The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
