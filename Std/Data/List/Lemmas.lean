@@ -1031,10 +1031,10 @@ theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
 
 @[simp] theorem partition_eq_filter_filter (p : α → Bool) (l : List α) :
     partition p l = (filter p l, filter (not ∘ p) l) := by simp [partition, aux] where
-  aux : ∀ l {as bs}, partitionAux p l (as, bs) =
+  aux : ∀ l {as bs}, partition.loop p l (as, bs) =
     (as.reverse ++ filter p l, bs.reverse ++ filter (not ∘ p) l)
-  | [] => by simp [partitionAux, filter]
-  | a :: l => by cases pa : p a <;> simp [partitionAux, pa, aux, filter, append_assoc]
+  | [] => by simp [partition.loop, filter]
+  | a :: l => by cases pa : p a <;> simp [partition.loop, pa, aux, filter, append_assoc]
 
 /-! ### pairwise -/
 
