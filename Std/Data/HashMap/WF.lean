@@ -230,7 +230,7 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
       | .inr h => exact H _ h
   · next h₁ =>
     rw [Bool.eq_false_iff] at h₁; simp at h₁
-    suffices _ by split; {exact this}; {refine expand_WF this}
+    suffices _ by split <;> [exact this, refine expand_WF this]
     refine h.update (.cons ?_) (fun H a h => ?_)
     · exact fun a h h' => h₁ a h (PartialEquivBEq.symm h')
     · cases h with

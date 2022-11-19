@@ -58,6 +58,7 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.RCases
+import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.Simpa
 import Std.Tactic.TryThis

@@ -207,7 +207,7 @@ so this is only suitable for use on the root of the tree.)
 theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
   unfold insert; match ins cmp v t, h.ins cmp v with
-  | _, .balanced h => split; {exact ⟨_, h.setBlack⟩}; {exact ⟨_, _, h⟩}
+  | _, .balanced h => split <;> [exact ⟨_, h.setBlack⟩, exact ⟨_, _, h⟩]
   | _, .redred _ ha hb => have .node red .. := t; exact ⟨_, _, .black ha hb⟩
 
 /-- The property of a cut function `cut` which ensures it can be used to find elements. -/
@@ -492,7 +492,7 @@ theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
     fill' (zoom cut t path) = path.fill t := by
   induction t generalizing path with
   | nil => rfl
-  | node _ _ _ _ iha ihb => unfold zoom; split; {apply iha}; {apply ihb}; {rfl}
+  | node _ _ _ _ iha ihb => unfold zoom; split <;> [apply iha, apply ihb, rfl]
 
 theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
