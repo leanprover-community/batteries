@@ -16,7 +16,7 @@ New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by
 -/
 
 attribute [simp] get get! get? reverseAux eraseIdx map join filterMap dropWhile find? findSome?
-  replace elem lookup drop take takeWhile foldl foldr zipWith unzip rangeAux enumFrom
+  replace elem lookup drop take takeWhile foldl foldr zipWith unzip range.loop enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
   filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
   concat_eq_append append_assoc
