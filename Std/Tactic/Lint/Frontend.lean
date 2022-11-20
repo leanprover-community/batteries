@@ -211,6 +211,7 @@ elab "#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")
     for id in linters do
       let name := id.getId.eraseMacroScopes
       let some (declName, _) := linterState.find? name | throwErrorAt id "not a linter: {name}"
+      Elab.addConstInfo id declName
       let linter ← getLinter name declName
       let _ := Inhabited.mk linter
       result := result.binInsert (·.name.lt ·.name) linter
