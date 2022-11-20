@@ -188,12 +188,8 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
 
 open Elab Command in
 /-- The command `#lint` runs the linters on the current file (by default). -/
-elab "#lint"
-    project:(ident)?
-    verbosity:("+" <|> "-")?
-    fast:"*"?
-    only:(&"only")? linters:(ident)*
-    : command => do
+elab "#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
+    linters:(ppSpace ident)* : command => do
   let (decls, whereDesc, groupByFilename) ← match project with
     | none => do pure (← liftCoreM getDeclsInCurrModule, "in the current file", false)
     | some id => do
@@ -204,8 +200,8 @@ elab "#lint"
         pure (← liftCoreM (getDeclsInPackage id), s!"in {id}", true)
   let verbosity : LintVerbosity ← match verbosity with
     | none => pure .medium
-    | some ⟨.atom _ "+"⟩ => pure .high
-    | some ⟨.atom _ "-"⟩ => pure .low
+    | some ⟨.node _ `token.«+» _⟩ => pure .high
+    | some ⟨.node _ `token.«-» _⟩ => pure .low
     | _ => throwUnsupportedSyntax
   let fast := fast.isSome
   let only := only.isSome
