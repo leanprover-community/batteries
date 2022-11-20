@@ -31,6 +31,8 @@ import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
 import Std.Data.Rat
+import Std.Data.Rat.Basic
+import Std.Data.Rat.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Meta
@@ -63,6 +65,7 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.Simpa
 import Std.Tactic.TryThis
+import Std.Tactic.Unreachable
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
