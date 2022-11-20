@@ -71,22 +71,50 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.tacticStop_
   ]
 
+/-- The information we record for each `<;>` node appearing in the syntax. -/
+structure Entry where
+  /-- The `<;>` node itself. -/
+  stx : Syntax
+  /--
+  * `true`: this `<;>` has been used unnecessarily at least once
+  * `false`: it has never been executed
+  * If it has been used properly at least once, the entry is removed from the table.
+  -/
+  used : Bool
+  /--
+  In order to prevent spurious messages on `split <;> skip <;> trivial`
+  (where the second `<;>` is technically unnecessary since you could write
+  `split <;> (skip; trivial)`, but this is stylistically messy),
+  we implement a rule that says: a `<;>` which is the right child of another `<;>` will
+  lint only if the parent node is also being linted.
+
+  That is, in the above example the second `<;>` lint will be suppressed because the first one
+  didn't lint, but if it was `skip <;> skip <;> trivial` then we want to lint on both `<;>`
+  (otherwise you will get a warning on the second one after you fix the first one).
+
+  This `dep` field stores a reference to the parent node, and we traverse these links in
+  `allBadDep` so that a sequence `a <;> b <;> c <;> d` where `c <;> d` is bad will only lint
+  if the `b <;> ...` and `a <;> ...` nodes are also bad.
+  -/
+  dep : Option String.Range
+
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (HashMap String.Range (Syntax × Bool)) (ST ω)
+abbrev M (ω) := StateRefT (HashMap String.Range Entry) (ST ω)
 
 /-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
 @[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=
   k == ``Parser.Tactic.«tactic_<;>_» || k == ``Parser.Tactic.Conv.«conv_<;>_»
 
 /-- Accumulates the set of tactic syntaxes that should be evaluated at least once. -/
-@[specialize] partial def getTactics {ω} (stx : Syntax) (suppress := false) : M ω Unit := do
+@[specialize] partial def getTactics {ω} (stx : Syntax)
+    (dep : Option String.Range := none) : M ω Unit := do
   if let .node _ k args := stx then
     if isSeqFocus k then
-      if !suppress then
-        if let some r := stx.getRange? true then
-          modify fun m => m.insert r (stx, false)
+      let r := stx.getRange? true
+      if let some r := r then
+        modify fun m => m.insert r { stx, used := false, dep }
       getTactics stx[0]
-      getTactics stx[2] true -- suppress <;> warning on the RHS of another <;>
+      getTactics stx[2] r -- suppress <;> warning on the RHS of another <;>
     else
       args.forM getTactics
 
@@ -112,7 +140,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
   | .node i c => do
     if let .ofTacticInfo i := i then
       if let some r := i.stx.getRange? true then
-      if let some (stx', _) := (← get).find? r then
+      if let some entry := (← get).find? r then
       if i.stx.getKind == ``Parser.Tactic.«tactic_<;>_» then
         let isBad := do
           unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
@@ -122,7 +150,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
           let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
             [⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
           guard <| i.goalsAfter.length == 1
-        modify fun s => if isBad.isSome then s.insert r (stx', true) else s.erase r
+        modify fun s => if isBad.isSome then s.insert r { entry with used := true } else s.erase r
       else if i.stx.getKind == ``Parser.Tactic.Conv.«conv_<;>_» then
         let isBad := do
           unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
@@ -132,7 +160,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
           let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
             [⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
           guard <| i.goalsAfter.length == 1
-        modify fun s => if isBad.isSome then s.insert r (stx', true) else s.erase r
+        modify fun s => if isBad.isSome then s.insert r { entry with used := true } else s.erase r
     markUsedTacticsList c
   | .context _ t => markUsedTactics t
   | .hole _ => pure ()
@@ -151,13 +179,19 @@ partial def unnecessarySeqFocusLinter : Linter := fun stx => do
     getTactics stx
     markUsedTacticsList env trees
   let (_, map) := runST fun _ => go.run {}
-  let unused := map.fold (init := #[]) fun acc r (stx, bad) =>
-    if bad then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
+  let rec
+  /-- Returns `true` if all the dependencies in the chain are also bad. See `Entry.dep`. -/
+  allBadDep : Option String.Range → Bool
+    | none => true
+    | some r => match map.find? r with
+      | none => false
+      | some { dep, used, .. } => used && allBadDep dep
+  let unused := map.fold (init := #[]) fun acc r { stx, used, dep } =>
+    if used && allBadDep dep then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
   let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
   let mut last : String.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unused.qsort (key ·.1 < key ·.1) do
-    if last.start ≤ r.start && r.stop ≤ last.stop then
-      continue
+    if last.start ≤ r.start && r.stop ≤ last.stop then continue
     logLint linter.unnecessarySeqFocus stx
       "Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice"
     last := r

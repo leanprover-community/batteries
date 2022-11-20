@@ -10,9 +10,14 @@ namespace Std.Tactic
 /--
 This tactic causes a panic when run (at compile time).
 (This is distinct from `exact unreachable!`, which inserts code which will panic at run time.)
+
 It is intended for tests to assert that a tactic will never be executed, which is otherwise an
 unusual thing to do (and the `unreachableTactic` linter will give a warning if you do).
+
 The `unreachableTactic` linter has a special exception for uses of `unreachable!`.
+```
+example : True := by trivial <;> unreachable!
+```
 -/
 elab (name := unreachable) "unreachable!" : tactic => do
   panic! "unreachable tactic has been reached"
