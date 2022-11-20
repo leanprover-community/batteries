@@ -124,18 +124,19 @@ In pseudo-mathematical form, this returns `{{p : parameter | p ∈ u} | (u : lev
 FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality
 instance. It will ignore `nm₀.proof_i` declarations.
 -/
-private def univParamsGrouped (e : Expr) (nm₀ : Name) : BaseIO (Lean.HashSet (Array Name)) := do
-  let res ← IO.mkRef {}
-  e.forEach fun
-    | e@(Expr.sort ..) =>
-      res.modify (·.insert (collectLevelParams {} e).params)
-    | e@(Expr.const n ..) => do
-      if let .str n s .. := n then
-        if n == nm₀ && s.startsWith "proof_" then
-          return
-      res.modify (·.insert (collectLevelParams {} e).params)
-    | _ => pure ()
-  res.get
+private def univParamsGrouped (e : Expr) (nm₀ : Name) : Lean.HashSet (Array Name) :=
+  runST fun σ => do
+    let res ← ST.mkRef (σ := σ) {}
+    e.forEach fun
+      | .sort u =>
+        res.modify (·.insert (CollectLevelParams.visitLevel u {}).params)
+      | .const n us => do
+        if let .str n s .. := n then
+          if n == nm₀ && s.startsWith "proof_" then
+            return
+        res.modify <| us.foldl (·.insert <| CollectLevelParams.visitLevel · {} |>.params)
+      | _ => pure ()
+    res.get
 
 /--
 The good parameters are the parameters that occur somewhere in the set as a singleton or
@@ -171,11 +172,11 @@ a higher universe level than `α`.
 "command (then it's not necessary to provide the universe level).
 It is possible that this linter gives a false positive on definitions where the value of the " ++
 "definition has the universes occur separately, and the definition will usually be used with " ++
-"explicit universe arguments. In this case, feel free to add `@[nolint check_univs]`."
+"explicit universe arguments. In this case, feel free to add `@[nolint checkUnivs]`."
   isFast := true
   test declName := do
     if ← isAutoDecl declName then return none
-    let bad := badParams (← univParamsGrouped (← getConstInfo declName).type declName).toArray
+    let bad := badParams (univParamsGrouped (← getConstInfo declName).type declName).toArray
     if bad.isEmpty then return none
     return m!"universes {bad} only occur together."
 
