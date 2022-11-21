@@ -27,6 +27,7 @@ import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
 import Std.Data.RBMap
+import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
@@ -47,6 +48,7 @@ import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
+import Std.Tactic.Congr
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
