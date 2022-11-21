@@ -3,10 +3,12 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
+import Std.Control.ForInStep.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
 import Std.Classes.BEq
+import Std.Tactic.Ext
 
 namespace List
 
@@ -389,6 +391,11 @@ theorem head?_eq_head : ∀ l h, @head? α l = some (head l h)
 theorem tail_eq_tailD (l) : @tail α l = tailD l [] := by cases l <;> rfl
 
 theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_tailD]
+
+/-! ### next? -/
+
+@[simp] theorem next?_nil : @next? α [] = none := rfl
+@[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
 
 /-! ### getLast -/
 
@@ -1198,3 +1205,17 @@ theorem leftpad_prefix (n : Nat) (a : α) (l : List α) :
 theorem leftpad_suffix (n : Nat) (a : α) (l : List α) : isSuffix l (leftpad n a l) := by
   simp only [isSuffix, leftpad]
   exact Exists.intro (replicate (n - length l) a) rfl
+
+/-! ### monadic operations -/
+
+-- we use ForIn.forIn as the simp normal form
+@[simp] theorem forIn_eq_forIn [Monad m] : @List.forIn α β m _ = forIn := rfl
+
+theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
+    (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
+    forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
+  induction l generalizing init <;> simp [*, map_eq_pure_bind]
+  congr; ext (b | b) <;> simp
+
+@[simp] theorem forM_append [Monad m] [LawfulMonad m] (l₁ l₂ : List α) (f : α → m PUnit) :
+    (l₁ ++ l₂).forM f = (do l₁.forM f; l₂.forM f) := by induction l₁ <;> simp [*]

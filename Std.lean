@@ -3,6 +3,9 @@ import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.SetNotation
+import Std.Control.ForInStep
+import Std.Control.ForInStep.Basic
+import Std.Control.ForInStep.Lemmas
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas

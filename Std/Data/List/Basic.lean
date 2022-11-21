@@ -310,6 +310,11 @@ def tail : List α → List α
 @[simp] theorem tail_nil : @tail α [] = [] := rfl
 @[simp] theorem tail_cons : @tail α (a::as) = as := rfl
 
+/-- Get the head and tail of a list, if it is nonempty. -/
+@[inline] def next? : List α → Option (α × List α)
+  | [] => none
+  | a :: l => some (a, l)
+
 /--
 Given a function `f : Nat → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
 `[f 0 a₀, f 1 a₁, ...]`.

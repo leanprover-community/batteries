@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
+import Std.Control.ForInStep.Basic
 
 /-!
 # Red-black trees
@@ -90,20 +91,12 @@ Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
 /-- Implementation of `for x in t` loops over a `RBNode` (in increasing order). -/
 @[inline] protected def forIn [Monad m]
     (as : RBNode α) (init : σ) (f : α → σ → m (ForInStep σ)) : m σ := do
-  match ← visit as init with
-  | .done b  => pure b
-  | .yield b => pure b
+  ForInStep.run <$> visit as init
 where
   /-- Inner loop of `forIn`. -/
   @[specialize] visit : RBNode α → σ → m (ForInStep σ)
     | nil,          b => return ForInStep.yield b
-    | node _ l v r, b => do
-      match ← visit l b with
-      | r@(.done _) => return r
-      | .yield b    =>
-        match ← f v b with
-        | r@(.done _) => return r
-        | .yield b    => visit r b
+    | node _ l v r, b => ForInStep.bindM (visit l b) fun b => ForInStep.bindM (f v b) (visit r ·)
 
 instance : ForIn m (RBNode α) α where
   forIn := RBNode.forIn

@@ -186,10 +186,10 @@ theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
     (l ++ l').foldrM f b = l'.foldrM f b >>= l.foldrM f := by
   induction l <;> simp [*]
 
-theorem foldl_append {β : Type _} (f : β → α → β) (b) (l l' : List α) :
+@[simp] theorem foldl_append {β : Type _} (f : β → α → β) (b) (l l' : List α) :
     (l ++ l').foldl f b = l'.foldl f (l.foldl f b) := by simp [foldl_eq_foldlM]
 
-theorem foldr_append (f : α → β → β) (b) (l l' : List α) :
+@[simp] theorem foldr_append (f : α → β → β) (b) (l l' : List α) :
     (l ++ l').foldr f b = l.foldr f (l'.foldr f b) := by simp [foldr_eq_foldrM]
 
 @[simp] theorem foldr_self_append (l : List α) : l.foldr cons l' = l ++ l' := by
