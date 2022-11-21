@@ -976,7 +976,7 @@ smaller than or equal to `k`, if it exists.
 
 -- TODO: add proof
 private unsafe def modifyImpl (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
-  t.modifyP (cmp k ·.1) (fun (a, b) => (a, f b)) (wf := lcProof)
+  @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b)) lcProof
 
 /--
 `O(log n)`. In-place replace the corresponding to key `k`.
@@ -1003,7 +1003,7 @@ def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → O
 -- TODO: add proof
 @[specialize] private unsafe def alterImpl (t : RBMap α β cmp) (k : α) (f : Option β → Option β) :
     RBMap α β cmp :=
-  t.alterP (cmp k ·.1) (alter.adapt k f) (wf := lcProof)
+  @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) lcProof
 
 /--
 `O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element
