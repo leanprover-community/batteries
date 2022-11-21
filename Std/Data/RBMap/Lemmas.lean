@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Data.RBMap.WF
 import Std.Data.Nat.Lemmas
-import Std.Data.Option.Lemmas
+import Std.Data.List.Lemmas
 
 /-!
 # Additional lemmas for Red-black trees
@@ -15,7 +15,9 @@ namespace Std
 namespace RBNode
 open RBColor
 
-section Depth
+attribute [simp] fold foldl foldr Any forM foldlM Stream.foldl Stream.foldr
+
+section depth
 
 /--
 `O(n)`. `depth t` is the maximum number of nodes on any path to a leaf.
@@ -89,10 +91,10 @@ This justifies the `O(log n)` bounds on most searching operations of `RBSet`.
 theorem WF.depth_bound {t : RBNode α} (h : t.WF cmp) : t.depth ≤ 2 * (t.size + 1).log2 :=
   let ⟨_, _, h⟩ := h.out.2; h.depth_bound
 
-end Depth
+end depth
 
-@[simp] theorem emem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [(·∈·), EMem]
-@[simp] theorem emem_node {y c a x b} :
+@[simp] theorem mem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [(·∈·), EMem]
+@[simp] theorem mem_node {y c a x b} :
     y ∈ (.node c a x b : RBNode α) ↔ y = x ∨ y ∈ a ∨ y ∈ b := by simp [(·∈·), EMem]
 
 theorem All_def {t : RBNode α} : t.All p ↔ ∀ x ∈ t, p x := by
@@ -149,7 +151,7 @@ instance (cmp) (a : α) : IsStrictCut cmp (cmp a) where
   le_gt_trans h₁ := Decidable.not_imp_not.1 (TransCmp.le_trans · h₁)
   exact h := (TransCmp.cmp_congr_left h).symm
 
-section Find
+section find?
 
 theorem find?_some_eq_eq {t : RBNode α} : x ∈ t.find? cut → cut x = .eq := by
   induction t <;> simp [find?] <;> split <;> try assumption
@@ -209,9 +211,9 @@ theorem Ordered.mem_find? [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered
   have ⟨y, hy⟩ := ht.memP_iff_find?.1 (memP_def.2 ⟨_, hx, e⟩)
   exact ht.unique hx (find?_some_mem hy) ((IsStrictCut.exact e).trans (find?_some_eq_eq hy)) ▸ hy
 
-end Find
+end find?
 
-section LowerBound
+section lowerBound?
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
 theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt) :
@@ -320,4 +322,84 @@ theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Or
     · exact ht.lowerBound?_least H hy h e
   · by_contra h'; exact lowerBound?_le H <| IsCut.le_lt_trans (cmp := cmp) (cut := cut) h' h
 
-end LowerBound
+end lowerBound?
+
+section fold
+
+theorem foldr_cons (t : RBNode α) (l) : t.foldr (·::·) l = t.toList ++ l := by
+  unfold toList
+  induction t generalizing l with
+  | nil => rfl
+  | node _ a _ b iha ihb => rw [foldr, foldr, iha, iha (_::_), ihb]; simp
+
+@[simp] theorem toList_nil : (.nil : RBNode α).toList = [] := rfl
+
+@[simp] theorem toList_node : (.node c a x b : RBNode α).toList = a.toList ++ x :: b.toList := by
+  rw [toList, foldr, foldr_cons]; rfl
+
+@[simp] theorem mem_toList {t : RBNode α} : x ∈ t.toList ↔ x ∈ t := by
+  induction t <;> simp [*, or_left_comm]
+
+theorem foldr_eq_foldr_toList {t : RBNode α} : t.foldr f init = t.toList.foldr f init := by
+  induction t generalizing init <;> simp [*]
+
+theorem foldl_eq_foldl_toList {t : RBNode α} : t.foldl f init = t.toList.foldl f init := by
+  induction t generalizing init <;> simp [*]
+
+theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
+    t.forM (m := m) f = t.toList.forM f := by induction t <;> simp [*]
+
+theorem foldlM_eq_foldlM_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
+    t.foldlM (m := m) f init = t.toList.foldlM f init := by
+  induction t generalizing init <;> simp [*]
+
+theorem forIn_visit_eq_bindList [Monad m] [LawfulMonad m] {t : RBNode α} :
+    forIn.visit (m := m) f t init = (ForInStep.yield init).bindList f t.toList := by
+  induction t generalizing init <;> simp [*, forIn.visit]
+
+theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
+    forIn (m := m) t init f = forIn t.toList init f := by
+  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+
+end fold
+
+namespace Stream
+
+theorem foldr_cons (t : RBNode.Stream α) (l) : t.foldr (·::·) l = t.toList ++ l := by
+  unfold toList; apply Eq.symm; induction t <;> simp [*, foldr, RBNode.foldr_cons]
+
+@[simp] theorem toList_nil : (.nil : RBNode.Stream α).toList = [] := rfl
+
+@[simp] theorem toList_cons :
+    (.cons x r s : RBNode.Stream α).toList = x :: r.toList ++ s.toList := by
+  rw [toList, toList, foldr, RBNode.foldr_cons]; rfl
+
+theorem foldr_eq_foldr_toList {s : RBNode.Stream α} : s.foldr f init = s.toList.foldr f init := by
+  induction s <;> simp [-List.foldr] <;> simp [*, RBNode.foldr_eq_foldr_toList]
+
+theorem foldl_eq_foldl_toList {t : RBNode.Stream α} : t.foldl f init = t.toList.foldl f init := by
+  induction t generalizing init <;> simp [-List.foldl] <;> simp [*, RBNode.foldl_eq_foldl_toList]
+
+theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
+    forIn (m := m) t init f = forIn t.toList init f := by
+  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+
+end Stream
+
+theorem toStream_toList' {t : RBNode α} {s} : (t.toStream s).toList = t.toList ++ s.toList := by
+  induction t generalizing s <;> simp [*, toStream]
+
+@[simp] theorem toStream_toList {t : RBNode α} : t.toStream.toList = t.toList := by
+  simp [toStream_toList']
+
+theorem Stream.next?_toList {s : RBNode.Stream α} :
+    (s.next?.map fun (a, b) => (a, b.toList)) = s.toList.next? := by
+  cases s <;> simp [next?, toStream_toList']
+
+theorem Ordered.toList_sorted {t : RBNode α} (h : t.Ordered cmp) :
+    t.toList.Pairwise (cmpLT cmp) := by
+  induction t with
+  | nil => simp
+  | node c l v r ihl ihr =>
+    simp_all [List.pairwise_append, Ordered, All_def]
+    exact fun a ha b hb => (h.1 _ ha).trans (h.2.1 _ hb)

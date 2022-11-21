@@ -78,6 +78,14 @@ Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
   | b, nil          => b
   | b, node _ l v r => foldl f (f (foldl f b l) v) r
 
+/-- Fold a function on the values from right to left (in decreasing order). -/
+@[specialize] def foldr (f : α → σ → σ) : RBNode α → (init : σ) → σ
+  | nil,          b => b
+  | node _ l v r, b => l.foldr f <| f v <| r.foldr f b
+
+/-- `O(n)`. Convert the tree to a list in ascending order. -/
+def toList (t : RBNode α) : List α := t.foldr (·::·) []
+
 /-- Run monadic function `f` on each element of the tree (in increasing order). -/
 @[specialize] def forM [Monad m] (f : α → m PUnit) : RBNode α → m PUnit
   | nil          => pure ⟨⟩
@@ -117,18 +125,30 @@ def toStream : RBNode α → (_ : RBNode.Stream α := .nil) → RBNode.Stream α
   | nil, acc => acc
   | node _ l v r, acc => toStream l (.cons v r acc)
 
+namespace Stream
+
 /-- `O(1)` amortized, `O(log n)` worst case: Get the next element from the stream. -/
-def Stream.next? : RBNode.Stream α → Option (α × RBNode.Stream α)
+def next? : RBNode.Stream α → Option (α × RBNode.Stream α)
   | nil => none
   | cons v r tail => some (v, toStream r tail)
 
-instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
-instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
+/-- Fold a function on the values from left to right (in increasing order). -/
+@[specialize] def foldl (f : σ → α → σ) : (init : σ) → RBNode.Stream α → σ
+  | b, nil           => b
+  | b, cons v r tail => foldl f (r.foldl f (f b v)) tail
 
 /-- Fold a function on the values from right to left (in decreasing order). -/
-@[specialize] def foldr (f : α → σ → σ) : RBNode α → (init : σ) → σ
-  | nil,          b => b
-  | node _ l v r, b => l.foldr f (f v (r.foldr f b))
+@[specialize] def foldr (f : α → σ → σ) : RBNode.Stream α → (init : σ) → σ
+  | nil,           b => b
+  | cons v r tail, b => f v <| r.foldr f <| tail.foldr f b
+
+/-- `O(n)`. Convert the stream to a list in ascending order. -/
+def toList (t : RBNode.Stream α) : List α := t.foldr (·::·) []
+
+end Stream
+
+instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
+instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
 
 /-- Returns `true` iff every element of the tree satisfies `p`. -/
 @[specialize] def all (p : α → Bool) : RBNode α → Bool
@@ -141,7 +161,7 @@ instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
   | node _ l v r => p v || any p l || any p r
 
 /-- Asserts that `p` holds on every element of the tree. -/
-@[simp] def All (p : α → Prop) : RBNode α → Prop
+def All (p : α → Prop) : RBNode α → Prop
   | nil          => True
   | node _ l v r => p v ∧ All p l ∧ All p r
 
@@ -150,7 +170,7 @@ theorem All.imp (H : ∀ {x : α}, p x → q x) : ∀ {t : RBNode α}, t.All p �
   | node .. => fun ⟨h, hl, hr⟩ => ⟨H h, hl.imp H, hr.imp H⟩
 
 /-- Asserts that `p` holds on some element of the tree. -/
-@[simp] def Any (p : α → Prop) : RBNode α → Prop
+def Any (p : α → Prop) : RBNode α → Prop
   | nil          => False
   | node _ l v r => p v ∨ Any p l ∨ Any p r
 
@@ -573,7 +593,7 @@ instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStrea
   | _        => false
 
 /-- `O(n)`. Convert the tree to a list in ascending order. -/
-@[specialize] def toList (t : RBSet α cmp) : List α := t.1.foldr (·::·) []
+@[inline] def toList (t : RBSet α cmp) : List α := t.1.toList
 
 /-- `O(log n)`. Returns the entry `a` such that `a ≤ k` for all keys in the RBSet. -/
 @[inline] protected def min (t : RBSet α cmp) : Option α := t.1.min
