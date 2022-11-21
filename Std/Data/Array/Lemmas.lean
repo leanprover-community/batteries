@@ -204,7 +204,7 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
   (mapIdx_induction _ _ (fun _ => True) trivial p fun _ _ => ⟨hs .., trivial⟩).2
 
 @[simp] theorem size_mapIdx (a : Array α) (f : Fin a.size → α → β) : (a.mapIdx f).size = a.size :=
-  (mapIdx_induction' (p := fun _ _ => True) _ _ fun _ => trivial).1
+  (mapIdx_induction' (p := fun _ _ => True) _ fun _ => trivial).1
 
 @[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat) (h) :
     haveI : i < a.size := by simp_all
