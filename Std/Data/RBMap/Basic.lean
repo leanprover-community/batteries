@@ -194,9 +194,9 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 * The `Nonempty` wrapper is a no-op because this is already a proposition,
   but it prevents the `[TransCmp cmp]` binder from being introduced when we don't want it.
 -/
-def cmpLt (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
+def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
 
-/-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLt`. -/
+/-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
 def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
 
 /-- The first half of Okasaki's `balance`, concerning red-red sequences in the left child. -/
@@ -351,6 +351,11 @@ are not of this form as long as they are suitably monotonic.)
     | .gt => lowerBound? cut b (some y)
     | .eq => some y
 
+/-- Returns the root of the tree, if any. -/
+def root? : RBNode α → Option α
+  | nil => none
+  | node _ _ v _ => some v
+
 /--
 `O(n)`. Map a function on every value in the tree.
 This requires `IsMonotone` on the function in order to preserve the order invariant.
@@ -488,7 +493,7 @@ That way we can prove the ordering invariants without assuming `cmp` is lawful.
 -/
 def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
   | nil => True
-  | node _ a x b => a.All (cmpLt cmp · x) ∧ b.All (cmpLt cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
+  | node _ a x b => a.All (cmpLT cmp · x) ∧ b.All (cmpLT cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
 
 /--
 The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
@@ -520,18 +525,9 @@ inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
   /-- Erasing from a well-formed tree yields another well-formed tree.
   (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
   | erase : WF cmp t → WF cmp (t.erase cut)
---   /-- `alter` on a well-formed tree yields another well-formed tree,
---   as long as the replacement compares equal to the original value.
---   (See `Ordered.alter` and `Balanced.alter` for the actual proofs.) -/
---   | alter : (∀ {x y}, t.find? cut = some x → f (some x) = some y → cmpEq cmp y x) →
---     WF cmp t → WF cmp (t.alter cut f)
 
 theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
   simp [modify, alter]; split <;> simp [Option.map]
-
--- theorem WF.modify {t : RBNode α} (H : ∀ {x}, t.find? cut = some x → cmpEq cmp (f x) x)
---     (wf : WF cmp t) : WF cmp (t.modify cut f) :=
---   modify_eq_alter _ ▸ wf.alter fun | h, rfl => H h
 
 end RBNode
 
@@ -702,13 +698,6 @@ class ModifyWF (t : RBSet α cmp) (cut : α → Ordering) (f : α → α) : Prop
   /-- The resulting tree is well formed. -/
   wf : (t.1.modify cut f).WF cmp
 
--- /--
--- A sufficient condition for `ModifyWF` is that the new element compares equal to the original.
--- -/
--- theorem ModifyWF.of_eq {t : RBSet α cmp}
---     (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f :=
---   ⟨.modify H t.2⟩
-
 /--
 `O(log n)`. In-place replace an element found by `cut`.
 This takes the element out of the tree while `f` runs,
@@ -724,14 +713,6 @@ def modifyP (t : RBSet α cmp) (cut : α → Ordering) (f : α → α)
 class AlterWF (t : RBSet α cmp) (cut : α → Ordering) (f : Option α → Option α) : Prop where
   /-- The resulting tree is well formed. -/
   wf : (t.1.alter cut f).WF cmp
-
--- /--
--- A sufficient condition for `AlterWF` is that the new element compares equal to the original.
--- -/
--- theorem AlterWF.of_eq {t : RBSet α cmp}
---     (H : ∀ {x y}, t.findP? cut = some x → f (some x) = some y → cmpEq cmp y x) :
---     AlterWF t cut f :=
---   ⟨.alter H t.2⟩
 
 /--
 `O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element

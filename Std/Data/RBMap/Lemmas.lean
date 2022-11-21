@@ -267,7 +267,7 @@ theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Order
     · exact ⟨_, rfl⟩
 
 theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t)
-    (hlb : ∀ {x}, x ∈ lb → t.All (cmpLt cmp x ·)) :
+    (hlb : ∀ {x}, x ∈ lb → t.All (cmpLT cmp x ·)) :
     x ∈ t.lowerBound? cut lb → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   induction t generalizing lb with
   | nil => intro.
