@@ -65,7 +65,9 @@ import Std.Tactic.OpenPrivate
 import Std.Tactic.RCases
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
+import Std.Tactic.SimpTrace
 import Std.Tactic.Simpa
+import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Util.ExtendedBinder

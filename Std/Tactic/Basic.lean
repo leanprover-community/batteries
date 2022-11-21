@@ -9,6 +9,7 @@ import Std.Tactic.GuardExpr
 import Std.Tactic.ByCases
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
+import Std.Tactic.SimpTrace
 import Lean.Elab.Tactic.ElabTerm
 import Std.Lean.Meta
 import Std.Lean.Tactic
