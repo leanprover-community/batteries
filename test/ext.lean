@@ -1,6 +1,8 @@
 import Std.Tactic.Ext
 import Std.Logic
 
+set_option linter.missingDocs false
+
 structure A (n : Nat) where
   a : Nat
 

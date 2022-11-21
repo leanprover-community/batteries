@@ -66,10 +66,13 @@ scoped elab "ext_iff_type%" struct:ident : term => do
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList
 
 macro_rules | `(declare_ext_theorems_for $struct:ident) => do
-  let extName := mkIdentFrom struct (canonical := true) <|
-    struct.getId.eraseMacroScopes.mkStr "ext"
-  let extIffName := mkIdentFrom struct (canonical := true) <|
-    struct.getId.eraseMacroScopes.mkStr "ext_iff"
+  let names ← Macro.resolveGlobalName struct.getId.eraseMacroScopes
+  let name ← match names.filter (·.2.isEmpty) with
+    | [] => Macro.throwError s!"unknown constant {struct}"
+    | [(name, _)] => pure name
+    | _ => Macro.throwError s!"ambiguous name {struct}"
+  let extName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext"
+  let extIffName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext_iff"
   `(@[ext] protected theorem $extName:ident : ext_type% $struct:ident :=
       fun {..} {..} => by intros; subst_eqs; rfl
     protected theorem $extIffName:ident : ext_iff_type% $struct:ident :=
@@ -179,7 +182,9 @@ syntax "ext1?" (colGt ppSpace rintroPat)* : tactic
 /-- `ext? pat*` is like `ext pat*` but gives a suggestion on what pattern to use -/
 syntax "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
+end Std.Tactic.Ext
+
 attribute [ext] funext propext
 
-@[ext] protected theorem Unit.ext (x y : Unit) : x = y := rfl
-@[ext] protected theorem PUnit.ext (x y : Unit) : x = y := rfl
+@[ext] protected theorem PUnit.ext (x y : PUnit) : x = y := rfl
+protected theorem Unit.ext (x y : Unit) : x = y := rfl

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner, Mario Carnteiro
+Authors: Gabriel Ebner, Mario Carneiro
 -/
 import Std.Tactic.RCases
 import Std.Lean.Command
@@ -39,4 +39,5 @@ initialize registerBuiltinAttribute {
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
       let key ← withReducible <| DiscrTree.mkPath ty
-      extExtension.add (decl, key) kind }
+      extExtension.add (decl, key) kind
+}
