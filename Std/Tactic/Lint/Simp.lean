@@ -33,15 +33,15 @@ structure SimpTheoremInfo where
   rhs : Expr
 
 /-- Given the list of hypotheses, is this a conditional rewrite rule? -/
-def isConditionalHyps (eq : Expr) : List Expr → MetaM Bool
+def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
   | [] => pure false
   | h :: hs => do
     let ldecl ← getFVarLocalDecl h
     if !ldecl.binderInfo.isInstImplicit
         && !(← hs.anyM fun h' => do pure $ (← inferType h').containsFVar h.fvarId!)
-        && !eq.containsFVar h.fvarId! then
+        && !lhs.containsFVar h.fvarId! then
       return true
-    isConditionalHyps eq hs
+    isConditionalHyps lhs hs
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
@@ -51,7 +51,7 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
     e.toArray.mapM fun (_, ty') => do
       forallTelescopeReducing ty' fun hyps eq => do
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
-        let isConditional ← isConditionalHyps eq hyps.toList
+        let isConditional ← isConditionalHyps lhs hyps.toList
         k { hyps, lhs, rhs, isConditional }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
@@ -112,34 +112,34 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
-    let (⟨lhs', prf1, _⟩, prf1_lems) ←
-      decorateError "simplify fails on left-hand side:" <| simp lhs ctx
-    if prf1_lems.contains (.decl declName) then return none
-    let (⟨rhs', _, _⟩, used_lemmas) ←
-      decorateError "simplify fails on right-hand side:" <| simp rhs ctx (usedSimps := prf1_lems)
-    let lhs'_eq_rhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
-    let lhs_in_nf ← isSimpEq lhs' lhs
-    if lhs'_eq_rhs' then
-      if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
-      return m!"simp can prove this:
+      let (⟨lhs', prf1, _⟩, prf1Lems) ←
+        decorateError "simplify fails on left-hand side:" <| simp lhs ctx
+      if prf1Lems.contains (.decl declName) then return none
+      let (⟨rhs', _, _⟩, used_lemmas) ←
+        decorateError "simplify fails on right-hand side:" <| simp rhs ctx (usedSimps := prf1Lems)
+      let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
+      let lhsInNF ← isSimpEq lhs' lhs
+      if lhs'EqRhs' then
+        if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
+        return m!"simp can prove this:
   by {← formatLemmas used_lemmas}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
 "
-    else if ¬ lhs_in_nf then
-      return m!"Left-hand side simplifies from
+      else if ¬ lhsInNF then
+        return m!"Left-hand side simplifies from
   {lhs}
 to
   {lhs'}
 using
-  {← formatLemmas prf1_lems}
+  {← formatLemmas prf1Lems}
 Try to change the left-hand side to the simplified term!
 "
-    else if !isConditional && lhs == lhs' then
-      return m!"Left-hand side does not simplify.
+      else if !isConditional && lhs == lhs' then
+        return m!"Left-hand side does not simplify.
 You need to debug this yourself using `set_option trace.Meta.Tactic.simp.rewrite true`"
-    else
-      return none
+      else
+        return none
 
 library_note "simp-normal form" /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
