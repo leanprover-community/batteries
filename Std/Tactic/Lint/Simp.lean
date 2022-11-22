@@ -107,7 +107,6 @@ def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM Syntax := do
   errorsFound := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
-
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
@@ -136,8 +135,9 @@ using
 Try to change the left-hand side to the simplified term!
 "
       else if !isConditional && lhs == lhs' then
-        return m!"Left-hand side does not simplify.
-You need to debug this yourself using `set_option trace.Meta.Tactic.simp.rewrite true`"
+        return m!"Left-hand side does not simplify, when using the simp lemma on itself.
+This usually means that it will never apply.
+"
       else
         return none
 
