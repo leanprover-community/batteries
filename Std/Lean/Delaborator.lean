@@ -26,7 +26,9 @@ def withOverApp (arity : Nat) (x : Delab) : Delab := do
   let n := (← getExpr).getAppNumArgs
   guard (n ≥ arity)
   let kinds ← getParamKinds
-  let rec loop : Nat → DelabM (Term × Array Term)
+  let rec
+  /-- Inner loop of `withOverApp`. -/
+  loop : Nat → DelabM (Term × Array Term)
   | 0 => return (← x, #[])
   | n+1 => do
     let mut (fnStx, args) ← withAppFn (loop n)

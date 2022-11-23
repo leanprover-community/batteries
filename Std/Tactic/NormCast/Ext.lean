@@ -9,7 +9,8 @@ import Std.Tactic.CoeExt
 
 open Lean Meta
 
-namespace Tactic.NormCast
+namespace Std.Tactic.NormCast
+open Tactic.Coe
 
 /--
 `Label` is a type used to classify `norm_cast` lemmas.

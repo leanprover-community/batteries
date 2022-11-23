@@ -39,6 +39,7 @@ import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
+import Std.Lean.Delaborator
 import Std.Lean.Meta
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
