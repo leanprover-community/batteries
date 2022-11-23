@@ -188,7 +188,7 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
 
 open Elab Command in
 /-- The command `#lint` runs the linters on the current file (by default). -/
-elab "#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
+elab tk:"#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
     linters:(ppSpace ident)* : command => do
   let (decls, whereDesc, groupByFilename) ← match project with
     | none => do pure (← liftCoreM getDeclsInCurrModule, "in the current file", false)
@@ -213,7 +213,6 @@ elab "#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")
       let some (declName, _) := linterState.find? name | throwErrorAt id "not a linter: {name}"
       Elab.addConstInfo id declName
       let linter ← getLinter name declName
-      let _ := Inhabited.mk linter
       result := result.binInsert (·.name.lt ·.name) linter
     pure result
   let results ← liftCoreM <| lintCore decls linters
@@ -224,7 +223,7 @@ elab "#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")
   if failed then
     logError fmtResults
   else if verbosity != LintVerbosity.low then
-    logInfo m!"{fmtResults}\n-- All linting checks passed!"
+    logInfoAt tk m!"{fmtResults}\n-- All linting checks passed!"
 
 open Elab Command in
 /-- The command `#list_linters` prints a list of all available linters. -/

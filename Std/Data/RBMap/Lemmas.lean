@@ -3,7 +3,7 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Data.RBMap.WF
+import Std.Data.RBMap.Alter
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 
@@ -15,7 +15,7 @@ namespace Std
 namespace RBNode
 open RBColor
 
-attribute [simp] fold foldl foldr Any forM foldlM Stream.foldl Stream.foldr
+attribute [simp] fold foldl foldr Any forM foldlM Ordered
 
 section depth
 
@@ -365,6 +365,8 @@ end fold
 
 namespace Stream
 
+attribute [simp] foldl foldr
+
 theorem foldr_cons (t : RBNode.Stream α) (l) : t.foldr (·::·) l = t.toList ++ l := by
   unfold toList; apply Eq.symm; induction t <;> simp [*, foldr, RBNode.foldr_cons]
 
@@ -396,10 +398,103 @@ theorem Stream.next?_toList {s : RBNode.Stream α} :
     (s.next?.map fun (a, b) => (a, b.toList)) = s.toList.next? := by
   cases s <;> simp [next?, toStream_toList']
 
-theorem Ordered.toList_sorted {t : RBNode α} (h : t.Ordered cmp) :
-    t.toList.Pairwise (cmpLT cmp) := by
+theorem ordered_iff {t : RBNode α} :
+    t.Ordered cmp ↔ t.toList.Pairwise (cmpLT cmp) := by
   induction t with
   | nil => simp
   | node c l v r ihl ihr =>
-    simp_all [List.pairwise_append, Ordered, All_def]
-    exact fun a ha b hb => (h.1 _ ha).trans (h.2.1 _ hb)
+    simp [*, List.pairwise_append, Ordered, All_def,
+      and_assoc, and_left_comm, and_comm, imp_and, forall_and]
+    exact fun _ _ hl hr a ha b hb => (hl _ ha).trans (hr _ hb)
+
+theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairwise (cmpLT cmp) :=
+  ordered_iff.1
+
+@[simp] theorem setBlack_toList {t : RBNode α} : t.setBlack.toList = t.toList := by
+  cases t <;> simp [setBlack]
+
+@[simp] theorem setRed_toList {t : RBNode α} : t.setRed.toList = t.toList := by
+  cases t <;> simp [setRed]
+
+@[simp] theorem balance1_toList {l : RBNode α} {v r} :
+    (l.balance1 v r).toList = l.toList ++ v :: r.toList := by
+  unfold balance1; split <;> simp
+
+@[simp] theorem balance2_toList {l : RBNode α} {v r} :
+    (l.balance2 v r).toList = l.toList ++ v :: r.toList := by
+  unfold balance2; split <;> simp
+
+@[simp] theorem balLeft_toList {l : RBNode α} {v r} :
+    (l.balLeft v r).toList = l.toList ++ v :: r.toList := by
+  unfold balLeft; split <;> simp; split <;> simp
+
+@[simp] theorem balRight_toList {l : RBNode α} {v r} :
+    (l.balRight v r).toList = l.toList ++ v :: r.toList := by
+  unfold balRight; split <;> simp; split <;> simp
+
+namespace Path
+
+attribute [simp] RootOrdered Ordered
+
+/-- The list of elements to the left of the hole.
+(This function is intended for specification purposes only.) -/
+@[simp] def listL : Path α → List α
+  | .root => []
+  | .left _ parent _ _ => parent.listL
+  | .right _ l v parent => parent.listL ++ (l.toList ++ [v])
+
+/-- The list of elements to the right of the hole.
+(This function is intended for specification purposes only.) -/
+@[simp] def listR : Path α → List α
+  | .root => []
+  | .left _ parent v r => v :: r.toList ++ parent.listR
+  | .right _ _ _ parent => parent.listR
+
+/-- Wraps a list of elements with the left and right elements of the path. -/
+abbrev withList (p : Path α) (l : List α) : List α := p.listL ++ l ++ p.listR
+
+theorem rootOrdered_iff {p : Path α} (hp : p.Ordered cmp) :
+    p.RootOrdered cmp v ↔ (∀ a ∈ p.listL, cmpLT cmp a v) ∧ (∀ a ∈ p.listR, cmpLT cmp v a) := by
+  induction p with
+    (simp [All_def] at hp; simp [*, and_assoc, and_left_comm, and_comm, or_imp, forall_and])
+  | left _ _ x _ ih => exact fun vx _ _ _ ha => vx.trans (hp.2.1 _ ha)
+  | right _ _ x _ ih => exact fun xv _ _ _ ha => (hp.2.1 _ ha).trans xv
+
+theorem ordered_iff {p : Path α} :
+    p.Ordered cmp ↔ p.listL.Pairwise (cmpLT cmp) ∧ p.listR.Pairwise (cmpLT cmp) ∧
+      ∀ x ∈ p.listL, ∀ y ∈ p.listR, cmpLT cmp x y := by
+  induction p with
+  | root => simp
+  | left _ _ x _ ih | right _ _ x _ ih => ?_
+  all_goals
+    rw [Ordered, and_congr_right_eq fun h => by simp [All_def, rootOrdered_iff h]; rfl]
+    simp [List.pairwise_append, or_imp, forall_and, ih, RBNode.ordered_iff]
+    -- FIXME: simp [and_assoc, and_left_comm, and_comm] is really slow here
+  · exact ⟨
+      fun ⟨⟨hL, hR, LR⟩, xr, ⟨Lx, xR⟩, ⟨rL, rR⟩, hr⟩ =>
+        ⟨hL, ⟨⟨xr, xR⟩, hr, hR, rR⟩, Lx, fun _ ha _ hb => rL _ hb _ ha, LR⟩,
+      fun ⟨hL, ⟨⟨xr, xR⟩, hr, hR, rR⟩, Lx, Lr, LR⟩ =>
+        ⟨⟨hL, hR, LR⟩, xr, ⟨Lx, xR⟩, ⟨fun _ ha _ hb => Lr _ hb _ ha, rR⟩, hr⟩⟩
+  · exact ⟨
+      fun ⟨⟨hL, hR, LR⟩, lx, ⟨Lx, xR⟩, ⟨lL, lR⟩, hl⟩ =>
+        ⟨⟨hL, ⟨hl, lx⟩, fun _ ha _ hb => lL _ hb _ ha, Lx⟩, hR, LR, lR, xR⟩,
+      fun ⟨⟨hL, ⟨hl, lx⟩, Ll, Lx⟩, hR, LR, lR, xR⟩ =>
+       ⟨⟨hL, hR, LR⟩, lx, ⟨Lx, xR⟩, ⟨fun _ ha _ hb => Ll _ hb _ ha, lR⟩, hl⟩⟩
+
+@[simp] theorem fill_toList {p : Path α} : (p.fill t).toList = p.withList t.toList := by
+  induction p generalizing t <;> simp [*]
+
+theorem _root_.Std.RBNode.zoom_toList {t : RBNode α} (eq : t.zoom cut = (t', p')) :
+    p'.withList t'.toList = t.toList := by rw [← fill_toList, ← zoom_fill eq]; rfl
+
+@[simp] theorem ins_toList {p : Path α} : (p.ins t).toList = p.withList t.toList := by
+  match p with
+  | .root | .left red .. | .right red .. | .left black .. | .right black .. =>
+    simp [ins, ins_toList]
+
+@[simp] theorem insertNew_toList {p : Path α} : (p.insertNew v).toList = p.withList [v] := by
+  simp [insertNew]
+
+theorem insert_toList {p : Path α} :
+    (p.insert t v).toList = p.withList (t.setRoot v).toList := by
+  simp [insert]; split <;> simp [setRoot]

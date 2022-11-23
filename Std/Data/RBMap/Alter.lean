@@ -258,10 +258,12 @@ theorem Zoomed.toRootOrdered {cmp} :
 /-- The ordering invariant for a `Path`. -/
 def Ordered (cmp : α → α → Ordering) : Path α → Prop
   | .root => True
-  | .left _ parent x b => b.All (cmpLT cmp x ·) ∧ parent.RootOrdered cmp x ∧
-    b.All (parent.RootOrdered cmp) ∧ b.Ordered cmp ∧ parent.Ordered cmp
-  | .right _ a x parent => a.All (cmpLT cmp · x) ∧ parent.RootOrdered cmp x ∧
-    a.All (parent.RootOrdered cmp) ∧ a.Ordered cmp ∧ parent.Ordered cmp
+  | .left _ parent x b => parent.Ordered cmp ∧
+    b.All (cmpLT cmp x ·) ∧ parent.RootOrdered cmp x ∧
+    b.All (parent.RootOrdered cmp) ∧ b.Ordered cmp
+  | .right _ a x parent => parent.Ordered cmp ∧
+    a.All (cmpLT cmp · x) ∧ parent.RootOrdered cmp x ∧
+    a.All (parent.RootOrdered cmp) ∧ a.Ordered cmp
 
 protected theorem Ordered.fill : ∀ {path : Path α} {t},
     (path.fill t).Ordered cmp ↔ path.Ordered cmp ∧ t.Ordered cmp ∧ t.All (path.RootOrdered cmp)
@@ -269,13 +271,13 @@ protected theorem Ordered.fill : ∀ {path : Path α} {t},
   | .left .., _ => by
     simp [Ordered.fill, RBNode.Ordered, Ordered, RootOrdered, All_and]
     exact ⟨
-      fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨xb, xp, bp, hb, hp⟩, ha, ⟨ax, ap⟩⟩,
-      fun ⟨⟨xb, xp, bp, hb, hp⟩, ha, ⟨ax, ap⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
+      fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨hp, xb, xp, bp, hb⟩, ha, ⟨ax, ap⟩⟩,
+      fun ⟨⟨hp, xb, xp, bp, hb⟩, ha, ⟨ax, ap⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
   | .right .., _ => by
     simp [Ordered.fill, RBNode.Ordered, Ordered, RootOrdered, All_and]
     exact ⟨
-      fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨ax, xp, ap, ha, hp⟩, hb, ⟨xb, bp⟩⟩,
-      fun ⟨⟨ax, xp, ap, ha, hp⟩, hb, ⟨xb, bp⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
+      fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩,
+      fun ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
 
 theorem _root_.Std.RBNode.Ordered.zoom' {t : RBNode α} {path : Path α}
     (ht : t.Ordered cmp) (hp : path.Ordered cmp) (tp : t.All (path.RootOrdered cmp))
@@ -292,14 +294,14 @@ theorem _root_.Std.RBNode.Ordered.zoom {t : RBNode α}
 theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.ins t).Ordered cmp
   | .root, t, ht, _, _ => Ordered.setBlack.2 ht
-  | .left red parent x b, a, ha, ⟨xb, xp, bp, hb, hp⟩, H => by
+  | .left red parent x b, a, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold ins; have ⟨ax, ap⟩ := All_and.1 H; exact hp.ins ⟨ax, xb, ha, hb⟩ ⟨xp, ap, bp⟩
-  | .right red a x parent, b, hb, ⟨ax, xp, ap, ha, hp⟩, H => by
+  | .right red a x parent, b, hb, ⟨hp, ax, xp, ap, ha⟩, H => by
     unfold ins; have ⟨xb, bp⟩ := All_and.1 H; exact hp.ins ⟨ax, xb, ha, hb⟩ ⟨xp, ap, bp⟩
-  | .left black parent x b, a, ha, ⟨xb, xp, bp, hb, hp⟩, H => by
+  | .left black parent x b, a, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold ins; have ⟨ax, ap⟩ := All_and.1 H
     exact hp.ins (ha.balance1 ax xb hb) (balance1_All.2 ⟨xp, ap, bp⟩)
-  | .right black a x parent, b, hb, ⟨ax, xp, ap, ha, hp⟩, H => by
+  | .right black a x parent, b, hb, ⟨hp, ax, xp, ap, ha⟩, H => by
     unfold ins; have ⟨xb, bp⟩ := All_and.1 H
     exact hp.ins (ha.balance2 ax xb hb) (balance2_All.2 ⟨xp, ap, bp⟩)
 
@@ -317,14 +319,14 @@ theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
 theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
   | .root, t, _, ht, _, _ => Ordered.setBlack.2 ht
-  | .left _ parent x b, a, red, ha, ⟨xb, xp, bp, hb, hp⟩, H => by
+  | .left _ parent x b, a, red, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold del; have ⟨ax, ap⟩ := All_and.1 H; exact hp.del ⟨ax, xb, ha, hb⟩ ⟨xp, ap, bp⟩
-  | .right _ a x parent, b, red, hb, ⟨ax, xp, ap, ha, hp⟩, H => by
+  | .right _ a x parent, b, red, hb, ⟨hp, ax, xp, ap, ha⟩, H => by
     unfold del; have ⟨xb, bp⟩ := All_and.1 H; exact hp.del ⟨ax, xb, ha, hb⟩ ⟨xp, ap, bp⟩
-  | .left _ parent x b, a, black, ha, ⟨xb, xp, bp, hb, hp⟩, H => by
+  | .left _ parent x b, a, black, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold del; have ⟨ax, ap⟩ := All_and.1 H
     exact hp.del (ha.balLeft ax xb hb) (ap.balLeft xp bp)
-  | .right _ a x parent, b, black, hb, ⟨ax, xp, ap, ha, hp⟩, H => by
+  | .right _ a x parent, b, black, hb, ⟨hp, ax, xp, ap, ha⟩, H => by
     unfold del; have ⟨xb, bp⟩ := All_and.1 H
     exact hp.del (ha.balRight ax xb hb) (ap.balRight xp bp)
 

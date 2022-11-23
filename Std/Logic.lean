@@ -154,7 +154,7 @@ theorem and_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : a ∧ b ↔ c ∧ d :=
 
 theorem and_comm : a ∧ b ↔ b ∧ a := And.comm
 
-theorem and_congr_right (h : a → (b ↔ c)) : (a ∧ b) ↔ (a ∧ c) :=
+theorem and_congr_right (h : a → (b ↔ c)) : a ∧ b ↔ a ∧ c :=
 ⟨fun ⟨ha, hb⟩ => ⟨ha, (h ha).1 hb⟩, fun ⟨ha, hb⟩ => ⟨ha, (h ha).2 hb⟩⟩
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
@@ -163,6 +163,12 @@ theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
 theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h .rfl
 
 theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr .rfl h
+
+theorem and_congr_right_eq (h : a → b = c) : (a ∧ b) = (a ∧ c) :=
+  propext <| and_congr_right fun hc => h hc ▸ .rfl
+
+theorem and_congr_left_eq (h : c → a = b) : (a ∧ c) = (b ∧ c) :=
+  propext <| and_congr_left fun hc => h hc ▸ .rfl
 
 theorem and_assoc : (a ∧ b) ∧ c ↔ a ∧ (b ∧ c) :=
   ⟨fun ⟨⟨ha, hb⟩, hc⟩ => ⟨ha, hb, hc⟩, fun ⟨ha, hb, hc⟩ => ⟨⟨ha, hb⟩, hc⟩⟩

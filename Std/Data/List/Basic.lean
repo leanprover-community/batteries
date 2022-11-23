@@ -1019,7 +1019,7 @@ attribute [simp] Pairwise.nil
 
 variable {R}
 
-@[simp] theorem Pairwise_cons : Pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ Pairwise R l :=
+@[simp] theorem pairwise_cons : Pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ Pairwise R l :=
   ⟨fun | .cons h₁ h₂ => ⟨h₁, h₂⟩, fun ⟨h₁, h₂⟩ => h₂.cons h₁⟩
 
 instance instDecidablePairwise [DecidableRel R] :
@@ -1029,8 +1029,8 @@ instance instDecidablePairwise [DecidableRel R] :
     match instDecidablePairwise tl with
     | isTrue ht =>
       match decidableBAll (R hd) tl with
-      | isFalse hf => isFalse fun hf' => hf (Pairwise_cons.1 hf').1
-      | isTrue ht' => isTrue <| Pairwise_cons.mpr (And.intro ht' ht)
+      | isFalse hf => isFalse fun hf' => hf (pairwise_cons.1 hf').1
+      | isTrue ht' => isTrue <| pairwise_cons.mpr (And.intro ht' ht)
     | isFalse hf => isFalse fun | .cons _ ih => hf ih
 
 end Pairwise

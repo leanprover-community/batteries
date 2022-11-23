@@ -599,7 +599,7 @@ instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStrea
 @[inline] protected def max (t : RBSet α cmp) : Option α := t.1.max
 
 instance [Repr α] : Repr (RBSet α cmp) where
-  reprPrec m prec := Repr.addAppParen ("Std.rbmapOf " ++ repr m.toList) prec
+  reprPrec m prec := Repr.addAppParen ("RBSet.ofList " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert element `v` into the tree. -/
 @[inline] def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
@@ -929,16 +929,16 @@ instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 /-- `O(n)`. Convert the tree to a list in ascending order. -/
 @[inline] def toList : RBMap α β cmp → List (α × β) := RBSet.toList
 
-/-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≤ k` for all keys in the RBMap. -/
+/-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≤ k` for all keys in the RBMap. -/
 @[inline] protected def min : RBMap α β cmp → Option (α × β) := RBSet.min
 
-/-- `O(log n)`. Returns the key-value pair `(a,b)` such that `a ≥ k` for all keys in the RBMap. -/
+/-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≥ k` for all keys in the RBMap. -/
 @[inline] protected def max : RBMap α β cmp → Option (α × β) := RBSet.max
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
-  reprPrec m prec := Repr.addAppParen ("RBMap.fromList " ++ repr m.toList) prec
+  reprPrec m prec := Repr.addAppParen ("RBMap.ofList " ++ repr m.toList) prec
 
-/-- `O(log n)`. Insert key-value pair `(k,v)` into the tree. -/
+/-- `O(log n)`. Insert key-value pair `(k, v)` into the tree. -/
 @[inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBSet.insert t (k, v)
 
 /-- `O(log n)`. Remove an element `k` from the map. -/
