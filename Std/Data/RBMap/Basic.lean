@@ -974,58 +974,6 @@ smaller than or equal to `k`, if it exists.
 /-- `O(log n)`. Returns true if the given key `a` is in the RBMap. -/
 @[inline] def contains (t : RBMap α β cmp) (a : α) : Bool := (t.findEntry? a).isSome
 
--- TODO: add proof
-private unsafe def modifyImpl (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
-  @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b)) lcProof
-
-/--
-`O(log n)`. In-place replace the corresponding to key `k`.
-This takes the element out of the tree while `f` runs,
-so it uses the element linearly if `t` is unshared.
--/
-@[implemented_by modifyImpl] opaque modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp
-
--- def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
---   t.modifyP (cmp k ·.1) (fun (a, b) => (a, f b))
---     (wf := .of_eq fun _ => ⟨LawfulCmp.cmp_refl (cmp := byKey Prod.fst cmp)⟩)
-
-/-- Auxiliary definition for `alter`. -/
-def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → Option (α × β)
-  | none =>
-    match f none with
-    | none => none
-    | some v => some (k, v)
-  | some (k', v') =>
-    match f (some v') with
-    | none => none
-    | some v => some (k', v)
-
--- TODO: add proof
-@[specialize] private unsafe def alterImpl (t : RBMap α β cmp) (k : α) (f : Option β → Option β) :
-    RBMap α β cmp :=
-  @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) lcProof
-
-/--
-`O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element
-using a function `f : Option α → Option α`. It is passed the result of `t.findP? cut`
-and can either return `none` to remove the element or `some a` to replace/insert
-the element with `a` (which must have the same ordering properties as the original element).
-
-The element is used linearly if `t` is unshared.
-
-The `AlterWF` assumption is required because `f` may change
-the ordering properties of the element, which would break the invariants.
--/
-@[implemented_by alterImpl]
-opaque alter (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp
-
--- @[specialize] def alter
---     (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
---   refine t.alterP (cmp k ·.1) (alter.adapt k f)
---     (wf := .of_eq @fun (k, v) y _ h => ⟨@fun _ => ?_⟩)
---   revert h; simp [alter.adapt]; split <;> intro h <;> cases h
---   exact LawfulCmp.cmp_refl (cmp := byKey Prod.fst cmp)
-
 /-- `O(n)`. Returns true if the given predicate is true for all items in the RBMap. -/
 @[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
 
