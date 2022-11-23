@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Mario Carneiro
 -/
 import Lean.PrettyPrinter.Delaborator.Builtins
+import Std.Lean.Delaborator
 open Lean Meta Std
 
-namespace Tactic.NormCast
+namespace Std.Tactic.Coe
 
 /-- The different types of coercions that are supported by the `coe` attribute. -/
 inductive CoeFnType
@@ -58,21 +59,8 @@ For example, `Int.ofNat` is a coercion, so instead of printing `ofNat n` we just
 and when re-parsing this we can (usually) recover the specific coercion being used.
 -/
 def coeDelaborator (info : CoeFnInfo) : Delab := whenPPOption getPPCoercions do
-  match info.type with
-  | CoeFnType.coeFun =>
-    unless (← getExpr).getAppNumArgs > info.numArgs do failure
-    let coercee ← withNaryArg info.coercee delab
-    let kinds ← getParamKinds
-    let mut args := #[]
-    for i in [info.numArgs:kinds.size] do
-      if (kinds.get? i).all (·.bInfo.isExplicit) then
-        args := args.push (← withNaryArg i delab)
-    if args.isEmpty then failure
-    `($coercee $args*)
-  | _ =>
-    unless (← getExpr).getAppNumArgs == info.numArgs do failure
-    let coercee ← withNaryArg info.coercee delab
-    `(↑ $coercee)
+  withOverApp info.numArgs do
+    `(↑$(← withNaryArg info.coercee delab))
 
 /-- Add a coercion delaborator for the given function. -/
 def addCoeDelaborator (name : Name) (info : CoeFnInfo) : MetaM Unit := do
@@ -92,8 +80,9 @@ def addCoeDelaborator (name : Name) (info : CoeFnInfo) : MetaM Unit := do
 def registerCoercion (name : Name) (info : Option CoeFnInfo := none) : MetaM Unit := do
   let info ← match info with | some info => pure info | none => do
     let fnInfo ← getFunInfo (← mkConstWithLevelParams name)
-    unless fnInfo.getArity > 0 do throwError "{name} not of function type"
-    pure { numArgs := fnInfo.getArity, coercee := fnInfo.getArity - 1, type := .coe }
+    let some coercee := fnInfo.paramInfo.findIdx? (·.binderInfo.isExplicit)
+      | throwError "{name} has no explicit arguments"
+    pure { numArgs := coercee + 1, coercee, type := .coe }
   modifyEnv (coeExt.addEntry · (name, info))
   addCoeDelaborator name info
 
