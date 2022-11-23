@@ -539,9 +539,6 @@ inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
   (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
   | erase : WF cmp t → WF cmp (t.erase cut)
 
-theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
-  simp [modify, alter]; split <;> simp [Option.map]
-
 end RBNode
 
 open RBNode
