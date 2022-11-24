@@ -125,17 +125,21 @@ open List in
 theorem List.Perm.of_eq {l₁ l₂ : List α} : l₁ = l₂ → l₁ ~ l₂ :=
   fun h => h ▸ List.Perm.refl _
 
-theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
-    : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] := by
-  rw [← Array.toList_eq, Array.toList]
-  apply Array.foldr_induction
-    (motive := fun _ acc => a ∈ acc → ∃ (i : Fin as.size), a = as[i])
-  case h0 => intro h; cases h
-  case hf =>
-    intro i acc ih h
+theorem List.exists_get_of_mem {l : List α} {a : α}
+    : a ∈ l → ∃ (i : Fin l.length), a = l.get i := by
+  induction l with
+  | nil => intro h; cases h
+  | cons x xs ih =>
+    intro h
     cases List.mem_cons.mp h with
-    | inl h => exact ⟨i, h⟩
-    | inr h => exact ih h
+    | inl h => exact ⟨⟨0, Nat.zero_lt_succ _⟩, h⟩
+    | inr h =>
+      have ⟨i, hI⟩ := ih h
+      exact ⟨⟨i.val+1, Nat.succ_lt_succ i.isLt⟩, hI⟩
+
+theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
+    : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] :=
+  List.exists_get_of_mem
 
 namespace Std.HashMap
 variable [BEq α] [Hashable α] [LawfulHashable α] [PartialEquivBEq α]
@@ -245,14 +249,21 @@ theorem toListModel_mk (size : Nat) (h : 0 < size)
   clear h
   induction size <;> simp [*]
 
+theorem exists_of_toListModel_update (bkts : Buckets α β) (i d h) :
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i].toList ++ l₂
+      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂ := by
+  have ⟨bs₁, bs₂, hTgt, _, hUpd⟩ := bkts.exists_of_update i d h
+  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_⟩
+  . simp [toListModel_eq, hTgt]
+  . simp [toListModel_eq, hUpd]
+
 theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β)
     : (reinsertAux tgt a b).toListModel ~ (a, b) :: tgt.toListModel := by
   unfold reinsertAux
-  have ⟨l₁, l₂, hTgt, _, hUpd⟩ :=
+  have ⟨l₁, l₂, hTgt, hUpd⟩ :=
     haveI := mkIdx tgt.property a
-    exists_of_update tgt this.1 (.cons a b (tgt.1[this.1]'this.2)) this.2
-  rw [toListModel_eq, toListModel_eq, hUpd, hTgt]
-  simp [perm_middle]
+    tgt.exists_of_toListModel_update this.1 (.cons a b (tgt.1[this.1]'this.2)) this.2
+  simp [hTgt, ↓hUpd, perm_middle]
 
 theorem toListModel_foldl_reinsertAux (bkt : List (α × β)) (tgt : Buckets α β)
     : (bkt.foldl (init := tgt) fun acc x => reinsertAux acc x.fst x.snd).toListModel
@@ -296,6 +307,29 @@ where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
     simp [Perm.refl, drop_eq_nil_of_le this]
   termination_by go i src _ => src.size - i
 
+theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i].toList ++ l₂
+      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
+      ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
+  have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
+  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_, ?_⟩
+  . simp [toListModel_eq, hTgt]
+  . simp [toListModel_eq, hUpd]
+  . intro ab hMem
+    have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
+    clear hMem
+    have ⟨⟨j, hJ⟩, hEq⟩ := exists_get_of_mem hBkt
+    have hJ' : j < bkts.val.size := by
+      apply Nat.lt_trans hJ
+      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
+    have : ab ∈ (bkts.val[j]).toList := by
+      have := List.get_append (bkts.val[i] :: bs₂) j hJ
+      rw [← this] at hEq
+      simp [Array.getElem_eq_data_get, hTgt]
+      rw [hTgt] --- nooooooooooooooooo motive not tpye correct
+      sorry
+    rwa [hLen, ← H.hash_self _ _ _ this] at hJ
+
 end Buckets
 
 theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
@@ -318,29 +352,27 @@ theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
 theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) (b : β)
     : (m.insert a b).buckets.toListModel ~ (a, b) :: m.buckets.toListModel.eraseP (·.1 == a) := by
   dsimp [insert, cond]; split
+  -- TODO rewrite with `exists_of_toListModel_update_WF`
   next hContains =>
+
     simp only [Buckets.toListModel_eq]
     have hWF := WF_iff.mp H
-    have ⟨l₁, l₂, hTgt, hLen, hUpd⟩ :=
+    have ⟨l₁, l₂, hTgt, hLen, hUpd, hProp⟩ :=
       haveI := mkIdx m.buckets.property a
-      Buckets.exists_of_update m.buckets this.1 ((m.buckets.1[this.1]'this.2).replace a b) this.2
+      m.buckets.exists_of_update_but_better hWF.right this.1
+        ((m.buckets.1[this.1]'this.2).replace a b) this.2
     rw [Array.ugetElem_eq_getElem] at hUpd
     rw [hUpd, hTgt]
-    have hL₁ : ∀ ab ∈ l₁.bind (·.toList), ¬(ab.fst == a) := by
-      intro ab h hEq
-      have ⟨bkt, hBkt, hMem⟩ := mem_bind.mp h
-      -- so ab is in a bucket whose index is less than i so its hash is not the same which
-      -- contradicts that ab.fst == a by LawfulHashable
-      sorry
-
+    have hL₁ : ∀ ab ∈ l₁.bind (·.toList), ¬(ab.fst == a) := fun ab h hEq =>
+      (LawfulHashable.hash_eq hEq ▸ hProp ab h) rfl
     have ⟨p, hMem, hP⟩ := any_eq_true.mp (AssocList.contains_eq a _ ▸ hContains)
     simp [eraseP_append_right _ hL₁,
       eraseP_append_left (p := fun ab => ab.fst == a) hP _ hMem]
+    -- begin cursed manual proofs
     refine Perm.trans ?_ perm_middle
     refine Perm.append (Perm.refl _) ?_
     rw [← cons_append]
     refine Perm.append ?_ (Perm.refl _)
-    -- begin cursed manual proofs
     refine Perm.trans
       (replaceF_one
         (b := (a, b))
@@ -366,6 +398,7 @@ theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) 
     -- end cursed manual proofs
 
   next hContains =>
+
     split
     -- not sure if split right away is the best choice, ideally i'd like to reduce the two cases
     -- to one using `toListModel_expand`
