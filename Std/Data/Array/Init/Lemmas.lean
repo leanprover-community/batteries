@@ -26,7 +26,7 @@ attribute [simp] data_toArray uset
 @[simp] theorem size_mk (as : List α) : (Array.mk as).size = as.length := by simp [size]
 
 theorem getElem_eq_data_get (a : Array α) (h : i < a.size) : a[i] = a.data.get ⟨i, h⟩ := by
-  by_cases i < a.size <;> (simp [*]; rfl)
+  by_cases i < a.size <;> simp [*] <;> rfl
 
 theorem foldlM_eq_foldlM_data.aux [Monad m]
     (f : β → α → m β) (arr : Array α) (i j) (H : arr.size ≤ i + j) (b) :

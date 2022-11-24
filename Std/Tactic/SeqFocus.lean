@@ -37,5 +37,5 @@ elab "map_tacs " "[" ts:tactic,* "]" : tactic => do
 /-- `t <;> [t1, t2, ..., tn]` focuses on the first goal and applies `t`, which should result in `n`
 subgoals. It then applies each `ti` to the corresponding goal and collects the resulting
 subgoals. -/
-macro (name := seq_focus) t:tactic " <;> " "[" ts:tactic,* "]" : tactic =>
+macro:1 (name := seq_focus) t:tactic " <;> " "[" ts:tactic:2,* "]" : tactic =>
   `(tactic| focus ( $t:tactic; map_tacs [$ts,*]) )
