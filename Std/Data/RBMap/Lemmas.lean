@@ -154,11 +154,14 @@ instance (cmp) (a : α) : IsStrictCut cmp (cmp a) where
 section find?
 
 theorem find?_some_eq_eq {t : RBNode α} : x ∈ t.find? cut → cut x = .eq := by
-  induction t <;> simp [find?]; split <;> try assumption
-  intro | rfl => assumption
+  induction t <;> simp [find?]
+  case node =>
+    split <;> try assumption
+    intro | rfl => assumption
 
 theorem find?_some_mem {t : RBNode α} : x ∈ t.find? cut → x ∈ t := by
-  induction t <;> simp [find?]; split <;> simp (config := {contextual := true}) [*]
+  induction t <;> simp [find?]
+  case node => split <;> simp (config := {contextual := true}) [*]
 
 theorem find?_some_memP {t : RBNode α} (h : x ∈ t.find? cut) : MemP cut t :=
   memP_def.2 ⟨_, find?_some_mem h, find?_some_eq_eq h⟩
@@ -274,7 +277,7 @@ theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
   induction t generalizing lb with
   | nil => intro.
   | node _ _ _ _ ihl ihr =>
-    simp [lowerBound?]; (split <;> rename_i hv) <;> rintro h₁ (rfl | hy' | hy') hx h₂
+    simp [lowerBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
     · exact hv
     · exact ihl h.2.2.1 (fun h => (hlb h).2.1) h₁ hy' hx h₂
     · exact IsCut.lt_trans (cut := cut) (cmp := cmp) (All_def.1 h.2.1 _ hy').1 hv
@@ -377,10 +380,10 @@ theorem foldr_cons (t : RBNode.Stream α) (l) : t.foldr (·::·) l = t.toList ++
   rw [toList, toList, foldr, RBNode.foldr_cons]; rfl
 
 theorem foldr_eq_foldr_toList {s : RBNode.Stream α} : s.foldr f init = s.toList.foldr f init := by
-  (induction s <;> simp [-List.foldr]) <;> simp [*, RBNode.foldr_eq_foldr_toList]
+  induction s <;> simp [-List.foldr] <;> simp [*, RBNode.foldr_eq_foldr_toList]
 
 theorem foldl_eq_foldl_toList {t : RBNode.Stream α} : t.foldl f init = t.toList.foldl f init := by
-  (induction t generalizing init <;> simp [-List.foldl]) <;> simp [*, RBNode.foldl_eq_foldl_toList]
+  induction t generalizing init <;> simp [-List.foldl] <;> simp [*, RBNode.foldl_eq_foldl_toList]
 
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     forIn (m := m) t init f = forIn t.toList init f := by

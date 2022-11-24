@@ -151,7 +151,7 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
-  (induction l₁ generalizing l₂ <;> cases l₂) <;>
+  induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
 /-! ### join -/
@@ -666,12 +666,12 @@ theorem removeNth_eq_nth_tail : ∀ n (l : List α), removeNth l n = modifyNthTa
 
 theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
-  | n, l, 0 => by (cases l <;> cases n) <;> rfl
+  | n, l, 0 => by cases l <;> cases n <;> rfl
   | n, [], _+1 => by cases n <;> rfl
   | 0, _ :: l, m+1 => by cases l.get? m <;> rfl
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
-      (cases l.get? m <;> by_cases h : n = m) <;>
+      cases l.get? m <;> by_cases h : n = m <;>
         simp only [h, if_pos, if_true, if_false, Option.map, mt Nat.succ.inj, not_false_iff]
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
@@ -752,7 +752,7 @@ theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
 
 theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
-  simp [get?_set]; (split <;> subst_vars) <;> simp [*, get?_eq_get h]
+  simp [get?_set]; split <;> subst_vars <;> simp [*, get?_eq_get h]
 
 @[simp] theorem set_nil (n : Nat) (a : α) : [].set n a = [] := rfl
 
@@ -1134,7 +1134,7 @@ theorem disjoint_of_disjoint_append_right_right (d : Disjoint l (l₁ ++ l₂)) 
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
   | [], _, _ => by simp
   | x :: xs, hl, h => by
-    (cases m <;> cases n) <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
+    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
       drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
     · case succ.zero => cases h
     · cases hl with | cons h₀ h₁ =>

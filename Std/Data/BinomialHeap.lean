@@ -204,9 +204,9 @@ theorem Heap.realSize_merge (le) (s₁ s₂ : Heap α) :
     split; { simp [IH₂, Nat.add_assoc, Nat.add_left_comm] }
     split; simp only; rename_i a n eq
     have : n.realSize = n₁.realSize + 1 + n₂.realSize := by
-      rw [combine] at eq; (split at eq <;> cases eq) <;>
+      rw [combine] at eq; split at eq <;> cases eq <;>
         simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-    (split <;> split) <;> simp [IH₁, IH₂, IH₃, this, Nat.add_assoc, Nat.add_left_comm]
+    split <;> split <;> simp [IH₁, IH₂, IH₃, this, Nat.add_assoc, Nat.add_left_comm]
 termination_by _ => s₁.length + s₂.length
 decreasing_by simp_wf; simp_arith [*]
 
@@ -378,10 +378,10 @@ theorem Heap.WellFormed.merge'
     cases Nat.le_antisymm (Nat.ge_of_not_lt lt₂) (Nat.ge_of_not_lt lt₁)
     split; rename_i a n eq
     have : n.WellFormed le a (r₁+1) := by
-      unfold combine at eq; (split at eq <;> cases eq) <;> rename_i h
+      unfold combine at eq; split at eq <;> cases eq <;> rename_i h
       · exact ⟨r₁, rfl, h, hn₂, hn₁⟩
       · exact ⟨r₁, rfl, TotalBLE.total.resolve_left h, hn₁, hn₂⟩
-    simp only; (split <;> split) <;> rename_i hl₁ hl₂
+    simp only; split <;> split <;> rename_i hl₁ hl₂
     · exact ⟨⟨Nat.le_succ_of_le hr₁, this,
         (merge' (ht₁.of_rankGT hl₁) (ht₂.of_rankGT hl₂)).1⟩,
         fun _ => Nat.lt_succ_of_le hr₁⟩

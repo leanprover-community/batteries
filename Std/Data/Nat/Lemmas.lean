@@ -151,7 +151,7 @@ protected theorem min_eq_min (a : Nat) : Nat.min a b = min a b := rfl
 protected theorem max_eq_max (a : Nat) : Nat.max a b = max a b := rfl
 
 protected theorem min_comm (a b : Nat) : min a b = min b a := by
-  simp [Nat.min_def]; (split <;> split) <;> simp [*]
+  simp [Nat.min_def]; split <;> split <;> simp [*]
   · next h₁ h₂ => exact Nat.le_antisymm h₁ h₂
   · next h₁ h₂ => cases not_or_intro h₁ h₂ <| Nat.le_total ..
 
@@ -174,7 +174,7 @@ protected theorem min_zero (a : Nat) : min a 0 = 0 := Nat.min_eq_right (zero_le 
 
 protected theorem max_comm (a b : Nat) : max a b = max b a := by
   simp only [Nat.max_def]
-  (by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a) <;> simp [h₁, h₂]
+  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
   · exact Nat.le_antisymm h₂ h₁
   · cases not_or_intro h₁ h₂ <| Nat.le_total ..
 
