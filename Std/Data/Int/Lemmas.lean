@@ -172,8 +172,8 @@ theorem natAbs_negOfNat (n : Nat) : natAbs (negOfNat n) = n := by
   cases n <;> rfl
 
 theorem natAbs_mul (a b : Int) : natAbs (a * b) = natAbs a * natAbs b := by
-  cases a <;> cases b <;>
-    simp only [← Int.mul_def, Int.mul, natAbs_negOfNat] <;> simp only [natAbs]
+  ((cases a <;> cases b) <;>
+    simp only [← Int.mul_def, Int.mul, natAbs_negOfNat]) <;> simp only [natAbs]
 
 theorem natAbs_mul_natAbs_eq {a b : Int} {c : Nat}
     (h : a * b = (c : Int)) : a.natAbs * b.natAbs = c := by rw [← natAbs_mul, h, natAbs]
@@ -374,7 +374,7 @@ protected theorem sub_neg (a b : Int) : a - -b = a + b := by simp [Int.sub_eq_ad
 @[simp] theorem negSucc_mul_negSucc (m n : Nat) : -[m+1] * -[n+1] = succ m * succ n := rfl
 
 protected theorem mul_comm (a b : Int) : a * b = b * a := by
-  cases a <;> cases b <;> simp [Nat.mul_comm]
+  (cases a <;> cases b) <;> simp [Nat.mul_comm]
 
 theorem ofNat_mul_negOfNat (m n : Nat) : ofNat m * negOfNat n = negOfNat (m * n) := by
   cases n <;> rfl
@@ -392,7 +392,7 @@ attribute [local simp] ofNat_mul_negOfNat negOfNat_mul_ofNat
   negSucc_mul_negOfNat negOfNat_mul_negSucc
 
 protected theorem mul_assoc (a b c : Int) : a * b * c = a * (b * c) := by
-  cases a <;> cases b <;> cases c <;> simp [Nat.mul_assoc]
+  ((cases a <;> cases b) <;> cases c) <;> simp [Nat.mul_assoc]
 
 protected theorem mul_left_comm (a b c : Int) : a * (b * c) = b * (a * c) := by
   rw [← Int.mul_assoc, ← Int.mul_assoc, Int.mul_comm a]
@@ -421,7 +421,7 @@ theorem ofNat_mul_subNatNat (m n k : Nat) :
       simp [subNatNat_of_le h, subNatNat_of_le h', Nat.mul_sub_left_distrib]
 
 theorem negOfNat_add (m n : Nat) : negOfNat m + negOfNat n = negOfNat (m + n) := by
-  cases m <;> cases n <;> simp [Nat.succ_add] <;> rfl
+  ((cases m <;> cases n) <;> simp [Nat.succ_add]) <;> rfl
 
 theorem negSucc_mul_subNatNat (m n k : Nat) :
     -[m+1] * subNatNat n k = subNatNat (succ m * k) (succ m * n) := by
@@ -685,7 +685,7 @@ protected theorem max_def (n m : Int) : max n m = if n ≤ m then m else n := rf
 
 protected theorem min_comm (a b : Int) : min a b = min b a := by
   simp [Int.min_def]
-  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
+  (by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a) <;> simp [h₁, h₂]
   · exact Int.le_antisymm h₁ h₂
   · cases not_or_intro h₁ h₂ <| Int.le_total ..
 
@@ -704,7 +704,7 @@ protected theorem min_eq_right {a b : Int} (h : b ≤ a) : min a b = b := by
 
 protected theorem max_comm (a b : Int) : max a b = max b a := by
   simp only [Int.max_def]
-  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
+  (by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a) <;> simp [h₁, h₂]
   · exact Int.le_antisymm h₂ h₁
   · cases not_or_intro h₁ h₂ <| Int.le_total ..
 

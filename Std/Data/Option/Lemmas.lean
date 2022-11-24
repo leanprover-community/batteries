@@ -99,7 +99,7 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
 
 theorem bind_comm {f : α → β → Option γ} (a : Option α) (b : Option β) :
     (a.bind fun x => b.bind (f x)) = b.bind fun y => a.bind fun x => f x y := by
-  cases a <;> cases b <;> rfl
+  (cases a <;> cases b) <;> rfl
 
 theorem bind_assoc (x : Option α) (f : α → Option β) (g : β → Option γ) :
     (x.bind f).bind g = x.bind fun y => (f y).bind g := by cases x <;> rfl

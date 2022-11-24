@@ -458,7 +458,7 @@ the ordering properties of the element, which would break the invariants.
 @[specialize] def alter
     (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
   refine @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) ⟨.alter (@fun _ t' p eq => ?_) t.2⟩
-  cases t' <;> simp [alter.adapt, RBNode.root?] <;> split <;> intro h <;> cases h
+  ((cases t' <;> simp [alter.adapt, RBNode.root?]) <;> split) <;> (intro h; cases h)
   · exact ⟨(t.2.out.1.zoom eq).2.2.2.toRootOrdered, ⟨⟩⟩
   · refine ⟨(?a).RootOrdered_congr.2 (t.2.out.1.zoom eq).2.2.1.1, ?a⟩
     exact ⟨OrientedCmp.cmp_refl (cmp := byKey Prod.fst cmp)⟩
