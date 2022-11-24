@@ -54,8 +54,7 @@ theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
   simp [getElem_eq_data_get, List.get_mem]
 
 theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i := by
-  by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]
-  case pos => rfl
+  by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]; rfl
 
 theorem get?_eq_data_get? (a : Array α) (i : Nat) : a.get? i = a.data.get? i :=
   getElem?_eq_data_get? ..

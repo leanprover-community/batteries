@@ -154,14 +154,11 @@ instance (cmp) (a : α) : IsStrictCut cmp (cmp a) where
 section find?
 
 theorem find?_some_eq_eq {t : RBNode α} : x ∈ t.find? cut → cut x = .eq := by
-  induction t <;> simp [find?]
-  case node =>
-    split <;> try assumption
-    intro | rfl => assumption
+  induction t <;> simp [find?]; split <;> try assumption
+  intro | rfl => assumption
 
 theorem find?_some_mem {t : RBNode α} : x ∈ t.find? cut → x ∈ t := by
-  induction t <;> simp [find?]
-  case node => split <;> simp (config := {contextual := true}) [*]
+  induction t <;> simp [find?]; split <;> simp (config := {contextual := true}) [*]
 
 theorem find?_some_memP {t : RBNode α} (h : x ∈ t.find? cut) : MemP cut t :=
   memP_def.2 ⟨_, find?_some_mem h, find?_some_eq_eq h⟩
