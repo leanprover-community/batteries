@@ -975,7 +975,7 @@ smaller than or equal to `k`, if it exists.
 @[inline] def all (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
 
 /-- `O(n)`. Returns true if the given predicate is true for any item in the RBMap. -/
-@[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.all t fun (a, b) => p a b
+@[inline] def any (t : RBMap α β cmp) (p : α → β → Bool) : Bool := RBSet.any t fun (a, b) => p a b
 
 /--
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,
