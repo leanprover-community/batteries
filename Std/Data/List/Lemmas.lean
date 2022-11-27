@@ -1294,6 +1294,14 @@ theorem foldr_hom (f : β₁ → β₂) (g₁ : α → β₁ → β₁) (g₂ : 
     (H : ∀ x y, g₂ x (f y) = f (g₁ x y)) : l.foldr g₂ (f init) = f (l.foldr g₁ init) := by
   induction l <;> simp [*, H]
 
+theorem foldl_cons_fn (l₁ l₂ : List α) :
+    l₁.foldl (init := l₂) (fun acc x => x :: acc) = l₁.reverse ++ l₂ := by
+  induction l₁ generalizing l₂ <;> simp [*]
+
+theorem foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List β) :
+    l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
+  induction l₁ generalizing l₂ <;> simp [*]
+
 /-! ### union -/
 
 section union

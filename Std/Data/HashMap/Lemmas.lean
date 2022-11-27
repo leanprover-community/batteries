@@ -47,15 +47,7 @@ def toListModel (bkts : Buckets α β) : List (α × β) :=
   -- to reason about array indices in some of the theorems.
   bkts.val.foldl (init := []) (fun acc bkt => acc ++ bkt.toList)
 
-protected theorem foldl_cons_fn (l₁ l₂ : List α) :
-    l₁.foldl (init := l₂) (fun acc x => x :: acc) = l₁.reverse ++ l₂ := by
-  induction l₁ generalizing l₂ <;> simp [*]
-
-protected theorem foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List β) :
-    l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
-  induction l₁ generalizing l₂ <;> simp [*]
-
-attribute [local simp] Buckets.foldl_cons_fn Buckets.foldl_append_fn
+attribute [local simp] foldl_cons_fn foldl_append_fn
 
 theorem toListModel_eq (bkts : Buckets α β) : bkts.toListModel = bkts.val.data.bind (·.toList) := by
   simp [toListModel, Array.foldl_eq_foldl_data]
@@ -161,31 +153,30 @@ theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
   refine (go _ _ _).trans ?_
   rw [toListModel_mk, toListModel_eq]
   simp [Perm.refl]
-
 where
-go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β) :
-    (expand.go i src target).toListModel
-    ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
-  unfold expand.go; split
-  case inl hI =>
-    refine (go (i +1) _ _).trans ?_
-    have h₀ : (src.data.set i AssocList.nil).drop (i + 1) = src.data.drop (i + 1) := by
-      apply drop_ext
-      intro j hJ
-      apply get?_set_ne _ _ (Nat.ne_of_lt <| Nat.lt_of_succ_le hJ)
-    have h₁ : (drop i src.data).bind (·.toList) = src.data[i].toList
-        ++ (drop (i + 1) src.data).bind (·.toList) := by
-      have : i < src.data.length := by simp [hI]
-      simp [drop_eq_cons_get _ _ this]
-    simp [h₀, h₁]
-    rw [← append_assoc]
-    refine Perm.append ?_ (Perm.refl _)
-    refine Perm.trans (toListModel_foldl_reinsertAux (AssocList.toList src[i]) _) ?_
-    exact Perm.refl _
-  case inr hI =>
-    have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
-    simp [Perm.refl, drop_eq_nil_of_le this]
-  termination_by _ i src _ => src.size - i
+  go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β) :
+      (expand.go i src target).toListModel
+      ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
+    unfold expand.go; split
+    case inl hI =>
+      refine (go (i +1) _ _).trans ?_
+      have h₀ : (src.data.set i AssocList.nil).drop (i + 1) = src.data.drop (i + 1) := by
+        apply drop_ext
+        intro j hJ
+        apply get?_set_ne _ _ (Nat.ne_of_lt <| Nat.lt_of_succ_le hJ)
+      have h₁ : (drop i src.data).bind (·.toList) = src.data[i].toList
+          ++ (drop (i + 1) src.data).bind (·.toList) := by
+        have : i < src.data.length := by simp [hI]
+        simp [drop_eq_cons_get _ _ this]
+      simp [h₀, h₁]
+      rw [← append_assoc]
+      refine Perm.append ?_ (Perm.refl _)
+      refine Perm.trans (toListModel_foldl_reinsertAux (AssocList.toList src[i]) _) ?_
+      exact Perm.refl _
+    case inr hI =>
+      have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
+      simp [Perm.refl, drop_eq_nil_of_le this]
+    termination_by _ i src _ => src.size - i
 
 theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
     ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
@@ -331,7 +322,7 @@ end Imp
 theorem toList_eq_reverse_toListModel (m : HashMap α β)
     : m.toList = m.val.buckets.toListModel.reverse := by
   simp only [toList, Imp.Buckets.toListModel, fold, Imp.fold, Array.foldl_eq_foldl_data,
-    AssocList.foldl_eq, Imp.Buckets.foldl_cons_fn]
+    AssocList.foldl_eq, List.foldl_cons_fn]
   suffices ∀ (l₁ : List (AssocList α β)) (l₂ : List (α × β)),
       l₁.foldl (init := l₂.reverse) (fun d b => b.toList.reverse ++ d) =
       (l₁.foldl (init := l₂) fun acc bkt => acc ++ bkt.toList).reverse by
