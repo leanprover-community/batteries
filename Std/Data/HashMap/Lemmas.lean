@@ -125,6 +125,10 @@ open List in
 theorem List.Perm.of_eq {l₁ l₂ : List α} : l₁ = l₂ → l₁ ~ l₂ :=
   fun h => h ▸ List.Perm.refl _
 
+theorem List.get_ext {l₁ l₂ : List α} {i₁ i₂} : l₁ = l₂ → i₁ = i₂ →
+    (h₁ : i₁ < l₁.length) → (h₂ : i₂ < l₂.length) → l₁.get ⟨i₁, h₁⟩ = l₂.get ⟨i₂, h₂⟩ :=
+  fun hL hI _ _ => by cases hI; cases hL; rfl
+
 theorem List.exists_get_of_mem {l : List α} {a : α}
     : a ∈ l → ∃ (i : Fin l.length), a = l.get i := by
   induction l with
@@ -136,6 +140,7 @@ theorem List.exists_get_of_mem {l : List α} {a : α}
     | inr h =>
       have ⟨i, hI⟩ := ih h
       exact ⟨⟨i.val+1, Nat.succ_lt_succ i.isLt⟩, hI⟩
+
 
 theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
     : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] :=
@@ -323,11 +328,11 @@ theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i 
       apply Nat.lt_trans hJ
       simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
     have : ab ∈ (bkts.val[j]).toList := by
+      suffices bkt = bkts.val[j] by rwa [this] at hAb
       have := List.get_append (bkts.val[i] :: bs₂) j hJ
-      rw [← this] at hEq
-      simp [Array.getElem_eq_data_get, hTgt]
-      rw [hTgt] --- nooooooooooooooooo motive not tpye correct
-      sorry
+      dsimp at this
+      rw [hEq, ← this, ← List.get_ext hTgt (@rfl _ j) hJ']
+      rfl
     rwa [hLen, ← H.hash_self _ _ _ this] at hJ
 
 end Buckets
@@ -352,19 +357,15 @@ theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
 theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) (b : β)
     : (m.insert a b).buckets.toListModel ~ (a, b) :: m.buckets.toListModel.eraseP (·.1 == a) := by
   have hWF := WF_iff.mp H
-  dsimp only [insert, cond]; split
-  -- TODO rewrite with `exists_of_toListModel_update_WF`
+  dsimp [insert, cond]; split
   next hContains =>
     have ⟨l₁, l₂, hTgt, hUpd, hProp⟩ :=
       haveI := mkIdx m.buckets.property a
       m.buckets.exists_of_toListModel_update_WF hWF.right this.1
-        ((m.buckets.1[this.1]'this.2).replace a b) this.2
-    rw [hUpd]
-
-    rw [Array.ugetElem_eq_getElem] at hUpd
+        ((m.buckets.1[this.1.toNat]'this.2).replace a b) this.2
     rw [hUpd, hTgt]
-    have hL₁ : ∀ ab ∈ l₁.bind (·.toList), ¬(ab.fst == a) := fun ab h hEq =>
-      (LawfulHashable.hash_eq hEq ▸ hProp ab h) rfl
+    have hL₁ : ∀ ab ∈ l₁, ¬(ab.fst == a) := fun ab h hEq =>
+      Nat.ne_of_lt (LawfulHashable.hash_eq hEq ▸ hProp ab h) rfl
     have ⟨p, hMem, hP⟩ := any_eq_true.mp (AssocList.contains_eq a _ ▸ hContains)
     simp [eraseP_append_right _ hL₁,
       eraseP_append_left (p := fun ab => ab.fst == a) hP _ hMem]
