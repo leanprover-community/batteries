@@ -141,7 +141,6 @@ theorem List.exists_get_of_mem {l : List α} {a : α}
       have ⟨i, hI⟩ := ih h
       exact ⟨⟨i.val+1, Nat.succ_lt_succ i.isLt⟩, hI⟩
 
-
 theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
     : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] :=
   List.exists_get_of_mem
@@ -186,10 +185,10 @@ def toListModel (bkts : Buckets α β) : List (α × β) :=
 theorem toListModel_eq (bkts : Buckets α β) : bkts.toListModel = bkts.val.data.bind (·.toList) := by
   simp [toListModel, Array.foldl_eq_foldl_data]
 
-theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (a : α) (b : β)
-    : haveI := mkIdx bkts.property a
-      (a, b) ∈ bkts.toListModel ↔ (a, b) ∈ (bkts.val[this.1]'this.2).toList := by
-  have : (a, b) ∈ bkts.toListModel ↔ ∃ bkt ∈ bkts.val.data, (a, b) ∈ bkt.toList := by
+theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (ab : α × β)
+    : haveI := mkIdx bkts.property ab.fst
+      ab ∈ bkts.toListModel ↔ ab ∈ (bkts.val[this.1.toNat]'this.2).toList := by
+  have : ab ∈ bkts.toListModel ↔ ∃ bkt ∈ bkts.val.data, ab ∈ bkt.toList := by
     simp [toListModel_eq, mem_bind]
   rw [this]
   clear this
@@ -197,11 +196,11 @@ theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (a :
   . intro ⟨bkt, hBkt, hMem⟩
     have ⟨i, hGetI⟩ := Array.exists_get_of_mem_data hBkt
     simp only [getElem_fin] at hGetI
-    suffices (mkIdx bkts.property a).val.toNat = i by
+    suffices (mkIdx bkts.property ab.fst).val.toNat = i by
       simp [Array.ugetElem_eq_getElem, this, ← hGetI, hMem]
     unfold Imp.mkIdx
     dsimp
-    exact H.hash_self i.val i.isLt (a, b) (hGetI ▸ hMem)
+    exact H.hash_self i.val i.isLt ab (hGetI ▸ hMem)
   . intro h
     refine ⟨_, Array.getElem_mem_data _ _, h⟩
 
@@ -354,6 +353,23 @@ theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
   have : hash a' = hash a := LawfulHashable.hash_eq hBeq
   simp [Buckets.mem_toListModel_iff_mem_bucket m.buckets hWf, mkIdx, this]
 
+theorem find?_eq (m : Imp α β) (a : α) : m.find? a = (m.findEntry? a).map (·.2) :=
+  AssocList.find?_eq_findEntry? _ _
+
+theorem eraseP_toListModel_aux (m : Imp α β) (H : m.WF) (a : α) :
+    haveI := mkIdx m.buckets.property a; ¬(m.buckets.val[this.1.toNat]'this.2).contains a →
+    m.buckets.toListModel.eraseP (·.1 == a) = m.buckets.toListModel := by
+  intro hContains
+  have hWF := WF_iff.mp H
+  apply eraseP_of_forall_not
+  intro ab hMem hEq
+  have :
+      haveI := mkIdx m.buckets.property a
+      (m.buckets.val[this.1.toNat]'this.2).contains a := by
+    simp only [AssocList.contains_eq, List.any_eq_true, mkIdx, ← LawfulHashable.hash_eq hEq]
+    exact ⟨ab, (Buckets.mem_toListModel_iff_mem_bucket m.buckets hWF.right ab).mp hMem, hEq⟩
+  contradiction
+
 theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) (b : β)
     : (m.insert a b).buckets.toListModel ~ (a, b) :: m.buckets.toListModel.eraseP (·.1 == a) := by
   have hWF := WF_iff.mp H
@@ -399,19 +415,40 @@ theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) 
     -- end cursed manual proofs
 
   next hContains =>
-
+    rw [eraseP_toListModel_aux m H a (Bool.eq_false_iff.mp hContains)]
     split
-    -- not sure if split right away is the best choice, ideally i'd like to reduce the two cases
-    -- to one using `toListModel_expand`
-    next hNum =>
-
-      sorry
-    next hNum =>
-      sorry
+    -- TODO(WN): how to merge the two branches below? They are identical except for the initial
+    -- `refine`
+    next =>
+      have ⟨l₁, l₂, hTgt, hUpd⟩ :=
+        haveI := mkIdx m.buckets.property a
+        m.buckets.exists_of_toListModel_update this.1
+          ((m.buckets.1[this.1.toNat]'this.2).cons a b) this.2
+      simp [hTgt, hUpd, perm_middle]
+    next =>
+      refine Perm.trans (Buckets.toListModel_expand _ _) ?_
+      have ⟨l₁, l₂, hTgt, hUpd⟩ :=
+        haveI := mkIdx m.buckets.property a
+        m.buckets.exists_of_toListModel_update this.1
+          ((m.buckets.1[this.1.toNat]'this.2).cons a b) this.2
+      simp [hTgt, hUpd, perm_middle]
 
 theorem toListModel_erase_eq_eraseP (m : Imp α β) (H : m.WF) (a : α)
-    : (m.erase a).buckets.toListModel = m.buckets.toListModel.eraseP (·.1 == a) :=
-  sorry
+    : (m.erase a).buckets.toListModel = m.buckets.toListModel.eraseP (·.1 == a) := by
+  have hWF := WF_iff.mp H
+  dsimp [erase, cond]; split
+  next hContains =>
+    have ⟨l₁, l₂, hTgt, hUpd, hProp⟩ :=
+      haveI := mkIdx m.buckets.property a
+      m.buckets.exists_of_toListModel_update_WF hWF.right this.1
+        ((m.buckets.1[this.1.toNat]'this.2).erase a) this.2
+    rw [hTgt, hUpd]
+    have hL₁ : ∀ ab ∈ l₁, ¬(ab.fst == a) := fun ab h hEq =>
+      Nat.ne_of_lt (LawfulHashable.hash_eq hEq ▸ hProp ab h) rfl
+    have ⟨p, hMem, hP⟩ := any_eq_true.mp (AssocList.contains_eq a _ ▸ hContains)
+    simp [eraseP_append_right _ hL₁, eraseP_append_left (p := fun ab => ab.fst == a) hP _ hMem]
+  next hContains =>
+    rw [eraseP_toListModel_aux m H a (Bool.eq_false_iff.mp hContains)]
 
 end Imp
 
@@ -429,84 +466,5 @@ theorem toList_eq_reverse_toListModel (m : HashMap α β)
   | cons a as ih =>
     intro l₂
     simp only [List.foldl, ← List.reverse_append, ih]
-
--- TODO: sort below later
-#exit
-
-theorem toListModel_eraseP_eq_toListModel_filter (m : HashMap α β)
-    : m.val.buckets.toListModel.eraseP (·.1 == a) = m.val.buckets.toListModel.filter (·.1 != a) :=
-  by
-  apply List.eraseP_eq_filter_of_unique
-  apply List.Pairwise.imp ?_ (Pairwise_bne_toListModel _)
-  intro (a₁, _) (a₂, _) hA₁Bne hA₁Beq
-  rw [Bool.not_eq_true_iff_ne_true, ← Bool.bne_iff_not_beq]
-  exact beq_nonsense_1 hA₁Bne hA₁Beq
-
-theorem find?_eq_findEntry?_map (m : HashMap α β) (a : α)
-    : m.find? a = (m.findEntry? a).map (·.2) := by
-  sorry
-
-theorem findEntry?_eq_some (m : HashMap α β) (a : α) (b : β)
-    : m.findEntry? a = some (a, b) ↔ (∃ a', a == a' ∧ (a', b) ∈ m.toListModel) := by
-  sorry
-
-theorem toListModel_insert (m : HashMap α β) (a : α) (b : β)
-    : (m.insert a b).toListModel ~ (a, b) :: m.toListModel.filter (·.1 != a) :=
-  toListModel_eraseP_eq_toListModel_filter m ▸ toListModel_insert_perm_cons_eraseP m a b
-
-theorem toListModel_erase (m : HashMap α β) (a : α)
-    : (m.erase a).toListModel ~ m.toListModel.filter (·.1 != a) :=
-  toListModel_eraseP_eq_toListModel_filter m ▸ toListModel_erase_perm_eraseP m a
-
-theorem find?_of_toListModel_not_contains (m : HashMap α β) (a : α)
-    : (∀ a' (b : β), a == a' → (a', b) ∉ m.toListModel) ↔ m.find? a = none := by
-  apply Iff.intro
-  . rw [← Option.not_isSome_iff_eq_none]
-    intro h hSome
-    let ⟨b, hB⟩ := Option.isSome_iff_exists.mp hSome
-    let ⟨a', hA, hMem⟩ := find?_of_toListModel_contains m a b |>.mpr hB
-    exact h a' b hA hMem
-  . intro h a' b hA hMem
-    refine Option.ne_none_iff_exists.mpr ?_ h
-    exact ⟨b, find?_of_toListModel_contains m a b |>.mp ⟨a', hA, hMem⟩ |>.symm⟩
-
-theorem find?_insert (m : HashMap α β) (a a' b)
-    : a' == a → (m.insert a b).find? a' = some b := by
-  intro hEq
-  apply (find?_of_toListModel_contains _ _ _).mp
-  refine ⟨a, hEq, ?_⟩
-  rw [List.Perm.mem_iff (toListModel_insert m a b)]
-  apply List.mem_cons_self
-
-theorem find?_insert_of_ne (m : HashMap α β) (a a' : α) (b : β)
-    : a != a' → (m.insert a b).find? a' = m.find? a' := by
-  intro hNe
-  apply Option.ext
-  intro b'
-  show find? (insert m a b) a' = some b' ↔ find? m a' = some b'
-  simp only [← find?_of_toListModel_contains, List.Perm.mem_iff (toListModel_insert m a b),
-    List.mem_cons, List.mem_filter, Prod.mk.injEq]
-  apply Iff.intro
-  . intro ⟨a'', hA', h⟩
-    cases h with
-    | inl hEq =>
-      cases hEq.left
-      exfalso
-      exact Bool.not_bne_of_beq (PartialEquivBEq.symm hA') hNe
-    | inr hMem => exact ⟨a'', hA', hMem.left⟩
-  . intro ⟨a'', hA', hMem⟩
-    refine ⟨a'', hA', .inr ?_⟩
-    refine ⟨hMem, Bool.not_eq_true_iff_ne_true.mpr ?_⟩
-    intro hA''
-    exact Bool.not_bne_of_beq (PartialEquivBEq.symm (PartialEquivBEq.trans hA' hA'')) hNe
-
-theorem find?_erase (m : HashMap α β) (a a')
-    : a == a' → (m.erase a).find? a' = none := by
-  intro hEq
-  apply (find?_of_toListModel_not_contains _ _).mp
-  intro a₂ b hA₂ hMem
-  rw [List.Perm.mem_iff (toListModel_erase m a)] at hMem
-  have := List.mem_filter.mp hMem |>.right
-  exact beq_nonsense_2 hEq hA₂ this
 
 end Std.HashMap
