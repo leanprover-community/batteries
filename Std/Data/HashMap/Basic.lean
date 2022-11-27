@@ -344,3 +344,16 @@ def ofListWith (l : List (α × β)) (f : β → β → β) : HashMap α β :=
     match m.find? p.1 with
     | none   => m.insert p.1 p.2
     | some v => m.insert p.1 <| f v p.2
+
+end Std.HashMap
+
+namespace Lean.HashSet
+
+/-- Insert many elements into a HashSet. -/
+def insertMany [BEq α] [Hashable α] [ForIn Id ρ α] (s : HashSet α) (as : ρ) : HashSet α := Id.run do
+  let mut s := s
+  for a in as do
+    s := s.insert a
+  return s
+
+end Lean.HashSet
