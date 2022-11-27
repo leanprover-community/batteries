@@ -267,6 +267,11 @@ theorem mem_replicate {a b : α} : ∀ {n}, b ∈ replicate n a ↔ n ≠ 0 ∧ 
 
 theorem eq_of_mem_replicate {a b : α} {n} (h : b ∈ replicate n a) : b = a := (mem_replicate.1 h).2
 
+@[simp]
+theorem map_replicate (n : Nat) (a : α) (f : α → β)
+    : (replicate n a).map f = replicate n (f a) := by
+  induction n <;> simp [*]
+
 /-! ### getLast -/
 
 theorem getLast_cons' {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil),
@@ -623,6 +628,21 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | _a::_, 0, _ => rfl
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
+/-! ### find? -/
+
+theorem of_find?_eq_some {l : List α} {a : α} {p : α → Bool}
+    : l.find? p = some a → a ∈ l ∧ p a := by
+  induction l with
+  | nil => intro h; cases h
+  | cons x xs ih =>
+    unfold find?
+    cases hP : (p x)
+    . intro h
+      simp [mem_cons, ih h]
+    . simp
+      intro hEq
+      simp [← hEq, hP]
+
 /-! ### take and drop -/
 
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
@@ -652,6 +672,34 @@ theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
 theorem mem_of_mem_drop : ∀ {n} {l : List α}, a ∈ l.drop n → a ∈ l
   | 0, _, h => h
   | _+1, _::_, h => .tail _ (mem_of_mem_drop h)
+
+theorem drop_eq_cons_get (l : List α) (i : Nat) (h : i < l.length)
+    : l.drop i = l.get ⟨i, h⟩ :: l.drop (i + 1) :=
+  go i l h
+where go : (i : Nat) → (l : List α) → (h : i < l.length) → l.drop i = l[i] :: l.drop (i + 1)
+  | 0,   _::_,  _ => by simp
+  | n+1, _::as, h => by
+    have : n < length as := Nat.lt_of_succ_lt_succ h
+    have ih := go n as this
+    simp [ih]
+
+@[simp]
+theorem get?_drop (l : List α) (n i : Nat) : (l.drop n).get? i = l.get? (n + i) :=
+  go n l
+where go : (n : Nat) → (l : List α) → (l.drop n).get? i = l.get? (n + i)
+  | 0,   a     => by simp
+  | _+1, []    => by simp
+  | n+1, _::as => by
+    have : n + 1 + i = n + i + 1 := by
+      rw [Nat.add_assoc, Nat.add_comm 1 i, ← Nat.add_assoc]
+    simp [go n as, this]
+
+theorem drop_ext (l₁ l₂ : List α) (j : Nat)
+    : (∀ i ≥ j, l₁.get? i = l₂.get? i) → l₁.drop j = l₂.drop j := by
+  intro H
+  apply ext fun k => ?_
+  rw [get?_drop, get?_drop]
+  apply H _ (Nat.le_add_right _ _)
 
 /-! ### modify nth -/
 
@@ -1109,7 +1157,7 @@ theorem pairwise_append_comm_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {l�
     Pairwise R (l₁ ++ l₂) ↔ Pairwise R (l₂ ++ l₁) := by
   have : ∀ l₁ l₂ : List α, (∀ x : α, x ∈ l₁ → ∀ y : α, y ∈ l₂ → R x y) →
     ∀ x : α, x ∈ l₂ → ∀ y : α, y ∈ l₁ → R x y := fun l₁ l₂ a x xm y ym => s (a y ym x xm)
-  simp only [pairwise_append, and_left_comm] <;> rw [Iff.intro (this l₁ l₂) (this l₂ l₁)]
+  simp only [pairwise_append, and_left_comm]; rw [Iff.intro (this l₁ l₂) (this l₂ l₁)]
 
 theorem pairwise_middle_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {a : α} {l₁ l₂ : List α} :
     Pairwise R (l₁ ++ a :: l₂) ↔ Pairwise R (a :: (l₁ ++ l₂)) :=
@@ -1118,6 +1166,41 @@ theorem pairwise_middle_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {a : α}
       pairwise_append_comm_of_symm s]
     simp only [mem_append, or_comm]
     rfl
+
+/-- If there is at most one element with the property `p`, erasing one such element is the same
+as filtering out all of them. -/
+theorem eraseP_eq_filter_of_unique (l : List α) (p : α → Bool)
+    : l.Pairwise (p · → !p ·) → l.eraseP p = l.filter (!p ·) := by
+  intro h
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    specialize ih (Pairwise.sublist (sublist_cons x xs) h)
+    cases hP : p x with
+    | true =>
+      rw [pairwise_cons] at h
+      have : ∀ a ∈ xs, !p a := fun a hA => h.left a hA hP
+      simp [eraseP, filter, hP, filter_eq_self.mpr this]
+    | false => simp [eraseP_cons, filter, hP, ih]
+
+/-- If there is at most one element with the property `p`, finding that one element is the same
+as finding any. -/
+theorem find?_eq_some_of_unique {l : List α} {a : α} {p : α → Bool}
+    : l.Pairwise (p · → !p ·) → (l.find? p = some a ↔ (a ∈ l ∧ p a)) := by
+  refine fun h => ⟨of_find?_eq_some, ?_⟩
+  induction l with
+  | nil => simp
+  | cons x xs ih =>
+    intro ⟨hMem, hP⟩
+    cases mem_cons.mp hMem with
+    | inl hX => simp [find?, ← hX, hP]
+    | inr hXs =>
+      unfold find?
+      cases hPX : (p x) with
+      | false =>
+        apply ih (Pairwise.sublist (sublist_cons x xs) h) ⟨hXs, hP⟩
+      | true =>
+        cases hP ▸ (pairwise_cons.mp h |>.left a hXs hPX)
 
 /-! ### replaceF -/
 

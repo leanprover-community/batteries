@@ -10,141 +10,6 @@ import Std.Data.List.Perm
 import Std.Data.Array.Lemmas
 import Std.Tactic.ShowTerm
 
-/-- If there is at most one element with the property `p`, erasing one such element is the same
-as filtering out all of them. -/
-theorem List.eraseP_eq_filter_of_unique (l : List α) (p : α → Bool)
-    : l.Pairwise (p · → !p ·) → l.eraseP p = l.filter (!p ·) := by
-  intro h
-  induction l with
-  | nil => rfl
-  | cons x xs ih =>
-    specialize ih (Pairwise.sublist (sublist_cons x xs) h)
-    cases hP : p x with
-    | true =>
-      rw [Pairwise_cons] at h
-      have : ∀ a ∈ xs, !p a := fun a hA => h.left a hA hP
-      simp [eraseP, filter, hP, filter_eq_self.mpr this]
-    | false => simp [eraseP_cons, filter, hP, ih]
-
-theorem List.find?_eq_some {l : List α} {a : α} {p : α → Bool}
-    : l.find? p = some a → a ∈ l ∧ p a := by
-  induction l with
-  | nil => intro h; cases h
-  | cons x xs ih =>
-    unfold find?
-    cases hP : (p x)
-    . intro h
-      simp [List.mem_cons, ih h]
-    . simp
-      intro hEq
-      simp [← hEq, hP]
-
-/-- If there is at most one element with the property `p`, finding that one element is the same
-as finding any. -/
-theorem List.find?_eq_some_of_unique {l : List α} {a : α} {p : α → Bool}
-    : l.Pairwise (p · → !p ·) → (l.find? p = some a ↔ (a ∈ l ∧ p a)) := by
-  refine fun h => ⟨find?_eq_some, ?_⟩
-  induction l with
-  | nil => simp
-  | cons x xs ih =>
-    intro ⟨hMem, hP⟩
-    cases List.mem_cons.mp hMem with
-    | inl hX => simp [find?, ← hX, hP]
-    | inr hXs =>
-      unfold find?
-      cases hPX : (p x) with
-      | false =>
-        apply ih (List.Pairwise.sublist (List.sublist_cons x xs) h) ⟨hXs, hP⟩
-      | true =>
-        cases hP ▸ (Pairwise_cons.mp h |>.left a hXs hPX)
-
-@[simp]
-theorem List.foldl_cons_fn (l₁ l₂ : List α) :
-    l₁.foldl (init := l₂) (fun acc x => x :: acc) = l₁.reverse ++ l₂ := by
-  induction l₁ generalizing l₂ <;> simp [*]
-
-@[simp]
-theorem List.foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List β) :
-    l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
-  induction l₁ generalizing l₂ <;> simp [*]
-
-@[simp]
-theorem List.map_replicate (n : Nat) (a : α) (f : α → β)
-    : (replicate n a).map f = replicate n (f a) := by
-  induction n <;> simp [*]
-
-theorem List.drop_eq_cons (l : List α) (i : Nat) (h : i < l.length)
-    : l.drop i = l[i] :: l.drop (i + 1) :=
-  go i l h
-where go : (i : Nat) → (l : List α) → (h : i < l.length) → l.drop i = l[i] :: l.drop (i + 1)
-  | 0,   _::_,  _ => by simp
-  | n+1, _::as, h => by
-    have : n < length as := Nat.lt_of_succ_lt_succ h
-    have ih := go n as this
-    simp [ih]
-
-@[simp]
-theorem List.get?_drop (l : List α) (n i : Nat) : (l.drop n).get? i = l.get? (n + i) :=
-  go n l
-where go : (n : Nat) → (l : List α) → (l.drop n).get? i = l.get? (n + i)
-  | 0,   a     => by simp
-  | _+1, []    => by simp
-  | n+1, _::as => by
-    have : n + 1 + i = n + i + 1 := by
-      rw [Nat.add_assoc, Nat.add_comm 1 i, ← Nat.add_assoc]
-    simp [go n as, this]
-
-theorem List.drop_ext (l₁ l₂ : List α) (j : Nat)
-    : (∀ i ≥ j, l₁.get? i = l₂.get? i) → l₁.drop j = l₂.drop j := by
-  intro H
-  apply List.ext fun k => ?_
-  rw [List.get?_drop, List.get?_drop]
-  apply H _ (Nat.le_add_right _ _)
-
-open List in
-theorem List.replaceF_one {a b : α} {l : List α} (f : α → Option α) :
-    a ∈ l → f a = some b → l.Pairwise (fun a₁ a₂ => (f a₁).isSome → ¬(f a₂).isSome) →
-    l.replaceF f ~ b :: l.eraseP (f · |>.isSome) := by
-  intro hMem hF hPws
-  induction l with
-  | nil => cases hMem
-  | cons x xs ih =>
-    unfold replaceF eraseP
-    cases List.mem_cons.mp hMem with
-    | inl hMem => simp [← hMem, hF, List.Perm.refl]
-    | inr hMem =>
-      have : f x = none := by
-        have .cons hPws _ := hPws
-        exact Option.eq_none_iff_forall_not_mem.mpr fun b hB' =>
-          hPws a hMem (hB' ▸ rfl) (hF ▸ rfl)
-      simp only [this, Option.isSome_none, cond_false]
-      have := ih hMem (hPws.sublist <| List.sublist_cons _ _)
-      exact .trans (.cons x this) (.swap b x _)
-
-open List in
-theorem List.Perm.of_eq {l₁ l₂ : List α} : l₁ = l₂ → l₁ ~ l₂ :=
-  fun h => h ▸ List.Perm.refl _
-
-theorem List.get_ext {l₁ l₂ : List α} {i₁ i₂} : l₁ = l₂ → i₁ = i₂ →
-    (h₁ : i₁ < l₁.length) → (h₂ : i₂ < l₂.length) → l₁.get ⟨i₁, h₁⟩ = l₂.get ⟨i₂, h₂⟩ :=
-  fun hL hI _ _ => by cases hI; cases hL; rfl
-
-theorem List.exists_get_of_mem {l : List α} {a : α}
-    : a ∈ l → ∃ (i : Fin l.length), a = l.get i := by
-  induction l with
-  | nil => intro h; cases h
-  | cons x xs ih =>
-    intro h
-    cases List.mem_cons.mp h with
-    | inl h => exact ⟨⟨0, Nat.zero_lt_succ _⟩, h⟩
-    | inr h =>
-      have ⟨i, hI⟩ := ih h
-      exact ⟨⟨i.val+1, Nat.succ_lt_succ i.isLt⟩, hI⟩
-
-theorem Array.exists_get_of_mem_data {as : Array α} {a : α}
-    : a ∈ as.data → ∃ (i : Fin as.size), a = as[i] :=
-  List.exists_get_of_mem
-
 namespace Std.HashMap
 variable [BEq α] [Hashable α] [LawfulHashable α] [PartialEquivBEq α]
 
@@ -182,6 +47,16 @@ def toListModel (bkts : Buckets α β) : List (α × β) :=
   -- to reason about array indices in some of the theorems.
   bkts.val.foldl (init := []) (fun acc bkt => acc ++ bkt.toList)
 
+protected theorem foldl_cons_fn (l₁ l₂ : List α) :
+    l₁.foldl (init := l₂) (fun acc x => x :: acc) = l₁.reverse ++ l₂ := by
+  induction l₁ generalizing l₂ <;> simp [*]
+
+protected theorem foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List β) :
+    l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
+  induction l₁ generalizing l₂ <;> simp [*]
+
+attribute [local simp] Buckets.foldl_cons_fn Buckets.foldl_append_fn
+
 theorem toListModel_eq (bkts : Buckets α β) : bkts.toListModel = bkts.val.data.bind (·.toList) := by
   simp [toListModel, Array.foldl_eq_foldl_data]
 
@@ -194,10 +69,10 @@ theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (ab 
   clear this
   apply Iff.intro
   . intro ⟨bkt, hBkt, hMem⟩
-    have ⟨i, hGetI⟩ := Array.exists_get_of_mem_data hBkt
+    have ⟨i, hGetI⟩ := Array.get_of_mem_data hBkt
     simp only [getElem_fin] at hGetI
     suffices (mkIdx bkts.property ab.fst).val.toNat = i by
-      simp [Array.ugetElem_eq_getElem, this, ← hGetI, hMem]
+      simp [Array.ugetElem_eq_getElem, this, hGetI, hMem]
     unfold Imp.mkIdx
     dsimp
     exact H.hash_self i.val i.isLt ab (hGetI ▸ hMem)
@@ -266,8 +141,8 @@ theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β)
   unfold reinsertAux
   have ⟨l₁, l₂, hTgt, hUpd⟩ :=
     haveI := mkIdx tgt.property a
-    tgt.exists_of_toListModel_update this.1 (.cons a b (tgt.1[this.1]'this.2)) this.2
-  simp [hTgt, ↓hUpd, perm_middle]
+    tgt.exists_of_toListModel_update this.1 (.cons a b (tgt.1[this.1.toNat]'this.2)) this.2
+  simp [hTgt, hUpd, perm_middle]
 
 theorem toListModel_foldl_reinsertAux (bkt : List (α × β)) (tgt : Buckets α β)
     : (bkt.foldl (init := tgt) fun acc x => reinsertAux acc x.fst x.snd).toListModel
@@ -281,18 +156,13 @@ theorem toListModel_foldl_reinsertAux (bkt : List (α × β)) (tgt : Buckets α 
     refine Perm.trans (Perm.symm perm_middle) ?_
     apply Perm.append_left _ (Perm.refl _)
 
-theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
-    : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
-  refine (go _ _ _).trans ?_
-  rw [toListModel_mk, toListModel_eq]
-  simp [Perm.refl]
 
-where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
-    : (expand.go i src target).toListModel
-      ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
+private theorem toListModel_expand_aux (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β) :
+    (expand.go i src target).toListModel
+    ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
   unfold expand.go; split
   case inl hI =>
-    refine (go (i +1) _ _).trans ?_
+    refine (toListModel_expand_aux (i +1) _ _).trans ?_
     have h₀ : (src.data.set i AssocList.nil).drop (i + 1) = src.data.drop (i + 1) := by
       apply drop_ext
       intro j hJ
@@ -300,7 +170,7 @@ where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
     have h₁ : (drop i src.data).bind (·.toList) = src.data[i].toList
         ++ (drop (i + 1) src.data).bind (·.toList) := by
       have : i < src.data.length := by simp [hI]
-      simp [drop_eq_cons _ _ this]
+      simp [drop_eq_cons_get _ _ this]
     simp [h₀, h₁]
     rw [← append_assoc]
     refine Perm.append ?_ (Perm.refl _)
@@ -309,7 +179,13 @@ where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
   case inr hI =>
     have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
     simp [Perm.refl, drop_eq_nil_of_le this]
-  termination_by go i src _ => src.size - i
+  termination_by _ i src _ => src.size - i
+
+theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
+    : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
+  refine (toListModel_expand_aux _ _ _).trans ?_
+  rw [toListModel_mk, toListModel_eq]
+  simp [Perm.refl]
 
 theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
     ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
@@ -322,7 +198,7 @@ theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i 
   . intro ab hMem
     have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
     clear hMem
-    have ⟨⟨j, hJ⟩, hEq⟩ := exists_get_of_mem hBkt
+    have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
     have hJ' : j < bkts.val.size := by
       apply Nat.lt_trans hJ
       simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
@@ -330,7 +206,7 @@ theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i 
       suffices bkt = bkts.val[j] by rwa [this] at hAb
       have := List.get_append (bkts.val[i] :: bs₂) j hJ
       dsimp at this
-      rw [hEq, ← this, ← List.get_ext hTgt (@rfl _ j) hJ']
+      rw [← hEq, ← this, ← get_of_eq hTgt ⟨j, _⟩]
       rfl
     rwa [hLen, ← H.hash_self _ _ _ this] at hJ
 
@@ -391,7 +267,7 @@ theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) 
     rw [← cons_append]
     refine Perm.append ?_ (Perm.refl _)
     refine Perm.trans
-      (replaceF_one
+      (replaceF_of_unique
         (b := (a, b))
         (f := fun a_1 => bif a_1.fst == a then some (a, b) else none)
         hMem
@@ -455,7 +331,7 @@ end Imp
 theorem toList_eq_reverse_toListModel (m : HashMap α β)
     : m.toList = m.val.buckets.toListModel.reverse := by
   simp only [toList, Imp.Buckets.toListModel, fold, Imp.fold, Array.foldl_eq_foldl_data,
-    AssocList.foldl_eq, List.foldl_cons_fn]
+    AssocList.foldl_eq, Imp.Buckets.foldl_cons_fn]
   suffices ∀ (l₁ : List (AssocList α β)) (l₂ : List (α × β)),
       l₁.foldl (init := l₂.reverse) (fun d b => b.toList.reverse ++ d) =
       (l₁.foldl (init := l₂) fun acc bkt => acc ++ bkt.toList).reverse by

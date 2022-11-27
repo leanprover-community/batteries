@@ -40,6 +40,9 @@ protected theorem Perm.refl : ∀ (l : List α), l ~ l
   | []      => Perm.nil
   | (x::xs) => (Perm.refl xs).cons x
 
+protected theorem Perm.of_eq {l₁ l₂ : List α} : l₁ = l₂ → l₁ ~ l₂ :=
+  fun h => h ▸ List.Perm.refl _
+
 protected theorem Perm.symm {l₁ l₂ : List α} (p : l₁ ~ l₂) : l₂ ~ l₁ := by
   induction p with
   | nil => exact Perm.nil
@@ -175,9 +178,28 @@ theorem Perm.pairwise_iff {R : α → α → Prop} (S : ∀ {a b}, R a b → R b
   | @cons a h d _ ih =>
     obtain ⟨s₂, t₂, rfl⟩ := mem_constructor (p.subset (.head ..) : a ∈ l₂)
     have p' := (p.trans perm_middle).cons_inv
-    exact (pairwise_middle_of_symm S).2 (Pairwise_cons.2 ⟨fun b m => d _ (p'.symm.subset m), ih p'⟩)
+    exact (pairwise_middle_of_symm S).2 (pairwise_cons.2 ⟨fun b m => d _ (p'.symm.subset m), ih p'⟩)
 
 theorem Perm.nodup_iff {l₁ l₂ : List α} : l₁ ~ l₂ → (Nodup l₁ ↔ Nodup l₂) :=
   Perm.pairwise_iff <| @Ne.symm α
+
+theorem replaceF_of_unique {a b : α} {l : List α} (f : α → Option α) :
+    a ∈ l → f a = some b → l.Pairwise (fun a₁ a₂ => (f a₁).isSome → ¬(f a₂).isSome) →
+    l.replaceF f ~ b :: l.eraseP (f · |>.isSome) := by
+  intro hMem hF hPws
+  induction l with
+  | nil => cases hMem
+  | cons x xs ih =>
+    unfold replaceF eraseP
+    cases mem_cons.mp hMem with
+    | inl hMem => simp [← hMem, hF, Perm.refl]
+    | inr hMem =>
+      have : f x = none := by
+        have .cons hPws _ := hPws
+        exact Option.eq_none_iff_forall_not_mem.mpr fun b hB' =>
+          hPws a hMem (hB' ▸ rfl) (hF ▸ rfl)
+      simp only [this, Option.isSome_none, cond_false]
+      have := ih hMem (hPws.sublist <| sublist_cons _ _)
+      exact .trans (.cons x this) (.swap b x _)
 
 end List
