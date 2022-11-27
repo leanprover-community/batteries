@@ -156,13 +156,19 @@ theorem toListModel_foldl_reinsertAux (bkt : List (α × β)) (tgt : Buckets α 
     refine Perm.trans (Perm.symm perm_middle) ?_
     apply Perm.append_left _ (Perm.refl _)
 
+theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
+    : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
+  refine (go _ _ _).trans ?_
+  rw [toListModel_mk, toListModel_eq]
+  simp [Perm.refl]
 
-private theorem toListModel_expand_aux (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β) :
+where
+go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β) :
     (expand.go i src target).toListModel
     ~ (src.data.drop i).foldl (init := target.toListModel) (fun a b => a ++ b.toList) := by
   unfold expand.go; split
   case inl hI =>
-    refine (toListModel_expand_aux (i +1) _ _).trans ?_
+    refine (go (i +1) _ _).trans ?_
     have h₀ : (src.data.set i AssocList.nil).drop (i + 1) = src.data.drop (i + 1) := by
       apply drop_ext
       intro j hJ
@@ -180,12 +186,6 @@ private theorem toListModel_expand_aux (i : Nat) (src : Array (AssocList α β))
     have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
     simp [Perm.refl, drop_eq_nil_of_le this]
   termination_by _ i src _ => src.size - i
-
-theorem toListModel_expand (size : Nat) (bkts : Buckets α β)
-    : (expand size bkts).buckets.toListModel ~ bkts.toListModel := by
-  refine (toListModel_expand_aux _ _ _).trans ?_
-  rw [toListModel_mk, toListModel_eq]
-  simp [Perm.refl]
 
 theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
     ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
