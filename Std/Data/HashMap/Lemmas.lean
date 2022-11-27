@@ -250,7 +250,7 @@ theorem toListModel_mk (size : Nat) (h : 0 < size)
   induction size <;> simp [*]
 
 theorem exists_of_toListModel_update (bkts : Buckets α β) (i d h) :
-    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i].toList ++ l₂
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
       ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂ := by
   have ⟨bs₁, bs₂, hTgt, _, hUpd⟩ := bkts.exists_of_update i d h
   refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_⟩
@@ -308,7 +308,7 @@ where go (i : Nat) (src : Array (AssocList α β)) (target : Buckets α β)
   termination_by go i src _ => src.size - i
 
 theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
-    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i].toList ++ l₂
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
       ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
       ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
   have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
@@ -351,16 +351,16 @@ theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
 
 theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) (b : β)
     : (m.insert a b).buckets.toListModel ~ (a, b) :: m.buckets.toListModel.eraseP (·.1 == a) := by
-  dsimp [insert, cond]; split
+  have hWF := WF_iff.mp H
+  dsimp only [insert, cond]; split
   -- TODO rewrite with `exists_of_toListModel_update_WF`
   next hContains =>
-
-    simp only [Buckets.toListModel_eq]
-    have hWF := WF_iff.mp H
-    have ⟨l₁, l₂, hTgt, hLen, hUpd, hProp⟩ :=
+    have ⟨l₁, l₂, hTgt, hUpd, hProp⟩ :=
       haveI := mkIdx m.buckets.property a
-      m.buckets.exists_of_update_but_better hWF.right this.1
+      m.buckets.exists_of_toListModel_update_WF hWF.right this.1
         ((m.buckets.1[this.1]'this.2).replace a b) this.2
+    rw [hUpd]
+
     rw [Array.ugetElem_eq_getElem] at hUpd
     rw [hUpd, hTgt]
     have hL₁ : ∀ ab ∈ l₁.bind (·.toList), ¬(ab.fst == a) := fun ab h hEq =>

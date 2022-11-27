@@ -25,7 +25,7 @@ theorem update_data (self : Buckets α β) (i d h) :
 
 /-- This theorem, small it may seem, can solve many problems. Apply whenever possible. -/
 theorem exists_of_update (self : Buckets α β) (i d h) :
-    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
+    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i.toNat] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
   simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
 
