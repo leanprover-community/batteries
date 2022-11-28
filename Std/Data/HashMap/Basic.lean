@@ -344,5 +344,3 @@ def ofListWith (l : List (α × β)) (f : β → β → β) : HashMap α β :=
     match m.find? p.1 with
     | none   => m.insert p.1 p.2
     | some v => m.insert p.1 <| f v p.2
-
-end Std.HashMap
