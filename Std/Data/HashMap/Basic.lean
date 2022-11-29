@@ -86,10 +86,7 @@ def empty (capacity := 8) : Imp α β :=
   empty' nBuckets (Nat.isPowerOfTwo_nextPowerOfTwo _)
 
 /-- Calculates the bucket index from a `hash` value. -/
-/- Remark: we use a C implementation because this function is performance critical. -/
-@[extern c inline "(size_t)(#2) & (lean_unbox(#1) - 1)"]
 def mkIdx {sz : Nat} (hash : UInt64) (h : sz.isPowerOfTwo) : {u : USize // u.toNat < sz} :=
-  -- TODO(WN): Use the (provably equivalent) bitwise `&&&` in the spec as well like libLean does
   ⟨hash.toUSize % sz, USize.modn_lt _ (Nat.pos_of_isPowerOfTwo h)⟩
 
 /--
