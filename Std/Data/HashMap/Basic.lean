@@ -20,13 +20,13 @@ namespace Imp
 The bucket array of a `HashMap` is a nonempty array of `AssocList`s.
 (This type is an internal implementation detail of `HashMap`.)
 -/
-def Buckets (α : Type u) (β : Type v) := {b : Array (AssocList α β) // 0 < b.size}
+def Buckets (α : Type u) (β : Type v) := {b : Array (AssocList α β) // b.size.isPowerOfTwo}
 
 namespace Buckets
 
-/-- Construct a new empty bucket array with the specified capacity. -/
-def mk (buckets := 8) (h : 0 < buckets := by decide) : Buckets α β :=
-  ⟨mkArray buckets .nil, by simp [h]⟩
+/-- Construct a new empty bucket array with the specified number of buckets. -/
+def mk (nBuckets : Nat) (h : nBuckets.isPowerOfTwo) : Buckets α β :=
+  ⟨mkArray nBuckets .nil, by simp [h]⟩
 
 /-- Update one bucket in the bucket array with a new value. -/
 def update (data : Buckets α β) (i : USize)
@@ -77,28 +77,27 @@ A "load factor" of 0.75 is the usual standard for hash maps, so we return `capac
   capacity * 4 / 3
 
 /-- Constructs an empty hash map with the specified nonzero number of buckets. -/
-@[inline] def empty' (buckets := 8) (h : 0 < buckets := by decide) : Imp α β :=
-  ⟨0, .mk buckets h⟩
+@[inline] def empty' (nBuckets : Nat) (h : nBuckets.isPowerOfTwo) : Imp α β :=
+  ⟨0, .mk nBuckets h⟩
 
 /-- Constructs an empty hash map with the specified target capacity. -/
-def empty (capacity := 0) : Imp α β :=
-  let nbuckets := numBucketsForCapacity capacity
-  let n : {n : Nat // 0 < n} :=
-    if h : nbuckets = 0 then ⟨8, by decide⟩
-    else ⟨nbuckets, Nat.zero_lt_of_ne_zero h⟩
-  empty' n n.2
+def empty (capacity := 8) : Imp α β :=
+  let nBuckets := numBucketsForCapacity capacity |>.nextPowerOfTwo
+  empty' nBuckets (Nat.isPowerOfTwo_nextPowerOfTwo _)
 
-/-- Calculates the bucket index for the key `a`. -/
-def mkIdx [Hashable α] {n : Nat} (h : 0 < n) (a : α) : {u : USize // u.toNat < n} :=
-  ⟨(hash a |>.toUSize) % n, USize.modn_lt _ h⟩
+/-- Calculates the bucket index from a `hash` value. -/
+/- Remark: we use a C implementation because this function is performance critical. -/
+@[extern c inline "(size_t)(#2) & (lean_unbox(#1) - 1)"]
+def mkIdx {sz : Nat} (hash : UInt64) (h : sz.isPowerOfTwo) : {u : USize // u.toNat < sz} :=
+  -- TODO(WN): Use the (provably equivalent) bitwise `&&&` in the spec as well like libLean does
+  ⟨hash.toUSize % sz, USize.modn_lt _ (Nat.pos_of_isPowerOfTwo h)⟩
 
 /--
 Inserts a key-value pair into the bucket array. This function assumes that the data is not
 already in the array, which is appropriate when reinserting elements into the array after a resize.
 -/
-@[inline] def reinsertAux [Hashable α]
-    (data : Buckets α β) (a : α) (b : β) : Buckets α β :=
-  let ⟨i, h⟩ := mkIdx data.2 a
+@[inline] def reinsertAux [Hashable α] (data : Buckets α β) (a : α) (b : β) : Buckets α β :=
+  let ⟨i, h⟩ := mkIdx (hash a) data.property
   data.update i (.cons a b data.1[i]) h
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
@@ -116,25 +115,26 @@ already in the array, which is appropriate when reinserting elements into the ar
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
 def findEntry? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option (α × β) :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 a
+  let ⟨i, h⟩ := mkIdx (hash a) buckets.property
   buckets.1[i].findEntry? a
 
 /-- Looks up an element in the map with key `a`. -/
 def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 a
+  let ⟨i, h⟩ := mkIdx (hash a) buckets.property
   buckets.1[i].find? a
 
 /-- Returns true if the element `a` is in the map. -/
 def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 a
+  let ⟨i, h⟩ := mkIdx (hash a) buckets.property
   buckets.1[i].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
 def expand [Hashable α] (size : Nat) (buckets : Buckets α β) : Imp α β :=
   let nbuckets := buckets.1.size * 2
-  { size, buckets := go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide))) }
+  have h : nbuckets.isPowerOfTwo := Nat.mul2_isPowerOfTwo_of_isPowerOfTwo buckets.property
+  { size, buckets := go 0 buckets.1 (.mk nbuckets h) }
 where
   /-- Inner loop of `expand`. Copies elements `source[i:]` into `target`,
   destroying `source` in the process. -/
@@ -156,7 +156,7 @@ If an element equal to `a` is already in the map, it is replaced by `b`.
 -/
 @[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (a : α) (b : β) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 a
+  let ⟨i, h⟩ := mkIdx (hash a) buckets.property
   let bkt := buckets.1[i]
   bif bkt.contains a then
     ⟨size, buckets.update i (bkt.replace a b) h⟩
@@ -173,7 +173,7 @@ Removes key `a` from the map. If it does not exist in the map, the map is return
 -/
 def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 a
+  let ⟨i, h⟩ := mkIdx (hash a) buckets.property
   let bkt := buckets.1[i]
   bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
 
@@ -188,7 +188,7 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 @[specialize] def filterMap {α : Type u} {β : Type v} {γ : Type w}
     (f : α → β → Option γ) (m : Imp α β) : Imp α γ :=
   let m' := m.buckets.1.mapM (m := StateT (ULift Nat) Id) (go .nil) |>.run ⟨0⟩ |>.run
-  have : m'.1.size > 0 := by
+  have : m'.1.size.isPowerOfTwo := by
     have := Array.size_mapM (m := StateT (ULift Nat) Id) (go .nil) m.buckets.1
     simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
     simp [this, Id.run, StateT.run, m.2.2]
@@ -240,7 +240,7 @@ def _root_.Std.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] := {m 
 open HashMap.Imp
 
 /-- Make a new hash map with the specified capacity. -/
-@[inline] def _root_.Std.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
+@[inline] def _root_.Std.mkHashMap [BEq α] [Hashable α] (capacity := 8) : HashMap α β :=
   ⟨.empty capacity, .empty⟩
 
 instance [BEq α] [Hashable α] : Inhabited (HashMap α β) where

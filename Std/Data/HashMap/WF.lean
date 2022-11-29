@@ -68,7 +68,7 @@ theorem reinsertAux_size [Hashable α] (data : Buckets α β) (a : α) (b : β) 
 
 theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b : β} (H : data.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
-      haveI := mkIdx data.2 a
+      haveI := mkIdx (hash a) data.2
       (data.val[this.1]'this.2).All fun x _ => ¬(a == x)) :
     (reinsertAux data a b).WF :=
   H.update (.cons h₁) fun
@@ -309,7 +309,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
       simp; exact match f a.1 a.2 with
       | none => .cons _ ih
       | some b => .cons₂ _ ih
-  suffices ∀ bk sz (h : 0 < bk.length),
+  suffices ∀ bk sz (h : bk.length.isPowerOfTwo),
     m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
     WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]

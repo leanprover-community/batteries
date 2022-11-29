@@ -53,7 +53,7 @@ theorem toListModel_eq (bkts : Buckets α β) : bkts.toListModel = bkts.val.data
   simp [toListModel, Array.foldl_eq_foldl_data]
 
 theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (ab : α × β)
-    : haveI := mkIdx bkts.property ab.fst
+    : haveI := mkIdx (hash ab.fst) bkts.property
       ab ∈ bkts.toListModel ↔ ab ∈ (bkts.val[this.1.toNat]'this.2).toList := by
   have : ab ∈ bkts.toListModel ↔ ∃ bkt ∈ bkts.val.data, ab ∈ bkt.toList := by
     simp [toListModel_eq, mem_bind]
@@ -63,7 +63,7 @@ theorem mem_toListModel_iff_mem_bucket (bkts : Buckets α β) (H : bkts.WF) (ab 
   . intro ⟨bkt, hBkt, hMem⟩
     have ⟨i, hGetI⟩ := Array.get_of_mem_data hBkt
     simp only [getElem_fin] at hGetI
-    suffices (mkIdx bkts.property ab.fst).val.toNat = i by
+    suffices (mkIdx (hash ab.fst) bkts.property).val.toNat = i by
       simp [Array.ugetElem_eq_getElem, this, hGetI, hMem]
     unfold Imp.mkIdx
     dsimp
@@ -114,7 +114,7 @@ theorem Pairwise_bne_toListModel' (bkts : Buckets α β) (H : bkts.WF) (a : α)
   Pairwise.imp beq_nonsense_1 (Pairwise_bne_toListModel bkts H)
 
 @[simp]
-theorem toListModel_mk (size : Nat) (h : 0 < size)
+theorem toListModel_mk (size : Nat) (h : size.isPowerOfTwo)
     : (Buckets.mk (α := α) (β := β) size h).toListModel = [] := by
   simp only [Buckets.mk, toListModel_eq, mkArray_data]
   clear h
@@ -132,7 +132,7 @@ theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β)
     : (reinsertAux tgt a b).toListModel ~ (a, b) :: tgt.toListModel := by
   unfold reinsertAux
   have ⟨l₁, l₂, hTgt, hUpd⟩ :=
-    haveI := mkIdx tgt.property a
+    haveI := mkIdx (hash a) tgt.property
     tgt.exists_of_toListModel_update this.1 (.cons a b (tgt.1[this.1.toNat]'this.2)) this.2
   simp [hTgt, hUpd, perm_middle]
 
@@ -207,7 +207,7 @@ theorem findEntry?_eq (m : Imp α β) (H : m.WF) (a : α)
     : m.findEntry? a = m.buckets.toListModel.find? (·.1 == a) := by
   have hWf := WF_iff.mp H |>.right
   have hPairwiseBkt :
-      haveI := mkIdx m.buckets.property a
+      haveI := mkIdx (hash a) m.buckets.property
       Pairwise (fun p q => p.1 == a → q.1 != a) (m.buckets.val[this.1]'this.2).toList :=
     by apply Buckets.Pairwise_bne_bucket' m.buckets hWf
   apply Option.ext
@@ -224,14 +224,14 @@ theorem find?_eq (m : Imp α β) (a : α) : m.find? a = (m.findEntry? a).map (·
   AssocList.find?_eq_findEntry? _ _
 
 theorem eraseP_toListModel_aux (m : Imp α β) (H : m.WF) (a : α) :
-    haveI := mkIdx m.buckets.property a; ¬(m.buckets.val[this.1.toNat]'this.2).contains a →
+    haveI := mkIdx (hash a) m.buckets.property; ¬(m.buckets.val[this.1.toNat]'this.2).contains a →
     m.buckets.toListModel.eraseP (·.1 == a) = m.buckets.toListModel := by
   intro hContains
   have hWF := WF_iff.mp H
   apply eraseP_of_forall_not
   intro ab hMem hEq
   have :
-      haveI := mkIdx m.buckets.property a
+      haveI := mkIdx (hash a) m.buckets.property
       (m.buckets.val[this.1.toNat]'this.2).contains a := by
     simp only [AssocList.contains_eq, List.any_eq_true, mkIdx, ← LawfulHashable.hash_eq hEq]
     exact ⟨ab, (Buckets.mem_toListModel_iff_mem_bucket m.buckets hWF.right ab).mp hMem, hEq⟩
@@ -243,7 +243,7 @@ theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) 
   dsimp [insert, cond]; split
   next hContains =>
     have ⟨l₁, l₂, hTgt, hUpd, hProp⟩ :=
-      haveI := mkIdx m.buckets.property a
+      haveI := mkIdx (hash a) m.buckets.property
       m.buckets.exists_of_toListModel_update_WF hWF.right this.1
         ((m.buckets.1[this.1.toNat]'this.2).replace a b) this.2
     rw [hUpd, hTgt]
@@ -288,14 +288,14 @@ theorem toListModel_insert_perm_cons_eraseP (m : Imp α β) (H : m.WF) (a : α) 
     -- `refine`
     next =>
       have ⟨l₁, l₂, hTgt, hUpd⟩ :=
-        haveI := mkIdx m.buckets.property a
+        haveI := mkIdx (hash a) m.buckets.property
         m.buckets.exists_of_toListModel_update this.1
           ((m.buckets.1[this.1.toNat]'this.2).cons a b) this.2
       simp [hTgt, hUpd, perm_middle]
     next =>
       refine Perm.trans (Buckets.toListModel_expand _ _) ?_
       have ⟨l₁, l₂, hTgt, hUpd⟩ :=
-        haveI := mkIdx m.buckets.property a
+        haveI := mkIdx (hash a) m.buckets.property
         m.buckets.exists_of_toListModel_update this.1
           ((m.buckets.1[this.1.toNat]'this.2).cons a b) this.2
       simp [hTgt, hUpd, perm_middle]
@@ -306,7 +306,7 @@ theorem toListModel_erase_eq_eraseP (m : Imp α β) (H : m.WF) (a : α)
   dsimp [erase, cond]; split
   next hContains =>
     have ⟨l₁, l₂, hTgt, hUpd, hProp⟩ :=
-      haveI := mkIdx m.buckets.property a
+      haveI := mkIdx (hash a) m.buckets.property
       m.buckets.exists_of_toListModel_update_WF hWF.right this.1
         ((m.buckets.1[this.1.toNat]'this.2).erase a) this.2
     rw [hTgt, hUpd]
