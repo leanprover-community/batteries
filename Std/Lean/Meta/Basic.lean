@@ -18,12 +18,39 @@ def LocalDecl.setKind : LocalDecl → LocalDeclKind → LocalDecl
   | ldecl index fvarId userName type value nonDep _, kind =>
       ldecl index fvarId userName type value nonDep kind
 
+
+namespace LocalContext
+
 /--
 Set the kind of the given fvar.
 -/
-def LocalContext.setKind (lctx : LocalContext) (fvarId : FVarId)
+def setKind (lctx : LocalContext) (fvarId : FVarId)
     (kind : LocalDeclKind) : LocalContext :=
   lctx.modifyLocalDecl fvarId (·.setKind kind)
+
+/--
+Sort the given `FVarId`s by the order in which they appear in `lctx`. If any of
+the `FVarId`s do not appear in `lctx`, the result is unspecified.
+-/
+def sortFVarsByContextOrder (lctx : LocalContext) (hyps : Array FVarId) :
+    Array FVarId :=
+  let hyps := hyps.map λ fvarId =>
+    match lctx.fvarIdToDecl.find? fvarId with
+    | none => (0, fvarId)
+    | some ldecl => (ldecl.index, fvarId)
+  hyps.qsort (λ h i => h.fst < i.fst) |>.map (·.snd)
+
+end LocalContext
+
+
+/--
+Sort the given `FVarId`s by the order in which they appear in the current local
+context. If any of the `FVarId`s do not appear in the current local context, the
+result is unspecified.
+-/
+def Meta.sortFVarsByContextOrder [Monad m] [MonadLCtx m]
+    (hyps : Array FVarId) : m (Array FVarId) :=
+  return (← getLCtx).sortFVarsByContextOrder hyps
 
 
 namespace MetavarContext
