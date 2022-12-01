@@ -11,7 +11,7 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Lean.Elab.Tactic.ElabTerm
-import Std.Lean.Meta
+import Std.Lean.Meta.Basic
 import Std.Lean.Tactic
 
 namespace Std.Tactic
