@@ -40,7 +40,10 @@ import Std.Data.Rat.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
-import Std.Lean.Meta
+import Std.Lean.Meta.Basic
+import Std.Lean.Meta.InstantiateMVars
+import Std.Lean.Meta.SavedState
+import Std.Lean.MonadBacktrack
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.Tactic
