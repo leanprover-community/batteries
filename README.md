@@ -19,3 +19,13 @@ Work in progress standard library for Lean 4. This is a collection of data struc
   find Std -name "*.lean" | env LC_ALL=C sort | sed 's/\.lean//;s,/,.,g;s/^/import /' > Std.lean
   ```
   (or use `scripts/updateStd.sh` which contains this command).
+
+# Documentation
+
+You can generate `std4`'s documentation with `lake -Kdoc=on build Std:docs`. The top-level HTML file
+will be located at `build/doc/Std.html`.
+
+Note that documentation for the latest nightly of `std4` is available as part of [the Mathlib 4
+documentation][mathlib4 docs].
+
+[std4 docs]: https://leanprover-community.github.io/mathlib4_docs/Std.html
