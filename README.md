@@ -28,4 +28,4 @@ will be located at `build/doc/Std.html`.
 Note that documentation for the latest nightly of `std4` is available as part of [the Mathlib 4
 documentation][mathlib4 docs].
 
-[std4 docs]: https://leanprover-community.github.io/mathlib4_docs/Std.html
+[mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Std.html
