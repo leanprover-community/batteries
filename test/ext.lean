@@ -6,6 +6,11 @@ set_option linter.missingDocs false
 structure A (n : Nat) where
   a : Nat
 
+example (a b : A n) : a = b ∨ True := by
+  fail_if_success
+    apply Or.inl; ext
+  exact Or.inr trivial
+
 structure B (n) extends A n where
   b : Nat
   h : b > 0
