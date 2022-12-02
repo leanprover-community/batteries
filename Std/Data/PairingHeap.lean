@@ -98,8 +98,7 @@ theorem Heap.noSibling_combine (le) (s : Heap α) :
   unfold combine; split
   · exact noSibling_merge _ _ _
   · match s with
-    | nil => constructor
-    | node _ _ nil => constructor
+    | nil | node _ _ nil => constructor
     | node _ _ (node _ _ s) => rename_i h; exact (h _ _ _ _ _ rfl).elim
 
 theorem Heap.noSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
@@ -125,15 +124,12 @@ theorem Heap.size_merge_node (le) (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) 
 theorem Heap.size_merge (le) {s₁ s₂ : Heap α} (h₁ : s₁.noSibling) (h₂ : s₂.noSibling) :
     (merge le s₁ s₂).size = s₁.size + s₂.size := by
   match h₁, h₂ with
-  | .nil, .nil => rfl
-  | .nil, .node a₂ c₂ => simp [size]
-  | .node a₁ c₁, .nil => simp [size]
-  | .node a₁ c₁, .node a₂ c₂ => unfold merge; dsimp; split <;> simp_arith [size]
+  | .nil, .nil | .nil, .node _ _ | .node _ _, .nil => simp [size]
+  | .node _ _, .node _ _ => unfold merge; dsimp; split <;> simp_arith [size]
 
 theorem Heap.size_combine (le) (s : Heap α) :
     (s.combine le).size = s.size := by
-  unfold combine
-  split
+  unfold combine; split
   · rename_i a₁ c₁ a₂ c₂ s
     rw [size_merge le (noSibling_merge _ _ _) (noSibling_combine _ _),
       size_merge_node, size_combine le s]
@@ -292,6 +288,7 @@ The first two operations are known as a "priority queue", so this could be calle
 a "mergeable priority queue". The standard choice for a priority queue is a binary heap,
 which supports `insert` and `deleteMin` in `O(log n)`, but `merge` is `O(n)`.
 With a `PairingHeap`, `insert` and `merge` are `O(1)`, `deleteMin` is amortized `O(log n)`.
+
 Note that `deleteMin` may be `O(n)` in a single operation. So if you need an efficient
 persistent priority queue, you should use other data structures with better worst-case time.
 -/
