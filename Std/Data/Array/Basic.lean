@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Arthur Paulino, Floris van Doorn
+Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.Array.Init.Basic
 
@@ -29,3 +29,56 @@ def flatten (arr : Array (Array α)) : Array α :=
 /-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
 def zipWithIndex (arr : Array α) : Array (α × Nat) :=
   arr.mapIdx fun i a => (a, i)
+
+end Array
+
+
+namespace Subarray
+
+/--
+The empty subarray.
+-/
+protected def empty : Subarray α where
+  as := #[]
+  start := 0
+  stop := 0
+  h₁ := Nat.le_refl 0
+  h₂ := Nat.le_refl 0
+
+instance : EmptyCollection (Subarray α) :=
+  ⟨Subarray.empty⟩
+
+instance : Inhabited (Subarray α) :=
+  ⟨{}⟩
+
+/--
+Check whether a subarray is empty.
+-/
+@[inline]
+def isEmpty (as : Subarray α) : Bool :=
+  as.start == as.stop
+
+/--
+Check whether a subarray contains an element.
+-/
+@[inline]
+def contains [BEq α] (as : Subarray α) (a : α) : Bool :=
+  as.any (· == a)
+
+/--
+Remove the first element of a subarray. Returns the element and the remaining
+subarray, or `none` if the subarray is empty.
+-/
+def popHead? (as : Subarray α) : Option (α × Subarray α) :=
+  if h : as.start < as.stop
+    then
+      let head := as.as.get ⟨as.start, Nat.lt_of_lt_of_le h as.h₂⟩
+      let tail :=
+        { as with
+          start := as.start + 1
+          h₁ := Nat.le_of_lt_succ $ Nat.succ_lt_succ h  }
+      some (head, tail)
+    else
+      none
+
+end Subarray
