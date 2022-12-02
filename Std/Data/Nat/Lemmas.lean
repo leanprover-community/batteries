@@ -444,6 +444,15 @@ theorem le_sub_iff_add_le {x y k : Nat} (h : k ≤ y) : x ≤ y - k ↔ x + k �
 theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
 
+protected theorem sub_add_lt_sub {n m k : Nat} (h₁ : m + k ≤ n) (h₂ : 0 < k) :
+    n - (m + k) < n - m :=
+  match k with
+  | zero => Nat.lt_irrefl _ h₂ |>.elim
+  | succ _ =>
+    Nat.lt_of_lt_of_le
+      (pred_lt (Nat.ne_of_lt $ Nat.sub_pos_of_lt $ lt_of_succ_le h₁).symm)
+      (Nat.sub_le_sub_left _ $ Nat.le_add_right _ _)
+
 /- mod -/
 
 theorem le_of_mod_lt {a b : Nat} (h : a % b < a) : b ≤ a :=

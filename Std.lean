@@ -12,6 +12,7 @@ import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Lemmas
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
