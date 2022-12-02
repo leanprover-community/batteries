@@ -12,6 +12,7 @@ import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Lemmas
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
@@ -37,12 +38,14 @@ import Std.Data.RBMap.WF
 import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
+import Std.Data.String
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.InstantiateMVars
 import Std.Lean.Meta.SavedState
+import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
