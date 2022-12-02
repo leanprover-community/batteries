@@ -30,6 +30,7 @@ import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
+import Std.Data.Ord
 import Std.Data.PairingHeap
 import Std.Data.RBMap
 import Std.Data.RBMap.Alter
