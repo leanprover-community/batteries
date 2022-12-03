@@ -76,52 +76,52 @@ def Heap.isEmpty : Heap α → Bool
   tail? le h |>.getD .nil
 
 /-- A predicate says there is no more than one tree. -/
-inductive Heap.noSibling : Heap α → Prop
+inductive Heap.NoSibling : Heap α → Prop
   /-- An empty heap is no more than one tree. -/
-  | nil : noSibling .nil
+  | nil : NoSibling .nil
   /-- Or there is exactly one tree. -/
-  | node (a c) : noSibling (.node a c .nil)
+  | node (a c) : NoSibling (.node a c .nil)
 
-instance : Decidable (Heap.noSibling s) :=
+instance : Decidable (Heap.NoSibling s) :=
   match s with
   | .nil => isTrue .nil
   | .node a c .nil => isTrue (.node a c)
   | .node _ _ (.node _ _ _) => isFalse fun.
 
-theorem Heap.noSibling_merge (le) (s₁ s₂ : Heap α) :
-    (s₁.merge le s₂).noSibling := by
+theorem Heap.NoSibling_merge (le) (s₁ s₂ : Heap α) :
+    (s₁.merge le s₂).NoSibling := by
   unfold merge
   (split <;> try split) <;> constructor
 
-theorem Heap.noSibling_combine (le) (s : Heap α) :
-    (s.combine le).noSibling := by
+theorem Heap.NoSibling_combine (le) (s : Heap α) :
+    (s.combine le).NoSibling := by
   unfold combine; split
-  · exact noSibling_merge _ _ _
+  · exact NoSibling_merge _ _ _
   · match s with
     | nil | node _ _ nil => constructor
     | node _ _ (node _ _ s) => rename_i h; exact (h _ _ _ _ _ rfl).elim
 
-theorem Heap.noSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
-    s'.noSibling := by
-  cases s with cases eq | node a c => exact noSibling_combine _ _
+theorem Heap.NoSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
+    s'.NoSibling := by
+  cases s with cases eq | node a c => exact NoSibling_combine _ _
 
-theorem Heap.noSibling_tail? {s : Heap α} : s.tail? le = some s' →
-    s'.noSibling := by
+theorem Heap.NoSibling_tail? {s : Heap α} : s.tail? le = some s' →
+    s'.NoSibling := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
-  | some (a, tl), rfl => exact noSibling_deleteMin eq₂
+  | some (a, tl), rfl => exact NoSibling_deleteMin eq₂
 
-theorem Heap.noSibling_tail (le) (s : Heap α) : (s.tail le).noSibling := by
+theorem Heap.NoSibling_tail (le) (s : Heap α) : (s.tail le).NoSibling := by
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => constructor
-  | some tl => exact Heap.noSibling_tail? eq
+  | some tl => exact Heap.NoSibling_tail? eq
 
 theorem Heap.size_merge_node (le) (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) (c₂ s₂ : Heap α) :
     (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).size = c₁.size + c₂.size + 2 := by
   unfold merge; dsimp; split <;> simp_arith [size]
 
-theorem Heap.size_merge (le) {s₁ s₂ : Heap α} (h₁ : s₁.noSibling) (h₂ : s₂.noSibling) :
+theorem Heap.size_merge (le) {s₁ s₂ : Heap α} (h₁ : s₁.NoSibling) (h₂ : s₂.NoSibling) :
     (merge le s₁ s₂).size = s₁.size + s₂.size := by
   match h₁, h₂ with
   | .nil, .nil | .nil, .node _ _ | .node _ _, .nil => simp [size]
@@ -131,22 +131,22 @@ theorem Heap.size_combine (le) (s : Heap α) :
     (s.combine le).size = s.size := by
   unfold combine; split
   · rename_i a₁ c₁ a₂ c₂ s
-    rw [size_merge le (noSibling_merge _ _ _) (noSibling_combine _ _),
+    rw [size_merge le (NoSibling_merge _ _ _) (NoSibling_combine _ _),
       size_merge_node, size_combine le s]
     simp_arith [size]
   · rfl
 
-theorem Heap.size_deleteMin {s : Heap α} (h : s.noSibling) (eq : s.deleteMin le = some (a, s')) :
+theorem Heap.size_deleteMin {s : Heap α} (h : s.NoSibling) (eq : s.deleteMin le = some (a, s')) :
     s.size = s'.size + 1 := by
   cases h with cases eq | node a c => rw [size_combine, size, size]
 
-theorem Heap.size_tail? {s : Heap α} (h : s.noSibling) : s.tail? le = some s' →
+theorem Heap.size_tail? {s : Heap α} (h : s.NoSibling) : s.tail? le = some s' →
     s.size = s'.size + 1 := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
   | some (a, tl), rfl => exact size_deleteMin h eq₂
 
-theorem Heap.size_tail (le) {s : Heap α} (h : s.noSibling) : (s.tail le).size = s.size - 1 := by
+theorem Heap.size_tail (le) {s : Heap α} (h : s.NoSibling) : (s.tail le).size = s.size - 1 := by
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => rfl
@@ -211,9 +211,9 @@ It asserts that:
 * If `a` is added at the top to make the forest into a tree, the resulting tree
   is a `le`-min-heap (if `le` is well-behaved)
 -/
-def Heap.nodeWellFormed (le : α → α → Bool) (a : α) : Heap α → Prop
+def Heap.NodeWF (le : α → α → Bool) (a : α) : Heap α → Prop
   | .nil => True
-  | .node b c s => (∀ [TotalBLE le], le a b) ∧ c.nodeWellFormed le b ∧ s.nodeWellFormed le a
+  | .node b c s => (∀ [TotalBLE le], le a b) ∧ c.NodeWF le b ∧ s.NodeWF le a
 
 /--
 The well formedness predicate for a pairing heap.
@@ -221,49 +221,49 @@ It asserts that:
 * There is no more than one tree.
 * It is a `le`-min-heap (if `le` is well-behaved)
 -/
-inductive Heap.WellFormed (le : α → α → Bool) : Heap α → Prop
+inductive Heap.WF (le : α → α → Bool) : Heap α → Prop
   /-- It is an empty heap. -/
-  | nil : WellFormed le .nil
+  | nil : WF le .nil
   /-- There is exactly one tree and it is a `le`-min-heap. -/
-  | node (h : c.nodeWellFormed le a) : WellFormed le (.node a c .nil)
+  | node (h : c.NodeWF le a) : WF le (.node a c .nil)
 
-theorem Heap.WellFormed.singleton : (Heap.singleton a).WellFormed le := node trivial
+theorem Heap.WF.singleton : (Heap.singleton a).WF le := node trivial
 
-theorem Heap.WellFormed.merge_node (h₁ : nodeWellFormed le a₁ c₁) (h₂ : nodeWellFormed le a₂ c₂) :
-    (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).WellFormed le := by
+theorem Heap.WF.merge_node (h₁ : NodeWF le a₁ c₁) (h₂ : NodeWF le a₂ c₂) :
+    (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).WF le := by
   unfold merge; dsimp
   split <;> rename_i h
   · exact node ⟨fun [_] => h, h₂, h₁⟩
   · exact node ⟨fun [_] => TotalBLE.total.resolve_left h, h₁, h₂⟩
 
-theorem Heap.WellFormed.merge (h₁ : s₁.WellFormed le) (h₂ : s₂.WellFormed le) :
-    (merge le s₁ s₂).WellFormed le :=
+theorem Heap.WF.merge (h₁ : s₁.WF le) (h₂ : s₂.WF le) :
+    (merge le s₁ s₂).WF le :=
   match h₁, h₂ with
   | .nil, .nil => nil
   | .nil, .node h₂ => node h₂
   | .node h₁, .nil => node h₁
   | .node h₁, .node h₂ => merge_node h₁ h₂
 
-theorem Heap.WellFormed.combine (h : s.nodeWellFormed le a) : (combine le s).WellFormed le :=
+theorem Heap.WF.combine (h : s.NodeWF le a) : (combine le s).WF le :=
   match s with
   | .nil => nil
   | .node b c .nil => node h.2.1
   | .node b₁ c₁ (.node b₂ c₂ s) => merge (merge_node h.2.1 h.2.2.2.1) (combine h.2.2.2.2)
 
-theorem Heap.WellFormed.deleteMin {s : Heap α} (h : s.WellFormed le)
-    (eq : s.deleteMin le = some (a, s')) : s'.WellFormed le := by
-  cases h with cases eq | node h => exact Heap.WellFormed.combine h
+theorem Heap.WF.deleteMin {s : Heap α} (h : s.WF le)
+    (eq : s.deleteMin le = some (a, s')) : s'.WF le := by
+  cases h with cases eq | node h => exact Heap.WF.combine h
 
-theorem Heap.WellFormed.tail? (hwf : (s : Heap α).WellFormed le) : s.tail? le = some tl →
-  tl.WellFormed le := by
+theorem Heap.WF.tail? (hwf : (s : Heap α).WF le) : s.tail? le = some tl →
+  tl.WF le := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
   | some (a, tl), rfl => exact hwf.deleteMin eq₂
 
-theorem Heap.WellFormed.tail (hwf : (s : Heap α).WellFormed le) : (s.tail le).WellFormed le := by
+theorem Heap.WF.tail (hwf : (s : Heap α).WF le) : (s.tail le).WF le := by
   simp only [Heap.tail]
   match eq : s.tail? le with
-  | none => exact Heap.WellFormed.nil
+  | none => exact Heap.WF.nil
   | some tl => exact hwf.tail? eq
 
 theorem Heap.deleteMin_fst : ((s : Heap α).deleteMin le).map (·.1) = s.head? :=
@@ -293,11 +293,11 @@ Note that `deleteMin` may be `O(n)` in a single operation. So if you need an eff
 persistent priority queue, you should use other data structures with better worst-case time.
 -/
 def PairingHeap (α : Type u) (le : α → α → Bool) :=
-  { h : Heap α // h.WellFormed le }
+  { h : Heap α // h.WF le }
 
 /-- `O(1)`. Make a new empty pairing heap. -/
 @[inline] def mkPairingHeap (α : Type u) (le : α → α → Bool) : PairingHeap α le :=
-  ⟨.nil, Heap.WellFormed.nil⟩
+  ⟨.nil, Heap.WF.nil⟩
 
 namespace PairingHeap
 variable {α : Type u} {le : α → α → Bool}
@@ -315,7 +315,7 @@ instance : Inhabited (PairingHeap α le) := ⟨.empty⟩
 
 /-- `O(1)`. Make a new heap containing `a`. -/
 @[inline] def singleton (a : α) : PairingHeap α le :=
-  ⟨Heap.singleton a, Heap.WellFormed.singleton⟩
+  ⟨Heap.singleton a, Heap.WF.singleton⟩
 
 /-- `O(1)`. Merge the contents of two heaps. -/
 @[inline] def merge : PairingHeap α le → PairingHeap α le → PairingHeap α le
