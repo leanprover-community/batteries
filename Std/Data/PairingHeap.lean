@@ -88,34 +88,34 @@ instance : Decidable (Heap.NoSibling s) :=
   | .node a c .nil => isTrue (.node a c)
   | .node _ _ (.node _ _ _) => isFalse fun.
 
-theorem Heap.NoSibling_merge (le) (s₁ s₂ : Heap α) :
+theorem Heap.noSibling_merge (le) (s₁ s₂ : Heap α) :
     (s₁.merge le s₂).NoSibling := by
   unfold merge
   (split <;> try split) <;> constructor
 
-theorem Heap.NoSibling_combine (le) (s : Heap α) :
+theorem Heap.noSibling_combine (le) (s : Heap α) :
     (s.combine le).NoSibling := by
   unfold combine; split
-  · exact NoSibling_merge _ _ _
+  · exact noSibling_merge _ _ _
   · match s with
     | nil | node _ _ nil => constructor
     | node _ _ (node _ _ s) => rename_i h; exact (h _ _ _ _ _ rfl).elim
 
-theorem Heap.NoSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
+theorem Heap.noSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.NoSibling := by
-  cases s with cases eq | node a c => exact NoSibling_combine _ _
+  cases s with cases eq | node a c => exact noSibling_combine _ _
 
-theorem Heap.NoSibling_tail? {s : Heap α} : s.tail? le = some s' →
+theorem Heap.noSibling_tail? {s : Heap α} : s.tail? le = some s' →
     s'.NoSibling := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
-  | some (a, tl), rfl => exact NoSibling_deleteMin eq₂
+  | some (a, tl), rfl => exact noSibling_deleteMin eq₂
 
-theorem Heap.NoSibling_tail (le) (s : Heap α) : (s.tail le).NoSibling := by
+theorem Heap.noSibling_tail (le) (s : Heap α) : (s.tail le).NoSibling := by
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => constructor
-  | some tl => exact Heap.NoSibling_tail? eq
+  | some tl => exact Heap.noSibling_tail? eq
 
 theorem Heap.size_merge_node (le) (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) (c₂ s₂ : Heap α) :
     (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).size = c₁.size + c₂.size + 2 := by
@@ -131,7 +131,7 @@ theorem Heap.size_combine (le) (s : Heap α) :
     (s.combine le).size = s.size := by
   unfold combine; split
   · rename_i a₁ c₁ a₂ c₂ s
-    rw [size_merge le (NoSibling_merge _ _ _) (NoSibling_combine _ _),
+    rw [size_merge le (noSibling_merge _ _ _) (noSibling_combine _ _),
       size_merge_node, size_combine le s]
     simp_arith [size]
   · rfl
