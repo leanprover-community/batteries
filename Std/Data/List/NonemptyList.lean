@@ -38,3 +38,18 @@ instance : CoeHead (NonemptyList α) (List α) where
 instance [Repr α] : Repr (NonemptyList α) := ⟨(reprPrec ·.toList)⟩
 
 instance [ToString α] : ToString (NonemptyList α) := ⟨(toString ·.toList)⟩
+
+end NonemptyList
+
+def List.nonempty? : List α → Option (NonemptyList α)
+| [] => none
+| hd::tl => some ⟨hd,tl⟩
+
+def List.nonempty! [Inhabited α] : List α → NonemptyList α
+| [] => panic! "nonempty! called on empty list D:"
+| hd::tl => ⟨hd,tl⟩
+
+namespace NonemptyList
+
+def reduce (f : α → α → α) : NonemptyList α → α
+| ⟨hd,tl⟩ => tl.foldl f hd
