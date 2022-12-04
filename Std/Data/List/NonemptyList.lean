@@ -41,15 +41,20 @@ instance [ToString α] : ToString (NonemptyList α) := ⟨(toString ·.toList)�
 
 end NonemptyList
 
+/-- Convert list to a nonempty list, or none if empty -/
 def List.nonempty? : List α → Option (NonemptyList α)
 | [] => none
 | hd::tl => some ⟨hd,tl⟩
 
+/-- Convert list to a nonempty list, or panic if empty -/
 def List.nonempty! [Inhabited α] : List α → NonemptyList α
 | [] => panic! "nonempty! called on empty list D:"
 | hd::tl => ⟨hd,tl⟩
 
 namespace NonemptyList
 
+/-- Monomorphic reduce on nonempty list.
+Elements are combined in left-to-right order (with accumulator as first argument to `f`).
+-/
 def reduce (f : α → α → α) : NonemptyList α → α
 | ⟨hd,tl⟩ => tl.foldl f hd
