@@ -15,6 +15,10 @@ example : foo n = [n] := by
   fail_if_success simpa only [foo]
   simp only [foo]
 
+example (h : foo n ≠ [n]) : False := by
+  fail_if_success simpa [foo] using h
+  simp [foo] at h
+
 example (p : Nat → Prop) (h : p (a + b)) : p (b + a) := by
   have : a + b = b + a := Nat.add_comm _ _
   simpa [this] using h

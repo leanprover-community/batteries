@@ -3,7 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Gabriel Ebner, Mario Carneiro
 -/
-import Lean.Elab.ElabRules
+import Lean.Elab.Tactic.ElabTerm
+import Std.Lean.Expr
 import Std.Lean.Parser
 
 namespace Std.Tactic
@@ -38,22 +39,25 @@ syntax (name := simpa) "simpa" "?"? "!"? simpaArgsRest : tactic
   `(tactic| simpa ?! $rest:simpaArgsRest)
 
 elab_rules : tactic
-| `(tactic| simpa $[?%$squeeze]? $[!%$unfold]? $[$cfg:config]? $[$disch:discharger]? $[only%$only]?
-      $[[$args,*]]? $[using $usingArg]?) => do
+| `(tactic| simpa $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
+      $[[$args,*]]? $[using $usingArg]?) => Elab.Tactic.focus do
   if squeeze.isSome then throwError "TODO: lemma tracing"
-  let nGoals := (← getUnsolvedGoals).length
-  evalTactic <|← `(tactic| simp $(cfg)? $(disch)? $[only%$only]? $[[$[$args],*]]?)
-  if (← getUnsolvedGoals).length < nGoals then throwError "try 'simp' instead of 'simpa'"
   let simpTac loc :=
     if unfold.isSome then
-      `(tactic| try simp! $(cfg)? $(disch)? $[only%$only]? $[[$[$args],*]]? $loc:location)
+      `(tactic| try simp! $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]? $(loc)?)
     else
-      `(tactic| try simp $(cfg)? $(disch)? $[only%$only]? $[[$[$args],*]]? $loc:location)
-  match usingArg with
-  | none   =>
+      `(tactic| try simp $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]? $(loc)?)
+  evalTactic <|← simpTac none
+  let g ← try getMainGoal catch _ => throwError "try 'simp' instead of 'simpa'"
+  if let some e := usingArg then
+    g.withContext do
+      let e ← elabTerm e none
+      evalTactic <|← `(tactic| have' h := $(← e.toSyntax))
+      evalTactic <|← simpTac (← `(location| at h))
+      if ← try getMainGoal *> pure true catch _ => pure false then
+        evalTactic <|← `(tactic| exact h)
+      else if e.isFVar then throwError "try 'simp at {e}' instead of 'simpa using {e}'"
+  else
     evalTactic <|← simpTac (← `(location| at this))
+    _ ← try getMainGoal catch _ => throwError "try 'simp at this' instead of 'simpa'"
     evalTactic <|← `(tactic| assumption)
-  | some e =>
-    evalTactic <|← `(tactic| have' h := $e)
-    evalTactic <|← simpTac (← `(location| at h))
-    evalTactic <|← `(tactic| exact h)

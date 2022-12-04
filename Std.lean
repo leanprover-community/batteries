@@ -43,6 +43,7 @@ import Std.Data.String
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
+import Std.Lean.Expr
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
