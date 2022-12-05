@@ -73,6 +73,7 @@ import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
 import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
+import Std.Tactic.Lint.TypeClass
 import Std.Tactic.NoMatch
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
