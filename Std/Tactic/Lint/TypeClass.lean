@@ -66,7 +66,7 @@ Try marking the dangerous arguments as implicit instead."
     let (argMVars, argBIs, ty) ← forallMetaTelescopeReducing declTy
 
     -- assigns the metavariables in `e` with the corresponding free variables created above
-    let rec assignMVarsIn (e : Expr) : MetaM Unit := do
+    let assignMVarsIn (e : Expr) : MetaM Unit := do
       for mvarId in ← getMVars e do
         if let some i := argMVars.findIdx? (·.mvarId! == mvarId) then
           mvarId.assign argVars[i]!
