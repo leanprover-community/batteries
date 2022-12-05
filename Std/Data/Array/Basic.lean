@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.Array.Init.Basic
+import Std.Data.Ord
 
 /-!
 ## Definitions on Arrays
@@ -29,6 +30,92 @@ def flatten (arr : Array (Array α)) : Array α :=
 /-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
 def zipWithIndex (arr : Array α) : Array (α × Nat) :=
   arr.mapIdx fun i a => (a, i)
+
+/--
+Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
+elements when disregarding order and duplicates. `O(n*m)`! If your element type
+has an `Ord` instance, it is asymptotically more efficient to sort the two
+arrays, remove duplicates and then compare them elementwise.
+-/
+def equalSet [BEq α] (xs ys : Array α) : Bool :=
+  xs.all (ys.contains ·) && ys.all (xs.contains ·)
+
+set_option linter.unusedVariables false in
+/--
+Sort an array using `compare` to compare elements.
+-/
+def qsortOrd [Inhabited α] [ord : Ord α] (xs : Array α) : Array α :=
+  xs.qsort λ x y => compare x y |>.isLT
+
+set_option linter.unusedVariables false in
+/--
+Find the first minimal element of an array. If the array is empty, `d` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def minD [ord : Ord α] (d : α) (xs : Array α) (start := 0)
+    (stop := xs.size) : α :=
+  xs.foldl (init := d) (start := start) (stop := stop) λ min x =>
+    if compare x min |>.isLT then x else min
+
+set_option linter.unusedVariables false in
+/--
+Find the first minimal element of an array. If the array is empty, `none` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def min? [ord : Ord α] (xs : Array α) (start := 0)
+    (stop := xs.size) : Option α :=
+  if h : start < xs.size then
+    some $ xs.minD (xs.get ⟨start, h⟩) start stop
+  else
+    none
+
+set_option linter.unusedVariables false in
+/--
+Find the first minimal element of an array. If the array is empty, `default` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def min [ord : Ord α] [Inhabited α] (xs : Array α) (start := 0)
+    (stop := xs.size) : α :=
+  xs.minD default start stop
+
+set_option linter.unusedVariables false in
+/--
+Find the first maximal element of an array. If the array is empty, `d` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def maxD [ord : Ord α] (d : α) (xs : Array α) (start := 0)
+    (stop := xs.size) : α :=
+  xs.minD (ord := ord.opposite) d start stop
+
+set_option linter.unusedVariables false in
+/--
+Find the first maximal element of an array. If the array is empty, `none` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def max? [ord : Ord α] (xs : Array α) (start := 0)
+    (stop := xs.size) : Option α :=
+  xs.min? (ord := ord.opposite) start stop
+
+set_option linter.unusedVariables false in
+/--
+Find the first maximal element of an array. If the array is empty, `default` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def max [ord : Ord α] [Inhabited α] (xs : Array α) (start := 0)
+    (stop := xs.size) : α :=
+  xs.min (ord := ord.opposite) start stop
 
 end Array
 
