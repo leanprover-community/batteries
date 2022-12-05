@@ -90,6 +90,7 @@ Try marking the dangerous arguments as implicit instead."
         dangerousArgs := dangerousArgs.push <|
           ← addMessageContextFull m!"argument {i+1} {argVar} : {argTy}"
 
+      assignMVarsIn argMVar
       -- assume that the synthesizing the subgoal fills in the subgoals' out-params
       assignMVarsIn argTy
 

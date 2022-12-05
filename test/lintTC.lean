@@ -23,3 +23,9 @@ instance dangerous [LE α] [LE β] [OrderHomClass F α β] : CoeFun F fun _ => �
 instance fixed {_ : LE α} {_ : LE β} [OrderHomClass F α β] : CoeFun F fun _ => α → β := sorry
 #eval do guard (← dangerousInstance.test ``fixed).isNone
 end D
+
+namespace E
+class Foo (α : Type)
+class Bar (α : Type) [LE α] extends Foo α
+#eval do guard (← dangerousInstance.test ``Bar.toFoo).isNone
+end E
