@@ -46,6 +46,8 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.HashMap
+import Std.Lean.HashSet
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -57,6 +59,8 @@ import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
+import Std.Lean.PersistentHashMap
+import Std.Lean.PersistentHashSet
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter

@@ -316,7 +316,12 @@ instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
 
 /-- Combines two hashmaps using function `f` to combine two values at a key. -/
 @[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
-  Id.run (mergeWithM f self other)
+  -- Implementing this function directly, rather than via `mergeWithM`, gives
+  -- us less constrained universes.
+  other.fold (init := self) λ map k v₂ =>
+    match map.find? k with
+    | none => map.insert k v₂
+    | some v₁ => map.insert k $ f k v₁ v₂
 
 /-- Runs a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (self : HashMap α β) : m PUnit := self.1.forM f
