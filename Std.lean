@@ -49,6 +49,7 @@ import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
+import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack

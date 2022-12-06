@@ -4,24 +4,32 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Gabriel Ebner
 -/
 import Std.Tactic.Simpa
+import Std.Tactic.ShowTerm
+
+set_option linter.missingDocs false
 
 example {P : Prop} (p : P) : P := by simpa
 
-example {P : Prop} (p : P) : P := by simpa using p
+example {P : Prop} (p : False) : P := by simp at p
 
 def foo (n : α) := [n]
 
+section unnecessarySimpa
+
+-- TODO: check that these lint in the test harness
 example : foo n = [n] := by
-  fail_if_success simpa only [foo]
-  simp only [foo]
+  simpa only [foo]
 
 example (h : foo n ≠ [n]) : False := by
-  fail_if_success simpa [foo] using h
-  simp [foo] at h
+  simpa [foo] using h
+
+end unnecessarySimpa
 
 example (p : Nat → Prop) (h : p (a + b)) : p (b + a) := by
   have : a + b = b + a := Nat.add_comm _ _
   simpa [this] using h
+
+def Injective (f : α → β) : Prop := ∀ ⦃a₁ a₂⦄, f a₁ = f a₂ → a₁ = a₂
 
 namespace div_left_inj_issue
 
@@ -32,13 +40,41 @@ class Group (α) extends Mul α, Div α, Inv α
 
 variable [Group G]
 
-def injective (f : α → β) : Prop := ∀ ⦃a₁ a₂⦄, f a₁ = f a₂ → a₁ = a₂
-
 axiom div_eq_mul_inv (a b : G) : a / b = a * Inv.inv b
 
-axiom mul_left_injective (a : G) : injective (· * a)
+axiom mul_left_injective (a : G) : Injective (· * a)
 
-theorem div_left_injective (b : G) : injective fun a => a / b := by
+theorem div_left_injective (b : G) : Injective fun a => a / b := by
   simpa only [div_eq_mul_inv] using fun a a' h => mul_left_injective (Inv.inv b) h
 
 end div_left_inj_issue
+
+namespace Prod
+
+theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+  Iff.of_eq (mk.injEq _ _ _ _)
+
+theorem mk.inj_left {α β : Type _} (a : α) : Injective (Prod.mk a : β → α × β) := by
+  intro b₁ b₂ h
+  simpa only [true_and, Prod.mk.inj_iff, eq_self] using h
+
+end Prod
+
+theorem implicit_lambda (h : ∀ {x : Nat}, a = x) : a = 2 := by
+  simpa using h
+
+theorem implicit_lambda2 (h : a = 2) : ∀ {x : Nat}, a = 2 := by
+  simpa using h
+
+theorem no_implicit_lambda (h : ∀ {x : Nat}, a = x) : ∀ {x : Nat}, a = x := by
+  simpa using @h
+
+theorem thm : (a : Int) ≤ b - c ↔ a + b ≤ c := sorry
+
+theorem thm2 : (b : Int) - c ≤ (a - b) - (a - c) := sorry
+
+example : (b - c : Int) + (a - b) + a ≤ c := by
+  simpa only [thm] using thm2
+
+example : (b - c : Int) + (a - b) + a ≤ c := by
+  simpa only [thm] using @thm2
