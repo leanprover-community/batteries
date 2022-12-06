@@ -44,6 +44,13 @@ private def getOutParamPositionsOf (classTy : Expr) : CoreM (Array Nat) := do
   if className == ``CoeHead then return #[1]
   if className == ``CoeTail then return #[0]
   if className == ``Coe then return #[0]
+  if className == ``MonadLift then return #[0]
+  if className == ``MonadFunctor then return #[0]
+  if className == ``MonadControl then return #[0]
+  if className == ``MonadStateOf then return #[0]
+  if className == ``MonadExceptOf then return #[0]
+  if className == ``MonadReaderOf then return #[0]
+  if className == ``MonadWithReaderOf then return #[0]
   return (getOutParamPositions? (← getEnv) className).getD #[]
 
 /--
