@@ -288,6 +288,24 @@ def getUnassignedExprMVars [Monad m] [MonadMCtx m] (includeDelayed := false) :
   return (← getMCtx).unassignedExprMVars (includeDelayed := includeDelayed)
 
 /--
+Run a computation with hygiene turned off.
+-/
+def unhygienic [MonadWithOptions m] (x : m α) : m α :=
+  withOptions (tactic.hygienic.set · false) x
+
+/--
+A variant of `mkFreshId` which generates names with a particular prefix. The
+generated names are unique and have the form `<prefix>.<N>` where `N` is a
+natural number. They are not suitable as user-facing names.
+-/
+def mkFreshIdWithPrefix [Monad m] [MonadNameGenerator m] («prefix» : Name) :
+    m Name := do
+  let ngen ← getNGen
+  let r := { ngen with namePrefix := «prefix» }.curr
+  setNGen ngen.next
+  pure r
+
+/--
 `repeat' f` runs `f` on all of the goals to produce a new list of goals,
 then runs `f` again on all of those goals, and repeats until `f` fails on all remaining goals,
 or until `maxIters` total calls to `f` have occurred.
@@ -315,4 +333,29 @@ where
         | .error _ => go n gs stk (acc.push g)
 termination_by _ n gs stk _ => (n, stk, gs)
 
-end Lean.Meta
+/--
+`saturate1 goal tac` runs `tac` on `goal`, then on the resulting goals, etc.,
+until `tac` does not apply to any goal any more (i.e. it returns `none`). The
+order of applications is depth-first, so if `tac` generates goals `[g₁, g₂, ⋯]`,
+we apply `tac` to `g₁` and recursively to all its subgoals before visiting `g₂`.
+If `tac` does not apply to `goal`, `saturate1` returns `none`. Otherwise it
+returns the generated subgoals to which `tac` did not apply. `saturate1`
+respects the `MonadRecDepth` recursion limit.
+-/
+partial def saturate1 [Monad m] [MonadError m] [MonadRecDepth m]
+    [MonadLiftT (ST IO.RealWorld) m] (goal : MVarId)
+    (tac : MVarId → m (Option (Array MVarId))) :
+    m (Option (Array MVarId)) := do
+  match ← tac goal with
+  | none => return none
+  | some goals =>
+    let acc ← ST.mkRef #[]
+    goals.forM (go acc)
+    return some (← acc.get)
+where
+  /-- Auxiliary definition for `saturate1`. -/
+  go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
+    withIncRecDepth do
+      match ← tac goal with
+      | none => acc.modify λ s => s.push goal
+      | some goals => goals.forM (go acc)
