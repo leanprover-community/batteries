@@ -56,6 +56,13 @@ def toList : Option α → List α
   | some a => [a]
 
 /--
+Cast of `Option` to `Array`. Returns `[a]` if the input is `some a`, and `[]` if it is `none`.
+-/
+def toArray : Option α → Array α
+  | none => #[]
+  | some a => #[a]
+
+/--
 Two arguments failsafe function. Returns `f a b` if the inputs are `some a` and `some b`, and
 "does nothing" otherwise.
 -/
@@ -95,6 +102,22 @@ satisfy `p`, using the proof to apply `f`.
 
 /-- Flatten an `Option` of `Option`, a specialization of `joinM`. -/
 @[simp, inline] def join (x : Option (Option α)) : Option α := x.bind id
+
+/-- Map a monadic function which returns `Unit` over an `Option`. -/
+protected def forM [Pure m] : Option α → (α → m PUnit) → m PUnit
+  | none  , _ => pure ()
+  | some a, f => f a
+
+instance : ForM m (Option α) α :=
+  ⟨Option.forM⟩
+
+instance : ForIn' m (Option α) α inferInstance where
+  forIn' x init f := do
+    match x with
+    | none => return init
+    | some a =>
+      match ← f a rfl init with
+      | .done r | .yield r => return r
 
 /-- Like `Option.mapM` but for applicative functors. -/
 protected def mapA [Applicative m] {α β} (f : α → m β) : Option α → m (Option β)
