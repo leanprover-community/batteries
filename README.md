@@ -22,8 +22,27 @@ Work in progress standard library for Lean 4. This is a collection of data struc
 
 # Documentation
 
-You can generate `std4`'s documentation with `lake -Kdoc=on build Std:docs`. The top-level HTML file
-will be located at `build/doc/Std.html`.
+You can generate `std4`'s documentation with
+
+```text
+# if you're generating documentation for the first time
+> lake -Kdoc=on update
+...
+# actually generate the documentation
+> lake -Kdoc=on build Std:docs
+...
+> ls build/doc/index.html
+build/doc/index.html
+```
+
+The top-level HTML file will be located at `build/doc/Std.html`, though to actually expose the
+documentation as a server you need to
+
+```text
+> cd build/doc
+> python3 -m http.server
+Serving HTTP on :: port 8000 (http://[::]:8000/) ...
+```
 
 Note that documentation for the latest nightly of `std4` is available as part of [the Mathlib 4
 documentation][mathlib4 docs].
