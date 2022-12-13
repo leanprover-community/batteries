@@ -16,13 +16,13 @@ namespace Int
 
 /-! ### `/`  -/
 
-theorem ofNat_div (m n : Nat) : ofNat (m / n) = (ofNat m).div (ofNat n) := rfl
+theorem ofNat_div (m n : Nat) : ↑(m / n) = div ↑m ↑n := rfl
 
-theorem ofNat_fdiv : ∀ m n : Nat, ofNat (m / n) = (ofNat m).fdiv (ofNat n)
+theorem ofNat_fdiv : ∀ m n : Nat, ↑(m / n) = fdiv ↑m ↑n
   | 0, _ => by simp [fdiv]
   | succ _, _ => rfl
 
-@[simp, norm_cast] theorem ofNat_ediv (m n : Nat) : ofNat (m / n) = ofNat m / ofNat n := rfl
+@[simp, norm_cast] theorem ofNat_ediv (m n : Nat) : (↑(m / n) : Int) = ↑m / ↑n := rfl
 
 theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 1) :=
   match b, eq_succ_of_zero_lt H with
@@ -83,7 +83,7 @@ protected theorem div_def (a b : Int) : a / b = Int.ediv a b := rfl
 
 @[simp] protected theorem neg_div : ∀ a b : Int, (-a).div b = -(a.div b)
   | 0, n => by simp [Int.neg_zero]
-  | succ m, ofNat n | -[m+1], 0 | -[m+1], -[n+1] => rfl
+  | succ m, (n:Nat) | -[m+1], 0 | -[m+1], -[n+1] => rfl
   | succ m, -[n+1] | -[m+1], succ n => (Int.neg_neg _).symm
 
 protected theorem neg_div_neg (a b : Int) : (-a).div (-b) = a.div b := by
@@ -118,25 +118,25 @@ theorem ediv_neg' {a b : Int} (Ha : a < 0) (Hb : 0 < b) : a / b < 0 :=
   | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => negSucc_lt_zero _
 
 @[simp] protected theorem div_one : ∀ a : Int, a.div 1 = a
-  | ofNat n => congrArg ofNat (Nat.div_one _)
+  | (n:Nat) => congrArg ofNat (Nat.div_one _)
   | -[n+1] => by simp [Int.div, neg_ofNat_of_succ]
 
 @[simp] theorem fdiv_one : ∀ a : Int, a.fdiv 1 = a
   | 0 => rfl
-  | succ _ => congrArg ofNat (Nat.div_one _)
+  | succ _ => congrArg Nat.cast (Nat.div_one _)
   | -[_+1] => congrArg negSucc (Nat.div_one _)
 
 @[simp] theorem ediv_one : ∀ a : Int, a / 1 = a
-  | ofNat _ => congrArg ofNat (Nat.div_one _)
-  | -[_+1] => congrArg negSucc (Nat.div_one _)
+  | (_:Nat) => congrArg Nat.cast (Nat.div_one _)
+  | -[_+1]  => congrArg negSucc (Nat.div_one _)
 
 theorem div_eq_zero_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a.div b = 0 :=
   match a, b, eq_ofNat_of_zero_le H1, eq_succ_of_zero_lt (Int.lt_of_le_of_lt H1 H2) with
-  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg ofNat <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
+  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg Nat.cast <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
 
 theorem ediv_eq_zero_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a / b = 0 :=
   match a, b, eq_ofNat_of_zero_le H1, eq_succ_of_zero_lt (Int.lt_of_le_of_lt H1 H2) with
-  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg ofNat <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
+  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg Nat.cast <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
 
 theorem add_mul_ediv_right (a b : Int) {c : Int} (H : c ≠ 0) : (a + b * c) / c = a / c + b :=
   suffices ∀ {{a b c : Int}}, 0 < c → (a + b * c).ediv c = a.ediv c + b from
@@ -232,13 +232,13 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 
 theorem mod_def' (m n : Int) : m % n = emod m n := rfl
 
-theorem ofNat_mod (m n : Nat) : ofNat (m % n) = mod m n := rfl
+theorem ofNat_mod (m n : Nat) : (↑(m % n) : Int) = mod m n := rfl
 
-theorem ofNat_mod_ofNat (m n : Nat) : (m % n : Int) = ofNat (m % n) := rfl
+theorem ofNat_mod_ofNat (m n : Nat) : (m % n : Int) = ↑(m % n) := rfl
 
-theorem ofNat_fmod (m n : Nat) : ofNat (m % n) = fmod m n := by cases m <;> simp [fmod]
+theorem ofNat_fmod (m n : Nat) : ↑(m % n) = fmod m n := by cases m <;> simp [fmod]
 
-@[simp, norm_cast] theorem ofNat_emod (m n : Nat) : ofNat (m % n) = (m : Int) % n := rfl
+@[simp, norm_cast] theorem ofNat_emod (m n : Nat) : (↑(m % n) : Int) = m % n := rfl
 
 theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m % b := by
   rw [Int.sub_sub, Int.add_comm]
