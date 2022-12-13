@@ -40,8 +40,8 @@ def toNat' : Int → Option Nat
 
 There are three main conventions for integer division,
 referred here as the E, F, T rounding conventions.
-All three pairs satisfy the identity `x % y + (x / y) * y = x` when `y ≠ 0`,
-and `x / 0 = 0` and `x % 0 = x`.
+All three pairs satisfy the identity `x % y + (x / y) * y = x` unconditionally,
+and satisfy `x / 0 = 0` and `x % 0 = x`.
 -/
 
 /-! ### E-rounding division
