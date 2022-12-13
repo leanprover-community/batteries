@@ -28,22 +28,22 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   match b, eq_succ_of_zero_lt H with
   | _, ⟨_, rfl⟩ => rfl
 
-@[local simp] protected theorem zero_div : ∀ b : Int, div 0 b = 0
+@[simp] protected theorem zero_div : ∀ b : Int, div 0 b = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
-@[simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
+@[local simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
 @[simp] theorem zero_fdiv (b : Int) : fdiv 0 b = 0 := by cases b <;> rfl
 
--- Will be generalized to Euclidean domains.
-@[local simp] protected theorem div_zero : ∀ a : Int, div a 0 = 0
+@[simp] protected theorem div_zero : ∀ a : Int, div a 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
-@[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
+-- Will be generalized to Euclidean domains.
+@[local simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
@@ -337,10 +337,10 @@ theorem fmod_eq_mod {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fmod a b = mod a
 @[simp] theorem emod_neg (a b : Int) : a % -b = a % b := by
   rw [emod_def, emod_def, Int.ediv_neg, Int.neg_mul_neg]
 
-@[local simp] theorem mod_one (a : Int) : mod a 1 = 0 := by
+@[simp] theorem mod_one (a : Int) : mod a 1 = 0 := by
   simp [mod_def, Int.div_one, Int.one_mul, Int.sub_self]
 
-@[simp] theorem emod_one (a : Int) : a % 1 = 0 := by
+@[local simp] theorem emod_one (a : Int) : a % 1 = 0 := by
   simp [emod_def, Int.one_mul, Int.sub_self]
 
 @[simp] theorem fmod_one (a : Int) : a.fmod 1 = 0 := by
@@ -470,13 +470,13 @@ theorem mul_emod (a b n : Int) : (a * b) % n = (a % n) * (b % n) % n := by
     Int.mul_assoc, Int.mul_assoc, ← Int.mul_add n _ _, add_mul_emod_self_left,
     ← Int.mul_assoc, add_mul_emod_self]
 
-@[local simp] theorem mod_self {a : Int} : a.mod a = 0 := by
+@[simp] theorem mod_self {a : Int} : a.mod a = 0 := by
   have := mul_mod_left 1 a; rwa [Int.one_mul] at this
 
 @[simp] theorem fmod_self {a : Int} : a.fmod a = 0 := by
   have := mul_fmod_left 1 a; rwa [Int.one_mul] at this
 
-@[simp] theorem emod_self {a : Int} : a % a = 0 := by
+@[local simp] theorem emod_self {a : Int} : a % a = 0 := by
   have := mul_emod_left 1 a; rwa [Int.one_mul] at this
 
 @[simp] theorem emod_emod_of_dvd (n : Int) {m k : Int}
