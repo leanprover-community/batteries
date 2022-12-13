@@ -111,8 +111,8 @@ This pair satisfies `div x y = round_to_zero (x / y)`.
 Core Lean provides instances using T-rounding division, i.e. `Int.div` and `Int.mod`.
 We override these here.
 -/
-instance (priority := 1001) : Div Int := ⟨Int.ediv⟩
-instance (priority := 1001) : Mod Int := ⟨Int.emod⟩
+instance : Div Int := ⟨Int.ediv⟩
+instance : Mod Int := ⟨Int.emod⟩
 
 /-! ## gcd -/
 
