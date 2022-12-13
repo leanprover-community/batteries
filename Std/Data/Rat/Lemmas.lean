@@ -7,7 +7,7 @@ namespace Rat
 
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
-    { num := num / g, den := den / g, den_nz, reduced } := by
+    { num := num.div g, den := den / g, den_nz, reduced } := by
   unfold maybeNormalize; split
   · subst g; simp
   · rfl
