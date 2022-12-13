@@ -16,13 +16,13 @@ namespace Int
 
 /-! ### `/`  -/
 
-@[simp, norm_cast] theorem ofNat_div (m n : Nat) : ofNat (m / n) = (ofNat m).div (ofNat n) := rfl
+theorem ofNat_div (m n : Nat) : ofNat (m / n) = (ofNat m).div (ofNat n) := rfl
 
 theorem ofNat_fdiv : ∀ m n : Nat, ofNat (m / n) = (ofNat m).fdiv (ofNat n)
   | 0, _ => by simp [fdiv]
   | succ _, _ => rfl
 
-theorem ofNat_ediv (m n : Nat) : ofNat (m / n) = ofNat m / ofNat n := rfl
+@[simp, norm_cast] theorem ofNat_ediv (m n : Nat) : ofNat (m / n) = ofNat m / ofNat n := rfl
 
 theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 1) :=
   match b, eq_succ_of_zero_lt H with
@@ -226,13 +226,13 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 
 theorem mod_def' (m n : Int) : m % n = emod m n := rfl
 
-@[simp, norm_cast] theorem ofNat_mod (m n : Nat) : ofNat (m % n) = mod m n := rfl
+theorem ofNat_mod (m n : Nat) : ofNat (m % n) = mod m n := rfl
 
 theorem ofNat_mod_ofNat (m n : Nat) : (m % n : Int) = ofNat (m % n) := rfl
 
 theorem ofNat_fmod (m n : Nat) : ofNat (m % n) = fmod m n := by cases m <;> simp [fmod]
 
-theorem ofNat_emod (m n : Nat) : ofNat (m % n) = (m : Int) % n := rfl
+@[simp, norm_cast] theorem ofNat_emod (m n : Nat) : ofNat (m % n) = (m : Int) % n := rfl
 
 theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m % b := by
   rw [Int.sub_sub, Int.add_comm]
