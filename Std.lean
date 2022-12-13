@@ -1,4 +1,5 @@
 import Std.Classes.BEq
+import Std.Classes.Cast
 import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
 import Std.Classes.Order
