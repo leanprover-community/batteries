@@ -34,6 +34,9 @@ instance : Repr Rat where
 
 theorem Rat.den_pos (self : Rat) : 0 < self.den := Nat.pos_of_ne_zero self.den_nz
 
+-- Note: `Rat.normalize` uses `Int.div` internally,
+-- but we may want to refactor to use `/` (`Int.ediv`)
+
 /--
 Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational number,
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
