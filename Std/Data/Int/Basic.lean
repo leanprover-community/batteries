@@ -40,11 +40,9 @@ def toNat' : Int → Option Nat
 
 There are three main conventions for integer division,
 referred here as the E, F, T rounding conventions.
-All three pairs satisfy the identity x % y + (x / y) * y = x
-unconditionally.
+All three pairs satisfy the identity `x % y + (x / y) * y = x` unconditionally,
+and satisfy `x / 0 = 0` and `x % 0 = x`.
 -/
-
--- E-rounding (`div` and `mod` defined in core) satisfy 0 ≤ mod x y < natAbs y for y ≠ 0
 
 /-! ### E-rounding division
 
@@ -108,6 +106,13 @@ def fmod : Int → Int → Int
 This pair satisfies `div x y = round_to_zero (x / y)`.
 `Int.div` and `Int.mod` are defined in core lean.
 -/
+
+/--
+Core Lean provides instances using T-rounding division, i.e. `Int.div` and `Int.mod`.
+We override these here.
+-/
+instance : Div Int := ⟨Int.ediv⟩
+instance : Mod Int := ⟨Int.emod⟩
 
 /-! ## gcd -/
 
