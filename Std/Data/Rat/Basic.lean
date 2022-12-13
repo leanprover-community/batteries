@@ -39,20 +39,20 @@ Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational n
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
 -/
 @[inline] def Rat.maybeNormalize (num : Int) (den g : Nat)
-    (den_nz : den / g ≠ 0) (reduced : (num / g).natAbs.coprime (den / g)) : Rat :=
+    (den_nz : den / g ≠ 0) (reduced : (num.div g).natAbs.coprime (den / g)) : Rat :=
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
       reduced := by simp [hg, Int.natAbs_ofNat] at reduced; exact reduced }
-  else { num := num / g, den := den / g, den_nz, reduced }
+  else { num := num.div g, den := den / g, den_nz, reduced }
 
 theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
     (e : g = num.natAbs.gcd den) : den / g ≠ 0 :=
   e ▸ Nat.ne_of_gt (Nat.div_gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 theorem Rat.normalize.reduced {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.coprime (den / g) :=
-  have : Int.natAbs (num / ↑g) = num.natAbs / g := by
+    (e : g = num.natAbs.gcd den) : (num.div g).natAbs.coprime (den / g) :=
+  have : Int.natAbs (num.div ↑g) = num.natAbs / g := by
     match num, num.eq_nat_or_neg with
     | _, ⟨_, .inl rfl⟩ => rfl
     | _, ⟨_, .inr rfl⟩ => rw [Int.neg_div, Int.natAbs_neg, Int.natAbs_neg]; rfl
@@ -123,7 +123,7 @@ instance (a b : Rat) : Decidable (a ≤ b) :=
 protected def mul (a b : Rat) : Rat :=
   let g1 := Nat.gcd a.den b.num.natAbs
   let g2 := Nat.gcd a.num.natAbs b.den
-  { num := (a.num / g2) * (b.num / g1)
+  { num := (a.num.div g2) * (b.num.div g1)
     den := (b.den / g2) * (a.den / g1)
     den_nz := Nat.ne_of_gt <| Nat.mul_pos
       (Nat.div_gcd_pos_of_pos_right _ b.den_pos) (Nat.div_gcd_pos_of_pos_left _ a.den_pos)
