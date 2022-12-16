@@ -202,11 +202,11 @@ theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x := by simp
 
 theorem forall_mem_singleton {p : α → Prop} {a : α} : (∀ x ∈ [a], p x) ↔ p a := by
-  simp only [mem_singleton, forall_eq]; rfl
+  simp only [mem_singleton, forall_eq]
 
 theorem forall_mem_append {p : α → Prop} {l₁ l₂ : List α} :
     (∀ x ∈ l₁ ++ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) := by
-  simp only [mem_append, or_imp, forall_and]; rfl
+  simp only [mem_append, or_imp, forall_and]
 
 /-! ### List subset -/
 
@@ -243,7 +243,7 @@ theorem subset_append_of_subset_right (l₁ : List α) : l ⊆ l₂ → l ⊆ l�
 fun s => Subset.trans s <| subset_append_right _ _
 
 @[simp] theorem cons_subset : a :: l ⊆ m ↔ a ∈ m ∧ l ⊆ m := by
-  simp only [subset_def, mem_cons, or_imp, forall_and, forall_eq]; rfl
+  simp only [subset_def, mem_cons, or_imp, forall_and, forall_eq]
 
 @[simp] theorem append_subset {l₁ l₂ l : List α} :
     l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l := by simp [subset_def, or_imp, forall_and]

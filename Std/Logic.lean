@@ -177,10 +177,10 @@ theorem and_left_comm : a ∧ (b ∧ c) ↔ b ∧ (a ∧ c) := by
   rw [← and_assoc, ← and_assoc, @and_comm a b]
 
 theorem and_right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b := by
-  simp only [and_left_comm, and_comm]; rfl
+  simp only [and_left_comm, and_comm]
 
 theorem and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by
-  simp only [and_left_comm, and_comm]; rfl
+  simp only [and_left_comm, and_comm]
 
 theorem and_and_and_comm : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d := by
   rw [← and_assoc, @and_right_comm a, and_assoc]
@@ -216,7 +216,7 @@ theorem and_iff_right (ha : a) : a ∧ b ↔ b := and_iff_right_of_imp fun _ => 
   ⟨fun h ha => by simp [ha] at h; exact h, and_congr_right⟩
 
 @[simp] theorem and_congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) := by
-  simp only [and_comm, ← and_congr_right_iff]; rfl
+  simp only [and_comm, ← and_congr_right_iff]
 
 @[simp] theorem and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
   ⟨fun h => ⟨h.1, h.2.2⟩, fun h => ⟨h.1, h.1, h.2⟩⟩
@@ -280,7 +280,7 @@ theorem or_or_distrib_left : a ∨ b ∨ c ↔ (a ∨ b) ∨ a ∨ c := by rw [o
 
 theorem or_or_distrib_right : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b ∨ c := by rw [or_or_or_comm, or_self]
 
-theorem or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or_left_comm, Or.comm]; rfl
+theorem or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or_left_comm, Or.comm]
 
 theorem or_iff_right_of_imp (ha : a → b) : (a ∨ b) ↔ b := ⟨Or.rec ha id, .inr⟩
 
@@ -461,10 +461,10 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 
 -- this theorem is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a := by
-  simp only [or_imp, forall_and, forall_eq]; rfl
+  simp only [or_imp, forall_and, forall_eq]
 
 @[simp] theorem exists_eq_or_imp : (∃ a, (a = a' ∨ q a) ∧ p a) ↔ p a' ∨ ∃ a, q a ∧ p a := by
-  simp only [or_and_right, exists_or, exists_eq_left]; rfl
+  simp only [or_and_right, exists_or, exists_eq_left]
 
 @[simp] theorem exists_eq_right_right : (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b := by
   simp [← and_assoc]
@@ -574,7 +574,7 @@ theorem Decidable.iff_iff_and_or_not_and_not [Decidable b] : (a ↔ b) ↔ (a �
 
 theorem Decidable.iff_iff_not_or_and_or_not [Decidable a] [Decidable b] :
     (a ↔ b) ↔ (¬a ∨ b) ∧ (a ∨ ¬b) := by
-  rw [iff_iff_implies_and_implies a b]; simp only [imp_iff_not_or, Or.comm]; rfl
+  rw [iff_iff_implies_and_implies a b]; simp only [imp_iff_not_or, Or.comm]
 
 theorem Decidable.not_and_not_right [Decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
   ⟨fun h ha => not_imp_symm (And.intro ha) h, fun h ⟨ha, hb⟩ => hb <| h ha⟩
@@ -596,7 +596,7 @@ theorem Decidable.imp_iff_right_iff [Decidable a] : (a → b ↔ b) ↔ a ∨ b 
    fun H => H.elim imp_iff_right fun hb => iff_of_true (fun _ => hb) hb⟩
 
 theorem Decidable.and_or_imp [Decidable a] : a ∧ b ∨ (a → c) ↔ a → b ∨ c :=
-  if ha : a then by simp only [ha, true_and, true_imp_iff]; rfl
+  if ha : a then by simp only [ha, true_and, true_imp_iff]
   else by simp only [ha, false_or, false_and, false_imp_iff]
 
 theorem Decidable.or_congr_left' [Decidable c] (h : ¬c → (a ↔ b)) : a ∨ c ↔ b ∨ c := by
