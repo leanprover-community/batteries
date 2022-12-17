@@ -692,6 +692,8 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
 
 /-! ## miscellaneous -/
 
+attribute [simp] inline
+
 /-- Ex falso, the nondependent eliminator for the `Empty` type. -/
 def Empty.elim : Empty → C := fun.
 
