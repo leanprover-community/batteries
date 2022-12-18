@@ -297,3 +297,51 @@ termination_by _ => n - i
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
   getElem_ofFn_go _ _ _ (by simp) (by simp) fun.
+
+
+private theorem exists_of_anyM_loop_eq_true {α : Type u} (p : α → Bool) (as : Array α) (stop : Nat) (h : stop <= as.size) (i : Nat) :
+  anyM.loop (m := Id) p as stop h i = true → ∃ (j : Fin as.size), p as[j] = true := by
+  unfold anyM.loop
+  by_cases h_i : i < stop
+  case pos =>
+    intro h₂
+    have h_i₂ : i < as.size := Nat.lt_of_lt_of_le h_i h
+    by_cases h_p : p as[i]
+    case pos => exact ⟨⟨i, h_i₂⟩, h_p⟩
+    case neg => simp only [h_i, h_p] at h₂; exact exists_of_anyM_loop_eq_true p as stop h (i+1) h₂
+  case neg => simp [h_i]
+termination_by exists_of_anyM_loop_eq_true _ as _ _ i => (as.size - i)
+
+theorem exists_of_any_eq_true {α : Type u} (p : α → Bool) (as : Array α) : as.any p = true → ∃ (j : Fin as.size), p as[j] = true := by
+  simpa [any, anyM] using exists_of_anyM_loop_eq_true p as as.size (Nat.le_refl _) 0
+
+@[simp] theorem repeat_push_eq_push_repeat {α : Type u} (a : α) :
+  (n : Nat) → (as : Array α) → repeat.aux a (as.push a) n = (repeat.aux a as n).push a
+  | 0, _ => rfl
+  | n+1, as => repeat_push_eq_push_repeat a n (push as a)
+
+@[simp] theorem repeat_size (a : α) : (n : Nat) → («repeat» a n).size = n
+  | 0 => rfl
+  | n+1 => by simpa [«repeat», repeat.aux] using repeat_size a n
+
+theorem repeat_forall_eq' {α : Type u} (a : α) :
+  ∀ {n i : Nat}, (h : i < n) → («repeat» a n)[i]'((repeat_size a n).symm ▸ h) = a
+  | 0, i, h => False.elim <| Nat.not_lt_zero _ h
+  | n+1, i, h =>
+    if h_eq : i = n
+    then by
+      have h_get_push := get_push_eq (repeat.aux a #[] n) a
+      have hsz : size (repeat.aux a #[] n) = n := repeat_size a n
+      conv => rhs; rw [← h_get_push]
+      simp [«repeat», repeat.aux, hsz, h_eq]
+    else by
+      have hlt : i < n := Nat.lt_of_le_of_ne (Nat.le_of_lt_succ h) h_eq
+      have ih := repeat_forall_eq' a hlt
+      have hLem := get_push_lt (repeat.aux a #[] n) a i ((repeat_size a n).symm ▸ hlt)
+      simpa [«repeat», repeat.aux, hLem]
+
+theorem repeat_forall_eq {α : Type u} (a : α) : (n : Nat) → (i : Fin («repeat» a n).size) → («repeat» a n)[i] = a :=
+  fun n i => by simpa [repeat_size a n] using (@repeat_forall_eq' _ a («repeat» a n).size i.val i.isLt)
+
+theorem Array.beq_of_repeat_contains {α : Type u} [BEq α] {a x : α} (n : Nat) : («repeat» a n).contains x → x == a :=
+  fun h => let ⟨j, hj⟩ := (exists_of_any_eq_true (x == ·) («repeat» a n)) h; (repeat_forall_eq a n j ▸ hj)

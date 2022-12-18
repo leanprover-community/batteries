@@ -29,3 +29,11 @@ def flatten (arr : Array (Array α)) : Array α :=
 /-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
 def zipWithIndex (arr : Array α) : Array (α × Nat) :=
   arr.mapIdx fun i a => (a, i)
+
+/-- Seeds an array with `n` copies of a `a`. Tail-recursive, reserves a capacity of `n` -/
+def «repeat» {α : Type u} (a : α) (n : Nat) : Array α :=
+  let rec aux (as : Array α) (n : Nat) : Array α :=
+    match n with
+    | 0 => as
+    | n+1 => aux (as.push a) n
+  aux (Array.mkEmpty n) n
