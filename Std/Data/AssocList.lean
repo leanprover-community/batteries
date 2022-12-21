@@ -163,7 +163,7 @@ with key equal to `a` to have key `a` and value `b`.
 
 @[simp] theorem replace_toList [BEq α] (a : α) (b : β) (l : AssocList α β) :
     (replace a b l).toList =
-    l.toList.replaceF (bif ·.1 == a then (a, b) else none) := by
+    l.toList.replaceF (bif ·.1 == a then some (a, b) else none) := by
   induction l <;> simp [replace]; split <;> simp [*]
 
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
