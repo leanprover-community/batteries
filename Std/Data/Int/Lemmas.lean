@@ -1399,7 +1399,7 @@ theorem toNat_add_nat {a : Int} (ha : 0 ≤ a) (n : Nat) : (a + n).toNat = a.toN
   | (_+1:Nat) => Int.sub_zero _
   | -[_+1] => Int.zero_sub _
 
-@[simp] theorem toNat_add_toNat_neg_eq_nat_abs : ∀ n : Int, n.toNat + (-n).toNat = n.natAbs
+@[simp] theorem toNat_add_toNat_neg_eq_natAbs : ∀ n : Int, n.toNat + (-n).toNat = n.natAbs
   | 0 => rfl
   | (_+1:Nat) => Nat.add_zero _
   | -[_+1] => Nat.zero_add _
