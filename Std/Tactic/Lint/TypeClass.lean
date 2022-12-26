@@ -43,6 +43,7 @@ private def getOutParamPositionsOf (classTy : Expr) : CoreM (Array Nat) := do
   let .const className _ := classTy.getAppFn | return #[]
   if className == ``CoeHead then return #[1]
   if className == ``CoeTail then return #[0]
+  if className == ``CoeOut then return #[1]
   if className == ``Coe then return #[0]
   if className == ``MonadLift then return #[0]
   if className == ``MonadFunctor then return #[0]

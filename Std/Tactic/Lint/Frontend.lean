@@ -105,7 +105,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
     pure (linter, msgs)
 
 /-- Sorts a map with declaration keys as names by line number. -/
-def sortResults {α} [Inhabited α] (results : HashMap Name α) : CoreM <| Array (Name × α) := do
+def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   let mut key : HashMap Name Nat := {}
   for (n, _) in results.toArray do
     if let some range ← findDeclarationRanges? n then
