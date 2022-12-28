@@ -14,6 +14,7 @@ subsumes the others, by showing that `insert` and `erase` satisfy the red-black 
 -/
 
 namespace Std
+open OrientedCmp TransCmp
 
 namespace RBNode
 open RBColor
@@ -28,7 +29,7 @@ theorem All_and {t : RBNode α} : t.All (fun a => p a ∧ q a) ↔ t.All p ∧ t
   induction t <;> simp [*, and_assoc, and_left_comm]
 
 theorem cmpLT.trans (h₁ : cmpLT cmp x y) (h₂ : cmpLT cmp y z) : cmpLT cmp x z :=
-  ⟨TransCmp.lt_trans h₁.1 h₂.1⟩
+  ⟨cmp_lt_trans h₁.1 h₂.1⟩
 
 theorem cmpLT.trans_l {cmp x y} (H : cmpLT cmp x y) {t : RBNode α}
     (h : t.All (cmpLT cmp y ·)) : t.All (cmpLT cmp x ·) := h.imp fun h => H.trans h
@@ -37,10 +38,11 @@ theorem cmpLT.trans_r {cmp x y} (H : cmpLT cmp x y) {a : RBNode α}
     (h : a.All (cmpLT cmp · x)) : a.All (cmpLT cmp · y) := h.imp fun h => h.trans H
 
 theorem cmpEq.lt_congr_left (H : cmpEq cmp x y) : cmpLT cmp x z ↔ cmpLT cmp y z :=
-  ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩⟩
+  ⟨fun ⟨h⟩ => ⟨cmp_congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨cmp_congr_left H.1 ▸ h⟩⟩
 
+--set_option warningAsError false in
 theorem cmpEq.lt_congr_right (H : cmpEq cmp y z) : cmpLT cmp x y ↔ cmpLT cmp x z :=
-  ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩⟩
+  ⟨fun ⟨h⟩ => ⟨cmp_congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨cmp_congr_right H.1 ▸ h⟩⟩
 
 /-- The `balance1` function preserves the ordering invariants. -/
 protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
@@ -100,17 +102,17 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
     · next h => exact ⟨ay.ins ⟨h⟩, yb, ha.ins, hb⟩
-    · next h => exact ⟨ay, yb.ins ⟨OrientedCmp.cmp_eq_gt.1 h⟩, ha, hb.ins⟩
+    · next h => exact ⟨ay, yb.ins ⟨cmp_gt_lt_symm.1 h⟩, ha, hb.ins⟩
     · next h => exact (⟨
-        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+        ay.imp fun ⟨h'⟩ => ⟨(cmp_congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(cmp_congr_left h).trans h'⟩, ha, hb⟩)
   | node black a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
     · next h => exact ha.ins.balance1 (ay.ins ⟨h⟩) yb hb
-    · next h => exact ha.balance2 ay (yb.ins ⟨OrientedCmp.cmp_eq_gt.1 h⟩) hb.ins
+    · next h => exact ha.balance2 ay (yb.ins ⟨cmp_gt_lt_symm.1 h⟩) hb.ins
     · next h => exact (⟨
-        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+        ay.imp fun ⟨h'⟩ => ⟨(cmp_congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(cmp_congr_left h).trans h'⟩, ha, hb⟩)
 
 /-- The `insert` function preserves the ordering invariants. -/
 protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
@@ -528,10 +530,10 @@ We extract this as a function so that `IsMonotone (mapSnd f)` can be an instance
 instance (cmp : α → α → Ordering) (f : α → β → γ) :
     IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
   lt_mono | ⟨h⟩ => ⟨@fun _ => @h {
-    symm := fun (a₁, b₁) (a₂, b₂) =>
-      OrientedCmp.symm (cmp := byKey Prod.fst cmp) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
-    le_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
-      TransCmp.le_trans (cmp := byKey Prod.fst cmp)
+    cmp_swap_symm := fun (a₁, b₁) (a₂, b₂) =>
+      cmp_swap_symm (cmp := byKey Prod.fst cmp) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
+    cmp_le_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
+      cmp_le_trans (cmp := byKey Prod.fst cmp)
         (x := (a₁, f a₁ b₁)) (y := (a₂, f a₂ b₂)) (z := (a₃, f a₃ b₃))
   }⟩
 
