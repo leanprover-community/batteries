@@ -89,15 +89,16 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
   let s ← saveState
   for lem in ← getExtLemmas ty do
     try
-      let c ← mkConstWithFreshMVarLevels lem
       -- Note: We have to do this extra check to ensure that we don't apply e.g.
       -- funext to a goal `(?a₁ : ?b) = ?a₂` to produce `(?a₁ x : ?b') = ?a₂ x`,
       -- since this will loop.
       -- We require that the type of the equality is not changed by the `goal.apply c` line
+      -- TODO: add flag to apply tactic to toggle unification vs. matching
       withNewMCtxDepth do
+        let c ← mkConstWithFreshMVarLevels lem
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
-      return ← goal.apply c
+      return ← goal.apply (← mkConstWithFreshMVarLevels lem)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 

@@ -308,6 +308,11 @@ theorem mul_eq_zero {n m : Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 :=
     | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
    fun | .inl h | .inr h => by simp [h]⟩
 
+protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by simp [mul_eq_zero, not_or]
+
+protected theorem mul_ne_zero (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0 :=
+  Nat.mul_ne_zero_iff.2 ⟨n0, m0⟩
+
 /- properties of inequality -/
 
 theorem le_succ_of_pred_le {n m : Nat} : pred n ≤ m → n ≤ succ m :=
@@ -606,8 +611,11 @@ protected theorem div_div_eq_div_mul (m n k : Nat) : m / n / k = m / (n * k) := 
     apply (le_div_iff_mul_le (Nat.mul_pos kpos npos)).1
     apply Nat.le_refl
 
-protected theorem mul_div_mul {m : Nat} (n k : Nat) (H : 0 < m) : m * n / (m * k) = n / k := by
-  rw [← Nat.div_div_eq_div_mul, Nat.mul_div_cancel_left _ H]
+protected theorem mul_div_mul_left {m : Nat} (n k : Nat) (H : 0 < m) :
+    m * n / (m * k) = n / k := by rw [← Nat.div_div_eq_div_mul, Nat.mul_div_cancel_left _ H]
+
+protected theorem mul_div_mul_right {m : Nat} (n k : Nat) (H : 0 < m) :
+    n * m / (k * m) = n / k := by rw [Nat.mul_comm, Nat.mul_comm k, Nat.mul_div_mul_left _ _ H]
 
 theorem mul_div_le (m n : Nat) : n * (m / n) ≤ m := by
   match n, Nat.eq_zero_or_pos n with

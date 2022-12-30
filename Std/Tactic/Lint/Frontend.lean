@@ -10,34 +10,35 @@ import Std.Tactic.Lint.Basic
 
 This file defines the linter commands which spot common mistakes in the code.
 * `#lint`: check all declarations in the current file
-* `#lint Pkg`: check all declarations in the package `Pkg` (so excluding core or other projects,
-  and also excluding the current file)
-* `#lint all`: check all declarations in the environment (the current file and all
-  imported files)
+* `#lint in Pkg`: check all declarations in the package `Pkg`
+  (so excluding core or other projects, and also excluding the current file)
+* `#lint in all`: check all declarations in the environment
+  (the current file and all imported files)
 
 For a list of default / non-default linters, see the "Linting Commands" user command doc entry.
 
 The command `#list_linters` prints a list of the names of all available linters.
 
-You can append a `*` to any command (e.g. `#lint Std*`) to omit the slow tests (4).
+You can append a `*` to any command (e.g. `#lint* in Std`) to omit the slow tests.
 
-You can append a `-` to any command (e.g. `#lint Std-`) to run a silent lint
+You can append a `-` to any command (e.g. `#lint- in Std`) to run a silent lint
 that suppresses the output if all checks pass.
 A silent lint will fail if any test fails.
 
-You can append a `+` to any command (e.g. `#lint Std+`) to run a verbose lint
+You can append a `+` to any command (e.g. `#lint+ in Std`) to run a verbose lint
 that reports the result of each linter, including  the successes.
 
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
 
 You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
-`#lint only unused_arguments`
+`#lint only unused_arguments in Std`
 
-You can add custom linters by defining a term of type `Linter` in the `Std.Tactic.Lint` namespace.
+You can add custom linters by defining a term of type `Linter` with the `@[std_linter]` namespace.
 A linter defined with the name `Std.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
-or `lint only myNewCheck`.
-If you add the attribute `@[stdLinter]` to `linter.myNewCheck` it will run by default.
+or `#lint only myNewCheck`.
+If you add the attribute `@[std_linter disabled]` to `linter.myNewCheck` it will be registered,
+but not run by default.
 
 Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
 omits it from only the specified linter checks.
@@ -104,7 +105,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
     pure (linter, msgs)
 
 /-- Sorts a map with declaration keys as names by line number. -/
-def sortResults {α} [Inhabited α] (results : HashMap Name α) : CoreM <| Array (Name × α) := do
+def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   let mut key : HashMap Name Nat := {}
   for (n, _) in results.toArray do
     if let some range ← findDeclarationRanges? n then
@@ -186,18 +187,23 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
       decls.push declName
     else decls
 
+/-- The `in foo` config argument allows running the linter on a specified project. -/
+syntax inProject := " in " ident
+
 open Elab Command in
 /-- The command `#lint` runs the linters on the current file (by default). -/
-elab tk:"#lint" project:(ident)? verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
-    linters:(ppSpace ident)* : command => do
+elab tk:"#lint" verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
+    linters:(ppSpace ident)* project:(inProject)? : command => do
   let (decls, whereDesc, groupByFilename) ← match project with
     | none => do pure (← liftCoreM getDeclsInCurrModule, "in the current file", false)
-    | some id => do
-      let id := id.getId.eraseMacroScopes
-      if id == `all then
-        pure (← liftCoreM getAllDecls, "in all files", true)
-      else
-        pure (← liftCoreM (getDeclsInPackage id), s!"in {id}", true)
+    | some cfg => match cfg with
+      | `(inProject| in $id) =>
+        let id := id.getId.eraseMacroScopes
+        if id == `all then
+          pure (← liftCoreM getAllDecls, "in all files", true)
+        else
+          pure (← liftCoreM (getDeclsInPackage id), s!"in {id}", true)
+      | _ => throwUnsupportedSyntax
   let verbosity : LintVerbosity ← match verbosity with
     | none => pure .medium
     | some ⟨.node _ `token.«+» _⟩ => pure .high
