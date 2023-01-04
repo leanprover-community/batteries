@@ -768,7 +768,7 @@ def initsTR (l : List α) : List (List α) :=
   l.foldr (fun a arrs => (arrs.map fun t => a :: t).push []) #[[]] |>.toListRev
 
 @[csimp] theorem inits_eq_initsTR : @inits = @initsTR := by
-  funext α l; simp [initsTR]; induction l <;> simp [*]
+  funext α l; simp [initsTR]; induction l <;> simp [*, reverse_map]
 
 /--
 `tails l` is the list of terminal segments of `l`.
