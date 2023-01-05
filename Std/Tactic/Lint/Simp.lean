@@ -38,7 +38,8 @@ def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
   | h :: hs => do
     let ldecl ← getFVarLocalDecl h
     if !ldecl.binderInfo.isInstImplicit
-        && !(← hs.anyM fun h' => do pure $ (← inferType h').containsFVar h.fvarId!)
+        && !(← hs.anyM fun h' =>
+          return (← inferType h').consumeTypeAnnotations.containsFVar h.fvarId!)
         && !lhs.containsFVar h.fvarId! then
       return true
     isConditionalHyps lhs hs
