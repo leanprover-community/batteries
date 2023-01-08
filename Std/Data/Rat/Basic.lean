@@ -251,13 +251,11 @@ protected def floor (a : Rat) : Int :=
   if a.den = 1 then
     a.num
   else
-    let r := a.num / a.den
-    if a.num < 0 then r - 1 else r
+    a.num / a.den
 
 /-- The ceiling of a rational number `a` is the smallest integer greater than or equal to `a`. -/
 protected def ceil (a : Rat) : Int :=
   if a.den = 1 then
     a.num
   else
-    let r := a.num / a.den
-    if a.num > 0 then r + 1 else r
+    a.num / a.den + 1
