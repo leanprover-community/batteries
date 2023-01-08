@@ -247,7 +247,15 @@ protected def sub (a b : Rat) : Rat :=
 instance : Sub Rat := ⟨Rat.sub⟩
 
 /-- The floor of a rational number `a` is the largest integer less than or equal to `a`. -/
-protected def floor (a : Rat) : Int := a.num / a.den
+protected def floor (a : Rat) : Int :=
+  if a.den = 1 then
+    a.num
+  else
+    a.num / a.den
 
 /-- The ceiling of a rational number `a` is the smallest integer greater than or equal to `a`. -/
-protected def ceil (a : Rat) : Int := -(-a).floor
+protected def ceil (a : Rat) : Int :=
+  if a.den = 1 then
+    a.num
+  else
+    a.num / a.den + 1
