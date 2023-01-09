@@ -21,6 +21,21 @@ instance [NatCast R] : CoeTail Nat R where coe := Nat.cast
 -- see note [coercion into rings]
 instance [NatCast R] : CoeHTCT Nat R where coe := Nat.cast
 
+/-- Type class for the canonical homomorphism `Int → R`. -/
+class IntCast (R : Type u) where
+  /-- The canonical map `Int → R`. -/
+  protected intCast : Int → R
+
+/-- Canonical homomorphism from `Int` to a additive group `R` with a `1`.
+This is just the bare function in order to aid in creating instances of `AddGroupWithOne`. -/
+@[coe, match_pattern] protected def Int.cast {R : Type u} [IntCast R] : Int → R := IntCast.intCast
+
+-- see note [coercion into rings]
+instance [IntCast R] : CoeTail Int R where coe := Int.cast
+
+-- see note [coercion into rings]
+instance [IntCast R] : CoeHTCT Int R where coe := Int.cast
+
 library_note "coercion into rings"
 /--
 Coercions such as `Nat.castCoe` that go from a concrete structure such as

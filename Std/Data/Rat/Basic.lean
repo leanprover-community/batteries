@@ -85,9 +85,9 @@ def mkRat (num : Int) (den : Nat) : Rat :=
 namespace Rat
 
 /-- Embedding of `Int` in the rational numbers. -/
-@[coe] def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
+def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
 
-instance : Coe Int Rat := ⟨ofInt⟩
+instance : IntCast Rat := ⟨ofInt⟩
 
 instance : OfNat Rat n := ⟨n⟩
 
