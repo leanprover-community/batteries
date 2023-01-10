@@ -91,9 +91,8 @@ not contain duplicates. If an element appears in both `xs` and `ys`, only one
 copy is kept.
 -/
 @[inline]
-def mergeSortedDeduplicating [ord : Ord α] (xs ys : Array α) :
-    Array α :=
-  mergeSortedMergingDuplicates (ord := ord) xs ys λ x _ => x
+def mergeSortedDeduplicating [ord : Ord α] (xs ys : Array α) : Array α :=
+  mergeSortedMergingDuplicates (ord := ord) xs ys fun x _ => x
 
 set_option linter.unusedVariables false in
 /--
@@ -101,8 +100,7 @@ Merge `xs` and `ys`, which do not need to be sorted. Elements which occur in
 both `xs` and `ys` are only added once. If `xs` and `ys` do not contain
 duplicates, then neither does the result. O(n*m)!
 -/
-def mergeUnsortedDeduplicating [eq : BEq α] (xs ys : Array α) :
-    Array α :=
+def mergeUnsortedDeduplicating [eq : BEq α] (xs ys : Array α) : Array α :=
   -- Ideally we would check whether `xs` or `ys` have spare capacity, to prevent
   -- copying if possible. But Lean arrays don't expose their capacity.
   if xs.size < ys.size then go ys xs else go xs ys
@@ -111,7 +109,7 @@ where
   @[inline]
   go (xs ys : Array α) :=
     let xsSize := xs.size
-    ys.foldl (init := xs) λ xs y =>
+    ys.foldl (init := xs) fun xs y =>
       if xs[:xsSize].contains y then xs else xs.push y
 
 /--
@@ -139,13 +137,13 @@ Deduplicate a sorted array. The array must be sorted with to an order which
 agrees with `==`, i.e. whenever `x == y` then `compare x y == .eq`.
 -/
 def deduplicateSorted [eq : BEq α] (xs : Array α) : Array α :=
-  xs.mergeAdjacentDuplicates (eq := eq) (λ x _ => x)
+  xs.mergeAdjacentDuplicates (eq := eq) fun x _ => x
 
 /--
 Sort and deduplicate an array.
 -/
-def sortAndDeduplicate [Inhabited α] [ord : Ord α] (xs : Array α) : Array α :=
+def sortAndDeduplicate [ord : Ord α] (xs : Array α) : Array α :=
   have := ord.toBEq
-  deduplicateSorted $ xs.qsort (compare · · |>.isLT)
+  deduplicateSorted <| xs.qsort (compare · · |>.isLT)
 
 end Array
