@@ -113,7 +113,7 @@ theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
 theorem reverseAux_eq (as bs : List α) : reverseAux as bs = reverse as ++ bs :=
   reverseAux_eq_append ..
 
-@[simp] theorem reverse_map (f : α → β) (l : List α) : (l.map f).reverse = l.reverse.map f := by
+theorem reverse_map (f : α → β) (l : List α) : (l.map f).reverse = l.reverse.map f := by
   induction l <;> simp [*]
 
 /-! ### take and drop -/

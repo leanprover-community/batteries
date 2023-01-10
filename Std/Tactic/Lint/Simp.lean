@@ -38,7 +38,8 @@ def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
   | h :: hs => do
     let ldecl ← getFVarLocalDecl h
     if !ldecl.binderInfo.isInstImplicit
-        && !(← hs.anyM fun h' => do pure $ (← inferType h').containsFVar h.fvarId!)
+        && !(← hs.anyM fun h' =>
+          return (← inferType h').consumeTypeAnnotations.containsFVar h.fvarId!)
         && !lhs.containsFVar h.fvarId! then
       return true
     isConditionalHyps lhs hs
@@ -90,16 +91,15 @@ open Std
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
-open TSyntax.Compat in
-/-- Render the list of simp lemmas as a `Syntax`. -/
-def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM Syntax := do
-  let mut args : Array Syntax := #[]
+/-- Render the list of simp lemmas. -/
+def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM MessageData := do
+  let mut args := #[]
   let env ← getEnv
   for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
     if let .decl declName := thm then
       if env.contains declName && declName != ``eq_self then
-        args := args.push (mkIdent (← unresolveNameGlobal declName))
-  `(tactic| simp only [$[$args:ident],*])
+        args := args.push (← mkConstWithFreshMVarLevels declName)
+  return m!"simp only {args.toList}"
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[std_linter] def simpNF : Linter where
@@ -227,6 +227,8 @@ Some commutativity lemmas are simp lemmas:"
     let some (lhs', rhs') := ty'.eqOrIff? | return none
     unless ← isDefEq rhs lhs' do return none
     unless ← withNewMCtxDepth (isDefEq rhs lhs') do return none
+    -- make sure that the discrimination tree will actually find this match (see #69)
+    if (← (← DiscrTree.empty.insert (s := true) rhs ()).getMatch lhs').isEmpty then return none
     -- ensure that the second application makes progress:
     if ← isDefEq lhs' rhs' then return none
     pure m!"should not be marked simp"

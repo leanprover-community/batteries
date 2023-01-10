@@ -202,11 +202,11 @@ theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x := by simp
 
 theorem forall_mem_singleton {p : α → Prop} {a : α} : (∀ x ∈ [a], p x) ↔ p a := by
-  simp only [mem_singleton, forall_eq]; rfl
+  simp only [mem_singleton, forall_eq]
 
 theorem forall_mem_append {p : α → Prop} {l₁ l₂ : List α} :
     (∀ x ∈ l₁ ++ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) := by
-  simp only [mem_append, or_imp, forall_and]; rfl
+  simp only [mem_append, or_imp, forall_and]
 
 /-! ### List subset -/
 
@@ -243,7 +243,7 @@ theorem subset_append_of_subset_right (l₁ : List α) : l ⊆ l₂ → l ⊆ l�
 fun s => Subset.trans s <| subset_append_right _ _
 
 @[simp] theorem cons_subset : a :: l ⊆ m ↔ a ∈ m ∧ l ⊆ m := by
-  simp only [subset_def, mem_cons, or_imp, forall_and, forall_eq]; rfl
+  simp only [subset_def, mem_cons, or_imp, forall_and, forall_eq]
 
 @[simp] theorem append_subset {l₁ l₂ l : List α} :
     l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l := by simp [subset_def, or_imp, forall_and]
@@ -402,16 +402,17 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 @[simp] theorem getLastD_nil (a) : @getLastD α [] a = a := rfl
 @[simp] theorem getLastD_cons (a b l) : @getLastD α (b::l) a = getLastD l b := by cases l <;> rfl
 
-@[simp] theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
+theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
   cases l <;> rfl
 
 theorem getLast_singleton (a h) : @getLast α [a] h = a := rfl
 
-@[simp] theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
-  simp [getLast!]
+theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
+  simp [getLast!, getLast_eq_getLastD]
 
 @[simp] theorem getLast?_nil : @getLast? α [] = none := rfl
-@[simp] theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by simp [getLast?]
+theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by
+  simp [getLast?, getLast_eq_getLastD]
 
 theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
   | [], h => nomatch h rfl

@@ -14,6 +14,9 @@ Rational numbers, implemented as a pair of integers `num / den` such that the
 denominator is positive and the numerator and denominator are coprime.
 -/
 @[ext] structure Rat where
+  /-- Constructs a rational number from components.
+  We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
+  mk' ::
   /-- The numerator of the rational number is an integer. -/
   num : Int
   /-- The denominator of the rational number is a natural number. -/
@@ -34,25 +37,28 @@ instance : Repr Rat where
 
 theorem Rat.den_pos (self : Rat) : 0 < self.den := Nat.pos_of_ne_zero self.den_nz
 
+-- Note: `Rat.normalize` uses `Int.div` internally,
+-- but we may want to refactor to use `/` (`Int.ediv`)
+
 /--
 Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational number,
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
 -/
 @[inline] def Rat.maybeNormalize (num : Int) (den g : Nat)
-    (den_nz : den / g ≠ 0) (reduced : (num / g).natAbs.coprime (den / g)) : Rat :=
+    (den_nz : den / g ≠ 0) (reduced : (num.div g).natAbs.coprime (den / g)) : Rat :=
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
       reduced := by simp [hg, Int.natAbs_ofNat] at reduced; exact reduced }
-  else { num := num / g, den := den / g, den_nz, reduced }
+  else { num := num.div g, den := den / g, den_nz, reduced }
 
 theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
     (e : g = num.natAbs.gcd den) : den / g ≠ 0 :=
   e ▸ Nat.ne_of_gt (Nat.div_gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 theorem Rat.normalize.reduced {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.coprime (den / g) :=
-  have : Int.natAbs (num / ↑g) = num.natAbs / g := by
+    (e : g = num.natAbs.gcd den) : (num.div g).natAbs.coprime (den / g) :=
+  have : Int.natAbs (num.div ↑g) = num.natAbs / g := by
     match num, num.eq_nat_or_neg with
     | _, ⟨_, .inl rfl⟩ => rfl
     | _, ⟨_, .inr rfl⟩ => rw [Int.neg_div, Int.natAbs_neg, Int.natAbs_neg]; rfl
@@ -88,6 +94,13 @@ instance : OfNat Rat n := ⟨n⟩
 /-- Is this rational number integral? -/
 @[inline] protected def isInt (a : Rat) : Bool := a.den == 1
 
+/-- Form the quotient `n / d` where `n d : Int`. -/
+def divInt : Int → Int → Rat
+  | n, .ofNat d => inline (mkRat n d)
+  | n, .negSucc d => normalize (-n) d.succ (fun.)
+
+@[inherit_doc] scoped infixl:70 " /. " => Rat.divInt
+
 /-- Implements "scientific notation" `123.4e-5` for rational numbers. -/
 protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
   if s then
@@ -121,21 +134,21 @@ instance (a b : Rat) : Decidable (a ≤ b) :=
 
 /-- Multiplication of rational numbers. -/
 protected def mul (a b : Rat) : Rat :=
-  let g1 := Nat.gcd a.den b.num.natAbs
-  let g2 := Nat.gcd a.num.natAbs b.den
-  { num := (a.num / g2) * (b.num / g1)
-    den := (b.den / g2) * (a.den / g1)
+  let g1 := Nat.gcd a.num.natAbs b.den
+  let g2 := Nat.gcd b.num.natAbs a.den
+  { num := (a.num.div g1) * (b.num.div g2)
+    den := (a.den / g2) * (b.den / g1)
     den_nz := Nat.ne_of_gt <| Nat.mul_pos
-      (Nat.div_gcd_pos_of_pos_right _ b.den_pos) (Nat.div_gcd_pos_of_pos_left _ a.den_pos)
+      (Nat.div_gcd_pos_of_pos_right _ a.den_pos) (Nat.div_gcd_pos_of_pos_right _ b.den_pos)
     reduced := by
       simp only [Int.natAbs_mul, Int.natAbs_div, Nat.coprime_mul_iff_left]
       refine ⟨Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩, Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩⟩
-      · exact Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_right _ b.den_pos)
       · exact a.reduced.coprime_div_left (Nat.gcd_dvd_left ..)
-          |>.coprime_div_right (Nat.gcd_dvd_left ..)
-      · exact b.reduced.coprime_div_left (Nat.gcd_dvd_right ..)
           |>.coprime_div_right (Nat.gcd_dvd_right ..)
-      · exact (Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_left _ a.den_pos)).symm }
+      · exact Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_right _ b.den_pos)
+      · exact Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_right _ a.den_pos)
+      · exact b.reduced.coprime_div_left (Nat.gcd_dvd_left ..)
+          |>.coprime_div_right (Nat.gcd_dvd_right ..) }
 
 instance : Mul Rat := ⟨Rat.mul⟩
 
@@ -157,7 +170,7 @@ instance : Div Rat := ⟨(· * ·.inv)⟩
 
 theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     (had : ad = a.den / g) (hbd : bd = b.den / g) :
-    let den := ad * b.den; let num := bd * a.num + ad * b.num
+    let den := ad * b.den; let num := a.num * bd + b.num * ad
     num.natAbs.gcd g = num.natAbs.gcd den := by
   intro den num
   have ae : ad * g = a.den := had ▸ Nat.div_mul_cancel (hg ▸ Nat.gcd_dvd_left ..)
@@ -167,19 +180,19 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
   have cop : ad.coprime bd := had ▸ hbd ▸ hg ▸
     Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_left _ a.den_pos)
   have H1 (d : Nat) :
-      d.gcd num.natAbs ∣ bd * a.num.natAbs ↔ d.gcd num.natAbs ∣ ad * b.num.natAbs := by
+      d.gcd num.natAbs ∣ a.num.natAbs * bd ↔ d.gcd num.natAbs ∣ b.num.natAbs * ad := by
     have := d.gcd_dvd_right num.natAbs
     rw [← Int.ofNat_dvd, Int.dvd_natAbs] at this
     have := Int.dvd_iff_dvd_of_dvd_add this
     rwa [← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul,
       ← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul] at this
   apply Nat.coprime.mul
-  · have := (H1 ad).2 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_right ..)
-    have := (cop.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_left this
+  · have := (H1 ad).2 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_left ..)
+    have := (cop.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_right this
     exact Nat.eq_one_of_dvd_one <| a.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|
       Nat.dvd_trans (Nat.gcd_dvd_left ..) (ae ▸ Nat.dvd_mul_right ..)
-  · have := (H1 bd).1 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_right ..)
-    have := (cop.symm.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_left this
+  · have := (H1 bd).1 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_left ..)
+    have := (cop.symm.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_right this
     exact Nat.eq_one_of_dvd_one <| b.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|
       Nat.dvd_trans (Nat.gcd_dvd_left ..) (be ▸ Nat.dvd_mul_right ..)
 
@@ -190,10 +203,10 @@ protected def add (a b : Rat) : Rat :=
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos a.den_pos b.den_pos
     have reduced := add.aux a b hg.symm (Nat.div_one _).symm (Nat.div_one _).symm
       |>.symm.trans (Nat.gcd_one_right _)
-    { num := b.den * a.num + a.den * b.num, den := a.den * b.den, den_nz, reduced }
+    { num := a.num * b.den + b.num * a.den, den := a.den * b.den, den_nz, reduced }
   else
     let den := (a.den / g) * b.den
-    let num := ↑(b.den / g) * a.num + ↑(a.den / g) * b.num
+    let num := a.num * ↑(b.den / g) + b.num * ↑(a.den / g)
     let g1  := num.natAbs.gcd g
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos (Nat.div_gcd_pos_of_pos_left _ a.den_pos) b.den_pos
     have e : g1 = num.natAbs.gcd den := add.aux a b rfl rfl rfl
@@ -209,10 +222,10 @@ instance : Neg Rat := ⟨Rat.neg⟩
 
 theorem sub.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     (had : ad = a.den / g) (hbd : bd = b.den / g) :
-    let den := ad * b.den; let num := bd * a.num - ad * b.num
+    let den := ad * b.den; let num := a.num * bd - b.num * ad
     num.natAbs.gcd g = num.natAbs.gcd den := by
   have := add.aux a (-b) hg had hbd
-  simp only [show (-b).num = -b.num from rfl, Int.mul_neg] at this
+  simp only [show (-b).num = -b.num from rfl, Int.neg_mul] at this
   exact this
 
 /-- Subtraction of rational numbers. -/
@@ -222,10 +235,10 @@ protected def sub (a b : Rat) : Rat :=
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos a.den_pos b.den_pos
     have reduced := sub.aux a b hg.symm (Nat.div_one _).symm (Nat.div_one _).symm
       |>.symm.trans (Nat.gcd_one_right _)
-    { num := b.den * a.num - a.den * b.num, den := a.den * b.den, den_nz, reduced }
+    { num := a.num * b.den - b.num * a.den, den := a.den * b.den, den_nz, reduced }
   else
     let den := (a.den / g) * b.den
-    let num := ↑(b.den / g) * a.num - ↑(a.den / g) * b.num
+    let num := a.num * ↑(b.den / g) - b.num * ↑(a.den / g)
     let g1  := num.natAbs.gcd g
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos (Nat.div_gcd_pos_of_pos_left _ a.den_pos) b.den_pos
     have e : g1 = num.natAbs.gcd den := sub.aux a b rfl rfl rfl
@@ -238,13 +251,11 @@ protected def floor (a : Rat) : Int :=
   if a.den = 1 then
     a.num
   else
-    let r := a.num / a.den
-    if a.num < 0 then r - 1 else r
+    a.num / a.den
 
 /-- The ceiling of a rational number `a` is the smallest integer greater than or equal to `a`. -/
 protected def ceil (a : Rat) : Int :=
   if a.den = 1 then
     a.num
   else
-    let r := a.num / a.den
-    if a.num > 0 then r + 1 else r
+    a.num / a.den + 1

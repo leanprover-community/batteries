@@ -109,6 +109,10 @@ theorem eq_zero_of_gcd_eq_zero_right {m n : Nat} (H : gcd m n = 0) : n = 0 := by
   rw [gcd_comm] at H
   exact eq_zero_of_gcd_eq_zero_left H
 
+theorem gcd_ne_zero_left : m ≠ 0 → gcd m n ≠ 0 := mt eq_zero_of_gcd_eq_zero_left
+
+theorem gcd_ne_zero_right : n ≠ 0 → gcd m n ≠ 0 := mt eq_zero_of_gcd_eq_zero_right
+
 theorem gcd_div {m n k : Nat} (H1 : k ∣ m) (H2 : k ∣ n) :
     gcd (m / k) (n / k) = gcd m n / k :=
   match eq_zero_or_pos k with

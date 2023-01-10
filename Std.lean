@@ -1,4 +1,5 @@
 import Std.Classes.BEq
+import Std.Classes.Cast
 import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
 import Std.Classes.Order
@@ -33,6 +34,7 @@ import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
 import Std.Data.Ord
 import Std.Data.PairingHeap
+import Std.Data.Prod.Lex
 import Std.Data.RBMap
 import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
