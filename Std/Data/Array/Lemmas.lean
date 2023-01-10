@@ -184,7 +184,7 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
       simp at hi'; simp [get_push]; split
       · next h => exact h₂ _ _ h
-      · next h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb.1
+      · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapIdxM]; exact go rfl (fun.) h0
 
 theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
