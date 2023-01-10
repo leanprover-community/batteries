@@ -44,7 +44,7 @@ set_option linter.unusedVariables.funArgs false in
 /--
 Sort an array using `compare` to compare elements.
 -/
-def qsortOrd [Inhabited α] [ord : Ord α] (xs : Array α) : Array α :=
+def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
   xs.qsort λ x y => compare x y |>.isLT
 
 set_option linter.unusedVariables.funArgs false in
