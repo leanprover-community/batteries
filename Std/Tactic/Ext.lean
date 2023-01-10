@@ -65,7 +65,7 @@ scoped elab "ext_iff_type%" struct:ident : term => do
     mkForallFVars (params |>.push x |>.push y) <|
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList
 
-macro_rules | `(declare_ext_theorems_for $struct:ident) => do
+macro_rules | `(declare_ext_theorems_for $struct:ident $[$prio]?) => do
   let names ← Macro.resolveGlobalName struct.getId.eraseMacroScopes
   let name ← match names.filter (·.2.isEmpty) with
     | [] => Macro.throwError s!"unknown constant {struct}"
@@ -73,7 +73,7 @@ macro_rules | `(declare_ext_theorems_for $struct:ident) => do
     | _ => Macro.throwError s!"ambiguous name {struct}"
   let extName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext"
   let extIffName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext_iff"
-  `(@[ext] protected theorem $extName:ident : ext_type% $struct:ident :=
+  `(@[ext $[$prio]?] protected theorem $extName:ident : ext_type% $struct:ident :=
       fun {..} {..} => by intros; subst_eqs; rfl
     protected theorem $extIffName:ident : ext_iff_type% $struct:ident :=
       fun {..} {..} =>
@@ -95,10 +95,10 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
       -- We require that the type of the equality is not changed by the `goal.apply c` line
       -- TODO: add flag to apply tactic to toggle unification vs. matching
       withNewMCtxDepth do
-        let c ← mkConstWithFreshMVarLevels lem
+        let c ← mkConstWithFreshMVarLevels lem.declName
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
-      return ← goal.apply (← mkConstWithFreshMVarLevels lem)
+      return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 

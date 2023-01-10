@@ -9,35 +9,61 @@ import Std.Lean.Command
 namespace Std.Tactic.Ext
 open Lean Meta
 
-/-- `declare_ext_theorems_for A` declares the extensionality theorems for `A`. -/
-syntax "declare_ext_theorems_for" ident : command
+/-- `declare_ext_theorems_for A` declares the extensionality theorems for the structure `A`. -/
+syntax "declare_ext_theorems_for" ident prio ? : command
+
+/-- Information about an extensionality theorem, stored in the environment extension. -/
+structure ExtTheorem where
+  /-- Declaration name of the extensionality theorem. -/
+  declName : Name
+  /-- Priority of the extensionality theorem. -/
+  priority : Nat
+  /-- Key in the discrimination tree. -/
+  keys : Array (DiscrTree.Key true)
+  deriving Inhabited, Repr, BEq, Hashable
 
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension :
-    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key true)) (DiscrTree Name true) ←
+    SimpleScopedEnvExtension ExtTheorem (DiscrTree ExtTheorem true) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n
+    addEntry := fun dt thm => dt.insertCore thm.keys thm
     initial := {}
   }
 
 /-- Get the list of `@[ext]` lemmas corresponding to the key `ty`. -/
-@[inline] def getExtLemmas (ty : Expr) : MetaM (Array Name) := do
-  (extExtension.getState (← getEnv)).getMatch ty
+@[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
+  return (← (extExtension.getState (← getEnv)).getMatch ty)
+    |>.insertionSort fun a b => a.priority > b.priority
+
+/-- Registers an extensionality lemma.
+
+When `@[ext]` is applied to a structure,
+it generates `.ext` and `.ext_iff` theorems
+and registers them for the `ext` tactic.
+
+When `@[ext]` is applied to a theorem,
+the theorem is registered for the `ext` tactic.
+
+You can use `@[ext 9000]` to specify a priority for the attribute. -/
+syntax (name := ext) "ext" prio ? : attr
 
 initialize registerBuiltinAttribute {
   name := `ext
   descr := "Marks a lemma as extensionality lemma"
-  add := fun decl stx kind => do
-    if isStructure (← getEnv) decl then
+  add := fun declName stx kind => do
+    let `(attr| ext $[$prio]?) := stx | throwError "unexpected @[ext] attribute {stx}"
+    if isStructure (← getEnv) declName then
       liftCommandElabM <| Elab.Command.elabCommand <|
-        ← `(declare_ext_theorems_for $(mkCIdentFrom stx decl))
+        ← `(declare_ext_theorems_for $(mkCIdentFrom stx declName) $[$prio]?)
     else MetaM.run' do
-      let declTy := (← getConstInfo decl).type
+      let declTy := (← getConstInfo declName).type
       let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing declTy
       let failNotEq := throwError
         "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
-      let key ← withReducible <| DiscrTree.mkPath ty
-      extExtension.add (decl, key) kind
+      let keys ← withReducible <| DiscrTree.mkPath ty
+      let priority ← liftCommandElabM do Elab.liftMacroM do
+        evalPrio (prio.getD (← `(prio| default)))
+      extExtension.add {declName, keys, priority} kind
 }
