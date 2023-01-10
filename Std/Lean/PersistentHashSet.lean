@@ -34,7 +34,7 @@ Returns `true` if `f` returns `true` for any element of the set.
 -/
 @[inline]
 def any (s : PersistentHashSet α) (f : α → Bool) : Bool :=
-  Id.run $ s.anyM f
+  Id.run <| s.anyM f
 
 /--
 Returns `true` if `f` returns `true` for all elements of the set.
@@ -51,13 +51,13 @@ Returns `true` if `f` returns `true` for all elements of the set.
 -/
 @[inline]
 def all (s : PersistentHashSet α) (f : α → Bool) : Bool :=
-  Id.run $ s.allM f
+  Id.run <| s.allM f
 
 instance : BEq (PersistentHashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
 
 /--
-Similar to `insert`, but also returns a Boolean flad indicating whether an
+Similar to `insert`, but also returns a Boolean flag indicating whether an
 existing entry has been replaced with `a ↦ b`.
 -/
 @[inline]
@@ -80,16 +80,14 @@ def insertMany [ForIn Id ρ α] (s : PersistentHashSet α) (as : ρ) :
 Obtain a `PersistentHashSet` from an array.
 -/
 @[inline]
-protected def ofArray [BEq α] [Hashable α] (as : Array α) :
-    PersistentHashSet α :=
+protected def ofArray [BEq α] [Hashable α] (as : Array α) : PersistentHashSet α :=
   PersistentHashSet.empty.insertMany as
 
 /--
 Obtain a `PersistentHashSet` from a list.
 -/
 @[inline]
-protected def ofList [BEq α] [Hashable α] (as : Array α) :
-    PersistentHashSet α :=
+protected def ofList [BEq α] [Hashable α] (as : Array α) : PersistentHashSet α :=
   PersistentHashSet.empty.insertMany as
 
 /--

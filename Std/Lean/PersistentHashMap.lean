@@ -11,11 +11,10 @@ namespace Lean.PersistentHashMap
 variable [BEq α] [Hashable α]
 
 /--
-Similar to `insert`, but also returns a Boolean flad indicating whether an
+Similar to `insert`, but also returns a Boolean flag indicating whether an
 existing entry has been replaced with `a ↦ b`.
 -/
-def insert' (m : PersistentHashMap α β) (a : α) (b : β) :
-    PersistentHashMap α β × Bool :=
+def insert' (m : PersistentHashMap α β) (a : α) (b : β) : PersistentHashMap α β × Bool :=
   let oldSize := m.size
   let m := m.insert a b
   (m, m.size == oldSize)
@@ -24,14 +23,14 @@ def insert' (m : PersistentHashMap α β) (a : α) (b : β) :
 Turns a `PersistentHashMap` into an array of key-value pairs.
 -/
 def toArray (m : PersistentHashMap α β) : Array (α × β) :=
-  m.foldl (init := Array.mkEmpty m.size) λ xs k v => xs.push (k, v)
+  m.foldl (init := Array.mkEmpty m.size) fun xs k v => xs.push (k, v)
 
 /--
 Builds a `PersistentHashMap` from a list of key-value pairs. Values of
 duplicated keys are replaced by their respective last occurrences.
 -/
 def ofList (xs : List (α × β)) : PersistentHashMap α β :=
-  xs.foldl (init := {}) λ m (k, v) => m.insert k v
+  xs.foldl (init := {}) fun m (k, v) => m.insert k v
 
 /--
 Variant of `ofList` which accepts a function that combines values of duplicated
@@ -39,17 +38,17 @@ keys.
 -/
 def ofListWith (xs : List (α × β)) (f : α → β → β → β) :
     PersistentHashMap α β :=
-  xs.foldl (init := {}) λ m (k, v) =>
+  xs.foldl (init := {}) fun m (k, v) =>
     match m.find? k with
     | none    => m.insert k v
-    | some v' => m.insert k $ f k v v'
+    | some v' => m.insert k <| f k v v'
 
 /--
 Builds a `PersistentHashMap` from an array of key-value pairs. Values of
 duplicated keys are replaced by their respective last occurrences.
 -/
 def ofArray (xs : Array (α × β)) : PersistentHashMap α β :=
-  xs.foldl (init := {}) λ m (k, v) => m.insert k v
+  xs.foldl (init := {}) fun m (k, v) => m.insert k v
 
 /--
 Variant of `ofArray` which accepts a function that combines values of duplicated
@@ -57,10 +56,10 @@ keys.
 -/
 def ofArrayWith (xs : Array (α × β)) (f : α → β → β → β) :
     PersistentHashMap α β :=
-  xs.foldl (init := {}) λ m (k, v) =>
+  xs.foldl (init := {}) fun m (k, v) =>
     match m.find? k with
     | none    => m.insert k v
-    | some v' => m.insert k $ f k v v'
+    | some v' => m.insert k <| f k v v'
 
 /--
 Merge two `PersistentHashMap`s. The values of keys which appear in both maps are
@@ -69,7 +68,7 @@ combined using the monadic function `f`.
 @[specialize]
 def mergeWithM [Monad m] (self other : PersistentHashMap α β)
     (f : α → β → β → m β) : m (PersistentHashMap α β) :=
-  other.foldlM (init := self) λ map k v₂ =>
+  other.foldlM (init := self) fun map k v₂ =>
     match map.find? k with
     | none => return map.insert k v₂
     | some v₁ => return map.insert k (← f k v₁ v₂)
@@ -83,7 +82,7 @@ def mergeWith (self other : PersistentHashMap α β) (f : α → β → β → �
     PersistentHashMap α β :=
   -- Implementing this function directly, rather than via `mergeWithM`, gives
   -- us less constrained universes.
-  other.foldl (init := self) λ map k v₂ =>
+  other.foldl (init := self) fun map k v₂ =>
     match map.find? k with
     | none => map.insert k v₂
-    | some v₁ => map.insert k $ f k v₁ v₂
+    | some v₁ => map.insert k <| f k v₁ v₂
