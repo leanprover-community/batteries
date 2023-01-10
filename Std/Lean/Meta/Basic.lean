@@ -342,16 +342,12 @@ If `tac` does not apply to `goal`, `saturate1` returns `none`. Otherwise it
 returns the generated subgoals to which `tac` did not apply. `saturate1`
 respects the `MonadRecDepth` recursion limit.
 -/
-partial def saturate1 [Monad m] [MonadError m] [MonadRecDepth m]
-    [MonadLiftT (ST IO.RealWorld) m] (goal : MVarId)
-    (tac : MVarId → m (Option (Array MVarId))) :
-    m (Option (Array MVarId)) := do
-  match ← tac goal with
-  | none => return none
-  | some goals =>
-    let acc ← ST.mkRef #[]
-    goals.forM (go acc)
-    return some (← acc.get)
+partial def saturate1 [Monad m] [MonadError m] [MonadRecDepth m] [MonadLiftT (ST IO.RealWorld) m]
+    (goal : MVarId) (tac : MVarId → m (Option (Array MVarId))) : m (Option (Array MVarId)) := do
+  let some goals ← tac goal | return none
+  let acc ← ST.mkRef #[]
+  goals.forM (go acc)
+  return some (← acc.get)
 where
   /-- Auxiliary definition for `saturate1`. -/
   go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
