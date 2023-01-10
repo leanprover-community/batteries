@@ -53,6 +53,8 @@ import Std.Lean.HashSet
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
+import Std.Lean.Meta.DiscrTree
+import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
 import Std.Lean.Meta.LCtx
