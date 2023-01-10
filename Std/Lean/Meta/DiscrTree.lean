@@ -19,11 +19,12 @@ Compare two `Key`s. The ordering is total but otherwise arbitrary. (It uses
 `Name.quickCmp` internally.)
 -/
 protected def cmp : Key s → Key s → Ordering
-  | .lit v₁,      .lit v₂      => compare v₁ v₂
-  | .fvar n₁ a₁,  .fvar n₂ a₂  => compareLex' Name.quickCmp n₁.name n₂.name compare a₁ a₂
-  | .const n₁ a₁, .const n₂ a₂ => compareLex' Name.quickCmp n₁ n₂ compare a₁ a₂
-  | .proj s₁ i₁,  .proj s₂ i₂  => compareLex' Name.quickCmp s₁ s₂ compare i₁ i₂
-  | k₁,           k₂           => compare k₁.ctorIdx k₂.ctorIdx
+  | .lit v₁,        .lit v₂         => compare v₁ v₂
+  | .fvar n₁ a₁,    .fvar n₂ a₂     => compareLex' Name.quickCmp n₁.name n₂.name compare a₁ a₂
+  | .const n₁ a₁,   .const n₂ a₂    => compareLex' Name.quickCmp n₁ n₂ compare a₁ a₂
+  | .proj s₁ i₁ _,  .proj s₂ i₂ _   => compareLex' Name.quickCmp s₁ s₂ compare i₁ i₂
+    -- TODO take a₁ and a₂ into account?
+  | k₁,             k₂              => compare k₁.ctorIdx k₂.ctorIdx
 
 instance : Ord (Key s) :=
   ⟨Key.cmp⟩
