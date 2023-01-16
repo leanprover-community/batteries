@@ -5,6 +5,16 @@ Authors: Mario Carneiro
 -/
 import Std.Logic
 
+/-- Monad instance for `Thunk`
+  Note that the old compiler does not know how to eliminate `pure _ >>= _` for `Thunk`,
+  so manual optimization may be better in some cases.
+  See <https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Why.20isn't.20Thunk.20a.20Monad.3F/near/321680164>
+-/
+instance : Monad Thunk where
+  pure := Thunk.pure
+  bind := Thunk.bind
+  map := Thunk.map
+
 /--
 An alternative constructor for `LawfulMonad` which has more
 defaultable fields in the common case.
@@ -51,6 +61,14 @@ instance : LawfulMonad Option := LawfulMonad.mk'
 
 instance : LawfulApplicative Option := inferInstance
 instance : LawfulFunctor Option := inferInstance
+
+instance : LawfulMonad Thunk := LawfulMonad.mk'
+  (id_map := fun _ => rfl)
+  (pure_bind := fun _ _ => rfl)
+  (bind_assoc := fun _ _ _ => rfl)
+
+instance : LawfulApplicative Thunk := inferInstance
+instance : LawfulFunctor Thunk := inferInstance
 
 /-!
 ## SatisfiesM
