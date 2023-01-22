@@ -66,7 +66,8 @@ def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
 /-- Constructs a message from all the simp theorems encoded in the given type. -/
 def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
     MetaM (Option MessageData) := do
-  let errors := (← withSimpTheoremInfos ty fun i => do (← k i).mapM addMessageContextFull).filterMap id
+  let errors :=
+    (← withSimpTheoremInfos ty fun i => do (← k i).mapM addMessageContextFull).filterMap id
   if errors.isEmpty then
     return none
   return MessageData.joinSep errors.toList Format.line

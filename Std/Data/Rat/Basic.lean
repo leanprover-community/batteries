@@ -132,8 +132,9 @@ instance : LE Rat := ⟨fun a b => b.blt a = false⟩
 instance (a b : Rat) : Decidable (a ≤ b) :=
   inferInstanceAs (Decidable (_ = false))
 
-/-- Multiplication of rational numbers. -/
-protected def mul (a b : Rat) : Rat :=
+/-- Multiplication of rational numbers. (This definition is `@[irreducible]` because you don't
+want to unfold it. Use `Rat.mul_def` instead.) -/
+@[irreducible] protected def mul (a b : Rat) : Rat :=
   let g1 := Nat.gcd a.num.natAbs b.den
   let g2 := Nat.gcd b.num.natAbs a.den
   { num := (a.num.div g1) * (b.num.div g2)
@@ -152,8 +153,11 @@ protected def mul (a b : Rat) : Rat :=
 
 instance : Mul Rat := ⟨Rat.mul⟩
 
-/-- The inverse of a rational number. Note: `inv 0 = 0`. -/
-protected def inv (a : Rat) : Rat :=
+/--
+The inverse of a rational number. Note: `inv 0 = 0`. (This definition is `@[irreducible]`
+because you don't want to unfold it. Use `Rat.inv_def` instead.)
+-/
+@[irreducible] protected def inv (a : Rat) : Rat :=
   if h : a.num < 0 then
     { num := -a.den, den := a.num.natAbs
       den_nz := Nat.ne_of_gt (Int.natAbs_pos.2 (Int.ne_of_lt h))
@@ -196,8 +200,11 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     exact Nat.eq_one_of_dvd_one <| b.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|
       Nat.dvd_trans (Nat.gcd_dvd_left ..) (be ▸ Nat.dvd_mul_right ..)
 
-/-- Addition of rational numbers. -/
-protected def add (a b : Rat) : Rat :=
+/--
+Addition of rational numbers. (This definition is `@[irreducible]` because you don't want to
+unfold it. Use `Rat.add_def` instead.)
+-/
+@[irreducible] protected def add (a b : Rat) : Rat :=
   let g := a.den.gcd b.den
   if hg : g = 1 then
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos a.den_pos b.den_pos
@@ -228,8 +235,10 @@ theorem sub.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
   simp only [show (-b).num = -b.num from rfl, Int.neg_mul] at this
   exact this
 
-/-- Subtraction of rational numbers. -/
-protected def sub (a b : Rat) : Rat :=
+/-- Subtraction of rational numbers. (This definition is `@[irreducible]` because you don't want to
+unfold it. Use `Rat.sub_def` instead.)
+-/
+@[irreducible] protected def sub (a b : Rat) : Rat :=
   let g := a.den.gcd b.den
   if hg : g = 1 then
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos a.den_pos b.den_pos

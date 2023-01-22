@@ -168,7 +168,7 @@ theorem divInt_num_den (z : d ≠ 0) (h : n /. d = ⟨n', d', z', c⟩) :
 theorem add_def (a b : Rat) :
     a + b = normalize (a.num * b.den + b.num * a.den) (a.den * b.den)
       (Nat.mul_ne_zero a.den_nz b.den_nz) := by
-  show Rat.add .. = _; dsimp only [Rat.add]; split
+  show Rat.add .. = _; delta Rat.add; dsimp only; split
   · exact (normalize_self _).symm
   · have : a.den.gcd b.den ≠ 0 := Nat.gcd_ne_zero_left a.den_nz
     rw [maybeNormalize_eq_normalize _ _
@@ -218,7 +218,7 @@ theorem neg_divInt (n d) : -(n /. d) = -n /. d := by
 theorem sub_def (a b : Rat) :
     a - b = normalize (a.num * b.den - b.num * a.den) (a.den * b.den)
       (Nat.mul_ne_zero a.den_nz b.den_nz) := by
-  show Rat.sub .. = _; dsimp only [Rat.sub]; split
+  show Rat.sub .. = _; delta Rat.sub; dsimp only; split
   · exact (normalize_self _).symm
   · have : a.den.gcd b.den ≠ 0 := Nat.gcd_ne_zero_left a.den_nz
     rw [maybeNormalize_eq_normalize _ _
@@ -243,7 +243,7 @@ theorem divInt_sub_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
 
 theorem mul_def (a b : Rat) :
     a * b = normalize (a.num * b.num) (a.den * b.den) (Nat.mul_ne_zero a.den_nz b.den_nz) := by
-  show Rat.mul .. = _; dsimp only [Rat.mul]
+  show Rat.mul .. = _; delta Rat.mul; dsimp only
   have H1 : a.num.natAbs.gcd b.den ≠ 0 := Nat.gcd_ne_zero_right b.den_nz
   have H2 : b.num.natAbs.gcd a.den ≠ 0 := Nat.gcd_ne_zero_right a.den_nz
   rw [mk_eq_normalize, ← normalize_mul_right _ (Nat.mul_ne_zero H1 H2)]; congr 1
