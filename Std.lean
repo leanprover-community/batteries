@@ -97,6 +97,7 @@ import Std.Tactic.Simpa
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
+import Std.Util.CompileInductive
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
