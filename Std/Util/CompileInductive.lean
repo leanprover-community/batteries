@@ -107,7 +107,9 @@ def compileInductive (i : Name) : TermElabM Unit := do
       mkFunExts' xs pf (body, old, new)
   }
   Compiler.CSimp.add name .global
-  compileDecls <| [mkRecOnName i, mkBRecOnName i].filter (← getEnv).contains
+  for aux in [mkRecOnName i, mkBRecOnName i] do
+    if (← getEnv).contains aux then
+      compileDecls [aux]
 
 /--
 `#compile inductive i` compiles the recursor for `i`.
