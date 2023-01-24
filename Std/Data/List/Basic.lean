@@ -889,7 +889,7 @@ where
 
 theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L = []
   | l :: L, h => by
-    simp only [any, foldr, Bool.or_eq_true] at h
+    simp only [any, foldr, Bool.asProp_or] at h
     match l, h with
     | [], .inl rfl => simp; induction sections L <;> simp [*]
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]

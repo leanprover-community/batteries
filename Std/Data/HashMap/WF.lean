@@ -219,7 +219,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
 
 theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.buckets.WF) : (insert m k v).buckets.WF := by
-  dsimp [insert, cond]; split
+  dsimp [insert]; rw [cond_eq_ite]; split
   · next h₁ =>
     simp at h₁; have ⟨x, hx₁, hx₂⟩ := h₁
     refine h.update (fun H => ?_) (fun H a h => ?_)
@@ -229,7 +229,7 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
       | .inl rfl => rfl
       | .inr h => exact H _ h
   · next h₁ =>
-    rw [Bool.eq_false_iff] at h₁; simp at h₁
+    simp at h₁
     suffices _ by split <;> [exact this, refine expand_WF this]
     refine h.update (.cons ?_) (fun H a h => ?_)
     · exact fun a h h' => h₁ a h (PartialEquivBEq.symm h')
@@ -247,7 +247,7 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     simp [h, h₁, Bucket.size_eq]
     rw [(_ : List.length _ = _ + 1), Nat.add_right_comm]; {rfl}
     clear h₁ eq
-    simp [AssocList.contains_eq] at H
+    simp [Bool.eq_true_iff, AssocList.contains_eq] at H
     have ⟨a, h₁, h₂⟩ := H
     refine have ⟨_, _, _, _, _, h, eq⟩ := List.exists_of_eraseP h₁ h₂; eq ▸ ?_
     simp [h]; rfl

@@ -58,7 +58,7 @@ theorem isSome_iff_exists : isSome x ↔ ∃ a, x = some a := by cases x <;> sim
 
 @[simp] theorem isNone_some : isNone (some a) = false := rfl
 
-@[simp] theorem not_isSome : isSome a = false ↔ a.isNone = true := by
+@[simp] theorem not_isSome : ¬ isSome a ↔ a.isNone := by
   cases a <;> simp
 
 theorem eq_some_iff_get_eq : o = some a ↔ ∃ h : o.isSome, o.get h = a := by
