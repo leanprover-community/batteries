@@ -1165,7 +1165,6 @@ theorem pairwise_middle_of_symm {α R} (s : ∀ {a b}, R a b → R b a) {a : α}
     rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁),
       pairwise_append_comm_of_symm s]
     simp only [mem_append, or_comm]
-    rfl
 
 /-- If there is at most one element with the property `p`, erasing one such element is the same
 as filtering out all of them. -/
