@@ -170,7 +170,11 @@ because you don't want to unfold it. Use `Rat.inv_def` instead.)
     a
 
 /-- Division of rational numbers. Note: `div a 0 = 0`. -/
-instance : Div Rat := ⟨(· * ·.inv)⟩
+protected def div : Rat → Rat → Rat := (· * ·.inv)
+
+/-- Division of rational numbers. Note: `div a 0 = 0`.  Written with a separate function `Rat.div`
+as a wrapper so that the definition is not unfolded at `.instance` transparency. -/
+instance : Div Rat := ⟨Rat.div⟩
 
 theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     (had : ad = a.den / g) (hbd : bd = b.den / g) :
