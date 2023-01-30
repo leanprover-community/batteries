@@ -173,3 +173,13 @@ example {n} (h : Test n) : n = n := by
       trivial
     · guard_hyp b : n > 5
       trivial
+
+example (h : a ≤ 2 ∨ 2 < a) : True := by
+  obtain ha1 | ha2 : a ≤ 2 ∨ 3 ≤ a := h
+  · guard_hyp ha1 : a ≤ 2; trivial
+  · guard_hyp ha2 : 3 ≤ a; trivial
+
+example (h : a ≤ 2 ∨ 2 < a) : True := by
+  obtain ha1 | ha2 : a ≤ 2 ∨ 3 ≤ a := id h
+  · guard_hyp ha1 : a ≤ 2; trivial
+  · guard_hyp ha2 : 3 ≤ a; trivial

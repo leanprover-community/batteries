@@ -527,7 +527,9 @@ def rcases (tgts : Array (Option Name × Syntax))
   | _ => pure (processConstructor pat.ref (tgts.map fun _ => {}) false 0 pat.asTuple.2).2
   let (pats, args) := Array.unzip <|← (tgts.zip pats.toArray).mapM fun ((hName?, tgt), pat) => do
     let (pat, ty) ← match pat with
-    | .typed ref pat ty => pure (pat, some (← withRef ref <| Term.elabType ty))
+    | .typed ref pat ty => withRef ref do
+      let ty ← Term.elabType ty
+      pure (.typed ref pat (← Term.exprToSyntax ty), some ty)
     | _ => pure (pat, none)
     let expr ← Term.ensureHasType ty (← Term.elabTerm tgt ty)
     pure (pat, { expr, xName? := pat.name?, hName? : GeneralizeArg })
