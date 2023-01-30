@@ -26,8 +26,9 @@ initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array
 open Lean Parser Command in
 /--
 ```
-/-- ... some explanation ... -/
-library_note "some tag"
+library_note "some tag"/--
+... some explanation ...
+-/
 ```
 creates a new "library note", which can then be cross-referenced using
 ```
