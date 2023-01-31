@@ -162,8 +162,7 @@ theorem mem_append_right {a : α} (l₁ : List α) {l₂ : List α} (h : a ∈ l
 
 /-! ### map -/
 
-theorem
- map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
+theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
 
 theorem mem_map {f : α → β} : ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ b = f a
   | [] => by simp
