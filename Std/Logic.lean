@@ -360,8 +360,7 @@ theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a →
     (∃ a, p a) → ∃ b, q b
   | ⟨_, hp⟩ => ⟨_, hpq _ hp⟩
 
-theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
-  by apply forall_exists_index
+theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b := forall_exists_index
 
 section forall_congr
 
