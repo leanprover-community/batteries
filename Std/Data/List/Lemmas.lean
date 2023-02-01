@@ -152,7 +152,7 @@ theorem mem_append_right {a : α} (l₁ : List α) {l₂ : List α} (h : a ∈ l
 
 theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
 
-theorem mem_map {f : α → β} : ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b
+@[simp] theorem mem_map {f : α → β} : ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b
   | [] => by simp
   | _ :: l => by simp [mem_map (l := l), eq_comm (a := b)]
 
@@ -162,7 +162,7 @@ theorem exists_of_mem_map (h : b ∈ map f l) : ∃ a, a ∈ l ∧ f a = b := me
 
 theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
     (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) := by
-  simp [mem_map]; exact ⟨fun H j h => H _ _ h rfl, fun H i x h e => e ▸ H _ h⟩
+  simp; exact ⟨fun H j h => H _ _ h rfl, fun H i x h e => e ▸ H _ h⟩
 
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
@@ -189,7 +189,7 @@ theorem mem_join_of_mem (lL : l ∈ L) (al : a ∈ l) : a ∈ join L := mem_join
 /-! ### bind -/
 
 theorem mem_bind {f : α → List β} {b} {l : List α} : b ∈ l.bind f ↔ ∃ a, a ∈ l ∧ b ∈ f a := by
-  simp [List.bind, mem_map, mem_join]
+  simp [List.bind, mem_join]
   exact ⟨fun ⟨_, ⟨a, h₁, rfl⟩, h₂⟩ => ⟨a, h₁, h₂⟩, fun ⟨a, h₁, h₂⟩ => ⟨_, ⟨a, h₁, rfl⟩, h₂⟩⟩
 
 theorem exists_of_mem_bind {b : β} {l : List α} {f : α → List β} :
@@ -232,10 +232,8 @@ theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈
 
 @[simp] theorem nil_subset (l : List α) : [] ⊆ l := fun.
 
--- @[refl]
 @[simp] theorem Subset.refl (l : List α) : l ⊆ l := fun _ i => i
 
--- @[trans]
 theorem Subset.trans {l₁ l₂ l₃ : List α} (h₁ : l₁ ⊆ l₂) (h₂ : l₂ ⊆ l₃) : l₁ ⊆ l₃ :=
   fun _ i => h₂ (h₁ i)
 
@@ -317,7 +315,7 @@ theorem getLast_concat : (h : concat l a ≠ []) → getLast (concat l a) h = a 
   | [] => .slnil
   | a :: l => (nil_sublist l).cons a
 
-/- @[refl] -/ @[simp] theorem Sublist.refl : ∀ l : List α, l <+ l
+@[simp] theorem Sublist.refl : ∀ l : List α, l <+ l
   | [] => .slnil
   | a :: l => (Sublist.refl l).cons₂ a
 
@@ -1263,7 +1261,9 @@ theorem Pairwise.sublist : l₁ <+ l₂ → l₂.Pairwise R → l₁.Pairwise R
 
 theorem pairwise_map {l : List α} :
     (l.map f).Pairwise R ↔ l.Pairwise fun a b => R (f a) (f b) := by
-  induction l <;> simp [forall_mem_map_iff, *]
+  induction l
+  . simp
+  . simp only [map, pairwise_cons, forall_mem_map_iff, *]
 
 theorem pairwise_append {l₁ l₂ : List α} :
     (l₁ ++ l₂).Pairwise R ↔ l₁.Pairwise R ∧ l₂.Pairwise R ∧ ∀ a ∈ l₁, ∀ b ∈ l₂, R a b := by
