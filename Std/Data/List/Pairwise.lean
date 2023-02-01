@@ -184,21 +184,14 @@ theorem pairwise_join {L : List (List α)} :
     intros
     exact ⟨fun h a b c d e => h c d e a b, fun h c d e a b => h a b c d e⟩
 
-@[reducible]
-def Function.swap {φ : α → β → Sort u₃} (f : ∀ x y, φ x y) : ∀ y x, φ x y :=
-  λ y x => f x y
-
-theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
-  ⟨Function.swap, Function.swap⟩
-
-theorem forall_imp_swap {p : α → Prop} : (∀ x, H → p x) ↔ (H → ∀ x, p x) :=
-  ⟨λ x y z => x z y, λ x y z => x z y⟩
-
 theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β} :
     List.Pairwise R (l.bind f) ↔
-      (∀ a ∈ l, Pairwise R (f a)) ∧ Pairwise (fun a₁ a₂ => ∀ x ∈ f a₁, ∀ y ∈ f a₂, R x y) l :=
-  by simp [List.bind, pairwise_join, pairwise_map, mem_map,
-      forall_swap (α := List β), forall_imp_swap (α := List β)]
+      (∀ a ∈ l, Pairwise R (f a)) ∧ Pairwise (fun a₁ a₂ => ∀ x ∈ f a₁, ∀ y ∈ f a₂, R x y) l := by
+  simp [List.bind, pairwise_join, pairwise_map]
+  intro
+  refine ⟨fun h _ hx => h _ _ hx rfl, fun d e f g h => ?_⟩
+  rw [←h]
+  exact d _ g
 
 theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
     (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
