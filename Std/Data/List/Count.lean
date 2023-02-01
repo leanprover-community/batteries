@@ -159,8 +159,7 @@ theorem Sublist.count_le (h : l₁ <+ l₂) (a : α) : count a l₁ ≤ count a 
 theorem count_le_count_cons (a b : α) (l : List α) : count a l ≤ count a (b :: l) :=
   (sublist_cons _ _).count_le _
 
-theorem count_singleton (a : α) : count a [a] = 1 := by
-  simp [count_cons]
+theorem count_singleton (a : α) : count a [a] = 1 := by simp
 
 theorem count_singleton' (a b : α) : count a [b] = if a = b then 1 else 0 := by
   simp [count_cons]
