@@ -285,7 +285,7 @@ theorem count_filter (h : p a) : count a (filter p l) = count a l := by
   congr
   funext b
   rw [(by rfl : (b == a) = decide (b = a))]
-  rw [decide_eq_decide_iff_iff]
+  rw [decide_eq_decide]
   simp; intro heq; exact heq ▸ h
 
 theorem count_le_count_map [DecidableEq β] (l : List α) (f : α → β) (x : α) :
