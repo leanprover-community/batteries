@@ -53,7 +53,7 @@ theorem Pairwise.imp_of_mem {S : α → α → Prop} {l : List α}
   | nil => constructor
   | @cons a l r _ ih =>
     constructor
-    · exact fun x h => H (mem_cons_self _ _) (mem_cons_of_mem _ h) <| r x h
+    · exact fun x h => H (mem_cons_self ..) (mem_cons_of_mem _ h) <| r x h
     · exact ih fun {a b} m m' => H (mem_cons_of_mem _ m) (mem_cons_of_mem _ m')
 
 theorem pairwise_and_iff : (l.Pairwise fun a b => R a b ∧ S a b) ↔ l.Pairwise R ∧ l.Pairwise S :=
@@ -75,12 +75,12 @@ theorem Pairwise.imp₂ (H : ∀ a b, R a b → S a b → T a b) (hR : l.Pairwis
 
 theorem Pairwise.iff_of_mem {S : α → α → Prop} {l : List α}
     (H : ∀ {a b}, a ∈ l → b ∈ l → (R a b ↔ S a b)) : Pairwise R l ↔ Pairwise S l :=
-  ⟨Pairwise.imp_of_mem fun {_ _} m m' => (H m m').1,
-   Pairwise.imp_of_mem fun {_ _} m m' => (H m m').2⟩
+  ⟨Pairwise.imp_of_mem fun m m' => (H m m').1,
+   Pairwise.imp_of_mem fun m m' => (H m m').2⟩
 
 theorem Pairwise.iff {S : α → α → Prop} (H : ∀ a b, R a b ↔ S a b) {l : List α} :
     Pairwise R l ↔ Pairwise S l :=
-  Pairwise.iff_of_mem fun _ _ => H _ _
+  Pairwise.iff_of_mem fun _ _ => H ..
 
 theorem pairwise_of_forall {l : List α} (H : ∀ x y, R x y) : Pairwise R l := by
   induction l
@@ -203,14 +203,14 @@ theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α
     · intro x hx
       by_cases H : hd = x
       · rw [H]
-        refine' hr _ _
+        refine' hr ..
         simp [H, Nat.add_one]
         apply Nat.succ_le_succ
         simp [hx]
-      · exact h hd (mem_cons_self _ _) x (mem_cons_of_mem _ hx) H
-    · refine' IH _ _
+      · exact h hd (mem_cons_self ..) x (mem_cons_of_mem _ hx) H
+    · refine' IH ..
       · intro x hx
-        refine' hr _ _
+        refine' hr ..
         rw [count_cons]
         split
         · exact Nat.lt_trans hx (Nat.lt_succ_self _)
@@ -233,7 +233,7 @@ theorem pairwise_iff_get : ∀ {l : List α}, Pairwise R l ↔
       | succ j =>
       let ⟨i,hi⟩ := i
       match i with
-      | zero    => exact H.1 _ (get_mem l _ _)
+      | zero    => exact H.1 _ (get_mem l ..)
       | succ _  => exact H.2 _ _ (Nat.lt_of_succ_lt_succ hij)
     · rcases get_of_mem m with ⟨n, h, rfl⟩
       have := H ⟨0, show 0 < (a::l).length from Nat.succ_pos _⟩ ⟨n.succ, Nat.succ_lt_succ n.2⟩
@@ -257,19 +257,13 @@ theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx :
 
 variable [DecidableRel R]
 
-@[simp]
-theorem pwFilter_nil : pwFilter R [] = [] :=
-  rfl
+@[simp] theorem pwFilter_nil : pwFilter R [] = [] := rfl
 
-@[simp]
-theorem pwFilter_cons_of_pos {a : α} {l : List α} (h : ∀ b ∈ pwFilter R l, R a b) :
-    pwFilter R (a :: l) = a :: pwFilter R l :=
-  if_pos h
+@[simp] theorem pwFilter_cons_of_pos {a : α} {l : List α} (h : ∀ b ∈ pwFilter R l, R a b) :
+    pwFilter R (a :: l) = a :: pwFilter R l := if_pos h
 
-@[simp]
-theorem pwFilter_cons_of_neg {a : α} {l : List α} (h : ¬∀ b ∈ pwFilter R l, R a b) :
-    pwFilter R (a :: l) = pwFilter R l :=
-  if_neg h
+@[simp] theorem pwFilter_cons_of_neg {a : α} {l : List α} (h : ¬∀ b ∈ pwFilter R l, R a b) :
+    pwFilter R (a :: l) = pwFilter R l := if_neg h
 
 theorem pwFilter_map (f : β → α) :
     ∀ l : List β, pwFilter R (map f l) = map f (pwFilter (fun x y => R (f x) (f y)) l)
@@ -325,17 +319,9 @@ theorem pwFilter_eq_self {l : List α} : pwFilter R l = l ↔ Pairwise R l :=
         apply al _ hb)
       rw [this, IH p]⟩
 
-@[simp]
-theorem pwFilter_idempotent : pwFilter R (pwFilter R l) = pwFilter R l := by
+@[simp] theorem pwFilter_idempotent : pwFilter R (pwFilter R l) = pwFilter R l := by
   rw [pwFilter_eq_self]
   apply pairwise_pwFilter
-
-section variable {p q r : α → Prop} {P Q : ∀ x, p x → Prop}
-theorem BAll.imp_right (H : ∀ x h, P x h → Q x h) (h₁ : ∀ x h, P x h) (x h) : Q x h :=
-  H _ _ <| h₁ _ _
-theorem BAll.imp_left (H : ∀ x, p x → q x) (h₁ : ∀ x, q x → r x) (x) (h : p x) : r x :=
-  h₁ _ <| H _ h
-end
 
 theorem forall_mem_pwFilter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z) (a : α) (l : List α) :
     (∀ b ∈ pwFilter R l, R a b) ↔ ∀ b ∈ l, R a b :=
