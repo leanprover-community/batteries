@@ -143,24 +143,17 @@ variable [DecidableEq α]
 
 @[simp] theorem count_nil (a : α) : count a [] = 0 := rfl
 
-theorem count_cons' (a b : α) (l : List α) :
+theorem count_cons (a b : α) (l : List α) :
     count a (b :: l) = count a l + if a = b then 1 else 0 := by conv =>
   simp [count, countp_cons]
   lhs
   simp only [eq_comm]
 
-theorem count_cons (a b : α) (l : List α) :
-    count a (b :: l) = if a = b then succ (count a l) else count a l := by
-  simp [count_cons']
-  split <;> rfl
+@[simp] theorem count_cons_self (a : α) (l : List α) : count a (a :: l) = count a l + 1 := by
+  simp [count_cons]
 
-@[simp]
-theorem count_cons_self (a : α) (l : List α) : count a (a :: l) = count a l + 1 := by
-  simp [count_cons']
-
-@[simp]
-theorem count_cons_of_ne (h : a ≠ b) (l : List α) : count a (b :: l) = count a l := by
-  simp [count_cons', h]
+@[simp] theorem count_cons_of_ne (h : a ≠ b) (l : List α) : count a (b :: l) = count a l := by
+  simp [count_cons, h]
 
 theorem count_tail : ∀ (l : List α) (a : α) (h : 0 < l.length),
       l.tail.count a = l.count a - if a = get l ⟨0, h⟩ then 1 else 0
