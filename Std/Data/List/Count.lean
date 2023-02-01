@@ -85,15 +85,6 @@ theorem countp_pos : 0 < countp p l ↔ ∃ a ∈ l, p a := by
 @[simp] theorem countp_eq_length : countp p l = l.length ↔ ∀ a ∈ l, p a := by
   rw [countp_eq_length_filter, filter_length_eq_length]
 
-theorem length_filter_lt_length_iff_exists (l) :
-    length (filter p l) < length l ↔ ∃ x ∈ l, ¬p x := by
-  have := countp_pos (fun x => ¬p x) (l := l)
-  simp [length_eq_countp_add_countp p l, countp_eq_length_filter] at this ⊢
-  rw [←this]
-  generalize length (filter p l) = x
-  generalize length (filter _ _) = y
-  rw [Nat.lt_add_right_iff_pos]
-
 theorem Sublist.countp_le (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ := by
   simp only [countp_eq_length_filter]
   apply s.filter.length_le
@@ -182,8 +173,7 @@ theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count
 @[simp] theorem count_pos {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := by
   simp only [count, countp_pos, beq_iff_eq, exists_eq_right]
 
-@[simp]
-theorem one_le_count_iff_mem {a : α} {l : List α} : 1 ≤ count a l ↔ a ∈ l := count_pos
+@[simp] theorem one_le_count_iff_mem {a : α} {l : List α} : 1 ≤ count a l ↔ a ∈ l := count_pos
 
 theorem count_eq_zero_of_not_mem {a : α} {l : List α} (h : a ∉ l) : count a l = 0 :=
   Decidable.byContradiction fun h' => h <| count_pos.1 (Nat.pos_of_ne_zero h')
