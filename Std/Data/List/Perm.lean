@@ -262,7 +262,7 @@ theorem exists_perm_sublist {l₁ l₂ l₂' : List α} (s : l₁ <+ l₂) (p : 
   by
   induction p generalizing l₁ with
   | nil =>
-    exact ⟨[], eq_nil_of_sublist_nil s ▸ Perm.refl _, nil_sublist _⟩
+    exact ⟨[], sublist_nil.mp s ▸ Perm.refl _, nil_sublist _⟩
   | cons x _ IH =>
     cases s
     next _ _ _ s =>
@@ -469,7 +469,7 @@ theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : List α} :
       exact (IH _ _ _ _ rfl rfl).swap' _ _
   · subst t₁ t₃
     have : a ∈ t₂ := p₁.subset (by simp)
-    rcases mem_split this with ⟨l₂, r₂, e₂⟩
+    rcases append_of_mem this with ⟨l₂, r₂, e₂⟩
     subst t₂
     exact (IH₁ _ _ _ _ rfl rfl).trans (IH₂ _ _ _ _ rfl rfl)
 
@@ -515,7 +515,7 @@ theorem cons_subperm_of_mem {a : α} {l₁ l₂ : List α} (d₁ : Nodup l₁) (
     have am : a ∈ r₂ := by
       simp only [find?, mem_cons] at h₂
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
-    rcases mem_split bm with ⟨t₁, t₂, rfl⟩
+    rcases append_of_mem bm with ⟨t₁, t₂, rfl⟩
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
     rcases ih (d₁.sublist st) (mt (fun x => st.subset x) h₁) am
         (Perm.cons_inv <| p.trans perm_middle) with
@@ -641,7 +641,6 @@ theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l
     match (inferInstance : DecidableEq _) x y with
     | isTrue h => simp [h]
     | isFalse h =>
-    simp [elem_eq_true_iff_mem]
     simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm x y]
     split <;> (next h => simp [h])
   | trans =>
@@ -858,7 +857,7 @@ theorem Perm.pairwise_iff {R : α → α → Prop} (S : ∀ {x y}, R x y → R y
     constructor
   | cons h _ IH =>
     have : _ ∈ l₂ := p.subset (mem_cons_self _ _)
-    rcases mem_split this with ⟨s₂, t₂, rfl⟩
+    rcases append_of_mem this with ⟨s₂, t₂, rfl⟩
     have p' := (p.trans perm_middle).cons_inv
     refine' (pairwise_middle S).2 (pairwise_cons.2 ⟨fun b m => _, IH _ p'⟩)
     exact h _ (p'.symm.subset m)
