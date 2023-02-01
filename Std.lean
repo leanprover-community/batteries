@@ -24,6 +24,7 @@ import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
+import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
