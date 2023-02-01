@@ -133,6 +133,9 @@ theorem map_eq_some : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b := map_
 
 theorem map_eq_none : f <$> x = none ↔ x = none := map_eq_none'
 
+theorem map_eq_bind {x : Option α} : x.map f = x.bind (some ∘ f) := by
+  cases x <;> simp [Option.bind]
+
 theorem map_congr {x : Option α} (h : ∀ a ∈ x, f a = g a) : x.map f = x.map g := by
   cases x <;> simp only [map_none', map_some', h, mem_def]
 
