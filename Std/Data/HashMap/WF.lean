@@ -321,12 +321,8 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
   · simp [Array.getElem_eq_data_get] at h ⊢
-    have := H.out.2.2 _ h
-    simp [AssocList.All] at this ⊢
-    intro a x h' x_1 _ ha
-    have := this x h'
-    simp [Array.size] at this
-    rw [←ha, this]
+    have := H.out.2.2 _ h; simp [AssocList.All] at this ⊢
+    rintro _ _ h' _ _ rfl; exact this _ h'
 
 end Imp
 
