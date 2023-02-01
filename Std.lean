@@ -27,6 +27,7 @@ import Std.Data.List.Basic
 import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.List.Pairwise
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Lemmas
