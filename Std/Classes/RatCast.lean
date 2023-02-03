@@ -10,6 +10,8 @@ class RatCast (K : Type u) where
   /-- The canonical homomorphism `Rat → K`. -/
   protected ratCast : Rat → K
 
+instance : RatCast Rat where ratCast := id
+
 /-- Canonical homomorphism from `Rat` to a division ring `K`.
 This is just the bare function in order to aid in creating instances of `DivisionRing`. -/
 @[coe, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K := RatCast.ratCast

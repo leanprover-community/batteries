@@ -11,6 +11,8 @@ class NatCast (R : Type u) where
   /-- The canonical map `Nat → R`. -/
   protected natCast : Nat → R
 
+instance : NatCast Nat where natCast := id
+
 /-- Canonical homomorphism from `Nat` to a additive monoid `R` with a `1`.
 This is just the bare function in order to aid in creating instances of `AddMonoidWithOne`. -/
 @[coe, match_pattern] protected def Nat.cast {R : Type u} [NatCast R] : Nat → R := NatCast.natCast
@@ -25,6 +27,8 @@ instance [NatCast R] : CoeHTCT Nat R where coe := Nat.cast
 class IntCast (R : Type u) where
   /-- The canonical map `Int → R`. -/
   protected intCast : Int → R
+
+instance : IntCast Int where intCast := id
 
 /-- Canonical homomorphism from `Int` to a additive group `R` with a `1`.
 This is just the bare function in order to aid in creating instances of `AddGroupWithOne`. -/
