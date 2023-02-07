@@ -29,3 +29,10 @@ class Foo (α : Type)
 class Bar (α : Type) [LE α] extends Foo α
 #eval do guard (← dangerousInstance.test ``Bar.toFoo).isNone
 end E
+
+namespace F
+class Foo (α : outParam Type)
+abbrev Foo' := Foo
+instance dangerous [Inhabited α] : Foo' α where
+#eval do guard (← dangerousInstance.test ``dangerous).isSome
+end F
