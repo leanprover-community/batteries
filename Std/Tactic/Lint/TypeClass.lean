@@ -72,6 +72,7 @@ Try marking the dangerous arguments as implicit instead."
     let declTy ← inferType (← mkConstWithLevelParams declName)
     forallTelescopeReducing declTy fun argVars _ => do
     let (argMVars, argBIs, ty) ← forallMetaTelescopeReducing declTy
+    let ty ← whnfR ty
 
     -- assigns the metavariables in `e` with the corresponding free variables created above
     let assignMVarsIn (e : Expr) : MetaM Unit := do
