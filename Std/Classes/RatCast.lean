@@ -14,11 +14,11 @@ instance : RatCast Rat where ratCast := id
 
 /-- Canonical homomorphism from `Rat` to a division ring `K`.
 This is just the bare function in order to aid in creating instances of `DivisionRing`. -/
-@[coe, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K := RatCast.ratCast
+@[coe, reducible, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K :=
+  RatCast.ratCast
 
 -- see note [coercion into rings]
 instance [RatCast K] : CoeTail Rat K where coe := Rat.cast
 
 -- see note [coercion into rings]
 instance [RatCast K] : CoeHTCT Rat K where coe := Rat.cast
-
