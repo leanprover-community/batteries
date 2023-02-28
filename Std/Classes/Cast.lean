@@ -11,7 +11,7 @@ class NatCast (R : Type u) where
   /-- The canonical map `Nat → R`. -/
   protected natCast : Nat → R
 
-instance : NatCast Nat where natCast := id
+instance : NatCast Nat where natCast n := n
 
 /-- Canonical homomorphism from `Nat` to a additive monoid `R` with a `1`.
 This is just the bare function in order to aid in creating instances of `AddMonoidWithOne`. -/
