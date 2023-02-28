@@ -1134,13 +1134,15 @@ protected theorem sub_lt_sub_of_lt_of_le {a b c d : Int}
   (hab : a < b) (hcd : c ≤ d) : a - d < b - c :=
   Int.add_lt_add_of_lt_of_le hab (Int.neg_le_neg hcd)
 
-protected theorem sub_le_self (a : Int) {b : Int} (h : 0 ≤ b) : a - b ≤ a := calc
-  a + -b ≤ a + 0 := Int.add_le_add_left (Int.neg_nonpos_of_nonneg h) _
-       _ = a     := by rw [Int.add_zero]
+protected theorem sub_le_self (a : Int) {b : Int} (h : 0 ≤ b) : a - b ≤ a :=
+  calc  a + -b
+    _ ≤ a + 0 := Int.add_le_add_left (Int.neg_nonpos_of_nonneg h) _
+    _ = a     := by rw [Int.add_zero]
 
-protected theorem sub_lt_self (a : Int) {b : Int} (h : 0 < b) : a - b < a := calc
-  a + -b < a + 0 := Int.add_lt_add_left (Int.neg_neg_of_pos h) _
-       _ = a     := by rw [Int.add_zero]
+protected theorem sub_lt_self (a : Int) {b : Int} (h : 0 < b) : a - b < a :=
+  calc  a + -b
+    _ < a + 0 := Int.add_lt_add_left (Int.neg_neg_of_pos h) _
+    _ = a     := by rw [Int.add_zero]
 
 protected theorem add_le_add_three {a b c d e f : Int}
     (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) : a + b + c ≤ d + e + f :=
