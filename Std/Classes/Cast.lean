@@ -29,7 +29,7 @@ class IntCast (R : Type u) where
   /-- The canonical map `Int → R`. -/
   protected intCast : Int → R
 
-instance : IntCast Int where intCast := id
+instance : IntCast Int where intCast n := n
 
 /-- Canonical homomorphism from `Int` to a additive group `R` with a `1`.
 This is just the bare function in order to aid in creating instances of `AddGroupWithOne`. -/
