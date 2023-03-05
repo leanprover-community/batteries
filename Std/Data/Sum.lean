@@ -9,7 +9,3 @@ Authors: James Gallicchio
 
 /-- Alias for `Sum.inr`. -/
 @[match_pattern] def Sum.right (x : β) : α ⊕ β := .inr x
-
-example : Nat ⊕ String := .left 0
-example (x : Nat ⊕ String) :=
-  match x with | .left n => n | .right _ => 0
