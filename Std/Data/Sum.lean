@@ -5,7 +5,7 @@ Authors: James Gallicchio
 -/
 
 /-- Alias for `Sum.inl`. -/
-@[match_pattern] def Sum.left (x : α) : α ⊕ β := .inl x
+@[match_pattern] abbrev Sum.left (x : α) : α ⊕ β := .inl x
 
 /-- Alias for `Sum.inr`. -/
-@[match_pattern] def Sum.right (x : β) : α ⊕ β := .inr x
+@[match_pattern] abbrev Sum.right (x : β) : α ⊕ β := .inr x
