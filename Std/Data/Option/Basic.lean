@@ -138,5 +138,7 @@ def sequence [Monad m] {α : Type u} : Option (m α) → m (Option α)
   do (← x).elim y z
 
 /-- A monadic analogue of `Option.getD`. -/
-@[inline] def getDM [Monad m] (x : m (Option α)) (y : m α) : m α :=
-  elimM x y pure
+@[inline] def getDM [Monad m] (x : Option α) (y : m α) : m α :=
+  match x with
+  | some a => pure a
+  | none => y
