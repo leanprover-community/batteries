@@ -3,6 +3,7 @@ import Std.Classes.Cast
 import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
 import Std.Classes.Order
+import Std.Classes.RatCast
 import Std.Classes.SetNotation
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
