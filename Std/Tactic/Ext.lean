@@ -77,7 +77,7 @@ macro_rules | `(declare_ext_theorems_for $struct:ident $[$prio]?) => do
       fun {..} {..} => by intros; subst_eqs; rfl
     protected theorem $extIffName:ident : ext_iff_type% $struct:ident :=
       fun {..} {..} =>
-        ⟨fun _ => by subst_eqs; split_ands <;> rfl,
+        ⟨fun h => by cases h; split_ands <;> rfl,
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
 
 /-- Apply a single extensionality lemma to `goal`. -/

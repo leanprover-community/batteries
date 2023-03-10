@@ -35,3 +35,10 @@ example (f g : Nat × Nat → Nat) : f = g := by
 declare_ext_theorems_for Fin
 @[ext high] theorem Fin.zero_ext (a b : Fin 0) : True → a = b := by cases a.isLt
 example (a b : Fin 0) : a = b := by ext; exact True.intro
+
+def Set (α : Type u) := α → Prop
+@[ext] structure LocalEquiv (α : Type u) (β : Type v) where
+  source : Set α
+@[ext] structure Pretrivialization {F : Type u} (proj : Z → β) extends LocalEquiv Z (β × F) where
+  baseSet : Set β
+  source_eq : source = baseSet ∘ proj
