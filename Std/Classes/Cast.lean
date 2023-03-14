@@ -24,6 +24,9 @@ instance [NatCast R] : CoeTail Nat R where coe := Nat.cast
 -- see note [coercion into rings]
 instance [NatCast R] : CoeHTCT Nat R where coe := Nat.cast
 
+/-- This instance is needed to ensure that `instCoeNatInt` from core is not used. -/
+instance : Coe Nat Int where coe := Nat.cast
+
 /-- Type class for the canonical homomorphism `Int → R`. -/
 class IntCast (R : Type u) where
   /-- The canonical map `Int → R`. -/
