@@ -14,7 +14,6 @@ open Nat
 
 namespace Int
 
-instance : NatCast Int := ⟨ofNat⟩
 @[simp] theorem ofNat_eq_coe : ofNat n = Nat.cast n := rfl
 
 @[simp] theorem ofNat_zero : ((0 : Nat) : Int) = 0 := rfl

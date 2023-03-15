@@ -12,6 +12,7 @@ class NatCast (R : Type u) where
   protected natCast : Nat → R
 
 instance : NatCast Nat where natCast n := n
+instance : NatCast Int where natCast n := Int.ofNat n
 
 /-- Canonical homomorphism from `Nat` to a additive monoid `R` with a `1`.
 This is just the bare function in order to aid in creating instances of `AddMonoidWithOne`. -/
@@ -23,6 +24,9 @@ instance [NatCast R] : CoeTail Nat R where coe := Nat.cast
 
 -- see note [coercion into rings]
 instance [NatCast R] : CoeHTCT Nat R where coe := Nat.cast
+
+/-- This instance is needed to ensure that `instCoeNatInt` from core is not used. -/
+instance : Coe Nat Int where coe := Nat.cast
 
 /-- Type class for the canonical homomorphism `Int → R`. -/
 class IntCast (R : Type u) where
