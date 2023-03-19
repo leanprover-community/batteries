@@ -799,7 +799,7 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
-@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
+@[inline] def RBMap.single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
 
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}
