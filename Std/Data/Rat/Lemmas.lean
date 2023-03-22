@@ -306,3 +306,9 @@ theorem ofScientific_true_def : Rat.ofScientific m true e = mkRat m (10 ^ e) := 
 theorem ofScientific_false_def : Rat.ofScientific m false e = (m * 10 ^ e : Nat) := by
   unfold Rat.ofScientific
   rfl
+
+theorem ofScientific_def : Rat.ofScientific m s e =
+    if s then mkRat m (10 ^ e) else (m * 10 ^ e : Nat) := by
+  cases s
+  · exact ofScientific_false_def
+  · exact ofScientific_true_def
