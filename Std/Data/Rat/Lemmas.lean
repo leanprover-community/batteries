@@ -300,12 +300,10 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
 theorem div_def (a b : Rat) : a / b = a * b.inv := rfl
 
 theorem ofScientific_true_def : Rat.ofScientific m true e = mkRat m (10 ^ e) := by
-  unfold Rat.ofScientific
-  exact normalize_eq_mkRat (Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide))
+  unfold Rat.ofScientific; rw [normalize_eq_mkRat]; rfl
 
 theorem ofScientific_false_def : Rat.ofScientific m false e = (m * 10 ^ e : Nat) := by
-  unfold Rat.ofScientific
-  rfl
+  unfold Rat.ofScientific; rfl
 
 theorem ofScientific_def : Rat.ofScientific m s e =
     if s then mkRat m (10 ^ e) else (m * 10 ^ e : Nat) := by
