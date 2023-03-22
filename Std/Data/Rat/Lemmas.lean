@@ -298,3 +298,16 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
   simp [inv_def, divInt_mul_right zg]
 
 theorem div_def (a b : Rat) : a / b = a * b.inv := rfl
+
+theorem ofScientific_true_def : Rat.ofScientific m true e =
+    normalize m (10 ^ e) (Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide)) := by
+  unfold Rat.ofScientific
+  rfl
+
+theorem ofScientific_true_def' : Rat.ofScientific m true e = mkRat m (10 ^ e) := by
+  unfold Rat.ofScientific
+  exact normalize_eq_mkRat (Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide))
+
+theorem ofScientific_false_def : Rat.ofScientific m false e = (m * 10 ^ e : Nat) := by
+  unfold Rat.ofScientific
+  rfl
