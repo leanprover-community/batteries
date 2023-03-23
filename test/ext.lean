@@ -42,3 +42,12 @@ def Set (α : Type u) := α → Prop
 @[ext] structure Pretrivialization {F : Type u} (proj : Z → β) extends LocalEquiv Z (β × F) where
   baseSet : Set β
   source_eq : source = baseSet ∘ proj
+
+-- allow `ext` lemmas that introduce more than 1 variable at once:
+@[ext 1002]
+theorem bad_ext_lemma {α β γ : Type} (f g : α → β → γ) (h : ∀ i j, f i j = g i j) : f = g := by
+  ext i j
+  exact h i j
+example {α β γ : Type} (f g : α → β → γ) (h : ∀ i j, f i j = g i j) : f = g := by
+  ext i j
+  exact h i j
