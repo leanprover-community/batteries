@@ -116,7 +116,7 @@ def tryIntros [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyn
   | p::ps =>
     if (← (g.withContext g.getType' : TermElabM _)).isForall then
       for g in ← RCases.rintro #[p] none g do
-        k g ps
+        tryIntros g ps k
     else k g pats
 
 /--
