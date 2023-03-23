@@ -278,10 +278,12 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   have ⟨h₁, h₂⟩ := H.out
   simp [Imp.mapVal, Bucket.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
   · simp [Bucket.size]; congr; funext l; simp
-  · simp [List.forall_mem_map_iff, List.pairwise_map]
+  · simp only [Array.map_data, List.forall_mem_map_iff]
+    simp [List.pairwise_map]
     exact fun _ => h₂.1 _
-  · simp [AssocList.All, List.forall_mem_map_iff] at h ⊢
-    exact h₂.2 _ h
+  · simp [AssocList.All] at h ⊢
+    rintro a x hx rfl
+    apply h₂.2 _ _ x hx
 
 theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
@@ -315,16 +317,14 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Bucket.size]) ⟨?_, fun i h => ?_⟩
-  · simp [List.forall_mem_map_iff]
+  · simp only [List.forall_mem_map_iff, List.toAssocList_toList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
   · simp [Array.getElem_eq_data_get] at h ⊢
     have := H.out.2.2 _ h; simp [AssocList.All] at this ⊢
-    rw [← List.forall_mem_map_iff
-      (P := fun a => ((hash a).toUSize % m.buckets.val.data.length).toNat = i)] at this ⊢
-    exact fun _ h' => this _ ((H3 _).subset h')
+    rintro _ _ h' _ _ rfl; exact this _ h'
 
 end Imp
 
