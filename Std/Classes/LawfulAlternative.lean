@@ -1,17 +1,21 @@
 import Std.Classes.LawfulMonad
+import Lean.Linter
 
-/-- combination class of `Monad` and `Alternative` with a common `Applicative` component -/
+/-- Combination class of `Monad` and `Alternative` with a common `Applicative` component -/
 class MonadAlternative (m : Type _ → Type _) extends Monad m, Alternative m
 
-/-- basic laws for `Alternative` -/
+-- Missing docs in core
+attribute [nolint docBlame] MonadAlternative.failure MonadAlternative.orElse
+
+/-- Basic laws for `Alternative` -/
 class LawfulAlternative (f : Type _ → Type _) [Alternative f] extends LawfulApplicative f : Prop where
-  /-- map failure is failure -/
+  /-- Map failure is failure -/
   map_failure (g : α → β) : g <$> (failure : f α) = failure
-  /-- map distributes over `orElse` -/
+  /-- Map distributes over `orElse` -/
   map_orElse (g : α → b) (x y : f α) : g <$> (x <|> y) = (g <$> x <|> g <$> y)
-  /-- failure is left identity for `orElse`  -/
+  /-- Failure is a left identity for `orElse`  -/
   failure_orElse (x : f α) : (failure <|> x) = x
-  /-- failure is right identity for `orElse` -/
+  /-- Failure is a right identity for `orElse` -/
   orElse_failure (x : f α) : (x <|> failure) = x
   /-- `orElse` is associative -/
   orElse_assoc (x y z : f α) : (x <|> (y <|> z)) = ((x <|> y) <|> z)
@@ -20,7 +24,7 @@ class LawfulAlternative (f : Type _ → Type _) [Alternative f] extends LawfulAp
 
 export LawfulAlternative (map_failure map_orElse failure_orElse orElse_failure orElse_assoc pure_orElse)
 
-attribute [simp] map_failure failure_orElse orElse_failure pure_orElse
+attribute [simp] map_failure failure_orElse pure_orElse
 
 instance : LawfulAlternative Option where
   map_failure        := by intros; rfl
@@ -40,7 +44,7 @@ instance [MonadAlternative m] [LawfulAlternative m] : LawfulAlternative (ReaderT
   map_failure    := by intros; apply ext; intros; simp
   map_orElse     := by intros; apply ext; intros; simp [map_orElse]
   failure_orElse := by intros; apply ext; intros; simp
-  orElse_failure := by intros; apply ext; intros; simp
+  orElse_failure := by intros; apply ext; intros; simp [orElse_failure]
   orElse_assoc   := by intros; apply ext; intros; simp [orElse_assoc]
   pure_orElse    := by intros; apply ext; intros; simp
 
@@ -62,7 +66,7 @@ instance [MonadAlternative m] [LawfulMonad m] [LawfulAlternative m] : LawfulAlte
   map_failure    := by intros; apply ext; intros; simp
   map_orElse     := by intros; apply ext; intros; simp [map_orElse]
   failure_orElse := by intros; apply ext; intros; simp
-  orElse_failure := by intros; apply ext; intros; simp
+  orElse_failure := by intros; apply ext; intros; simp [orElse_failure]
   orElse_assoc   := by intros; apply ext; intros; simp [orElse_assoc]
   pure_orElse    := by intros; apply ext; intros; simp
 
