@@ -1207,7 +1207,7 @@ theorem length_filterMap_le (f : α → Option β) (l : List α) :
 theorem Sublist.filterMap (f : α → Option β) (s : l₁ <+ l₂) : filterMap f l₁ <+ filterMap f l₂ := by
   induction s <;> simp <;> split <;> simp [*, cons, cons₂]
 
-theorem Sublist.filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ := by
+theorem Sublist.filter (p : α → Bool) {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ := by
   rw [← filterMap_eq_filter]; apply s.filterMap
 
 theorem map_filter (f : β → α) (l : List β) : filter p (map f l) = map f (filter (p ∘ f) l) := by
