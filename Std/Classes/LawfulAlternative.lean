@@ -18,13 +18,11 @@ class LawfulAlternative (f : Type _ → Type _) [Alternative f] extends LawfulAp
   /-- Failure is a right identity for `orElse` -/
   orElse_failure (x : f α) : (x <|> failure) = x
   /-- `orElse` is associative -/
-  orElse_assoc (x y z : f α) : (x <|> (y <|> z)) = ((x <|> y) <|> z)
-  /-- `pure` always succeeds -/
-  pure_orElse (x : α) (y : f α) : (pure x <|> y) = pure x
+  orElse_assoc (x y z : f α) : ((x <|> y) <|> z) = (x <|> (y <|> z))
 
-export LawfulAlternative (map_failure map_orElse failure_orElse orElse_failure orElse_assoc pure_orElse)
+export LawfulAlternative (map_failure map_orElse failure_orElse orElse_failure orElse_assoc)
 
-attribute [simp] map_failure failure_orElse pure_orElse
+attribute [simp] map_failure failure_orElse
 
 instance : LawfulAlternative Option where
   map_failure        := by intros; rfl
@@ -32,7 +30,6 @@ instance : LawfulAlternative Option where
   failure_orElse     := by intros; rfl
   orElse_failure x   := by cases x <;> rfl
   orElse_assoc x _ _ := by cases x <;> rfl
-  pure_orElse        := by intros; rfl
 
 namespace ReaderT
 
@@ -46,7 +43,6 @@ instance [MonadAlternative m] [LawfulAlternative m] : LawfulAlternative (ReaderT
   failure_orElse := by intros; apply ext; intros; simp
   orElse_failure := by intros; apply ext; intros; simp [orElse_failure]
   orElse_assoc   := by intros; apply ext; intros; simp [orElse_assoc]
-  pure_orElse    := by intros; apply ext; intros; simp
 
 end ReaderT
 
@@ -68,6 +64,5 @@ instance [MonadAlternative m] [LawfulMonad m] [LawfulAlternative m] : LawfulAlte
   failure_orElse := by intros; apply ext; intros; simp
   orElse_failure := by intros; apply ext; intros; simp [orElse_failure]
   orElse_assoc   := by intros; apply ext; intros; simp [orElse_assoc]
-  pure_orElse    := by intros; apply ext; intros; simp
 
 end StateT
