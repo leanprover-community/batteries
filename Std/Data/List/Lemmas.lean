@@ -819,6 +819,11 @@ theorem set_comm (a b : α) : ∀ {n m : Nat} (l : List α), n ≠ m →
   | n+1, m+1, x :: t, h =>
     congrArg _ <| set_comm a b t fun h' => h <| Nat.succ_inj'.mpr h'
 
+theorem set_set (a b : α) : ∀ (l : List α) (n : Nat), (l.set n a).set n b = l.set n b
+  | [], _ => by simp
+  | _ :: _, 0 => by simp [set]
+  | _ :: _, _+1 => by simp [set, set_set]
+
 @[simp] theorem get_set_eq (l : List α) (i : Nat) (a : α) (h : i < (l.set i a).length) :
     (l.set i a).get ⟨i, h⟩ = a := by
   rw [← Option.some_inj, ← get?_eq_get, get?_set_eq, get?_eq_get] <;> simp_all
@@ -1280,8 +1285,51 @@ theorem Pairwise.imp {α R S} (H : ∀ {a b}, R a b → S a b) :
 
 /-! ### replaceF -/
 
+theorem replaceF_nil : [].replaceF p = [] := rfl
+
+theorem replaceF_cons (a : α) (l : List α) :
+    (a :: l).replaceF p = match p a with
+      | none => a :: replaceF p l
+      | some a' => a' :: l := rfl
+
+theorem replaceF_cons_of_some {l : List α} (p) (h : p a = some a') :
+    (a :: l).replaceF p = a' :: l := by
+  simp [replaceF_cons, h]
+
+theorem replaceF_cons_of_none {l : List α} (p) (h : p a = none) :
+    (a :: l).replaceF p = a :: l.replaceF p := by simp [replaceF_cons, h]
+
+theorem replaceF_of_forall_none {l : List α} (h : ∀ a, a ∈ l → p a = none) : l.replaceF p = l := by
+  induction l with
+  | nil => rfl
+  | cons _ _ ih => simp [h _ (.head ..), ih (forall_mem_cons.1 h).2]
+
+theorem exists_of_replaceF : ∀ {l : List α} {a a'} (al : a ∈ l) (pa : p a = some a'),
+    ∃ a a' l₁ l₂,
+      (∀ b ∈ l₁, p b = none) ∧ p a = some a' ∧ l = l₁ ++ a :: l₂ ∧ l.replaceF p = l₁ ++ a' :: l₂
+  | b :: l, a, a', al, pa =>
+    match pb : p b with
+    | some b' => ⟨b, b', [], l, forall_mem_nil _, pb, by simp [pb]⟩
+    | none =>
+      match al with
+      | .head .. => nomatch pb.symm.trans pa
+      | .tail _ al =>
+        let ⟨c, c', l₁, l₂, h₁, h₂, h₃, h₄⟩ := exists_of_replaceF al pa
+        ⟨c, c', b::l₁, l₂, (forall_mem_cons ..).2 ⟨pb, h₁⟩,
+          h₂, by rw [h₃, cons_append], by simp [pb, h₄]⟩
+
+theorem exists_or_eq_self_of_replaceF (p) (l : List α) :
+    l.replaceF p = l ∨ ∃ a a' l₁ l₂,
+      (∀ b ∈ l₁, p b = none) ∧ p a = some a' ∧ l = l₁ ++ a :: l₂ ∧ l.replaceF p = l₁ ++ a' :: l₂ :=
+  if h : ∃ a ∈ l, (p a).isSome then
+    let ⟨_, ha, pa⟩ := h
+    .inr (exists_of_replaceF ha (Option.get_mem pa))
+  else
+    .inl <| replaceF_of_forall_none fun a ha =>
+      Option.not_isSome_iff_eq_none.1 fun h' => h ⟨a, ha, h'⟩
+
 @[simp] theorem length_replaceF : length (replaceF f l) = length l := by
-  induction l <;> simp; split <;> simp [*]
+  induction l <;> simp [replaceF]; split <;> simp [*]
 
 /-! ### disjoint -/
 

@@ -39,6 +39,9 @@ Note: this is marked `noncomputable` because it is only intended for specificati
 -/
 noncomputable def size (data : Bucket α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
+@[simp] theorem update_size (self : Bucket α β) (i d h) :
+    (self.update i d h).1.size = self.1.size := Array.size_uset ..
+
 /-- Map a function over the values in the map. -/
 @[specialize] def mapVal (f : α → β → γ) (self : Bucket α β) : Bucket α γ :=
   ⟨self.1.map (.mapVal f), by simp [self.2]⟩
@@ -181,6 +184,14 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
 @[inline] def mapVal (f : α → β → γ) (self : Imp α β) : Imp α γ :=
   { size := self.size, buckets := self.buckets.mapVal f }
 
+/-- Performs an in-place edit of the value, ensuring that the value is used linearly. -/
+def modify [BEq α] [Hashable α] (m : Imp α β) (a : α) (f : α → β → β) : Imp α β :=
+  let ⟨size, buckets⟩ := m
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
+  let bkt := buckets.1[i]
+  let buckets := buckets.update i .nil h -- for linearity
+  ⟨size, buckets.update i (bkt.modify a f) ((Bucket.update_size ..).symm ▸ h)⟩
+
 /--
 Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
 `a, c` is pushed into the new map; else the key is removed from the map.
@@ -223,6 +234,8 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
   | insert : WF m → WF (insert m a b)
   /-- Removing an element from a well formed hash map yields a well formed hash map. -/
   | erase : WF m → WF (erase m a)
+  /-- Replacing an element in a well formed hash map yields a well formed hash map. -/
+  | modify : WF m → WF (modify m a f)
 
 theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by unfold empty; apply empty'
 
@@ -279,6 +292,13 @@ replaced with `a ↦ b`.
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
 -/
 @[inline] def erase (self : HashMap α β) (a : α) : HashMap α β := ⟨self.1.erase a, self.2.erase⟩
+
+/--
+Performs an in-place edit of the value, ensuring that the value is used linearly.
+The function `f` is passed the original key of the entry, along with the value in the map.
+-/
+def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
+  ⟨self.1.modify a f, self.2.modify⟩
 
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
 @[inline] def findEntry? (self : HashMap α β) (a : α) : Option (α × β) := self.1.findEntry? a

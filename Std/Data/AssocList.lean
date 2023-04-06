@@ -182,6 +182,23 @@ with key equal to `a` to have key `a` and value `b`.
 @[simp] theorem erase_toList [BEq α] (a : α) (l : AssocList α β) :
     (erase a l).toList = l.toList.eraseP (·.1 == a) := eraseP_toList ..
 
+/--
+`O(n)`. Replace the first entry `a', b` in the list
+with key equal to `a` to have key `a` and value `f a' b`.
+-/
+@[simp] def modify [BEq α] (a : α) (f : α → β → β) : AssocList α β → AssocList α β
+  | nil         => nil
+  | cons k v es => match k == a with
+    | true  => cons a (f k v) es
+    | false => cons k v (modify a f es)
+
+@[simp] theorem modify_toList [BEq α] (a : α) (l : AssocList α β) :
+    (modify a f l).toList =
+    l.toList.replaceF fun (k, v) => bif k == a then some (a, f k v) else none := by
+  simp [cond]
+  induction l with simp [List.replaceF]
+  | cons k v es ih => cases k == a <;> simp [ih]
+
 /-- The implementation of `ForIn`, which enables `for (k, v) in aList do ...` notation. -/
 @[specialize] protected def forIn [Monad m]
     (as : AssocList α β) (init : δ) (f : (α × β) → δ → m (ForInStep δ)) : m δ :=
