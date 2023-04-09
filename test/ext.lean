@@ -31,6 +31,13 @@ example (f g : Nat × Nat → Nat) : f = g := by
   ext ⟨x, y⟩
   guard_target = f (x, y) = g (x, y); admit
 
+-- Check that we fail with an error if there are too many patterns.
+example (f g : Nat → Nat) : f = g := by
+  fail_if_success
+    ext i j
+  ext i
+  admit
+
 -- allow more specific ext theorems
 declare_ext_theorems_for Fin
 @[ext high] theorem Fin.zero_ext (a b : Fin 0) : True → a = b := by cases a.isLt

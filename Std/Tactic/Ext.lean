@@ -167,7 +167,12 @@ elab_rules : tactic
     let pats := RCases.expandRIntroPats pats
     let depth := n.map (·.getNat) |>.getD 1000000
     let gs ← extCore (← getMainGoal) pats.toList depth
-    replaceMainGoal <| gs.map (·.1) |>.toList
+    let unconsumed : List (TSyntax `rcasesPat) := match gs.map (·.2) |>.toList with
+    | [] => []
+    | h :: t => t.foldl (init := h) fun x y => x.filter fun p => y.any (p == ·)
+    match unconsumed with
+    | [] => replaceMainGoal <| gs.map (·.1) |>.toList
+    | _ => throwError "`ext` did not consume the patterns: {unconsumed}"
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
