@@ -292,6 +292,10 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
     apply (divInt_self _).symm.trans
     simp [Int.le_antisymm (Int.not_lt.1 h₂) (Int.not_lt.1 h₁)]
 
+@[simp] theorem inv_zero : (0 : Rat).inv = 0 := by
+  unfold Rat.inv
+  simp
+
 @[simp] theorem inv_divInt (n d : Int) : (n /. d).inv = d /. n := by
   if z : d = 0 then simp [z] else
   cases e : n /. d; rcases divInt_num_den z e with ⟨g, zg, rfl, rfl⟩
