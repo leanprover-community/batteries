@@ -75,7 +75,7 @@ theorem iff_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : (a ↔ b) ↔ (c ↔ d) :=
 
 @[simp] theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
 
-@[simp] theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
+theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
 
 theorem ne_self_iff_false (a : α) : a ≠ a ↔ False := not_iff_false_intro rfl
 
