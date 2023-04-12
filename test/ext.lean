@@ -31,11 +31,9 @@ example (f g : Nat × Nat → Nat) : f = g := by
   ext ⟨x, y⟩
   guard_target = f (x, y) = g (x, y); admit
 
--- Check that we fail with an error if there are too many patterns.
+-- Check that we generate a warning if there are too many patterns.
 example (f g : Nat → Nat) : f = g := by
-  fail_if_success
-    ext i j
-  ext i
+  ext i j
   admit
 
 -- allow more specific ext theorems

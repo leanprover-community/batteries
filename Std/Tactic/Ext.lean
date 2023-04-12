@@ -163,16 +163,16 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
-  | `(tactic| ext $pats* $[: $n]?) => do
+  | `(tactic| ext%$tk $pats* $[: $n]?) => do
     let pats := RCases.expandRIntroPats pats
     let depth := n.map (·.getNat) |>.getD 1000000
     let gs ← extCore (← getMainGoal) pats.toList depth
     let unconsumed : List (TSyntax `rcasesPat) := match gs.map (·.2) |>.toList with
     | [] => []
     | h :: t => t.foldl (init := h) fun x y => x.filter fun p => y.any (p == ·)
-    match unconsumed with
-    | [] => replaceMainGoal <| gs.map (·.1) |>.toList
-    | _ => throwError "`ext` did not consume the patterns: {unconsumed}"
+    if !unconsumed.isEmpty then
+      logWarningAt tk m!"`ext` did not consume the patterns: {unconsumed}"
+    replaceMainGoal <| gs.map (·.1) |>.toList
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
