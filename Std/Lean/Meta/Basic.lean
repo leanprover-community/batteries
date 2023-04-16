@@ -261,7 +261,7 @@ def repeat'Core [Monad m] [MonadError m] [MonadMCtx m]
   let (progress, acc) ← go maxIters false gs [] #[]
   pure (progress, (← acc.filterM fun g => not <$> g.isAssigned).toList)
 where
-  /-- Auxiliary for `repeat'`. `repeat'.go f maxIters progress gs stk acc` evaluates to
+  /-- Auxiliary for `repeat'Core`. `repeat'Core.go f maxIters progress gs stk acc` evaluates to
   essentially `acc.toList ++ repeat' f (gs::stk).join maxIters`: that is, `acc` are goals we will
   not revisit, and `(gs::stk).join` is the accumulated todo list of subgoals. -/
   go : Nat → Bool → List MVarId → List (List MVarId) → Array MVarId → m (Bool × Array MVarId)
