@@ -307,6 +307,13 @@ def mkFreshIdWithPrefix [Monad m] [MonadNameGenerator m] («prefix» : Name) :
 
 /--
 Implementation of `repeat'` and `repeat1'`.
+
+`repeat'Core f` runs `f` on all of the goals to produce a new list of goals,
+then runs `f` again on all of those goals, and repeats until `f` fails on all remaining goals,
+or until `maxIters` total calls to `f` have occurred.
+
+Returns a boolean indicating whether `f` succeeded at least once, and
+all the remaining goals (i.e. those on which `f` failed).
 -/
 def repeat'Core [Monad m] [MonadError m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) :
