@@ -95,7 +95,7 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
 
 @[simp] theorem bind_eq_none {o : Option α} {f : α → Option β} :
     o.bind f = none ↔ ∀ b a, a ∈ o → b ∉ f a := by
-  simp only [eq_none_iff_forall_not_mem, not_exists, not_and, mem_def, bind_eq_some]; rfl
+  simp only [eq_none_iff_forall_not_mem, not_exists, not_and, mem_def, bind_eq_some]
 
 theorem bind_comm {f : α → β → Option γ} (a : Option α) (b : Option β) :
     (a.bind fun x => b.bind (f x)) = b.bind fun y => a.bind fun x => f x y := by
@@ -132,6 +132,9 @@ theorem map_eq_some : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b := map_
   cases x <;> simp only [map_none', map_some', eq_self_iff_true]
 
 theorem map_eq_none : f <$> x = none ↔ x = none := map_eq_none'
+
+theorem map_eq_bind {x : Option α} : x.map f = x.bind (some ∘ f) := by
+  cases x <;> simp [Option.bind]
 
 theorem map_congr {x : Option α} (h : ∀ a ∈ x, f a = g a) : x.map f = x.map g := by
   cases x <;> simp only [map_none', map_some', h, mem_def]

@@ -239,6 +239,41 @@ def setFVarBinderInfo [MonadMCtx m] (mvarId : MVarId) (fvarId : FVarId)
     (bi : BinderInfo) : m Unit :=
   modifyMCtx (·.setFVarBinderInfo mvarId fvarId bi)
 
+/--
+Collect the metavariables which `mvarId` depends on. These are the metavariables
+which appear in the type and local context of `mvarId`, as well as the
+metavariables which *those* metavariables depend on, etc.
+-/
+partial def getMVarDependencies (mvarId : MVarId) (includeDelayed := false) :
+    MetaM (HashSet MVarId) :=
+  (·.snd) <$> (go mvarId).run {}
+where
+  /-- Auxiliary definition for `getMVarDependencies`. -/
+  addMVars (e : Expr) : StateRefT (HashSet MVarId) MetaM Unit := do
+    let mvars ← getMVars e
+    let mut s ← get
+    set ({} : HashSet MVarId) -- Ensure that `s` is not shared.
+    for mvarId in mvars do
+      if ← pure includeDelayed <||> notM (mvarId.isDelayedAssigned) then
+        s := s.insert mvarId
+    set s
+    mvars.forM go
+
+  /-- Auxiliary definition for `getMVarDependencies`. -/
+  go (mvarId : MVarId) : StateRefT (HashSet MVarId) MetaM Unit :=
+    withIncRecDepth do
+      let mdecl ← mvarId.getDecl
+      addMVars mdecl.type
+      for ldecl in mdecl.lctx do
+        addMVars ldecl.type
+        if let (some val) := ldecl.value? then
+          addMVars val
+      if let (some ass) ← getDelayedMVarAssignment? mvarId then
+        let pendingMVarId := ass.mvarIdPending
+        if ← notM pendingMVarId.isAssignedOrDelayedAssigned then
+          modify (·.insert pendingMVarId)
+        go pendingMVarId
+
 end MVarId
 
 
@@ -251,6 +286,24 @@ delayed-assigned metavariables are considered unassigned.
 def getUnassignedExprMVars [Monad m] [MonadMCtx m] (includeDelayed := false) :
     m (Array MVarId) :=
   return (← getMCtx).unassignedExprMVars (includeDelayed := includeDelayed)
+
+/--
+Run a computation with hygiene turned off.
+-/
+def unhygienic [MonadWithOptions m] (x : m α) : m α :=
+  withOptions (tactic.hygienic.set · false) x
+
+/--
+A variant of `mkFreshId` which generates names with a particular prefix. The
+generated names are unique and have the form `<prefix>.<N>` where `N` is a
+natural number. They are not suitable as user-facing names.
+-/
+def mkFreshIdWithPrefix [Monad m] [MonadNameGenerator m] («prefix» : Name) :
+    m Name := do
+  let ngen ← getNGen
+  let r := { ngen with namePrefix := «prefix» }.curr
+  setNGen ngen.next
+  pure r
 
 /--
 Implementation of `repeat'` and `repeat1'`.
@@ -300,4 +353,25 @@ def repeat1' [Monad m] [MonadError m] [MonadMCtx m]
   let (.true, gs) ← repeat'Core f gs maxIters | throwError "repeat1' made no progress"
   pure gs
 
-end Lean.Meta
+/--
+`saturate1 goal tac` runs `tac` on `goal`, then on the resulting goals, etc.,
+until `tac` does not apply to any goal any more (i.e. it returns `none`). The
+order of applications is depth-first, so if `tac` generates goals `[g₁, g₂, ⋯]`,
+we apply `tac` to `g₁` and recursively to all its subgoals before visiting `g₂`.
+If `tac` does not apply to `goal`, `saturate1` returns `none`. Otherwise it
+returns the generated subgoals to which `tac` did not apply. `saturate1`
+respects the `MonadRecDepth` recursion limit.
+-/
+partial def saturate1 [Monad m] [MonadError m] [MonadRecDepth m] [MonadLiftT (ST IO.RealWorld) m]
+    (goal : MVarId) (tac : MVarId → m (Option (Array MVarId))) : m (Option (Array MVarId)) := do
+  let some goals ← tac goal | return none
+  let acc ← ST.mkRef #[]
+  goals.forM (go acc)
+  return some (← acc.get)
+where
+  /-- Auxiliary definition for `saturate1`. -/
+  go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
+    withIncRecDepth do
+      match ← tac goal with
+      | none => acc.modify λ s => s.push goal
+      | some goals => goals.forM (go acc)

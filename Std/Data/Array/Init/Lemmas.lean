@@ -156,7 +156,7 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
     refine (hs _ ih₁).bind fun b ⟨h₁, h₂⟩ => .pure ⟨h₂, by simp [eq], fun j hj => ?_⟩
     simp [get_push] at hj ⊢; split; {apply ih₂}
-    cases j; cases (Nat.le_or_eq_or_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
+    cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
 
 theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
     (p : Fin as.size → β → Prop)

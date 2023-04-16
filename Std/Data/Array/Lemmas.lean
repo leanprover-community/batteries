@@ -107,6 +107,9 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
     (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
   if h : i.1 = j then subst j; simp [*] else simp [*]
 
+theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
+    (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' := by simp [set, List.set_set]
+
 private theorem fin_cast_val (e : n = n') (i : Fin n) : e ▸ i = ⟨i.1, e ▸ i.2⟩ := by cases e; rfl
 
 theorem swap_def (a : Array α) (i j : Fin a.size) :
@@ -184,7 +187,7 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
       simp at hi'; simp [get_push]; split
       · next h => exact h₂ _ _ h
-      · next h => cases h₁.symm ▸ (Nat.le_or_eq_or_le_succ hi').resolve_left h; exact hb.1
+      · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapIdxM]; exact go rfl (fun.) h0
 
 theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)

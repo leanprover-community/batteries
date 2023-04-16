@@ -799,7 +799,7 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
-@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
+@[inline] def RBMap.single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
 
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}
@@ -849,9 +849,9 @@ can be used in `for` loops or converted to an array or list.
 
 @[inline, inherit_doc keysList] def Keys.toList := @keysList
 
-instance : Coe (Keys α β cmp) (Array α) := ⟨keysArray⟩
+instance : CoeHead (Keys α β cmp) (Array α) := ⟨keysArray⟩
 
-instance : Coe (Keys α β cmp) (List α) := ⟨keysList⟩
+instance : CoeHead (Keys α β cmp) (List α) := ⟨keysList⟩
 
 instance : ForIn m (Keys α β cmp) α where
   forIn t init f := t.val.forIn init (f ·.1)
@@ -898,9 +898,9 @@ can be used in `for` loops or converted to an array or list.
 
 @[inline, inherit_doc valuesList] def Values.toList := @valuesList
 
-instance : Coe (Values α β cmp) (Array β) := ⟨valuesArray⟩
+instance : CoeHead (Values α β cmp) (Array β) := ⟨valuesArray⟩
 
-instance : Coe (Values α β cmp) (List β) := ⟨valuesList⟩
+instance : CoeHead (Values α β cmp) (List β) := ⟨valuesList⟩
 
 instance : ForIn m (Values α β cmp) β where
   forIn t init f := t.val.forIn init (f ·.2)

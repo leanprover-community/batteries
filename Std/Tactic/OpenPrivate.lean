@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Util.FoldConsts
+import Lean.Parser.Module
 
 open Lean Parser.Tactic Elab Command
 
@@ -31,18 +32,29 @@ instance : DecidableEq ModuleIdx := instDecidableEqNat
 def Environment.declsInModuleIdx (env : Environment) (idx : ModuleIdx) : List Name :=
   env.const2ModIdx.fold (fun acc n i => if i = idx then n :: acc else acc) []
 
+/-- Add info to the info tree corresponding to a module name. -/
+def Elab.addModuleInfo [Monad m] [MonadInfoTree m] (stx : Ident) : m Unit := do
+  -- HACK: The server looks specifically for ofCommandInfo nodes on `import` syntax
+  -- to do go-to-def for modules, so we have to add something that looks like an import
+  -- to the info tree. (Ideally this would be an `.ofModuleInfo` node instead.)
+  pushInfoLeaf <| .ofCommandInfo {
+    elaborator := `import
+    stx := Unhygienic.run `(Parser.Module.import| import $stx) |>.raw.copyHeadTailInfoFrom stx
+  }
+
 namespace Elab.Command
 
 /-- Core elaborator for `open private` and `export private`. -/
-def elabOpenPrivateLike (ids : Array Syntax) (tgts mods : Option (Array Syntax))
+def elabOpenPrivateLike (ids : Array Ident) (tgts mods : Option (Array Ident))
   (f : (priv full user : Name) → CommandElabM Name) : CommandElabM Unit := do
   let mut names := NameSet.empty
   for tgt in tgts.getD #[] do
-    let n ← resolveGlobalConstNoOverload tgt
+    let n ← resolveGlobalConstNoOverloadWithInfo tgt
     names ← Meta.collectPrivateIn n names
   for mod in mods.getD #[] do
     let some modIdx := (← getEnv).moduleIdxForModule? mod.getId
       | throwError "unknown module {mod}"
+    addModuleInfo mod
     for declName in (← getEnv).declsInModuleIdx modIdx do
       if isPrivateName declName then
         names := names.insert declName
@@ -55,14 +67,15 @@ def elabOpenPrivateLike (ids : Array Syntax) (tgts mods : Option (Array Syntax))
   if ids.isEmpty && !names.isEmpty then
     logInfo (appendNames "found private declarations:\n")
   let mut decls := #[]
-  for n in ids do
-    let n := n.getId
+  for id in ids do
+    let n := id.getId
     let mut found := []
     for c in names do
       if n.isSuffixOf c then
+        addConstInfo id c
         found := c::found
     match found with
-    | [] => throwError (appendNames s!"'{n}' not found in the provided declarations:\n")
+    | [] => throwError appendNames s!"'{n}' not found in the provided declarations:\n"
     | [c] =>
       if let some name := privateToUserName? c then
         let new ← f c name n
@@ -126,6 +139,3 @@ syntax (name := exportPrivate) "export private" ident* ("in" ident*)? ("from" id
     compileDecl decl
     pure name
 | _ => throwUnsupportedSyntax
-
-end Elab.Command
-end Lean

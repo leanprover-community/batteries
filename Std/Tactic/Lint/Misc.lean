@@ -23,8 +23,8 @@ This file defines several small linters.
   noErrorsFound := "No declarations have a duplicate namespace."
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
-    if isGlobalInstance (← getEnv) declName then
-      return none
+    if ← isAutoDecl declName then return none
+    if isGlobalInstance (← getEnv) declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none

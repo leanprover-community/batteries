@@ -20,9 +20,9 @@ The syntax category of binder predicates contains predicates like `> 0`, `∈ s`
 declare_syntax_cat binderPred
 
 /--
-`satisfiesBinderPred% t pred` expands to a proposition expressing that `t` satisfies `pred`.
+`satisfies_binder_pred% t pred` expands to a proposition expressing that `t` satisfies `pred`.
 -/
-syntax "satisfiesBinderPred% " term:max binderPred : term
+syntax "satisfies_binder_pred% " term:max binderPred : term
 
 -- Extend ∀ and ∃ to binder predicates.
 
@@ -39,15 +39,15 @@ syntax "∀ " binderIdent binderPred ", " term : term
 
 macro_rules
   | `(∃ $x:ident $pred:binderPred, $p) =>
-    `(∃ $x:ident, satisfiesBinderPred% $x $pred ∧ $p)
+    `(∃ $x:ident, satisfies_binder_pred% $x $pred ∧ $p)
   | `(∃ _ $pred:binderPred, $p) =>
-    `(∃ x, satisfiesBinderPred% x $pred ∧ $p)
+    `(∃ x, satisfies_binder_pred% x $pred ∧ $p)
 
 macro_rules
   | `(∀ $x:ident $pred:binderPred, $p) =>
-    `(∀ $x:ident, satisfiesBinderPred% $x $pred → $p)
+    `(∀ $x:ident, satisfies_binder_pred% $x $pred → $p)
   | `(∀ _ $pred:binderPred, $p) =>
-    `(∀ x, satisfiesBinderPred% x $pred → $p)
+    `(∀ x, satisfies_binder_pred% x $pred → $p)
 
 -- We also provide special versions of ∀/∃ that take a list of extended binders.
 -- The built-in binders are not reused because that results in overloaded syntax.
@@ -117,7 +117,7 @@ elab_rules : command
     `($[$doc?:docComment]? $[@[$attrs?,*]]? $attrKind:attrKind syntax%$tk
         (name := $nameTk) (priority := $(quote prio)) $[$stxParts]* : binderPred
       $[$doc?:docComment]? macro_rules%$tk
-        | `(satisfiesBinderPred% $$($x):term $pat:binderPred) => $rhs)
+        | `(satisfies_binder_pred% $$($x):term $pat:binderPred) => $rhs)
 
 open Linter.MissingDocs Parser Term in
 /-- Missing docs handler for `binder_predicate` -/

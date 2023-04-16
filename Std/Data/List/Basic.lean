@@ -390,26 +390,23 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
     | none => x :: replaceF f xs
     | some a => a :: xs
 
-/-- Tail recursive version of `replaceF`. -/
+/-- Tail-recursive version of `replaceF`. -/
 @[inline] def replaceFTR (f : α → Option α) (l : List α) : List α := go l #[] where
-  /-- Auxiliary for `replaceFTR`:
-  `replaceFTR.go f l xs acc = acc.toList ++ replaceF f xs` if `f` returns `some`, else `l`. -/
-  go : List α → Array α → List α
-  | [], _ => l
+  /-- Auxiliary for `replaceFTR`: `replaceFTR.go f xs acc = acc.toList ++ replaceF f xs`. -/
+  @[specialize] go : List α → Array α → List α
+  | [], acc => acc.toList
   | x :: xs, acc => match f x with
     | none => go xs (acc.push x)
-    | some a => acc.toListAppend (a :: xs)
+    | some a' => acc.toListAppend (a' :: xs)
 
 @[csimp] theorem replaceF_eq_replaceFTR : @replaceF = @replaceFTR := by
-  funext α f l; simp [replaceFTR]
-  suffices ∀ xs acc, l = acc.data ++ xs →
-      replaceFTR.go f l xs acc = acc.data ++ xs.replaceF f from
-    (this l #[] (by simp)).symm
-  intro xs; induction xs with intro acc
-  | nil => simp [replaceF, replaceFTR.go]
-  | cons x xs IH =>
-    simp [replaceF, replaceFTR.go]; split <;> simp [*]
-    · intro h; rw [IH]; simp; simp; exact h
+  funext α p l; simp [replaceFTR]
+  let rec go (acc) : ∀ xs, replaceFTR.go p xs acc = acc.data ++ xs.replaceF p
+  | [] => by simp [replaceFTR.go, replaceF]
+  | x::xs => by
+    simp [replaceFTR.go, replaceF]; cases p x <;> simp
+    · rw [go _ xs]; simp
+  exact (go #[] _).symm
 
 /-- Inserts an element into a list without duplication. -/
 @[inline] protected def insert [DecidableEq α] (a : α) (l : List α) : List α :=
@@ -768,7 +765,7 @@ def initsTR (l : List α) : List (List α) :=
   l.foldr (fun a arrs => (arrs.map fun t => a :: t).push []) #[[]] |>.toListRev
 
 @[csimp] theorem inits_eq_initsTR : @inits = @initsTR := by
-  funext α l; simp [initsTR]; induction l <;> simp [*]
+  funext α l; simp [initsTR]; induction l <;> simp [*, reverse_map]
 
 /--
 `tails l` is the list of terminal segments of `l`.
