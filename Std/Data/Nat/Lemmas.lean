@@ -746,6 +746,14 @@ protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a *
 protected theorem mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 < c) : a * b < c * d :=
   Nat.lt_of_le_of_lt (Nat.mul_le_mul_of_nonneg_right h1) (Nat.mul_lt_mul_of_pos_left h2 h3)
 
+protected theorem mul_lt_mul₀ {a b c d : Nat} (h1 : a < c) (h2 : b < d) : a * b < c * d :=
+  match b with
+  | 0 =>
+    match c with
+    | 0 => match h1 with .
+    | c+1 => by simp [h2]
+  | b+1 => mul_lt_mul h1 (Nat.le_of_lt h2) (by simp)
+
 @[simp] theorem mod_mod (a n : Nat) : (a % n) % n = a % n :=
   match eq_zero_or_pos n with
   | .inl n0 => by simp [n0, mod_zero]
