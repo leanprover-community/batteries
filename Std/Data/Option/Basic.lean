@@ -10,7 +10,7 @@ import Std.Tactic.NoMatch
 namespace Option
 
 /-- An elimination principle for `Option`. It is a nondependent version of `Option.recOn`. -/
-@[simp] protected def elim : Option α → β → (α → β) → β
+@[simp, inline] protected def elim : Option α → β → (α → β) → β
   | some x, _, f => f x
   | none, y, _ => y
 
@@ -42,23 +42,24 @@ instance {p : α → Prop} [DecidablePred p] : ∀ o : Option α, Decidable (∃
 | some a => if h : p a then isTrue ⟨_, rfl, h⟩ else isFalse fun ⟨_, ⟨rfl, hn⟩⟩ => h hn
 
 /-- Extracts the value `a` from an option that is known to be `some a` for some `a`. -/
-def get {α : Type u} : (o : Option α) → isSome o → α
+@[inline] def get {α : Type u} : (o : Option α) → isSome o → α
   | some x, _ => x
 
 /-- `guard p a` returns `some a` if `p a` holds, otherwise `none`. -/
-def guard (p : α → Prop) [DecidablePred p] (a : α) : Option α := if p a then some a else none
+@[inline] def guard (p : α → Prop) [DecidablePred p] (a : α) : Option α :=
+  if p a then some a else none
 
 /--
 Cast of `Option` to `List`. Returns `[a]` if the input is `some a`, and `[]` if it is `none`.
 -/
-def toList : Option α → List α
+@[inline] def toList : Option α → List α
   | none => []
   | some a => [a]
 
 /--
 Cast of `Option` to `Array`. Returns `[a]` if the input is `some a`, and `[]` if it is `none`.
 -/
-def toArray : Option α → Array α
+@[inline] def toArray : Option α → Array α
   | none => #[]
   | some a => #[a]
 
@@ -86,7 +87,7 @@ partial function defined on `a : α` giving an `Option β`, where `some a = x`,
 then `pbind x f h` is essentially the same as `bind x f`
 but is defined only when all `x = some a`, using the proof to apply `f`.
 -/
-@[simp]
+@[simp, inline]
 def pbind : ∀ x : Option α, (∀ a : α, a ∈ x → Option β) → Option β
   | none, _ => none
   | some a, f => f a rfl
@@ -96,7 +97,8 @@ Partial map. If `f : Π a, p a → β` is a partial function defined on `a : α`
 then `pmap f x h` is essentially the same as `map f x` but is defined only when all members of `x`
 satisfy `p`, using the proof to apply `f`.
 -/
-@[simp] def pmap {p : α → Prop} (f : ∀ a : α, p a → β) : ∀ x : Option α, (∀ a ∈ x, p a) → Option β
+@[simp, inline] def pmap {p : α → Prop} (f : ∀ a : α, p a → β) :
+    ∀ x : Option α, (∀ a ∈ x, p a) → Option β
   | none, _ => none
   | some a, H => f a (H a rfl)
 
@@ -104,7 +106,7 @@ satisfy `p`, using the proof to apply `f`.
 @[simp, inline] def join (x : Option (Option α)) : Option α := x.bind id
 
 /-- Map a monadic function which returns `Unit` over an `Option`. -/
-protected def forM [Pure m] : Option α → (α → m PUnit) → m PUnit
+@[inline] protected def forM [Pure m] : Option α → (α → m PUnit) → m PUnit
   | none  , _ => pure ()
   | some a, f => f a
 
@@ -120,7 +122,7 @@ instance : ForIn' m (Option α) α inferInstance where
       | .done r | .yield r => return r
 
 /-- Like `Option.mapM` but for applicative functors. -/
-protected def mapA [Applicative m] {α β} (f : α → m β) : Option α → m (Option β)
+@[inline] protected def mapA [Applicative m] {α β} (f : α → m β) : Option α → m (Option β)
   | none => pure none
   | some x => some <$> f x
 
@@ -129,7 +131,7 @@ If you maybe have a monadic computation in a `[Monad m]` which produces a term o
 there is a naturally associated way to always perform a computation in `m` which maybe produces a
 result.
 -/
-def sequence [Monad m] {α : Type u} : Option (m α) → m (Option α)
+@[inline] def sequence [Monad m] {α : Type u} : Option (m α) → m (Option α)
   | none => pure none
   | some fn => some <$> fn
 
