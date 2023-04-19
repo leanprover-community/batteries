@@ -10,6 +10,12 @@ import Std.Tactic.Ext.Attr
 namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic
 
+/-- When enabled, `ext` will flatten structure fields. Default: `true`. -/
+register_option tactic.ext.flatten : Bool := {
+  defValue := true
+  descr    := "When enabled, `ext` will flatten structure fields, so it behaves more
+  like it would for old-style structures. Default: `true`."
+}
 
 /--
 Constructs the hypotheses for the extensionality lemma.
@@ -26,7 +32,12 @@ def withExtHyps (struct : Name)
   withLocalDeclD `x (mkAppN structC params) fun x => do
   withLocalDeclD `y (mkAppN structC params) fun y => do
     let mut hyps := #[]
-    for field in getStructureFieldsFlattened (← getEnv) struct (includeSubobjectFields := false) do
+    let structureFields := if tactic.ext.flatten.get (← getOptions) then
+      getStructureFieldsFlattened (← getEnv) struct (includeSubobjectFields := false)
+    else
+      getStructureFields (← getEnv) struct
+
+    for field in structureFields do
       let x_f ← mkProjection x field
       let y_f ← mkProjection y field
       if ← isProof x_f then
