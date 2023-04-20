@@ -51,3 +51,27 @@ def Set (α : Type u) := α → Prop
 @[ext] structure Pretrivialization {F : Type u} (proj : Z → β) extends LocalEquiv Z (β × F) where
   baseSet : Set β
   source_eq : source = baseSet ∘ proj
+
+-- Test for `ext?`: It should apply the two ext lemmas and display that
+namespace nested
+
+structure A where
+  a : Nat
+structure B extends A where
+  b : Nat
+structure C extends B where
+  c : Nat
+
+@[ext]
+theorem extCtoB (c₁ c₂ : C) (h : c₁.c = c₂.c) (h' :  c₁.toB = c₂.toB ) : c₁ = c₂ := by admit
+@[ext]
+theorem extBtoA (b₁ b₂ : B) (h : b₁.b = b₂.b) (h' :  b₁.a = b₂.a ) : b₁ = b₂ := by admit
+
+@[ext]
+theorem test (c₁ c₂ : C) (h : c₁.a = c₂.a) (h' :  c₁.b = c₂.b )
+    (h'' :  c₁.c = c₂.c ) : c₁ = c₂ := by
+  ext?
+  repeat assumption
+  done
+
+end nested

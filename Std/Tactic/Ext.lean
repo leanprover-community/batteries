@@ -10,6 +10,12 @@ import Std.Tactic.Ext.Attr
 namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic
 
+/-- Enables tracing in the `ext` tactic, displaying used extensionality lemmas.
+Is set by `ext?` and `ext1?`. -/
+register_option tactic.ext.trace : Bool := {
+  defValue := false
+  descr    := "When tracing is enabled, calls to `ext` will print a sequence of `apply` calls."
+}
 
 /--
 Constructs the hypotheses for the extensionality lemma.
@@ -107,6 +113,8 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let c ← mkConstWithFreshMVarLevels lem.declName
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
+      if tactic.ext.trace.get (← getOptions) then
+        logInfo s!"try: apply {lem.declName}"
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
@@ -170,6 +178,7 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
   using `pat*` to introduce the variables in extensionality lemmas like `funext`.
 * `ext`: introduce anonymous variables whenever needed.
 * `ext pat* : n`: apply ext lemmas only up to depth `n`.
+* `ext?`: display suggestions of applied extensionality lemmas.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
@@ -181,17 +190,29 @@ elab_rules : tactic
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
-of recursing as much as possible.
+of recursing as much as possible. Use `ext1?` for displaying used extensionality lemmas.
 -/
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
   if xs.isEmpty then `(tactic| apply_ext_lemma <;> intros)
   else `(tactic| apply_ext_lemma <;> rintro $xs*)
 
--- TODO
-/-- `ext1? pat*` is like `ext1 pat*` but gives a suggestion on what pattern to use -/
-syntax "ext1?" (colGt ppSpace rintroPat)* : tactic
-/-- `ext? pat*` is like `ext pat*` but gives a suggestion on what pattern to use -/
-syntax "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
+/-- `ext1? pat*` is like `ext1 pat*` but gives a suggestion on what pattern to use.
+(you might need to call `intros` between the suggested lemmas and consider to which
+goal the lemmas should be applied.) -/
+syntax (name := ext1Trace) "ext1?" (colGt ppSpace rintroPat)* : tactic
+
+/-- `ext? pat*` is like `ext pat*` but gives a suggestion on what pattern to use.
+(you might need to call `intros` between the suggested lemmas and consider to which
+goal the lemmas should be applied.) -/
+syntax (name := extTrace) "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
+
+macro_rules
+  | `(tactic| ext? $pats* $[: $n]?) =>
+    `(tactic| set_option tactic.ext.trace true in
+      ext $pats* $[: $n]?)
+  | `(tactic| ext1? $pats* ) =>
+    `(tactic| set_option tactic.ext.trace true in
+      ext1 $pats*)
 
 end Std.Tactic.Ext
 
