@@ -97,7 +97,7 @@ macro_rules | `(declare_ext_theorems_for $[(flat := $f)]? $struct:ident $(prio)?
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
 
 /-- Global variable tracking all used extension lemmas for tracing in `ext?`. -/
-initialize usedExtLemmas : IO.Ref (Array Name) ← IO.mkRef {}
+initialize usedExtLemmas : IO.Ref (Array (TSyntax `tactic)) ← IO.mkRef #[]
 
 /-- Apply a single extensionality lemma to `goal`. -/
 def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
@@ -118,13 +118,19 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
       if tactic.ext.trace.get (← getOptions) then
-        usedExtLemmas.modify fun x => x.push lem.declName
+        let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
+        usedExtLemmas.modify fun x => x.push cmd
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 
 /-- Apply a single extensionality lemma to the current goal. -/
-elab "apply_ext_lemma" : tactic => liftMetaTactic applyExtLemma
+elab "apply_ext_lemma" : tactic => do
+  liftMetaTactic applyExtLemma
+  if tactic.ext.trace.get (← getOptions) then
+    let x ← usedExtLemmas.get
+    logInfo m!"used extensionality lemmas: {x}"
+    usedExtLemmas.modify fun _ => #[]
 
 /--
 Postprocessor for `withExt` which runs `rintro` with the given patterns when the target is a
