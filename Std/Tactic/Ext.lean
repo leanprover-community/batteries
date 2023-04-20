@@ -96,6 +96,9 @@ macro_rules | `(declare_ext_theorems_for $[(flat := $f)]? $struct:ident $(prio)?
         ⟨fun h => by cases h; split_ands <;> rfl,
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
 
+/-- Global variable tracking all used extension lemmas for tracing in `ext?`. -/
+initialize usedExtLemmas : IO.Ref (Array Name) ← IO.mkRef {}
+
 /-- Apply a single extensionality lemma to `goal`. -/
 def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
   let tgt ← goal.getType'
@@ -115,7 +118,7 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
       if tactic.ext.trace.get (← getOptions) then
-        logInfo m!"try: apply {lem.declName}"
+        usedExtLemmas.modify fun x => x.push lem.declName
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
@@ -189,6 +192,10 @@ elab_rules : tactic
     let depth := n.map (·.getNat) |>.getD 1000000
     let gs ← extCore (← getMainGoal) pats.toList depth
     replaceMainGoal <| gs.map (·.1) |>.toList
+    if tactic.ext.trace.get (← getOptions) then
+      let x ← usedExtLemmas.get
+      logInfo m!"used extensionality lemmas: {x}"
+      usedExtLemmas.modify fun _ => #[]
 
 @[inherit_doc tacticExt]
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
