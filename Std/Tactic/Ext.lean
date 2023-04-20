@@ -6,6 +6,7 @@ Authors: Gabriel Ebner, Mario Carneiro
 import Std.Tactic.Basic
 import Std.Tactic.RCases
 import Std.Tactic.Ext.Attr
+import Std.Tactic.TryThis
 
 namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic
@@ -178,9 +179,10 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
   using `pat*` to introduce the variables in extensionality lemmas like `funext`.
 * `ext`: introduce anonymous variables whenever needed.
 * `ext pat* : n`: apply ext lemmas only up to depth `n`.
-* `ext?`: display suggestions of applied extensionality lemmas.
+* `ext1 pat*`: Equivalent to `ext pat* : 1`. Apply only one extensionality lemma.
+* `ext?`, `ext1?`: display suggestions of applied extensionality lemmas.
 -/
-syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
+syntax (name := tacticExt) "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
   | `(tactic| ext $pats* $[: $n]?) => do
     let pats := RCases.expandRIntroPats pats
@@ -188,22 +190,15 @@ elab_rules : tactic
     let gs ← extCore (← getMainGoal) pats.toList depth
     replaceMainGoal <| gs.map (·.1) |>.toList
 
-/--
-`ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
-of recursing as much as possible. Use `ext1?` for displaying used extensionality lemmas.
--/
+@[inherit_doc tacticExt]
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
   if xs.isEmpty then `(tactic| apply_ext_lemma <;> intros)
   else `(tactic| apply_ext_lemma <;> rintro $xs*)
 
-/-- `ext1? pat*` is like `ext1 pat*` but gives a suggestion on what pattern to use.
-(you might need to call `intros` between the suggested lemmas and consider to which
-goal the lemmas should be applied.) -/
+@[inherit_doc tacticExt]
 syntax (name := ext1Trace) "ext1?" (colGt ppSpace rintroPat)* : tactic
 
-/-- `ext? pat*` is like `ext pat*` but gives a suggestion on what pattern to use.
-(you might need to call `intros` between the suggested lemmas and consider to which
-goal the lemmas should be applied.) -/
+@[inherit_doc tacticExt]
 syntax (name := extTrace) "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
 macro_rules
