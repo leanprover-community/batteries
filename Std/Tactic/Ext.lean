@@ -114,7 +114,7 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
       if tactic.ext.trace.get (← getOptions) then
-        logInfo s!"try: apply {lem.declName}"
+        logInfo m!"try: apply {c}"
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
