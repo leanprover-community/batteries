@@ -9,8 +9,8 @@ import Std.Lean.Command
 namespace Std.Tactic.Ext
 open Lean Meta
 
-/-- An `flat := ...` option for `ext`. -/
-syntax extFlatOption := "(" &"flat" ":=" term ")" -- TODO
+/-- A `flat := ...` option for `ext`. -/
+syntax extFlatOption := "(" &"flat" ":=" term ")"
 
 /-- `declare_ext_theorems_for A` declares the extensionality theorems for the structure `A`. -/
 syntax "declare_ext_theorems_for" ident extFlatOption ? prio ? : command

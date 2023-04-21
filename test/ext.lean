@@ -3,8 +3,6 @@ import Std.Logic
 
 set_option linter.missingDocs false
 
-set_option pp.rawOnError true
-
 structure A (n : Nat) where
   a : Nat
 

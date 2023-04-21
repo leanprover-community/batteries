@@ -10,6 +10,7 @@ import Std.Tactic.Ext.Attr
 namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic
 
+
 /--
 Constructs the hypotheses for the extensionality lemma.
 Calls the continuation `k` with the list of parameters to the structure,
@@ -29,7 +30,6 @@ def withExtHyps (struct : Name) (flat := true)
       getStructureFieldsFlattened (← getEnv) struct (includeSubobjectFields := false)
     else
       getStructureFields (← getEnv) struct
-
     for field in structureFields do
       let x_f ← mkProjection x field
       let y_f ← mkProjection y field
@@ -53,7 +53,6 @@ scoped elab "ext_type%" struct:ident flat:extFlatOption ? : term => do
     | `(extFlatOption| (flat := true)) => pure ()
     | `(extFlatOption| (flat := false)) => flat' := false
     | _ => throwUnsupportedSyntax
-  --logInfo m!"flat is: {flat'}"
   withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat' fun params x y hyps => do
     let ty := hyps.foldr (init := ← mkEq x y) fun (f, h) ty =>
       mkForall f BinderInfo.default h ty
