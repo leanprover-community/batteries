@@ -15,7 +15,7 @@ open Lean Meta Elab Tactic
 Is set by `ext?` and `ext1?`. -/
 register_option tactic.ext.trace : Bool := {
   defValue := false
-  descr    := "When tracing is enabled, calls to `ext` will print a tactic sequence
+  descr    := "When enabled, calls to `ext` will print a tactic sequence
   reproducing the `ext` call."
 }
 
@@ -139,9 +139,8 @@ elab "apply_ext_lemma" : tactic => do
 Postprocessor for `withExt` which runs `rintro` with the given patterns when the target is a
 pi type.
 -/
-def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m]
-    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
-    (g : MVarId) (pats : List (TSyntax `rcasesPat))
+def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m] [MonadLiftT (ST IO.RealWorld) m]
+    [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
   match pats with
   | [] =>
@@ -163,9 +162,8 @@ def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m]
 Applies a single extensionality lemma, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
-def withExt1 [Monad m] [MonadOptions m] [MonadQuotation m]
-    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
-    (g : MVarId) (pats : List (TSyntax `rcasesPat))
+def withExt1 [Monad m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m]
+    [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
   for g in ← (applyExtLemma g : TermElabM _) do
     tryIntros g pats k
@@ -174,10 +172,9 @@ def withExt1 [Monad m] [MonadOptions m] [MonadQuotation m]
 Applies a extensionality lemmas recursively, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
-def withExtN [Monad m] [MonadOptions m] [MonadQuotation m]
-    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m] [MonadExcept Exception m]
-    (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
+def withExtN [Monad m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m]
+    [MonadLiftT TermElabM m] [MonadExcept Exception m] (g : MVarId)
+    (pats : List (TSyntax `rcasesPat)) (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
     (depth := 1000000) (failIfUnchanged := true) : m Unit :=
   match depth with
   | 0 => k g pats
@@ -209,7 +206,7 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 * `ext`: introduce anonymous variables whenever needed.
 * `ext pat* : n`: apply ext lemmas only up to depth `n`.
 * `ext1 pat*`: Equivalent to `ext pat* : 1`. Apply only one extensionality lemma.
-* `ext?`, `ext1?`: display suggestions of applied extensionality lemmas.
+* `ext?`, `ext1?`: display suggestion to recreate the `ext` application.
 -/
 syntax (name := tacticExt) "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
