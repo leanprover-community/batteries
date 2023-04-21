@@ -3,6 +3,8 @@ import Std.Logic
 
 set_option linter.missingDocs false
 
+set_option pp.rawOnError true
+
 structure A (n : Nat) where
   a : Nat
 
@@ -45,11 +47,9 @@ def Set (α : Type u) := α → Prop
 
 -- When dealing with a structure extending another structur,
 -- he generated `ext` Lemma should say `x.toProd = y.toProd → x = y`.
-
-set_option tactic.ext.flatten false in
-@[ext]
+@[ext (flat := false) 3]
 structure NonemptyInterval (α : Type _) [LE α] extends Prod α α where
   fst_le_snd : fst ≤ snd
 example {α : Type _} [LE α](x y : NonemptyInterval α)  (h : x.toProd = y.toProd) : x = y := by
-  ext1
+  ext
   exact h

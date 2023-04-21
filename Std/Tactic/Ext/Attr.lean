@@ -9,8 +9,11 @@ import Std.Lean.Command
 namespace Std.Tactic.Ext
 open Lean Meta
 
+/-- An `flat := ...` option for `ext`. -/
+syntax extFlatOption := "(" &"flat" ":=" term ")" -- TODO
+
 /-- `declare_ext_theorems_for A` declares the extensionality theorems for the structure `A`. -/
-syntax "declare_ext_theorems_for" ident prio ? : command
+syntax "declare_ext_theorems_for" ident extFlatOption ? prio ? : command
 
 /-- Information about an extensionality theorem, stored in the environment extension. -/
 structure ExtTheorem where
@@ -45,16 +48,16 @@ When `@[ext]` is applied to a theorem,
 the theorem is registered for the `ext` tactic.
 
 You can use `@[ext 9000]` to specify a priority for the attribute. -/
-syntax (name := ext) "ext" prio ? : attr
+syntax (name := ext) "ext" extFlatOption ? prio ? : attr
 
 initialize registerBuiltinAttribute {
   name := `ext
   descr := "Marks a lemma as extensionality lemma"
   add := fun declName stx kind => do
-    let `(attr| ext $[$prio]?) := stx | throwError "unexpected @[ext] attribute {stx}"
+    let `(attr| ext $[$flat]? $[$prio]?) := stx | throwError "unexpected @[ext] attribute {stx}"
     if isStructure (← getEnv) declName then
       liftCommandElabM <| Elab.Command.elabCommand <|
-        ← `(declare_ext_theorems_for $(mkCIdentFrom stx declName) $[$prio]?)
+        ← `(declare_ext_theorems_for $(mkCIdentFrom stx declName) $[$flat]? $[$prio]?)
     else MetaM.run' do
       let declTy := (← getConstInfo declName).type
       let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing declTy
