@@ -96,10 +96,9 @@ macro_rules | `(declare_ext_theorems_for $[(flat := $f)]? $struct:ident $(prio)?
         ⟨fun h => by cases h; split_ands <;> rfl,
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
 
-/-- Global variable tracking all used extension lemmas for tracing in `ext?`. -/
+/-- Global variable tracking tactics used by `ext?`. This is a collection of
+`apply $lem`, `rintro $pat`, `intros`, and `sorry` statements. -/
 initialize usedExtLemmas : IO.Ref (Array (Syntax.Tactic)) ← IO.mkRef #[]
-/-- TODO -/
-initialize usedExtLemmas₂ : IO.Ref (Array (Syntax.Tactic)) ← IO.mkRef #[]
 
 /-- Apply a single extensionality lemma to `goal`. -/
 def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
@@ -120,9 +119,8 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
       if tactic.ext.trace.get (← getOptions) then
-        -- add `apply` call to trace
         let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
-        usedExtLemmas₂.modify fun x => x.push cmd
+        usedExtLemmas.modify fun x => x.push cmd
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
@@ -132,29 +130,30 @@ elab "apply_ext_lemma" : tactic => do
   usedExtLemmas.modify fun _ => #[]
   liftMetaTactic applyExtLemma
   if tactic.ext.trace.get (← getOptions) then
-    logInfo m!"used extensionality lemmas: {← usedExtLemmas.get}"
+    let x ← usedExtLemmas.get
+    let cmd ←`(tactic| · $x*)
+    logInfo m!"Try this:\n{cmd}"
 
 /--
 Postprocessor for `withExt` which runs `rintro` with the given patterns when the target is a
 pi type.
 -/
-def tryIntros [Monad m] [MonadRef m] [MonadQuotation m] [MonadOptions m] [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
+def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m]
+    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
     (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
   match pats with
   | [] =>
     if tactic.ext.trace.get (← getOptions) ∧
         (← (g.withContext g.getType' : TermElabM _)).isForall then
-      -- add `intros` to trace
       let cmd ←`(tactic| intros)
-      usedExtLemmas₂.modify fun x => x.push cmd
+      usedExtLemmas.modify fun x => x.push cmd
     k (← (g.intros : TermElabM _)).2 []
   | p::ps =>
     if (← (g.withContext g.getType' : TermElabM _)).isForall then
       if tactic.ext.trace.get (← getOptions) then
-        -- add `rintro` to trace
         let cmd ←`(tactic| rintro $(p))
-        usedExtLemmas₂.modify fun x => x.push cmd
+        usedExtLemmas.modify fun x => x.push cmd
       for g in ← RCases.rintro #[p] none g do
         k g ps
     else k g pats
@@ -163,24 +162,19 @@ def tryIntros [Monad m] [MonadRef m] [MonadQuotation m] [MonadOptions m] [MonadL
 Applies a single extensionality lemma, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
-def withExt1 [Monad m] [MonadRef m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
-    [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
+def withExt1 [Monad m] [MonadOptions m] [MonadQuotation m]
+    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m]
     (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
-  let goals ← (applyExtLemma g : TermElabM _)
-  if tactic.ext.trace.get (← getOptions) ∧ 1 < goals.length then
-    -- goal is split into multiple
-    let cmd ←`(tactic| · $(← usedExtLemmas₂.get)*)
-    usedExtLemmas.modify fun x => x.push cmd
-    usedExtLemmas₂.modify fun _ => #[]
-  for g in goals do
+  for g in ← (applyExtLemma g : TermElabM _) do
     tryIntros g pats k
 
 /--
 Applies a extensionality lemmas recursively, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
-def withExtN [Monad m] [MonadRef m] [MonadLog m] [AddMessageContext m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m] [MonadExcept Exception m]
+def withExtN [Monad m] [MonadOptions m] [MonadQuotation m]
+    [MonadLiftT (ST IO.RealWorld) m] [MonadLiftT TermElabM m] [MonadExcept Exception m]
     (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
     (depth := 1000000) (failIfUnchanged := true) : m Unit :=
@@ -193,14 +187,8 @@ def withExtN [Monad m] [MonadRef m] [MonadLog m] [AddMessageContext m] [MonadOpt
       withExt1 g pats fun g pats => withExtN g pats k depth (failIfUnchanged := false)
     catch _ =>
       if tactic.ext.trace.get (← getOptions) then
-        -- open goal: add `sorry`
         let cmd ←`(tactic| sorry)
-        usedExtLemmas₂.modify fun x => x.push cmd
-        let x ← usedExtLemmas₂.get
-        let cmd ←`(tactic| · $x*)
         usedExtLemmas.modify fun x => x.push cmd
-        --logInfo m!"end goal: {cmd}"
-        usedExtLemmas₂.modify fun _ => #[]
       k g pats
 
 /--
@@ -231,7 +219,9 @@ elab_rules : tactic
     let gs ← extCore (← getMainGoal) pats.toList depth
     replaceMainGoal <| gs.map (·.1) |>.toList
     if tactic.ext.trace.get (← getOptions) then
-      logInfo m!"used extensionality lemmas: {← usedExtLemmas.get}"
+      let x ← usedExtLemmas.get
+      let cmd ←`(tactic| · $x*)
+      logInfo m!"Try this:\n{cmd}"
 
 @[inherit_doc tacticExt]
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>

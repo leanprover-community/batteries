@@ -63,7 +63,8 @@ structure C extends B where
   c : Nat
 
 @[ext]
-theorem extCtoB (c₁ c₂ : C) (g : ∀ (a : A), true)  (h : c₁.c = c₂.c) (h' :  c₁.toB = c₂.toB ) : c₁ = c₂ := by admit
+theorem extCtoB (c₁ c₂ : C) (g : ∀ (a : A), true)  (h : c₁.c = c₂.c) (h' :  c₁.toB = c₂.toB ) :
+    c₁ = c₂ := by admit
 @[ext]
 theorem extBtoA (b₁ b₂ : B) (h : b₁.b = b₂.b) (h' :  b₁.a = b₂.a ) : b₁ = b₂ := by admit
 
@@ -71,17 +72,13 @@ theorem extBtoA (b₁ b₂ : B) (h : b₁.b = b₂.b) (h' :  b₁.a = b₂.a ) :
 theorem test (c₁ c₂ : C) (h : c₁.a = c₂.a) (h' :  c₁.b = c₂.b )
     (h'' :  c₁.c = c₂.c ) : c₁ = c₂ := by
   ext?
-  -- apply extCtoB
-  -- · intros
+  -- Try this:
+  -- · apply extCtoB
+  --   intros
   --   sorry
-  -- · sorry
-  -- · apply extBtoA
-  --   · sorry
-  --   · sorry
-  trivial
-  assumption
-  assumption
-  assumption
-  done
-
+  --   sorry
+  --   apply extBtoA
+  --   sorry
+  --   sorry
+  repeat admit
 end nested
