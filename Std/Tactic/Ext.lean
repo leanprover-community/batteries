@@ -178,7 +178,6 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 * `ext pat*`: Apply extensionality lemmas as much as possible,
   using `pat*` to introduce the variables in extensionality lemmas like `funext`.
 * `ext`: introduce anonymous variables whenever needed.
-* `ext (flat := false) pat*`: Do not flatten structure fields.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic

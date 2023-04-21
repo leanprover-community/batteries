@@ -47,7 +47,8 @@ and registers them for the `ext` tactic.
 When `@[ext]` is applied to a theorem,
 the theorem is registered for the `ext` tactic.
 
-You can use `@[ext 9000]` to specify a priority for the attribute. -/
+* You can use `@[ext 9000]` to specify a priority for the attribute.
+* Using `@[ext (flat := false)]` prevents `ext` from flattening structure fields. -/
 syntax (name := ext) "ext" extFlatOption ? prio ? : attr
 
 initialize registerBuiltinAttribute {
