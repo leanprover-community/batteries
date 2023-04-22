@@ -101,3 +101,4 @@ import Std.Tactic.Unreachable
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
+import Std.WF
