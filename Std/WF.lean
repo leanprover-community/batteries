@@ -3,6 +3,7 @@ Copyright (c) 2023 Miyahara Kō. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Miyahara Kō
 -/
+import Std.Tactic.Lint.Misc
 
 /-- `Accs r` is consisted of all accessible elements by `r`. -/
 structure Accs.{u} {α : Sort u} (r : α → α → Prop) where
@@ -17,6 +18,7 @@ universe u
 variable {α : Sort u} {r : α → α → Prop}
 
 /-- The subrelation of `r` on this type is well-founded. -/
+@[nolint defLemma]
 def wf : WellFounded (InvImage r (val : Accs r → α)) := ⟨fun ac => InvImage.accessible _ ac.acc⟩
 
 instance wfRel : WellFoundedRelation (Accs r) where
