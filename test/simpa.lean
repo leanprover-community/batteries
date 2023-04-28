@@ -78,3 +78,7 @@ example : (b - c : Int) + (a - b) + a ≤ c := by
 
 example : (b - c : Int) + (a - b) + a ≤ c := by
   simpa only [thm] using @thm2
+
+example (P : Bool) (h : ¬ ¬ P) : P := by
+  have : ¬ ¬ P := h
+  simpa
