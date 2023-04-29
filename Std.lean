@@ -45,6 +45,7 @@ import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
 import Std.Data.String
+import Std.Data.Sum
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
