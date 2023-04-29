@@ -117,6 +117,69 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
+/--
+Returns the first and all the rest of the elements of the array.
+-/
+protected def splitFront (xs : Array α) (h : 0 < xs.size) : α × Array α :=
+  let head := xs.get ⟨0, h⟩
+  let tail := Subarray.mk xs 1 xs.size (Nat.succ_le_of_lt h) (Nat.le_refl _) |>.toArray
+  (head, tail)
+
+/--
+Returns the first and all the rest of the elements of the array, or `none` if it is empty.
+-/
+protected def splitFront? (xs : Array α) : Option (α × Array α) :=
+  if h : 0 < xs.size then
+    some <| xs.splitFront h
+  else
+    none
+
+/--
+Returns the last and all the rest of the elements of the array.
+-/
+protected def splitLast (xs : Array α) (h : 0 < xs.size) : Array α × α :=
+  have h2 := Nat.sub_lt h (by decide)
+  let last := xs[xs.size - 1]'h2
+  let heads := xs.pop
+  (heads, last)
+
+/--
+Returns the last and all the rest of the elements of the array, or `none` if it is empty.
+-/
+protected def splitLast? (xs : Array α) : Option (Array α × α) :=
+  if h : 0 < xs.size then
+    some <| xs.splitLast h
+  else
+    none
+
+/--
+Returns the first element of the array.
+-/
+protected def front (xs : Array α) (h : 0 < xs.size) : α :=
+  xs.get ⟨0, h⟩
+
+/--
+Returns the first element of the array, or `none` if it is empty.
+-/
+protected def front? (xs : Array α) : Option α :=
+  if h : 0 < xs.size then
+    some <| xs.front h
+  else
+    none
+
+/--
+Split an array apart into two arrays at a given index. The first half
+will contain all values from `[0, mid)`, the second will contain `[mid, xs.size)`.
+Notably if `mid` is out of bounds for `xs` the function will return `(xs, #[])`.
+-/
+protected def splitAt (xs : Array α) (mid : Nat) : Array α × Array α :=
+  if h : mid ≤ xs.size then
+    let rhs := Subarray.mk xs mid xs.size h (Nat.le_refl _) |>.toArray
+    let lhs := xs.shrink mid
+    (lhs, rhs)
+  else
+    (xs, #[])
+
 end Array
 
 
