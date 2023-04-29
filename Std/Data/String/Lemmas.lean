@@ -30,17 +30,15 @@ theorem Pos.sub_eq (p₁ p₂ : Pos) : p₁ - p₂ = ⟨p₁.byteIdx - p₂.byte
 theorem Pos.add_char (p : Pos) (c : Char) : p + c = ⟨p.byteIdx + csize c⟩ :=
   rfl
 
-@[simp]
 theorem Pos.zero_add_char (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by
-  simp only [String.Pos.add_char, String.Pos.byteIdx_zero, Nat.zero_add]
+  simp only [add_char, byteIdx_zero, Nat.zero_add]
 
 @[simp]
 theorem Pos.add_string (p : Pos) (s : String) : p + s = ⟨p.byteIdx + s.utf8ByteSize⟩ :=
   rfl
 
-@[simp]
 theorem Pos.zero_add_string (s : String) : (0 : Pos) + s = ⟨s.utf8ByteSize⟩ := by
-  simp only [String.Pos.add_string, String.Pos.byteIdx_zero, Nat.zero_add]
+  simp only [add_string, byteIdx_zero, Nat.zero_add]
 
 @[simp]
 theorem Pos.le_iff {i₁ i₂ : Pos} : i₁ ≤ i₂ ↔ i₁.byteIdx ≤ i₂.byteIdx :=
