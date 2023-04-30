@@ -85,7 +85,6 @@ protected def minI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minD default start stop
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Find the first maximal element of an array. If the array is empty, `d` is
 returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
@@ -96,7 +95,6 @@ protected def maxD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.minD (ord := ord.opposite) d start stop
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Find the first maximal element of an array. If the array is empty, `none` is
 returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
@@ -107,7 +105,6 @@ protected def max? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
   xs.min? (ord := ord.opposite) start stop
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Find the first maximal element of an array. If the array is empty, `default` is
 returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
@@ -126,27 +123,21 @@ For a dependently typed version that has a proof of this invariant see
 `windowsDep`.
 -/
 structure Windows (α : Type u) where
-  /--
-  The underlying array.
-  -/
+  /-- The underlying array. -/
   as : Array α
-  /--
-  How big the windows are.
-  -/
+  /-- How big the windows are. -/
   size : Nat
-  /--
-  Where we currently are in the array.
-  -/
+  /-- Where we currently are in the array. -/
   pos : Nat
 
 instance : ToStream (Windows α) (Windows α) where
-  toStream := id
+  toStream w := w
 
 instance : Stream (Windows α) (Subarray α) where
   next? w :=
-    if h : w.size + w.pos ≤ w.as.size  then
-      let arr := Subarray.mk w.as w.pos (w.size + w.pos) (Nat.le_add_left _ _) h
-      return (arr, { w with pos := w.pos + 1 })
+    if h : w.size + w.pos ≤ w.as.size then
+      let arr := Subarray.mk w.as w.pos (w.size + w.pos) (Nat.le_add_left ..) h
+      some (arr, { w with pos := w.pos + 1 })
     else
       none
 
@@ -158,8 +149,7 @@ returns no values.
 For a dependently typed version that has a proof of this invariant see
 `windowsDep`.
 -/
-protected def windows (xs : Array α) (size : Nat) : Windows α :=
-  ⟨xs, size, 0⟩
+@[inline] protected def windows (xs : Array α) (size : Nat) : Windows α := ⟨xs, size, 0⟩
 
 /--
 A stream over arrays. It returns overlapping `{ xs : Subarray α // xs.size = size }`.
@@ -167,25 +157,18 @@ A stream over arrays. It returns overlapping `{ xs : Subarray α // xs.size = si
 This structure is created by `windowsDep`.
 For a non dependently typed version see `Windows`.
 -/
-structure WindowsDep (α : Type u) (size : Nat) where
-  /--
-  The underlying array.
-  -/
-  as : Array α
-  /--
-  How big the windows are.
-  -/
+structure WindowsDep (as : Array α) (size : Nat) where
+  /-- How big the windows are. -/
   pos : Nat
 
-instance : ToStream (WindowsDep α sz) (WindowsDep α sz) where
-  toStream := id
+instance : ToStream (WindowsDep as sz) (WindowsDep as sz) where
+  toStream w := w
 
-instance : Stream (WindowsDep α sz) { xs : Subarray α // xs.size = sz } where
-  next? w :=
-    if h : sz + w.pos  ≤ w.as.size  then
-      let arr := Subarray.mk w.as w.pos (sz + w.pos) (Nat.le_add_left _ _) h
-      have h2 : (sz + w.pos) - w.pos = sz := Nat.add_sub_cancel _ _
-      return (⟨arr, (by rw[Subarray.size, h2])⟩, { w with pos := w.pos + 1 })
+instance (as : Array α) : Stream (WindowsDep as sz) { xs : Subarray α // xs.size = sz } where
+  next? := fun ⟨pos⟩ =>
+    if h : sz + pos ≤ as.size then
+      let arr := Subarray.mk as pos (sz + pos) (Nat.le_add_left ..) h
+      some (⟨arr, by rw [Subarray.size, Nat.add_sub_cancel]⟩, ⟨pos + 1⟩)
     else
       none
 
@@ -195,8 +178,7 @@ The windows overlap. If the array is shorter than `size`, the stream
 returns no values.
 For a non dependently typed version see `windows`.
 -/
-protected def windowsDep (xs : Array α) (size : Nat) : WindowsDep α size :=
-  ⟨xs, 0⟩
+@[inline] protected def windowsDep (xs : Array α) (size : Nat) : WindowsDep xs size := ⟨0⟩
 
 /--
 A stream over an array. It reurns (non-overlapping) chunks (`size` elements at a time),
@@ -208,21 +190,13 @@ chunk will be smaller than `size`.
 This structure is created by `chunks`.
 -/
 structure Chunks (α : Type u) where
-  /--
-  The underlying array.
-  -/
+  /-- The underlying array. -/
   as : Array α
-  /--
-  How big the chunks are.
-  -/
+  /-- How big the chunks are. -/
   size : Nat
-  /--
-  If the `size` is 0 we do not progress.
-  -/
+  /-- If the `size` is 0 we do not progress. -/
   h : 0 < size
-  /--
-  Where we currently are in the array.
-  -/
+  /-- Where we currently are in the array. -/
   pos : Nat
 
 /--
@@ -234,20 +208,20 @@ the length of the array, then the last chunk will be smaller than `size`.
 See `chunksExact` for a variant of this stream that returns chunks
 of always exactly `size` elements.
 -/
-def chunks (xs : Array α) (size : Nat) (h : 0 < size := by decide) : Chunks α :=
+@[inline] def chunks (xs : Array α) (size : Nat) (h : 0 < size := by decide) : Chunks α :=
   ⟨xs, size, h, 0⟩
 
 instance : ToStream (Chunks α) (Chunks α) where
-  toStream := id
+  toStream c := c
 
 instance : Stream (Chunks α) (Subarray α) where
   next? c :=
     if h : c.size + c.pos ≤ c.as.size then
-      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left _ _) h
-      return (arr, { c with pos := c.pos + c.size })
+      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left ..) h
+      some (arr, { c with pos := c.pos + c.size })
     else if h : c.pos < c.as.size then
       let arr := Subarray.mk c.as c.pos c.as.size (Nat.le_of_lt h) (Nat.le_refl _)
-      return (arr, { c with pos := c.as.size })
+      some (arr, { c with pos := c.as.size })
     else
       none
 /--
@@ -261,21 +235,13 @@ This structure is created by `chunksExact`.
 For a non dependently typed version see `Chunks`.
 -/
 structure ChunksExact (α : Type u) where
-  /--
-  The underlying array.
-  -/
+  /-- The underlying array. -/
   as : Array α
-  /--
-  How big the chunks are.
-  -/
+  /-- How big the chunks are. -/
   size : Nat
-  /--
-  If the `size` is 0 we do not progress.
-  -/
+  /-- If the `size` is 0 we do not progress. -/
   h : 0 < size
-  /--
-  Where we currently are in the array.
-  -/
+  /-- Where we currently are in the array. -/
   pos : Nat
 
 /--
@@ -290,17 +256,17 @@ See `chunks` for a variant of this stream that also returns the remainder
 as a smaller chunk and `chunksExactDep` for an a stream that encodes the
 `size` invariant in its result.
 -/
-def chunksExact (xs : Array α) (size : Nat) (h : 0 < size := by decide) : ChunksExact α :=
-  ⟨xs, size, h, 0⟩
+@[inline] def chunksExact (xs : Array α) (size : Nat) (h : 0 < size := by decide) :
+    ChunksExact α := ⟨xs, size, h, 0⟩
 
 instance : ToStream (ChunksExact α) (ChunksExact α) where
-  toStream := id
+  toStream c := c
 
 instance : Stream (ChunksExact α) (Subarray α) where
   next? c :=
     if h : c.size + c.pos ≤ c.as.size then
-      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left _ _) h
-      return (arr, { c with pos := c.pos + c.size })
+      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left ..) h
+      some (arr, { c with pos := c.pos + c.size })
     else
       none
 
@@ -315,18 +281,8 @@ to `size-1` elements will be omitted.
 This structure is created by `chunksExactDep`.
 For a non dependently typed version see `ChunksExact`.
 -/
-structure ChunksExactDep (α : Type u) (size : Nat) where
-  /--
-  The underlying array.
-  -/
-  as : Array α
-  /--
-  If the `size` is 0 we do not progress.
-  -/
-  h : 0 < size
-  /--
-  Where we currently are in the array.
-  -/
+structure ChunksExactDep (as : Array α) (size : Nat) (h : 0 < size) where
+  /-- Where we currently are in the array. -/
   pos : Nat
 
 /--
@@ -340,18 +296,17 @@ If `size` does not divide the length of the array, then the last up to
 See `chunks` for a variant of this stream that also returns the remainder
 as a smaller chunk and `chunksExact` for a non dependently typed version.
 -/
-def chunksExactDep (xs : Array α) (size : Nat) (h : 0 < size := by decide) : ChunksExactDep α size :=
-  ⟨xs, h, 0⟩
+@[inline] def chunksExactDep (xs : Array α) (size : Nat) (h : 0 < size := by decide) :
+    ChunksExactDep xs size h := ⟨0⟩
 
-instance : ToStream (ChunksExactDep α sz) (ChunksExactDep α sz) where
-  toStream := id
+instance : ToStream (ChunksExactDep as sz h) (ChunksExactDep as sz h) where
+  toStream c := c
 
-instance : Stream (ChunksExactDep α sz) { xs : Subarray α // xs.size = sz } where
-  next? c :=
-    if h1 : sz + c.pos ≤ c.as.size then
-      let arr := Subarray.mk c.as c.pos (sz + c.pos) (Nat.le_add_left _ _) h1
-      have h2 : (sz + c.pos) - c.pos = sz := Nat.add_sub_cancel _ _
-      return (⟨arr, by rw[Subarray.size, h2]⟩, { c with pos := c.pos + sz })
+instance (as : Array α) : Stream (ChunksExactDep as sz h) { xs : Subarray α // xs.size = sz } where
+  next? := fun ⟨pos⟩ =>
+    if h1 : sz + pos ≤ as.size then
+      let arr := Subarray.mk as pos (sz + pos) (Nat.le_add_left ..) h1
+      some (⟨arr, by rw [Subarray.size, Nat.add_sub_cancel]⟩, ⟨pos + sz⟩)
     else
       none
 
