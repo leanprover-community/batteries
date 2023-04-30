@@ -50,7 +50,10 @@ theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :
 
 end Pos
 
-/-- Induction along the valid positions in a list of characters. -/
+/--
+Induction along the valid positions in a list of characters.
+(This definition is intended only for specification purposes.)
+-/
 def utf8InductionOn {motive : List Char → Pos → Sort u}
     (s : List Char) (i p : Pos)
     (nil : ∀ i, motive [] i)
