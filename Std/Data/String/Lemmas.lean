@@ -10,7 +10,7 @@ namespace Pos
 
 @[simp] theorem byteIdx_zero : (0 : Pos).byteIdx = 0 := rfl
 
-@[simp] theorem byteIdx_mk (n : Nat) : byteIdx ⟨n⟩ = n := rfl
+theorem byteIdx_mk (n : Nat) : byteIdx ⟨n⟩ = n := rfl
 
 @[simp] theorem mk_zero : ⟨0⟩ = (0 : Pos) := rfl
 
