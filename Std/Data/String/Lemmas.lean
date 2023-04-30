@@ -50,18 +50,18 @@ theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :
 
 end Pos
 
-/-- Induction on `String.utf8GetAux`. -/
-def utf8GetAux.inductionOn.{u} {motive : List Char → Pos → Pos → Sort u}
+/-- Induction along the valid positions in a list of characters. -/
+def utf8InductionOn {motive : List Char → Pos → Sort u}
     (s : List Char) (i p : Pos)
-    (nil : ∀ i p, motive [] i p)
-    (eq  : ∀ c cs i p, i = p → motive (c :: cs) i p)
-    (ind : ∀ (c : Char) cs i p, i ≠ p → motive cs (i + c) p → motive (c :: cs) i p) :
-    motive s i p :=
+    (nil : ∀ i, motive [] i)
+    (eq  : ∀ c cs, motive (c :: cs) p)
+    (ind : ∀ (c : Char) cs i, i ≠ p → motive cs (i + c) → motive (c :: cs) i) :
+    motive s i :=
   match s with
-  | [] => nil i p
+  | [] => nil i
   | c::cs =>
     if h : i = p then
-      eq c cs i p h
-    else ind c cs i p h (inductionOn cs (i + c) p nil eq ind)
+      h ▸ eq c cs
+    else ind c cs i h (utf8InductionOn cs (i + c) p nil eq ind)
 
 end String
