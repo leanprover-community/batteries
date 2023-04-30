@@ -287,7 +287,7 @@ instance : Stream (ChunksExact α) (Subarray α) where
 /--
 A stream over an array in (non-overlapping) chunks (`size` elements at a time),
 starting at the beginning of the array. The `size` invariant is encoded
-as: `{ xs : // Subarrray α // xs.size = size }`.
+as: `{ xs : Subarrray α // xs.size = size }`.
 
 When the array size is not evenly divided by the chunk size, the last up
 to `size-1` elements will be omitted.
@@ -305,7 +305,7 @@ structure ChunksExactDep (as : Array α) (size : Nat) (h : 0 < size) where
 Returns a stream over `size` elements of the array at a time, starting
 at the beginning of the array.
 
-The chunks are `{ xs : // Subarrray α // xs.size = size }` and do not overlap.
+The chunks are `{ xs : Subarrray α // xs.size = size }` and do not overlap.
 If `size` does not divide the length of the array, then the last up to
 `size-1` elements will be omitted.
 
