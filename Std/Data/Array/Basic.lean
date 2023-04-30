@@ -5,7 +5,6 @@ Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.Array.Init.Basic
 import Std.Data.Ord
-import Std.Data.Nat.Basic
 
 /-!
 ## Definitions on Arrays
@@ -195,9 +194,11 @@ structure Chunks (α : Type u) where
   /-- How big the chunks are. -/
   size : Nat
   /-- If the `size` is 0 we do not progress. -/
-  h : 0 < size
+  hsz : 0 < size
   /-- Where we currently are in the array. -/
   pos : Nat
+  /-- We are in bounds of the array. -/
+  hpos : pos ≤ as.size
 
 /--
 Returns a stream over `size` elements of the array at a time,
@@ -209,19 +210,19 @@ See `chunksExact` for a variant of this stream that returns chunks
 of always exactly `size` elements.
 -/
 @[inline] def chunks (xs : Array α) (size : Nat) (h : 0 < size := by decide) : Chunks α :=
-  ⟨xs, size, h, 0⟩
+  ⟨xs, size, h, 0, Nat.zero_le _⟩
 
 instance : ToStream (Chunks α) (Chunks α) where
   toStream c := c
 
 instance : Stream (Chunks α) (Subarray α) where
   next? c :=
-    if h : c.size + c.pos ≤ c.as.size then
-      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left ..) h
-      some (arr, { c with pos := c.pos + c.size })
+    if h : c.pos + c.size ≤ c.as.size then
+      let arr := Subarray.mk c.as c.pos (c.pos + c.size) (Nat.le_add_right ..) h
+      some (arr, { c with pos := c.pos + c.size, hpos := h })
     else if h : c.pos < c.as.size then
       let arr := Subarray.mk c.as c.pos c.as.size (Nat.le_of_lt h) (Nat.le_refl _)
-      some (arr, { c with pos := c.as.size })
+      some (arr, { c with pos := c.as.size, hpos := Nat.le_refl _ })
     else
       none
 /--
@@ -243,6 +244,8 @@ structure ChunksExact (α : Type u) where
   h : 0 < size
   /-- Where we currently are in the array. -/
   pos : Nat
+  /-- We are in bounds of the array. -/
+  hpos : pos ≤ as.size
 
 /--
 Returns a stream over `size` elements of the array at a time, starting
@@ -258,7 +261,7 @@ as a smaller chunk and `chunksExactDep` for an a stream that encodes the
 the `0 < size` restriction.
 -/
 @[inline] def chunksExact (xs : Array α) (size : Nat) (h : 0 < size := by decide) :
-    ChunksExact α := ⟨xs, size, h, 0⟩
+    ChunksExact α := ⟨xs, size, h, 0, Nat.zero_le _⟩
 
 /--
 Returns a stream over `size` elements of the array at a time, starting
@@ -268,16 +271,16 @@ This function is like `chunksExact` but does not require that `size > 0`.
 When `size = 0` it returns an empty stream.
 -/
 @[inline] def chunksExact! (xs : Array α) (size : Nat) : ChunksExact α :=
-  if h : 0 < size then chunksExact xs size h else ⟨xs, 1, by decide, xs.size⟩
+  if h : 0 < size then chunksExact xs size h else ⟨xs, 1, by decide, xs.size, Nat.le_refl _⟩
 
 instance : ToStream (ChunksExact α) (ChunksExact α) where
   toStream c := c
 
 instance : Stream (ChunksExact α) (Subarray α) where
   next? c :=
-    if h : c.size + c.pos ≤ c.as.size then
-      let arr := Subarray.mk c.as c.pos (c.size + c.pos) (Nat.le_add_left ..) h
-      some (arr, { c with pos := c.pos + c.size })
+    if h : c.pos + c.size ≤ c.as.size then
+      let arr := Subarray.mk c.as c.pos (c.pos + c.size) (Nat.le_add_right ..) h
+      some (arr, { c with pos := c.pos + c.size, hpos := h })
     else
       none
 
@@ -295,6 +298,8 @@ For a non dependently typed version see `ChunksExact`.
 structure ChunksExactDep (as : Array α) (size : Nat) (h : 0 < size) where
   /-- Where we currently are in the array. -/
   pos : Nat
+  /-- We are in bounds of the array. -/
+  hpos : pos ≤ as.size
 
 /--
 Returns a stream over `size` elements of the array at a time, starting
@@ -308,16 +313,16 @@ See `chunks` for a variant of this stream that also returns the remainder
 as a smaller chunk and `chunksExact` for a non dependently typed version.
 -/
 @[inline] def chunksExactDep (xs : Array α) (size : Nat) (h : 0 < size := by decide) :
-    ChunksExactDep xs size h := ⟨0⟩
+    ChunksExactDep xs size h := ⟨0, Nat.zero_le _⟩
 
 instance : ToStream (ChunksExactDep as sz h) (ChunksExactDep as sz h) where
   toStream c := c
 
 instance (as : Array α) : Stream (ChunksExactDep as sz h) { xs : Subarray α // xs.size = sz } where
-  next? := fun ⟨pos⟩ =>
-    if h1 : sz + pos ≤ as.size then
-      let arr := Subarray.mk as pos (sz + pos) (Nat.le_add_left ..) h1
-      some (⟨arr, by rw [Subarray.size, Nat.add_sub_cancel]⟩, ⟨pos + sz⟩)
+  next? := fun ⟨pos, _⟩ =>
+    if h1 : pos + sz ≤ as.size then
+      let arr := Subarray.mk as pos (pos + sz) (Nat.le_add_right ..) h1
+      some (⟨arr, by rw [Subarray.size, Nat.add_sub_cancel_left]⟩, ⟨pos + sz, h1⟩)
     else
       none
 
