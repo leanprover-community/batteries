@@ -3,71 +3,65 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha
 -/
+import Std.Tactic.Ext.Attr
 
 namespace String
+namespace Pos
 
-@[simp]
-theorem Pos.byteIdx_zero : (0 : Pos).byteIdx = 0 :=
-  rfl
+@[simp] theorem byteIdx_zero : (0 : Pos).byteIdx = 0 := rfl
 
-@[simp]
-theorem Pos.byteIdx_mk (n : Nat) : byteIdx ⟨n⟩ = n :=
-  rfl
+@[simp] theorem byteIdx_mk (n : Nat) : byteIdx ⟨n⟩ = n := rfl
 
-@[simp]
-theorem Pos.mk_zero : ⟨0⟩ = (0 : Pos) :=
-  rfl
+@[simp] theorem mk_zero : ⟨0⟩ = (0 : Pos) := rfl
 
-@[simp]
-theorem Pos.mk_byteIdx (p : Pos) : ⟨p.byteIdx⟩ = p :=
-  rfl
+@[simp] theorem mk_byteIdx (p : Pos) : ⟨p.byteIdx⟩ = p := rfl
 
-@[simp]
-theorem Pos.eq_iff {i₁ i₂ : Pos} : i₁ = i₂ ↔ i₁.byteIdx = i₂.byteIdx :=
-  ⟨fun h ↦ h ▸ rfl, fun h ↦ show ⟨i₁.byteIdx⟩ = (⟨i₂.byteIdx⟩ : Pos) from h ▸ rfl⟩
+@[ext] theorem ext {i₁ i₂ : Pos} (h : i₁.byteIdx = i₂.byteIdx) : i₁ = i₂ :=
+  show ⟨i₁.byteIdx⟩ = (⟨i₂.byteIdx⟩ : Pos) from h ▸ rfl
 
-@[simp]
-theorem Pos.add_eq (p₁ p₂ : Pos) : p₁ + p₂ = ⟨p₁.byteIdx + p₂.byteIdx⟩ :=
-  rfl
+theorem ext_iff {i₁ i₂ : Pos} : i₁ = i₂ ↔ i₁.byteIdx = i₂.byteIdx := ⟨fun h => h ▸ rfl, ext⟩
 
-@[simp]
-theorem Pos.sub_eq (p₁ p₂ : Pos) : p₁ - p₂ = ⟨p₁.byteIdx - p₂.byteIdx⟩ :=
-  rfl
+@[simp] theorem add_byteIdx (p₁ p₂ : Pos) : (p₁ + p₂).byteIdx = p₁.byteIdx + p₂.byteIdx := rfl
 
-@[simp]
-theorem Pos.add_char (p : Pos) (c : Char) : p + c = ⟨p.byteIdx + csize c⟩ :=
-  rfl
+theorem add_eq (p₁ p₂ : Pos) : p₁ + p₂ = ⟨p₁.byteIdx + p₂.byteIdx⟩ := rfl
 
-theorem Pos.zero_add_char (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by
-  simp only [add_char, byteIdx_zero, Nat.zero_add]
+@[simp] theorem sub_byteIdx (p₁ p₂ : Pos) : (p₁ - p₂).byteIdx = p₁.byteIdx - p₂.byteIdx := rfl
 
-@[simp]
-theorem Pos.add_string (p : Pos) (s : String) : p + s = ⟨p.byteIdx + s.utf8ByteSize⟩ :=
-  rfl
+theorem sub_eq (p₁ p₂ : Pos) : p₁ - p₂ = ⟨p₁.byteIdx - p₂.byteIdx⟩ := rfl
 
-theorem Pos.zero_add_string (s : String) : (0 : Pos) + s = ⟨s.utf8ByteSize⟩ := by
-  simp only [add_string, byteIdx_zero, Nat.zero_add]
+@[simp] theorem addChar_byteIdx (p : Pos) (c : Char) : (p + c).byteIdx = p.byteIdx + csize c := rfl
 
-@[simp]
-theorem Pos.le_iff {i₁ i₂ : Pos} : i₁ ≤ i₂ ↔ i₁.byteIdx ≤ i₂.byteIdx :=
-  ⟨id, id⟩
+theorem addChar_eq (p : Pos) (c : Char) : p + c = ⟨p.byteIdx + csize c⟩ := rfl
 
-@[simp]
-theorem Pos.lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :=
-  ⟨id, id⟩
+theorem zero_addChar_byteIdx (c : Char) : ((0 : Pos) + c).byteIdx = csize c := by
+  simp only [addChar_byteIdx, byteIdx_zero, Nat.zero_add]
+
+theorem zero_addChar_eq (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by rw [← zero_addChar_byteIdx]
+
+@[simp] theorem addString_eq (p : Pos) (s : String) :
+    (p + s).byteIdx = p.byteIdx + s.utf8ByteSize := rfl
+
+theorem zero_addString_byteIdx (s : String) : ((0 : Pos) + s).byteIdx = s.utf8ByteSize := by
+  simp only [addString_eq, byteIdx_zero, Nat.zero_add]
+
+theorem le_iff {i₁ i₂ : Pos} : i₁ ≤ i₂ ↔ i₁.byteIdx ≤ i₂.byteIdx := ⟨id, id⟩
+
+theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx := ⟨id, id⟩
+
+end Pos
 
 /-- Induction on `String.utf8GetAux`. -/
 def utf8GetAux.inductionOn.{u} {motive : List Char → Pos → Pos → Sort u}
     (s : List Char) (i p : Pos)
     (nil : ∀ i p, motive [] i p)
     (eq  : ∀ c cs i p, i = p → motive (c :: cs) i p)
-    (ind : ∀ c cs i p, i ≠ p → motive cs ⟨i.byteIdx + csize c⟩ p → motive (c :: cs) i p) :
+    (ind : ∀ (c : Char) cs i p, i ≠ p → motive cs (i + c) p → motive (c :: cs) i p) :
     motive s i p :=
   match s with
   | [] => nil i p
   | c::cs =>
     if h : i = p then
       eq c cs i p h
-    else ind c cs i p h (inductionOn cs ⟨i.byteIdx + csize c⟩ p nil eq ind)
+    else ind c cs i p h (inductionOn cs (i + c) p nil eq ind)
 
 end String
