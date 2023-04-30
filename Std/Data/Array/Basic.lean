@@ -254,10 +254,21 @@ omitted.
 
 See `chunks` for a variant of this stream that also returns the remainder
 as a smaller chunk and `chunksExactDep` for an a stream that encodes the
-`size` invariant in its result.
+`size` invariant in its result. See `chunksExact!` for a variant that avoids
+the `0 < size` restriction.
 -/
 @[inline] def chunksExact (xs : Array α) (size : Nat) (h : 0 < size := by decide) :
     ChunksExact α := ⟨xs, size, h, 0⟩
+
+/--
+Returns a stream over `size` elements of the array at a time, starting
+at the beginning of the array.
+
+This function is like `chunksExact` but does not require that `size > 0`.
+When `size = 0` it returns an empty stream.
+-/
+@[inline] def chunksExact! (xs : Array α) (size : Nat) : ChunksExact α :=
+  if h : 0 < size then chunksExact xs size h else ⟨xs, 1, by decide, xs.size⟩
 
 instance : ToStream (ChunksExact α) (ChunksExact α) where
   toStream c := c
