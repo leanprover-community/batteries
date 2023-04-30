@@ -11,7 +11,15 @@ theorem Pos.byteIdx_zero : (0 : Pos).byteIdx = 0 :=
   rfl
 
 @[simp]
+theorem Pos.byteIdx_mk (n : Nat) : byteIdx ⟨n⟩ = n :=
+  rfl
+
+@[simp]
 theorem Pos.mk_zero : ⟨0⟩ = (0 : Pos) :=
+  rfl
+
+@[simp]
+theorem Pos.mk_byteIdx (p : Pos) : ⟨p.byteIdx⟩ = p :=
   rfl
 
 @[simp]
