@@ -6,6 +6,12 @@ Authors: Bulhwi Cha
 import Std.Tactic.Ext.Attr
 
 namespace String
+
+@[ext] theorem ext {s₁ s₂ : String} (h : s₁.data = s₂.data) : s₁ = s₂ :=
+  show ⟨s₁.data⟩ = (⟨s₂.data⟩ : String) from h ▸ rfl
+
+theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := ⟨fun h => h ▸ rfl, ext⟩
+
 namespace Pos
 
 @[simp] theorem byteIdx_zero : (0 : Pos).byteIdx = 0 := rfl
