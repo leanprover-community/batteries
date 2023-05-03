@@ -38,11 +38,16 @@ theorem zero_addChar_byteIdx (c : Char) : ((0 : Pos) + c).byteIdx = csize c := b
 
 theorem zero_addChar_eq (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by rw [← zero_addChar_byteIdx]
 
-@[simp] theorem addString_eq (p : Pos) (s : String) :
+@[simp] theorem addString_byteIdx (p : Pos) (s : String) :
     (p + s).byteIdx = p.byteIdx + s.utf8ByteSize := rfl
 
+theorem addString_eq (p : Pos) (s : String) : p + s = ⟨p.byteIdx + s.utf8ByteSize⟩ := rfl
+
 theorem zero_addString_byteIdx (s : String) : ((0 : Pos) + s).byteIdx = s.utf8ByteSize := by
-  simp only [addString_eq, byteIdx_zero, Nat.zero_add]
+  simp only [addString_byteIdx, byteIdx_zero, Nat.zero_add]
+
+theorem zero_addString_eq (s : String) : (0 : Pos) + s = ⟨s.utf8ByteSize⟩ := by
+  rw [← zero_addString_byteIdx]
 
 theorem le_iff {i₁ i₂ : Pos} : i₁ ≤ i₂ ↔ i₁.byteIdx ≤ i₂.byteIdx := ⟨id, id⟩
 
@@ -66,5 +71,10 @@ def utf8InductionOn {motive : List Char → Pos → Sort u}
     if h : i = p then
       h ▸ eq c cs
     else ind c cs i h (utf8InductionOn cs (i + c) p nil eq ind)
+
+@[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by
+  induction n with
+  | zero => rfl
+  | succ _ ih => exact ih
 
 end String
