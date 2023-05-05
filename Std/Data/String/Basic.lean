@@ -42,3 +42,13 @@ If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
 -/
 def dropPrefix? (s : String) (pre : String) : Option Substring :=
   s.toSubstring.dropPrefix? pre.toSubstring
+
+/-- `s.stripPrefix p` will remove `p` from the beginning of `s` if it occurs there,
+or otherwise return `s`. -/
+def stripPrefix (s p : String) :=
+  if s.startsWith p then s.drop p.length else s
+
+/-- `s.stripSuffix p` will remove `p` from the end of `s` if it occurs there,
+or otherwise return `s`. -/
+def stripSuffix (s p : String) :=
+  if s.endsWith p then s.dropRight p.length else s
