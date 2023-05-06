@@ -16,6 +16,7 @@ def eqAsString (s t : Substring) : Bool :=
   else
     go s.bsize 0
 where
+  /-- Auxiliary definition for `eqAsString`. -/
   go (remaining : Nat) (offset : String.Pos) : Bool :=
     if h : remaining = 0 then
       true
