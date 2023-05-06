@@ -9,29 +9,51 @@ import Std.Data.Nat.Lemmas
 
 namespace Substring
 
+/-- Check if two substrings are equal as strings. -/
+def eqAsString (s t : Substring) : Bool :=
+  if s.bsize ≠ t.bsize then
+    false
+  else
+    go s.bsize 0
+where
+  go (remaining : Nat) (offset : String.Pos) : Bool :=
+    if h : remaining = 0 then
+      true
+    else
+      let cs := s.get (s.startPos + offset)
+      let ct := t.get (t.startPos + offset)
+      if cs == ct then
+        have : remaining - String.csize cs < remaining :=
+          Nat.sub_lt (Nat.pos_of_ne_zero h) (Char.csize_pos _)
+        go (remaining - String.csize cs) (offset + cs)
+      else
+        false
+
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
 -/
 def dropPrefix? (s : Substring) (pre : Substring) : Option Substring :=
-  go 0 (pre.stopPos - pre.startPos)
-where
-  /-- Auxiliary definition for `dropPrefix?`. -/
-  go (start : String.Pos) (stop : String.Pos) : Option Substring :=
-    if h : start ≥ stop then
-      some { s with startPos := s.startPos + start }
+  if s.bsize < pre.bsize then
+    none
+  else
+    let p := s.startPos + (pre.stopPos - pre.startPos)
+    if { s with stopPos := p }.eqAsString pre then
+      some { s with startPos := p }
     else
-      let cs := s.get start
-      let cp := pre.get start
-      if cs == cp then
-        have : start.byteIdx + String.csize cs ≤ stop.byteIdx + 4 :=
-          Nat.add_le_add (Nat.le_of_lt $ Nat.not_le.mp h) (Char.csize_le_4 _)
-        have : stop.byteIdx + 4 - (start.byteIdx + String.csize cs) <
-                stop.byteIdx + 4 - start.byteIdx :=
-          Nat.sub_add_lt_sub this (Char.csize_pos _)
-        go (start + cs) stop
-      else
-        none
-termination_by go start stop => stop.byteIdx + 4 - start.byteIdx
+      none
+
+/--
+If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, return the remainder `t`.
+-/
+def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
+  if s.bsize < suff.bsize then
+    none
+  else
+    let p := s.stopPos + (suff.stopPos - suff.startPos)
+    if { s with startPos := p }.eqAsString suff then
+      some { s with stopPos := p }
+    else
+      none
 
 end Substring
 
