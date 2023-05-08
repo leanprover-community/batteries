@@ -18,10 +18,7 @@ open Lean Elab Tactic TryThis
 elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainContext do
   let g ← getMainGoal
   evalTactic t
-  -- TODO: At the moment it is more useful to use an Expr MessageData
-  -- instead of a Syntax because the former is clickable in the infoview
-  -- addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta
-  logInfoAt tk (← instantiateMVars (mkMVar g)).headBeta
+  addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta (ref? := ← getRef)
 
 /--
 `show_term e` elaborates `e`, then prints the generated term.
@@ -31,8 +28,5 @@ elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainConte
 elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
   let e ← Term.elabTermEnsuringType t ty
   Term.synthesizeSyntheticMVarsNoPostponing
-  -- TODO: At the moment it is more useful to use an Expr MessageData
-  -- instead of a Syntax because the former is clickable in the infoview
-  -- addTermSuggestion tk (← instantiateMVars e).headBeta
-  logInfoAt tk (← instantiateMVars e).headBeta
+  addTermSuggestion tk (← instantiateMVars e).headBeta (ref? := ← getRef)
   pure e
