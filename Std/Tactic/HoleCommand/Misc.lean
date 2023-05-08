@@ -15,6 +15,21 @@ namespace Std.Tactic.HoleCommand
 
 open Lean Server RequestM Meta
 
+/-- Return the syntax stack leading to `target` from `root`, if one exists. -/
+def findStack? (root target : Syntax) : Option Syntax.Stack := do
+  let range ← target.getRange?
+  root.findStack? (·.getRange?.any (·.includes range))
+    (fun s => s.getKind == target.getKind && s.getRange? == range)
+
+/--
+Return the indentation (number of leading spaces) of the line containing `pos`,
+and whether `pos` is the first non-whitespace character in the line.
+-/
+def findIndentAndIsStart (s : String) (pos : String.Pos) : Nat × Bool :=
+  let start := findLineStart s pos
+  let body := s.findAux (· ≠ ' ') pos start
+  ((body - start).1, body == pos)
+
 /--
 Hole command used to fill in a structure's field when specifying an instance.
 
@@ -38,9 +53,9 @@ instance : Monad Id := {
 }
 ```
 -/
-@[hole_command] partial def instanceStub : HoleCommand := fun params snap info => do
+@[hole_command] partial def instanceStub : HoleCommand := fun params snap ctx info => do
   let some ty := info.expectedType? | return #[]
-  let .const name _ := (← runTermElabM snap (whnf ty)).getAppFn | return #[]
+  let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
   unless isStructure snap.env name do return #[]
   let eager := {
     title := "Generate a skeleton for the structure under construction."
@@ -51,13 +66,30 @@ instance : Monad Id := {
   pure #[{
     eager
     lazy? := some do
-      let mut str := "{" -- TODO: use the right indentation
+      let useWhere := do
+        let _ :: (stx, _) :: _ ← findStack? snap.stx info.stx | none
+        guard (stx.getKind == ``Parser.Command.declValSimple)
+        stx[0].getPos?
+      let holePos := useWhere.getD info.stx.getPos?.get!
+      let (indent, isStart) := findIndentAndIsStart doc.meta.text.source holePos
+      let indent := "\n".pushn ' ' indent
+      let mut str := if useWhere.isSome then "where" else "{"
+      let mut first := useWhere.isNone && isStart
       for field in collectFields snap.env name #[] do
-        str := str ++ s!"\n  {field} := _"
-      str := str ++ s!"\n}"
+        if first then
+          str := str ++ " "
+          first := false
+        else
+          str := str ++ indent ++ "  "
+        str := str ++ s!"{field} := _"
+      if useWhere.isNone then
+        if isStart then
+          str := str ++ " }"
+        else
+          str := str ++ indent ++ "}"
       pure { eager with
         edit? := some <| .ofTextEdit params.textDocument.uri {
-          range := (doc.meta.text.rangeOfStx? info.stx).get!
+          range := doc.meta.text.utf8PosToLspRange holePos info.stx.getTailPos?.get!
           newText := str
         }
       }
@@ -96,10 +128,10 @@ def foo : Expr → Unit := fun
 ```
 
 -/
-@[hole_command] def eqnStub : HoleCommand := fun params snap info => do
+@[hole_command] def eqnStub : HoleCommand := fun params snap ctx info => do
   let some ty := info.expectedType? | return #[]
-  let .forallE _ dom .. ← runTermElabM snap (whnf ty) | return #[]
-  let .const name _ := (← runTermElabM snap (whnf dom)).getAppFn | return #[]
+  let .forallE _ dom .. ← info.runMetaM ctx (whnf ty) | return #[]
+  let .const name _ := (← info.runMetaM ctx (whnf dom)).getAppFn | return #[]
   let some (.inductInfo val) := snap.env.find? name | return #[]
   let eager := {
     title := "Generate a list of equations for a recursive definition."
@@ -109,16 +141,19 @@ def foo : Expr → Unit := fun
   pure #[{
     eager
     lazy? := some do
-      let mut str := "fun" -- TODO: use the right indentation
+      let holePos := info.stx.getPos?.get!
+      let (indent, isStart) := findIndentAndIsStart doc.meta.text.source holePos
+      let mut str := "fun"
+      let indent := "\n".pushn ' ' (if isStart then indent else indent + 2)
       for ctor in val.ctors do
         let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
-        str := str ++ s!"\n  | .{ctor.updatePrefix .anonymous}"
+        str := str ++ indent ++ s!"| .{ctor.updatePrefix .anonymous}"
         for arg in getArgs ci.type #[] do
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
         str := str ++ s!" => _"
       pure { eager with
         edit? := some <|.ofTextEdit params.textDocument.uri {
-          range := (doc.meta.text.rangeOfStx? info.stx).get!
+          range := doc.meta.text.utf8PosToLspRange holePos info.stx.getTailPos?.get!
           newText := str
         }
       }

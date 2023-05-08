@@ -51,6 +51,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.Meta.AssertHypotheses

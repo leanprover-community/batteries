@@ -6,6 +6,7 @@ Authors: Gabriel Ebner, Mario Carneiro
 import Lean.Server.CodeActions
 import Lean.Widget.UserWidget
 import Std.Lean.Name
+import Std.Lean.Format
 import Std.Lean.Position
 
 /-!
@@ -88,15 +89,21 @@ def addSuggestion (origStx : Syntax) {kind : Name} (suggestion : TSyntax kind)
     (suggestionForMessage : Option MessageData := none)
     (ref? : Option Syntax := none) : MetaM Unit := do
   logInfoAt origStx m!"Try this: {suggestionForMessage.getD suggestion}"
-  -- TODO: use the right indentation
-  let text := Format.pretty (← PrettyPrinter.ppCategory kind suggestion)
+  let map ← getFileMap
   let span? := do let e ← ref?; pure (← e.getPos?, ← e.getTailPos?)
+  let span?' := span? <|> return (← origStx.getPos?, ← origStx.getTailPos?)
+  let text ← PrettyPrinter.ppCategory kind suggestion
+  let (indent, column) := if let some (pos, _) := span?' then
+    let start := findLineStart map.source pos
+    let body := map.source.findAux (· ≠ ' ') pos start
+    ((body - start).1, (pos - start).1)
+  else (0, 0)
+  let text := Format.prettyExtra text (indent := indent) (column := column)
   pushInfoLeaf <| .ofCustomInfo {
     stx := origStx
     value := Dynamic.mk (TryThisInfo.mk text span?)
   }
-  if let some (head, tail) := span? <|> return (← origStx.getPos?, ← origStx.getTailPos?) then
-    let map ← getFileMap
+  if let some (head, tail) := span?' then
     let range := Lsp.Range.mk (map.utf8PosToLspPos head) (map.utf8PosToLspPos tail)
     let json := Json.mkObj [("suggestion", text), ("range", toJson range)]
     Widget.saveWidgetInfo ``tryThisWidget json origStx

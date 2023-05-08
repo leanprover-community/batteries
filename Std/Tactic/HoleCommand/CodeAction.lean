@@ -3,6 +3,8 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Lean.Elab.BuiltinTerm
+import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
 import Std.Tactic.HoleCommand.Attr
 
@@ -26,12 +28,12 @@ A code action which calls all `@[hole_command]` code actions on each hole (`?_`,
   let doc ← readDoc
   let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
   let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
-  have holes := snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
+  have holes := snap.infoTree.foldInfo (init := #[]) fun ctx info result => Id.run do
     let .ofTermInfo info := info | result
     unless [``elabHole, ``elabSyntheticHole, ``elabSorry].contains info.elaborator do
       return result
-    let (some head, some tail) := (info.stx.getPos?, info.stx.getTailPos?) | result
+    let (some head, some tail) := (info.stx.getPos? true, info.stx.getTailPos? true) | result
     unless head ≤ endPos && startPos ≤ tail do return result
-    result.push info
-  let #[info] := holes | return #[]
-  (holeCommandExt.getState snap.env).2.concatMapM (· params snap info)
+    result.push (ctx, info)
+  let #[(ctx, info)] := holes | return #[]
+  (holeCommandExt.getState snap.env).2.concatMapM (· params snap ctx info)

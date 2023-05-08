@@ -18,7 +18,8 @@ open Lean Elab Server Lsp RequestM Snapshots
 
 /-- A hole command extension. -/
 abbrev HoleCommand :=
-  CodeActionParams → Snapshot → (hole : TermInfo) → RequestM (Array LazyCodeAction)
+  CodeActionParams → Snapshot →
+  (ctx : ContextInfo) → (hole : TermInfo) → RequestM (Array LazyCodeAction)
 
 namespace HoleCommand
 

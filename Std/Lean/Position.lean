@@ -12,3 +12,9 @@ def Lean.FileMap.utf8PosToLspRange (text : FileMap) (start «end» : String.Pos)
 /-- Gets the LSP range of syntax `stx`. -/
 def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
   return text.utf8PosToLspRange (← stx.getPos?) (← stx.getTailPos?)
+
+/-- Return the beginning of the line contatining character `pos`. -/
+def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
+  match s.revFindAux (· = '\n') pos with
+  | none => 0
+  | some n => ⟨n.byteIdx + 1⟩
