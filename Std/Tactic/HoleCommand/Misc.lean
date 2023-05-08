@@ -30,6 +30,12 @@ def findIndentAndIsStart (s : String) (pos : String.Pos) : Nat × Bool :=
   let body := s.findAux (· ≠ ' ') pos start
   ((body - start).1, body == pos)
 
+/-- Constructs a hole with a kind matching the provided hole elaborator.  -/
+def holeKindToHoleString : (elaborator : Name) → (synthName : String) → String
+  | ``Elab.Term.elabSyntheticHole, name => "?" ++ name
+  | ``Elab.Term.elabSorry, _ => "sorry"
+  | _, _ => "_"
+
 /--
 Hole command used to fill in a structure's field when specifying an instance.
 
@@ -81,7 +87,8 @@ instance : Monad Id := {
           first := false
         else
           str := str ++ indent ++ "  "
-        str := str ++ s!"{field} := _"
+        let field := toString field
+        str := str ++ s!"{field} := {holeKindToHoleString info.elaborator field}"
       if useWhere.isNone then
         if isStart then
           str := str ++ " }"
@@ -147,10 +154,11 @@ def foo : Expr → Unit := fun
       let indent := "\n".pushn ' ' (if isStart then indent else indent + 2)
       for ctor in val.ctors do
         let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
-        str := str ++ indent ++ s!"| .{ctor.updatePrefix .anonymous}"
+        let ctor := toString (ctor.updatePrefix .anonymous)
+        str := str ++ indent ++ s!"| .{ctor}"
         for arg in getArgs ci.type #[] do
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-        str := str ++ s!" => _"
+        str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
         edit? := some <|.ofTextEdit params.textDocument.uri {
           range := doc.meta.text.utf8PosToLspRange holePos info.stx.getTailPos?.get!
