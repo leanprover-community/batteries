@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Lean.Position
-import Std.Tactic.HoleCommand.CodeAction
+import Std.CodeAction.Hole.Basic
 
 /-!
-# Miscellaneous hole commands
+# Miscellaneous hole code actions
 
-This declares some basic hole commands, using the `@[hole_command]` API.
+This declares some basic hole code actions, using the `@[hole_code_action]` API.
 -/
-namespace Std.Tactic.HoleCommand
+namespace Std.CodeAction
 
 open Lean Server RequestM Meta
 
@@ -37,16 +37,14 @@ def holeKindToHoleString : (elaborator : Name) → (synthName : String) → Stri
   | _, _ => "_"
 
 /--
-Hole command used to fill in a structure's field when specifying an instance.
+Hole code action used to fill in a structure's field when specifying an instance.
 
 In the following:
-
 ```lean
 instance : Monad Id := _
 ```
 
-invoking the hole command "Generate a skeleton for the structure under construction." produces:
-
+invoking the hole code action "Generate a skeleton for the structure under construction." produces:
 ```lean
 instance : Monad Id := {
   map := _
@@ -59,7 +57,7 @@ instance : Monad Id := {
 }
 ```
 -/
-@[hole_command] partial def instanceStub : HoleCommand := fun params snap ctx info => do
+@[hole_code_action] partial def instanceStub : HoleCodeAction := fun params snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
   unless isStructure snap.env name do return #[]
@@ -110,8 +108,8 @@ where
       | none => fields.push field
 
 /--
-Invoking hole command "Generate a list of equations for a recursive definition" in the following:
-
+Invoking hole code action "Generate a list of equations for a recursive definition" in the
+following:
 ```lean
 def foo : Expr → Unit := _
 ```
@@ -135,7 +133,7 @@ def foo : Expr → Unit := fun
 ```
 
 -/
-@[hole_command] def eqnStub : HoleCommand := fun params snap ctx info => do
+@[hole_code_action] def eqnStub : HoleCodeAction := fun params snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .forallE _ dom .. ← info.runMetaM ctx (whnf ty) | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf dom)).getAppFn | return #[]

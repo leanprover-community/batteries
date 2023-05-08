@@ -6,25 +6,26 @@ Authors: Mario Carneiro
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
-import Std.Tactic.HoleCommand.Attr
+import Std.CodeAction.Hole.Attr
 
 /-!
-# Initial setup for hole commands
+# Initial setup for hole code actions
 
-This declares a code action provider that calls all `@[hole_command]` definitions
+This declares a code action provider that calls all `@[hole_code_action]` definitions
 on each occurrence of a hole (`_`, `?_` or `sorry`).
 
-(This is in a separate file from `Std.Tactic.HoleCommand.Attr` so that the server does not attempt
-to use this code action provider when browsing the `Std.Tactic.HoleCommand.Attr` file itself.)
+(This is in a separate file from `Std.CodeAction.Hole.Attr` so that the server does not attempt
+to use this code action provider when browsing the `Std.CodeAction.Hole.Attr` file itself.)
 -/
-namespace Std.Tactic.HoleCommand
+namespace Std.CodeAction
 
 open Lean Elab.Term Server RequestM
 
 /--
-A code action which calls all `@[hole_command]` code actions on each hole (`?_`, `_`, or `sorry`).
+A code action which calls all `@[hole_code_action]` code actions on each hole
+(`?_`, `_`, or `sorry`).
 -/
-@[codeActionProvider] def holeCommandProvider : CodeActionProvider := fun params snap => do
+@[codeActionProvider] def holeCodeActionProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
   let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
@@ -36,4 +37,4 @@ A code action which calls all `@[hole_command]` code actions on each hole (`?_`,
     unless head ≤ endPos && startPos ≤ tail do return result
     result.push (ctx, info)
   let #[(ctx, info)] := holes | return #[]
-  (holeCommandExt.getState snap.env).2.concatMapM (· params snap ctx info)
+  (holeCodeActionExt.getState snap.env).2.concatMapM (· params snap ctx info)

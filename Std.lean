@@ -5,6 +5,11 @@ import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
+import Std.CodeAction
+import Std.CodeAction.Hole
+import Std.CodeAction.Hole.Attr
+import Std.CodeAction.Hole.Basic
+import Std.CodeAction.Hole.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
@@ -85,10 +90,6 @@ import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
 import Std.Tactic.HaveI
-import Std.Tactic.HoleCommand
-import Std.Tactic.HoleCommand.Attr
-import Std.Tactic.HoleCommand.CodeAction
-import Std.Tactic.HoleCommand.Misc
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
