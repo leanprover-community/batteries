@@ -84,6 +84,10 @@ import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
 import Std.Tactic.HaveI
+import Std.Tactic.HoleCommand
+import Std.Tactic.HoleCommand.Attr
+import Std.Tactic.HoleCommand.CodeAction
+import Std.Tactic.HoleCommand.Misc
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
