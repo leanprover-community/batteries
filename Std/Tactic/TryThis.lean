@@ -68,8 +68,11 @@ export default function(props) {
       changes: { [props.pos.uri]: [{ range: props.range, newText: props.suggestion }] }
     })
   }
-  return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'},
-    ['Try this: ', e('a', {onClick, title: 'Apply suggestion'}, props.suggestion)]))
+  return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
+    'Try this: ',
+    e('a', {onClick, className: 'link pointer dim', title: 'Apply suggestion'}, props.suggestion),
+    props.info
+  ]))
 }"
 
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
@@ -86,7 +89,8 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
 /-- Add a "try this" suggestion. -/
 def addSuggestion (origStx : Syntax) {kind : Name} (suggestion : TSyntax kind)
     (suggestionForMessage : Option MessageData := none)
-    (ref? : Option Syntax := none) : MetaM Unit := do
+    (ref? : Option Syntax := none)
+    (extraMsg : String := "") : MetaM Unit := do
   logInfoAt origStx m!"Try this: {suggestionForMessage.getD suggestion}"
   -- TODO: use the right indentation
   let text := Format.pretty (← PrettyPrinter.ppCategory kind suggestion)
@@ -98,16 +102,23 @@ def addSuggestion (origStx : Syntax) {kind : Name} (suggestion : TSyntax kind)
   if let some (head, tail) := span? <|> return (← origStx.getPos?, ← origStx.getTailPos?) then
     let map ← getFileMap
     let range := Lsp.Range.mk (map.utf8PosToLspPos head) (map.utf8PosToLspPos tail)
-    let json := Json.mkObj [("suggestion", text), ("range", toJson range)]
+    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg)]
     Widget.saveWidgetInfo ``tryThisWidget json origStx
 
 /-- Add a `exact e` or `refine e` suggestion. -/
 def addExactSuggestion (origTac : Syntax) (e : Expr)
     (ref? : Option Syntax := none) : TermElabM Unit := do
   let stx ← delabToRefinableSyntax e
-  let tac ← if e.hasExprMVar then `(tactic| refine $stx) else `(tactic| exact $stx)
-  let msg := if e.hasExprMVar then m!"refine {e}" else m!"exact {e}"
-  addSuggestion origTac tac (suggestionForMessage := msg) (ref? := ref?)
+  let mvars ← getMVars e
+  let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
+  let (msg, extraMsg) ← if mvars.isEmpty then pure (m!"exact {e}", "") else
+    let mut str := "\nRemaining subgoals:"
+    for g in mvars do
+      -- TODO: use a MessageData.ofExpr instead of rendering to string
+      let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
+      str := str ++ Format.pretty ("\n⊢ " ++ e)
+    pure (m!"refine {e}", str)
+  addSuggestion origTac tac (suggestionForMessage := msg) (ref? := ref?) (extraMsg := extraMsg)
 
 /-- Add a term suggestion. -/
 def addTermSuggestion (origTerm : Syntax) (e : Expr)
