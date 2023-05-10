@@ -74,15 +74,15 @@ def getElimNames (declName : Name) : MetaM (Array (Name × Array Name)) := do
 Invoking tactic code action "Generate an explicit pattern match for 'induction'" in the
 following:
 ```lean
-example (e : Nat) : Nat := by
-  induction e
+example (x : Nat) : x = x := by
+  induction x
 ```
 produces:
 ```lean
-example (e : Nat) : Nat := by
-  induction e with
-  | zero => done
-  | succ n n_ih => done
+example (x : Nat) : x = x := by
+  induction x with
+  | zero => sorry
+  | succ n ih => sorry
 ```
 
 It also works for `cases`.
@@ -118,9 +118,15 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
         if let some _ := (Parser.getTokenTable snap.env).find? ctor then
           ctor := s!"{idBeginEscape}{ctor}{idEndEscape}"
         str := str ++ indent ++ s!"| {ctor}"
+        -- replace n_ih with just ih if there is only one
+        let args := if induction &&
+          args.foldl (fun c n => if n.getString!.endsWith "_ih" then c+1 else c) 0 == 1
+        then
+          args.map (fun n => if n.getString!.endsWith "_ih" then `ih else n)
+        else args
         for arg in args do
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-        str := str ++ s!" => done"
+        str := str ++ s!" => sorry"
       pure { eager with
         edit? := some <|.ofTextEdit params.textDocument.uri
           { range := ⟨endPos, endPos⟩, newText := str }
