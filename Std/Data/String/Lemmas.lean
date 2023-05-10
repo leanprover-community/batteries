@@ -147,7 +147,7 @@ theorem extract.go₁_zero_endPos (s : List Char) : go₁ s 0 0 (endPos ⟨s⟩)
 
 theorem extract_cons_add_csize (c : Char) (cs : List Char) (b e : Nat) :
     extract ⟨c :: cs⟩ ⟨b + csize c⟩ ⟨e + csize c⟩ = extract ⟨cs⟩ ⟨b⟩ ⟨e⟩ := by
-  simp [extract, Nat.add_le_add_right_iff]
+  simp [extract, Nat.add_le_add_iff_le_right]
   split
   · rfl
   · rw [extract.go₁_cons_add_csize]
@@ -164,7 +164,7 @@ theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
 
 theorem Iterator.hasNext_cons_add_csize (c : Char) (cs : List Char) (i : Nat) :
     hasNext ⟨⟨c :: cs⟩, ⟨i + csize c⟩⟩ = hasNext ⟨⟨cs⟩, ⟨i⟩⟩ := by
-  simp [hasNext, endPos, utf8ByteSize, utf8ByteSize.go, Nat.add_lt_add_right_iff]
+  simp [hasNext, endPos, utf8ByteSize, utf8ByteSize.go, Nat.add_lt_add_iff_lt_right]
 
 theorem toString_toSubstring : ∀ (s : String), s.toSubstring.toString = s
 | ⟨s⟩ => by
