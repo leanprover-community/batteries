@@ -61,6 +61,9 @@ theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
 protected theorem add_left_cancel_iff {n m k : Nat} : n + m = n + k ↔ m = k :=
   ⟨Nat.add_left_cancel, fun | rfl => rfl⟩
 
+protected theorem add_right_cancel_iff {n m k : Nat} : n + m = k + m ↔ n = k :=
+  ⟨Nat.add_right_cancel, fun | rfl => rfl⟩
+
 protected theorem add_le_add_iff_le_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
 ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
@@ -372,6 +375,18 @@ theorem le_zero {i : Nat} : i ≤ 0 ↔ i = 0 :=
 
 theorem lt_succ {m n : Nat} : m < succ n ↔ m ≤ n :=
   ⟨le_of_lt_succ, lt_succ_of_le⟩
+
+theorem add_le_add_left_iff {n m k : Nat} : k + n ≤ k + m ↔ n ≤ m :=
+  ⟨Nat.le_of_add_le_add_left, fun h => Nat.add_le_add_left h k⟩
+
+theorem add_le_add_right_iff {n m k : Nat} : n + k ≤ m + k ↔ n ≤ m :=
+  ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h k⟩
+
+theorem add_lt_add_left_iff {n m k : Nat} : k + n < k + m ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h k⟩
+
+theorem add_lt_add_right_iff {n m k : Nat} : n + k < m + k ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h k⟩
 
 /- subtraction -/
 
