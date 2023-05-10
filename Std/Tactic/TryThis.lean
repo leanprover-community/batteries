@@ -19,38 +19,6 @@ namespace Std.Tactic.TryThis
 
 open Lean Elab Elab.Tactic PrettyPrinter Meta Server Lsp RequestM
 
-/-- An info-tree data node corresponding to an application of the "Try this" command. -/
-structure TryThisInfo where
-  /-- The suggested replacement for this syntax, usually the rendering of another tactic syntax. -/
-  suggestion : String
-  /-- This is the span to replace with `suggestion`. If not supplied it will default to
-  the span of the syntax on which this info node is placed. -/
-  span? : Option (String.Pos × String.Pos) := none
-  deriving TypeName
-
-/--
-This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
-apply the replacement.
--/
-@[codeActionProvider] def tryThisProvider : CodeActionProvider := fun params snap => do
-  let doc ← readDoc
-  let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
-  let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
-  pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofCustomInfo info := info | result
-    let some tti := info.value.get? TryThisInfo | result
-    let some (head, tail) := (tti.span? <|> return (← info.stx.getPos?, ← info.stx.getTailPos?))
-      | result
-    unless head ≤ endPos && startPos ≤ tail do return result
-    result.push {
-      eager.title := "Apply 'Try this'"
-      eager.kind? := "refactor"
-      eager.edit? := WorkspaceEdit.ofTextEdit params.textDocument.uri {
-        range := doc.meta.text.utf8PosToLspRange head tail
-        newText := tti.suggestion
-      }
-    }
-
 /--
 This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: <replacement>`
 where `<replacement>` is a link which will perform the replacement.
@@ -75,6 +43,25 @@ export default function(props) {
   ]))
 }"
 
+/--
+This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
+apply the replacement.
+-/
+@[codeActionProvider] def tryThisProvider : CodeActionProvider := fun params snap => do
+  pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
+    let .ofUserWidgetInfo { widgetId := ``tryThisWidget, props, .. } := info | result
+    let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
+    let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
+    unless
+        range.start.line ≤ params.range.end.line &&
+        params.range.start.line ≤ range.end.line do
+      return result
+    result.push {
+      eager.title := "Apply 'Try this'"
+      eager.kind? := "refactor"
+      eager.edit? := WorkspaceEdit.ofTextEdit params.textDocument.uri { range, newText }
+    }
+
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
 partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
     (s : Syntax) : m Syntax :=
@@ -86,28 +73,44 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
 def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
-/-- Add a "try this" suggestion. -/
-def addSuggestion (origStx : Syntax) {kind : Name} (suggestion : TSyntax kind)
-    (suggestionForMessage : Option MessageData := none)
-    (ref? : Option Syntax := none)
+/-- Add a "try this" suggestion. This has three effects:
+
+* An info diagnostic is displayed saying `Try this: <suggestion>`
+* A widget is registered, saying `Try this: <suggestion>` with a link on `<suggestion>` to apply
+  the suggestion
+* A code action `Apply 'Try this'` is added, which will apply the suggestion.
+
+The parameters are:
+* `ref`: the span of the info diagnostic
+* `suggestion`: the replacement syntax
+* `suggestionForMessage?`: the message to display in the info diagnostic (only).
+  The widget message uses only `suggestion`. If not provided, it uses `suggestion` in both places.
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+* `extraMsg`: an extra piece of message text to apply to the widget message (only).
+-/
+def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
+    (suggestionForMessage? : Option MessageData := none)
+    (origSpan? : Option Syntax := none)
     (extraMsg : String := "") : MetaM Unit := do
-  logInfoAt origStx m!"Try this: {suggestionForMessage.getD suggestion}"
+  logInfoAt ref m!"Try this: {suggestionForMessage?.getD suggestion}"
   -- TODO: use the right indentation
   let text := Format.pretty (← PrettyPrinter.ppCategory kind suggestion)
-  let span? := do let e ← ref?; pure (← e.getPos?, ← e.getTailPos?)
-  pushInfoLeaf <| .ofCustomInfo {
-    stx := origStx
-    value := Dynamic.mk (TryThisInfo.mk text span?)
-  }
-  if let some (head, tail) := span? <|> return (← origStx.getPos?, ← origStx.getTailPos?) then
-    let map ← getFileMap
-    let range := Lsp.Range.mk (map.utf8PosToLspPos head) (map.utf8PosToLspPos tail)
+  if let some range := (origSpan?.getD ref).getRange? then
+    let range := (← getFileMap).utf8RangeToLspRange range
     let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg)]
-    Widget.saveWidgetInfo ``tryThisWidget json origStx
+    Widget.saveWidgetInfo ``tryThisWidget json (ref.updateTrailing "".toSubstring)
 
-/-- Add a `exact e` or `refine e` suggestion. -/
-def addExactSuggestion (origTac : Syntax) (e : Expr)
-    (ref? : Option Syntax := none) : TermElabM Unit := do
+/-- Add a `exact e` or `refine e` suggestion.
+
+The parameters are:
+* `ref`: the original syntax to be replaced
+* `e`: the replacement expression
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+-/
+def addExactSuggestion (ref : Syntax) (e : Expr)
+    (origSpan? : Option Syntax := none) : TermElabM Unit := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
@@ -118,9 +121,18 @@ def addExactSuggestion (origTac : Syntax) (e : Expr)
       let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
       str := str ++ Format.pretty ("\n⊢ " ++ e)
     pure (m!"refine {e}", str)
-  addSuggestion origTac tac (suggestionForMessage := msg) (ref? := ref?) (extraMsg := extraMsg)
+  addSuggestion ref tac (suggestionForMessage? := msg)
+    (origSpan? := origSpan?) (extraMsg := extraMsg)
 
-/-- Add a term suggestion. -/
-def addTermSuggestion (origTerm : Syntax) (e : Expr)
-    (ref? : Option Syntax := none) : TermElabM Unit := do
-  addSuggestion origTerm (← delabToRefinableSyntax e) (suggestionForMessage := e) (ref? := ref?)
+/-- Add a term suggestion.
+
+The parameters are:
+* `ref`: the original syntax to be replaced
+* `e`: the replacement expression
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+-/
+def addTermSuggestion (ref : Syntax) (e : Expr)
+    (origSpan? : Option Syntax := none) : TermElabM Unit := do
+  addSuggestion ref (← delabToRefinableSyntax e)
+    (suggestionForMessage? := e) (origSpan? := origSpan?)
