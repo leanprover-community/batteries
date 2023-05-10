@@ -98,9 +98,14 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
   -- TODO: use the right indentation
   let text := Format.pretty (← PrettyPrinter.ppCategory kind suggestion)
   if let some range := (origSpan?.getD ref).getRange? then
-    let range := (← getFileMap).utf8RangeToLspRange range
+    let stxRange := ref.getRange?.getD range
+    let map ← getFileMap
+    let stxRange :=
+    { start := map.lineStart (map.toPosition stxRange.start).line
+      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
+    let range := map.utf8RangeToLspRange range
     let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg)]
-    Widget.saveWidgetInfo ``tryThisWidget json (ref.updateTrailing "".toSubstring)
+    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 /-- Add a `exact e` or `refine e` suggestion.
 
