@@ -3,8 +3,11 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Lean.Elab.Command
 import Lean.Elab.Tactic.Conv.Basic
 import Lean.Meta.Basic
+import Lean.Meta.Eval
+import Std.Util.TermUnsafe
 
 namespace Std.Tactic.GuardExpr
 open Lean Meta Elab Tactic
@@ -86,31 +89,50 @@ def MatchKind.isEq (a b : Expr) : MatchKind → MetaM Bool
   | .defEq red => withoutModifyingState <| withTransparency red <| Lean.Meta.isDefEqGuarded a b
 
 /--
-Check equality of two expressions.
+Tactic to check equality of two expressions.
 * `guard_expr e = e'` checks that `e` and `e'` are defeq at reducible transparency.
 * `guard_expr e =~ e'` checks that `e` and `e'` are defeq at default transparency.
 * `guard_expr e =ₛ e'` checks that `e` and `e'` are syntactically equal.
 * `guard_expr e =ₐ e'` checks that `e` and `e'` are alpha-equivalent.
+
+Both `e` and `e'` are elaborated then have their metavariables instantiated before the equality
+check. Their types are unified (using `isDefEqGuarded`) before synthetic metavariables are
+processed, which helps with default instance handling.
 -/
 syntax (name := guardExpr) "guard_expr " term:51 equal term : tactic
 @[inherit_doc guardExpr] syntax (name := guardExprConv) "guard_expr " term:51 equal term : conv
+
+/-- Elaborate `a` and `b` and then do the given equality test `mk`. We make sure to unify
+the types of `a` and `b` after elaboration so that when synthesizing pending metavariables
+we don't get the wrong instances due to default instances (for example, for nat literals). -/
+def elabAndEvalMatchKind (mk : MatchKind) (a b : Term) : TermElabM Bool :=
+  Term.withoutErrToSorry do
+    let a ← Term.elabTerm a none
+    let b ← Term.elabTerm b none
+    -- Unify types before synthesizing pending metavariables:
+    _ ← isDefEqGuarded (← inferType a) (← inferType b)
+    Term.synthesizeSyntheticMVars (mayPostpone := false)
+    mk.isEq (← instantiateMVars a) (← instantiateMVars b)
 
 @[inherit_doc guardExpr, tactic guardExpr, tactic guardExprConv]
 def evalGuardExpr : Tactic := fun
   | `(tactic| guard_expr $r $eq:equal $p)
   | `(conv| guard_expr $r $eq:equal $p) => withMainContext do
-    let r ← elabTerm r none
-    let p ← elabTerm p none
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
-    unless ← mk.isEq r p do throwError "failed: {r} != {p}"
+    let res ← elabAndEvalMatchKind mk r p
+    -- Note: `{eq}` itself prints a space before the relation.
+    unless res do throwError "failed: {r}{eq} {p} is not true"
   | _ => throwUnsupportedSyntax
 
 /--
-Check the target agrees with a given expression.
+Tactic to check that the target agrees with a given expression.
 * `guard_target = e` checks that the target is defeq at reducible transparency to `e`.
 * `guard_target =~ e` checks that the target is defeq at default transparency to `e`.
 * `guard_target =ₛ e` checks that the target is syntactically equal to `e`.
 * `guard_target =ₐ e` checks that the target is alpha-equivalent to `e`.
+
+The term `e` is elaborated with the type of the goal as the expected type, which is mostly
+useful within `conv` mode.
 -/
 syntax (name := guardTarget) "guard_target " equal term : tactic
 @[inherit_doc guardTarget] syntax (name := guardTargetConv) "guard_target " equal term : conv
@@ -118,8 +140,8 @@ syntax (name := guardTarget) "guard_target " equal term : tactic
 @[inherit_doc guardTarget, tactic guardTarget, tactic guardTargetConv]
 def evalGuardTarget : Tactic :=
   let go eq r getTgt := withMainContext do
-    let r ← elabTerm r none
-    let t ← getTgt
+    let t ← getTgt >>= instantiateMVars
+    let r ← elabTerm r (← inferType t)
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
     unless ← mk.isEq r t do throwError "target of main goal is {t}, not {r}"
   fun
@@ -128,7 +150,7 @@ def evalGuardTarget : Tactic :=
   | _ => throwUnsupportedSyntax
 
 /--
-Check that a named hypothesis has a given type and/or value.
+Tactic to check that a named hypothesis has a given type and/or value.
 
 * `guard_hyp h : t` checks the type up to reducible defeq,
 * `guard_hyp h :~ t` checks the type up to default defeq,
@@ -138,6 +160,8 @@ Check that a named hypothesis has a given type and/or value.
 * `guard_hyp h :=~ v` checks value up to default defeq,
 * `guard_hyp h :=ₛ v` checks value up to syntactic equality,
 * `guard_hyp h :=ₐ v` checks the value up to alpha equality.
+
+The value `v` is elaborated using the type of `h` as the expected type.
 -/
 syntax (name := guardHyp)
   "guard_hyp " term:max (colon term)? (colonEq term)? : tactic
@@ -164,8 +188,54 @@ def evalGuardHyp : Tactic := fun
     | some _, none        => throwError m!"{h} is a let binding"
     | some hval, some val =>
       let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
-      let e ← elabTerm val none
+      let e ← elabTerm val lDecl.type
       let hval ← instantiateMVars hval
       unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value {hval}, not {e}"
     | none, none          => pure ()
   | _ => throwUnsupportedSyntax
+
+/--
+Command to check equality of two expressions.
+* `#guard_expr e = e'` checks that `e` and `e'` are defeq at reducible transparency.
+* `#guard_expr e =~ e'` checks that `e` and `e'` are defeq at default transparency.
+* `#guard_expr e =ₛ e'` checks that `e` and `e'` are syntactically equal.
+* `#guard_expr e =ₐ e'` checks that `e` and `e'` are alpha-equivalent.
+
+This is a command version of the `guard_expr` tactic. -/
+syntax (name := guardExprCmd) "#guard_expr " term:51 equal term : command
+
+@[inherit_doc guardExprCmd, command_elab guardExprCmd]
+def evalGuardExprCmd : Lean.Elab.Command.CommandElab
+  | `(command| #guard_expr $r $eq:equal $p) =>
+    Lean.Elab.Command.runTermElabM fun _ => do
+      let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
+      let res ← elabAndEvalMatchKind mk r p
+      -- Note: `{eq}` itself prints a space before the relation.
+      unless res do throwError "failed: {r}{eq} {p} is not true"
+  | _ => throwUnsupportedSyntax
+
+/--
+Command to check that an expression evaluates to `true`.
+
+`#guard e` elaborates `e` ensuring its type is `Bool` then evaluates `e` and checks that
+the result is `true`. The term is elaborated *without* variables declared using `variable`, since
+these cannot be evaluated.
+
+Since this makes use of coercions, so long as a proposition `p` is decidable, one can write
+`#guard p` rather than `#guard decide p`. A consequence to this is that if there is decidable
+equality one can write `#guard a = b`. Note that this is not exactly the same as checking
+if `a` and `b` evaluate to the same thing since it uses the `DecidableEq` instance to do
+the evaluation.
+
+Note: this uses the untrusted evaluator, so `#guard` passing is *not* a proof that the
+expression equals `true`. -/
+elab "#guard " e:term : command =>
+  Lean.Elab.Command.liftTermElabM do
+    let e ← Term.elabTermEnsuringType e (mkConst ``Bool)
+    Term.synthesizeSyntheticMVarsUsingDefault
+    let e ← instantiateMVars e
+    if e.hasMVar then
+      throwError "expression{indentExpr e}\nhas metavariables"
+    let v ← unsafe (evalExpr Bool (mkConst ``Bool) e)
+    unless v do
+      throwError "expression{indentExpr e}\ndid not evaluate to `true`"
