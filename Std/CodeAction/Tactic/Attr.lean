@@ -25,8 +25,7 @@ abbrev TacticCodeAction :=
 /-- A tactic code action extension. -/
 abbrev TacticSeqCodeAction :=
   CodeActionParams → Snapshot →
-  (ctx : ContextInfo) → (i : Nat) → (stack : Syntax.Stack) →
-  (mctx : MetavarContext) → (goals : List MVarId) →
+  (ctx : ContextInfo) → (i : Nat) → (stack : Syntax.Stack) → (goals : List MVarId) →
   RequestM (Array LazyCodeAction)
 
 /-- Read a tactic code action from a declaration of the right type. -/
@@ -112,17 +111,19 @@ initialize
     add := fun decl stx kind => do
       unless kind == AttributeKind.global do
         throwError "invalid attribute 'tactic_code_action', must be global"
-      if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
       let _ := (decl, stx)
       match stx with
       | `(attr| tactic_code_action *) =>
+        if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
         modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, #[]⟩, ← mkTacticCodeAction decl))
       | `(attr| tactic_code_action $[$args]*) =>
         if args.isEmpty then
+          if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticSeqCodeActionExt.addEntry · (decl, ← mkTacticSeqCodeAction decl))
         else
           let args ← args.mapM fun arg => do
             resolveGlobalConstNoOverloadWithInfo arg
+          if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, args⟩, ← mkTacticCodeAction decl))
       | _ => pure ()
   }

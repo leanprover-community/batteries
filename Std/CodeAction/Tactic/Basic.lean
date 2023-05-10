@@ -160,23 +160,24 @@ where
   let mut out := #[]
   match result with
   | .tactic stk@((tac, _) :: _) => do
+    let ctx := { ctx with mctx := info.mctxBefore }
     let actions := (tacticCodeActionExt.getState snap.env).2
     if let some arr := actions.onTactic.find? tac.getKind then
       for act in arr do
-        out := out ++ (← act params snap ctx stk node)
+        try out := out ++ (← act params snap ctx stk node) catch _ => pure ()
     for act in actions.onAnyTactic do
-      out := out ++ (← act params snap ctx stk node)
+      try out := out ++ (← act params snap ctx stk node) catch _ => pure ()
   | .tacticSeq _ i stk@((seq, _) :: _) =>
-    let (ctx, mctx, goals) ← if 2*i < seq.getNumArgs then
-      pure (ctx, info.mctxAfter, info.goalsAfter)
+    let (ctx, goals) ← if 2*i < seq.getNumArgs then
+      pure ({ ctx with mctx := info.mctxAfter }, info.goalsAfter)
     else
       let stx := seq[2*i]
       let some stxRange := stx.getRange? | return #[]
       let some (ctx, .node (.ofTacticInfo info') _) :=
           findInfoTree? stx.getKind stxRange node fun _ info => (info matches .ofTacticInfo _)
         | return #[]
-      pure (ctx, info'.mctxBefore, info'.goalsBefore)
+      pure ({ ctx with mctx := info'.mctxBefore }, info'.goalsBefore)
     for act in (tacticSeqCodeActionExt.getState snap.env).2 do
-      out := out ++ (← act params snap ctx i stk mctx goals)
+      try out := out ++ (← act params snap ctx i stk goals) catch _ => pure ()
   | _ => unreachable!
   pure out
