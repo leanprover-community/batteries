@@ -17,7 +17,7 @@ in the suggestion (provided by a widget), or use a code action which applies the
 -/
 namespace Std.Tactic.TryThis
 
-open Lean Elab Elab.Tactic PrettyPrinter Meta Server Lsp RequestM
+open Lean Elab PrettyPrinter Meta Server RequestM
 
 /--
 This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: <replacement>`
@@ -48,18 +48,19 @@ This is a code action provider that looks for `TryThisInfo` nodes and supplies a
 apply the replacement.
 -/
 @[codeActionProvider] def tryThisProvider : CodeActionProvider := fun params snap => do
+  let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { widgetId := ``tryThisWidget, props, .. } := info | result
+    let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result
+    let some stxRange := stx.getRange? | result
+    let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
+    unless stxRange.start.line ≤ params.range.end.line do return result
+    unless params.range.start.line ≤ stxRange.end.line do return result
     let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    unless
-        range.start.line ≤ params.range.end.line &&
-        params.range.start.line ≤ range.end.line do
-      return result
     result.push {
       eager.title := "Apply 'Try this'"
       eager.kind? := "refactor"
-      eager.edit? := WorkspaceEdit.ofTextEdit params.textDocument.uri { range, newText }
+      eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
     }
 
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
