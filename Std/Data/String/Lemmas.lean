@@ -94,7 +94,7 @@ theorem utf8GetAux_add_right_cancel (s : List Char) (i p n : Nat) :
 theorem get_cons_add_csize (c : Char) (cs : List Char) (i : Nat) :
     get ⟨c :: cs⟩ ⟨i + csize c⟩ = get ⟨cs⟩ ⟨i⟩ := by
   have : 0 ≠ i + csize c := fun h =>
-    Nat.ne_of_gt (Char.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
+    Nat.ne_of_gt (String.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
   simp [get, utf8GetAux, Pos.ext_iff, this]
   apply utf8GetAux_add_right_cancel
 
@@ -114,7 +114,7 @@ theorem extract.go₂_zero_endPos (s : List Char) : go₂ s 0 (endPos ⟨s⟩) =
   | nil => rfl
   | cons c cs ih =>
     have : 0 ≠ utf8ByteSize.go cs + csize c := fun h =>
-      Nat.ne_of_gt (Char.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
+      Nat.ne_of_gt (String.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
     simp [go₂, endPos, utf8ByteSize, utf8ByteSize.go, Pos.ext_iff, this]
     rw [Pos.addChar_eq, Pos.byteIdx_zero, go₂_add_right_cancel]
     exact ih
@@ -135,7 +135,7 @@ theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
 theorem extract.go₁_cons_add_csize (c : Char) (cs : List Char) (b e : Nat) :
     go₁ (c :: cs) 0 ⟨b + csize c⟩ ⟨e + csize c⟩ = go₁ cs 0 ⟨b⟩ ⟨e⟩ := by
   have : 0 ≠ b + csize c := fun h =>
-    Nat.ne_of_gt (Char.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
+    Nat.ne_of_gt (String.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
   simp [go₁, Pos.ext_iff, this]
   rw [Pos.addChar_eq, Pos.byteIdx_zero]
   apply go₁_add_right_cancel
@@ -158,7 +158,7 @@ theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
   | []    => rfl
   | c::cs =>
     have : (endPos ⟨c :: cs⟩).byteIdx ≠ 0 := fun h =>
-      Nat.ne_of_gt (Char.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h)
+      Nat.ne_of_gt (String.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h)
     simp [extract, this]
     rw [extract.go₁_zero_endPos]
 
@@ -181,7 +181,7 @@ namespace Substring
 theorem next_cons_zero (c : Char) (cs : List Char) :
     next ⟨⟨c :: cs⟩, 0, endPos ⟨c :: cs⟩⟩ 0 = ⟨csize c⟩ := by
   have : 0 ≠ (endPos ⟨c :: cs⟩).byteIdx := fun h =>
-    Nat.ne_of_gt (Char.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
+    Nat.ne_of_gt (String.csize_pos c) (Nat.eq_zero_of_add_eq_zero_left h.symm)
   simp [next, Pos.ext_iff, this, String.next]
   rfl
 
