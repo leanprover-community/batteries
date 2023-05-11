@@ -6,6 +6,7 @@ Authors: Bulhwi Cha
 import Std.Data.Char
 import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext.Attr
+import Std.Tactic.Simpa
 
 namespace String
 
@@ -46,6 +47,12 @@ theorem zero_addChar_byteIdx (c : Char) : ((0 : Pos) + c).byteIdx = csize c := b
 
 theorem zero_addChar_eq (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by rw [← zero_addChar_byteIdx]
 
+theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (String.csize_pos _)
+
+theorem ne_of_lt {i₁ i₂ : Pos} (h : i₁ < i₂) : i₁ ≠ i₂ := mt ext_iff.1 (Nat.ne_of_lt h)
+
+theorem ne_of_gt {i₁ i₂ : Pos} (h : i₁ < i₂) : i₂ ≠ i₁ := (ne_of_lt h).symm
+
 @[simp] theorem addString_byteIdx (p : Pos) (s : String) :
     (p + s).byteIdx = p.byteIdx + s.utf8ByteSize := rfl
 
@@ -63,8 +70,16 @@ theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :
 
 end Pos
 
-theorem endPos_cons (c : Char) (cs : List Char) : endPos ⟨c :: cs⟩ = endPos ⟨cs⟩ + c := by
-  simp [endPos, utf8ByteSize, utf8ByteSize.go, Pos.addChar_eq]
+private theorem add_csize_pos : 0 < i + csize c :=
+  Nat.lt_of_lt_of_le (String.csize_pos c) (Nat.le_add_left ..)
+
+/-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
+@[inline] def utf8Len : List Char → Nat := utf8ByteSize.go
+
+@[simp] theorem utf8Len_nil : utf8Len [] = 0 := rfl
+@[simp] theorem utf8Len_cons : utf8Len (c :: cs) = utf8Len cs + csize c := rfl
+
+@[simp] theorem endPos_eq (cs : List Char) : endPos ⟨cs⟩ = ⟨utf8Len cs⟩ := rfl
 
 /--
 Induction along the valid positions in a list of characters.
@@ -94,13 +109,13 @@ theorem utf8GetAux_add_right_cancel (s : List Char) (i p n : Nat) :
   rw [Nat.add_right_comm]
   exact ih
 
-private theorem add_csize_pos : 0 < i + csize c :=
-  Nat.lt_of_lt_of_le (String.csize_pos c) (Nat.le_add_left ..)
+theorem utf8GetAux_addChar_right_cancel (s : List Char) (i p : Pos) (c : Char) :
+    utf8GetAux s (i + c) (p + c) = utf8GetAux s i p := utf8GetAux_add_right_cancel ..
 
 theorem get_cons_addChar (c : Char) (cs : List Char) (i : Pos) :
     get ⟨c :: cs⟩ (i + c) = get ⟨cs⟩ i := by
-  simp [get, utf8GetAux, Pos.ext_iff, Nat.ne_of_lt add_csize_pos]
-  apply utf8GetAux_add_right_cancel
+  simp [get, utf8GetAux, utf8GetAux_addChar_right_cancel,
+    Pos.ne_of_lt (Nat.lt_of_le_of_lt _ (Pos.lt_addChar ..))]
 
 theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
     go₂ s ⟨i + n⟩ ⟨e + n⟩ = go₂ s ⟨i⟩ ⟨e⟩ := by
@@ -112,12 +127,12 @@ theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
   rw [Nat.add_right_comm]
   exact ih
 
-theorem extract.go₂_zero_endPos : ∀ (s : List Char), go₂ s 0 (endPos ⟨s⟩) = s
-  | [] => rfl
-  | c :: cs => by
-    simp [go₂, endPos, utf8ByteSize, utf8ByteSize.go, Pos.ext_iff, Nat.ne_of_lt add_csize_pos]
-    rw [Pos.addChar_eq, Pos.byteIdx_zero, go₂_add_right_cancel]
-    exact go₂_zero_endPos cs
+theorem extract.go₂_append_left : ∀ (s t : List Char) (i e),
+    e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
+  | [], t, _, _, rfl => by cases t <;> simp [go₂]
+  | c :: cs, t, _, _, rfl => by
+    simp [go₂, Pos.ext_iff, Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)]
+    apply go₂_append_left; simp [Nat.add_right_comm, Nat.add_assoc]
 
 theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
     go₁ s ⟨i + n⟩ ⟨b + n⟩ ⟨e + n⟩ = go₁ s ⟨i⟩ ⟨b⟩ ⟨e⟩ := by
@@ -138,24 +153,34 @@ theorem extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
   rw [Pos.addChar_eq, Pos.byteIdx_zero]
   apply go₁_add_right_cancel
 
-theorem extract.go₁_zero_endPos : ∀ (s : List Char), go₁ s 0 0 (endPos ⟨s⟩) = s
-  | []    => rfl
-  | c::cs => by simp [go₁]; rw [go₂_zero_endPos]
+theorem extract.go₁_append_right : ∀ (s t : List Char) (i b e),
+    b = utf8Len s + i → go₁ (s ++ t) ⟨i⟩ ⟨b⟩ e = go₂ t ⟨b⟩ e
+  | [], t, i, _, e, rfl => by cases t <;> simp [go₁, go₂]
+  | c :: cs, t, i, _, e, rfl => by
+    simp [go₁, Pos.ext_iff, Pos.addChar_eq, Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)]
+    apply go₁_append_right; rw [Nat.add_right_comm, Nat.add_assoc]
+
+theorem extract.go₁_zero_endPos (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩ = s :=
+  (go₁_append_right [] s 0 0 ⟨utf8Len s⟩ rfl).trans <| by
+    simpa using go₂_append_left s [] 0 _ (Nat.add_zero _)
 
 theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
     extract ⟨c :: cs⟩ (b + c) (e + c) = extract ⟨cs⟩ b e := by
   simp [extract, Nat.add_le_add_iff_le_right]
   split <;> [rfl, rw [extract.go₁_cons_addChar]]
 
-theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
-  | ⟨[]⟩ => rfl
-  | ⟨c :: cs⟩ => by
-    simp [extract, Nat.ne_of_gt (a := (endPos ⟨c :: cs⟩).1) add_csize_pos]
-    rw [extract.go₁_zero_endPos]
+theorem extract_zero_endPos (s : String) : s.extract 0 (endPos s) = s := by
+  simp [extract]; split
+  · next h => match s with
+    | ⟨[]⟩ => rfl
+    | ⟨c :: cs⟩ => simp [Nat.ne_of_gt add_csize_pos] at h
+  · let ⟨s⟩ := s; congr
+    refine (extract.go₁_append_right [] s 0 0 ⟨utf8Len s⟩ rfl).trans ?_
+    simpa using extract.go₂_append_left s [] 0 _ (Nat.add_zero _)
 
 theorem Iterator.hasNext_cons_add_csize (c : Char) (cs : List Char) (i : Pos) :
     hasNext ⟨⟨c :: cs⟩, i + c⟩ = hasNext ⟨⟨cs⟩, i⟩ := by
-  simp [hasNext, endPos_cons, Nat.add_lt_add_iff_lt_right]
+  simp [hasNext, Nat.add_lt_add_iff_lt_right]
 
 @[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
   extract_zero_endPos _
@@ -168,7 +193,8 @@ namespace Substring
 
 theorem next_cons_zero (c : Char) (cs : List Char) :
     next ⟨⟨c :: cs⟩, 0, endPos ⟨c :: cs⟩⟩ 0 = ⟨csize c⟩ := by
-  simp [next, Pos.ext_iff, Nat.ne_of_lt (b := (endPos ⟨c :: cs⟩).1) add_csize_pos, String.next]; rfl
+  simp [next, -endPos_eq, Pos.ext_iff,
+    Nat.ne_of_lt (b := (endPos ⟨c :: cs⟩).1) add_csize_pos, String.next]; rfl
 
 theorem next_cons_addChar (c : Char) (cs : List Char) (p : Pos) :
     next ⟨⟨c :: cs⟩, 0, endPos ⟨c :: cs⟩⟩ (p + c) =
@@ -207,22 +233,24 @@ theorem nextn_cons_addChar (c : Char) (cs : List Char) (i : Nat) (p : Pos) :
   | zero => rfl
   | succ i ih =>
     simp only [nextn]; rw [nextn_next_eq, nextn_next_eq, ih]
-    simp [next_cons_addChar]
+    simp [next_cons_addChar, -endPos_eq]
 
 end Substring
 
 namespace String
+
+attribute [simp] toList -- prefer String.data over String.toList in lemmas
 
 @[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by induction n <;> [rfl, assumption]
 
 theorem drop_cons_succ (c : Char) (cs : List Char) (n : Nat) :
     drop ⟨c :: cs⟩ n.succ = drop ⟨cs⟩ n := by
   simp [drop, Substring.toString, Substring.drop, toSubstring, Substring.nextn,
-        Substring.next_cons_zero, Pos.add_eq]
+        Substring.next_cons_zero, Pos.add_eq, -endPos_eq]
   rw [← Pos.zero_addChar_eq, Substring.nextn_cons_addChar]
   apply extract_cons_addChar
 
-theorem drop_eq : ∀ (s : String) (n : Nat), drop s n = ⟨s.toList.drop n⟩
+theorem drop_eq : ∀ (s : String) (n : Nat), drop s n = ⟨s.data.drop n⟩
 | ⟨s⟩, n => by
   induction n generalizing s with
   | zero => exact toString_toSubstring ⟨s⟩
