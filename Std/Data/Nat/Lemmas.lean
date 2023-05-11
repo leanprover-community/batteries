@@ -61,8 +61,14 @@ theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
 protected theorem add_left_cancel_iff {n m k : Nat} : n + m = n + k ↔ m = k :=
   ⟨Nat.add_left_cancel, fun | rfl => rfl⟩
 
+protected theorem add_right_cancel_iff {n m k : Nat} : n + m = k + m ↔ n = k :=
+  ⟨Nat.add_right_cancel, fun | rfl => rfl⟩
+
+protected theorem add_le_add_iff_le_left (k n m : Nat) : k + n ≤ k + m ↔ n ≤ m :=
+  ⟨Nat.le_of_add_le_add_left, fun h => Nat.add_le_add_left h _⟩
+
 protected theorem add_le_add_iff_le_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
-⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
+  ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
 protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < m :=
   Nat.lt_of_le_of_ne (Nat.le_of_add_le_add_left (Nat.le_of_lt h)) fun heq =>
@@ -70,6 +76,12 @@ protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < 
 
 protected theorem lt_of_add_lt_add_right {a b c : Nat} (h : a + b < c + b) : a < c :=
   Nat.lt_of_add_lt_add_left ((by rwa [Nat.add_comm b a, Nat.add_comm b c]): b + a < b + c)
+
+protected theorem add_lt_add_iff_lt_left (k n m : Nat) : k + n < k + m ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h _⟩
+
+protected theorem add_lt_add_iff_lt_right (k n m : Nat) : n + k < m + k ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
 protected theorem lt_add_right (a b c : Nat) (h : a < b) : a < b + c :=
   Nat.lt_of_lt_of_le h (Nat.le_add_right _ _)
