@@ -47,7 +47,7 @@ theorem zero_addChar_byteIdx (c : Char) : ((0 : Pos) + c).byteIdx = csize c := b
 
 theorem zero_addChar_eq (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by rw [← zero_addChar_byteIdx]
 
-theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (String.csize_pos _)
+theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (csize_pos _)
 
 theorem ne_of_lt {i₁ i₂ : Pos} (h : i₁ < i₂) : i₁ ≠ i₂ := mt ext_iff.1 (Nat.ne_of_lt h)
 
@@ -71,7 +71,7 @@ theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :
 end Pos
 
 private theorem add_csize_pos : 0 < i + csize c :=
-  Nat.lt_of_lt_of_le (String.csize_pos c) (Nat.le_add_left ..)
+  Nat.lt_of_lt_of_le (csize_pos c) (Nat.le_add_left ..)
 
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
 @[inline] def utf8Len : List Char → Nat := utf8ByteSize.go
