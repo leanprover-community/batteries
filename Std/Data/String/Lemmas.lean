@@ -199,8 +199,8 @@ theorem next_cons_zero (c : Char) (cs : List Char) :
 theorem next_cons_addChar (c : Char) (cs : List Char) (p : Pos) :
     next ⟨⟨c :: cs⟩, 0, endPos ⟨c :: cs⟩⟩ (p + c) =
     next ⟨⟨cs⟩, 0, endPos ⟨cs⟩⟩ p + c := by
-  -- simp [next, endPos, utf8ByteSize, utf8ByteSize.go]
-  simp [next, Pos.add_eq, endPos, utf8ByteSize, utf8ByteSize.go, Pos.ext_iff, Nat.add_right_cancel_iff]
+  simp [next, Pos.add_eq, endPos, utf8ByteSize, utf8ByteSize.go, Pos.ext_iff,
+    Nat.add_right_cancel_iff]
   split
   · next h => simp [h]
   · next h =>
