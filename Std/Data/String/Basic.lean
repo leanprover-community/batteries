@@ -24,10 +24,10 @@ where
       let cp := pre.get start
       if cs == cp then
         have : start.byteIdx + String.csize cs ≤ stop.byteIdx + 4 :=
-          Nat.add_le_add (Nat.le_of_lt $ Nat.not_le.mp h) (Char.csize_le_4 _)
+          Nat.add_le_add (Nat.le_of_lt $ Nat.not_le.mp h) (String.csize_le_4 _)
         have : stop.byteIdx + 4 - (start.byteIdx + String.csize cs) <
                 stop.byteIdx + 4 - start.byteIdx :=
-          Nat.sub_add_lt_sub this (Char.csize_pos _)
+          Nat.sub_add_lt_sub this (String.csize_pos _)
         go (start + cs) stop
       else
         none

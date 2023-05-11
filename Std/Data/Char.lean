@@ -6,16 +6,18 @@ Authors: Jannis Limperg
 
 import Std.Tactic.RCases
 
-namespace Char
+namespace String
 
 private theorem csize_eq (c) :
-    String.csize c = 1 ∨ String.csize c = 2 ∨ String.csize c = 3 ∨
-    String.csize c = 4 := by
-  simp only [String.csize, utf8Size]
+    csize c = 1 ∨ csize c = 2 ∨ csize c = 3 ∨
+    csize c = 4 := by
+  simp only [csize, Char.utf8Size]
   repeat (first | split | (solve | simp))
 
-theorem csize_pos (c) : 0 < String.csize c := by
+theorem csize_pos (c) : 0 < csize c := by
   rcases csize_eq c with _|_|_|_ <;> simp_all
 
-theorem csize_le_4 (c) : String.csize c ≤ 4 := by
+theorem csize_le_4 (c) : csize c ≤ 4 := by
   rcases csize_eq c with _|_|_|_ <;> simp_all
+  
+end String
