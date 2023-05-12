@@ -19,5 +19,5 @@ theorem csize_pos (c) : 0 < csize c := by
 
 theorem csize_le_4 (c) : csize c ≤ 4 := by
   rcases csize_eq c with _|_|_|_ <;> simp_all
-  
+
 end String
