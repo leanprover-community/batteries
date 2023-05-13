@@ -85,7 +85,7 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestion`: the replacement syntax
 * `suggestionForMessage?`: the message to display in the info diagnostic (only).
-  The widget message uses only `suggestion`. If not provided, it uses `suggestion` in both places.
+  The widget message uses only `suggestion`. If not provided, `suggestion` is used in both places.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `extraMsg`: an extra piece of message text to apply to the widget message (only).
