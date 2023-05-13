@@ -180,7 +180,7 @@ theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
   simp [extract, Nat.ne_of_gt add_csize_pos]; congr
   apply extract.go₁_zero_utf8Len
 
-theorem Iterator.hasNext_cons_add_csize (c : Char) (cs : List Char) (i : Pos) :
+theorem Iterator.hasNext_cons_addChar (c : Char) (cs : List Char) (i : Pos) :
     hasNext ⟨⟨c :: cs⟩, i + c⟩ = hasNext ⟨⟨cs⟩, i⟩ := by
   simp [hasNext, Nat.add_lt_add_iff_lt_right]
 
