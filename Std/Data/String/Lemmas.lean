@@ -73,7 +73,7 @@ end Pos
 private theorem add_csize_pos : 0 < i + csize c :=
   Nat.add_pos_right _ (csize_pos c)
 
-private theorem ne_add_csize_add_self {i n : Nat} {c : Char} : i ≠ n + csize c + i :=
+private theorem ne_add_csize_add_self : i ≠ n + csize c + i :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)
 
 private theorem Pos.zero_ne_addChar {i : Pos} {c : Char} : 0 ≠ i + c :=
@@ -84,8 +84,7 @@ private theorem Pos.zero_ne_addChar {i : Pos} {c : Char} : 0 ≠ i + c :=
 
 @[simp] theorem utf8Len_nil : utf8Len [] = 0 := rfl
 
-@[simp] theorem utf8Len_cons {c : Char} {cs : List Char} :
-    utf8Len (c :: cs) = utf8Len cs + csize c := rfl
+@[simp] theorem utf8Len_cons : utf8Len (c :: cs) = utf8Len cs + csize c := rfl
 
 @[simp] theorem endPos_eq (cs : List Char) : endPos ⟨cs⟩ = ⟨utf8Len cs⟩ := rfl
 
