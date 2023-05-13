@@ -70,7 +70,7 @@ theorem lt_iff {i₁ i₂ : Pos} : i₁ < i₂ ↔ i₁.byteIdx < i₂.byteIdx :
 
 end Pos
 
-private theorem add_csize_pos {i : Nat} {c : Char} : 0 < i + csize c :=
+private theorem add_csize_pos : 0 < i + csize c :=
   Nat.add_pos_right _ (csize_pos c)
 
 private theorem ne_add_csize_add_self {i n : Nat} {c : Char} : i ≠ n + csize c + i :=
