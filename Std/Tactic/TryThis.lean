@@ -110,7 +110,7 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
 /-- Add a `exact e` or `refine e` suggestion.
 
 The parameters are:
-* `ref`: the original syntax to be replaced
+* `ref`: the span of the info diagnostic
 * `e`: the replacement expression
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
@@ -133,7 +133,7 @@ def addExactSuggestion (ref : Syntax) (e : Expr)
 /-- Add a term suggestion.
 
 The parameters are:
-* `ref`: the original syntax to be replaced
+* `ref`: the span of the info diagnostic
 * `e`: the replacement expression
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
