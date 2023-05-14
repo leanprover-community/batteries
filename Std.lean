@@ -64,10 +64,12 @@ import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
+import Std.Lean.Name
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
+import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter
