@@ -151,8 +151,8 @@ in extensionality lemmas like `funext`. Returns a list of subgoals,
 and the unconsumed patterns in each of those subgoals.
 -/
 def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
-  (depth := 1000000) (failIfUnchanged := true) :
-  TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
+    (depth := 1000000) (failIfUnchanged := true) :
+    TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
   (·.2) <$> StateT.run (m := TermElabM) (s := #[])
     (withExtN g pats (fun g qs => modify (·.push (g, qs))) depth failIfUnchanged)
 
@@ -160,6 +160,7 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 * `ext pat*`: Apply extensionality lemmas as much as possible,
   using `pat*` to introduce the variables in extensionality lemmas like `funext`.
 * `ext`: introduce anonymous variables whenever needed.
+* `ext pat* : n`: apply ext lemmas only up to depth `n`.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
