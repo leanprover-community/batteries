@@ -116,17 +116,18 @@ The parameters are:
   If not provided it defaults to `ref`.
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
-  let (msg, extraMsg) ← if mvars.isEmpty then pure (m!"exact {e}", "") else
+  let msg := if mvars.isEmpty then m!"exact {e}" else m!"refine {e}"
+  let extraMsg ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
     let mut str := "\nRemaining subgoals:"
     for g in mvars do
       -- TODO: use a MessageData.ofExpr instead of rendering to string
       let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
       str := str ++ Format.pretty ("\n⊢ " ++ e)
-    pure (m!"refine {e}", str)
+    pure str
   addSuggestion ref tac (suggestionForMessage? := msg)
     (origSpan? := origSpan?) (extraMsg := extraMsg)
 
