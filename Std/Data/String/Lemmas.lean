@@ -243,7 +243,7 @@ end Substring
 
 namespace String
 
-attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
+attribute [local simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
 @[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by induction n <;> [rfl, assumption]
 
