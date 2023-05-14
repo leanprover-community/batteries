@@ -94,7 +94,7 @@ instance : Monad Id := {
           str := str ++ indent ++ "}"
       pure { eager with
         edit? := some <| .ofTextEdit params.textDocument.uri {
-          range := doc.meta.text.utf8PosToLspRange holePos info.stx.getTailPos?.get!
+          range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
       }
@@ -159,7 +159,7 @@ def foo : Expr → Unit := fun
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
         edit? := some <|.ofTextEdit params.textDocument.uri {
-          range := doc.meta.text.utf8PosToLspRange holePos info.stx.getTailPos?.get!
+          range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
       }
