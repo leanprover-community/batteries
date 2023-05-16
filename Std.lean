@@ -5,6 +5,11 @@ import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
+import Std.CodeAction
+import Std.CodeAction.Hole
+import Std.CodeAction.Hole.Attr
+import Std.CodeAction.Hole.Basic
+import Std.CodeAction.Hole.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
@@ -51,6 +56,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.Meta.AssertHypotheses

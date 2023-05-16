@@ -6,6 +6,7 @@ Authors: Gabriel Ebner, Mario Carneiro
 import Lean.Server.CodeActions
 import Lean.Widget.UserWidget
 import Std.Lean.Name
+import Std.Lean.Format
 import Std.Lean.Position
 
 /-!
@@ -95,11 +96,14 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     (origSpan? : Option Syntax := none)
     (extraMsg : String := "") : MetaM Unit := do
   logInfoAt ref m!"Try this: {suggestionForMessage?.getD suggestion}"
-  -- TODO: use the right indentation
-  let text := Format.pretty (← PrettyPrinter.ppCategory kind suggestion)
   if let some range := (origSpan?.getD ref).getRange? then
-    let stxRange := ref.getRange?.getD range
     let map ← getFileMap
+    let text ← PrettyPrinter.ppCategory kind suggestion
+    let start := findLineStart map.source range.start
+    let body := map.source.findAux (· ≠ ' ') range.start start
+    let text := Format.prettyExtra text
+      (indent := (body - start).1) (column := (range.start - start).1)
+    let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
