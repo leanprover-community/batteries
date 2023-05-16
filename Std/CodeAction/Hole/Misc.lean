@@ -21,15 +21,6 @@ def findStack? (root target : Syntax) : Option Syntax.Stack := do
   root.findStack? (·.getRange?.any (·.includes range))
     (fun s => s.getKind == target.getKind && s.getRange? == range)
 
-/--
-Return the indentation (number of leading spaces) of the line containing `pos`,
-and whether `pos` is the first non-whitespace character in the line.
--/
-def findIndentAndIsStart (s : String) (pos : String.Pos) : Nat × Bool :=
-  let start := findLineStart s pos
-  let body := s.findAux (· ≠ ' ') pos start
-  ((body - start).1, body == pos)
-
 /-- Constructs a hole with a kind matching the provided hole elaborator.  -/
 def holeKindToHoleString : (elaborator : Name) → (synthName : String) → String
   | ``Elab.Term.elabSyntheticHole, name => "?" ++ name
@@ -107,6 +98,12 @@ where
       | some substructName => collectFields env substructName fields
       | none => fields.push field
 
+/-- Returns the explicit arguments given a type. -/
+def getExplicitArgs : Expr → Array Name → Array Name
+  | .forallE n _ body bi, args =>
+    getExplicitArgs body <| if bi.isExplicit then args.push n else args
+  | _, args => args
+
 /--
 Invoking hole code action "Generate a list of equations for a recursive definition" in the
 following:
@@ -154,7 +151,7 @@ def foo : Expr → Unit := fun
         let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
         let ctor := toString (ctor.updatePrefix .anonymous)
         str := str ++ indent ++ s!"| .{ctor}"
-        for arg in getArgs ci.type #[] do
+        for arg in getExplicitArgs ci.type #[] do
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
@@ -164,8 +161,3 @@ def foo : Expr → Unit := fun
         }
       }
   }]
-where
-  /-- Returns the explicit arguments given a type. -/
-  getArgs : Expr → Array Name → Array Name
-  | .forallE n _ body bi, args => getArgs body <| if bi.isExplicit then args.push n else args
-  | _, args => args

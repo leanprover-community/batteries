@@ -20,6 +20,15 @@ def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
   | none => 0
   | some n => ⟨n.byteIdx + 1⟩
 
+/--
+Return the indentation (number of leading spaces) of the line containing `pos`,
+and whether `pos` is the first non-whitespace character in the line.
+-/
+def Lean.findIndentAndIsStart (s : String) (pos : String.Pos) : Nat × Bool :=
+  let start := findLineStart s pos
+  let body := s.findAux (· ≠ ' ') pos start
+  ((body - start).1, body == pos)
+
 /-- Returns a synthetic Syntax which has the specified `String.Range`. -/
 def Lean.Syntax.ofRange (range : String.Range) (canonical := true) : Lean.Syntax :=
   .atom (.synthetic range.start range.stop canonical) ""
