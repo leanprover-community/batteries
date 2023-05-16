@@ -161,3 +161,17 @@ def foo : Expr → Unit := fun
         }
       }
   }]
+
+/-- Invoking hole code action "Start a tactic proof" will fill in a hole with `by done`. -/
+@[hole_code_action] def startTacticStub : HoleCodeAction := fun params _ _ info => do
+  let holePos := info.stx.getPos?.get!
+  let doc ← readDoc
+  let indent := (findIndentAndIsStart doc.meta.text.source holePos).1
+  pure #[{
+    eager.title := "Start a tactic proof."
+    eager.kind? := "quickfix"
+    eager.edit? := some <|.ofTextEdit params.textDocument.uri {
+      range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
+      newText := "by\n".pushn ' ' (indent + 2) ++ "done"
+    }
+  }]

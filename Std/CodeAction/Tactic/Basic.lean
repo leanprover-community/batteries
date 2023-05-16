@@ -56,11 +56,12 @@ partial def findTactic? (preferred : String.Pos → Bool) (range : String.Range)
 where
   /-- Returns `none` if we should not visit this syntax at all, and `some false` if we only
   want to visit it in "extended" mode (where we include trailing characters). -/
-  visit (stx : Syntax) : Option Bool := do
-    guard <| (← stx.getPos? true) ≤ range.start
+  visit (stx : Syntax) (prev? : Option String.Pos := none) : Option Bool := do
+    let left ← stx.getPos? true
+    guard <| prev?.getD left ≤ range.start
     let .original (endPos := right) (trailing := trailing) .. := stx.getTailInfo | none
     guard <| right.byteIdx + trailing.bsize ≥ range.stop.byteIdx
-    return right ≥ range.stop
+    return left ≤ range.start && right ≥ range.stop
 
   /-- Merges the results of two `FindTacticResult`s. This just prefers the second (inner) one,
   unless the inner tactic is a dispreferred tactic sequence and the outer one is preferred.
@@ -72,7 +73,8 @@ where
   /-- Main recursion for `findTactic?`. This takes a `stack` context and a root syntax `stx`,
   and returns the best `FindTacticResult` it can find. It returns `none` (abort) if two or more
   results are found, and `some none` (none yet) if no results are found. -/
-  go (stack : Syntax.Stack) (stx : Syntax) : Option (Option FindTacticResult) := do
+  go (stack : Syntax.Stack) (stx : Syntax) (prev? : Option String.Pos := none) :
+      Option (Option FindTacticResult) := do
     if stx.getKind == ``Parser.Tactic.tacticSeq then
       -- TODO: this implementation is a bit too strict about the beginning of tacticSeqs.
       -- We would like to be able to parse
@@ -104,11 +106,13 @@ where
       return childRes <|> mainRes
     else
       let mut childRes := none
+      let mut prev? := prev?
       for i in [0:stx.getNumArgs] do
-        if let some _ := visit stx[i] then
-          if let some child ← go ((stx, i) :: stack) stx[i] then
+        if let some _ := visit stx[i] prev? then
+          if let some child ← go ((stx, i) :: stack) stx[i] prev? then
             if childRes.isSome then failure
             childRes := child
+        prev? := stx[i].getTailPos? true <|> prev?
       return childRes
 
 /--
@@ -116,14 +120,12 @@ Returns the info tree corresponding to a syntax, using `kind` and `range` for id
 (This is not foolproof, but it is a fairly accurate proxy for `Syntax` equality and a lot cheaper
 than deep comparison.)
 -/
-partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range) (t : InfoTree)
-    (f : ContextInfo → Info → Bool) (canonicalOnly := false) :
+partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range)
+  (ctx? : Option ContextInfo) (t : InfoTree)
+  (f : ContextInfo → Info → Bool) (canonicalOnly := false) :
     Option (ContextInfo × InfoTree) :=
-  go none t
-where
-  /-- `go ctx?` is like `findInfoTree?` but uses `ctx?` as the ambient `ContextInfo`. -/
-  go ctx?
-  | .context ctx t => go ctx t
+  match t with
+  | .context ctx t => findInfoTree? kind tgtRange ctx t f canonicalOnly
   | node@(.node i ts) => do
     if let some ctx := ctx? then
       let range ← i.stx.getRange? canonicalOnly
@@ -132,7 +134,7 @@ where
       if i.stx.getKind == kind && range == tgtRange && f ctx i then
         return (ctx, node)
     for t in ts do
-      if let some res := go (i.updateContext? ctx?) t then
+      if let some res := findInfoTree? kind tgtRange (i.updateContext? ctx?) t f canonicalOnly then
         return res
     none
   | _ => none
@@ -154,7 +156,7 @@ where
     | .tacticSeq _ _ (_ :: tac :: _) => tac.1
     | _ => unreachable!
   let tgtRange := tgtTac.getRange?.get!
-  have info := findInfoTree? tgtTac.getKind tgtRange snap.infoTree (canonicalOnly := true)
+  have info := findInfoTree? tgtTac.getKind tgtRange none snap.infoTree (canonicalOnly := true)
     fun _ info => info matches .ofTacticInfo _
   let some (ctx, node@(.node (.ofTacticInfo info) _)) := info | return #[]
   let mut out := #[]
@@ -169,14 +171,14 @@ where
       try out := out ++ (← act params snap ctx stk node) catch _ => pure ()
   | .tacticSeq _ i stk@((seq, _) :: _) =>
     let (ctx, goals) ← if 2*i < seq.getNumArgs then
-      pure ({ ctx with mctx := info.mctxAfter }, info.goalsAfter)
-    else
       let stx := seq[2*i]
       let some stxRange := stx.getRange? | return #[]
       let some (ctx, .node (.ofTacticInfo info') _) :=
-          findInfoTree? stx.getKind stxRange node fun _ info => (info matches .ofTacticInfo _)
+          findInfoTree? stx.getKind stxRange ctx node fun _ info => (info matches .ofTacticInfo _)
         | return #[]
       pure ({ ctx with mctx := info'.mctxBefore }, info'.goalsBefore)
+    else
+      pure ({ ctx with mctx := info.mctxAfter }, info.goalsAfter)
     for act in (tacticSeqCodeActionExt.getState snap.env).2 do
       try out := out ++ (← act params snap ctx i stk goals) catch _ => pure ()
   | _ => unreachable!

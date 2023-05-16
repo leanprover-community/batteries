@@ -132,3 +132,72 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
           { range := ⟨endPos, endPos⟩, newText := str }
       }
   }]
+
+/-- The "Add subgoals" code action puts `· done` subgoals for any goals remaining at the end of a
+proof.
+```
+example : True ∧ True := by
+  constructor
+  -- <- here
+```
+is transformed to
+```
+example : True ∧ True := by
+  constructor
+  · done
+  · done
+```
+-/
+def addSubgoalsActionCore (params : Lsp.CodeActionParams)
+  (i : Nat) (stk : Syntax.Stack) (goals : List MVarId) : RequestM (Array LazyCodeAction) := do
+  -- If there are zero goals remaining, no need to do anything
+  -- If there is one goal remaining, the user can just keep typing and subgoals are not helpful
+  unless goals.length > 1 do return #[]
+  let seq := stk.head!.1
+  let nargs := (seq.getNumArgs + 1) / 2
+  unless i == nargs do -- only trigger at the end of a block
+    -- or if there is only a `done` or `sorry` terminator
+    unless i + 1 == nargs && [
+        ``Parser.Tactic.done, ``Parser.Tactic.tacticSorry, ``Parser.Tactic.tacticAdmit
+      ].contains seq[2*i].getKind do
+      return #[]
+  let some startPos := seq[0].getPos? true | return #[]
+  let doc ← readDoc
+  let eager := { title := "Add subgoals", kind? := "quickfix" }
+  pure #[{
+    eager
+    lazy? := some do
+      let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source startPos).1
+      let mut (range, newText) := (default, "")
+      if let some tac := seq.getArgs[2*i]? then
+        let some range2 := tac.getRange? true | return eager
+        range := range2
+      else
+        let trimmed := seq.modifyArgs (·[:2*i])
+        let some tail := trimmed.getTailPos? true | return eager
+        (range, newText) := (⟨tail, tail⟩, indent)
+        let cursor := doc.meta.text.lspPosToUtf8Pos params.range.end
+        if range.stop ≤ cursor && cursor.1 ≤ range.stop.1 + trimmed.getTrailingSize then
+          range := { range with stop := cursor }
+      newText := newText ++ "· done"
+      for _ in goals.tail! do
+        newText := newText ++ indent ++ "· done"
+      pure { eager with
+        edit? := some <|.ofTextEdit params.textDocument.uri {
+          range := doc.meta.text.utf8RangeToLspRange range
+          newText
+        }
+      }
+  }]
+
+@[inherit_doc addSubgoalsActionCore, tactic_code_action]
+def addSubgoalsSeqAction : TacticSeqCodeAction := fun params _ _ => addSubgoalsActionCore params
+
+-- This makes sure that the addSubgoals action also triggers
+-- when the cursor is on the final `done` of a tactic block
+@[inherit_doc addSubgoalsActionCore,
+  tactic_code_action Parser.Tactic.done Parser.Tactic.tacticSorry Parser.Tactic.tacticAdmit]
+def addSubgoalsAction : TacticCodeAction := fun params _ _ stk node => do
+  let (_ :: (seq, i) :: stk@(_ :: t :: _), .node (.ofTacticInfo info) _) := (stk, node) | return #[]
+  unless t.1.getKind == ``Parser.Tactic.tacticSeq do return #[]
+  addSubgoalsActionCore params (i/2) ((seq, 0) :: stk) info.goalsBefore
