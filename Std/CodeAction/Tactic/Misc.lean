@@ -43,7 +43,7 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
     kind? := "quickfix"
     isPreferred? := true
     edit? := some <|.ofTextEdit params.textDocument.uri {
-      range := doc.meta.text.utf8PosToLspRange prev stop
+      range := doc.meta.text.utf8RangeToLspRange ⟨prev, stop⟩
       newText := ""
     }
   }
