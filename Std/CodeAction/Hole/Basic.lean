@@ -25,7 +25,7 @@ open Lean Elab.Term Server RequestM
 A code action which calls all `@[hole_code_action]` code actions on each hole
 (`?_`, `_`, or `sorry`).
 -/
-@[codeActionProvider] def holeCodeActionProvider : CodeActionProvider := fun params snap => do
+@[code_action_provider] def holeCodeActionProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
   let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end

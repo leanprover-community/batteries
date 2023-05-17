@@ -48,7 +48,7 @@ export default function(props) {
 This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
 apply the replacement.
 -/
-@[codeActionProvider] def tryThisProvider : CodeActionProvider := fun params snap => do
+@[code_action_provider] def tryThisProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
     let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result

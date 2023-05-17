@@ -140,7 +140,7 @@ partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range)
   | _ => none
 
 /-- A code action which calls `@[tactic_code_action]` code actions. -/
-@[codeActionProvider] def tacticCodeActionProvider : CodeActionProvider := fun params snap => do
+@[code_action_provider] def tacticCodeActionProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
   let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
