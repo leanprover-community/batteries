@@ -318,6 +318,7 @@ theorem revPosOfAux_eq (s c) : revPosOfAuxWF s c = revFindAuxWF s (· == c) := r
 
 theorem revPosOf_eq (s c) : revPosOfWF s c = revFindWF s (· == c) := rfl
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
 theorem findAux_of_valid (p) : ∀ l m r,
     findAuxWF ⟨l ++ m ++ r⟩ p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
     ⟨utf8Len l + utf8Len (m.takeWhile (!p ·))⟩
@@ -328,13 +329,14 @@ theorem findAux_of_valid (p) : ∀ l m r,
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp at h1 h2; simp [h1, h2]
     cases p c <;> simp
-    have := findAux_of_valid p (l++[c]) m r; simp at this
-    rw [Nat.add_right_comm, Nat.add_assoc] at this
-    rw [this, Nat.add_right_comm, Nat.add_assoc]
+    have foo := findAux_of_valid p (l++[c]) m r; simp at foo
+    rw [Nat.add_right_comm, Nat.add_assoc] at foo
+    rw [foo, Nat.add_right_comm, Nat.add_assoc]
 
 theorem find_of_valid (p s) : findWF s p = ⟨utf8Len (s.1.takeWhile (!p ·))⟩ := by
   simpa using findAux_of_valid p [] s.1 []
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.revFindAux
 theorem revFindAux_of_valid (p) : ∀ l r,
     revFindAuxWF ⟨l.reverse ++ r⟩ p ⟨utf8Len l⟩ = (l.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩)
   | [], r => by unfold revFindAuxWF List.dropWhile; simp
@@ -659,6 +661,7 @@ theorem prevn (h : Valid it) : ∀ n, Valid (it.prevn n)
 end Valid
 end Iterator
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
     offsetOfPosAuxWF ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
   | l, [], r, n => by unfold offsetOfPosAuxWF; simp
@@ -673,6 +676,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
 theorem offsetOfPos_of_valid (l r) : offsetOfPosWF ⟨l ++ r⟩ ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
 theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
     foldlAuxWF f ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
   | l, [], r, a => by unfold foldlAuxWF; simp
@@ -685,6 +689,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
 theorem foldl_eq (f : α → Char → α) (s a) : foldlWF f a s = s.1.foldl f a := by
   simpa using foldlAux_of_valid f [] s.1 [] a
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
     foldrAuxWF f a ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
   rw [← m.reverse_reverse]
@@ -698,6 +703,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
 theorem foldr_eq (f : Char → α → α) (s a) : foldrWF f a s = s.1.foldr f a := by
   simpa using foldrAux_of_valid f [] s.1 [] a
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.anyAux
 theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
     anyAuxWF ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
   | l, [], r => by unfold anyAuxWF; simp
@@ -721,6 +727,7 @@ theorem all_iff (s : String) (p : Char → Bool) : allWF s p ↔ ∀ c ∈ s.1, 
 theorem contains_iff (s : String) (c : Char) : containsWF s c ↔ c ∈ s.1 := by
   simp [containsWF, any_iff]
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
 theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAuxWF f ⟨utf8Len l⟩ ⟨l ++ r⟩ = ⟨l ++ r.map f⟩
   | l, [] => by unfold mapAuxWF; simp
   | l, c::r => by
@@ -737,6 +744,7 @@ theorem map_eq (f : Char → Char) (s) : mapWF f s = ⟨s.1.map f⟩ := by
 -- TODO: isPrefixOf
 -- TODO: replace
 
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.takeWhileAux
 theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
     Substring.takeWhileAux ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ =
       ⟨utf8Len l + utf8Len (m.takeWhile p)⟩
