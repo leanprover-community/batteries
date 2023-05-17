@@ -167,7 +167,7 @@ def addSubgoalsActionCore (params : Lsp.CodeActionParams)
   pure #[{
     eager
     lazy? := some do
-      let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source startPos).1
+      let indent := "\n".pushn ' ' (doc.meta.text.toPosition startPos).column
       let mut (range, newText) := (default, "")
       if let some tac := seq.getArgs[2*i]? then
         let some range2 := tac.getRange? true | return eager
