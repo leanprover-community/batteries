@@ -6,7 +6,6 @@ import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
 import Std.CodeAction
-import Std.CodeAction.Hole
 import Std.CodeAction.Hole.Attr
 import Std.CodeAction.Hole.Basic
 import Std.CodeAction.Hole.Misc
