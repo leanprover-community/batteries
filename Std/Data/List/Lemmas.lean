@@ -364,6 +364,9 @@ theorem cons_sublist_cons : a :: l₁ <+ a :: l₂ ↔ l₁ <+ l₂ :=
   | [] => Iff.rfl
   | _ :: l => cons_sublist_cons.trans (append_sublist_append_left l)
 
+theorem Sublist.append_left : l₁ <+ l₂ → ∀ l, l ++ l₁ <+ l ++ l₂ :=
+  fun h l => (append_sublist_append_left l).mpr h
+
 theorem Sublist.append_right : l₁ <+ l₂ → ∀ l, l₁ ++ l <+ l₂ ++ l
   | .slnil, _ => Sublist.refl _
   | .cons _ h, _ => (h.append_right _).cons _
