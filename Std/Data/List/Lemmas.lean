@@ -711,11 +711,6 @@ theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
   rw [← length_map l f, h, length_append]
   apply Nat.le_add_right
 
--- TODO: original proof: drop_subset n l h
-theorem mem_of_mem_drop : ∀ {n} {l : List α}, a ∈ l.drop n → a ∈ l
-  | 0, _, h => h
-  | _+1, _::_, h => .tail _ (mem_of_mem_drop h)
-
 /-! ### modify nth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
@@ -873,6 +868,12 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 @[simp] theorem all_eq_true {l : List α} : l.all p ↔ ∀ x ∈ l, p x := by induction l <;> simp [*]
 
 @[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
+
+theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
+  rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
+
+theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
+  induction l with simp | cons b l => cases a == b <;> simp [*]
 
 /-! ### reverse -/
 
@@ -1402,16 +1403,6 @@ theorem disjoint_of_disjoint_append_right_left (d : Disjoint l (l₁ ++ l₂)) :
 theorem disjoint_of_disjoint_append_right_right (d : Disjoint l (l₁ ++ l₂)) : Disjoint l l₂ :=
   (disjoint_append_right.1 d).2
 
-theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
-  | [], _, _ => by simp
-  | x :: xs, hl, h => by
-    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
-      drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
-    · case succ.zero => cases h
-    · cases hl with | cons h₀ h₁ =>
-      refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
-      exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
-
 /-! ### foldl / foldr -/
 
 theorem foldl_map (f : β₁ → β₂) (g : α → β₂ → α) (l : List β₁) (init : α) :
@@ -1755,3 +1746,22 @@ theorem isInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
+
+theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop_subset _ _ h
+
+theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
+  | [], _, _ => by simp
+  | x :: xs, hl, h => by
+    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
+      drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
+    · case succ.zero => cases h
+    · cases hl with | cons h₀ h₁ =>
+      refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
+      exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
+
+/-! ### takeWhile and dropWhile -/
+
+@[simp] theorem takeWhile_append_dropWhile (p : α → Bool) :
+    ∀ (l : List α), takeWhile p l ++ dropWhile p l = l
+  | [] => rfl
+  | x :: xs => by simp [takeWhile, dropWhile]; cases p x <;> simp [takeWhile_append_dropWhile p xs]

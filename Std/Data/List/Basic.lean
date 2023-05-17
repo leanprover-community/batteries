@@ -476,12 +476,27 @@ Split a list at every element satisfying a predicate. The separators are not in 
 [1, 1, 2, 3, 2, 4, 4].splitOnP (· == 2) = [[1, 1], [3], [4, 4]]
 ```
 -/
-@[inline] def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
+def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
+  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc = res'`
+  where `res'` is obtained from `splitOnP P xs` by prepending `acc.reverse` to the first element. -/
+  go : List α → List α → List (List α)
+  | [], acc => [acc.reverse]
+  | a :: t, acc => if P a then acc.reverse :: go t [] else go t (a::acc)
+
+/-- Tail recursive version of `removeNth`. -/
+@[inline] def splitOnPTR (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
   /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc r = r.toList ++ res'`
   where `res'` is obtained from `splitOnP P xs` by prepending `acc.toList` to the first element. -/
   @[specialize] go : List α → Array α → Array (List α) → List (List α)
   | [], acc, r => r.toListAppend [acc.toList]
-  | h :: t, acc, r => bif P h then go t #[] (r.push acc.toList) else go t (acc.push h) r
+  | a :: t, acc, r => bif P a then go t #[] (r.push acc.toList) else go t (acc.push a) r
+
+@[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
+  funext α P l; simp [splitOnPTR]
+  suffices ∀ xs acc r, splitOnPTR.go P xs acc r = r.data ++ splitOnP.go P xs acc.data.reverse from
+    (this l #[] #[]).symm
+  intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
+  | cons x xs IH => cases P x <;> simp [*]
 
 /--
 Split a list at every occurrence of a separator element. The separators are not in the result.
@@ -991,6 +1006,39 @@ def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
 /-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
+
+/--
+Returns the longest initial prefix of two lists such that they are pairwise related by `R`.
+```
+takeWhile₂ (· < ·) [1, 2, 4, 5] [5, 4, 3, 6] = ([1, 2], [5, 4])
+```
+-/
+def takeWhile₂ (R : α → β → Bool) : List α → List β → List α × List β
+  | a::as, b::bs => if R a b then
+      let (as', bs') := takeWhile₂ R as bs
+      (a::as', b::bs')
+    else ([], [])
+  | _, _ => ([], [])
+
+/-- Tail-recursive version of `takeWhile₂`. -/
+@[inline] def takeWhile₂TR (R : α → β → Bool) (as : List α) (bs : List β) : List α × List β :=
+  go as bs [] []
+where
+  /-- Auxiliary for `takeWhile₂TR`:
+  `takeWhile₂TR.go R as bs acca accb = (acca.reverse ++ as', acca.reverse ++ bs')`
+  if `takeWhile₂ R as bs = (as', bs')`. -/
+  @[specialize] go : List α → List β → List α → List β → List α × List β
+  | a::as, b::bs, acca, accb =>
+    bif R a b then go as bs (a::acca) (b::accb) else (acca.reverse, accb.reverse)
+  | _, _, acca, accb => (acca.reverse, accb.reverse)
+
+@[csimp] theorem takeWhile₂_eq_takeWhile₂TR : @takeWhile₂ = @takeWhile₂TR := by
+  funext α β R as bs; simp [takeWhile₂TR]
+  let rec go (as bs acca accb) : takeWhile₂TR.go R as bs acca accb =
+      (acca.reverse ++ (as.takeWhile₂ R bs).1, accb.reverse ++ (as.takeWhile₂ R bs).2) := by
+    unfold takeWhile₂TR.go takeWhile₂; split <;> simp
+    rename_i a as b bs; unfold cond; cases R a b <;> simp [go as bs]
+  exact (go as bs [] []).symm
 
 section Pairwise
 

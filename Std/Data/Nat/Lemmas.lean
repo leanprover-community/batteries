@@ -182,6 +182,8 @@ protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :
   ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
    fun ⟨h₁, h₂⟩ => by rw [Nat.min_def]; split <;> assumption⟩
 
+protected theorem lt_min {a b c : Nat} : a < min b c ↔ a < b ∧ a < c := Nat.le_min
+
 protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [Nat.min_def, h]
 
 protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by

@@ -757,4 +757,6 @@ theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
 theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
   ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
 
+theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
+
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
