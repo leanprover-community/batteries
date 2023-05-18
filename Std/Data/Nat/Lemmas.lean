@@ -467,6 +467,12 @@ protected theorem add_le_of_le_sub_left {n k m : Nat} (H : m ≤ k) (h : n ≤ k
 theorem le_sub_iff_add_le {x y k : Nat} (h : k ≤ y) : x ≤ y - k ↔ x + k ≤ y := by
   rw [← Nat.add_sub_cancel x k, Nat.sub_le_sub_right_iff h, Nat.add_sub_cancel]
 
+protected theorem sub_le_iff_le_add {a b c : Nat} : a - b ≤ c ↔ a ≤ c + b :=
+  ⟨Nat.le_add_of_sub_le, sub_le_of_le_add⟩
+
+protected theorem sub_le_iff_le_add' {a b c : Nat} : a - b ≤ c ↔ a ≤ b + c := by
+  rw [Nat.sub_le_iff_le_add, Nat.add_comm]
+
 theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
 

@@ -1128,24 +1128,28 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
 
-/-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
+/-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
-@[simp] def range' : Nat → Nat → List Nat
-  | _, 0 => []
-  | s, n+1 => s :: range' (s+1) n
+@[simp] def range' : (start len : Nat) → (step : Nat := 1) → List Nat
+  | _, 0, _ => []
+  | s, n+1, step => s :: range' (s+step) n step
 
 /-- Optimized version of `range'`. -/
-@[inline] def range'TR (s n : Nat) : List Nat := go n (s + n) [] where
+@[inline] def range'TR (s n : Nat) (step : Nat := 1) : List Nat := go n (s + step * n) [] where
   /-- Auxiliary for `range'TR`: `range'TR.go n e = [e-n, ..., e-1] ++ acc`. -/
   go : Nat → Nat → List Nat → List Nat
   | 0, _, acc => acc
-  | n+1, e, acc => go n (e-1) ((e-1) :: acc)
+  | n+1, e, acc => go n (e-step) ((e-step) :: acc)
 
 @[csimp] theorem range'_eq_range'TR : @range' = @range'TR := by
-  funext s n
-  let rec go (s) : ∀ n m, range'TR.go n (s + n) (range' (s + n) m) = range' s (n + m)
+  funext s n step
+  let rec go (s) : ∀ n m,
+    range'TR.go step n (s + step * n) (range' (s + step * n) m step) = range' s (n + m) step
   | 0, m => by simp [range'TR.go]
-  | n+1, m => (go s n (m + 1)).trans <| congrArg _ (Nat.add_right_comm n m 1)
+  | n+1, m => by
+    simp [range'TR.go]
+    rw [Nat.mul_succ, ← Nat.add_assoc, Nat.add_sub_cancel, Nat.add_right_comm n]
+    exact go s n (m + 1)
   exact (go s n 0).symm
 
 /-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/

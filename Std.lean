@@ -48,6 +48,7 @@ import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
+import Std.Data.Range.Lemmas
 import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas

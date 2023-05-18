@@ -31,6 +31,10 @@ theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b := mt fun h _ => h
 
 /-! ## iff -/
 
+-- This is needed for `calc` to work with `iff`.
+instance : Trans Iff Iff Iff where
+  trans p q := p.trans q
+
 theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) := iff_iff_implies_and_implies ..
 
 theorem iff_def' : (a ↔ b) ↔ (b → a) ∧ (a → b) := iff_def.trans And.comm
