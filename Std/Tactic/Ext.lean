@@ -9,7 +9,7 @@ import Std.Tactic.Ext.Attr
 import Std.Tactic.TryThis
 
 namespace Std.Tactic.Ext
-open Lean Meta Elab Tactic
+open Lean Meta Elab Tactic Std.Tactic.TryThis
 
 /-- Enables tracing in the `ext` tactic, displaying used extensionality lemmas.
 Is set by `ext?` and `ext1?`. -/
@@ -133,7 +133,7 @@ elab "apply_ext_lemma" : tactic => do
   if tactic.ext.trace.get (← getOptions) then
     let x ← usedExtTactics.get
     let cmd ←`(tactic| · $x*)
-    logInfo m!"Try this:\n{cmd}"
+    addSuggestion (← MonadLog.getRef) cmd
 
 /--
 Postprocessor for `withExt` which runs `rintro` with the given patterns when the target is a
@@ -219,7 +219,7 @@ elab_rules : tactic
     if tactic.ext.trace.get (← getOptions) then
       let x ← usedExtTactics.get
       let cmd ←`(tactic| · $x*)
-      logInfo m!"Try this:\n{cmd}"
+      addSuggestion (← MonadLog.getRef) cmd
 
 @[inherit_doc tacticExt]
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
