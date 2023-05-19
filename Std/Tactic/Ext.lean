@@ -9,7 +9,7 @@ import Std.Tactic.Ext.Attr
 import Std.Tactic.TryThis
 
 namespace Std.Tactic.Ext
-open Lean Meta Elab Tactic Std.Tactic.TryThis
+open Lean Meta Elab Tactic TryThis
 
 /-- Enables tracing in the `ext` tactic, displaying used extensionality lemmas.
 Is set by `ext?` and `ext1?`. -/
