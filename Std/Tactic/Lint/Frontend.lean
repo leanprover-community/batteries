@@ -34,7 +34,7 @@ default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_bla
 You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
 `#lint only unused_arguments in Std`
 
-You can add custom linters by defining a term of type `Linter` with the `@[std_linter]` namespace.
+You can add custom linters by defining a term of type `Linter` with the `@[std_linter]` attribute.
 A linter defined with the name `Std.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
 or `#lint only myNewCheck`.
 If you add the attribute `@[std_linter disabled]` to `linter.myNewCheck` it will be registered,
@@ -64,7 +64,7 @@ inductive LintVerbosity
 /-- `getChecks slow extra use_only` produces a list of linters.
 `extras` is a list of names that should resolve to declarations with type `linter`.
 If `useOnly` is true, it only uses the linters in `extra`.
-Otherwise, it uses all linters in the environment tagged with `@[linter]`.
+Otherwise, it uses all linters in the environment tagged with `@[std_linter]`.
 If `slow` is false, it only uses the fast default tests. -/
 def getChecks (slow : Bool) (useOnly : Bool) : CoreM (Array NamedLinter) := do
   let mut result := #[]

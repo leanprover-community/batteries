@@ -30,3 +30,8 @@ elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
   Term.synthesizeSyntheticMVarsNoPostponing
   addTermSuggestion tk (← instantiateMVars e).headBeta (origSpan? := ← getRef)
   pure e
+
+syntax (name := by?) "by?" tacticSeq : term
+macro_rules
+  | `(term| by? $t) => `(show_term by $t)
+
