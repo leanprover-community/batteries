@@ -487,7 +487,7 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
   @forall_const (q h) p ⟨h⟩
 
-theorem forall_comm {p : α → β → Sort _} : (∀ a b, p a b) ↔ (∀ b a, p a b) :=
+theorem forall_comm {p : α → β → Prop} : (∀ a b, p a b) ↔ (∀ b a, p a b) :=
   ⟨fun h b a => h a b, fun h a b => h b a⟩
 
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p a b) :=
