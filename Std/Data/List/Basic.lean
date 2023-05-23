@@ -1123,7 +1123,7 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
   instDecidablePairwise
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-  Defined as `pwFilter (≠)`.
+Defined as `pwFilter (≠)`.
 
     `eraseDup [1, 0, 2, 2, 1] = [0, 2, 1]` -/
 @[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
