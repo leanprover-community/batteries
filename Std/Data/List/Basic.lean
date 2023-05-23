@@ -718,6 +718,19 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 /-- Return the index of the first occurrence of `a` in the list. -/
 @[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
 
+/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
+  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
+  but is defined only when all members of `l` satisfy `p`, using the proof
+  to apply `f`. -/
+@[simp] def pmap {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β
+  | [], _ => []
+  | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
+
+/-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
+  with the same elements but in the type `{x // x ∈ l}`. -/
+def attach (l : List α) : List { x // x ∈ l } :=
+  pmap Subtype.mk l fun _ => id
+
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
 `lookmap f l` will apply `f : α → Option α` to each element of the list,
@@ -1123,14 +1136,14 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
   instDecidablePairwise
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-  Defined as `pwFilter (≠)`.
+Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
 
 /-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
-@[simp] def range' : (start len : Nat) → (step : Nat := 1) → List Nat
+def range' : (start len : Nat) → (step : Nat := 1) → List Nat
   | _, 0, _ => []
   | s, n+1, step => s :: range' (s+step) n step
 

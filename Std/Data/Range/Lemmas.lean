@@ -1,6 +1,5 @@
 import Std.Tactic.ByCases
-import Std.Data.List.Basic
-import Std.Data.Nat.Lemmas
+import Std.Data.List.Lemmas
 
 namespace Std.Range
 
@@ -21,45 +20,85 @@ theorem numElems_stop_le_start : ∀ r : Range, r.stop ≤ r.start → r.numElem
 theorem numElems_step_1 (start stop) : numElems ⟨start, stop, 1⟩ = stop - start := by
   simp [numElems]
 
+private theorem numElems_le_iff {start stop step i} (hstep : 0 < step) :
+    (stop - start + step - 1) / step ≤ i ↔ stop ≤ start + step * i :=
+  calc (stop - start + step - 1) / step ≤ i
+    _ ↔ stop - start + step - 1 < step * i + step := by
+      rw [← Nat.lt_succ (n := i), Nat.div_lt_iff_lt_mul hstep, Nat.mul_comm, ← Nat.mul_succ]
+    _ ↔ stop - start + step - 1 < step * i + 1 + (step - 1) := by
+      rw [Nat.add_right_comm, Nat.add_assoc, Nat.sub_add_cancel hstep]
+    _ ↔ stop ≤ start + step * i := by
+      rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_lt_right, Nat.lt_succ,
+        Nat.sub_le_iff_le_add']
+
+theorem mem_range'_elems (r : Range) (h : x ∈ List.range' r.start r.numElems r.step) : x ∈ r := by
+  obtain ⟨i, h', rfl⟩ := List.mem_range'.1 h
+  refine ⟨Nat.le_add_right .., ?_⟩
+  unfold numElems at h'; split at h'
+  · split at h' <;> [cases h'; simp_all]
+  · next step0 =>
+    refine Nat.not_le.1 fun h =>
+      Nat.not_le.2 h' <| (numElems_le_iff (Nat.pos_of_ne_zero step0)).2 h
+
+theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
+    (init : β) (f : (a : Nat) → a ∈ r → β → m (ForInStep β)) :
+    forIn' r init f =
+    forIn
+      ((List.range' r.start r.numElems r.step).pmap Subtype.mk fun _ => mem_range'_elems r)
+      init (fun ⟨a, h⟩ => f a h) := by
+  let ⟨start, stop, step⟩ := r
+  let L := List.range' start (numElems ⟨start, stop, step⟩) step
+  let f' : { a // start ≤ a ∧ a < stop } → _ := fun ⟨a, h⟩ => f a h
+  suffices ∀ H, forIn' [start:stop:step] init f = forIn (L.pmap Subtype.mk H) init f' from this _
+  intro H; dsimp only [forIn', Range.forIn']
+  if h : start < stop then
+    simp [numElems, Nat.not_le.2 h]; split
+    · subst step
+      suffices ∀ n H init,
+          forIn'.loop start stop 0 f n start (Nat.le_refl _) init =
+          forIn ((List.range' start n 0).pmap Subtype.mk H) init f' from this _ ..
+      intro n H init
+      induction n generalizing init with (unfold forIn'.loop; simp [*])
+      | succ n ih => simp [ih (List.forall_mem_cons.1 H).2]; rfl
+    · next step0 =>
+      have hstep := Nat.pos_of_ne_zero step0
+      suffices ∀ l fuel i hle H, l ≤ fuel →
+          (∀ j, stop ≤ i + step * j ↔ l ≤ j) → ∀ init,
+          forIn'.loop start stop step f fuel i hle init =
+          List.forIn ((List.range' i l step).pmap Subtype.mk H) init f' by
+        refine this _ _ _ _ _
+          ((numElems_le_iff hstep).2 (Nat.le_trans ?_ (Nat.le_add_left ..)))
+          (fun _ => (numElems_le_iff hstep).symm) _
+        conv => lhs; rw [← Nat.one_mul stop]
+        exact Nat.mul_le_mul_right stop hstep
+      intro l fuel i hle H h1 h2 init
+      checkpoint
+      induction fuel generalizing l i hle H h2 init with
+      | zero => simp [forIn'.loop, Nat.le_zero.1 h1]; split <;> simp
+      | succ fuel ih =>
+        cases l with
+        | zero => rw [forIn'.loop]; simp [Nat.not_lt.2 <| by simpa using (h2 0).2 (Nat.le_refl _)]
+        | succ l =>
+          have ih := ih _ _ (Nat.le_trans hle (Nat.le_add_right ..))
+            (List.forall_mem_cons.1 H).2 (Nat.le_of_succ_le_succ h1) fun i => by
+              rw [Nat.add_right_comm, Nat.add_assoc, ← Nat.mul_succ, h2, Nat.succ_le_succ_iff]
+          have := h2 0; simp at this
+          rw [forIn'.loop]; simp [List.forIn, this, ih]; rfl
+  else
+    simp [List.range', h, numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h)]
+    cases stop <;> unfold forIn'.loop <;> simp [List.forIn', h]
+
 theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
     (init : β) (f : Nat → β → m (ForInStep β)) :
     forIn r init f = forIn (List.range' r.start r.numElems r.step) init f := by
-  let ⟨start, stop, step⟩ := r
-  simp [forIn, Range.forIn]
-  if h : stop ≤ start then
-    simp [h, numElems_stop_le_start ⟨start, stop, step⟩ h]
-    cases stop <;> simp [forIn.loop, List.forIn, h]
-  else
-    simp [numElems, h]; split
-    · subst step
-      suffices ∀ n, forIn.loop f n start stop 0 init = List.forIn (List.range' start n 0) init f by
-        apply this
-      intro n; induction n generalizing init <;> simp [forIn.loop, List.forIn, *]; rfl
-    · next step0 =>
-      have hstep := Nat.pos_of_ne_zero step0
-      suffices ∀ l n, l ≤ n → (∀ i, stop ≤ start + i * step ↔ l ≤ i) →
-          forIn.loop f n start stop step init =
-          List.forIn (List.range' start l step) init f by
-        have H (i : Nat) := calc stop ≤ start + i * step
-          _ ↔ stop - start + step - 1 < i * step + 1 + (step - 1) := by
-            rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_lt_right, Nat.lt_succ,
-              Nat.sub_le_iff_le_add']
-          _ ↔ stop - start + step - 1 < i * step + step := by
-            rw [Nat.add_right_comm, Nat.add_assoc, Nat.sub_add_cancel hstep]
-          _ ↔ (stop - start + step - 1) / step ≤ i := by
-            rw [← Nat.lt_succ (n := i), Nat.div_lt_iff_lt_mul hstep, Nat.succ_mul]
-        refine this _ _ ((H _).1 (Nat.le_trans ?_ (Nat.le_add_left ..))) H
-        conv => lhs; rw [← Nat.mul_one stop]
-        exact Nat.mul_le_mul_left stop hstep
-      clear h; intro l n h1 h2; induction n generalizing l start init with
-      | zero => simp [forIn.loop, Nat.le_zero.1 h1, List.forIn]
-      | succ n ih =>
-        cases l with
-        | zero =>
-          have := (h2 0).2 (Nat.le_refl _); simp at this
-          simp [this, forIn.loop, List.forIn]
-        | succ l =>
-          have ih := fun b => ih b (start + step) l (Nat.le_of_succ_le_succ h1) fun i => by
-            rw [Nat.add_right_comm, Nat.add_assoc, ← Nat.succ_mul, h2, Nat.succ_le_succ_iff]
-          have := h2 0; simp [-Nat.not_le] at this
-          simp [forIn.loop, List.forIn, this, ih]; rfl
+  refine Eq.trans ?_ <| (forIn'_eq_forIn_range' r init (fun x _ => f x)).trans ?_
+  · simp [forIn, forIn', Range.forIn, Range.forIn']
+    suffices ∀ fuel i hl b, forIn'.loop r.start r.stop r.step (fun x _ => f x) fuel i hl b =
+        forIn.loop f fuel i r.stop r.step b from (this _ ..).symm
+    intro fuel i hl b
+    induction fuel generalizing i hl b <;>
+      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> simp
+    · simp [if_neg (Nat.not_le.2 ‹_›)]
+    · simp [if_pos (Nat.not_lt.1 ‹_›)]
+  · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
+    intro L; induction L generalizing init <;> intro H <;> simp [*]

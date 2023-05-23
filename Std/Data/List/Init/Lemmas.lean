@@ -106,9 +106,14 @@ theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
   List.bind (xs ++ ys) f = List.bind xs f ++ List.bind ys f := by
   induction xs; {rfl}; simp_all [cons_bind, append_assoc]
 
-/-! ### bind -/
-
 @[simp] theorem bind_id (l : List (List α)) : List.bind l id = l.join := by simp [List.bind]
+
+/-! ### bounded quantifiers over Lists -/
+
+theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
+    (∀ x, x ∈ a :: l → p x) ↔ p a ∧ ∀ x, x ∈ l → p x :=
+  ⟨fun H => ⟨H _ (.head ..), fun _ h => H _ (.tail _ h)⟩,
+   fun ⟨H₁, H₂⟩ _ => fun | .head .. => H₁ | .tail _ h => H₂ _ h⟩
 
 /-! ### reverse -/
 
