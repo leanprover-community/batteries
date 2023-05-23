@@ -433,7 +433,7 @@ theorem extract.go₁_zero_utf8Len (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩
 theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
     extract ⟨c :: cs⟩ (b + c) (e + c) = extract ⟨cs⟩ b e := by
   simp [extract, Nat.add_le_add_iff_le_right]
-  split <;> [rfl, rw [extract.go₁_cons_addChar]]
+  split <;> [rfl; rw [extract.go₁_cons_addChar]]
 
 theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
 | ⟨[]⟩ => rfl
