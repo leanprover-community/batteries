@@ -33,5 +33,5 @@ elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
 
 syntax (name := by?) "by?" tacticSeq : term
 macro_rules
-  | `(term| by? $t) => `(show_term by $t)
+  | `(term| by?%$tk $t) => `(show_term%$tk by%$tk $t)
 
