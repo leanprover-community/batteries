@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.Tactic.Simp
+import Std.Tactic.SimpTrace
 
 /-!
 # `squeeze_scope` tactic
@@ -86,29 +87,8 @@ elab_rules : tactic
     if let some new := new then
       for (_, stx, usedSimps) in new do
         let usedSimps := usedSimps.foldl (fun s usedSimps => usedSimps.fold .insert s) {}
-        Elab.Tactic.traceSimpCall stx usedSimps
-
--- TODO: move to core
-/-- Implementation of `dsimp`. -/
-def dsimpLocation' (ctx : Simp.Context) (loc : Location) : TacticM Simp.UsedSimps := do
-  match loc with
-  | Location.targets hyps simplifyTarget =>
-    withMainContext do
-      let fvarIds ← getFVarIds hyps
-      go fvarIds simplifyTarget
-  | Location.wildcard =>
-    withMainContext do
-      go (← (← getMainGoal).getNondepPropHyps) (simplifyTarget := true)
-where
-  /-- Implementation of `dsimp`. -/
-  go (fvarIdsToSimp : Array FVarId) (simplifyTarget : Bool) : TacticM Simp.UsedSimps := do
-    let mvarId ← getMainGoal
-    let (result?, usedSimps) ←
-      dsimpGoal mvarId ctx (simplifyTarget := simplifyTarget) (fvarIdsToSimp := fvarIdsToSimp)
-    match result? with
-    | none => replaceMainGoal []
-    | some mvarId => replaceMainGoal [mvarId]
-    pure usedSimps
+        let stx' ← mkSimpCallStx stx usedSimps
+        TryThis.addSuggestion stx[0] stx' (origSpan? := stx)
 
 elab_rules : tactic
   | `(tactic| squeeze_wrap $a $x => $tac) => do
