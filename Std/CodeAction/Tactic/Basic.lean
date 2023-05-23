@@ -128,11 +128,11 @@ partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range)
   | .context ctx t => findInfoTree? kind tgtRange ctx t f canonicalOnly
   | node@(.node i ts) => do
     if let some ctx := ctx? then
-      let range ← i.stx.getRange? canonicalOnly
-      -- FIXME: info tree needs to be organized better so that this works
-      -- guard <| range.includes tgtRange
-      if i.stx.getKind == kind && range == tgtRange && f ctx i then
-        return (ctx, node)
+      if let some range := i.stx.getRange? canonicalOnly then
+        -- FIXME: info tree needs to be organized better so that this works
+        -- guard <| range.includes tgtRange
+        if i.stx.getKind == kind && range == tgtRange && f ctx i then
+          return (ctx, node)
     for t in ts do
       if let some res := findInfoTree? kind tgtRange (i.updateContext? ctx?) t f canonicalOnly then
         return res
