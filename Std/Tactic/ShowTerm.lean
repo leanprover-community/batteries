@@ -31,6 +31,10 @@ elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
   addTermSuggestion tk (← instantiateMVars e).headBeta (origSpan? := ← getRef)
   pure e
 
+/--
+The command `by?` will print a suggestion for replacing the proof block with a proof term
+using `show_term`.
+-/
 syntax (name := by?) "by?" tacticSeq : term
 macro_rules
   | `(term| by?%$tk $t) => `(show_term%$tk by%$tk $t)
