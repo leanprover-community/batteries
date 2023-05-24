@@ -1194,7 +1194,7 @@ rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]
   let (l₁, l₂) := List.splitAt (n % l.length) l
   l₂ ++ l₁
 
-/-- rotate' is the same as `rotate`, but slower. Used for proofs about `rotate` -/
+/-- `rotate'` is the same as `rotate`, but slower. Used for proofs about `rotate` -/
 @[simp] def rotate' : List α → Nat → List α
   | [], _ => []
   | l, 0 => l

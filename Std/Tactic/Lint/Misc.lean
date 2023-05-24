@@ -106,7 +106,7 @@ has been used. -/
     | false, true => pure "is a def, should be lemma/theorem"
     | _, _ => return none
 
-/-- A linter for missing checking whether statements of declarations are well-typed. -/
+/-- A linter for checking whether statements of declarations are well-typed. -/
 @[std_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
