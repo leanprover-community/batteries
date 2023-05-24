@@ -1125,7 +1125,7 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
 
-    `eraseDup [1, 0, 2, 2, 1] = [0, 2, 1]` -/
+    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
 
 /-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
