@@ -113,19 +113,28 @@ def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   pure $ results.toArray.qsort fun (a, _) (b, _) => key.findD a 0 < key.findD b 0
 
 /-- Formats a linter warning as `#check` command with comment. -/
-def printWarning (declName : Name) (warning : MessageData) : CoreM MessageData := do
+def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Bool := False)
+  (filepath : System.FilePath := default) : CoreM MessageData := do
+  if useErrorFormat then
+    if let some range ← findDeclarationRanges? declName then
+      return m!"{filepath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
+          ← mkConstWithLevelParams declName} {warning}"
   pure m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-def printWarnings (results : HashMap Name MessageData) : CoreM MessageData := do
+def printWarnings (results : HashMap Name MessageData) (filepath : System.FilePath := default)
+  (useErrorFormat : Bool := False) : CoreM MessageData := do
   (MessageData.joinSep ·.toList Format.line) <$>
-    (← sortResults results).mapM fun (declName, warning) => printWarning declName warning
+    (← sortResults results).mapM
+      fun (declName, warning) => printWarning declName warning (useErrorFormat := useErrorFormat)
+        (filepath := filepath)
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
 The first `drop_fn_chars` characters are stripped from the filename.
 -/
-def groupedByFilename (results : HashMap Name MessageData) : CoreM MessageData := do
+def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Bool := False) :
+  CoreM MessageData := do
   let mut grouped : HashMap Name (HashMap Name MessageData) := {}
   for (declName, msg) in results.toArray do
     let mod ← findModuleOf? declName
@@ -134,23 +143,24 @@ def groupedByFilename (results : HashMap Name MessageData) : CoreM MessageData :
   let grouped' := grouped.toArray.qsort fun (a, _) (b, _) => toString a < toString b
   (MessageData.joinSep · (Format.line ++ Format.line)) <$>
     grouped'.toList.mapM fun (mod, msgs) => do
-      pure m!"-- {mod}\n{← printWarnings msgs}"
+      let fp := modToFilePath ⟨"."⟩ mod "lean"
+      pure m!"-- {mod}\n{← printWarnings msgs (filepath := fp) (useErrorFormat := useErrorFormat)}"
 
 /--
-Formats the linter results as Lean code with comments and `#print` commands.
+Formats the linter results as Lean code with comments and `#check` commands.
 -/
 def formatLinterResults
     (results : Array (NamedLinter × HashMap Name MessageData))
     (decls : Array Name)
     (groupByFilename : Bool)
     (whereDesc : String) (runSlowLinters : Bool)
-    (verbose : LintVerbosity) (numLinters : Nat) :
+    (verbose : LintVerbosity) (numLinters : Nat) (useErrorFormat : Bool := False) :
     CoreM MessageData := do
   let formattedResults ← results.filterMapM fun (linter, results) => do
     if !results.isEmpty then
       let warnings ←
-        if groupByFilename then
-          groupedByFilename results
+        if groupByFilename ∨ useErrorFormat then
+          groupedByFilename results (useErrorFormat := useErrorFormat)
         else
           printWarnings results
       pure $ some m!"/- The `{linter.name}` linter reports:\n{linter.errorsFound} -/\n{warnings}\n"
