@@ -127,3 +127,31 @@ def isAppOf' (e : Expr) (n : Name) : Bool :=
   match e.getAppFn' with
   | const c .. => c == n
   | _ => false
+
+section getAppArgs
+
+/-- Like `getAppArgs` but only returns explicit arguments. -/
+def getExplicitAppArgs (f : Expr) : MetaM (Array Expr) := do
+  let args := f.getAppArgs
+  let pinfo := (← Lean.Meta.getFunInfo f.getAppFn).paramInfo
+  return (pinfo.zip args).filterMap (λ arg => if arg.1.isExplicit then some arg.2 else none)
+
+/-- Like `getAppArgs'` but only returns explicit arguments. -/
+def getExplicitAppArgs' (f : Expr) : MetaM (Array Expr) := do
+  let args := f.getAppArgs'
+  let pinfo := (← Lean.Meta.getFunInfo f.getAppFn').paramInfo
+  return (pinfo.zip args).filterMap (λ arg => if arg.1.isExplicit then some arg.2 else none)
+
+/-- Like `getAppArgs` but only returns implicit arguments. -/
+def getImplicitAppArgs (f : Expr) : MetaM (Array Expr) := do
+  let args := f.getAppArgs
+  let pinfo := (← Lean.Meta.getFunInfo f.getAppFn).paramInfo
+  return (pinfo.zip args).filterMap (λ arg => if arg.1.isImplicit then some arg.2 else none)
+
+/-- Like `getAppArgs'` but only returns implicit arguments. -/
+def getImplicitAppArgs' (f : Expr) : MetaM (Array Expr) := do
+  let args := f.getAppArgs'
+  let pinfo := (← Lean.Meta.getFunInfo f.getAppFn').paramInfo
+  return (pinfo.zip args).filterMap (λ arg => if arg.1.isImplicit then some arg.2 else none)
+
+end getAppArgs
