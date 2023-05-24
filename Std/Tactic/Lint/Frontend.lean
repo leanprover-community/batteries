@@ -125,9 +125,8 @@ def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Boo
 def printWarnings (results : HashMap Name MessageData) (filepath : System.FilePath := default)
   (useErrorFormat : Bool := False) : CoreM MessageData := do
   (MessageData.joinSep ·.toList Format.line) <$>
-    (← sortResults results).mapM
-      fun (declName, warning) => printWarning declName warning (useErrorFormat := useErrorFormat)
-        (filepath := filepath)
+    (← sortResults results).mapM fun (declName, warning) =>
+      printWarning declName warning (useErrorFormat := useErrorFormat) (filepath := filepath)
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
