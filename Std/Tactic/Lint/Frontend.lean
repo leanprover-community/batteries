@@ -159,7 +159,7 @@ def formatLinterResults
   let formattedResults ← results.filterMapM fun (linter, results) => do
     if !results.isEmpty then
       let warnings ←
-        if groupByFilename ∨ useErrorFormat then
+        if groupByFilename || useErrorFormat then
           groupedByFilename results (useErrorFormat := useErrorFormat)
         else
           printWarnings results
