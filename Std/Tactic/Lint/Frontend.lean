@@ -154,7 +154,7 @@ def formatLinterResults
     (decls : Array Name)
     (groupByFilename : Bool)
     (whereDesc : String) (runSlowLinters : Bool)
-    (verbose : LintVerbosity) (numLinters : Nat) (useErrorFormat : Bool := False) :
+    (verbose : LintVerbosity) (numLinters : Nat) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
   let formattedResults ← results.filterMapM fun (linter, results) => do
     if !results.isEmpty then
