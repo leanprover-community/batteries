@@ -3,6 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import Lean.Util.Paths
 import Std.Tactic.Lint.Basic
 
 /-!
@@ -113,44 +114,60 @@ def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   pure $ results.toArray.qsort fun (a, _) (b, _) => key.findD a 0 < key.findD b 0
 
 /-- Formats a linter warning as `#check` command with comment. -/
-def printWarning (declName : Name) (warning : MessageData) : CoreM MessageData := do
+def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Bool := false)
+  (filePath : System.FilePath := default) : CoreM MessageData := do
+  if useErrorFormat then
+    if let some range ← findDeclarationRanges? declName then
+      return m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
+          ← mkConstWithLevelParams declName} {warning}"
   pure m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-def printWarnings (results : HashMap Name MessageData) : CoreM MessageData := do
+def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePath := default)
+    (useErrorFormat : Bool := false) : CoreM MessageData := do
   (MessageData.joinSep ·.toList Format.line) <$>
-    (← sortResults results).mapM fun (declName, warning) => printWarning declName warning
+    (← sortResults results).mapM fun (declName, warning) =>
+      printWarning declName warning (useErrorFormat := useErrorFormat) (filePath := filePath)
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
 The first `drop_fn_chars` characters are stripped from the filename.
 -/
-def groupedByFilename (results : HashMap Name MessageData) : CoreM MessageData := do
-  let mut grouped : HashMap Name (HashMap Name MessageData) := {}
-  for (declName, msg) in results.toArray do
-    let mod ← findModuleOf? declName
-    let mod := mod.getD (← getEnv).mainModule
-    grouped := grouped.insert mod <| grouped.findD mod {} |>.insert declName msg
+def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Bool := false) :
+    CoreM MessageData := do
+  let sp ← if useErrorFormat then initSrcSearchPath (← findSysroot) ["."] else pure {}
+  let grouped : HashMap Name (System.FilePath × HashMap Name MessageData) ←
+    results.foldM (init := {}) fun grouped declName msg => do
+      let mod ← findModuleOf? declName
+      let mod := mod.getD (← getEnv).mainModule
+      grouped.insert mod <$>
+        match grouped.find? mod with
+        | some (fp, msgs) => pure (fp, msgs.insert declName msg)
+        | none => do
+          let fp ← if useErrorFormat then
+            pure <| (← sp.findWithExt "lean" mod).getD (modToFilePath "." mod "lean")
+          else pure default
+          pure (fp, .insert {} declName msg)
   let grouped' := grouped.toArray.qsort fun (a, _) (b, _) => toString a < toString b
   (MessageData.joinSep · (Format.line ++ Format.line)) <$>
-    grouped'.toList.mapM fun (mod, msgs) => do
-      pure m!"-- {mod}\n{← printWarnings msgs}"
+    grouped'.toList.mapM fun (mod, fp, msgs) => do
+      pure m!"-- {mod}\n{← printWarnings msgs (filePath := fp) (useErrorFormat := useErrorFormat)}"
 
 /--
-Formats the linter results as Lean code with comments and `#print` commands.
+Formats the linter results as Lean code with comments and `#check` commands.
 -/
 def formatLinterResults
     (results : Array (NamedLinter × HashMap Name MessageData))
     (decls : Array Name)
     (groupByFilename : Bool)
     (whereDesc : String) (runSlowLinters : Bool)
-    (verbose : LintVerbosity) (numLinters : Nat) :
+    (verbose : LintVerbosity) (numLinters : Nat) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
   let formattedResults ← results.filterMapM fun (linter, results) => do
     if !results.isEmpty then
       let warnings ←
-        if groupByFilename then
-          groupedByFilename results
+        if groupByFilename || useErrorFormat then
+          groupedByFilename results (useErrorFormat := useErrorFormat)
         else
           printWarnings results
       pure $ some m!"/- The `{linter.name}` linter reports:\n{linter.errorsFound} -/\n{warnings}\n"
