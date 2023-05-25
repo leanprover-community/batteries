@@ -3,6 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import Lean.Util.Paths
 import Std.Tactic.Lint.Basic
 
 /-!
@@ -113,37 +114,44 @@ def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   pure $ results.toArray.qsort fun (a, _) (b, _) => key.findD a 0 < key.findD b 0
 
 /-- Formats a linter warning as `#check` command with comment. -/
-def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Bool := False)
-  (filepath : System.FilePath := default) : CoreM MessageData := do
+def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Bool := false)
+  (filePath : System.FilePath := default) : CoreM MessageData := do
   if useErrorFormat then
     if let some range ← findDeclarationRanges? declName then
-      return m!"{filepath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
+      return m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
           ← mkConstWithLevelParams declName} {warning}"
   pure m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-def printWarnings (results : HashMap Name MessageData) (filepath : System.FilePath := default)
-  (useErrorFormat : Bool := False) : CoreM MessageData := do
+def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePath := default)
+    (useErrorFormat : Bool := false) : CoreM MessageData := do
   (MessageData.joinSep ·.toList Format.line) <$>
     (← sortResults results).mapM fun (declName, warning) =>
-      printWarning declName warning (useErrorFormat := useErrorFormat) (filepath := filepath)
+      printWarning declName warning (useErrorFormat := useErrorFormat) (filePath := filePath)
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
 The first `drop_fn_chars` characters are stripped from the filename.
 -/
-def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Bool := False) :
-  CoreM MessageData := do
-  let mut grouped : HashMap Name (HashMap Name MessageData) := {}
-  for (declName, msg) in results.toArray do
-    let mod ← findModuleOf? declName
-    let mod := mod.getD (← getEnv).mainModule
-    grouped := grouped.insert mod <| grouped.findD mod {} |>.insert declName msg
+def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Bool := false) :
+    CoreM MessageData := do
+  let sp ← if useErrorFormat then initSrcSearchPath (← findSysroot) ["."] else pure {}
+  let grouped : HashMap Name (System.FilePath × HashMap Name MessageData) ←
+    results.foldM (init := {}) fun grouped declName msg => do
+      let mod ← findModuleOf? declName
+      let mod := mod.getD (← getEnv).mainModule
+      grouped.insert mod <$>
+        match grouped.find? mod with
+        | some (fp, msgs) => pure (fp, msgs.insert declName msg)
+        | none => do
+          let fp ← if useErrorFormat then
+            pure <| (← sp.findWithExt "lean" mod).getD (modToFilePath "." mod "lean")
+          else pure default
+          pure (fp, .insert {} declName msg)
   let grouped' := grouped.toArray.qsort fun (a, _) (b, _) => toString a < toString b
   (MessageData.joinSep · (Format.line ++ Format.line)) <$>
-    grouped'.toList.mapM fun (mod, msgs) => do
-      let fp := modToFilePath ⟨"."⟩ mod "lean"
-      pure m!"-- {mod}\n{← printWarnings msgs (filepath := fp) (useErrorFormat := useErrorFormat)}"
+    grouped'.toList.mapM fun (mod, fp, msgs) => do
+      pure m!"-- {mod}\n{← printWarnings msgs (filePath := fp) (useErrorFormat := useErrorFormat)}"
 
 /--
 Formats the linter results as Lean code with comments and `#check` commands.
