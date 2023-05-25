@@ -274,14 +274,9 @@ where
           modify (·.insert pendingMVarId)
         go pendingMVarId
 
-/-- Try to close the goal using `refl`. If `refl` fails return the `mvarId` unchanged and
-return `none` otherwise.
-
-This formulation is especially useful to `filterMapM` a list of goals. -/
-def notRefl? (mvarId : MVarId) : MetaM (Option MVarId) := do
-  let res ← observing? do
-    mvarId.refl
-  if res == none then return some mvarId else return none
+/-- Try to close the goal using `refl`. -/
+def refl? (mvarId : MVarId) : MetaM Bool := do
+  try mvarId.refl; return true catch _ => return false
 
 /-- Apply a lemma with fresh metavariable levels. -/
 def applyWithFreshMVarLevels (mvarId : MVarId) (lemmaName : Name) :
