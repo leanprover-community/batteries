@@ -17,8 +17,12 @@ Calls the continuation `k` with the list of parameters to the structure,
 two structure variables `x` and `y`, and a list of pairs `(field, ty)`
 where `ty` is `x.field = y.field` or `HEq x.field y.field`.
 -/
-def withExtHyps (struct : Name)
+def withExtHyps (struct : Name) (flat : Term)
     (k : Array Expr → (x y : Expr) → Array (Name × Expr) → MetaM α) : MetaM α := do
+  let flat ← match flat with
+  | `(true) => pure true
+  | `(false) => pure false
+  | _ => throwErrorAt flat "expected 'true' or 'false'"
   unless isStructure (← getEnv) struct do throwError "not a structure: {struct}"
   let structC ← mkConstWithLevelParams struct
   forallTelescope (← inferType structC) fun params _ => do
@@ -26,7 +30,11 @@ def withExtHyps (struct : Name)
   withLocalDeclD `x (mkAppN structC params) fun x => do
   withLocalDeclD `y (mkAppN structC params) fun y => do
     let mut hyps := #[]
-    for field in getStructureFieldsFlattened (← getEnv) struct (includeSubobjectFields := false) do
+    let fields := if flat then
+      getStructureFieldsFlattened (← getEnv) struct (includeSubobjectFields := false)
+    else
+      getStructureFields (← getEnv) struct
+    for field in fields do
       let x_f ← mkProjection x field
       let y_f ← mkProjection y field
       if ← isProof x_f then
@@ -41,8 +49,8 @@ def withExtHyps (struct : Name)
 Creates the type of the extensionality lemma for the given structure,
 elaborating to `x.1 = y.1 → x.2 = y.2 → x = y`, for example.
 -/
-scoped elab "ext_type%" struct:ident : term => do
-  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
+scoped elab "ext_type%" flat:term:max struct:ident : term => do
+  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     let ty := hyps.foldr (init := ← mkEq x y) fun (f, h) ty =>
       mkForall f BinderInfo.default h ty
     mkForallFVars (params |>.push x |>.push y) ty
@@ -60,12 +68,13 @@ def mkAndN : List Expr → Expr
 Creates the type of the iff-variant of the extensionality lemma for the given structure,
 elaborating to `x = y ↔ x.1 = y.1 ∧ x.2 = y.2`, for example.
 -/
-scoped elab "ext_iff_type%" struct:ident : term => do
-  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) fun params x y hyps => do
+scoped elab "ext_iff_type%" flat:term:max struct:ident : term => do
+  withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     mkForallFVars (params |>.push x |>.push y) <|
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList
 
-macro_rules | `(declare_ext_theorems_for $struct:ident $[$prio]?) => do
+macro_rules | `(declare_ext_theorems_for $[(flat := $f)]? $struct:ident $(prio)?) => do
+  let flat := f.getD (mkIdent `true)
   let names ← Macro.resolveGlobalName struct.getId.eraseMacroScopes
   let name ← match names.filter (·.2.isEmpty) with
     | [] => Macro.throwError s!"unknown constant {struct}"
@@ -73,9 +82,9 @@ macro_rules | `(declare_ext_theorems_for $struct:ident $[$prio]?) => do
     | _ => Macro.throwError s!"ambiguous name {struct}"
   let extName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext"
   let extIffName := mkIdentFrom struct (canonical := true) <| name.mkStr "ext_iff"
-  `(@[ext $[$prio]?] protected theorem $extName:ident : ext_type% $struct:ident :=
+  `(@[ext $(prio)?] protected theorem $extName:ident : ext_type% $flat $struct:ident :=
       fun {..} {..} => by intros; subst_eqs; rfl
-    protected theorem $extIffName:ident : ext_iff_type% $struct:ident :=
+    protected theorem $extIffName:ident : ext_iff_type% $flat $struct:ident :=
       fun {..} {..} =>
         ⟨fun h => by cases h; split_ands <;> rfl,
          fun _ => by (repeat cases ‹_ ∧ _›); subst_eqs; rfl⟩)
@@ -151,8 +160,8 @@ in extensionality lemmas like `funext`. Returns a list of subgoals,
 and the unconsumed patterns in each of those subgoals.
 -/
 def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
-  (depth := 1000000) (failIfUnchanged := true) :
-  TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
+    (depth := 1000000) (failIfUnchanged := true) :
+    TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
   (·.2) <$> StateT.run (m := TermElabM) (s := #[])
     (withExtN g pats (fun g qs => modify (·.push (g, qs))) depth failIfUnchanged)
 
@@ -160,6 +169,7 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 * `ext pat*`: Apply extensionality lemmas as much as possible,
   using `pat*` to introduce the variables in extensionality lemmas like `funext`.
 * `ext`: introduce anonymous variables whenever needed.
+* `ext pat* : n`: apply ext lemmas only up to depth `n`.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic

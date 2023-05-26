@@ -222,7 +222,7 @@ so this is only suitable for use on the root of the tree.)
 theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
   unfold insert; match ins cmp v t, h.ins cmp v with
-  | _, .balanced h => split <;> [exact ⟨_, h.setBlack⟩, exact ⟨_, _, h⟩]
+  | _, .balanced h => split <;> [exact ⟨_, h.setBlack⟩; exact ⟨_, _, h⟩]
   | _, .redred _ ha hb => have .node red .. := t; exact ⟨_, _, .black ha hb⟩
 
 protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p := by

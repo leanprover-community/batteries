@@ -31,6 +31,10 @@ theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b := mt fun h _ => h
 
 /-! ## iff -/
 
+-- This is needed for `calc` to work with `iff`.
+instance : Trans Iff Iff Iff where
+  trans p q := p.trans q
+
 theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) := iff_iff_implies_and_implies ..
 
 theorem iff_def' : (a ↔ b) ↔ (b → a) ∧ (a → b) := iff_def.trans And.comm
@@ -483,6 +487,12 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
   @forall_const (q h) p ⟨h⟩
 
+theorem forall_comm {p : α → β → Prop} : (∀ a b, p a b) ↔ (∀ b a, p a b) :=
+  ⟨fun h b a => h a b, fun h a b => h b a⟩
+
+theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p a b) :=
+  ⟨fun ⟨a, b, h⟩ => ⟨b, a, h⟩, fun ⟨b, a, h⟩ => ⟨a, b, h⟩⟩
+
 end quantifiers
 
 /-! ## decidable -/
@@ -756,5 +766,7 @@ theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
 
 theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
   ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
+
+theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩

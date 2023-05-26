@@ -5,6 +5,13 @@ import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
+import Std.CodeAction
+import Std.CodeAction.Hole.Attr
+import Std.CodeAction.Hole.Basic
+import Std.CodeAction.Hole.Misc
+import Std.CodeAction.Tactic.Attr
+import Std.CodeAction.Tactic.Basic
+import Std.CodeAction.Tactic.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
@@ -41,6 +48,7 @@ import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
+import Std.Data.Range.Lemmas
 import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
@@ -51,6 +59,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.Meta.AssertHypotheses
@@ -64,10 +73,12 @@ import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
+import Std.Lean.Name
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
+import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter
