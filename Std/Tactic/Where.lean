@@ -13,6 +13,8 @@ active `open`, `universe`, and `variable` commands, and any options set with `se
 
 open Lean Elab Command
 
+namespace Std.Tactic.Where
+
 private def describeOpenDecls (ds : List OpenDecl) : MessageData := Id.run do
   let mut lines := #[]
   let mut simple := #[]
@@ -55,8 +57,8 @@ elab "#where" : command => do
   let scope ← getScope
   let mut msg : Array MessageData := #[]
   if nScopes > 1 then
-    let non := if scope.isNoncomputable then ", noncomputable" else ""
-    msg := msg.push m!"(in {nScopes-1} levels of namespaces and sections{non})"
+    let non := if scope.isNoncomputable then ", noncomputable section" else ""
+    msg := msg.push m!"(Within namespace/section level {nScopes-1}{non})"
   -- Namespace
   if !scope.currNamespace.isAnonymous then
     msg := msg.push m!"namespace {scope.currNamespace}"
