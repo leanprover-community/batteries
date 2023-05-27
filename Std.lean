@@ -6,12 +6,9 @@ import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
 import Std.CodeAction
-import Std.CodeAction.Hole.Attr
-import Std.CodeAction.Hole.Basic
-import Std.CodeAction.Hole.Misc
-import Std.CodeAction.Tactic.Attr
-import Std.CodeAction.Tactic.Basic
-import Std.CodeAction.Tactic.Misc
+import Std.CodeAction.Attr
+import Std.CodeAction.Basic
+import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
