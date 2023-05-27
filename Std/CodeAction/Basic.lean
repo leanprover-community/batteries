@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
+import Std.Lean.InfoTree
 import Std.CodeAction.Attr
 
 /-!
@@ -204,4 +205,27 @@ partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range)
     for act in (tacticSeqCodeActionExt.getState snap.env).2 do
       try out := out ++ (← act params snap ctx i stk goals) catch _ => pure ()
   | _ => unreachable!
+  pure out
+
+/--
+A code action which calls all `@[command_code_action]` code actions on each command.
+-/
+@[code_action_provider] def cmdCodeActionProvider : CodeActionProvider := fun params snap => do
+  let doc ← readDoc
+  let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
+  let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
+  have cmds := snap.infoTree.foldInfo' (init := #[]) fun ctx node result => Id.run do
+    let .node (.ofCommandInfo info) _ := node | result
+    let (some head, some tail) := (info.stx.getPos? true, info.stx.getTailPos? true) | result
+    unless head ≤ endPos && startPos ≤ tail do return result
+    result.push (ctx, node)
+  let actions := (cmdCodeActionExt.getState snap.env).2
+  let mut out := #[]
+  for (ctx, node) in cmds do
+    let .node (.ofCommandInfo info) _ := node | unreachable!
+    if let some arr := actions.onCmd.find? info.stx.getKind then
+      for act in arr do
+        try out := out ++ (← act params snap ctx node) catch _ => pure ()
+    for act in actions.onAnyCmd do
+      try out := out ++ (← act params snap ctx node) catch _ => pure ()
   pure out
