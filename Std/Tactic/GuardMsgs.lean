@@ -3,7 +3,9 @@ Copyright (c) 2023 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import Lean
+import Lean.Elab.Command
+import Std.CodeAction.Basic
+import Std.Lean.Position
 
 /-! `#guard_msgs` command for testing commands
 
@@ -75,7 +77,7 @@ For example, `#guard_msgs (error, drop all) in cmd` means to check warnings and 
 everything else.
 -/
 syntax (name := guardMsgsCmd)
-  docComment ? "#guard_msgs" (ppSpace guardMsgsSpec)? " in" ppLine command : command
+  (docComment)? "#guard_msgs" (ppSpace guardMsgsSpec)? " in" ppLine command : command
 
 /-- Gives a string representation of a message without source position information.
 Ensures the message ends with a '\n'. -/
@@ -126,10 +128,16 @@ def parseGuardMsgsSpec (spec? : Option (TSyntax ``guardMsgsSpec)) :
   else
     return fun _ => .check
 
-@[inherit_doc guardMsgsCmd, command_elab guardMsgsCmd]
-def evalGuardMsgsCmd : CommandElab
-  | `(command| $[$dc?:docComment]? #guard_msgs%$tk $[$spec?]? in $cmd) => do
-    let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
+/-- An info tree node corresponding to a failed `#guard_msgs` invocation,
+used for code action support. -/
+structure GuardMsgFailure where
+  /-- The result of the nested command -/
+  res : String
+  deriving TypeName
+
+elab_rules : command
+  | `(command| $[$dc?:docComment]? #guard_msgs%$tk $(spec?)? in $cmd) => do
+    let expected : String := (← dc?.mapM (getDocStringText ·)).getD "" |>.trim
     let specFn ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     elabCommand cmd
@@ -141,13 +149,46 @@ def evalGuardMsgsCmd : CommandElab
       | .check       => toCheck := toCheck.add msg
       | .drop        => pure ()
       | .passthrough => toPassthrough := toPassthrough.add msg
-    let res := String.intercalate "---\n" (← toCheck.toList.mapM (messageToStringWithoutPos ·))
-    if expected.trim == res.trim then
+    let res := "---\n".intercalate (← toCheck.toList.mapM (messageToStringWithoutPos ·)) |>.trim
+    if expected == res then
       -- Passed. Only put toPassthrough messages back on the message log
-      modify fun st => {st with messages := initMsgs ++ toPassthrough}
+      modify fun st => { st with messages := initMsgs ++ toPassthrough }
     else
       -- Failed. Put all the messages back on the message log and add an error
-      modify fun st => {st with messages := initMsgs ++ msgs}
-      logErrorAt tk
-        m!"❌ Docstring on `#guard_msgs` does not match generated message:\n\n{res.trim}"
-  | _ => throwUnsupportedSyntax
+      modify fun st => { st with messages := initMsgs ++ msgs }
+      logErrorAt tk m!"❌ Docstring on `#guard_msgs` does not match generated message:\n\n{res}"
+      pushInfoLeaf (.ofCustomInfo { stx := ← getRef, value := Dynamic.mk (GuardMsgFailure.mk res) })
+
+open CodeAction Server RequestM in
+/-- A code action which will update the doc comment on a `#guard_msgs` invocation. -/
+@[command_code_action guardMsgsCmd]
+def guardMsgsCodeAction : CommandCodeAction := fun params _ _ node => do
+  let .node _ ts := node | return #[]
+  let res := ts.findSome? fun
+    | .node (.ofCustomInfo { stx, value }) _ => return (stx, (← value.get? GuardMsgFailure).res)
+    | _ => none
+  let some (stx, res) := res | return #[]
+  let doc ← readDoc
+  let eager := {
+    title := "Update #guard_msgs with tactic output"
+    kind? := "quickfix"
+    isPreferred? := true
+  }
+  pure #[{
+    eager
+    lazy? := some do
+      let some start := stx.getPos? true | return eager
+      let some tail := stx.setArg 0 mkNullNode |>.getPos? true | return eager
+      let newText := if res.isEmpty then
+        ""
+      else if res.length ≤ 100-7 && !res.contains '\n' then -- TODO: configurable line length?
+        s!"/-- {res} -/\n"
+      else
+        s!"/--\n{res}\n-/\n"
+      pure { eager with
+        edit? := some <|.ofTextEdit params.textDocument.uri {
+          range := doc.meta.text.utf8RangeToLspRange ⟨start, tail⟩
+          newText
+        }
+      }
+  }]

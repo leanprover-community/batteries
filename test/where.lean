@@ -4,15 +4,11 @@ import Std.Tactic.GuardMsgs
 -- Return to pristine state
 set_option linter.missingDocs false
 
-/--
-info: -- In root namespace with initial scope
--/
+/-- info: -- In root namespace with initial scope -/
 #guard_msgs in #where
 
 noncomputable section
-/--
-info: noncomputable section
--/
+/-- info: noncomputable section -/
 #guard_msgs in #where
 end
 

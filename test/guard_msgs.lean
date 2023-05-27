@@ -1,9 +1,7 @@
 import Std.Tactic.GuardMsgs
 
 #guard_msgs in
-/--
-error: unknown identifier 'x'
--/
+/-- error: unknown identifier 'x' -/
 #guard_msgs in
 example : α := x
 
@@ -19,22 +17,16 @@ error: unknown identifier 'x'
 example : α := x
 
 #guard_msgs in
-/--
-warning: declaration uses 'sorry'
--/
+/-- warning: declaration uses 'sorry' -/
 #guard_msgs in
 example : α := sorry
 
 #guard_msgs in
-/--
-warning: declaration uses 'sorry'
--/
+/-- warning: declaration uses 'sorry' -/
 #guard_msgs(warning) in
 example : α := sorry
 
-/--
-warning: declaration uses 'sorry'
--/
+/-- warning: declaration uses 'sorry' -/
 #guard_msgs in
 #guard_msgs(error) in
 example : α := sorry
@@ -48,9 +40,7 @@ example : α := sorry
 example : α := sorry
 
 #guard_msgs in
-/--
-error: unknown identifier 'x'
--/
+/-- error: unknown identifier 'x' -/
 #guard_msgs(error, drop warning) in
 example : α := x
 
