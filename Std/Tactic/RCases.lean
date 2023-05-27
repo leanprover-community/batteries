@@ -66,6 +66,15 @@ def Lean.Meta.FVarSubst.append (s t : FVarSubst) : FVarSubst :=
 namespace Std.Tactic.RCases
 open Lean Meta
 
+/--
+Enables the 'unused rcases pattern' linter. This will warn when a pattern is ignored by
+`rcases`, `rintro`, `ext` and similar tactics.
+-/
+register_option linter.unusedRCasesPattern : Bool := {
+  defValue := true
+  descr := "enable the 'unused rcases pattern' linter"
+}
+
 /-- The syntax category of `rcases` patterns. -/
 declare_syntax_cat rcasesPat
 /-- A medium precedence `rcases` pattern is a list of `rcasesPat` separated by `|` -/

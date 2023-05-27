@@ -41,9 +41,9 @@ example (f g : Nat × Nat → Nat) : f = g := by
   guard_target = f (x, y) = g (x, y); exact mySorry
 
 -- Check that we generate a warning if there are too many patterns.
-example (f g : Nat → Nat) : f = g := by
+example (f g : Nat → Nat) (h : f = g) : f = g := by
   ext i j
-  admit
+  exact h ▸ rfl
 
 -- allow more specific ext theorems
 declare_ext_theorems_for Fin
