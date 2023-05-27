@@ -53,12 +53,11 @@ private def describeOptions (opts : Options) : CommandElabM (Option MessageData)
 This includes the namespace, `open` namespaces, `universe` and `variable` commands,
 and options set with `set_option`. -/
 elab "#where" : command => do
-  let nScopes := (← getScopes).length
   let scope ← getScope
   let mut msg : Array MessageData := #[]
-  if nScopes > 1 then
-    let non := if scope.isNoncomputable then ", noncomputable section" else ""
-    msg := msg.push m!"(Within namespace/section level {nScopes-1}{non})"
+  -- Noncomputable
+  if scope.isNoncomputable then
+    msg := msg.push m!"noncomputable section"
   -- Namespace
   if !scope.currNamespace.isAnonymous then
     msg := msg.push m!"namespace {scope.currNamespace}"
@@ -76,5 +75,5 @@ elab "#where" : command => do
   if let some m ← describeOptions scope.opts then
     msg := msg.push m
   if msg.isEmpty then
-    msg := #[m!"In root namespace with initial scope"]
+    msg := #[m!"-- In root namespace with initial scope"]
   logInfo <| m!"{MessageData.joinSep msg.toList "\n\n"}"

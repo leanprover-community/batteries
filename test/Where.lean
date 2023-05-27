@@ -5,13 +5,13 @@ import Std.Tactic.GuardMsgs
 set_option linter.missingDocs false
 
 /--
-info: In root namespace with initial scope
+info: -- In root namespace with initial scope
 -/
 #guard_msgs in #where
 
 noncomputable section
 /--
-info: (Within namespace/section level 1, noncomputable section)
+info: noncomputable section
 -/
 #guard_msgs in #where
 end
@@ -19,9 +19,7 @@ end
 namespace WhereTest
 variable (x : Nat) (α : Type)
 /--
-info: (Within namespace/section level 1)
-
-namespace WhereTest
+info: namespace WhereTest
 
 variable (x : Nat) (α : Type)
 -/
@@ -30,9 +28,7 @@ variable (x : Nat) (α : Type)
 universe u v w
 
 /--
-info: (Within namespace/section level 1)
-
-namespace WhereTest
+info: namespace WhereTest
 
 universe u v w
 
@@ -43,9 +39,7 @@ variable (x : Nat) (α : Type)
 set_option pp.piBinderTypes false
 
 /--
-info: (Within namespace/section level 1)
-
-namespace WhereTest
+info: namespace WhereTest
 
 universe u v w
 
