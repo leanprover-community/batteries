@@ -476,12 +476,27 @@ Split a list at every element satisfying a predicate. The separators are not in 
 [1, 1, 2, 3, 2, 4, 4].splitOnP (· == 2) = [[1, 1], [3], [4, 4]]
 ```
 -/
-@[inline] def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
+def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
+  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc = res'`
+  where `res'` is obtained from `splitOnP P xs` by prepending `acc.reverse` to the first element. -/
+  go : List α → List α → List (List α)
+  | [], acc => [acc.reverse]
+  | a :: t, acc => if P a then acc.reverse :: go t [] else go t (a::acc)
+
+/-- Tail recursive version of `removeNth`. -/
+@[inline] def splitOnPTR (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
   /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc r = r.toList ++ res'`
   where `res'` is obtained from `splitOnP P xs` by prepending `acc.toList` to the first element. -/
   @[specialize] go : List α → Array α → Array (List α) → List (List α)
   | [], acc, r => r.toListAppend [acc.toList]
-  | h :: t, acc, r => bif P h then go t #[] (r.push acc.toList) else go t (acc.push h) r
+  | a :: t, acc, r => bif P a then go t #[] (r.push acc.toList) else go t (acc.push a) r
+
+@[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
+  funext α P l; simp [splitOnPTR]
+  suffices ∀ xs acc r, splitOnPTR.go P xs acc r = r.data ++ splitOnP.go P xs acc.data.reverse from
+    (this l #[] #[]).symm
+  intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
+  | cons x xs IH => cases P x <;> simp [*]
 
 /--
 Split a list at every occurrence of a separator element. The separators are not in the result.
@@ -702,6 +717,19 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 
 /-- Return the index of the first occurrence of `a` in the list. -/
 @[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
+
+/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
+  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
+  but is defined only when all members of `l` satisfy `p`, using the proof
+  to apply `f`. -/
+@[simp] def pmap {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β
+  | [], _ => []
+  | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
+
+/-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
+  with the same elements but in the type `{x // x ∈ l}`. -/
+def attach (l : List α) : List { x // x ∈ l } :=
+  pmap Subtype.mk l fun _ => id
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -992,6 +1020,39 @@ def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
+/--
+Returns the longest initial prefix of two lists such that they are pairwise related by `R`.
+```
+takeWhile₂ (· < ·) [1, 2, 4, 5] [5, 4, 3, 6] = ([1, 2], [5, 4])
+```
+-/
+def takeWhile₂ (R : α → β → Bool) : List α → List β → List α × List β
+  | a::as, b::bs => if R a b then
+      let (as', bs') := takeWhile₂ R as bs
+      (a::as', b::bs')
+    else ([], [])
+  | _, _ => ([], [])
+
+/-- Tail-recursive version of `takeWhile₂`. -/
+@[inline] def takeWhile₂TR (R : α → β → Bool) (as : List α) (bs : List β) : List α × List β :=
+  go as bs [] []
+where
+  /-- Auxiliary for `takeWhile₂TR`:
+  `takeWhile₂TR.go R as bs acca accb = (acca.reverse ++ as', acca.reverse ++ bs')`
+  if `takeWhile₂ R as bs = (as', bs')`. -/
+  @[specialize] go : List α → List β → List α → List β → List α × List β
+  | a::as, b::bs, acca, accb =>
+    bif R a b then go as bs (a::acca) (b::accb) else (acca.reverse, accb.reverse)
+  | _, _, acca, accb => (acca.reverse, accb.reverse)
+
+@[csimp] theorem takeWhile₂_eq_takeWhile₂TR : @takeWhile₂ = @takeWhile₂TR := by
+  funext α β R as bs; simp [takeWhile₂TR]
+  let rec go (as bs acca accb) : takeWhile₂TR.go R as bs acca accb =
+      (acca.reverse ++ (as.takeWhile₂ R bs).1, accb.reverse ++ (as.takeWhile₂ R bs).2) := by
+    unfold takeWhile₂TR.go takeWhile₂; split <;> simp
+    rename_i a as b bs; unfold cond; cases R a b <;> simp [go as bs]
+  exact (go as bs [] []).symm
+
 section Pairwise
 
 variable (R : α → α → Prop)
@@ -1075,29 +1136,33 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
   instDecidablePairwise
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-  Defined as `pwFilter (≠)`.
+Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
 
-/-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
+/-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
-@[simp] def range' : Nat → Nat → List Nat
-  | _, 0 => []
-  | s, n+1 => s :: range' (s+1) n
+def range' : (start len : Nat) → (step : Nat := 1) → List Nat
+  | _, 0, _ => []
+  | s, n+1, step => s :: range' (s+step) n step
 
 /-- Optimized version of `range'`. -/
-@[inline] def range'TR (s n : Nat) : List Nat := go n (s + n) [] where
+@[inline] def range'TR (s n : Nat) (step : Nat := 1) : List Nat := go n (s + step * n) [] where
   /-- Auxiliary for `range'TR`: `range'TR.go n e = [e-n, ..., e-1] ++ acc`. -/
   go : Nat → Nat → List Nat → List Nat
   | 0, _, acc => acc
-  | n+1, e, acc => go n (e-1) ((e-1) :: acc)
+  | n+1, e, acc => go n (e-step) ((e-step) :: acc)
 
 @[csimp] theorem range'_eq_range'TR : @range' = @range'TR := by
-  funext s n
-  let rec go (s) : ∀ n m, range'TR.go n (s + n) (range' (s + n) m) = range' s (n + m)
+  funext s n step
+  let rec go (s) : ∀ n m,
+    range'TR.go step n (s + step * n) (range' (s + step * n) m step) = range' s (n + m) step
   | 0, m => by simp [range'TR.go]
-  | n+1, m => (go s n (m + 1)).trans <| congrArg _ (Nat.add_right_comm n m 1)
+  | n+1, m => by
+    simp [range'TR.go]
+    rw [Nat.mul_succ, ← Nat.add_assoc, Nat.add_sub_cancel, Nat.add_right_comm n]
+    exact go s n (m + 1)
   exact (go s n 0).symm
 
 /-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
@@ -1129,7 +1194,7 @@ rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]
   let (l₁, l₂) := List.splitAt (n % l.length) l
   l₂ ++ l₁
 
-/-- rotate' is the same as `rotate`, but slower. Used for proofs about `rotate` -/
+/-- `rotate'` is the same as `rotate`, but slower. Used for proofs about `rotate` -/
 @[simp] def rotate' : List α → Nat → List α
   | [], _ => []
   | l, 0 => l

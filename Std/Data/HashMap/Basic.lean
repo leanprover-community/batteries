@@ -360,11 +360,11 @@ def numBuckets (self : HashMap α β) : Nat := self.1.buckets.1.size
 Builds a `HashMap` from a list of key-value pairs.
 Values of duplicated keys are replaced by their respective last occurrences.
 -/
-def ofList (l : List (α × β)) : HashMap α β :=
+def ofList [BEq α] [Hashable α] (l : List (α × β)) : HashMap α β :=
   l.foldl (init := HashMap.empty) fun m (k, v) => m.insert k v
 
 /-- Variant of `ofList` which accepts a function that combines values of duplicated keys. -/
-def ofListWith (l : List (α × β)) (f : β → β → β) : HashMap α β :=
+def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → β) : HashMap α β :=
   l.foldl (init := HashMap.empty) fun m p =>
     match m.find? p.1 with
     | none   => m.insert p.1 p.2

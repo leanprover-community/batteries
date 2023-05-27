@@ -18,10 +18,7 @@ open Lean Elab Tactic TryThis
 elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainContext do
   let g ← getMainGoal
   evalTactic t
-  -- TODO: At the moment it is more useful to use an Expr MessageData
-  -- instead of a Syntax because the former is clickable in the infoview
-  -- addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta
-  logInfoAt tk (← instantiateMVars (mkMVar g)).headBeta
+  addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta (origSpan? := ← getRef)
 
 /--
 `show_term e` elaborates `e`, then prints the generated term.
@@ -31,8 +28,14 @@ elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainConte
 elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
   let e ← Term.elabTermEnsuringType t ty
   Term.synthesizeSyntheticMVarsNoPostponing
-  -- TODO: At the moment it is more useful to use an Expr MessageData
-  -- instead of a Syntax because the former is clickable in the infoview
-  -- addTermSuggestion tk (← instantiateMVars e).headBeta
-  logInfoAt tk (← instantiateMVars e).headBeta
+  addTermSuggestion tk (← instantiateMVars e).headBeta (origSpan? := ← getRef)
   pure e
+
+/--
+The command `by?` will print a suggestion for replacing the proof block with a proof term
+using `show_term`.
+-/
+syntax (name := by?) "by?" tacticSeq : term
+macro_rules
+  | `(term| by?%$tk $t) => `(show_term%$tk by%$tk $t)
+

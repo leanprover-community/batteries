@@ -148,7 +148,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
 end
 
 /-- The main entry point to the unused tactic linter. -/
-partial def unnecessarySeqFocusLinter : Linter := fun stx => do
+partial def unnecessarySeqFocusLinter : Linter where run stx := do
   unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then

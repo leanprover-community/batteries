@@ -2,6 +2,7 @@ import Std.Tactic.Ext
 import Std.Logic
 
 set_option linter.missingDocs false
+axiom mySorry {α : Sort _} : α
 
 structure A (n : Nat) where
   a : Nat
@@ -21,15 +22,23 @@ structure B (n) extends A n where
 
 example (a b : C n) : a = b := by
   ext
-  guard_target = a.a = b.a; admit
-  guard_target = a.b = b.b; admit
-  guard_target = HEq a.i b.i; admit
-  guard_target = a.c = b.c; admit
+  guard_target = a.a = b.a; exact mySorry
+  guard_target = a.b = b.b; exact mySorry
+  guard_target = HEq a.i b.i; exact mySorry
+  guard_target = a.c = b.c; exact mySorry
+
+@[ext (flat := false)] structure C' (n) extends B n where
+  c : Nat
+
+example (a b : C' n) : a = b := by
+  ext
+  guard_target = a.toB = b.toB; exact mySorry
+  guard_target = a.c = b.c; exact mySorry
 
 open Std.Tactic.Ext
 example (f g : Nat × Nat → Nat) : f = g := by
   ext ⟨x, y⟩
-  guard_target = f (x, y) = g (x, y); admit
+  guard_target = f (x, y) = g (x, y); exact mySorry
 
 -- Check that we generate a warning if there are too many patterns.
 example (f g : Nat → Nat) : f = g := by

@@ -306,32 +306,59 @@ def mkFreshIdWithPrefix [Monad m] [MonadNameGenerator m] («prefix» : Name) :
   pure r
 
 /--
+Implementation of `repeat'` and `repeat1'`.
+
+`repeat'Core f` runs `f` on all of the goals to produce a new list of goals,
+then runs `f` again on all of those goals, and repeats until `f` fails on all remaining goals,
+or until `maxIters` total calls to `f` have occurred.
+
+Returns a boolean indicating whether `f` succeeded at least once, and
+all the remaining goals (i.e. those on which `f` failed).
+-/
+def repeat'Core [Monad m] [MonadError m] [MonadMCtx m]
+    (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) :
+    m (Bool × List MVarId) := do
+  let (progress, acc) ← go maxIters false gs [] #[]
+  pure (progress, (← acc.filterM fun g => not <$> g.isAssigned).toList)
+where
+  /-- Auxiliary for `repeat'Core`. `repeat'Core.go f maxIters progress gs stk acc` evaluates to
+  essentially `acc.toList ++ repeat' f (gs::stk).join maxIters`: that is, `acc` are goals we will
+  not revisit, and `(gs::stk).join` is the accumulated todo list of subgoals. -/
+  go : Nat → Bool → List MVarId → List (List MVarId) → Array MVarId → m (Bool × Array MVarId)
+  | _, p, [], [], acc => pure (p, acc)
+  | n, p, [], gs::stk, acc => go n p gs stk acc
+  | n, p, g::gs, stk, acc => do
+    if ← g.isAssigned then
+      go n p gs stk acc
+    else
+      match n with
+      | 0 => pure <| (p, acc.push g ++ gs |> stk.foldl .appendList)
+      | n+1 =>
+        match ← observing (f g) with
+        | .ok gs' => go n true gs' (gs::stk) acc
+        | .error _ => go n p gs stk (acc.push g)
+termination_by _ n p gs stk _ => (n, stk, gs)
+
+/--
 `repeat' f` runs `f` on all of the goals to produce a new list of goals,
 then runs `f` again on all of those goals, and repeats until `f` fails on all remaining goals,
 or until `maxIters` total calls to `f` have occurred.
+Always succeeds (returning the original goals if `f` fails on all of them).
 -/
 def repeat' [Monad m] [MonadError m] [MonadMCtx m]
+    (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) :=
+  repeat'Core f gs maxIters <&> (·.2)
+
+/--
+`repeat1' f` runs `f` on all of the goals to produce a new list of goals,
+then runs `f` again on all of those goals, and repeats until `f` fails on all remaining goals,
+or until `maxIters` total calls to `f` have occurred.
+Fails if `f` does not succeed at least once.
+-/
+def repeat1' [Monad m] [MonadError m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) := do
-  let acc ← go maxIters gs [] #[]
-  pure (← acc.filterM fun g => not <$> g.isAssigned).toList
-where
-  /-- Auxiliary for `repeat'`. `repeat'.go f maxIters gs stk acc` evaluates to
-  essentially `acc.toList ++ repeat' f (gs::stk).join maxIters`: that is, `acc` are goals we will
-  not revisit, and `(gs::stk).join` is the accumulated todo list of subgoals. -/
-  go : Nat → List MVarId → List (List MVarId) → Array MVarId → m (Array MVarId)
-  | _, [], [], acc => pure acc
-  | n, [], gs::stk, acc => go n gs stk acc
-  | n, g::gs, stk, acc => do
-    if ← g.isAssigned then
-      go n gs stk acc
-    else
-      match n with
-      | 0 => pure <| acc.push g ++ gs |> stk.foldl .appendList
-      | n+1 =>
-        match ← observing (f g) with
-        | .ok gs' => go n gs' (gs::stk) acc
-        | .error _ => go n gs stk (acc.push g)
-termination_by _ n gs stk _ => (n, stk, gs)
+  let (.true, gs) ← repeat'Core f gs maxIters | throwError "repeat1' made no progress"
+  pure gs
 
 /--
 `saturate1 goal tac` runs `tac` on `goal`, then on the resulting goals, etc.,
