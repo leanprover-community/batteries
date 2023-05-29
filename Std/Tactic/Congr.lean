@@ -25,7 +25,7 @@ Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ H
   `x : α ⊢ f x = g x`.
 -/
 syntax (name := congrWith) "congr" (ppSpace colGt num)?
-  " with " (colGt rintroPat)* (" : " num)? : tactic
+  " with" (ppSpace colGt rintroPat)* (" : " num)? : tactic
 
 macro_rules
   | `(tactic| congr $(depth)? with $ps* $[: $n]?) =>

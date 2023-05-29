@@ -48,7 +48,7 @@ def withExtHyps (struct : Name) (flat : Term)
 Creates the type of the extensionality lemma for the given structure,
 elaborating to `x.1 = y.1 → x.2 = y.2 → x = y`, for example.
 -/
-scoped elab "ext_type%" flat:term:max struct:ident : term => do
+scoped elab "ext_type% " flat:term:max ppSpace struct:ident : term => do
   withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     let ty := hyps.foldr (init := ← mkEq x y) fun (f, h) ty =>
       mkForall f BinderInfo.default h ty
@@ -67,7 +67,7 @@ def mkAndN : List Expr → Expr
 Creates the type of the iff-variant of the extensionality lemma for the given structure,
 elaborating to `x = y ↔ x.1 = y.1 ∧ x.2 = y.2`, for example.
 -/
-scoped elab "ext_iff_type%" flat:term:max struct:ident : term => do
+scoped elab "ext_iff_type% " flat:term:max ppSpace struct:ident : term => do
   withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     mkForallFVars (params |>.push x |>.push y) <|
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList

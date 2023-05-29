@@ -10,7 +10,7 @@ namespace Std.Tactic.Ext
 open Lean Meta
 
 /-- `declare_ext_theorems_for A` declares the extensionality theorems for the structure `A`. -/
-syntax "declare_ext_theorems_for" ("(" &"flat" " := " term ")")? ident (prio)? : command
+syntax "declare_ext_theorems_for " ("(" &"flat" " := " term ") ")? ident (ppSpace prio)? : command
 
 /-- Information about an extensionality theorem, stored in the environment extension. -/
 structure ExtTheorem where
@@ -46,7 +46,7 @@ ordered from high priority to low. -/
 * When `@[ext]` is applied to a theorem, the theorem is registered for the `ext` tactic.
 
 * You can use `@[ext 9000]` to specify a priority for the attribute. -/
-syntax (name := ext) "ext" ("(" &"flat" " := " term ")")? (prio)? : attr
+syntax (name := ext) "ext" (" (" &"flat" " := " term ")")? (ppSpace prio)? : attr
 
 initialize registerBuiltinAttribute {
   name := `ext
