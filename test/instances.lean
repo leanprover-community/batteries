@@ -1,6 +1,8 @@
 import Std.Tactic.Instances
 import Std.Tactic.GuardMsgs
 
+set_option linter.missingDocs false
+
 /--
 error: type class instance expected
   Fin 1
@@ -23,23 +25,26 @@ class A (α : Type)
 #guard_msgs in
 #instances A
 
-instance : A Nat := ⟨⟩
+instance (priority := high) : A Nat := ⟨⟩
+instance : A Int := ⟨⟩
 instance : A Bool := ⟨⟩
 
 /--
-info: 2 instances:
+info: 3 instances:
 
-instANat : A Nat
-instABool : A Bool
+(prio 10000) Testing.instANat : A Nat
+Testing.instABool : A Bool
+Testing.instAInt : A Int
 -/
 #guard_msgs in
 #instances A _
 
 /--
-info: 2 instances:
+info: 3 instances:
 
-instANat : A Nat
-instABool : A Bool
+(prio 10000) Testing.instANat : A Nat
+Testing.instABool : A Bool
+Testing.instAInt : A Int
 -/
 #guard_msgs in
 #instances A
@@ -51,9 +56,20 @@ instABool : A Bool
 instance : A α := ⟨⟩
 
 /--
+info: 5 instances:
+(local) inst✝ : A β
+(prio 10000) Testing.instANat : A Nat
+Testing.instABool : A Bool
+Testing.instAInt : A Int
+Testing.instA {α : Type} : A α
+-/
+#guard_msgs in
+#instances [A β] : A
+
+/--
 info: 1 instance:
 
-@instA : {α : Type} → A α
+Testing.instA {α : Type} : A α
 -/
 #guard_msgs in
 #instances (α : Type) → A α

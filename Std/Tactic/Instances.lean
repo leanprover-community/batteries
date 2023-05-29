@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import Lean.Elab.Command
+import Lean.PrettyPrinter
 
 /-! # `#instances` command
 
@@ -25,23 +26,39 @@ the command adds metavariables until the argument is no longer a function.
 
 The `#instances` command is closely related to `#synth`, but `#synth` does the full
 instance synthesis algorithm and `#instances` does the first step of finding potential instances. -/
-elab "#instances " stx:term : command => runTermElabM fun _ => do
-  let t ← Term.elabTerm stx none
-  -- allow t to be universally quantified
-  let t ← forallTelescope t fun xs t' => do
-    -- Throw in missing arguments using metavariables. This can only do anything in the
-    -- non-quantified case.
-    let (_, _, t') ← lambdaMetaTelescope (← etaExpand t')
-    mkForallFVars xs t'
-  let insts ← Lean.Meta.SynthInstance.getInstances t
-  if insts.isEmpty then
-    logInfo m!"No instances"
-  else
-    let mut results := []
-    for inst in insts do
-      let e := inst.val
-      -- Number the universe variables within each entry separately.
-      let type ← withoutModifyingState do Term.levelMVarToParam (← inferType e)
-      results := m!"{e} : {type}" :: results
-    let instances := if insts.size == 1 then "instance" else "instances"
-    logInfo m!"{insts.size} {instances}:\n\n{MessageData.joinSep results.reverse "\n"}"
+elab (name := instancesCmd) tk:"#instances " stx:term : command => runTermElabM fun _ => do
+  let type ← Term.elabTerm stx none
+  -- Throw in missing arguments using metavariables.
+  let (args, _, _) ← withDefault <| forallMetaTelescopeReducing (← inferType type)
+  -- Use free variables for explicit quantifiers
+  withDefault <| forallTelescopeReducing (mkAppN type args) fun _ type => do
+    let some className ← isClass? type
+      | throwErrorAt stx "type class instance expected{indentExpr type}"
+    let globalInstances ← getGlobalInstancesIndex
+    let result ← globalInstances.getUnify type
+    let erasedInstances ← getErasedInstances
+    let mut msgs := #[]
+    for e in result.insertionSort fun e₁ e₂ => e₁.priority < e₂.priority do
+      let Expr.const c _ := e.val | unreachable!
+      if erasedInstances.contains c then
+        continue
+      let mut msg := m!"\n"
+      if e.priority != 1000 then -- evalPrio default := 1000
+        msg := msg ++ m!"(prio {e.priority}) "
+      msgs := msgs.push <| msg ++ .ofPPFormat { pp := fun
+        | some ctx => ctx.runMetaM <| withOptions (pp.tagAppFns.set · true) <|
+          PrettyPrinter.ppSignature c
+        | none     => return f!"{c}"
+      }
+    for linst in ← getLocalInstances do
+      if linst.className == className then
+        msgs := msgs.push m!"(local) {linst.fvar} : {← inferType linst.fvar}"
+    if msgs.isEmpty then
+      logInfoAt tk m!"No instances"
+    else
+      let instances := if msgs.size == 1 then "instance" else "instances"
+      logInfoAt tk <| msgs.reverse.foldl (·++·) m!"{msgs.size} {instances}:\n"
+
+@[inherit_doc instancesCmd]
+macro tk:"#instances" bi:(ppSpace bracketedBinder)* " : " t:term : command =>
+  `(command| variable $bi* in #instances%$tk $t)
