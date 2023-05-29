@@ -29,7 +29,7 @@ elab "#instances " stx:term : command => runTermElabM fun _ => do
   let t ← Term.elabTerm stx none
   -- allow t to be universally quantified
   let t ← forallTelescope t fun xs t' => do
-    -- Throw in missing arguments using metavariables. This only makes sense in the
+    -- Throw in missing arguments using metavariables. This can only do anything in the
     -- non-quantified case.
     let (_, _, t') ← lambdaMetaTelescope (← etaExpand t')
     mkForallFVars xs t'
