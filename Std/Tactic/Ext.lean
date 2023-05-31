@@ -10,7 +10,6 @@ import Std.Tactic.Ext.Attr
 namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic
 
-
 /--
 Constructs the hypotheses for the extensionality lemma.
 Calls the continuation `k` with the list of parameters to the structure,
@@ -177,6 +176,12 @@ elab_rules : tactic
     let pats := RCases.expandRIntroPats pats
     let depth := n.map (·.getNat) |>.getD 1000000
     let gs ← extCore (← getMainGoal) pats.toList depth
+    if RCases.linter.unusedRCasesPattern.get (← getOptions) then
+      let unconsumed := gs.foldl (init := 0) fun acc p => acc.max p.2.length
+      if unconsumed > 0 then
+        Linter.logLint RCases.linter.unusedRCasesPattern
+          (mkNullNode pats[pats.size - unconsumed:].toArray)
+          m!"`ext` did not consume the patterns: {pats[pats.size - unconsumed:]}"
     replaceMainGoal <| gs.map (·.1) |>.toList
 
 /--
