@@ -64,3 +64,14 @@ structure MyUnit
 @[ext] theorem MyUnit.ext3 (x y : MyUnit) (_h : 2 = 1) : x = y := rfl
 
 example (x y : MyUnit) : x = y := by ext; rfl
+
+-- Check that we don't generate a warning when `x` only uses a pattern in one branch:
+attribute [ext] Prod
+example (f : ℕ × (ℕ → ℕ)) : f = f := by
+  ext x
+  · rfl
+  · guard_target = (f.2) x = (f.2) x
+    rfl
+
+example (f : Empty → Empty) : f = f := by
+  ext ⟨⟩

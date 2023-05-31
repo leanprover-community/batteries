@@ -118,13 +118,15 @@ Postprocessor for `withExt` which runs `rintro` with the given patterns when the
 pi type.
 -/
 def tryIntros [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+    (k : MVarId → List (TSyntax `rcasesPat) → m Nat) : m Nat := do
   match pats with
   | [] => k (← (g.intros : TermElabM _)).2 []
   | p::ps =>
     if (← (g.withContext g.getType' : TermElabM _)).isForall then
+      let mut n := 0
       for g in ← RCases.rintro #[p] none g do
-        k g ps
+        n := n.max (← k g ps)
+      pure (n + 1)
     else k g pats
 
 /--
@@ -132,37 +134,36 @@ Applies a single extensionality lemma, using `pats` to introduce variables in th
 Runs continuation `k` on each subgoal.
 -/
 def withExt1 [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+    (k : MVarId → List (TSyntax `rcasesPat) → m Nat) : m Nat := do
+  let mut n := 0
   for g in ← (applyExtLemma g : TermElabM _) do
-    tryIntros g pats k
+    n := n.max (← tryIntros g pats k)
+  pure n
 
 /--
 Applies a extensionality lemmas recursively, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
 def withExtN [Monad m] [MonadLiftT TermElabM m] [MonadExcept Exception m]
-    (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
-    (depth := 1000000) (failIfUnchanged := true) : m Unit :=
+    (g : MVarId) (pats : List (TSyntax `rcasesPat)) (k : MVarId → m Nat)
+    (depth := 1000000) (failIfUnchanged := true) : m Nat :=
   match depth with
-  | 0 => k g pats
+  | 0 => k g
   | depth+1 => do
     if failIfUnchanged then
       withExt1 g pats fun g pats => withExtN g pats k depth (failIfUnchanged := false)
     else try
       withExt1 g pats fun g pats => withExtN g pats k depth (failIfUnchanged := false)
-    catch _ => k g pats
+    catch _ => k g
 
 /--
 Apply extensionality lemmas as much as possible, using `pats` to introduce the variables
-in extensionality lemmas like `funext`. Returns a list of subgoals,
-and the unconsumed patterns in each of those subgoals.
+in extensionality lemmas like `funext`. Returns a list of subgoals.
 -/
 def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (depth := 1000000) (failIfUnchanged := true) :
-    TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
-  (·.2) <$> StateT.run (m := TermElabM) (s := #[])
-    (withExtN g pats (fun g qs => modify (·.push (g, qs))) depth failIfUnchanged)
+    (depth := 1000000) (failIfUnchanged := true) : TermElabM (Nat × Array MVarId) := do
+  StateT.run (m := TermElabM) (s := #[])
+    (withExtN g pats (fun g => modify (·.push g) *> pure 0) depth failIfUnchanged)
 
 /--
 * `ext pat*`: Apply extensionality lemmas as much as possible,
@@ -175,14 +176,12 @@ elab_rules : tactic
   | `(tactic| ext $pats* $[: $n]?) => do
     let pats := RCases.expandRIntroPats pats
     let depth := n.map (·.getNat) |>.getD 1000000
-    let gs ← extCore (← getMainGoal) pats.toList depth
+    let (used, gs) ← extCore (← getMainGoal) pats.toList depth
     if RCases.linter.unusedRCasesPattern.get (← getOptions) then
-      let unconsumed := gs.foldl (init := 0) fun acc p => acc.max p.2.length
-      if unconsumed > 0 then
-        Linter.logLint RCases.linter.unusedRCasesPattern
-          (mkNullNode pats[pats.size - unconsumed:].toArray)
-          m!"`ext` did not consume the patterns: {pats[pats.size - unconsumed:]}"
-    replaceMainGoal <| gs.map (·.1) |>.toList
+      if used < pats.size then
+        Linter.logLint RCases.linter.unusedRCasesPattern (mkNullNode pats[used:].toArray)
+          m!"`ext` did not consume the patterns: {pats[used:]}"
+    replaceMainGoal gs.toList
 
 /--
 `ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
