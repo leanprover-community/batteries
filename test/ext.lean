@@ -51,3 +51,11 @@ def Set (α : Type u) := α → Prop
 @[ext] structure Pretrivialization {F : Type u} (proj : Z → β) extends LocalEquiv Z (β × F) where
   baseSet : Set β
   source_eq : source = baseSet ∘ proj
+
+structure MyUnit
+
+@[ext high] theorem MyUnit.ext1 (x y : MyUnit) (_h : 0 = 1) : x = y := rfl
+@[ext high] theorem MyUnit.ext2 (x y : MyUnit) (_h : 1 = 1) : x = y := rfl
+@[ext] theorem MyUnit.ext3 (x y : MyUnit) (_h : 2 = 1) : x = y := rfl
+
+example (x y : MyUnit) : x = y := by ext; rfl

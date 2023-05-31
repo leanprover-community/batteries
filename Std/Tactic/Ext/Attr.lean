@@ -30,21 +30,22 @@ initialize extExtension :
     initial := {}
   }
 
-/-- Get the list of `@[ext]` lemmas corresponding to the key `ty`. -/
+/-- Get the list of `@[ext]` lemmas corresponding to the key `ty`,
+ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
+  -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
+  -- Most ext lemmas have default priority.
   return (← (extExtension.getState (← getEnv)).getMatch ty)
-    |>.qsort fun a b => a.priority > b.priority
+    |>.insertionSort (·.priority < ·.priority) |>.reverse
 
 /-- Registers an extensionality lemma.
 
-When `@[ext]` is applied to a structure,
-it generates `.ext` and `.ext_iff` theorems
-and registers them for the `ext` tactic.
+* When `@[ext]` is applied to a structure, it generates `.ext` and `.ext_iff` theorems and registers
+  them for the `ext` tactic.
 
-When `@[ext]` is applied to a theorem,
-the theorem is registered for the `ext` tactic.
+* When `@[ext]` is applied to a theorem, the theorem is registered for the `ext` tactic.
 
-You can use `@[ext 9000]` to specify a priority for the attribute. -/
+* You can use `@[ext 9000]` to specify a priority for the attribute. -/
 syntax (name := ext) "ext" ("(" &"flat" " := " term ")")? (prio)? : attr
 
 initialize registerBuiltinAttribute {
