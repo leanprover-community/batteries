@@ -24,7 +24,33 @@ declare_syntax_cat binderPred
 -/
 syntax "satisfies_binder_pred% " term:max binderPred : term
 
--- Extend ∀ and ∃ to binder predicates.
+/--
+A syntax category for macros that do calculations regarding binders.
+For example, this supports querying for the inverse to `satisfies_binder_pred%`.
+-/
+declare_syntax_cat binderCalc
+
+/-- This syntax represents values that could be passed to `satisfies_binder_pred%`. -/
+syntax "the_binder_pred " term:max binderPred : binderCalc
+
+/-- Represents a query that expands to `the_binder_pred` if there is an answer. -/
+syntax "get_binder_pred_of_prop " term : binderCalc
+
+/-- Evaluates a `binderCalc` calculation by macro expanding until completion. -/
+partial def runBinderCalc (q : TSyntax `binderCalc) : MacroM (TSyntax `binderCalc) := do
+  match ← expandMacro? q with
+  | none => return q
+  | some q' => runBinderCalc ⟨q'⟩
+
+/-- Given a proposition (such as `x < 5`), returns `(x, < 5)` if
+`get_binder_pred_of_prop` knows about it. This inverts `satisfies_binder_pred%`. -/
+def getBinderPredOfProp (p : Term) : MacroM (Option (Term × TSyntax `binderPred)) := do
+  let q ← `(binderCalc| get_binder_pred_of_prop $p)
+  match ← runBinderCalc q with
+  | `(binderCalc| the_binder_pred $x $pred) => return (x, pred)
+  | _ => return none
+
+/-! ### Extend ∀ and ∃ to binder predicates. -/
 
 /--
 The notation `∃ x < 2, p x` is shorthand for `∃ x, x < 2 ∧ p x`,
@@ -88,24 +114,45 @@ macro_rules -- TODO: merging the two macro_rules breaks expansion
   | `(∀ᵉ $x:ident : $ty:term, $b) => `(∀ $x:ident : $ty:term, $b)
   | `(∀ᵉ $x:binderIdent $p:binderPred, $b) => `(∀ $x:binderIdent $p:binderPred, $b)
 
+/-! ### `binder_predicate` command -/
+
 open Parser.Command in
 /--
 Declares a binder predicate.  For example:
 ```
-binder_predicate x " > " y:term => `($x > $y)
+binder_predicate x " > " y:term => x > y
 ```
 -/
 syntax (name := binderPredicate) (docComment)? (Parser.Term.attributes)? (attrKind)?
   "binder_predicate" optNamedName optNamedPrio ppSpace ident (ppSpace macroArg)* " => "
     term : command
 
--- adapted from the macro macro
+open Syntax in
+/-- Wrap all occurrences of the given `ident` nodes in antiquotations.
+(from a private function in Lean.Elab.Notation) -/
+private partial def antiquote (vars : Array Syntax) (stx : Syntax) : Syntax :=
+  match stx with
+  | `($id:ident) =>
+    if (vars.findIdx? (fun var => var.getId == id.getId)).isSome then
+      mkAntiquotNode id (kind := `term) (isPseudoKind := true)
+    else
+      stx
+  | _ => match stx with
+    | Syntax.node i k args => Syntax.node i k (args.map (antiquote vars))
+    | stx => stx
+
+-- adapted from the macro macro and the notation macro
 open Elab Command in
 elab_rules : command
   | `($[$doc?:docComment]? $[@[$attrs?,*]]? $attrKind:attrKind binder_predicate%$tk
       $[(name := $name?)]? $[(priority := $prio?)]? $x $args:macroArg* => $rhs) => do
     let prio ← liftMacroM do evalOptPrio prio?
     let (stxParts, patArgs) := (← args.mapM expandMacroArg).unzip
+    let vars := args.filterMap fun
+        | `(Parser.Command.macroArg| $id:ident:$(_)) => some id
+        | `(Parser.Command.macroArg| $(_):stx)       => none
+        | _                           => none
+    let qrhs : Term := ⟨antiquote (vars.push x) rhs⟩
     let name ← match name? with
       | some name => pure name.getId
       | none => liftMacroM do mkNameFromParserSyntax `binderTerm (mkNullNode stxParts)
@@ -114,11 +161,15 @@ elab_rules : command
     So, we must include current namespace when we create a pattern for the following
     `macro_rules` commands. -/
     let pat : TSyntax `binderPred := ⟨(mkNode ((← getCurrNamespace) ++ name) patArgs).1⟩
-    elabCommand <|<-
-    `($[$doc?:docComment]? $[@[$attrs?,*]]? $attrKind:attrKind syntax%$tk
-        (name := $nameTk) (priority := $(quote prio)) $[$stxParts]* : binderPred
-      $[$doc?:docComment]? macro_rules%$tk
-        | `(satisfies_binder_pred% $$($x):term $pat:binderPred) => $rhs)
+    elabCommand <| ←
+      `($[$doc?:docComment]? $[@[$attrs?,*]]? $attrKind:attrKind syntax%$tk
+          (name := $nameTk) (priority := $(quote prio)) $[$stxParts]* : binderPred
+        $[$doc?:docComment]? macro_rules%$tk
+          | `(satisfies_binder_pred% $$($x):term $pat:binderPred) => `($qrhs)
+        macro_rules%$tk
+          | `(binderCalc| get_binder_pred_of_prop $qrhs) =>
+            let x := Syntax.missing -- Workaround for expandMacroArg on strings
+            `(binderCalc| the_binder_pred $$($x):term $pat:binderPred))
 
 open Linter.MissingDocs Parser Term in
 /-- Missing docs handler for `binder_predicate` -/
@@ -129,10 +180,10 @@ def checkBinderPredicate : SimpleHandler := fun stx => do
     else lintNamed stx[4][0][3] "binder predicate"
 
 /-- Declare `∃ x > y, ...` as syntax for `∃ x, x > y ∧ ...` -/
-binder_predicate x " > " y:term => `($x > $y)
+binder_predicate x " > " y:term => x > y
 /-- Declare `∃ x ≥ y, ...` as syntax for `∃ x, x ≥ y ∧ ...` -/
-binder_predicate x " ≥ " y:term => `($x ≥ $y)
+binder_predicate x " ≥ " y:term => x ≥ y
 /-- Declare `∃ x < y, ...` as syntax for `∃ x, x < y ∧ ...` -/
-binder_predicate x " < " y:term => `($x < $y)
+binder_predicate x " < " y:term => x < y
 /-- Declare `∃ x ≤ y, ...` as syntax for `∃ x, x ≤ y ∧ ...` -/
-binder_predicate x " ≤ " y:term => `($x ≤ $y)
+binder_predicate x " ≤ " y:term => x ≤ y
