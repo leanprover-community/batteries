@@ -143,7 +143,7 @@ This attribute marks a code action, which is used to suggest new tactics or repl
 * `@[tactic_code_action *]`: This is a tactic code action that applies to all tactics.
   Use sparingly.
 -/
-syntax (name := tactic_code_action) "tactic_code_action" ("*" <|> ident*) : attr
+syntax (name := tactic_code_action) "tactic_code_action" ("*" <|> (ppSpace ident)*) : attr
 
 initialize
   registerBuiltinAttribute {
@@ -229,7 +229,7 @@ This attribute marks a code action, which is used to suggest new tactics or repl
 * `@[command_code_action]`: This is a command code action that applies to all commands.
   Use sparingly.
 -/
-syntax (name := command_code_action) "command_code_action" ident* : attr
+syntax (name := command_code_action) "command_code_action" (ppSpace ident)* : attr
 
 initialize
   registerBuiltinAttribute {

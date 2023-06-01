@@ -91,7 +91,7 @@ syntax (name := rcasesPat.clear) "-" : rcasesPat
 A `@` before a tuple pattern as in `@⟨p1, p2, p3⟩` will bind all arguments in the constructor,
 while leaving the `@` off will only use the patterns on the explicit arguments.
 -/
-syntax (name := rcasesPat.explicit) "@" rcasesPat : rcasesPat
+syntax (name := rcasesPat.explicit) "@" noWs rcasesPat : rcasesPat
 /--
 `⟨pat, ...⟩` is a pattern which matches on a tuple-like constructor
 or multi-argument inductive constructor

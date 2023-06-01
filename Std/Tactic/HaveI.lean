@@ -48,6 +48,6 @@ elab_rules <= expectedType
       return (← (← elabTerm body expectedType).abstractM #[x]).instantiate #[val]
 
 /-- `haveI` behaves like `have`, but inlines the value instead of producing a `let_fun` term. -/
-macro "haveI " d:haveDecl : tactic => `(tactic| refine_lift haveI $d:haveDecl; ?_)
+macro "haveI" d:haveDecl : tactic => `(tactic| refine_lift haveI $d:haveDecl; ?_)
 /-- `letI` behaves like `let`, but inlines the value instead of producing a `let_fun` term. -/
-macro "letI " d:haveDecl : tactic => `(tactic| refine_lift letI $d:haveDecl; ?_)
+macro "letI" d:haveDecl : tactic => `(tactic| refine_lift letI $d:haveDecl; ?_)

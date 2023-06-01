@@ -27,7 +27,7 @@ local syntax (name := squeezeScopeIn) "squeeze_scope " ident " => " tacticSeq : 
 Here `tac` will be a `simp` or `dsimp` syntax, and `squeeze_wrap` will run the tactic
 and contribute the generated `usedSimps` to the `squeezeScopes[a][x]` variable.
 -/
-local syntax (name := squeezeWrap) "squeeze_wrap " ident ident " => " tactic : tactic
+local syntax (name := squeezeWrap) "squeeze_wrap " ident ppSpace ident " => " tactic : tactic
 
 open TSyntax.Compat in
 /--

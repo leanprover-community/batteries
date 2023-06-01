@@ -11,7 +11,7 @@ namespace Std.Tactic
 
 /-- Assuming there are `n` goals, `map_tacs [t1; t2; ...; tn]` applies each `ti` to the respective
 goal and leaves the resulting subgoals. -/
-elab "map_tacs " "[" ts:sepBy(tactic, ";") "]" : tactic => do
+elab "map_tacs " "[" ts:sepBy(tactic, "; ") "]" : tactic => do
   let goals ← getUnsolvedGoals
   let tacs := ts.getElems
   let length := tacs.size
@@ -37,5 +37,5 @@ elab "map_tacs " "[" ts:sepBy(tactic, ";") "]" : tactic => do
 /-- `t <;> [t1; t2; ...; tn]` focuses on the first goal and applies `t`, which should result in `n`
 subgoals. It then applies each `ti` to the corresponding goal and collects the resulting
 subgoals. -/
-macro:1 (name := seq_focus) t:tactic " <;> " "[" ts:sepBy(tactic, ";") "]" : tactic =>
+macro:1 (name := seq_focus) t:tactic " <;> " "[" ts:sepBy(tactic, "; ") "]" : tactic =>
   `(tactic| focus ( $t:tactic; map_tacs [$ts;*]) )
