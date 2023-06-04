@@ -14,6 +14,6 @@ open Lean Meta
 This method wraps `Lean.MVarId.assign`, checking whether `mvarId` is already assigned, and whether
 the expression has the right type. -/
 def Lean.MVarId.myExact (g : MVarId) (e : Expr) : MetaM Unit := do
-  let .true ← isDefEq (← g.getType) (← inferType e) | failure
+  guard <| ← isDefEq (← g.getType) (← inferType e)
   g.checkNotAssigned `myExact
   g.assign e
