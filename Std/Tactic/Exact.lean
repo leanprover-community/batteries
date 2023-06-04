@@ -15,5 +15,5 @@ This method wraps `Lean.MVarId.assign`, checking whether `mvarId` is already ass
 the expression has the right type. -/
 def Lean.MVarId.assignIfDefeq (g : MVarId) (e : Expr) : MetaM Unit := do
   guard <| ← isDefEq (← g.getType) (← inferType e)
-  g.checkNotAssigned `myExact
+  g.checkNotAssigned `assignIfDefeq
   g.assign e
