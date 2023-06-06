@@ -101,8 +101,10 @@ def divInt : Int → Int → Rat
 
 @[inherit_doc] scoped infixl:70 " /. " => Rat.divInt
 
-/-- Implements "scientific notation" `123.4e-5` for rational numbers. -/
-protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
+/-- Implements "scientific notation" `123.4e-5` for rational numbers. (This definition is
+`@[irreducible]` because you don't want to unfold it. Use `Rat.ofScientific_def`,
+`Rat.ofScientific_true_def`, or `Rat.ofScientific_false_def` instead.) -/
+@[irreducible] protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
   if s then
     Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide)
   else

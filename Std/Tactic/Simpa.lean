@@ -24,7 +24,7 @@ namespace Std.Tactic.Simpa
 open Lean Parser.Tactic Elab Meta Term Tactic Simp Linter
 
 /-- The arguments to the `simpa` family tactics. -/
-syntax simpaArgsRest := (config)? (discharger)? &" only "? (simpArgs)? (" using " term)?
+syntax simpaArgsRest := (config)? (discharger)? &" only"? (simpArgs)? (" using " term)?
 
 /--
 This is a "finishing" tactic modification of `simp`. It has two forms.
@@ -120,6 +120,7 @@ elab_rules : tactic
         simpGoal (← getMainGoal) ctx (simplifyTarget := true) (discharge? := discharge?)
       | if getLinterUnnecessarySimpa (← getOptions) then
           logLint linter.unnecessarySimpa (← getRef) "try 'simp' instead of 'simpa'"
+    g.withContext do
     let usedSimps ← if let some stx := usingArg then
       setGoals [g]
       g.withContext do

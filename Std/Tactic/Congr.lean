@@ -25,7 +25,7 @@ Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ H
   `x : α ⊢ f x = g x`.
 -/
 syntax (name := congrWith) "congr" (ppSpace colGt num)?
-  " with " (colGt rintroPat)* (" : " num)? : tactic
+  " with" (ppSpace colGt rintroPat)* (" : " num)? : tactic
 
 macro_rules
   | `(tactic| congr $(depth)? with $ps* $[: $n]?) =>
@@ -38,7 +38,7 @@ unless `ext pats <;> congr` made no progress.
 partial def rcongrCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (acc : Array MVarId) : TermElabM (Array MVarId) := do
   let mut acc := acc
-  for (g, qs) in ← Ext.extCore g pats (failIfUnchanged := false) do
+  for (g, qs) in (← Ext.extCore g pats (failIfUnchanged := false)).2 do
     let s ← saveState
     let gs ← g.congrN 1000000
     if ← not <$> g.isAssigned <||> gs.anyM fun g' => return (← g'.getType).eqv (← g.getType) then

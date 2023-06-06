@@ -62,10 +62,10 @@ syntax extBinderParenthesized := " (" extBinder ")" -- TODO: inlining this defin
 /-- A list of parenthesized binders -/
 syntax extBinderCollection := extBinderParenthesized*
 /-- A single (unparenthesized) binder, or a list of parenthesized binders -/
-syntax extBinders := extBinder <|> extBinderCollection
+syntax extBinders := (ppSpace extBinder) <|> extBinderCollection
 
 /-- The syntax `∃ᵉ (x < 2) (y < 3), p x y` is shorthand for `∃ x < 2, ∃ y < 3, p x y`. -/
-syntax "∃ᵉ " extBinders ", " term : term
+syntax "∃ᵉ" extBinders ", " term : term
 macro_rules
   | `(∃ᵉ, $b) => pure b
   | `(∃ᵉ ($p:extBinder) $[($ps:extBinder)]*, $b) =>
@@ -76,7 +76,7 @@ macro_rules -- TODO: merging the two macro_rules breaks expansion
   | `(∃ᵉ $x:binderIdent $p:binderPred, $b) => `(∃ $x:binderIdent $p:binderPred, $b)
 
 /-- The syntax `∀ᵉ (x < 2) (y < 3), p x y` is shorthand for `∀ x < 2, ∀ y < 3, p x y`. -/
-syntax "∀ᵉ " extBinders ", " term : term
+syntax "∀ᵉ" extBinders ", " term : term
 macro_rules
   | `(∀ᵉ, $b) => pure b
   | `(∀ᵉ ($p:extBinder) $[($ps:extBinder)]*, $b) =>
@@ -96,7 +96,8 @@ binder_predicate x " > " y:term => `($x > $y)
 ```
 -/
 syntax (name := binderPredicate) (docComment)? (Parser.Term.attributes)? (attrKind)?
-  "binder_predicate " optNamedName optNamedPrio ident macroArg* " => " term : command
+  "binder_predicate" optNamedName optNamedPrio ppSpace ident (ppSpace macroArg)* " => "
+    term : command
 
 -- adapted from the macro macro
 open Elab Command in

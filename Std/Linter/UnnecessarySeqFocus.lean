@@ -60,7 +60,7 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.anyGoals,
     ``Parser.Tactic.case,
     ``Parser.Tactic.case',
-    ``Parser.Tactic.Conv.«convNext_=>_»,
+    ``Parser.Tactic.Conv.«convNext__=>_»,
     ``Parser.Tactic.Conv.allGoals,
     ``Parser.Tactic.Conv.anyGoals,
     ``Parser.Tactic.Conv.case,
@@ -148,7 +148,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
 end
 
 /-- The main entry point to the unused tactic linter. -/
-partial def unnecessarySeqFocusLinter : Linter := fun stx => do
+partial def unnecessarySeqFocusLinter : Linter where run stx := do
   unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then

@@ -15,8 +15,8 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get get! get? reverseAux eraseIdx map join dropWhile find? findSome?
-  replace elem lookup drop take takeWhile foldl foldr zipWith unzip range.loop enumFrom
+attribute [simp] get get! get? reverseAux eraseIdx map join find? findSome?
+  replace elem lookup drop take foldl foldr zipWith unzip range.loop enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
   filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
   concat_eq_append append_assoc
@@ -26,6 +26,8 @@ attribute [simp] get get! get? reverseAux eraseIdx map join dropWhile find? find
 @[simp 1100] theorem headD_nil : @headD α [] d = d := rfl
 @[simp 1100] theorem headD_cons : @headD α (a::l) d = a := rfl
 @[simp] theorem head_cons : @head α (a::l) h = a := rfl
+@[simp] theorem tail?_nil : @tail? α [] = none := rfl
+@[simp] theorem tail?_cons : @tail? α (a::l) = some l := rfl
 @[simp] theorem tail!_cons : @tail! α (a::l) = l := rfl
 @[simp 1100] theorem tailD_nil : @tailD α [] l' = l' := rfl
 @[simp 1100] theorem tailD_cons : @tailD α (a::l) l' = l := rfl
@@ -104,9 +106,14 @@ theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
   List.bind (xs ++ ys) f = List.bind xs f ++ List.bind ys f := by
   induction xs; {rfl}; simp_all [cons_bind, append_assoc]
 
-/-! ### bind -/
-
 @[simp] theorem bind_id (l : List (List α)) : List.bind l id = l.join := by simp [List.bind]
+
+/-! ### bounded quantifiers over Lists -/
+
+theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
+    (∀ x, x ∈ a :: l → p x) ↔ p a ∧ ∀ x, x ∈ l → p x :=
+  ⟨fun H => ⟨H _ (.head ..), fun _ h => H _ (.tail _ h)⟩,
+   fun ⟨H₁, H₂⟩ _ => fun | .head .. => H₁ | .tail _ h => H₂ _ h⟩
 
 /-! ### reverse -/
 

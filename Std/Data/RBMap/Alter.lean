@@ -49,7 +49,7 @@ theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
     fill' (zoom cut t path) = path.fill t := by
   induction t generalizing path with
   | nil => rfl
-  | node _ _ _ _ iha ihb => unfold zoom; split <;> [apply iha, apply ihb, rfl]
+  | node _ _ _ _ iha ihb => unfold zoom; split <;> [apply iha; apply ihb; rfl]
 
 theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
@@ -404,7 +404,7 @@ theorem WF.modify {t : RBNode α}
 
 theorem find?_eq_zoom : ∀ {t : RBNode α} (p := .root), t.find? cut = (t.zoom cut p).1.root?
   | .nil, _ => rfl
-  | .node .., _ => by unfold find? zoom; split <;> [apply find?_eq_zoom, apply find?_eq_zoom, rfl]
+  | .node .., _ => by unfold find? zoom; split <;> [apply find?_eq_zoom; apply find?_eq_zoom; rfl]
 
 end RBNode
 
@@ -418,7 +418,7 @@ theorem ModifyWF.of_eq {t : RBSet α cmp}
     (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f := by
   refine ⟨.modify ?_ t.2⟩
   revert H; rw [find?_eq_zoom]
-  (cases (t.1.zoom cut).1 <;> intro H) <;> [trivial, exact H rfl]
+  cases (t.1.zoom cut).1 <;> intro H <;> [trivial; exact H rfl]
 
 end RBSet
 

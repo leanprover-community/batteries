@@ -61,8 +61,14 @@ theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
 protected theorem add_left_cancel_iff {n m k : Nat} : n + m = n + k ↔ m = k :=
   ⟨Nat.add_left_cancel, fun | rfl => rfl⟩
 
+protected theorem add_right_cancel_iff {n m k : Nat} : n + m = k + m ↔ n = k :=
+  ⟨Nat.add_right_cancel, fun | rfl => rfl⟩
+
+protected theorem add_le_add_iff_le_left (k n m : Nat) : k + n ≤ k + m ↔ n ≤ m :=
+  ⟨Nat.le_of_add_le_add_left, fun h => Nat.add_le_add_left h _⟩
+
 protected theorem add_le_add_iff_le_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
-⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
+  ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
 protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < m :=
   Nat.lt_of_le_of_ne (Nat.le_of_add_le_add_left (Nat.le_of_lt h)) fun heq =>
@@ -70,6 +76,12 @@ protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < 
 
 protected theorem lt_of_add_lt_add_right {a b c : Nat} (h : a + b < c + b) : a < c :=
   Nat.lt_of_add_lt_add_left ((by rwa [Nat.add_comm b a, Nat.add_comm b c]): b + a < b + c)
+
+protected theorem add_lt_add_iff_lt_left (k n m : Nat) : k + n < k + m ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h _⟩
+
+protected theorem add_lt_add_iff_lt_right (k n m : Nat) : n + k < m + k ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
 protected theorem lt_add_right (a b c : Nat) (h : a < b) : a < b + c :=
   Nat.lt_of_lt_of_le h (Nat.le_add_right _ _)
@@ -92,7 +104,12 @@ protected theorem lt_add_right_iff_pos {n k : Nat} : n < n + k ↔ 0 < k :=
 protected theorem lt_add_left_iff_pos {n k : Nat} : n < k + n ↔ 0 < k :=
   ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
 
+theorem add_pos_left (h : 0 < m) (n : Nat) : 0 < m + n :=
+  Nat.lt_of_le_of_lt (zero_le n) (Nat.lt_add_of_pos_left h)
 
+theorem add_pos_right (m : Nat) (h : 0 < n) : 0 < m + n := by
+  rw [Nat.add_comm]
+  exact add_pos_left h m
 
 /- sub properties -/
 
@@ -176,6 +193,8 @@ protected theorem min_le_left (a b : Nat) : min a b ≤ a := Nat.min_comm .. ▸
 protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
   ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
    fun ⟨h₁, h₂⟩ => by rw [Nat.min_def]; split <;> assumption⟩
+
+protected theorem lt_min {a b c : Nat} : a < min b c ↔ a < b ∧ a < c := Nat.le_min
 
 protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [Nat.min_def, h]
 
@@ -381,6 +400,9 @@ protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := (Nat.lt_or_ge _ 
 protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
   (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
 
+protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
+  ⟨Nat.lt_or_eq_of_le, (·.elim Nat.le_of_lt Nat.le_of_eq)⟩
+
 theorem le_zero {i : Nat} : i ≤ 0 ↔ i = 0 :=
   ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
 
@@ -401,7 +423,7 @@ protected theorem sub_le_sub_left (k : Nat) (h : n ≤ m) : k - m ≤ k - n :=
 theorem succ_sub_sub_succ (n m k : Nat) : succ n - m - succ k = n - m - k := by
   rw [Nat.sub_sub, Nat.sub_sub, add_succ, succ_sub_succ]
 
-protected theorem sub.right_comm (m n k : Nat) : m - n - k = m - k - n := by
+protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
   rw [Nat.sub_sub, Nat.sub_sub, Nat.add_comm]
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
@@ -459,6 +481,12 @@ protected theorem add_le_of_le_sub_left {n k m : Nat} (H : m ≤ k) (h : n ≤ k
 
 theorem le_sub_iff_add_le {x y k : Nat} (h : k ≤ y) : x ≤ y - k ↔ x + k ≤ y := by
   rw [← Nat.add_sub_cancel x k, Nat.sub_le_sub_right_iff h, Nat.add_sub_cancel]
+
+protected theorem sub_le_iff_le_add {a b c : Nat} : a - b ≤ c ↔ a ≤ c + b :=
+  ⟨Nat.le_add_of_sub_le, sub_le_of_le_add⟩
+
+protected theorem sub_le_iff_le_add' {a b c : Nat} : a - b ≤ c ↔ a ≤ b + c := by
+  rw [Nat.sub_le_iff_le_add, Nat.add_comm]
 
 theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
