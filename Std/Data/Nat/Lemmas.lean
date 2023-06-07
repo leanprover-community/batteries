@@ -454,12 +454,6 @@ theorem sub_lt_self {a b : Nat} (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b := b
 protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
 
-protected theorem sub_lt_sub_left : ∀ {k m n : Nat}, k < m → k < n → m - n < m - k
-  | 0, m+1, n+1, _, _ => by rw [Nat.add_sub_add_right]; exact lt_succ_of_le (Nat.sub_le _ _)
-  | k+1, m+1, n+1, h1, h2 => by
-    rw [Nat.add_sub_add_right, Nat.add_sub_add_right]
-    exact Nat.sub_lt_sub_left (Nat.lt_of_succ_lt_succ h1) (Nat.lt_of_succ_lt_succ h2)
-
 protected theorem sub_lt_left_of_lt_add {n k m : Nat} (H : n ≤ k) (h : k < n + m) : k - n < m := by
   have := Nat.sub_le_sub_right (succ_le_of_lt h) n
   rwa [Nat.add_sub_cancel_left, Nat.succ_sub H] at this

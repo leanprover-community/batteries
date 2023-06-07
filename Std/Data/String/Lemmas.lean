@@ -310,21 +310,21 @@ theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
 
 @[simp] theorem next'_eq (s : String) (p : Pos) (h) : next' s p h = next s p := rfl
 
-theorem posOfAux_eq (s c) : posOfAuxWF s c = findAuxWF s (· == c) := rfl
+theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
 
-theorem posOf_eq (s c) : posOfWF s c = findWF s (· == c) := rfl
+theorem posOf_eq (s c) : posOf s c = find s (· == c) := rfl
 
-theorem revPosOfAux_eq (s c) : revPosOfAuxWF s c = revFindAuxWF s (· == c) := rfl
+theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := rfl
 
-theorem revPosOf_eq (s c) : revPosOfWF s c = revFindWF s (· == c) := rfl
+theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := rfl
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
 theorem findAux_of_valid (p) : ∀ l m r,
-    findAuxWF ⟨l ++ m ++ r⟩ p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
+    findAux ⟨l ++ m ++ r⟩ p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
     ⟨utf8Len l + utf8Len (m.takeWhile (!p ·))⟩
-  | l, [], r => by unfold findAuxWF List.takeWhile; simp
+  | l, [], r => by unfold findAux List.takeWhile; simp
   | l, c::m, r => by
-    unfold findAuxWF List.takeWhile
+    unfold findAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp at h1 h2; simp [h1, h2]
@@ -333,15 +333,15 @@ theorem findAux_of_valid (p) : ∀ l m r,
     rw [Nat.add_right_comm, Nat.add_assoc] at foo
     rw [foo, Nat.add_right_comm, Nat.add_assoc]
 
-theorem find_of_valid (p s) : findWF s p = ⟨utf8Len (s.1.takeWhile (!p ·))⟩ := by
+theorem find_of_valid (p s) : find s p = ⟨utf8Len (s.1.takeWhile (!p ·))⟩ := by
   simpa using findAux_of_valid p [] s.1 []
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.revFindAux
 theorem revFindAux_of_valid (p) : ∀ l r,
-    revFindAuxWF ⟨l.reverse ++ r⟩ p ⟨utf8Len l⟩ = (l.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩)
-  | [], r => by unfold revFindAuxWF List.dropWhile; simp
+    revFindAux ⟨l.reverse ++ r⟩ p ⟨utf8Len l⟩ = (l.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩)
+  | [], r => by unfold revFindAux List.dropWhile; simp
   | c::l, r => by
-    unfold revFindAuxWF List.dropWhile
+    unfold revFindAux List.dropWhile
     rw [dif_neg (by exact Pos.ne_of_gt add_csize_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp at h1 h2; simp [h1, h2]
@@ -349,15 +349,15 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     simpa using revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
-    revFindWF s p = (s.1.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
+    revFind s p = (s.1.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
   simpa using revFindAux_of_valid p s.1.reverse []
 
 theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     (hl₁ : p = utf8Len l₁) (hl₂ : p = utf8Len l₂)
     (hstop : stop = min (utf8Len l₁ + utf8Len r₁) (utf8Len l₂ + utf8Len r₂)) :
-    firstDiffPosWF.loop ⟨l₁ ++ r₁⟩ ⟨l₂ ++ r₂⟩ ⟨stop⟩ ⟨p⟩ =
+    firstDiffPos.loop ⟨l₁ ++ r₁⟩ ⟨l₂ ++ r₂⟩ ⟨stop⟩ ⟨p⟩ =
       ⟨p + utf8Len (List.takeWhile₂ (· = ·) r₁ r₂).1⟩ := by
-  unfold List.takeWhile₂; split <;> unfold firstDiffPosWF.loop
+  unfold List.takeWhile₂; split <;> unfold firstDiffPos.loop
   · next a r₁ b r₂ =>
     rw [
       dif_pos <| by
@@ -380,8 +380,8 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     exact h _ _ _ _ e₁ e₂
 
 theorem firstDiffPos_eq (a b : String) :
-    firstDiffPosWF a b = ⟨utf8Len (List.takeWhile₂ (· = ·) a.1 b.1).1⟩ := by
-  simpa [firstDiffPosWF] using
+    firstDiffPos a b = ⟨utf8Len (List.takeWhile₂ (· = ·) a.1 b.1).1⟩ := by
+  simpa [firstDiffPos] using
     firstDiffPos_loop_eq [] [] a.1 b.1 ((utf8Len a.1).min (utf8Len b.1)) 0 rfl rfl (by simp)
 
 theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
@@ -450,9 +450,9 @@ theorem extract_of_valid (l m r : List Char) :
     apply extract.go₂_append_left; apply Nat.add_comm
 
 theorem splitAux_of_valid (p l m r acc) :
-    splitAuxWF ⟨l ++ m ++ r⟩ p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
+    splitAux ⟨l ++ m ++ r⟩ p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
-  unfold splitAuxWF
+  unfold splitAux
   simp [by simpa using atEnd_of_valid (l ++ m) r]; split
   · subst r; simpa using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
@@ -462,8 +462,8 @@ theorem splitAux_of_valid (p l m r acc) :
     · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
     · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
-theorem split_of_valid (s p) : splitWF s p = (List.splitOnP p s.1).map mk := by
-  simpa [splitWF] using splitAux_of_valid p [] [] s.1 []
+theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
+  simpa [split] using splitAux_of_valid p [] [] s.1 []
 
 -- TODO: splitOn
 
@@ -663,81 +663,81 @@ end Iterator
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
-    offsetOfPosAuxWF ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
-  | l, [], r, n => by unfold offsetOfPosAuxWF; simp
+    offsetOfPosAux ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
+  | l, [], r, n => by unfold offsetOfPosAux; simp
   | l, c::m, r, n => by
-    unfold offsetOfPosAuxWF
+    unfold offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_csize_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp [by simpa using next_of_valid l c (m++r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm, Nat.succ_eq_add_one] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
-theorem offsetOfPos_of_valid (l r) : offsetOfPosWF ⟨l ++ r⟩ ⟨utf8Len l⟩ = l.length := by
+theorem offsetOfPos_of_valid (l r) : offsetOfPos ⟨l ++ r⟩ ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
 theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
-    foldlAuxWF f ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
-  | l, [], r, a => by unfold foldlAuxWF; simp
+    foldlAux f ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
+  | l, [], r, a => by unfold foldlAux; simp
   | l, c::m, r, a => by
-    unfold foldlAuxWF
+    unfold foldlAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
     simp [by simpa using And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
-theorem foldl_eq (f : α → Char → α) (s a) : foldlWF f a s = s.1.foldl f a := by
+theorem foldl_eq (f : α → Char → α) (s a) : foldl f a s = s.1.foldl f a := by
   simpa using foldlAux_of_valid f [] s.1 [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
-    foldrAuxWF f a ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
+    foldrAux f a ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
   rw [← m.reverse_reverse]
-  induction m.reverse generalizing r a with (unfold foldrAuxWF; simp)
+  induction m.reverse generalizing r a with (unfold foldrAux; simp)
   | cons c m IH =>
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
     simp [← Nat.add_assoc, by simpa using prev_of_valid (l++m.reverse) c r]
     simp [by simpa using get_of_valid (l++m.reverse) (c::r)]
     simpa using IH (c::r) (f c a)
 
-theorem foldr_eq (f : Char → α → α) (s a) : foldrWF f a s = s.1.foldr f a := by
+theorem foldr_eq (f : Char → α → α) (s a) : foldr f a s = s.1.foldr f a := by
   simpa using foldrAux_of_valid f [] s.1 [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.anyAux
 theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
-    anyAuxWF ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
-  | l, [], r => by unfold anyAuxWF; simp
+    anyAux ⟨l ++ m ++ r⟩ ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
+  | l, [], r => by unfold anyAux; simp
   | l, c::m, r => by
-    unfold anyAuxWF
+    unfold anyAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
     simp [by simpa using And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
-theorem any_eq (s : String) (p : Char → Bool) : anyWF s p = s.1.any p := by
+theorem any_eq (s : String) (p : Char → Bool) : any s p = s.1.any p := by
   simpa using anyAux_of_valid p [] s.1 []
 
-theorem any_iff (s : String) (p : Char → Bool) : anyWF s p ↔ ∃ c ∈ s.1, p c := by simp [any_eq]
+theorem any_iff (s : String) (p : Char → Bool) : any s p ↔ ∃ c ∈ s.1, p c := by simp [any_eq]
 
-theorem all_eq (s : String) (p : Char → Bool) : allWF s p = s.1.all p := by
-  rw [allWF, any_eq, List.all_eq_not_any_not]
+theorem all_eq (s : String) (p : Char → Bool) : all s p = s.1.all p := by
+  rw [all, any_eq, List.all_eq_not_any_not]
 
-theorem all_iff (s : String) (p : Char → Bool) : allWF s p ↔ ∀ c ∈ s.1, p c := by simp [all_eq]
+theorem all_iff (s : String) (p : Char → Bool) : all s p ↔ ∀ c ∈ s.1, p c := by simp [all_eq]
 
-theorem contains_iff (s : String) (c : Char) : containsWF s c ↔ c ∈ s.1 := by
-  simp [containsWF, any_iff]
+theorem contains_iff (s : String) (c : Char) : contains s c ↔ c ∈ s.1 := by
+  simp [contains, any_iff]
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
-theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAuxWF f ⟨utf8Len l⟩ ⟨l ++ r⟩ = ⟨l ++ r.map f⟩
-  | l, [] => by unfold mapAuxWF; simp
+theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ ⟨l ++ r⟩ = ⟨l ++ r.map f⟩
+  | l, [] => by unfold mapAux; simp
   | l, c::r => by
-    unfold mapAuxWF
+    unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
     simp [by simpa using (⟨
       set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r⟩ : _∧_∧_)]
     simpa using mapAux_of_valid f (l++[f c]) r
 
-theorem map_eq (f : Char → Char) (s) : mapWF f s = ⟨s.1.map f⟩ := by
+theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by
   simpa using mapAux_of_valid f [] s.1
 
 -- TODO: substrEq
@@ -919,32 +919,32 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b,
 
 -- TODO: splitOn
 
-theorem foldl (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldlWF f init = m.foldl f init
-  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.foldlWF, foldlAux_of_valid]
+theorem foldl (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldl f init = m.foldl f init
+  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.foldl, foldlAux_of_valid]
 
-theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldrWF f init = m.foldr f init
-  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.foldrWF, foldrAux_of_valid]
+theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldr f init = m.foldr f init
+  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.foldr, foldrAux_of_valid]
 
-theorem any (f) : ∀ {s}, ValidFor l m r s → s.anyWF f = m.any f
-  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.anyWF, anyAux_of_valid]
+theorem any (f) : ∀ {s}, ValidFor l m r s → s.any f = m.any f
+  | _, ⟨⟩ => by simp [-List.append_assoc, Substring.any, anyAux_of_valid]
 
-theorem all (f) : ∀ {s}, ValidFor l m r s → s.allWF f = m.all f
-  | _, h => by simp [Substring.allWF, h.any, List.all_eq_not_any_not]
+theorem all (f) : ∀ {s}, ValidFor l m r s → s.all f = m.all f
+  | _, h => by simp [Substring.all, h.any, List.all_eq_not_any_not]
 
-theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.containsWF c ↔ c ∈ m)
-  | _, h => by simp [Substring.containsWF, h.any, String.contains]
+theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.contains c ↔ c ∈ m)
+  | _, h => by simp [Substring.contains, h.any, String.contains]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
-    ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhileWF p)
+    ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
-    simp only [Substring.takeWhileWF, takeWhileAux_of_valid]
+    simp only [Substring.takeWhile, takeWhileAux_of_valid]
     refine' .of_eq .. <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
-    ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhileWF p)
+    ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
-    simp only [Substring.dropWhileWF, takeWhileAux_of_valid]
+    simp only [Substring.dropWhile, takeWhileAux_of_valid]
     refine' .of_eq .. <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
@@ -1050,33 +1050,33 @@ theorem toString_extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ →
     have ⟨l', r', h₃⟩ := h₁.extract h₂
     rw [h₃.toString, h₁.toString, ← h₂.toString, toString]
 
-theorem foldl (f) (init : α) : ∀ {s}, Valid s → s.foldlWF f init = s.toString.1.foldl f init
+theorem foldl (f) (init : α) : ∀ {s}, Valid s → s.foldl f init = s.toString.1.foldl f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldl, h.toString]
 
-theorem foldr (f) (init : α) : ∀ {s}, Valid s → s.foldrWF f init = s.toString.1.foldr f init
+theorem foldr (f) (init : α) : ∀ {s}, Valid s → s.foldr f init = s.toString.1.foldr f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldr, h.toString]
 
-theorem any (f) : ∀ {s}, Valid s → s.anyWF f = s.toString.1.any f
+theorem any (f) : ∀ {s}, Valid s → s.any f = s.toString.1.any f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.any, h.toString]
 
-theorem all (f) : ∀ {s}, Valid s → s.allWF f = s.toString.1.all f
+theorem all (f) : ∀ {s}, Valid s → s.all f = s.toString.1.all f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.all, h.toString]
 
-theorem contains (c) : ∀ {s}, Valid s → (s.containsWF c ↔ c ∈ s.toString.1)
+theorem contains (c) : ∀ {s}, Valid s → (s.contains c ↔ c ∈ s.toString.1)
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.contains, h.toString]
 
-theorem takeWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.takeWhileWF p)
+theorem takeWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.takeWhile p)
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; (h.takeWhile _).valid
 
 theorem data_takeWhile (p) : ∀ {s}, Valid s →
-    (s.takeWhileWF p).toString.1 = s.toString.1.takeWhile p
+    (s.takeWhile p).toString.1 = s.toString.1.takeWhile p
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [(h.takeWhile _).toString, h.toString]
 
-theorem dropWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.dropWhileWF p)
+theorem dropWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.dropWhile p)
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; (h.dropWhile _).valid
 
 theorem data_dropWhile (p) : ∀ {s}, Valid s →
-    (s.dropWhileWF p).toString.1 = s.toString.1.dropWhile p
+    (s.dropWhile p).toString.1 = s.toString.1.dropWhile p
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [(h.dropWhile _).toString, h.toString]
 
 -- TODO: takeRightWhile
@@ -1098,16 +1098,16 @@ theorem take_eq (s : String) (n : Nat) : s.take n = ⟨s.1.take n⟩ :=
 
 @[simp] theorem data_take (s : String) (n : Nat) : (s.take n).1 = s.1.take n := by rw [take_eq]
 
-theorem takeWhile_eq (p : Char → Bool) (s : String) : s.takeWhileWF p = ⟨s.1.takeWhile p⟩ :=
+theorem takeWhile_eq (p : Char → Bool) (s : String) : s.takeWhile p = ⟨s.1.takeWhile p⟩ :=
   (s.validFor_toSubstring.takeWhile p).toString
 
 @[simp] theorem data_takeWhile (p : Char → Bool) (s : String) :
-    (s.takeWhileWF p).1 = s.1.takeWhile p := by rw [takeWhile_eq]
+    (s.takeWhile p).1 = s.1.takeWhile p := by rw [takeWhile_eq]
 
-theorem dropWhile_eq (p : Char → Bool) (s : String) : s.dropWhileWF p = ⟨s.1.dropWhile p⟩ :=
+theorem dropWhile_eq (p : Char → Bool) (s : String) : s.dropWhile p = ⟨s.1.dropWhile p⟩ :=
   (s.validFor_toSubstring.dropWhile p).toString
 
 @[simp] theorem data_dropWhile (p : Char → Bool) (s : String) :
-    (s.dropWhileWF p).1 = s.1.dropWhile p := by rw [dropWhile_eq]
+    (s.dropWhile p).1 = s.1.dropWhile p := by rw [dropWhile_eq]
 
 end String
