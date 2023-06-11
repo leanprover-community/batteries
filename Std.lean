@@ -103,6 +103,7 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
