@@ -164,7 +164,7 @@ theorem find?_some_memP {t : RBNode α} (h : x ∈ t.find? cut) : MemP cut t :=
   memP_def.2 ⟨_, find?_some_mem h, find?_some_eq_eq h⟩
 
 theorem Ordered.memP_iff_find? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
-    MemP cut t ↔ ∃ x, x ∈ t.find? cut := by
+    MemP cut t ↔ ∃ x, t.find? cut = some x := by
   refine ⟨fun H => ?_, fun ⟨x, h⟩ => find?_some_memP h⟩
   induction t with simp [find?] at H ⊢
   | nil => cases H
@@ -205,8 +205,8 @@ theorem Ordered.unique [@TransCmp α cmp] (ht : Ordered cmp t)
         ((All_def.1 lx _ hy).trans (All_def.1 xr _ hx)).1
     · exact ihr hr hx hy
 
-theorem Ordered.mem_find? [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t) :
-    x ∈ t.find? cut ↔ x ∈ t ∧ cut x = .eq := by
+theorem Ordered.find?_some [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t) :
+    t.find? cut = some x ↔ x ∈ t ∧ cut x = .eq := by
   refine ⟨fun h => ⟨find?_some_mem h, find?_some_eq_eq h⟩, fun ⟨hx, e⟩ => ?_⟩
   have ⟨y, hy⟩ := ht.memP_iff_find?.1 (memP_def.2 ⟨_, hx, e⟩)
   exact ht.unique hx (find?_some_mem hy) ((IsStrictCut.exact e).trans (find?_some_eq_eq hy)) ▸ hy
@@ -217,7 +217,7 @@ section lowerBound?
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
 theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt) :
-    x ∈ t.lowerBound? cut lb → cut x ≠ .lt := by
+    t.lowerBound? cut lb = some x → cut x ≠ .lt := by
   induction t generalizing lb with
   | nil => exact H
   | node _ _ _ _ ihl ihr =>
@@ -227,11 +227,11 @@ theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt
     · next hv => intro | rfl, e => cases hv.symm.trans e
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
-theorem lowerBound?_le {t : RBNode α} : x ∈ t.lowerBound? cut none → cut x ≠ .lt :=
+theorem lowerBound?_le {t : RBNode α} : t.lowerBound? cut none = some x → cut x ≠ .lt :=
   lowerBound?_le' (fun.)
 
 theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb → p x) :
-    x ∈ t.lowerBound? cut lb → p x := by
+    t.lowerBound? cut lb = some x → p x := by
   induction t generalizing lb with
   | nil => exact H
   | node _ _ _ _ ihl ihr =>
@@ -240,21 +240,21 @@ theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb
     · exact ihr hp.2.2 fun | rfl => hp.1
     · exact fun | rfl => hp.1
 
-theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : x ∈ t.lowerBound? cut none → p x :=
+theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : t.lowerBound? cut none = some x → p x :=
   hp.lowerBound?_lb (fun.)
 
 theorem lowerBound?_mem_lb {t : RBNode α}
-    (h : x ∈ t.lowerBound? cut lb) : x ∈ t ∨ x ∈ lb :=
+    (h : t.lowerBound? cut lb = some x) : x ∈ t ∨ x ∈ lb :=
   All.lowerBound?_lb (p := fun x => x ∈ t ∨ x ∈ lb) (All_def.2 fun _ => .inl) Or.inr h
 
-theorem lowerBound?_mem {t : RBNode α} (h : x ∈ t.lowerBound? cut none) : x ∈ t :=
+theorem lowerBound?_mem {t : RBNode α} (h : t.lowerBound? cut none = some x) : x ∈ t :=
   (lowerBound?_mem_lb h).resolve_right (fun.)
 
-theorem lowerBound?_of_some {t : RBNode α} : ∃ x, x ∈ t.lowerBound? cut (some y) := by
+theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
   simp; induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
 
 theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t) :
-    (∃ x, x ∈ t.lowerBound? cut none) ↔ ∃ x ∈ t, cut x ≠ .lt := by
+    (∃ x, t.lowerBound? cut none = some x) ↔ ∃ x ∈ t, cut x ≠ .lt := by
   refine ⟨fun ⟨x, hx⟩ => ⟨_, lowerBound?_mem hx, lowerBound?_le hx⟩, fun H => ?_⟩
   obtain ⟨x, hx, e⟩ := H
   induction t generalizing x with
@@ -269,8 +269,8 @@ theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Order
     · exact ⟨_, rfl⟩
 
 theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t)
-    (hlb : ∀ {x}, x ∈ lb → t.All (cmpLT cmp x ·)) :
-    x ∈ t.lowerBound? cut lb → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
+    (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
+    t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   induction t generalizing lb with
   | nil => intro.
   | node _ _ _ _ ihl ihr =>
@@ -296,12 +296,12 @@ A statement of the least-ness of the result of `lowerBound?`. If `x` is the retu
 strictly greater than the cut (so there is no exact match, and nothing closer to the cut).
 -/
 theorem Ordered.lowerBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
-    (H : x ∈ t.lowerBound? cut none) (hy : y ∈ t)
+    (H : t.lowerBound? cut none = some x) (hy : y ∈ t)
     (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
   ht.lowerBound?_least_lb (by exact fun.) H hy hx xy
 
 theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
-    t.MemP cut ↔ ∃ x ∈ t.lowerBound? cut none, cut x = .eq := by
+    t.MemP cut ↔ ∃ x, t.lowerBound? cut none = some x ∧ cut x = .eq := by
   refine memP_def.trans ⟨fun ⟨y, hy, ey⟩ => ?_, fun ⟨x, hx, e⟩ => ⟨_, lowerBound?_mem hx, e⟩⟩
   have ⟨x, hx⟩ := ht.lowerBound?_exists.2 ⟨_, hy, fun h => nomatch ey.symm.trans h⟩
   refine ⟨x, hx, ?_⟩; cases ex : cut x
@@ -314,7 +314,7 @@ theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Or
 
 /-- A stronger version of `lowerBound?_least` that holds when the cut is strict. -/
 theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t)
-    (H : x ∈ t.lowerBound? cut none) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt := by
+    (H : t.lowerBound? cut none = some x) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt := by
   refine ⟨fun h => ?_, fun h => OrientedCmp.cmp_eq_gt.1 ?_⟩
   · cases e : cut x
     · cases lowerBound?_le H e
@@ -498,3 +498,122 @@ theorem _root_.Std.RBNode.zoom_toList {t : RBNode α} (eq : t.zoom cut = (t', p'
 theorem insert_toList {p : Path α} :
     (p.insert t v).toList = p.withList (t.setRoot v).toList := by
   simp [insert]; split <;> simp [setRoot]
+
+end Path
+
+theorem insert_toList_zoom {t : RBNode α} (ht : Balanced t c n)
+    (e : zoom (cmp v) t = (t', p)) :
+    (t.insert cmp v).toList = p.withList (t'.setRoot v).toList := by
+  rw [← setBlack_toList, ← Path.zoom_insert ht e, setBlack_toList, Path.insert_toList]
+
+theorem insert_toList_zoom_nil {t : RBNode α} (ht : Balanced t c n)
+    (e : zoom (cmp v) t = (nil, p)) :
+    (t.insert cmp v).toList = p.withList [v] := insert_toList_zoom ht e
+
+theorem exists_insert_toList_zoom_nil {t : RBNode α} (ht : Balanced t c n)
+    (e : zoom (cmp v) t = (nil, p)) :
+    ∃ L R, t.toList = L ++ R ∧ (t.insert cmp v).toList = L ++ v :: R :=
+  ⟨p.listL, p.listR, by simp [← zoom_toList e, insert_toList_zoom_nil ht e]⟩
+
+theorem insert_toList_zoom_node {t : RBNode α} (ht : Balanced t c n)
+    (e : zoom (cmp v) t = (node c' l v' r, p)) :
+    (t.insert cmp v).toList = p.withList (node c l v r).toList := insert_toList_zoom ht e
+
+theorem exists_insert_toList_zoom_node {t : RBNode α} (ht : Balanced t c n)
+    (e : zoom (cmp v) t = (node c' l v' r, p)) :
+    ∃ L R, t.toList = L ++ v' :: R ∧ (t.insert cmp v).toList = L ++ v :: R := by
+  refine ⟨p.listL ++ l.toList, r.toList ++ p.listR, ?_⟩
+  simp [← zoom_toList e, insert_toList_zoom_node ht e]
+
+theorem mem_insert_self {t : RBNode α} (ht : Balanced t c n) : v ∈ t.insert cmp v := by
+  rw [← mem_toList, List.mem_iff_append]
+  exact match e : zoom (cmp v) t with
+  | (nil, p) => let ⟨_, _, _, h⟩ := exists_insert_toList_zoom_nil ht e; ⟨_, _, h⟩
+  | (node .., p) => let ⟨_, _, _, h⟩ := exists_insert_toList_zoom_node ht e; ⟨_, _, h⟩
+
+theorem mem_insert_of_mem {t : RBNode α} (ht : Balanced t c n) (h : v' ∈ t) :
+    v' ∈ t.insert cmp v ∨ cmp v v' = .eq := by
+  match e : zoom (cmp v) t with
+  | (nil, p) =>
+    let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_nil ht e
+    simp [← mem_toList, h₁] at h
+    simp [← mem_toList, h₂]; cases h <;> simp [*]
+  | (node .., p) =>
+    let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_node ht e
+    simp [← mem_toList, h₁] at h
+    simp [← mem_toList, h₂]; rcases h with h|h|h <;> simp [*]
+    exact .inr (Path.zoom_zoomed₁ e)
+
+theorem exists_find?_insert_self [@TransCmp α cmp] [IsCut cmp cut]
+    {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) (hv : cut v = .eq) :
+    ∃ x, (t.insert cmp v).find? cut = some x :=
+  ht₂.insert.memP_iff_find?.1 <| memP_def.2 ⟨_, mem_insert_self ht, hv⟩
+
+theorem find?_insert_self [@TransCmp α cmp] [IsStrictCut cmp cut]
+    {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) (hv : cut v = .eq) :
+    (t.insert cmp v).find? cut = some v :=
+  ht₂.insert.find?_some.2 ⟨mem_insert_self ht, hv⟩
+
+end RBNode
+
+namespace RBSet
+
+@[simp] theorem val_toList {t : RBSet α cmp} : t.1.toList = t.toList := rfl
+
+@[simp] theorem mkRBSet_eq : mkRBSet α cmp = ∅ := rfl
+@[simp] theorem empty_eq : @RBSet.empty α cmp = ∅ := rfl
+@[simp] theorem default_eq : (default : RBSet α cmp) = ∅ := rfl
+@[simp] theorem empty_toList : toList (∅ : RBSet α cmp) = [] := rfl
+@[simp] theorem single_toList : toList (single a : RBSet α cmp) = [a] := rfl
+
+theorem mem_toList {t : RBSet α cmp} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
+
+theorem mem_iff_mem_toList {t : RBSet α cmp} : x ∈ t ↔ ∃ y ∈ toList t, cmp x y = .eq :=
+  RBNode.mem_def.trans <| by simp [mem_toList]
+
+theorem foldl_eq_foldl_toList {t : RBSet α cmp} : t.foldl f init = t.toList.foldl f init :=
+  RBNode.foldl_eq_foldl_toList
+
+theorem foldr_eq_foldr_toList {t : RBSet α cmp} : t.foldr f init = t.toList.foldr f init :=
+  RBNode.foldr_eq_foldr_toList
+
+theorem foldlM_eq_foldlM_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
+    t.foldlM (m := m) f init = t.toList.foldlM f init := RBNode.foldlM_eq_foldlM_toList
+
+theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
+    forIn (m := m) t init f = forIn t.toList init f := RBNode.forIn_eq_forIn_toList
+
+theorem toStream_eq {t : RBSet α cmp} : toStream t = t.1.toStream .nil := rfl
+
+@[simp] theorem toStream_toList {t : RBSet α cmp} : (toStream t).toList = t.toList := by
+  simp [toStream_eq]
+
+theorem toList_sorted {t : RBSet α cmp} : t.toList.Pairwise (RBNode.cmpLT cmp) :=
+  t.2.out.1.toList_sorted
+
+theorem find?_some_eq_eq {t : RBSet α cmp} : y ∈ t.find? x → cmp x y = .eq :=
+  RBNode.find?_some_eq_eq
+
+theorem find?_some_mem_toList {t : RBSet α cmp} (h : y ∈ t.find? x) : y ∈ toList t :=
+  mem_toList.2 <| RBNode.find?_some_mem h
+
+theorem find?_some_mem {t : RBSet α cmp} (h : y ∈ t.find? x) : x ∈ t :=
+  RBNode.find?_some_memP h
+
+theorem mem_toList_unique [@TransCmp α cmp] {t : RBSet α cmp}
+    (hx : x ∈ toList t) (hy : y ∈ toList t) (e : cmp x y = .eq) : x = y :=
+  t.2.out.1.unique (mem_toList.1 hx) (mem_toList.1 hy) e
+
+theorem find?_some [@TransCmp α cmp] {t : RBSet α cmp} :
+    t.find? x = some y ↔ y ∈ toList t ∧ cmp x y = .eq :=
+  t.2.out.1.find?_some.trans <| by simp [mem_toList]
+
+theorem mem_iff_find? [@TransCmp α cmp] {t : RBSet α cmp} :
+    x ∈ t ↔ ∃ y, t.find? x = some y := t.2.out.1.memP_iff_find?
+
+@[simp] theorem contains_iff [@TransCmp α cmp] {t : RBSet α cmp} :
+    t.contains x ↔ x ∈ t := Option.isSome_iff_exists.trans mem_iff_find?.symm
+
+instance [@TransCmp α cmp] {t : RBSet α cmp} : Decidable (x ∈ t) := decidable_of_iff _ contains_iff
+
+end RBSet
