@@ -230,7 +230,7 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
 
-protected theorem mul_cross_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
+protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
   rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
 protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
@@ -794,7 +794,7 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
-/- pow -/
+/-! ### pow -/
 
 theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
   rw [Nat.pow_succ, Nat.mul_comm]
@@ -844,7 +844,7 @@ theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Na
 theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
-  | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_cross_comm, ih]
+  | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
 
 /-! ### log2 -/
 
