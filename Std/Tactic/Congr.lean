@@ -105,8 +105,8 @@ and `congr with x` (or `congr; ext x`) would produce
 x : α ⊢ f x + 3 = g x + 3
 ```
 -/
-elab (name := rcongr) "rcongr" cfg:(Parser.Tactic.config)? ps:(ppSpace colGt rintroPat)* :
+elab (name := rcongr) "rcongr" cfg:((Parser.Tactic.config)?) ps:(ppSpace colGt rintroPat)* :
     tactic => do
-  let gs ← rcongrCore (← getMainGoal) (← Congr.elabConfig (mkOptionalNode cfg))
+  let gs ← rcongrCore (← getMainGoal) (← Congr.elabConfig cfg)
     (RCases.expandRIntroPats ps).toList #[]
   replaceMainGoal gs.toList
