@@ -77,6 +77,6 @@ example (f : Empty → Empty) : f = f := by
   ext ⟨⟩
 
 -- Check that `ext` uses `whnf` to look through the heads of definitions
--- when indexing applicable theorems.
+-- when indexing applicable theorems. (Such theorems are used after all theorems found directly.)
 def PUnit' := PUnit
 example (p q : PUnit') : p = q := by ext

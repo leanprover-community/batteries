@@ -20,29 +20,27 @@ structure ExtTheorem where
   priority : Nat
   /-- Key in the discrimination tree. -/
   keys : Array (DiscrTree.Key true)
-  /-- Was the key constructed from `← whnf ty` rather than `ty`. -/
-  whnf : Bool
+  /-- Key in the discrimination tree, after running `whnf`. -/
+  whnf_keys : Array (DiscrTree.Key true)
   deriving Inhabited, Repr, BEq, Hashable
 
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension :
-    SimpleScopedEnvExtension ExtTheorem (DiscrTree ExtTheorem true) ←
+    SimpleScopedEnvExtension ExtTheorem (DiscrTree ExtTheorem true × DiscrTree ExtTheorem true) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt thm => dt.insertCore thm.keys thm
-    initial := {}
+    addEntry := fun ⟨dt₁, dt₂⟩ thm =>
+      ⟨dt₁.insertCore thm.keys thm, dt₂.insertCore thm.whnf_keys thm⟩
+    initial := ⟨{}, {}⟩
   }
 
 /-- Get the list of `@[ext]` lemmas corresponding to the key `ty`,
 ordered from high priority to low. -/
-@[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
+@[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) := do
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
-  return ((← (extExtension.getState (← getEnv)).getMatch ty)
-    |>.filter (!·.whnf)
-    |>.insertionSort (·.priority < ·.priority) |>.reverse) ++
-  ((← (extExtension.getState (← getEnv)).getMatch (← whnf ty))
-    |>.filter (·.whnf)
-    |>.insertionSort (·.priority < ·.priority) |>.reverse)
+  let ⟨dt₁, dt₂⟩ := extExtension.getState (← getEnv)
+  return ((← dt₁.getMatch ty) |>.insertionSort (·.priority < ·.priority) |>.reverse) ++
+    ((← dt₂.getMatch (← whnf ty)) |>.insertionSort (·.priority < ·.priority) |>.reverse)
 
 /-- Registers an extensionality lemma.
 
@@ -76,6 +74,5 @@ initialize registerBuiltinAttribute {
       let whnf_keys ← withReducible <| DiscrTree.mkPath (← whnf ty)
       let priority ← liftCommandElabM do Elab.liftMacroM do
         evalPrio (prio.getD (← `(prio| default)))
-      extExtension.add {declName, keys, priority, whnf := false} kind
-      extExtension.add {declName, keys := whnf_keys, priority, whnf := true} kind
+      extExtension.add {declName, keys, whnf_keys, priority} kind
 }
