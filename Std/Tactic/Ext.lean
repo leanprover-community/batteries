@@ -204,3 +204,5 @@ attribute [ext] funext propext
 
 @[ext] protected theorem PUnit.ext (x y : PUnit) : x = y := rfl
 protected theorem Unit.ext (x y : Unit) : x = y := rfl
+
+example (p q : PUnit) : p = q := by ext

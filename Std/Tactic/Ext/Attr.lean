@@ -35,7 +35,7 @@ ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
-  return (← (extExtension.getState (← getEnv)).getMatch ty)
+  return (← (extExtension.getState (← getEnv)).getMatch (← whnf ty))
     |>.insertionSort (·.priority < ·.priority) |>.reverse
 
 /-- Registers an extensionality lemma.
@@ -66,7 +66,7 @@ initialize registerBuiltinAttribute {
         "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
-      let keys ← withReducible <| DiscrTree.mkPath ty
+      let keys ← withReducible <| DiscrTree.mkPath (← whnf ty)
       let priority ← liftCommandElabM do Elab.liftMacroM do
         evalPrio (prio.getD (← `(prio| default)))
       extExtension.add {declName, keys, priority} kind
