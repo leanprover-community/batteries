@@ -75,3 +75,8 @@ example (f : ℕ × (ℕ → ℕ)) : f = f := by
 
 example (f : Empty → Empty) : f = f := by
   ext ⟨⟩
+
+-- Check that `ext` uses `whnf` to look through the heads of definitions
+-- when indexing applicable theorems.
+def PUnit' := PUnit
+example (p q : PUnit') : p = q := by ext

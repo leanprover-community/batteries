@@ -20,6 +20,8 @@ structure ExtTheorem where
   priority : Nat
   /-- Key in the discrimination tree. -/
   keys : Array (DiscrTree.Key true)
+  /-- Was the key constructed from `← whnf ty` rather than `ty`. -/
+  whnf : Bool
   deriving Inhabited, Repr, BEq, Hashable
 
 /-- The environment extension to track `@[ext]` lemmas. -/
@@ -35,8 +37,12 @@ ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
-  return (← (extExtension.getState (← getEnv)).getMatch (← whnf ty))
-    |>.insertionSort (·.priority < ·.priority) |>.reverse
+  return ((← (extExtension.getState (← getEnv)).getMatch ty)
+    |>.filter (!·.whnf)
+    |>.insertionSort (·.priority < ·.priority) |>.reverse) ++
+  ((← (extExtension.getState (← getEnv)).getMatch (← whnf ty))
+    |>.filter (·.whnf)
+    |>.insertionSort (·.priority < ·.priority) |>.reverse)
 
 /-- Registers an extensionality lemma.
 
@@ -66,8 +72,10 @@ initialize registerBuiltinAttribute {
         "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
-      let keys ← withReducible <| DiscrTree.mkPath (← whnf ty)
+      let keys ← withReducible <| DiscrTree.mkPath ty
+      let whnf_keys ← withReducible <| DiscrTree.mkPath (← whnf ty)
       let priority ← liftCommandElabM do Elab.liftMacroM do
         evalPrio (prio.getD (← `(prio| default)))
-      extExtension.add {declName, keys, priority} kind
+      extExtension.add {declName, keys, priority, whnf := false} kind
+      extExtension.add {declName, keys := whnf_keys, priority, whnf := true} kind
 }
