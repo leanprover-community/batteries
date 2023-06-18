@@ -75,3 +75,16 @@ example (f : ℕ × (ℕ → ℕ)) : f = f := by
 
 example (f : Empty → Empty) : f = f := by
   ext ⟨⟩
+
+@[ext] theorem ext_intros {n m : Nat} (w : ∀ n m : Nat, n = m) : n = m := by apply w
+
+example : 3 = 7 := by
+  ext : 1
+  rename_i n m
+  guard_target = n = m
+  admit
+
+example : 3 = 7 := by
+  ext n m : 1
+  guard_target = n = m
+  admit
