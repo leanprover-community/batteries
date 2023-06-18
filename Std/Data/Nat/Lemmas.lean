@@ -811,37 +811,37 @@ theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.on
 
 attribute [simp] Nat.pow_zero
 
-theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
+protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
   match n with
   | 0 => contradiction
   | n+1 => rw [Nat.pow_succ, Nat.mul_zero]
 
-@[simp] theorem one_pow (n : Nat) : 1 ^ n = 1 := by
+@[simp] protected theorem one_pow (n : Nat) : 1 ^ n = 1 := by
   induction n with
   | zero => rfl
   | succ _ ih => rw [Nat.pow_succ, Nat.mul_one, ih]
 
-@[simp] theorem pow_one (a : Nat) : a ^ 1 = a := by rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
+@[simp] protected theorem pow_one (a : Nat) : a ^ 1 = a := by rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
 
-theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
+protected theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
 
-theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
+protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
   induction n with
   | zero => rw [Nat.add_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.add_succ, Nat.pow_succ, Nat.pow_succ, ih, Nat.mul_assoc]
 
-theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by rw [←Nat.pow_add, Nat.add_comm]
+protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by rw [←Nat.pow_add, Nat.add_comm]
 
-theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
+protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
   induction n with
   | zero => rw [Nat.mul_zero, Nat.pow_zero, Nat.pow_zero]
   | succ _ ih => rw [Nat.mul_succ, Nat.pow_add, Nat.pow_succ, ih]
 
-theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.mul_comm]
+protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.mul_comm]
 
-theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.pow_mul']
+protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.pow_mul']
 
-theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
+protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
