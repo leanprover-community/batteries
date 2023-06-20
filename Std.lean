@@ -85,6 +85,7 @@ import Std.Linter.UnreachableTactic
 import Std.Logic
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
+import Std.Tactic.Case
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Ext
