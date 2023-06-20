@@ -19,6 +19,8 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Merge
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.BinomialHeap.Basic
+import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Lemmas
