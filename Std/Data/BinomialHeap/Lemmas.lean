@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 -/
 import Std.Data.BinomialHeap.Basic
 
-namespace Std.BinomialHeapImp
+namespace Std.BinomialHeap
+namespace Imp
 
 theorem Heap.findMin_val : ((s : Heap α).findMin le k res).val = s.headD le res.val :=
   match s with
@@ -17,18 +18,18 @@ theorem Heap.deleteMin_fst : ((s : Heap α).deleteMin le).map (·.1) = s.head? l
   | .nil => rfl
   | .cons r a c s => by simp only [deleteMin, findMin_val, Option.map, head?]
 
-@[simp] theorem HeapNode.WellFormed.realSize_eq :
-    ∀ {n} {s : HeapNode α}, s.WellFormed le a n → s.realSize + 1 = 2 ^ n
+@[simp] theorem HeapNode.WF.realSize_eq :
+    ∀ {n} {s : HeapNode α}, s.WF le a n → s.realSize + 1 = 2 ^ n
   | _, .nil, rfl => rfl
   | _, .node .., ⟨_, rfl, _, c, s⟩ => by
     rw [realSize, realSize_eq c, Nat.pow_succ, Nat.mul_succ]
     simp [Nat.add_assoc, realSize_eq s]
 
-@[simp] theorem Heap.WellFormed.size_eq :
-    ∀ {s : Heap α}, s.WellFormed le n → s.size = s.realSize
+@[simp] theorem Heap.WF.size_eq :
+    ∀ {s : Heap α}, s.WF le n → s.size = s.realSize
   | .nil, _ => rfl
   | .cons .., ⟨_, h₁, h₂⟩ => by
     simp [size, Nat.shiftLeft, size_eq h₂, Nat.pow_succ, Nat.mul_succ]
     simp [Nat.add_assoc, Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
 
-end BinomialHeapImp
+end Imp

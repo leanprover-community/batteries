@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jannis Limperg, Mario Carneiro
 -/
 import Std.Classes.Order
+import Std.Control.ForInStep.Basic
 import Std.Data.Nat.Lemmas
-import Std.Tactic.NoMatch
 
-namespace Std.BinomialHeapImp
+namespace Std
+namespace BinomialHeap
+namespace Imp
 
 /--
 A `HeapNode` is one of the internal nodes of the binomial heap.
@@ -45,11 +47,23 @@ def HeapNode.singleton (a : α) : HeapNode α := .node a .nil .nil
 `O(log n)`. The rank, or the number of trees in the forest.
 It is also the depth of the forest.
 -/
-@[inline] def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
+def HeapNode.rank : HeapNode α → Nat
+  | .nil => 0
+  | .node _ _ s => s.rank + 1
+
+/-- Tail-recursive version of `HeapNode.rank`. -/
+@[inline] private def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
   /-- Computes `s.rank + r` -/
   go : HeapNode α → Nat → Nat
   | .nil, r => r
   | .node _ _ s, r => go s (r + 1)
+
+@[csimp] private theorem HeapNode.rankTR_eq : @rankTR = @rank := by
+  funext α s; exact go s 0
+where
+  go {α} : ∀ s n, @rankTR.go α s n = rank s + n
+  | .nil, _ => (Nat.zero_add ..).symm
+  | .node .., _ => by simp_arith only [rankTR.go, go, rank]
 
 /--
 A `Heap` is the top level structure in a binomial heap.
@@ -75,18 +89,18 @@ Prefer `Heap.size`, which is the same for well formed heaps.
 /-- `O(log n)`. The number of elements in the heap. -/
 def Heap.size : Heap α → Nat
   | .nil => 0
-  | .cons r _ _ s => 1 <<< r + s.realSize
+  | .cons r _ _ s => 1 <<< r + s.size
 
 /-- `O(1)`. Is the heap empty? -/
-def Heap.isEmpty : Heap α → Bool
+@[inline] def Heap.isEmpty : Heap α → Bool
   | .nil => true
   | _    => false
 
 /-- `O(1)`. The heap containing a single value `a`. -/
-def Heap.singleton (a : α) : Heap α := .cons 0 a .nil .nil
+@[inline] def Heap.singleton (a : α) : Heap α := .cons 0 a .nil .nil
 
 /-- `O(1)`. Auxiliary for `Heap.merge`: Is the minimum rank in `Heap` strictly larger than `n`? -/
-@[simp] def Heap.rankGT : Heap α → Nat → Prop
+def Heap.rankGT : Heap α → Nat → Prop
   | .nil, _ => True
   | .cons r .., n => n < r
 
@@ -104,7 +118,7 @@ instance : Decidable (Heap.rankGT s n) :=
 `O(1)`. Auxiliary for `Heap.merge`: combines two heap nodes of the same rank
 into one with the next larger rank.
 -/
-@[specialize] def combine (le : α → α → Bool) (a₁ a₂ : α) (n₁ n₂ : HeapNode α) : α × HeapNode α :=
+@[inline] def combine (le : α → α → Bool) (a₁ a₂ : α) (n₁ n₂ : HeapNode α) : α × HeapNode α :=
   if le a₁ a₂ then (a₁, .node a₂ n₂ n₁) else (a₂, .node a₁ n₁ n₂)
 
 /--
@@ -127,13 +141,12 @@ by rank and `merge` maintains this invariant.
         then merge le t₁ (.cons r a n t₂)
         else .cons r a n (merge le t₁ t₂)
 termination_by _ s₁ s₂ => s₁.length + s₂.length
-decreasing_by simp_wf; simp_arith [*]
 
 /--
 `O(log n)`. Convert a `HeapNode` to a `Heap` by reversing the order of the nodes
 along the `sibling` spine.
 -/
-def HeapNode.toHeap (s : HeapNode α) : Heap α := go s s.rankTR .nil where
+def HeapNode.toHeap (s : HeapNode α) : Heap α := go s s.rank .nil where
   /-- Computes `s.toHeap ++ res` tail-recursively, assuming `n = s.rank`. -/
   go : HeapNode α → Nat → Heap α → Heap α
   | .nil, _, res => res
@@ -188,34 +201,32 @@ def Heap.deleteMin (le : α → α → Bool) : Heap α → Option (α × Heap α
   deleteMin le h |>.map (·.snd)
 
 /-- `O(log n)`. Remove the minimum element of the heap. -/
-@[inline] def Heap.tail (le : α → α → Bool) (h : Heap α) : Heap α :=
-  tail? le h |>.getD .nil
+@[inline] def Heap.tail (le : α → α → Bool) (h : Heap α) : Heap α := tail? le h |>.getD .nil
 
 theorem Heap.realSize_merge (le) (s₁ s₂ : Heap α) :
     (s₁.merge le s₂).realSize = s₁.realSize + s₂.realSize := by
   unfold merge; split
   · simp
   · simp
-  · rename_i r₁ a₁ n₁ t₁ r₂ a₂ n₂ t₂
+  · next r₁ a₁ n₁ t₁ r₂ a₂ n₂ t₂ =>
     have IH₁ r a n := realSize_merge le t₁ (cons r a n t₂)
     have IH₂ r a n := realSize_merge le (cons r a n t₁) t₂
     have IH₃ := realSize_merge le t₁ t₂
-    split; { simp [IH₁, Nat.add_assoc] }
-    split; { simp [IH₂, Nat.add_assoc, Nat.add_left_comm] }
+    split; · simp [IH₁, Nat.add_assoc]
+    split; · simp [IH₂, Nat.add_assoc, Nat.add_left_comm]
     split; simp only; rename_i a n eq
     have : n.realSize = n₁.realSize + 1 + n₂.realSize := by
       rw [combine] at eq; split at eq <;> cases eq <;>
         simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
     split <;> split <;> simp [IH₁, IH₂, IH₃, this, Nat.add_assoc, Nat.add_left_comm]
 termination_by _ => s₁.length + s₂.length
-decreasing_by simp_wf; simp_arith [*]
 
 private def FindMin.HasSize (res : FindMin α) (n : Nat) : Prop :=
   ∃ m,
     (∀ s, (res.before s).realSize = m + s.realSize) ∧
     n = m + res.node.realSize + res.next.realSize + 1
 
-theorem Heap.realSize_findMin {s : Heap α}
+private theorem Heap.realSize_findMin {s : Heap α}
     (m) (hk : ∀ s, (k s).realSize = m + s.realSize)
     (eq : n = m + s.realSize) (hres : res.HasSize n) :
     (s.findMin le k res).HasSize n :=
@@ -225,8 +236,9 @@ theorem Heap.realSize_findMin {s : Heap α}
     simp [findMin]
     refine realSize_findMin (m + c.realSize + 1)
       (by simp [hk, Nat.add_assoc]) (by simp [eq, Nat.add_assoc]) ?_
-    split; { exact hres }
-    exact ⟨m, hk, by simp [eq, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]⟩
+    split
+    · exact hres
+    · exact ⟨m, hk, by simp [eq, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]⟩
 
 theorem HeapNode.realSize_toHeap (s : HeapNode α) : s.toHeap.realSize = s.realSize := go s where
   go {n res} : ∀ s : HeapNode α, (toHeap.go s n res).realSize = s.realSize + res.realSize
@@ -265,9 +277,9 @@ by repeatedly pulling the minimum element out of the heap.
     (init : β) (f : β → α → m β) : m β :=
   match eq : s.deleteMin le with
   | none => pure init
-  | some (hd, tl) =>
+  | some (hd, tl) => do
     have : tl.realSize < s.realSize := by simp_arith [Heap.realSize_deleteMin eq]
-    do foldM le tl (← f init hd) f
+    foldM le tl (← f init hd) f
 termination_by _ => s.realSize
 
 /--
@@ -318,10 +330,9 @@ It asserts that:
 * When interpreting `child` and `sibling` as left and right children of a binary tree,
   it is a perfect binary tree with depth `r`
 -/
-def HeapNode.WellFormed (le : α → α → Bool) (a : α) : HeapNode α → Nat → Prop
+def HeapNode.WF (le : α → α → Bool) (a : α) : HeapNode α → Nat → Prop
   | .nil, r => r = 0
-  | .node b c s, r => ∃ r', r = r' + 1 ∧ (∀ [TotalBLE le], le a b) ∧
-    c.WellFormed le b r' ∧ s.WellFormed le a r'
+  | .node b c s, r => ∃ r', r = r' + 1 ∧ (∀ [TotalBLE le], le a b) ∧ c.WF le b r' ∧ s.WF le a r'
 
 /--
 The well formedness predicate for a binomial heap.
@@ -329,40 +340,36 @@ It asserts that:
 * It consists of a list of well formed trees with the specified ranks
 * The ranks are in strictly increasing order, and all are at least `n`
 -/
-def Heap.WellFormed (le : α → α → Bool) (n : Nat) : Heap α → Prop
+def Heap.WF (le : α → α → Bool) (n : Nat) : Heap α → Prop
   | .nil => True
-  | .cons r a c s => n ≤ r ∧ c.WellFormed le a r ∧ s.WellFormed le (r+1)
+  | .cons r a c s => n ≤ r ∧ c.WF le a r ∧ s.WF le (r+1)
 
-theorem Heap.WellFormed.nil : Heap.nil.WellFormed le n := trivial
+theorem Heap.WF.nil : Heap.nil.WF le n := trivial
 
-theorem Heap.WellFormed.singleton : (Heap.singleton a).WellFormed le 0 := ⟨by decide, rfl, ⟨⟩⟩
+theorem Heap.WF.singleton : (Heap.singleton a).WF le 0 := ⟨by decide, rfl, ⟨⟩⟩
 
-theorem Heap.WellFormed.of_rankGT
-  (hlt : s.rankGT n) (h : (s : Heap _).WellFormed le n') : s.WellFormed le (n+1) :=
+theorem Heap.WF.of_rankGT (hlt : s.rankGT n) (h : Heap.WF le n' s) : s.WF le (n+1) :=
   match s with
   | .nil => trivial
   | .cons .. => let ⟨_, h₂, h₃⟩ := h; ⟨hlt, h₂, h₃⟩
 
-theorem Heap.WellFormed.of_le
-    (hle : n ≤ n') (h : (s : Heap _).WellFormed le n') : s.WellFormed le n :=
+theorem Heap.WF.of_le (hle : n ≤ n') (h : Heap.WF le n' s) : s.WF le n :=
   match s with
   | .nil => trivial
   | .cons .. => let ⟨h₁, h₂, h₃⟩ := h; ⟨Nat.le_trans hle h₁, h₂, h₃⟩
 
-theorem Heap.rankGT.le_trans (h : Heap.rankGT s n) (h' : n' ≤ n) : s.rankGT n' :=
+theorem Heap.rankGT.of_le (h : Heap.rankGT s n) (h' : n' ≤ n) : s.rankGT n' :=
   match s with
   | .nil => trivial
   | .cons .. => Nat.lt_of_le_of_lt h' h
 
-theorem Heap.WellFormed.rankGT (h : Heap.WellFormed lt (n+1) s) : s.rankGT n :=
+theorem Heap.WF.rankGT (h : Heap.WF lt (n+1) s) : s.rankGT n :=
   match s with
   | .nil => trivial
   | .cons .. => Nat.lt_of_succ_le h.1
 
-theorem Heap.WellFormed.merge'
-    (h₁ : s₁.WellFormed le n) (h₂ : s₂.WellFormed le n) :
-    (merge le s₁ s₂).WellFormed le n ∧
-    ((s₁.rankGT n ↔ s₂.rankGT n) → (merge le s₁ s₂).rankGT n) := by
+theorem Heap.WF.merge' (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
+    (merge le s₁ s₂).WF le n ∧ ((s₁.rankGT n ↔ s₂.rankGT n) → (merge le s₁ s₂).rankGT n) := by
   unfold merge; split
   · exact ⟨h₂, fun h => h.1 h₁⟩
   · exact ⟨h₁, fun h => h.2 h₂⟩
@@ -377,7 +384,7 @@ theorem Heap.WellFormed.merge'
       exact h.1 <| Nat.lt_of_le_of_lt hr₂ lt₂
     cases Nat.le_antisymm (Nat.ge_of_not_lt lt₂) (Nat.ge_of_not_lt lt₁)
     split; rename_i a n eq
-    have : n.WellFormed le a (r₁+1) := by
+    have : n.WF le a (r₁+1) := by
       unfold combine at eq; split at eq <;> cases eq <;> rename_i h
       · exact ⟨r₁, rfl, h, hn₂, hn₁⟩
       · exact ⟨r₁, rfl, TotalBLE.total.resolve_left h, hn₁, hn₂⟩
@@ -388,45 +395,26 @@ theorem Heap.WellFormed.merge'
     · let ⟨ih₁, ih₂⟩ := merge' (s₁ := .cons ..)
         ⟨Nat.le_succ_of_le hr₁, this, ht₁.of_rankGT hl₁⟩
         (ht₂.of_le (Nat.le_succ_of_le hr₁))
-      exact ⟨ih₁, fun _ => ih₂ ⟨fun _ => ht₂.rankGT.le_trans hr₁, fun h => Nat.lt_succ_of_le hr₁⟩⟩
+      exact ⟨ih₁, fun _ => ih₂ ⟨fun _ => ht₂.rankGT.of_le hr₁, fun h => Nat.lt_succ_of_le hr₁⟩⟩
     · let ⟨ih₁, ih₂⟩ := merge' (s₂ := .cons ..) (ht₁.of_le (Nat.le_succ_of_le hr₁))
         ⟨Nat.le_succ_of_le hr₁, this, ht₂.of_rankGT hl₂⟩
-      exact ⟨ih₁, fun _ => ih₂ ⟨fun h => Nat.lt_succ_of_le hr₁, fun _ => ht₁.rankGT.le_trans hr₁⟩⟩
+      exact ⟨ih₁, fun _ => ih₂ ⟨fun h => Nat.lt_succ_of_le hr₁, fun _ => ht₁.rankGT.of_le hr₁⟩⟩
     · let ⟨ih₁, ih₂⟩ := merge' ht₁ ht₂
       exact ⟨⟨Nat.le_succ_of_le hr₁, this, ih₁.of_rankGT (ih₂ (iff_of_false hl₁ hl₂))⟩,
         fun _ => Nat.lt_succ_of_le hr₁⟩
 termination_by _ => s₁.length + s₂.length
-decreasing_by simp_wf; simp_arith [*]
 
-theorem Heap.WellFormed.merge
-    (h₁ : s₁.WellFormed le n) (h₂ : s₂.WellFormed le n) :
-    (merge le s₁ s₂).WellFormed le n := (merge' h₁ h₂).1
+theorem Heap.WF.merge (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) : (merge le s₁ s₂).WF le n :=
+  (merge' h₁ h₂).1
 
-/--
-`O(log n)`. The rank, or the number of trees in the forest.
-This is the same as `rankTR` but it is not tail recursive.
--/
-@[simp] def HeapNode.rank : HeapNode α → Nat
-  | .nil => 0
-  | .node _ _ s => s.rank + 1
-
-@[simp] theorem HeapNode.rankTR_eq (s : HeapNode α) : s.rankTR = s.rank := go s 0 where
-  go : ∀ s n, rankTR.go s n = rank s + n
-  | .nil, _ => (Nat.zero_add ..).symm
-  | .node .., _ => by simp_arith only [rankTR.go, go, rank]
-
-@[simp] theorem HeapNode.WellFormed.rank_eq :
-    ∀ {n} {s : HeapNode α}, s.WellFormed le a n → s.rank = n
+theorem HeapNode.WF.rank_eq : ∀ {n} {s : HeapNode α}, s.WF le a n → s.rank = n
   | _, .nil, h => h.symm
   | _, .node .., ⟨_, rfl, _, _, h⟩ => congrArg Nat.succ (rank_eq h)
 
-theorem HeapNode.WellFormed.toHeap {s : HeapNode α}
-    (h : s.WellFormed le a n) : s.toHeap.WellFormed le 0 := by
-  rw [toHeap, rankTR_eq]
-  exact go h trivial
+theorem HeapNode.WF.toHeap {s : HeapNode α} (h : s.WF le a n) : s.toHeap.WF le 0 :=
+  go h trivial
 where
-  go {res} : ∀ {n s}, s.WellFormed le a n → res.WellFormed le s.rank →
-    (HeapNode.toHeap.go s s.rank res).WellFormed le 0
+  go {res} : ∀ {n s}, s.WF le a n → res.WF le s.rank → (HeapNode.toHeap.go s s.rank res).WF le 0
   | _, .nil, _, hr => hr
   | _, .node a c s, ⟨n, rfl, _, h, h'⟩, hr =>
     go (s := s) h' ⟨Nat.le_refl _, by rw [← h'.rank_eq] at h; exact h, hr⟩
@@ -436,59 +424,56 @@ The well formedness predicate for a `FindMin` value.
 This is not actually a predicate, as it contains an additional data value
 `rank` corresponding to the rank of the returned node, which is omitted from `findMin`.
 -/
-structure FindMin.WellFormed (le : α → α → Bool) (res : FindMin α) where
+structure FindMin.WF (le : α → α → Bool) (res : FindMin α) where
   /-- The rank of the minimum element -/
   rank : Nat
   /-- `before` is a difference list which can be appended to a binomial heap
   with ranks at least `rank` to produce another well formed heap. -/
-  before : ∀ {s}, s.WellFormed le rank → (res.before s).WellFormed le 0
+  before : ∀ {s}, s.WF le rank → (res.before s).WF le 0
   /-- `node` is a well formed forest of rank `rank` with `val` at the root. -/
-  node : res.node.WellFormed le res.val rank
+  node : res.node.WF le res.val rank
   /-- `next` is a binomial heap with ranks above `rank + 1`. -/
-  next : res.next.WellFormed le (rank + 1)
+  next : res.next.WF le (rank + 1)
 
-theorem Heap.WellFormed.findMin {s : Heap α}
-    (h : s.WellFormed le n) (hr : res.WellFormed le)
-    (hk : ∀ {s}, s.WellFormed le n → (k s).WellFormed le 0) :
-    Nonempty (((s : Heap α).findMin le k res).WellFormed le) :=
+/-- The conditions under which `findMin` is well-formed. -/
+def Heap.WF.findMin {s : Heap α} (h : s.WF le n) (hr : res.WF le)
+    (hk : ∀ {s}, s.WF le n → (k s).WF le 0) : ((s : Heap α).findMin le k res).WF le :=
   match s with
-  | .nil => ⟨hr⟩
+  | .nil => hr
   | .cons r a c s => by
     let ⟨h₁, h₂, h₃⟩ := h
-    simp [Heap.findMin]; split
-    · exact findMin h₃ hr (fun h => hk ⟨h₁, h₂, h⟩)
-    · exact findMin h₃ ⟨_, fun h => hk (h.of_le h₁), h₂, h₃⟩ (fun h => hk ⟨h₁, h₂, h⟩)
+    simp [Heap.findMin]
+    cases le res.val a with
+    | true  => exact findMin h₃ hr (fun h => hk ⟨h₁, h₂, h⟩)
+    | false => exact findMin h₃ ⟨_, fun h => hk (h.of_le h₁), h₂, h₃⟩ (fun h => hk ⟨h₁, h₂, h⟩)
 
-theorem Heap.WellFormed.deleteMin {s : Heap α}
-    (h : s.WellFormed le n) (eq : s.deleteMin le = some (a, s')) : s'.WellFormed le 0 := by
+theorem Heap.WF.deleteMin {s : Heap α}
+    (h : s.WF le n) (eq : s.deleteMin le = some (a, s')) : s'.WF le 0 := by
   cases s with cases eq | cons r a c s => ?_
-  have : Nonempty ((s.findMin le (cons r a c) ⟨id, a, c, s⟩).WellFormed le) :=
+  have : (s.findMin le (cons r a c) ⟨id, a, c, s⟩).WF le :=
     let ⟨_, h₂, h₃⟩ := h
     h₃.findMin ⟨_, fun h => h.of_le (Nat.zero_le _), h₂, h₃⟩
       fun h => ⟨Nat.zero_le _, h₂, h⟩
   revert this
-  match s.findMin le (cons r a c) ⟨id, a, c, s⟩ with
-  | { before, val, node, next } =>
-    intro ⟨⟨_, hk, ih₁, ih₂⟩⟩
-    exact ih₁.toHeap.merge <| hk (ih₂.of_le (Nat.le_succ _))
+  let { before, val, node, next } := s.findMin le (cons r a c) ⟨id, a, c, s⟩
+  intro ⟨_, hk, ih₁, ih₂⟩
+  exact ih₁.toHeap.merge <| hk (ih₂.of_le (Nat.le_succ _))
 
-theorem Heap.WellFormed.tail?
-    (hwf : (s : Heap α).WellFormed le n) : s.tail? le = some tl →
-  tl.WellFormed le 0 := by
+theorem Heap.WF.tail? (hwf : (s : Heap α).WF le n) : s.tail? le = some tl → tl.WF le 0 := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
   | some (a, tl), rfl => exact hwf.deleteMin eq₂
 
-theorem Heap.WellFormed.tail
-    (hwf : (s : Heap α).WellFormed le n) : (s.tail le).WellFormed le 0 := by
+theorem Heap.WF.tail (hwf : (s : Heap α).WF le n) : (s.tail le).WF le 0 := by
   simp only [Heap.tail]
   match eq : s.tail? le with
-  | none => exact Heap.WellFormed.nil
+  | none => exact Heap.WF.nil
   | some tl => exact hwf.tail? eq
 
-end BinomialHeapImp
+end Imp
+end BinomialHeap
 
-open BinomialHeapImp
+open BinomialHeap.Imp
 
 /--
 A [binomial heap](https://en.wikipedia.org/wiki/Binomial_heap) is a data structure which supports
@@ -505,11 +490,11 @@ which supports `insert` and `deleteMin` in `O(log n)`, but `merge` is `O(n)`.
 With a `BinomialHeap`, all three operations are `O(log n)`.
 -/
 def BinomialHeap (α : Type u) (le : α → α → Bool) :=
-  { h : Heap α // h.WellFormed le 0 }
+  { h : Heap α // h.WF le 0 }
 
 /-- `O(1)`. Make a new empty binomial heap. -/
 @[inline] def mkBinomialHeap (α : Type u) (le : α → α → Bool) : BinomialHeap α le :=
-  ⟨.nil, Heap.WellFormed.nil⟩
+  ⟨.nil, Heap.WF.nil⟩
 
 namespace BinomialHeap
 variable {α : Type u} {le : α → α → Bool}
@@ -526,30 +511,37 @@ instance : Inhabited (BinomialHeap α le) := ⟨.empty⟩
 @[inline] def size (b : BinomialHeap α le) : Nat := b.1.size
 
 /-- `O(1)`. Make a new heap containing `a`. -/
-@[inline] def singleton (a : α) : BinomialHeap α le :=
-  ⟨Heap.singleton a, Heap.WellFormed.singleton⟩
+@[inline] def singleton (a : α) : BinomialHeap α le := ⟨Heap.singleton a, Heap.WF.singleton⟩
 
 /-- `O(log n)`. Merge the contents of two heaps. -/
 @[inline] def merge : BinomialHeap α le → BinomialHeap α le → BinomialHeap α le
   | ⟨b₁, h₁⟩, ⟨b₂, h₂⟩ => ⟨b₁.merge le b₂, h₁.merge h₂⟩
 
 /-- `O(log n)`. Add element `a` to the given heap `h`. -/
-@[inline] def insert (a : α) (h : BinomialHeap α le) : BinomialHeap α le :=
-  merge (singleton a) h
+@[inline] def insert (a : α) (h : BinomialHeap α le) : BinomialHeap α le := merge (singleton a) h
 
 /-- `O(n log n)`. Construct a heap from a list by inserting all the elements. -/
-def ofList (le : α → α → Bool) (as : List α) : BinomialHeap α le :=
-  as.foldl (flip insert) empty
+def ofList (le : α → α → Bool) (as : List α) : BinomialHeap α le := as.foldl (flip insert) empty
 
 /-- `O(n log n)`. Construct a heap from a list by inserting all the elements. -/
-def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le :=
-  as.foldl (flip insert) empty
+def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le := as.foldl (flip insert) empty
 
 /-- `O(log n)`. Remove and return the minimum element from the heap. -/
 @[inline] def deleteMin (b : BinomialHeap α le) : Option (α × BinomialHeap α le) :=
   match eq : b.1.deleteMin le with
   | none => none
   | some (a, tl) => some (a, ⟨tl, b.2.deleteMin eq⟩)
+
+instance : Stream (BinomialHeap α le) α := ⟨deleteMin⟩
+
+/--
+`O(n log n)`. Implementation of `for x in (b : BinomialHeap α le) ...` notation,
+which iterates over the elements in the heap in increasing order.
+-/
+protected def forIn [Monad m] (b : BinomialHeap α le) (x : β) (f : α → β → m (ForInStep β)) : m β :=
+  ForInStep.run <$> b.1.foldM le (.yield x) fun x a => x.bind (f a)
+
+instance : ForIn m (BinomialHeap α le) α := ⟨BinomialHeap.forIn⟩
 
 /-- `O(log n)`. Returns the smallest element in the heap, or `none` if the heap is empty. -/
 @[inline] def head? (b : BinomialHeap α le) : Option α := b.1.head? le
@@ -568,6 +560,19 @@ def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le :=
 
 /-- `O(log n)`. Removes the smallest element from the heap, if possible. -/
 @[inline] def tail (b : BinomialHeap α le) : BinomialHeap α le := ⟨b.1.tail le, b.2.tail⟩
+
+/--
+`O(n log n)`. Monadic fold over the elements of a heap in increasing order,
+by repeatedly pulling the minimum element out of the heap.
+-/
+@[inline] def foldM [Monad m] (b : BinomialHeap α le) (init : β) (f : β → α → m β) : m β :=
+  b.1.foldM le init f
+
+/--
+`O(n log n)`. Fold over the elements of a heap in increasing order,
+by repeatedly pulling the minimum element out of the heap.
+-/
+@[inline] def fold (b : BinomialHeap α le) (init : β) (f : β → α → β) : β := b.1.fold le init f
 
 /-- `O(n log n)`. Convert the heap to a list in increasing order. -/
 @[inline] def toList (b : BinomialHeap α le) : List α := b.1.toList le
