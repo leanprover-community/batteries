@@ -60,6 +60,11 @@ example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y :=
 
 example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by
   rw [cancel_injective, cancel_injective] at h
+  repeat case : Injective _ => assumption
+  exact h
+
+example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by
+  rw [cancel_injective, cancel_injective] at h
   case : Injective f | Injective g
   · guard_target = Injective f
     assumption
