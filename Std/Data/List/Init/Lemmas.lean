@@ -15,12 +15,15 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get get! get? reverseAux eraseIdx map join find? findSome?
+attribute [simp] get get! reverseAux eraseIdx map join find? findSome?
   replace elem lookup drop take foldl foldr zipWith unzip range.loop enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
   filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
   concat_eq_append append_assoc
 
+@[simp] theorem get?_nil : @get? α [] n = none := rfl
+@[simp] theorem get?_cons_zero : @get? α (a::l) 0 = some a := rfl
+@[simp] theorem get?_cons_succ : @get? α (a::l) (n+1) = get? l n := rfl
 @[simp] theorem head?_nil : @head? α [] = none := rfl
 @[simp] theorem head?_cons : @head? α (a::l) = some a := rfl
 @[simp 1100] theorem headD_nil : @headD α [] d = d := rfl
