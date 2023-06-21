@@ -198,6 +198,11 @@ syntax "ext1?" (colGt ppSpace rintroPat)* : tactic
 /-- `ext? pat*` is like `ext pat*` but gives a suggestion on what pattern to use -/
 syntax "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
+
+/-- A wrapper for `ext` that we can pass to `aesop`. -/
+def extCore' : TacticM Unit := do
+  evalTactic (← `(tactic| ext))
+
 end Std.Tactic.Ext
 
 attribute [ext] funext propext
