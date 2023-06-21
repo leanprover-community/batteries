@@ -17,6 +17,26 @@ example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
   case left =>
     exact h
 
+example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
+  constructor
+  case : z = _ => ?foo
+  case foo =>
+    exact h'
+  case left =>
+    exact h
+
+example (h : x = y) : x = y ∧ x = y := by
+  constructor
+  case : x = y | x = y => ?foo
+  -- Closes both
+  case foo => exact h
+
+example (h : x = y) : x = y ∧ x = y ∧ x = y := by
+  refine ⟨?foo, ?_, ?_⟩
+  · exact h
+  case : x = y | x = y => ?foo
+  -- This metavariable was already assigned, so no more goals.
+
 example (h : x = y) (h' : z = w) : x = y ∧ z + 0 = w := by
   constructor
   case : z = _ =>
@@ -66,6 +86,15 @@ example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y :=
 example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by
   rw [cancel_injective, cancel_injective] at h
   case : Injective f | Injective g
+  · guard_target = Injective f
+    assumption
+  · guard_target = Injective g
+    assumption
+  exact h
+
+example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by
+  rw [cancel_injective, cancel_injective] at h
+  case : Injective f | Injective g => _
   · guard_target = Injective f
     assumption
   · guard_target = Injective g
