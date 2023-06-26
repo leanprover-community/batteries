@@ -9,23 +9,29 @@ Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
 Lazy lists with "laziness" controlled by an arbitrary monad.
 -/
 
-section UnsafeWrapper
+
+/-!
+In an initial section we describe the specification of `ListM`,
+and provide a private unsafe implementation,
+and then a public `opaque` wrapper of this implementation, satisfying the specification.
+-/
+namespace ListM
+
 variable (m : Type u → Type u)
 
-private structure ListMApi where
+private structure Spec where
   listM : Type u → Type u
   nil : listM α
   cons' : α → listM α → listM α
   squash : m (listM α) → listM α
   uncons : [Monad m] → listM α → m (Option (α × listM α))
 
-instance : Nonempty (ListMApi m) := .intro {
-  listM := fun _ => PUnit
-  nil := ⟨⟩
-  cons' := fun _ _ => ⟨⟩
-  squash := fun _ => ⟨⟩
-  uncons := fun _ => pure none
-}
+instance : Nonempty (Spec m) := .intro
+  { listM := fun _ => PUnit
+    nil := ⟨⟩
+    cons' := fun _ _ => ⟨⟩
+    squash := fun _ => ⟨⟩
+    uncons := fun _ => pure none }
 
 private unsafe inductive ListMImpl (α : Type u) : Type u
   | nil : ListMImpl α
@@ -38,34 +44,35 @@ private unsafe def unconsImpl [Monad m] :
   | .squash t => t >>= unconsImpl
   | .cons' x xs => return (x, xs)
 
-@[inline] private unsafe def listMApiImpl : ListMApi.{u} m where
+@[inline] private unsafe def specImpl : Spec.{u} m where
   listM := ListMImpl m
   nil := .nil
   cons' := .cons'
   squash := .squash
   uncons := unconsImpl m
 
-@[implemented_by listMApiImpl]
-private opaque listMApi : ListMApi m
-end UnsafeWrapper
+@[implemented_by specImpl]
+private opaque spec : ListM.Spec m
+
+end ListM
 
 /-- A monadic lazy list, controlled by an arbitrary monad. -/
-def ListM (m : Type u → Type u) (α : Type u) : Type u := (listMApi m).listM α
+def ListM (m : Type u → Type u) (α : Type u) : Type u := (ListM.spec m).listM α
 
 namespace ListM
 
 variable {α β : Type u} {m : Type u → Type u}
 
 /-- The empty `ListM`. -/
-@[inline] def nil : ListM m α := (listMApi m).nil
+@[inline] def nil : ListM m α := (ListM.spec m).nil
 
 /--
 Constructs a `ListM` from head and tail.
 -/
-@[inline] def cons' : α → ListM m α → ListM m α := (listMApi m).cons'
+@[inline] def cons' : α → ListM m α → ListM m α := (ListM.spec m).cons'
 
 /-- Lift a monadic lazy list inside the monad to a monadic lazy list. -/
-def squash : m (ListM m α) → ListM m α := (listMApi m).squash
+def squash : m (ListM m α) → ListM m α := (ListM.spec m).squash
 
 /--
 Constructs a `ListM` by providing a monadic value computing both the head and tail of the list.
@@ -80,7 +87,7 @@ def cons [Monad m] : m (Option α × ListM m α) → ListM m α :=
 /-- Deconstruct a `ListM`, returning inside the monad an optional pair `α × ListM m α`
 representing the head and tail of the list. -/
 @[inline]
-def uncons [Monad m] : ListM m α → m (Option (α × ListM m α)) := (listMApi m).uncons
+def uncons [Monad m] : ListM m α → m (Option (α × ListM m α)) := (ListM.spec m).uncons
 
 instance : EmptyCollection (ListM m α) := ⟨nil⟩
 instance : Inhabited (ListM m α) := ⟨nil⟩
