@@ -92,6 +92,18 @@ protected theorem lt_add_of_pos_right {n k : Nat} (h : 0 < k) : n < n + k :=
 protected theorem lt_add_of_pos_left {n k : Nat} (h : 0 < k) : n < k + n := by
   rw [Nat.add_comm]; exact Nat.lt_add_of_pos_right h
 
+protected theorem pos_of_lt_add_right {n k : Nat} (h : n < n + k) : 0 < k :=
+  Nat.lt_of_add_lt_add_left h
+
+protected theorem pos_of_lt_add_left {n k : Nat} (h : n < k + n) : 0 < k :=
+  Nat.lt_of_add_lt_add_right (by rw [Nat.zero_add]; exact h)
+
+protected theorem lt_add_right_iff_pos {n k : Nat} : n < n + k ↔ 0 < k :=
+  ⟨Nat.pos_of_lt_add_right, Nat.lt_add_of_pos_right⟩
+
+protected theorem lt_add_left_iff_pos {n k : Nat} : n < k + n ↔ 0 < k :=
+  ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
+
 theorem add_pos_left (h : 0 < m) (n : Nat) : 0 < m + n :=
   Nat.lt_of_le_of_lt (zero_le n) (Nat.lt_add_of_pos_left h)
 
