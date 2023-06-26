@@ -84,7 +84,7 @@ partial def eraseUsedTactics : InfoTree → M Unit
 end
 
 /-- The main entry point to the unreachable tactic linter. -/
-partial def unreachableTacticLinter : Linter := fun stx => do
+partial def unreachableTacticLinter : Linter where run stx := do
   unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then

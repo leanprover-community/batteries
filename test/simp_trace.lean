@@ -1,4 +1,3 @@
-import Std.Tactic.SimpTrace
 import Std.Tactic.SqueezeScope
 
 set_option linter.missingDocs false

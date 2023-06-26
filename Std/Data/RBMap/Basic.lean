@@ -5,6 +5,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
+import Std.Logic
+import Std.Tactic.HaveI
 
 /-!
 # Red-black trees
@@ -169,10 +171,22 @@ theorem All.imp (H : ∀ {x : α}, p x → q x) : ∀ {t : RBNode α}, t.All p �
   | nil => id
   | node .. => fun ⟨h, hl, hr⟩ => ⟨H h, hl.imp H, hr.imp H⟩
 
+theorem all_iff {t : RBNode α} : t.all p ↔ t.All (p ·) := by
+  induction t <;> simp [*, all, All, and_assoc]
+
+instance {t : RBNode α} [DecidablePred p] : Decidable (t.All p) :=
+  decidable_of_iff (t.all p) (by simp [all_iff])
+
 /-- Asserts that `p` holds on some element of the tree. -/
 def Any (p : α → Prop) : RBNode α → Prop
   | nil          => False
   | node _ l v r => p v ∨ Any p l ∨ Any p r
+
+theorem any_iff {t : RBNode α} : t.any p ↔ t.Any (p ·) := by
+  induction t <;> simp [*, any, Any, or_assoc]
+
+instance {t : RBNode α} [DecidablePred p] : Decidable (t.Any p) :=
+  decidable_of_iff (t.any p) (by simp [any_iff])
 
 /-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
 def EMem (x : α) (t : RBNode α) : Prop := t.Any (x = ·)
@@ -184,6 +198,18 @@ def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 
 /-- True if `x` is equivalent to an element of `t`. -/
 @[reducible] def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
+
+-- These instances are put in a special namespace because they are usually not what users want
+-- when deciding membership in a RBSet, since this does a naive linear search through the tree.
+-- The real `O(log n)` instances are defined in `Data.RBMap.Lemmas`.
+@[nolint docBlame] scoped instance Slow.instDecidableEMem [DecidableEq α] {t : RBNode α} :
+    Decidable (EMem x t) := inferInstanceAs (Decidable (Any ..))
+
+@[nolint docBlame] scoped instance Slow.instDecidableMemP {t : RBNode α} :
+    Decidable (MemP cut t) := inferInstanceAs (Decidable (Any ..))
+
+@[nolint docBlame] scoped instance Slow.instDecidableMem {t : RBNode α} :
+    Decidable (Mem cmp x t) := inferInstanceAs (Decidable (Any ..))
 
 /--
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,
@@ -209,8 +235,26 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 -/
 def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
 
+theorem cmpLT_iff [TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+
+instance (cmp) [TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
+
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
 def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
+
+theorem cmpEq_iff [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+
+instance (cmp) [TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
+
+/-- `O(n)`. Verifies an ordering relation on the nodes of the tree. -/
+def isOrdered (cmp : α → α → Ordering)
+    (t : RBNode α) (l : Option α := none) (r : Option α := none) : Bool :=
+  match t with
+  | nil =>
+    match l, r with
+    | some l, some r => cmp l r = .lt
+    | _, _ => true
+  | node _ a v b => isOrdered cmp a l v && isOrdered cmp b v r
 
 /-- The first half of Okasaki's `balance`, concerning red-red sequences in the left child. -/
 @[inline] def balance1 : RBNode α → α → RBNode α → RBNode α
@@ -508,6 +552,16 @@ def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
   | nil => True
   | node _ a x b => a.All (cmpLT cmp · x) ∧ b.All (cmpLT cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
 
+-- This is in the Slow namespace because it is `O(n^2)` where a `O(n)` algorithm exists
+-- (see `isOrdered_iff` in `Data.RBMap.Lemmas`). Prefer `isOrdered` or the other instance.
+@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [TransCmp cmp] :
+    ∀ t : RBNode α, Decidable (Ordered cmp t)
+  | nil => inferInstanceAs (Decidable True)
+  | node _ a _ b =>
+    haveI := instDecidableOrdered cmp a
+    haveI := instDecidableOrdered cmp b
+    inferInstanceAs (Decidable (And ..))
+
 /--
 The red-black balance invariant. `Balanced t c n` says that the color of the root node is `c`,
 and the black-height (the number of black nodes on any path from the root) of the tree is `n`.
@@ -675,6 +729,18 @@ def Mem (x : α) (t : RBSet α cmp) : Prop := MemP (cmp x) t
 
 instance : Membership α (RBSet α cmp) := ⟨Mem⟩
 
+-- These instances are put in a special namespace because they are usually not what users want
+-- when deciding membership in a RBSet, since this does a naive linear search through the tree.
+-- The real `O(log n)` instances are defined in `Data.RBMap.Lemmas`.
+@[nolint docBlame] scoped instance Slow.instDecidableEMem [DecidableEq α] {t : RBSet α cmp} :
+    Decidable (EMem x t) := inferInstanceAs (Decidable (Any ..))
+
+@[nolint docBlame] scoped instance Slow.instDecidableMemP {t : RBSet α cmp} :
+    Decidable (MemP cut t) := inferInstanceAs (Decidable (Any ..))
+
+@[nolint docBlame] scoped instance Slow.instDecidableMem {t : RBSet α cmp} :
+    Decidable (Mem x t) := inferInstanceAs (Decidable (Any ..))
+
 /--
 Returns true if `t₁` and `t₂` are equal as sets (assuming `cmp` and `==` are compatible),
 ignoring the internal tree structure.
@@ -799,7 +865,7 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
-@[inline] def single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
+@[inline] def RBMap.single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
 
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}

@@ -31,6 +31,10 @@ theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b := mt fun h _ => h
 
 /-! ## iff -/
 
+-- This is needed for `calc` to work with `iff`.
+instance : Trans Iff Iff Iff where
+  trans p q := p.trans q
+
 theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) := iff_iff_implies_and_implies ..
 
 theorem iff_def' : (a ↔ b) ↔ (b → a) ∧ (a → b) := iff_def.trans And.comm
@@ -75,7 +79,7 @@ theorem iff_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : (a ↔ b) ↔ (c ↔ d) :=
 
 @[simp] theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
 
-@[simp] theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
+theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
 
 theorem ne_self_iff_false (a : α) : a ≠ a ↔ False := not_iff_false_intro rfl
 
@@ -349,6 +353,10 @@ variable {p q : α → Prop} {b : Prop}
 theorem forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 fun h' a => h a (h' a)
 
+@[simp] theorem forall_exists_index {q : (∃ x, p x) → Prop} :
+    (∀ h, q h) ↔ ∀ x (h : p x), q ⟨x, h⟩ :=
+  ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
+
 theorem Exists.imp (h : ∀ a, p a → q a) : (∃ a, p a) → ∃ a, q a
   | ⟨a, hp⟩ => ⟨a, h a hp⟩
 
@@ -356,8 +364,7 @@ theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a →
     (∃ a, p a) → ∃ b, q b
   | ⟨_, hp⟩ => ⟨_, hpq _ hp⟩
 
-@[simp] theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
-  ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
+theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b := forall_exists_index
 
 section forall_congr
 
@@ -480,6 +487,12 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
   @forall_const (q h) p ⟨h⟩
 
+theorem forall_comm {p : α → β → Prop} : (∀ a b, p a b) ↔ (∀ b a, p a b) :=
+  ⟨fun h b a => h a b, fun h a b => h b a⟩
+
+theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p a b) :=
+  ⟨fun ⟨a, b, h⟩ => ⟨b, a, h⟩, fun ⟨b, a, h⟩ => ⟨a, b, h⟩⟩
+
 end quantifiers
 
 /-! ## decidable -/
@@ -510,6 +523,10 @@ theorem decide_eq_true_iff (p : Prop) [Decidable p] : (decide p = true) ↔ p :=
 
 @[simp] theorem decide_eq_false_iff_not (p : Prop) [Decidable p] : (decide p = false) ↔ ¬p :=
   ⟨of_decide_eq_false, decide_eq_false⟩
+
+@[simp] theorem decide_eq_decide {p q : Prop} [Decidable p] [Decidable q] :
+    decide p = decide q ↔ (p ↔ q) :=
+  ⟨fun h => by rw [← decide_eq_true_iff p, h, decide_eq_true_iff], fun h => by simp [h]⟩
 
 theorem Decidable.of_not_imp [Decidable a] (h : ¬(a → b)) : a :=
   byContradiction (not_not_of_not_imp h)
@@ -749,5 +766,7 @@ theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
 
 theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
   ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
+
+theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩

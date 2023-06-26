@@ -61,8 +61,14 @@ theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
 protected theorem add_left_cancel_iff {n m k : Nat} : n + m = n + k ↔ m = k :=
   ⟨Nat.add_left_cancel, fun | rfl => rfl⟩
 
+protected theorem add_right_cancel_iff {n m k : Nat} : n + m = k + m ↔ n = k :=
+  ⟨Nat.add_right_cancel, fun | rfl => rfl⟩
+
+protected theorem add_le_add_iff_le_left (k n m : Nat) : k + n ≤ k + m ↔ n ≤ m :=
+  ⟨Nat.le_of_add_le_add_left, fun h => Nat.add_le_add_left h _⟩
+
 protected theorem add_le_add_iff_le_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
-⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
+  ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
 protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < m :=
   Nat.lt_of_le_of_ne (Nat.le_of_add_le_add_left (Nat.le_of_lt h)) fun heq =>
@@ -70,6 +76,12 @@ protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < 
 
 protected theorem lt_of_add_lt_add_right {a b c : Nat} (h : a + b < c + b) : a < c :=
   Nat.lt_of_add_lt_add_left ((by rwa [Nat.add_comm b a, Nat.add_comm b c]): b + a < b + c)
+
+protected theorem add_lt_add_iff_lt_left (k n m : Nat) : k + n < k + m ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h _⟩
+
+protected theorem add_lt_add_iff_lt_right (k n m : Nat) : n + k < m + k ↔ n < m :=
+  ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
 protected theorem lt_add_right (a b c : Nat) (h : a < b) : a < b + c :=
   Nat.lt_of_lt_of_le h (Nat.le_add_right _ _)
@@ -91,6 +103,13 @@ protected theorem lt_add_right_iff_pos {n k : Nat} : n < n + k ↔ 0 < k :=
 
 protected theorem lt_add_left_iff_pos {n k : Nat} : n < k + n ↔ 0 < k :=
   ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
+
+theorem add_pos_left (h : 0 < m) (n : Nat) : 0 < m + n :=
+  Nat.lt_of_le_of_lt (zero_le n) (Nat.lt_add_of_pos_left h)
+
+theorem add_pos_right (m : Nat) (h : 0 < n) : 0 < m + n := by
+  rw [Nat.add_comm]
+  exact add_pos_left h m
 
 /- sub properties -/
 
@@ -175,6 +194,8 @@ protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :
   ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
    fun ⟨h₁, h₂⟩ => by rw [Nat.min_def]; split <;> assumption⟩
 
+protected theorem lt_min {a b c : Nat} : a < min b c ↔ a < b ∧ a < c := Nat.le_min
+
 protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := by simp [Nat.min_def, h]
 
 protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by
@@ -220,6 +241,9 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
 
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
+
+protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
+  rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
 protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
 
@@ -379,6 +403,9 @@ protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := (Nat.lt_or_ge _ 
 protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
   (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
 
+protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
+  ⟨Nat.lt_or_eq_of_le, (·.elim Nat.le_of_lt Nat.le_of_eq)⟩
+
 theorem le_zero {i : Nat} : i ≤ 0 ↔ i = 0 :=
   ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
 
@@ -399,7 +426,7 @@ protected theorem sub_le_sub_left (k : Nat) (h : n ≤ m) : k - m ≤ k - n :=
 theorem succ_sub_sub_succ (n m k : Nat) : succ n - m - succ k = n - m - k := by
   rw [Nat.sub_sub, Nat.sub_sub, add_succ, succ_sub_succ]
 
-protected theorem sub.right_comm (m n k : Nat) : m - n - k = m - k - n := by
+protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
   rw [Nat.sub_sub, Nat.sub_sub, Nat.add_comm]
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
@@ -442,12 +469,6 @@ theorem sub_lt_self {a b : Nat} (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b := b
 protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
 
-protected theorem sub_lt_sub_left : ∀ {k m n : Nat}, k < m → k < n → m - n < m - k
-  | 0, m+1, n+1, _, _ => by rw [Nat.add_sub_add_right]; exact lt_succ_of_le (Nat.sub_le _ _)
-  | k+1, m+1, n+1, h1, h2 => by
-    rw [Nat.add_sub_add_right, Nat.add_sub_add_right]
-    exact Nat.sub_lt_sub_left (Nat.lt_of_succ_lt_succ h1) (Nat.lt_of_succ_lt_succ h2)
-
 protected theorem sub_lt_left_of_lt_add {n k m : Nat} (H : n ≤ k) (h : k < n + m) : k - n < m := by
   have := Nat.sub_le_sub_right (succ_le_of_lt h) n
   rwa [Nat.add_sub_cancel_left, Nat.succ_sub H] at this
@@ -457,6 +478,12 @@ protected theorem add_le_of_le_sub_left {n k m : Nat} (H : m ≤ k) (h : n ≤ k
 
 theorem le_sub_iff_add_le {x y k : Nat} (h : k ≤ y) : x ≤ y - k ↔ x + k ≤ y := by
   rw [← Nat.add_sub_cancel x k, Nat.sub_le_sub_right_iff h, Nat.add_sub_cancel]
+
+protected theorem sub_le_iff_le_add {a b c : Nat} : a - b ≤ c ↔ a ≤ c + b :=
+  ⟨Nat.le_add_of_sub_le, sub_le_of_le_add⟩
+
+protected theorem sub_le_iff_le_add' {a b c : Nat} : a - b ≤ c ↔ a ≤ b + c := by
+  rw [Nat.sub_le_iff_le_add, Nat.add_comm]
 
 theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
@@ -779,6 +806,8 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
+/-! ### pow -/
+
 theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
   rw [Nat.pow_succ, Nat.mul_comm]
 
@@ -792,9 +821,44 @@ theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
 
 theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
 
-/-! ### log2 -/
-
 attribute [simp] Nat.pow_zero
+
+protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
+  match n with
+  | 0 => contradiction
+  | n+1 => rw [Nat.pow_succ, Nat.mul_zero]
+
+@[simp] protected theorem one_pow (n : Nat) : 1 ^ n = 1 := by
+  induction n with
+  | zero => rfl
+  | succ _ ih => rw [Nat.pow_succ, Nat.mul_one, ih]
+
+@[simp] protected theorem pow_one (a : Nat) : a ^ 1 = a := by rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
+
+protected theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
+
+protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
+  induction n with
+  | zero => rw [Nat.add_zero, Nat.pow_zero, Nat.mul_one]
+  | succ _ ih => rw [Nat.add_succ, Nat.pow_succ, Nat.pow_succ, ih, Nat.mul_assoc]
+
+protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by rw [←Nat.pow_add, Nat.add_comm]
+
+protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
+  induction n with
+  | zero => rw [Nat.mul_zero, Nat.pow_zero, Nat.pow_zero]
+  | succ _ ih => rw [Nat.mul_succ, Nat.pow_add, Nat.pow_succ, ih]
+
+protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.mul_comm]
+
+protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.pow_mul']
+
+protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
+  induction n with
+  | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
+  | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
+
+/-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
   match k with

@@ -46,7 +46,7 @@ macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
 /--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
 -/
-elab (name := exacts) "exacts" "[" hs:term,* "]" : tactic => do
+elab (name := exacts) "exacts " "[" hs:term,* "]" : tactic => do
   for stx in hs.getElems do
     evalTactic (← `(tactic| exact $stx))
   evalTactic (← `(tactic| done))
@@ -140,4 +140,4 @@ macro (name := triv) "triv" : tactic =>
   `(tactic| first | exact trivial | rfl | fail "triv tactic failed")
 
 /-- `conv` tactic to close a goal using an equality theorem. -/
-macro (name := Conv.exact) "exact" t:term : conv => `(conv| tactic => exact $t)
+macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)

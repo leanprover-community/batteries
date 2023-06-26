@@ -183,3 +183,12 @@ example (h : a ≤ 2 ∨ 2 < a) : True := by
   obtain ha1 | ha2 : a ≤ 2 ∨ 3 ≤ a := id h
   · guard_hyp ha1 : a ≤ 2; trivial
   · guard_hyp ha2 : 3 ≤ a; trivial
+
+inductive BaseType : Type where
+  | one
+
+inductive BaseTypeHom : BaseType → BaseType → Type where
+  | loop : BaseTypeHom one one
+  | id (X : BaseType) : BaseTypeHom X X
+
+example : BaseTypeHom one one → Unit := by rintro ⟨_⟩ <;> constructor

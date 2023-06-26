@@ -9,7 +9,7 @@ import Lean.Elab.ElabRules
 
 open Lean Meta
 /-- `add_elim foo` registers `foo` as an elim-lemma in `norm_cast`. -/
-local elab "add_elim" id:ident : command =>
+local elab "add_elim " id:ident : command =>
   Elab.Command.liftCoreM do MetaM.run' do
     Std.Tactic.NormCast.addElim (← resolveGlobalConstNoOverload id)
 

@@ -21,13 +21,14 @@ namespace Bucket
 theorem update_data (self : Bucket α β) (i d h) :
     (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
 
-@[simp] theorem update_size (self : Bucket α β) (i d h) :
-    (self.update i d h).1.size = self.1.size := Array.size_uset ..
-
 theorem exists_of_update (self : Bucket α β) (i d h) :
     ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
   simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
+
+theorem update_update (self : Bucket α β) (i d d' h h') :
+    (self.update i d h).update i d' h' = self.update i d' h := by
+  simp [update]; congr 1; rw [Array.set_set]
 
 theorem size_eq (data : Bucket α β) :
   size data = .sum (data.1.data.map (·.toList.length)) := rfl
@@ -185,8 +186,8 @@ theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
     refine have ⟨_, _, h₁, _, eq⟩ := Bucket.exists_of_update ..; eq ▸ ?_
     simp [h₁, Bucket.size_eq, Nat.succ_add]; rfl
 
-private theorem mem_replaceF {l : List (α × β)} {x : α × β} {p : α × β → Bool} :
-    x ∈ (l.replaceF fun a => bif p a then some (k, v) else none) → x.1 = k ∨ x ∈ l := by
+private theorem mem_replaceF {l : List (α × β)} {x : α × β} {p : α × β → Bool} {f : α × β → β} :
+    x ∈ (l.replaceF fun a => bif p a then some (k, f a) else none) → x.1 = k ∨ x ∈ l := by
   induction l with
   | nil => exact .inr
   | cons a l ih =>
@@ -200,16 +201,16 @@ private theorem mem_replaceF {l : List (α × β)} {x : α × β} {p : α × β 
       | .inr h => exact (ih h).imp_right .inr
 
 private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
-    {l : List (α × β)} {x : α × β} (hx₁ : x ∈ l) (hx₂ : x.fst == k)
+    {l : List (α × β)} {f : α × β → β}
     (H : l.Pairwise fun a b => ¬(a.fst == b.fst)) :
-    (l.replaceF fun a => bif a.fst == k then some (k, v) else none)
+    (l.replaceF fun a => bif a.fst == k then some (k, f a) else none)
       |>.Pairwise fun a b => ¬(a.fst == b.fst) := by
-  induction hx₁ with
-  | head => simp_all; exact (H.1 · · ∘ PartialEquivBEq.trans hx₂)
-  | tail _ _ ih =>
+  induction l with
+  | nil => simp [H]
+  | cons a l ih =>
     simp at H ⊢
-    generalize e : cond .. = z; revert e
-    unfold cond; split <;> (intro h; subst h; simp)
+    generalize e : cond .. = z; unfold cond at e; revert e
+    split <;> (intro h; subst h; simp)
     · next e => exact ⟨(H.1 · · ∘ PartialEquivBEq.trans e), H.2⟩
     · next e =>
       refine ⟨fun a h => ?_, ih H.2⟩
@@ -223,14 +224,14 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
   · next h₁ =>
     simp at h₁; have ⟨x, hx₁, hx₂⟩ := h₁
     refine h.update (fun H => ?_) (fun H a h => ?_)
-    · simp; exact pairwise_replaceF hx₁ hx₂ H
+    · simp; exact pairwise_replaceF H
     · simp [AssocList.All] at H h ⊢
       match mem_replaceF h with
       | .inl rfl => rfl
       | .inr h => exact H _ h
   · next h₁ =>
     rw [Bool.eq_false_iff] at h₁; simp at h₁
-    suffices _ by split <;> [exact this, refine expand_WF this]
+    suffices _ by split <;> [exact this; refine expand_WF this]
     refine h.update (.cons ?_) (fun H a h => ?_)
     · exact fun a h h' => h₁ a h (PartialEquivBEq.symm h')
     · cases h with
@@ -261,6 +262,24 @@ theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     · exact H _ (List.mem_of_mem_eraseP h)
   · exact h
 
+theorem modify_size [BEq α] [Hashable α] {m : Imp α β} {k}
+    (h : m.size = m.buckets.size) :
+    (modify m k f).size = (modify m k f).buckets.size := by
+  dsimp [modify, cond]; rw [Bucket.update_update]
+  simp [h, Bucket.size]
+  refine have ⟨_, _, h₁, _, eq⟩ := Bucket.exists_of_update ..; eq ▸ ?_
+  simp [h, h₁, Bucket.size_eq]
+
+theorem modify_WF [BEq α] [Hashable α] {m : Imp α β} {k}
+    (h : m.buckets.WF) : (modify m k f).buckets.WF := by
+  dsimp [modify, cond]; rw [Bucket.update_update]
+  refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
+  · exact pairwise_replaceF H
+  · simp [AssocList.All] at H h ⊢
+    match mem_replaceF h with
+    | .inl rfl => rfl
+    | .inr h => exact H _ h
+
 theorem WF.out [BEq α] [Hashable α] {m : Imp α β} (h : m.WF) :
     m.size = m.buckets.size ∧ m.buckets.WF := by
   induction h with
@@ -268,6 +287,7 @@ theorem WF.out [BEq α] [Hashable α] {m : Imp α β} (h : m.WF) :
   | @empty' _ h => exact ⟨(Bucket.mk_size h).symm, .mk' h⟩
   | insert _ ih => exact ⟨insert_size ih.1, insert_WF ih.2⟩
   | erase _ ih => exact ⟨erase_size ih.1, erase_WF ih.2⟩
+  | modify _ ih => exact ⟨modify_size ih.1, modify_WF ih.2⟩
 
 theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
     m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF :=
@@ -278,10 +298,12 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   have ⟨h₁, h₂⟩ := H.out
   simp [Imp.mapVal, Bucket.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
   · simp [Bucket.size]; congr; funext l; simp
-  · simp [List.forall_mem_map_iff, List.pairwise_map]
+  · simp only [Array.map_data, List.forall_mem_map_iff]
+    simp [List.pairwise_map]
     exact fun _ => h₂.1 _
-  · simp [AssocList.All, List.forall_mem_map_iff] at h ⊢
-    exact h₂.2 _ h
+  · simp [AssocList.All] at h ⊢
+    rintro a x hx rfl
+    apply h₂.2 _ _ x hx
 
 theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
@@ -315,16 +337,14 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Bucket.size]) ⟨?_, fun i h => ?_⟩
-  · simp [List.forall_mem_map_iff]
+  · simp only [List.forall_mem_map_iff, List.toAssocList_toList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
   · simp [Array.getElem_eq_data_get] at h ⊢
     have := H.out.2.2 _ h; simp [AssocList.All] at this ⊢
-    rw [← List.forall_mem_map_iff
-      (P := fun a => ((hash a).toUSize % m.buckets.val.data.length).toNat = i)] at this ⊢
-    exact fun _ h' => this _ ((H3 _).subset h')
+    rintro _ _ h' _ _ rfl; exact this _ h'
 
 end Imp
 

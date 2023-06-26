@@ -88,7 +88,7 @@ but it will be shown by `#list_linters` and can be selected by the `#lint` comma
 
 Linters are named using their declaration names, without the namespace. These must be distinct.
 -/
-syntax (name := std_linter) "std_linter" &"disabled"? : attr
+syntax (name := std_linter) "std_linter" &" disabled"? : attr
 
 initialize registerBuiltinAttribute {
   name := `std_linter
