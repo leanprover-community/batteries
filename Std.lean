@@ -21,6 +21,7 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.Char
 import Std.Data.DList
+import Std.Data.DepArray.Basic
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -116,4 +117,5 @@ import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe
+import Std.Util.TypeErased
 import Std.WF
