@@ -17,6 +17,12 @@ namespace Fin
 @[simp] theorem modn_val (a : Fin n) (b : Nat) : (a.modn b).val = a.val % b :=
   Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le ..) a.2)
 
+/-- Embed `a` into an equivalent `Fin m` -/
+def cast (h : n = m) (a : Fin n) : Fin m := ⟨a.1, h ▸ a.2⟩
+
+@[simp] theorem cast_val : (cast h a).val = a.val := by simp [cast]
+@[simp] theorem cast_mk : cast h ⟨i,hi⟩ = ⟨i, h ▸ hi⟩ := by simp [cast]
+
 end Fin
 
 namespace USize
