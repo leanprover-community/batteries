@@ -129,9 +129,9 @@ def checkBinderPredicate : SimpleHandler := fun stx => do
     else lintNamed stx[4][0][3] "binder predicate"
 
 /-- Declare `∃ x > y, ...` as syntax for `∃ x, x > y ∧ ...` -/
-binder_predicate x " > " y:term => `($x > $y)
+binder_predicate x " > " y:term => `($y < $x)
 /-- Declare `∃ x ≥ y, ...` as syntax for `∃ x, x ≥ y ∧ ...` -/
-binder_predicate x " ≥ " y:term => `($x ≥ $y)
+binder_predicate x " ≥ " y:term => `($y ≤ $x)
 /-- Declare `∃ x < y, ...` as syntax for `∃ x, x < y ∧ ...` -/
 binder_predicate x " < " y:term => `($x < $y)
 /-- Declare `∃ x ≤ y, ...` as syntax for `∃ x, x ≤ y ∧ ...` -/
