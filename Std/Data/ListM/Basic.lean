@@ -190,6 +190,7 @@ def folds (f : β → α → β) (init : β) (L : ListM m α) : ListM m β :=
 partial def takeAsList (xs : ListM m α) (n : Nat) : m (List α) :=
   go n [] xs
 where
+  /-- Implementation of `ListM.takeAsList`. -/
   go (r : Nat) (acc : List α) (xs : ListM m α) : m (List α) :=
     match r with
     | 0 => pure acc.reverse
@@ -201,6 +202,7 @@ where
 partial def takeAsArray (xs : ListM m α) (n : Nat) : m (Array α) :=
   go n #[] xs
 where
+  /-- Implementation of `ListM.takeAsArray`. -/
   go (r : Nat) (acc : Array α) (xs : ListM m α) : m (Array α) :=
     match r with
     | 0 => pure acc
@@ -289,6 +291,7 @@ If the lazy list is finite, the last chunk may be smaller (possibly even length 
 partial def chunk (L : ListM m α) (n : Nat) : ListM m (Array α) :=
   go n #[] L
 where
+  /-- Implementation of `ListM.chunk`. -/
   go (r : Nat) (acc : Array α) (M : ListM m α) : ListM m (Array α) :=
     match r with
     | 0 => cons (pure (some acc, go n #[] M))
@@ -352,10 +355,12 @@ partial def getLast? (L : ListM m α) : m (Option α) := do
   match ← uncons L with
   | none => return none
   | some (x, xs) => aux x xs
-where aux (x : α) (L : ListM m α) : m (Option α) := do
-  match ← uncons L with
-  | none => return (some x)
-  | some (y, ys) => aux y ys
+where
+  /-- Implementation of `ListM.aux`. -/
+  aux (x : α) (L : ListM m α) : m (Option α) := do
+    match ← uncons L with
+    | none => return (some x)
+    | some (y, ys) => aux y ys
 
 /-- Gets the last element of a monadic lazy list, or the default value if the list is empty.
 This will run forever if the list is infinite. -/
