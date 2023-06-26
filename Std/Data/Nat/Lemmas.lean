@@ -92,8 +92,6 @@ protected theorem lt_add_right_iff_pos {n k : Nat} : n < n + k ↔ 0 < k :=
 protected theorem lt_add_left_iff_pos {n k : Nat} : n < k + n ↔ 0 < k :=
   ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
 
-
-
 /- sub properties -/
 
 attribute [simp] Nat.zero_sub
