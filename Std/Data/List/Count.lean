@@ -87,7 +87,7 @@ theorem countp_pos : 0 < countp p l ↔ ∃ a ∈ l, p a := by
 
 theorem Sublist.countp_le (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ := by
   simp only [countp_eq_length_filter]
-  apply s.filter.length_le
+  apply s.filter _ |>.length_le
 
 @[simp] theorem countp_filter (l : List α) :
     countp p (filter q l) = countp (fun a => p a ∧ q a) l := by
