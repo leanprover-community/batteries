@@ -284,6 +284,9 @@ instance decidableBAll (p : α → Prop) [DecidablePred p] :
       | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
     else isFalse fun H => h₁ <| H x (.head ..)
 
+instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
+  fun _ _ => decidableBAll _ _
+
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
