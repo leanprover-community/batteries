@@ -5,6 +5,10 @@ import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
+import Std.CodeAction
+import Std.CodeAction.Attr
+import Std.CodeAction.Basic
+import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
@@ -15,6 +19,8 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Merge
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.BinomialHeap.Basic
+import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Lemmas
@@ -41,6 +47,7 @@ import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
+import Std.Data.Range.Lemmas
 import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
@@ -51,8 +58,10 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
+import Std.Lean.InfoTree
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -64,10 +73,12 @@ import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
+import Std.Lean.Name
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
+import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter
@@ -81,7 +92,9 @@ import Std.Tactic.Congr
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
+import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.Instances
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -92,6 +105,7 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
@@ -100,6 +114,7 @@ import Std.Tactic.Simpa
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
+import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe

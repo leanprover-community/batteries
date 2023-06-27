@@ -63,7 +63,7 @@ unsafe def main (args : List String) : IO Unit := do
       let failed := results.any (!·.2.isEmpty)
       if failed then
         let fmtResults ←
-          formatLinterResults results decls (groupByFilename := true)
+          formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
             "in Std" (runSlowLinters := true) .medium linters.size
         IO.print (← fmtResults.toString)
         IO.Process.exit 1

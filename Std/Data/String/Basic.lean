@@ -25,7 +25,7 @@ where
       let ct := t.get (t.startPos + offset)
       if cs == ct then
         have : remaining - String.csize cs < remaining :=
-          Nat.sub_lt (Nat.pos_of_ne_zero h) (Char.csize_pos _)
+          Nat.sub_lt (Nat.pos_of_ne_zero h) (String.csize_pos _)
         go (remaining - String.csize cs) (offset + cs)
       else
         false

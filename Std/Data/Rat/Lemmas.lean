@@ -5,6 +5,11 @@ import Std.Data.Rat.Basic
 
 namespace Rat
 
+@[simp] theorem zero_num : (0 : Rat).num = 0 := rfl
+@[simp] theorem zero_den : (0 : Rat).den = 1 := rfl
+@[simp] theorem one_num : (1 : Rat).num = 1 := rfl
+@[simp] theorem one_den : (1 : Rat).den = 1 := rfl
+
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
     { num := num.div g, den := den / g, den_nz, reduced } := by
@@ -41,7 +46,7 @@ theorem normalize_mul_left {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
 
 theorem normalize_mul_right {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
     normalize (n * a) (d * a) (Nat.mul_ne_zero d0 a0) = normalize n d d0 := by
-  rw [← normalize_mul_left (d0 := d0) a0]; congr 1 <;> [apply Int.mul_comm, apply Nat.mul_comm]
+  rw [← normalize_mul_left (d0 := d0) a0]; congr 1 <;> [apply Int.mul_comm; apply Nat.mul_comm]
 
 theorem normalize_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
     normalize n₁ d₁ z₁ = normalize n₂ d₂ z₂ ↔ n₁ * d₂ = n₂ * d₁ := by
@@ -107,7 +112,7 @@ theorem mkRat_mul_left {a : Nat} (a0 : a ≠ 0) : mkRat (↑a * n) (a * d) = mkR
   rw [← normalize_eq_mkRat d0, ← normalize_mul_left d0 a0, normalize_eq_mkRat]
 
 theorem mkRat_mul_right {a : Nat} (a0 : a ≠ 0) : mkRat (n * a) (d * a) = mkRat n d := by
-  rw [← mkRat_mul_left (d := d) a0]; congr 1 <;> [apply Int.mul_comm, apply Nat.mul_comm]
+  rw [← mkRat_mul_left (d := d) a0]; congr 1 <;> [apply Int.mul_comm; apply Nat.mul_comm]
 
 theorem mkRat_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
     mkRat n₁ d₁ = mkRat n₂ d₂ ↔ n₁ * d₂ = n₂ * d₁ := by

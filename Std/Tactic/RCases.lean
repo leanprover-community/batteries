@@ -66,6 +66,15 @@ def Lean.Meta.FVarSubst.append (s t : FVarSubst) : FVarSubst :=
 namespace Std.Tactic.RCases
 open Lean Meta
 
+/--
+Enables the 'unused rcases pattern' linter. This will warn when a pattern is ignored by
+`rcases`, `rintro`, `ext` and similar tactics.
+-/
+register_option linter.unusedRCasesPattern : Bool := {
+  defValue := true
+  descr := "enable the 'unused rcases pattern' linter"
+}
+
 /-- The syntax category of `rcases` patterns. -/
 declare_syntax_cat rcasesPat
 /-- A medium precedence `rcases` pattern is a list of `rcasesPat` separated by `|` -/
@@ -82,7 +91,7 @@ syntax (name := rcasesPat.clear) "-" : rcasesPat
 A `@` before a tuple pattern as in `@⟨p1, p2, p3⟩` will bind all arguments in the constructor,
 while leaving the `@` off will only use the patterns on the explicit arguments.
 -/
-syntax (name := rcasesPat.explicit) "@" rcasesPat : rcasesPat
+syntax (name := rcasesPat.explicit) "@" noWs rcasesPat : rcasesPat
 /--
 `⟨pat, ...⟩` is a pattern which matches on a tuple-like constructor
 or multi-argument inductive constructor
@@ -406,6 +415,7 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
     Term.addTermInfo' pat.ref (.mdata {} e)
     let e := fs.apply e
     let _ ← asFVar e
+    Term.synthesizeSyntheticMVarsNoPostponing
     let type ← whnfD (← inferType e)
     let failK {α} _ : TermElabM α :=
       throwError "rcases tactic failed: {e} : {type} is not an inductive datatype"

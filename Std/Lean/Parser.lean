@@ -14,7 +14,7 @@ A `simpArg` is either a `*`, `-lemma` or a simp lemma specification
 def simpArg := simpStar.binary `orelse (simpErase.binary `orelse simpLemma)
 
 /-- A simp args list is a list of `simpArg`. This is the main argument to `simp`. -/
-syntax simpArgs := " [" simpArg,* "] "
+syntax simpArgs := " [" simpArg,* "]"
 
 /-- Extract the arguments from a `simpArgs` syntax as an array of syntaxes -/
 def getSimpArgs? : Syntax → Option (Array Syntax)

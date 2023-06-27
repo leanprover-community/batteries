@@ -61,7 +61,7 @@ We skip all declarations that contain `sorry` in their value. -/
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
-      return none
+      return none -- FIXME: scoped/local instances should also not be linted
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
@@ -106,7 +106,7 @@ has been used. -/
     | false, true => pure "is a def, should be lemma/theorem"
     | _, _ => return none
 
-/-- A linter for missing checking whether statements of declarations are well-typed. -/
+/-- A linter for checking whether statements of declarations are well-typed. -/
 @[std_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."

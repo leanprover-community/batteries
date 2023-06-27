@@ -60,7 +60,7 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.anyGoals,
     ``Parser.Tactic.case,
     ``Parser.Tactic.case',
-    ``Parser.Tactic.Conv.«convNext_=>_»,
+    ``Parser.Tactic.Conv.«convNext__=>_»,
     ``Parser.Tactic.Conv.allGoals,
     ``Parser.Tactic.Conv.anyGoals,
     ``Parser.Tactic.Conv.case,
