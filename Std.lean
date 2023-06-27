@@ -23,6 +23,7 @@ import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
+import Std.Data.Fin.Basic
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -35,6 +36,7 @@ import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
