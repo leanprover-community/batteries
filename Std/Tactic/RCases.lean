@@ -415,6 +415,7 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
     Term.addTermInfo' pat.ref (.mdata {} e)
     let e := fs.apply e
     let _ ← asFVar e
+    Term.synthesizeSyntheticMVarsNoPostponing
     let type ← whnfD (← inferType e)
     let failK {α} _ : TermElabM α :=
       throwError "rcases tactic failed: {e} : {type} is not an inductive datatype"
