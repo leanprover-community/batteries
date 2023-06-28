@@ -3,8 +3,19 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Std.Data.Fin.Basic
 
 namespace Fin
+
+theorem val_inj {a b : Fin n} : a.1 = b.1 ↔ a = b := ⟨Fin.eq_of_val_eq, Fin.val_eq_of_eq⟩
+
+theorem ext_iff {a b : Fin n} : a = b ↔ a.1 = b.1 := val_inj.symm
+
+theorem val_ne_iff {a b : Fin n} : a.1 ≠ b.1 ↔ a ≠ b := not_congr val_inj
+
+theorem le_def {a b : Fin n} : a ≤ b ↔ a.1 ≤ b.1 := .rfl
+
+theorem lt_def {a b : Fin n} : a < b ↔ a.1 < b.1 := .rfl
 
 @[simp] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
 
