@@ -72,7 +72,7 @@ def mkEmpty (c : Nat) : DArray 0 α := ⟨fun.⟩
 Get the size of an array. This is provided for convenience, it should usually not be needed
 since the size of a `DArray` is one of the parameters of the type.
 -/
-@[nolint unusedArguments] abbrev size (_self : DArray sz α) : Nat := sz
+abbrev size (_self : DArray sz α) : Nat := sz
 
 /-- Access an element from an array, or return `v₀` if the index is out of bounds. -/
 @[inline] abbrev getD (a : DNArray sz α) (i : Nat) (v₀ : α i) : α i :=
@@ -148,7 +148,7 @@ size is known from the type.
 -/
 @[nolint unusedArguments] abbrev isEmpty (_ : DArray sz α) : Bool := sz = 0
 
-/-- `O(1)`. Zero cost convert a dependent array to a regular array. -/
+/-- `O(1)`. Zero cost convert a regular array to a dependent array. -/
 def ofArray (as : Array α) (h : as.size = sz := by rfl) : CArray sz α where
   get i := as.get (h ▸ i)
 
@@ -158,7 +158,7 @@ attribute [implemented_by ofArrayImpl] ofArray
 
 @[inline] private unsafe def toArrayImpl (as : CArray sz α) : Array α := unsafeCast as
 
-/-- `O(1)`. Zero cost convert a regular array to a dependent array. -/
+/-- `O(1)`. Zero cost convert a dependent array to a regular array. -/
 @[implemented_by toArrayImpl]
 def toArray (as : CArray sz α) : Array α := Array.ofFn as.get
 
