@@ -20,6 +20,7 @@ elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainConte
   evalTactic t
   addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta (origSpan? := ← getRef)
 
+/-- Implementation of `show_term`. -/
 local elab (name := showTermImpl) tk:"show_term_impl " t:term : term <= ty => do
   let e ← Term.elabTermEnsuringType t ty
   Term.synthesizeSyntheticMVarsNoPostponing
