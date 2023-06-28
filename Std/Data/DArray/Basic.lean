@@ -110,6 +110,17 @@ count of 1 when called.
 @[implemented_by setImpl] def set (a : DArray sz α) (i : Fin sz) (v : α i) : DArray sz α where
   get j := if h : i = j then h ▸ v else a.get j
 
+@[inline] private unsafe def strongSetImpl
+    (a : DArray sz α) (i : Fin sz) (v : β) : DArray sz (Function.update α i β) :=
+  unsafeCast <| Array.set (α := NonScalar) (unsafeCast a) (unsafeCast i) (unsafeCast v)
+
+/-- Strong set, akin to `set` but allowing any type `β` in the set index. -/
+@[implemented_by strongSetImpl] def strongSet
+    (a : DArray sz α) (i : Fin sz) (v : β) : DArray sz (Function.update α i β) where
+  get j := if h : j = i
+    then cast (by cases h; apply Eq.symm; apply Function.update_same) v
+    else (Function.update_noteq h ..) ▸ (a.get j)
+
 /--
 Set an element in an array, or do nothing if the index is out of bounds.
 
