@@ -257,12 +257,13 @@ def shrink (a : DArray sz α) (n : Nat) (h : n ≤ sz) : DArray n (α ∘ .castL
   let v ← f v
   pure <| a.strongSet i v
 
-/-- Applies `f` to `a[i]` in-place. `O(1)` overhead compared to running `f a[i]`.
+/-- Applies `f` to `a[i]` in-place. `O(1)` more work than evaluating `f a[i]`.
     Uses all values linearly, in particular `a[i]` refcount is not increased. -/
 def modifyM [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m (α i)) : m (DArray sz α) :=
   cast (by simp) <| strongModifyM a i f
 
-/-- Applies `f` to `a[i]` in-place. `O(1)` more oeprations -/
+/-- Applies `f` to `a[i]` in-place. `O(1)` more work than evaluating `f a[i]`.
+    Uses all values linearly, in particular `a[i]` refcount is not increased. -/
 @[inline]
 def modify (a : DArray sz α) (i : Fin sz) (f : α i → α i) : DArray sz α :=
   Id.run <| modifyM a i f
