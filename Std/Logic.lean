@@ -637,6 +637,13 @@ This is the same as `decidable_of_iff` but the iff is flipped. -/
 instance Decidable.predToBool (p : α → Prop) [DecidablePred p] :
     CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
 
+theorem Decidable.and_forall_ne [DecidableEq α] (a : α) {p : α → Prop} :
+    (p a ∧ ∀ b, b ≠ a → p b) ↔ ∀ b, p b := by
+  simp only [← @forall_eq _ p a, ← forall_and, ← or_imp, Decidable.em, forall_const]
+
+protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, p x)] : (¬∀ x, ¬p x) ↔ ∃ x, p x :=
+  (@Decidable.not_iff_comm _ _ _ (decidable_of_iff (¬∃ x, p x) not_exists)).1 not_exists
+
 theorem Bool.ff_ne_tt : false ≠ true := fun.
 
 /-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
