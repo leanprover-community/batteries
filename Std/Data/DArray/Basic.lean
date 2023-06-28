@@ -42,7 +42,7 @@ abbrev DNArray (sz : Nat) (α : Nat → Type u) := DArray sz (α ·)
 An abbreviation for `DArray` in the special case where `α` is actually a constant. This is similar
 to (and interconvertible with) `Array α`, except that `sz` is part of the type.
 -/
-abbrev CArray (sz : Nat) (α : Type u) := DArray sz fun _ => α
+abbrev CArray (sz : Nat) (α : Type u) := DNArray sz fun _ => α
 
 namespace DArray
 
