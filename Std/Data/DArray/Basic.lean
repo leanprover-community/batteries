@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Std.Data.Array.Init.Basic
 import Std.Data.Nat.Lemmas
 import Std.Data.Fin.Lemmas
+import Std.Data.Function.Basic
 
 /-!
 ## Dependent arrays
@@ -239,40 +240,34 @@ def shrink (a : DArray sz α) (n : Nat) (h : n ≤ sz) : DArray n (α ∘ .castL
     | 0 => (eq <| Nat.le_zero.1 h).elim
     | _ + 1 => shrink a.pop n <| Nat.le_of_lt_succ <| Nat.lt_of_le_of_ne h eq
 
--- TODO
-/-
-@[inline]
-unsafe def modifyMUnsafe [Monad m] (a : Array α) (i : Nat) (f : α → m α) : m (Array α) := do
-  if h : i < a.size then
-    let idx : Fin a.size := ⟨i, h⟩
-    let v                := a.get idx
-    -- Replace a[i] by `box(0)`.  This ensures that `v` remains unshared if possible.
-    -- Note: we assume that arrays have a uniform representation irrespective
-    -- of the element type, and that it is valid to store `box(0)` in any array.
-    let a'               := a.set idx (unsafeCast ())
-    let v ← f v
-    pure <| a'.set (size_set a .. ▸ idx) v
-  else
-    pure a
+@[inline] private unsafe def strongModifyMUnsafe
+    [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m β) : m (DArray sz (Function.update α i β)) := do
+  let v                := a.get i
+  -- Replace a[i] by `box(0)`.  This ensures that `v` remains unshared if possible.
+  -- Note: we assume that arrays have a uniform representation irrespective
+  -- of the element type, and that it is valid to store `box(0)` in any array.
+  let a'               := a.set i (unsafeCast ())
+  let v ← f v
+  pure <| a'.strongSet i v
 
-@[implemented_by modifyMUnsafe]
-def modifyM [Monad m] (a : Array α) (i : Nat) (f : α → m α) : m (Array α) := do
-  if h : i < a.size then
-    let idx := ⟨i, h⟩
-    let v   := a.get idx
-    let v ← f v
-    pure <| a.set idx v
-  else
-    pure a
+/-- Strong version of `modifyM`, updating the type at point `i` while updating its value. -/
+@[implemented_by strongModifyMUnsafe] def strongModifyM
+    [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m β) : m (DArray sz (Function.update α i β)) := do
+  let v := a.get i
+  let v ← f v
+  pure <| a.strongSet i v
 
+/-- Applies `f` to `a[i]` in-place. `O(1)` overhead compared to running `f a[i]`.
+    Uses all values linearly, in particular `a[i]` refcount is not increased. -/
+def modifyM [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m (α i)) : m (DArray sz α) :=
+  cast (by simp) <| strongModifyM a i f
+
+/-- Applies `f` to `a[i]` in-place. `O(1)` more oeprations -/
 @[inline]
-def modify (a : Array α) (i : Nat) (f : α → α) : Array α :=
+def modify (a : DArray sz α) (i : Fin sz) (f : α i → α i) : DArray sz α :=
   Id.run <| modifyM a i f
 
-@[inline]
-def modifyOp (self : Array α) (idx : Nat) (f : α → α) : Array α :=
-  self.modify idx f
-
+/-
 /--
   We claim this unsafe implementation is correct because an array cannot have more than `usizeSz` elements in our runtime.
 
