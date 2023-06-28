@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Array.Init.Basic
 import Std.Data.Nat.Lemmas
+import Std.Data.Fin.Lemmas
 
 /-!
 ## Dependent arrays
@@ -25,11 +26,23 @@ as they are used "linearly" all updates will be performed destructively on the
 array, so it has comparable performance to mutable arrays in imperative
 programming languages.
 -/
-structure DArray (sz : Nat) (α : Nat → Type u) : Type u where
+structure DArray (sz : Nat) (α : Fin sz → Type u) : Type u where
   /-- Create a new array of size `sz` from a dependent function of type `∀ i : Fin sz, α i`. -/
   ofFn ::
   /-- A dependently typed version of `Array.get`, which returns the `i`'th element of the array. -/
   get (i : Fin sz) : α i
+
+/--
+An abbreviation for `DArray` in the special case where `α` is defined for all `i : Nat`, not
+just `i : Fin sz`.
+-/
+abbrev DNArray (sz : Nat) (α : Nat → Type u) := DArray sz (α ·)
+
+/--
+An abbreviation for `DArray` in the special case where `α` is actually a constant. This is similar
+to (and interconvertible with) `Array α`, except that `sz` is part of the type.
+-/
+abbrev CArray (sz : Nat) (α : Type u) := DArray sz fun _ => α
 
 namespace DArray
 
@@ -62,26 +75,28 @@ since the size of a `DArray` is one of the parameters of the type.
 @[nolint unusedArguments] abbrev size (_self : DArray sz α) : Nat := sz
 
 /-- Access an element from an array, or return `v₀` if the index is out of bounds. -/
-@[inline] abbrev getD (a : DArray sz α) (i : Nat) (v₀ : α i) : α i :=
+@[inline] abbrev getD (a : DNArray sz α) (i : Nat) (v₀ : α i) : α i :=
   if h : i < sz then a.get ⟨i, h⟩ else v₀
 
 /-- Access an element from an array, or panic if the index is out of bounds. -/
 @[inline] def get! {α : Nat → Type u}
-    (a : DArray sz α) (i : Nat) [Inhabited (α i)] : α i := getD a i default
+    (a : DNArray sz α) (i : Nat) [Inhabited (α i)] : α i := getD a i default
 
-@[inline] private unsafe def push'Impl {α : Nat → Type u} (a : DArray sz α) (v : α sz) :
-    DArray (sz+1) α :=
+@[inline] private unsafe def pushImpl
+    (a : DArray sz (α ∘ .castSucc)) (v : α (.last sz)) : DArray (sz+1) α :=
   unsafeCast <| Array.push (α := NonScalar) (unsafeCast a) (unsafeCast v)
 
 /--
 Push an element onto the end of an array. This is amortized O(1) because
 `DArray sz α` is internally a dynamic array.
 -/
-@[implemented_by push'Impl] def push {α : Nat → Type u} (a : DArray sz α) (v : α sz) :
-    DArray (sz+1) α where
+@[implemented_by pushImpl] def push
+    (a : DArray sz (α ∘ .castSucc)) (v : α (.last sz)) : DArray (sz+1) α where
   get i :=
     if h : i < sz then a.get ⟨i, h⟩
-    else (Nat.le_antisymm (Nat.not_lt.1 h) (Nat.le_of_lt_succ i.2) : sz = i.1) ▸ v
+    else
+      (Fin.eq_of_val_eq <| Nat.le_antisymm (Nat.not_lt.1 h) (Nat.le_of_lt_succ i.2)
+        : Fin.last sz = i) ▸ v
 
 @[inline] private unsafe def setImpl (a : DArray sz α) (i : Fin sz) (v : α i) : DArray sz α :=
   unsafeCast <| Array.set (α := NonScalar) (unsafeCast a) (unsafeCast i) (unsafeCast v)
@@ -101,10 +116,10 @@ Set an element in an array, or do nothing if the index is out of bounds.
 This will perform the update destructively provided that `a` has a reference
 count of 1 when called.
 -/
-@[inline] def setD (a : DArray sz α) (i : Nat) (v : α i) : DArray sz α :=
+@[inline] def setD (a : DNArray sz α) (i : Nat) (v : α i) : DNArray sz α :=
   if h : i < sz then a.set ⟨i, h⟩ v else a
 
-@[inline] private unsafe def set!Impl (a : DArray sz α) (i : Nat) (v : α i) : DArray sz α :=
+@[inline] private unsafe def set!Impl (a : DNArray sz α) (i : Nat) (v : α i) : DNArray sz α :=
   unsafeCast <| Array.set! (α := NonScalar) (unsafeCast a) i (unsafeCast v)
 
 /--
@@ -113,18 +128,18 @@ Set an element in an array, or panic if the index is out of bounds.
 This will perform the update destructively provided that `a` has a reference
 count of 1 when called.
 -/
-@[implemented_by set!Impl] def set! (a : DArray sz α) (i : Nat) (v : α i) : DArray sz α :=
+@[implemented_by set!Impl] def set! (a : DNArray sz α) (i : Nat) (v : α i) : DNArray sz α :=
   setD a i v
 
 @[inline] private unsafe def extractImpl
-    (as : DArray sz α) (start sz' : Nat) (_ : start + sz' ≤ sz) :
-    DArray sz' fun i => α (start + i) :=
+    (as : DArray sz α) (start sz' : Nat) (h : start + sz' ≤ sz) :
+    DArray sz' fun i => α (Fin.castLE h (Fin.natAdd start i)) :=
   unsafeCast <| Array.extract.loop (α := NonScalar) (unsafeCast as) sz' start (.mkEmpty sz')
 
 /-- `O(sz')`. Returns the slice of `as` from indices `start` to `start + sz'` (exclusive). -/
 @[implemented_by extractImpl]
 def extract (as : DArray sz α) (start sz' : Nat) (h : start + sz' ≤ sz) :
-    DArray sz' fun i => α (start + i) where
+    DArray sz' fun i => α (Fin.castLE h (Fin.natAdd start i)) where
   get j := as.get ⟨start + j, Nat.lt_of_lt_of_le (Nat.add_lt_add_left j.2 _) h⟩
 
 /--
@@ -134,62 +149,62 @@ size is known from the type.
 @[nolint unusedArguments] abbrev isEmpty (_ : DArray sz α) : Bool := sz = 0
 
 /-- `O(1)`. Zero cost convert a dependent array to a regular array. -/
-def ofArray (as : Array α) (h : as.size = sz := by rfl) : DArray sz fun _ => α where
+def ofArray (as : Array α) (h : as.size = sz := by rfl) : CArray sz α where
   get i := as.get (h ▸ i)
 
 -- HACK, we can't restate the type because `:= by rfl` creates a new term each time it is written
 @[inline] private unsafe def ofArrayImpl : type_of% @ofArray := fun as _ => unsafeCast as
 attribute [implemented_by ofArrayImpl] ofArray
 
-@[inline] private unsafe def toArrayImpl (as : DArray sz fun _ => α) : Array α := unsafeCast as
+@[inline] private unsafe def toArrayImpl (as : CArray sz α) : Array α := unsafeCast as
 
 /-- `O(1)`. Zero cost convert a regular array to a dependent array. -/
 @[implemented_by toArrayImpl]
-def toArray (as : DArray sz fun _ => α) : Array α := Array.ofFn as.get
+def toArray (as : CArray sz α) : Array α := Array.ofFn as.get
 
 /--
 `O(n)`. Create a new array by copying value `v` into every slot.
 (This is a special case of `ofFn`, but implemented in a more efficient way.)
 -/
-def replicate (sz : Nat) (v : α) : DArray sz fun _ => α :=
+def replicate (sz : Nat) (v : α) : CArray sz α :=
   ofArray (.mkArray sz v) (Array.size_mkArray ..)
 
 /-- `O(1)`. Constructs an array with one element. -/
 def singleton (v : α 0) : DArray 1 α := (mkEmpty 1).push v
 
 @[inline] private unsafe def ugetImpl
-    (a : DArray sz α) (i : USize) (_ : i.toNat < sz) : α i.toNat :=
+    (a : DArray sz α) (i : USize) (h : i.toNat < sz) : α ⟨i.toNat, h⟩ :=
   unsafeCast <| Array.uget (α := NonScalar) (unsafeCast a) i lcProof
 
 /-- Low-level version of `get` which is as fast as a C array read.
    `Fin` values are represented as tagged pointers in the Lean runtime. Thus,
    `fget` may be slightly slower than `uget`. -/
 @[implemented_by ugetImpl]
-def uget (a : DArray sz α) (i : USize) (h : i.toNat < sz) : α i.toNat :=
+def uget (a : DArray sz α) (i : USize) (h : i.toNat < sz) : α ⟨i.toNat, h⟩ :=
   a.get ⟨i.toNat, h⟩
 
 /-- `O(1)`. Returns the last element of a nonempty array. -/
-@[inline] def back (a : DArray (sz+1) α) : α sz := a.get ⟨sz, Nat.lt_succ_self _⟩
+@[inline] def back (a : DArray (sz+1) α) : α (.last sz) := a.get ⟨sz, Nat.lt_succ_self _⟩
 
 /-- `O(1)`. Gets an element from the array, or `none` if the index is out of range. -/
-def get? (a : DArray sz α) (i : Nat) : Option (α i) :=
+def get? (a : DNArray sz α) (i : Nat) : Option (α i) :=
   if h : i < sz then some (a.get ⟨i, h⟩) else none
 
 /-- `O(1)`. Returns the last element of the array, or `none` if the array is empty. -/
-def back? (a : DArray sz α) : Option (α (sz - 1)) :=
+def back? (a : DNArray sz α) : Option (α (sz - 1)) :=
   match sz with
   | 0 => none
   | _ + 1 => some a.back
 
 @[inline] private unsafe def usetImpl
-    (a : DArray sz α) (i : USize) (v : α i.toNat) (_ : i.toNat < sz) : DArray sz α :=
+    (a : DArray sz α) (i : USize) (h : i.toNat < sz) (v : α ⟨i.toNat, h⟩) : DArray sz α :=
   unsafeCast <| Array.uset (α := NonScalar) (unsafeCast a) i (unsafeCast v) lcProof
 
 /-- Low-level version of `set` which is as fast as a C array set.
-   `Fin` values are represented as tag pointers in the Lean runtime. Thus,
+   `Fin` values are represented as tagged pointers in the Lean runtime. Thus,
    `set` may be slightly slower than `uset`. -/
 @[implemented_by usetImpl]
-def uset (a : DArray sz α) (i : USize) (v : α i.toNat) (h : i.toNat < sz) : DArray sz α :=
+def uset (a : DArray sz α) (i : USize) (h : i.toNat < sz) (v : α ⟨i.toNat, h⟩) : DArray sz α :=
   a.set ⟨i.toNat, h⟩ v
 
 /--
@@ -201,13 +216,13 @@ def uset (a : DArray sz α) (i : USize) (v : α i.toNat) (h : i.toNat < sz) : DA
   (e, a)
 
 /-- Amortized `O(1)`. Returns the last element of the array. -/
-def pop (a : DArray (sz+1) α) : DArray sz α where
+def pop (a : DArray (sz+1) α) : DArray sz (α ∘ .castSucc) where
   get i := a.get ⟨i, Nat.lt_succ_of_lt i.2⟩
 
 /-- `O(sz - n)`. Pops elements from `a` until it has size `n`. -/
-def shrink (a : DArray sz α) (n : Nat) (h : n ≤ sz) : DArray n α :=
+def shrink (a : DArray sz α) (n : Nat) (h : n ≤ sz) : DArray n (α ∘ .castLE h) :=
   if eq : n = sz then
-    eq ▸ a
+    cast (by subst eq; rfl) a
   else
     match sz with
     | 0 => (eq <| Nat.le_zero.1 h).elim
