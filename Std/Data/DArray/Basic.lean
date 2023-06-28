@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Std.Data.Array.Init.Basic
 import Std.Data.Nat.Lemmas
 import Std.Data.Fin.Lemmas
+import Std.Data.Function.Basic
 
 /-!
 ## Dependent arrays
@@ -72,7 +73,7 @@ def mkEmpty (c : Nat) : DArray 0 α := ⟨fun.⟩
 Get the size of an array. This is provided for convenience, it should usually not be needed
 since the size of a `DArray` is one of the parameters of the type.
 -/
-@[nolint unusedArguments] abbrev size (_self : DArray sz α) : Nat := sz
+abbrev size (_self : DArray sz α) : Nat := sz
 
 /-- Access an element from an array, or return `v₀` if the index is out of bounds. -/
 @[inline] abbrev getD (a : DNArray sz α) (i : Nat) (v₀ : α i) : α i :=
@@ -109,6 +110,17 @@ count of 1 when called.
 -/
 @[implemented_by setImpl] def set (a : DArray sz α) (i : Fin sz) (v : α i) : DArray sz α where
   get j := if h : i = j then h ▸ v else a.get j
+
+@[inline] private unsafe def strongSetImpl
+    (a : DArray sz α) (i : Fin sz) (v : β) : DArray sz (Function.update α i β) :=
+  unsafeCast <| Array.set (α := NonScalar) (unsafeCast a) (unsafeCast i) (unsafeCast v)
+
+/-- Strong set, akin to `set` but allowing any type `β` in the set index. -/
+@[implemented_by strongSetImpl] def strongSet
+    (a : DArray sz α) (i : Fin sz) (v : β) : DArray sz (Function.update α i β) where
+  get j := if h : j = i
+    then cast (by cases h; apply Eq.symm; apply Function.update_same) v
+    else (Function.update_noteq h ..) ▸ (a.get j)
 
 /--
 Set an element in an array, or do nothing if the index is out of bounds.
@@ -148,7 +160,7 @@ size is known from the type.
 -/
 @[nolint unusedArguments] abbrev isEmpty (_ : DArray sz α) : Bool := sz = 0
 
-/-- `O(1)`. Zero cost convert a dependent array to a regular array. -/
+/-- `O(1)`. Zero cost convert a regular array to a dependent array. -/
 def ofArray (as : Array α) (h : as.size = sz := by rfl) : CArray sz α where
   get i := as.get (h ▸ i)
 
@@ -158,7 +170,7 @@ attribute [implemented_by ofArrayImpl] ofArray
 
 @[inline] private unsafe def toArrayImpl (as : CArray sz α) : Array α := unsafeCast as
 
-/-- `O(1)`. Zero cost convert a regular array to a dependent array. -/
+/-- `O(1)`. Zero cost convert a dependent array to a regular array. -/
 @[implemented_by toArrayImpl]
 def toArray (as : CArray sz α) : Array α := Array.ofFn as.get
 
@@ -228,40 +240,35 @@ def shrink (a : DArray sz α) (n : Nat) (h : n ≤ sz) : DArray n (α ∘ .castL
     | 0 => (eq <| Nat.le_zero.1 h).elim
     | _ + 1 => shrink a.pop n <| Nat.le_of_lt_succ <| Nat.lt_of_le_of_ne h eq
 
--- TODO
-/-
-@[inline]
-unsafe def modifyMUnsafe [Monad m] (a : Array α) (i : Nat) (f : α → m α) : m (Array α) := do
-  if h : i < a.size then
-    let idx : Fin a.size := ⟨i, h⟩
-    let v                := a.get idx
-    -- Replace a[i] by `box(0)`.  This ensures that `v` remains unshared if possible.
-    -- Note: we assume that arrays have a uniform representation irrespective
-    -- of the element type, and that it is valid to store `box(0)` in any array.
-    let a'               := a.set idx (unsafeCast ())
-    let v ← f v
-    pure <| a'.set (size_set a .. ▸ idx) v
-  else
-    pure a
+@[inline] private unsafe def strongModifyMUnsafe
+    [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m β) : m (DArray sz (Function.update α i β)) := do
+  let v                := a.get i
+  -- Replace a[i] by `box(0)`.  This ensures that `v` remains unshared if possible.
+  -- Note: we assume that arrays have a uniform representation irrespective
+  -- of the element type, and that it is valid to store `box(0)` in any array.
+  let a'               := a.set i (unsafeCast ())
+  let v ← f v
+  pure <| a'.strongSet i v
 
-@[implemented_by modifyMUnsafe]
-def modifyM [Monad m] (a : Array α) (i : Nat) (f : α → m α) : m (Array α) := do
-  if h : i < a.size then
-    let idx := ⟨i, h⟩
-    let v   := a.get idx
-    let v ← f v
-    pure <| a.set idx v
-  else
-    pure a
+/-- Strong version of `modifyM`, updating the type at point `i` while updating its value. -/
+@[implemented_by strongModifyMUnsafe] def strongModifyM
+    [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m β) : m (DArray sz (Function.update α i β)) := do
+  let v := a.get i
+  let v ← f v
+  pure <| a.strongSet i v
 
+/-- Applies `f` to `a[i]` in-place. `O(1)` more work than evaluating `f a[i]`.
+    Uses all values linearly, in particular `a[i]` refcount is not increased. -/
+def modifyM [Monad m] (a : DArray sz α) (i : Fin sz) (f : α i → m (α i)) : m (DArray sz α) :=
+  cast (by simp) <| strongModifyM a i f
+
+/-- Applies `f` to `a[i]` in-place. `O(1)` more work than evaluating `f a[i]`.
+    Uses all values linearly, in particular `a[i]` refcount is not increased. -/
 @[inline]
-def modify (a : Array α) (i : Nat) (f : α → α) : Array α :=
+def modify (a : DArray sz α) (i : Fin sz) (f : α i → α i) : DArray sz α :=
   Id.run <| modifyM a i f
 
-@[inline]
-def modifyOp (self : Array α) (idx : Nat) (f : α → α) : Array α :=
-  self.modify idx f
-
+/-
 /--
   We claim this unsafe implementation is correct because an array cannot have more than `usizeSz` elements in our runtime.
 
