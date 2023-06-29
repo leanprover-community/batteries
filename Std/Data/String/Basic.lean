@@ -7,54 +7,62 @@ Authors: Jannis Limperg
 import Std.Data.Char
 import Std.Data.Nat.Lemmas
 
+protected theorem String.Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
+| _, _, hlt, rfl => Nat.not_lt_zero _ hlt
+
 namespace Substring
 
-/-- Check if two substrings are equal as strings. -/
-def eqAsString (s t : Substring) : Bool :=
-  if s.bsize ≠ t.bsize then
-    false
-  else
-    go s.bsize 0
+/-- Return the longest common prefix of two substrings. -/
+def commonPrefix (s t : Substring) : Substring :=
+  { s with stopPos := loop s.startPos t.startPos }
 where
-  /-- Auxiliary definition for `eqAsString`. -/
-  go (remaining : Nat) (offset : String.Pos) : Bool :=
-    if h : remaining = 0 then
-      true
-    else
-      let cs := s.get (s.startPos + offset)
-      let ct := t.get (t.startPos + offset)
-      if cs == ct then
-        have : remaining - String.csize cs < remaining :=
-          Nat.sub_lt (Nat.pos_of_ne_zero h) (String.csize_pos _)
-        go (remaining - String.csize cs) (offset + cs)
+  loop spos tpos :=
+    if h : spos < s.stopPos ∧ tpos < t.stopPos then
+      if s.str.get spos == t.str.get tpos then
+        have := Nat.sub_lt_sub_left h.1 (s.str.lt_next spos)
+        loop (s.str.next spos) (t.str.next tpos)
       else
-        false
+        spos
+    else
+      spos
+termination_by loop => s.stopPos.byteIdx - spos.byteIdx
+
+/-- Return the longest common suffix of two substrings. -/
+def commonSuffix (s t : Substring) : Substring :=
+  { s with startPos := loop s.stopPos t.stopPos }
+where
+  loop spos tpos :=
+    if h : s.startPos < spos ∧ t.startPos < tpos then
+      let spos' := s.str.prev spos
+      let tpos' := t.str.prev tpos
+      if s.str.get spos' == t.str.get tpos' then
+        have : spos' < spos := s.str.prev_lt_of_pos spos (String.Pos.ne_zero_of_lt h.1)
+        loop spos' tpos'
+      else
+        spos
+    else
+      spos
+termination_by loop => spos.byteIdx
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
 -/
 def dropPrefix? (s : Substring) (pre : Substring) : Option Substring :=
-  if s.bsize < pre.bsize then
-    none
+  let t := s.commonPrefix pre
+  if t.bsize = pre.bsize then
+    some { s with startPos := t.stopPos }
   else
-    let p := s.startPos + (pre.stopPos - pre.startPos)
-    if { s with stopPos := p }.eqAsString pre then
-      some { s with startPos := p }
-    else
-      none
+    none
 
 /--
 If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, return the remainder `t`.
 -/
 def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
-  if s.bsize < suff.bsize then
-    none
+  let t := s.commonSuffix suff
+  if t.bsize = suff.bsize then
+    some { s with stopPos := t.startPos }
   else
-    let p := s.stopPos + (suff.stopPos - suff.startPos)
-    if { s with startPos := p }.eqAsString suff then
-      some { s with stopPos := p }
-    else
-      none
+    none
 
 end Substring
 
