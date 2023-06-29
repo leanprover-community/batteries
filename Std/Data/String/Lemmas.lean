@@ -37,6 +37,9 @@ private theorem add_csize_pos : 0 < i + csize c :=
 private theorem ne_add_csize_add_self : i ≠ n + csize c + i :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)
 
+private theorem ne_self_add_add_csize : i ≠ i + (n + csize c) :=
+  Nat.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
 @[inline] def utf8Len : List Char → Nat := utf8ByteSize.go
 
@@ -203,7 +206,7 @@ theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len c
   | [], c::cs' => simp [← hp, utf8GetAux]
   | c::cs, cs' =>
     simp [utf8GetAux, -List.headD_eq_head?]; rw [if_neg]
-    case hnc => rw [← hp]; apply Pos.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
     refine utf8GetAux_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -221,7 +224,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | [], c::cs' => simp [← hp, utf8GetAux?]
   | c::cs, cs' =>
     simp [utf8GetAux?]; rw [if_neg]
-    case hnc => rw [← hp]; apply Pos.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -237,13 +240,13 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | [], c::cs' => simp [← hp, utf8SetAux]
   | c::cs, cs' =>
     simp [utf8SetAux]; rw [if_neg]
-    case hnc => rw [← hp]; apply Pos.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
 theorem set_of_valid (cs cs' : List Char) (c' : Char) :
     set ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ c' = ⟨cs ++ cs'.modifyHead fun _ => c'⟩ :=
-  congrArg String.mk (utf8SetAux_of_valid _ _ _ (Nat.zero_add _))
+  ext (utf8SetAux_of_valid _ _ _ (Nat.zero_add _))
 
 theorem modify_of_valid (cs cs' : List Char) :
     modify ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ f = ⟨cs ++ cs'.modifyHead f⟩ := by
@@ -274,8 +277,9 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
   match cs with
   | [] => simp [utf8PrevAux, ← hp, Pos.addChar_eq]
   | c'::cs =>
-    simp [← hp, utf8PrevAux, Pos.addChar_eq]; rw [if_neg]
-    case hnc => rw [Pos.ext_iff, Nat.add_right_comm, Nat.add_left_comm]; apply ne_add_csize_add_self
+    simp [utf8PrevAux, Pos.addChar_eq, ← hp]; rw [if_neg]
+    case hnc =>
+      simp [Pos.ext_iff]; rw [Nat.add_right_comm, Nat.add_left_comm]; apply ne_add_csize_add_self
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
@@ -293,7 +297,7 @@ theorem prev_of_valid' (cs cs' : List Char) :
 @[simp] theorem prev_zero (s : String) : prev s 0 = 0 := rfl
 
 theorem front_eq (s : String) : front s = s.1.headD default := by
-  simpa [front] using get_of_valid [] s.1
+  unfold front; exact get_of_valid [] s.1
 
 theorem back_eq (s : String) : back s = s.1.getLastD default := by
   match s, s.1.eq_nil_or_concat with
@@ -302,8 +306,8 @@ theorem back_eq (s : String) : back s = s.1.getLastD default := by
 
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     atEnd ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ ↔ cs' = [] := by
-  simp [atEnd_iff]
-  cases cs' <;> simp [Pos.le_iff, Nat.lt_add_of_pos_right add_csize_pos]
+  rw [atEnd_iff]
+  cases cs' <;> simp [Nat.lt_add_of_pos_right add_csize_pos]
 
 @[simp] theorem get'_eq (s : String) (p : Pos) (h) : get' s p h = get s p := rfl
 
@@ -345,7 +349,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp at h1 h2; simp [h1, h2]
     cases p c <;> simp
-    simpa using revFindAux_of_valid p l (c::r)
+    exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
     revFind s p = (s.1.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
@@ -455,8 +459,8 @@ theorem splitAux_of_valid (p l m r acc) :
   simp [by simpa using atEnd_of_valid (l ++ m) r]; split
   · subst r; simpa using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
-    simp [List.splitOnP.go, by simpa using (⟨
-      get_of_valid (l++m) (c::r), next_of_valid (l++m) c r, extract_of_valid l m (c::r)⟩ : _∧_∧_)]
+    simp [by simpa using (⟨get_of_valid (l++m) (c::r), next_of_valid (l++m) c r,
+      extract_of_valid l m (c::r)⟩ : _∧_∧_), List.splitOnP.go]
     split
     · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
     · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
@@ -483,12 +487,12 @@ theorem singleton_eq (c : Char) : singleton c = ⟨[c]⟩ := rfl
 
 @[simp] theorem data_singleton (c : Char) : (singleton c).data = [c] := rfl
 
-@[simp] theorem append_nil (s : String) : s ++ "" = s := congrArg mk (List.append_nil _)
+@[simp] theorem append_nil (s : String) : s ++ "" = s := ext (List.append_nil _)
 
 @[simp] theorem nil_append (s : String) : "" ++ s = s := rfl
 
 theorem append_assoc (s₁ s₂ s₃ : String) : (s₁ ++ s₂) ++ s₃ = s₁ ++ (s₂ ++ s₃) :=
-  congrArg mk (List.append_assoc ..)
+  ext (List.append_assoc ..)
 
 namespace Iterator
 
@@ -668,7 +672,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
     unfold offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_csize_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
-    simp [by simpa using next_of_valid l c (m++r)]
+    simp [next_of_valid l c (m++r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm, Nat.succ_eq_add_one] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
@@ -682,7 +686,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
   | l, c::m, r, a => by
     unfold foldlAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [by simpa using And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
 theorem foldl_eq (f : α → Char → α) (s a) : foldl f a s = s.1.foldl f a := by
@@ -709,7 +713,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, c::m, r => by
     unfold anyAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [by simpa using And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
@@ -732,8 +736,7 @@ theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ 
   | l, c::r => by
     unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
-    simp [by simpa using (⟨
-      set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r⟩ : _∧_∧_)]
+    simp [set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r]
     simpa using mapAux_of_valid f (l++[f c]) r
 
 theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by
@@ -751,7 +754,7 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, c::m, r => by
     unfold Substring.takeWhileAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [by simpa using And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
 
@@ -815,7 +818,7 @@ theorem isEmpty : ∀ {s}, ValidFor l m r s → (s.isEmpty ↔ m = [])
   | _, h => by simp [Substring.isEmpty, h.bsize]
 
 theorem toString : ∀ {s}, ValidFor l m r s → s.toString = ⟨m⟩
-  | _, ⟨⟩ => by simpa [Substring.toString] using extract_of_valid l m r
+  | _, ⟨⟩ => extract_of_valid l m r
 
 theorem toIterator : ∀ {s}, ValidFor l m r s → s.toIterator.ValidFor l.reverse (m ++ r)
   | _, h => by
