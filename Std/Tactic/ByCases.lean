@@ -3,6 +3,8 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Lean.Elab.Tactic.Basic
+import Lean.Meta.Tactic.Util
 import Lean.Parser.Tactic
 
 /-!
@@ -11,18 +13,13 @@ import Lean.Parser.Tactic
 This implements the `if` tactic, which is a structured proof version of `by_cases`.
 It allows writing `if h : t then tac1 else tac2` for case analysis on `h : t`,
 -/
+open Lean.Elab.Tactic
 open Lean Parser.Tactic
-
--- This is an improved version of `by_cases` from core that uses `Decidable` if possible
-macro_rules | `(tactic| by_cases $e) => `(tactic| by_cases h : $e)
-macro_rules
-  | `(tactic| by_cases $h : $e) =>
-    `(tactic| open Classical in refine if $h:ident : $e then ?pos else ?neg)
 
 private def expandIfThenElse
     (ifTk thenTk elseTk pos neg : Syntax)
-    (mkIf : Term → Term → MacroM Term) : MacroM (TSyntax `tactic) := do
-  let mkCase tk holeOrTacticSeq mkName : MacroM (Term × Array (TSyntax `tactic)) := do
+    (mkIf : Term → Term → TacticM Term) : TacticM Unit := do
+  let mkCase tk holeOrTacticSeq mkName : TacticM (Term × Array (TSyntax `tactic)) := do
     if holeOrTacticSeq.isOfKind ``Parser.Term.syntheticHole then
       pure (⟨holeOrTacticSeq⟩, #[])
     else if holeOrTacticSeq.isOfKind ``Parser.Term.hole then
@@ -36,9 +33,13 @@ private def expandIfThenElse
             with_annotate_state $tk skip
             $holeOrTacticSeq))
       pure (hole, #[case])
-  let (posHole, posCase) ← mkCase thenTk pos `(?pos)
-  let (negHole, negCase) ← mkCase elseTk neg `(?neg)
-  `(tactic| (open Classical in refine%$ifTk $(← mkIf posHole negHole); $[$(posCase ++ negCase)]*))
+  let tag ← (← getMainGoal).getTag
+  let posTag : Name ← MonadQuotation.addMacroScope (Meta.appendTag tag `pos);
+  let negTag : Name ← MonadQuotation.addMacroScope (Meta.appendTag tag `neg);
+  let (posHole, posCase) ← mkCase thenTk pos `(?$(mkIdent posTag))
+  let (negHole, negCase) ← mkCase elseTk neg `(?$(mkIdent negTag))
+  evalTactic (← `(tactic| (open Classical in
+    refine%$ifTk $(← mkIf posHole negHole); $[$(posCase ++ negCase)]*)))
 
 /--
 In tactic mode, `if h : t then tac1 else tac2` can be used as alternative syntax for:
@@ -74,10 +75,16 @@ syntax (name := tacIfThenElse)
   ppRealGroup(ppRealFill(ppIndent("if " term " then") ppSpace matchRhs)
     ppDedent(ppSpace) ppRealFill("else " matchRhs)) : tactic
 
-macro_rules
+elab_rules : tactic
   | `(tactic| if%$tk $h : $c then%$ttk $pos else%$etk $neg) =>
     expandIfThenElse tk ttk etk pos neg fun pos neg => `(if $h : $c then $pos else $neg)
 
-macro_rules
+elab_rules : tactic
   | `(tactic| if%$tk $c then%$ttk $pos else%$etk $neg) =>
     expandIfThenElse tk ttk etk pos neg fun pos neg => `(if h : $c then $pos else $neg)
+
+-- This is an improved version of `by_cases` from core that uses `Decidable` if possible
+macro_rules
+  | `(tactic| by_cases $h : $e) =>
+    `(tactic| open Classical in if $h:ident : $e then _ else _)
+macro_rules | `(tactic| by_cases $e) => `(tactic| by_cases h : $e)
