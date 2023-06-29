@@ -19,6 +19,7 @@ The returned substring will use the same underlying string as `s`.
 def commonPrefix (s t : Substring) : Substring :=
   { s with stopPos := loop s.startPos t.startPos }
 where
+  /-- Returns the ending position of the common prefix, working up from `spos, tpos`. -/
   loop spos tpos :=
     if h : spos < s.stopPos ∧ tpos < t.stopPos then
       if s.str.get spos == t.str.get tpos then
@@ -37,6 +38,7 @@ The returned substring will use the same underlying string as `s`.
 def commonSuffix (s t : Substring) : Substring :=
   { s with startPos := loop s.stopPos t.stopPos }
 where
+  /-- Returns the starting position of the common prefix, working down from `spos, tpos`. -/
   loop spos tpos :=
     if h : s.startPos < spos ∧ t.startPos < tpos then
       let spos' := s.str.prev spos
