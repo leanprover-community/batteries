@@ -12,7 +12,10 @@ protected theorem String.Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 
 namespace Substring
 
-/-- Return the longest common prefix of two substrings. -/
+/--
+Returns the longest common prefix of two substrings.
+The returned substring will use the same underlying string as `s`.
+-/
 def commonPrefix (s t : Substring) : Substring :=
   { s with stopPos := loop s.startPos t.startPos }
 where
@@ -27,7 +30,10 @@ where
       spos
 termination_by loop => s.stopPos.byteIdx - spos.byteIdx
 
-/-- Return the longest common suffix of two substrings. -/
+/--
+Returns the longest common suffix of two substrings.
+The returned substring will use the same underlying string as `s`.
+-/
 def commonSuffix (s t : Substring) : Substring :=
   { s with startPos := loop s.stopPos t.stopPos }
 where
@@ -45,7 +51,7 @@ where
 termination_by loop => spos.byteIdx
 
 /--
-If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
+If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.
 -/
 def dropPrefix? (s : Substring) (pre : Substring) : Option Substring :=
   let t := s.commonPrefix pre
@@ -55,7 +61,7 @@ def dropPrefix? (s : Substring) (pre : Substring) : Option Substring :=
     none
 
 /--
-If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, return the remainder `t`.
+If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, returns the remainder `t`.
 -/
 def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
   let t := s.commonSuffix suff
@@ -69,16 +75,16 @@ end Substring
 namespace String
 
 /--
-If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
+If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.
 -/
 def dropPrefix? (s : String) (pre : String) : Option Substring :=
   s.toSubstring.dropPrefix? pre.toSubstring
 
 /--
-If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, return the remainder `t`.
+If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, returns the remainder `t`.
 -/
 def dropSuffix? (s : String) (suff : String) : Option Substring :=
-  if s.endsWith suff then some <| s.toSubstring.dropRight suff.length else none
+  s.toSubstring.dropSuffix? suff.toSubstring
 
 /-- `s.stripPrefix pre` will remove `pre` from the beginning of `s` if it occurs there,
 or otherwise return `s`. -/
