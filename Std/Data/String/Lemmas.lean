@@ -278,8 +278,8 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
   | [] => simp [utf8PrevAux, ← hp, Pos.addChar_eq]
   | c'::cs =>
     simp [utf8PrevAux, Pos.addChar_eq, ← hp]; rw [if_neg]
-    case hnc => simp [Pos.ext_iff]; rw [Nat.add_right_comm, Nat.add_left_comm]
-                apply ne_add_csize_add_self
+    case hnc =>
+      simp [Pos.ext_iff]; rw [Nat.add_right_comm, Nat.add_left_comm]; apply ne_add_csize_add_self
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
@@ -362,7 +362,8 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
       ⟨p + utf8Len (List.takeWhile₂ (· = ·) r₁ r₂).1⟩ := by
   unfold List.takeWhile₂; split <;> unfold firstDiffPos.loop
   · next a r₁ b r₂ =>
-    rw [dif_pos <| by
+    rw [
+      dif_pos <| by
         rw [hstop, ← hl₁, ← hl₂]
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
@@ -685,7 +686,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
   | l, c::m, r, a => by
     unfold foldlAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
 theorem foldl_eq (f : α → Char → α) (s a) : foldl f a s = s.1.foldl f a := by
@@ -712,7 +713,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, c::m, r => by
     unfold anyAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
@@ -735,7 +736,7 @@ theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ 
   | l, c::r => by
     unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
-    simp [(⟨set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r⟩ : _∧_∧_)]
+    simp [set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r]
     simpa using mapAux_of_valid f (l++[f c]) r
 
 theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by
@@ -753,7 +754,7 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, c::m, r => by
     unfold Substring.takeWhileAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp [And.intro (get_of_valid l (c::(m++r))) (next_of_valid l c (m++r))]
+    simp [get_of_valid l (c::(m++r)), next_of_valid l c (m++r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
 
