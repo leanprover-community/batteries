@@ -681,7 +681,7 @@ theorem le_of_dvd {m n : Nat} (h : 0 < n) : m ∣ n → m ≤ n
       have := Nat.mul_le_mul_left m (succ_pos pk)
       rwa [Nat.mul_one] at this
 
-theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
+protected theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
   | _, 0, _, h₂ => Nat.eq_zero_of_zero_dvd h₂
   | 0, _, h₁, _ => (Nat.eq_zero_of_zero_dvd h₁).symm
   | _+1, _+1, h₁, h₂ => Nat.le_antisymm (le_of_dvd (succ_pos _) h₁) (le_of_dvd (succ_pos _) h₂)
