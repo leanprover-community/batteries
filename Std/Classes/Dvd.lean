@@ -10,3 +10,9 @@ class Dvd (α : Type _) where
   dvd : α → α → Prop
 
 @[inherit_doc] infix:50 " ∣ " => Dvd.dvd
+
+/--
+Divisibility in a semigroup.  Use the type class operation `a ∣ b` instead.
+-/
+def divides [Mul α] (a b : α) :=
+  ∃ c, b = a * c

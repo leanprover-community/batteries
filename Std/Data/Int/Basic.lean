@@ -125,4 +125,4 @@ def gcd (m n : Int) : Nat := m.natAbs.gcd n.natAbs
 Divisibility of integers. `a ∣ b` (typed as `\|`) says that
 there is some `c` such that `b = a * c`.
 -/
-instance : Dvd Int := ⟨fun a b => ∃ c, b = a * c⟩
+instance : Dvd Int where dvd := divides
