@@ -214,20 +214,19 @@ theorem get_cons_addChar (c : Char) (cs : List Char) (i : Pos) :
     get ⟨c :: cs⟩ (i + c) = get ⟨cs⟩ i := by
   simp [get, utf8GetAux, Pos.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
 
--- FIXME: Depends on lean4#2213
--- theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
---     utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
---   match cs, cs' with
---   | [], [] => rfl
---   | [], c::cs' => simp [← hp, utf8GetAux?]
---   | c::cs, cs' =>
---     simp [utf8GetAux?]; rw [if_neg]
---     case hnc => rw [← hp]; apply Pos.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
---     refine utf8GetAux?_of_valid cs cs' ?_
---     simpa [Nat.add_assoc, Nat.add_comm] using hp
---
--- theorem get?_of_valid (cs cs' : List Char) : get? ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = cs'.head? :=
---   utf8GetAux?_of_valid _ _ (Nat.zero_add _)
+theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
+    utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
+  match cs, cs' with
+  | [], [] => rfl
+  | [], c::cs' => simp [← hp, utf8GetAux?]
+  | c::cs, cs' =>
+    simp [utf8GetAux?]; rw [if_neg]
+    case hnc => rw [← hp]; apply Pos.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+    refine utf8GetAux?_of_valid cs cs' ?_
+    simpa [Nat.add_assoc, Nat.add_comm] using hp
+
+theorem get?_of_valid (cs cs' : List Char) : get? ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = cs'.head? :=
+  utf8GetAux?_of_valid _ _ (Nat.zero_add _)
 
 @[simp] theorem get!_eq_get (s : String) (p : Pos) : get! s p = get s p := rfl
 
