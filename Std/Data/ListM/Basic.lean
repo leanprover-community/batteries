@@ -176,7 +176,7 @@ Performs a case distinction on a `ListM` when the motive is a `ListM` as well.
 (We need to be in a monadic context to distinguish a nil from a cons.)
 -/
 @[specialize]
-def cases' (xs : ListM m α) (hnil : ListM m β) (hcons : α → ListM m α → ListM m β) : ListM m β :=
+def cases (xs : ListM m α) (hnil : ListM m β) (hcons : α → ListM m α → ListM m β) : ListM m β :=
   squash do return match ← xs.uncons with
     | none => hnil
     | some (x, xs) => hcons x xs
@@ -220,16 +220,16 @@ where
 /-- Take the first `n` elements. -/
 partial def take (xs : ListM m α) : Nat → ListM m α
   | 0 => empty
-  | n+1 => xs.cases' {} fun h l => consOption do pure (h, l.take n)
+  | n+1 => xs.cases {} fun h l => consOption do pure (h, l.take n)
 
 /-- Drop the first `n` elements. -/
 def drop (xs : ListM m α) : Nat → ListM m α
   | 0 => xs
-  | n+1 => xs.cases' {} fun _ l => l.drop n
+  | n+1 => xs.cases {} fun _ l => l.drop n
 
 /-- Apply a function which returns values in the monad to every element of a `ListM`. -/
 partial def mapM (f : α → m β) (xs : ListM m α) : ListM m β :=
-  xs.cases' {} fun x xs => consOption do return (← f x, xs.mapM f)
+  xs.cases {} fun x xs => consOption do return (← f x, xs.mapM f)
 
 /-- Apply a function to every element of a `ListM`. -/
 def map (f : α → β) (L : ListM m α) : ListM m β :=
@@ -237,7 +237,7 @@ def map (f : α → β) (L : ListM m α) : ListM m β :=
 
 /-- Filter a `ListM` using a monadic function. -/
 partial def filterM (p : α → m (ULift Bool)) (L : ListM m α) : ListM m α :=
-  L.cases' {} fun x xs => consOption do
+  L.cases {} fun x xs => consOption do
     return (if (← p x).down then some x else none, filterM p xs)
 
 /-- Filter a `ListM`. -/
@@ -248,7 +248,7 @@ def filter (p : α → Bool) (L : ListM m α) : ListM m α :=
 -- Note that the type signature has changed since Lean 3, when we allowed `f` to fail.
 -- Use `try?` from `Mathlib.Control.Basic` to lift a possibly failing function to `Option`.
 partial def filterMapM (f : α → m (Option β)) (xs : ListM m α) : ListM m β :=
-  xs.cases' {} fun x xs => consOption do return (← f x, xs.filterMapM f)
+  xs.cases {} fun x xs => consOption do return (← f x, xs.filterMapM f)
 
 /-- Filter and transform a `ListM` using an `Option` valued function. -/
 def filterMap (f : α → Option β) : ListM m α → ListM m β :=
@@ -256,7 +256,7 @@ def filterMap (f : α → Option β) : ListM m α → ListM m β :=
 
 /-- Take the initial segment of the lazy list, until the function `f` first returns `false`. -/
 partial def takeWhileM (f : α → m (ULift Bool)) (L : ListM m α) : ListM m α :=
-  L.cases' {} fun x xs => consOption do
+  L.cases {} fun x xs => consOption do
     return if !(← f x).down then (none, {}) else (some x, xs.takeWhileM f)
 
 /-- Take the initial segment of the lazy list, until the function `f` first returns `false`. -/
@@ -265,15 +265,15 @@ def takeWhile (f : α → Bool) : ListM m α → ListM m α :=
 
 /-- Concatenate two monadic lazy lists. -/
 partial def append (xs ys : ListM m α) : ListM m α :=
-  xs.cases' ys fun x xs => cons x (append xs ys)
+  xs.cases ys fun x xs => cons x (append xs ys)
 
 /-- Join a monadic lazy list of monadic lazy lists into a single monadic lazy list. -/
 partial def join (xs : ListM m (ListM m α)) : ListM m α :=
-  xs.cases' {} fun x xs => append x (join xs)
+  xs.cases {} fun x xs => append x (join xs)
 
 /-- Enumerate the elements of a monadic lazy list, starting at a specified offset. -/
 partial def enumFrom (n : Nat) (xs : ListM m α) : ListM m (Nat × α) :=
-  xs.cases' {} fun x xs => cons (n, x) (xs.enumFrom (n+1))
+  xs.cases {} fun x xs => cons (n, x) (xs.enumFrom (n+1))
 
 /-- Enumerate the elements of a monadic lazy list. -/
 def enum : ListM m α → ListM m (Nat × α) :=
@@ -312,14 +312,14 @@ def concat : ListM m α → α → ListM m α
 
 /-- Take the product of two monadic lazy lists. -/
 partial def zip (L : ListM m α) (M : ListM m β) : ListM m (α × β) :=
-  L.cases' {} fun a L =>
-  M.cases' {} fun b M =>
+  L.cases {} fun a L =>
+  M.cases {} fun b M =>
   cons (a, b) (L.zip M)
 
 /-- Apply a function returning a monadic lazy list to each element of a monadic lazy list,
 joining the results. -/
 partial def bind (xs : ListM m α) (f : α → ListM m β) : ListM m β :=
-  xs.cases' {} fun x xs => append (f x) (bind xs f)
+  xs.cases {} fun x xs => append (f x) (bind xs f)
 
 /-- Convert any value in the monad to the singleton monadic lazy list. -/
 def monadLift (x : m α) : ListM m α :=
@@ -348,7 +348,7 @@ def head? (L : ListM m α) : m (Option α) := do
 /-- Take the initial segment of the lazy list,
 up to and including the first place where `f` gives `true`. -/
 partial def takeUpToFirstM (L : ListM m α) (f : α → m (ULift Bool)) : ListM m α :=
-  L.cases' {} fun x xs => consOption do
+  L.cases {} fun x xs => consOption do
     return (some x, if (← (f x)).down then empty else xs.takeUpToFirstM f)
 
 /-- Take the initial segment of the lazy list,
@@ -381,7 +381,7 @@ partial def foldM (f : β → α → m β) (init : β) (L : ListM m α) : m β :
 
 /-- Folds a binary function across a monadic lazy list, from an initial starting value.
 This will run forever if the list is infinite. -/
-unsafe def fold (f : β → α → β) (init : β) (L : ListM m α) : m β :=
+partial def fold (f : β → α → β) (init : β) (L : ListM m α) : m β :=
   L.foldM (fun b a => pure (f b a)) init
 
 section Alternative
