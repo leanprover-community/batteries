@@ -144,3 +144,13 @@ result.
   match x with
   | some a => pure a
   | none => y
+
+instance (α) [BEq α] [LawfulBEq α] : LawfulBEq (Option α) where
+  rfl {x} :=
+    match x with
+    | some x => LawfulBEq.rfl (α := α)
+    | none => rfl
+  eq_of_beq {x y h} := by
+    match x, y with
+    | some x, some y => rw [LawfulBEq.eq_of_beq (α := α) h]
+    | none, none => rfl

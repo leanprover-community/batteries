@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 
 namespace Nat
@@ -33,8 +34,6 @@ theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 theorem succ_le {n m : Nat} : succ n ≤ m ↔ n < m := .rfl
 
 protected theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := (Nat.le_total a b).resolve_left
-
-protected theorem pos_of_ne_zero {n : Nat} : n ≠ 0 → 0 < n := (eq_zero_or_pos n).resolve_left
 
 protected theorem pos_iff_ne_zero {n : Nat} : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
@@ -92,6 +91,18 @@ protected theorem lt_add_of_pos_right {n k : Nat} (h : 0 < k) : n < n + k :=
 protected theorem lt_add_of_pos_left {n k : Nat} (h : 0 < k) : n < k + n := by
   rw [Nat.add_comm]; exact Nat.lt_add_of_pos_right h
 
+protected theorem pos_of_lt_add_right {n k : Nat} (h : n < n + k) : 0 < k :=
+  Nat.lt_of_add_lt_add_left h
+
+protected theorem pos_of_lt_add_left {n k : Nat} (h : n < k + n) : 0 < k :=
+  Nat.lt_of_add_lt_add_right (by rw [Nat.zero_add]; exact h)
+
+protected theorem lt_add_right_iff_pos {n k : Nat} : n < n + k ↔ 0 < k :=
+  ⟨Nat.pos_of_lt_add_right, Nat.lt_add_of_pos_right⟩
+
+protected theorem lt_add_left_iff_pos {n k : Nat} : n < k + n ↔ 0 < k :=
+  ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
+
 theorem add_pos_left (h : 0 < m) (n : Nat) : 0 < m + n :=
   Nat.lt_of_le_of_lt (zero_le n) (Nat.lt_add_of_pos_left h)
 
@@ -105,12 +116,6 @@ attribute [simp] Nat.zero_sub
 
 theorem sub_lt_succ (a b : Nat) : a - b < succ a :=
   lt_succ_of_le (sub_le a b)
-
-protected theorem sub_le_sub_right {n m : Nat} (h : n ≤ m) : ∀ k, n - k ≤ m - k
-  | 0   => h
-  | z+1 => pred_le_pred (Nat.sub_le_sub_right h z)
-
--- port note: bit0/bit1 items have been omitted.
 
 protected theorem add_self_ne_one : ∀ (n : Nat), n + n ≠ 1
   | n+1, h =>
@@ -165,19 +170,6 @@ protected theorem sub_eq_iff_eq_add {a b c : Nat} (ab : b ≤ a) : a - b = c ↔
 protected theorem lt_of_sub_eq_succ (H : m - n = succ l) : n < m :=
   Nat.not_le.1 fun H' => by simp [Nat.sub_eq_zero_of_le H'] at H
 
-protected theorem min_eq_min (a : Nat) : Nat.min a b = min a b := rfl
-
-protected theorem max_eq_max (a : Nat) : Nat.max a b = max a b := rfl
-
-protected theorem min_comm (a b : Nat) : min a b = min b a := by
-  simp [Nat.min_def]; split <;> split <;> simp [*]
-  · next h₁ h₂ => exact Nat.le_antisymm h₁ h₂
-  · next h₁ h₂ => cases not_or_intro h₁ h₂ <| Nat.le_total ..
-
-protected theorem min_le_right (a b : Nat) : min a b ≤ b := by rw [Nat.min_def]; split <;> simp [*]
-
-protected theorem min_le_left (a b : Nat) : min a b ≤ a := Nat.min_comm .. ▸ Nat.min_le_right ..
-
 protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
   ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
    fun ⟨h₁, h₂⟩ => by rw [Nat.min_def]; split <;> assumption⟩
@@ -192,16 +184,6 @@ protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by
 protected theorem zero_min (a : Nat) : min 0 a = 0 := Nat.min_eq_left (zero_le a)
 
 protected theorem min_zero (a : Nat) : min a 0 = 0 := Nat.min_eq_right (zero_le a)
-
-protected theorem max_comm (a b : Nat) : max a b = max b a := by
-  simp only [Nat.max_def]
-  by_cases h₁ : a ≤ b <;> by_cases h₂ : b ≤ a <;> simp [h₁, h₂]
-  · exact Nat.le_antisymm h₂ h₁
-  · cases not_or_intro h₁ h₂ <| Nat.le_total ..
-
-protected theorem le_max_left (a b : Nat) : a ≤ max a b := by rw [Nat.max_def]; split <;> simp [*]
-
-protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. ▸ Nat.le_max_left ..
 
 protected theorem max_le {a b c : Nat} : max a b ≤ c ↔ a ≤ c ∧ b ≤ c :=
   ⟨fun h => ⟨Nat.le_trans (Nat.le_max_left ..) h, Nat.le_trans (Nat.le_max_right ..) h⟩,
@@ -229,6 +211,9 @@ theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
 
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
+
+protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
+  rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
 protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
 
@@ -421,10 +406,6 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
 theorem succ_mul_succ_eq (a b : Nat) : succ a * succ b = a * b + a + b + 1 := by
   rw [mul_succ, succ_mul, Nat.add_right_comm _ a]; rfl
 
-theorem succ_sub {m n : Nat} (h : n ≤ m) : succ m - n = succ (m - n) := by
-  let ⟨k, hk⟩ := Nat.le.dest h
-  rw [← hk, Nat.add_sub_cancel_left, ← add_succ, Nat.add_sub_cancel_left]
-
 protected theorem sub_pos_of_lt (h : m < n) : 0 < n - m := by
   apply Nat.lt_of_add_lt_add_right (b := m)
   rwa [Nat.zero_add, Nat.sub_add_cancel (Nat.le_of_lt h)]
@@ -453,10 +434,6 @@ theorem sub_lt_self {a b : Nat} (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b := b
 
 protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
-
-protected theorem sub_lt_left_of_lt_add {n k m : Nat} (H : n ≤ k) (h : k < n + m) : k - n < m := by
-  have := Nat.sub_le_sub_right (succ_le_of_lt h) n
-  rwa [Nat.add_sub_cancel_left, Nat.succ_sub H] at this
 
 protected theorem add_le_of_le_sub_left {n k m : Nat} (H : m ≤ k) (h : n ≤ k - m) : m + n ≤ k :=
   Nat.not_lt.1 fun h' => Nat.not_lt.2 h (Nat.sub_lt_left_of_lt_add H h')
@@ -704,7 +681,7 @@ theorem le_of_dvd {m n : Nat} (h : 0 < n) : m ∣ n → m ≤ n
       have := Nat.mul_le_mul_left m (succ_pos pk)
       rwa [Nat.mul_one] at this
 
-theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
+protected theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
   | _, 0, _, h₂ => Nat.eq_zero_of_zero_dvd h₂
   | 0, _, h₁, _ => (Nat.eq_zero_of_zero_dvd h₁).symm
   | _+1, _+1, h₁, h₂ => Nat.le_antisymm (le_of_dvd (succ_pos _) h₁) (le_of_dvd (succ_pos _) h₂)
@@ -791,6 +768,8 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
+/-! ### pow -/
+
 theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
   rw [Nat.pow_succ, Nat.mul_comm]
 
@@ -804,9 +783,44 @@ theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
 
 theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
 
-/-! ### log2 -/
-
 attribute [simp] Nat.pow_zero
+
+protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
+  match n with
+  | 0 => contradiction
+  | n+1 => rw [Nat.pow_succ, Nat.mul_zero]
+
+@[simp] protected theorem one_pow (n : Nat) : 1 ^ n = 1 := by
+  induction n with
+  | zero => rfl
+  | succ _ ih => rw [Nat.pow_succ, Nat.mul_one, ih]
+
+@[simp] protected theorem pow_one (a : Nat) : a ^ 1 = a := by rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
+
+protected theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
+
+protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
+  induction n with
+  | zero => rw [Nat.add_zero, Nat.pow_zero, Nat.mul_one]
+  | succ _ ih => rw [Nat.add_succ, Nat.pow_succ, Nat.pow_succ, ih, Nat.mul_assoc]
+
+protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by rw [←Nat.pow_add, Nat.add_comm]
+
+protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
+  induction n with
+  | zero => rw [Nat.mul_zero, Nat.pow_zero, Nat.pow_zero]
+  | succ _ ih => rw [Nat.mul_succ, Nat.pow_add, Nat.pow_succ, ih]
+
+protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.mul_comm]
+
+protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.pow_mul']
+
+protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
+  induction n with
+  | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
+  | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
+
+/-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
   match k with

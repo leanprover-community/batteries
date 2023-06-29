@@ -149,6 +149,9 @@ theorem mem_append_left {a : α} {l₁ : List α} (l₂ : List α) (h : a ∈ l�
 theorem mem_append_right {a : α} (l₁ : List α) {l₂ : List α} (h : a ∈ l₂) : a ∈ l₁ ++ l₂ :=
   mem_append.2 (Or.inr h)
 
+theorem mem_iff_append {a : α} {l : List α} : a ∈ l ↔ ∃ s t : List α, l = s ++ a :: t :=
+  ⟨append_of_mem, fun ⟨s, t, e⟩ => e ▸ by simp⟩
+
 /-! ### map -/
 
 theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
@@ -234,6 +237,12 @@ theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈
 
 theorem Subset.trans {l₁ l₂ l₃ : List α} (h₁ : l₁ ⊆ l₂) (h₂ : l₂ ⊆ l₃) : l₁ ⊆ l₃ :=
   fun _ i => h₂ (h₁ i)
+
+instance : Trans (Membership.mem : α → List α → Prop) Subset Membership.mem :=
+  ⟨fun h₁ h₂ => h₂ h₁⟩
+
+instance : Trans (Subset : List α → List α → Prop) Subset Subset :=
+  ⟨Subset.trans⟩
 
 @[simp] theorem subset_cons (a : α) (l : List α) : l ⊆ a :: l := fun _ => Mem.tail _
 
@@ -403,6 +412,15 @@ theorem Sublist.subset : l₁ <+ l₂ → l₁ ⊆ l₂
   | .cons _ s, _, h => .tail _ (s.subset h)
   | .cons₂ .., _, .head .. => .head ..
   | .cons₂ _ s, _, .tail _ h => .tail _ (s.subset h)
+
+instance : Trans (@Sublist α) Subset Subset :=
+  ⟨fun h₁ h₂ => trans h₁.subset h₂⟩
+
+instance : Trans Subset (@Sublist α) Subset :=
+  ⟨fun h₁ h₂ => trans h₁ h₂.subset⟩
+
+instance : Trans (Membership.mem : α → List α → Prop) Sublist Membership.mem :=
+  ⟨fun h₁ h₂ => h₂.subset h₁⟩
 
 theorem Sublist.length_le : l₁ <+ l₂ → length l₁ ≤ length l₂
   | .slnil => Nat.le_refl 0
