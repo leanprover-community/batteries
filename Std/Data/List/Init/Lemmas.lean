@@ -91,7 +91,7 @@ theorem map_nil {f : α → β} : map f [] = [] := rfl
 theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
 
 @[simp] theorem map_append (f : α → β) : ∀ l₁ l₂, map f (l₁ ++ l₂) = map f l₁ ++ map f l₂ := by
-  intro l₁ <;> induction l₁ <;> intros <;> simp_all
+  intro l₁; induction l₁ <;> intros <;> simp_all
 
 @[simp] theorem map_id (l : List α) : map id l = l := by induction l <;> simp_all
 
