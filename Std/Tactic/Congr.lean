@@ -39,11 +39,7 @@ Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ H
   For example, if the goal is `⊢ f '' s = g '' s` then `congr with x` generates the goal
   `x : α ⊢ f x = g x`.
 -/
-syntax (name := congrWith) "congr" (ppSpace colGt num)?
-  " with" (ppSpace colGt rintroPat)* (" : " num)? : tactic
-
-@[inherit_doc Std.Tactic.congrWith]
-syntax (name := congrConfigWith) "congr" Parser.Tactic.config (ppSpace colGt num)?
+syntax (name := congrConfigWith) "congr" (Parser.Tactic.config)? (ppSpace colGt num)?
   " with" (ppSpace colGt rintroPat)* (" : " num)? : tactic
 
 elab_rules : tactic
@@ -55,10 +51,10 @@ elab_rules : tactic
       mvarId.congrN depth (closePre := config.closePre) (closePost := config.closePost)
 
 macro_rules
-  | `(tactic| congr $(depth)? with $ps* $[: $n]?) =>
-    `(tactic| congr $(depth)? <;> ext $ps* $[: $n]?)
-  | `(tactic| congr $config:config $(depth)? with $ps* $[: $n]?) =>
-    `(tactic| congr $config:config $(depth)? <;> ext $ps* $[: $n]?)
+  | `(tactic| congr $(cfg)? $(depth)? with $ps* $[: $n]?) =>
+    match cfg with
+    | none => `(tactic| congr $(depth)? <;> ext $ps* $[: $n]?)
+    | some cfg => `(tactic| congr $cfg $(depth)? <;> ext $ps* $[: $n]?)
 
 /--
 Recursive core of `rcongr`. Calls `ext pats <;> congr` and then itself recursively,
