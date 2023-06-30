@@ -33,9 +33,49 @@ where
         none
 termination_by go start stop => stop.byteIdx + 4 - start.byteIdx
 
+/-- The first position in `s.str` where `pattern` occurs,
+    or `none` if no such position exists. -/
+def posOfSubstr (s pattern : Substring) : Option String.Pos :=
+  if h : pattern.bsize > 0 then
+    aux pattern.str pattern.startPos pattern.bsize h s.str s.stopPos s.startPos
+  else some 0
+where aux ps pstart plen (hplen : plen > 0) s (stop start : String.Pos) :=
+  if h : start.byteIdx + plen ≤ stop.byteIdx then
+    have : stop.byteIdx - (s.next start).byteIdx < stop.byteIdx - start.byteIdx :=
+      Nat.sub_lt_sub_left
+        (Nat.lt_of_lt_of_le (Nat.lt_add_of_pos_right hplen) h)
+        (String.lt_next _ _)
+    if String.substrEq s start pattern.str pattern.startPos pattern.bsize then
+      some start
+    else
+      aux ps pstart plen hplen s stop (s.next start)
+  else
+    none
+termination_by aux i => stop.byteIdx - i.byteIdx
+
+/-- Returns true iff `pattern` occurs as a substring of `s`. -/
+def containsSubstr (s : Substring) (pattern : Substring) : Bool :=
+  s.posOfSubstr pattern |>.isSome
+
 end Substring
 
 namespace String
+
+/-- The first position at which `pattern` occurs in `s`, or `none` if it never occurs. -/
+def posOfSubstr (s : String) (pattern : Substring) : Option String.Pos :=
+  s.toSubstring.posOfSubstr pattern
+
+/-- The first position at which `pattern` occurs in `s`, or `none` if it never occurs. -/
+def posOfStr (s pattern : String) : Option String.Pos :=
+  s.posOfSubstr pattern.toSubstring
+
+/-- Returns true iff `pattern` occurs as a substring of `s`. -/
+def containsSubstr (s : String) (pattern : Substring) : Bool :=
+  s.posOfSubstr pattern |>.isSome
+
+/-- Returns true iff `pattern` occurs as a substring of `s`. -/
+def containsStr (s pattern : String) : Bool :=
+  s.containsSubstr pattern.toSubstring
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, return the remainder `t`.
