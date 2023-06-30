@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jannis Limperg
+Authors: Jannis Limperg, James Gallicchio
 -/
 
 import Std.Data.Char
@@ -39,18 +39,21 @@ def posOfSubstr (s pattern : Substring) : Option String.Pos :=
   if h : pattern.bsize > 0 then
     aux pattern.str pattern.startPos pattern.bsize h s.str s.stopPos s.startPos
   else some 0
-where aux ps pstart plen (hplen : plen > 0) s (stop start : String.Pos) :=
-  if h : start.byteIdx + plen ≤ stop.byteIdx then
-    have : stop.byteIdx - (s.next start).byteIdx < stop.byteIdx - start.byteIdx :=
-      Nat.sub_lt_sub_left
-        (Nat.lt_of_lt_of_le (Nat.lt_add_of_pos_right hplen) h)
-        (String.lt_next _ _)
-    if String.substrEq s start pattern.str pattern.startPos pattern.bsize then
-      some start
+where
+  /-- Pattern string `ps` starting at `pstart` for `plen` bytes, looking for a
+      match in string `s` starting after `start` and ending before `stop`. -/
+  aux ps pstart plen (hplen : plen > 0) s (stop start : String.Pos) :=
+    if h : start.byteIdx + plen ≤ stop.byteIdx then
+      have : stop.byteIdx - (s.next start).byteIdx < stop.byteIdx - start.byteIdx :=
+        Nat.sub_lt_sub_left
+          (Nat.lt_of_lt_of_le (Nat.lt_add_of_pos_right hplen) h)
+          (String.lt_next _ _)
+      if String.substrEq s start pattern.str pattern.startPos pattern.bsize then
+        some start
+      else
+        aux ps pstart plen hplen s stop (s.next start)
     else
-      aux ps pstart plen hplen s stop (s.next start)
-  else
-    none
+      none
 termination_by aux i => stop.byteIdx - i.byteIdx
 
 /-- Returns true iff `pattern` occurs as a substring of `s`. -/
