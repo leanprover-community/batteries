@@ -89,7 +89,7 @@ where
         Nat.sub_lt_sub_left
           (Nat.lt_of_lt_of_le (Nat.lt_add_of_pos_right hplen) h)
           (String.lt_next _ _)
-      if String.substrEq s start pattern.str pattern.startPos pattern.bsize then
+      if String.substrEq s start ps pstart plen then
         some start
       else
         aux ps pstart plen hplen s stop (s.next start)
