@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Linter.Util
+import Std.Lean.Command
 import Std.Tactic.Unreachable
 
 namespace Std.Linter
@@ -84,7 +85,7 @@ partial def eraseUsedTactics : InfoTree → M Unit
 end
 
 /-- The main entry point to the unreachable tactic linter. -/
-partial def unreachableTacticLinter : Linter where run stx := do
+def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
