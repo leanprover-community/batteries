@@ -42,6 +42,8 @@ initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq
     |>.insert ``Lean.Parser.Tactic.tacticStop_
+    |>.insert ``Lean.Parser.Command.notation
+    |>.insert ``Lean.Parser.Command.mixfix
 
 /-- Is this a syntax kind that contains intentionally unevaluated tactic subterms? -/
 def isIgnoreTacticKind (ignoreTacticKinds : NameHashSet) (k : SyntaxNodeKind) : Bool :=
