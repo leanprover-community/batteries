@@ -729,6 +729,26 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
   | [], _ => []
   | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
 
+/-- Tail-recursive version of `pmap`. -/
+def pmapTR {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) : List β :=
+  aux f l h []
+where aux {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β → List β
+| [], _, acc => acc.reverse
+| x::xs, h, acc => aux f xs (fun a ha => h a (.tail _ ha)) (f x (h x (.head _)) :: acc)
+
+@[csimp] theorem pmap_eq_pmapTR : @pmap = @pmapTR := by
+  funext α β p f L h
+  unfold pmapTR
+  suffices ∀ acc, acc.reverse ++ pmap f L h = pmapTR.aux f L h acc by
+    have := this []
+    simp at this
+    exact this
+  intro acc
+  induction L generalizing acc with
+  | nil => simp [pmapTR, pmapTR.aux]
+  | cons x xs ih =>
+    simp [pmapTR.aux, ←ih]
+
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach (l : List α) : List { x // x ∈ l } :=
