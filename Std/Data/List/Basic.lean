@@ -732,9 +732,11 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 /-- Tail-recursive version of `pmap`. -/
 def pmapTR {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) : List β :=
   aux f l h []
-where aux {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β → List β
-| [], _, acc => acc.reverse
-| x::xs, h, acc => aux f xs (fun a ha => h a (.tail _ ha)) (f x (h x (.head _)) :: acc)
+where
+  /-- aux f l h acc = acc.reverse ++ pmap f l h -/
+  aux {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β → List β
+  | [], _, acc => acc.reverse
+  | x::xs, h, acc => aux f xs (fun a ha => h a (.tail _ ha)) (f x (h x (.head _)) :: acc)
 
 @[csimp] theorem pmap_eq_pmapTR : @pmap = @pmapTR := by
   funext α β p f L h
