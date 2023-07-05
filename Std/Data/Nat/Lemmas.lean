@@ -143,7 +143,7 @@ protected theorem add_le_to_le_sub (x : Nat) {y k : Nat} (h : k ≤ y) :
     x + k ≤ y ↔ x ≤ y - k := by
   rw [← Nat.add_sub_cancel x k, Nat.sub_le_sub_iff_right h, Nat.add_sub_cancel]
 
-protected theorem sub_lt_of_pos_le (a b : Nat) (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :=
+protected theorem sub_lt_of_pos_le {a b : Nat} (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :=
   Nat.sub_lt (Nat.lt_of_lt_of_le h₀ h₁) h₀
 
 protected theorem sub_one (n : Nat) : n - 1 = pred n := rfl

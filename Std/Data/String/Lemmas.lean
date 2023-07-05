@@ -435,7 +435,7 @@ theorem extract.go₁_zero_utf8Len (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩
 
 theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
     extract ⟨c :: cs⟩ (b + c) (e + c) = extract ⟨cs⟩ b e := by
-  simp [extract, Nat.add_le_add_iff_le_right]
+  simp [extract, Nat.add_le_add_iff_right]
   split <;> [rfl; rw [extract.go₁_cons_addChar]]
 
 theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
@@ -448,7 +448,7 @@ theorem extract_of_valid (l m r : List Char) :
     extract ⟨l ++ m ++ r⟩ ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = ⟨m⟩ := by
   simp only [extract]
   split
-  · next h => rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_le_left _ _ 0).1 h]
+  · next h => rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_left _ _ 0).1 h]
   · congr; rw [List.append_assoc, extract.go₁_append_right _ _ _ _ _ (by rfl)]
     apply extract.go₂_append_left; apply Nat.add_comm
 
@@ -567,7 +567,7 @@ theorem prev_nil : ∀ {it}, ValidFor [] r it → ValidFor [] r it.prev
 theorem atEnd : ∀ {it}, ValidFor l r it → (it.atEnd ↔ r = [])
   | it, h => by
     simp [Iterator.atEnd, h.pos, h.toString]
-    exact (Nat.add_le_add_iff_le_left _ _ 0).trans <| Nat.le_zero.trans utf8Len_eq_zero
+    exact (Nat.add_le_add_iff_left _ _ 0).trans <| Nat.le_zero.trans utf8Len_eq_zero
 
 theorem hasNext : ∀ {it}, ValidFor l r it → (it.hasNext ↔ r ≠ [])
   | it, h => by simp [Iterator.hasNext, ← h.atEnd, Iterator.atEnd]
@@ -911,12 +911,12 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b,
   | _, ⟨⟩, ⟨⟩ => by
     simp [Substring.extract]; split
     · next h =>
-      rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_le_left _ _ 0).1 h]
+      rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_left _ _ 0).1 h]
       exact ⟨[], [], ⟨⟩⟩
     · next h =>
       refine ⟨l ++ ml, mr ++ r, .of_eq _ (by simp) ?_ ?_⟩ <;>
         simp [Nat.min_eq_min] <;> rw [Nat.min_eq_right] <;>
-        simp [Nat.add_le_add_iff_le_left, Nat.le_add_right]
+        simp [Nat.add_le_add_iff_left, Nat.le_add_right]
       rw [Nat.add_assoc]
 
 -- TODO: splitOn

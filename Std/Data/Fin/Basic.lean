@@ -43,21 +43,8 @@ def natAdd (n) (i : Fin m) : Fin (n + m) := ⟨n + i, Nat.add_lt_add_left i.2 _�
   ⟨i - m, Nat.sub_lt_right_of_lt_add h i.2⟩
 
 /-- Predecessor of a nonzero element of `Fin (n+1)`. -/
-@[inline] def pred {n : Nat} (i : Fin (n + 1)) (h : i.1 ≠ 0) : Fin n :=
-  subNat 1 i (Nat.pos_of_ne_zero h)
-
-/-- `succAbove p i` embeds `Fin n` into `Fin (n + 1)` with a hole around `p`. -/
-def succAbove (p : Fin (n + 1)) (i : Fin n) : Fin (n + 1) :=
-  if i.1 < p.1 then castSucc i else succ i
-
-/-- `predAbove p i` embeds `i : Fin (n+1)` into `Fin n` by subtracting one if `p < i`. -/
-def predAbove (p : Fin n) (i : Fin (n + 1)) : Fin n :=
-  if h : castSucc p < i then i.pred (Nat.not_eq_zero_of_lt h)
-  else i.castLT (Nat.lt_of_le_of_lt (Nat.ge_of_not_lt h) p.2)
-
-/-- `castPred` embeds `i : Fin (n + 2)` into `Fin (n + 1)`
-by lowering just `last (n + 1)` to `last n`. -/
-def castPred (i : Fin (n + 2)) : Fin (n + 1) := predAbove (last n) i
+@[inline] def pred {n : Nat} (i : Fin (n + 1)) (h : i ≠ 0) : Fin n :=
+  subNat 1 i <| Nat.pos_of_ne_zero <| mt (Fin.eq_of_val_eq (j := 0)) h
 
 /-- `min n m` as an element of `Fin (m + 1)` -/
 def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
