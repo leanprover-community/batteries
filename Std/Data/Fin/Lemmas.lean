@@ -247,29 +247,25 @@ theorem one_lt_succ_succ (a : Fin n) : (1 : Fin (n + 2)) < a.succ.succ := by
   | .inl h => cases h; simp [Nat.succ_pos]
   | .inr hk' => simp [Nat.ne_of_lt hk', Nat.mod_eq_of_lt (Nat.succ_lt_succ hk'), Nat.le_succ]
 
--- @[simp] theorem add_one_le_iff {n : Nat} {k : Fin (n + 1)} : k + 1 ≤ k ↔ k = last _ := by
---   cases n
---   -- Porting note: added `haveI`
---   · haveI : Subsingleton (Fin (0 + 1)) := by
---       convert_to Subsingleton (Fin 1)
---       infer_instance
---     simp [Subsingleton.elim (k + 1) k, Subsingleton.elim (Fin.last _) k]
---   rw [← not_iff_not, ← add_one_lt_iff, lt_iff_le_and_ne, not_and']
---   refine' ⟨fun h _ => h, fun h => h _⟩
---   rw [Ne.def, ext_iff, val_add_one]
---   split_ifs with hk <;> simp [hk, @eq_comm Nat 0]
+@[simp] theorem add_one_le_iff {n : Nat} : ∀ {k : Fin (n + 1)}, k + 1 ≤ k ↔ k = last _ := by
+  match n with
+  | 0 =>
+    intro (k : Fin 1)
+    exact iff_of_true (Subsingleton.elim (α := Fin 1) (k+1) _ ▸ Nat.le_refl _) (fin_one_eq_zero ..)
+  | n + 1 =>
+    intro (k : Fin (n+2))
+    rw [← add_one_lt_iff, lt_def, le_def, Nat.lt_iff_le_and_ne, and_iff_left]
+    rw [val_add_one]
+    split <;> simp [*, (Nat.succ_ne_zero _).symm, Nat.ne_of_gt (Nat.lt_succ_self _)]
 
--- @[simp]
--- theorem last_le_iff {n : Nat} {k : Fin (n + 1)} : last n ≤ k ↔ k = last n :=
---   top_le_iff
+@[simp] theorem last_le_iff {n : Nat} {k : Fin (n + 1)} : last n ≤ k ↔ k = last n := by
+  rw [ext_iff, Nat.le_antisymm_iff, le_def, and_iff_right (by apply le_last)]
 
--- @[simp]
--- theorem lt_add_one_iff {n : Nat} {k : Fin (n + 1)} : k < k + 1 ↔ k < last n := by
---   rw [← Decidable.not_iff_not]; simp
+@[simp] theorem lt_add_one_iff {n : Nat} {k : Fin (n + 1)} : k < k + 1 ↔ k < last n := by
+  rw [← Decidable.not_iff_not]; simp
 
--- @[simp]
--- theorem le_zero_iff {n : Nat} {k : Fin (n + 1)} : k ≤ 0 ↔ k = 0 :=
---   ⟨fun h => Fin.eq_of_veq <| by rw [Nat.eq_zero_of_le_zero h]; rfl, by rintro rfl; exact le_refl _⟩
+@[simp] theorem le_zero_iff {n : Nat} {k : Fin (n + 1)} : k ≤ 0 ↔ k = 0 :=
+  ⟨fun h => Fin.eq_of_val_eq <| Nat.eq_zero_of_le_zero h, (· ▸ Nat.le_refl _)⟩
 
 theorem succ_succ_ne_one (a : Fin n) : Fin.succ (Fin.succ a) ≠ 1 :=
   Fin.ne_of_gt (one_lt_succ_succ a)

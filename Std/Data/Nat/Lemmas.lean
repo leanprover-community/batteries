@@ -75,6 +75,9 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
 protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
   ⟨Nat.lt_or_eq_of_le, (·.elim Nat.le_of_lt Nat.le_of_eq)⟩
 
+protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
+  ⟨fun h => ⟨Nat.le_of_eq h, Nat.le_of_eq h.symm⟩, fun ⟨h₁, h₂⟩ => Nat.le_antisymm h₁ h₂⟩
+
 /-! ### zero/one -/
 
 protected theorem pos_iff_ne_zero {n : Nat} : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
