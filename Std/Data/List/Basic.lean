@@ -736,7 +736,8 @@ private unsafe def attach.impl (l : List α) : List { x // x ∈ l } :=
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
   with the same elements but in the type `{x // x ∈ l}`. -/
 @[implemented_by attach.impl]
-def attach (l : List α) : List { x // x ∈ l } := pmap (⟨·,·⟩) l (fun _ h => h)
+def attach (l : List α) : List { x // x ∈ l } :=
+  pmap Subtype.mk l (fun _ => id)
 
 /-- Tail-recursive version of `pmap`. -/
 private def pmap.impl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) : List β :=
