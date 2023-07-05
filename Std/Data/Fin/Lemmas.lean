@@ -478,9 +478,7 @@ theorem cast_addNat {n : Nat} (m : Nat) (i : Fin n) :
 theorem natAdd_castSucc {m n : Nat} {i : Fin m} : natAdd n (castSucc i) = castSucc (natAdd n i) :=
   rfl
 
-/-!
-### pred
--/
+/-! ### pred -/
 
 @[simp] theorem coe_pred (j : Fin (n + 1)) (h : j ≠ 0) : (j.pred h : Nat) = j - 1 := rfl
 
