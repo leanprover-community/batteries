@@ -374,7 +374,7 @@ theorem fmod_nonneg {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a.fmod b :
   fmod_eq_mod ha hb ▸ mod_nonneg _ ha
 
 theorem fmod_nonneg' (a : Int) {b : Int} (hb : 0 < b) : 0 ≤ a.fmod b := 
-  fmod_eq_emod _ hb.le ▸ emod_nonneg _ hb.ne'
+  fmod_eq_emod _ (Int.le_of_lt hb) ▸ emod_nonneg _ (Int.ne_of_lt hb).symm
 
 theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
   match a, b, eq_succ_of_zero_lt H with
