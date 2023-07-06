@@ -28,7 +28,7 @@ private theorem numElems_le_iff {start stop step i} (hstep : 0 < step) :
     _ ↔ stop - start + step - 1 < step * i + 1 + (step - 1) := by
       rw [Nat.add_right_comm, Nat.add_assoc, Nat.sub_add_cancel hstep]
     _ ↔ stop ≤ start + step * i := by
-      rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_lt_right, Nat.lt_succ,
+      rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_right, Nat.lt_succ,
         Nat.sub_le_iff_le_add']
 
 theorem mem_range'_elems (r : Range) (h : x ∈ List.range' r.start r.numElems r.step) : x ∈ r := by
