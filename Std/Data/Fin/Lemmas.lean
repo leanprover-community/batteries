@@ -548,76 +548,78 @@ theorem pred_add_one (i : Fin (n + 2)) (h : (i : Nat) < n + 1) :
 /-! ### recursion and induction principles -/
 
 /-- Define `C n i` by induction on `i : Fin n` interpreted as `(0 : Fin (n - i)).succ.succ…`.
-This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
-and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
+This function has two arguments: `zero n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
+and `succ n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
 of `n`-tuple. -/
 -- FIXME: Performance review
-@[elab_as_elim] def succRec {C : ∀ n, Fin n → Sort _} (H0 : ∀ n, C n.succ (0 : Fin (n + 1)))
-    (Hs : ∀ n i, C n i → C n.succ i.succ) : ∀ {n : Nat} (i : Fin n), C n i
+@[elab_as_elim] def succRec {C : ∀ n, Fin n → Sort _} (zero : ∀ n, C n.succ (0 : Fin (n + 1)))
+    (succ : ∀ n i, C n i → C n.succ i.succ) : ∀ {n : Nat} (i : Fin n), C n i
   | 0, i => i.elim0
-  | Nat.succ n, ⟨0, _⟩ => by rw [mk_zero]; exact H0 n
-  | Nat.succ _, ⟨Nat.succ i, h⟩ => Hs _ _ (succRec H0 Hs ⟨i, Nat.lt_of_succ_lt_succ h⟩)
+  | Nat.succ n, ⟨0, _⟩ => by rw [mk_zero]; exact zero n
+  | Nat.succ _, ⟨Nat.succ i, h⟩ => succ _ _ (succRec zero succ ⟨i, Nat.lt_of_succ_lt_succ h⟩)
 
 /-- Define `C n i` by induction on `i : Fin n` interpreted as `(0 : Fin (n - i)).succ.succ…`.
-This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
-and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
+This function has two arguments: `zero n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
+and `succ n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
 of `n`-tuple.
 
 A version of `Fin.succRec` taking `i : Fin n` as the first argument. -/
 -- FIXME: Performance review
 @[elab_as_elim] def succRecOn {n : Nat} (i : Fin n) {C : ∀ n, Fin n → Sort _}
-    (H0 : ∀ n, C (n + 1) 0) (Hs : ∀ n i, C n i → C (Nat.succ n) i.succ) : C n i := i.succRec H0 Hs
+    (zero : ∀ n, C (n + 1) 0) (succ : ∀ n i, C n i → C (Nat.succ n) i.succ) : C n i :=
+  i.succRec zero succ
 
-@[simp] theorem succRecOn_zero {C : ∀ n, Fin n → Sort _} {H0 Hs} (n) :
-    @Fin.succRecOn (n + 1) 0 C H0 Hs = H0 n := by
+@[simp] theorem succRecOn_zero {C : ∀ n, Fin n → Sort _} {zero succ} (n) :
+    @Fin.succRecOn (n + 1) 0 C zero succ = zero n := by
   cases n <;> rfl
 
-@[simp] theorem succRecOn_succ {C : ∀ n, Fin n → Sort _} {H0 Hs} {n} (i : Fin n) :
-    @Fin.succRecOn (n + 1) i.succ C H0 Hs = Hs n i (Fin.succRecOn i H0 Hs) := by cases i; rfl
+@[simp] theorem succRecOn_succ {C : ∀ n, Fin n → Sort _} {zero succ} {n} (i : Fin n) :
+    @Fin.succRecOn (n + 1) i.succ C zero succ = succ n i (Fin.succRecOn i zero succ) := by
+  cases i; rfl
 
 /-- Define `C i` by induction on `i : Fin (n + 1)` via induction on the underlying `Nat` value.
-This function has two arguments: `h0` handles the base case on `C 0`,
-and `hs` defines the inductive step using `C i.castSucc`.
+This function has two arguments: `zero` handles the base case on `C 0`,
+and `succ` defines the inductive step using `C i.castSucc`.
 -/
 -- FIXME: Performance review
-@[elab_as_elim] def induction {C : Fin (n + 1) → Sort _} (h0 : C 0)
-    (hs : ∀ i : Fin n, C (castSucc i) → C i.succ) :
+@[elab_as_elim] def induction {C : Fin (n + 1) → Sort _} (zero : C 0)
+    (succ : ∀ i : Fin n, C (castSucc i) → C i.succ) :
     ∀ i : Fin (n + 1), C i
   | ⟨0, hi⟩ => by rwa [Fin.mk_zero]
-  | ⟨i+1, hi⟩ => hs ⟨i, Nat.lt_of_succ_lt_succ hi⟩ (induction h0 hs ⟨i, Nat.lt_of_succ_lt hi⟩)
+  | ⟨i+1, hi⟩ => succ ⟨i, Nat.lt_of_succ_lt_succ hi⟩ (induction zero succ ⟨i, Nat.lt_of_succ_lt hi⟩)
 
-@[simp] theorem induction_zero {C : Fin (n + 1) → Sort _} (h0 : C 0)
+@[simp] theorem induction_zero {C : Fin (n + 1) → Sort _} (zero : C 0)
     (hs : ∀ i : Fin n, C (castSucc i) → C i.succ) :
-    (induction h0 hs : ∀ i : Fin (n + 1), C i) 0 = h0 := rfl
+    (induction zero hs : ∀ i : Fin (n + 1), C i) 0 = zero := rfl
 
-@[simp] theorem induction_succ {C : Fin (n + 1) → Sort _} (h0 : C 0)
-    (hs : ∀ i : Fin n, C (castSucc i) → C i.succ) (i : Fin n) :
-    (induction h0 hs : ∀ i : Fin (n+1), C i) i.succ = hs i (induction h0 hs (castSucc i)) := rfl
+@[simp] theorem induction_succ {C : Fin (n + 1) → Sort _} (zero : C 0)
+    (succ : ∀ i : Fin n, C (castSucc i) → C i.succ) (i : Fin n) :
+    induction (C := C) zero succ i.succ = succ i (induction zero succ (castSucc i)) := rfl
 
 /-- Define `C i` by induction on `i : Fin (n + 1)` via induction on the underlying `Nat` value.
-This function has two arguments: `h0` handles the base case on `C 0`,
-and `hs` defines the inductive step using `C i.castSucc`.
+This function has two arguments: `zero` handles the base case on `C 0`,
+and `succ` defines the inductive step using `C i.castSucc`.
 
 A version of `Fin.induction` taking `i : Fin (n + 1)` as the first argument.
 -/
 -- FIXME: Performance review
-@[elab_as_elim] def inductionOn (i : Fin (n + 1)) {C : Fin (n + 1) → Sort _} (h0 : C 0)
-    (hs : ∀ i : Fin n, C (castSucc i) → C i.succ) : C i := induction h0 hs i
+@[elab_as_elim] def inductionOn (i : Fin (n + 1)) {C : Fin (n + 1) → Sort _} (zero : C 0)
+    (succ : ∀ i : Fin n, C (castSucc i) → C i.succ) : C i := induction zero succ i
 
 /-- Define `f : Π i : Fin n.succ, C i` by separately handling the cases `i = 0` and
 `i = j.succ`, `j : Fin n`. -/
-@[elab_as_elim] def cases {C : Fin (n + 1) → Sort _} (H0 : C 0) (Hs : ∀ i : Fin n, C i.succ) :
-    ∀ i : Fin (n + 1), C i :=
-  induction H0 fun i _ => Hs i
+@[elab_as_elim] def cases {C : Fin (n + 1) → Sort _} (zero : C 0) (succ : ∀ i : Fin n, C i.succ) :
+    ∀ i : Fin (n + 1), C i := induction zero fun i _ => succ i
 
-@[simp] theorem cases_zero {n} {C : Fin (n + 1) → Sort _} {H0 Hs} :
-    @Fin.cases n C H0 Hs 0 = H0 := rfl
+@[simp] theorem cases_zero {n} {C : Fin (n + 1) → Sort _} {zero succ} :
+    @Fin.cases n C zero succ 0 = zero := rfl
 
-@[simp] theorem cases_succ {n} {C : Fin (n + 1) → Sort _} {H0 Hs} (i : Fin n) :
-    @Fin.cases n C H0 Hs i.succ = Hs i := rfl
+@[simp] theorem cases_succ {n} {C : Fin (n + 1) → Sort _} {zero succ} (i : Fin n) :
+    @Fin.cases n C zero succ i.succ = succ i := rfl
 
-@[simp] theorem cases_succ' {n} {C : Fin (n + 1) → Sort _} {H0 Hs} {i : Nat} (h : i + 1 < n + 1) :
-    @Fin.cases n C H0 Hs ⟨i.succ, h⟩ = Hs ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
+@[simp] theorem cases_succ' {n} {C : Fin (n + 1) → Sort _} {zero succ}
+    {i : Nat} (h : i + 1 < n + 1) :
+    @Fin.cases n C zero succ ⟨i.succ, h⟩ = succ ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
 
 theorem forall_fin_succ {P : Fin (n + 1) → Prop} : (∀ i, P i) ↔ P 0 ∧ ∀ i : Fin n, P i.succ :=
   ⟨fun H => ⟨H 0, fun _ => H _⟩, fun ⟨H0, H1⟩ i => Fin.cases H0 H1 i⟩
@@ -643,61 +645,58 @@ theorem fin_two_eq_of_eq_zero_iff : ∀ {a b : Fin 2}, (a = 0 ↔ b = 0) → a =
 
 /--
 Define `C i` by reverse induction on `i : Fin (n + 1)` via induction on the underlying `Nat` value.
-This function has two arguments: `hlast` handles the base case on `C (Fin.last n)`,
-and `hs` defines the inductive step using `C i.succ`, inducting downwards.
+This function has two arguments: `last` handles the base case on `C (Fin.last n)`,
+and `cast` defines the inductive step using `C i.succ`, inducting downwards.
 -/
-@[elab_as_elim] def reverseInduction {C : Fin (n + 1) → Sort _} (hlast : C (Fin.last n))
-    (hs : ∀ i : Fin n, C i.succ → C (castSucc i)) (i : Fin (n + 1)) : C i :=
-  if hi : i = Fin.last n then _root_.cast (congrArg C hi.symm) hlast
+@[elab_as_elim] def reverseInduction {C : Fin (n + 1) → Sort _} (last : C (Fin.last n))
+    (cast : ∀ i : Fin n, C i.succ → C (castSucc i)) (i : Fin (n + 1)) : C i :=
+  if hi : i = Fin.last n then _root_.cast (congrArg C hi.symm) last
   else
     let j : Fin n := ⟨i, Nat.lt_of_le_of_ne (Nat.le_of_lt_succ i.2) fun h => hi (Fin.ext h)⟩
-    hs _ (reverseInduction hlast hs j.succ)
+    cast _ (reverseInduction last cast j.succ)
 termination_by _ => n + 1 - i
 decreasing_by decreasing_with
   -- FIXME: we put the proof down here to avoid getting a dummy `have` in the definition
   exact Nat.add_sub_add_right .. ▸ Nat.sub_lt_sub_left i.2 (Nat.lt_succ_self i)
 
-@[simp] theorem reverse_induction_last {n : Nat} {C : Fin (n + 1) → Sort _} (h0 : C (Fin.last n))
-    (hs : ∀ i : Fin n, C i.succ → C (castSucc i)) :
-    (reverseInduction h0 hs (Fin.last n) : C (Fin.last n)) = h0 := by
+@[simp] theorem reverseInduction_last {n : Nat} {C : Fin (n + 1) → Sort _} (zero : C (Fin.last n))
+    (succ : ∀ i : Fin n, C i.succ → C (castSucc i)) :
+    (reverseInduction zero succ (Fin.last n) : C (Fin.last n)) = zero := by
   rw [reverseInduction]; simp; rfl
 
-@[simp] theorem reverse_induction_castSucc {n : Nat} {C : Fin (n + 1) → Sort _}
-    (h0 : C (Fin.last n)) (hs : ∀ i : Fin n, C i.succ → C (castSucc i)) (i : Fin n) :
-    reverseInduction h0 hs (castSucc i) = hs i (reverseInduction h0 hs i.succ) := by
+@[simp] theorem reverseInduction_castSucc {n : Nat} {C : Fin (n + 1) → Sort _}
+    (zero : C (Fin.last n)) (succ : ∀ i : Fin n, C i.succ → C (castSucc i)) (i : Fin n) :
+    reverseInduction zero succ (castSucc i) = succ i (reverseInduction zero succ i.succ) := by
   rw [reverseInduction, dif_neg (Fin.ne_of_lt (Fin.castSucc_lt_last i))]; rfl
 
 /-- Define `f : Π i : Fin n.succ, C i` by separately handling the cases `i = Fin.last n` and
 `i = j.castSucc`, `j : Fin n`. -/
-@[elab_as_elim] def lastCases {n : Nat} {C : Fin (n + 1) → Sort _} (hlast : C (Fin.last n))
-    (hcast : ∀ i : Fin n, C (castSucc i)) (i : Fin (n + 1)) : C i :=
-  reverseInduction hlast (fun i _ => hcast i) i
+@[elab_as_elim] def lastCases {n : Nat} {C : Fin (n + 1) → Sort _} (last : C (Fin.last n))
+    (cast : ∀ i : Fin n, C (castSucc i)) (i : Fin (n + 1)) : C i :=
+  reverseInduction last (fun i _ => cast i) i
 
-@[simp] theorem lastCases_last {n : Nat} {C : Fin (n + 1) → Sort _} (hlast : C (Fin.last n))
-    (hcast : ∀ i : Fin n, C (castSucc i)) :
-    (Fin.lastCases hlast hcast (Fin.last n) : C (Fin.last n)) = hlast :=
-  reverse_induction_last _ _
+@[simp] theorem lastCases_last {n : Nat} {C : Fin (n + 1) → Sort _} {last cast} :
+    (Fin.lastCases last cast (Fin.last n) : C (Fin.last n)) = last :=
+  reverseInduction_last _ _
 
-@[simp] theorem lastCases_castSucc {n : Nat} {C : Fin (n + 1) → Sort _} (hlast : C (Fin.last n))
-    (hcast : ∀ i : Fin n, C (castSucc i)) (i : Fin n) :
-    (Fin.lastCases hlast hcast (Fin.castSucc i) : C (Fin.castSucc i)) = hcast i :=
-  reverse_induction_castSucc _ _ _
+@[simp] theorem lastCases_castSucc {n : Nat} {C : Fin (n + 1) → Sort _} {last cast} (i : Fin n) :
+    (Fin.lastCases last cast (Fin.castSucc i) : C (Fin.castSucc i)) = cast i :=
+  reverseInduction_castSucc _ _ _
 
 /-- Define `f : Π i : Fin (m + n), C i` by separately handling the cases `i = castAdd n i`,
 `j : Fin m` and `i = natAdd m j`, `j : Fin n`. -/
-@[elab_as_elim] def addCases {m n : Nat} {C : Fin (m + n) → Sort u} (hleft : ∀ i, C (castAdd n i))
-    (hright : ∀ i, C (natAdd m i)) (i : Fin (m + n)) : C i :=
-  if hi : (i : Nat) < m then (castAdd_castLT n i hi) ▸ (hleft (castLT i hi))
-  else (natAdd_subNat_cast (Nat.le_of_not_lt hi)) ▸ (hright _)
+@[elab_as_elim] def addCases {m n : Nat} {C : Fin (m + n) → Sort u} (left : ∀ i, C (castAdd n i))
+    (right : ∀ i, C (natAdd m i)) (i : Fin (m + n)) : C i :=
+  if hi : (i : Nat) < m then (castAdd_castLT n i hi) ▸ (left (castLT i hi))
+  else (natAdd_subNat_cast (Nat.le_of_not_lt hi)) ▸ (right _)
 
-@[simp] theorem addCases_left {m n : Nat} {C : Fin (m + n) → Sort _}
-    (hleft : ∀ i, C (castAdd n i)) (hright : ∀ i, C (natAdd m i)) (i : Fin m) :
-    addCases hleft hright (Fin.castAdd n i) = hleft i := by
+@[simp] theorem addCases_left {m n : Nat} {C : Fin (m + n) → Sort _} {left right} (i : Fin m) :
+    addCases (C := C) left right (Fin.castAdd n i) = left i := by
   rw [addCases, dif_pos (castAdd_lt _ _)]; rfl
 
 @[simp]
-theorem addCases_right {m n : Nat} {C : Fin (m + n) → Sort _} (hleft : ∀ i, C (castAdd n i))
-    (hright : ∀ i, C (natAdd m i)) (i : Fin n) : addCases hleft hright (natAdd m i) = hright i := by
+theorem addCases_right {m n : Nat} {C : Fin (m + n) → Sort _} {left right} (i : Fin n) :
+    addCases (C := C) left right (natAdd m i) = right i := by
   have : ¬(natAdd m i : Nat) < m := Nat.not_lt.2 (le_coe_natAdd ..)
   rw [addCases, dif_neg this]; exact eq_of_heq <| (eqRec_heq _ _).trans (by congr 1; simp)
 
