@@ -757,11 +757,10 @@ private def pmap.impl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h
     from this L (fun _ hx => hx) h
   intro L hL h
   induction L with
-  | nil => simp
-  | cons x xs ih =>
-    simp
-    rw [ih]
-    exact fun _ hx => hL <| .tail _ hx
+  | nil => rfl
+  | cons _ L' ih =>
+    have : L' ⊆ L := fun _ hx => hL (.tail _ hx)
+    exact congrArg _ (ih this)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
