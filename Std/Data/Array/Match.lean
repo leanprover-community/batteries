@@ -5,7 +5,6 @@ Authors: F. G. Dorais
 -/
 import Std.Data.Array.Basic
 import Std.Data.Array.Lemmas
-import Std.Data.String.Basic
 
 namespace Array
 
@@ -83,6 +82,16 @@ def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α :=
     (mkPrefixTable xs.pop).extend xs[xs.size-1]
 termination_by _ xs => xs.size
 
+/-- Make prefix table from a pattern stream -/
+partial def mkPrefixTableOfStream [BEq α] [Stream σ α] (stream : σ) : PrefixTable α :=
+  loop ⟨#[], fun .⟩ stream
+where
+  /-- Inner loop for `mkPrefixTableOfStream` -/
+  loop (t : PrefixTable α) (stream : σ) :=
+    match Stream.next? stream with
+    | none => t
+    | some (x, stream) => loop (t.extend x) stream
+
 /-- KMP matcher structure -/
 structure Matcher (α) where
   /-- Prefix table for the pattern -/
@@ -90,9 +99,13 @@ structure Matcher (α) where
   /-- Current longest matching prefix -/
   state : Fin (table.size+1) := 0
 
-/-- Initialize KMP matcher for a given pattern -/
-def Matcher.init [BEq α] (pat : Array α) : Matcher α where
+/-- Make a KMP matcher for a given a pattern array -/
+def Matcher.ofArray [BEq α] (pat : Array α) : Matcher α where
   table := mkPrefixTable pat
+
+/-- Make a KMP matcher for a given a pattern stream -/
+def Matcher.ofStream [BEq α] [Stream σ α] (pat : σ) : Matcher α where
+  table := mkPrefixTableOfStream pat
 
 /-- Find next match from a given stream
 
@@ -111,20 +124,3 @@ partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ)
       next? {m with state := state} stream
 
 end Array
-
-section Test
-
-/-- Find all matches of pattern in string -/
-partial def String.findAll (pattern : String) (str : String) : Array String.Pos :=
-  let m : Array.Matcher Char := .init pattern.toList.toArray
-  loop m str.toSubstring #[]
-where
-  /-- inner loop for findAll -/
-  loop (m : Array.Matcher Char) (s : Substring) (ps : Array String.Pos) : Array String.Pos :=
-    match m.next? s with
-    | none => ps
-    | some (s, m) => loop m s (ps.push (s.startPos - pattern.endPos))
-
-#eval "abba".findAll "babbababbabbaabbbaaababba"
-
-end Test
