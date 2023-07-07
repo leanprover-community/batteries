@@ -705,6 +705,18 @@ theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i 
   | _::_, ⟨0, _⟩ => rfl
   | _::_, ⟨i+1, _⟩ => get_cons_drop _ ⟨i, _⟩
 
+theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
+  | _, _, rfl => drop_nil
+
+theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
+  | _, _, rfl => take_nil
+
+theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
+  mt drop_eq_nil_of_eq_nil h
+
+theorem ne_nil_of_take_ne_nil {as : List α} {i : Nat} (h: as.take i ≠ []) : as ≠ [] :=
+  mt take_eq_nil_of_eq_nil h
+
 theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
     (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ := by
   have := h
@@ -1762,19 +1774,6 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
     · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
       exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
-
-theorem drop_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.drop i = [] :=
-  List.drop_eq_nil_of_le <| h ▸ List.length_nil ▸ zero_le i
-
-theorem take_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.take i = [] :=
-  List.eq_nil_iff_forall_not_mem.mpr (fun a ha =>
-  List.eq_nil_iff_forall_not_mem.mp h a (List.mem_of_mem_take ha))
-
-theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
-  mt drop_eq_nil_of_eq_nil h
-
-theorem ne_nil_of_take_ne_nil {as : List α} {i : Nat} (h: as.take i ≠ []) : as ≠ [] :=
-  mt take_eq_nil_of_eq_nil h
 
 /-! ### takeWhile and dropWhile -/
 
