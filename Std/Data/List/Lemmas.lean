@@ -1763,10 +1763,10 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
       exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
 
-theorem drop_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.drop i = []  :=
+theorem drop_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.drop i = [] :=
   List.drop_eq_nil_of_le <| h ▸ List.length_nil ▸ zero_le i
 
-theorem take_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.take i = []  :=
+theorem take_eq_nil_of_eq_nil {as : List α} {i : Nat} (h: as = []) : as.take i = [] :=
   List.eq_nil_iff_forall_not_mem.mpr (fun a ha =>
   List.eq_nil_iff_forall_not_mem.mp h a (List.mem_of_mem_take ha))
 
