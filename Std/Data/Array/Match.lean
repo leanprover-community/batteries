@@ -9,9 +9,13 @@ import Std.Data.String.Basic
 
 namespace Array
 
-/-- Prefix table for the Knuth-Morris-Pratt matching algorithm -/
+/-- Prefix table for the Knuth-Morris-Pratt matching algorithm
+
+  This is an array of the form `t = [(x₀,n₀), (x₁,n₁), (x₂, n₂), ...]` where for each `i`, `nᵢ` is
+  the length of the longest proper prefix of `xs = [x₀,x₁,...,xᵢ]` which is also a suffix of `xs`.
+-/
 structure PrefixTable (α : Type _) extends Array (α × Nat) where
-  /-- Validity condition to help termination proofs -/
+  /-- Validity condition to help with termination proofs -/
   valid : (h : i < toArray.size) → toArray[i].2 ≤ i
 
 instance : Inhabited (PrefixTable α) where
@@ -23,7 +27,13 @@ abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size
 /-- Returns the pattern array of the prefix table -/
 abbrev PrefixTable.pattern (t : PrefixTable α) : Array α := t.toArray.map Prod.fst
 
-/-- Transition function for the KMP matcher -/
+/-- Transition function for the KMP matcher
+
+  Assuming we have an input `xs` with a suffix that matches the pattern prefix `t.pattern[:len]`
+  where `len : Fin (t.size+1)`. Then `xs.push x` has a suffix that matches the pattern prefix
+  `t.pattern[:t.step x len]`. If `len` is as large as possible then `t.step x len` will also be
+  as large as possible.
+-/
 def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) → Fin (t.size+1)
 | ⟨k, hk⟩ =>
   if hx : some x == t.pattern[k]? then
@@ -46,7 +56,10 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
     ⟨0, Nat.zero_lt_succ _⟩
 termination_by _ k => k.val
 
-/-- Extend prefix table by one element -/
+/-- Extend a prefix table by one element
+
+  If `t` is the prefix table for `xs` then `t.extend x` is the prefix table for `xs.push x`.
+-/
 def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α where
   toArray := t.toArray.push (x, t.step x ⟨t.size, Nat.lt_succ_self _⟩)
   valid := by
@@ -63,7 +76,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
       rw [heq, ← Nat.lt_succ]
       exact Fin.isLt ..
 
-/-- Make prefix table from array -/
+/-- Make prefix table from a pattern array -/
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α :=
   if h : xs.size = 0 then ⟨#[], fun .⟩ else
     have : xs.size-1 < xs.size := Nat.pred_lt h
@@ -72,16 +85,20 @@ termination_by _ xs => xs.size
 
 /-- KMP matcher structure -/
 structure Matcher (α) where
-  /-- prefix table for the pattern -/
+  /-- Prefix table for the pattern -/
   table : PrefixTable α
-  /-- current longest matching prefix -/
+  /-- Current longest matching prefix -/
   state : Fin (table.size+1) := 0
 
-/-- Initialize KMP matcher -/
-def Matcher.init [BEq α] (pattern : Array α) : Matcher α where
-  table := mkPrefixTable pattern
+/-- Initialize KMP matcher for a given pattern -/
+def Matcher.init [BEq α] (pat : Array α) : Matcher α where
+  table := mkPrefixTable pat
 
-/-- Find next match from a given stream -/
+/-- Find next match from a given stream
+
+  Runs the stream until it reads a sequence that mathes the sought pattern, then returns the stream
+  state at that point and an updated matcher state.
+-/
 partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ) :
   Option (σ × Matcher α) :=
   match Stream.next? stream with
@@ -108,6 +125,6 @@ where
     | none => ps
     | some (s, m) => loop m s (ps.push (s.startPos - pattern.endPos))
 
-#eval "abba".findAll "babbababbaabaa"
+#eval "abba".findAll "babbababbabbaabbbaaababba"
 
 end Test
