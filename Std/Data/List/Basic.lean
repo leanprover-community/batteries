@@ -743,7 +743,7 @@ def attach (l : List α) : List { x // x ∈ l } :=
 private def pmap.impl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) : List β :=
   l.attach.map fun ⟨x,h'⟩ => f x (h _ h')
 
-@[csimp] theorem pmap_eq_pmap_impl : @pmap = @pmap.impl := by
+@[csimp] private theorem pmap_eq_pmap_impl : @pmap = @pmap.impl := by
   funext α β p f L h
   unfold pmap.impl
   unfold attach
