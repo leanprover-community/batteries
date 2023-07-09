@@ -80,10 +80,11 @@ protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
 
 /-! ### zero/one -/
 
-protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
+protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
+  ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
 theorem le_zero : i ≤ 0 ↔ i = 0 :=
-  ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
+  ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
 
 theorem one_pos : 0 < 1 := Nat.zero_lt_one
 
@@ -91,7 +92,7 @@ theorem add_one_ne_zero (n) : n + 1 ≠ 0 := succ_ne_zero _
 
 protected theorem eq_zero_of_nonpos : ∀ n, ¬0 < n → n = 0
   | 0 => fun _ => rfl
-  | n+1 => fun h => absurd (Nat.zero_lt_succ n) h
+  | _+1 => absurd (Nat.zero_lt_succ _)
 
 /-! ### succ/pred -/
 
