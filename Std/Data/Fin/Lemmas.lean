@@ -198,7 +198,7 @@ theorem add_one_pos (i : Fin (n + 1)) (h : i < Fin.last n) : (0 : Fin (n + 1)) <
   match n with
   | 0 => cases h
   | n+1 =>
-    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right 1] at h
+    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right] at h
     rw [Fin.lt_def, val_add, val_zero, val_one, Nat.mod_eq_of_lt h]
     exact Nat.zero_lt_succ _
 

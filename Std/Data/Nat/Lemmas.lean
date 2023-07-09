@@ -273,10 +273,10 @@ protected theorem add_left_cancel_iff {n m k : Nat} : n + m = n + k ↔ m = k :=
 protected theorem add_right_cancel_iff {n m k : Nat} : n + m = k + m ↔ n = k :=
   ⟨Nat.add_right_cancel, fun | rfl => rfl⟩
 
-protected theorem add_le_add_iff_left (k n m : Nat) : k + n ≤ k + m ↔ n ≤ m :=
+protected theorem add_le_add_iff_left {k n m : Nat} : k + n ≤ k + m ↔ n ≤ m :=
   ⟨Nat.le_of_add_le_add_left, fun h => Nat.add_le_add_left h _⟩
 
-protected theorem add_le_add_iff_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
+protected theorem add_le_add_iff_right {k n m : Nat} : n + k ≤ m + k ↔ n ≤ m :=
   ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
 protected theorem lt_of_add_lt_add_right : ∀ {m : Nat}, k + m < n + m → k < n
@@ -287,10 +287,10 @@ protected theorem lt_of_add_lt_add_left {k n m : Nat} : k + n < k + m → n < m 
   repeat rw [Nat.add_comm k]
   exact Nat.lt_of_add_lt_add_right
 
-protected theorem add_lt_add_iff_left (k n m : Nat) : k + n < k + m ↔ n < m :=
+protected theorem add_lt_add_iff_left {k n m : Nat} : k + n < k + m ↔ n < m :=
   ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h _⟩
 
-protected theorem add_lt_add_iff_right (k n m : Nat) : n + k < m + k ↔ n < m :=
+protected theorem add_lt_add_iff_right {k n m : Nat} : n + k < m + k ↔ n < m :=
   ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
 protected theorem lt_add_right (k : Nat) (h : n < m) : n < m + k :=
@@ -1024,11 +1024,11 @@ theorem dvd_of_mod_eq_zero (H : n % m = 0) : m ∣ n :=
 theorem mod_eq_zero_of_dvd : ∀ {n}, m ∣ n → n % m = 0
   | _, ⟨_, rfl⟩ => Nat.mul_mod_right ..
 
-theorem dvd_iff_mod_eq_zero (m n) : m ∣ n ↔ n % m = 0 :=
+theorem dvd_iff_mod_eq_zero {m n} : m ∣ n ↔ n % m = 0 :=
   ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
 
 instance decidable_dvd : @DecidableRel Nat (·∣·) :=
-  fun _ _ => decidable_of_decidable_of_iff (dvd_iff_mod_eq_zero _ _).symm
+  fun _ _ => decidable_of_decidable_of_iff dvd_iff_mod_eq_zero.symm
 
 protected theorem mul_div_cancel' : ∀ {n m : Nat}, n ∣ m →  n * (m / n) = m
   | 0, _, h => by rw [Nat.zero_mul, Nat.eq_zero_of_zero_dvd h]
