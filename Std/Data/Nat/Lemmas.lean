@@ -333,23 +333,21 @@ protected theorem max_le {a b c : Nat} : max a b ≤ c ↔ a ≤ c ∧ b ≤ c :
   ⟨fun h => ⟨Nat.le_trans (Nat.le_max_left ..) h, Nat.le_trans (Nat.le_max_right ..) h⟩,
    fun ⟨h₁, h₂⟩ => by rw [Nat.max_def]; split <;> assumption⟩
 
-protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : max a b = b := by
-  simp [Nat.max_def, h, Nat.not_lt.2 h]
+protected theorem max_eq_right {a b : Nat} (h : a ≤ b) : max a b = b := if_pos h
 
 protected theorem max_eq_left {a b : Nat} (h : b ≤ a) : max a b = a := by
-  rw [← Nat.max_comm b a]; exact Nat.max_eq_right h
+  rw [Nat.max_comm]; exact Nat.max_eq_right h
 
--- Distribute succ over min
 theorem min_succ_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
   simp [Nat.min_def, succ_le_succ_iff]; split <;> rfl
 
 theorem sub_eq_sub_min (n m : Nat) : n - m = n - min n m := by
   rw [Nat.min_def]; split
-  · rw [Nat.sub_eq_zero_of_le ‹n ≤ m›, Nat.sub_self]
-  · rfl
+  next h => rw [Nat.sub_eq_zero_of_le h, Nat.sub_self]
+  next => rfl
 
 @[simp] protected theorem sub_add_min_cancel (n m : Nat) : n - m + min n m = n := by
-  rw [sub_eq_sub_min, Nat.sub_add_cancel (Nat.min_le_left n m)]
+  rw [sub_eq_sub_min, Nat.sub_add_cancel (Nat.min_le_left ..)]
 
 protected theorem sub_add_eq_max {a b : Nat} : a - b + b = max a b := by
   match a.le_total b with
