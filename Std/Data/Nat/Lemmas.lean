@@ -487,17 +487,14 @@ protected theorem le_mul_of_pos_left (n) (h : 0 < m) : n ≤ n * m :=
 protected theorem le_mul_of_pos_right (m) (h : 0 < n) : m ≤ n * m :=
   Nat.le_trans (Nat.le_of_eq (Nat.one_mul _).symm) (Nat.mul_le_mul_right _ h)
 
-protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
-  Nat.mul_le_mul_left c
+protected theorem mul_lt_mul_of_lt_of_le (hac : a < c) (hbd : b ≤ d) (hd : 0 < d) : a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_left _ hbd) (Nat.mul_lt_mul_of_pos_right hac hd)
 
-protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
-  Nat.mul_le_mul_right c
+protected theorem mul_lt_mul_of_le_of_lt (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) : a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_right _ hac) (Nat.mul_lt_mul_of_pos_left hbd hc)
 
-protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a * b < c * d :=
-  Nat.lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right hac pos_b) (Nat.mul_le_mul_of_nonneg_left hbd)
-
-protected theorem mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 < c) : a * b < c * d :=
-  Nat.lt_of_le_of_lt (Nat.mul_le_mul_of_nonneg_right h1) (Nat.mul_lt_mul_of_pos_left h2 h3)
+protected theorem mul_lt_mul {a b c d : Nat} (hac : a < c) (hbd : b < d) : a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt (Nat.le_of_lt hac) hbd (Nat.zero_lt_of_lt hac)
 
 theorem succ_mul_succ_eq (a b) : succ a * succ b = a * b + a + b + 1 := by
   rw [succ_mul, mul_succ]; rfl
@@ -929,3 +926,15 @@ theorem add_le_to_le_sub (x : Nat) {y k : Nat} (h : k ≤ y) : x + k ≤ y ↔ x
 @[deprecated Nat.succ_add_eq_add_succ]
 theorem succ_add_eq_succ_add (n m : Nat) : succ n + m = n + succ m :=
   Nat.succ_add_eq_add_succ ..
+
+@[deprecated Nat.mul_le_mul_left]
+protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
+  Nat.mul_le_mul_left c
+
+@[deprecated Nat.mul_le_mul_right]
+protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
+  Nat.mul_le_mul_right c
+
+@[deprecated Nat.mul_lt_mul_of_le_of_lt]
+protected theorem mul_lt_mul' (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) : a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt hac hbd hc
