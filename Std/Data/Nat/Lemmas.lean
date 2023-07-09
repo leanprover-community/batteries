@@ -221,17 +221,15 @@ attribute [simp] Nat.zero_sub Nat.add_sub_cancel succ_sub_succ_eq_sub
 theorem sub_lt_succ (a b) : a - b < succ a :=
   lt_succ_of_le (sub_le a b)
 
-protected theorem le_of_le_of_sub_le_sub_right :
-    ∀ {n m k : Nat}, k ≤ m → n - k ≤ m - k → n ≤ m
-  | 0, m, _, _, _ => m.zero_le
-  | succ _, _, 0, _, h₁ => h₁
-  | succ _, 0, succ k, h₀, _ => nomatch not_succ_le_zero k h₀
-  | succ n, succ m, succ k, h₀, h₁ => by
-    simp [succ_sub_succ] at h₁
+protected theorem le_of_le_of_sub_le_sub_right : ∀ {n m k : Nat}, k ≤ m → n - k ≤ m - k → n ≤ m
+  | 0, _, _, _, _ => Nat.zero_le ..
+  | _+1, _, 0, _, h₁ => h₁
+  | _+1, _+1, _+1, h₀, h₁ => by
+    simp only [Nat.succ_sub_succ] at h₁
     exact succ_le_succ <| Nat.le_of_le_of_sub_le_sub_right (le_of_succ_le_succ h₀) h₁
 
 protected theorem sub_le_sub_iff_right {n m k : Nat} (h : k ≤ m) : n - k ≤ m - k ↔ n ≤ m :=
-  ⟨Nat.le_of_le_of_sub_le_sub_right h, fun h => Nat.sub_le_sub_right h k⟩
+  ⟨Nat.le_of_le_of_sub_le_sub_right h, fun h => Nat.sub_le_sub_right h _⟩
 
 protected theorem add_le_to_le_sub (n : Nat) (h : m ≤ k) : n + m ≤ k ↔ n ≤ k - m := by
   rw [← Nat.add_sub_cancel n, Nat.sub_le_sub_iff_right h, Nat.add_sub_cancel]
@@ -244,17 +242,14 @@ protected theorem sub_one (n) : n - 1 = pred n := rfl
 theorem succ_sub_one (n) : succ n - 1 = n := rfl
 
 protected theorem le_of_sub_eq_zero : ∀ {n m}, n - m = 0 → n ≤ m
-  | n, 0, H => by rw [Nat.sub_zero] at H; simp [H]
-  | 0, m+1, _ => Nat.zero_le (m + 1)
-  | n+1, m+1, H => Nat.add_le_add_right
-    (Nat.le_of_sub_eq_zero (by simp [Nat.add_sub_add_right] at H; exact H)) _
+  | 0, _, _ => Nat.zero_le ..
+  | _+1, _+1, h => Nat.succ_le_succ <| Nat.le_of_sub_eq_zero (Nat.succ_sub_succ .. ▸ h)
 
 protected theorem sub_eq_zero_iff_le : n - m = 0 ↔ n ≤ m :=
   ⟨Nat.le_of_sub_eq_zero, Nat.sub_eq_zero_of_le⟩
 
-protected theorem sub_eq_iff_eq_add {a b c : Nat} (ab : b ≤ a) : a - b = c ↔ a = c + b :=
-  ⟨fun c_eq => by rw [c_eq.symm, Nat.sub_add_cancel ab],
-   fun a_eq => by rw [a_eq, Nat.add_sub_cancel]⟩
+protected theorem sub_eq_iff_eq_add {a b c : Nat} (h : b ≤ a) : a - b = c ↔ a = c + b :=
+  ⟨fun | rfl => by rw [Nat.sub_add_cancel h], fun heq => by rw [heq, Nat.add_sub_cancel]⟩
 
 protected theorem lt_of_sub_eq_succ (H : m - n = succ l) : n < m :=
   Nat.not_le.1 fun H' => by simp [Nat.sub_eq_zero_of_le H'] at H
@@ -270,7 +265,7 @@ protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
   rw [Nat.sub_sub, Nat.sub_sub, Nat.add_comm]
 
 protected theorem sub_pos_of_lt (h : m < n) : 0 < n - m := by
-  apply Nat.lt_of_add_lt_add_right (b := m)
+  apply Nat.lt_of_add_lt_add_right
   rwa [Nat.zero_add, Nat.sub_add_cancel (Nat.le_of_lt h)]
 
 protected theorem sub_sub_self {n m : Nat} (h : m ≤ n) : n - (n - m) = m :=
@@ -285,9 +280,8 @@ theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   apply Nat.sub_lt (Nat.lt_of_lt_of_le (Nat.zero_lt_succ _) h)
   rw [Nat.add_comm]; apply Nat.zero_lt_succ
 
-theorem sub_lt_self (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b := by
-  apply sub_lt _ h₀
-  apply Nat.lt_of_lt_of_le h₀ h₁
+protected theorem sub_lt_self (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :=
+  Nat.sub_lt (Nat.lt_of_lt_of_le h₀ h₁) h₀
 
 protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
