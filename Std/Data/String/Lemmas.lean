@@ -365,7 +365,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     rw [
       dif_pos <| by
         rw [hstop, ← hl₁, ← hl₂]
-        refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
+        refine Nat.lt_min_iff.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
     simp [bne]; split <;> simp
@@ -375,7 +375,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
       firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + csize a)
         (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
   · next h =>
-    rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
+    rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min_iff]
     intro h₁ h₂
     have : ∀ {cs}, p < p + utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
     obtain ⟨a, as, e₁⟩ := List.exists_cons_of_ne_nil (this h₁)

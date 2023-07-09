@@ -66,8 +66,8 @@ theorem depthUB_le_two_depthLB : ∀ c n, depthUB c n ≤ 2 * depthLB c n
 
 theorem Balanced.depth_le : @Balanced α t c n → t.depth ≤ depthUB c n
   | .nil => Nat.le_refl _
-  | .red hl hr => Nat.succ_le_succ <| Nat.max_le.2 ⟨hl.depth_le, hr.depth_le⟩
-  | .black hl hr => Nat.succ_le_succ <| Nat.max_le.2
+  | .red hl hr => Nat.succ_le_succ <| Nat.max_le_iff.2 ⟨hl.depth_le, hr.depth_le⟩
+  | .black hl hr => Nat.succ_le_succ <| Nat.max_le_iff.2
     ⟨Nat.le_trans hl.depth_le (depthUB_le ..), Nat.le_trans hr.depth_le (depthUB_le ..)⟩
 
 theorem Balanced.le_size : @Balanced α t c n → 2 ^ depthLB c n ≤ t.size + 1
