@@ -106,33 +106,28 @@ theorem lt_succ : m < succ n ↔ m ≤ n :=
 theorem lt_succ_of_lt (h : a < b) : a < succ b := le_succ_of_le h
 
 theorem succ_ne_self : ∀ n, succ n ≠ n
-  | 0,   h => absurd h (succ_ne_zero 0)
-  | n+1, h => succ_ne_self n (Nat.noConfusion h id)
+  | _+1, h => succ_ne_self _ (succ.inj h)
 
 theorem succ_pred_eq_of_pos : ∀ {n}, 0 < n → succ (pred n) = n
-  | succ _, _ => rfl
+  | _+1, _ => rfl
 
-theorem eq_zero_or_eq_succ_pred (n) : n = 0 ∨ n = succ (pred n) := by
-  cases n <;> simp
+theorem eq_zero_or_eq_succ_pred : ∀ n, n = 0 ∨ n = succ (pred n)
+  | 0 => .inl rfl
+  | _+1 => .inr rfl
 
-theorem exists_eq_succ_of_ne_zero (H : n ≠ 0) : ∃ k, n = succ k :=
-  ⟨_, (eq_zero_or_eq_succ_pred _).resolve_left H⟩
+theorem exists_eq_succ_of_ne_zero : ∀ {n}, n ≠ 0 → ∃ k, n = succ k
+  | _+1, _ => ⟨_, rfl⟩
 
-theorem succ_eq_one_add (n) : succ n = 1 + n := by
-  rw [Nat.succ_eq_add_one, Nat.add_comm]
+theorem succ_eq_one_add (n) : succ n = 1 + n := Nat.add_comm _ 1
 
 theorem succ_inj' : succ n = succ m ↔ n = m :=
   ⟨succ.inj, congrArg _⟩
 
 theorem pred_inj : ∀ {a b}, 0 < a → 0 < b → pred a = pred b → a = b
-| a+1, b+1, _,  _, h => by rw [show a = b from h]
-| a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
-| 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
-| 0,   0,   _,  _, _ => rfl
+  | _+1, _+1, _, _ => congrArg _
 
 theorem pred_lt_pred : ∀ {n m}, n ≠ 0 → n < m → pred n < pred m
-| 0,   _,   h, _ => (h rfl).elim
-| _+1, _+1, _, h => lt_of_succ_lt_succ h
+  | _+1, _+1, _, h => lt_of_succ_lt_succ h
 
 theorem succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
   ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -140,10 +135,9 @@ theorem succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
 theorem succ_lt_succ_iff : succ a < succ b ↔ a < b :=
   ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
-theorem le_succ_of_pred_le : pred n ≤ m → n ≤ succ m :=
-  match n with
-  | 0 => fun _ => zero_le _
-  | _+1 => succ_le_succ
+theorem le_succ_of_pred_le : ∀ {n m}, pred n ≤ m → n ≤ succ m
+  | 0, _, _ => Nat.zero_le ..
+  | _+1, _, h => Nat.succ_le_succ h
 
 theorem le_pred_of_lt (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
