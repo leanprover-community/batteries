@@ -362,30 +362,24 @@ protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
 protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
   rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
-protected theorem mul_two (n) : n * 2 = n + n := by simp [Nat.mul_succ]
+protected theorem mul_two (n) : n * 2 = n + n := by rw [Nat.mul_succ, Nat.mul_one]
 
-protected theorem two_mul (n) : 2 * n = n + n := by simp [Nat.succ_mul]
+protected theorem two_mul (n) : 2 * n = n + n := by rw [Nat.succ_mul, Nat.one_mul]
 
-theorem mul_eq_zero : n * m = 0 ↔ n = 0 ∨ m = 0 :=
-  ⟨fun h => match n, m, h with
-    | 0,   m, _ => .inl rfl
-    | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
-   fun | .inl h | .inr h => by simp [h]⟩
+theorem mul_eq_zero : ∀ {m n}, n * m = 0 ↔ n = 0 ∨ m = 0
+  | 0, _ => ⟨fun _ => .inr rfl, fun _ => rfl⟩
+  | _, 0 => ⟨fun _ => .inl rfl, fun _ => Nat.zero_mul ..⟩
+  | _+1, _+1 => ⟨fun., fun.⟩
 
-protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by simp [mul_eq_zero, not_or]
+protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by rw [ne_eq, mul_eq_zero, not_or]
 
-protected theorem mul_ne_zero (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0 :=
-  Nat.mul_ne_zero_iff.2 ⟨n0, m0⟩
+protected theorem mul_ne_zero : n ≠ 0 → m ≠ 0 → n * m ≠ 0 := (Nat.mul_ne_zero_iff.2 ⟨·,·⟩)
 
-protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} (h₁ : a ≤ b) : c * a ≤ c * b := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.zero_mul] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_left (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
+  Nat.mul_le_mul_left c
 
-protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} (h₁ : a ≤ b) : a * c ≤ b * c := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.mul_zero] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_right (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
+  Nat.mul_le_mul_right c
 
 protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a * b < c * d :=
   Nat.lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right hac pos_b) (Nat.mul_le_mul_of_nonneg_left hbd)
@@ -394,11 +388,11 @@ protected theorem mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 < c) : a * b <
   Nat.lt_of_le_of_lt (Nat.mul_le_mul_of_nonneg_right h1) (Nat.mul_lt_mul_of_pos_left h2 h3)
 
 theorem succ_mul_succ_eq (a b) : succ a * succ b = a * b + a + b + 1 := by
-  rw [mul_succ, succ_mul, Nat.add_right_comm _ a]; rfl
+  rw [succ_mul, mul_succ]; rfl
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
-  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib,
-      Nat.mul_comm b a, Nat.add_comm (a*a) (a*b), Nat.add_sub_add_left]
+  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib]
+  rw [Nat.mul_comm a b, Nat.sub_add_eq, Nat.add_sub_cancel]
 
 /-! ## div/mod -/
 
