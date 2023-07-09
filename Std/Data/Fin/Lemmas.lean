@@ -312,7 +312,7 @@ theorem castLE_of_eq {m n : Nat} (h : m = n) {h' : m ≤ n} : castLE h' = Fin.ca
 theorem castAdd_lt {m : Nat} (n : Nat) (i : Fin m) : (castAdd n i : Nat) < m := by simp
 
 @[simp] theorem castAdd_mk (m : Nat) (i : Nat) (h : i < n) :
-    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right i n m h⟩ := rfl
+    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right m h⟩ := rfl
 
 @[simp] theorem castAdd_castLT (m : Nat) (i : Fin (n + m)) (hi : i.val < n) :
     castAdd m (castLT i hi) = i := rfl

@@ -223,6 +223,9 @@ theorem succ_inj' : succ n = succ m ↔ n = m :=
 theorem pred_inj : ∀ {a b}, 0 < a → 0 < b → pred a = pred b → a = b
   | _+1, _+1, _, _ => congrArg _
 
+theorem pred_inj' (hn : 0 < n) (hm : 0 < m) : pred n = pred m ↔ n = m :=
+  ⟨pred_inj hn hm, congrArg _⟩
+
 theorem pred_lt_pred : ∀ {n m}, n ≠ 0 → n < m → pred n < pred m
   | _+1, _+1, _, h => lt_of_succ_lt_succ h
 
@@ -236,20 +239,30 @@ theorem le_succ_of_pred_le : ∀ {n m}, pred n ≤ m → n ≤ succ m
   | 0, _, _ => Nat.zero_le ..
   | _+1, _, h => Nat.succ_le_succ h
 
+theorem pred_le_of_le_succ : ∀ {n m}, n ≤ succ m → pred n ≤ m
+  | 0, _, _ => Nat.zero_le _
+  | _+1, _, h => Nat.le_of_succ_le_succ h
+
+theorem pred_le_iff_le_succ : pred n ≤ m ↔ n ≤ succ m :=
+  ⟨le_succ_of_pred_le, pred_le_of_le_succ⟩
+
 theorem le_pred_of_lt (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
 
 /-! ### add -/
+
+protected theorem add_add_add_comm (a b c d : Nat) : (a + b) + (c + d) = (a + c) + (b + d) := by
+  rw [Nat.add_assoc, Nat.add_assoc, Nat.add_left_comm b]
+
+theorem succ_add_eq_add_succ (n m) : succ n + m = n + succ m := Nat.succ_add ..
+
+theorem one_add (n) : 1 + n = succ n := Nat.add_comm ..
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m}, n + m = 0 → n = 0
   | _, 0, h => h
 
 protected theorem eq_zero_of_add_eq_zero_left : ∀ {n m}, n + m = 0 → m = 0
   | _, 0, _ => rfl
-
-theorem succ_add_eq_succ_add (n m) : succ n + m = n + succ m := Nat.succ_add ..
-
-theorem one_add (n) : 1 + n = succ n := Nat.add_comm ..
 
 theorem eq_zero_of_add_eq_zero (H : n + m = 0) : n = 0 ∧ m = 0 :=
   ⟨Nat.eq_zero_of_add_eq_zero_right H, Nat.eq_zero_of_add_eq_zero_left H⟩
@@ -280,7 +293,7 @@ protected theorem add_lt_add_iff_left (k n m : Nat) : k + n < k + m ↔ n < m :=
 protected theorem add_lt_add_iff_right (k n m : Nat) : n + k < m + k ↔ n < m :=
   ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
-protected theorem lt_add_right (a b c : Nat) (h : a < b) : a < b + c :=
+protected theorem lt_add_right (k : Nat) (h : n < m) : n < m + k :=
   Nat.lt_of_lt_of_le h (Nat.le_add_right ..)
 
 protected theorem lt_add_of_pos_right (h : 0 < k) : n < n + k :=
@@ -346,7 +359,7 @@ protected theorem lt_of_sub_eq_succ (H : m - n = succ l) : n < m :=
 
 protected theorem sub_le_sub_left (k : Nat) (h : n ≤ m) : k - m ≤ k - n :=
   match m, le.dest h with
-  | _, ⟨a, rfl⟩ => by rw [← Nat.sub_sub]; apply sub_le
+  | _, ⟨a, rfl⟩ => by rw [← Nat.sub_sub]; exact sub_le ..
 
 theorem succ_sub_sub_succ (n m k) : succ n - m - succ k = n - m - k := by
   rw [Nat.sub_sub, Nat.sub_sub, add_succ, succ_sub_succ]
@@ -404,9 +417,6 @@ protected theorem sub_add_lt_sub (h₁ : m + k ≤ n) (h₂ : 0 < k) : n - (m + 
 
 protected theorem sub_lt_of_pos_le (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :=
   Nat.sub_lt_self h₀ h₁
-
-protected theorem add_le_to_le_sub (n : Nat) (h : m ≤ k) : n + m ≤ k ↔ n ≤ k - m :=
-  (Nat.le_sub_iff_add_le h).symm
 
 /-! ## min/max -/
 
@@ -909,3 +919,13 @@ protected theorem dvd_of_mul_dvd_mul_right : 0 < k → m * k ∣ n * k → m ∣
 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
+
+/-! ### deprecated -/
+
+@[deprecated Nat.le_sub_iff_add_le]
+theorem add_le_to_le_sub (x : Nat) {y k : Nat} (h : k ≤ y) : x + k ≤ y ↔ x ≤ y - k :=
+  (Nat.le_sub_iff_add_le h).symm
+
+@[deprecated Nat.succ_add_eq_add_succ]
+theorem succ_add_eq_succ_add (n m : Nat) : succ n + m = n + succ m :=
+  Nat.succ_add_eq_add_succ ..
