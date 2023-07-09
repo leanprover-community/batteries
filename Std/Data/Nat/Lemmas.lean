@@ -145,13 +145,10 @@ theorem le_pred_of_lt (h : m < n) : m ≤ n - 1 :=
 /-! ### add -/
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m}, n + m = 0 → n = 0
-| 0,   m => by simp [Nat.zero_add]
-| n+1, m => fun h => by
-  rw [add_one, succ_add] at h
-  cases succ_ne_zero _ h
+  | _, 0, h => h
 
-protected theorem eq_zero_of_add_eq_zero_left (h : n + m = 0) : m = 0 :=
-  @Nat.eq_zero_of_add_eq_zero_right m n (Nat.add_comm n m ▸ h)
+protected theorem eq_zero_of_add_eq_zero_left : ∀ {n m}, n + m = 0 → m = 0
+  | _, 0, _ => rfl
 
 theorem succ_add_eq_succ_add (n m) : succ n + m = n + succ m := by
   simp [succ_add, add_succ]
@@ -173,12 +170,13 @@ protected theorem add_le_add_iff_left (k n m : Nat) : k + n ≤ k + m ↔ n ≤ 
 protected theorem add_le_add_iff_right (k n m : Nat) : n + k ≤ m + k ↔ n ≤ m :=
   ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
-protected theorem lt_of_add_lt_add_left {k n m : Nat} (h : k + n < k + m) : n < m :=
-  Nat.lt_of_le_of_ne (Nat.le_of_add_le_add_left (Nat.le_of_lt h)) fun heq =>
-    Nat.lt_irrefl (k + m) <| by rwa [heq] at h
+protected theorem lt_of_add_lt_add_right : ∀ {m : Nat}, k + m < n + m → k < n
+  | 0, h => h
+  | _+1, h => Nat.lt_of_add_lt_add_right (Nat.lt_of_succ_lt_succ h)
 
-protected theorem lt_of_add_lt_add_right {a b c : Nat} (h : a + b < c + b) : a < c :=
-  Nat.lt_of_add_lt_add_left ((by rwa [Nat.add_comm b a, Nat.add_comm b c]): b + a < b + c)
+protected theorem lt_of_add_lt_add_left {k n m : Nat} : k + n < k + m → n < m := by
+  repeat rw [Nat.add_comm k]
+  exact Nat.lt_of_add_lt_add_right
 
 protected theorem add_lt_add_iff_left (k n m : Nat) : k + n < k + m ↔ n < m :=
   ⟨Nat.lt_of_add_lt_add_left, fun h => Nat.add_lt_add_left h _⟩
@@ -187,19 +185,19 @@ protected theorem add_lt_add_iff_right (k n m : Nat) : n + k < m + k ↔ n < m :
   ⟨Nat.lt_of_add_lt_add_right, fun h => Nat.add_lt_add_right h _⟩
 
 protected theorem lt_add_right (a b c : Nat) (h : a < b) : a < b + c :=
-  Nat.lt_of_lt_of_le h (Nat.le_add_right _ _)
+  Nat.lt_of_lt_of_le h (Nat.le_add_right ..)
 
 protected theorem lt_add_of_pos_right (h : 0 < k) : n < n + k :=
   Nat.add_lt_add_left h n
 
-protected theorem lt_add_of_pos_left (h : 0 < k) : n < k + n := by
-  rw [Nat.add_comm]; exact Nat.lt_add_of_pos_right h
+protected theorem lt_add_of_pos_left : 0 < k → n < k + n := by
+  rw [Nat.add_comm]; exact Nat.lt_add_of_pos_right
 
 protected theorem pos_of_lt_add_right (h : n < n + k) : 0 < k :=
   Nat.lt_of_add_lt_add_left h
 
-protected theorem pos_of_lt_add_left (h : n < k + n) : 0 < k :=
-  Nat.lt_of_add_lt_add_right (by rw [Nat.zero_add]; exact h)
+protected theorem pos_of_lt_add_left : n < k + n → 0 < k := by
+  rw [Nat.add_comm]; exact Nat.pos_of_lt_add_right
 
 protected theorem lt_add_right_iff_pos : n < n + k ↔ 0 < k :=
   ⟨Nat.pos_of_lt_add_right, Nat.lt_add_of_pos_right⟩
@@ -207,17 +205,14 @@ protected theorem lt_add_right_iff_pos : n < n + k ↔ 0 < k :=
 protected theorem lt_add_left_iff_pos : n < k + n ↔ 0 < k :=
   ⟨Nat.pos_of_lt_add_left, Nat.lt_add_of_pos_left⟩
 
-theorem add_pos_left (h : 0 < m) (n) : 0 < m + n :=
-  Nat.lt_of_le_of_lt (zero_le n) (Nat.lt_add_of_pos_left h)
+protected theorem add_pos_left (h : 0 < m) (n) : 0 < m + n :=
+  Nat.lt_of_lt_of_le h (Nat.le_add_right ..)
 
-theorem add_pos_right (m) (h : 0 < n) : 0 < m + n := by
-  rw [Nat.add_comm]
-  exact add_pos_left h m
+protected theorem add_pos_right (m) (h : 0 < n) : 0 < m + n :=
+  Nat.lt_of_lt_of_le h (Nat.le_add_left ..)
 
 protected theorem add_self_ne_one : ∀ n, n + n ≠ 1
-  | n+1, h =>
-    have h1 : succ (succ (n + n)) = 1 := succ_add n n ▸ h
-    Nat.noConfusion h1 fun.
+  | n+1, h => by rw [Nat.succ_add, Nat.succ_inj'] at h; contradiction
 
 /-! ### sub -/
 
