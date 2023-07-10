@@ -95,10 +95,10 @@ theorem bgt_eq_decide_gt : Bool.bgt x y = decide (x > y) := by btt x y
 theorem ble_eq_decide_le : Bool.ble x y = decide (x ≤ y) := by btt x y
 theorem blt_eq_decide_lt : Bool.blt x y = decide (x < y) := by btt x y
 
-protected theorem le_refl : x ≤ x := by btt x
+@[simp] protected theorem le_refl : x ≤ x := by btt x
+@[simp] protected theorem lt_irrefl : ¬ x < x := by btt using simp x
 protected theorem le_trans {x y z : Bool} : x ≤ y → y ≤ z → x ≤ z := by btt using simp x y z
 protected theorem le_antisymm {x y : Bool} : x ≤ y → y ≤ x → x = y := by btt using simp x y
-protected theorem lt_irrefl : ¬ x < x := by btt using simp x
 protected theorem lt_asymm {x y : Bool} : x < y → ¬ y < x := by btt using simp x y
 protected theorem lt_trans {x y z : Bool} : x < y → y < z → x < z := by btt using simp x y z
 protected theorem lt_of_le_of_lt {x y z : Bool} : x ≤ y → y < z → x < z := by btt using simp x y z
@@ -108,8 +108,8 @@ protected theorem le_of_eq {x y : Bool} : x = y → x ≤ y := by btt using simp
 protected theorem ne_of_lt {x y : Bool} : x < y → x ≠ y := by btt using simp x y z
 protected theorem lt_of_le_of_ne {x y : Bool} : x ≤ y → x ≠ y → x < y := by btt using simp x y z
 protected theorem le_of_lt_or_eq {x y : Bool} : x < y ∨ x = y → x ≤ y := by btt using simp x y z
-protected theorem le_true : x ≤ true := by btt x
-protected theorem false_le : false ≤ x := by btt x
+@[simp] protected theorem le_true : x ≤ true := by btt x
+@[simp] protected theorem false_le : false ≤ x := by btt x
 protected theorem eq_true_of_true_le {x : Bool} : true ≤ x → x = true := by btt using simp x
 protected theorem eq_false_of_le_false {x : Bool} : x ≤ false → x = false := by btt using simp x
 
