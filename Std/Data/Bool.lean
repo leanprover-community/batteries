@@ -4,6 +4,8 @@ eleased under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
 
+import Std.Tactic.Basic
+
 /-- Boolean exclusive or -/
 abbrev xor : Bool → Bool → Bool := bne
 
@@ -118,45 +120,41 @@ attribute [local simp] and_assoc or_assoc xor_assoc List.map List.join
 abbrev all : Bool := xs.all id
 
 @[simp] theorem all_nil : all [] = true := rfl
-theorem all_one : all [x] = x := Bool.and_true x
+
 @[local simp] theorem all_cons  : all (x :: xs) = (x && all xs) := rfl
 
+theorem all_one : all [x] = x := by simp
+
+theorem all_two : all [x, y] = (x && y) := by simp
+
 @[local simp] theorem all_append : all (xs ++ ys) = (all xs && all ys) := by
-  induction xs with
-  | nil => simp
-  | cons _ _ ih => simp [ih]
+  induction xs with | nil => rfl | cons _ _ ih => simp [ih]
 
 theorem all_join (xss : List (List Bool)) : all (xss.map all) = all xss.join := by
-  induction xss with
-  | nil => rfl
-  | cons _ _ ih => simp [ih]
+  induction xss with | nil => rfl | cons _ _ ih => simp [ih]
 
 /-- Boolean disjunction (`or`) of a list -/
 abbrev any : Bool := xs.any id
 
 @[simp] theorem any_nil : any [] = false := rfl
-theorem any_one : any [x] = x := Bool.or_false x
+
 @[local simp] theorem any_cons : any (x :: xs) = (x || any xs) := rfl
 
+theorem any_one : any [x] = x := by simp
+
+theorem any_two : any [x, y] = (x || y) := by simp
+
 @[local simp] theorem any_append : any (xs ++ ys) = (any xs || any ys) := by
-  induction xs with
-  | nil => simp
-  | cons _ _ ih => simp [ih]
+  induction xs with | nil => rfl | cons _ _ ih => simp [ih]
 
 theorem any_join (xss : List (List Bool)) : any (xss.map any) = any xss.join := by
-  induction xss with
-  | nil => rfl
-  | cons _ _ ih => simp [ih]
+  induction xss with | nil => rfl | cons _ _ ih => simp [ih]
 
 theorem all_deMorgan : (!all xs) = any (xs.map (!·)) := by
-  induction xs with
-  | nil => rfl
-  | cons _ _ ih => simp [ih]
+  induction xs with | nil => rfl | cons _ _ ih => simp [ih]
 
 theorem any_deMorgan : (!any xs) = all (xs.map (!·)) := by
-  induction xs with
-  | nil => rfl
-  | cons _ _ ih => simp [ih]
+  induction xs with | nil => rfl | cons _ _ ih => simp [ih]
 
 end
 
