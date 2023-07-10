@@ -31,7 +31,6 @@ theorem and_false_left : (false && x) = false := Bool.false_and .. -- synonym
 theorem and_false_right : (x && false) = false := Bool.and_false .. -- synonym
 theorem and_true_left : (true && x) = x := Bool.true_and .. -- synonym
 theorem and_true_right : (x && true) = x := Bool.and_true .. -- synonym
-theorem and_idem : (x && x) = x := Bool.and_self .. -- synonym
 @[simp] theorem and_not_self_left : (!x && x) = false := by btt x
 @[simp] theorem and_not_self_right : (x && !x) = false := by btt x
 theorem and_comm : (x && y) = (y && x) := by btt x y
@@ -49,7 +48,6 @@ theorem or_false_left : (false || x) = x := Bool.false_or .. -- synonym
 theorem or_false_right : (x || false) = x := Bool.or_false .. -- synonym
 theorem or_true_left : (true || x) = true := Bool.true_or .. -- synonym
 theorem or_true_right : (x || true) = true := Bool.or_true .. -- synonym
-theorem or_idem : (x || x) = x := Bool.or_self .. -- synonym
 @[simp] theorem or_not_self_left : (!x || x) = true := by btt x
 @[simp] theorem or_not_self_right : (x || !x) = true := by btt x
 theorem or_comm : (x || y) = (y || x) := by btt x y
@@ -76,28 +74,6 @@ theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
 theorem xor_left_comm : (x ^^ (y ^^ z)) = (y ^^ (x ^^ z)) := by btt x y z
 theorem xor_right_comm : ((x ^^ y) ^^ z) = ((x ^^ z) ^^ y) := by btt x y z
 theorem xor_assoc : ((x ^^ y) ^^ z) = (x ^^ (y ^^ z)) := by btt x y z
-
-attribute [local simp] and_assoc or_assoc xor_assoc
-
-/-- Boolean equal -/
-protected abbrev beq := x == y
-/-- Boolean nonequal -/
-protected abbrev bne := x != y
-/-- Boolean greater-or-equal -/
-protected abbrev bge := x || !y
-/-- Boolean greater-than -/
-protected abbrev bgt := x && !y
-/-- Boolean less-or-equal -/
-protected abbrev ble := !x || y
-/-- Boolean less-than -/
-protected abbrev blt := !x && y
-
-theorem beq_eq_decide_eq : Bool.beq x y = decide (x = y) := by btt x y
-theorem bne_eq_decide_ne : Bool.bne x y = decide (x ≠ y) := by btt x y
-theorem bge_eq_decide_ge : Bool.bge x y = decide (x ≥ y) := by btt x y
-theorem bgt_eq_decide_gt : Bool.bgt x y = decide (x > y) := by btt x y
-theorem ble_eq_decide_le : Bool.ble x y = decide (x ≤ y) := by btt x y
-theorem blt_eq_decide_lt : Bool.blt x y = decide (x < y) := by btt x y
 
 @[simp] protected theorem le_refl : x ≤ x := by btt x
 @[simp] protected theorem lt_irrefl : ¬ x < x := by btt using simp x
@@ -136,7 +112,7 @@ theorem and_or_inj_left' {m x y : Bool} : (m && x) = (m && y) ∧ (m || x) = (m 
 section
 variable (xs ys : List Bool)
 
-attribute [local simp] List.map List.join
+attribute [local simp] and_assoc or_assoc xor_assoc List.map List.join
 
 /-- Boolean conjunction (`and`) of a list -/
 abbrev all : Bool := xs.all id
