@@ -27,13 +27,13 @@ instance : LT Bool := ltOfOrd
 theorem not_and : (!(x && y)) = (!x || !y) := by btt x y
 theorem not_or : (!(x || y)) = (!x && !y) := by btt x y
 
-@[simp] theorem and_false_left : (false && x) = false := by btt x
-@[simp] theorem and_false_right : (x && false) = false := by btt x
-@[simp] theorem and_true_left : (true && x) = x := by btt x
-@[simp] theorem and_true_right : (x && true) = x := by btt x
+theorem and_false_left : (false && x) = false := Bool.false_and .. -- synonym
+theorem and_false_right : (x && false) = false := Bool.and_false .. -- synonym
+theorem and_true_left : (true && x) = x := Bool.true_and .. -- synonym
+theorem and_true_right : (x && true) = x := Bool.and_true .. -- synonym
+theorem and_idem : (x && x) = x := Bool.and_self .. -- synonym
 @[simp] theorem and_not_self_left : (!x && x) = false := by btt x
 @[simp] theorem and_not_self_right : (x && !x) = false := by btt x
-@[simp] theorem and_idem : (x && x) = x := by btt x
 theorem and_comm : (x && y) = (y && x) := by btt x y
 theorem and_left_comm : (x && (y && z)) = (y && (x && z)) := by btt x y z
 theorem and_right_comm : ((x && y) && z) = ((x && z) && y) := by btt x y z
@@ -45,13 +45,13 @@ theorem and_xor_distrib_right : ((x ^^ y) && z) = ((x && z) ^^ (y && z)) := by b
 theorem and_eq_true_iff : (x && y) = true ↔ x = true ∧ y = true := by btt using simp x y
 theorem and_eq_false_iff : (x && y) = false ↔ x = false ∨ y = false := by btt using simp x y
 
-@[simp] theorem or_false_left : (false || x) = x := by btt x
-@[simp] theorem or_false_right : (x || false) = x := by btt x
-@[simp] theorem or_true_left : (true || x) = true := by btt x
-@[simp] theorem or_true_right : (x || true) = true := by btt x
+theorem or_false_left : (false || x) = x := Bool.false_or .. -- synonym
+theorem or_false_right : (x || false) = x := Bool.or_false .. -- synonym
+theorem or_true_left : (true || x) = true := Bool.true_or .. -- synonym
+theorem or_true_right : (x || true) = true := Bool.or_true .. -- synonym
+theorem or_idem : (x || x) = x := Bool.or_self .. -- synonym
 @[simp] theorem or_not_self_left : (!x || x) = true := by btt x
 @[simp] theorem or_not_self_right : (x || !x) = true := by btt x
-@[simp] theorem or_idem : (x || x) = x := by btt x
 theorem or_comm : (x || y) = (y || x) := by btt x y
 theorem or_left_comm : (x || (y || z)) = (y || (x || z)) := by btt x y z
 theorem or_right_comm : ((x || y) || z) = ((x || z) || y) := by btt x y z
@@ -61,11 +61,15 @@ theorem or_and_distrib_right : ((x && y) || z) = ((x || z) && (y || z)) := by bt
 theorem or_eq_true_iff : (x || y) = true ↔ x = true ∨ y = true := by btt using simp x y
 theorem or_eq_false_iff : (x || y) = false ↔ x = false ∧ y = false := by btt using simp x y
 
-@[simp] theorem xor_false_left : (false ^^ x) = x := by btt x
-@[simp] theorem xor_false_right : (x ^^ false) = x := by btt x
-@[simp] theorem xor_true_left : (true ^^ x) = !x := by btt x
-@[simp] theorem xor_true_right : (x ^^ true) = !x := by btt x
-@[simp] theorem xor_self : (x ^^ x) = false := by btt x
+@[simp] theorem false_xor : (false ^^ x) = x := by btt x
+@[simp] theorem true_xor : (true ^^ x) = !x := by btt x
+@[simp] theorem xor_false : (x ^^ false) = x := by btt x
+@[simp] theorem xor_true : (x ^^ true) = !x := by btt x
+theorem xor_self : (x ^^ x) = false := bne_self_eq_false .. -- synonym
+theorem xor_false_left : (false ^^ x) = x := Bool.false_xor .. -- synonym
+theorem xor_false_right : (x ^^ false) = x := Bool.xor_false .. -- synonym
+theorem xor_true_left : (true ^^ x) = !x := Bool.true_xor .. -- synonym
+theorem xor_true_right : (x ^^ true) = !x := Bool.xor_true .. -- synonym
 @[simp] theorem xor_not_self_left : (!x ^^ x) = true := by btt x
 @[simp] theorem xor_not_self_right : (x ^^ !x) = true := by btt x
 theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
@@ -138,7 +142,7 @@ attribute [local simp] List.map List.join
 abbrev all : Bool := xs.all id
 
 @[simp] theorem all_nil : all [] = true := rfl
-@[simp] theorem all_one : all [x] = x := Bool.and_true x
+theorem all_one : all [x] = x := Bool.and_true x
 @[local simp] theorem all_cons  : all (x :: xs) = (x && all xs) := rfl
 
 @[local simp] theorem all_append : all (xs ++ ys) = (all xs && all ys) := by
@@ -155,7 +159,7 @@ theorem all_join (xss : List (List Bool)) : all (xss.map all) = all xss.join := 
 abbrev any : Bool := xs.any id
 
 @[simp] theorem any_nil : any [] = false := rfl
-@[simp] theorem any_one : any [x] = x := Bool.or_false x
+theorem any_one : any [x] = x := Bool.or_false x
 @[local simp] theorem any_cons : any (x :: xs) = (x || any xs) := rfl
 
 @[local simp] theorem any_append : any (xs ++ ys) = (any xs || any ys) := by
