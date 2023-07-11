@@ -72,12 +72,14 @@ def appendNamespace (ns : Name) : Name → Name
   | .num p n          => Name.mkNum (appendNamespace ns p) n
   | .anonymous        => ns
 
-set_option linter.missingDocs false in
 /-- An alias can be in one of three forms -/
 inductive Target
-  | plain : Name → Target
-  | forward : Name → Target
-  | backwards : Name → Target
+  | /-- Plain alias -/
+    plain : Name → Target
+  | /-- Forward direction of an iff alias -/
+    forward : Name → Target
+  | /-- Reverse direction of an iff alias -/
+    backwards : Name → Target
 
 /-- The name underlying an alias target -/
 def Target.toName : Target → Name
