@@ -4,7 +4,7 @@ eleased under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
 
-import Std.Tactic.Basic
+import Std.Tactic.Alias
 
 /-- Boolean exclusive or -/
 abbrev xor : Bool → Bool → Bool := bne
@@ -26,13 +26,6 @@ macro_rules
 instance : LE Bool := leOfOrd
 instance : LT Bool := ltOfOrd
 
-theorem not_and : (!(x && y)) = (!x || !y) := by btt x y
-theorem not_or : (!(x || y)) = (!x && !y) := by btt x y
-
-theorem and_false_left : (false && x) = false := Bool.false_and .. -- synonym
-theorem and_false_right : (x && false) = false := Bool.and_false .. -- synonym
-theorem and_true_left : (true && x) = x := Bool.true_and .. -- synonym
-theorem and_true_right : (x && true) = x := Bool.and_true .. -- synonym
 @[simp] theorem and_not_self_left : (!x && x) = false := by btt x
 @[simp] theorem and_not_self_right : (x && !x) = false := by btt x
 theorem and_comm : (x && y) = (y && x) := by btt x y
@@ -45,11 +38,12 @@ theorem and_xor_distrib_right : ((x ^^ y) && z) = ((x && z) ^^ (y && z)) := by b
 @[local simp] theorem and_deMorgan : (!(x && y)) = (!x || !y) := by btt x y
 theorem and_eq_true_iff : (x && y) = true ↔ x = true ∧ y = true := by btt using simp x y
 theorem and_eq_false_iff : (x && y) = false ↔ x = false ∨ y = false := by btt using simp x y
+alias Bool.false_and ← and_false_left
+alias Bool.and_false ← and_false_right
+alias Bool.true_and ← and_true_left
+alias Bool.and_true ← and_true_right
+alias Bool.and_deMorgan ← not_and
 
-theorem or_false_left : (false || x) = x := Bool.false_or .. -- synonym
-theorem or_false_right : (x || false) = x := Bool.or_false .. -- synonym
-theorem or_true_left : (true || x) = true := Bool.true_or .. -- synonym
-theorem or_true_right : (x || true) = true := Bool.or_true .. -- synonym
 @[simp] theorem or_not_self_left : (!x || x) = true := by btt x
 @[simp] theorem or_not_self_right : (x || !x) = true := by btt x
 theorem or_comm : (x || y) = (y || x) := by btt x y
@@ -60,22 +54,27 @@ theorem or_and_distrib_right : ((x && y) || z) = ((x || z) && (y || z)) := by bt
 @[local simp] theorem or_deMorgan : (!(x || y)) = (!x && !y) := by btt x y
 theorem or_eq_true_iff : (x || y) = true ↔ x = true ∨ y = true := by btt using simp x y
 theorem or_eq_false_iff : (x || y) = false ↔ x = false ∧ y = false := by btt using simp x y
+alias Bool.false_or ← or_false_left
+alias Bool.or_false ← or_false_right
+alias Bool.true_or ← or_true_left
+alias Bool.or_true ← or_true_right
+alias Bool.or_deMorgan ← not_or
 
 @[simp] theorem false_xor : (false ^^ x) = x := by btt x
 @[simp] theorem true_xor : (true ^^ x) = !x := by btt x
 @[simp] theorem xor_false : (x ^^ false) = x := by btt x
 @[simp] theorem xor_true : (x ^^ true) = !x := by btt x
-theorem xor_self : (x ^^ x) = false := bne_self_eq_false .. -- synonym
-theorem xor_false_left : (false ^^ x) = x := Bool.false_xor .. -- synonym
-theorem xor_false_right : (x ^^ false) = x := Bool.xor_false .. -- synonym
-theorem xor_true_left : (true ^^ x) = !x := Bool.true_xor .. -- synonym
-theorem xor_true_right : (x ^^ true) = !x := Bool.xor_true .. -- synonym
 @[simp] theorem xor_not_self_left : (!x ^^ x) = true := by btt x
 @[simp] theorem xor_not_self_right : (x ^^ !x) = true := by btt x
+theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
 theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
 theorem xor_left_comm : (x ^^ (y ^^ z)) = (y ^^ (x ^^ z)) := by btt x y z
 theorem xor_right_comm : ((x ^^ y) ^^ z) = ((x ^^ z) ^^ y) := by btt x y z
 theorem xor_assoc : ((x ^^ y) ^^ z) = (x ^^ (y ^^ z)) := by btt x y z
+alias Bool.false_xor ← xor_false_left
+alias Bool.xor_false ← xor_false_right
+alias Bool.true_xor ← xor_true_left
+alias Bool.xor_true ← xor_true_right
 
 @[simp] protected theorem le_refl : x ≤ x := by btt x
 @[simp] protected theorem lt_irrefl : ¬ x < x := by btt using simp x
