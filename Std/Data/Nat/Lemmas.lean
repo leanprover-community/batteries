@@ -178,12 +178,12 @@ protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
 protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
   ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
-theorem le_zero : i ≤ 0 ↔ i = 0 :=
+protected theorem le_zero : i ≤ 0 ↔ i = 0 :=
   ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
 
-theorem one_pos : 0 < 1 := Nat.zero_lt_one
+protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
 
-theorem two_pos : 0 < 2 := Nat.zero_lt_succ _
+protected theorem two_pos : 0 < 2 := Nat.zero_lt_succ _
 
 theorem add_one_ne_zero (n) : n + 1 ≠ 0 := succ_ne_zero _
 
@@ -945,14 +945,14 @@ theorem le_log2 (h : n ≠ 0) : ∀ {k}, k ≤ n.log2 ↔ 2 ^ k ≤ n
   | k+1 => by
     unfold log2; split
     next h =>
-      have h : 0 < n / 2 := (Nat.le_div_iff_mul_le two_pos).2 h
-      rw [Nat.add_le_add_iff_right, le_log2 (Nat.ne_of_gt h), le_div_iff_mul_le two_pos, Nat.pow_succ]
+      have h : 0 < n / 2 := (Nat.le_div_iff_mul_le Nat.two_pos).2 h
+      rw [Nat.add_le_add_iff_right, le_log2 (Nat.ne_of_gt h), le_div_iff_mul_le Nat.two_pos, Nat.pow_succ]
     next h =>
       have h : n < 2 := Nat.lt_of_not_le h
       simp only [le_zero_eq, false_iff, Nat.succ_ne_zero, Nat.not_le]
       apply Nat.lt_of_lt_of_le h
       apply Nat.le_mul_of_pos_right
-      exact Nat.pos_pow_of_pos _ two_pos
+      exact Nat.pos_pow_of_pos _ Nat.two_pos
 
 theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
   rw [← Nat.not_le, ← Nat.not_le, le_log2 h]
