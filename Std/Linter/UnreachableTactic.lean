@@ -108,7 +108,8 @@ def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unreachable.qsort (key ·.1 < key ·.1) do
     if stx.getKind ∈ [``Std.Tactic.unreachable, ``Std.Tactic.unreachableConv] then continue
     if last.start ≤ r.start && r.stop ≤ last.stop then continue
-    logLint linter.unreachableTactic stx "this tactic is never executed"
+    logLint linter.unreachableTactic stx
+      "this tactic is never executed, or is run with no goals remaining"
     last := r
 
 initialize addLinter unreachableTacticLinter
