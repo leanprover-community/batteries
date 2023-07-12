@@ -41,6 +41,7 @@ initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
     |>.insert ``Parser.Term.binderTactic
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq
+    |>.insert ``Lean.Parser.Tactic.done
     |>.insert ``Lean.Parser.Tactic.tacticStop_
     |>.insert ``Lean.Parser.Command.notation
     |>.insert ``Lean.Parser.Command.mixfix
@@ -78,8 +79,9 @@ partial def eraseUsedTacticsList (trees : PersistentArray InfoTree) : M Unit :=
 partial def eraseUsedTactics : InfoTree → M Unit
   | .node i c => do
     if let .ofTacticInfo i := i then
-      if let some r := i.stx.getRange? true then
-        modify (·.erase r)
+      if i.goalsBefore != [] then
+        if let some r := i.stx.getRange? true then
+          modify (·.erase r)
     eraseUsedTacticsList c
   | .context _ t => eraseUsedTactics t
   | .hole _ => pure ()
