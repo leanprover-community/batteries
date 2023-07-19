@@ -29,7 +29,8 @@ theorem gcd_rec (m n : Nat) : gcd m n = gcd (n % m) m :=
 def lcm (m n : Nat) : Nat := m * n / gcd m n
 
 /-- `m` and `n` are coprime, or relatively prime, if their `gcd` is 1. -/
-@[reducible] def coprime (m n : Nat) : Prop := gcd m n = 1
+@[reducible] def Coprime (m n : Nat) : Prop := gcd m n = 1
+#align nat.coprime Nat.Coprime
 
 ---
 
