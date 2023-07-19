@@ -66,11 +66,8 @@ appendNamespace `a.b `_root_.c.d = `c.d
 
 TODO: Move this declaration to a more central location.
 -/
-def appendNamespace (ns : Name) : Name → Name
-  | .str .anonymous s => if s = "_root_" then Name.anonymous else Name.mkStr ns s
-  | .str p s          => Name.mkStr (appendNamespace ns p) s
-  | .num p n          => Name.mkNum (appendNamespace ns p) n
-  | .anonymous        => ns
+abbrev appendNamespace (ns : Name) (n : Name) : Name :=
+  if rootNamespace.isPrefixOf n then removeRoot n else ns ++ n
 
 /-- An alias can be in one of three forms -/
 inductive Target
