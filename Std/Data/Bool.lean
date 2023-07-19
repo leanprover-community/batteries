@@ -9,11 +9,10 @@ import Std.Tactic.Alias
 /-- Boolean exclusive or -/
 abbrev xor : Bool → Bool → Bool := bne
 
+@[inherit_doc] infixl:30 " ^^ " => xor
+
 namespace Bool
 variable (x y z : Bool)
-
-/-- Notation for `xor` -/
-scoped infixl:30 " ^^ " => xor
 
 /- Boolean truth table tactic -/
 local syntax "btt" (&"using" tactic)? (colGt term:max)* : tactic
