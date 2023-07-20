@@ -926,8 +926,8 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   funext α L; simp [sectionsTR]
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
-  simp [IH, sectionsTR.go, Array.foldl_eq_foldl_data]
-  rw [Array.foldl_data_eq_bind]; rfl
+  simp only [sections, IH, foldr, sectionsTR.go]
+  rw [Array.foldl_eq_foldl_data, Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
 /-- `eraseP p l` removes the first element of `l` satisfying the predicate `p`. -/
