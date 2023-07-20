@@ -45,7 +45,10 @@ ordered from high priority to low. -/
 
 * When `@[ext]` is applied to a theorem, the theorem is registered for the `ext` tactic.
 
-* You can use `@[ext 9000]` to specify a priority for the attribute. -/
+* You can use `@[ext 9000]` to specify a priority for the attribute.
+
+* You can use the flag `@[ext (flat := false)]` to prevent flattening all fields of parent
+  structures in the generated extensionality lemmas. -/
 syntax (name := ext) "ext" (" (" &"flat" " := " term ")")? (ppSpace prio)? : attr
 
 initialize registerBuiltinAttribute {
