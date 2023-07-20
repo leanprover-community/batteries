@@ -108,7 +108,7 @@ def getLinterUnnecessarySimpa (o : Options) : Bool :=
   getLinterValue linter.unnecessarySimpa o
 
 deriving instance Repr for UseImplicitLambdaResult
-#print Lean.Meta.Simp.Context
+
 elab_rules : tactic
 | `(tactic| simpa $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
       $[[$args,*]]? $[using $usingArg]?) => Elab.Tactic.focus do
