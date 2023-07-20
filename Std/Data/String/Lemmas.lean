@@ -916,7 +916,7 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b,
     · next h =>
       refine ⟨l ++ ml, mr ++ r, .of_eq _ (by simp) ?_ ?_⟩ <;>
         simp [Nat.min_eq_min] <;> rw [Nat.min_eq_right] <;>
-        simp [Nat.add_le_add_iff_left, Nat.le_add_right]
+        try simp [Nat.add_le_add_iff_left, Nat.le_add_right]
       rw [Nat.add_assoc]
 
 -- TODO: splitOn

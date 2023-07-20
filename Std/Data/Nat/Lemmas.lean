@@ -443,7 +443,7 @@ theorem mod_add_div (m k : Nat) : m % k + k * (m / k) = m := by
 
 theorem le_div_iff_mul_le (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y := by
   induction y, k using mod.inductionOn generalizing x with
-    (rw [div_eq]; simp [h]; cases x with simp [zero_le] | succ x => ?_)
+    (rw [div_eq]; simp [h]; cases x with | zero => simp [zero_le] | succ x => ?_)
   | base y k h =>
     simp [not_succ_le_zero x, succ_mul, Nat.add_comm]
     refine Nat.lt_of_lt_of_le ?_ (Nat.le_add_right ..)
