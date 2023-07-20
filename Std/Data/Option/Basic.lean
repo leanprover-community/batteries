@@ -18,7 +18,7 @@ instance : Membership α (Option α) := ⟨fun a b => b = some a⟩
 
 @[simp] theorem mem_def {a : α} {b : Option α} : a ∈ b ↔ b = some a := .rfl
 
-instance [DecidableEq n] (j : n) (o : Option n) : Decidable (j ∈ o) :=
+instance [DecidableEq n] (j : α) (o : Option α) : Decidable (j ∈ o) :=
   inferInstanceAs <| Decidable (o = some j)
 
 theorem isNone_iff_eq_none {o : Option α} : o.isNone ↔ o = none :=
