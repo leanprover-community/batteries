@@ -60,13 +60,13 @@ syntax (name := aliasLRDots) (docComment)? "alias " ident " ↔ " ".." : command
 /-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
 ignored.
 ```
-appendNamespace `a.b `c.d = `a.b.c.d
-appendNamespace `a.b `_root_.c.d = `c.d
+addNamespaceUnlessRoot `a.b `c.d = `a.b.c.d
+addNamespaceUnlessRoot `a.b `_root_.c.d = `c.d
 ```
 
 TODO: Move this declaration to a more central location.
 -/
-abbrev appendNamespace (ns : Name) (n : Name) : Name :=
+abbrev addNamespaceUnlessRoot (ns : Name) (n : Name) : Name :=
   if rootNamespace.isPrefixOf n then removeRoot n else ns ++ n
 
 /-- An alias can be in one of three forms -/
@@ -97,7 +97,7 @@ def Target.toString : Target → String
   let constant ← getConstInfo resolved
   let ns ← getCurrNamespace
   for a in aliases do withRef a do
-    let declName := appendNamespace ns a.getId
+    let declName := addNamespaceUnlessRoot ns a.getId
     let decl ← match constant with
     | Lean.ConstantInfo.defnInfo d =>
       pure $ .defnDecl {
@@ -175,9 +175,9 @@ def aliasIff (doc : Option (TSyntax `Lean.Parser.Command.docComment)) (ci : Cons
   let ns ← getCurrNamespace
   Command.liftTermElabM do
     if let `(binderIdent| $x:ident) := left then
-      aliasIff doc constant x (appendNamespace ns x.getId) true
+      aliasIff doc constant x (addNamespaceUnlessRoot ns x.getId) true
     if let `(binderIdent| $x:ident) := right then
-      aliasIff doc constant x (appendNamespace ns x.getId) false
+      aliasIff doc constant x (addNamespaceUnlessRoot ns x.getId) false
 | _ => throwUnsupportedSyntax
 
 /-- Elaborates an `alias ↔ ..` command. -/
