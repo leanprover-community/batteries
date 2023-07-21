@@ -581,7 +581,7 @@ protected theorem le_total (a b : Int) : a ≤ b ∨ b ≤ a :=
 theorem ofNat_zero_le (n : Nat) : 0 ≤ (↑n : Int) := ofNat_le.2 n.zero_le
 
 theorem eq_ofNat_of_zero_le {a : Int} (h : 0 ≤ a) : ∃ n : Nat, a = n := by
-  have t := le.dest_sub h; simp [Int.sub_eq_add_neg] at t; exact t
+  have t := le.dest_sub h; rw [Int.sub_zero] at t; exact t
 
 theorem eq_succ_of_zero_lt {a : Int} (h : 0 < a) : ∃ n : Nat, a = n.succ :=
   let ⟨n, (h : ↑(1 + n) = a)⟩ := le.dest h
