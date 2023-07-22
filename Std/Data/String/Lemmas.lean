@@ -499,6 +499,10 @@ namespace Iterator
 @[simp] theorem forward_eq_nextn : forward = nextn := by
   funext it n; induction n generalizing it <;> simp [forward, nextn, *]
 
+theorem hasNext_cons_addChar (c : Char) (cs : List Char) (i : Pos) :
+    hasNext ⟨⟨c :: cs⟩, i + c⟩ = hasNext ⟨⟨cs⟩, i⟩ := by
+  simp [hasNext, Nat.add_lt_add_iff_right]
+
 /-- Validity for a string iterator. -/
 def Valid (it : Iterator) : Prop := it.pos.Valid it.s
 
