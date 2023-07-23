@@ -135,6 +135,7 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
 /-! ### le/lt -/
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
+theorem ne_of_lt' {a b : Nat} (h : b < a) : a ≠ b := Nat.ne_of_gt h
 
 protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun h => Nat.gt_of_not_le h.2⟩
@@ -149,14 +150,137 @@ protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :
 @[simp] protected theorem not_lt {a b : Nat} : ¬ a < b ↔ b ≤ a :=
   ⟨Nat.ge_of_not_lt, flip Nat.not_le_of_gt⟩
 
-theorem le_lt_antisymm {n m : Nat} (h₁ : n ≤ m) (h₂ : m < n) : False :=
-  Nat.lt_irrefl n (Nat.lt_of_le_of_lt h₁ h₂)
+protected theorem lt_of_not_ge {a b : Nat} : ¬ b ≤ a → a < b := Nat.not_le.1
+protected theorem lt_of_not_le {a b : Nat} : ¬ a ≤ b → b < a := Nat.not_le.1
 
-theorem lt_le_antisymm {n m : Nat} (h₁ : n < m) (h₂ : m ≤ n) : False :=
-  le_lt_antisymm h₂ h₁
+protected theorem le_of_not_gt {a b : Nat} : ¬ a < b → b ≤ a := Nat.not_lt.1
+protected theorem le_of_not_lt {a b : Nat} : ¬ a < b → b ≤ a := Nat.not_lt.1
 
-protected theorem lt_asymm {n m : Nat} (h₁ : n < m) : ¬ m < n :=
-  le_lt_antisymm (Nat.le_of_lt h₁)
+protected theorem not_le_of_lt {a b : Nat} : a < b → ¬ b ≤ a := Nat.not_le.2
+
+protected theorem not_lt_of_ge {a b : Nat} : a ≤ b → ¬ b < a := Nat.not_lt.2
+protected theorem not_lt_of_le {a b : Nat} : a ≤ b → ¬ b < a := Nat.not_lt.2
+
+protected theorem le_of_not_ge {a b : Nat} (h : ¬ b ≤ a) : a ≤ b := Nat.le_of_lt (Nat.not_le.1 h)
+protected theorem le_of_not_le {a b : Nat} (h : ¬ b ≤ a) : a ≤ b := Nat.le_of_not_ge h
+
+protected theorem lt_asymm {a b : Nat} (h : a < b) : ¬ b < a := Nat.not_lt.2 (Nat.le_of_lt h)
+protected theorem not_lt_of_gt {a b : Nat} : a < b → ¬ b < a := Nat.lt_asymm
+protected theorem not_lt_of_lt {a b : Nat} : a < b → ¬ b < a := Nat.lt_asymm
+
+protected theorem lt_iff_le_and_not_ge {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
+  ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun ⟨_, h⟩ => Nat.lt_of_not_ge h⟩
+
+protected theorem lt_iff_le_not_le {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
+  Nat.lt_iff_le_and_not_ge
+
+protected theorem lt_iff_le_and_ne {a b : Nat} : a < b ↔ a ≤ b ∧ a ≠ b :=
+  ⟨fun h => ⟨Nat.le_of_lt h, Nat.ne_of_lt h⟩, fun h => Nat.lt_of_le_of_ne h.1 h.2⟩
+
+protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
+  ⟨fun | rfl => ⟨Nat.le_refl _, Nat.le_refl _⟩, fun ⟨hle, hge⟩ => Nat.le_antisymm hle hge⟩
+
+protected theorem eq_iff_le_and_ge {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a := Nat.le_antisymm_iff
+
+protected theorem lt_connex {a b : Nat} : a ≠ b → a < b ∨ b < a := by
+  rw [←Nat.not_le, ←Nat.not_le, ←Decidable.not_and, and_comm]
+  exact mt Nat.le_antisymm_iff.2
+
+protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := Nat.lt_connex
+protected theorem lt_or_lt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := Nat.lt_connex
+
+protected theorem lt_connex_iff {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
+  ⟨Nat.lt_connex, fun | .inl h => Nat.ne_of_lt h | .inr h => Nat.ne_of_gt h⟩
+
+protected theorem ne_iff_lt_or_gt {a b : Nat} : a ≠ b ↔ a < b ∨ b < a := Nat.lt_connex_iff
+
+protected theorem le_or_ge (a b : Nat) : a ≤ b ∨ b ≤ a := Nat.le_total ..
+protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := Nat.le_total ..
+
+protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
+  if h : a = b then .inr (.inl h) else
+    match Nat.lt_connex h with
+    | .inl h => .inl h
+    | .inr h => .inr (.inr h)
+
+protected theorem eq_or_lt_of_not_lt {a b : Nat} (hnlt : ¬ a < b) : a = b ∨ b < a :=
+  (Nat.lt_trichotomy ..).resolve_left hnlt
+
+protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
+  (Nat.lt_or_ge ..).imp_right (Nat.le_antisymm h)
+
+protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
+  ⟨Nat.lt_or_eq_of_le, fun | .inl h => Nat.le_of_lt h | .inr rfl => Nat.le_refl _⟩
+
+theorem le_lt_antisymm {n m : Nat} : n ≤ m → m < n → False := Nat.not_lt.2
+theorem lt_le_antisymm {n m : Nat} : n < m → m ≤ n → False := Nat.not_le.2
+
+/-! ## compare -/
+
+theorem compare_def_lt (a b : Nat) :
+    compare a b = if a < b then .lt else if b < a then .gt else .eq := by
+  simp only [compare, compareOfLessAndEq]
+  split
+  next => rfl
+  next h =>
+    match Nat.lt_or_eq_of_le (Nat.not_lt.1 h) with
+    | .inl h => simp [h, Nat.ne_of_gt h]
+    | .inr rfl => simp
+
+theorem compare_def_le (a b : Nat) :
+    compare a b = if a ≤ b then if b ≤ a then .eq else .lt else .gt := by
+  rw [compare_def_lt]
+  split
+  next hlt => simp [Nat.le_of_lt hlt, Nat.not_le.2 hlt]
+  next hge =>
+    split
+    next hgt => simp [Nat.le_of_lt hgt, Nat.not_le.2 hgt]
+    next hle => simp [Nat.not_lt.1 hge, Nat.not_lt.1 hle]
+
+protected theorem compare_swap_symm (a b : Nat) : (compare a b).swap = compare b a := by
+  simp only [compare_def_le]
+  split
+  next h => split <;> next h' => simp [h, h']
+  next h =>
+    split
+    next h' => simp [h, h']
+    next h' => cases Nat.le_total a b <;> contradiction
+
+protected theorem eq_iff_compare_eq_eq {a b : Nat} : a = b ↔ compare a b = .eq := by
+  rw [compare_def_lt]
+  constructor
+  · intro | rfl => simp
+  · intro h
+    split at h
+    next => contradiction
+    next hlt =>
+      split at h
+      next => contradiction
+      next hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
+
+protected theorem lt_iff_compare_eq_lt {a b : Nat} : a < b ↔ compare a b = .lt := by
+  rw [compare_def_lt]
+  split
+  next h => simp [h]
+  next h => split <;> simp [h]
+
+protected theorem gt_iff_compare_eq_gt {a b : Nat} : b < a ↔ compare a b = .gt := by
+  rw [compare_def_lt]
+  split
+  next h => simp [Nat.le_of_lt h]
+  next h => split <;> next h' => simp [h, h']
+
+protected theorem le_iff_compare_ne_gt {a b : Nat} : a ≤ b ↔ compare a b ≠ .gt := by
+  rw [compare_def_le]
+  split
+  next h => split <;> simp [h]
+  next h => simp [h]
+
+protected theorem ge_iff_compare_ne_lt {a b : Nat} : b ≤ a ↔ compare a b ≠ .lt := by
+  rw [compare_def_le]
+  split
+  next h => split <;> next h' => simp [h, h']
+  next h => simp [Nat.le_of_lt (Nat.not_le.1 h)]
 
 /-- Strong case analysis on `a < b ∨ b ≤ a` -/
 protected def lt_sum_ge (a b : Nat) : a < b ⊕' b ≤ a :=
@@ -164,53 +288,29 @@ protected def lt_sum_ge (a b : Nat) : a < b ⊕' b ≤ a :=
 
 /-- Strong case analysis on `a < b ∨ a = b ∨ b < a` -/
 protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
-  match a.lt_sum_ge b with
-  | .inl h => .inl h
-  | .inr h₂ => match b.lt_sum_ge a with
-    | .inl h => .inr <| .inr h
-    | .inr h₁ => .inr <| .inl <| Nat.le_antisymm h₁ h₂
-
-protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
-  match a.sum_trichotomy b with
-  | .inl h => .inl h
-  | .inr (.inl h) => .inr (.inl h)
-  | .inr (.inr h) => .inr (.inr h)
-
-protected theorem eq_or_lt_of_not_lt {a b : Nat} (hnlt : ¬ a < b) : a = b ∨ b < a :=
-  (Nat.lt_trichotomy a b).resolve_left hnlt
-
-protected theorem not_le_of_lt {n m : Nat} : m < n → ¬ n ≤ m := Nat.not_le_of_gt
-
-protected theorem lt_of_not_le {a b : Nat} : ¬ a ≤ b → b < a := (Nat.lt_or_ge b a).resolve_right
-
-protected theorem le_of_not_lt {a b : Nat} : ¬ a < b → b ≤ a := (Nat.lt_or_ge a b).resolve_left
-
-protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := (Nat.lt_or_ge _ _).imp_left Nat.le_of_lt
-
-protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
-  (Nat.lt_or_ge _ _).imp_right (Nat.le_antisymm h)
-
-protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
-  ⟨Nat.lt_or_eq_of_le, (·.elim Nat.le_of_lt Nat.le_of_eq)⟩
-
-protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
-  ⟨fun h => ⟨Nat.le_of_eq h, Nat.le_of_eq h.symm⟩, fun ⟨h₁, h₂⟩ => Nat.le_antisymm h₁ h₂⟩
+  match h : compare a b with
+  | .lt => .inl (Nat.lt_iff_compare_eq_lt.2 h)
+  | .eq => .inr (.inl (Nat.eq_iff_compare_eq_eq.2 h))
+  | .gt => .inr (.inr (Nat.gt_iff_compare_eq_gt.2 h))
 
 /-! ## zero/one/two -/
 
-protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
+protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
+  ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
+
+theorem le_zero : i ≤ 0 ↔ i = 0 := ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
+
+protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
+
+protected theorem two_pos : 0 < 2 := Nat.zero_lt_succ _
+
+theorem add_one_ne_zero (n) : n + 1 ≠ 0 := succ_ne_zero _
 
 protected theorem ne_zero_iff_zero_lt : n ≠ 0 ↔ 0 < n := Nat.pos_iff_ne_zero.symm
-
-protected theorem le_zero : i ≤ 0 ↔ i = 0 := ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
 
 protected theorem zero_lt_two : 0 < 2 := Nat.zero_lt_succ _
 
 protected theorem one_lt_two : 1 < 2 := Nat.succ_lt_succ Nat.zero_lt_one
-
-protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
-
-protected theorem two_pos : 0 < 2 := Nat.zero_lt_two
 
 protected theorem eq_zero_of_not_pos (h : ¬0 < n) : n = 0 :=
   Nat.eq_zero_of_le_zero (Nat.not_lt.1 h)
