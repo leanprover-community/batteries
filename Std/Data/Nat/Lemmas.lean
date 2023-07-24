@@ -196,20 +196,24 @@ protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
 protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
   ⟨fun h => ⟨Nat.le_of_eq h, Nat.le_of_eq h.symm⟩, fun ⟨h₁, h₂⟩ => Nat.le_antisymm h₁ h₂⟩
 
-/-! ### zero/one -/
+/-! ## zero/one/two -/
 
-protected theorem pos_iff_ne_zero {n : Nat} : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
+protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
-theorem le_zero {i : Nat} : i ≤ 0 ↔ i = 0 :=
-  ⟨Nat.eq_zero_of_le_zero, fun h => h ▸ Nat.le_refl i⟩
+protected theorem ne_zero_iff_zero_lt : n ≠ 0 ↔ 0 < n := Nat.pos_iff_ne_zero.symm
 
-theorem one_pos : 0 < 1 := Nat.zero_lt_one
+protected theorem le_zero : i ≤ 0 ↔ i = 0 := ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
 
-theorem add_one_ne_zero (n : Nat) : n + 1 ≠ 0 := succ_ne_zero _
+protected theorem zero_lt_two : 0 < 2 := Nat.zero_lt_succ _
 
-protected theorem eq_zero_of_nonpos : ∀ (n : Nat), ¬0 < n → n = 0
-  | 0 => fun _ => rfl
-  | n+1 => fun h => absurd (Nat.zero_lt_succ n) h
+protected theorem one_lt_two : 1 < 2 := Nat.succ_lt_succ Nat.zero_lt_one
+
+protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
+
+protected theorem two_pos : 0 < 2 := Nat.zero_lt_two
+
+protected theorem eq_zero_of_nonpos (h : ¬0 < n) : n = 0 :=
+  Nat.eq_zero_of_le_zero (Nat.not_lt.1 h)
 
 /-! ## succ/pred -/
 
@@ -279,6 +283,8 @@ theorem lt_of_le_pred (h : 0 < m) : n ≤ pred m → n < m := (le_pred_iff_lt h)
 theorem le_pred_of_lt (h : n < m) : n ≤ pred m := (le_pred_iff_lt (Nat.zero_lt_of_lt h)).2 h
 
 /-! ### add -/
+
+theorem add_one_ne_zero (n) : n + 1 ≠ 0 := Nat.succ_ne_zero _
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m : Nat}, n + m = 0 → n = 0
   | 0,   m => by simp [Nat.zero_add]
@@ -460,6 +466,8 @@ protected theorem sub_add_lt_sub {n m k : Nat} (h₁ : m + k ≤ n) (h₂ : 0 < 
     Nat.lt_of_lt_of_le
       (pred_lt (Nat.ne_of_lt $ Nat.sub_pos_of_lt $ lt_of_succ_le h₁).symm)
       (Nat.sub_le_sub_left _ $ Nat.le_add_right ..)
+
+theorem le_sub_one_of_lt (h : m < n) : m ≤ n - 1 := Nat.sub_le_sub_right h 1
 
 /-! ## min/max -/
 
@@ -1131,3 +1139,8 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
+
+/-! ## deprecated -/
+
+@[deprecated Nat.one_add]
+theorem succ_eq_one_add (n) : succ n = 1 + n := (one_add _).symm
