@@ -24,7 +24,7 @@ attribute [ext] Subtype.eq
 
 example {α β : Type _} {f : _ → β} {x y : { x : { x : α // x = x } // x = x }}
     (h : x.1 = y.1) : f x = f y := by
-  congr with x : 1
+  congr with : 1
   exact h
 
 example {α β : Type _} {F : _ → β} {f g : { f : α → β // f = f }}
@@ -53,6 +53,11 @@ example : () = () := by rcongr
 example : 0 = 0 := by rcongr
 
 example {α} (a : α) : a = a := by congr
+
+example : { f : Nat → Nat // f = id } :=
+  ⟨_, by
+    congr (config := { closePre := false, closePost := false }) with x
+    exact Nat.zero_add x⟩
 
 -- FIXME(?): congr doesn't fail
 -- example {α} (a b : α) (h : False) : a = b := by

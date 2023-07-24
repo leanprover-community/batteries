@@ -10,7 +10,7 @@ namespace Std.Tactic.Ext
 open Lean Meta
 
 /-- `declare_ext_theorems_for A` declares the extensionality theorems for the structure `A`. -/
-syntax "declare_ext_theorems_for" ("(" &"flat" " := " term ")")? ident (prio)? : command
+syntax "declare_ext_theorems_for " ("(" &"flat" " := " term ") ")? ident (ppSpace prio)? : command
 
 /-- Information about an extensionality theorem, stored in the environment extension. -/
 structure ExtTheorem where
@@ -33,10 +33,13 @@ initialize extExtension :
     initial := {}
   }
 
-/-- Get the list of `@[ext]` lemmas corresponding to the key `ty`. -/
+/-- Get the list of `@[ext]` lemmas corresponding to the key `ty`,
+ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
+  -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
+  -- Most ext lemmas have default priority.
   return (← (extExtension.getState (← getEnv)).getMatch ty)
-    |>.qsort fun a b => a.priority > b.priority
+    |>.insertionSort (·.priority < ·.priority) |>.reverse
 
 /-- The recursive part of `getAllExtLemmas`. -/
 private partial def getAllExtLemmasCore (trie : DiscrTree.Trie ExtTheorem true) :
@@ -58,15 +61,16 @@ private partial def getAllExtLemmasCore (trie : DiscrTree.Trie ExtTheorem true) 
 
 /-- Registers an extensionality lemma.
 
-When `@[ext]` is applied to a structure,
-it generates `.ext` and `.ext_iff` theorems
-and registers them for the `ext` tactic.
+* When `@[ext]` is applied to a structure, it generates `.ext` and `.ext_iff` theorems and registers
+  them for the `ext` tactic.
 
-When `@[ext]` is applied to a theorem,
-the theorem is registered for the `ext` tactic.
+* When `@[ext]` is applied to a theorem, the theorem is registered for the `ext` tactic.
 
-You can use `@[ext 9000]` to specify a priority for the attribute. -/
-syntax (name := ext) "ext" ("(" &"flat" " := " term ")")? (prio)? : attr
+* You can use `@[ext 9000]` to specify a priority for the attribute.
+
+* You can use the flag `@[ext (flat := false)]` to prevent flattening all fields of parent
+  structures in the generated extensionality lemmas. -/
+syntax (name := ext) "ext" (" (" &"flat" " := " term ")")? (ppSpace prio)? : attr
 
 initialize registerBuiltinAttribute {
   name := `ext

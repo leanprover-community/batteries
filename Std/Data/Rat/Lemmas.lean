@@ -5,6 +5,11 @@ import Std.Data.Rat.Basic
 
 namespace Rat
 
+@[simp] theorem zero_num : (0 : Rat).num = 0 := rfl
+@[simp] theorem zero_den : (0 : Rat).den = 1 := rfl
+@[simp] theorem one_num : (1 : Rat).num = 1 := rfl
+@[simp] theorem one_den : (1 : Rat).den = 1 := rfl
+
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
     { num := num.div g, den := den / g, den_nz, reduced } := by

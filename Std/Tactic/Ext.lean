@@ -69,7 +69,7 @@ def withExtHyps (struct : Name) (flat : Term)
 Creates the type of the extensionality lemma for the given structure,
 elaborating to `x.1 = y.1 → x.2 = y.2 → x = y`, for example.
 -/
-scoped elab "ext_type%" flat:term:max struct:ident : term => do
+scoped elab "ext_type% " flat:term:max ppSpace struct:ident : term => do
   withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     let ty := hyps.foldr (init := ← mkEq x y) fun (f, h) ty =>
       mkForall f BinderInfo.default h ty
@@ -88,7 +88,7 @@ def mkAndN : List Expr → Expr
 Creates the type of the iff-variant of the extensionality lemma for the given structure,
 elaborating to `x = y ↔ x.1 = y.1 ∧ x.2 = y.2`, for example.
 -/
-scoped elab "ext_iff_type%" flat:term:max struct:ident : term => do
+scoped elab "ext_iff_type% " flat:term:max ppSpace struct:ident : term => do
   withExtHyps (← resolveGlobalConstNoOverloadWithInfo struct) flat fun params x y hyps => do
     mkForallFVars (params |>.push x |>.push y) <|
       mkIff (← mkEq x y) <| mkAndN (hyps.map (·.2)).toList
@@ -130,7 +130,9 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
       if tactic.ext.trace.get (← getOptions) then
         let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
         usedExtTactics.modify (·.push cmd)
-      return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
+      -- We use `newGoals := .all` as this is
+      -- more useful in practice with dependently typed arguments of `@[ext]` lemmas.
+      return ← goal.apply (cfg := { newGoals := .all }) (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   -- Fall back to try all `ext`-lemmas in case of failure
   if tactic.ext.force.get (← getOptions) then
@@ -170,7 +172,7 @@ pi type.
 -/
 def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m] [MonadLiftT (ST IO.RealWorld) m]
     [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+    (k : MVarId → List (TSyntax `rcasesPat) → m Nat) : m Nat := do
   match pats with
   | [] =>
     if tactic.ext.trace.get (← getOptions) ∧
@@ -183,8 +185,10 @@ def tryIntros [Monad m] [MonadQuotation m] [MonadOptions m] [MonadLiftT (ST IO.R
       if tactic.ext.trace.get (← getOptions) then
         let cmd ←`(tactic| rintro $(p))
         usedExtTactics.modify fun x => x.push cmd
+      let mut n := 0
       for g in ← RCases.rintro #[p] none g do
-        k g ps
+        n := n.max (← tryIntros g ps k)
+      pure (n + 1)
     else k g pats
 
 /--
@@ -193,18 +197,20 @@ Runs continuation `k` on each subgoal.
 -/
 def withExt1 [Monad m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m]
     [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyntax `rcasesPat))
-    (k : MVarId → List (TSyntax `rcasesPat) → m Unit) : m Unit := do
+    (k : MVarId → List (TSyntax `rcasesPat) → m Nat) : m Nat := do
+  let mut n := 0
   for g in ← (applyExtLemma g : TermElabM _) do
-    tryIntros g pats k
+    n := n.max (← tryIntros g pats k)
+  pure n
 
 /--
 Applies a extensionality lemmas recursively, using `pats` to introduce variables in the result.
 Runs continuation `k` on each subgoal.
 -/
 def withExtN [Monad m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.RealWorld) m]
-    [MonadLiftT TermElabM m] [MonadExcept Exception m] (g : MVarId)
-    (pats : List (TSyntax `rcasesPat)) (k : MVarId → List (TSyntax `rcasesPat) → m Unit)
-    (depth := 1000000) (failIfUnchanged := true) : m Unit :=
+    [MonadLiftT TermElabM m] [MonadExcept Exception m]
+    (g : MVarId) (pats : List (TSyntax `rcasesPat)) (k : MVarId → List (TSyntax `rcasesPat) → m Nat)
+    (depth := 1000000) (failIfUnchanged := true) : m Nat :=
   match depth with
   | 0 => k g pats
   | depth+1 => do
@@ -220,14 +226,13 @@ def withExtN [Monad m] [MonadOptions m] [MonadQuotation m] [MonadLiftT (ST IO.Re
 
 /--
 Apply extensionality lemmas as much as possible, using `pats` to introduce the variables
-in extensionality lemmas like `funext`. Returns a list of subgoals,
-and the unconsumed patterns in each of those subgoals.
+in extensionality lemmas like `funext`. Returns a list of subgoals.
 -/
 def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (depth := 1000000) (failIfUnchanged := true) :
-    TermElabM (Array (MVarId × List (TSyntax `rcasesPat))) := do
-  (·.2) <$> StateT.run (m := TermElabM) (s := #[])
-    (withExtN g pats (fun g qs => modify (·.push (g, qs))) depth failIfUnchanged)
+    TermElabM (Nat × Array (MVarId × List (TSyntax `rcasesPat))) := do
+  StateT.run (m := TermElabM) (s := #[])
+    (withExtN g pats (fun g qs => modify (·.push (g, qs)) *> pure 0) depth failIfUnchanged)
 
 /--
 * `ext pat*`: Apply extensionality lemmas as much as possible,
@@ -245,7 +250,11 @@ elab_rules : tactic
     usedExtTactics.modify fun _ => #[]
     let pats := RCases.expandRIntroPats pats
     let depth := n.map (·.getNat) |>.getD 1000000
-    let gs ← extCore (← getMainGoal) pats.toList depth
+    let (used, gs) ← extCore (← getMainGoal) pats.toList depth
+    if RCases.linter.unusedRCasesPattern.get (← getOptions) then
+      if used < pats.size then
+        Linter.logLint RCases.linter.unusedRCasesPattern (mkNullNode pats[used:].toArray)
+          m!"`ext` did not consume the patterns: {pats[used:]}"
     replaceMainGoal <| gs.map (·.1) |>.toList
     if tactic.ext.trace.get (← getOptions) then
       let x ← usedExtTactics.get

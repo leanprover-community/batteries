@@ -6,12 +6,9 @@ import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SetNotation
 import Std.CodeAction
-import Std.CodeAction.Hole.Attr
-import Std.CodeAction.Hole.Basic
-import Std.CodeAction.Hole.Misc
-import Std.CodeAction.Tactic.Attr
-import Std.CodeAction.Tactic.Basic
-import Std.CodeAction.Tactic.Misc
+import Std.CodeAction.Attr
+import Std.CodeAction.Basic
+import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
@@ -22,8 +19,11 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Merge
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.BinomialHeap.Basic
+import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
+import Std.Data.Fin.Basic
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -36,6 +36,7 @@ import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
@@ -62,6 +63,7 @@ import Std.Lean.Expr
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
+import Std.Lean.InfoTree
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -89,10 +91,13 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
+import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
+import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.Instances
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -103,6 +108,7 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
@@ -111,6 +117,7 @@ import Std.Tactic.Simpa
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
+import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.TermUnsafe

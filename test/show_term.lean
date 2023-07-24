@@ -4,13 +4,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Tactic.ShowTerm
+import Std.Tactic.GuardMsgs
 
-example (n : Nat) : Nat × Nat := by
+/-- info: Try this: exact (n, 37) -/
+#guard_msgs in example (n : Nat) : Nat × Nat := by
   show_term
     constructor
     exact n
     exact 37
 
-example : Nat × Nat := by
+/-- info: Try this: refine (?fst, ?snd) -/
+#guard_msgs in example : Nat × Nat := by
   show_term constructor
   repeat exact 42
+
+/-- info: Try this: fun {X} => X -/
+#guard_msgs in example : {_a : Nat} → Nat :=
+  show_term by
+    intro X
+    exact X
