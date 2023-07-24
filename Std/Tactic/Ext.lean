@@ -153,7 +153,8 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
           if tactic.ext.trace.get (← getOptions) then
             let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
             usedExtTactics.modify (·.push cmd)
-          return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
+          return ← goal.apply (cfg := { newGoals := .all })
+            (← mkConstWithFreshMVarLevels lem.declName)
         catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 
