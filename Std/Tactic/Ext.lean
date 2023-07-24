@@ -12,11 +12,19 @@ namespace Std.Tactic.Ext
 open Lean Meta Elab Tactic TryThis
 
 /-- Enables tracing in the `ext` tactic, displaying used extensionality lemmas.
-Is set by `ext?` and `ext1?`. -/
+This option is used by `ext?` and `ext1?`. -/
 register_option tactic.ext.trace : Bool := {
   defValue := false
   descr    := "When enabled, calls to `ext` will print a tactic sequence
   reproducing the `ext` call."
+}
+
+/-- Forces `ext` to ignore the `DiscTree` and try all `ext`-lemmas.
+This option is used by `ext!?` -/
+register_option tactic.ext.force : Bool := {
+  defValue := false
+  descr    := "When enabled, calls to `ext` will try any `ext`-lemma ignoring the
+  `DistrTree` keys."
 }
 
 /-- Global variable tracking tactics used by `ext?`. This is a collection of
@@ -121,9 +129,30 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         guard (← isDefEq tgt declTy)
       if tactic.ext.trace.get (← getOptions) then
         let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
-        usedExtTactics.modify fun x => x.push cmd
+        usedExtTactics.modify (·.push cmd)
       return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
+  -- Fall back to try all `ext`-lemmas in case of failure
+  if tactic.ext.force.get (← getOptions) then
+    for (key, lemmas) in ← getAllExtLemmas do
+      -- TODO: `if key == ty then continue` to avoid going over the same key twice.
+      -- As far as I see, we need more API from
+      -- [Lean.Meta.DiscrTree] exposed, but everything there is private.
+      -- The first projection of `getMatchCore` for example
+      for lem in lemmas do
+        try
+          withNewMCtxDepth do
+            let c ← mkConstWithFreshMVarLevels lem.declName
+            let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
+            guard (← isDefEq tgt declTy)
+          logWarning <| m!"`{lem}` applied, which is written in terms of type `{key}`. " ++
+          m!"If you want `ext` to find it, please make a copy of this lemma in " ++
+          m!"terms of type `{ty}`."
+          if tactic.ext.trace.get (← getOptions) then
+            let cmd ←`(tactic| apply $(mkIdent (← unresolveNameGlobal lem.declName)))
+            usedExtTactics.modify (·.push cmd)
+          return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
+        catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 
 /-- Apply a single extensionality lemma to the current goal. -/
@@ -207,6 +236,8 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 * `ext pat* : n`: apply ext lemmas only up to depth `n`.
 * `ext1 pat*`: Equivalent to `ext pat* : 1`. Apply only one extensionality lemma.
 * `ext?`, `ext1?`: display suggestion to recreate the `ext` application.
+* `ext!?`: on failure, try to apply all `ext` lemmas ignoring the suggested type. Display
+  suggestion on which lemmas might be missing.
 -/
 syntax (name := tacticExt) "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
@@ -232,6 +263,9 @@ syntax (name := ext1Trace) "ext1?" (colGt ppSpace rintroPat)* : tactic
 @[inherit_doc tacticExt]
 syntax (name := extTrace) "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
+@[inherit_doc tacticExt]
+syntax (name := extTraceForce) "ext!?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
+
 macro_rules
   | `(tactic| ext? $pats* $[: $n]?) =>
     `(tactic| set_option tactic.ext.trace true in
@@ -239,6 +273,10 @@ macro_rules
   | `(tactic| ext1? $pats* ) =>
     `(tactic| set_option tactic.ext.trace true in
       ext1 $pats*)
+  | `(tactic| ext!? $pats* ) =>
+    `(tactic| set_option tactic.ext.trace true in
+      set_option tactic.ext.force true in
+      ext $pats*)
 
 end Std.Tactic.Ext
 

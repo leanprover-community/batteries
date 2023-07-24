@@ -52,7 +52,10 @@ def Set (α : Type u) := α → Prop
   baseSet : Set β
   source_eq : source = baseSet ∘ proj
 
--- Test for `ext?`: It should apply the two ext lemmas and display that
+/-!
+## Test for `ext?`
+It should apply the two ext lemmas and display a tactic replacement
+-/
 namespace nested
 
 structure A where
@@ -81,4 +84,24 @@ theorem test (c₁ c₂ : C) (h : c₁.a = c₂.a) (h' :  c₁.b = c₂.b )
   --   sorry
   --   sorry
   repeat admit
+
+/-!
+## Testing `ext!?`
+
+`ext` does not find the lemma `extCtoB` above because it does not see through the
+definition `D := C`. `ext!?` ignores the types and tries to apply anything brute force
+giving a warning if it succeeds.
+-/
+
+def D := C
+
+@[ext]
+theorem test₂ (c₁ c₂ : D) (h : c₁.a = c₂.a) (h' :  c₁.b = c₂.b )
+    (h'' :  c₁.c = c₂.c ) : c₁ = c₂ := by
+  ext!?
+  -- `nested.extCtoB` applied, which is written in terms of type `nested.C`.
+  -- If you want `ext` to find it, please make a copy of this
+  -- lemma in terms of type `D`.
+  repeat admit
+
 end nested

@@ -22,6 +22,9 @@ structure ExtTheorem where
   keys : Array (DiscrTree.Key true)
   deriving Inhabited, Repr, BEq, Hashable
 
+/-- Enables printing `ExtTheorem`. -/
+instance ExtTheorem.instToFormat : ToFormat ExtTheorem := ⟨(f!"{·.declName}")⟩
+
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension :
     SimpleScopedEnvExtension ExtTheorem (DiscrTree ExtTheorem true) ←
@@ -34,6 +37,24 @@ initialize extExtension :
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
   return (← (extExtension.getState (← getEnv)).getMatch ty)
     |>.qsort fun a b => a.priority > b.priority
+
+/-- The recursive part of `getAllExtLemmas`. -/
+private partial def getAllExtLemmasCore (trie : DiscrTree.Trie ExtTheorem true) :
+    MetaM <| Array ExtTheorem := do
+  let mut out := #[]
+  let ⟨vs, children⟩ := trie
+  out := out ++ vs
+  for (_k, t) in children do
+    out := out ++ (←getAllExtLemmasCore t)
+  return out
+
+/-- Get lists of all existing `@[ext]` lemmas, sorted by the type (`Key`) they apply to. -/
+@[inline] def getAllExtLemmas : MetaM (Array <| DiscrTree.Key true × Array ExtTheorem) := do
+  let mut out := #[]
+  let tree := (extExtension.getState (← getEnv))
+  for (key, trie) in tree.root do
+    out := out.push (key, ← getAllExtLemmasCore trie)
+  return out
 
 /-- Registers an extensionality lemma.
 
