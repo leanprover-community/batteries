@@ -67,7 +67,7 @@ alias Bool.or_deMorgan ← not_or
 @[simp] theorem xor_true : (x ^^ true) = !x := by btt x
 @[simp] theorem xor_not_self_left : (!x ^^ x) = true := by btt x
 @[simp] theorem xor_not_self_right : (x ^^ !x) = true := by btt x
-@[simp] theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
+theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
 theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
 theorem xor_left_comm : (x ^^ (y ^^ z)) = (y ^^ (x ^^ z)) := by btt x y z
 theorem xor_right_comm : ((x ^^ y) ^^ z) = ((x ^^ z) ^^ y) := by btt x y z
