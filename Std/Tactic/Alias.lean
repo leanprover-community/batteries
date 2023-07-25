@@ -92,23 +92,25 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       {declMods with docString? := some <| tgt.toString}
   let (declName, _) ← mkDeclName ns declMods alias.getId
   let decl : Declaration ← match const with
-    | Lean.ConstantInfo.defnInfo d =>
-      pure <| .defnDecl { d with
-        name := declName
-        value := mkConst resolved (d.levelParams.map mkLevelParam)
-      }
-    | Lean.ConstantInfo.ctorInfo d =>
-      pure <| .defnDecl { d with
-        name := declName
-        value := mkConst resolved (d.levelParams.map mkLevelParam)
-        hints := .regular 0 -- Check?
-        safety := if d.isUnsafe then .unsafe else .safe
-      }
     | Lean.ConstantInfo.thmInfo t =>
       pure <| .thmDecl { t with
         name := declName
         value := mkConst resolved (t.levelParams.map mkLevelParam)
       }
-    | _ => throwError "alias only works with definitions, theorems, or constructors"
+    | Lean.ConstantInfo.defnInfo d =>
+      pure <| .defnDecl { d with
+        name := declName
+        value := mkConst resolved (d.levelParams.map mkLevelParam)
+      }
+    | Lean.ConstantInfo.axiomInfo c
+    | Lean.ConstantInfo.ctorInfo c
+    | Lean.ConstantInfo.recInfo c =>
+      pure <| .defnDecl { c with
+        name := declName
+        value := mkConst resolved (c.levelParams.map mkLevelParam)
+        hints := .regular 0 -- Check?
+        safety := if c.isUnsafe then .unsafe else .safe
+      }
+    | _ => throwError "alias does not work for inductive types"
   checkNotAlreadyDeclared declName
   Command.liftTermElabM <| addDecl decl
