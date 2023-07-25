@@ -52,43 +52,44 @@ def Target.toString : Target → String
   | Target.reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
 /-- New alias, simple case -/
-elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command => do
-  let resolved ← resolveGlobalConstNoOverloadWithInfo name
-  let const ← getConstInfo resolved
-  let tgt := Target.plain resolved
-  let ns ← getCurrNamespace
-  let declMods ← elabModifiers mods
-  let declMods := if declMods.docString?.isSome then declMods else
-      {declMods with docString? := some <| tgt.toString}
-  let (declName, _) ← mkDeclName ns declMods alias.getId
-  let decl : Declaration := match const with
-    | Lean.ConstantInfo.thmInfo t =>
-      .thmDecl { t with
-        name := declName
-        value := mkConst resolved (t.levelParams.map mkLevelParam)
-      }
-    | Lean.ConstantInfo.defnInfo d =>
-      .defnDecl { d with
-        name := declName
-        value := mkConst resolved (d.levelParams.map mkLevelParam)
-      }
-    | Lean.ConstantInfo.quotInfo q =>
-      .defnDecl { q with
-        name := declName
-        value := mkConst resolved (q.levelParams.map mkLevelParam)
-        hints := .regular 0 -- Check?
-        safety := .safe
-      }
-    | Lean.ConstantInfo.inductInfo c -- Also alias constructors and recursors?
-    | Lean.ConstantInfo.axiomInfo c
-    | Lean.ConstantInfo.opaqueInfo c
-    | Lean.ConstantInfo.ctorInfo c
-    | Lean.ConstantInfo.recInfo c =>
-      .defnDecl { c with
-        name := declName
-        value := mkConst resolved (c.levelParams.map mkLevelParam)
-        hints := .regular 0 -- Check?
-        safety := if c.isUnsafe then .unsafe else .safe
-      }
-  checkNotAlreadyDeclared declName
-  Command.liftTermElabM <| addDecl decl
+elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
+  Command.liftTermElabM do
+    let resolved ← resolveGlobalConstNoOverloadWithInfo name
+    let const ← getConstInfo resolved
+    let tgt := Target.plain resolved
+    let ns ← getCurrNamespace
+    let declMods ← elabModifiers mods
+    let declMods := if declMods.docString?.isSome then declMods else
+        {declMods with docString? := some <| tgt.toString}
+    let (declName, _) ← mkDeclName ns declMods alias.getId
+    let decl : Declaration := match const with
+      | Lean.ConstantInfo.thmInfo t =>
+        .thmDecl { t with
+          name := declName
+          value := mkConst resolved (t.levelParams.map mkLevelParam)
+        }
+      | Lean.ConstantInfo.defnInfo d =>
+        .defnDecl { d with
+          name := declName
+          value := mkConst resolved (d.levelParams.map mkLevelParam)
+        }
+      | Lean.ConstantInfo.quotInfo q =>
+        .defnDecl { q with
+          name := declName
+          value := mkConst resolved (q.levelParams.map mkLevelParam)
+          hints := .regular 0 -- Check?
+          safety := .safe
+        }
+      | Lean.ConstantInfo.inductInfo c -- Also alias constructors and recursors?
+      | Lean.ConstantInfo.axiomInfo c
+      | Lean.ConstantInfo.opaqueInfo c
+      | Lean.ConstantInfo.ctorInfo c
+      | Lean.ConstantInfo.recInfo c =>
+        .defnDecl { c with
+          name := declName
+          value := mkConst resolved (c.levelParams.map mkLevelParam)
+          hints := .regular 0 -- Check?
+          safety := if c.isUnsafe then .unsafe else .safe
+        }
+    checkNotAlreadyDeclared declName
+    addDecl decl
