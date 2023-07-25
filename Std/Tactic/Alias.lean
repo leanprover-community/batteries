@@ -3,7 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, David Renshaw
 -/
-import Lean
+import Lean.Elab.Command
+import Lean.Elab.DeclarationRange
+import Lean.Compiler.NoncomputableAttr
 
 /-!
 # The `alias` command
@@ -42,20 +44,9 @@ The `..` notation attempts to generate the 'of'-names automatically when the
 input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 -/
 
-namespace Tactic
-namespace Alias
+namespace Std.Tactic.Alias
 
 open Lean Elab Parser.Command
-
-/-- Adds some copies of a theorem or definition. -/
-syntax (name := alias) (docComment)? "alias " ident " ←" (ppSpace ident)* : command
-
-/-- Adds one-way implication declarations. -/
-syntax (name := aliasLR) (docComment)?
-  "alias " ident " ↔ " binderIdent ppSpace binderIdent : command
-
-/-- Adds one-way implication declarations, inferring names for them. -/
-syntax (name := aliasLRDots) (docComment)? "alias " ident " ↔ " ".." : command
 
 /-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
 ignored.
@@ -66,48 +57,81 @@ addNamespaceUnlessRoot `a.b `_root_.c.d = `c.d
 
 TODO: Move this declaration to a more central location.
 -/
-abbrev addNamespaceUnlessRoot (ns : Name) (n : Name) : Name :=
+@[inline] def addNamespaceUnlessRoot (ns : Name) (n : Name) : Name :=
   if rootNamespace.isPrefixOf n then removeRoot n else ns ++ n
 
 /-- An alias can be in one of three forms -/
-inductive Target
-  | /-- Plain alias -/
-    plain : Name → Target
-  | /-- Forward direction of an iff alias -/
-    forward : Name → Target
-  | /-- Reverse direction of an iff alias -/
-    backwards : Name → Target
+inductive Target where
+  /-- Plain alias -/
+  | plain : Name → Target
+  /-- Forward direction of an iff alias -/
+  | forward : Name → Target
+  /-- Reverse direction of an iff alias -/
+  | reverse : Name → Target
 
 /-- The name underlying an alias target -/
-def Target.toName : Target → Name
+def Target.name : Target → Name
   | Target.plain n => n
   | Target.forward n => n
-  | Target.backwards n => n
+  | Target.reverse n => n
 
 /-- The docstring for an alias. -/
 def Target.toString : Target → String
   | Target.plain n => s!"**Alias** of `{n}`."
   | Target.forward n => s!"**Alias** of the forward direction of `{n}`."
-  | Target.backwards n => s!"**Alias** of the reverse direction of `{n}`."
+  | Target.reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
-/-- Elaborates an `alias ←` command. -/
-@[command_elab «alias»] def elabAlias : Command.CommandElab
-| `($[$doc]? alias $name:ident ← $aliases:ident*) => do
+/--
+The `alias` command can be used to create copies
+of a theorem or definition with different names.
+
+Syntax:
+
+```lean
+/-- doc string -/
+alias my_theorem ← alias1 alias2 ...
+```
+
+This produces defs or theorems of the form:
+
+```lean
+/-- doc string -/
+theorem alias1 : <type of my_theorem> := my_theorem
+
+/-- doc string -/
+theorem alias2 : <type of my_theorem> := my_theorem
+```
+
+Iff alias syntax:
+
+```lean
+alias A_iff_B ↔ B_of_A A_of_B
+alias A_iff_B ↔ ..
+```
+
+This gets an existing biconditional theorem `A_iff_B` and produces
+the one-way implications `B_of_A` and `A_of_B` (with no change in
+implicit arguments). A blank `_` can be used to avoid generating one direction.
+The `..` notation attempts to generate the 'of'-names automatically when the
+input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
+-/
+elab (name := alias) doc:(docComment)?
+    "alias " name:ident " ←" aliases:(ppSpace ident)* : command => do
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
-  let constant ← getConstInfo resolved
+  let const ← getConstInfo resolved
   let ns ← getCurrNamespace
   for a in aliases do withRef a do
     let declName := addNamespaceUnlessRoot ns a.getId
-    let decl ← match constant with
+    let decl ← match const with
     | Lean.ConstantInfo.defnInfo d =>
-      pure $ .defnDecl {
-        d with name := declName
-               value := mkConst resolved (d.levelParams.map mkLevelParam)
+      pure <| .defnDecl { d with
+        name := declName
+        value := mkConst resolved (d.levelParams.map mkLevelParam)
       }
     | Lean.ConstantInfo.thmInfo t =>
-      pure $ .thmDecl {
-        t with name := declName
-               value := mkConst resolved (t.levelParams.map mkLevelParam)
+      pure <| .thmDecl { t with
+        name := declName
+        value := mkConst resolved (t.levelParams.map mkLevelParam)
       }
     | _ => throwError "alias only works with def or theorem"
     checkNotAlreadyDeclared declName
@@ -119,19 +143,19 @@ def Target.toString : Target → String
     Command.liftTermElabM do
       if isNoncomputable (← getEnv) resolved then
         addDecl decl
-        setEnv $ addNoncomputable (← getEnv) declName
+        setEnv <| addNoncomputable (← getEnv) declName
       else
         addAndCompile decl
       Term.addTermInfo' a (← mkConstWithLevelParams declName) (isBinder := true)
       let target := Target.plain resolved
-      let docString := match doc with | none => target.toString
-                                      | some d => d.getDocString
+      let docString := match doc with
+        | none => target.toString
+        | some d => d.getDocString
       addDocString declName docString
-| _ => throwUnsupportedSyntax
 
 /--
-  Given a possibly forall-quantified iff expression `prf`, produce a value for one
-  of the implication directions (determined by `mp`).
+Given a possibly forall-quantified iff expression `prf`, produce a value for one
+of the implication directions (determined by `mp`).
 -/
 def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
   Meta.forallTelescope ty fun xs ty ↦ do
@@ -140,51 +164,40 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-/--
-  Given a constant representing an iff decl, adds a decl for one of the implication
-  directions.
--/
+/-- Given a constant representing an iff decl, adds a decl for one of the implication directions. -/
 def aliasIff (doc : Option (TSyntax `Lean.Parser.Command.docComment)) (ci : ConstantInfo)
-  (ref : Syntax) (al : Name) (isForward : Bool) :
-  TermElabM Unit := do
-  let ls := ci.levelParams
-  let v ← mkIffMpApp isForward ci.type ci.value!
-  let t' ← Meta.inferType v
+    (ref : Syntax) (name : Name) (isForward : Bool) : TermElabM Unit := do
+  let value ← mkIffMpApp isForward ci.type ci.value!
+  let type ← Meta.inferType value
   -- TODO add @alias attribute
-  addDeclarationRanges al {
+  addDeclarationRanges name {
     range := ← getDeclarationRange (← getRef)
     selectionRange := ← getDeclarationRange ref
   }
-  addDecl $ .thmDecl {
-    name := al
-    value := v
-    type := t'
-    levelParams := ls
-  }
-  Term.addTermInfo' ref (← mkConstWithLevelParams al) (isBinder := true)
-  let target := if isForward then Target.forward ci.name else Target.backwards ci.name
-  let docString := match doc with | none => target.toString
-                                  | some d => d.getDocString
-  addDocString al docString
+  addDecl <| .thmDecl { name, value, type, levelParams := ci.levelParams }
+  Term.addTermInfo' ref (← mkConstWithLevelParams name) (isBinder := true)
+  let target := if isForward then Target.forward ci.name else Target.reverse ci.name
+  let docString := match doc with
+    | none => target.toString
+    | some d => d.getDocString
+  addDocString name docString
 
-/-- Elaborates an `alias ↔` command. -/
-@[command_elab aliasLR] def elabAliasLR : Command.CommandElab
-| `($[$doc]? alias $name:ident ↔ $left:binderIdent $right:binderIdent) => do
+@[inherit_doc «alias»]
+elab (name := aliasLR) doc:(docComment)?
+    "alias " name:ident " ↔ " left:binderIdent ppSpace right:binderIdent : command => do
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
-  let constant ← getConstInfo resolved
+  let const ← getConstInfo resolved
   let ns ← getCurrNamespace
   Command.liftTermElabM do
     if let `(binderIdent| $x:ident) := left then
-      aliasIff doc constant x (addNamespaceUnlessRoot ns x.getId) true
+      aliasIff doc const x (addNamespaceUnlessRoot ns x.getId) (isForward := true)
     if let `(binderIdent| $x:ident) := right then
-      aliasIff doc constant x (addNamespaceUnlessRoot ns x.getId) false
-| _ => throwUnsupportedSyntax
+      aliasIff doc const x (addNamespaceUnlessRoot ns x.getId) (isForward := false)
 
-/-- Elaborates an `alias ↔ ..` command. -/
-@[command_elab aliasLRDots] def elabAliasLRDots : Command.CommandElab
-| `($[$doc]? alias $name:ident ↔ ..%$tk) => do
+@[inherit_doc «alias»]
+elab (name := aliasLRDots) doc:(docComment)? "alias " name:ident " ↔ " tk:".." : command => do
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
-  let constant ← getConstInfo resolved
+  let const ← getConstInfo resolved
   let (parent, base) ← match resolved with
     | .str n s => pure (n, s)
     | _ => throwError "alias only works for string names"
@@ -192,12 +205,6 @@ def aliasIff (doc : Option (TSyntax `Lean.Parser.Command.docComment)) (ci : Cons
   if components.length != 2 then throwError "LHS must be of the form *_iff_*"
   let forward := String.intercalate "_of_" components.reverse
   let backward := String.intercalate "_of_" components
-  let forwardName := Name.mkStr parent forward
-  let backwardName := Name.mkStr parent backward
   Command.liftTermElabM do
-    aliasIff doc constant tk forwardName true
-    aliasIff doc constant tk backwardName false
-| _ => throwUnsupportedSyntax
-
-end Alias
-end Tactic
+    aliasIff doc const tk (.str parent forward) (isForward := true)
+    aliasIff doc const tk (.str parent backward) (isForward := false)
