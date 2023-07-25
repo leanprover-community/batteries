@@ -114,14 +114,17 @@ the one-way implications `B_of_A` and `A_of_B` (with no change in
 implicit arguments). A blank `_` can be used to avoid generating one direction.
 The `..` notation attempts to generate the 'of'-names automatically when the
 input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
+
+The `protected` modifier can be used to add protected aliases.
 -/
 elab (name := alias) doc:(docComment)?
-    "alias " name:ident " ←" aliases:(ppSpace ident)* : command => do
+    protect:("protected ")? "alias " name:ident " ←" aliases:(ppSpace ident)* : command => do
+  let visibility : Visibility := if protect.isSome then .protected else .regular
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
   let const ← getConstInfo resolved
   let ns ← getCurrNamespace
   for a in aliases do withRef a do
-    let declName := addNamespaceUnlessRoot ns a.getId
+    let declName ← applyVisibility visibility <| addNamespaceUnlessRoot ns a.getId
     let decl ← match const with
     | Lean.ConstantInfo.defnInfo d =>
       pure <| .defnDecl { d with
@@ -184,18 +187,22 @@ def aliasIff (doc : Option (TSyntax `Lean.Parser.Command.docComment)) (ci : Cons
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) doc:(docComment)?
-    "alias " name:ident " ↔ " left:binderIdent ppSpace right:binderIdent : command => do
+    protect:("protected ")? "alias " name:ident " ↔ " left:binderIdent ppSpace right:binderIdent : command => do
+  let visibility : Visibility := if protect.isSome then .protected else .regular
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
   let const ← getConstInfo resolved
   let ns ← getCurrNamespace
   Command.liftTermElabM do
     if let `(binderIdent| $x:ident) := left then
-      aliasIff doc const x (addNamespaceUnlessRoot ns x.getId) (isForward := true)
+      let declName ← applyVisibility visibility <| addNamespaceUnlessRoot ns x.getId
+      aliasIff doc const x declName (isForward := true)
     if let `(binderIdent| $x:ident) := right then
-      aliasIff doc const x (addNamespaceUnlessRoot ns x.getId) (isForward := false)
+      let declName ← applyVisibility visibility <| addNamespaceUnlessRoot ns x.getId
+      aliasIff doc const x declName (isForward := false)
 
 @[inherit_doc «alias»]
-elab (name := aliasLRDots) doc:(docComment)? "alias " name:ident " ↔ " tk:".." : command => do
+elab (name := aliasLRDots) doc:(docComment)? protect:("protected ")? "alias " name:ident " ↔ " tk:".." : command => do
+  let visibility : Visibility := if protect.isSome then .protected else .regular
   let resolved ← resolveGlobalConstNoOverloadWithInfo name
   let const ← getConstInfo resolved
   let (parent, base) ← match resolved with
@@ -206,5 +213,7 @@ elab (name := aliasLRDots) doc:(docComment)? "alias " name:ident " ↔ " tk:".."
   let forward := String.intercalate "_of_" components.reverse
   let backward := String.intercalate "_of_" components
   Command.liftTermElabM do
-    aliasIff doc const tk (.str parent forward) (isForward := true)
-    aliasIff doc const tk (.str parent backward) (isForward := false)
+    let declName ← applyVisibility visibility (.str parent forward)
+    aliasIff doc const tk declName (isForward := true)
+    let declName ← applyVisibility visibility (.str parent backward)
+    aliasIff doc const tk declName (isForward := false)
