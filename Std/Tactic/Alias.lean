@@ -79,9 +79,9 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         hints := .regular 0 -- Check?
         safety := .safe
       }
+    | Lean.ConstantInfo.inductInfo c -- Also alias constructors and recursors?
     | Lean.ConstantInfo.axiomInfo c
     | Lean.ConstantInfo.opaqueInfo c
-    | Lean.ConstantInfo.inductInfo c
     | Lean.ConstantInfo.ctorInfo c
     | Lean.ConstantInfo.recInfo c =>
       .defnDecl { c with
