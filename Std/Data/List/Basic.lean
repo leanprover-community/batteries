@@ -729,38 +729,30 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
   | [], _ => []
   | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
 
-/-- unsafe implementation of attach -/
-private unsafe def attach.impl (l : List α) : List { x // x ∈ l } :=
-  unsafeCast l
+/--
+Unsafe implementation of `attach`, taking advantage of the fact that the representation of
+`List {x // x ∈ l}` is the same as the input `List α`.
+(Someday, the compiler might do this optimization automatically, but until then...)
+-/
+@[inline] private unsafe def attachImpl (l : List α) : List {x // x ∈ l} := unsafeCast l
 
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
   with the same elements but in the type `{x // x ∈ l}`. -/
-@[implemented_by attach.impl]
-def attach (l : List α) : List { x // x ∈ l } :=
-  pmap Subtype.mk l (fun _ => id)
+@[implemented_by attachImpl] def attach (l : List α) : List {x // x ∈ l} :=
+  pmap Subtype.mk l fun _ => id
 
-/-- Tail-recursive version of `pmap`. -/
-private def pmap.impl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) : List β :=
-  l.attach.map fun ⟨x,h'⟩ => f x (h _ h')
+/-- Implementation of `pmap` using the zero-copy version of `attach`. -/
+@[inline] private def pmapImpl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) :
+    List β := l.attach.map fun ⟨x, h'⟩ => f x (h _ h')
 
-@[csimp] private theorem pmap_eq_pmap_impl : @pmap = @pmap.impl := by
-  funext α β p f L h
-  unfold pmap.impl
-  unfold attach
-  suffices ∀ L' (hL' : L' ⊆ L) (h' : ∀ a, a ∈ L → p a),
-    pmap f L' (fun _ h => h' _ <| hL' h) =
-    map
-      (fun x =>
-        match x with
-        | ⟨x,hx⟩ => f x (h' _ hx))
-      (pmap (fun x x_1 => Subtype.mk x x_1) L' (fun _ h => hL' h))
-    from this L (fun _ hx => hx) h
-  intro L hL h
-  induction L with
-  | nil => rfl
-  | cons _ L' ih =>
-    have : L' ⊆ L := fun _ hx => hL (.tail _ hx)
-    exact congrArg _ (ih this)
+@[csimp] private theorem pmap_eq_pmapImpl : @pmap = @pmapImpl := by
+  funext α β p f L h'
+  let rec go : ∀ L' (hL' : L' ⊆ L),
+      pmap f L' (fun _ h => h' _ <| hL' h) =
+      map (fun ⟨x, hx⟩ => f x (h' _ hx)) (pmap Subtype.mk L' hL')
+  | nil, hL' => rfl
+  | cons _ L', hL' => congrArg _ <| go L' fun _ hx => hL' (.tail _ hx)
+  exact go L fun _ hx => hx
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
