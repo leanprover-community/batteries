@@ -24,6 +24,8 @@ macro_rules
 
 instance : LE Bool := leOfOrd
 instance : LT Bool := ltOfOrd
+instance : Max Bool := maxOfLe
+instance : Min Bool := minOfLe
 
 @[simp] theorem and_not_self_left : (!x && x) = false := by btt x
 @[simp] theorem and_not_self_right : (x && !x) = false := by btt x
@@ -65,7 +67,7 @@ alias Bool.or_deMorgan ← not_or
 @[simp] theorem xor_true : (x ^^ true) = !x := by btt x
 @[simp] theorem xor_not_self_left : (!x ^^ x) = true := by btt x
 @[simp] theorem xor_not_self_right : (x ^^ !x) = true := by btt x
-theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
+@[simp] theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
 theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
 theorem xor_left_comm : (x ^^ (y ^^ z)) = (y ^^ (x ^^ z)) := by btt x y z
 theorem xor_right_comm : ((x ^^ y) ^^ z) = ((x ^^ z) ^^ y) := by btt x y z
@@ -79,8 +81,10 @@ alias Bool.xor_true ← xor_true_right
 @[simp] protected theorem lt_irrefl : ¬ x < x := by btt using simp x
 protected theorem le_trans {x y z : Bool} : x ≤ y → y ≤ z → x ≤ z := by btt using simp x y z
 protected theorem le_antisymm {x y : Bool} : x ≤ y → y ≤ x → x = y := by btt using simp x y
+protected theorem le_total (x y : Bool) : x ≤ y ∨ y ≤ x := by btt using simp x y
 protected theorem lt_asymm {x y : Bool} : x < y → ¬ y < x := by btt using simp x y
 protected theorem lt_trans {x y z : Bool} : x < y → y < z → x < z := by btt using simp x y z
+protected theorem lt_iff_le_not_le {x y : Bool} : x < y ↔ x ≤ y ∧ ¬ y ≤ x := by btt using simp x y
 protected theorem lt_of_le_of_lt {x y z : Bool} : x ≤ y → y < z → x < z := by btt using simp x y z
 protected theorem lt_of_lt_of_le {x y z : Bool} : x < y → y ≤ z → x < z := by btt using simp x y z
 protected theorem le_of_lt {x y : Bool} : x < y → x ≤ y := by btt using simp x y z
@@ -92,6 +96,9 @@ protected theorem le_of_lt_or_eq {x y : Bool} : x < y ∨ x = y → x ≤ y := b
 @[simp] protected theorem false_le : false ≤ x := by btt x
 protected theorem eq_true_of_true_le {x : Bool} : true ≤ x → x = true := by btt using simp x
 protected theorem eq_false_of_le_false {x : Bool} : x ≤ false → x = false := by btt using simp x
+
+protected theorem max_eq_or (x y : Bool) : max x y = (x || y) := by btt using simp x y
+protected theorem min_eq_and (x y : Bool) : min x y = (x && y) := by btt using simp x y
 
 theorem not_inj {x y : Bool} : (!x) = (!y) → x = y := by btt using simp x y
 
