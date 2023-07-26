@@ -49,10 +49,10 @@ example : foobar2 x = foobar x := by simp
 
 /-- doc string for foobaz -/
 noncomputable def foobaz : ℕ → ℕ := id
-alias foobaz1 := foobaz
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz', and it does not have executable code -/
+#guard_msgs in alias foobaz1 := foobaz
+
 noncomputable alias foobaz2 := id
-/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz1', and it does not have executable code -/
-#guard_msgs in def foobaz3 (n : ℕ) := foobaz1 n
 /-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz2', and it does not have executable code -/
 #guard_msgs in def foobaz4 (n : ℕ) := foobaz2 n
 
@@ -60,9 +60,9 @@ noncomputable alias foobaz2 := id
 
 /-- doc string for barbaz -/
 unsafe def barbaz : ℕ → ℕ := id
-alias barbaz1 := barbaz
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz' -/
+#guard_msgs in alias barbaz1 := barbaz
+
 unsafe alias barbaz2 := id
-/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz1' -/
-#guard_msgs in def barbaz3 (n : ℕ) := barbaz1 n
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz2' -/
 #guard_msgs in def barbaz4 (n : ℕ) := barbaz2 n

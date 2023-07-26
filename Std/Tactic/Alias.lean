@@ -59,10 +59,6 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
     let const ← getConstInfo resolved
     let declMods ← elabModifiers mods
-    let declMods ← pure { declMods with
-        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
-        isUnsafe := declMods.isUnsafe || const.isUnsafe
-      }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := match const with
       | Lean.ConstantInfo.thmInfo t =>
