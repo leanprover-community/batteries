@@ -16,7 +16,7 @@ TODO
 
 namespace Std.Tactic.Alias
 
-open Lean Elab Parser.Command Term
+open Lean Elab Parser.Command
 
 /-- New alias, simple case -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
@@ -50,7 +50,48 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     else
       addAndCompile decl
     addDocString' declName declMods.docString?
-    applyAttributes declName declMods.attrs
+    Term.applyAttributes declName declMods.attrs
     /- alias doesn't trigger the missing docs linter so we add a default -/
     if (← findDocString? (← getEnv) declName).isNone then
       addDocString declName s!"**Alias** of {const.name}"
+
+/--
+Given a possibly forall-quantified iff expression `prf`, produce a value for one
+of the implication directions (determined by `mp`).
+-/
+def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
+  Meta.forallTelescope ty fun xs ty ↦ do
+    let some (lhs, rhs) := ty.iff?
+      | throwError "Target theorem must have the form `∀ x y z, a ↔ b`"
+    Meta.mkLambdaFVars xs <|
+      mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
+
+private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
+    TermElabM Unit := do
+  checkNotAlreadyDeclared declName
+  addDecl <| Declaration.thmDecl { thm with
+      name := declName
+      value := (← mkIffMpApp mp thm.type thm.value)
+    }
+  addDocString' declName declMods.docString?
+  Term.applyAttributes declName declMods.attrs
+  /- alias doesn't trigger the missing docs linter so we add a default -/
+  if (← findDocString? (← getEnv) declName).isNone then
+    if mp then
+      addDocString declName s!"**Alias** for the forward direction of {thm.name}"
+    else
+      addDocString declName s!"**Alias** for the reverse direction of {thm.name}"
+
+@[inherit_doc «alias»]
+elab (name := aliasLR) mods:declModifiers "alias "
+    "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command =>
+  Command.liftTermElabM do
+    let resolved ← resolveGlobalConstNoOverloadWithInfo name
+    let declMods ← elabModifiers mods
+    match ← getConstInfo resolved with
+    | .thmInfo thm =>
+      if let `(binderIdent| $x:ident) := aliasFwd then
+        addSide true x.getId declMods thm
+      if let `(binderIdent| $x:ident) := aliasRev then
+        addSide false x.getId declMods thm
+    | _ => throwError "Target must be a theorem"
