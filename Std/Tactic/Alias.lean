@@ -11,14 +11,20 @@ import Lean.Compiler.NoncomputableAttr
 # The `alias` command
 
 TODO
-
 -/
 
 namespace Std.Tactic.Alias
 
 open Lean Elab Parser.Command
 
-/-- New alias, simple case -/
+/--
+  The command `alias name := target` creates a synonym of `target` with the given name.
+
+  The command `alias ⟨fwd, rev⟩ := target` creates synonyms for the forward and reverse directions
+  of an iff theorem. Use `_` if only one direction is required.
+
+  These commands accept all modifiers and attributes that `def` and `theorem` do.
+ -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
   Command.liftTermElabM do
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
