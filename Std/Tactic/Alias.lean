@@ -58,14 +58,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
   Command.liftTermElabM do
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
     let const ← getConstInfo resolved
-    let tgt := Target.plain resolved
-    let ns ← getCurrNamespace
     let declMods ← elabModifiers mods
     let declMods ← pure { declMods with
-        docString? := declMods.docString?.casesOn (some <| tgt.toString) some
         isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) resolved
       }
-    let (declName, _) ← mkDeclName ns declMods alias.getId
+    let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := match const with
       | Lean.ConstantInfo.thmInfo t =>
         .thmDecl { t with
@@ -100,3 +97,6 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addDecl decl
     else
       addAndCompile decl
+    match declMods.docString? with
+    | some s => addDocString declName s
+    | none => addDocString declName s!"**Alias** of {resolved}"
