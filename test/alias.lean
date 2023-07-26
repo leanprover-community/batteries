@@ -66,3 +66,14 @@ unsafe def barbaz : ℕ → ℕ := id
 unsafe alias barbaz2 := id
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz2' -/
 #guard_msgs in def barbaz4 (n : ℕ) := barbaz2 n
+
+/- iff version -/
+
+alias ⟨mpId, mprId⟩ := Iff.rfl
+
+/-- info: mpId {a : Prop} (a✝ : a) : a -/
+#guard_msgs in
+#check mpId
+/-- info: mprId {a : Prop} (a✝ : a) : a -/
+#guard_msgs in
+#check mprId

@@ -75,9 +75,12 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
 private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
+  let value ← mkIffMpApp mp thm.type thm.value
+  let type ← Meta.inferType value
   addDecl <| Declaration.thmDecl { thm with
       name := declName
-      value := (← mkIffMpApp mp thm.type thm.value)
+      value := value
+      type := type
     }
   addDocString' declName declMods.docString?
   Term.applyAttributes declName declMods.attrs
