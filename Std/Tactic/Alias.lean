@@ -16,7 +16,7 @@ TODO
 
 namespace Std.Tactic.Alias
 
-open Lean Elab Parser.Command
+open Lean Elab Parser.Command Term
 
 /-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
 ignored.
@@ -61,6 +61,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let declMods ← elabModifiers mods
     let declMods ← pure { declMods with
         isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) resolved
+        isUnsafe := declMods.isUnsafe || const.isUnsafe
       }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := match const with
@@ -97,6 +98,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addDecl decl
     else
       addAndCompile decl
+    applyAttributes declName declMods.attrs
     match declMods.docString? with
     | some s => addDocString declName s
     | none => addDocString declName s!"**Alias** of {resolved}"
