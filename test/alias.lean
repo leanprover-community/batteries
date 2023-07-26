@@ -1,5 +1,7 @@
 import Std.Tactic.Alias
-import Std.Tactic.GuardExpr
+import Std.Tactic.GuardMsgs
+
+set_option linter.unusedVariables false
 
 open Lean Meta
 namespace Alias
@@ -35,17 +37,32 @@ alias foobar1 := foobar
 /-- doc string for foobar2 -/
 def foobar3 (n : ℕ) := foobar1 n
 
-example : foobar1 x = foobar x := by simp; admit
+/-- error: unsolved goals
+α✝ : Sort ?u.919
+x : α✝
+⊢ foobar1 x = foobar x-/
+#guard_msgs in
+example : foobar1 x = foobar x := by simp
 example : foobar2 x = foobar x := by simp
+
+/- Test noncomputable -/
 
 /-- doc string for foobaz -/
 noncomputable def foobaz : ℕ → ℕ := id
 alias foobaz1 := foobaz
-/-- doc string for foobaz2 -/
-noncomputable def foobaz2 (n : ℕ) := foobaz1 n
+noncomputable alias foobaz2 := id
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz1', and it does not have executable code -/
+#guard_msgs in def foobaz3 (n : ℕ) := foobaz1 n
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz2', and it does not have executable code -/
+#guard_msgs in def foobaz4 (n : ℕ) := foobaz2 n
+
+/- Test unsafe -/
 
 /-- doc string for barbaz -/
 unsafe def barbaz : ℕ → ℕ := id
 alias barbaz1 := barbaz
-/-- doc string for barbaz2 -/
-unsafe def barbaz2 (n : ℕ) := barbaz1 n
+unsafe alias barbaz2 := id
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz1' -/
+#guard_msgs in def barbaz3 (n : ℕ) := barbaz1 n
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz2' -/
+#guard_msgs in def barbaz4 (n : ℕ) := barbaz2 n

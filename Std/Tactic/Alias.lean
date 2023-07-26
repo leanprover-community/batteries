@@ -70,18 +70,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
           name := declName
           value := mkConst resolved (t.levelParams.map mkLevelParam)
         }
-      | Lean.ConstantInfo.defnInfo d =>
-        .defnDecl { d with
-          name := declName
-          value := mkConst resolved (d.levelParams.map mkLevelParam)
-        }
-      | Lean.ConstantInfo.quotInfo q =>
-        .defnDecl { q with
-          name := declName
-          value := mkConst resolved (q.levelParams.map mkLevelParam)
-          hints := .regular 0 -- Check?
-          safety := .safe
-        }
+      | Lean.ConstantInfo.defnInfo c
+      | Lean.ConstantInfo.quotInfo c
       | Lean.ConstantInfo.inductInfo c -- Also alias constructors and recursors?
       | Lean.ConstantInfo.axiomInfo c
       | Lean.ConstantInfo.opaqueInfo c
@@ -90,8 +80,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         .defnDecl { c with
           name := declName
           value := mkConst resolved (c.levelParams.map mkLevelParam)
-          hints := .regular 0 -- Check?
-          safety := if c.isUnsafe then .unsafe else .safe
+          hints := .regular 0 -- FIXME
+          safety := if declMods.isUnsafe then .unsafe else .safe
         }
     checkNotAlreadyDeclared declName
     if declMods.isNoncomputable then
