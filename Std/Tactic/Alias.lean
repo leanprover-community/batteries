@@ -84,8 +84,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addDecl decl
     else
       addAndCompile decl
+    addDocString' declName declMods.docString?
     applyAttributes declName declMods.attrs
+    /- alias doesn't trigger the missing docs linter so we add a default -/
     if (← findDocString? (← getEnv) declName).isNone then
-      match declMods.docString? with
-      | some s => addDocString declName s
-      | none => addDocString declName s!"**Alias** of {resolved}"
+      addDocString declName s!"**Alias** of {const.name}"
