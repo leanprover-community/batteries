@@ -31,11 +31,21 @@ example : 3 = 3 := baz1 3
 /-- doc string for foobar -/
 def foobar : ℕ → ℕ := id
 alias foobar1 := foobar
+@[simp] alias foobar2 := foobar
 /-- doc string for foobar2 -/
-def foobar2 (n : ℕ) := foobar1 n
+def foobar3 (n : ℕ) := foobar1 n
+
+example : foobar1 x = foobar x := by simp; admit
+example : foobar2 x = foobar x := by simp
 
 /-- doc string for foobaz -/
 noncomputable def foobaz : ℕ → ℕ := id
 alias foobaz1 := foobaz
-/-- doc string for foobar2 -/
+/-- doc string for foobaz2 -/
 noncomputable def foobaz2 (n : ℕ) := foobaz1 n
+
+/-- doc string for barbaz -/
+unsafe def barbaz : ℕ → ℕ := id
+alias barbaz1 := barbaz
+/-- doc string for barbaz2 -/
+unsafe def barbaz2 (n : ℕ) := barbaz1 n
