@@ -60,7 +60,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let const ← getConstInfo resolved
     let declMods ← elabModifiers mods
     let declMods ← pure { declMods with
-        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) resolved
+        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
         isUnsafe := declMods.isUnsafe || const.isUnsafe
       }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
@@ -89,6 +89,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     else
       addAndCompile decl
     applyAttributes declName declMods.attrs
-    match declMods.docString? with
-    | some s => addDocString declName s
-    | none => addDocString declName s!"**Alias** of {resolved}"
+    if (← findDocString? (← getEnv) declName).isNone then
+      match declMods.docString? with
+      | some s => addDocString declName s
+      | none => addDocString declName s!"**Alias** of {resolved}"

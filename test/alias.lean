@@ -32,7 +32,7 @@ example : 3 = 3 := baz1 3
 
 /-- doc string for foobar -/
 def foobar : ℕ → ℕ := id
-alias foobar1 := foobar
+@[inherit_doc foobar] alias foobar1 := foobar
 @[simp] alias foobar2 := foobar
 /-- doc string for foobar2 -/
 def foobar3 (n : ℕ) := foobar1 n
