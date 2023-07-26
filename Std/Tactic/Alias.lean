@@ -10,7 +10,9 @@ import Lean.Compiler.NoncomputableAttr
 /-!
 # The `alias` command
 
-TODO
+The `alias` command is used to create synonyms. The plain command can create a synonym of any
+declaration. There is also a version to create synonyms for the forward and reverse implications of
+an iff theorem.
 -/
 
 namespace Std.Tactic.Alias
