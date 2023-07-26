@@ -72,15 +72,17 @@ alias Bool.or_deMorgan ← not_or
 @[simp] theorem xor_true_right : xor x true = !x := by btt x
 @[simp] theorem xor_not_self_left : xor (!x) x = true := by btt x
 @[simp] theorem xor_not_self_right : xor x (!x) = true := by btt x
-@[simp] theorem xor_not_not : xor (!x) (!y) = (xor x y) := by btt x y
 @[simp] theorem xor_not_left : xor (!x) y = !(xor x y) := by btt x y
 @[simp] theorem xor_not_right : xor x (!y) = !(xor x y) := by btt x y
+theorem xor_not_not : xor (!x) (!y) = (xor x y) := by btt x y
 theorem xor_self : xor x x = false := bne_self_eq_false ..
 theorem xor_comm : xor x y = xor y x := by btt x y
 theorem xor_left_comm : xor x (xor y z) = xor y (xor x z) := by btt x y z
 theorem xor_right_comm : xor (xor x y) z = xor (xor x z) y := by btt x y z
 theorem xor_assoc : xor (xor x y) z = xor x (xor y z) := by btt x y z
 
+@[simp] protected theorem le_true : x ≤ true := by btt x
+@[simp] protected theorem false_le : false ≤ x := by btt x
 @[simp] protected theorem le_refl : x ≤ x := by btt x
 @[simp] protected theorem lt_irrefl : ¬ x < x := by btt x
 protected theorem le_trans {x y z : Bool} : x ≤ y → y ≤ z → x ≤ z := by btt x y z
@@ -96,8 +98,6 @@ protected theorem le_of_eq {x y : Bool} : x = y → x ≤ y := by btt x y z
 protected theorem ne_of_lt {x y : Bool} : x < y → x ≠ y := by btt x y z
 protected theorem lt_of_le_of_ne {x y : Bool} : x ≤ y → x ≠ y → x < y := by btt x y z
 protected theorem le_of_lt_or_eq {x y : Bool} : x < y ∨ x = y → x ≤ y := by btt x y z
-@[simp] protected theorem le_true : x ≤ true := by btt x
-@[simp] protected theorem false_le : false ≤ x := by btt x
 protected theorem eq_true_of_true_le {x : Bool} : true ≤ x → x = true := by btt x
 protected theorem eq_false_of_le_false {x : Bool} : x ≤ false → x = false := by btt x
 
