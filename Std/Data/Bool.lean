@@ -6,11 +6,6 @@ Authors: F. G. Dorais
 
 import Std.Tactic.Alias
 
-/-- Boolean exclusive or -/
-abbrev xor : Bool → Bool → Bool := bne
-
-@[inherit_doc] infixl:30 " ^^ " => xor
-
 namespace Bool
 variable (x y z : Bool)
 
@@ -29,6 +24,9 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
 /-- Convenience truth table tactic -/
 local macro "btt " vars:(colGt ident)* : tactic => `(tactic| revert $vars* <;> decide)
 
+/-- Boolean exclusive or -/
+abbrev xor : Bool → Bool → Bool := bne
+
 instance : LE Bool := leOfOrd
 instance : LT Bool := ltOfOrd
 instance : Max Bool := maxOfLe
@@ -41,8 +39,8 @@ theorem and_left_comm : (x && (y && z)) = (y && (x && z)) := by btt x y z
 theorem and_right_comm : ((x && y) && z) = ((x && z) && y) := by btt x y z
 theorem and_or_distrib_left : (x && (y || z)) = ((x && y) || (x && z)) := by btt x y z
 theorem and_or_distrib_right : ((x || y) && z) = ((x && z) || (y && z)) := by btt x y z
-theorem and_xor_distrib_left : (x && (y ^^ z)) = ((x && y) ^^ (x && z)) := by btt x y z
-theorem and_xor_distrib_right : ((x ^^ y) && z) = ((x && z) ^^ (y && z)) := by btt x y z
+theorem and_xor_distrib_left : (x && xor y z) = xor (x && y) (x && z) := by btt x y z
+theorem and_xor_distrib_right : (xor x y && z) = xor (x && z) (y && z) := by btt x y z
 @[local simp] theorem and_deMorgan : (!(x && y)) = (!x || !y) := by btt x y
 theorem and_eq_true_iff : (x && y) = true ↔ x = true ∧ y = true := by btt x y
 theorem and_eq_false_iff : (x && y) = false ↔ x = false ∨ y = false := by btt x y
@@ -68,21 +66,20 @@ alias Bool.true_or ← or_true_left
 alias Bool.or_true ← or_true_right
 alias Bool.or_deMorgan ← not_or
 
-@[simp] theorem false_xor : (false ^^ x) = x := by btt x
-@[simp] theorem true_xor : (true ^^ x) = !x := by btt x
-@[simp] theorem xor_false : (x ^^ false) = x := by btt x
-@[simp] theorem xor_true : (x ^^ true) = !x := by btt x
-@[simp] theorem xor_not_self_left : (!x ^^ x) = true := by btt x
-@[simp] theorem xor_not_self_right : (x ^^ !x) = true := by btt x
-theorem xor_self : (x ^^ x) = false := bne_self_eq_false ..
-theorem xor_comm : (x ^^ y) = (y ^^ x) := by btt x y
-theorem xor_left_comm : (x ^^ (y ^^ z)) = (y ^^ (x ^^ z)) := by btt x y z
-theorem xor_right_comm : ((x ^^ y) ^^ z) = ((x ^^ z) ^^ y) := by btt x y z
-theorem xor_assoc : ((x ^^ y) ^^ z) = (x ^^ (y ^^ z)) := by btt x y z
-alias Bool.false_xor ← xor_false_left
-alias Bool.xor_false ← xor_false_right
-alias Bool.true_xor ← xor_true_left
-alias Bool.xor_true ← xor_true_right
+@[simp] theorem xor_false_left : xor false x = x := by btt x
+@[simp] theorem xor_false_right : xor x false = x := by btt x
+@[simp] theorem xor_true_left : xor true x = !x := by btt x
+@[simp] theorem xor_true_right : xor x true = !x := by btt x
+@[simp] theorem xor_not_self_left : xor (!x) x = true := by btt x
+@[simp] theorem xor_not_self_right : xor x (!x) = true := by btt x
+@[simp] theorem xor_not_not : xor (!x) (!y) = (xor x y) := by btt x y
+@[simp] theorem xor_not_left : xor (!x) y = !(xor x y) := by btt x y
+@[simp] theorem xor_not_right : xor x (!y) = !(xor x y) := by btt x y
+theorem xor_self : xor x x = false := bne_self_eq_false ..
+theorem xor_comm : xor x y = xor y x := by btt x y
+theorem xor_left_comm : xor x (xor y z) = xor y (xor x z) := by btt x y z
+theorem xor_right_comm : xor (xor x y) z = xor (xor x z) y := by btt x y z
+theorem xor_assoc : xor (xor x y) z = xor x (xor y z) := by btt x y z
 
 @[simp] protected theorem le_refl : x ≤ x := by btt x
 @[simp] protected theorem lt_irrefl : ¬ x < x := by btt x
