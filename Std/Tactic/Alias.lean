@@ -45,6 +45,8 @@ def Target.name : Target → Name
   | Target.forward n => n
   | Target.reverse n => n
 
+#check Lean.Elab.Modifiers
+
 /-- The docstring for an alias. -/
 def Target.toString : Target → String
   | Target.plain n => s!"**Alias** of `{n}`."
@@ -59,8 +61,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let tgt := Target.plain resolved
     let ns ← getCurrNamespace
     let declMods ← elabModifiers mods
-    let declMods := if declMods.docString?.isSome then declMods else
-        {declMods with docString? := some <| tgt.toString}
+    let declMods ← pure { declMods with
+        docString? := declMods.docString?.casesOn (some <| tgt.toString) some
+        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) resolved
+      }
     let (declName, _) ← mkDeclName ns declMods alias.getId
     let decl : Declaration := match const with
       | Lean.ConstantInfo.thmInfo t =>
@@ -92,4 +96,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
           safety := if c.isUnsafe then .unsafe else .safe
         }
     checkNotAlreadyDeclared declName
-    addDecl decl
+    if declMods.isNoncomputable then
+      addDecl decl
+    else
+      addAndCompile decl
