@@ -4,7 +4,6 @@ import Std.Tactic.GuardMsgs
 set_option linter.unusedVariables false
 
 open Lean Meta
-namespace Alias
 namespace A
 
 /-- doc string for foo -/
@@ -49,31 +48,31 @@ example : foobar2 x = foobar x := by simp
 
 /-- doc string for foobaz -/
 noncomputable def foobaz : ℕ → ℕ := id
-/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz', and it does not have executable code -/
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz', and it does not have executable code -/
 #guard_msgs in alias foobaz1 := foobaz
 
 noncomputable alias foobaz2 := id
-/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Alias.A.foobaz2', and it does not have executable code -/
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz2', and it does not have executable code -/
 #guard_msgs in def foobaz4 (n : ℕ) := foobaz2 n
 
 /- Test unsafe -/
 
 /-- doc string for barbaz -/
 unsafe def barbaz : ℕ → ℕ := id
-/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz' -/
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz' -/
 #guard_msgs in alias barbaz1 := barbaz
 
 unsafe alias barbaz2 := id
-/-- error: (kernel) invalid declaration, it uses unsafe declaration 'Alias.A.barbaz2' -/
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz2' -/
 #guard_msgs in def barbaz4 (n : ℕ) := barbaz2 n
 
 /- iff version -/
 
 alias ⟨mpId, mprId⟩ := Iff.rfl
 
-/-- info: mpId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mpId {a : Prop} (a✝ : a) : a -/
 #guard_msgs in
 #check mpId
-/-- info: mprId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mprId {a : Prop} (a✝ : a) : a -/
 #guard_msgs in
 #check mprId
