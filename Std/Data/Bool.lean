@@ -6,6 +6,9 @@ Authors: F. G. Dorais
 
 import Std.Tactic.Alias
 
+/-- Boolean exclusive or -/
+abbrev xor : Bool → Bool → Bool := bne
+
 namespace Bool
 variable (x y z : Bool)
 
@@ -23,9 +26,6 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
 
 /-- Convenience truth table tactic -/
 local macro "btt " vars:(colGt ident)* : tactic => `(tactic| revert $vars* <;> decide)
-
-/-- Boolean exclusive or -/
-abbrev xor : Bool → Bool → Bool := bne
 
 instance : LE Bool := leOfOrd
 instance : LT Bool := ltOfOrd
