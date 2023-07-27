@@ -44,11 +44,11 @@ theorem and_xor_distrib_right : (xor x y && z) = xor (x && z) (y && z) := by btt
 @[local simp] theorem and_deMorgan : (!(x && y)) = (!x || !y) := by btt x y
 theorem and_eq_true_iff : (x && y) = true ↔ x = true ∧ y = true := by btt x y
 theorem and_eq_false_iff : (x && y) = false ↔ x = false ∨ y = false := by btt x y
-alias Bool.false_and ← and_false_left
-alias Bool.and_false ← and_false_right
-alias Bool.true_and ← and_true_left
-alias Bool.and_true ← and_true_right
-alias Bool.and_deMorgan ← not_and
+alias and_false_left := Bool.false_and
+alias and_false_right := Bool.and_false
+alias and_true_left := Bool.true_and
+alias and_true_right := Bool.and_true
+alias not_and := Bool.and_deMorgan
 
 @[simp] theorem or_not_self_left : (!x || x) = true := by btt x
 @[simp] theorem or_not_self_right : (x || !x) = true := by btt x
@@ -60,11 +60,11 @@ theorem or_and_distrib_right : ((x && y) || z) = ((x || z) && (y || z)) := by bt
 @[local simp] theorem or_deMorgan : (!(x || y)) = (!x && !y) := by btt x y
 theorem or_eq_true_iff : (x || y) = true ↔ x = true ∨ y = true := by btt x y
 theorem or_eq_false_iff : (x || y) = false ↔ x = false ∧ y = false := by btt x y
-alias Bool.false_or ← or_false_left
-alias Bool.or_false ← or_false_right
-alias Bool.true_or ← or_true_left
-alias Bool.or_true ← or_true_right
-alias Bool.or_deMorgan ← not_or
+alias or_false_left := Bool.false_or
+alias or_false_right := Bool.or_false
+alias or_true_left := Bool.true_or
+alias or_true_right := Bool.or_true
+alias not_or := Bool.or_deMorgan
 
 @[simp] theorem xor_false_left : xor false x = x := by btt x
 @[simp] theorem xor_false_right : xor x false = x := by btt x
