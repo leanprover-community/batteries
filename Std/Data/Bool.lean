@@ -12,6 +12,12 @@ abbrev xor : Bool → Bool → Bool := bne
 namespace Bool
 variable (x y z : Bool)
 
+/- Namespaced versions that can be used instead of prefixing `_root_` -/
+@[inherit_doc not] protected abbrev not := not
+@[inherit_doc or]  protected abbrev or  := or
+@[inherit_doc and] protected abbrev and := and
+@[inherit_doc xor] protected abbrev xor := xor
+
 instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∀ x, p x) :=
   match inst true, inst false with
   | isFalse ht, _ => isFalse fun h => absurd (h _) ht
