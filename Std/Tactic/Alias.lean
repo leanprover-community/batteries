@@ -102,7 +102,9 @@ elab (name := aliasLR) mods:declModifiers "alias "
     match ← getConstInfo resolved with
     | .thmInfo thm =>
       if let `(binderIdent| $x:ident) := aliasFwd then
-        addSide true x.getId declMods thm
+        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods x.getId
+        addSide true declName declMods thm
       if let `(binderIdent| $x:ident) := aliasRev then
-        addSide false x.getId declMods thm
+        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods x.getId
+        addSide false declName declMods thm
     | _ => throwError "Target must be a theorem"
