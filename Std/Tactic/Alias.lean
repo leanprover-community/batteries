@@ -57,6 +57,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addDecl decl
     else
       addAndCompile decl
+    Lean.addDeclarationRanges declName {
+      range := ← getDeclarationRange (← getRef)
+      selectionRange := ← getDeclarationRange alias
+    }
     addDocString' declName declMods.docString?
     Term.applyAttributes declName declMods.attrs
     /- alias doesn't trigger the missing docs linter so we add a default -/
@@ -101,10 +105,18 @@ elab (name := aliasLR) mods:declModifiers "alias "
     let declMods ← elabModifiers mods
     match ← getConstInfo resolved with
     | .thmInfo thm =>
-      if let `(binderIdent| $x:ident) := aliasFwd then
-        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods x.getId
+      if let `(binderIdent| $idFwd:ident) := aliasFwd then
+        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
         addSide true declName declMods thm
-      if let `(binderIdent| $x:ident) := aliasRev then
-        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods x.getId
+        Lean.addDeclarationRanges declName {
+          range := ← getDeclarationRange (← getRef)
+          selectionRange := ← getDeclarationRange idFwd
+        }
+      if let `(binderIdent| $idRev:ident) := aliasRev then
+        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idRev.getId
         addSide false declName declMods thm
+        Lean.addDeclarationRanges declName {
+          range := ← getDeclarationRange (← getRef)
+          selectionRange := ← getDeclarationRange idRev
+        }
     | _ => throwError "Target must be a theorem"
