@@ -599,7 +599,10 @@ theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht�
       rw [find?_eq_zoom, e]; intro.
     | (node .., p) =>
       let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_node ht e
-      simp [← mem_toList, h₂] at h; simp [← mem_toList, h₁]; rw [or_left_comm] at h ⊢
+      simp [← mem_toList, h₂] at h
+      simp [← mem_toList, h₁]
+      rw [or_left_comm] at h
+      rw [or_left_comm]
       rcases h with _|h <;> simp [*]
       refine .inl fun h => ?_
       rw [find?_eq_zoom, e] at h; cases h

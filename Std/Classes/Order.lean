@@ -71,7 +71,7 @@ theorem lt_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z = .lt) : cmp x z = .lt :
   le_lt_trans (gt_asymm <| cmp_eq_gt.2 h₁) h₂
 
 theorem gt_trans (h₁ : cmp x y = .gt) (h₂ : cmp y z = .gt) : cmp x z = .gt := by
-  rw [cmp_eq_gt] at h₁ h₂ ⊢; exact lt_trans h₂ h₁
+  rw [cmp_eq_gt] at h₁; rw [cmp_eq_gt] at h₂; rw [cmp_eq_gt];  exact lt_trans h₂ h₁
 
 theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
   match yz : cmp y z with

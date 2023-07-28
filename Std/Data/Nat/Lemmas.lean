@@ -532,7 +532,7 @@ by rw [H2, Nat.mul_div_cancel_left _ H1]
 
 protected theorem div_eq_of_lt_le (lo : k * n ≤ m) (hi : m < succ k * n) : m / n = k :=
 have npos : 0 < n := (eq_zero_or_pos _).resolve_left fun hn => by
-  rw [hn, Nat.mul_zero] at hi lo; exact absurd lo (Nat.not_le_of_gt hi)
+  rw [hn, Nat.mul_zero] at hi; rw [hn, Nat.mul_zero] at lo; exact absurd lo (Nat.not_le_of_gt hi)
 Nat.le_antisymm
   (le_of_lt_succ ((Nat.div_lt_iff_lt_mul npos).2 hi))
   ((Nat.le_div_iff_mul_le npos).2 lo)
