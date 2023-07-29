@@ -146,11 +146,11 @@ macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
  to the given expression, and proves this claim using the given tactic.
 ```
 example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
-  conv in (_ - _) => equals 0 by
+  conv in (_ - _) => equals 0 =>
     -- current goal: ⊢ n - n = 0
     apply Nat.sub_self
   -- current goal: P (fun n => 0)
 ```
 -/
-macro (name := Conv.equals) "equals " t:term " by " tac:tacticSeq : conv =>
-  `(conv| tactic => next => show (_ = $t); ($tac))
+macro (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv =>
+  `(conv| tactic => show (_ = $t); next => $tac)
