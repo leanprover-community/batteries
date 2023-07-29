@@ -5,11 +5,13 @@ Authors: Joachim Breitner
 -/
 
 import Std.Tactic.Basic
+import Std.Tactic.GuardMsgs
 
 
 -- The example from the doc string
 
 /-- warning: declaration uses 'sorry' -/
+#guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
   conv in (_ - _) => equals 0 =>
     -- current goal: ⊢ n - n = 0
@@ -19,7 +21,18 @@ example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
 
 -- This tests that the goal created by equals must be closed
 
-/-- error: unsolved goals -/
+-- Using #guard_msgs below triggers this linter
+set_option linter.unreachableTactic false
+
+/--
+error: unsolved goals
+P : (Nat → Nat) → Prop
+n : Nat
+⊢ n - n = 0
+---
+error: no goals to be solved
+-/
+#guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
   conv in (_ - _) =>
     equals 0 => skip -- this should complain
