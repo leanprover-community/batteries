@@ -153,4 +153,4 @@ example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
 ```
 -/
 macro (name := Conv.equals) "equals " t:term " by " tac:tacticSeq : conv =>
- `(conv|tactic => show (_ = $t); ($tac) )
+  `(conv| tactic => next => show (_ = $t); ($tac))
