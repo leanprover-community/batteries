@@ -6,16 +6,20 @@ Authors: Joachim Breitner
 
 import Std.Tactic.Basic
 import Std.Tactic.GuardMsgs
+import Std.Tactic.GuardExpr
 
-
--- The example from the doc string
+-- The example from the doc string, for quick comparision
+-- and keeping the doc up-to-date
+-- (only `guard_target` added)
 
 /-- warning: declaration uses 'sorry' -/
 #guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
   conv in (_ - _) => equals 0 =>
     -- current goal: ⊢ n - n = 0
+    guard_target =ₛ n - n = 0
     apply Nat.sub_self
+  guard_target =ₛ P (fun n => 0)
   -- current goal: P (fun n => 0)
   sorry
 
