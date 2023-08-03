@@ -36,13 +36,15 @@ def Matcher.patternSize (m : Matcher) : Nat :=
 
 /-- Find all positions in `s` where the `m.pattern` occurs. -/
 partial def Matcher.findAll (m : Matcher) (s : Substring) : Array String.Pos :=
-  let start := s.startPos.byteIdx
-  let psize := m.patternSize
-  let rec loop (s : Substring) (occs : Array String.Pos) : Array String.Pos :=
+  loop s #[]
+where
+  /-- Original starting position of substring -/
+  start := s.startPos.byteIdx
+  /-- Accumulator loop for `String.Matcher.findAll` -/
+  loop (s : Substring) (occs : Array String.Pos) : Array String.Pos :=
     match m.next? s with
     | none => occs
-    | some (s, _) => loop s <| occs.push ⟨s.startPos.byteIdx - psize - start⟩
-  loop s #[]
+    | some (s, _) => loop s <| occs.push ⟨s.startPos.byteIdx - m.patternSize - start⟩
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
 def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
