@@ -34,8 +34,7 @@ def Matcher.pattern (m : Matcher) : String :=
 def Matcher.patternSize (m : Matcher) : Nat :=
   String.Pos.byteIdx <| m.table.foldl (fun n (c,_) => n + c) 0
 
-/-- Find all positions in `s` where `pattern` occurs,
-    or `none` if no such position exists. -/
+/-- Find all positions in `s` where the `m.pattern` occurs. -/
 partial def Matcher.findAll (m : Matcher) (s : Substring) : Array String.Pos :=
   let start := s.startPos.byteIdx
   let psize := m.patternSize
@@ -45,14 +44,14 @@ partial def Matcher.findAll (m : Matcher) (s : Substring) : Array String.Pos :=
     | some (s, _) => loop s <| occs.push ⟨s.startPos.byteIdx - psize - start⟩
   loop s #[]
 
-/-- Find the first position in `s` where `pattern` occurs,
-    or `none` if no such position exists. -/
-def Matcher.find? (m : Matcher) (s : Substring) : Option String.Pos :=
-  let start := s.startPos.byteIdx
+/-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
+def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
   let psize := m.patternSize
   match m.next? s with
   | none => none
-  | some (s, _) => some ⟨s.startPos.byteIdx - psize - start⟩
+  | some (s, _) => some {s with
+      startPos := ⟨s.startPos.byteIdx - psize⟩
+      stopPos := s.startPos}
 
 end String
 
@@ -118,34 +117,35 @@ def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
   else
     none
 
-/-- The first position in `s.str` where `pattern` occurs,
-    or `none` if no such position exists. -/
-@[inline] def posOfSubstr (s pattern : Substring) : Option String.Pos :=
+/-- The first substring of `s` that matches `pattern`, or `none` if there is no such substring. -/
+@[inline] def findInSubstr (s pattern : Substring) : Option Substring :=
   (String.Matcher.ofSubstring pattern).find? s
 
 /-- Returns true iff `pattern` occurs as a substring of `s`. -/
-@[inline] def containsSubstr (s : Substring) (pattern : Substring) : Bool :=
-  s.posOfSubstr pattern |>.isSome
+@[inline] def containsSubstr (s pattern : Substring) : Bool :=
+  s.findInSubstr pattern |>.isSome
 
 end Substring
 
 namespace String
 
-/-- The first position at which `pattern` occurs in `s`, or `none` if it never occurs. -/
-def posOfSubstr (s : String) (pattern : Substring) : Option String.Pos :=
-  s.toSubstring.posOfSubstr pattern
+/-- Returns the first substring of `s` that matches `pattern`,
+  or `none` if there is no such substring. -/
+def findInSubstr (s : String) (pattern : Substring) : Option Substring :=
+  s.toSubstring.findInSubstr pattern
 
-/-- The first position at which `pattern` occurs in `s`, or `none` if it never occurs. -/
-def posOfStr (s pattern : String) : Option String.Pos :=
-  s.posOfSubstr pattern.toSubstring
+/-- Returns the first substring of `s` that matches `pattern`,
+  or `none` if there is no such substring. -/
+def findInStr (s pattern : String) : Option Substring :=
+  s.toSubstring.findInSubstr pattern.toSubstring
 
 /-- Returns true iff `pattern` occurs as a substring of `s`. -/
 def containsSubstr (s : String) (pattern : Substring) : Bool :=
-  s.posOfSubstr pattern |>.isSome
+  s.toSubstring.containsSubstr pattern
 
 /-- Returns true iff `pattern` occurs as a substring of `s`. -/
 def containsStr (s pattern : String) : Bool :=
-  s.containsSubstr pattern.toSubstring
+  s.toSubstring.containsSubstr pattern.toSubstring
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.
