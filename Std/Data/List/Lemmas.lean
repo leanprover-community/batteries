@@ -154,7 +154,6 @@ theorem mem_iff_append {a : α} {l : List α} : a ∈ l ↔ ∃ s t : List α, l
 
 /-! ### map -/
 
-
 theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
 
 @[simp] theorem mem_map {f : α → β} : ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b
