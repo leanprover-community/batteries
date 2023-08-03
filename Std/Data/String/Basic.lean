@@ -10,8 +10,51 @@ import Std.Data.Array.Match
 
 instance : Coe String Substring := ⟨String.toSubstring⟩
 
-protected theorem String.Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
+namespace String
+
+protected theorem Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
+
+/-- KMP Matcher -/
+abbrev Matcher := Array.Matcher Char
+
+/-- Make KMP matcher from pattern substring -/
+@[inline] def Matcher.ofSubstring (pattern : Substring) : Matcher :=
+  Array.Matcher.ofStream pattern
+
+/-- Make KMP matcher from pattern string -/
+@[inline] def Matcher.ofString (pattern : String) : Matcher :=
+  Matcher.ofSubstring pattern.toSubstring
+
+/-- The string pattern for the matcher -/
+def Matcher.pattern (m : Matcher) : String :=
+  m.table.foldl (fun s (c,_) => s.push c) ""
+
+/-- The byte size of the string pattern for the matcher -/
+def Matcher.patternSize (m : Matcher) : Nat :=
+  String.Pos.byteIdx <| m.table.foldl (fun n (c,_) => n + c) 0
+
+/-- Find all positions in `s` where `pattern` occurs,
+    or `none` if no such position exists. -/
+partial def Matcher.findAll (m : Matcher) (s : Substring) : Array String.Pos :=
+  let start := s.startPos.byteIdx
+  let psize := m.patternSize
+  let rec loop (s : Substring) (occs : Array String.Pos) : Array String.Pos :=
+    match m.next? s with
+    | none => occs
+    | some (s, _) => loop s <| occs.push ⟨s.startPos.byteIdx - psize - start⟩
+  loop s #[]
+
+/-- Find the first position in `s` where `pattern` occurs,
+    or `none` if no such position exists. -/
+def Matcher.find? (m : Matcher) (s : Substring) : Option String.Pos :=
+  let start := s.startPos.byteIdx
+  let psize := m.patternSize
+  match m.next? s with
+  | none => none
+  | some (s, _) => some ⟨s.startPos.byteIdx - psize - start⟩
+
+end String
 
 namespace Substring
 
@@ -77,14 +120,11 @@ def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
 
 /-- The first position in `s.str` where `pattern` occurs,
     or `none` if no such position exists. -/
-def posOfSubstr (s pattern : Substring) : Option String.Pos :=
-  let m : Array.Matcher Char := .ofStream pattern
-  match m.next? s with
-  | none => none
-  | some (s, _) => some ⟨s.startPos.byteIdx - pattern.bsize⟩
+@[inline] def posOfSubstr (s pattern : Substring) : Option String.Pos :=
+  (String.Matcher.ofSubstring pattern).find? s
 
 /-- Returns true iff `pattern` occurs as a substring of `s`. -/
-def containsSubstr (s : Substring) (pattern : Substring) : Bool :=
+@[inline] def containsSubstr (s : Substring) (pattern : Substring) : Bool :=
   s.posOfSubstr pattern |>.isSome
 
 end Substring
