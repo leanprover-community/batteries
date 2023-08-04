@@ -12,6 +12,8 @@ instance : Coe String Substring := ⟨String.toSubstring⟩
 
 namespace String
 
+instance : Coe String Substring := ⟨toSubstring⟩
+
 protected theorem Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
 
@@ -34,25 +36,26 @@ def Matcher.pattern (m : Matcher) : String :=
 def Matcher.patternSize (m : Matcher) : Nat :=
   String.Pos.byteIdx <| m.table.foldl (fun n (c,_) => n + c) 0
 
-/-- Find all positions in `s` where the `m.pattern` occurs. -/
-partial def Matcher.findAll (m : Matcher) (s : Substring) : Array String.Pos :=
+/-- Find all substrings of `s` matching `m.pattern`. -/
+partial def Matcher.findAll (m : Matcher) (s : Substring) : Array Substring :=
   loop s #[]
 where
-  /-- Original starting position of substring -/
-  start := s.startPos.byteIdx
   /-- Accumulator loop for `String.Matcher.findAll` -/
-  loop (s : Substring) (occs : Array String.Pos) : Array String.Pos :=
+  loop (s : Substring) (occs : Array Substring) : Array Substring :=
     match m.next? s with
     | none => occs
-    | some (s, _) => loop s <| occs.push ⟨s.startPos.byteIdx - m.patternSize - start⟩
+    | some (s, _) =>
+      loop s <| occs.push {s with
+        startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
+        stopPos := s.startPos}
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
 def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
-  let psize := m.patternSize
   match m.next? s with
   | none => none
-  | some (s, _) => some {s with
-      startPos := ⟨s.startPos.byteIdx - psize⟩
+  | some (s, _) =>
+    some {s with
+      startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
       stopPos := s.startPos}
 
 end String
@@ -119,35 +122,40 @@ def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
   else
     none
 
-/-- The first substring of `s` that matches `pattern`, or `none` if there is no such substring. -/
-@[inline] def findInSubstr (s pattern : Substring) : Option Substring :=
+/--
+Returns all the substrings of `s` that martch `pattern`.
+-/
+@[inline] def findAllSubstr (s pattern : Substring) : Array Substring :=
+  (String.Matcher.ofSubstring pattern).findAll s
+
+/--
+Returns the first substring of `s` that matches `pattern`,
+or `none` if there is no such substring.
+-/
+@[inline] def findSubstr? (s pattern : Substring) : Option Substring :=
   (String.Matcher.ofSubstring pattern).find? s
 
-/-- Returns true iff `pattern` occurs as a substring of `s`. -/
+/--
+Returns true iff `pattern` occurs as a substring of `s`.
+-/
 @[inline] def containsSubstr (s pattern : Substring) : Bool :=
-  s.findInSubstr pattern |>.isSome
+  s.findSubstr? pattern |>.isSome
 
 end Substring
 
 namespace String
 
-/-- Returns the first substring of `s` that matches `pattern`,
-  or `none` if there is no such substring. -/
-def findInSubstr (s : String) (pattern : Substring) : Option Substring :=
-  s.toSubstring.findInSubstr pattern
+@[inherit_doc Substring.findSubstr?]
+abbrev findAllSubstr (s pattern : Substring) : Array Substring :=
+  (String.Matcher.ofSubstring pattern).findAll s
 
-/-- Returns the first substring of `s` that matches `pattern`,
-  or `none` if there is no such substring. -/
-def findInStr (s pattern : String) : Option Substring :=
-  s.toSubstring.findInSubstr pattern.toSubstring
+@[inherit_doc Substring.findSubstr?]
+abbrev findSubstr? (s : String) (pattern : Substring) : Option Substring :=
+  s.toSubstring.findSubstr? pattern
 
-/-- Returns true iff `pattern` occurs as a substring of `s`. -/
-def containsSubstr (s : String) (pattern : Substring) : Bool :=
+@[inherit_doc Substring.containsSubstr]
+abbrev containsSubstr (s : String) (pattern : Substring) : Bool :=
   s.toSubstring.containsSubstr pattern
-
-/-- Returns true iff `pattern` occurs as a substring of `s`. -/
-def containsStr (s pattern : String) : Bool :=
-  s.toSubstring.containsSubstr pattern.toSubstring
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.
