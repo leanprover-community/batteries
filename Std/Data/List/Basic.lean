@@ -424,6 +424,8 @@ will be retained (but order will otherwise be preserved).
 
 instance [DecidableEq α] : Union (List α) := ⟨List.union⟩
 
+theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
+
 /--
 Constructs the intersection of two lists, by filtering the elements of `l₁` that are in `l₂`.
 Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1, 1]`.
@@ -431,6 +433,8 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 @[inline] protected def inter [DecidableEq α] (l₁ l₂ : List α) : List α := filter (· ∈ l₂) l₁
 
 instance [DecidableEq α] : Inter (List α) := ⟨List.inter⟩
+
+theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
 
 /-- `l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`. -/
 inductive Sublist {α} : List α → List α → Prop

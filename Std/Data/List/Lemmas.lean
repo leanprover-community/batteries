@@ -1461,21 +1461,21 @@ section union
 
 variable [DecidableEq α]
 
-@[simp] theorem nil_union (l : List α) : nil.union l = l := by simp [List.union, foldr]
+@[simp] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
 
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
-    (a :: l₁).union l₂ = (l₁.union l₂).insert a := by simp [List.union, foldr]
+    (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
 @[simp] theorem mem_union_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
-    x ∈ l₁.union l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
+    x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
 
 end union
 
 /-! ### inter -/
 
 @[simp] theorem mem_inter_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
-    x ∈ l₁.inter l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
-  cases l₁ <;> simp [List.inter, mem_filter]
+    x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
+  cases l₁ <;> simp [List.inter_def, mem_filter]
 
 /-! ### product -/
 
