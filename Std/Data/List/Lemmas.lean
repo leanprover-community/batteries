@@ -1461,6 +1461,8 @@ section union
 
 variable [DecidableEq α]
 
+theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
+
 @[simp] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
 
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
@@ -1472,6 +1474,8 @@ variable [DecidableEq α]
 end union
 
 /-! ### inter -/
+
+theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
 
 @[simp] theorem mem_inter_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
