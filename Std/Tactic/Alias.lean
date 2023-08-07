@@ -19,6 +19,36 @@ namespace Std.Tactic.Alias
 
 open Lean Elab Parser.Command
 
+/-- An alias can be in one of three forms -/
+inductive AliasInfo where
+  /-- Plain alias -/
+  | plain (n : Name)
+  /-- Forward direction of an iff alias -/
+  | forward (n : Name)
+  /-- Reverse direction of an iff alias -/
+  | reverse (n : Name)
+deriving Inhabited
+
+/-- The name underlying an alias target -/
+def AliasInfo.name : AliasInfo → Name
+  | plain n => n
+  | forward n => n
+  | reverse n => n
+
+/-- The docstring for an alias. -/
+def AliasInfo.toString : AliasInfo → String
+  | plain n => s!"**Alias** of `{n}`."
+  | forward n => s!"**Alias** of the forward direction of `{n}`."
+  | reverse n => s!"**Alias** of the reverse direction of `{n}`."
+
+
+/-- Environmant extension for registering aliases -/
+initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
+  registerSimpleScopedEnvExtension {
+    addEntry := fun st (n, i) => st.insert n i
+    initial := {}
+  }
+
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
@@ -63,6 +93,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     }
     addDocString' declName declMods.docString?
     Term.applyAttributes declName declMods.attrs
+    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.plain const.name))
     /- alias doesn't trigger the missing docs linter so we add a default -/
     if (← findDocString? (← getEnv) declName).isNone then
       addDocString declName s!"**Alias** of {const.name}"
@@ -90,6 +121,10 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     }
   addDocString' declName declMods.docString?
   Term.applyAttributes declName declMods.attrs
+  if mp then
+    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.forward thm.name))
+  else
+    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.reverse thm.name))
   /- alias doesn't trigger the missing docs linter so we add a default -/
   if (← findDocString? (← getEnv) declName).isNone then
     if mp then

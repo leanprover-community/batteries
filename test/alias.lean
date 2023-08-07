@@ -44,16 +44,24 @@ x : α✝
 example : foobar1 x = foobar x := by simp
 example : foobar2 x = foobar x := by simp
 
+/- Test protected -/
+
+/-- doc string for Foo.barbaz -/
+protected alias Foo.barbaz := trivial
+/-- error: unknown identifier 'barbaz' -/
+#guard_msgs in example : True := barbaz
+example : True := Foo.barbaz
+
 /- Test noncomputable -/
 
 /-- doc string for foobaz -/
-noncomputable def foobaz : ℕ → ℕ := id
+noncomputable def foobaz : Nat → Nat := id
 /-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz', and it does not have executable code -/
 #guard_msgs in alias foobaz1 := foobaz
 
 noncomputable alias foobaz2 := id
 /-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz2', and it does not have executable code -/
-#guard_msgs in def foobaz4 (n : ℕ) := foobaz2 n
+#guard_msgs in def foobaz4 (n : Nat) := foobaz2 n
 
 /- Test unsafe -/
 
@@ -76,3 +84,13 @@ alias ⟨mpId, mprId⟩ := Iff.rfl
 /-- info: A.mprId {a : Prop} (a✝ : a) : a -/
 #guard_msgs in
 #check mprId
+
+/- Test environment extension -/
+
+/-- info: **Alias** of `A.foo`. -/
+#guard_msgs in
+#eval show MetaM _ from do
+  let map := Std.Tactic.Alias.aliasExt.getState (← getEnv)
+  match map.find? `A.foo1 with
+  | some i => IO.println i.toString
+  | none => IO.println "alias not found"
