@@ -19,8 +19,11 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Merge
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
+import Std.Data.BinomialHeap.Basic
+import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
+import Std.Data.Fin.Basic
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -34,6 +37,7 @@ import Std.Data.List.Lemmas
 import Std.Data.ListM.Basic
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
@@ -88,6 +92,7 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
+import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr

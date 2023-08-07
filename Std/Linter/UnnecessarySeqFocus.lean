@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Lean.Elab.Command
 import Lean.Linter.Util
 import Std.Lean.AttributeExtra
+import Std.Lean.Command
 
 namespace Std.Linter
 open Lean Elab Command Linter
@@ -148,7 +149,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
 end
 
 /-- The main entry point to the unused tactic linter. -/
-partial def unnecessarySeqFocusLinter : Linter where run stx := do
+def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then

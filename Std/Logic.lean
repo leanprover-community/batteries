@@ -499,6 +499,8 @@ end quantifiers
 
 theorem Decidable.not_not [Decidable p] : ¬¬p ↔ p := ⟨of_not_not, not_not_intro⟩
 
+theorem Decidable.by_contra [Decidable p] : (¬p → False) → p := of_not_not
+
 /-- Construct a non-Prop by cases on an `Or`, when the left conjunct is decidable. -/
 protected def Or.by_cases [Decidable p] {α : Sort u} (h : p ∨ q) (h₁ : p → α) (h₂ : q → α) : α :=
   if hp : p then h₁ hp else h₂ (h.resolve_left hp)

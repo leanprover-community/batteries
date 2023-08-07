@@ -238,6 +238,12 @@ theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈
 theorem Subset.trans {l₁ l₂ l₃ : List α} (h₁ : l₁ ⊆ l₂) (h₂ : l₂ ⊆ l₃) : l₁ ⊆ l₃ :=
   fun _ i => h₂ (h₁ i)
 
+instance : Trans (Membership.mem : α → List α → Prop) Subset Membership.mem :=
+  ⟨fun h₁ h₂ => h₂ h₁⟩
+
+instance : Trans (Subset : List α → List α → Prop) Subset Subset :=
+  ⟨Subset.trans⟩
+
 @[simp] theorem subset_cons (a : α) (l : List α) : l ⊆ a :: l := fun _ => Mem.tail _
 
 theorem subset_of_cons_subset {a : α} {l₁ l₂ : List α} : a :: l₁ ⊆ l₂ → l₁ ⊆ l₂ :=
@@ -406,6 +412,15 @@ theorem Sublist.subset : l₁ <+ l₂ → l₁ ⊆ l₂
   | .cons _ s, _, h => .tail _ (s.subset h)
   | .cons₂ .., _, .head .. => .head ..
   | .cons₂ _ s, _, .tail _ h => .tail _ (s.subset h)
+
+instance : Trans (@Sublist α) Subset Subset :=
+  ⟨fun h₁ h₂ => trans h₁.subset h₂⟩
+
+instance : Trans Subset (@Sublist α) Subset :=
+  ⟨fun h₁ h₂ => trans h₁ h₂.subset⟩
+
+instance : Trans (Membership.mem : α → List α → Prop) Sublist Membership.mem :=
+  ⟨fun h₁ h₂ => h₂.subset h₁⟩
 
 theorem Sublist.length_le : l₁ <+ l₂ → length l₁ ≤ length l₂
   | .slnil => Nat.le_refl 0
@@ -705,6 +720,21 @@ theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i 
   | _::_, ⟨0, _⟩ => rfl
   | _::_, ⟨i+1, _⟩ => get_cons_drop _ ⟨i, _⟩
 
+theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
+  | _, _, rfl => drop_nil
+
+@[simp] theorem take_nil : ([] : List α).take i = [] := by
+  cases i <;> rfl
+
+theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
+  | _, _, rfl => take_nil
+
+theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
+  mt drop_eq_nil_of_eq_nil h
+
+theorem ne_nil_of_take_ne_nil {as : List α} {i : Nat} (h: as.take i ≠ []) : as ≠ [] :=
+  mt take_eq_nil_of_eq_nil h
+
 theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
     (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ := by
   have := h
@@ -881,11 +911,11 @@ theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.a
 
 /-! ### reverse -/
 
-@[simp] theorem mem_reverseAux (x : α) : ∀ as bs, x ∈ reverseAux as bs ↔ x ∈ as ∨ x ∈ bs
-  | [], _ => by simp
-  | a :: _, _ => by simp [mem_reverseAux]; rw [← or_assoc, @or_comm (x = a)]
+@[simp] theorem mem_reverseAux {x : α} : ∀ {as bs}, x ∈ reverseAux as bs ↔ x ∈ as ∨ x ∈ bs
+  | [], _ => ⟨.inr, fun | .inr h => h⟩
+  | a :: _, _ => by rw [reverseAux, mem_cons, or_assoc, or_left_comm, mem_reverseAux, mem_cons]
 
-@[simp] theorem mem_reverse (x : α) (as : List α) : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
+@[simp] theorem mem_reverse {x : α} {as : List α} : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
 
 /-! ### insert -/
 
