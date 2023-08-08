@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jannis Limperg
+Authors: Jannis Limperg, Scott Morrison
 -/
 
 import Lean.Meta.DiscrTree
@@ -162,3 +162,33 @@ Merge two `DiscrTree`s. Duplicate values are preserved.
 def mergePreservingDuplicates (t u : DiscrTree α s) : DiscrTree α s :=
   ⟨t.root.mergeWith u.root fun _ trie₁ trie₂ =>
     trie₁.mergePreservingDuplicates trie₂⟩
+
+/--
+Inserts a new key into a discrimination tree,
+but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
+-/
+def insertIfSpecific [BEq α] (d : DiscrTree α s)
+    (keys : Array (DiscrTree.Key s)) (v : α) : DiscrTree α s :=
+  if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
+    d
+  else
+    d.insertCore keys v
+
+variable {m : Type → Type} [Monad m]
+
+/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
+partial def Trie.mapArraysM (t : DiscrTree.Trie α s) (f : Array α → m (Array β)) :
+    m (DiscrTree.Trie β s) := do
+  match t with
+  | .node vs children =>
+    return .node (← f vs) (← children.mapM fun (k, t') => do pure (k, ← t'.mapArraysM f))
+
+/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
+def mapArraysM (d : DiscrTree α s) (f : Array α → m (Array β)) : m (DiscrTree β s) := do
+  pure { root := ← d.root.mapM (fun t => t.mapArraysM f) }
+
+/-- Apply a function to the array of values at each node in a `DiscrTree`. -/
+def mapArrays (d : DiscrTree α s) (f : Array α → Array β) : DiscrTree β s :=
+  d.mapArraysM fun A => (pure (f A) : Id (Array β))
+
+end Lean.Meta.DiscrTree
