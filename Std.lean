@@ -81,6 +81,7 @@ import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
+import Std.Lean.Syntax
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Linter
