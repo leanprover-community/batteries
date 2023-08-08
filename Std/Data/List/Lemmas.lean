@@ -513,7 +513,7 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 @[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 
-@[simp] theorem getElem!_cons_zero  [Inhabited α] {as : List α} : (a :: as)[0]! = a := by
+@[simp] theorem getElem!_cons_zero [Inhabited α] {as : List α} : (a :: as)[0]! = a := by
   unfold getElem!
   simp [Nat.succ_pos _]
 
