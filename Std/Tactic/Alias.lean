@@ -54,7 +54,7 @@ def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := 
   return aliasExt.getState (← getEnv) |>.find? name
 
 /-- Set the alias info for a new declaration -/
-def setAliasInfo [Monad m] [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit := do
+def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
   modifyEnv (aliasExt.addEntry · (declName, info))
 
 /--
