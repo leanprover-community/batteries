@@ -90,7 +90,6 @@ alias ⟨mpId, mprId⟩ := Iff.rfl
 /-- info: **Alias** of `A.foo`. -/
 #guard_msgs in
 #eval show MetaM _ from do
-  let map := Std.Tactic.Alias.aliasExt.getState (← getEnv)
-  match map.find? `A.foo1 with
+  match ← Std.Tactic.Alias.getAliasInfo `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"

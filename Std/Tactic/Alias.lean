@@ -49,6 +49,14 @@ initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap Alia
     initial := {}
   }
 
+/-- Get the alias information for a name -/
+def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+  return aliasExt.getState (← getEnv) |>.find? name
+
+/-- Set the alias info for a new declaration -/
+def setAliasInfo [Monad m] [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit := do
+  modifyEnv (aliasExt.addEntry · (declName, info))
+
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
@@ -71,7 +79,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         }
       | Lean.ConstantInfo.defnInfo c
       | Lean.ConstantInfo.quotInfo c
-      | Lean.ConstantInfo.inductInfo c -- Also alias constructors and recursors?
+      | Lean.ConstantInfo.inductInfo c
       | Lean.ConstantInfo.axiomInfo c
       | Lean.ConstantInfo.opaqueInfo c
       | Lean.ConstantInfo.ctorInfo c
@@ -93,10 +101,13 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     }
     addDocString' declName declMods.docString?
     Term.applyAttributes declName declMods.attrs
-    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.plain const.name))
+    let info := match ← getAliasInfo const.name with
+      | some i => i
+      | none => AliasInfo.plain const.name
+    setAliasInfo info declName
     /- alias doesn't trigger the missing docs linter so we add a default -/
     if (← findDocString? (← getEnv) declName).isNone then
-      addDocString declName s!"**Alias** of {const.name}"
+      addDocString declName info.toString
 
 /--
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
@@ -121,16 +132,13 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     }
   addDocString' declName declMods.docString?
   Term.applyAttributes declName declMods.attrs
-  if mp then
-    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.forward thm.name))
-  else
-    modifyEnv (aliasExt.addEntry · (declName, AliasInfo.reverse thm.name))
+  let info := match ← getAliasInfo thm.name with
+    | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
+    | _ => if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
+  setAliasInfo info declName
   /- alias doesn't trigger the missing docs linter so we add a default -/
   if (← findDocString? (← getEnv) declName).isNone then
-    if mp then
-      addDocString declName s!"**Alias** for the forward direction of {thm.name}"
-    else
-      addDocString declName s!"**Alias** for the reverse direction of {thm.name}"
+    addDocString declName info.toString
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
