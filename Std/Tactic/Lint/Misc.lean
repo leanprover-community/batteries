@@ -41,6 +41,7 @@ We skip all declarations that contain `sorry` in their value. -/
     let info ← getConstInfo declName
     let ty := info.type
     let some val := info.value? | return none
+    if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
       let mut e := (mkAppN val args).headBeta
       e := mkApp e ty
