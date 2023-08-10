@@ -100,10 +100,30 @@ apply the replacement.
     let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
     result.push {
-      eager.title := "Apply 'Try this'"
-      eager.kind? := "refactor"
-      eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
-    }
+
+/--
+This is a code action provider that looks for `TryTheseInfo` nodes and supplies code actions for
+each replacement.
+-/
+@[code_action_provider] def tryTheseProvider : CodeActionProvider := fun params snap => do
+  let doc ← readDoc
+  pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
+    let .ofUserWidgetInfo { stx, widgetId := ``tryTheseWidget, props } := info | result
+    let some stxRange := stx.getRange? | result
+    let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
+    unless stxRange.start.line ≤ params.range.end.line do return result
+    unless params.range.start.line ≤ stxRange.end.line do return result
+    let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
+    let .ok header := props.getObjValAs? String "header" | panic! "bad type"
+    let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
+    let .ok suggestions := suggestions.getArr? | panic! "bad type"
+    suggestions.foldlM (init := result) fun result s => do
+      let .ok newText := s.getObjValAs? String "suggestion" | panic! "bad type"
+      result.push {
+          eager.title := header ++ newText
+          eager.kind? := "refactor"
+          eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
+        }
 
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
 partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
