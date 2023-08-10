@@ -99,9 +99,8 @@ apply the replacement.
     unless params.range.start.line ≤ stxRange.end.line do return result
     let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    let .ok header := props.getObjValAs? String "header" | panic! "bad type"
     result.push {
-      eager.title := header ++ newText
+      eager.title := "Try this: " ++ newText
       eager.kind? := "refactor"
       eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
     }
@@ -119,13 +118,12 @@ each replacement.
     unless stxRange.start.line ≤ params.range.end.line do return result
     unless params.range.start.line ≤ stxRange.end.line do return result
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    let .ok header := props.getObjValAs? String "header" | panic! "bad type"
     let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
     let .ok suggestions := suggestions.getArr? | panic! "bad type"
     suggestions.foldlM (init := result) fun result s => do
       let .ok newText := s.getObjValAs? String "suggestion" | panic! "bad type"
       result.push {
-          eager.title := header ++ newText
+          eager.title := "Try this: " ++ newText
           eager.kind? := "refactor"
           eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
         }
