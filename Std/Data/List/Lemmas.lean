@@ -513,6 +513,9 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 @[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 
+@[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
+  (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
+
 @[simp] theorem cons_getElem!_zero [Inhabited α] {as : List α} : (a :: as)[0]! = a := by
   unfold getElem!; simp [Nat.zero_lt_succ]
 
@@ -528,9 +531,6 @@ theorem cons_getElem?_succ {as : List α} : (a :: as)[i+1]? = as[i]? := by
   unfold getElem?; split
   next h => rw [dif_pos (Nat.lt_of_succ_lt_succ h)]; rfl
   next h => rw [dif_neg (mt Nat.succ_lt_succ h)]
-
-@[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
-  (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
 
 theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
