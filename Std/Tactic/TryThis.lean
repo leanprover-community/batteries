@@ -172,16 +172,63 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
-/-- Add a `exact e` or `refine e` suggestion.
+/-- Holds a `suggestion` for replacement, along with an `info` string to be printed immediately
+after that suggestion and optional `MessageData` to represent the suggestion in logs. -/
+structure Suggestion (kind : Name) where
+  /-- Syntax to be used as a replacement via a code action. -/
+  suggestion : TSyntax kind
+  /-- Info to be printed immediately after replacement syntax. -/
+  info : String := ""
+  /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
+  If `none`, we use `suggestion`. -/
+  messageData : Option MessageData := none
+
+instance {kind : Name} : Coe (TSyntax kind) (Suggestion kind) where
+  coe t := { suggestion := t }
+
+/-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
+
+* An info diagnostic is displayed saying `Try these: <list of suggestions>`
+* A widget is registered, saying `Try these: <list of suggestions>` with a link on each
+  `<suggestion>` to apply the suggestion
+* A code action for each suggestion is added, which will apply the suggestion.
 
 The parameters are:
 * `ref`: the span of the info diagnostic
-* `e`: the replacement expression
+* `suggestions`: an array of `Suggestion`s, which each contain
+  * `suggestion`: the replacement syntax
+  * `info`: a string shown immediately after the replacement syntax in the infoview
+* `suggestionsForMessage?`: the messages to display in the info diagnostic (only).
+  The widget message uses only `suggestion`. If empty or too short, `suggestion` is used in both
+  places.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
+* `header`: a string that precedes the list. By default, it is `"Try these:"`.
 -/
-def addExactSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
+def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion kind))
+    (origSpan? : Option Syntax := none)
+    (header : String := "Try these:") : MetaM Unit := do
+  let msgs := suggestions.map fun s => s.messageData.getD s.suggestion
+  let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
+  logInfoAt ref m!"{header}{msgs}"
+  if let some range := (origSpan?.getD ref).getRange? then
+    let map ← getFileMap
+    let start := findLineStart map.source range.start
+    let body := map.source.findAux (· ≠ ' ') range.start start
+    let suggestions ← suggestions.mapM fun ⟨suggestion, info, _⟩ => do
+      let text ← PrettyPrinter.ppCategory kind suggestion
+      let text := Format.prettyExtra text
+        (indent := (body - start).1) (column := (range.start - start).1)
+      pure <| Json.mkObj [("suggestion", text), ("info", info)]
+    let stxRange := ref.getRange?.getD range
+    let stxRange :=
+    { start := map.lineStart (map.toPosition stxRange.start).line
+      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
+    let range := map.utf8RangeToLspRange range
+    let json := Json.mkObj [("suggestions", Json.arr suggestions), ("range", toJson range),
+      ("header", header)]
+    Widget.saveWidgetInfo ``tryTheseWidget json (.ofRange stxRange)
+
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
