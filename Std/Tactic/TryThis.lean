@@ -45,6 +45,47 @@ export default function(props) {
 }"
 
 /--
+This is a widget which is placed by `TryThis.addSuggestions`; it says
+```
+Try these:
+```
+* `<replacement1>`
+* `<replacement2>`
+* `<replacement3>`
+* ...
+
+where `<replacement*>` is a link which will perform the replacement.
+-/
+@[widget] def tryTheseWidget : Widget.UserWidgetDefinition where
+  name := "Tactic replacements"
+  javascript := "
+import * as React from 'react';
+import { EditorContext } from '@leanprover/infoview';
+const e = React.createElement;
+export default function(props) {
+  const editorConnection = React.useContext(EditorContext)
+
+  function makeSuggestion({suggestion, info}) {
+    function onClick() {
+      editorConnection.api.applyEdit({
+        changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
+      })
+    }
+    return e('li', {className:'font-code pre-wrap'},
+        e('a',
+          {onClick, className: 'link pointer dim', title: 'Apply suggestion'},
+          suggestion),
+        info
+    )
+  }
+  const s = props.suggestions.map(makeSuggestion)
+  return e('div', {className: 'ml1'},
+    e('pre', {className: 'font-code pre-wrap'}, props.header),
+    e('ul', {style:{paddingInlineStart:'20px'}}, s)
+  )
+}"
+
+/--
 This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
 apply the replacement.
 -/
