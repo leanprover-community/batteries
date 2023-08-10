@@ -136,8 +136,11 @@ structure Suggestion (kind : Name) where
   /-- Info to be printed immediately after replacement syntax. -/
   info : String := ""
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
-  If `none`, we use `suggestion`. -/
-  messageData : Option MessageData := none
+  If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
+  messageData? : Option MessageData := none
+
+instance {kind : Name} : ToMessageData (Suggestion kind) where
+  toMessageData s := s.messageData?.getD s.suggestion
 
 instance {kind : Name} : Coe (TSyntax kind) (Suggestion kind) where
   coe t := { suggestion := t }
@@ -169,8 +172,8 @@ The parameters are:
 * `s`: a `Suggestion`, which contains
   * `suggestion`: the replacement syntax;
   * `info`: a string shown immediately after the replacement syntax in the widget message (only);
-  * `messageData`: an optional message to display in place of `suggestion` in the info diagnostic
-    (only). The widget message uses only `suggestion`. If `messageData` is `none`, we simply use
+  * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
+    (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
@@ -179,7 +182,7 @@ The parameters are:
 def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
     (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : MetaM Unit := do
-  logInfoAt ref m!"{header}{s.messageData.getD s.suggestion}"
+  logInfoAt ref m!"{header}{s}"
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     let text ← PrettyPrinter.ppCategory kind s.suggestion
@@ -208,8 +211,8 @@ The parameters are:
 * `suggestions`: an array of `Suggestion`s, which each contain
   * `suggestion`: the replacement syntax;
   * `info`: a string shown immediately after the replacement syntax in the widget message (only);
-  * `messageData`: an optional message to display in place of `suggestion` in the info diagnostic
-    (only). The widget message uses only `suggestion`. If `messageData` is `none`, we simply use
+  * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
+    (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
@@ -218,7 +221,7 @@ The parameters are:
 def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion kind))
     (origSpan? : Option Syntax := none)
     (header : String := "Try these:") : MetaM Unit := do
-  let msgs := suggestions.map fun s => s.messageData.getD s.suggestion
+  let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
   if let some range := (origSpan?.getD ref).getRange? then
