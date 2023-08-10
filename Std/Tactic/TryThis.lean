@@ -282,4 +282,17 @@ The parameters are:
 def addTermSuggestion (ref : Syntax) (e : Expr)
     (origSpan? : Option Syntax := none) : TermElabM Unit := do
   addSuggestion ref (← delabToRefinableSyntax e)
-    (suggestionForMessage? := e) (origSpan? := origSpan?)
+
+/-- Add term suggestions.
+
+The parameters are:
+* `ref`: the span of the info diagnostic
+* `es`: an array of the replacement expressions
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+* `header`: a string which precedes the list of suggestions. By default, it's `"Try these:"`.
+-/
+def addTermSuggestions (ref : Syntax) (es : Array Expr)
+    (origSpan? : Option Syntax := none) (header : String := "Try these:") : TermElabM Unit := do
+  addSuggestions ref (← es.mapM (β := Suggestion `term) (delabToRefinableSyntax ·))
+    (origSpan? := origSpan?) (header := header)
