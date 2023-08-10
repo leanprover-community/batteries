@@ -128,56 +128,6 @@ each replacement.
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
 
-/-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
-partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
-    (s : Syntax) : m Syntax :=
-  s.replaceM fun s => do
-    let `(?$id:ident) := s | pure none
-    if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
-
-/-- Delaborate `e` into an expression suitable for use in `refine`. -/
-def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
-  return ⟨← replaceMVarsByUnderscores (← delab e)⟩
-
-/-- Add a "try this" suggestion. This has three effects:
-
-* An info diagnostic is displayed saying `Try this: <suggestion>`
-* A widget is registered, saying `Try this: <suggestion>` with a link on `<suggestion>` to apply
-  the suggestion
-* A code action is added, which will apply the suggestion.
-
-The parameters are:
-* `ref`: the span of the info diagnostic
-* `suggestion`: the replacement syntax
-* `suggestionForMessage?`: the message to display in the info diagnostic (only).
-  The widget message uses only `suggestion`. If not provided, `suggestion` is used in both places.
-* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
-  If not provided it defaults to `ref`.
-* `extraMsg`: an extra piece of message text to apply to the widget message (only).
-* `header`: a string that begins the display. By default, it is `"Try this: "`.
--/
-def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
-    (suggestionForMessage? : Option MessageData := none)
-    (origSpan? : Option Syntax := none)
-    (extraMsg : String := "")
-    (header : String := "Try this: ") : MetaM Unit := do
-  logInfoAt ref m!"{header}{suggestionForMessage?.getD suggestion}"
-  if let some range := (origSpan?.getD ref).getRange? then
-    let map ← getFileMap
-    let text ← PrettyPrinter.ppCategory kind suggestion
-    let start := findLineStart map.source range.start
-    let body := map.source.findAux (· ≠ ' ') range.start start
-    let text := Format.prettyExtra text
-      (indent := (body - start).1) (column := (range.start - start).1)
-    let stxRange := ref.getRange?.getD range
-    let stxRange :=
-    { start := map.lineStart (map.toPosition stxRange.start).line
-      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg),
-      ("header", header)]
-    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
-
 /-- Holds a `suggestion` for replacement, along with an `info` string to be printed immediately
 after that suggestion and optional `MessageData` to represent the suggestion in logs. -/
 structure Suggestion (kind : Name) where
@@ -192,6 +142,60 @@ structure Suggestion (kind : Name) where
 instance {kind : Name} : Coe (TSyntax kind) (Suggestion kind) where
   coe t := { suggestion := t }
 
+/-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
+partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
+    (s : Syntax) : m Syntax :=
+  s.replaceM fun s => do
+    let `(?$id:ident) := s | pure none
+    if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
+
+/-- Delaborate `e` into an expression suitable for use in `refine`. -/
+def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
+  return ⟨← replaceMVarsByUnderscores (← delab e)⟩
+
+/-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
+def delabToRefinableSuggestion (e : Expr) : TermElabM (Suggestion `term) :=
+  return ⟨← delabToRefinableSyntax e, "", e⟩
+
+/-- Add a "try this" suggestion. This has three effects:
+
+* An info diagnostic is displayed saying `Try this: <suggestion>`
+* A widget is registered, saying `Try this: <suggestion>` with a link on `<suggestion>` to apply
+  the suggestion
+* A code action is added, which will apply the suggestion.
+
+The parameters are:
+* `ref`: the span of the info diagnostic
+* `s`: a `Suggestion`, which contains
+  * `suggestion`: the replacement syntax;
+  * `info`: a string shown immediately after the replacement syntax in the widget message (only);
+  * `messageData`: an optional message to display in place of `suggestion` in the info diagnostic
+    (only). The widget message uses only `suggestion`. If `messageData` is `none`, we simply use
+    `suggestion` instead.
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+* `header`: a string that begins the display. By default, it is `"Try this: "`.
+-/
+def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
+    (origSpan? : Option Syntax := none)
+    (header : String := "Try this: ") : MetaM Unit := do
+  logInfoAt ref m!"{header}{s.messageData.getD s.suggestion}"
+  if let some range := (origSpan?.getD ref).getRange? then
+    let map ← getFileMap
+    let text ← PrettyPrinter.ppCategory kind s.suggestion
+    let start := findLineStart map.source range.start
+    let body := map.source.findAux (· ≠ ' ') range.start start
+    let text := Format.prettyExtra text
+      (indent := (body - start).1) (column := (range.start - start).1)
+    let stxRange := ref.getRange?.getD range
+    let stxRange :=
+    { start := map.lineStart (map.toPosition stxRange.start).line
+      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
+    let range := map.utf8RangeToLspRange range
+    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", s.info),
+      ("header", header)]
+    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
+
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
 * An info diagnostic is displayed saying `Try these: <list of suggestions>`
@@ -202,11 +206,11 @@ instance {kind : Name} : Coe (TSyntax kind) (Suggestion kind) where
 The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestions`: an array of `Suggestion`s, which each contain
-  * `suggestion`: the replacement syntax
-  * `info`: a string shown immediately after the replacement syntax in the infoview
-* `suggestionsForMessage?`: the messages to display in the info diagnostic (only).
-  The widget message uses only `suggestion`. If empty or too short, `suggestion` is used in both
-  places.
+  * `suggestion`: the replacement syntax;
+  * `info`: a string shown immediately after the replacement syntax in the widget message (only);
+  * `messageData`: an optional message to display in place of `suggestion` in the info diagnostic
+    (only). The widget message uses only `suggestion`. If `messageData` is `none`, we simply use
+    `suggestion` instead.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
@@ -260,9 +264,8 @@ The parameters are:
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
     (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
-  let ⟨tac, extraMsg, msg⟩ ← addExactSuggestionCore addSubgoalsMsg e
-  addSuggestion ref tac (suggestionForMessage? := msg)
-    (origSpan? := origSpan?) (extraMsg := extraMsg)
+  addSuggestion ref (← addExactSuggestionCore addSubgoalsMsg e)
+    (origSpan? := origSpan?)
 
 /-- Add `exact e` or `refine e` suggestions.
 
@@ -288,8 +291,7 @@ The parameters are:
 -/
 def addTermSuggestion (ref : Syntax) (e : Expr)
     (origSpan? : Option Syntax := none) (header : String := "Try this: ") : TermElabM Unit := do
-  addSuggestion ref (← delabToRefinableSyntax e)
-    (suggestionForMessage? := e) (origSpan? := origSpan?) (header := header)
+  addSuggestion ref (← delabToRefinableSuggestion e) (origSpan? := origSpan?) (header := header)
 
 /-- Add term suggestions.
 
@@ -302,5 +304,5 @@ The parameters are:
 -/
 def addTermSuggestions (ref : Syntax) (es : Array Expr)
     (origSpan? : Option Syntax := none) (header : String := "Try these:") : TermElabM Unit := do
-  addSuggestions ref (← es.mapM (β := Suggestion `term) (delabToRefinableSyntax ·))
+  addSuggestions ref (← es.mapM delabToRefinableSuggestion)
     (origSpan? := origSpan?) (header := header)
