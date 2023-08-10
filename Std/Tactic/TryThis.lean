@@ -229,19 +229,47 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
       ("header", header)]
     Widget.saveWidgetInfo ``tryTheseWidget json (.ofRange stxRange)
 
+private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) :
+    TermElabM (Suggestion `tactic) := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
   let msg := if mvars.isEmpty then m!"exact {e}" else m!"refine {e}"
-  let extraMsg ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
+  let info ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
     let mut str := "\nRemaining subgoals:"
     for g in mvars do
       -- TODO: use a MessageData.ofExpr instead of rendering to string
       let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
       str := str ++ Format.pretty ("\n⊢ " ++ e)
     pure str
+  pure ⟨tac, info, msg⟩
+
+/-- Add an `exact e` or `refine e` suggestion.
+
+The parameters are:
+* `ref`: the span of the info diagnostic
+* `e`: the replacement expression
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+-/
+def addExactSuggestion (ref : Syntax) (e : Expr)
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
+  let ⟨tac, extraMsg, msg⟩ ← addExactSuggestionCore addSubgoalsMsg e
   addSuggestion ref tac (suggestionForMessage? := msg)
     (origSpan? := origSpan?) (extraMsg := extraMsg)
+
+/-- Add `exact e` or `refine e` suggestions.
+
+The parameters are:
+* `ref`: the span of the info diagnostic
+* `es`: the array of replacement expressions
+* `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
+  If not provided it defaults to `ref`.
+-/
+def addExactSuggestions (ref : Syntax) (es : Array Expr)
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
+  let suggestions ← es.mapM <| addExactSuggestionCore addSubgoalsMsg
+  addSuggestions ref suggestions (origSpan? := origSpan?)
 
 /-- Add a term suggestion.
 
