@@ -84,7 +84,7 @@ elab_rules : tactic
     let usedSimps ← dischargeWrapper.with fun discharge? =>
       simpLocation ctx discharge? <| (loc.map expandLocation).getD (.targets #[] true)
     let stx ← mkSimpCallStx stx usedSimps
-    TryThis.addSuggestion tk stx (origSpan? := ← getRef)
+    TryThis.addSuggestion tk (stx : TryThis.Suggestion `tactic) (origSpan? := ← getRef)
 
 /-- The common arguments of `simp_all?` and `simp_all?!`. -/
 syntax simpAllTraceArgsRest := (config)? (discharger)? (&" only")? (dsimpArgs)?
@@ -108,7 +108,7 @@ elab_rules : tactic
     | none => replaceMainGoal []
     | some mvarId => replaceMainGoal [mvarId]
     let stx ← mkSimpCallStx stx usedSimps
-    TryThis.addSuggestion tk stx (origSpan? := ← getRef)
+    TryThis.addSuggestion tk (stx : TryThis.Suggestion `tactic) (origSpan? := ← getRef)
 
 /-- The common arguments of `dsimp?` and `dsimp?!`. -/
 syntax dsimpTraceArgsRest := (config)? (&" only")? (dsimpArgs)? (ppSpace location)?
@@ -150,4 +150,4 @@ elab_rules : tactic
     let { ctx, .. } ← withMainContext <| mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
     let usedSimps ← dsimpLocation' ctx <| (loc.map expandLocation).getD (.targets #[] true)
     let stx ← mkSimpCallStx stx usedSimps
-    TryThis.addSuggestion tk stx (origSpan? := ← getRef)
+    TryThis.addSuggestion tk (stx : TryThis.Suggestion `tactic) (origSpan? := ← getRef)
