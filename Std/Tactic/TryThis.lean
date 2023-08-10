@@ -38,7 +38,7 @@ export default function(props) {
     })
   }
   return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
-    'Try this: ',
+    props.header,
     e('a', {onClick, className: 'link pointer dim', title: 'Apply suggestion'}, props.suggestion),
     props.info
   ]))
@@ -99,7 +99,12 @@ apply the replacement.
     unless params.range.start.line ≤ stxRange.end.line do return result
     let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
+    let .ok header := props.getObjValAs? String "header" | panic! "bad type"
     result.push {
+      eager.title := header ++ newText
+      eager.kind? := "refactor"
+      eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
+    }
 
 /--
 This is a code action provider that looks for `TryTheseInfo` nodes and supplies code actions for
@@ -141,7 +146,7 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
 * An info diagnostic is displayed saying `Try this: <suggestion>`
 * A widget is registered, saying `Try this: <suggestion>` with a link on `<suggestion>` to apply
   the suggestion
-* A code action `Apply 'Try this'` is added, which will apply the suggestion.
+* A code action is added, which will apply the suggestion.
 
 The parameters are:
 * `ref`: the span of the info diagnostic
@@ -151,12 +156,14 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `extraMsg`: an extra piece of message text to apply to the widget message (only).
+* `header`: a string that begins the display. By default, it is `"Try this: "`.
 -/
 def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     (suggestionForMessage? : Option MessageData := none)
     (origSpan? : Option Syntax := none)
-    (extraMsg : String := "") : MetaM Unit := do
-  logInfoAt ref m!"Try this: {suggestionForMessage?.getD suggestion}"
+    (extraMsg : String := "")
+    (header : String := "Try this: ") : MetaM Unit := do
+  logInfoAt ref m!"{header}{suggestionForMessage?.getD suggestion}"
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     let text ← PrettyPrinter.ppCategory kind suggestion
@@ -169,7 +176,8 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     { start := map.lineStart (map.toPosition stxRange.start).line
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
     let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg)]
+    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", extraMsg),
+      ("header", header)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 /-- Holds a `suggestion` for replacement, along with an `info` string to be printed immediately
@@ -278,10 +286,12 @@ The parameters are:
 * `e`: the replacement expression
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
+* `header`: a string which precedes the suggestion. By default, it's `"Try this: "`.
 -/
 def addTermSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try this: ") : TermElabM Unit := do
   addSuggestion ref (← delabToRefinableSyntax e)
+    (suggestionForMessage? := e) (origSpan? := origSpan?) (header := header)
 
 /-- Add term suggestions.
 
