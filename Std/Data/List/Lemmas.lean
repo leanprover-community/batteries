@@ -528,12 +528,12 @@ theorem get!_eq_get : ∀ {l : List α} {n} h, l.get? n = some (get l ⟨n, h⟩
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
 
-@[simp]theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
+theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
     (a::l).get! (n+1) = get! l n := rfl
 
-@[simp] theorem get!_cons_zero [Inhabited α] (l : List α) (a : α) : (a::l).get! 0 = a := rfl
+theorem get!_cons_zero [Inhabited α] (l : List α) (a : α) : (a::l).get! 0 = a := rfl
 
-@[simp] theorem get!_nil [Inhabited α] (n : Nat) : [].get! n = (default : α) := rfl
+theorem get!_nil [Inhabited α] (n : Nat) : [].get! n = (default : α) := rfl
 
 theorem get?_len_le : ∀ {l : List α} {n}, length l ≤ n → l.get? n = none
   | [], _, _ => rfl
@@ -719,6 +719,11 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | [], _, _ => rfl
   | _a::_, 0, _ => rfl
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
+
+@[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
+| [], _        => rfl
+| _a::_, 0     => rfl
+| _a::l, n+1   => get!_eq_getD l n
 
 /-! ### take and drop -/
 
