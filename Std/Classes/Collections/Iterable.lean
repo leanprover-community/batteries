@@ -19,19 +19,20 @@ class Iterable (C : Type u) (τ : outParam (Type v)) where
   ρ : Type w
   /-- Convert a collection to its iteration object. -/
   toIterator : C → ρ
-  /-- Step the iterator to its next value. -/
-  step : ρ → Option (τ × ρ)
+  /-- ρ is a stream of τs -/
+  [toStream : Stream ρ τ]
 
-instance [Iterable C τ] : Stream (Iterable.ρ C) τ where
-  next? := Iterable.step
+namespace Iterable
+
+instance [I : Iterable C τ] : Stream (Iterable.ρ C) τ := I.toStream
 
 instance [Iterable C τ] : ForIn m C τ where
   forIn c acc f := do
-  let mut iter := Iterable.toIterator c
+  let mut iter := toIterator c
   let mut done := false
   let mut res := acc
   while !done do
-    match Iterable.step iter with
+    match Stream.next? iter with
     | none =>
       done := true
     | some (x, iter') =>
@@ -44,9 +45,11 @@ instance [Iterable C τ] : ForIn m C τ where
         done := true
   return res
 
+end Iterable
+
 /--
 An `Iterable` for which the iterator object has some well-ordered
-notion of size, which decreases at each `step`. This is used to
+notion of size, which decreases at each `Stream.next?`. This is used to
 automatically generate `Fold` implementations for `Iterable`s.
 -/
 class WFIterable (C : Type u) (τ : outParam (Type v)) extends Iterable C τ where
@@ -59,7 +62,7 @@ class WFIterable (C : Type u) (τ : outParam (Type v)) extends Iterable C τ whe
   /-- Assuming the iterator is within `dom`, `step` respects
     the well-founded relation and stays within `dom`. -/
   h_step : ∀ r, dom r →
-    ∀ x r', Iterable.step r = some (x, r') →
+    ∀ x r', Stream.next? r = some (x, r') →
       wf.rel r' r ∧ dom r'
 
 attribute [instance] WFIterable.wf
@@ -69,7 +72,7 @@ namespace WFIterable
 /-- Fold function for well-founded iterable collections. -/
 def fold [WFIterable C τ] {β} (f : _ → _ → _) (init c) :=
   let rec loop (r : Iterable.ρ C) (hr : WFIterable.dom r) (acc : β) :=
-    match h : Iterable.step r with
+    match h : Stream.next? r with
     | none => acc
     | some (x, r') =>
       have wf_step := WFIterable.h_step r hr x r' h
@@ -85,17 +88,17 @@ instance [WFIterable C τ] : Fold C τ where
 instance : WFIterable (List α) α where
   ρ := List α
   toIterator L := L
-  step L :=
-    match L with
+  toStream :=
+    ⟨fun L => match L with
     | [] => none
-    | x::xs => some (x,xs)
+    | x::xs => some (x,xs)⟩
   dom _ := True
   wf := invImage List.length Nat.lt_wfRel
   h_toIterator _ := by simp
   h_step := by
     intro r _ x r' h
     simp [WellFoundedRelation.rel, InvImage, Nat.lt_wfRel]
-    simp [Iterable.step] at h
+    simp [Stream.next?] at h
     split at h
     . contradiction
     . cases h
@@ -107,13 +110,13 @@ def foldD [WFIterable C τ]
   (motive : (r : Iterable.ρ C) → Sort u)
   (c : C)
   (f : (r : Iterable.ρ C) → WFIterable.dom r →
-        (x : τ) → (r' : Iterable.ρ C) → Iterable.step r = some (x,r') →
+        (x : τ) → (r' : Iterable.ρ C) → Stream.next? r = some (x,r') →
         motive r → motive r')
   (init : motive (Iterable.toIterator c))
-  : Σ' r, PProd (WFIterable.dom r ∧ Iterable.step r = none) (motive r) :=
+  : Σ' r, PProd (WFIterable.dom r ∧ Stream.next? r = none) (motive r) :=
   let rec loop (r : Iterable.ρ C) (hr : WFIterable.dom r)
     (acc : motive r) :=
-    match h : Iterable.step r with
+    match h : Stream.next? r with
     | none => ⟨r, ⟨hr, h⟩, acc⟩
     | some (x, r') =>
       have := WFIterable.h_step r hr x r' h
@@ -126,7 +129,7 @@ termination_by loop r _ _ => r
 def forIn [WFIterable C τ] {β} [Monad m]
       (c : C) (b : β) (f : τ → β → m (ForInStep β)) : m β :=
   let rec loop (r : Iterable.ρ C) (hr : WFIterable.dom r) (acc : β) : m β :=
-    match h : Iterable.step r with
+    match h : Stream.next? r with
     | none => pure acc
     | some (x, r') =>
     bind (f x acc) fun
@@ -147,11 +150,11 @@ def forInD [WFIterable.{uC, uT, uR} C τ] [Monad m]
   (c : C)
   (b : motive (Iterable.toIterator c))
   (f : (r : Iterable.ρ C) → WFIterable.dom r →
-        (x : τ) → (r' : Iterable.ρ C) → Iterable.step r = some (x,r') →
+        (x : τ) → (r' : Iterable.ρ C) → Stream.next? r = some (x,r') →
         motive r → m (motive r'))
-  : m (Σ' r, PProd (WFIterable.dom r ∧ Iterable.step r = none) (motive r)) :=
+  : m (Σ' r, PProd (WFIterable.dom r ∧ Stream.next? r = none) (motive r)) :=
   let rec loop (r : Iterable.ρ C) (hr : WFIterable.dom r) (acc : motive r) :=
-    match h : Iterable.step r with
+    match h : Stream.next? r with
     | none => pure ⟨r, ⟨hr, h⟩, acc⟩
     | some (x, r') =>
     have := WFIterable.h_step r hr x r' h
@@ -167,8 +170,8 @@ def forInWithInv [WFIterable.{uC, uT, uR} C τ] [Monad m]
   (c : C)
   (b : β) (hb : inv (Iterable.toIterator c) b)
   (f : (r : Iterable.ρ C) → WFIterable.dom r →
-        (x : τ) → (r' : Iterable.ρ C) → Iterable.step r = some (x,r') →
+        (x : τ) → (r' : Iterable.ρ C) → Stream.next? r = some (x,r') →
         (acc : β) → inv r acc → m ((b : β) ×' inv r' b))
-  : m (Σ' r, PProd (WFIterable.dom r ∧ Iterable.step r = none) ((b : β) ×' inv r b))
+  : m (Σ' r, PProd (WFIterable.dom r ∧ Stream.next? r = none) ((b : β) ×' inv r b))
   := forInD (motive := fun r => (b : β) ×' inv r b)
       c ⟨b,hb⟩ (fun r hd x r' hr ⟨acc,hacc⟩ => f r hd x r' hr acc hacc)
