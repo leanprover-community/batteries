@@ -132,7 +132,7 @@ section Count
 
 variable [DecidableEq α]
 
-@[simp] theorem count_nil (a : α) : count a [] = 0 := rfl
+@[simp 1100] theorem count_nil (a : α) : count a [] = 0 := rfl
 
 theorem count_cons (a b : α) (l : List α) :
     count a (b :: l) = count a l + if a = b then 1 else 0 := by conv =>
@@ -174,7 +174,7 @@ theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count
 
 @[simp] theorem one_le_count_iff_mem {a : α} {l : List α} : 1 ≤ count a l ↔ a ∈ l := count_pos
 
-theorem count_eq_zero_of_not_mem {a : α} {l : List α} (h : a ∉ l) : count a l = 0 :=
+@[simp] theorem count_eq_zero_of_not_mem {a : α} {l : List α} (h : a ∉ l) : count a l = 0 :=
   Decidable.byContradiction fun h' => h <| count_pos.1 (Nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : List α} (h : count a l = 0) : a ∉ l :=
