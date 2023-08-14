@@ -15,7 +15,7 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get get! reverseAux eraseIdx map join find? findSome?
+attribute [simp] get reverseAux eraseIdx map join find? findSome?
   replace elem lookup drop take foldl foldr zipWith unzip range.loop enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
   filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
