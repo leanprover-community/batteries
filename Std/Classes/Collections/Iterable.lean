@@ -6,9 +6,9 @@ Authors: James Gallicchio
 
 import Std.Classes.Collections.Fold
 
-/-! ## External Iterators -/
+namespace Std.Collections
 
-namespace Std
+/-! ## External Iterators -/
 
 /--
 Exposes `toIterator`, which gives an object that can traverse

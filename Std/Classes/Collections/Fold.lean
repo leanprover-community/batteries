@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Gallicchio
 -/
 
+namespace Std.Collections
+
 /-! ## Folds -/
 
 /-- `Foldl C τ` for collections `C` which can be folded over elements of type `τ`.
