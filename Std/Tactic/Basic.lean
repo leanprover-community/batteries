@@ -70,6 +70,13 @@ macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic
     | refine Classical.byContradiction fun $e => ?_)
 
 /--
+Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
+If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
+-/
+macro "absurd " h:term : tactic =>
+  `(tactic| first | apply absurd _ $h | apply absurd $h)
+
+/--
 `iterate n tac` runs `tac` exactly `n` times.
 `iterate tac` runs `tac` repeatedly until failure.
 
