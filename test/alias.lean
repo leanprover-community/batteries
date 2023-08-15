@@ -56,23 +56,25 @@ example : True := Foo.barbaz
 
 /-- doc string for foobaz -/
 noncomputable def foobaz : Nat → Nat := id
-/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz', and it does not have executable code -/
-#guard_msgs in alias foobaz1 := foobaz
+alias foobaz1 := foobaz
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz1', and it does not have executable code -/
+#guard_msgs in def foobaz2 (n : Nat) := foobaz1 n
 
-noncomputable alias foobaz2 := id
-/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz2', and it does not have executable code -/
-#guard_msgs in def foobaz4 (n : Nat) := foobaz2 n
+noncomputable alias foobaz3 := id
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'A.foobaz3', and it does not have executable code -/
+#guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
 
 /- Test unsafe -/
 
 /-- doc string for barbaz -/
 unsafe def barbaz : ℕ → ℕ := id
-/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz' -/
-#guard_msgs in alias barbaz1 := barbaz
+alias barbaz1 := barbaz
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz1' -/
+#guard_msgs in def barbaz2 (n : ℕ) := barbaz1 n
 
-unsafe alias barbaz2 := id
-/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz2' -/
-#guard_msgs in def barbaz4 (n : ℕ) := barbaz2 n
+unsafe alias barbaz3 := id
+/-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz3' -/
+#guard_msgs in def barbaz4 (n : ℕ) := barbaz3 n
 
 /- iff version -/
 
