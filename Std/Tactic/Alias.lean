@@ -70,6 +70,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
     let const ← getConstInfo resolved
     let declMods ← elabModifiers mods
+    let declMods ← pure { declMods with
+        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
+        isUnsafe := declMods.isUnsafe || const.isUnsafe
+      }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := match const with
       | Lean.ConstantInfo.thmInfo t =>
@@ -105,7 +109,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       | some i => i
       | none => AliasInfo.plain const.name
     setAliasInfo info declName
-    /- alias doesn't trigger the missing docs linter so we add a default -/
+    /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
+      `declMods` because a docstring may have been added by an attribute. -/
     if (← findDocString? (← getEnv) declName).isNone then
       addDocString declName info.toString
 
@@ -136,7 +141,8 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
     | _ => if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
-  /- alias doesn't trigger the missing docs linter so we add a default -/
+  /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
+    `declMods` because a docstring may have been added by an attribute. -/
   if (← findDocString? (← getEnv) declName).isNone then
     addDocString declName info.toString
 
