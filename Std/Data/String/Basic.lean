@@ -123,7 +123,7 @@ def dropSuffix? (s : Substring) (suff : Substring) : Option Substring :=
     none
 
 /--
-Returns all the substrings of `s` that martch `pattern`.
+Returns all the substrings of `s` that match `pattern`.
 -/
 @[inline] def findAllSubstr (s pattern : Substring) : Array Substring :=
   (String.Matcher.ofSubstring pattern).findAll s
