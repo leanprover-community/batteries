@@ -103,6 +103,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       range := ← getDeclarationRange (← getRef)
       selectionRange := ← getDeclarationRange alias
     }
+    Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     addDocString' declName declMods.docString?
     Term.applyAttributes declName declMods.attrs
     let info := match ← getAliasInfo const.name with
@@ -167,6 +168,7 @@ elab (name := aliasLR) mods:declModifiers "alias "
           range := ← getDeclarationRange (← getRef)
           selectionRange := ← getDeclarationRange idFwd
         }
+        Term.addTermInfo' idFwd (← mkConstWithLevelParams declName) (isBinder := true)
       if let `(binderIdent| $idRev:ident) := aliasRev then
         let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idRev.getId
         addSide false declName declMods thm
@@ -174,4 +176,5 @@ elab (name := aliasLR) mods:declModifiers "alias "
           range := ← getDeclarationRange (← getRef)
           selectionRange := ← getDeclarationRange idRev
         }
+        Term.addTermInfo' idRev (← mkConstWithLevelParams declName) (isBinder := true)
     | _ => throwError "Target must be a theorem"
