@@ -7,6 +7,8 @@ Authors: Jannis Limperg
 import Std.Data.Char
 import Std.Data.Nat.Lemmas
 
+instance : Coe String Substring := ⟨String.toSubstring⟩
+
 protected theorem String.Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
 
