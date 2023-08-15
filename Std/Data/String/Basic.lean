@@ -12,12 +12,28 @@ instance : Coe String Substring := ⟨String.toSubstring⟩
 
 namespace String
 
-instance : Coe String Substring := ⟨toSubstring⟩
-
 protected theorem Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
 
-/-- KMP Matcher -/
+/-- Knuth-Morris-Pratt matcher type
+
+This type is used to keep data for running the Knuth-Morris-Pratt (KMP) string matching algorithm.
+KMP is a linear time algorithm to locate all substrings of a string that match a given pattern.
+Generating the algorithm data is also linear in the length of the pattern but the data can be
+re-used to match the same pattern over different strings.
+
+The KMP data for a pattern string can be generated using `Matcher.ofString`. Then `Matcher.find?`
+and `Matcher.findAll` can be used to run the algorithm on an input string.
+```
+def m := Matcher.ofString "abba"
+
+#eval Option.isSome <| m.find? "AbbabbA" -- false
+#eval Option.isSome <| m.find? "aabbaa" -- true
+
+#eval Array.size <| m.findAll "abbabba" -- 2
+#eval Array.size <| m.findAll "abbabbabba" -- 3
+```
+-/
 abbrev Matcher := Array.Matcher Char
 
 /-- Make KMP matcher from pattern substring -/
@@ -26,7 +42,7 @@ abbrev Matcher := Array.Matcher Char
 
 /-- Make KMP matcher from pattern string -/
 @[inline] def Matcher.ofString (pattern : String) : Matcher :=
-  Matcher.ofSubstring pattern.toSubstring
+  Matcher.ofSubstring pattern
 
 /-- The string pattern for the matcher -/
 def Matcher.pattern (m : Matcher) : String :=
@@ -38,15 +54,17 @@ def Matcher.patternSize (m : Matcher) : Nat :=
 
 /-- Find all substrings of `s` matching `m.pattern`. -/
 partial def Matcher.findAll (m : Matcher) (s : Substring) : Array Substring :=
-  loop s #[]
+  loop s m #[]
 where
+  /-- Byte size of match pattern -/
+  size := m.patternSize
   /-- Accumulator loop for `String.Matcher.findAll` -/
-  loop (s : Substring) (occs : Array Substring) : Array Substring :=
+  loop (s : Substring) (m : Matcher) (occs : Array Substring) : Array Substring :=
     match m.next? s with
     | none => occs
-    | some (s, _) =>
-      loop s <| occs.push { s with
-        startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
+    | some (s, m) =>
+      loop s m <| occs.push { s with
+        startPos := ⟨s.startPos.byteIdx - size⟩
         stopPos := s.startPos }
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
@@ -54,9 +72,9 @@ def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
   match m.next? s with
   | none => none
   | some (s, _) =>
-    some {s with
+    some { s with
       startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
-      stopPos := s.startPos}
+      stopPos := s.startPos }
 
 end String
 
