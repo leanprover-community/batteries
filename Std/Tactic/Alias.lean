@@ -112,7 +112,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
       `declMods` because a docstring may have been added by an attribute. -/
     if (← findDocString? (← getEnv) declName).isNone then
-      addDocString declName info.toString
+      let mut doc := info.toString
+      if let some origDoc ← findDocString? (← getEnv) resolved then
+        doc := s!"{doc}\n\n---\n\n{origDoc}"
+      addDocString declName doc
 
 /--
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
@@ -144,7 +147,10 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
   /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
     `declMods` because a docstring may have been added by an attribute. -/
   if (← findDocString? (← getEnv) declName).isNone then
-    addDocString declName info.toString
+    let mut doc := info.toString
+    if let some origDoc ← findDocString? (← getEnv) thm.name then
+      doc := s!"{doc}\n\n---\n\n{origDoc}"
+    addDocString declName doc
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
