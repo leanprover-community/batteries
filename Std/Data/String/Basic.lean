@@ -45,9 +45,9 @@ where
     match m.next? s with
     | none => occs
     | some (s, _) =>
-      loop s <| occs.push {s with
+      loop s <| occs.push { s with
         startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
-        stopPos := s.startPos}
+        stopPos := s.startPos }
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
 def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
