@@ -470,7 +470,7 @@ theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
 
 -- TODO: splitOn
 
-@[simp] theorem toString_toSubstring (s : String) : Substring.toString s = s :=
+@[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
   extract_zero_endPos _
 
 attribute [simp] toSubstring'

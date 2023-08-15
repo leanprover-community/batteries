@@ -92,10 +92,10 @@ def dropSuffix? (s : String) (suff : Substring) : Option Substring :=
 
 /-- `s.stripPrefix pre` will remove `pre` from the beginning of `s` if it occurs there,
 or otherwise return `s`. -/
-def stripPrefix (s : String) (pre : Substring) : Substring :=
-  s.dropPrefix? pre |>.getD s
+def stripPrefix (s : String) (pre : Substring) : String :=
+  s.dropPrefix? pre |>.map Substring.toString |>.getD s
 
 /-- `s.stripSuffix suff` will remove `suff` from the end of `s` if it occurs there,
 or otherwise return `s`. -/
-def stripSuffix (s : String) (suff : Substring) : Substring :=
-  s.dropSuffix? suff |>.getD s
+def stripSuffix (s : String) (suff : Substring) : String :=
+  s.dropSuffix? suff |>.map Substring.toString |>.getD s
