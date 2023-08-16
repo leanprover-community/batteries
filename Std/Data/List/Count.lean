@@ -79,23 +79,27 @@ theorem countp_le_length : countp p l ≤ l.length := by
 theorem countp_pos : 0 < countp p l ↔ ∃ a ∈ l, p a := by
   simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
 
-@[simp] theorem countp_eq_zero : countp p l = 0 ↔ ∀ a ∈ l, ¬p a := by
+theorem countp_eq_zero : countp p l = 0 ↔ ∀ a ∈ l, ¬p a := by
   simp only [countp_eq_length_filter, length_eq_zero, filter_eq_nil]
 
-@[simp] theorem countp_eq_length : countp p l = l.length ↔ ∀ a ∈ l, p a := by
+theorem countp_eq_length : countp p l = l.length ↔ ∀ a ∈ l, p a := by
   rw [countp_eq_length_filter, filter_length_eq_length]
 
 theorem Sublist.countp_le (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ := by
   simp only [countp_eq_length_filter]
   apply s.filter _ |>.length_le
 
-@[simp] theorem countp_filter (l : List α) :
+theorem countp_filter (l : List α) :
     countp p (filter q l) = countp (fun a => p a ∧ q a) l := by
   simp only [countp_eq_length_filter, filter_filter]
 
-@[simp] theorem countp_true {l : List α} : (l.countp fun _ => true) = l.length := by simp
+@[simp] theorem countp_true {l : List α} : (l.countp fun _ => true) = l.length := by
+  rw [countp_eq_length]
+  simp
 
-@[simp] theorem countp_false {l : List α} : (l.countp fun _ => false) = 0 := by simp
+@[simp] theorem countp_false {l : List α} : (l.countp fun _ => false) = 0 := by
+  rw [countp_eq_zero]
+  simp
 
 @[simp] theorem countp_map (p : β → Bool) (f : α → β) :
     ∀ l, countp p (map f l) = countp (p ∘ f) l
@@ -169,21 +173,19 @@ theorem count_singleton' (a b : α) : count a [b] = if a = b then 1 else 0 := by
 
 theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count a l) := by simp
 
-@[simp] theorem count_pos {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := by
+theorem count_pos_iff_mem {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := by
   simp only [count, countp_pos, beq_iff_eq, exists_eq_right]
 
-@[simp] theorem one_le_count_iff_mem {a : α} {l : List α} : 1 ≤ count a l ↔ a ∈ l := count_pos
-
 @[simp] theorem count_eq_zero_of_not_mem {a : α} {l : List α} (h : a ∉ l) : count a l = 0 :=
-  Decidable.byContradiction fun h' => h <| count_pos.1 (Nat.pos_of_ne_zero h')
+  Decidable.byContradiction fun h' => h <| count_pos_iff_mem.1 (Nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : List α} (h : count a l = 0) : a ∉ l :=
-  fun h' => Nat.ne_of_lt (count_pos.2 h') h.symm
+  fun h' => Nat.ne_of_lt (count_pos_iff_mem.2 h') h.symm
 
-@[simp] theorem count_eq_zero {l : List α} : count a l = 0 ↔ a ∉ l :=
+theorem count_eq_zero {l : List α} : count a l = 0 ↔ a ∉ l :=
   ⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
-@[simp] theorem count_eq_length {l : List α} : count a l = l.length ↔ ∀ b ∈ l, a = b := by
+theorem count_eq_length {l : List α} : count a l = l.length ↔ ∀ b ∈ l, a = b := by
   rw [count, countp_eq_length]
   refine ⟨fun h b hb => ?h₁, fun h b hb => ?h₂⟩
   · refine' Eq.symm _
