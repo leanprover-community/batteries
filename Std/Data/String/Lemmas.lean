@@ -803,7 +803,7 @@ theorem of_eq : ∀ s,
     ValidFor l m r s
   | ⟨⟨_⟩, ⟨_⟩, ⟨_⟩⟩, rfl, rfl, rfl => ⟨⟩
 
-theorem _root_.String.validFor_toSubstring (s : String) : ValidFor [] s.1 [] s.toSubstring :=
+theorem _root_.String.validFor_toSubstring (s : String) : ValidFor [] s.1 [] s :=
   .of_eq _ (by simp [toSubstring]) rfl (by simp [toSubstring, endPos, utf8ByteSize])
 
 theorem str : ∀ {s}, ValidFor l m r s → s.str = ⟨l ++ m ++ r⟩
@@ -975,7 +975,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
 theorem valid : ∀ {s}, ValidFor l m r s → Valid s
   | _, ⟨⟩ => ⟨⟨l, m ++ r, by simp⟩, ⟨l ++ m, r, by simp⟩, Nat.le_add_right ..⟩
 
-theorem _root_.String.valid_toSubstring (s : String) : s.toSubstring.Valid :=
+theorem _root_.String.valid_toSubstring (s : String) : Valid s :=
   s.validFor_toSubstring.valid
 
 theorem bsize : ∀ {s}, Valid s → s.bsize = utf8Len s.toString.1
