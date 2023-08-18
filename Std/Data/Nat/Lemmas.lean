@@ -10,7 +10,127 @@ import Std.Data.Nat.Basic
 
 namespace Nat
 
-/-! ## le/lt -/
+/-! ### rec/cases -/
+
+@[simp] theorem recAux_zero {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive n → motive (n+1)) :
+    Nat.recAux zero succ 0 = zero := rfl
+
+theorem recAux_succ {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive n → motive (n+1)) (n) :
+    Nat.recAux zero succ (n+1) = succ n (Nat.recAux zero succ n) := rfl
+
+@[simp] theorem recAuxOn_zero {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive n → motive (n+1)) :
+    Nat.recAuxOn 0 zero succ = zero := rfl
+
+theorem recAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive n → motive (n+1)) (n) :
+    Nat.recAuxOn (n+1) zero succ = succ n (Nat.recAuxOn n zero succ) := rfl
+
+@[simp] theorem casesAuxOn_zero {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive (n+1)) :
+    Nat.casesAuxOn 0 zero succ = zero := rfl
+
+@[simp] theorem casesAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
+    (succ : ∀ n, motive (n+1)) (n) :
+    Nat.casesAuxOn (n+1) zero succ = succ n := rfl
+
+theorem strongRec_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
+    (t : Nat) : Nat.strongRec ind t = ind t fun m _ => Nat.strongRec ind m := by
+  conv => lhs; unfold Nat.strongRec
+
+theorem strongRecOn_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
+    (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind := Nat.strongRec_eq ..
+
+@[simp] theorem recDiagAux_zero_left {motive : Nat → Nat → Sort _}
+    (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (n) :
+    Nat.recDiagAux zero_left zero_right succ_succ 0 n = zero_left n := by cases n <;> rfl
+
+@[simp] theorem recDiagAux_zero_right {motive : Nat → Nat → Sort _}
+    (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m)
+    (h : zero_left 0 = zero_right 0 := by first | assumption | trivial) :
+    Nat.recDiagAux zero_left zero_right succ_succ m 0 = zero_right m := by cases m; exact h; rfl
+
+theorem recDiagAux_succ_succ {motive : Nat → Nat → Sort _}
+    (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m n) :
+    Nat.recDiagAux zero_left zero_right succ_succ (m+1) (n+1)
+      = succ_succ m n (Nat.recDiagAux zero_left zero_right succ_succ m n) := rfl
+
+@[simp] theorem recDiag_zero_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) :
+    Nat.recDiag (motive:=motive) zero_zero zero_succ succ_zero succ_succ 0 0 = zero_zero := rfl
+
+theorem recDiag_zero_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (n) :
+    Nat.recDiag zero_zero zero_succ succ_zero succ_succ 0 (n+1)
+      = zero_succ n (Nat.recDiag zero_zero zero_succ succ_zero succ_succ 0 n) := by
+  simp [Nat.recDiag]; rfl
+
+theorem recDiag_succ_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m) :
+    Nat.recDiag zero_zero zero_succ succ_zero succ_succ (m+1) 0
+      = succ_zero m (Nat.recDiag zero_zero zero_succ succ_zero succ_succ m 0) := by
+  simp [Nat.recDiag]; cases m <;> rfl
+
+theorem recDiag_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m n) :
+    Nat.recDiag zero_zero zero_succ succ_zero succ_succ (m+1) (n+1)
+      = succ_succ m n (Nat.recDiag zero_zero zero_succ succ_zero succ_succ m n) := rfl
+
+@[simp] theorem recDiagOn_zero_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) :
+    Nat.recDiagOn (motive:=motive) 0 0 zero_zero zero_succ succ_zero succ_succ = zero_zero := rfl
+
+theorem recDiagOn_zero_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (n) :
+    Nat.recDiagOn 0 (n+1) zero_zero zero_succ succ_zero succ_succ
+      = zero_succ n (Nat.recDiagOn 0 n zero_zero zero_succ succ_zero succ_succ) :=
+  Nat.recDiag_zero_succ ..
+
+theorem recDiagOn_succ_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m) :
+    Nat.recDiagOn (m+1) 0 zero_zero zero_succ succ_zero succ_succ
+      = succ_zero m (Nat.recDiagOn m 0 zero_zero zero_succ succ_zero succ_succ) :=
+  Nat.recDiag_succ_zero ..
+
+theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 n → motive 0 (n+1)) (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+    (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) (m n) :
+    Nat.recDiagOn (m+1) (n+1) zero_zero zero_succ succ_zero succ_succ
+      = succ_succ m n (Nat.recDiagOn m n zero_zero zero_succ succ_zero succ_succ) := rfl
+
+@[simp] theorem casesDiagOn_zero_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 (n+1)) (succ_zero : ∀ m, motive (m+1) 0)
+    (succ_succ : ∀ m n, motive (m+1) (n+1)) :
+    Nat.casesDiagOn 0 0 (motive:=motive) zero_zero zero_succ succ_zero succ_succ = zero_zero := rfl
+
+@[simp] theorem casesDiagOn_zero_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 (n+1)) (succ_zero : ∀ m, motive (m+1) 0)
+    (succ_succ : ∀ m n, motive (m+1) (n+1)) (n) :
+    Nat.casesDiagOn 0 (n+1) zero_zero zero_succ succ_zero succ_succ = zero_succ n := rfl
+
+@[simp] theorem casesDiagOn_succ_zero {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 (n+1)) (succ_zero : ∀ m, motive (m+1) 0)
+    (succ_succ : ∀ m n, motive (m+1) (n+1)) (m) :
+    Nat.casesDiagOn (m+1) 0 zero_zero zero_succ succ_zero succ_succ = succ_zero m := rfl
+
+@[simp] theorem casesDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motive 0 0)
+    (zero_succ : ∀ n, motive 0 (n+1)) (succ_zero : ∀ m, motive (m+1) 0)
+    (succ_succ : ∀ m n, motive (m+1) (n+1)) (m n) :
+    Nat.casesDiagOn (m+1) (n+1) zero_zero zero_succ succ_zero succ_succ = succ_succ m n := rfl
+
+/-! ### le/lt -/
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 
@@ -443,7 +563,7 @@ theorem mod_add_div (m k : Nat) : m % k + k * (m / k) = m := by
 
 theorem le_div_iff_mul_le (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y := by
   induction y, k using mod.inductionOn generalizing x with
-    (rw [div_eq]; simp [h]; cases x with simp [zero_le] | succ x => ?_)
+    (rw [div_eq]; simp [h]; cases x with | zero => simp [zero_le] | succ x => ?_)
   | base y k h =>
     simp [not_succ_le_zero x, succ_mul, Nat.add_comm]
     refine Nat.lt_of_lt_of_le ?_ (Nat.le_add_right ..)

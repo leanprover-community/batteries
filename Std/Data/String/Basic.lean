@@ -7,6 +7,8 @@ Authors: Jannis Limperg
 import Std.Data.Char
 import Std.Data.Nat.Lemmas
 
+instance : Coe String Substring := ⟨String.toSubstring⟩
+
 protected theorem String.Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
 | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
 
@@ -79,21 +81,21 @@ namespace String
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.
 -/
-def dropPrefix? (s : String) (pre : String) : Option Substring :=
-  s.toSubstring.dropPrefix? pre.toSubstring
+def dropPrefix? (s : String) (pre : Substring) : Option Substring :=
+  Substring.dropPrefix? s pre
 
 /--
 If `suff` is a suffix of `s`, i.e. `s = t ++ suff`, returns the remainder `t`.
 -/
-def dropSuffix? (s : String) (suff : String) : Option Substring :=
-  s.toSubstring.dropSuffix? suff.toSubstring
+def dropSuffix? (s : String) (suff : Substring) : Option Substring :=
+  Substring.dropSuffix? s suff
 
 /-- `s.stripPrefix pre` will remove `pre` from the beginning of `s` if it occurs there,
 or otherwise return `s`. -/
-def stripPrefix (s pre : String) : String :=
+def stripPrefix (s : String) (pre : Substring) : String :=
   s.dropPrefix? pre |>.map Substring.toString |>.getD s
 
 /-- `s.stripSuffix suff` will remove `suff` from the end of `s` if it occurs there,
 or otherwise return `s`. -/
-def stripSuffix (s suff : String) : String :=
+def stripSuffix (s : String) (suff : Substring) : String :=
   s.dropSuffix? suff |>.map Substring.toString |>.getD s
