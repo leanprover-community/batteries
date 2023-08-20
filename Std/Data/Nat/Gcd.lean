@@ -254,7 +254,7 @@ theorem Coprime.dvd_of_dvd_mul_left (H1 : Coprime k m) (H2 : k ∣ m * n) : k �
 
 theorem Coprime.gcd_mul_left_cancel (m : Nat) (H : Coprime k n) : gcd (k * m) n = gcd m n :=
   have H1 : Coprime (gcd (k * m) n) k := by
-    rw [coprime, Nat.gcd_assoc, H.symm.gcd_eq_one, gcd_one_right]
+    rw [Coprime, Nat.gcd_assoc, H.symm.gcd_eq_one, gcd_one_right]
   Nat.dvd_antisymm
     (dvd_gcd (H1.dvd_of_dvd_mul_left (gcd_dvd_left _ _)) (gcd_dvd_right _ _))
     (gcd_dvd_gcd_mul_left _ _ _)
@@ -296,7 +296,7 @@ theorem Coprime.mul_right (H1 : Coprime k m) (H2 : Coprime k n) : Coprime k (m *
 
 theorem Coprime.coprime_dvd_left (H1 : m ∣ k) (H2 : Coprime k n) : Coprime m n := by
   apply eq_one_of_dvd_one
-  rw [coprime] at H2
+  rw [Coprime] at H2
   have := Nat.gcd_dvd_gcd_of_dvd_left n H1
   rwa [← H2]
 
