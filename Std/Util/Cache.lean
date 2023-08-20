@@ -49,6 +49,9 @@ def Cache (α : Type) :=
   IO.Ref <| Sum (MetaM α) <|
     Task <| Except Exception α
 
+-- This instance is required as we use `Cache` with `initialize`.
+-- One might expect an `Inhabited` instance here,
+-- but there is no way to construct such without using choice anyway.
 instance : Nonempty (Cache α) :=
   inferInstanceAs <| Nonempty (IO.Ref _)
 
