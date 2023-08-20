@@ -27,7 +27,6 @@ namespace Lean.Elab
 open Lean Elab Lean.Parser.Term
 open Meta Command Deriving
 
-/-- -/
 def mkToExprHeader (indVal : InductiveVal) : TermElabM Header := do
   -- The auxiliary functions we produce are `indtype -> Expr`.
   let header ← mkHeader ``ToExpr 1 indVal
@@ -38,7 +37,6 @@ As an optimization, `mkAppN` is pre-expanded out to use `Expr.app` directly. -/
 def mkAppNTerm (f : Term) (args : Array Term) : MetaM Term :=
   args.foldlM (fun a b => `(Expr.app $a $b)) f
 
-/-- -/
 def mkToExprBody (header : Header) (indVal : InductiveVal) (auxFunName : Name) :
     TermElabM Term := do
   let discrs ← mkDiscrs header indVal
@@ -80,7 +78,6 @@ where
       alts := alts.push alt
     return alts
 
-/-- -/
 def mkToTypeExpr (argNames : Array Name) (indVal : InductiveVal) : TermElabM Term := do
   let levels ← indVal.levelParams.toArray.mapM (fun u => `(toLevel.{$(mkIdent u)}))
   forallTelescopeReducing indVal.type fun xs _ => do
@@ -94,7 +91,6 @@ def mkToTypeExpr (argNames : Array Name) (indVal : InductiveVal) : TermElabM Ter
         args := args.push <| ← `(toExpr $a)
     mkAppNTerm (← `((Expr.const $(quote indVal.name) [$levels,*]))) args
 
-/-- -/
 def mkLocalInstanceLetDecls (ctx : Deriving.Context) (argNames : Array Name) :
     TermElabM (Array (TSyntax ``Parser.Term.letDecl)) := do
   let mut letDecls := #[]
@@ -128,7 +124,6 @@ def mkToLevelBinders (indVal : InductiveVal) : TermElabM (TSyntaxArray ``instBin
   indVal.levelParams.toArray.mapM (fun u => `(instBinderF| [ToLevel.{$(mkIdent u)}]))
 
 open TSyntax.Compat in
-/-- -/
 def mkAuxFunction (ctx : Deriving.Context) (i : Nat) : TermElabM Command := do
   let auxFunName := ctx.auxFunNames[i]!
   let indVal     := ctx.typeInfos[i]!
@@ -154,7 +149,6 @@ def mkAuxFunction (ctx : Deriving.Context) (i : Nat) : TermElabM Command := do
     `(private def $(mkIdent auxFunName):ident.{$levels,*} $binders:bracketedBinder* :
         Expr := $body:term)
 
-/-- -/
 def mkMutualBlock (ctx : Deriving.Context) : TermElabM Syntax := do
   let mut auxDefs := #[]
   for i in [:ctx.typeInfos.size] do
@@ -162,7 +156,6 @@ def mkMutualBlock (ctx : Deriving.Context) : TermElabM Syntax := do
   `(mutual $auxDefs:command* end)
 
 open TSyntax.Compat in
-/-- -/
 def mkInstanceCmds (ctx : Deriving.Context) (typeNames : Array Name) :
     TermElabM (Array Command) := do
   let mut instances := #[]
@@ -183,14 +176,12 @@ def mkInstanceCmds (ctx : Deriving.Context) (typeNames : Array Name) :
       instances := instances.push instCmd
   return instances
 
-/-- -/
 def mkToExprInstanceCmds (declNames : Array Name) : TermElabM (Array Syntax) := do
   let ctx ← mkContext "toExpr" declNames[0]!
   let cmds := #[← mkMutualBlock ctx] ++ (← mkInstanceCmds ctx declNames)
   trace[Elab.Deriving.toExpr] "\n{cmds}"
   return cmds
 
-/-- -/
 def mkToExprInstanceHandler (declNames : Array Name) : CommandElabM Bool := do
   if (← declNames.allM isInductive) && declNames.size > 0 then
     let cmds ← liftTermElabM <| mkToExprInstanceCmds declNames
