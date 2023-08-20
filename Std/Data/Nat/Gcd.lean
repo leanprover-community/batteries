@@ -350,9 +350,9 @@ theorem Coprime.mul_dvd_of_dvd_of_dvd (hmn : Coprime m n) (hm : m ∣ a) (hn : n
   let ⟨_, hk⟩ := hm
   hk.symm ▸ Nat.mul_dvd_mul_left _ (hmn.symm.dvd_of_dvd_mul_left (hk ▸ hn))
 
-@[simp] theorem coprime_zero_left (n : Nat) : Coprime 0 n ↔ n = 1 := by simp [coprime]
+@[simp] theorem coprime_zero_left (n : Nat) : Coprime 0 n ↔ n = 1 := by simp [Coprime]
 
-@[simp] theorem coprime_zero_right (n : Nat) : Coprime n 0 ↔ n = 1 := by simp [coprime]
+@[simp] theorem coprime_zero_right (n : Nat) : Coprime n 0 ↔ n = 1 := by simp [Coprime]
 
 theorem coprime_one_left : ∀ n, Coprime 1 n := gcd_one_left
 
@@ -362,7 +362,7 @@ theorem coprime_one_right : ∀ n, Coprime n 1 := gcd_one_right
 
 @[simp] theorem coprime_one_right_eq_true (n) : Coprime n 1 = True := eq_true (coprime_one_right _)
 
-@[simp] theorem coprime_self (n : Nat) : Coprime n n ↔ n = 1 := by simp [coprime]
+@[simp] theorem coprime_self (n : Nat) : Coprime n n ↔ n = 1 := by simp [Coprime]
 
 theorem Coprime.pow_left (n : Nat) (H1 : Coprime m k) : Coprime (m ^ n) k := by
   induction n with
