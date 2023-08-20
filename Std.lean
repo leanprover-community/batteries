@@ -84,6 +84,8 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Lean.ToExpr
+import Std.Lean.ToLevel
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
