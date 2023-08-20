@@ -60,6 +60,7 @@ import Std.Data.String.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Deriving.ToExpr
 import Std.Lean.Expr
 import Std.Lean.Format
 import Std.Lean.HashMap
