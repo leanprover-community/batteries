@@ -50,6 +50,7 @@ def mkToExprBody (header : Header) (indVal : InductiveVal) (auxFunName : Name) :
   let alts ← mkAlts
   `(match $[$discrs],* with $alts:matchAlt*)
 where
+  /-- Create the `match` cases, one per constructor. -/
   mkAlts : TermElabM (Array (TSyntax ``matchAlt)) := do
     let mut alts := #[]
     for ctorName in indVal.ctors do
