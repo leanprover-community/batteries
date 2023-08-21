@@ -109,7 +109,7 @@ def Matcher.ofStream [BEq α] [Stream σ α] (pat : σ) : Matcher α where
 
 /-- Find next match from a given stream
 
-  Runs the stream until it reads a sequence that mathes the sought pattern, then returns the stream
+  Runs the stream until it reads a sequence that matches the sought pattern, then returns the stream
   state at that point and an updated matcher state.
 -/
 partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ) :
