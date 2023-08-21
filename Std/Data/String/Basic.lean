@@ -34,37 +34,33 @@ def m := Matcher.ofString "abba"
 #eval Array.size <| m.findAll "abbabbabba" -- 3
 ```
 -/
-abbrev Matcher := Array.Matcher Char
+structure Matcher extends Array.Matcher Char where
+  /-- The pattern for the matcher -/
+  pattern : Substring
 
 /-- Make KMP matcher from pattern substring -/
-@[inline] def Matcher.ofSubstring (pattern : Substring) : Matcher :=
-  Array.Matcher.ofStream pattern
+@[inline] def Matcher.ofSubstring (pattern : Substring) : Matcher where
+  toMatcher := Array.Matcher.ofStream pattern
+  pattern := pattern
 
 /-- Make KMP matcher from pattern string -/
 @[inline] def Matcher.ofString (pattern : String) : Matcher :=
   Matcher.ofSubstring pattern
 
-/-- The string pattern for the matcher -/
-def Matcher.pattern (m : Matcher) : String :=
-  m.table.foldl (fun s (c,_) => s.push c) ""
-
 /-- The byte size of the string pattern for the matcher -/
-def Matcher.patternSize (m : Matcher) : Nat :=
-  String.Pos.byteIdx <| m.table.foldl (fun n (c,_) => n + c) 0
+abbrev Matcher.patternSize (m : Matcher) : Nat := m.pattern.bsize
 
 /-- Find all substrings of `s` matching `m.pattern`. -/
 partial def Matcher.findAll (m : Matcher) (s : Substring) : Array Substring :=
-  loop s m #[]
+  loop s m.toMatcher #[]
 where
-  /-- Byte size of match pattern -/
-  size := m.patternSize
   /-- Accumulator loop for `String.Matcher.findAll` -/
-  loop (s : Substring) (m : Matcher) (occs : Array Substring) : Array Substring :=
-    match m.next? s with
+  loop (s : Substring) (am : Array.Matcher Char) (occs : Array Substring) : Array Substring :=
+    match am.next? s with
     | none => occs
-    | some (s, m) =>
-      loop s m <| occs.push { s with
-        startPos := ⟨s.startPos.byteIdx - size⟩
+    | some (s, am) =>
+      loop s am <| occs.push { s with
+        startPos := ⟨s.startPos.byteIdx - m.patternSize⟩
         stopPos := s.startPos }
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
