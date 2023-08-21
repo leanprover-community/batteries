@@ -163,7 +163,7 @@ end Substring
 
 namespace String
 
-@[inherit_doc Substring.findSubstr?]
+@[inherit_doc Substring.findAllSubstr]
 abbrev findAllSubstr (s pattern : Substring) : Array Substring :=
   (String.Matcher.ofSubstring pattern).findAll s
 
