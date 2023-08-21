@@ -37,10 +37,12 @@ export default function(props) {
       changes: { [props.pos.uri]: [{ range: props.range, newText: props.suggestion }] }
     })
   }
+  const className =
+    (props.classExtra === null) ? 'link pointer dim' : ('link pointer dim ' + props.classExtra)
   return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
     props.header,
     props.preInfo,
-    e('a', {onClick, className: 'link pointer dim', title: 'Apply suggestion'}, props.suggestion),
+    e('a', {onClick, className, title: 'Apply suggestion'}, props.suggestion),
     props.postInfo
   ]))
 }"
@@ -66,16 +68,18 @@ const e = React.createElement;
 export default function(props) {
   const editorConnection = React.useContext(EditorContext)
 
-  function makeSuggestion({suggestion, preInfo, postInfo}) {
+  function makeSuggestion({suggestion, preInfo, postInfo, classExtra}) {
     function onClick() {
       editorConnection.api.applyEdit({
         changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
       })
     }
+    const className =
+      (props.classExtra === null) ? 'link pointer dim' : ('link pointer dim ' + props.classExtra)
     return e('li', {className:'font-code pre-wrap'},
       preInfo,
       e('a',
-        {onClick, className: 'link pointer dim', title: 'Apply suggestion'},
+        {onClick, className, title: 'Apply suggestion'},
         suggestion),
       postInfo
     )
@@ -141,6 +145,10 @@ structure Suggestion (kind : Name) where
   preInfo : String := ""
   /-- Info to be printed immediately after replacement syntax in a widget. -/
   postInfo : String := ""
+  /-- String that will be appended to the `className` of the suggestion's HTML element in the
+  infoview (with a space). E.g., `classExtra := some "red"` will yield
+  `className:'link pointer dim red'`. -/
+  classExtra : Option String := none
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
@@ -164,7 +172,7 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
 
 /-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM (Suggestion `term) :=
-  return ⟨← delabToRefinableSyntax e, "", "", e⟩
+  return ⟨← delabToRefinableSyntax e, "", "", none, e⟩
 
 /-- Add a "try this" suggestion. This has three effects:
 
@@ -179,6 +187,8 @@ The parameters are:
   * `suggestion`: the replacement syntax;
   * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
+  * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
+    HTML element (e.g. `"red"`)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
@@ -203,7 +213,8 @@ def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
     let range := map.utf8RangeToLspRange range
     let json := Json.mkObj [("suggestion", text), ("range", toJson range),
-      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("header", header)]
+      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("classExtra", s.classExtra),
+      ("header", header)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
@@ -219,6 +230,8 @@ The parameters are:
   * `suggestion`: the replacement syntax;
   * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
+  * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
+    HTML element (e.g. `"red"`)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
@@ -236,11 +249,12 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
     let map ← getFileMap
     let start := findLineStart map.source range.start
     let body := map.source.findAux (· ≠ ' ') range.start start
-    let suggestions ← suggestions.mapM fun { suggestion, preInfo, postInfo, .. } => do
+    let suggestions ← suggestions.mapM fun { suggestion, preInfo, postInfo, classExtra, .. } => do
       let text ← PrettyPrinter.ppCategory kind suggestion
       let text := Format.prettyExtra text
         (indent := (body - start).1) (column := (range.start - start).1)
-      pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo)]
+      pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo),
+        ("classExtra", classExtra)]
     let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
