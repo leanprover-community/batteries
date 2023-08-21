@@ -721,9 +721,9 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
 @[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
-| [], _        => rfl
-| _a::_, 0     => rfl
-| _a::l, n+1   => get!_eq_getD l n
+  | [], _      => rfl
+  | _a::_, 0   => rfl
+  | _a::l, n+1 => get!_eq_getD l n
 
 /-! ### take and drop -/
 
