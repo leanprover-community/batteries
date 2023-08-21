@@ -99,7 +99,7 @@ structure Matcher (α) where
   /-- Current longest matching prefix -/
   state : Fin (table.size+1) := 0
 
-/-- Make a KMP matcher for a given a pattern array -/
+/-- Make a KMP matcher for a given  pattern array -/
 def Matcher.ofArray [BEq α] (pat : Array α) : Matcher α where
   table := mkPrefixTable pat
 
