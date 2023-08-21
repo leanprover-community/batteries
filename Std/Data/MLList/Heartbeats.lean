@@ -13,12 +13,20 @@ import Std.Lean.CoreM
 open Lean.Core (CoreM)
 
 /-- Take an initial segment of a monadic lazy list,
-trying to leave at least `percent` of the remaining allowed heartbeats. -/
+stopping when there is less than `percent` of the remaining allowed heartbeats.
+
+If `getMaxHeartbeats` returns `0`, then this passes through the original list unmodified.
+
+The `initial` heartbeat counter is recorded when the first element of the list is requested.
+Then each time an element is requested from the wrapped list the heartbeat counter is checked, and
+if `current * 100 / initial < percent` then that element is returned,
+but no further elements.
+-/
 def MLList.whileAtLeastHeartbeatsPercent [Monad m] [MonadLiftT CoreM m]
     (L : MLList m α) (percent : Nat := 10) : MLList m α :=
   MLList.squash fun _ => do
     if (← getMaxHeartbeats) = 0 then do
       return L
     let initialHeartbeats ← getRemainingHeartbeats
-    pure <| L.takeWhileM fun _ => do
-      return .up <| (← getRemainingHeartbeats) * 100 / initialHeartbeats > percent
+    return L.takeUpToFirstM fun _ => do
+      pure <| .up <| (← getRemainingHeartbeats) * 100 / initialHeartbeats < percent
