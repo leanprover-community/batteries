@@ -34,6 +34,7 @@ import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.MLList.Basic
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
@@ -91,6 +92,7 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
+import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
@@ -119,5 +121,6 @@ import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
+import Std.Util.Pickle
 import Std.Util.TermUnsafe
 import Std.WF

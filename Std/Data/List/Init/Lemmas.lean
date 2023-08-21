@@ -15,7 +15,7 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get get! reverseAux eraseIdx map join find? findSome?
+attribute [simp] get reverseAux eraseIdx map join find? findSome?
   replace elem lookup drop take foldl foldr zipWith unzip range.loop enumFrom
   intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
   filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
@@ -91,7 +91,7 @@ theorem map_nil {f : α → β} : map f [] = [] := rfl
 theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
 
 @[simp] theorem map_append (f : α → β) : ∀ l₁ l₂, map f (l₁ ++ l₂) = map f l₁ ++ map f l₂ := by
-  intro l₁ <;> induction l₁ <;> intros <;> simp_all
+  intro l₁; induction l₁ <;> intros <;> simp_all
 
 @[simp] theorem map_id (l : List α) : map id l = l := by induction l <;> simp_all
 
