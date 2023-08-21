@@ -343,6 +343,22 @@ partial def runState [Monad m] (L : MLList (StateT.{u} σ m) α) (s : σ) : MLLi
 def runState' [Monad m] (L : MLList (StateT.{u} σ m) α) (s : σ) : MLList m α :=
   L.runState s |>.map (·.1)
 
+/-- Run a lazy list in a `ReaderT` monad on some fixed state. -/
+partial def runReader [Monad m] (L : MLList (ReaderT.{u, u} ρ m) α) (r : ρ) :
+    MLList m α :=
+  squash fun _ =>
+    return match ← (uncons L).run r with
+    | none => nil
+    | some (a, L') => cons a (L'.runReader r)
+
+/-- Run a lazy list in a `StateRefT'` monad on some initial state. -/
+partial def runStateRef [Monad m] [MonadLiftT (ST ω) m] (L : MLList (StateRefT' ω σ m) α) (s : σ) :
+    MLList m α :=
+  squash fun _ =>
+    return match ← (uncons L).run s with
+    | (none, _) => nil
+    | (some (a, L'), s') => cons a (L'.runStateRef s')
+
 /-- Return the head of a monadic lazy list if it exists, as an `Option` in the monad. -/
 def head? [Monad m] (L : MLList m α) : m (Option α) := return (← L.uncons).map (·.1)
 

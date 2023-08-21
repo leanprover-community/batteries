@@ -99,3 +99,7 @@ def stripPrefix (s : String) (pre : Substring) : String :=
 or otherwise return `s`. -/
 def stripSuffix (s : String) (suff : Substring) : String :=
   s.dropSuffix? suff |>.map Substring.toString |>.getD s
+
+/-- Count the occurrences of a character in a string. -/
+def count (s : String) (c : Char) : Nat :=
+  s.foldl (fun n d => if d = c then n + 1 else n) 0

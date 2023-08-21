@@ -124,5 +124,6 @@ import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
+import Std.Util.Pickle
 import Std.Util.TermUnsafe
 import Std.WF
