@@ -520,13 +520,28 @@ theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
   | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
 
-theorem get?_eq_get : ∀ {l : List α} {n} h, l.get? n = some (get l ⟨n, h⟩)
+theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
+
+theorem get!_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
+  | _ :: _, 0, _ => rfl
+  | _ :: l, _+1, _ => get?_eq_get (l := l) _
+
+theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
+    (a::l).get! (n+1) = get! l n := rfl
+
+theorem get!_cons_zero [Inhabited α] (l : List α) (a : α) : (a::l).get! 0 = a := rfl
+
+theorem get!_nil [Inhabited α] (n : Nat) : [].get! n = (default : α) := rfl
 
 theorem get?_len_le : ∀ {l : List α} {n}, length l ≤ n → l.get? n = none
   | [], _, _ => rfl
   | _ :: l, _+1, h => get?_len_le (l := l) <| Nat.le_of_succ_le_succ h
+
+theorem get!_len_le [Inhabited α] : ∀ {l : List α} {n}, length l ≤ n → l.get! n = (default : α)
+  | [], _, _ => rfl
+  | _ :: l, _+1, h => get!_len_le (l := l) <| Nat.le_of_succ_le_succ h
 
 theorem get?_eq_some : l.get? n = some a ↔ ∃ h, get l ⟨n, h⟩ = a :=
   ⟨fun e =>
@@ -704,6 +719,11 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | [], _, _ => rfl
   | _a::_, 0, _ => rfl
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
+
+@[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
+  | [], _      => rfl
+  | _a::_, 0   => rfl
+  | _a::l, n+1 => get!_eq_getD l n
 
 /-! ### take and drop -/
 
