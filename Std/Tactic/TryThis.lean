@@ -213,7 +213,7 @@ def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
     let range := map.utf8RangeToLspRange range
     let json := Json.mkObj [("suggestion", text), ("range", toJson range),
-      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("classExtra", s.classExtra),
+      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("classExtra", toJson s.classExtra),
       ("header", header)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
@@ -254,7 +254,7 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
       let text := Format.prettyExtra text
         (indent := (body - start).1) (column := (range.start - start).1)
       pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo),
-        ("classExtra", classExtra)]
+        ("classExtra", toJson classExtra)]
     let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
