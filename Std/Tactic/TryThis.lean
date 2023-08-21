@@ -39,8 +39,9 @@ export default function(props) {
   }
   return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
     props.header,
+    props.preInfo,
     e('a', {onClick, className: 'link pointer dim', title: 'Apply suggestion'}, props.suggestion),
-    props.info
+    props.postInfo
   ]))
 }"
 
@@ -65,17 +66,18 @@ const e = React.createElement;
 export default function(props) {
   const editorConnection = React.useContext(EditorContext)
 
-  function makeSuggestion({suggestion, info}) {
+  function makeSuggestion({suggestion, preInfo, postInfo}) {
     function onClick() {
       editorConnection.api.applyEdit({
         changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
       })
     }
     return e('li', {className:'font-code pre-wrap'},
-        e('a',
-          {onClick, className: 'link pointer dim', title: 'Apply suggestion'},
-          suggestion),
-        info
+      preInfo,
+      e('a',
+        {onClick, className: 'link pointer dim', title: 'Apply suggestion'},
+        suggestion),
+      postInfo
     )
   }
   const s = props.suggestions.map(makeSuggestion)
@@ -128,13 +130,17 @@ each replacement.
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
 
-/-- Holds a `suggestion` for replacement, along with an `info` string to be printed immediately
-after that suggestion and optional `MessageData` to represent the suggestion in logs. -/
+/-- Holds a `suggestion` for replacement, along with `preInfo` and `postInfo` strings to be printed
+immediately before and after that suggestion, respectively. It also includes an optional
+`MessageData` to represent the suggestion in logs; by default, this is `none`, and `suggestion` is
+used. -/
 structure Suggestion (kind : Name) where
   /-- Syntax to be used as a replacement via a code action. -/
   suggestion : TSyntax kind
-  /-- Info to be printed immediately after replacement syntax. -/
-  info : String := ""
+  /-- Info to be printed immediately before replacement syntax in a widget. -/
+  preInfo : String := ""
+  /-- Info to be printed immediately after replacement syntax in a widget. -/
+  postInfo : String := ""
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
@@ -158,7 +164,7 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
 
 /-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM (Suggestion `term) :=
-  return ⟨← delabToRefinableSyntax e, "", e⟩
+  return ⟨← delabToRefinableSyntax e, "", "", e⟩
 
 /-- Add a "try this" suggestion. This has three effects:
 
@@ -171,7 +177,8 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `s`: a `Suggestion`, which contains
   * `suggestion`: the replacement syntax;
-  * `info`: a string shown immediately after the replacement syntax in the widget message (only);
+  * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
+  * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
@@ -195,8 +202,8 @@ def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
     { start := map.lineStart (map.toPosition stxRange.start).line
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
     let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [("suggestion", text), ("range", toJson range), ("info", s.info),
-      ("header", header)]
+    let json := Json.mkObj [("suggestion", text), ("range", toJson range),
+      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("header", header)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
@@ -210,7 +217,8 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestions`: an array of `Suggestion`s, which each contain
   * `suggestion`: the replacement syntax;
-  * `info`: a string shown immediately after the replacement syntax in the widget message (only);
+  * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
+  * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
@@ -228,11 +236,11 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
     let map ← getFileMap
     let start := findLineStart map.source range.start
     let body := map.source.findAux (· ≠ ' ') range.start start
-    let suggestions ← suggestions.mapM fun ⟨suggestion, info, _⟩ => do
+    let suggestions ← suggestions.mapM fun { suggestion, preInfo, postInfo, .. } => do
       let text ← PrettyPrinter.ppCategory kind suggestion
       let text := Format.prettyExtra text
         (indent := (body - start).1) (column := (range.start - start).1)
-      pure <| Json.mkObj [("suggestion", text), ("info", info)]
+      pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo)]
     let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
@@ -246,16 +254,16 @@ private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) :
     TermElabM (Suggestion `tactic) := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
-  let tac ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
-  let msg := if mvars.isEmpty then m!"exact {e}" else m!"refine {e}"
-  let info ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
+  let suggestion ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
+  let messageData? := if mvars.isEmpty then m!"exact {e}" else m!"refine {e}"
+  let postInfo ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
     let mut str := "\nRemaining subgoals:"
     for g in mvars do
       -- TODO: use a MessageData.ofExpr instead of rendering to string
       let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
       str := str ++ Format.pretty ("\n⊢ " ++ e)
     pure str
-  pure ⟨tac, info, msg⟩
+  pure { suggestion, postInfo, messageData? }
 
 /-- Add an `exact e` or `refine e` suggestion.
 
