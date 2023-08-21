@@ -6,17 +6,17 @@ import Std.Data.String.Basic
 /-- Matcher for pattern "abba" -/
 def m := String.Matcher.ofString "abba"
 
-#guard Option.isSome (m.find? "AbbabbA") = false
+#guard ! Option.isSome (m.find? "AbbabbA")
 
-#guard Option.isSome (m.find? "aabbaa") = true
+#guard Option.isSome (m.find? "aabbaa")
 
 #guard Array.size (m.findAll "abbabba") = 2
 
 #guard Array.size (m.findAll "abbabbabba") = 3
 
-#guard Option.isSome ("xyyxx".findSubstr? "xy") = true
+#guard Option.isSome ("xyyxx".findSubstr? "xy")
 
-#guard Option.isSome ("xyyxx".findSubstr? "xyx") = false
+#guard ! Option.isSome ("xyyxx".findSubstr? "xyx")
 
 #guard Array.size ("xyyxx".findAllSubstr "xyx") = 0
 
