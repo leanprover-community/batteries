@@ -344,7 +344,8 @@ def runState' [Monad m] (L : MLList (StateT.{u} σ m) α) (s : σ) : MLList m α
   L.runState s |>.map (·.1)
 
 /-- Run a lazy list in a `ReaderT` monad on some fixed state. -/
-partial def runReader [Monad m] (L : MLList (ReaderT ρ m) α) (r : ρ) : MLList m α :=
+partial def runReader [Monad m] (L : MLList (ReaderT.{u, u} ρ m) α) (r : ρ) :
+    MLList m α :=
   squash fun _ =>
     return match ← (uncons L).run r with
     | none => nil
