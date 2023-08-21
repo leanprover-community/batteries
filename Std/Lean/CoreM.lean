@@ -14,7 +14,9 @@ open Lean
 /--
 Count the number of heartbeats used during a monadic function.
 
-Remember that user facing heartbeats (e.g. as used in `set_option maxHeartbeats`) differ from the internally tracked heartbeats by a factor of 1000, so you need to divide the results here by 1000 before comparing with user facing numbers.
+Remember that user facing heartbeats (e.g. as used in `set_option maxHeartbeats`) 
+differ from the internally tracked heartbeats by a factor of 1000, 
+so you need to divide the results here by 1000 before comparing with user facing numbers.
 -/
 -- See also `Lean.withSeconds`
 def Lean.withHeartbeats [Monad m] [MonadLiftT BaseIO m] (x : m α) : m (α × Nat) := do
