@@ -113,7 +113,7 @@ def Matcher.ofStream [BEq α] [Stream σ α] (pat : σ) : Matcher α where
   state at that point and an updated matcher state.
 -/
 partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ) :
-  Option (σ × Matcher α) :=
+    Option (σ × Matcher α) :=
   match Stream.next? stream with
   | none => none
   | some (x, stream) =>
