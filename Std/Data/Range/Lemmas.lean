@@ -93,7 +93,7 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
     suffices ∀ fuel i hl b, forIn'.loop r.start r.stop r.step (fun x _ => f x) fuel i hl b =
         forIn.loop f fuel i r.stop r.step b from (this _ ..).symm
     intro fuel; induction fuel <;> intro i hl b <;>
-      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> simp
+      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> try simp
     · simp [if_neg (Nat.not_le.2 ‹_›)]
     · simp [if_pos (Nat.not_lt.1 ‹_›)]
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..

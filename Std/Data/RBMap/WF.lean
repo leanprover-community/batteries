@@ -91,7 +91,7 @@ theorem insert_setBlack {t : RBNode α} :
 
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
-  induction t <;> unfold ins <;> simp [*]
+  induction t <;> unfold ins <;> try simp [*]
   split <;> cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
 
 /-- The `ins` function preserves the ordering invariants. -/
@@ -234,7 +234,7 @@ protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.
 
 protected theorem All.balLeft
     (hl : l.All p) (hv : p v) (hr : r.All p) : (balLeft l v r).All p := by
-  unfold balLeft; split <;> simp_all; split <;> simp_all [All.setRed]
+  unfold balLeft; split <;> (try simp_all); split <;> simp_all [All.setRed]
 
 /-- The `balLeft` function preserves the ordering invariants. -/
 protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
@@ -268,7 +268,7 @@ protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n
 
 protected theorem All.balRight
     (hl : l.All p) (hv : p v) (hr : r.All p) : (balRight l v r).All p := by
-  unfold balRight; split <;> simp_all; split <;> simp_all [All.setRed]
+  unfold balRight; split <;> (try simp_all); split <;> simp_all [All.setRed]
 
 /-- The `balRight` function preserves the ordering invariants. -/
 protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
@@ -301,7 +301,7 @@ protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed 
         let ⟨c, h⟩ := RedRed.balance1 (.redred trivial ha hb) hc; .redred rfl h (.black hd hr)
 
 protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p := by
-  unfold append; split <;> simp [*]
+  unfold append; split <;> try simp [*]
   · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
     have := hb.append hc; split <;> simp_all
   · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr

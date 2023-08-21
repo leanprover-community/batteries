@@ -258,7 +258,7 @@ theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     (h : m.buckets.WF) : (erase m k).buckets.WF := by
   dsimp [erase, cond]; split
   · refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
-    · simp; exact H.sublist (List.eraseP_sublist _)
+    · exact H.sublist (List.eraseP_sublist _)
     · exact H _ (List.mem_of_mem_eraseP h)
   · exact h
 

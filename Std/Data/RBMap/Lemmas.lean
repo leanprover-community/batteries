@@ -281,7 +281,7 @@ theorem lowerBound?_mem {t : RBNode α} (h : t.lowerBound? cut none = some x) : 
   (lowerBound?_mem_lb h).resolve_right (fun.)
 
 theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
-  simp; induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
+  induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
 
 theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t) :
     (∃ x, t.lowerBound? cut none = some x) ↔ ∃ x ∈ t, cut x ≠ .lt := by
@@ -456,11 +456,11 @@ theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairw
 
 @[simp] theorem balLeft_toList {l : RBNode α} {v r} :
     (l.balLeft v r).toList = l.toList ++ v :: r.toList := by
-  unfold balLeft; split <;> simp; split <;> simp
+  unfold balLeft; split <;> (try simp); split <;> simp
 
 @[simp] theorem balRight_toList {l : RBNode α} {v r} :
     (l.balRight v r).toList = l.toList ++ v :: r.toList := by
-  unfold balRight; split <;> simp; split <;> simp
+  unfold balRight; split <;> (try simp); split <;> simp
 
 theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
   induction t <;> simp [*, size]; rfl
