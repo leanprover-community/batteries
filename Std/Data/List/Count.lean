@@ -255,8 +255,8 @@ theorem count_erase (a b : α) :
         rw [if_pos ha, if_neg hc, Nat.add_zero, Nat.add_zero]
       · rw [if_neg ha, Nat.sub_zero, Nat.sub_zero]
 
-@[simp] theorem count_erase_self (a : α) (l : List α) : count a (List.erase l a) = count a l - 1 := by
-  rw [count_erase, if_pos rfl]
+@[simp] theorem count_erase_self (a : α) (l : List α) :
+    count a (List.erase l a) = count a l - 1 := by rw [count_erase, if_pos rfl]
 
 @[simp] theorem count_erase_of_ne (ab : a ≠ b) (l : List α) : count a (l.erase b) = count a l :=
   by rw [count_erase, if_neg ab, Nat.sub_zero]
