@@ -205,10 +205,10 @@ def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 @[nolint docBlame] scoped instance Slow.instDecidableEMem [DecidableEq α] {t : RBNode α} :
     Decidable (EMem x t) := inferInstanceAs (Decidable (Any ..))
 
-@[nolint docBlame] scoped instance Slow.instDecidableMemP {t : RBNode α} :
+@[nolint docBlame] scoped instance Slow.instDecidableMemP {cut} {t : RBNode α} :
     Decidable (MemP cut t) := inferInstanceAs (Decidable (Any ..))
 
-@[nolint docBlame] scoped instance Slow.instDecidableMem {t : RBNode α} :
+@[nolint docBlame] scoped instance Slow.instDecidableMem {cmp} {t : RBNode α} :
     Decidable (Mem cmp x t) := inferInstanceAs (Decidable (Any ..))
 
 /--
@@ -235,14 +235,14 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 -/
 def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
 
-theorem cmpLT_iff [TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpLT_iff {cmp} [TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
 instance (cmp) [TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
 
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
 def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
 
-theorem cmpEq_iff [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpEq_iff {cmp} [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
 instance (cmp) [TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
 
@@ -591,7 +591,7 @@ inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
   | insert : WF cmp t → WF cmp (t.insert cmp a)
   /-- Erasing from a well-formed tree yields another well-formed tree.
   (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
-  | erase : WF cmp t → WF cmp (t.erase cut)
+  | erase {cut} : WF cmp t → WF cmp (t.erase cut)
 
 end RBNode
 
@@ -608,6 +608,7 @@ def RBSet (α : Type u) (cmp : α → α → Ordering) : Type u := {t : RBNode �
 @[inline] def mkRBSet (α : Type u) (cmp : α → α → Ordering) : RBSet α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
 
 namespace RBSet
+variable {cmp : α → α → Ordering}
 
 /-- `O(1)`. Construct a new empty tree. -/
 @[inline] def empty : RBSet α cmp := mkRBSet ..
@@ -715,7 +716,7 @@ if it exists.
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,
 and `R` holds pairwise between them. The tree structure is ignored.
 -/
-@[inline] def all₂ (R : α → β → Bool) (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : Bool :=
+@[inline] def all₂ {cmpα cmpβ} (R : α → β → Bool) (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : Bool :=
   t₁.1.all₂ R t₂.1
 
 /-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
@@ -735,7 +736,7 @@ instance : Membership α (RBSet α cmp) := ⟨Mem⟩
 @[nolint docBlame] scoped instance Slow.instDecidableEMem [DecidableEq α] {t : RBSet α cmp} :
     Decidable (EMem x t) := inferInstanceAs (Decidable (Any ..))
 
-@[nolint docBlame] scoped instance Slow.instDecidableMemP {t : RBSet α cmp} :
+@[nolint docBlame] scoped instance Slow.instDecidableMemP {cut} {t : RBSet α cmp} :
     Decidable (MemP cut t) := inferInstanceAs (Decidable (Any ..))
 
 @[nolint docBlame] scoped instance Slow.instDecidableMem {t : RBSet α cmp} :
@@ -823,7 +824,7 @@ def mergeWith (mergeFn : α → α → α) (t₁ t₂ : RBSet α cmp) : RBSet α
 `O(n₁ * log (n₁ + n₂))`. Intersects the maps `t₁` and `t₂`
 using `mergeFn a b` to produce the new value.
 -/
-def intersectWith (cmp : α → β → Ordering) (mergeFn : α → β → γ)
+def intersectWith {cmpα cmpβ cmpγ} (cmp : α → β → Ordering) (mergeFn : α → β → γ)
     (t₁ : RBSet α cmpα) (t₂ : RBSet β cmpβ) : RBSet γ cmpγ :=
   t₁.foldl (init := ∅) fun acc a =>
     match t₂.findP? (cmp a) with
@@ -865,7 +866,7 @@ instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyColle
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Inhabited (RBMap α β cmp) := ⟨∅⟩
 
 /-- `O(1)`. Construct a new tree with one key-value pair `k, v`. -/
-@[inline] def RBMap.single (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
+@[inline] def RBMap.single {cmp} (k : α) (v : β) : RBMap α β cmp := RBSet.single (k, v)
 
 namespace RBMap
 variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering}
@@ -1047,7 +1048,8 @@ smaller than or equal to `k`, if it exists.
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,
 and `R` holds pairwise between them. The tree structure is ignored.
 -/
-@[inline] def all₂ (R : α × β → γ × δ → Bool) (t₁ : RBMap α β cmpα) (t₂ : RBMap γ δ cmpγ) : Bool :=
+@[inline] def all₂ {cmpα cmpγ}
+    (R : α × β → γ × δ → Bool) (t₁ : RBMap α β cmpα) (t₂ : RBMap γ δ cmpγ) : Bool :=
   RBSet.all₂ R t₁ t₂
 
 /-- Asserts that `t₁` and `t₂` have the same set of keys (up to equality). -/

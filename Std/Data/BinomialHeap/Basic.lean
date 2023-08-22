@@ -226,7 +226,7 @@ private def FindMin.HasSize (res : FindMin α) (n : Nat) : Prop :=
     (∀ s, (res.before s).realSize = m + s.realSize) ∧
     n = m + res.node.realSize + res.next.realSize + 1
 
-private theorem Heap.realSize_findMin {s : Heap α}
+private theorem Heap.realSize_findMin {s : Heap α} {le res}
     (m) (hk : ∀ s, (k s).realSize = m + s.realSize)
     (eq : n = m + s.realSize) (hres : res.HasSize n) :
     (s.findMin le k res).HasSize n :=
@@ -245,7 +245,7 @@ theorem HeapNode.realSize_toHeap (s : HeapNode α) : s.toHeap.realSize = s.realS
   | .nil => (Nat.zero_add _).symm
   | .node a c s => by simp [toHeap.go, go, Nat.add_assoc, Nat.add_left_comm]
 
-theorem Heap.realSize_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
+theorem Heap.realSize_deleteMin {le} {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s.realSize = s'.realSize + 1 := by
   cases s with cases eq | cons r a c s => ?_
   have : (s.findMin le (cons r a c) ⟨id, a, c, s⟩).HasSize (c.realSize + s.realSize + 1) :=
@@ -257,7 +257,7 @@ theorem Heap.realSize_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s'
     rw [realSize, Nat.add_right_comm, ih₂]
     simp only [realSize_merge, HeapNode.realSize_toHeap, ih₁, Nat.add_assoc, Nat.add_left_comm]
 
-theorem Heap.realSize_tail? {s : Heap α} : s.tail? le = some s' →
+theorem Heap.realSize_tail? {le} {s : Heap α} : s.tail? le = some s' →
     s.realSize = s'.realSize + 1 := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
@@ -344,16 +344,16 @@ def Heap.WF (le : α → α → Bool) (n : Nat) : Heap α → Prop
   | .nil => True
   | .cons r a c s => n ≤ r ∧ c.WF le a r ∧ s.WF le (r+1)
 
-theorem Heap.WF.nil : Heap.nil.WF le n := trivial
+theorem Heap.WF.nil {le} : Heap.nil.WF (α := α) le n := trivial
 
-theorem Heap.WF.singleton : (Heap.singleton a).WF le 0 := ⟨by decide, rfl, ⟨⟩⟩
+theorem Heap.WF.singleton {le} : (Heap.singleton a).WF le 0 := ⟨by decide, rfl, ⟨⟩⟩
 
-theorem Heap.WF.of_rankGT (hlt : s.rankGT n) (h : Heap.WF le n' s) : s.WF le (n+1) :=
+theorem Heap.WF.of_rankGT {le} (hlt : s.rankGT n) (h : Heap.WF le n' s) : s.WF le (n+1) :=
   match s with
   | .nil => trivial
   | .cons .. => let ⟨_, h₂, h₃⟩ := h; ⟨hlt, h₂, h₃⟩
 
-theorem Heap.WF.of_le (hle : n ≤ n') (h : Heap.WF le n' s) : s.WF le n :=
+theorem Heap.WF.of_le {le} (hle : n ≤ n') (h : Heap.WF le n' s) : s.WF le n :=
   match s with
   | .nil => trivial
   | .cons .. => let ⟨h₁, h₂, h₃⟩ := h; ⟨Nat.le_trans hle h₁, h₂, h₃⟩
@@ -363,12 +363,12 @@ theorem Heap.rankGT.of_le (h : Heap.rankGT s n) (h' : n' ≤ n) : s.rankGT n' :=
   | .nil => trivial
   | .cons .. => Nat.lt_of_le_of_lt h' h
 
-theorem Heap.WF.rankGT (h : Heap.WF lt (n+1) s) : s.rankGT n :=
+theorem Heap.WF.rankGT {le} (h : Heap.WF le (n+1) s) : s.rankGT n :=
   match s with
   | .nil => trivial
   | .cons .. => Nat.lt_of_succ_le h.1
 
-theorem Heap.WF.merge' (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
+theorem Heap.WF.merge' {le} (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
     (merge le s₁ s₂).WF le n ∧ ((s₁.rankGT n ↔ s₂.rankGT n) → (merge le s₁ s₂).rankGT n) := by
   unfold merge; split
   · exact ⟨h₂, fun h => h.1 h₁⟩
@@ -404,14 +404,14 @@ theorem Heap.WF.merge' (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
         fun _ => Nat.lt_succ_of_le hr₁⟩
 termination_by _ => s₁.length + s₂.length
 
-theorem Heap.WF.merge (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) : (merge le s₁ s₂).WF le n :=
+theorem Heap.WF.merge {le} (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) : (merge le s₁ s₂).WF le n :=
   (merge' h₁ h₂).1
 
-theorem HeapNode.WF.rank_eq : ∀ {n} {s : HeapNode α}, s.WF le a n → s.rank = n
+theorem HeapNode.WF.rank_eq {le} : ∀ {n} {s : HeapNode α}, s.WF le a n → s.rank = n
   | _, .nil, h => h.symm
   | _, .node .., ⟨_, rfl, _, _, h⟩ => congrArg Nat.succ (rank_eq h)
 
-theorem HeapNode.WF.toHeap {s : HeapNode α} (h : s.WF le a n) : s.toHeap.WF le 0 :=
+theorem HeapNode.WF.toHeap {le} {s : HeapNode α} (h : s.WF le a n) : s.toHeap.WF le 0 :=
   go h trivial
 where
   go {res} : ∀ {n s}, s.WF le a n → res.WF le s.rank → (HeapNode.toHeap.go s s.rank res).WF le 0
@@ -436,7 +436,7 @@ structure FindMin.WF (le : α → α → Bool) (res : FindMin α) where
   next : res.next.WF le (rank + 1)
 
 /-- The conditions under which `findMin` is well-formed. -/
-def Heap.WF.findMin {s : Heap α} (h : s.WF le n) (hr : res.WF le)
+def Heap.WF.findMin {le} {s : Heap α} (h : s.WF le n) {res} (hr : res.WF le)
     (hk : ∀ {s}, s.WF le n → (k s).WF le 0) : ((s : Heap α).findMin le k res).WF le :=
   match s with
   | .nil => hr
@@ -447,7 +447,7 @@ def Heap.WF.findMin {s : Heap α} (h : s.WF le n) (hr : res.WF le)
     | true  => exact findMin h₃ hr (fun h => hk ⟨h₁, h₂, h⟩)
     | false => exact findMin h₃ ⟨_, fun h => hk (h.of_le h₁), h₂, h₃⟩ (fun h => hk ⟨h₁, h₂, h⟩)
 
-theorem Heap.WF.deleteMin {s : Heap α}
+theorem Heap.WF.deleteMin {le : α → α → Bool} {s : Heap α}
     (h : s.WF le n) (eq : s.deleteMin le = some (a, s')) : s'.WF le 0 := by
   cases s with cases eq | cons r a c s => ?_
   have : (s.findMin le (cons r a c) ⟨id, a, c, s⟩).WF le :=
@@ -459,12 +459,12 @@ theorem Heap.WF.deleteMin {s : Heap α}
   intro ⟨_, hk, ih₁, ih₂⟩
   exact ih₁.toHeap.merge <| hk (ih₂.of_le (Nat.le_succ _))
 
-theorem Heap.WF.tail? (hwf : (s : Heap α).WF le n) : s.tail? le = some tl → tl.WF le 0 := by
+theorem Heap.WF.tail? {le} (hwf : (s : Heap α).WF le n) : s.tail? le = some t → t.WF le 0 := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
-  | some (a, tl), rfl => exact hwf.deleteMin eq₂
+  | some (a, t), rfl => exact hwf.deleteMin eq₂
 
-theorem Heap.WF.tail (hwf : (s : Heap α).WF le n) : (s.tail le).WF le 0 := by
+theorem Heap.WF.tail {le} (hwf : (s : Heap α).WF le n) : (s.tail le).WF le 0 := by
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => exact Heap.WF.nil

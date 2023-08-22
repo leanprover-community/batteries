@@ -205,7 +205,7 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]; simp; rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
-theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
+theorem replicateTR_loop_eq {acc} : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
   | n+1 => by rw [← replicateTR_loop_replicate_eq _ 1 n, replicate, replicate,
     replicateTR.loop, replicateTR_loop_eq n, replicateTR_loop_eq n, append_assoc]; rfl
@@ -311,7 +311,7 @@ def tail : List α → List α
 
 -- FIXME: `@[simp]` on the definition simplifies even `tail l`
 @[simp] theorem tail_nil : @tail α [] = [] := rfl
-@[simp] theorem tail_cons : @tail α (a::as) = as := rfl
+@[simp] theorem tail_cons {as} : @tail α (a::as) = as := rfl
 
 /-- Get the head and tail of a list, if it is nonempty. -/
 @[inline] def next? : List α → Option (α × List α)
@@ -538,7 +538,7 @@ def modifyNthTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] 
   | a :: l, 0, acc => acc.toListAppend (f a :: l)
   | a :: l, n+1, acc => go l n (acc.push a)
 
-theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modifyNth f n l
+theorem modifyNthTR_go_eq {acc} : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modifyNth f n l
   | [], n => by cases n <;> simp [modifyNthTR.go, modifyNth]
   | a :: l, 0 => by simp [modifyNthTR.go, modifyNth]
   | a :: l, n+1 => by simp [modifyNthTR.go, modifyNth, modifyNthTR_go_eq l]
@@ -571,7 +571,7 @@ def insertNth (n : Nat) (a : α) : List α → List α :=
   | _, [], acc => acc.toList
   | n+1, a :: l, acc => go n l (acc.push a)
 
-theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ insertNth n a l
+theorem insertNthTR_go_eq {acc} : ∀ n l, insertNthTR.go a n l acc = acc.data ++ insertNth n a l
   | 0, l | _+1, [] => by simp [insertNthTR.go, insertNth]
   | n+1, a :: l => by simp [insertNthTR.go, insertNth, insertNthTR_go_eq n l]
 
@@ -602,7 +602,7 @@ def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
   | 0, _, acc => acc.toList
   | n, [], acc => acc.toListAppend (replicate n dflt)
 
-theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l dflt
+theorem takeDTR_go_eq {dflt : α} {acc} : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l dflt
   | 0, _ => by simp [takeDTR.go]
   | _+1, [] => by simp [takeDTR.go]
   | _+1, _::l => by simp [takeDTR.go, takeDTR_go_eq _ l]
@@ -640,7 +640,7 @@ scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
   | [], a, acc => acc.toListAppend [a]
   | b :: l, a, acc => go l (f a b) (acc.push a)
 
-theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
+theorem scanlTR_go_eq {acc} : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
   | [] => by simp [scanlTR.go, scanl]
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 

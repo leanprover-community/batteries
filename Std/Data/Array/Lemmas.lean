@@ -11,19 +11,19 @@ import Std.Tactic.Simpa
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 
-@[simp] theorem getElem_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n) (h : Dom a i) :
-    a[i] = a[i.1] := rfl
+@[simp] theorem getElem_fin {Cont Elem Dom} [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
+    (h : Dom a i) : a[i] = a[i.1] := rfl
 
-@[simp] theorem getElem?_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
+@[simp] theorem getElem?_fin {Cont Elem Dom} [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
     [Decidable (Dom a i)] : a[i]? = a[i.1]? := rfl
 
-@[simp] theorem getElem!_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
+@[simp] theorem getElem!_fin {Cont Elem Dom} [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
     [Decidable (Dom a i)] [Inhabited Elem] : a[i]! = a[i.1]! := rfl
 
-theorem getElem?_pos [GetElem Cont Idx Elem Dom]
+theorem getElem?_pos {Cont Idx Elem Dom} [GetElem Cont Idx Elem Dom]
     (a : Cont) (i : Idx) (h : Dom a i) [Decidable (Dom a i)] : a[i]? = a[i] := dif_pos h
 
-theorem getElem?_neg [GetElem Cont Idx Elem Dom]
+theorem getElem?_neg {Cont Idx Elem Dom} [GetElem Cont Idx Elem Dom]
     (a : Cont) (i : Idx) (h : ¬Dom a i) [Decidable (Dom a i)] : a[i]? = none := dif_neg h
 
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl

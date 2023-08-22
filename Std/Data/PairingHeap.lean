@@ -101,11 +101,11 @@ theorem Heap.noSibling_combine (le) (s : Heap α) :
     | nil | node _ _ nil => constructor
     | node _ _ (node _ _ s) => rename_i h; exact (h _ _ _ _ _ rfl).elim
 
-theorem Heap.noSibling_deleteMin {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
+theorem Heap.noSibling_deleteMin {le} {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.NoSibling := by
   cases s with cases eq | node a c => exact noSibling_combine _ _
 
-theorem Heap.noSibling_tail? {s : Heap α} : s.tail? le = some s' →
+theorem Heap.noSibling_tail? {le} {s : Heap α} : s.tail? le = some s' →
     s'.NoSibling := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
@@ -136,11 +136,11 @@ theorem Heap.size_combine (le) (s : Heap α) :
     simp_arith [size]
   · rfl
 
-theorem Heap.size_deleteMin {s : Heap α} (h : s.NoSibling) (eq : s.deleteMin le = some (a, s')) :
-    s.size = s'.size + 1 := by
+theorem Heap.size_deleteMin {le} {s : Heap α} (h : s.NoSibling)
+    (eq : s.deleteMin le = some (a, s')) : s.size = s'.size + 1 := by
   cases h with cases eq | node a c => rw [size_combine, size, size]
 
-theorem Heap.size_tail? {s : Heap α} (h : s.NoSibling) : s.tail? le = some s' →
+theorem Heap.size_tail? {le} {s : Heap α} (h : s.NoSibling) : s.tail? le = some s' →
     s.size = s'.size + 1 := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
@@ -152,11 +152,11 @@ theorem Heap.size_tail (le) {s : Heap α} (h : s.NoSibling) : (s.tail le).size =
   | none => cases s with cases eq | nil => rfl
   | some tl => simp [Heap.size_tail? h eq]; rfl
 
-theorem Heap.size_deleteMin_lt {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
+theorem Heap.size_deleteMin_lt {le} {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.size < s.size := by
   cases s with cases eq | node a c => simp_arith [size_combine, size]
 
-theorem Heap.size_tail?_lt {s : Heap α} : s.tail? le = some s' →
+theorem Heap.size_tail?_lt {le} {s : Heap α} : s.tail? le = some s' →
     s'.size < s.size := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
@@ -227,46 +227,44 @@ inductive Heap.WF (le : α → α → Bool) : Heap α → Prop
   /-- There is exactly one tree and it is a `le`-min-heap. -/
   | node (h : c.NodeWF le a) : WF le (.node a c .nil)
 
-theorem Heap.WF.singleton : (Heap.singleton a).WF le := node trivial
+theorem Heap.WF.singleton {le} : (Heap.singleton a).WF le := node trivial
 
-theorem Heap.WF.merge_node (h₁ : NodeWF le a₁ c₁) (h₂ : NodeWF le a₂ c₂) :
+theorem Heap.WF.merge_node {le} (h₁ : NodeWF le a₁ c₁) (h₂ : NodeWF le a₂ c₂) :
     (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).WF le := by
   unfold merge; dsimp
   split <;> rename_i h
   · exact node ⟨fun [_] => h, h₂, h₁⟩
   · exact node ⟨fun [_] => TotalBLE.total.resolve_left h, h₁, h₂⟩
 
-theorem Heap.WF.merge (h₁ : s₁.WF le) (h₂ : s₂.WF le) :
-    (merge le s₁ s₂).WF le :=
+theorem Heap.WF.merge {le} (h₁ : s₁.WF le) (h₂ : s₂.WF le) : (merge le s₁ s₂).WF le :=
   match h₁, h₂ with
   | .nil, .nil => nil
   | .nil, .node h₂ => node h₂
   | .node h₁, .nil => node h₁
   | .node h₁, .node h₂ => merge_node h₁ h₂
 
-theorem Heap.WF.combine (h : s.NodeWF le a) : (combine le s).WF le :=
+theorem Heap.WF.combine {le} (h : s.NodeWF le a) : (combine le s).WF le :=
   match s with
   | .nil => nil
   | .node b c .nil => node h.2.1
   | .node b₁ c₁ (.node b₂ c₂ s) => merge (merge_node h.2.1 h.2.2.2.1) (combine h.2.2.2.2)
 
-theorem Heap.WF.deleteMin {s : Heap α} (h : s.WF le)
+theorem Heap.WF.deleteMin {le} {s : Heap α} (h : s.WF le)
     (eq : s.deleteMin le = some (a, s')) : s'.WF le := by
   cases h with cases eq | node h => exact Heap.WF.combine h
 
-theorem Heap.WF.tail? (hwf : (s : Heap α).WF le) : s.tail? le = some tl →
-  tl.WF le := by
+theorem Heap.WF.tail? {le} (hwf : (s : Heap α).WF le) : s.tail? le = some t → t.WF le := by
   simp only [Heap.tail?]; intro eq
   match eq₂ : s.deleteMin le, eq with
-  | some (a, tl), rfl => exact hwf.deleteMin eq₂
+  | some (a, t), rfl => exact hwf.deleteMin eq₂
 
-theorem Heap.WF.tail (hwf : (s : Heap α).WF le) : (s.tail le).WF le := by
+theorem Heap.WF.tail {le} (hwf : (s : Heap α).WF le) : (s.tail le).WF le := by
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => exact Heap.WF.nil
   | some tl => exact hwf.tail? eq
 
-theorem Heap.deleteMin_fst : ((s : Heap α).deleteMin le).map (·.1) = s.head? :=
+theorem Heap.deleteMin_fst {le} : ((s : Heap α).deleteMin le).map (·.1) = s.head? :=
   match s with
   | .nil => rfl
   | .node _ _ _ => rfl

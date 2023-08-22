@@ -27,7 +27,7 @@ theorem All.trivial (H : ∀ {x : α}, p x) : ∀ {t : RBNode α}, t.All p
 theorem All_and {t : RBNode α} : t.All (fun a => p a ∧ q a) ↔ t.All p ∧ t.All q := by
   induction t <;> simp [*, and_assoc, and_left_comm]
 
-theorem cmpLT.trans (h₁ : cmpLT cmp x y) (h₂ : cmpLT cmp y z) : cmpLT cmp x z :=
+theorem cmpLT.trans {cmp} (h₁ : cmpLT cmp x y) (h₂ : cmpLT cmp y z) : cmpLT cmp x z :=
   ⟨TransCmp.lt_trans h₁.1 h₂.1⟩
 
 theorem cmpLT.trans_l {cmp x y} (H : cmpLT cmp x y) {t : RBNode α}
@@ -36,14 +36,14 @@ theorem cmpLT.trans_l {cmp x y} (H : cmpLT cmp x y) {t : RBNode α}
 theorem cmpLT.trans_r {cmp x y} (H : cmpLT cmp x y) {a : RBNode α}
     (h : a.All (cmpLT cmp · x)) : a.All (cmpLT cmp · y) := h.imp fun h => h.trans H
 
-theorem cmpEq.lt_congr_left (H : cmpEq cmp x y) : cmpLT cmp x z ↔ cmpLT cmp y z :=
+theorem cmpEq.lt_congr_left {cmp} (H : cmpEq cmp x y) : cmpLT cmp x z ↔ cmpLT cmp y z :=
   ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩⟩
 
-theorem cmpEq.lt_congr_right (H : cmpEq cmp y z) : cmpLT cmp x y ↔ cmpLT cmp x z :=
+theorem cmpEq.lt_congr_right {cmp} (H : cmpEq cmp y z) : cmpLT cmp x y ↔ cmpLT cmp x z :=
   ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩⟩
 
 /-- The `balance1` function preserves the ordering invariants. -/
-protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
+protected theorem Ordered.balance1 {cmp} {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance1 l v r).Ordered cmp := by
   unfold balance1; split
@@ -60,7 +60,7 @@ protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
   unfold balance1; split <;> simp [and_assoc, and_left_comm]
 
 /-- The `balance2` function preserves the ordering invariants. -/
-protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
+protected theorem Ordered.balance2 {cmp} {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance2 l v r).Ordered cmp := by
   unfold balance2; split
@@ -76,7 +76,8 @@ protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (balance2 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
   unfold balance2; split <;> simp [and_assoc, and_left_comm]
 
-protected theorem Ordered.setBlack {t : RBNode α} : (setBlack t).Ordered cmp ↔ t.Ordered cmp := by
+protected theorem Ordered.setBlack {cmp} {t : RBNode α} :
+    (setBlack t).Ordered cmp ↔ t.Ordered cmp := by
   unfold setBlack; split <;> simp [Ordered]
 
 protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Balanced black n'
@@ -85,17 +86,17 @@ protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Ba
 
 theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by cases t <;> rfl
 
-theorem insert_setBlack {t : RBNode α} :
+theorem insert_setBlack {cmp} {t : RBNode α} :
     (t.insert cmp v).setBlack = (t.ins cmp v).setBlack := by
   unfold insert; split <;> simp [setBlack_idem]
 
-protected theorem All.ins {x : α} {t : RBNode α}
+protected theorem All.ins {cmp} {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
   induction t <;> unfold ins <;> try simp [*]
   split <;> cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
 
 /-- The `ins` function preserves the ordering invariants. -/
-protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp
+protected theorem Ordered.ins {cmp} : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp
   | nil, _ => ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
@@ -113,7 +114,7 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
         yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
 
 /-- The `insert` function preserves the ordering invariants. -/
-protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
+protected theorem Ordered.insert {cmp} (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
   unfold RBNode.insert; split <;> simp [Ordered.setBlack, h.ins (x := v)]
 
 /--
@@ -219,7 +220,7 @@ The `insert` function is balanced if the input is balanced.
 (We lose track of both the color and the black-height of the result,
 so this is only suitable for use on the root of the tree.)
 -/
-theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
+theorem Balanced.insert {cmp} {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
   unfold insert; match ins cmp v t, h.ins cmp v with
   | _, .balanced h => split <;> [exact ⟨_, h.setBlack⟩; exact ⟨_, _, h⟩]
@@ -229,7 +230,7 @@ protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p :=
   unfold setRed; split <;> simp_all
 
 /-- The `setRed` function preserves the ordering invariants. -/
-protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.Ordered cmp := by
+protected theorem Ordered.setRed {cmp} {t : RBNode α} : (setRed t).Ordered cmp ↔ t.Ordered cmp := by
   unfold setRed; split <;> simp [Ordered]
 
 protected theorem All.balLeft
@@ -237,7 +238,7 @@ protected theorem All.balLeft
   unfold balLeft; split <;> (try simp_all); split <;> simp_all [All.setRed]
 
 /-- The `balLeft` function preserves the ordering invariants. -/
-protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
+protected theorem Ordered.balLeft {cmp} {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balLeft l v r).Ordered cmp := by
   unfold balLeft; split
@@ -250,7 +251,7 @@ protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
   · exact ⟨lv, vr, hl, hr⟩
 
 /-- The balancing properties of the `balLeft` function. -/
-protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n + 1)) :
+protected theorem Balanced.balLeft {cr} (hl : l.RedRed True n) (hr : r.Balanced cr (n + 1)) :
     (balLeft l v r).RedRed (cr = red) (n + 1) := by
   unfold balLeft; split
   · next a x b => exact
@@ -271,7 +272,7 @@ protected theorem All.balRight
   unfold balRight; split <;> (try simp_all); split <;> simp_all [All.setRed]
 
 /-- The `balRight` function preserves the ordering invariants. -/
-protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
+protected theorem Ordered.balRight {cmp} {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balRight l v r).Ordered cmp := by
   unfold balRight; split
@@ -284,7 +285,7 @@ protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
   · exact ⟨lv, vr, hl, hr⟩
 
 /-- The balancing properties of the `balRight` function. -/
-protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed True n) :
+protected theorem Balanced.balRight {cl} (hl : l.Balanced cl (n + 1)) (hr : r.RedRed True n) :
     (balRight l v r).RedRed (cl = red) (n + 1) := by
   unfold balRight; split
   · next b y c => exact
@@ -311,7 +312,7 @@ protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p 
 termination_by _ => l.size + r.size
 
 /-- The `append` function preserves the ordering invariants. -/
-protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
+protected theorem Ordered.append {cmp} {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (append l r).Ordered cmp := by
   unfold append; split
@@ -403,7 +404,7 @@ theorem DelProp.redred (h : DelProp c t n) : ∃ n', RedRed (c = black) t n' := 
   | red, ⟨_, h⟩ => ⟨_, .balanced h⟩
   | black, ⟨_, _, h⟩ => ⟨_, h.imp fun _ => rfl⟩
 
-protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
+protected theorem All.del {cut} : ∀ {t : RBNode α}, t.All p → (del cut t).All p
   | .nil, h => h
   | .node .., ⟨hy, ha, hb⟩ => by
     unfold del; split
@@ -416,7 +417,7 @@ protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
     · exact ha.append hb
 
 /-- The `del` function preserves the ordering invariants. -/
-protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut t).Ordered cmp
+protected theorem Ordered.del {cmp cut} : ∀ {t : RBNode α}, t.Ordered cmp → (del cut t).Ordered cmp
   | .nil, _ => ⟨⟩
   | .node _ a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold del; split
@@ -429,7 +430,7 @@ protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut 
     · exact ha.append ay yb hb
 
 /-- The `del` function has the `DelProp` property. -/
-protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
+protected theorem Balanced.del {cut} {t : RBNode α} (h : t.Balanced c n) :
     (t.del cut).DelProp t.isBlack n := by
   induction h with
   | nil => exact ⟨_, .nil⟩
@@ -454,16 +455,17 @@ protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
     · exact (ha.append hb).of_false (· rfl rfl)
 
 /-- The `erase` function preserves the ordering invariants. -/
-protected theorem Ordered.erase {t : RBNode α} (h : t.Ordered cmp) : (erase cut t).Ordered cmp :=
+protected theorem Ordered.erase {cmp cut} {t : RBNode α} (h : t.Ordered cmp) :
+    (erase cut t).Ordered cmp :=
   Ordered.setBlack.2 h.del
 
 /-- The `erase` function preserves the balance invariants. -/
-protected theorem Balanced.erase {t : RBNode α}
+protected theorem Balanced.erase {cut} {t : RBNode α}
     (h : t.Balanced c n) : ∃ n, (t.erase cut).Balanced black n :=
   have ⟨_, h⟩ := h.del.redred; h.setBlack
 
 /-- The well-formedness invariant implies the ordering and balance properties. -/
-theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
+theorem WF.out {cmp} {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
   induction h with
   | mk o h => exact ⟨o, _, _, h⟩
   | insert _ ih => have ⟨o, _, _, h⟩ := ih; exact ⟨o.insert, h.insert⟩
@@ -473,7 +475,7 @@ theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Bal
 The well-formedness invariant for a red-black tree is exactly the `mk` constructor,
 because the other constructors of `WF` are redundant.
 -/
-@[simp] theorem WF_iff {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
+@[simp] theorem WF_iff {cmp} {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
   ⟨fun h => h.out, fun ⟨o, _, _, h⟩ => .mk o h⟩
 
 /-- The `map` function preserves the balance invariants. -/
@@ -494,7 +496,7 @@ protected theorem All.map {f : α → β} (H : ∀ {x}, p x → q (f x)) :
   | node .., ⟨hx, ha, hb⟩ => ⟨H hx, ha.map H, hb.map H⟩
 
 /-- The `map` function preserves the order invariants if `f` is monotone. -/
-protected theorem Ordered.map (f : α → β) [IsMonotone cmpα cmpβ f] :
+protected theorem Ordered.map {cmpα cmpβ} (f : α → β) [IsMonotone cmpα cmpβ f] :
     ∀ {t : RBNode α}, t.Ordered cmpα → (t.map f).Ordered cmpβ
   | nil, _ => ⟨⟩
   | node _ a x b, ⟨ax, xb, ha, hb⟩ => by
@@ -509,7 +511,8 @@ export RBNode (IsMonotone)
 `O(n)`. Map a function on every value in the tree.
 This requires `IsMonotone` on the function in order to preserve the order invariant.
 -/
-@[inline] def map (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
+@[inline] def map {cmpα cmpβ} (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) :
+    RBSet β cmpβ :=
   ⟨t.1.map f, have ⟨h₁, _, _, h₂⟩ := t.2.out; .mk (h₁.map _) h₂.map⟩
 
 end RBSet
@@ -538,6 +541,6 @@ instance (cmp : α → α → Ordering) (f : α → β → γ) :
 end Imp
 
 /-- `O(n)`. Map a function on the values in the map. -/
-def mapVal (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.map (Imp.mapSnd f)
+def mapVal {cmp} (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.map (Imp.mapSnd f)
 
 end RBMap

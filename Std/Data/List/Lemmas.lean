@@ -581,7 +581,7 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
   · exact (get?_eq_get ‹_›).symm
   · exact (get?_eq_none.2 <| Nat.not_lt.1 ‹_›).symm
 
-theorem get?_inj
+theorem get?_inj {xs : List α}
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
   induction xs generalizing i j with
   | nil => cases h₀
@@ -1173,7 +1173,7 @@ end erase
   | [] => .slnil
   | a :: l => by rw [filter]; split <;> simp [Sublist.cons, Sublist.cons₂, filter_sublist l]
 
-theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
+theorem mem_filter {as} : x ∈ filter p as ↔ x ∈ as ∧ p x := by
   induction as with
   | nil => simp [filter]
   | cons a as ih =>
@@ -1867,10 +1867,10 @@ protected theorem Pairwise.chain (p : Pairwise R (a :: l)) : Chain R a l := by
   | 0 => rfl
   | _ + 1 => congrArg succ (length_range' _ _ _)
 
-@[simp] theorem range'_eq_nil : range' s n step = [] ↔ n = 0 := by
+@[simp] theorem range'_eq_nil {step} : range' s n step = [] ↔ n = 0 := by
   rw [← length_eq_zero, length_range']
 
-theorem mem_range' : ∀{n}, m ∈ range' s n step ↔ ∃ i < n, m = s + step * i
+theorem mem_range' {step} : ∀ {n}, m ∈ range' s n step ↔ ∃ i < n, m = s + step * i
   | 0 => by simp [range', Nat.not_lt_zero]
   | n + 1 => by
     have h (i) : i ≤ n ↔ i = 0 ∨ ∃ j, i = succ j ∧ j < n := by cases i <;> simp [Nat.succ_le]
@@ -1886,7 +1886,7 @@ theorem map_add_range' (a) : ∀ s n step, map (a + ·) (range' s n step) = rang
   | _, 0, _ => rfl
   | s, n + 1, step => by simp [range', map_add_range' _ (s + step) n step, Nat.add_assoc]
 
-theorem map_sub_range' (a s n : Nat) (h : a ≤ s) :
+theorem map_sub_range' (a s n : Nat) {step} (h : a ≤ s) :
     map (· - a) (range' s n step) = range' (s - a) n step := by
   conv => lhs; rw [← Nat.add_sub_cancel' h]
   rw [← map_add_range', map_map, (?_ : _∘_ = _), map_id]
@@ -1911,11 +1911,11 @@ theorem range'_append : ∀ s m n step : Nat,
 @[simp] theorem range'_append_1 (s m n : Nat) :
     range' s m ++ range' (s + m) n = range' s (n + m) := by simpa using range'_append s m n 1
 
-theorem range'_sublist_right {s m n : Nat} : range' s m step <+ range' s n step ↔ m ≤ n :=
+theorem range'_sublist_right {s m n : Nat} {step} : range' s m step <+ range' s n step ↔ m ≤ n :=
   ⟨fun h => by simpa only [length_range'] using h.length_le,
    fun h => by rw [← Nat.sub_add_cancel h, ← range'_append]; apply sublist_append_left⟩
 
-theorem range'_subset_right {s m n : Nat} (step0 : 0 < step) :
+theorem range'_subset_right {s m n : Nat} {step} (step0 : 0 < step) :
     range' s m step ⊆ range' s n step ↔ m ≤ n := by
   refine ⟨fun h => Nat.le_of_not_lt fun hn => ?_, fun h => (range'_sublist_right.2 h).subset⟩
   have ⟨i, h', e⟩ := mem_range'.1 <| h <| mem_range'.2 ⟨_, hn, rfl⟩
@@ -1934,7 +1934,8 @@ theorem get?_range' (s step) : ∀ {m n : Nat}, m < n → get? (range' s n step)
     get (range' n m step) ⟨i, H⟩ = n + step * i :=
   (get?_eq_some.1 <| get?_range' n step (by simpa using H)).2
 
-theorem range'_concat (s n : Nat) : range' s (n + 1) step = range' s n step ++ [s + step * n] := by
+theorem range'_concat (s n : Nat) {step} :
+    range' s (n + 1) step = range' s n step ++ [s + step * n] := by
   rw [Nat.add_comm n 1]; exact (range'_append s n 1 step).symm
 
 theorem range'_1_concat (s n : Nat) : range' s (n + 1) = range' s n ++ [s + n] := by

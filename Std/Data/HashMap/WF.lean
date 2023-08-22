@@ -76,7 +76,7 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Bucket α β} {a : α} {b 
     | _, _, .head .. => rfl
     | H, _, .tail _ h => H _ h
 
-theorem expand_size [Hashable α] {buckets : Bucket α β} :
+theorem expand_size [Hashable α] {sz} {buckets : Bucket α β} :
     (expand sz buckets).buckets.size = buckets.size := by
   rw [expand, go]
   · rw [Bucket.mk_size]; simp [Bucket.size]
@@ -140,7 +140,7 @@ theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α
         have ⟨h₁, h₂⟩ := ht₂ _ (Array.getElem_mem_data ..) _ h
         exact ⟨h₁, h₂.2⟩
 
-theorem expand_WF [BEq α] [Hashable α] {buckets : Bucket α β} (H : buckets.WF) :
+theorem expand_WF [BEq α] [Hashable α] {sz} {buckets : Bucket α β} (H : buckets.WF) :
     (expand sz buckets).buckets.WF :=
   go _ H.1 H.2 ⟨.mk' _, fun _ _ _ _ => by simp_all [Bucket.mk, List.mem_replicate]⟩
 where

@@ -28,13 +28,13 @@ class OrientedCmp (cmp : α → α → Ordering) : Prop where
 
 namespace OrientedCmp
 
-theorem cmp_eq_gt [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
+theorem cmp_eq_gt {cmp} [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_eq_eq_symm [OrientedCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
+theorem cmp_eq_eq_symm {cmp} [OrientedCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
+theorem cmp_refl {cmp} [OrientedCmp cmp] : cmp x x = .eq :=
   match e : cmp x x with
   | .lt => nomatch e.symm.trans (cmp_eq_gt.2 e)
   | .eq => rfl
@@ -48,7 +48,7 @@ class TransCmp (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop whe
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
 namespace TransCmp
-variable [TransCmp cmp]
+variable {cmp : α → α → Ordering} [TransCmp cmp]
 open OrientedCmp Decidable
 
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by

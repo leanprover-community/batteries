@@ -51,10 +51,11 @@ theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
   | nil => rfl
   | node _ _ _ _ iha ihb => unfold zoom; split <;> [apply iha; apply ihb; rfl]
 
-theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
+theorem zoom_fill {cut path path'} (H : zoom cut t path = (t', path')) :
+    path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
 
-theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
+theorem zoom_ins {path path'} {t : RBNode α} {cmp : α → α → Ordering} :
     t.zoom (cmp v) path = (t', path') →
     path.ins (t.ins cmp v) = path'.ins (t'.setRoot v) := by
   unfold RBNode.ins; split <;> simp [zoom]
@@ -65,11 +66,11 @@ theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
     · exact zoom_ins
     · intro | rfl => rfl
 
-theorem insertNew_eq_insert (h : zoom (cmp v) t = (nil, path)) :
+theorem insertNew_eq_insert {cmp path} (h : zoom (cmp v) t = (nil, path)) :
     path.insertNew v = (t.insert cmp v).setBlack :=
   insert_setBlack .. ▸ (zoom_ins h).symm
 
-theorem zoom_del {t : RBNode α} :
+theorem zoom_del {cut path path'} {t : RBNode α} :
     t.zoom cut path = (t', path') →
     path.del (t.del cut) (match t with | node c .. => c | _ => red) =
     path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
@@ -98,16 +99,16 @@ protected inductive Balanced : Path α → RBColor → Nat → Prop where
   /-- The root of the tree is `c₀, n₀`-balanced by assumption. -/
   | protected root : Path.root.Balanced c₀ n₀
   /-- Descend into the left subtree of a red node. -/
-  | redL : Balanced y black n → parent.Balanced red n →
+  | redL {parent} : Balanced y black n → parent.Balanced red n →
     (Path.left red parent v y).Balanced black n
   /-- Descend into the right subtree of a red node. -/
-  | redR : Balanced x black n → parent.Balanced red n →
+  | redR {parent} : Balanced x black n → parent.Balanced red n →
     (Path.right red x v parent).Balanced black n
   /-- Descend into the left subtree of a black node. -/
-  | blackL : Balanced y c₂ n → parent.Balanced black (n + 1) →
+  | blackL {parent} : Balanced y c₂ n → parent.Balanced black (n + 1) →
     (Path.left black parent v y).Balanced c₁ n
   /-- Descend into the right subtree of a black node. -/
-  | blackR : Balanced x c₁ n → parent.Balanced black (n + 1) →
+  | blackR {parent} : Balanced x c₁ n → parent.Balanced black (n + 1) →
     (Path.right black x v parent).Balanced c₂ n
 
 /--
@@ -120,7 +121,8 @@ protected theorem Balanced.fill {path : Path α} {t} :
   | .redL hb H, ha | .redR ha H, hb => H.fill (.red ha hb)
   | .blackL hb H, ha | .blackR ha H, hb => H.fill (.black ha hb)
 
-protected theorem _root_.Std.RBNode.Balanced.zoom : t.Balanced c n → path.Balanced c₀ n₀ c n →
+protected theorem _root_.Std.RBNode.Balanced.zoom {cut path path'} :
+    t.Balanced c n → path.Balanced c₀ n₀ c n →
     zoom cut t path = (t', path') → ∃ c n, t'.Balanced c n ∧ path'.Balanced c₀ n₀ c n
   | .nil, hp => fun e => by cases e; exact ⟨_, _, .nil, hp⟩
   | .red ha hb, hp => by
@@ -166,7 +168,7 @@ protected theorem Balanced.insert {path : Path α} (hp : path.Balanced c₀ n₀
   | .red ha hb => ⟨_, _, hp.fill (.red ha hb)⟩
   | .black ha hb => ⟨_, _, hp.fill (.black ha hb)⟩
 
-theorem zoom_insert {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
+theorem zoom_insert {cmp} {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
     (H : zoom (cmp v) t = (t', path)) :
     (path.insert t' v).setBlack = (t.insert cmp v).setBlack := by
   have ⟨_, _, ht', hp'⟩ := ht.zoom .root H
@@ -215,7 +217,8 @@ def Zoomed (cut : α → Ordering) : Path α → Prop
   | .left _ parent x _ => cut x = .lt ∧ parent.Zoomed cut
   | .right _ _ x parent => cut x = .gt ∧ parent.Zoomed cut
 
-theorem zoom_zoomed₁ (e : zoom cut t path = (t', path')) : t'.OnRoot (cut · = .eq) :=
+theorem zoom_zoomed₁ {cut path path'} (e : zoom cut t path = (t', path')) :
+    t'.OnRoot (cut · = .eq) :=
   match t, e with
   | nil, rfl => trivial
   | node .., e => by
@@ -224,7 +227,7 @@ theorem zoom_zoomed₁ (e : zoom cut t path = (t', path')) : t'.OnRoot (cut · =
     · exact zoom_zoomed₁
     · next H => intro e; cases e; exact H
 
-theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
+theorem zoom_zoomed₂ {cut path path'} (e : zoom cut t path = (t', path'))
     (hp : path.Zoomed cut) : path'.Zoomed cut :=
   match t, e with
   | nil, rfl => hp
@@ -265,7 +268,7 @@ def Ordered (cmp : α → α → Ordering) : Path α → Prop
     a.All (cmpLT cmp · x) ∧ parent.RootOrdered cmp x ∧
     a.All (parent.RootOrdered cmp) ∧ a.Ordered cmp
 
-protected theorem Ordered.fill : ∀ {path : Path α} {t},
+protected theorem Ordered.fill {cmp} : ∀ {path : Path α} {t},
     (path.fill t).Ordered cmp ↔ path.Ordered cmp ∧ t.Ordered cmp ∧ t.All (path.RootOrdered cmp)
   | .root, _ => ⟨fun H => ⟨⟨⟩, H, .trivial ⟨⟩⟩, (·.2.1)⟩
   | .left .., _ => by
@@ -279,19 +282,19 @@ protected theorem Ordered.fill : ∀ {path : Path α} {t},
       fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩,
       fun ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
 
-theorem _root_.Std.RBNode.Ordered.zoom' {t : RBNode α} {path : Path α}
+theorem _root_.Std.RBNode.Ordered.zoom' {cmp cut} {t : RBNode α} {path path': Path α}
     (ht : t.Ordered cmp) (hp : path.Ordered cmp) (tp : t.All (path.RootOrdered cmp))
     (pz : path.Zoomed cut) (eq : t.zoom cut path = (t', path')) :
     t'.Ordered cmp ∧ path'.Ordered cmp ∧ t'.All (path'.RootOrdered cmp) ∧ path'.Zoomed cut :=
   have ⟨hp', ht', tp'⟩ := Ordered.fill.1 <| zoom_fill eq ▸ Ordered.fill.2 ⟨hp, ht, tp⟩
   ⟨ht', hp', tp', zoom_zoomed₂ eq pz⟩
 
-theorem _root_.Std.RBNode.Ordered.zoom {t : RBNode α}
+theorem _root_.Std.RBNode.Ordered.zoom {cmp cut path'} {t : RBNode α}
     (ht : t.Ordered cmp) (eq : t.zoom cut = (t', path')) :
     t'.Ordered cmp ∧ path'.Ordered cmp ∧ t'.All (path'.RootOrdered cmp) ∧ path'.Zoomed cut :=
   ht.zoom' (path := .root) ⟨⟩ (.trivial ⟨⟩) ⟨⟩ eq
 
-theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
+theorem Ordered.ins {cmp} : ∀ {path : Path α} {t : RBNode α},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.ins t).Ordered cmp
   | .root, t, ht, _, _ => Ordered.setBlack.2 ht
   | .left red parent x b, a, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
@@ -305,18 +308,18 @@ theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     unfold ins; have ⟨xb, bp⟩ := All_and.1 H
     exact hp.ins (ha.balance2 ax xb hb) (balance2_All.2 ⟨xp, ap, bp⟩)
 
-theorem Ordered.insertNew {path : Path α} (hp : path.Ordered cmp) (vp : path.RootOrdered cmp v) :
-    (path.insertNew v).Ordered cmp :=
+theorem Ordered.insertNew {cmp} {path : Path α}
+    (hp : path.Ordered cmp) (vp : path.RootOrdered cmp v) : (path.insertNew v).Ordered cmp :=
   hp.ins ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ ⟨vp, ⟨⟩, ⟨⟩⟩
 
-theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
+theorem Ordered.insert {cmp} : ∀ {path : Path α} {t : RBNode α},
     path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
     t.OnRoot (cmpEq cmp v) → (path.insert t v).Ordered cmp
   | _, nil, hp, _, _, vp, _ => hp.insertNew vp
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩, vp, xv => Ordered.fill.2
     ⟨hp, ⟨ax.imp xv.lt_congr_right.2, xb.imp xv.lt_congr_left.2, ha, hb⟩, vp, ap, bp⟩
 
-theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
+theorem Ordered.del {cmp} : ∀ {path : Path α} {t : RBNode α} {c},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
   | .root, t, _, ht, _, _ => Ordered.setBlack.2 ht
   | .left _ parent x b, a, red, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
@@ -330,7 +333,7 @@ theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
     unfold del; have ⟨xb, bp⟩ := All_and.1 H
     exact hp.del (ha.balRight ax xb hb) (ap.balRight xp bp)
 
-theorem Ordered.erase : ∀ {path : Path α} {t : RBNode α},
+theorem Ordered.erase {cmp} : ∀ {path : Path α} {t : RBNode α},
     path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → (path.erase t).Ordered cmp
   | _, nil, hp, ht, tp => Ordered.fill.2 ⟨hp, ht, tp⟩
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩ => hp.del (ha.append ax xb hb) (ap.append bp)
@@ -340,7 +343,7 @@ end Path
 /-! ## alter -/
 
 /-- The `alter` function preserves the ordering invariants. -/
-protected theorem Ordered.alter {t : RBNode α}
+protected theorem Ordered.alter {cmp cut} {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
       p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
     (h : t.Ordered cmp) : (alter cut f t).Ordered cmp := by
@@ -358,7 +361,7 @@ protected theorem Ordered.alter {t : RBNode α}
       exact ⟨hp, ⟨ax.imp xy.lt_congr_right.2, xb.imp xy.lt_congr_left.2, ha, hb⟩, yp, ap, bp⟩
 
 /-- The `alter` function preserves the balance invariants. -/
-protected theorem Balanced.alter {t : RBNode α}
+protected theorem Balanced.alter {cut} {t : RBNode α}
     (h : t.Balanced c n) : ∃ c n, (t.alter cut f).Balanced c n := by
   simp [alter]; split
   · next path eq =>
@@ -376,11 +379,11 @@ protected theorem Balanced.alter {t : RBNode α}
       | .red ha hb => exact ⟨_, _, hp.fill (.red ha hb)⟩
       | .black ha hb => exact ⟨_, _, hp.fill (.black ha hb)⟩
 
-theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
+theorem modify_eq_alter {cut} (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
   simp [modify, alter]; split <;> simp [Option.map]
 
 /-- The `modify` function preserves the ordering invariants. -/
-protected theorem Ordered.modify {t : RBNode α}
+protected theorem Ordered.modify {cmp cut} {t : RBNode α}
     (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
     (h : t.Ordered cmp) : (modify cut f t).Ordered cmp :=
   modify_eq_alter _ ▸ h.alter @fun
@@ -388,21 +391,21 @@ protected theorem Ordered.modify {t : RBNode α}
       rw [eq] at H; exact ⟨H.RootOrdered_congr.2 (h.zoom eq).2.2.1.1, H⟩
 
 /-- The `modify` function preserves the balance invariants. -/
-protected theorem Balanced.modify {t : RBNode α}
+protected theorem Balanced.modify {cut} {t : RBNode α}
     (h : t.Balanced c n) : ∃ c n, (t.modify cut f).Balanced c n := modify_eq_alter _ ▸ h.alter
 
-theorem WF.alter {t : RBNode α}
+theorem WF.alter {cmp cut} {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
       p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
     (h : WF cmp t) : WF cmp (alter cut f t) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.alter H, h₂.alter⟩
 
-theorem WF.modify {t : RBNode α}
+theorem WF.modify {cmp cut} {t : RBNode α}
     (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
     (h : WF cmp t) : WF cmp (t.modify cut f) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.modify H, h₂.modify⟩
 
-theorem find?_eq_zoom : ∀ {t : RBNode α} (p := .root), t.find? cut = (t.zoom cut p).1.root?
+theorem find?_eq_zoom {cut} : ∀ {t : RBNode α} (p := .root), t.find? cut = (t.zoom cut p).1.root?
   | .nil, _ => rfl
   | .node .., _ => by unfold find? zoom; split <;> [apply find?_eq_zoom; apply find?_eq_zoom; rfl]
 
@@ -414,7 +417,7 @@ open RBNode
 /--
 A sufficient condition for `ModifyWF` is that the new element compares equal to the original.
 -/
-theorem ModifyWF.of_eq {t : RBSet α cmp}
+theorem ModifyWF.of_eq {cmp cut} {t : RBSet α cmp}
     (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f := by
   refine ⟨.modify ?_ t.2⟩
   revert H; rw [find?_eq_zoom]
@@ -429,7 +432,7 @@ namespace RBMap
 This takes the element out of the tree while `f` runs,
 so it uses the element linearly if `t` is unshared.
 -/
-def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
+def modify {cmp} (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
   @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b))
     (.of_eq fun _ => ⟨OrientedCmp.cmp_refl (cmp := byKey Prod.fst cmp)⟩)
 
@@ -455,7 +458,7 @@ The element is used linearly if `t` is unshared.
 The `AlterWF` assumption is required because `f` may change
 the ordering properties of the element, which would break the invariants.
 -/
-@[specialize] def alter
+@[specialize] def alter {cmp}
     (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
   refine @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) ⟨.alter (@fun _ t' p eq => ?_) t.2⟩
   cases t' <;> simp [alter.adapt, RBNode.root?] <;> split <;> intro h <;> cases h

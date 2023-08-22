@@ -70,13 +70,13 @@ theorem utf8Len_le_of_sublist : ∀ {cs₁ cs₂}, cs₁ <+ cs₂ → utf8Len cs
   | _, _, .cons _ h => Nat.le_trans (utf8Len_le_of_sublist h) (Nat.le_add_right ..)
   | _, _, .cons₂ _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
 
-theorem utf8Len_le_of_infix (h : cs₁ <:+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
+theorem utf8Len_le_of_infix {cs₁ cs₂} (h : cs₁ <:+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
 
-theorem utf8Len_le_of_suffix (h : cs₁ <:+ cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
+theorem utf8Len_le_of_suffix {cs₁ cs₂} (h : cs₁ <:+ cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
 
-theorem utf8Len_le_of_prefix (h : cs₁ <+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
+theorem utf8Len_le_of_prefix {cs₁ cs₂} (h : cs₁ <+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
 end
 
@@ -588,10 +588,10 @@ theorem setCurr' : ∀ {it}, ValidFor l r it →
     have := set_of_valid l.reverse r c
     simp at this; simp [List.reverseAux_eq, this]
 
-theorem setCurr (h : ValidFor l (c :: r) it) :
+theorem setCurr {it} (h : ValidFor l (c :: r) it) :
     ValidFor l (c :: r) (it.setCurr c) := h.setCurr'
 
-theorem toEnd (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := by
+theorem toEnd {it} (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := by
   simp [Iterator.toEnd, h.toString]
   exact .of_eq _ (by simp [List.reverseAux_eq]) (by simp [Nat.add_comm])
 
@@ -599,7 +599,7 @@ theorem toEnd' (it : Iterator) : ValidFor it.s.1.reverse [] it.toEnd := by
   simp [Iterator.toEnd]
   exact .of_eq _ (by simp [List.reverseAux_eq]) (by simp [endPos, utf8ByteSize])
 
-theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse ++ l) r it₂) :
+theorem extract {it₁ it₂} (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse ++ l) r it₂) :
     it₁.extract it₂ = ⟨m⟩ := by
   cases h₁.out; cases h₂.out
   simp [Iterator.extract, List.reverseAux_eq, Nat.not_lt.2 (Nat.le_add_left ..)]
@@ -661,7 +661,7 @@ theorem remainingToString {it} (h : ValidFor l r it) : it.remainingToString = �
   cases h.out
   simpa [Iterator.remainingToString, List.reverseAux_eq] using extract_of_valid l.reverse r []
 
-theorem prevn (h : Valid it) : ∀ n, Valid (it.prevn n)
+theorem prevn {it} (h : Valid it) : ∀ n, Valid (it.prevn n)
   | 0 => h
   | n+1 => h.prev.prevn n
 
@@ -910,7 +910,7 @@ theorem take : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor l (m.take n) (m.dro
 theorem atEnd : ∀ {s}, ValidFor l m r s → (s.atEnd ⟨p⟩ ↔ p = utf8Len m)
   | _, ⟨⟩ => by simp [Substring.atEnd, Pos.ext_iff, Nat.add_left_cancel_iff]
 
-theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b, e⟩ →
+theorem extract {ml mm mr} : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b, e⟩ →
     ∃ l' r', ValidFor l' mm r' (s.extract b e)
   | _, ⟨⟩, ⟨⟩ => by
     simp [Substring.extract]; split

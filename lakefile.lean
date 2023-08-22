@@ -3,7 +3,7 @@ import Lake
 open Lake DSL
 
 package std := Id.run do
-  let mut moreServerArgs := #["-Dlinter.missingDocs=true"]
+  let mut moreServerArgs := #["-Dlinter.missingDocs=true", "-DrelaxedAutoImplicit=false"]
   if get_config? disable_new_compiler |>.isSome then
     moreServerArgs := moreServerArgs.push "-Dcompiler.enableNew=false"
   let moreLeanArgs := moreServerArgs.push "-DwarningAsError=true"
