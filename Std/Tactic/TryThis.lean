@@ -39,12 +39,13 @@ export default function(props) {
       changes: { [props.pos.uri]: [{ range: props.range, newText: props.suggestion }] }
     })
   }
-  const className = props.className ?? 'link pointer dim'
   const style = props.style
   return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
     props.header,
     props.preInfo,
-    e('a', {onClick, className, style, title: 'Apply suggestion'}, props.suggestion),
+    e('a',
+      {onClick, className:'link pointer dim', style, title: 'Apply suggestion'},
+      props.suggestion),
     props.postInfo
   ]))
 }"
@@ -70,17 +71,16 @@ const e = React.createElement;
 export default function(props) {
   const editorConnection = React.useContext(EditorContext)
 
-  function makeSuggestion({suggestion, preInfo, postInfo, className, style}) {
+  function makeSuggestion({suggestion, preInfo, postInfo, style}) {
     function onClick() {
       editorConnection.api.applyEdit({
         changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
       })
     }
-    const className = className ?? 'link pointer dim'
     return e('li', {className:'font-code pre-wrap'},
       preInfo,
       e('a',
-        {onClick, className, style, title: 'Apply suggestion'},
+        {onClick, className:'link pointer dim', style, title: 'Apply suggestion'},
         suggestion),
       postInfo
     )
@@ -222,9 +222,6 @@ structure Suggestion where
   preInfo : String := ""
   /-- Info to be printed immediately after replacement text in a widget. -/
   postInfo : String := ""
-  /-- Optional string that will be used to override the `className` of the suggestion text's HTML
-  element in the infoview. By default, with `className? := none`, the suggestion text's element will use `className:'link pointer dim'`. -/
-  className? : Option String := none
   /-- Optional `style` attribute value to be used in the suggestion text's HTML element. E.g.
   `style? := Json.mkObj [("color","red")]` will yield `style:{color:red}` in the widget's JS, which
   will in turn yield `style:"color: red;"` in the HTML element. -/
@@ -282,8 +279,6 @@ The parameters are:
   * `suggestion`: the replacement text;
   * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
-  * `className?`: an optional string used to override the `className` of the suggestion text's
-    element (not the whole suggestion element).
   * `style?`: an optional `Json` object used as the value of the `style` attribute of the
     suggestion text's element (not the whole suggestion element).
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
@@ -307,8 +302,8 @@ def addSuggestion (ref : Syntax) (s : Suggestion)
       stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
     let range := map.utf8RangeToLspRange range
     let json := Json.mkObj [("suggestion", text), ("range", toJson range),
-      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("className", toJson s.className?),
-      ("style", toJson s.style?), ("header", header)]
+      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("style", toJson s.style?),
+      ("header", header)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
@@ -324,8 +319,6 @@ The parameters are:
   * `suggestion`: the replacement text;
   * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
-  * `className?`: an optional string used to override the `className` of the suggestion text's
-    element (not the whole suggestion element).
   * `style?`: an optional `Json` object used as the value of the `style` attribute of the
     suggestion text's element (not the whole suggestion element).
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
@@ -345,10 +338,10 @@ def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     let map ← getFileMap
     let (indent, column) := getIndentAndColumn map range
     let suggestions ←
-      suggestions.mapM fun { suggestion, preInfo, postInfo, className?, style?, .. } => do
+      suggestions.mapM fun { suggestion, preInfo, postInfo, style?, .. } => do
         let text ← suggestion.prettyExtra (indent := indent) (column := column)
         pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo),
-          ("className", toJson className?), ("style", toJson style?)]
+          ("style", toJson style?)]
     let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
