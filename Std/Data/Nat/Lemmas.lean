@@ -150,29 +150,28 @@ protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :
 @[simp] protected theorem not_lt {a b : Nat} : ¬ a < b ↔ b ≤ a :=
   ⟨Nat.ge_of_not_lt, flip Nat.not_le_of_gt⟩
 
-protected theorem lt_of_not_ge {a b : Nat} : ¬ b ≤ a → a < b := Nat.not_le.1
-protected theorem lt_of_not_le {a b : Nat} : ¬ a ≤ b → b < a := Nat.not_le.1
+protected alias ⟨lt_of_not_ge, _⟩ := Nat.not_le
+protected alias ⟨lt_of_not_le, _⟩ := Nat.not_le
+protected alias ⟨_, not_le_of_lt⟩ := Nat.not_le
+protected alias ⟨_, lt_le_antisymm⟩ := Nat.not_le
 
-protected theorem le_of_not_gt {a b : Nat} : ¬ a < b → b ≤ a := Nat.not_lt.1
-protected theorem le_of_not_lt {a b : Nat} : ¬ a < b → b ≤ a := Nat.not_lt.1
-
-protected theorem not_le_of_lt {a b : Nat} : a < b → ¬ b ≤ a := Nat.not_le.2
-
-protected theorem not_lt_of_ge {a b : Nat} : a ≤ b → ¬ b < a := Nat.not_lt.2
-protected theorem not_lt_of_le {a b : Nat} : a ≤ b → ¬ b < a := Nat.not_lt.2
+protected alias ⟨le_of_not_gt, _⟩ := Nat.not_lt
+protected alias ⟨le_of_not_lt, _⟩ := Nat.not_lt
+protected alias ⟨_, not_lt_of_ge⟩ := Nat.not_lt
+protected alias ⟨_, not_lt_of_le⟩ := Nat.not_lt
+protected alias ⟨_, le_lt_antisymm⟩ := Nat.not_lt
 
 protected theorem le_of_not_ge {a b : Nat} (h : ¬ b ≤ a) : a ≤ b := Nat.le_of_lt (Nat.not_le.1 h)
-protected theorem le_of_not_le {a b : Nat} (h : ¬ b ≤ a) : a ≤ b := Nat.le_of_not_ge h
+protected alias le_of_not_le := Nat.le_of_not_ge
 
 protected theorem lt_asymm {a b : Nat} (h : a < b) : ¬ b < a := Nat.not_lt.2 (Nat.le_of_lt h)
-protected theorem not_lt_of_gt {a b : Nat} : a < b → ¬ b < a := Nat.lt_asymm
-protected theorem not_lt_of_lt {a b : Nat} : a < b → ¬ b < a := Nat.lt_asymm
+protected alias not_lt_of_gt := Nat.lt_asymm
+protected alias not_lt_of_lt := Nat.lt_asymm
 
 protected theorem lt_iff_le_and_not_ge {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun ⟨_, h⟩ => Nat.lt_of_not_ge h⟩
 
-protected theorem lt_iff_le_not_le {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
-  Nat.lt_iff_le_and_not_ge
+protected alias lt_iff_le_not_le := Nat.lt_iff_le_and_not_ge
 
 protected theorem lt_iff_le_and_ne {a b : Nat} : a < b ↔ a ≤ b ∧ a ≠ b :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.ne_of_lt h⟩, fun h => Nat.lt_of_le_of_ne h.1 h.2⟩
@@ -180,22 +179,22 @@ protected theorem lt_iff_le_and_ne {a b : Nat} : a < b ↔ a ≤ b ∧ a ≠ b :
 protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
   ⟨fun | rfl => ⟨Nat.le_refl _, Nat.le_refl _⟩, fun ⟨hle, hge⟩ => Nat.le_antisymm hle hge⟩
 
-protected theorem eq_iff_le_and_ge {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a := Nat.le_antisymm_iff
+protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_connex {a b : Nat} : a ≠ b → a < b ∨ b < a := by
   rw [←Nat.not_le, ←Nat.not_le, ←Decidable.not_and, and_comm]
   exact mt Nat.le_antisymm_iff.2
 
-protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := Nat.lt_connex
-protected theorem lt_or_lt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := Nat.lt_connex
+protected alias lt_or_gt_of_ne := Nat.lt_connex
+protected alias lt_or_lt_of_ne := Nat.lt_connex
 
 protected theorem lt_connex_iff {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
   ⟨Nat.lt_connex, fun | .inl h => Nat.ne_of_lt h | .inr h => Nat.ne_of_gt h⟩
 
-protected theorem ne_iff_lt_or_gt {a b : Nat} : a ≠ b ↔ a < b ∨ b < a := Nat.lt_connex_iff
+protected alias ne_iff_lt_or_gt := Nat.lt_connex_iff
 
-protected theorem le_or_ge (a b : Nat) : a ≤ b ∨ b ≤ a := Nat.le_total ..
-protected theorem le_or_le (a b : Nat) : a ≤ b ∨ b ≤ a := Nat.le_total ..
+protected alias le_or_ge := Nat.le_total
+protected alias le_or_le := Nat.le_total
 
 protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
   if h : a = b then .inr (.inl h) else
@@ -211,9 +210,6 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
 
 protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
   ⟨Nat.lt_or_eq_of_le, fun | .inl h => Nat.le_of_lt h | .inr rfl => Nat.le_refl _⟩
-
-theorem le_lt_antisymm {n m : Nat} : n ≤ m → m < n → False := Nat.not_lt.2
-theorem lt_le_antisymm {n m : Nat} : n < m → m ≤ n → False := Nat.not_le.2
 
 /-! ## compare -/
 
