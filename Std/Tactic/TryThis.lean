@@ -139,11 +139,15 @@ each replacement.
 /-! # `Suggestion` data -/
 
 -- TODO: we could also support `Syntax` and `Format`
-/-- Text to be used as a suggested replacement in the infoview. This can be either a `TSyntax kind` for a single `kind : SyntaxNodeKind` or a raw `String`.
+/-- Text to be used as a suggested replacement in the infoview. This can be either a `TSyntax kind`
+for a single `kind : SyntaxNodeKind` or a raw `String`.
 
-Instead of using constructors directly, there are coercions available from these types to `SuggestionText`. -/
+Instead of using constructors directly, there are coercions available from these types to
+`SuggestionText`. -/
 inductive SuggestionText where
-/-- `TSyntax kind` used as suggested replacement text in the infoview. Note that while `TSyntax` is in general parameterized by a list of `SyntaxNodeKind`s, we only allow one here; this unambiguously guides pretty-printing. -/
+/-- `TSyntax kind` used as suggested replacement text in the infoview. Note that while `TSyntax` is
+in general parameterized by a list of `SyntaxNodeKind`s, we only allow one here; this unambiguously
+guides pretty-printing. -/
 | tsyntax {kind : SyntaxNodeKind} : TSyntax kind → SuggestionText
 /-- A raw string to be used as suggested replacement text in the infoview. -/
 | string : String → SuggestionText
