@@ -20,6 +20,8 @@ namespace Std.Tactic.TryThis
 
 open Lean Elab PrettyPrinter Meta Server RequestM
 
+/-! # Raw widgets and code actions -/
+
 /--
 This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: <replacement>`
 where `<replacement>` is a link which will perform the replacement.
@@ -134,6 +136,8 @@ each replacement.
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
 
+/-! # `Suggestion` data -/
+
 -- TODO: we could also support `Syntax` and `Format`
 /-- Text to be used as a suggested replacement in the infoview. This can be either a `TSyntax kind` for a single `kind : SyntaxNodeKind` or a raw `String`.
 
@@ -228,6 +232,8 @@ instance : ToMessageData Suggestion where
 instance : Coe SuggestionText Suggestion where
   coe t := { suggestion := t }
 
+/-! # Formatting -/
+
 /-- Yields `(indent, column)` given a `FileMap` and a `String.Range`, where `indent` is the number
 of spaces by which the line that first includes `range` is initially indented, and `column` is the
 column `range` starts at in that line. -/
@@ -250,6 +256,8 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
 /-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
   return ⟨← delabToRefinableSyntax e, "", "", none, e⟩
+
+/-! # Widget hooks -/
 
 /-- Add a "try this" suggestion. This has three effects:
 
