@@ -767,15 +767,15 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
     | some b => acc.toListAppend (b :: l)
     | none => go l (acc.push a)
 
-/-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
-@[inline] def countp (p : α → Bool) (l : List α) : Nat := go l 0 where
-  /-- Auxiliary for `countp`: `countp.go p l acc = countp p l + acc`. -/
+/-- `countP p l` is the number of elements of `l` that satisfy `p`. -/
+@[inline] def countP (p : α → Bool) (l : List α) : Nat := go l 0 where
+  /-- Auxiliary for `countP`: `countP.go p l acc = countP p l + acc`. -/
   @[specialize] go : List α → Nat → Nat
   | [], acc => acc
   | x :: xs, acc => bif p x then go xs (acc + 1) else go xs acc
 
 /-- `count a l` is the number of occurrences of `a` in `l`. -/
-@[inline] def count [BEq α] (a : α) : List α → Nat := countp (· == a)
+@[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
 `isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
