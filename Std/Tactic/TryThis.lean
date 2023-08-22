@@ -134,13 +134,79 @@ each replacement.
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
 
+-- TODO: we could also support `Syntax` and `Format`
+/-- Text to be used as a suggested replacement in the infoview. This can be either a `TSyntax kind` for a single `kind : SyntaxNodeKind` or a raw `String`.
+
+Instead of using constructors directly, there are coercions available from these types to `SuggestionText`. -/
+inductive SuggestionText where
+/-- `TSyntax kind` used as suggested replacement text in the infoview. Note that while `TSyntax` is in general parameterized by a list of `SyntaxNodeKind`s, we only allow one here; this unambiguously guides pretty-printing. -/
+| tsyntax {kind : SyntaxNodeKind} : TSyntax kind → SuggestionText
+/-- A raw string to be used as suggested replacement text in the infoview. -/
+| string : String → SuggestionText
+deriving Repr, Inhabited
+
+instance : BEq SuggestionText where
+  beq
+  | .tsyntax (kind := kind₁) stx₁, .tsyntax (kind := kind₂) stx₂ =>
+    kind₁ == kind₂ && stx₁.raw == stx₂.raw
+  | .string s₁, .string s₂ => s₁ == s₂
+  | _, _ => false
+
+instance : ToMessageData SuggestionText where
+  toMessageData
+  | .tsyntax stx => stx
+  | .string s => s
+
+instance {kind : SyntaxNodeKind} : CoeHead (TSyntax kind) SuggestionText where
+  coe t := .tsyntax t
+
+instance : Coe String SuggestionText where
+  coe := .string
+
+namespace SuggestionText
+
+/-- `true` when `SuggestionText` is underlyingly a `TSyntax`. -/
+def isTSyntax : SuggestionText → Bool
+| .tsyntax _ => true
+| _ => false
+
+/-- `true` when `SuggestionText` is underlyingly a `String`. -/
+def isString : SuggestionText → Bool
+| .string _ => true
+| _ => false
+
+/-- Gets the underlying `TSyntax` of a `SuggestionText` if there is one. -/
+def getTSyntax? : SuggestionText → Option ((kind : SyntaxNodeKind) × TSyntax kind)
+| .tsyntax (kind := kind) stx => some ⟨kind, stx⟩
+| _ => none
+
+/-- Gets the underlying `String` of a `SuggestionText` if there is one. -/
+def getString? : SuggestionText → Option String
+| .string s => s
+| _ => none
+
+/-- Pretty-prints a `SuggestionText` as a `Format`. If the `SuggestionText` is some `TSyntax kind`,
+we use the appropriate pretty-printer; strings are coerced to `Format`s as-is. -/
+def pretty : SuggestionText → CoreM Format
+| .tsyntax (kind := kind) stx =>
+  PrettyPrinter.ppCategory kind stx
+| .string text => return text
+
+/-- Pretty-prints a `SuggestionText` as a `String` and wraps with respect to the pane width,
+indentation, and column, via `Format.prettyExtra`. -/
+def prettyExtra (s : SuggestionText) (w : Nat := Format.defWidth)
+    (indent column : Nat := 0) : CoreM String :=
+  return (← s.pretty).prettyExtra w indent column
+
+end SuggestionText
+
 /-- Holds a `suggestion` for replacement, along with `preInfo` and `postInfo` strings to be printed
 immediately before and after that suggestion, respectively. It also includes an optional
 `MessageData` to represent the suggestion in logs; by default, this is `none`, and `suggestion` is
 used. -/
-structure Suggestion (kind : Name) where
-  /-- Syntax to be used as a replacement via a code action. -/
-  suggestion : TSyntax kind
+structure Suggestion where
+  /-- Text to be used as a replacement via a code action. -/
+  suggestion : SuggestionText
   /-- Info to be printed immediately before replacement syntax in a widget. -/
   preInfo : String := ""
   /-- Info to be printed immediately after replacement syntax in a widget. -/
@@ -152,12 +218,23 @@ structure Suggestion (kind : Name) where
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
+deriving Inhabited
 
-instance {kind : Name} : ToMessageData (Suggestion kind) where
-  toMessageData s := s.messageData?.getD s.suggestion
+/- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
+the suggestion text. -/
+instance : ToMessageData Suggestion where
+  toMessageData s := s.messageData?.getD (toMessageData s.suggestion)
 
-instance {kind : Name} : Coe (TSyntax kind) (Suggestion kind) where
+instance : Coe SuggestionText Suggestion where
   coe t := { suggestion := t }
+
+/-- Yields `(indent, column)` given a `FileMap` and a `String.Range`, where `indent` is the number
+of spaces by which the line that first includes `range` is initially indented, and `column` is the
+column `range` starts at in that line. -/
+def getIndentAndColumn (map : FileMap) (range : String.Range) : Nat × Nat :=
+  let start := findLineStart map.source range.start
+  let body := map.source.findAux (· ≠ ' ') range.start start
+  ((body - start).1, (range.start - start).1)
 
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
 partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
@@ -171,7 +248,7 @@ def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
 /-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
-def delabToRefinableSuggestion (e : Expr) : TermElabM (Suggestion `term) :=
+def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
   return ⟨← delabToRefinableSyntax e, "", "", none, e⟩
 
 /-- Add a "try this" suggestion. This has three effects:
@@ -184,7 +261,7 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM (Suggestion `term) :=
 The parameters are:
 * `ref`: the span of the info diagnostic
 * `s`: a `Suggestion`, which contains
-  * `suggestion`: the replacement syntax;
+  * `suggestion`: the replacement text;
   * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
@@ -196,17 +273,14 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `header`: a string that begins the display. By default, it is `"Try this: "`.
 -/
-def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
+def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
-    let text ← PrettyPrinter.ppCategory kind s.suggestion
-    let start := findLineStart map.source range.start
-    let body := map.source.findAux (· ≠ ' ') range.start start
-    let text := Format.prettyExtra text
-      (indent := (body - start).1) (column := (range.start - start).1)
+    let (indent, column) := getIndentAndColumn map range
+    let text ← s.suggestion.prettyExtra (indent := indent) (column := column)
     let stxRange := ref.getRange?.getD range
     let stxRange :=
     { start := map.lineStart (map.toPosition stxRange.start).line
@@ -227,7 +301,7 @@ def addSuggestion (ref : Syntax) {kind : Name} (s : Suggestion kind)
 The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestions`: an array of `Suggestion`s, which each contain
-  * `suggestion`: the replacement syntax;
+  * `suggestion`: the replacement text;
   * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
   * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
@@ -239,7 +313,7 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
 -/
-def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion kind))
+def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try these:") : MetaM Unit := do
   let msgs := suggestions.map toMessageData
@@ -247,12 +321,9 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
   logInfoAt ref m!"{header}{msgs}"
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
-    let start := findLineStart map.source range.start
-    let body := map.source.findAux (· ≠ ' ') range.start start
+    let (indent, column) := getIndentAndColumn map range
     let suggestions ← suggestions.mapM fun { suggestion, preInfo, postInfo, classExtra, .. } => do
-      let text ← PrettyPrinter.ppCategory kind suggestion
-      let text := Format.prettyExtra text
-        (indent := (body - start).1) (column := (range.start - start).1)
+      let text ← suggestion.prettyExtra (indent := indent) (column := column)
       pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo),
         ("classExtra", toJson classExtra)]
     let stxRange := ref.getRange?.getD range
@@ -264,8 +335,7 @@ def addSuggestions (ref : Syntax) {kind : Name} (suggestions : Array (Suggestion
       ("header", header)]
     Widget.saveWidgetInfo ``tryTheseWidget json (.ofRange stxRange)
 
-private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) :
-    TermElabM (Suggestion `tactic) := do
+private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElabM Suggestion := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let suggestion ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
