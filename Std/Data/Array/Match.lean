@@ -68,11 +68,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
     · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
 
 /-- Make prefix table from a pattern array -/
-def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α :=
-  if h : xs.size = 0 then default else
-    have : xs.size-1 < xs.size := Nat.pred_lt h
-    (mkPrefixTable xs.pop).extend xs[xs.size - 1]
-termination_by _ => xs.size
+def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α := xs.foldl (·.extend) default
 
 /-- Make prefix table from a pattern stream -/
 partial def mkPrefixTableOfStream [BEq α] [Stream σ α] (stream : σ) : PrefixTable α :=
