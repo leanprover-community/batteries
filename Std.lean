@@ -36,6 +36,7 @@ import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.MLList.Basic
+import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
@@ -60,6 +61,7 @@ import Std.Data.String.Basic
 import Std.Data.String.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
+import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Expr
 import Std.Lean.Format
