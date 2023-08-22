@@ -35,17 +35,7 @@ abbrev PrefixTable.pattern (t : PrefixTable α) : Array α := t.toArray.map Prod
 -/
 def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) → Fin (t.size+1)
 | ⟨k, hk⟩ =>
-  if hx : some x == t.pattern[k]? then
-    have : k < t.size := by
-      apply Nat.lt_of_not_le
-      intro hge
-      have : t.pattern[k]? = none := by
-        apply Array.get?_len_le
-        simp [pattern, hge]
-      rw [this] at hx
-      contradiction
-    ⟨k+1, Nat.succ_lt_succ this⟩
-  else
+  let cont := fun () =>
     match k with
     | 0 => ⟨0, Nat.zero_lt_succ _⟩
     | k + 1 =>
@@ -53,6 +43,11 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
       let k' := t.toArray[k].2
       have hk' : k' < k + 1 := Nat.lt_succ_of_le (t.valid h2)
       step t x ⟨k', Nat.lt_trans hk' hk⟩
+  if hsz : k < t.size then
+    if x == t.toArray[k].1 then
+      ⟨k+1, Nat.succ_lt_succ hsz⟩
+    else cont ()
+  else cont ()
 termination_by _ k => k.val
 
 /-- Extend a prefix table by one element
