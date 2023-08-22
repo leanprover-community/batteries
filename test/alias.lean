@@ -36,11 +36,7 @@ def foobar : Nat → Nat := id
 /-- doc string for foobar2 -/
 def foobar3 (n : Nat) := foobar1 n
 
-/--
-error: unsolved goals
-x : Nat
-⊢ foobar1 x = foobar x
--/
+/-- error: simp made no progress -/
 #guard_msgs in
 example : foobar1 x = foobar x := by simp
 example : foobar2 x = foobar x := by simp
