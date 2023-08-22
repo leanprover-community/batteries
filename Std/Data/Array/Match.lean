@@ -18,7 +18,7 @@ structure PrefixTable (α : Type _) extends Array (α × Nat) where
   valid : (h : i < toArray.size) → toArray[i].2 ≤ i
 
 instance : Inhabited (PrefixTable α) where
-  default := ⟨#[], fun .⟩
+  default := ⟨#[], fun.⟩
 
 /-- Returns the size of the prefix table -/
 abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size
@@ -46,9 +46,9 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
       contradiction
     ⟨k+1, Nat.succ_lt_succ this⟩
   else if h : k ≠ 0 then
-    have h1 : k-1 < k := Nat.pred_lt h
-    have h2 : k-1 < t.size := Nat.lt_of_lt_of_le h1 (Nat.le_of_lt_succ hk)
-    let k' := t.toArray[k-1].2
+    have h1 : k - 1 < k := Nat.pred_lt h
+    have h2 : k - 1 < t.size := Nat.lt_of_lt_of_le h1 (Nat.le_of_lt_succ hk)
+    let k' := t.toArray[k - 1].2
     have hk' : k' < k := Nat.lt_of_le_of_lt (t.valid h2) h1
     step t x ⟨k', Nat.lt_trans hk' hk⟩
   else
@@ -61,30 +61,22 @@ termination_by _ k => k.val
 -/
 def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α where
   toArray := t.toArray.push (x, t.step x ⟨t.size, Nat.lt_succ_self _⟩)
-  valid := by
-    intros
+  valid _ := by
     rw [Array.get_push]
     split
-    next => exact t.valid ..
-    next i h₁ h₂ =>
-      have heq : i = t.size := by
-        apply Nat.le_antisymm
-        · apply Nat.le_of_lt_succ
-          rwa [Array.size_push] at h₁
-        · exact Nat.le_of_not_lt h₂
-      rw [heq, ← Nat.lt_succ]
-      exact Fin.isLt ..
+    · exact t.valid ..
+    · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
 
 /-- Make prefix table from a pattern array -/
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α :=
-  if h : xs.size = 0 then ⟨#[], fun .⟩ else
+  if h : xs.size = 0 then default else
     have : xs.size-1 < xs.size := Nat.pred_lt h
-    (mkPrefixTable xs.pop).extend xs[xs.size-1]
-termination_by _ xs => xs.size
+    (mkPrefixTable xs.pop).extend xs[xs.size - 1]
+termination_by _ => xs.size
 
 /-- Make prefix table from a pattern stream -/
 partial def mkPrefixTableOfStream [BEq α] [Stream σ α] (stream : σ) : PrefixTable α :=
-  loop ⟨#[], fun .⟩ stream
+  loop default stream
 where
   /-- Inner loop for `mkPrefixTableOfStream` -/
   loop (t : PrefixTable α) (stream : σ) :=
@@ -97,9 +89,9 @@ structure Matcher (α) where
   /-- Prefix table for the pattern -/
   table : PrefixTable α
   /-- Current longest matching prefix -/
-  state : Fin (table.size+1) := 0
+  state : Fin (table.size + 1) := 0
 
-/-- Make a KMP matcher for a given  pattern array -/
+/-- Make a KMP matcher for a given pattern array -/
 def Matcher.ofArray [BEq α] (pat : Array α) : Matcher α where
   table := mkPrefixTable pat
 
@@ -119,8 +111,8 @@ partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ)
   | some (x, stream) =>
     let state := m.table.step x m.state
     if state = m.table.size then
-      some (stream, {m with state := state})
+      some (stream, { m with state })
     else
-      next? {m with state := state} stream
+      next? { m with state } stream
 
 end Array
