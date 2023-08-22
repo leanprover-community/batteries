@@ -1,5 +1,6 @@
 import Std.Tactic.Lint
 import Std.Data.Array.Basic
+import Std.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
 
@@ -14,15 +15,6 @@ def readJsonFile (α) [FromJson α] (path : System.FilePath) : IO α := do
 /-- Serialize the given value `a : α` to the file as JSON. -/
 def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
   IO.FS.writeFile path <| toJson a |>.pretty
-
-open System in
-instance : ToExpr FilePath where
-  toTypeExpr := mkConst ``FilePath
-  toExpr path := mkApp (mkConst ``FilePath.mk) (toExpr path.1)
-
-/-- This elaborates to the value of `searchPathRef` at compile time -/
-elab "compile_time_search_path" : term =>
-  return toExpr (← searchPathRef.get)
 
 /--
 Usage: `runLinter [--update] [Std.Data.Nat.Basic]`
@@ -44,7 +36,7 @@ unsafe def main (args : List String) : IO Unit := do
     | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat.Basic]" *> IO.Process.exit 1
   let nolintsFile := "scripts/nolints.json"
   let nolints ← readJsonFile NoLints nolintsFile
-  searchPathRef.set compile_time_search_path
+  searchPathRef.set compile_time_search_path%
   withImportModules [{module}] {} (trustLevel := 1024) fun env =>
     let ctx := {fileName := "", fileMap := default}
     let state := {env}
