@@ -30,16 +30,17 @@ alias baz1 := baz
 example : 3 = 3 := baz1 3
 
 /-- doc string for foobar -/
-def foobar : ℕ → ℕ := id
+def foobar : Nat → Nat := id
 @[inherit_doc foobar] alias foobar1 := foobar
 @[simp] alias foobar2 := foobar
 /-- doc string for foobar2 -/
-def foobar3 (n : ℕ) := foobar1 n
+def foobar3 (n : Nat) := foobar1 n
 
-/-- error: unsolved goals
-α✝ : Sort ?u.919
-x : α✝
-⊢ foobar1 x = foobar x-/
+/--
+error: unsolved goals
+x : Nat
+⊢ foobar1 x = foobar x
+-/
 #guard_msgs in
 example : foobar1 x = foobar x := by simp
 example : foobar2 x = foobar x := by simp
@@ -67,14 +68,14 @@ noncomputable alias foobaz3 := id
 /- Test unsafe -/
 
 /-- doc string for barbaz -/
-unsafe def barbaz : ℕ → ℕ := id
+unsafe def barbaz : Nat → Nat := id
 alias barbaz1 := barbaz
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz1' -/
-#guard_msgs in def barbaz2 (n : ℕ) := barbaz1 n
+#guard_msgs in def barbaz2 (n : Nat) := barbaz1 n
 
 unsafe alias barbaz3 := id
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz3' -/
-#guard_msgs in def barbaz4 (n : ℕ) := barbaz3 n
+#guard_msgs in def barbaz4 (n : Nat) := barbaz3 n
 
 /- iff version -/
 
