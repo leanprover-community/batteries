@@ -45,14 +45,14 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
       rw [this] at hx
       contradiction
     ⟨k+1, Nat.succ_lt_succ this⟩
-  else if h : k ≠ 0 then
-    have h1 : k - 1 < k := Nat.pred_lt h
-    have h2 : k - 1 < t.size := Nat.lt_of_lt_of_le h1 (Nat.le_of_lt_succ hk)
-    let k' := t.toArray[k - 1].2
-    have hk' : k' < k := Nat.lt_of_le_of_lt (t.valid h2) h1
-    step t x ⟨k', Nat.lt_trans hk' hk⟩
   else
-    ⟨0, Nat.zero_lt_succ _⟩
+    match k with
+    | 0 => ⟨0, Nat.zero_lt_succ _⟩
+    | k + 1 =>
+      have h2 : k < t.size := Nat.lt_of_succ_lt_succ hk
+      let k' := t.toArray[k].2
+      have hk' : k' < k + 1 := Nat.lt_succ_of_le (t.valid h2)
+      step t x ⟨k', Nat.lt_trans hk' hk⟩
 termination_by _ k => k.val
 
 /-- Extend a prefix table by one element
