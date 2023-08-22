@@ -162,7 +162,7 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 @[simp] theorem mk_one : (⟨1, Nat.succ_lt_succ (Nat.succ_pos n)⟩ : Fin (n + 2)) = (1 : Fin _) := rfl
 
 theorem subsingleton_iff_le_one : Subsingleton (Fin n) ↔ n ≤ 1 := by
-  (match n with | 0 | 1 | n+2 => ?_) <;> simp
+  (match n with | 0 | 1 | n+2 => ?_) <;> try simp
   · exact ⟨fun.⟩
   · exact ⟨fun ⟨0, _⟩ ⟨0, _⟩ => rfl⟩
   · exact iff_of_false (fun h => Fin.ne_of_lt zero_lt_one (h.elim ..)) (of_decide_eq_false rfl)
