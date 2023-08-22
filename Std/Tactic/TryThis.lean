@@ -199,11 +199,15 @@ def pretty : SuggestionText → CoreM Format
   PrettyPrinter.ppCategory kind stx
 | .string text => return text
 
+/- Note that this is essentially `return (← s.pretty).prettyExtra w indent column`, but we special-case strings to avoid converting them to `Format`s and back. -/
 /-- Pretty-prints a `SuggestionText` as a `String` and wraps with respect to the pane width,
-indentation, and column, via `Format.prettyExtra`. -/
+indentation, and column, via `Format.prettyExtra`. Raw `String`s are returned as-is. -/
 def prettyExtra (s : SuggestionText) (w : Nat := Format.defWidth)
     (indent column : Nat := 0) : CoreM String :=
-  return (← s.pretty).prettyExtra w indent column
+  match s with
+  | .tsyntax (kind := kind) stx =>
+    return (← PrettyPrinter.ppCategory kind stx).prettyExtra w indent column
+  | .string text => return text
 
 end SuggestionText
 
