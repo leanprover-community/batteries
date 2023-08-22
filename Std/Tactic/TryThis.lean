@@ -27,7 +27,7 @@ This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: 
 where `<replacement>` is a link which will perform the replacement.
 -/
 @[widget] def tryThisWidget : Widget.UserWidgetDefinition where
-  name := "Tactic replacement"
+  name := "Suggestion"
   javascript := "
 import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
@@ -62,7 +62,7 @@ Try these:
 where `<replacement*>` is a link which will perform the replacement.
 -/
 @[widget] def tryTheseWidget : Widget.UserWidgetDefinition where
-  name := "Tactic replacements"
+  name := "Suggestions"
   javascript := "
 import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
