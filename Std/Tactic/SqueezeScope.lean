@@ -88,7 +88,7 @@ elab_rules : tactic
       for (_, stx, usedSimps) in new do
         let usedSimps := usedSimps.foldl (fun s usedSimps => usedSimps.fold .insert s) {}
         let stx' ← mkSimpCallStx stx usedSimps
-        TryThis.addSuggestion stx[0] (stx' : TryThis.Suggestion `tactic) (origSpan? := stx)
+        TryThis.addSuggestion stx[0] stx' (origSpan? := stx)
 
 elab_rules : tactic
   | `(tactic| squeeze_wrap $a $x => $tac) => do
