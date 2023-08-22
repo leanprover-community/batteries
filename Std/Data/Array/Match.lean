@@ -23,9 +23,6 @@ instance : Inhabited (PrefixTable α) where
 /-- Returns the size of the prefix table -/
 abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size
 
-/-- Returns the pattern array of the prefix table -/
-abbrev PrefixTable.pattern (t : PrefixTable α) : Array α := t.toArray.map Prod.fst
-
 /-- Transition function for the KMP matcher
 
   Assuming we have an input `xs` with a suffix that matches the pattern prefix `t.pattern[:len]`
