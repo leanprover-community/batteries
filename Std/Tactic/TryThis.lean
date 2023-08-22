@@ -215,9 +215,9 @@ used. -/
 structure Suggestion where
   /-- Text to be used as a replacement via a code action. -/
   suggestion : SuggestionText
-  /-- Info to be printed immediately before replacement syntax in a widget. -/
+  /-- Info to be printed immediately before replacement text in a widget. -/
   preInfo : String := ""
-  /-- Info to be printed immediately after replacement syntax in a widget. -/
+  /-- Info to be printed immediately after replacement text in a widget. -/
   postInfo : String := ""
   /-- String that will be appended to the `className` of the suggestion's HTML element in the
   infoview (with a space). E.g., `classExtra := some "red"` will yield
@@ -274,10 +274,8 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `s`: a `Suggestion`, which contains
   * `suggestion`: the replacement text;
-  * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
-  * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
-  * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
-    HTML element (e.g. `"red"`)
+  * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
+  * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
@@ -314,10 +312,8 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestions`: an array of `Suggestion`s, which each contain
   * `suggestion`: the replacement text;
-  * `preInfo`: a string shown immediately after the replacement syntax in the widget message (only)
-  * `postInfo`: a string shown immediately after the replacement syntax in the widget message (only)
-  * `classExtra`: an optional string to be appended to the `className` of the replacement syntax
-    HTML element (e.g. `"red"`)
+  * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
+  * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
