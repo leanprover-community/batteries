@@ -205,8 +205,7 @@ theorem filter_beq (l : List α) (a : α) : l.filter (a == ·) = replicate (coun
 theorem le_count_iff_replicate_sublist {l : List α} : n ≤ count a l ↔ replicate n a <+ l := by
   refine ⟨fun h => ?_, fun h => ?_⟩
   · exact ((replicate_sublist_replicate a).2 h).trans <| filter_eq l a ▸ filter_sublist _
-  · have := h.count_le a
-    simpa only [count_replicate_self]
+  · simpa only [count_replicate_self] using h.count_le a
 
 theorem replicate_count_eq_of_count_eq_length {l : List α} (h : count a l = length l) :
     replicate (count a l) a = l :=
