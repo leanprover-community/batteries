@@ -451,6 +451,30 @@ theorem Sublist.eq_of_length_le (s : l₁ <+ l₂) (h : length l₂ ≤ length l
     | refl => apply Sublist.refl
     | step => simp [*, replicate, Sublist.cons]
 
+theorem isSublist_iff_sublist [DecidableEq α] {l₁ l₂ : List α} : l₁.isSublist l₂ ↔ l₁ <+ l₂ := by
+  cases l₁ <;> cases l₂ <;> simp [isSublist]
+  case cons.cons hd₁ tl₁ hd₂ tl₂ =>
+    if h_eq : hd₁ = hd₂ then
+      simp [h_eq, cons_sublist_cons, isSublist_iff_sublist]
+    else
+      simp only [h_eq]
+      exact ⟨
+        by
+          intro h_sub
+          apply Sublist.cons
+          exact isSublist_iff_sublist.mp h_sub,
+        by
+          intro h_sub
+          cases h_sub
+          case cons h_sub =>
+            exact isSublist_iff_sublist.mpr h_sub
+          case cons₂ =>
+            contradiction⟩
+
+instance instDecidableSublist [DecidableEq α] : DecidableRel (@Sublist α) := fun l l' => by
+  rw [← isSublist_iff_sublist]
+  exact instDecidableIsSublist l l'
+
 /-! ### head -/
 
 theorem head!_of_head? [Inhabited α] : ∀ {l : List α}, head? l = some a → head! l = a
