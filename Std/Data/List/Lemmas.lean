@@ -469,12 +469,8 @@ theorem isSublist_iff_sublist [DecidableEq α] {l₁ l₂ : List α} : l₁.isSu
         case cons₂ =>
           contradiction
 
-instance instDecidableSublist [DecidableEq α] : DecidableRel (@Sublist α) := fun l₁ l₂ => by
-  rw [← isSublist_iff_sublist]
-  if h : l₁.isSublist l₂ then
-    exact isTrue h
-  else
-    exact isFalse h
+instance instDecidableSublist [DecidableEq α] : DecidableRel (@Sublist α) := fun l₁ l₂ =>
+  decidable_of_iff (l₁.isSublist l₂) isSublist_iff_sublist
 
 /-! ### head -/
 
