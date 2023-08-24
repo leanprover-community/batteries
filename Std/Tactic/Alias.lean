@@ -57,6 +57,15 @@ def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := 
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
   modifyEnv (aliasExt.addEntry · (declName, info))
 
+/-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
+def setDeprecatedTarget (target : Name) : Array Attribute → Array Attribute :=
+  Array.map fun s =>
+    if s.name == `deprecated then
+      if let `(deprecated| deprecated) := s.stx then
+        { s with stx := Unhygienic.run `(deprecated| deprecated $(mkCIdent target)) }
+      else s
+    else s
+
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
@@ -70,10 +79,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
     let const ← getConstInfo resolved
     let declMods ← elabModifiers mods
-    let declMods ← pure { declMods with
-        isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
-        isUnsafe := declMods.isUnsafe || const.isUnsafe
-      }
+    let declMods := { declMods with
+      isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
+      isUnsafe := declMods.isUnsafe || const.isUnsafe
+      attrs := setDeprecatedTarget resolved declMods.attrs
+    }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := match const with
       | Lean.ConstantInfo.thmInfo t =>
@@ -159,6 +169,7 @@ elab (name := aliasLR) mods:declModifiers "alias "
   Command.liftTermElabM do
     let resolved ← resolveGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
+    let declMods := { declMods with attrs := setDeprecatedTarget resolved declMods.attrs }
     match ← getConstInfo resolved with
     | .thmInfo thm =>
       if let `(binderIdent| $idFwd:ident) := aliasFwd then

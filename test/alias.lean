@@ -11,11 +11,12 @@ theorem foo : 1 + 1 = 2 := rfl
 
 /-- doc string for `alias foo` -/
 alias foo1 := foo
-alias foo2 := foo
+@[deprecated] alias foo2 := foo
 alias _root_.B.foo3 := foo
 
 example : 1 + 1 = 2 := foo1
-example : 1 + 1 = 2 := foo2
+/-- warning: `A.foo2` has been deprecated, use `A.foo` instead -/
+#guard_msgs in example : 1 + 1 = 2 := foo2
 example : 1 + 1 = 2 := B.foo3
 
 /-- doc string for bar -/
