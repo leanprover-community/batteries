@@ -458,18 +458,16 @@ theorem isSublist_iff_sublist [DecidableEq α] {l₁ l₂ : List α} : l₁.isSu
       simp [h_eq, cons_sublist_cons, isSublist_iff_sublist]
     else
       simp only [h_eq]
-      exact ⟨
-        by
-          intro h_sub
-          apply Sublist.cons
-          exact isSublist_iff_sublist.mp h_sub,
-        by
-          intro h_sub
-          cases h_sub
-          case cons h_sub =>
-            exact isSublist_iff_sublist.mpr h_sub
-          case cons₂ =>
-            contradiction⟩
+      constructor
+      · intro h_sub
+        apply Sublist.cons
+        exact isSublist_iff_sublist.mp h_sub
+      · intro h_sub
+        cases h_sub
+        case cons h_sub =>
+          exact isSublist_iff_sublist.mpr h_sub
+        case cons₂ =>
+          contradiction
 
 instance instDecidableSublist [DecidableEq α] : DecidableRel (@Sublist α) := fun l₁ l₂ => by
   rw [← isSublist_iff_sublist]
