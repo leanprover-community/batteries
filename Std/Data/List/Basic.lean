@@ -452,12 +452,6 @@ def isSublist [DecidableEq α] : List α → List α → Bool
     then tl₁.isSublist tl₂
     else l₁.isSublist tl₂
 
-instance instDecidableIsSublist [DecidableEq α] (l₁ l₂ : List α) : Decidable (l₁.isSublist l₂) :=
-  if h : l₁.isSublist l₂ then
-    isTrue h
-  else
-    isFalse h
-
 
 /--
 Split a list at an index.
