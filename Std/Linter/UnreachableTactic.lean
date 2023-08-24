@@ -58,6 +58,8 @@ This should be called from an `initialize` block.
 def addIgnoreTacticKind (kind : SyntaxNodeKind) : IO Unit :=
   ignoreTacticKindsRef.modify (·.insert kind)
 
+initialize Std.Linter.UnreachableTactic.addIgnoreTacticKind `Lean.Parser.Tactic.discharger
+
 variable (ignoreTacticKinds : NameHashSet) (isTacKind : SyntaxNodeKind → Bool) in
 /-- Accumulates the set of tactic syntaxes that should be evaluated at least once. -/
 @[specialize] partial def getTactics (stx : Syntax) : M Unit := do
