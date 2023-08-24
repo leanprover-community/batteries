@@ -61,8 +61,8 @@ def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
 def setDeprecatedTarget (target : Name) : Array Attribute → Array Attribute :=
   Array.map fun s =>
     if s.name == `deprecated then
-      if let `(deprecated| deprecated) := s.stx then
-        { s with stx := Unhygienic.run `(deprecated| deprecated $(mkCIdent target)) }
+      if let `(deprecated| deprecated%$tk) := s.stx then
+        { s with stx := Unhygienic.run `(deprecated| deprecated%$tk $(mkCIdent target)) }
       else s
     else s
 
@@ -76,34 +76,27 @@ def setDeprecatedTarget (target : Name) : Array Attribute → Array Attribute :=
  -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
   Command.liftTermElabM do
-    let resolved ← resolveGlobalConstNoOverloadWithInfo name
-    let const ← getConstInfo resolved
+    let name ← resolveGlobalConstNoOverloadWithInfo name
+    let cinfo ← getConstInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with
-      isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) const.name
-      isUnsafe := declMods.isUnsafe || const.isUnsafe
-      attrs := setDeprecatedTarget resolved declMods.attrs
+      isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) name
+      isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
+      attrs := setDeprecatedTarget name declMods.attrs
     }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
-    let decl : Declaration := match const with
-      | Lean.ConstantInfo.thmInfo t =>
-        .thmDecl { t with
-          name := declName
-          value := mkConst resolved (t.levelParams.map mkLevelParam)
-        }
-      | Lean.ConstantInfo.defnInfo c
-      | Lean.ConstantInfo.quotInfo c
-      | Lean.ConstantInfo.inductInfo c
-      | Lean.ConstantInfo.axiomInfo c
-      | Lean.ConstantInfo.opaqueInfo c
-      | Lean.ConstantInfo.ctorInfo c
-      | Lean.ConstantInfo.recInfo c =>
-        .defnDecl { c with
-          name := declName
-          value := mkConst resolved (c.levelParams.map mkLevelParam)
-          hints := .regular 0 -- FIXME
-          safety := if declMods.isUnsafe then .unsafe else .safe
-        }
+    let decl : Declaration := if let .thmInfo t := cinfo then
+      .thmDecl { t with
+        name := declName
+        value := mkConst name (t.levelParams.map mkLevelParam)
+      }
+    else
+      .defnDecl { cinfo.toConstantVal with
+        name := declName
+        value := mkConst name (cinfo.levelParams.map mkLevelParam)
+        hints := .regular 0 -- FIXME
+        safety := if declMods.isUnsafe then .unsafe else .safe
+      }
     checkNotAlreadyDeclared declName
     if declMods.isNoncomputable then
       addDecl decl
@@ -116,15 +109,13 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     addDocString' declName declMods.docString?
     Term.applyAttributes declName declMods.attrs
-    let info := match ← getAliasInfo const.name with
-      | some i => i
-      | none => AliasInfo.plain const.name
+    let info := (← getAliasInfo name).getD <| AliasInfo.plain name
     setAliasInfo info declName
     /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
       `declMods` because a docstring may have been added by an attribute. -/
     if (← findDocString? (← getEnv) declName).isNone then
       let mut doc := info.toString
-      if let some origDoc ← findDocString? (← getEnv) resolved then
+      if let some origDoc ← findDocString? (← getEnv) name then
         doc := s!"{doc}\n\n---\n\n{origDoc}"
       addDocString declName doc
 
@@ -145,10 +136,10 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
   let value ← mkIffMpApp mp thm.type thm.value
   let type ← Meta.inferType value
   addDecl <| Declaration.thmDecl { thm with
-      name := declName
-      value := value
-      type := type
-    }
+    name := declName
+    value := value
+    type := type
+  }
   addDocString' declName declMods.docString?
   Term.applyAttributes declName declMods.attrs
   let info := match ← getAliasInfo thm.name with
@@ -167,25 +158,23 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
 elab (name := aliasLR) mods:declModifiers "alias "
     "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command =>
   Command.liftTermElabM do
-    let resolved ← resolveGlobalConstNoOverloadWithInfo name
+    let name ← resolveGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
-    let declMods := { declMods with attrs := setDeprecatedTarget resolved declMods.attrs }
-    match ← getConstInfo resolved with
-    | .thmInfo thm =>
-      if let `(binderIdent| $idFwd:ident) := aliasFwd then
-        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
-        addSide true declName declMods thm
-        Lean.addDeclarationRanges declName {
-          range := ← getDeclarationRange (← getRef)
-          selectionRange := ← getDeclarationRange idFwd
-        }
-        Term.addTermInfo' idFwd (← mkConstWithLevelParams declName) (isBinder := true)
-      if let `(binderIdent| $idRev:ident) := aliasRev then
-        let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idRev.getId
-        addSide false declName declMods thm
-        Lean.addDeclarationRanges declName {
-          range := ← getDeclarationRange (← getRef)
-          selectionRange := ← getDeclarationRange idRev
-        }
-        Term.addTermInfo' idRev (← mkConstWithLevelParams declName) (isBinder := true)
-    | _ => throwError "Target must be a theorem"
+    let declMods := { declMods with attrs := setDeprecatedTarget name declMods.attrs }
+    let .thmInfo thm ← getConstInfo name | throwError "Target must be a theorem"
+    if let `(binderIdent| $idFwd:ident) := aliasFwd then
+      let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
+      addSide true declName declMods thm
+      Lean.addDeclarationRanges declName {
+        range := ← getDeclarationRange (← getRef)
+        selectionRange := ← getDeclarationRange idFwd
+      }
+      Term.addTermInfo' idFwd (← mkConstWithLevelParams declName) (isBinder := true)
+    if let `(binderIdent| $idRev:ident) := aliasRev then
+      let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idRev.getId
+      addSide false declName declMods thm
+      Lean.addDeclarationRanges declName {
+        range := ← getDeclarationRange (← getRef)
+        selectionRange := ← getDeclarationRange idRev
+      }
+      Term.addTermInfo' idRev (← mkConstWithLevelParams declName) (isBinder := true)
