@@ -8,6 +8,7 @@ import Std.Classes.SetNotation
 import Std.CodeAction
 import Std.CodeAction.Attr
 import Std.CodeAction.Basic
+import Std.CodeAction.Deprecated
 import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
