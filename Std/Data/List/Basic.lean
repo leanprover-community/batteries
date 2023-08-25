@@ -443,6 +443,15 @@ inductive Sublist {α} : List α → List α → Prop
 
 @[inherit_doc] scoped infixl:50 " <+ " => Sublist
 
+/-- True if the first list is a potentially non-contiguous sub-sequence of the second list. -/
+def isSublist [DecidableEq α] : List α → List α → Bool
+  | [], _ => true
+  | _, [] => false
+  | l₁@(hd₁::tl₁), hd₂::tl₂ =>
+    if hd₁ = hd₂
+    then tl₁.isSublist tl₂
+    else l₁.isSublist tl₂
+
 /--
 Split a list at an index.
 ```
