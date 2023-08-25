@@ -44,6 +44,7 @@ initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
     |>.insert ``Lean.Parser.Tactic.tacticStop_
     |>.insert ``Lean.Parser.Command.notation
     |>.insert ``Lean.Parser.Command.mixfix
+    |>.insert ``Lean.Parser.Tactic.discharger
 
 /-- Is this a syntax kind that contains intentionally unevaluated tactic subterms? -/
 def isIgnoreTacticKind (ignoreTacticKinds : NameHashSet) (k : SyntaxNodeKind) : Bool :=
@@ -57,8 +58,6 @@ This should be called from an `initialize` block.
 -/
 def addIgnoreTacticKind (kind : SyntaxNodeKind) : IO Unit :=
   ignoreTacticKindsRef.modify (·.insert kind)
-
-initialize Std.Linter.UnreachableTactic.addIgnoreTacticKind `Lean.Parser.Tactic.discharger
 
 variable (ignoreTacticKinds : NameHashSet) (isTacKind : SyntaxNodeKind → Bool) in
 /-- Accumulates the set of tactic syntaxes that should be evaluated at least once. -/
