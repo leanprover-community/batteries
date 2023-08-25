@@ -11,12 +11,14 @@ theorem foo : 1 + 1 = 2 := rfl
 
 /-- doc string for `alias foo` -/
 alias foo1 := foo
-alias foo2 := foo
-alias _root_.B.foo3 := foo
+@[deprecated] alias foo2 := foo
+@[deprecated foo2] alias _root_.B.foo3 := foo
 
 example : 1 + 1 = 2 := foo1
-example : 1 + 1 = 2 := foo2
-example : 1 + 1 = 2 := B.foo3
+/-- warning: `A.foo2` has been deprecated, use `A.foo` instead -/
+#guard_msgs in example : 1 + 1 = 2 := foo2
+/-- warning: `B.foo3` has been deprecated, use `A.foo2` instead -/
+#guard_msgs in example : 1 + 1 = 2 := B.foo3
 
 /-- doc string for bar -/
 def bar : Nat := 5
@@ -75,14 +77,19 @@ unsafe alias barbaz3 := id
 
 /- iff version -/
 
-alias ⟨mpId, mprId⟩ := Iff.rfl
+@[deprecated] alias ⟨mpId, mprId⟩ := Iff.rfl
 
 /-- info: A.mpId {a : Prop} (a✝ : a) : a -/
-#guard_msgs in
-#check mpId
+#guard_msgs in #check mpId
 /-- info: A.mprId {a : Prop} (a✝ : a) : a -/
-#guard_msgs in
-#check mprId
+#guard_msgs in #check mprId
+
+/--
+warning: `A.mpId` has been deprecated, use `Iff.rfl` instead
+---
+warning: `A.mprId` has been deprecated, use `Iff.rfl` instead
+-/
+#guard_msgs in example := And.intro @mpId @mprId
 
 /- Test environment extension -/
 
