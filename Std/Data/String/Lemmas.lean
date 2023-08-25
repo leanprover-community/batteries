@@ -237,7 +237,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
     utf8SetAux c' (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs ++ cs'.modifyHead fun _ => c' := by
   match cs, cs' with
   | [], [] => rfl
-  | [], c::cs' => simp [← hp, utf8SetAux]
+  | [], c::cs' => simp [List.modifyHead, ← hp, utf8SetAux]
   | c::cs, cs' =>
     simp [utf8SetAux]; rw [if_neg]
     case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
@@ -740,7 +740,7 @@ theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ 
   | l, c::r => by
     unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
-    simp [set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r]
+    simp [List.modifyHead, set_of_valid l (c::r), get_of_valid l (c::r), next_of_valid l (f c) r]
     simpa using mapAux_of_valid f (l++[f c]) r
 
 theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by

@@ -531,7 +531,7 @@ modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
   | n+1, a :: l => a :: modifyNthTail f n l
 
 /-- Apply `f` to the head of the list, if it exists. -/
-@[simp, inline] def modifyHead (f : α → α) : List α → List α
+@[inline] def modifyHead (f : α → α) : List α → List α
   | [] => []
   | a :: l => f a :: l
 
@@ -548,8 +548,8 @@ def modifyNthTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] 
   | a :: l, n+1, acc => go l n (acc.push a)
 
 theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modifyNth f n l
-  | [], n => by cases n <;> simp [modifyNthTR.go, modifyNth]
-  | a :: l, 0 => by simp [modifyNthTR.go, modifyNth]
+  | [], n => by cases n <;> simp [modifyHead, modifyNthTR.go, modifyNth]
+  | a :: l, 0 => by simp [modifyHead, modifyNthTR.go, modifyNth]
   | a :: l, n+1 => by simp [modifyNthTR.go, modifyNth, modifyNthTR_go_eq l]
 
 @[csimp] theorem modifyNth_eq_modifyNthTR : @modifyNth = @modifyNthTR := by

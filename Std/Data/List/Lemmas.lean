@@ -687,26 +687,11 @@ theorem head!_mem_self [Inhabited α] {l : List α} (h : l ≠ nil) : l.head! �
 @[simp] theorem head?_map (f : α → β) (l) : head? (map f l) = (head? l).map f := by
   cases l <;> rfl
 
--- List.modifyHead_modifyHead.{u_1} Left-hand side simplifies from
---   List.modifyHead g (List.modifyHead f l)
--- to
---   match
---   match l with
---   | [] => []
---   | a :: l => f a :: l with
--- | [] => []
--- | a :: l => g a :: l
--- using
---   simp only [@List.modifyHead]
--- Try to change the left-hand side to the simplified term!
---
--- @[simp 1100]
+@[simp]
 theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
     (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by
-  cases l
-  · simp only [modifyHead]
-  · simp only [modifyHead]
-    rfl
+  cases l <;> simp only [modifyHead]
+  rfl
 
 /-! ### tail -/
 
