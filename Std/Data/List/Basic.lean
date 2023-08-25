@@ -452,7 +452,6 @@ def isSublist [DecidableEq α] : List α → List α → Bool
     then tl₁.isSublist tl₂
     else l₁.isSublist tl₂
 
-
 /--
 Split a list at an index.
 ```
