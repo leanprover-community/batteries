@@ -687,9 +687,26 @@ theorem head!_mem_self [Inhabited α] {l : List α} (h : l ≠ nil) : l.head! �
 @[simp] theorem head?_map (f : α → β) (l) : head? (map f l) = (head? l).map f := by
   cases l <;> rfl
 
-@[simp 1100]
+-- List.modifyHead_modifyHead.{u_1} Left-hand side simplifies from
+--   List.modifyHead g (List.modifyHead f l)
+-- to
+--   match
+--   match l with
+--   | [] => []
+--   | a :: l => f a :: l with
+-- | [] => []
+-- | a :: l => g a :: l
+-- using
+--   simp only [@List.modifyHead]
+-- Try to change the left-hand side to the simplified term!
+--
+-- @[simp 1100]
 theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
-    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by
+  cases l
+  · simp only [modifyHead]
+  · simp only [modifyHead]
+    rfl
 
 /-! ### tail -/
 
@@ -970,7 +987,9 @@ theorem getLast?_eq_get? : ∀ (l : List α), getLast? l = l.get? (l.length - 1)
   | [], a => rfl
   | b :: l, a => by rw [cons_append, length_cons]; simp only [get?, get?_concat_length]
 
-@[simp] theorem getLast?_concat (l : List α) : getLast? (l ++ [a]) = some a := by
+-- simp can prove this
+-- @[simp]
+theorem getLast?_concat (l : List α) : getLast? (l ++ [a]) = some a := by
   simp [getLast?_eq_get?]
 
 @[simp] theorem getLastD_concat (a b l) : @getLastD α (l ++ [b]) a = b := by
