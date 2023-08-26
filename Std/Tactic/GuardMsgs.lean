@@ -140,7 +140,7 @@ elab_rules : command
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD "" |>.trim
     let specFn ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
-    elabCommand cmd
+    elabCommandTopLevel cmd
     let msgs := (← get).messages
     let mut toCheck : MessageLog := .empty
     let mut toPassthrough : MessageLog := .empty
