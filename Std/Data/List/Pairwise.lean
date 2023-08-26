@@ -193,7 +193,7 @@ theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β
   rw [←h]
   exact d _ g
 
-theorem pairwise_iff_forall_sublist [DecidableEq α] : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
+theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
   induction l with
   | nil => simp
   | cons hd tl IH =>
@@ -265,7 +265,7 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
     simp [comp, pairwise_map, IH]
     rintro _ _ _ rfl; apply Nat.zero_lt_succ
 
-theorem pairwise_iff_get [DecidableEq α] : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
+theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_forall_sublist]
   constructor <;> intro h
   · intros i j h'
