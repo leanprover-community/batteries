@@ -28,26 +28,28 @@ syntax "satisfies_binder_pred% " term:max binderPred : term
 
 /--
 The notation `∃ x < 2, p x` is shorthand for `∃ x, x < 2 ∧ p x`,
-and similarly for other binary operators.
+and similarly for other binary relations defined as being binder predicates.
 -/
-syntax "∃ " binderIdent binderPred ", " term : term
+syntax "∃ " term:max binderPred ", " term : term
 /--
 The notation `∀ x < 2, p x` is shorthand for `∀ x, x < 2 → p x`,
-and similarly for other binary operators.
+and similarly for other binary relations defined as being binder predicates.
 -/
-syntax "∀ " binderIdent binderPred ", " term : term
+syntax "∀ " term:max binderPred ", " term : term
 
 macro_rules
-  | `(∃ $x:ident $pred:binderPred, $p) =>
-    `(∃ $x:ident, satisfies_binder_pred% $x $pred ∧ $p)
-  | `(∃ _ $pred:binderPred, $p) =>
-    `(∃ x, satisfies_binder_pred% x $pred ∧ $p)
+  | `(∃ $x:term $pred:binderPred, $p) =>
+    match x with
+    | `($x:ident) => `(∃ $x:ident, satisfies_binder_pred% $x $pred ∧ $p)
+    | `(_)        => `(∃ x, satisfies_binder_pred% x $pred ∧ $p)
+    | _           => `(∃ x, satisfies_binder_pred% x $pred ∧ match x with | $x => $p)
 
 macro_rules
-  | `(∀ $x:ident $pred:binderPred, $p) =>
-    `(∀ $x:ident, satisfies_binder_pred% $x $pred → $p)
-  | `(∀ _ $pred:binderPred, $p) =>
-    `(∀ x, satisfies_binder_pred% x $pred → $p)
+  | `(∀ $x:term $pred:binderPred, $p) =>
+    match x with
+    | `($x:ident) => `(∀ $x:ident, satisfies_binder_pred% $x $pred → $p)
+    | `(_)        => `(∀ x, satisfies_binder_pred% x $pred → $p)
+    | _           => `(∀ x, satisfies_binder_pred% x $pred → match x with | $x => $p)
 
 -- We also provide special versions of ∀/∃ that take a list of extended binders.
 -- The built-in binders are not reused because that results in overloaded syntax.
@@ -55,38 +57,42 @@ macro_rules
 /--
 An extended binder has the form `x`, `x : ty`, or `x pred`
 where `pred` is a `binderPred` like `< 2`.
+The pattern `x` can be any term.
 -/
-syntax extBinder := binderIdent ((" : " term) <|> binderPred)?
+syntax extBinder := term:max ((" : " term) <|> binderPred)?
 /-- A extended binder in parentheses -/
 syntax extBinderParenthesized := " (" extBinder ")" -- TODO: inlining this definition breaks
 /-- A list of parenthesized binders -/
-syntax extBinderCollection := extBinderParenthesized*
-/-- A single (unparenthesized) binder, or a list of parenthesized binders -/
-syntax extBinders := (ppSpace extBinder) <|> extBinderCollection
+syntax extBinderCollection := extBinderParenthesized+
+/-- A list of parenthesized binders or a single (unparenthesized) binder. -/
+syntax extBinders := extBinderCollection <|> (ppSpace extBinder)
 
 /-- The syntax `∃ᵉ (x < 2) (y < 3), p x y` is shorthand for `∃ x < 2, ∃ y < 3, p x y`. -/
 syntax "∃ᵉ" extBinders ", " term : term
+/-- Convert `extBinderCollection` into nested `extBinder`s. -/
 macro_rules
-  | `(∃ᵉ, $b) => pure b
-  | `(∃ᵉ ($p:extBinder) $[($ps:extBinder)]*, $b) =>
-    `(∃ᵉ $p:extBinder, ∃ᵉ $[($ps:extBinder)]*, $b)
-macro_rules -- TODO: merging the two macro_rules breaks expansion
-  | `(∃ᵉ $x:binderIdent, $b) => `(∃ $x:binderIdent, $b)
-  | `(∃ᵉ $x:binderIdent : $ty:term, $b) => `(∃ $x:binderIdent : $ty:term, $b)
-  | `(∃ᵉ $x:binderIdent $p:binderPred, $b) => `(∃ $x:binderIdent $p:binderPred, $b)
+  | `(∃ᵉ $[($ps:extBinder)]*, $b) => ps.foldrM (fun p e => `(∃ᵉ $p:extBinder, $(⟨e⟩))) b
+/-- Handle individual `extBinder`s. -/
+macro_rules
+  | `(∃ᵉ $x:term, $b) => `(Exists fun $x => $b)
+  | `(∃ᵉ $x:term : $ty:term, $b) => `(@Exists $ty fun $x => $b)
+  | `(∃ᵉ $x:term $p:binderPred, $b) => `(∃ $x:term $p:binderPred, $b)
 
 /-- The syntax `∀ᵉ (x < 2) (y < 3), p x y` is shorthand for `∀ x < 2, ∀ y < 3, p x y`. -/
 syntax "∀ᵉ" extBinders ", " term : term
+/-- Convert `extBinderCollection` into nested `extBinder`s. -/
 macro_rules
-  | `(∀ᵉ, $b) => pure b
-  | `(∀ᵉ ($p:extBinder) $[($ps:extBinder)]*, $b) =>
-    `(∀ᵉ $p:extBinder, ∀ᵉ $[($ps:extBinder)]*, $b)
-macro_rules -- TODO: merging the two macro_rules breaks expansion
+  | `(∀ᵉ $[($ps:extBinder)]*, $b) => ps.foldrM (fun p e => `(∀ᵉ $p:extBinder, $(⟨e⟩))) b
+/-- Handle individual `extBinder`s. -/
+macro_rules
   | `(∀ᵉ _, $b) => `(∀ _, $b)
   | `(∀ᵉ $x:ident, $b) => `(∀ $x:ident, $b)
-  | `(∀ᵉ _ : $ty:term, $b) => `(∀ _ : $ty:term, $b)
-  | `(∀ᵉ $x:ident : $ty:term, $b) => `(∀ $x:ident : $ty:term, $b)
-  | `(∀ᵉ $x:binderIdent $p:binderPred, $b) => `(∀ $x:binderIdent $p:binderPred, $b)
+  | `(∀ᵉ $x:term : $ty:term, $b) =>
+    match x with
+    | `($x:ident) => `(∀ $x:ident : $ty:term, $b)
+    | `(_)        => `(∀ _ : $ty:term, $b)
+    | _           => `(∀ x : $ty:term, match x with | $x => $b)
+  | `(∀ᵉ $x:term $p:binderPred, $b) => `(∀ $x:term $p:binderPred, $b)
 
 open Parser.Command in
 /--
