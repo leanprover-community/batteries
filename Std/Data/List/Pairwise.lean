@@ -1,15 +1,16 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, James Gallicchio
 -/
 import Std.Data.List.Count
+import Std.Data.Fin.Lemmas
 
 /-!
 # Pairwise relations on a list
 
 This file provides basic results about `List.Pairwise` and `List.pwFilter` (definitions are in
-`Data.List.Defs`).
+`Std.Data.List.Defs`).
 `Pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,
 `Pairwise (≠) l` means that all elements of `l` are distinct, and `Pairwise (<) l` means that `l`
 is strictly increasing.
@@ -27,7 +28,7 @@ open Nat Function
 
 namespace List
 
-variable {α β : Type _} {R S T : α → α → Prop} {a : α} {l : List α}
+variable {R : α → α → Prop}
 
 
 /-! ### Pairwise -/
@@ -47,7 +48,7 @@ theorem Pairwise.drop : ∀ {l : List α} {n : Nat}, List.Pairwise R l → List.
   | [], _ + 1, _ => List.Pairwise.nil
   | a :: l, n + 1, h => by rw [List.drop]; exact Pairwise.drop (pairwise_cons.mp h).right
 
-theorem Pairwise.imp_of_mem {S : α → α → Prop} {l : List α}
+theorem Pairwise.imp_of_mem {S : α → α → Prop}
     (H : ∀ {a b}, a ∈ l → b ∈ l → R a b → S a b) (p : Pairwise R l) : Pairwise S l := by
   induction p with
   | nil => constructor
@@ -56,20 +57,19 @@ theorem Pairwise.imp_of_mem {S : α → α → Prop} {l : List α}
     · exact fun x h => H (mem_cons_self ..) (mem_cons_of_mem _ h) <| r x h
     · exact ih fun {a b} m m' => H (mem_cons_of_mem _ m) (mem_cons_of_mem _ m')
 
-theorem pairwise_and_iff : (l.Pairwise fun a b => R a b ∧ S a b) ↔ l.Pairwise R ∧ l.Pairwise S :=
-  ⟨ fun h => ⟨h.imp @fun a b h => h.1, h.imp @fun a b h => h.2⟩
-  , fun ⟨hR, hS⟩ => by
-    induction hR with
-    | nil => simp only [Pairwise.nil]
-    | cons R1 R2 IH =>
-      simp only [Pairwise.nil, pairwise_cons] at hS ⊢
-      exact ⟨fun b bl => ⟨R1 b bl, hS.1 b bl⟩, IH ⟨R2, hS.2⟩ hS.2⟩⟩
+theorem Pairwise.and (hR : Pairwise R l) (hS : Pairwise S l) :
+    l.Pairwise fun a b => R a b ∧ S a b := by
+  induction hR with
+  | nil => simp only [Pairwise.nil]
+  | cons R1 _ IH =>
+    simp only [Pairwise.nil, pairwise_cons] at hS ⊢
+    exact ⟨fun b bl => ⟨R1 b bl, hS.1 b bl⟩, IH hS.2⟩
 
-theorem Pairwise.and (hR : l.Pairwise R) (hS : l.Pairwise S) :
-    l.Pairwise fun a b => R a b ∧ S a b :=
-  pairwise_and_iff.2 ⟨hR, hS⟩
+theorem pairwise_and_iff : (l.Pairwise fun a b => R a b ∧ S a b) ↔ Pairwise R l ∧ Pairwise S l :=
+  ⟨ fun h => ⟨h.imp fun h => h.1, h.imp fun h => h.2⟩
+  , fun ⟨hR, hS⟩ => hR.and hS⟩
 
-theorem Pairwise.imp₂ (H : ∀ a b, R a b → S a b → T a b) (hR : l.Pairwise R) (hS : l.Pairwise S) :
+theorem Pairwise.imp₂ (H : ∀ a b, R a b → S a b → T a b) (hR : Pairwise R l) (hS : l.Pairwise S) :
     l.Pairwise T :=
   (hR.and hS).imp fun h => (H _ _ h.1 h.2)
 
@@ -98,7 +98,7 @@ theorem Pairwise.imp_mem {l : List α} :
     (by simp (config := { contextual := true }) only [forall_prop_of_true, iff_self]
         intros; trivial)
 
-theorem Pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.Pairwise R)
+theorem Pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : Pairwise R l)
     (h₃ : l.Pairwise (flip R)) : ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → R x y := by
   induction l with
   | nil => exact forall_mem_nil _
@@ -193,56 +193,91 @@ theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β
   rw [←h]
   exact d _ g
 
-theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
-    (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
+theorem pairwise_iff_forall_sublist [DecidableEq α] : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
   induction l with
   | nil => simp
   | cons hd tl IH =>
     rw [List.pairwise_cons]
-    constructor
-    · intro x hx
-      by_cases H : hd = x
-      · rw [H]
-        refine' hr ..
-        simp [H, Nat.add_one]
-        apply Nat.succ_le_succ
-        exact List.count_pos_iff_mem.mpr hx
-      · exact h hd (mem_cons_self ..) x (mem_cons_of_mem _ hx) H
-    · refine' IH ..
+    constructor <;> intro h
+    · intro a b hab
+      match hab with
+      | .cons _ hab => exact IH.mp h.2 hab
+      | .cons₂ _ hab => refine h.1 _ (hab.subset ?_); simp
+    · constructor
       · intro x hx
-        refine' hr ..
-        rw [count_cons]
-        split
-        · exact Nat.lt_trans hx (Nat.lt_succ_self _)
-        · exact hx
-      · intro x hx y hy
-        exact h x (mem_cons_of_mem _ hx) y (mem_cons_of_mem _ hy)
+        apply h
+        rw [List.cons_sublist_cons, List.singleton_sublist]
+        assumption
+      · apply IH.mpr
+        intro a b hab
+        apply h; exact hab.cons _
 
-theorem pairwise_iff_get : ∀ {l : List α}, Pairwise R l ↔
-    ∀ (i j) (_hij : i < j), R (get l i) (get l j)
-  | [] => by
-    simp only [Pairwise.nil, true_iff]; exact fun i j _h => (Nat.not_lt_zero j).elim j.2
-  | a :: l => by
-    rw [pairwise_cons, pairwise_iff_get]
-    refine'
-      ⟨fun H i j hij => _, fun H =>
-        ⟨fun a' m => _, fun i j hij => _⟩⟩
-    · let ⟨j,hj⟩ := j
-      match j with
-      | zero => exact (Nat.not_lt_zero _).elim hij
-      | succ j =>
-      let ⟨i,hi⟩ := i
-      match i with
-      | zero    => exact H.1 _ (get_mem l ..)
-      | succ _  => exact H.2 _ _ (Nat.lt_of_succ_lt_succ hij)
-    · rcases get_of_mem m with ⟨n, h, rfl⟩
-      have := H ⟨0, show 0 < (a::l).length from Nat.succ_pos _⟩ ⟨n.succ, Nat.succ_lt_succ n.2⟩
-        (Nat.succ_pos n)
-      simp at this
-      exact this
-    . have := H i.succ j.succ (show i.1.succ < j.1.succ from Nat.succ_lt_succ hij)
-      simp at this
-      exact this
+@[deprecated pairwise_iff_forall_sublist]
+theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
+    (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
+  apply pairwise_iff_forall_sublist.mpr
+  intro a b hab
+  if heq : a = b then
+    cases heq; apply hr
+    rw [(show [a,a] = replicate 2 a from rfl), ←le_count_iff_replicate_sublist] at hab
+    exact hab
+  else
+    apply h <;> try (apply hab.subset; simp)
+    exact heq
+
+/-- given a list `is` of monotonically increasing indices into `l`, getting each index
+  produces a sublist of `l`.  -/
+theorem map_get_sublist {l : List α} {is : List (Fin l.length)} (h : is.Pairwise (·.val < ·.val)) :
+    is.map (get l) <+ l := by
+  suffices ∀ n l', l' = l.drop n → (∀ i ∈ is, n ≤ i) → map (get l) is <+ l'
+    from this 0 l (by simp) (by simp)
+  intro n l' hl' his
+  induction is generalizing n l' with
+  | nil => simp
+  | cons hd tl IH =>
+    simp; cases hl'
+    have h1 : ∀ i ∈ tl, hd.val < i.val := pairwise_cons.mp h |>.1
+    have := IH h.of_cons (hd+1) _ rfl h1
+    clear IH h h1
+    have h1 : n ≤ hd := his hd (.head _)
+    clear his
+    have := this.cons₂ (get l hd)
+    rw [get_cons_drop] at this
+    have := Sublist.append (nil_sublist (take hd l |>.drop n)) this
+    rw [nil_append, ←(drop_append_of_le_length ?_), take_append_drop] at this
+    exact this
+    · simp [Nat.min_eq_left (Nat.le_of_lt hd.isLt), h1]
+
+/-- given a sublist `l' <+ l`, there exists a list of indices `is` such that
+  `l' = map (get l) is`. -/
+theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
+    l' = map (get l) is ∧ is.Pairwise (· < ·) := by
+  induction h with
+  | slnil => refine ⟨[], ?_⟩; simp
+  | cons _ _ IH =>
+    rcases IH with ⟨is,IH⟩
+    refine ⟨is.map (·.succ), ?_⟩
+    simp [comp, pairwise_map]
+    exact IH
+  | cons₂ _ _ IH =>
+    rcases IH with ⟨is,IH⟩
+    refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩::is.map (·.succ), ?_⟩
+    simp [comp, pairwise_map, IH]
+    rintro _ _ _ rfl; apply Nat.zero_lt_succ
+
+theorem pairwise_iff_get [DecidableEq α] : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
+  rw [pairwise_iff_forall_sublist]
+  constructor <;> intro h
+  · intros i j h'
+    apply h
+    apply map_get_sublist (is := [i,j])
+    rw [Fin.lt_def] at h'; simp [h']
+  · intros a b h'
+    have ⟨is, ⟨h',hij⟩⟩ := sublist_eq_map_get h'
+    rcases is with ⟨⟩ | ⟨a', ⟨⟩ | ⟨b', ⟨⟩⟩⟩
+      <;> simp at h'
+    rcases h' with ⟨rfl,rfl⟩
+    apply h; simpa using hij
 
 theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
     ∀ n : Nat, Pairwise r (List.replicate n x)
