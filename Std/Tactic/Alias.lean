@@ -6,6 +6,7 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 import Lean.Elab.Command
 import Lean.Elab.DeclarationRange
 import Lean.Compiler.NoncomputableAttr
+import Std.CodeAction.Deprecated
 
 /-!
 # The `alias` command
@@ -42,7 +43,7 @@ def AliasInfo.toString : AliasInfo → String
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
 
-/-- Environmant extension for registering aliases -/
+/-- Environment extension for registering aliases -/
 initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
   registerSimpleScopedEnvExtension {
     addEntry := fun st (n, i) => st.insert n i
@@ -58,13 +59,15 @@ def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
   modifyEnv (aliasExt.addEntry · (declName, info))
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
-def setDeprecatedTarget (target : Name) : Array Attribute → Array Attribute :=
-  Array.map fun s =>
-    if s.name == `deprecated then
-      if let `(deprecated| deprecated%$tk) := s.stx then
-        { s with stx := Unhygienic.run `(deprecated| deprecated%$tk $(mkCIdent target)) }
-      else s
-    else s
+def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
+  StateT.run (m := Id) (s := false) do
+    arr.mapM fun s => do
+      if s.name == `deprecated then
+        if let `(deprecated| deprecated%$tk) := s.stx then
+          set true
+          pure { s with stx := Unhygienic.run `(deprecated| deprecated%$tk $(mkCIdent target)) }
+        else pure s
+      else pure s
 
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
@@ -79,10 +82,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let name ← resolveGlobalConstNoOverloadWithInfo name
     let cinfo ← getConstInfo name
     let declMods ← elabModifiers mods
+    let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let declMods := { declMods with
       isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) name
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
-      attrs := setDeprecatedTarget name declMods.attrs
+      attrs
     }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
     let decl : Declaration := if let .thmInfo t := cinfo then
@@ -111,6 +115,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     Term.applyAttributes declName declMods.attrs
     let info := (← getAliasInfo name).getD <| AliasInfo.plain name
     setAliasInfo info declName
+    if machineApplicable then
+      modifyEnv (machineApplicableDeprecated.tag · declName)
     /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
       `declMods` because a docstring may have been added by an attribute. -/
     if (← findDocString? (← getEnv) declName).isNone then
@@ -160,7 +166,7 @@ elab (name := aliasLR) mods:declModifiers "alias "
   Command.liftTermElabM do
     let name ← resolveGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
-    let declMods := { declMods with attrs := setDeprecatedTarget name declMods.attrs }
+    let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
     let .thmInfo thm ← getConstInfo name | throwError "Target must be a theorem"
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
