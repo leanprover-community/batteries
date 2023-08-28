@@ -284,6 +284,9 @@ instance decidableBAll (p : α → Prop) [DecidablePred p] :
       | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
     else isFalse fun H => h₁ <| H x (.head ..)
 
+instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
+  fun _ _ => decidableBAll _ _
+
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
@@ -439,6 +442,15 @@ inductive Sublist {α} : List α → List α → Prop
   | cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
 
 @[inherit_doc] scoped infixl:50 " <+ " => Sublist
+
+/-- True if the first list is a potentially non-contiguous sub-sequence of the second list. -/
+def isSublist [DecidableEq α] : List α → List α → Bool
+  | [], _ => true
+  | _, [] => false
+  | l₁@(hd₁::tl₁), hd₂::tl₂ =>
+    if hd₁ = hd₂
+    then tl₁.isSublist tl₂
+    else l₁.isSublist tl₂
 
 /--
 Split a list at an index.
@@ -726,10 +738,30 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
   | [], _ => []
   | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
 
+/--
+Unsafe implementation of `attach`, taking advantage of the fact that the representation of
+`List {x // x ∈ l}` is the same as the input `List α`.
+(Someday, the compiler might do this optimization automatically, but until then...)
+-/
+@[inline] private unsafe def attachImpl (l : List α) : List {x // x ∈ l} := unsafeCast l
+
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
   with the same elements but in the type `{x // x ∈ l}`. -/
-def attach (l : List α) : List { x // x ∈ l } :=
+@[implemented_by attachImpl] def attach (l : List α) : List {x // x ∈ l} :=
   pmap Subtype.mk l fun _ => id
+
+/-- Implementation of `pmap` using the zero-copy version of `attach`. -/
+@[inline] private def pmapImpl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) :
+    List β := l.attach.map fun ⟨x, h'⟩ => f x (h _ h')
+
+@[csimp] private theorem pmap_eq_pmapImpl : @pmap = @pmapImpl := by
+  funext α β p f L h'
+  let rec go : ∀ L' (hL' : L' ⊆ L),
+      pmap f L' (fun _ h => h' _ <| hL' h) =
+      map (fun ⟨x, hx⟩ => f x (h' _ hx)) (pmap Subtype.mk L' hL')
+  | nil, hL' => rfl
+  | cons _ L', hL' => congrArg _ <| go L' fun _ hx => hL' (.tail _ hx)
+  exact go L fun _ hx => hx
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -744,15 +776,15 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
     | some b => acc.toListAppend (b :: l)
     | none => go l (acc.push a)
 
-/-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
-@[inline] def countp (p : α → Bool) (l : List α) : Nat := go l 0 where
-  /-- Auxiliary for `countp`: `countp.go p l acc = countp p l + acc`. -/
+/-- `countP p l` is the number of elements of `l` that satisfy `p`. -/
+@[inline] def countP (p : α → Bool) (l : List α) : Nat := go l 0 where
+  /-- Auxiliary for `countP`: `countP.go p l acc = countP p l + acc`. -/
   @[specialize] go : List α → Nat → Nat
   | [], acc => acc
   | x :: xs, acc => bif p x then go xs (acc + 1) else go xs acc
 
 /-- `count a l` is the number of occurrences of `a` in `l`. -/
-@[inline] def count [BEq α] (a : α) : List α → Nat := countp (· == a)
+@[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
 `isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
@@ -923,8 +955,8 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   funext α L; simp [sectionsTR]
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
-  simp [IH, sectionsTR.go, Array.foldl_eq_foldl_data]
-  rw [Array.foldl_data_eq_bind]; rfl
+  simp [IH, sectionsTR.go]
+  rw [Array.foldl_eq_foldl_data, Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
 /-- `eraseP p l` removes the first element of `l` satisfying the predicate `p`. -/

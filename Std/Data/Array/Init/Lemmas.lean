@@ -26,7 +26,7 @@ attribute [simp] data_toArray uset
 @[simp] theorem size_mk (as : List α) : (Array.mk as).size = as.length := by simp [size]
 
 theorem getElem_eq_data_get (a : Array α) (h : i < a.size) : a[i] = a.data.get ⟨i, h⟩ := by
-  by_cases i < a.size <;> simp [*] <;> rfl
+  by_cases i < a.size <;> (try simp [*]) <;> rfl
 
 theorem foldlM_eq_foldlM_data.aux [Monad m]
     (f : β → α → m β) (arr : Array α) (i j) (H : arr.size ≤ i + j) (b) :
@@ -140,6 +140,18 @@ theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
     simp at h
     simp [get_push_lt, Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.ge_of_not_lt h')]
 
+theorem mapM_eq_foldlM [Monad m] [LawfulMonad m] (f : α → m β) (arr : Array α) :
+    arr.mapM f = arr.foldlM (fun bs a => bs.push <$> f a) #[] := by
+  rw [mapM, aux, foldlM_eq_foldlM_data]; rfl
+where
+  aux (i r) :
+      mapM.map f arr i r = (arr.data.drop i).foldlM (fun bs a => bs.push <$> f a) r := by
+    unfold mapM.map; split
+    · rw [← List.get_drop_eq_drop _ i ‹_›]
+      simp [aux (i+1), map_eq_pure_bind]; rfl
+    · rw [List.drop_length_le (Nat.ge_of_not_lt ‹_›)]; rfl
+termination_by aux => arr.size - i
+
 theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
     (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop)
@@ -147,14 +159,14 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
     SatisfiesM
       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
       (Array.mapM f as) := by
-  unfold mapM
+  rw [mapM_eq_foldlM]
   refine SatisfiesM_foldlM (m := m) (β := Array β)
     (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
     |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
   · case z => exact ⟨h0, rfl, fun.⟩
   · case s =>
     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
-    refine (hs _ ih₁).bind fun b ⟨h₁, h₂⟩ => .pure ⟨h₂, by simp [eq], fun j hj => ?_⟩
+    refine (hs _ ih₁).map fun ⟨h₁, h₂⟩ => ⟨h₂, by simp [eq], fun j hj => ?_⟩
     simp [get_push] at hj ⊢; split; {apply ih₂}
     cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
 
@@ -171,6 +183,7 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
   (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
 
 @[simp] theorem map_data (f : α → β) (arr : Array α) : (arr.map f).data = arr.data.map f := by
+  rw [map, mapM_eq_foldlM]
   apply congrArg data (foldl_eq_foldl_data (fun bs a => push bs (f a)) #[] arr) |>.trans
   have H (l arr) : List.foldl (fun bs a => push bs (f a)) arr l = ⟨arr.data ++ l.map f⟩ := by
     induction l generalizing arr <;> simp [*]

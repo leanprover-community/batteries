@@ -142,6 +142,10 @@ example (h : True ∨ True ∨ True) : True := by
   rcases h with - | - | -
   iterate 3 · check_num_hyps 0; trivial
 
+example (h : True ∨ True ∨ True) : True := by
+  rcases h with -|-|-
+  iterate 3 · check_num_hyps 0; trivial
+
 example : Bool → False → True
 | false => by rintro ⟨⟩
 | true => by rintro ⟨⟩

@@ -54,6 +54,11 @@ example : 0 = 0 := by rcongr
 
 example {α} (a : α) : a = a := by congr
 
+example : { f : Nat → Nat // f = id } :=
+  ⟨_, by
+    congr (config := { closePre := false, closePost := false }) with x
+    exact Nat.zero_add x⟩
+
 -- FIXME(?): congr doesn't fail
 -- example {α} (a b : α) (h : False) : a = b := by
 --   fail_if_success congr

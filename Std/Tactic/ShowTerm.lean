@@ -20,22 +20,23 @@ elab (name := showTermTac) tk:"show_term " t:tacticSeq : tactic => withMainConte
   evalTactic t
   addExactSuggestion tk (← instantiateMVars (mkMVar g)).headBeta (origSpan? := ← getRef)
 
-/--
-`show_term e` elaborates `e`, then prints the generated term.
-
-(For some tactics, the printed term will not be human readable.)
--/
-elab (name := showTerm) tk:"show_term " t:term : term <= ty => do
+/-- Implementation of `show_term`. -/
+local elab (name := showTermImpl) tk:"show_term_impl " t:term : term <= ty => do
   let e ← Term.elabTermEnsuringType t ty
   Term.synthesizeSyntheticMVarsNoPostponing
   addTermSuggestion tk (← instantiateMVars e).headBeta (origSpan? := ← getRef)
   pure e
 
 /--
+`show_term e` elaborates `e`, then prints the generated term.
+
+(For some tactics, the printed term will not be human readable.)
+-/
+macro (name := showTerm) tk:"show_term " t:term : term =>
+  `(no_implicit_lambda% (show_term_impl%$tk $t))
+
+/--
 The command `by?` will print a suggestion for replacing the proof block with a proof term
 using `show_term`.
 -/
-syntax (name := by?) "by?" tacticSeq : term
-macro_rules
-  | `(term| by?%$tk $t) => `(show_term%$tk by%$tk $t)
-
+macro (name := by?) tk:"by?" t:tacticSeq : term => `(show_term%$tk by%$tk $t)
