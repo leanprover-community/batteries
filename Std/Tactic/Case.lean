@@ -10,54 +10,84 @@ import Lean.Elab.Tactic
 
 Adds a variant of `case` that looks for a goal with a particular type, rather than a goal
 with a particular tag.
+For consistency with `case`, it takes a tag as well, but the tag can be a hole `_`.
 -/
 
 namespace Std.Tactic
 open Lean Meta Elab Tactic
 
-/-- Clause for a `case : ...` tactic. -/
-syntax casePattArg := term (" with" (ppSpace colGt binderIdent)+)?
+/-- Clause for a `case ... : ...` tactic. -/
+syntax casePattArg := Parser.Tactic.caseArg " : " term
 
-/-- The body of a `case : ...` tactic. -/
+/-- The body of a `case ... : ...` tactic. -/
 syntax casePattBody := " => " (hole <|> syntheticHole <|> tacticSeq)
 
 /--
-* `case : t => tac` finds the first goal that unifies with `t` and then solves it
+* `case _ : t => tac` finds the first goal that unifies with `t` and then solves it
   using `tac` or else fails. Like `show`, it changes the type of the goal to `t`.
+  The `_` can optionally be a case tag, in which case it only looks at goals
+  whose tag would be considered by `case` (goals with an exact tag match,
+  followed by goals with the tag as a suffix, followed by goals with the tag as a prefix).
 
-* `case : t with n₁ ... nₘ => tac` additionally names the `m` most recent hypotheses with
+* `case _ n₁ ... nₘ : t => tac` additionally names the `m` most recent hypotheses with
   inaccessible names to the given names. The names are renamed before matching against `t`.
+  The `_` can optionally be a case tag.
 
-* `case : t := e` is short for `case : t => exact e`.
+* `case _ : t := e` is short for `case _ : t => exact e`.
 
-* `case : t₁ | t₂ | ... => tac` is equivalent to `(case : t₁ => tac); (case : t₂ => tac); ...`
+* `case _ : t₁ | _ : t₂ | ... => tac`
+  is equivalent to `(case _ : t₁ => tac); (case _ : t₂ => tac); ...`
   but with all matching done on the original list of goals, in case pattern elaboration creates
   new goals.
-  This supports `with` clauses as well for each pattern.
+  Each goal is consumed as they are matched, so patterns may repeat.
 
-* `case : t` will make the matched goal be the first goal. `case : t₁ | t₂ | ...` makes the
-  matched goals be the first goals in the given order.
+* `case _ : t` will make the matched goal be the first goal.
+  `case _ : t₁ | _ : t₂ | ...` makes the matched goals be the first goals in the given order.
 
-* `case : t := _` and `case : t := ?m` are the same as `case : t` but in the `?m` case the
-  goal tag is changed to `m`. In particular, the goal becomes metavariable `?m`.
+* `case _ : t := _` and `case _ : t := ?m` are the same as `case _ : t` but in the `?m` case the
+  goal tag is changed to `m`.
+  In particular, the goal becomes metavariable `?m`.
 -/
-syntax (name := casePatt) "case" " : " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
+syntax (name := casePatt) "case " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
 
 @[inherit_doc casePatt]
-macro "case" " : " cs:sepBy1(casePattArg, " | ") " := " colGt t:term : tactic =>
-  `(tactic| (case : $[$cs]|* => exact $t))
+macro "case" cs:sepBy1(casePattArg, " | ") " := " colGt t:term : tactic =>
+  `(tactic| (case $[$cs:casePattArg]|* => exact $t))
 
 macro_rules
-  | `(tactic| case : $[$cs:casePattArg]|*) => `(tactic| case : $[$cs]|* => _)
+  | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => _)
 
-/-- Find the first goal whose type unifies with `patt`.
+/-- Filter the `mvarIds` by tag. Returns those `MVarId`s that have `tag`
+either as its user name, as a suffix of its user name, or as a prefix of its user name.
+The results are sorted in this order.
+This is like `Lean.Elab.Tactic.findTag?` but it returns all results. -/
+private def filterTag (mvarIds : List MVarId) (tag : Name) : TacticM (List MVarId) := do
+  let gs ← mvarIds.filterMapM fun mvarId => do
+    if tag == (← mvarId.getDecl).userName then
+      return some (0, mvarId)
+    else if tag.isSuffixOf (← mvarId.getDecl).userName then
+      return some (1, mvarId)
+    else if tag.isPrefixOf (← mvarId.getDecl).userName then
+      return some (2, mvarId)
+    else
+      return none
+  -- Insertion sort is a stable sort:
+  let gs := gs.toArray.insertionSort (·.1 < ·.1)
+  return gs |>.map (·.2) |>.toList
+
+/-- Find the first goal among those matching `tag` whose type unifies with `patt`.
 The `renameI` array consists of names to use to rename inaccessibles.
 The `patt` term is elaborated in the context where the inaccessibles have been renamed.
 
 Returns the found goal, goals caused by elaborating `patt`, and the remaining goals. -/
-def findGoalOfPatt (gs : List MVarId) (patt : Term) (renameI : TSyntaxArray `Lean.binderIdent) :
+def findGoalOfPatt (gs : List MVarId)
+    (tag : TSyntax ``binderIdent) (patt : Term) (renameI : TSyntaxArray `Lean.binderIdent) :
     TacticM (MVarId × List MVarId × List MVarId) :=
   Term.withoutErrToSorry do
+    let gs ←
+      match tag with
+      | `($tag:ident) => filterTag gs tag.getId
+      | _ => pure gs
     for g in gs do
       let s ← saveState
       try
@@ -69,7 +99,8 @@ def findGoalOfPatt (gs : List MVarId) (patt : Term) (renameI : TSyntaxArray `Lea
         return (g', gs', gs)
       catch _ =>
         restoreState s
-    throwError "No goals unify with the term {patt}, or too many names provided for renaming {
+    throwError "No goals with tag {tag} unify with the term {patt}, {
+                ""}or too many names provided for renaming {
                 ""}inaccessible variables."
 
 /-- Given a `casePattBody`, either give a hole or a tactic sequence
@@ -82,15 +113,15 @@ def processCasePattBody (stx : TSyntax ``casePattBody) :
   | _ => throwUnsupportedSyntax
 
 elab_rules : tactic
-  | `(tactic| case : $[$patts $[with $[$namess?]*]?]|* $caseBody) => do
+  | `(tactic| case $[$tags $hss* : $patts]|* $caseBody) => do
     let stx ← getRef
     let body ← processCasePattBody caseBody
     -- Accumulated goals in the hole cases.
     let mut acc : List MVarId := []
     -- Accumulated goals from refining patterns
     let mut pattref : List MVarId := []
-    for patt in patts, names? in namess? do
-      let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) patt (names?.getD #[])
+    for tag in tags, hs in hss, patt in patts do
+      let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) tag patt hs
       setGoals gs
       pattref := pattref ++ gs'
       match body with
