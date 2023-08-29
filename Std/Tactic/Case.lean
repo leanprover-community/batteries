@@ -11,6 +11,8 @@ import Lean.Elab.Tactic
 Adds a variant of `case` that looks for a goal with a particular type, rather than a goal
 with a particular tag.
 For consistency with `case`, it takes a tag as well, but the tag can be a hole `_`.
+
+Also adds `case'` extensions.
 -/
 
 namespace Std.Tactic
