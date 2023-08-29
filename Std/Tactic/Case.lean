@@ -63,6 +63,14 @@ macro_rules
   | `(tactic| case $[$ps:casePattArg]|* := $t) => `(tactic| case $[$ps:casePattArg]|* => exact $t)
   | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => _)
 
+/-- `case' _ : t => tac` is similar to the `case _ : t => tac` tactic,
+but it does not ensure the goal has been solved after applying `tac`,
+nor does it admit the goal if `tac` failed.
+Recall that `case` closes the goal using `sorry` when `tac` fails,
+and the tactic execution is not interrupted. -/
+syntax (name := casePatt') (priority := low)
+  "case' " sepBy1(casePattArg, " | ") casePattTac : tactic
+
 /-- Filter the `mvarIds` by tag. Returns those `MVarId`s that have `tag`
 either as its user name, as a suffix of its user name, or as a prefix of its user name.
 The results are sorted in this order.
@@ -123,38 +131,57 @@ def findGoalOfPatt (gs : List MVarId)
 
 /-- Given a `casePattBody`, either give a hole or a tactic sequence
 (along with the syntax for the `=>`). -/
-def processCasePattBody (stx : TSyntax ``casePattBody) :
+def processCasePattBody (stx : TSyntax ``casePattTac) :
     TacticM (Term ⊕ (Syntax × TSyntax ``Parser.Tactic.tacticSeq)) := do
   match stx with
-  | `(casePattBody| => $t:hole) | `(casePattBody| => $t:syntheticHole) => return Sum.inl ⟨t⟩
-  | `(casePattBody| =>%$arr $tac:tacticSeq) => return Sum.inr (arr, tac)
+  | `(casePattTac| => $t:hole) | `(casePattTac| => $t:syntheticHole) => return Sum.inl ⟨t⟩
+  | `(casePattTac| =>%$arr $tac:tacticSeq) => return Sum.inr (arr, tac)
   | _ => throwUnsupportedSyntax
 
-elab_rules : tactic
-  | `(tactic| case $[$tags $hss* $[: $patts?]?]|* $caseBody) => do
-    let stx ← getRef
-    let body ← processCasePattBody caseBody
-    -- Accumulated goals in the hole cases.
-    let mut acc : List MVarId := []
-    -- Accumulated goals from refining patterns
-    let mut pattref : List MVarId := []
-    for tag in tags, hs in hss, patt? in patts? do
-      let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) tag patt? hs
-      setGoals gs
-      pattref := pattref ++ gs'
-      match body with
-      | Sum.inl hole =>
-        -- Copied from `induction` tactic. Elaborating the hole is how we can rename the goal tag.
-        let gs' ← g.withContext <| withRef hole do
-          let mvarDecl ← g.getDecl
-          let val ← elabTermEnsuringType hole mvarDecl.type
-          g.assign val
-          let gs' ← getMVarsNoDelayed val
-          tagUntaggedGoals mvarDecl.userName `case gs'.toList
-          pure gs'
-        acc := acc ++ gs'.toList
-      | Sum.inr (arr, tac) =>
+/-- Implementation for `case` and `case'`. -/
+def evalCase (close : Bool) (stx : Syntax)
+    (tags : Array (TSyntax `Lean.binderIdent))
+    (hss : Array (TSyntaxArray `Lean.binderIdent))
+    (patts? : Array (Option Term))
+    (caseBody : TSyntax `Std.Tactic.casePattTac) :
+    TacticM Unit := do
+  let body ← processCasePattBody caseBody
+  -- Accumulated goals in the hole cases.
+  let mut acc : List MVarId := []
+  -- Accumulated goals from refining patterns
+  let mut pattref : List MVarId := []
+  for tag in tags, hs in hss, patt? in patts? do
+    let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) tag patt? hs
+    setGoals gs
+    pattref := pattref ++ gs'
+    match body with
+    | Sum.inl hole =>
+      -- Copied from `induction` tactic. Elaborating the hole is how we can rename the goal tag.
+      let gs' ← g.withContext <| withRef hole do
+        let mvarDecl ← g.getDecl
+        let val ← elabTermEnsuringType hole mvarDecl.type
+        g.assign val
+        let gs' ← getMVarsNoDelayed val
+        tagUntaggedGoals mvarDecl.userName `case gs'.toList
+        pure gs'
+      acc := acc ++ gs'.toList
+    | Sum.inr (arr, tac) =>
+      if close then
         discard <| run g do
           withCaseRef arr tac do
             closeUsingOrAdmit (withTacticInfoContext stx (evalTactic tac))
-    setGoals (acc ++ pattref ++ (← getGoals))
+      else
+        let mvarTag ← g.getTag
+        let gs' ← run g <| withCaseRef arr tac (evalTactic tac)
+        if let [g'] := gs' then
+          g'.setTag mvarTag
+        acc := acc ++ gs'
+  setGoals (acc ++ pattref ++ (← getGoals))
+
+elab_rules : tactic
+  | `(tactic| case $[$tags $hss* $[: $patts?]?]|* $caseBody:casePattTac) => do
+    evalCase (close := true) (← getRef) tags hss patts? caseBody
+
+elab_rules : tactic
+  | `(tactic| case' $[$tags $hss* $[: $patts?]?]|* $caseBody:casePattTac) => do
+    evalCase (close := false) (← getRef) tags hss patts? caseBody

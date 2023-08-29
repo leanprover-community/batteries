@@ -133,3 +133,11 @@ example (a : Nat) : 0 + a = a := by
   case _ n ih : 0 + (n + 1) = n + 1 | _ : 0 + 0 = 0
   · rw [← Nat.add_assoc, ih]
   · rfl
+
+example : True ∧ ∀ x : Nat, x = x := by
+  constructor
+  case' _ : ∀ _, _ =>
+    intro z
+  case left => trivial
+  guard_target =ₛ z = z
+  rfl
