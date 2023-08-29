@@ -76,9 +76,9 @@ syntax (name := casePatt') (priority := low)
 /-- Filter the `mvarIds` by tag. Returns those `MVarId`s that have `tag`
 either as its user name, as a suffix of its user name, or as a prefix of its user name.
 The results are sorted in this order.
-This is like `Lean.Elab.Tactic.findTag?` but it returns all results. -/
+This is like `Lean.Elab.Tactic.findTag?` but it returns all results rather than just the first. -/
 private def filterTag (mvarIds : List MVarId) (tag : Name) : TacticM (List MVarId) := do
-  let gs ← mvarIds.filterMapM fun mvarId => do
+  let gs ← mvarIds.toArray.filterMapM fun mvarId => do
     let userName := (← mvarId.getDecl).userName
     if tag == userName then
       return some (0, mvarId)
@@ -89,7 +89,7 @@ private def filterTag (mvarIds : List MVarId) (tag : Name) : TacticM (List MVarI
     else
       return none
   -- Insertion sort is a stable sort:
-  let gs := gs.toArray.insertionSort (·.1 < ·.1)
+  let gs := gs.insertionSort (·.1 < ·.1)
   return gs |>.map (·.2) |>.toList
 
 /-- Find the first goal among those matching `tag` whose type unifies with `patt`.
@@ -101,15 +101,14 @@ def findGoalOfPatt (gs : List MVarId)
     (tag : TSyntax ``binderIdent) (patt? : Option Term) (renameI : TSyntaxArray `Lean.binderIdent) :
     TacticM (MVarId × List MVarId × List MVarId) :=
   Term.withoutErrToSorry do
-    let gs ←
-      match tag with
-      | `($tag:ident) => filterTag gs tag.getId
+    let fgs ← match tag with
+      | `(binderIdent|$tag:ident) => filterTag gs tag.getId
       | _ => pure gs
-    for g in gs do
+    for g in fgs do
+      let gs := gs.erase g
       if let some patt := patt? then
         let s ← saveState
         try
-          let gs := gs.erase g
           let g ← renameInaccessibles g renameI
           -- Make a copy of `g` so that we don't assign to `g` if we don't need to.
           let gCopy ← g.withContext <| mkFreshExprSyntheticOpaqueMVar (← g.getType) (← g.getTag)
@@ -117,7 +116,7 @@ def findGoalOfPatt (gs : List MVarId)
                             evalTactic (← `(tactic| refine_lift show $patt from ?_))
             | throwNoGoalsToBeSolved -- This should not happen
           -- Avoid assigning the type hint if the original type and the new type are
-          -- defeq with reducible transparency.
+          -- defeq at reducible transparency.
           if ← g.withContext <| withReducible <| isDefEq (← g.getType) (← g'.getType) then
             g.assign (.mvar g')
           else
@@ -126,7 +125,8 @@ def findGoalOfPatt (gs : List MVarId)
         catch _ =>
           restoreState s
       else
-        return (g, [], gs.erase g)
+        let g ← renameInaccessibles g renameI
+        return (g, [], gs)
     throwError "No goals with tag {tag} unify with the term {patt?.getD (← `(_))}, {
                 ""}or too many names provided for renaming {
                 ""}inaccessible variables."
@@ -170,6 +170,7 @@ def evalCase (close : Bool) (stx : Syntax)
     | Sum.inr (arr, tac) =>
       if close then
         if tag matches `(binderIdent|$_:ident) then
+          -- If a tag is provided, follow the core `case` tactic and clear the tag.
           g.setTag .anonymous
         discard <| run g do
           withCaseRef arr tac do
@@ -178,6 +179,7 @@ def evalCase (close : Bool) (stx : Syntax)
         let mvarTag ← g.getTag
         let gs' ← run g <| withCaseRef arr tac (evalTactic tac)
         if let [g'] := gs' then
+          -- If a single goal is remaining, follow the core `case'` tactic and preserve the tag.
           g'.setTag mvarTag
         acc := acc ++ gs'
   setGoals (acc ++ pattref ++ (← getGoals))

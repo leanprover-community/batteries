@@ -23,6 +23,10 @@ example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
 
 example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
   constructor
+  case left | _ : z = _ => assumption
+
+example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
+  constructor
   case _ : z = _ => ?foo
   case foo := h'
   case left := h
@@ -139,3 +143,39 @@ example : True ∧ ∀ x : Nat, x = x := by
   case left => trivial
   guard_target =ₛ z = z
   rfl
+
+-- Test focusing by full match, suffix match, and prefix match
+example : True := by
+  have x : Bool := ?a
+  have y : Nat := ?a.b.c
+  have z : String := ?c.b.a
+  case a : Bool := true
+  case a : Nat := 0
+  case a : String := ""
+  trivial
+
+-- Test priorities when focusing by full match, suffix match, and prefix match
+example : True := by
+  let x : Nat := ?a
+  let y : Nat := ?c.b.a
+  let z : Nat := ?c'.b.a
+  let w : Nat := ?a.b.c
+  case a : Nat := 0
+  case a : Nat := 1
+  case a : Nat := 2
+  case a : Nat := 3
+  guard_hyp x : Nat := 0
+  guard_hyp y : Nat := 2
+  guard_hyp z : Nat := 1
+  guard_hyp w : Nat := 3
+  trivial
+
+-- Test renaming when not pattern matching
+example (n : Nat) : 0 ≤ n := by
+  induction n
+  case _ : 0 ≤ 0 | succ n ih
+  · guard_target =ₛ 0 ≤ 0
+    constructor
+  · guard_target =ₛ 0 ≤ Nat.succ n
+    guard_hyp ih : 0 ≤ n
+    simp
