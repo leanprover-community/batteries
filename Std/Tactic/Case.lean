@@ -101,9 +101,17 @@ def findGoalOfPatt (gs : List MVarId)
         try
           let gs := gs.erase g
           let g ← renameInaccessibles g renameI
-          let g' :: gs' ← run g do withoutRecover <|
+          -- Make a copy of `g` so that we don't assign to `g` if we don't need to.
+          let gCopy ← g.withContext <| mkFreshExprSyntheticOpaqueMVar (← g.getType) (← g.getTag)
+          let g' :: gs' ← run gCopy.mvarId! <| withoutRecover <|
                             evalTactic (← `(tactic| refine_lift show $patt from ?_))
             | throwNoGoalsToBeSolved -- This should not happen
+          -- Avoid assigning the type hint if the original type and the new type are
+          -- defeq with reducible transparency.
+          if ← g.withContext <| withReducible <| isDefEq (← g.getType) (← g'.getType) then
+            g.assign (.mvar g')
+          else
+            g.assign gCopy
           return (g', gs', gs)
         catch _ =>
           restoreState s

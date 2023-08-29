@@ -58,9 +58,18 @@ example (h : x = y) (h' : z = w) : x = y ∧ z + 0 = w := by
 
 example (x y z : α) (h : x = y) (h' : y = z) : x = z := by
   apply Eq.trans
+  case _ : id α := y
+  -- Note: `case` inserts a `let_fun` since `id α` and `α` aren't defeq with reducible transparency
+  · guard_target =ₛ x = show id α from y
+    exact h
+  · guard_target = y = z
+    exact h'
+
+example (x y z : α) (h : x = y) (h' : y = z) : x = z := by
+  apply Eq.trans
   case _ : α := y
-  -- Note: `case` inserts a `let_fun` due to the fact it's implemented with `show`
-  · guard_target =ₛ x = let_fun this := y; this
+  -- Note: `case` detects defeq with reducible transparency, so doesn't insert type hint
+  · guard_target =ₛ x = y
     exact h
   · guard_target = y = z
     exact h'
