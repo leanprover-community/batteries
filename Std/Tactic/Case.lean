@@ -19,8 +19,14 @@ open Lean Meta Elab Tactic
 /-- Clause for a `case ... : ...` tactic. -/
 syntax casePattArg := Parser.Tactic.caseArg (" : " term)?
 
+/-- The body of a `case ... | ...` tactic that's a tactic sequence (or hole). -/
+syntax casePattTac := " => " (hole <|> syntheticHole <|> tacticSeq)
+
+/-- The body of a `case ... | ...` tactic that's an exact term. -/
+syntax casePattExpr := " := " colGt term
+
 /-- The body of a `case ... : ...` tactic. -/
-syntax casePattBody := " => " (hole <|> syntheticHole <|> tacticSeq)
+syntax casePattBody := casePattTac <|> casePattExpr
 
 /--
 * `case _ : t => tac` finds the first goal that unifies with `t` and then solves it
@@ -53,11 +59,8 @@ syntax casePattBody := " => " (hole <|> syntheticHole <|> tacticSeq)
 syntax (name := casePatt) (priority := low)
   "case " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
 
-@[inherit_doc casePatt]
-macro (priority := low) "case" cs:sepBy1(casePattArg, " | ") " := " colGt t:term : tactic =>
-  `(tactic| (case $[$cs:casePattArg]|* => exact $t))
-
 macro_rules
+  | `(tactic| case $[$ps:casePattArg]|* := $t) => `(tactic| case $[$ps:casePattArg]|* => exact $t)
   | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => _)
 
 /-- Filter the `mvarIds` by tag. Returns those `MVarId`s that have `tag`
@@ -66,11 +69,12 @@ The results are sorted in this order.
 This is like `Lean.Elab.Tactic.findTag?` but it returns all results. -/
 private def filterTag (mvarIds : List MVarId) (tag : Name) : TacticM (List MVarId) := do
   let gs ← mvarIds.filterMapM fun mvarId => do
-    if tag == (← mvarId.getDecl).userName then
+    let userName := (← mvarId.getDecl).userName
+    if tag == userName then
       return some (0, mvarId)
-    else if tag.isSuffixOf (← mvarId.getDecl).userName then
+    else if tag.isSuffixOf userName then
       return some (1, mvarId)
-    else if tag.isPrefixOf (← mvarId.getDecl).userName then
+    else if tag.isPrefixOf userName then
       return some (2, mvarId)
     else
       return none
