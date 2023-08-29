@@ -24,10 +24,8 @@ example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
 example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
   constructor
   case _ : z = _ => ?foo
-  case foo =>
-    exact h'
-  case left =>
-    exact h
+  case foo := h'
+  case left := h
 
 example (h : x = y) (h' : z = w) : x = y ∧ z + 0 = w := by
   constructor

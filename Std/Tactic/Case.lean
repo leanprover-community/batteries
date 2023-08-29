@@ -169,6 +169,8 @@ def evalCase (close : Bool) (stx : Syntax)
       acc := acc ++ gs'.toList
     | Sum.inr (arr, tac) =>
       if close then
+        if tag matches `(binderIdent|$_:ident) then
+          g.setTag .anonymous
         discard <| run g do
           withCaseRef arr tac do
             closeUsingOrAdmit (withTacticInfoContext stx (evalTactic tac))
