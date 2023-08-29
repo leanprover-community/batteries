@@ -19,6 +19,10 @@ example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
 
 example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
   constructor
+  case _ : z = _ | left => assumption
+
+example (h : x = y) (h' : z = w) : x = y ∧ z = w := by
+  constructor
   case _ : z = _ => ?foo
   case foo =>
     exact h'

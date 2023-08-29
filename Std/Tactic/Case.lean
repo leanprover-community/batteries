@@ -17,7 +17,7 @@ namespace Std.Tactic
 open Lean Meta Elab Tactic
 
 /-- Clause for a `case ... : ...` tactic. -/
-syntax casePattArg := Parser.Tactic.caseArg " : " term
+syntax casePattArg := Parser.Tactic.caseArg (" : " term)?
 
 /-- The body of a `case ... : ...` tactic. -/
 syntax casePattBody := " => " (hole <|> syntheticHole <|> tacticSeq)
@@ -48,10 +48,13 @@ syntax casePattBody := " => " (hole <|> syntheticHole <|> tacticSeq)
   goal tag is changed to `m`.
   In particular, the goal becomes metavariable `?m`.
 -/
-syntax (name := casePatt) "case " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
+-- Low priority so that type-free `case` doesn't conflict with core `case`,
+-- though it should be a drop-in replacement.
+syntax (name := casePatt) (priority := low)
+  "case " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
 
 @[inherit_doc casePatt]
-macro "case" cs:sepBy1(casePattArg, " | ") " := " colGt t:term : tactic =>
+macro (priority := low) "case" cs:sepBy1(casePattArg, " | ") " := " colGt t:term : tactic =>
   `(tactic| (case $[$cs:casePattArg]|* => exact $t))
 
 macro_rules
@@ -81,7 +84,7 @@ The `patt` term is elaborated in the context where the inaccessibles have been r
 
 Returns the found goal, goals caused by elaborating `patt`, and the remaining goals. -/
 def findGoalOfPatt (gs : List MVarId)
-    (tag : TSyntax ``binderIdent) (patt : Term) (renameI : TSyntaxArray `Lean.binderIdent) :
+    (tag : TSyntax ``binderIdent) (patt? : Option Term) (renameI : TSyntaxArray `Lean.binderIdent) :
     TacticM (MVarId × List MVarId × List MVarId) :=
   Term.withoutErrToSorry do
     let gs ←
@@ -89,17 +92,20 @@ def findGoalOfPatt (gs : List MVarId)
       | `($tag:ident) => filterTag gs tag.getId
       | _ => pure gs
     for g in gs do
-      let s ← saveState
-      try
-        let gs := gs.erase g
-        let g ← renameInaccessibles g renameI
-        let g' :: gs' ← run g do withoutRecover <|
-                          evalTactic (← `(tactic| refine_lift show $patt from ?_))
-          | throwNoGoalsToBeSolved -- This should not happen
-        return (g', gs', gs)
-      catch _ =>
-        restoreState s
-    throwError "No goals with tag {tag} unify with the term {patt}, {
+      if let some patt := patt? then
+        let s ← saveState
+        try
+          let gs := gs.erase g
+          let g ← renameInaccessibles g renameI
+          let g' :: gs' ← run g do withoutRecover <|
+                            evalTactic (← `(tactic| refine_lift show $patt from ?_))
+            | throwNoGoalsToBeSolved -- This should not happen
+          return (g', gs', gs)
+        catch _ =>
+          restoreState s
+      else
+        return (g, [], gs.erase g)
+    throwError "No goals with tag {tag} unify with the term {patt?.getD (← `(_))}, {
                 ""}or too many names provided for renaming {
                 ""}inaccessible variables."
 
@@ -113,15 +119,15 @@ def processCasePattBody (stx : TSyntax ``casePattBody) :
   | _ => throwUnsupportedSyntax
 
 elab_rules : tactic
-  | `(tactic| case $[$tags $hss* : $patts]|* $caseBody) => do
+  | `(tactic| case $[$tags $hss* $[: $patts?]?]|* $caseBody) => do
     let stx ← getRef
     let body ← processCasePattBody caseBody
     -- Accumulated goals in the hole cases.
     let mut acc : List MVarId := []
     -- Accumulated goals from refining patterns
     let mut pattref : List MVarId := []
-    for tag in tags, hs in hss, patt in patts do
-      let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) tag patt hs
+    for tag in tags, hs in hss, patt? in patts? do
+      let (g, gs', gs) ← findGoalOfPatt (← getUnsolvedGoals) tag patt? hs
       setGoals gs
       pattref := pattref ++ gs'
       match body with
