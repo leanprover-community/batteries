@@ -88,3 +88,20 @@ example : 3 = 7 := by
   ext n m : 1
   guard_target = n = m
   admit
+
+section erasing_ext_attribute
+
+def f (p : Int × Int) : Int × Int := (p.2, p.1)
+
+example : f ∘ f = id := by
+  ext ⟨a, b⟩
+  · simp [f]
+  · simp [f]
+
+attribute [-ext] Prod.ext
+
+example : f ∘ f = id := by
+  ext ⟨a, b⟩
+  simp [f]
+
+end erasing_ext_attribute
