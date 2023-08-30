@@ -68,7 +68,7 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
 `O(n)`. Obtain a `HashSet` from a list.
 -/
 @[inline]
-protected def ofList [BEq α] [Hashable α] (as : Array α) : HashSet α :=
+protected def ofList [BEq α] [Hashable α] (as : List α) : HashSet α :=
   HashSet.empty.insertMany as
 
 /--
