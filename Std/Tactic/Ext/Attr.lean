@@ -45,7 +45,7 @@ ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) := do
   let extTheorems := extExtension.getState (← getEnv)
   let arr ← extTheorems.tree.getMatch ty
-  let erasedArr := arr.filter (fun thm ↦ ! extTheorems.erased.contains thm.declName)
+  let erasedArr := arr.filter fun thm => !extTheorems.erased.contains thm.declName
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
   return erasedArr.insertionSort (·.priority < ·.priority) |>.reverse
@@ -62,8 +62,7 @@ def ExtTheorems.eraseCore (d : ExtTheorems) (declName : Name) : ExtTheorems :=
 -/
 def ExtTheorems.erase [Monad m] [MonadError m] (d : ExtTheorems) (declName : Name) :
     m ExtTheorems := do
-  unless d.tree.values.any (·.declName == declName) && ! d.erased.contains declName
-  do
+  unless d.tree.values.any (·.declName == declName) && !d.erased.contains declName do
     throwError "'{declName}' does not have [ext] attribute"
   return d.eraseCore declName
 
