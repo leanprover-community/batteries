@@ -224,11 +224,12 @@ def getElimNames (declName : Name) : MetaM (Array (Name × Array Name)) := do
       let x := xs[i]!
       if x != motive && !targets.contains x then
         let xDecl ← x.fvarId!.getDecl
-        if xDecl.binderInfo.isExplicit then
-          let args ← forallTelescopeReducing xDecl.type fun args _ => do
-            let lctx ← getLCtx
-            pure <| args.map fun fvar => (lctx.find? fvar.fvarId!).get!.userName
-          altsInfo := altsInfo.push (xDecl.userName, args)
+        let args ← forallTelescopeReducing xDecl.type fun args _ => do
+          let lctx ← getLCtx
+          pure <| args.filterMap fun y =>
+            let yDecl := (lctx.find? y.fvarId!).get!
+            if yDecl.binderInfo.isExplicit then some yDecl.userName else none
+        altsInfo := altsInfo.push (xDecl.userName, args)
     pure altsInfo
 
 /--
@@ -281,9 +282,10 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
         str := str ++ indent ++ s!"| {ctor}"
         -- replace n_ih with just ih if there is only one
         let args := if induction &&
-          args.foldl (fun c n => if n.getString!.endsWith "_ih" then c+1 else c) 0 == 1
+          args.foldl (fun c n =>
+            if n.eraseMacroScopes.getString!.endsWith "_ih" then c+1 else c) 0 == 1
         then
-          args.map (fun n => if n.getString!.endsWith "_ih" then `ih else n)
+          args.map (fun n => if !n.hasMacroScopes && n.getString!.endsWith "_ih" then `ih else n)
         else args
         for arg in args do
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
