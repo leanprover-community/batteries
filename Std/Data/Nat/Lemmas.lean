@@ -181,24 +181,21 @@ protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
 
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
-protected theorem lt_connex {a b : Nat} : a ≠ b → a < b ∨ b < a := by
+protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
   rw [←Nat.not_le, ←Nat.not_le, ←Decidable.not_and, and_comm]
   exact mt Nat.le_antisymm_iff.2
 
-protected alias lt_or_gt_of_ne := Nat.lt_connex
-protected alias lt_or_lt_of_ne := Nat.lt_connex
+protected theorem lt_or_gt_iff_ne {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
+  ⟨Nat.lt_or_gt_of_ne, fun | .inl h => Nat.ne_of_lt h | .inr h => Nat.ne_of_gt h⟩
 
-protected theorem lt_connex_iff {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
-  ⟨Nat.lt_connex, fun | .inl h => Nat.ne_of_lt h | .inr h => Nat.ne_of_gt h⟩
-
-protected alias ne_iff_lt_or_gt := Nat.lt_connex_iff
+protected alias ne_iff_lt_or_gt := Nat.lt_or_gt_iff_ne
 
 protected alias le_or_ge := Nat.le_total
 protected alias le_or_le := Nat.le_total
 
 protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
   if h : a = b then .inr (.inl h) else
-    match Nat.lt_connex h with
+    match Nat.lt_or_gt_of_ne h with
     | .inl h => .inl h
     | .inr h => .inr (.inr h)
 
@@ -1237,3 +1234,9 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
+
+/-! ## deprecated -/
+
+@[deprecated] protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
+
+@[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
