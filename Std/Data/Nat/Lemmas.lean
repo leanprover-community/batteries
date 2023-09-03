@@ -17,7 +17,7 @@ of the theory of natural numbers, we recommend using Mathlib.
 
 namespace Nat
 
-/-! ## rec/cases -/
+/-! ### rec/cases -/
 
 @[simp] theorem recAux_zero {motive : Nat → Sort _} (zero : motive 0)
     (succ : ∀ n, motive n → motive (n+1)) :
@@ -137,7 +137,7 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
     (succ_succ : ∀ m n, motive (m+1) (n+1)) (m n) :
     Nat.casesDiagOn (m+1) (n+1) zero_zero zero_succ succ_zero succ_succ = succ_succ m n := rfl
 
-/-! ## le/lt -/
+/-! ### le/lt -/
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 
@@ -205,7 +205,7 @@ protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
 protected theorem le_antisymm_iff {n m : Nat} : n = m ↔ n ≤ m ∧ m ≤ n :=
   ⟨fun h => ⟨Nat.le_of_eq h, Nat.le_of_eq h.symm⟩, fun ⟨h₁, h₂⟩ => Nat.le_antisymm h₁ h₂⟩
 
-/-! ## zero/one -/
+/-! ### zero/one -/
 
 protected theorem pos_iff_ne_zero {n : Nat} : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
@@ -220,7 +220,7 @@ protected theorem eq_zero_of_nonpos : ∀ (n : Nat), ¬0 < n → n = 0
   | 0 => fun _ => rfl
   | n+1 => fun h => absurd (Nat.zero_lt_succ n) h
 
-/-! ## succ/pred -/
+/-! ### succ/pred -/
 
 attribute [simp] succ_ne_zero lt_succ_self Nat.pred_zero Nat.pred_succ
 
@@ -274,7 +274,7 @@ theorem le_succ_of_pred_le {n m : Nat} : pred n ≤ m → n ≤ succ m :=
 theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
   Nat.sub_le_sub_right h 1
 
-/-! ## add -/
+/-! ### add -/
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m : Nat}, n + m = 0 → n = 0
 | 0,   m => by simp [Nat.zero_add]
@@ -351,7 +351,7 @@ protected theorem add_self_ne_one : ∀ (n : Nat), n + n ≠ 1
     have h1 : succ (succ (n + n)) = 1 := succ_add n n ▸ h
     Nat.noConfusion h1 fun.
 
-/-! ## sub -/
+/-! ### sub -/
 
 attribute [simp] Nat.zero_sub Nat.add_sub_cancel succ_sub_succ_eq_sub
 
@@ -457,7 +457,7 @@ protected theorem sub_add_lt_sub {n m k : Nat} (h₁ : m + k ≤ n) (h₂ : 0 < 
       (pred_lt (Nat.ne_of_lt $ Nat.sub_pos_of_lt $ lt_of_succ_le h₁).symm)
       (Nat.sub_le_sub_left _ $ Nat.le_add_right ..)
 
-/-! ## min/max -/
+/-! ### min/max -/
 
 protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
   ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
@@ -501,7 +501,7 @@ protected theorem sub_add_eq_max {a b : Nat} : a - b + b = max a b := by
   | .inl hl => rw [Nat.max_eq_right hl, Nat.sub_eq_zero_iff_le.mpr hl, Nat.zero_add]
   | .inr hr => rw [Nat.max_eq_left hr, Nat.sub_add_cancel hr]
 
-/-! ## mul -/
+/-! ### mul -/
 
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
@@ -547,7 +547,7 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib,
       Nat.mul_comm b a, Nat.add_comm (a*a) (a*b), Nat.add_sub_add_left]
 
-/-! ## div/mod -/
+/-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
 
@@ -787,7 +787,7 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
-/-! ## pow -/
+/-! ### pow -/
 
 theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
   rw [Nat.pow_succ, Nat.mul_comm]
@@ -839,7 +839,7 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
 
-/-! ## log2 -/
+/-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
   match k with
@@ -859,7 +859,7 @@ theorem log2_self_le (h : n ≠ 0) : 2 ^ n.log2 ≤ n := (le_log2 h).1 (Nat.le_r
 
 theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.le_refl _)
 
-/-! ## dvd -/
+/-! ### dvd -/
 
 protected theorem dvd_refl (a : Nat) : a ∣ a := ⟨1, by simp⟩
 
@@ -965,7 +965,7 @@ protected theorem dvd_of_mul_dvd_mul_left
 protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) : m ∣ n := by
   rw [Nat.mul_comm m k, Nat.mul_comm n k] at H; exact Nat.dvd_of_mul_dvd_mul_left kpos H
 
-/-! ## sum -/
+/-! ### sum -/
 
 @[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
 
