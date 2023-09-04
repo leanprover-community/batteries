@@ -10,7 +10,7 @@ import Std.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
 
-The primary purpose of the lemmas in this file is to assist with reasonning
+The primary purpose of the lemmas in this file is to assist with reasoning
 about sizes of objects, array indices and such. For a more thorough development
 of the theory of natural numbers, we recommend using Mathlib.
 -/
