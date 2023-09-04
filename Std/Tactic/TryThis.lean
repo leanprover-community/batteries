@@ -187,7 +187,7 @@ def addRewriteSuggestion (ref : Syntax) (rules : List (Expr × Bool))
   -- We don't simply write `let mut tacMsg := m!"{tac}"` here
   -- but instead rebuild it, so that there are embedded `Expr`s in the message,
   -- thus giving more information in the hovers.
-  -- Perhaps in future we will have a better way to attached elaboration information to
+  -- Perhaps in future we will have a better way to attach elaboration information to
   -- `Syntax` embedded in a `MessageData`.
   let mut tacMsg :=
     let rulesMsg := MessageData.sbracket <| MessageData.joinSep
