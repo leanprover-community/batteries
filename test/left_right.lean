@@ -1,4 +1,5 @@
 import Std.Tactic.LeftRight
+import Std.Tactic.GuardMsgs
 
 /-- Construct a natural number using `left`. -/
 def zero : Nat := by
@@ -12,6 +13,41 @@ def two : Nat := by
   exact 1
 
 example : two = 2 := rfl
+
+set_option linter.missingDocs false
+
+/--
+error: tactic 'constructor' failed, left tactic works for inductive types with exactly 2 constructors
+⊢ Unit
+-/
+#guard_msgs in
+example : Unit := by
+  left
+
+inductive F
+| a | b | c
+
+/--
+error: tactic 'constructor' failed, left tactic works for inductive types with exactly 2 constructors
+⊢ F
+-/
+#guard_msgs in
+example : F := by
+  left
+
+def G := Nat
+
+/-- Look through definitions. -/
+example : G := by
+  left
+
+/--
+error: tactic 'constructor' failed, target is not an inductive datatype
+⊢ Type
+-/
+#guard_msgs in
+example : Type := by
+  left
 
 example : Sum Nat (List Nat) := by
   left

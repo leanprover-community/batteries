@@ -21,7 +21,7 @@ def nthConstructor (name : Name) (idx : Nat) (max : Option Nat) (goal : MVarId) 
     matchConstInduct (← goal.getType').getAppFn
       (fun _ => throwTacticEx `constructor goal "target is not an inductive datatype")
       fun ival us => do
-        unless max.isNone || ival.ctors.length == max do
+        if let some max := max then unless ival.ctors.length == max do
           throwTacticEx `constructor goal
             s!"{name} tactic works for inductive types with exactly {max} constructors"
         goal.apply <| mkConst ival.ctors[idx]! us
