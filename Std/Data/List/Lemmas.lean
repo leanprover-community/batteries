@@ -67,12 +67,6 @@ theorem exists_mem_of_ne_nil (l : List α) (h : l ≠ []) : ∃ x, x ∈ l :=
 theorem length_eq_one {l : List α} : length l = 1 ↔ ∃ a, l = [a] :=
   ⟨fun h => match l, h with | [_], _ => ⟨_, rfl⟩, fun ⟨_, h⟩ => by simp [h]⟩
 
-theorem length_eq_two {l : List α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
-  ⟨fun _ => let [a, b] := l; ⟨a, b, rfl⟩, fun ⟨_, _, e⟩ => e ▸ rfl⟩
-
-theorem length_eq_three {l : List α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
-  ⟨fun _ => let [a, b, c] := l; ⟨a, b, c, rfl⟩, fun ⟨_, _, _, e⟩ => e ▸ rfl⟩
-
 /-! ### mem -/
 
 @[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := fun.
@@ -182,13 +176,13 @@ theorem concat_cons (a b : α) (l : List α) : concat (a :: l) b = a :: concat l
 
 theorem init_eq_of_concat_eq {a : α} {l₁ l₂ : List α} : concat l₁ a = concat l₂ a → l₁ = l₂ := by
   intro h
-  rw [concat_eq_append, concat_eq_append] at h
-  apply append_left_inj [a] |>.mp h
+  simp at h
+  assumption
 
 theorem last_eq_of_concat_eq {a b : α} {l : List α} : concat l a = concat l b → a = b := by
   intro h
-  rw [concat_eq_append, concat_eq_append] at h
-  exact head_eq_of_cons_eq (append_right_inj l |>.mp h)
+  simp at h
+  assumption
 
 theorem concat_ne_nil (a : α) (l : List α) : concat l a ≠ [] := by simp
 
@@ -333,7 +327,7 @@ theorem map_subset {l₁ l₂ : List α} (f : α → β) (H : l₁ ⊆ l₂) : m
 
 theorem replicate_succ (a : α) (n) : replicate (n+1) a = a :: replicate n a := rfl
 
-@[simp] theorem replicate_zero (a : α) : replicate 0 a = [] := by rfl
+@[simp] theorem replicate_zero (a : α) : replicate 0 a = [] := rfl
 
 theorem replicate_one (a : α) : replicate 1 a = [a] := rfl
 
@@ -360,7 +354,7 @@ theorem eq_replicate {a : α} {n} {l : List α} :
    fun ⟨e, al⟩ => e ▸ eq_replicate_of_mem al⟩
 
 theorem replicate_add (m n) (a : α) : replicate (m + n) a = replicate m a ++ replicate n a := by
-  induction m <;> simp [*, succ_add]
+  induction m with simp [succ_add] | succ _ ih => exact ih
 
 theorem replicate_succ' (n) (a : α) : replicate (n + 1) a = replicate n a ++ [a] :=
   replicate_add n 1 a
@@ -399,8 +393,8 @@ theorem getLast_cons' {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂
   | a::t, _ => by
     simp [getLast_cons' _ fun H => cons_ne_nil _ _ (append_eq_nil.1 H).2, getLast_append t]
 
-theorem getLast_concat : (h : concat l a ≠ []) → getLast (concat l a) h = a :=
-  concat_eq_append .. ▸ getLast_append _
+theorem getLast_concat {h : concat l a ≠ []} : getLast (concat l a) h = a :=
+  by simp
 
 theorem eq_nil_or_concat : ∀ l : List α, l = [] ∨ ∃ L b, l = L ++ [b]
   | [] => .inl rfl
@@ -422,28 +416,17 @@ theorem getLast_append' (l₁ l₂ : List α) (h : l₂ ≠ []) :
     rw [List.getLast_cons]
     exact ih
 
-theorem getLast_concat' {a : α} (l : List α) : getLast (concat l a) (concat_ne_nil a l) = a :=
-  getLast_concat ..
-
 @[simp]
 theorem getLast_singleton' (a : α) : getLast [a] (cons_ne_nil a []) = a := rfl
 
--- Porting note: simp can prove this
--- @[simp]
-theorem getLast_cons_cons (a₁ a₂ : α) (l : List α) :
-    getLast (a₁ :: a₂ :: l) (cons_ne_nil _ _) = getLast (a₂ :: l) (cons_ne_nil a₂ l) :=
-  rfl
-
-theorem getLast_congr {l₁ l₂ : List α} (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ []) (h₃ : l₁ = l₂) :
-    getLast l₁ h₁ = getLast l₂ h₂ := by subst l₁; rfl
-
-theorem getLast_mem : ∀ {l : List α} (h : l ≠ []), getLast l h ∈ l
-  | [], h => absurd rfl h
-  | [a], _ => by simp only [getLast, mem_singleton]
-  | a :: b :: l, h =>
-    List.mem_cons.2 <| Or.inr <| by
-        rw [getLast_cons_cons]
-        exact getLast_mem (cons_ne_nil b l)
+theorem getLast_mem {l : List α} (h : l ≠ []) : getLast l h ∈ l := by
+  induction l with try contradiction
+  | cons _ l ih =>
+    match l with
+    | nil => exact mem_singleton_self ..
+    | cons _ _ =>
+      rw [getLast_cons]
+      apply mem_cons_of_mem _ <| ih (cons_ne_nil _ _)
 
 theorem getLast_replicate_succ (m : Nat) (a : α) :
     (replicate (m + 1) a).getLast (ne_nil_of_length_eq_succ (length_replicate _ _)) = a := by
