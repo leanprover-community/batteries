@@ -10,7 +10,6 @@ import Std.Tactic.Alias
 abbrev xor : Bool → Bool → Bool := bne
 
 namespace Bool
-variable (x y z : Bool)
 
 /- Namespaced versions that can be used instead of prefixing `_root_` -/
 @[inherit_doc not] protected abbrev not := not
@@ -30,99 +29,222 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
   | _, isTrue hf => isTrue ⟨_, hf⟩
   | isFalse ht, isFalse hf => isFalse fun | ⟨true, h⟩ => absurd h ht | ⟨false, h⟩ => absurd h hf
 
-/-- Convenience truth table tactic -/
-local macro "btt " vars:(colGt ident)* : tactic => `(tactic| revert $vars* <;> decide)
-
 instance : LE Bool := leOfOrd
 instance : LT Bool := ltOfOrd
 instance : Max Bool := maxOfLe
 instance : Min Bool := minOfLe
 
-@[simp] theorem and_not_self_left : (!x && x) = false := by btt x
-@[simp] theorem and_not_self_right : (x && !x) = false := by btt x
-theorem and_comm : (x && y) = (y && x) := by btt x y
-theorem and_left_comm : (x && (y && z)) = (y && (x && z)) := by btt x y z
-theorem and_right_comm : ((x && y) && z) = ((x && z) && y) := by btt x y z
-theorem and_or_distrib_left : (x && (y || z)) = ((x && y) || (x && z)) := by btt x y z
-theorem and_or_distrib_right : ((x || y) && z) = ((x && z) || (y && z)) := by btt x y z
-theorem and_xor_distrib_left : (x && xor y z) = xor (x && y) (x && z) := by btt x y z
-theorem and_xor_distrib_right : (xor x y && z) = xor (x && z) (y && z) := by btt x y z
-@[local simp] theorem and_deMorgan : (!(x && y)) = (!x || !y) := by btt x y
-theorem and_eq_true_iff : (x && y) = true ↔ x = true ∧ y = true := by btt x y
-theorem and_eq_false_iff : (x && y) = false ↔ x = false ∨ y = false := by btt x y
+/-! ### and -/
+
+@[simp] theorem and_not_self_left : ∀ (x : Bool), (!x && x) = false := by
+  decide
+
+@[simp] theorem and_not_self_right : ∀ (x : Bool), (x && !x) = false := by
+  decide
+
+theorem and_comm : ∀ (x y : Bool), (x && y) = (y && x) := by
+  decide
+
+theorem and_left_comm : ∀ (x y z : Bool), (x && (y && z)) = (y && (x && z)) := by
+  decide
+
+theorem and_right_comm : ∀ (x y z : Bool), ((x && y) && z) = ((x && z) && y) := by
+  decide
+
+theorem and_or_distrib_left : ∀ (x y z : Bool), (x && (y || z)) = ((x && y) || (x && z)) := by
+  decide
+
+theorem and_or_distrib_right : ∀ (x y z : Bool), ((x || y) && z) = ((x && z) || (y && z)) := by
+  decide
+
+theorem and_xor_distrib_left : ∀ (x y z : Bool), (x && xor y z) = xor (x && y) (x && z) := by
+  decide
+
+theorem and_xor_distrib_right : ∀ (x y z : Bool), (xor x y && z) = xor (x && z) (y && z) := by
+  decide
+
+theorem and_deMorgan : ∀ (x y : Bool), (!(x && y)) = (!x || !y) := by
+  decide
+
+theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y = true := by
+  decide
+
+theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by
+  decide
+
 alias and_false_left := Bool.false_and
 alias and_false_right := Bool.and_false
 alias and_true_left := Bool.true_and
 alias and_true_right := Bool.and_true
 alias not_and := Bool.and_deMorgan
 
-@[simp] theorem or_not_self_left : (!x || x) = true := by btt x
-@[simp] theorem or_not_self_right : (x || !x) = true := by btt x
-theorem or_comm : (x || y) = (y || x) := by btt x y
-theorem or_left_comm : (x || (y || z)) = (y || (x || z)) := by btt x y z
-theorem or_right_comm : ((x || y) || z) = ((x || z) || y) := by btt x y z
-theorem or_and_distrib_left : (x || (y && z)) = ((x || y) && (x || z)) := by btt x y z
-theorem or_and_distrib_right : ((x && y) || z) = ((x || z) && (y || z)) := by btt x y z
-@[local simp] theorem or_deMorgan : (!(x || y)) = (!x && !y) := by btt x y
-theorem or_eq_true_iff : (x || y) = true ↔ x = true ∨ y = true := by btt x y
-theorem or_eq_false_iff : (x || y) = false ↔ x = false ∧ y = false := by btt x y
+/-! ### or -/
+
+@[simp] theorem or_not_self_left : ∀ (x : Bool), (!x || x) = true := by
+  decide
+
+@[simp] theorem or_not_self_right : ∀ (x : Bool), (x || !x) = true := by
+  decide
+
+theorem or_comm : ∀ (x y : Bool), (x || y) = (y || x) := by
+  decide
+
+theorem or_left_comm : ∀ (x y z : Bool), (x || (y || z)) = (y || (x || z)) := by
+  decide
+
+theorem or_right_comm : ∀ (x y z : Bool), ((x || y) || z) = ((x || z) || y) := by
+  decide
+
+theorem or_and_distrib_left : ∀ (x y z : Bool), (x || (y && z)) = ((x || y) && (x || z)) := by
+  decide
+
+theorem or_and_distrib_right : ∀ (x y z : Bool), ((x && y) || z) = ((x || z) && (y || z)) := by
+  decide
+
+theorem or_deMorgan : ∀ (x y : Bool), (!(x || y)) = (!x && !y) := by
+  decide
+
+theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = true := by
+  decide
+
+theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y = false := by
+  decide
+
 alias or_false_left := Bool.false_or
 alias or_false_right := Bool.or_false
 alias or_true_left := Bool.true_or
 alias or_true_right := Bool.or_true
 alias not_or := Bool.or_deMorgan
 
-@[simp] theorem xor_false_left : xor false x = x := by btt x
-@[simp] theorem xor_false_right : xor x false = x := by btt x
-@[simp] theorem xor_true_left : xor true x = !x := by btt x
-@[simp] theorem xor_true_right : xor x true = !x := by btt x
-@[simp] theorem xor_not_self_left : xor (!x) x = true := by btt x
-@[simp] theorem xor_not_self_right : xor x (!x) = true := by btt x
-@[simp] theorem xor_not_left : xor (!x) y = !(xor x y) := by btt x y
-@[simp] theorem xor_not_right : xor x (!y) = !(xor x y) := by btt x y
-theorem xor_not_not : xor (!x) (!y) = (xor x y) := by btt x y
-theorem xor_self : xor x x = false := bne_self_eq_false ..
-theorem xor_comm : xor x y = xor y x := by btt x y
-theorem xor_left_comm : xor x (xor y z) = xor y (xor x z) := by btt x y z
-theorem xor_right_comm : xor (xor x y) z = xor (xor x z) y := by btt x y z
-theorem xor_assoc : xor (xor x y) z = xor x (xor y z) := by btt x y z
+/-! ### xor -/
 
-@[simp] protected theorem le_true : x ≤ true := by btt x
-@[simp] protected theorem false_le : false ≤ x := by btt x
-@[simp] protected theorem le_refl : x ≤ x := by btt x
-@[simp] protected theorem lt_irrefl : ¬ x < x := by btt x
-protected theorem le_trans {x y z : Bool} : x ≤ y → y ≤ z → x ≤ z := by btt x y z
-protected theorem le_antisymm {x y : Bool} : x ≤ y → y ≤ x → x = y := by btt x y
-protected theorem le_total (x y : Bool) : x ≤ y ∨ y ≤ x := by btt x y
-protected theorem lt_asymm {x y : Bool} : x < y → ¬ y < x := by btt x y
-protected theorem lt_trans {x y z : Bool} : x < y → y < z → x < z := by btt x y z
-protected theorem lt_iff_le_not_le {x y : Bool} : x < y ↔ x ≤ y ∧ ¬ y ≤ x := by btt x y
-protected theorem lt_of_le_of_lt {x y z : Bool} : x ≤ y → y < z → x < z := by btt x y z
-protected theorem lt_of_lt_of_le {x y z : Bool} : x < y → y ≤ z → x < z := by btt x y z
-protected theorem le_of_lt {x y : Bool} : x < y → x ≤ y := by btt x y z
-protected theorem le_of_eq {x y : Bool} : x = y → x ≤ y := by btt x y z
-protected theorem ne_of_lt {x y : Bool} : x < y → x ≠ y := by btt x y z
-protected theorem lt_of_le_of_ne {x y : Bool} : x ≤ y → x ≠ y → x < y := by btt x y z
-protected theorem le_of_lt_or_eq {x y : Bool} : x < y ∨ x = y → x ≤ y := by btt x y z
-protected theorem eq_true_of_true_le {x : Bool} : true ≤ x → x = true := by btt x
-protected theorem eq_false_of_le_false {x : Bool} : x ≤ false → x = false := by btt x
+@[simp] theorem xor_false_left : ∀ (x : Bool), xor false x = x := by
+  decide
 
-protected theorem max_eq_or (x y : Bool) : max x y = (x || y) := by btt x y
-protected theorem min_eq_and (x y : Bool) : min x y = (x && y) := by btt x y
+@[simp] theorem xor_false_right : ∀ (x : Bool), xor x false = x := by
+  decide
 
-theorem not_inj {x y : Bool} : (!x) = (!y) → x = y := by btt x y
-theorem not_inj' {x y : Bool} : (!x) = (!y) ↔ x = y := by btt x y
+@[simp] theorem xor_true_left : ∀ (x : Bool), xor true x = !x := by
+  decide
 
-theorem and_or_inj_right {m x y : Bool}: (x && m) = (y && m) → (x || m) = (y || m) → x = y := by
-  btt m x y
+@[simp] theorem xor_true_right : ∀ (x : Bool), xor x true = !x := by
+  decide
 
-theorem and_or_inj_right' {m x y : Bool}: (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
-  btt m x y
+@[simp] theorem xor_not_self_left : ∀ (x : Bool), xor (!x) x = true := by
+  decide
 
-theorem and_or_inj_left {m x y : Bool} : (m && x) = (m && y) → (m || x) = (m || y) → x = y := by
-  btt m x y
+@[simp] theorem xor_not_self_right : ∀ (x : Bool), xor x (!x) = true := by
+  decide
 
-theorem and_or_inj_left' {m x y : Bool} : (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by
-  btt m x y
+@[simp] theorem xor_not_left : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by
+  decide
+
+@[simp] theorem xor_not_right : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by
+  decide
+
+theorem xor_not_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by
+  decide
+
+theorem xor_self : ∀ (x : Bool), xor x x = false := by
+  decide
+
+theorem xor_comm : ∀ (x y : Bool), xor x y = xor y x := by
+  decide
+
+theorem xor_left_comm : ∀ (x y z : Bool), xor x (xor y z) = xor y (xor x z) := by
+  decide
+
+theorem xor_right_comm : ∀ (x y z : Bool), xor (xor x y) z = xor (xor x z) y := by
+  decide
+
+theorem xor_assoc : ∀ (x y z : Bool), xor (xor x y) z = xor x (xor y z) := by
+  decide
+
+/-! ### le/lt -/
+
+@[simp] protected theorem le_true : ∀ (x : Bool), x ≤ true := by
+  decide
+
+@[simp] protected theorem false_le : ∀ (x : Bool), false ≤ x := by
+  decide
+
+@[simp] protected theorem le_refl : ∀ (x : Bool), x ≤ x := by
+  decide
+
+@[simp] protected theorem lt_irrefl : ∀ (x : Bool), ¬ x < x := by
+  decide
+
+protected theorem le_trans : ∀ {x y z : Bool}, x ≤ y → y ≤ z → x ≤ z := by
+  decide
+
+protected theorem le_antisymm : ∀ {x y : Bool}, x ≤ y → y ≤ x → x = y := by
+  decide
+
+protected theorem le_total : ∀ (x y : Bool), x ≤ y ∨ y ≤ x := by
+  decide
+
+protected theorem lt_asymm : ∀ {x y : Bool}, x < y → ¬ y < x := by
+  decide
+
+protected theorem lt_trans : ∀ {x y z : Bool}, x < y → y < z → x < z := by
+  decide
+
+protected theorem lt_iff_le_not_le : ∀ {x y : Bool}, x < y ↔ x ≤ y ∧ ¬ y ≤ x := by
+  decide
+
+protected theorem lt_of_le_of_lt : ∀ {x y z : Bool}, x ≤ y → y < z → x < z := by
+  decide
+
+protected theorem lt_of_lt_of_le : ∀ {x y z : Bool}, x < y → y ≤ z → x < z := by
+  decide
+
+protected theorem le_of_lt : ∀ {x y : Bool}, x < y → x ≤ y := by
+  decide
+
+protected theorem le_of_eq : ∀ {x y : Bool}, x = y → x ≤ y := by
+  decide
+
+protected theorem ne_of_lt : ∀ {x y : Bool}, x < y → x ≠ y := by
+  decide
+
+protected theorem lt_of_le_of_ne : ∀ {x y : Bool}, x ≤ y → x ≠ y → x < y := by
+  decide
+
+protected theorem le_of_lt_or_eq : ∀ {x y : Bool}, x < y ∨ x = y → x ≤ y := by
+  decide
+
+protected theorem eq_true_of_true_le : ∀ {x : Bool}, true ≤ x → x = true := by
+  decide
+
+protected theorem eq_false_of_le_false : ∀ {x : Bool}, x ≤ false → x = false := by
+  decide
+
+/-! ### min/max -/
+
+protected theorem max_eq_or : ∀ (x y : Bool), max x y = (x || y) := by
+  decide
+
+protected theorem min_eq_and : ∀ (x y : Bool), min x y = (x && y) := by
+  decide
+
+/-! ### injectivity lemmas -/
+
+theorem not_inj : ∀ {x y : Bool}, (!x) = (!y) → x = y := by
+  decide
+
+theorem not_inj' : ∀ {x y : Bool}, (!x) = (!y) ↔ x = y := by
+  decide
+
+theorem and_or_inj_right : ∀ {m x y : Bool}, (x && m) = (y && m) → (x || m) = (y || m) → x = y := by
+  decide
+
+theorem and_or_inj_right' : ∀ {m x y : Bool}, (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
+  decide
+
+theorem and_or_inj_left : ∀ {m x y : Bool}, (m && x) = (m && y) → (m || x) = (m || y) → x = y := by
+  decide
+
+theorem and_or_inj_left' : ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by
+  decide
 
 end Bool
