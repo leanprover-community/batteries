@@ -369,10 +369,10 @@ theorem subset_singleton_iff {a : α} {L : List α} : L ⊆ [a] ↔ ∃ n, L = r
     map f (replicate n a) = replicate n (f a) := by
   induction n <;> [rfl; simp only [*, replicate, map]]
 
-@[simp] theorem tail_replicate (a : α) (n) :
+theorem tail_replicate (a : α) (n) :
     tail (replicate n a) = replicate (n - 1) a := by cases n <;> rfl
 
-@[simp] theorem join_replicate_nil (n : Nat) : join (replicate n []) = @nil α := by
+theorem join_replicate_nil (n : Nat) : join (replicate n []) = @nil α := by
   induction n <;> [rfl; simp only [*, replicate, join, append_nil]]
 
 /-! ### getLast -/
@@ -426,7 +426,7 @@ theorem getLast_mem {l : List α} (h : l ≠ []) : getLast l h ∈ l := by
     | nil => exact mem_singleton_self ..
     | cons _ _ =>
       rw [getLast_cons]
-      apply mem_cons_of_mem _ <| ih (cons_ne_nil _ _)
+      apply mem_cons_of_mem _ <| ih $ cons_ne_nil _ _
 
 theorem getLast_replicate_succ (m : Nat) (a : α) :
     (replicate (m + 1) a).getLast (ne_nil_of_length_eq_succ (length_replicate _ _)) = a := by
