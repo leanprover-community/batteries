@@ -111,19 +111,18 @@ protected theorem max_eq_or (x y : Bool) : max x y = (x || y) := by btt x y
 protected theorem min_eq_and (x y : Bool) : min x y = (x && y) := by btt x y
 
 theorem not_inj {x y : Bool} : (!x) = (!y) → x = y := by btt x y
-
-theorem not_inj' {x y : Bool} : (!x) = (!y) ↔ x = y := ⟨not_inj, fun | rfl => rfl⟩
+theorem not_inj' {x y : Bool} : (!x) = (!y) ↔ x = y := by btt x y
 
 theorem and_or_inj_right {m x y : Bool}: (x && m) = (y && m) → (x || m) = (y || m) → x = y := by
   btt m x y
 
-theorem and_or_inj_right' {m x y : Bool}: (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y :=
-  ⟨fun ⟨h₁, h₂⟩ => and_or_inj_right h₁ h₂, fun | rfl => ⟨rfl, rfl⟩⟩
+theorem and_or_inj_right' {m x y : Bool}: (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
+  btt m x y
 
 theorem and_or_inj_left {m x y : Bool} : (m && x) = (m && y) → (m || x) = (m || y) → x = y := by
   btt m x y
 
-theorem and_or_inj_left' {m x y : Bool} : (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y :=
-  ⟨fun ⟨h₁, h₂⟩ => and_or_inj_left h₁ h₂, fun | rfl => ⟨rfl, rfl⟩⟩
+theorem and_or_inj_left' {m x y : Bool} : (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by
+  btt m x y
 
 end Bool
