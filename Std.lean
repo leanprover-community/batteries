@@ -104,6 +104,7 @@ import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
+import Std.Tactic.Have
 import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.Lint
