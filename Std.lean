@@ -99,10 +99,10 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
+import Std.Tactic.Eqns
 import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
-import Std.Tactic.Eqns
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
