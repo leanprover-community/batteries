@@ -50,7 +50,7 @@ export default function(props) {
 
   // Construct the style from the object corresponding to a given SuggestionStyle.
   function getStyle(style) {
-    return style === null ? {
+    return !style ? {
         className:'link pointer dim',
         style:{color:'var(--vscode-textLink-foreground)'}
       }
@@ -274,10 +274,10 @@ used. -/
 structure Suggestion where
   /-- Text to be used as a replacement via a code action. -/
   suggestion : SuggestionText
-  /-- Info to be printed immediately before replacement text in a widget. -/
-  preInfo : String := ""
-  /-- Info to be printed immediately after replacement text in a widget. -/
-  postInfo : String := ""
+  /-- Optional info to be printed immediately before replacement text in a widget. -/
+  preInfo? : Option String := none
+  /-- Optional info to be printed immediately after replacement text in a widget. -/
+  postInfo? : Option String := none
   /-- Optional style specification for the suggestion. If `none` (the default), the suggestion is
   styled as a text link. Otherwise, the suggestion can be styled as:
   * a status: `.error`, `.warning`, `.success`
@@ -297,11 +297,11 @@ deriving Inhabited
 def Suggestion.toJsonM (s : Suggestion) (w : Nat := Format.defWidth) (indent column : Nat := 0)
     : CoreM Json := do
   let text ← s.suggestion.prettyExtra w indent column
-  pure <| Json.mkObj [
-    ("suggestion", text),
-    ("preInfo", s.preInfo),
-    ("postInfo", s.postInfo),
-    ("style", toJson s.style?)]
+  let mut json := [("suggestion", (text : Json))]
+  if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
+  if let some postInfo := s.postInfo? then json := ("postInfo", postInfo) :: json
+  if let some style := s.style? then json := ("style", toJson style) :: json
+  return Json.mkObj json
 
 /- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
 the suggestion text. -/
@@ -371,8 +371,10 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `s`: a `Suggestion`, which contains
   * `suggestion`: the replacement text;
-  * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
-  * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
+  * `preInfo?`: an optional string shown immediately after the replacement text in the widget
+    message (only)
+  * `postInfo?`: an optional string shown immediately after the replacement text in the widget
+    message (only)
   * `style?`: an optional `Json` object used as the value of the `style` attribute of the
     suggestion text's element (not the whole suggestion element).
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
@@ -399,8 +401,10 @@ The parameters are:
 * `ref`: the span of the info diagnostic
 * `suggestions`: an array of `Suggestion`s, which each contain
   * `suggestion`: the replacement text;
-  * `preInfo`: a string shown immediately after the replacement text in the widget message (only)
-  * `postInfo`: a string shown immediately after the replacement text in the widget message (only)
+  * `preInfo?`: an optional string shown immediately after the replacement text in the widget
+    message (only)
+  * `postInfo?`: an optional string shown immediately after the replacement text in the widget
+    message (only)
   * `style?`: an optional `Json` object used as the value of the `style` attribute of the
     suggestion text's element (not the whole suggestion element).
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
@@ -423,14 +427,14 @@ private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElab
   let mvars ← getMVars e
   let suggestion ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
   let messageData? := if mvars.isEmpty then m!"exact {e}" else m!"refine {e}"
-  let postInfo ← if !addSubgoalsMsg || mvars.isEmpty then pure "" else
+  let postInfo? ← if !addSubgoalsMsg || mvars.isEmpty then pure none else
     let mut str := "\nRemaining subgoals:"
     for g in mvars do
       -- TODO: use a MessageData.ofExpr instead of rendering to string
       let e ← PrettyPrinter.ppExpr (← instantiateMVars (← g.getType))
       str := str ++ Format.pretty ("\n⊢ " ++ e)
     pure str
-  pure { suggestion, postInfo, messageData? }
+  pure { suggestion, postInfo?, messageData? }
 
 /-- Add an `exact e` or `refine e` suggestion.
 
