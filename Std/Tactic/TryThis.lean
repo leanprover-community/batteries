@@ -8,6 +8,7 @@ import Lean.Widget.UserWidget
 import Std.Lean.Name
 import Std.Lean.Format
 import Std.Lean.Position
+import Std.Util.TermUnsafe
 
 /-!
 # "Try this" support
@@ -76,7 +77,13 @@ export default function(props) {
       : style === 'asInaccessible' ? {className:'goal-inaccessible pointer dim'}
       : style?.value ? {
         className:'pointer dim',
-        style:{color:`hsl(${Math.round(Math.min(Math.max(style.value.t,0),1) * 120)} 95% 60%)`},
+        // Clip `t` to lie between 0 and 1. Interpolate between 0 and 120 (red and green).
+        // Dim the lightness from 60% at the ends to 45% in the middle parabolically to at least
+        // avoid total illegibility in light themes.
+        style:{
+          color:`hsl(${Math.round(Math.min(Math.max(style.value.t,0),1) * 120)} 95% ${
+            60*(0.25 * Math.pow(2 * Math.min(Math.max(style.value.t,0),1) - 1,2) + 0.75)}%)`
+        },
         title:(style.value.showValueInHoverText
           ? `Apply suggestion (${Math.min(Math.max(style.value.t,0),1)})`
           : 'Apply suggestion')
@@ -262,8 +269,8 @@ green at `1.0`. Values outside the range `[0.0, 1.0]` are clipped to lie within 
 
 With `showValueInHoverText := true` (the default), the value `t` will be included in the `title` of
 the HTML element (which appears on hover). -/
-/- interpolates linearly from 0º to 120º along the 95% saturation, 60% lightness contour in HSL
-space. -/
+/- interpolates linearly from 0º to 120º with 95% saturation and lightness varying around 50% in
+HSL space. -/
 | value (t : Float) (showValueInHoverText := true)
 deriving Inhabited, Repr, ToJson, FromJson
 
