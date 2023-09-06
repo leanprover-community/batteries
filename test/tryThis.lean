@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Thomas Murrills. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Murrills
+-/
 import Std.Tactic.TryThis
 import Std.Util.TermUnsafe
 import Std.Tactic.GuardMsgs
