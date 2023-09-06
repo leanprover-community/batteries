@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner, Mario Carneiro
+Authors: Gabriel Ebner, Mario Carneiro, Thomas Murrills
 -/
 import Lean.Server.CodeActions
 import Lean.Widget.UserWidget
