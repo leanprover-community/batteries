@@ -7,6 +7,18 @@ Authors: Arthur Paulino, Mario Carneiro
 import Lean
 import Std.Data.List.Basic
 
+/-!
+# The `on_goal`, `pick_goal`, and `swap` tactics.
+
+`pick_goal n` moves the `n`-th goal to the front. If `n` is negative this is counted from the back.
+
+`on_goal n => tacSeq` focuses on the `n`-th goal and runs a tactic block `tacSeq`.
+If `tacSeq` does not close the goal any resulting subgoals are inserted back into the list of goals.
+If `n` is negative this is counted from the back.
+
+`swap` is a shortcut for `pick_goal 2`, which interchanges the 1st and 2nd goals.
+-/
+
 namespace Mathlib.Tactic
 
 open Lean Elab.Tactic
