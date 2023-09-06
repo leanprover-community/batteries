@@ -382,7 +382,7 @@ The parameters are:
 -/
 def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String := "Try this: ") : MetaM Unit := do
+    (header : String := "Try this: ") : CoreM Unit := do
   logInfoAt ref m!"{header}{s}"
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
@@ -422,7 +422,7 @@ The parameters are:
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String := "Try these:") : MetaM Unit := do
+    (header : String := "Try these:") : CoreM Unit := do
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
