@@ -48,8 +48,8 @@ const e = React.createElement;
 export default function(props) {
   const editorConnection = React.useContext(EditorContext)
 
-    // Construct the style from the object corresponding to a given SuggestionStyle.
-    function getStyle(style) {
+  // Construct the style from the object corresponding to a given SuggestionStyle.
+  function getStyle(style) {
     return style === null ? {
         className:'link pointer dim',
         style:{color:'var(--vscode-textLink-foreground)'}
