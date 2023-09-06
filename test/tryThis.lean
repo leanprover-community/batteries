@@ -9,7 +9,8 @@ import Std.Tactic.GuardMsgs
 
 open Std.Tactic.TryThis
 
-/-! This test file demonstrates the `Try This:` widget and describes how certain examples should look. Note that while the evaluations here shouldn't fail, they also aren't tests in the traditional
+/-! This test file demonstrates the `Try This:` widget and describes how certain examples should
+look. Note that while the evaluations here shouldn't fail, they also aren't tests in the traditional
 sense—CI has no way of inspecting the HTML output, and therefore no way of checking that the
 output is styled correctly.
 
