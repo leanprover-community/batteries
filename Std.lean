@@ -116,6 +116,7 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
 import Std.Tactic.Replace
