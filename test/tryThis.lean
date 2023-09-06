@@ -84,15 +84,7 @@ Try these:
 • rfl -- light green
 • rfl -- green
 ```-/
-#demo #[
-  {s with style? := some <| .value 0},
-  {s with style? := some <| .value (1/6)},
-  {s with style? := some <| .value (2/6)},
-  {s with style? := some <| .value (3/6)},
-  {s with style? := some <| .value (4/6)},
-  {s with style? := some <| .value (5/6)},
-  {s with style? := some <| .value 1}
-]
+#demo #[0.0, 1/6, 2/6, 3/6, 4/6, 5/6, 1.0].map fun t => {s with style? := some <| .value t}
 
 -- `Try this: rfl` -- error color with error squiggle
 #demo1 {s with style? := some .error}
