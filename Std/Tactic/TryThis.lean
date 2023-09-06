@@ -22,6 +22,50 @@ open Lean Elab PrettyPrinter Meta Server RequestM
 
 /-! # Raw widgets and code actions -/
 
+/-- A JS function which constructs the explicit style of the suggestion given the object
+corresponding to its `SuggestionStyle`. -/
+def getStyleFunction := "
+  function getStyle(style) {
+    return style === null ? {
+        className:'link pointer dim',
+        style:{color:'var(--vscode-textLink-foreground)'}
+      }
+      : style?.error ? (
+        style.error.decorated ? {
+          className:'pointer dim',
+          style:{
+            color:'var(--vscode-errorForeground)',
+            textDecoration:'underline wavy var(--vscode-editorError-foreground) 1pt'
+          }
+        }
+        : {className:'pointer dim', style:{color:'var(--vscode-errorForeground)'}}
+      )
+      : style?.warning ? (
+        style.warning.decorated ? {
+          className:'gold pointer dim',
+          style:{textDecoration:'underline wavy var(--vscode-editorWarning-foreground) 1pt'}
+        }
+        : {className:'gold pointer dim'}
+      )
+      : style === 'success' ? {className:'information pointer dim'}
+      : style === 'asHypothesis' ? {className:'goal-hyp pointer dim'}
+      : style === 'asInaccessible' ? {className:'goal-inaccessible pointer dim'}
+      : style?.value ? {
+        className:'pointer dim',
+        style:{color:`hsl(${Math.round(Math.min(Math.max(style.value.t,0),1) * 120)} 95% 60%)`},
+        title:(style.value.showValueInHoverText
+          ? `Apply suggestion (${Math.min(Math.max(style.value.t,0),1)})`
+          : 'Apply suggestion')
+      }
+      : {
+        className:'link pointer dim',
+        style:{border:'solid thin red'},
+        title:'An unexpected styling error has occurred.'
+          + 'Please report this on the std4 repo or on Zulip.'
+        }
+  }
+"
+
 /--
 This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: <replacement>`
 where `<replacement>` is a link which will perform the replacement.
@@ -38,16 +82,18 @@ export default function(props) {
     editorConnection.api.applyEdit({
       changes: { [props.pos.uri]: [{ range: props.range, newText: props.suggestion }] }
     })
-  }
-  const style = props.style
-  return e('div', {className: 'ml1'}, e('pre', {className: 'font-code pre-wrap'}, [
-    props.header,
-    props.preInfo,
-    e('a',
-      {onClick, className:'link pointer dim', style, title: 'Apply suggestion'},
-      props.suggestion),
-    props.postInfo
-  ]))
+  }" ++ getStyleFunction ++ "
+
+  return e('div', {className: 'ml1'},
+    e('pre', {className: 'font-code pre-wrap'}, [
+      props.header,
+      props.preInfo,
+      e('span',
+        {onClick, title: 'Apply suggestion', ...getStyle(props.style)},
+        props.suggestion),
+      props.postInfo
+    ])
+  )
 }"
 
 /--
@@ -69,7 +115,7 @@ import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
 const e = React.createElement;
 export default function(props) {
-  const editorConnection = React.useContext(EditorContext)
+  const editorConnection = React.useContext(EditorContext)" ++ getStyleFunction ++ "
 
   function makeSuggestion({suggestion, preInfo, postInfo, style}) {
     function onClick() {
@@ -79,8 +125,8 @@ export default function(props) {
     }
     return e('li', {className:'font-code pre-wrap'},
       preInfo,
-      e('a',
-        {onClick, className:'link pointer dim', style, title: 'Apply suggestion'},
+      e('span',
+        {onClick, title: 'Apply suggestion', ...getStyle(style)},
         suggestion),
       postInfo
     )
@@ -211,6 +257,47 @@ def prettyExtra (s : SuggestionText) (w : Nat := Format.defWidth)
 
 end SuggestionText
 
+/-- Style hooks for `Suggestion`s. The possible values are
+* `.error`; takes an optional boolean argument which determines whether to show an error squiggle
+(true by default)
+* `.warning`; takes an optional boolean argument which determines whether to show a warning
+squiggle (true by default)
+* `.success`
+* `.asHypothesis`, the style of goal hypotheses
+* `.asInaccessible`, the style of inaccessible goal hypotheses
+* `.value t` where `t : Float`, which draws from a red-yellow-green gradient with red at `t = 0.0`
+and green at `t = 1.0`. `t` is assumed to be between `0.0` and `1.0`. Values outside this range are
+silently clipped to lie within this range. An optional boolean argument may be supplied which
+determines whether to include the value `t` in hover text (`true` by default).
+-/
+inductive SuggestionStyle where
+/-- Style as an error. By default, decorates the text with an undersquiggle; providing the argument
+`decorated := false` turns this off. -/
+-- The VS code error foreground theme color (`--vscode-errorForeground`).
+| error (decorated := true)
+/-- Style as a warning. By default, decorates the text with an undersquiggle; providing the
+argument `decorated := false` turns this off. -/
+-- The `.gold` CSS class, which the infoview uses when e.g. building a file.
+| warning (decorated := true)
+/-- Style as a success. -/
+-- The `.information` CSS class, which the infoview uses on successes.
+| success
+/-- Style the same way as a hypothesis appearing in the infoview. -/
+-- The `.goal-hyp` CSS class.
+| asHypothesis
+/-- Style the same way as an inaccessible hypothesis appearing in the infoview. -/
+-- The `.goal-inaccessible` CSS class.
+| asInaccessible
+/-- Draws the color from a red-yellow-green color gradient with red at `0.0`, yellow at `0.5`, and
+green at `1.0`. Values outside the range `[0.0, 1.0]` are clipped to lie within this range.
+
+With `showValueInHoverText := true` (the default), the value `t` will be included in the `title` of
+the HTML element (which appears on hover). -/
+/- interpolates linearly from 0º to 120º along the 95% saturation, 60% lightness contour in HSL
+space. -/
+| value (t : Float) (showValueInHoverText := true)
+deriving Inhabited, Repr, ToJson, FromJson
+
 /-- Holds a `suggestion` for replacement, along with `preInfo` and `postInfo` strings to be printed
 immediately before and after that suggestion, respectively. It also includes an optional
 `MessageData` to represent the suggestion in logs; by default, this is `none`, and `suggestion` is
@@ -222,10 +309,15 @@ structure Suggestion where
   preInfo : String := ""
   /-- Info to be printed immediately after replacement text in a widget. -/
   postInfo : String := ""
-  /-- Optional `style` attribute value to be used in the suggestion text's HTML element. E.g.
-  `style? := Json.mkObj [("color","red")]` will yield `style:{color:red}` in the widget's JS, which
-  will in turn yield `style:"color: red;"` in the HTML element. -/
-  style? : Option Json := none
+  /-- Optional style specification for the suggestion. If `none` (the default), the suggestion is
+  styled as a text link. Otherwise, the suggestion can be styled as:
+  * a status: `.error`, `.warning`, `.success`
+  * a hypothesis name: `.asHypothesis`, `.asInaccessible`
+  * a variable color: `.value (t : Float)`, which draws from a red-yellow-green gradient, with red
+  at `0.0` and green at `1.0`.
+
+  See `SuggestionStyle` for details. -/
+  style? : Option SuggestionStyle := none
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
