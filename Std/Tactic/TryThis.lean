@@ -22,10 +22,34 @@ open Lean Elab PrettyPrinter Meta Server RequestM
 
 /-! # Raw widgets and code actions -/
 
-/-- A JS function which constructs the explicit style of the suggestion given the object
-corresponding to its `SuggestionStyle`. -/
-def getStyleJS := "
-  function getStyle(style) {
+/--
+This is a widget which is placed by `TryThis.addSuggestion` and `TryThis.addSuggestions`.
+
+When placed by `addSuggestion`, it says `Try this: <replacement>`
+where `<replacement>` is a link which will perform the replacement.
+
+When placed by `addSuggestions`, it says:
+```
+Try these:
+```
+* `<replacement1>`
+* `<replacement2>`
+* `<replacement3>`
+* ...
+
+where `<replacement*>` is a link which will perform the replacement.
+-/
+@[widget] def tryThisWidget : Widget.UserWidgetDefinition where
+  name := "Suggestion"
+  javascript := "
+import * as React from 'react';
+import { EditorContext } from '@leanprover/infoview';
+const e = React.createElement;
+export default function(props) {
+  const editorConnection = React.useContext(EditorContext)
+
+    // Construct the style from the object corresponding to a given SuggestionStyle.
+    function getStyle(style) {
     return style === null ? {
         className:'link pointer dim',
         style:{color:'var(--vscode-textLink-foreground)'}
@@ -64,87 +88,52 @@ def getStyleJS := "
           + 'Please report this on the std4 repo or on Zulip.'
         }
   }
-"
 
-/--
-This is a widget which is placed by `TryThis.addSuggestion`; it says `Try this: <replacement>`
-where `<replacement>` is a link which will perform the replacement.
--/
-@[widget] def tryThisWidget : Widget.UserWidgetDefinition where
-  name := "Suggestion"
-  javascript := "
-import * as React from 'react';
-import { EditorContext } from '@leanprover/infoview';
-const e = React.createElement;
-export default function(props) {
-  const editorConnection = React.useContext(EditorContext)
-  const {suggestion, preInfo, postInfo, style} = props.suggestions[0]
-  function onClick() {
-    editorConnection.api.applyEdit({
-      changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
-    })
-  }" ++ getStyleJS ++ "
-
-  return e('div', {className: 'ml1'},
-    e('pre', {className: 'font-code pre-wrap'}, [
-      props.header,
-      preInfo,
-      e('span',
-        {onClick, title: 'Apply suggestion', ...getStyle(style)},
-        suggestion),
-      postInfo
-    ])
-  )
-}"
-
-/--
-This is a widget which is placed by `TryThis.addSuggestions`; it says
-```
-Try these:
-```
-* `<replacement1>`
-* `<replacement2>`
-* `<replacement3>`
-* ...
-
-where `<replacement*>` is a link which will perform the replacement.
--/
-@[widget] def tryTheseWidget : Widget.UserWidgetDefinition where
-  name := "Suggestions"
-  javascript := "
-import * as React from 'react';
-import { EditorContext } from '@leanprover/infoview';
-const e = React.createElement;
-export default function(props) {
-  const editorConnection = React.useContext(EditorContext)" ++
-  getStyleJS ++ "
-
+  // Construct the children of the HTML element for a given suggestion.
   function makeSuggestion({suggestion, preInfo, postInfo, style}) {
+
     function onClick() {
       editorConnection.api.applyEdit({
         changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
       })
     }
-    return e('li', {className:'font-code pre-wrap'},
+
+    return [
       preInfo,
       e('span',
         {onClick, title: 'Apply suggestion', ...getStyle(style)},
         suggestion),
       postInfo
+    ]
+  }
+
+  // Choose between an inline 'Try this'-like display and a list-based 'Try these'-like display.
+  if (props.isSingular) {
+    return e('div', {className: 'ml1'},
+      e('pre', {className: 'font-code pre-wrap'},
+        props.header,
+        makeSuggestion(props.suggestions[0]))
+    )
+  } else {
+    function makeListElement(s) {
+      return e('li', {className:'font-code pre-wrap'}, makeSuggestion(s))
+    }
+    const s = props.suggestions.map(makeListElement)
+    return e('div', {className: 'ml1'},
+      e('pre', {className: 'font-code pre-wrap'}, props.header),
+      e('ul', {style:{paddingInlineStart:'20px'}}, s)
     )
   }
-  const s = props.suggestions.map(makeSuggestion)
-  return e('div', {className: 'ml1'},
-    e('pre', {className: 'font-code pre-wrap'}, props.header),
-    e('ul', {style:{paddingInlineStart:'20px'}}, s)
-  )
 }"
 
-private def tryThisProviderCore (widget : Name) : CodeActionProvider := fun params snap => do
+/--
+This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
+apply the replacement.
+-/
+@[code_action_provider] def tryThisProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { stx, widgetId, props } := info | result
-    unless widgetId == widget do return result
+    let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result
     let some stxRange := stx.getRange? | result
     let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
     unless stxRange.start.line ≤ params.range.end.line do return result
@@ -159,20 +148,6 @@ private def tryThisProviderCore (widget : Name) : CodeActionProvider := fun para
         eager.kind? := "refactor"
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
-
-/--
-This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
-apply the replacement.
--/
-@[code_action_provider] def tryThisProvider : CodeActionProvider :=
-  tryThisProviderCore ``tryThisWidget
-
-/--
-This is a code action provider that looks for `TryTheseInfo` nodes and supplies code actions for
-each replacement.
--/
-@[code_action_provider] def tryTheseProvider : CodeActionProvider :=
-  tryThisProviderCore ``tryTheseWidget
 
 /-! # `Suggestion` data -/
 
@@ -362,8 +337,9 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
 
 /-! # Widget hooks -/
 
-/-- Core of `addSuggestion` and `addSuggestions`. Whether we use a `Try This:` widget or a `Try These:` widget is controlled by `isSingular`. -/
-def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
+/-- Core of `addSuggestion` and `addSuggestions`. Whether we use a `Try This:` display or a
+`Try These:` display is controlled by `isSingular`. -/
+private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String) (isSingular : Bool) : CoreM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
@@ -378,9 +354,9 @@ def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     let json := Json.mkObj [
       ("suggestions", Json.arr suggestions),
       ("range", toJson range),
-      ("header", header)]
-    let widget := if isSingular then ``tryThisWidget else ``tryTheseWidget
-    Widget.saveWidgetInfo widget json (.ofRange stxRange)
+      ("header", header),
+      ("isSingular", toJson isSingular)]
+    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 
 /-- Add a "try this" suggestion. This has three effects:
