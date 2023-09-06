@@ -299,10 +299,10 @@ structure Suggestion where
   messageData? : Option MessageData := none
 deriving Inhabited
 
-/-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
+/-- Converts a `Suggestion` to `Json` in `MetaM`. We need `MetaM` in order to pretty-print syntax.
 -/
 def Suggestion.toJsonM (s : Suggestion) (w : Nat := Format.defWidth) (indent column : Nat := 0)
-    : CoreM Json := do
+    : MetaM Json := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
@@ -349,7 +349,7 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
 `Try These:` display is controlled by `isSingular`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String) (isSingular : Bool) : CoreM Unit := do
+    (header : String) (isSingular : Bool) : MetaM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     let (indent, column) := getIndentAndColumn map range
@@ -393,7 +393,7 @@ The parameters are:
 -/
 def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String := "Try this: ") : CoreM Unit := do
+    (header : String := "Try this: ") : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
   addSuggestionCore ref ⟨[s]⟩ origSpan? header (isSingular := true)
 
@@ -423,7 +423,7 @@ The parameters are:
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String := "Try these:") : CoreM Unit := do
+    (header : String := "Try these:") : MetaM Unit := do
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
