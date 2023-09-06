@@ -121,6 +121,8 @@ import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
+import Std.Tactic.Relation.Refl
+import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
