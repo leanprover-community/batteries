@@ -24,7 +24,7 @@ open Lean Elab PrettyPrinter Meta Server RequestM
 
 /-- A JS function which constructs the explicit style of the suggestion given the object
 corresponding to its `SuggestionStyle`. -/
-def getStyleFunction := "
+def getStyleJS := "
   function getStyle(style) {
     return style === null ? {
         className:'link pointer dim',
@@ -78,20 +78,21 @@ import { EditorContext } from '@leanprover/infoview';
 const e = React.createElement;
 export default function(props) {
   const editorConnection = React.useContext(EditorContext)
+  const {suggestion, preInfo, postInfo, style} = props.suggestions[0]
   function onClick() {
     editorConnection.api.applyEdit({
-      changes: { [props.pos.uri]: [{ range: props.range, newText: props.suggestion }] }
+      changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
     })
-  }" ++ getStyleFunction ++ "
+  }" ++ getStyleJS ++ "
 
   return e('div', {className: 'ml1'},
     e('pre', {className: 'font-code pre-wrap'}, [
       props.header,
-      props.preInfo,
+      preInfo,
       e('span',
-        {onClick, title: 'Apply suggestion', ...getStyle(props.style)},
-        props.suggestion),
-      props.postInfo
+        {onClick, title: 'Apply suggestion', ...getStyle(style)},
+        suggestion),
+      postInfo
     ])
   )
 }"
@@ -115,7 +116,8 @@ import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
 const e = React.createElement;
 export default function(props) {
-  const editorConnection = React.useContext(EditorContext)" ++ getStyleFunction ++ "
+  const editorConnection = React.useContext(EditorContext)" ++
+  getStyleJS ++ "
 
   function makeSuggestion({suggestion, preInfo, postInfo, style}) {
     function onClick() {
@@ -138,34 +140,11 @@ export default function(props) {
   )
 }"
 
-/--
-This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
-apply the replacement.
--/
-@[code_action_provider] def tryThisProvider : CodeActionProvider := fun params snap => do
+private def tryThisProviderCore (widget : Name) : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result
-    let some stxRange := stx.getRange? | result
-    let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
-    unless stxRange.start.line ≤ params.range.end.line do return result
-    unless params.range.start.line ≤ stxRange.end.line do return result
-    let .ok newText := props.getObjValAs? String "suggestion" | panic! "bad type"
-    let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    result.push {
-      eager.title := "Try this: " ++ newText
-      eager.kind? := "refactor"
-      eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
-    }
-
-/--
-This is a code action provider that looks for `TryTheseInfo` nodes and supplies code actions for
-each replacement.
--/
-@[code_action_provider] def tryTheseProvider : CodeActionProvider := fun params snap => do
-  let doc ← readDoc
-  pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { stx, widgetId := ``tryTheseWidget, props } := info | result
+    let .ofUserWidgetInfo { stx, widgetId, props } := info | result
+    unless widgetId == widget do return result
     let some stxRange := stx.getRange? | result
     let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
     unless stxRange.start.line ≤ params.range.end.line do return result
@@ -180,6 +159,20 @@ each replacement.
         eager.kind? := "refactor"
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
+
+/--
+This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
+apply the replacement.
+-/
+@[code_action_provider] def tryThisProvider : CodeActionProvider :=
+  tryThisProviderCore ``tryThisWidget
+
+/--
+This is a code action provider that looks for `TryTheseInfo` nodes and supplies code actions for
+each replacement.
+-/
+@[code_action_provider] def tryTheseProvider : CodeActionProvider :=
+  tryThisProviderCore ``tryTheseWidget
 
 /-! # `Suggestion` data -/
 
@@ -323,6 +316,17 @@ structure Suggestion where
   messageData? : Option MessageData := none
 deriving Inhabited
 
+/-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
+-/
+def Suggestion.toJsonM (s : Suggestion) (w : Nat := Format.defWidth) (indent column : Nat := 0)
+    : CoreM Json := do
+  let text ← s.suggestion.prettyExtra w indent column
+  pure <| Json.mkObj [
+    ("suggestion", text),
+    ("preInfo", s.preInfo),
+    ("postInfo", s.postInfo),
+    ("style", toJson s.style?)]
+
 /- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
 the suggestion text. -/
 instance : ToMessageData Suggestion where
@@ -358,6 +362,27 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
 
 /-! # Widget hooks -/
 
+/-- Core of `addSuggestion` and `addSuggestions`. Whether we use a `Try This:` widget or a `Try These:` widget is controlled by `isSingular`. -/
+def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
+    (origSpan? : Option Syntax := none)
+    (header : String) (isSingular : Bool) : CoreM Unit := do
+  if let some range := (origSpan?.getD ref).getRange? then
+    let map ← getFileMap
+    let (indent, column) := getIndentAndColumn map range
+    let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
+    let stxRange := ref.getRange?.getD range
+    let stxRange :=
+      { start := map.lineStart (map.toPosition stxRange.start).line
+        stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
+    let range := map.utf8RangeToLspRange range
+    let json := Json.mkObj [
+      ("suggestions", Json.arr suggestions),
+      ("range", toJson range),
+      ("header", header)]
+    let widget := if isSingular then ``tryThisWidget else ``tryTheseWidget
+    Widget.saveWidgetInfo widget json (.ofRange stxRange)
+
+
 /-- Add a "try this" suggestion. This has three effects:
 
 * An info diagnostic is displayed saying `Try this: <suggestion>`
@@ -384,19 +409,7 @@ def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : CoreM Unit := do
   logInfoAt ref m!"{header}{s}"
-  if let some range := (origSpan?.getD ref).getRange? then
-    let map ← getFileMap
-    let (indent, column) := getIndentAndColumn map range
-    let text ← s.suggestion.prettyExtra (indent := indent) (column := column)
-    let stxRange := ref.getRange?.getD range
-    let stxRange :=
-    { start := map.lineStart (map.toPosition stxRange.start).line
-      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [("suggestion", text), ("range", toJson range),
-      ("preInfo", s.preInfo), ("postInfo", s.postInfo), ("style", toJson s.style?),
-      ("header", header)]
-    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
+  addSuggestionCore ref ⟨[s]⟩ origSpan? header (isSingular := true)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
@@ -426,22 +439,7 @@ def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
-  if let some range := (origSpan?.getD ref).getRange? then
-    let map ← getFileMap
-    let (indent, column) := getIndentAndColumn map range
-    let suggestions ←
-      suggestions.mapM fun { suggestion, preInfo, postInfo, style?, .. } => do
-        let text ← suggestion.prettyExtra (indent := indent) (column := column)
-        pure <| Json.mkObj [("suggestion", text), ("preInfo", preInfo), ("postInfo", postInfo),
-          ("style", toJson style?)]
-    let stxRange := ref.getRange?.getD range
-    let stxRange :=
-    { start := map.lineStart (map.toPosition stxRange.start).line
-      stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [("suggestions", Json.arr suggestions), ("range", toJson range),
-      ("header", header)]
-    Widget.saveWidgetInfo ``tryTheseWidget json (.ofRange stxRange)
+  addSuggestionCore ref suggestions origSpan? header (isSingular := false)
 
 private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElabM Suggestion := do
   let stx ← delabToRefinableSyntax e
