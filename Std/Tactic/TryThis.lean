@@ -115,7 +115,7 @@ export default function(props) {
   }
 
   // Choose between an inline 'Try this'-like display and a list-based 'Try these'-like display.
-  if (props.isSingular) {
+  if (props.isInline) {
     return e('div', {className: 'ml1'},
       e('pre', {className: 'font-code pre-wrap'},
         props.header,
@@ -345,11 +345,11 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
 
 /-! # Widget hooks -/
 
-/-- Core of `addSuggestion` and `addSuggestions`. Whether we use a `Try This:` display or a
-`Try These:` display is controlled by `isSingular`. -/
+/-- Core of `addSuggestion` and `addSuggestions`. Whether we use an inline display for a single
+element or a list display is controlled by `isInline`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String) (isSingular : Bool) : MetaM Unit := do
+    (header : String) (isInline : Bool) : MetaM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     let (indent, column) := getIndentAndColumn map range
@@ -363,7 +363,7 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
       ("suggestions", Json.arr suggestions),
       ("range", toJson range),
       ("header", header),
-      ("isSingular", toJson isSingular)]
+      ("isInline", toJson isInline)]
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 
@@ -395,7 +395,7 @@ def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
-  addSuggestionCore ref ⟨[s]⟩ origSpan? header (isSingular := true)
+  addSuggestionCore ref ⟨[s]⟩ origSpan? header (isInline := true)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
@@ -427,7 +427,7 @@ def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
-  addSuggestionCore ref suggestions origSpan? header (isSingular := false)
+  addSuggestionCore ref suggestions origSpan? header (isInline := false)
 
 private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElabM Suggestion := do
   let stx ← delabToRefinableSyntax e
