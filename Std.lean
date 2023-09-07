@@ -119,6 +119,7 @@ import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
 import Std.Tactic.Replace
+import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
