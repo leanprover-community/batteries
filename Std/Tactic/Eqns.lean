@@ -19,7 +19,7 @@ namespace Std.Tactic
 /--
 Overrides the default equation lemmas. For example
 
-```lean4
+```
 def transpose {m n} (A : m → n → Nat) : n → m → Nat
   | i, j => A j i
 
