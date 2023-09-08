@@ -144,9 +144,9 @@ def ofList : List α → MLList m α
   | h :: t => cons h (thunk fun _ => ofList t)
 
 /-- Convert a `List` of values inside the monad into a `MLList`. -/
-def ofMLList [Monad m] : List (m α) → MLList m α
+def ofListM [Monad m] : List (m α) → MLList m α
   | [] => nil
-  | h :: t => squash fun _ => return cons (← h) (ofMLList t)
+  | h :: t => squash fun _ => return cons (← h) (ofListM t)
 
 /-- Extract a list inside the monad from a `MLList`. -/
 partial def force [Monad m] (L : MLList m α) : m (List α) := do
