@@ -388,10 +388,14 @@ theorem getLast_cons' {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂
   getLast (a :: l) h₁ = getLast l h₂ := by
   induction l <;> intros; {contradiction}; rfl
 
-@[simp] theorem getLast_append {a : α} : ∀ (l : List α) h, getLast (l ++ [a]) h = a
-  | [], _ => rfl
-  | a::t, _ => by
-    simp [getLast_cons' _ fun H => cons_ne_nil _ _ (append_eq_nil.1 H).2, getLast_append t]
+@[simp] theorem getLast_append_singleton {a : α} :
+  ∀ (l : List α),
+    getLast (l ++ [a]) (append_ne_nil_of_ne_nil_right l _ (cons_ne_nil a _)) = a
+  | [] => rfl
+  | a::t => by
+    simp [
+      getLast_cons' _ fun H => cons_ne_nil _ _ (append_eq_nil.1 H).2,
+      getLast_append_singleton t]
 
 theorem getLast_concat {h : concat l a ≠ []} : getLast (concat l a) h = a :=
   by simp
@@ -402,12 +406,7 @@ theorem eq_nil_or_concat : ∀ l : List α, l = [] ∨ ∃ L b, l = L ++ [b]
     | _, .inl rfl => .inr ⟨[], a, rfl⟩
     | _, .inr ⟨L, b, rfl⟩ => .inr ⟨a::L, b, rfl⟩
 
-theorem getLast_append_singleton {a : α} (l : List α) :
-    getLast (l ++ [a]) (append_ne_nil_of_ne_nil_right l _ (cons_ne_nil a _)) = a := by
-  simp
-
--- Porting note: name should be fixed upstream
-theorem getLast_append' (l₁ l₂ : List α) (h : l₂ ≠ []) :
+theorem getLast_append (l₁ l₂ : List α) (h : l₂ ≠ []) :
     getLast (l₁ ++ l₂) (append_ne_nil_of_ne_nil_right l₁ l₂ h) = getLast l₂ h := by
   induction l₁
   · simp
