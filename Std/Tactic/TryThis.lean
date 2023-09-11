@@ -8,7 +8,6 @@ import Lean.Widget.UserWidget
 import Std.Lean.Name
 import Std.Lean.Format
 import Std.Lean.Position
-import Std.Util.TermUnsafe
 
 /-!
 # "Try this" support
