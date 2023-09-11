@@ -152,7 +152,8 @@ apply the replacement.
       let .ok newText := s.getObjValAs? String "suggestion" | panic! "bad type"
       result.push {
         eager.title := "Try this: " ++ newText
-        eager.kind? := "refactor"
+        eager.kind? := "quickfix"
+        eager.isPreferred? := true
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
 
