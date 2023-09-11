@@ -8,6 +8,7 @@ import Std.Classes.SetNotation
 import Std.CodeAction
 import Std.CodeAction.Attr
 import Std.CodeAction.Basic
+import Std.CodeAction.Deprecated
 import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
@@ -16,6 +17,7 @@ import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Lemmas
+import Std.Data.Array.Match
 import Std.Data.Array.Merge
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
@@ -32,9 +34,11 @@ import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
 import Std.Data.List.Basic
+import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.MLList.Basic
+import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
@@ -59,6 +63,7 @@ import Std.Data.String.Basic
 import Std.Data.String.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
+import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Expr
 import Std.Lean.Format
@@ -84,10 +89,12 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
 import Std.Logic
+import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
@@ -111,6 +118,7 @@ import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
+import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
@@ -121,5 +129,6 @@ import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
+import Std.Util.Pickle
 import Std.Util.TermUnsafe
 import Std.WF

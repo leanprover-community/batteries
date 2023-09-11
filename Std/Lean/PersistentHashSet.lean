@@ -87,7 +87,7 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : PersistentHashSet
 Obtain a `PersistentHashSet` from a list.
 -/
 @[inline]
-protected def ofList [BEq α] [Hashable α] (as : Array α) : PersistentHashSet α :=
+protected def ofList [BEq α] [Hashable α] (as : List α) : PersistentHashSet α :=
   PersistentHashSet.empty.insertMany as
 
 /--

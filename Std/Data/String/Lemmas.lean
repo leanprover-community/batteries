@@ -803,7 +803,7 @@ theorem of_eq : ∀ s,
     ValidFor l m r s
   | ⟨⟨_⟩, ⟨_⟩, ⟨_⟩⟩, rfl, rfl, rfl => ⟨⟩
 
-theorem _root_.String.validFor_toSubstring (s : String) : ValidFor [] s.1 [] s.toSubstring :=
+theorem _root_.String.validFor_toSubstring (s : String) : ValidFor [] s.1 [] s :=
   .of_eq _ (by simp [toSubstring]) rfl (by simp [toSubstring, endPos, utf8ByteSize])
 
 theorem str : ∀ {s}, ValidFor l m r s → s.str = ⟨l ++ m ++ r⟩
@@ -920,7 +920,7 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b,
     · next h =>
       refine ⟨l ++ ml, mr ++ r, .of_eq _ (by simp) ?_ ?_⟩ <;>
         simp [Nat.min_eq_min] <;> rw [Nat.min_eq_right] <;>
-        simp [Nat.add_le_add_iff_left, Nat.le_add_right]
+        try simp [Nat.add_le_add_iff_left, Nat.le_add_right]
       rw [Nat.add_assoc]
 
 -- TODO: splitOn
@@ -975,7 +975,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
 theorem valid : ∀ {s}, ValidFor l m r s → Valid s
   | _, ⟨⟩ => ⟨⟨l, m ++ r, by simp⟩, ⟨l ++ m, r, by simp⟩, Nat.le_add_right ..⟩
 
-theorem _root_.String.valid_toSubstring (s : String) : s.toSubstring.Valid :=
+theorem _root_.String.valid_toSubstring (s : String) : Valid s :=
   s.validFor_toSubstring.valid
 
 theorem bsize : ∀ {s}, Valid s → s.bsize = utf8Len s.toString.1

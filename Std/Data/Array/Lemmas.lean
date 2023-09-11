@@ -236,7 +236,7 @@ termination_by _ => j - i
     · have := reverse.termination h₁
       match j with | j+1 => ?_
       simp at *
-      simp; rw [(go · (i+1) j)]
+      rw [(go · (i+1) j)]
       · rwa [Nat.add_right_comm i]
       · simp [size_swap, h₂]
       · intro k

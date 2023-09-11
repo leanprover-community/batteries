@@ -373,7 +373,7 @@ theorem emod_nonneg : ∀ (a : Int) {b : Int}, b ≠ 0 → 0 ≤ a % b
 theorem fmod_nonneg {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a.fmod b :=
   fmod_eq_mod ha hb ▸ mod_nonneg _ ha
 
-theorem fmod_nonneg' (a : Int) {b : Int} (hb : 0 < b) : 0 ≤ a.fmod b := 
+theorem fmod_nonneg' (a : Int) {b : Int} (hb : 0 < b) : 0 ≤ a.fmod b :=
   fmod_eq_emod _ (Int.le_of_lt hb) ▸ emod_nonneg _ (Int.ne_of_lt hb).symm
 
 theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
@@ -384,10 +384,8 @@ theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
 
 theorem emod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a % b < b :=
   match a, b, eq_succ_of_zero_lt H with
-  | ofNat m, _, ⟨n, rfl⟩ => ofNat_lt.2 (Nat.mod_lt _ (Nat.succ_pos _))
-  | -[m+1], _, ⟨n, rfl⟩ => by
-    simp [emod, Int.subNatNat_eq_coe]
-    exact Int.sub_lt_self _ (ofNat_lt.2 <| Nat.succ_pos _)
+  | ofNat _, _, ⟨_, rfl⟩ => ofNat_lt.2 (Nat.mod_lt _ (Nat.succ_pos _))
+  | -[_+1], _, ⟨_, rfl⟩ => Int.sub_lt_self _ (ofNat_lt.2 <| Nat.succ_pos _)
 
 theorem fmod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a.fmod b < b :=
   fmod_eq_emod _ (Int.le_of_lt H) ▸ emod_lt_of_pos a H

@@ -8,6 +8,100 @@ import Std.Classes.Dvd
 namespace Nat
 
 /--
+  Recursor identical to `Nat.rec` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
+-/
+@[elab_as_elim]
+protected def recAux {motive : Nat → Sort _} (zero : motive 0) (succ : ∀ n, motive n → motive (n+1)) :
+    (t : Nat) → motive t
+  | 0 => zero
+  | _+1 => succ _ (Nat.recAux zero succ _)
+
+/--
+  Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
+-/
+@[elab_as_elim]
+protected def recAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
+  (succ : ∀ n, motive n → motive (n+1)) : motive t := Nat.recAux zero succ t
+
+/--
+  Recursor identical to `Nat.casesOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
+-/
+@[elab_as_elim]
+protected def casesAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
+  (succ : ∀ n, motive (n+1)) : motive t := Nat.recAux zero (fun n _ => succ n) t
+
+/--
+  Strong recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def strongRec {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
+  (t : Nat) : motive t := ind t fun m _ => Nat.strongRec ind m
+
+/--
+  Strong recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def strongRecOn (t : Nat) {motive : Nat → Sort _}
+  (ind : ∀ n, (∀ m, m < n → motive m) → motive n) : motive t := Nat.strongRec ind t
+
+/--
+  Simple diagonal recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def recDiagAux {motive : Nat → Nat → Sort _}
+  (zero_left : ∀ n, motive 0 n)
+  (zero_right : ∀ m, motive m 0)
+  (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) :
+    (m n : Nat) → motive m n
+  | 0, _ => zero_left _
+  | _, 0 => zero_right _
+  | _+1, _+1 => succ_succ _ _ (Nat.recDiagAux zero_left zero_right succ_succ _ _)
+
+/--
+  Diagonal recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def recDiag {motive : Nat → Nat → Sort _}
+  (zero_zero : motive 0 0)
+  (zero_succ : ∀ n, motive 0 n → motive 0 (n+1))
+  (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+  (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) :
+    (m n : Nat) → motive m n := Nat.recDiagAux left right succ_succ
+where
+  /-- Left leg for `Nat.recDiag` -/
+  left : ∀ n, motive 0 n
+  | 0 => zero_zero
+  | _+1 => zero_succ _ (left _)
+  /-- Right leg for `Nat.recDiag` -/
+  right : ∀ m, motive m 0
+  | 0 => zero_zero
+  | _+1 => succ_zero _ (right _)
+
+/--
+  Diagonal recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def recDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
+  (zero_zero : motive 0 0)
+  (zero_succ : ∀ n, motive 0 n → motive 0 (n+1))
+  (succ_zero : ∀ m, motive m 0 → motive (m+1) 0)
+  (succ_succ : ∀ m n, motive m n → motive (m+1) (n+1)) :
+    motive m n := Nat.recDiag zero_zero zero_succ succ_zero succ_succ m n
+
+/--
+  Diagonal recursor for `Nat`
+-/
+@[elab_as_elim]
+protected def casesDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
+  (zero_zero : motive 0 0)
+  (zero_succ : ∀ n, motive 0 (n+1))
+  (succ_zero : ∀ m, motive (m+1) 0)
+  (succ_succ : ∀ m n, motive (m+1) (n+1)) :
+    motive m n :=
+  Nat.recDiag zero_zero (fun _ _ => zero_succ _) (fun _ _ => succ_zero _)
+    (fun _ _ _ => succ_succ _ _) m n
+
+/--
 Divisibility of natural numbers. `a ∣ b` (typed as `\|`) says that
 there is some `c` such that `b = a * c`.
 -/
