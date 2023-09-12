@@ -13,11 +13,6 @@ import Std.Tactic.Ext
 Theorems about the definitions introduced in `Std.Data.Sum.Defs`.
 -/
 
-
-universe u v w x y z
-
-variable {α : Type u} {α' : Type w} {β : Type v} {β' : Type x} {γ : Type y} {δ : Type z}
-
 namespace Sum
 
 @[simp]
@@ -42,7 +37,7 @@ theorem forall_sum_pi {γ : α ⊕ β → Sort _} (p : (∀ ab, γ ab) → Prop)
 
 section get
 
-variable {x y : Sum α β}
+variable {x : Sum α β}
 
 @[simp] theorem inl_getLeft : ∀ (x : α ⊕ β) (h : x.isLeft), inl (x.getLeft h) = x
   | inl _, _ => rfl
@@ -194,9 +189,6 @@ theorem getRight?_swap (x : Sum α β) : x.swap.getRight? = x.getLeft? := by cas
 
 section LiftRel
 
-variable {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} {a : α} {b : β} {c : γ} {d : δ}
-  {x : Sum α β} {y : Sum γ δ}
-
 theorem LiftRel.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b)
   (h : LiftRel r₁ s₁ x y) : LiftRel r₂ s₂ x y := by
   cases h
@@ -225,9 +217,6 @@ theorem liftRel_swap_iff : LiftRel s r x.swap y.swap ↔ LiftRel r s x y :=
 end LiftRel
 
 section Lex
-
-variable {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} {a a₁ a₂ : α} {b b₁ b₂ : β}
-  {x y : Sum α β}
 
 protected theorem LiftRel.lex {a b : Sum α β} (h : LiftRel r s a b) : Lex r s a b := by
   cases h

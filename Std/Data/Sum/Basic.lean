@@ -36,13 +36,8 @@ See `Std.Data.Sum.Basic` for theorems about these definitions.
 
 The definition of `Sum` takes values in `Type _`. This effectively forbids `Prop`- valued sum types.
 To this effect, we have `PSum`, which takes value in `Sort _` and carries a more complicated
-universe signature in consequence. The `Prop` version is `or`.
+universe signature in consequence. The `Prop` version is `Or`.
 -/
-
-
-universe u v w x y z
-
-variable {α : Type u} {α' : Type w} {β : Type v} {β' : Type x} {γ : Type y} {δ : Type z}
 
 namespace Sum
 
@@ -78,8 +73,6 @@ def getLeft? : Sum α β → Option α
 def getRight? : Sum α β → Option β
   | inr b => some b
   | inl _ => none
-
-variable {x y : Sum α β}
 
 @[simp] theorem isLeft_inl (x : α) : (inl x : α ⊕ β).isLeft = true := rfl
 @[simp] theorem isLeft_inr (x : β) : (inr x : α ⊕ β).isLeft = false := rfl
@@ -142,9 +135,6 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
   /-- `inr b` and `inr d` are related via `LiftRel r s` if `b` and `d` are related via `s`. -/
   | protected inr {b d} : s b d → LiftRel r s (inr b) (inr d)
 
-variable {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} {a : α} {b : β} {c : γ} {d : δ}
-  {x : Sum α β} {y : Sum γ δ}
-
 @[simp]
 theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
   ⟨fun h ↦ by
@@ -165,7 +155,8 @@ theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
     cases h
     assumption, LiftRel.inr⟩
 
-instance [∀ a c, Decidable (r a c)] [∀ b d, Decidable (s b d)] :
+instance {r : α → γ → Prop} {s : β → δ → Prop}
+    [∀ a c, Decidable (r a c)] [∀ b d, Decidable (s b d)] :
     ∀ (ab : Sum α β) (cd : Sum γ δ), Decidable (LiftRel r s ab cd)
   | inl _, inl _ => decidable_of_iff' _ liftRel_inl_inl
   | inl _, inr _ => Decidable.isFalse not_liftRel_inl_inr
