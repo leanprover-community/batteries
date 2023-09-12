@@ -48,30 +48,30 @@ deriving instance BEq for Sum
 section get
 
 /-- Check if a sum is `inl`. -/
-def isLeft : Sum α β → Bool
+def isLeft : α ⊕ β → Bool
   | inl _ => true
   | inr _ => false
 
 /-- Check if a sum is `inr`. -/
-def isRight : Sum α β → Bool
+def isRight : α ⊕ β → Bool
   | inl _ => false
   | inr _ => true
 
 /-- Retrieve the contents from a sum known to be `inl`.-/
-def getLeft : (ab : Sum α β) → ab.isLeft → α
+def getLeft : (ab : α ⊕ β) → ab.isLeft → α
   | inl a, _ => a
 
 /-- Retrieve the contents from a sum known to be `inr`.-/
-def getRight : (ab : Sum α β) → ab.isRight → β
+def getRight : (ab : α ⊕ β) → ab.isRight → β
   | inr b, _ => b
 
 /-- Check if a sum is `inl` and if so, retrieve its contents. -/
-def getLeft? : Sum α β → Option α
+def getLeft? : α ⊕ β → Option α
   | inl a => some a
   | inr _ => none
 
 /-- Check if a sum is `inr` and if so, retrieve its contents. -/
-def getRight? : Sum α β → Option β
+def getRight? : α ⊕ β → Option β
   | inr b => some b
   | inl _ => none
 
@@ -91,7 +91,7 @@ def getRight? : Sum α β → Option β
 end get
 
 /-- Define a function on `α ⊕ β` by giving separate definitions on `α` and `β`. -/
-protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum α β → γ :=
+protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
   fun x => Sum.casesOn x f g
 
 @[simp] theorem elim_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : α) :
@@ -101,7 +101,7 @@ protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum α 
     Sum.elim f g (inr x) = g x := rfl
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
-protected def map (f : α → α') (g : β → β') : Sum α β → Sum α' β' :=
+protected def map (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β' :=
   Sum.elim (inl ∘ f) (inr ∘ g)
 
 @[simp] theorem map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl
@@ -109,17 +109,17 @@ protected def map (f : α → α') (g : β → β') : Sum α β → Sum α' β' 
 @[simp] theorem map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
 
 /-- Swap the factors of a sum type -/
-def swap : Sum α β → Sum β α := Sum.elim inr inl
+def swap : α ⊕ β → β ⊕ α := Sum.elim inr inl
 
-@[simp] theorem swap_inl (x : α) : swap (inl x : Sum α β) = inr x := rfl
+@[simp] theorem swap_inl (x : α) : swap (inl x : α ⊕ β) = inr x := rfl
 
-@[simp] theorem swap_inr (x : β) : swap (inr x : Sum α β) = inl x := rfl
+@[simp] theorem swap_inr (x : β) : swap (inr x : α ⊕ β) = inl x := rfl
 
 section LiftRel
 
 /-- Lifts pointwise two relations between `α` and `γ` and between `β` and `δ` to a relation between
 `α ⊕ β` and `γ ⊕ δ`. -/
-inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β → Sum γ δ → Prop
+inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : α ⊕ β → γ ⊕ δ → Prop
   /-- `inl a` and `inl c` are related via `LiftRel r s` if `a` and `c` are related via `r`. -/
   | protected inl {a c} : r a c → LiftRel r s (inl a) (inl c)
   /-- `inr b` and `inr d` are related via `LiftRel r s` if `b` and `d` are related via `s`. -/
@@ -137,7 +137,7 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
 
 instance {r : α → γ → Prop} {s : β → δ → Prop}
     [∀ a c, Decidable (r a c)] [∀ b d, Decidable (s b d)] :
-    ∀ (ab : Sum α β) (cd : Sum γ δ), Decidable (LiftRel r s ab cd)
+    ∀ (ab : α ⊕ β) (cd : γ ⊕ δ), Decidable (LiftRel r s ab cd)
   | inl _, inl _ => decidable_of_iff' _ liftRel_inl_inl
   | inl _, inr _ => Decidable.isFalse not_liftRel_inl_inr
   | inr _, inl _ => Decidable.isFalse not_liftRel_inr_inl
@@ -149,7 +149,7 @@ section Lex
 
 /-- Lexicographic order for sum. Sort all the `inl a` before the `inr b`, otherwise use the
 respective order on `α` or `β`. -/
-inductive Lex (r : α → α → Prop) (s : β → β → Prop) : Sum α β → Sum α β → Prop
+inductive Lex (r : α → α → Prop) (s : β → β → Prop) : α ⊕ β → α ⊕ β → Prop
   /-- `inl a₁` and `inl a₂` are related via `Lex r s` if `a₁` and `a₂` are related via `r`. -/
   | protected inl {a₁ a₂} (h : r a₁ a₂) : Lex r s (inl a₁) (inl a₂)
   /-- `inr b₁` and `inr b₂` are related via `Lex r s` if `b₁` and `b₂` are related via `s`. -/
