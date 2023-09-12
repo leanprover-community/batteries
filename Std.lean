@@ -61,6 +61,9 @@ import Std.Data.Rat.Lemmas
 import Std.Data.String
 import Std.Data.String.Basic
 import Std.Data.String.Lemmas
+import Std.Data.Sum
+import Std.Data.Sum.Basic
+import Std.Data.Sum.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
