@@ -89,7 +89,8 @@ Try these:
 • rfl -- yellow-green
 • rfl -- light green
 • rfl -- green
-```-/
+```
+-/
 #demo #[0.0, 1/6, 2/6, 3/6, 4/6, 5/6, 1.0].map fun t => {s with style? := some <| .value t}
 
 -- `Try this: rfl` -- error color with error squiggle
