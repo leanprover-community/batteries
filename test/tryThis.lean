@@ -43,12 +43,15 @@ elab "add_suggestions" s:term "with_header" h:term : tactic => unsafe do
 
 /-- Demo adding a suggestion. -/
 macro "#demo1" s:term : command => `(example : True := by add_suggestion $s; trivial)
+
 /-- Demo adding a suggestion with a header. -/
 macro "#demo1" s:term "with_header" h:term : command => `(example : True := by
   add_suggestion $s with_header $h; trivial)
+
 /-- Demo adding suggestions. -/
 macro "#demo" s:term : command => `(example : True := by
   add_suggestions $s; trivial)
+
 /-- Demo adding suggestions with a header. -/
 macro "#demo" s:term "with_header" h:term : command => `(example : True := by
   add_suggestions $s with_header $h; trivial)
@@ -76,7 +79,8 @@ Try these:
 • rfl
 • rfl
 ```
-with `rfl` in text-link color/ -/
+with `rfl` in text-link color.
+-/
 #demo #[s,s,s,s]
 
 /-
@@ -150,6 +154,15 @@ info: We've got everything here! Such as:
 #guard_msgs in
 #demo #[s,s,s,s] with_header "We've got everything here! Such as:"
 
+/--
+info: Grab bag:
+• not a tactic
+• This
+• rfl
+• link-styled
+• this
+-/
+#guard_msgs in
 #demo #[
   {s with
     suggestion := "not a tactic",
