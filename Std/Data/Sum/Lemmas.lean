@@ -82,11 +82,9 @@ theorem isRight_iff : x.isRight ↔ ∃ y, x = Sum.inr y := by cases x <;> simp
 
 end get
 
-theorem inl.inj_iff {a b} : (inl a : Sum α β) = inl b ↔ a = b :=
-  ⟨inl.inj, congrArg _⟩
+theorem inl.inj_iff {a b} : (inl a : Sum α β) = inl b ↔ a = b := ⟨inl.inj, congrArg _⟩
 
-theorem inr.inj_iff {a b} : (inr a : Sum α β) = inr b ↔ a = b :=
-  ⟨inr.inj, congrArg _⟩
+theorem inr.inj_iff {a b} : (inr a : Sum α β) = inr b ↔ a = b := ⟨inr.inj, congrArg _⟩
 
 theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b := fun.
 
@@ -150,8 +148,7 @@ theorem elim_comp_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β �
 
 @[simp] theorem swap_swap (x : Sum α β) : swap (swap x) = x := by cases x <;> rfl
 
-@[simp] theorem swap_swap_eq : swap ∘ swap = @id (Sum α β) :=
-  funext <| swap_swap
+@[simp] theorem swap_swap_eq : swap ∘ swap = @id (Sum α β) := funext <| swap_swap
 
 @[simp] theorem isLeft_swap (x : Sum α β) : x.swap.isLeft = x.isRight := by cases x <;> rfl
 

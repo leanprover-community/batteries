@@ -108,8 +108,7 @@ protected def map (f : α → α') (g : β → β') : Sum α β → Sum α' β' 
 @[simp] theorem map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
 
 /-- Swap the factors of a sum type -/
-def swap : Sum α β → Sum β α :=
-  Sum.elim inr inl
+def swap : Sum α β → Sum β α := Sum.elim inr inl
 
 @[simp] theorem swap_inl (x : α) : swap (inl x : Sum α β) = inr x := rfl
 
