@@ -26,6 +26,7 @@ This file defines basic operations on the the sum type `α ⊕ β`.
 * `Sum.map`: Maps `α ⊕ β` to `γ ⊕ δ` component-wise.
 * `Sum.elim`: Nondependent eliminator/induction principle for `α ⊕ β`.
 * `Sum.swap`: Maps `α ⊕ β` to `β ⊕ α` by swapping components.
+* `Sum.LiftRel`: The disjoint union of two relations.
 * `Sum.Lex`: Lexicographic order on `α ⊕ β` induced by a relation on `α` and a relation on `β`.
 
 ## Further material
