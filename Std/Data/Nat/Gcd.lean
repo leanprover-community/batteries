@@ -214,7 +214,8 @@ theorem lcm_dvd {m n k : Nat} (H1 : m ∣ k) (H2 : n ∣ k) : lcm m n ∣ k := b
 theorem lcm_assoc (m n k : Nat) : lcm (lcm m n) k = lcm m (lcm n k) :=
 Nat.dvd_antisymm
   (lcm_dvd
-    (lcm_dvd (dvd_lcm_left m (lcm n k)) (Nat.dvd_trans (dvd_lcm_left n k) (dvd_lcm_right m (lcm n k))))
+    (lcm_dvd (dvd_lcm_left m (lcm n k))
+      (Nat.dvd_trans (dvd_lcm_left n k) (dvd_lcm_right m (lcm n k))))
     (Nat.dvd_trans (dvd_lcm_right n k) (dvd_lcm_right m (lcm n k))))
   (lcm_dvd
     (Nat.dvd_trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))

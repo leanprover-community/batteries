@@ -255,7 +255,8 @@ theorem subNatNat_add_negSucc (m n k : Nat) :
     have h₃ : m ≤ n + k := le_of_succ_le_succ h₂
     rw [subNatNat_of_lt h', subNatNat_of_lt h₂]
     simp [Nat.add_comm]
-    rw [← add_succ, succ_pred_eq_of_pos (Nat.sub_pos_of_lt h'), add_succ, succ_sub h₃, Nat.pred_succ]
+    rw [← add_succ, succ_pred_eq_of_pos (Nat.sub_pos_of_lt h'), add_succ, succ_sub h₃,
+      Nat.pred_succ]
     rw [Nat.add_comm n, Nat.add_sub_assoc (Nat.le_of_lt h')]
 
 protected theorem add_assoc : ∀ a b c : Int, a + b + c = a + (b + c)
@@ -802,10 +803,12 @@ protected theorem le_add_of_nonneg_left {a b : Int} (h : 0 ≤ b) : a ≤ b + a 
 protected theorem add_lt_add {a b c d : Int} (h₁ : a < b) (h₂ : c < d) : a + c < b + d :=
   Int.lt_trans (Int.add_lt_add_right h₁ c) (Int.add_lt_add_left h₂ b)
 
-protected theorem add_lt_add_of_le_of_lt {a b c d : Int} (h₁ : a ≤ b) (h₂ : c < d) : a + c < b + d :=
+protected theorem add_lt_add_of_le_of_lt {a b c d : Int} (h₁ : a ≤ b) (h₂ : c < d) :
+    a + c < b + d :=
   Int.lt_of_le_of_lt (Int.add_le_add_right h₁ c) (Int.add_lt_add_left h₂ b)
 
-protected theorem add_lt_add_of_lt_of_le {a b c d : Int} (h₁ : a < b) (h₂ : c ≤ d) : a + c < b + d :=
+protected theorem add_lt_add_of_lt_of_le {a b c d : Int} (h₁ : a < b) (h₂ : c ≤ d) :
+    a + c < b + d :=
   Int.lt_of_lt_of_le (Int.add_lt_add_right h₁ c) (Int.add_le_add_left h₂ b)
 
 protected theorem lt_add_of_pos_right (a : Int) {b : Int} (h : 0 < b) : a < a + b := by
