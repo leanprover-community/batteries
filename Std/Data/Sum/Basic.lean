@@ -126,18 +126,14 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
   | protected inr {b d} : s b d → LiftRel r s (inr b) (inr d)
 
 @[simp] theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
-  ⟨fun h => by
-    cases h
-    assumption, LiftRel.inl⟩
+  ⟨fun h => by cases h; assumption, LiftRel.inl⟩
 
 @[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := fun.
 
 @[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := fun.
 
 @[simp] theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
-  ⟨fun h => by
-    cases h
-    assumption, LiftRel.inr⟩
+  ⟨fun h => by cases h; assumption, LiftRel.inr⟩
 
 instance {r : α → γ → Prop} {s : β → δ → Prop}
     [∀ a c, Decidable (r a c)] [∀ b d, Decidable (s b d)] :
@@ -164,14 +160,10 @@ inductive Lex (r : α → α → Prop) (s : β → β → Prop) : Sum α β → 
 attribute [simp] Lex.sep
 
 @[simp] theorem lex_inl_inl : Lex r s (inl a₁) (inl a₂) ↔ r a₁ a₂ :=
-  ⟨fun h => by
-    cases h
-    assumption, Lex.inl⟩
+  ⟨fun h => by cases h; assumption, Lex.inl⟩
 
 @[simp] theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
-  ⟨fun h => by
-    cases h
-    assumption, Lex.inr⟩
+  ⟨fun h => by cases h; assumption, Lex.inr⟩
 
 @[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) :=
   fun.
