@@ -88,11 +88,9 @@ theorem inl.inj_iff {a b} : (inl a : Sum α β) = inl b ↔ a = b :=
 theorem inr.inj_iff {a b} : (inr a : Sum α β) = inr b ↔ a = b :=
   ⟨inr.inj, congrArg _⟩
 
-theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b :=
-  fun.
+theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b := fun.
 
-theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a :=
-  fun.
+theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a := fun.
 
 /-! ### `Sum.elim` -/
 
