@@ -53,19 +53,19 @@ section get
 theorem eq_left_getLeft_of_isLeft : ∀ {x : α ⊕ β} (h : x.isLeft), x = inl (x.getLeft h)
   | inl _, _ => rfl
 
-@[simp] theorem getLeft_eq_iff {a : α} (h : x.isLeft) : x.getLeft h = a ↔ x = inl a := by
+@[simp] theorem getLeft_eq_iff (h : x.isLeft) : x.getLeft h = a ↔ x = inl a := by
   cases x <;> simp at h ⊢
 
 theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = inr (x.getRight h)
   | inr _, _ => rfl
 
-@[simp] theorem getRight_eq_iff {b : β} (h : x.isRight) : x.getRight h = b ↔ x = inr b := by
+@[simp] theorem getRight_eq_iff (h : x.isRight) : x.getRight h = b ↔ x = inr b := by
   cases x <;> simp at h ⊢
 
-@[simp] theorem getLeft?_eq_some_iff {a : α} : x.getLeft? = some a ↔ x = inl a := by
+@[simp] theorem getLeft?_eq_some_iff : x.getLeft? = some a ↔ x = inl a := by
   cases x <;> simp only [getLeft?, Option.some.injEq, inl.injEq]
 
-@[simp] theorem getRight?_eq_some_iff {b : β} : x.getRight? = some b ↔ x = inr b := by
+@[simp] theorem getRight?_eq_some_iff : x.getRight? = some b ↔ x = inr b := by
   cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq]
 
 @[simp] theorem bnot_isLeft (x : α ⊕ β) : !x.isLeft = x.isRight := by cases x <;> rfl
@@ -86,13 +86,13 @@ theorem isRight_iff : x.isRight ↔ ∃ y, x = Sum.inr y := by cases x <;> simp
 
 end get
 
-theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b := ⟨inl.inj, congrArg _⟩
+theorem inl.inj_iff : (inl a : α ⊕ β) = inl b ↔ a = b := ⟨inl.inj, congrArg _⟩
 
-theorem inr.inj_iff {a b} : (inr a : α ⊕ β) = inr b ↔ a = b := ⟨inr.inj, congrArg _⟩
+theorem inr.inj_iff : (inr a : α ⊕ β) = inr b ↔ a = b := ⟨inr.inj, congrArg _⟩
 
-theorem inl_ne_inr {a : α} {b : β} : inl a ≠ inr b := fun.
+theorem inl_ne_inr : inl a ≠ inr b := fun.
 
-theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a := fun.
+theorem inr_ne_inl : inr b ≠ inl a := fun.
 
 /-! ### `Sum.elim` -/
 
