@@ -31,7 +31,7 @@ namespace Sum
     | Or.inr ⟨b, h⟩ => ⟨inr b, h⟩⟩
 
 theorem forall_sum {γ : α ⊕ β → Sort _} (p : (∀ ab, γ ab) → Prop) :
-    (∀ fab, p fab) ↔ (∀ fa fb, p (Sum.rec fa fb)) :=
+    (∀ fab, p fab) ↔ (∀ fa fb, p (Sum.rec fa fb)) := by
   refine ⟨fun h fa fb => h _, fun h fab => ?_⟩
   have h1 : fab = Sum.rec (fun a => fab (Sum.inl a)) (fun b => fab (Sum.inr b)) := by
     ext ab; cases ab <;> rfl
