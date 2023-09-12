@@ -31,7 +31,7 @@ This file defines basic operations on the the sum type `α ⊕ β`.
 
 ## Further material
 
-See `Std.Data.Sum.Basic` for theorems about these definitions.
+See `Std.Data.Sum.Lemmas` for theorems about these definitions.
 
 ## Notes
 
