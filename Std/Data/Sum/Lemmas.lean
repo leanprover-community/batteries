@@ -35,17 +35,15 @@ theorem forall_sum_pi {γ : α ⊕ β → Sort _} (p : (∀ ab, γ ab) → Prop)
 
 section get
 
-variable {x : Sum α β}
-
 @[simp] theorem inl_getLeft : ∀ (x : α ⊕ β) (h : x.isLeft), inl (x.getLeft h) = x
   | inl _, _ => rfl
 @[simp] theorem inr_getRight : ∀ (x : α ⊕ β) (h : x.isRight), inr (x.getRight h) = x
   | inr _, _ => rfl
 
-@[simp] theorem getLeft?_eq_none_iff : x.getLeft? = none ↔ x.isRight := by
+@[simp] theorem getLeft?_eq_none_iff {x : Sum α β} : x.getLeft? = none ↔ x.isRight := by
   cases x <;> simp only [getLeft?, isRight, eq_self_iff_true]
 
-@[simp] theorem getRight?_eq_none_iff : x.getRight? = none ↔ x.isLeft := by
+@[simp] theorem getRight?_eq_none_iff {x : Sum α β} : x.getRight? = none ↔ x.isLeft := by
   cases x <;> simp only [getRight?, isLeft, eq_self_iff_true]
 
 theorem eq_left_getLeft_of_isLeft : ∀ {x : α ⊕ β} (h : x.isLeft), x = inl (x.getLeft h)
@@ -68,15 +66,15 @@ theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = 
 
 @[simp] theorem not_isLeft (x : Sum α β) : not x.isLeft = x.isRight := by cases x <;> rfl
 
-@[simp] theorem isLeft_eq_false : x.isLeft = false ↔ x.isRight := by cases x <;> simp
+@[simp] theorem isLeft_eq_false {x : Sum α β} : x.isLeft = false ↔ x.isRight := by cases x <;> simp
 
-theorem Not_isLeft : ¬x.isLeft ↔ x.isRight := by simp
+theorem Not_isLeft {x : Sum α β} : ¬x.isLeft ↔ x.isRight := by simp
 
 @[simp] theorem not_isRight (x : Sum α β) : !x.isRight = x.isLeft := by cases x <;> rfl
 
-@[simp] theorem isRight_eq_false : x.isRight = false ↔ x.isLeft := by cases x <;> simp
+@[simp] theorem isRight_eq_false {x : Sum α β} : x.isRight = false ↔ x.isLeft := by cases x <;> simp
 
-theorem Not_isRight : ¬x.isRight ↔ x.isLeft := by simp
+theorem Not_isRight {x : Sum α β} : ¬x.isRight ↔ x.isLeft := by simp
 
 theorem isLeft_iff : x.isLeft ↔ ∃ y, x = Sum.inl y := by cases x <;> simp
 
