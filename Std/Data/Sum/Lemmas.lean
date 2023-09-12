@@ -133,7 +133,7 @@ theorem elim_map {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ 
 
 theorem elim_comp_map {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
     Sum.elim f₂ g₂ ∘ Sum.map f₁ g₁ = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
-  funext $ fun _ => elim_map
+  funext fun _ => elim_map
 
 @[simp] theorem isLeft_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
     isLeft (x.map f g) = isLeft x := by
