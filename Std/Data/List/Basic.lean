@@ -685,6 +685,20 @@ partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2],
     | .inl a => go xs (acc₁.push a) acc₂
     | .inr b => go xs acc₁ (acc₂.push b)
 
+/-- Monadic generalization of `List.partition`. -/
+@[inline] def partitionM [Monad m] (p : α → m Bool) (l : List α) : m (List α × List α) :=
+  go l #[] #[] where
+  /-- Auxiliary for `partitionM`:
+  `partitionM.go p l acc₁ acc₂` returns `(acc₁.toList ++ left, acc₂.toList ++ right)`
+  if `partitionM p l` returns `(left, right)`. -/
+  @[specialize] go : List α → Array α → Array α → m (List α × List α)
+  | [], acc₁, acc₂ => pure (acc₁.toList, acc₂.toList)
+  | x :: xs, acc₁, acc₂ => do
+      if ← p x then
+        go xs (acc₁.push x) acc₂
+      else
+        go xs acc₁ (acc₂.push x)
+
 /--
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
