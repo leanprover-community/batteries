@@ -174,5 +174,3 @@ instance instDecidableRelSumLex [DecidableRel r] [DecidableRel s] : DecidableRel
   | inr _, inr _ => decidable_of_iff' _ lex_inr_inr
 
 end Lex
-
-end Sum
