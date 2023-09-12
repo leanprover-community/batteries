@@ -248,7 +248,7 @@ theorem elim_const_const (c : γ) :
   cases x <;> rfl
 
 @[simp] theorem elim_lam_const_lam_const (c : γ) :
-    (Sum.elim (fun _ : α => c) fun _ : β => c) = fun _ => c :=
+    Sum.elim (fun _ : α => c) (fun _ : β => c) = fun _ => c :=
   Sum.elim_const_const c
 
 end Sum
