@@ -687,7 +687,8 @@ partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2],
 
 /-- Monadic generalization of `List.partition`. -/
 @[inline] def partitionM [Monad m] (p : α → m Bool) (l : List α) : m (List α × List α) :=
-  go l #[] #[] where
+  go l #[] #[]
+where
   /-- Auxiliary for `partitionM`:
   `partitionM.go p l acc₁ acc₂` returns `(acc₁.toList ++ left, acc₂.toList ++ right)`
   if `partitionM p l` returns `(left, right)`. -/
