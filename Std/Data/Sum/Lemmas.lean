@@ -236,11 +236,13 @@ theorem lex_wf (ha : WellFounded r) (hb : WellFounded s) : WellFounded (Lex r s)
 
 end Lex
 
-theorem elim_const_const (c : γ) :
+-- We write out the implicit type arguments here to ensure they are in the right order.
+theorem elim_const_const {α β γ} (c : γ) :
     Sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c := by
   ext x
   cases x <;> rfl
 
-@[simp] theorem elim_lam_const_lam_const (c : γ) :
+-- We write out the implicit type arguments here to ensure they are in the right order.
+@[simp] theorem elim_lam_const_lam_const {α β γ} (c : γ) :
     Sum.elim (fun _ : α => c) (fun _ : β => c) = fun _ => c :=
   Sum.elim_const_const c
