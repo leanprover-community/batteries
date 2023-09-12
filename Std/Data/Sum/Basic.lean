@@ -75,29 +75,29 @@ def getRight? : α ⊕ β → Option β
   | inr b => some b
   | inl _ => none
 
-@[simp] theorem isLeft_inl (x : α) : (inl x : α ⊕ β).isLeft = true := rfl
-@[simp] theorem isLeft_inr (x : β) : (inr x : α ⊕ β).isLeft = false := rfl
-@[simp] theorem isRight_inl (x : α) : (inl x : α ⊕ β).isRight = false := rfl
-@[simp] theorem isRight_inr (x : β) : (inr x : α ⊕ β).isRight = true := rfl
+@[simp] theorem isLeft_inl : (inl x : α ⊕ β).isLeft = true := rfl
+@[simp] theorem isLeft_inr : (inr x : α ⊕ β).isLeft = false := rfl
+@[simp] theorem isRight_inl : (inl x : α ⊕ β).isRight = false := rfl
+@[simp] theorem isRight_inr : (inr x : α ⊕ β).isRight = true := rfl
 
-@[simp] theorem getLeft_inl (x : α) (h : (inl x : α ⊕ β).isLeft) : (inl x).getLeft h = x := rfl
-@[simp] theorem getRight_inr (x : β) (h : (inr x : α ⊕ β).isRight) : (inr x).getRight h = x := rfl
+@[simp] theorem getLeft_inl (h : (inl x : α ⊕ β).isLeft) : (inl x).getLeft h = x := rfl
+@[simp] theorem getRight_inr (h : (inr x : α ⊕ β).isRight) : (inr x).getRight h = x := rfl
 
-@[simp] theorem getLeft?_inl (x : α) : (inl x : α ⊕ β).getLeft? = some x := rfl
-@[simp] theorem getLeft?_inr (x : β) : (inr x : α ⊕ β).getLeft? = none := rfl
-@[simp] theorem getRight?_inl (x : α) : (inl x : α ⊕ β).getRight? = none := rfl
-@[simp] theorem getRight?_inr (x : β) : (inr x : α ⊕ β).getRight? = some x := rfl
+@[simp] theorem getLeft?_inl : (inl x : α ⊕ β).getLeft? = some x := rfl
+@[simp] theorem getLeft?_inr : (inr x : α ⊕ β).getLeft? = none := rfl
+@[simp] theorem getRight?_inl : (inl x : α ⊕ β).getRight? = none := rfl
+@[simp] theorem getRight?_inr : (inr x : α ⊕ β).getRight? = some x := rfl
 
 end get
 
 /-- Define a function on `α ⊕ β` by giving separate definitions on `α` and `β`. -/
-protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
+protected def elim (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
   fun x => Sum.casesOn x f g
 
-@[simp] theorem elim_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : α) :
+@[simp] theorem elim_inl (f : α → γ) (g : β → γ) (x : α) :
     Sum.elim f g (inl x) = f x := rfl
 
-@[simp] theorem elim_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : β) :
+@[simp] theorem elim_inr (f : α → γ) (g : β → γ) (x : β) :
     Sum.elim f g (inr x) = g x := rfl
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
@@ -111,9 +111,9 @@ protected def map (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β' 
 /-- Swap the factors of a sum type -/
 def swap : α ⊕ β → β ⊕ α := Sum.elim inr inl
 
-@[simp] theorem swap_inl (x : α) : swap (inl x : α ⊕ β) = inr x := rfl
+@[simp] theorem swap_inl : swap (inl x : α ⊕ β) = inr x := rfl
 
-@[simp] theorem swap_inr (x : β) : swap (inr x : α ⊕ β) = inl x := rfl
+@[simp] theorem swap_inr : swap (inr x : α ⊕ β) = inl x := rfl
 
 section LiftRel
 
