@@ -335,11 +335,11 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
     let `(?$id:ident) := s | pure none
     if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
 
-/-- Delaborate `e` into an expression suitable for use in `refine`. -/
+/-- Delaborate `e` into syntax suitable for use by `refine`. -/
 def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
-/-- Delaborate `e` into a suggestion suitable for use in `refine`. -/
+/-- Delaborate `e` into a suggestion suitable for use by `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
   return { suggestion := ← delabToRefinableSyntax e, messageData? := e }
 
