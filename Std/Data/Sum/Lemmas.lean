@@ -15,12 +15,10 @@ Theorems about the definitions introduced in `Std.Data.Sum.Defs`.
 
 namespace Sum
 
-@[simp]
-theorem «forall» {p : Sum α β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ ∀ b, p (inr b) :=
+@[simp] theorem «forall» {p : Sum α β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ ∀ b, p (inr b) :=
   ⟨fun h ↦ ⟨fun _ ↦ h _, fun _ ↦ h _⟩, fun ⟨h₁, h₂⟩ ↦ Sum.rec h₁ h₂⟩
 
-@[simp]
-theorem «exists» {p : Sum α β → Prop} : (∃ x, p x) ↔ (∃ a, p (inl a)) ∨ ∃ b, p (inr b) :=
+@[simp] theorem «exists» {p : Sum α β → Prop} : (∃ x, p x) ↔ (∃ a, p (inl a)) ∨ ∃ b, p (inr b) :=
   ⟨ fun
     | ⟨inl a, h⟩ => Or.inl ⟨a, h⟩
     | ⟨inr b, h⟩ => Or.inr ⟨b, h⟩,
@@ -68,19 +66,15 @@ theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = 
 @[simp] theorem getRight?_eq_some_iff {b : β} : x.getRight? = some b ↔ x = inr b := by
   cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq]
 
-@[simp]
-theorem not_isLeft (x : Sum α β) : not x.isLeft = x.isRight := by cases x <;> rfl
+@[simp] theorem not_isLeft (x : Sum α β) : not x.isLeft = x.isRight := by cases x <;> rfl
 
-@[simp]
-theorem isLeft_eq_false : x.isLeft = false ↔ x.isRight := by cases x <;> simp
+@[simp] theorem isLeft_eq_false : x.isLeft = false ↔ x.isRight := by cases x <;> simp
 
 theorem Not_isLeft : ¬x.isLeft ↔ x.isRight := by simp
 
-@[simp]
-theorem not_isRight (x : Sum α β) : !x.isRight = x.isLeft := by cases x <;> rfl
+@[simp] theorem not_isRight (x : Sum α β) : !x.isRight = x.isLeft := by cases x <;> rfl
 
-@[simp]
-theorem isRight_eq_false : x.isRight = false ↔ x.isLeft := by cases x <;> simp
+@[simp] theorem isRight_eq_false : x.isRight = false ↔ x.isLeft := by cases x <;> simp
 
 theorem Not_isRight : ¬x.isRight ↔ x.isLeft := by simp
 
@@ -104,41 +98,35 @@ theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a :=
 
 /-! ### `Sum.elim` -/
 
-@[simp]
-theorem elim_comp_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inl = f :=
+@[simp] theorem elim_comp_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inl = f :=
   rfl
 
-@[simp]
-theorem elim_comp_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inr = g :=
+@[simp] theorem elim_comp_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inr = g :=
   rfl
 
-@[simp]
-theorem elim_inl_inr {α β : Sort _} : @Sum.elim α β _ inl inr = id :=
+@[simp] theorem elim_inl_inr {α β : Sort _} : @Sum.elim α β _ inl inr = id :=
   funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
 
 theorem comp_elim {α β γ δ : Sort _} (f : γ → δ) (g : α → γ) (h : β → γ) :
     f ∘ Sum.elim g h = Sum.elim (f ∘ g) (f ∘ h) :=
   funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
 
-@[simp]
-theorem elim_comp_inl_inr {α β γ : Sort _} (f : Sum α β → γ) : Sum.elim (f ∘ inl) (f ∘ inr) = f :=
+@[simp] theorem elim_comp_inl_inr {α β γ : Sort _} (f : Sum α β → γ) :
+    Sum.elim (f ∘ inl) (f ∘ inr) = f :=
   funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
 
 /-! ### `Sum.map` -/
 
-@[simp]
-theorem map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+@[simp] theorem map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
     ∀ x : Sum α β, (x.map f g).map f' g' = x.map (f' ∘ f) (g' ∘ g)
   | inl _ => rfl
   | inr _ => rfl
 
-@[simp]
-theorem map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+@[simp] theorem map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
     Sum.map f' g' ∘ Sum.map f g = Sum.map (f' ∘ f) (g' ∘ g) :=
   funext <| map_map f' g' f g
 
-@[simp]
-theorem map_id_id (α β) : Sum.map (@id α) (@id β) = id :=
+@[simp] theorem map_id_id (α β) : Sum.map (@id α) (@id β) = id :=
   funext fun x ↦ Sum.recOn x (fun _ ↦ rfl) fun _ ↦ rfl
 
 theorem elim_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} {x} :
@@ -149,43 +137,33 @@ theorem elim_comp_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β �
     Sum.elim f₂ g₂ ∘ Sum.map f₁ g₁ = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
   funext $ fun _ => elim_map
 
-@[simp]
-theorem isLeft_map (f : α → β) (g : γ → δ) (x : Sum α γ) : isLeft (x.map f g) = isLeft x := by
+@[simp] theorem isLeft_map (f : α → β) (g : γ → δ) (x : Sum α γ) : isLeft (x.map f g) = isLeft x := by
   cases x <;> rfl
 
-@[simp]
-theorem isRight_map (f : α → β) (g : γ → δ) (x : Sum α γ) : isRight (x.map f g) = isRight x := by
+@[simp] theorem isRight_map (f : α → β) (g : γ → δ) (x : Sum α γ) : isRight (x.map f g) = isRight x := by
   cases x <;> rfl
 
-@[simp]
-theorem getLeft?_map (f : α → β) (g : γ → δ) (x : Sum α γ) :
+@[simp] theorem getLeft?_map (f : α → β) (g : γ → δ) (x : Sum α γ) :
     (x.map f g).getLeft? = x.getLeft?.map f := by
   cases x <;> rfl
 
-@[simp]
-theorem getRight?_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+@[simp] theorem getRight?_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
     (x.map f g).getRight? = x.getRight?.map g := by cases x <;> rfl
 
 /-! ### `Sum.swap` -/
 
-@[simp]
-theorem swap_swap (x : Sum α β) : swap (swap x) = x := by cases x <;> rfl
+@[simp] theorem swap_swap (x : Sum α β) : swap (swap x) = x := by cases x <;> rfl
 
-@[simp]
-theorem swap_swap_eq : swap ∘ swap = @id (Sum α β) :=
+@[simp] theorem swap_swap_eq : swap ∘ swap = @id (Sum α β) :=
   funext <| swap_swap
 
-@[simp]
-theorem isLeft_swap (x : Sum α β) : x.swap.isLeft = x.isRight := by cases x <;> rfl
+@[simp] theorem isLeft_swap (x : Sum α β) : x.swap.isLeft = x.isRight := by cases x <;> rfl
 
-@[simp]
-theorem isRight_swap (x : Sum α β) : x.swap.isRight = x.isLeft := by cases x <;> rfl
+@[simp] theorem isRight_swap (x : Sum α β) : x.swap.isRight = x.isLeft := by cases x <;> rfl
 
-@[simp]
-theorem getLeft?_swap (x : Sum α β) : x.swap.getLeft? = x.getRight? := by cases x <;> rfl
+@[simp] theorem getLeft?_swap (x : Sum α β) : x.swap.getLeft? = x.getRight? := by cases x <;> rfl
 
-@[simp]
-theorem getRight?_swap (x : Sum α β) : x.swap.getRight? = x.getLeft? := by cases x <;> rfl
+@[simp] theorem getRight?_swap (x : Sum α β) : x.swap.getRight? = x.getLeft? := by cases x <;> rfl
 
 section LiftRel
 
@@ -208,8 +186,7 @@ protected theorem LiftRel.swap (h : LiftRel r s x y) : LiftRel s r x.swap y.swap
   · exact LiftRel.inr ‹_›
   · exact LiftRel.inl ‹_›
 
-@[simp]
-theorem liftRel_swap_iff : LiftRel s r x.swap y.swap ↔ LiftRel r s x y :=
+@[simp] theorem liftRel_swap_iff : LiftRel s r x.swap y.swap ↔ LiftRel r s x y :=
   ⟨fun h ↦ by
     rw [← swap_swap x, ← swap_swap y]
     exact h.swap, LiftRel.swap⟩
@@ -275,8 +252,7 @@ theorem elim_const_const (c : γ) :
   ext x
   cases x <;> rfl
 
-@[simp]
-theorem elim_lam_const_lam_const (c : γ) :
+@[simp] theorem elim_lam_const_lam_const (c : γ) :
     (Sum.elim (fun _ : α ↦ c) fun _ : β ↦ c) = fun _ ↦ c :=
   Sum.elim_const_const c
 

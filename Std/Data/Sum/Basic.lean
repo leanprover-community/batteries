@@ -93,37 +93,27 @@ end get
 protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum α β → γ :=
   fun x ↦ Sum.casesOn x f g
 
-@[simp]
-theorem elim_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : α) : Sum.elim f g (inl x) = f x :=
-  rfl
+@[simp] theorem elim_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : α) :
+    Sum.elim f g (inl x) = f x := rfl
 
-@[simp]
-theorem elim_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : β) : Sum.elim f g (inr x) = g x :=
-  rfl
+@[simp] theorem elim_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : β) :
+    Sum.elim f g (inr x) = g x := rfl
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
 protected def map (f : α → α') (g : β → β') : Sum α β → Sum α' β' :=
   Sum.elim (inl ∘ f) (inr ∘ g)
 
-@[simp]
-theorem map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) :=
-  rfl
+@[simp] theorem map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl
 
-@[simp]
-theorem map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) :=
-  rfl
+@[simp] theorem map_inr (f : α → α') (g : β → β') (x : β) : (inr x).map f g = inr (g x) := rfl
 
 /-- Swap the factors of a sum type -/
 def swap : Sum α β → Sum β α :=
   Sum.elim inr inl
 
-@[simp]
-theorem swap_inl (x : α) : swap (inl x : Sum α β) = inr x :=
-  rfl
+@[simp] theorem swap_inl (x : α) : swap (inl x : Sum α β) = inr x := rfl
 
-@[simp]
-theorem swap_inr (x : β) : swap (inr x : Sum α β) = inl x :=
-  rfl
+@[simp] theorem swap_inr (x : β) : swap (inr x : Sum α β) = inl x := rfl
 
 section LiftRel
 
@@ -135,22 +125,16 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
   /-- `inr b` and `inr d` are related via `LiftRel r s` if `b` and `d` are related via `s`. -/
   | protected inr {b d} : s b d → LiftRel r s (inr b) (inr d)
 
-@[simp]
-theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
+@[simp] theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
   ⟨fun h ↦ by
     cases h
     assumption, LiftRel.inl⟩
 
-@[simp]
-theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) :=
-  fun.
+@[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := fun.
 
-@[simp]
-theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) :=
-  fun.
+@[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := fun.
 
-@[simp]
-theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
+@[simp] theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
   ⟨fun h ↦ by
     cases h
     assumption, LiftRel.inr⟩
@@ -179,23 +163,17 @@ inductive Lex (r : α → α → Prop) (s : β → β → Prop) : Sum α β → 
 
 attribute [simp] Lex.sep
 
-variable {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} {a a₁ a₂ : α} {b b₁ b₂ : β}
-  {x y : Sum α β}
-
-@[simp]
-theorem lex_inl_inl : Lex r s (inl a₁) (inl a₂) ↔ r a₁ a₂ :=
+@[simp] theorem lex_inl_inl : Lex r s (inl a₁) (inl a₂) ↔ r a₁ a₂ :=
   ⟨fun h ↦ by
     cases h
     assumption, Lex.inl⟩
 
-@[simp]
-theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
+@[simp] theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
   ⟨fun h ↦ by
     cases h
     assumption, Lex.inr⟩
 
-@[simp]
-theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) :=
+@[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) :=
   fun.
 
 instance instDecidableRelSumLex [DecidableRel r] [DecidableRel s] : DecidableRel (Lex r s)
