@@ -13,6 +13,8 @@ import Std.Tactic.Ext
 Theorems about the definitions introduced in `Std.Data.Sum.Basic`.
 -/
 
+open Function
+
 namespace Sum
 
 @[simp] protected theorem «forall» {p : α ⊕ β → Prop} :
@@ -66,7 +68,7 @@ theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = 
 @[simp] theorem getRight?_eq_some_iff {b : β} : x.getRight? = some b ↔ x = inr b := by
   cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq]
 
-@[simp] theorem bnot_isLeft (x : α ⊕ β) : not x.isLeft = x.isRight := by cases x <;> rfl
+@[simp] theorem bnot_isLeft (x : α ⊕ β) : !x.isLeft = x.isRight := by cases x <;> rfl
 
 @[simp] theorem isLeft_eq_false {x : α ⊕ β} : x.isLeft = false ↔ x.isRight := by cases x <;> simp
 
@@ -94,42 +96,42 @@ theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a := fun.
 
 /-! ### `Sum.elim` -/
 
-@[simp] theorem elim_comp_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inl = f :=
+@[simp] theorem elim_comp_inl (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inl = f :=
   rfl
 
-@[simp] theorem elim_comp_inr {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inr = g :=
+@[simp] theorem elim_comp_inr (f : α → γ) (g : β → γ) : Sum.elim f g ∘ inr = g :=
   rfl
 
-@[simp] theorem elim_inl_inr {α β : Sort _} : @Sum.elim α β _ inl inr = id :=
+@[simp] theorem elim_inl_inr : @Sum.elim α β _ inl inr = id :=
   funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
-theorem comp_elim {α β γ δ : Sort _} (f : γ → δ) (g : α → γ) (h : β → γ) :
+theorem comp_elim (f : γ → δ) (g : α → γ) (h : β → γ) :
     f ∘ Sum.elim g h = Sum.elim (f ∘ g) (f ∘ h) :=
   funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
-@[simp] theorem elim_comp_inl_inr {α β γ : Sort _} (f : α ⊕ β → γ) :
+@[simp] theorem elim_comp_inl_inr (f : α ⊕ β → γ) :
     Sum.elim (f ∘ inl) (f ∘ inr) = f :=
   funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
 /-! ### `Sum.map` -/
 
-@[simp] theorem map_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+@[simp] theorem map_map (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
     ∀ x : Sum α β, (x.map f g).map f' g' = x.map (f' ∘ f) (g' ∘ g)
   | inl _ => rfl
   | inr _ => rfl
 
-@[simp] theorem map_comp_map {α'' β''} (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
+@[simp] theorem map_comp_map (f' : α' → α'') (g' : β' → β'') (f : α → α') (g : β → β') :
     Sum.map f' g' ∘ Sum.map f g = Sum.map (f' ∘ f) (g' ∘ g) :=
   funext <| map_map f' g' f g
 
-@[simp] theorem map_id_id (α β) : Sum.map (@id α) (@id β) = id :=
+@[simp] theorem map_id_id : Sum.map (@id α) (@id β) = id :=
   funext fun x => Sum.recOn x (fun _ => rfl) fun _ => rfl
 
-theorem elim_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} {x} :
+theorem elim_map {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} {x} :
     Sum.elim f₂ g₂ (Sum.map f₁ g₁ x) = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) x := by
   cases x <;> rfl
 
-theorem elim_comp_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
+theorem elim_comp_map {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
     Sum.elim f₂ g₂ ∘ Sum.map f₁ g₁ = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
   funext $ fun _ => elim_map
 
@@ -210,7 +212,7 @@ theorem Lex.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : Lex r₁ s x y)
 theorem Lex.mono_right (hs : ∀ a b, s₁ a b → s₂ a b) (h : Lex r s₁ x y) : Lex r s₂ x y :=
   h.mono (fun _ _ => id) hs
 
-theorem lex_acc_inl {a} (aca : Acc r a) : Acc (Lex r s) (inl a) := by
+theorem lex_acc_inl (aca : Acc r a) : Acc (Lex r s) (inl a) := by
   induction aca with
   | intro _ _ IH =>
     constructor
@@ -234,14 +236,6 @@ theorem lex_wf (ha : WellFounded r) (hb : WellFounded s) : WellFounded (Lex r s)
 
 end Lex
 
-end Sum
-
-open Sum
-
-namespace Sum
-
-open Function
-
 theorem elim_const_const (c : γ) :
     Sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c := by
   ext x
@@ -250,5 +244,3 @@ theorem elim_const_const (c : γ) :
 @[simp] theorem elim_lam_const_lam_const (c : γ) :
     Sum.elim (fun _ : α => c) (fun _ : β => c) = fun _ => c :=
   Sum.elim_const_const c
-
-end Sum
