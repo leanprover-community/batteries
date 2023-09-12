@@ -32,10 +32,10 @@ namespace Sum
 
 theorem forall_sum {γ : α ⊕ β → Sort _} (p : (∀ ab, γ ab) → Prop) :
     (∀ fab, p fab) ↔ (∀ fa fb, p (Sum.rec fa fb)) :=
-  ⟨fun h fa fb => h _, fun h fab => by
-    have h1 : fab = Sum.rec (fun a => fab (Sum.inl a)) (fun b => fab (Sum.inr b)) := by
-      ext ab; cases ab <;> rfl
-    rw [h1]; exact h _ _⟩
+  refine ⟨fun h fa fb => h _, fun h fab => ?_⟩
+  have h1 : fab = Sum.rec (fun a => fab (Sum.inl a)) (fun b => fab (Sum.inr b)) := by
+    ext ab; cases ab <;> rfl
+  rw [h1]; exact h _ _
 
 section get
 
@@ -184,9 +184,7 @@ protected theorem LiftRel.swap (h : LiftRel r s x y) : LiftRel s r x.swap y.swap
   · exact LiftRel.inl ‹_›
 
 @[simp] theorem liftRel_swap_iff : LiftRel s r x.swap y.swap ↔ LiftRel r s x y :=
-  ⟨fun h => by
-    rw [← swap_swap x, ← swap_swap y]
-    exact h.swap, LiftRel.swap⟩
+  ⟨fun h => by rw [← swap_swap x, ← swap_swap y]; exact h.swap, LiftRel.swap⟩
 
 end LiftRel
 
