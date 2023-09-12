@@ -135,10 +135,12 @@ theorem elim_comp_map {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {
     Sum.elim f₂ g₂ ∘ Sum.map f₁ g₁ = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
   funext $ fun _ => elim_map
 
-@[simp] theorem isLeft_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) : isLeft (x.map f g) = isLeft x := by
+@[simp] theorem isLeft_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+    isLeft (x.map f g) = isLeft x := by
   cases x <;> rfl
 
-@[simp] theorem isRight_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) : isRight (x.map f g) = isRight x := by
+@[simp] theorem isRight_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+    isRight (x.map f g) = isRight x := by
   cases x <;> rfl
 
 @[simp] theorem getLeft?_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
