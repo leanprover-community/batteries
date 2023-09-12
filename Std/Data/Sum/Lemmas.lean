@@ -10,7 +10,7 @@ import Std.Tactic.Ext
 /-!
 # Disjoint union of types
 
-Theorems about the definitions introduced in `Std.Data.Sum.Defs`.
+Theorems about the definitions introduced in `Std.Data.Sum.Basic`.
 -/
 
 namespace Sum
