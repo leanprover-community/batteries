@@ -43,13 +43,13 @@ elab "add_suggestions" s:term "with_header" h:term : tactic => unsafe do
 
 /-- Demo adding a suggestion. -/
 macro "#demo1" s:term : command => `(example : True := by add_suggestion $s; trivial)
-/--Demo adding a suggestion with a header. -/
+/-- Demo adding a suggestion with a header. -/
 macro "#demo1" s:term "with_header" h:term : command => `(example : True := by
   add_suggestion $s with_header $h; trivial)
-/--Demo adding suggestions. -/
+/-- Demo adding suggestions. -/
 macro "#demo" s:term : command => `(example : True := by
   add_suggestions $s; trivial)
-/--Demo adding suggestions with a header. -/
+/-- Demo adding suggestions with a header. -/
 macro "#demo" s:term "with_header" h:term : command => `(example : True := by
   add_suggestions $s with_header $h; trivial)
 
@@ -114,19 +114,21 @@ Try these:
 -- `Try this: rfl` -- styled like an inaccessible goal hypothesis
 #demo1 {s with style? := some .asInaccessible}
 
-/--info: Try this: rfl-/
+/-- info: Try this: rfl -/
 #guard_msgs in
 -- `Try this: Starfleet`
 #demo1 {s with preInfo? := "Sta", postInfo? := "eet"}
 
-/--info: Try this: a secret message-/
+/-- info: Try this: a secret message -/
 #guard_msgs in
 -- `Try this: rfl`
 #demo1 {s with messageData? := m!"a secret message"}
 
-/--info: Try these:
+/--
+info: Try these:
 • a secret message
-• another secret message-/
+• another secret message
+-/
 #guard_msgs in
 -- `Try this: rfl`
 #demo #[
@@ -134,15 +136,17 @@ Try these:
   {s with messageData? := m!"another secret message"}
 ]
 
-/--info: Our only hope is rfl-/
+/-- info: Our only hope is rfl -/
 #guard_msgs in
 #demo1 s with_header "Our only hope is "
 
-/--info: We've got everything here! Such as:
+/--
+info: We've got everything here! Such as:
 • rfl
 • rfl
 • rfl
-• rfl-/
+• rfl
+-/
 #guard_msgs in
 #demo #[s,s,s,s] with_header "We've got everything here! Such as:"
 
