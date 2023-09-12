@@ -15,10 +15,12 @@ Theorems about the definitions introduced in `Std.Data.Sum.Defs`.
 
 namespace Sum
 
-@[simp] theorem «forall» {p : Sum α β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ ∀ b, p (inr b) :=
+@[simp] protected theorem «forall» {p : Sum α β → Prop} :
+    (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ ∀ b, p (inr b) :=
   ⟨fun h => ⟨fun _ => h _, fun _ => h _⟩, fun ⟨h₁, h₂⟩ => Sum.rec h₁ h₂⟩
 
-@[simp] theorem «exists» {p : Sum α β → Prop} : (∃ x, p x) ↔ (∃ a, p (inl a)) ∨ ∃ b, p (inr b) :=
+@[simp] protected theorem «exists» {p : Sum α β → Prop} :
+    (∃ x, p x) ↔ (∃ a, p (inl a)) ∨ ∃ b, p (inr b) :=
   ⟨ fun
     | ⟨inl a, h⟩ => Or.inl ⟨a, h⟩
     | ⟨inr b, h⟩ => Or.inr ⟨b, h⟩,
