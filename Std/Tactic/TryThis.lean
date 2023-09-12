@@ -148,17 +148,17 @@ apply the replacement.
     let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
     let .ok suggestions := suggestions.getArr? | panic! "bad type"
     let some s := suggestions[0]? | return result
-    let pushSuggestion (result : Array LazyCodeAction) (s : Json) (isPreferred : Option Bool) := do
+    let pushSuggestion (result : Array LazyCodeAction) (s : Json) (isPreferred? : Option Bool) := do
       let .ok newText := s.getObjValAs? String "suggestion" | panic! "bad type"
       result.push {
         eager.title := "Try this: " ++ newText
         eager.kind? := "quickfix"
-        eager.isPreferred? := isPreferred
+        eager.isPreferred? := isPreferred?
         eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
       }
     -- Only make the first option preferred
-    let result ← pushSuggestion result s (isPreferred := true)
-    suggestions.foldlM (init := result) (start := 1) (pushSuggestion (isPreferred := none))
+    let result ← pushSuggestion result s (isPreferred? := true)
+    suggestions.foldlM (init := result) (start := 1) (pushSuggestion (isPreferred? := none))
 
 /-! # `Suggestion` data -/
 
