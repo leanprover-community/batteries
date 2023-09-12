@@ -91,7 +91,7 @@ def getRight? : α ⊕ β → Option β
 end get
 
 /-- Define a function on `α ⊕ β` by giving separate definitions on `α` and `β`. -/
-protected def elim (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
+protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : α ⊕ β → γ :=
   fun x => Sum.casesOn x f g
 
 @[simp] theorem elim_inl (f : α → γ) (g : β → γ) (x : α) :
