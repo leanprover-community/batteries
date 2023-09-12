@@ -16,7 +16,7 @@ Theorems about the definitions introduced in `Std.Data.Sum.Defs`.
 namespace Sum
 
 @[simp] theorem «forall» {p : Sum α β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ ∀ b, p (inr b) :=
-  ⟨fun h ↦ ⟨fun _ ↦ h _, fun _ ↦ h _⟩, fun ⟨h₁, h₂⟩ ↦ Sum.rec h₁ h₂⟩
+  ⟨fun h => ⟨fun _ => h _, fun _ => h _⟩, fun ⟨h₁, h₂⟩ => Sum.rec h₁ h₂⟩
 
 @[simp] theorem «exists» {p : Sum α β → Prop} : (∃ x, p x) ↔ (∃ a, p (inl a)) ∨ ∃ b, p (inr b) :=
   ⟨ fun
@@ -103,15 +103,15 @@ theorem inr_ne_inl {a : α} {b : β} : inr b ≠ inl a :=
   rfl
 
 @[simp] theorem elim_inl_inr {α β : Sort _} : @Sum.elim α β _ inl inr = id :=
-  funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
+  funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
 theorem comp_elim {α β γ δ : Sort _} (f : γ → δ) (g : α → γ) (h : β → γ) :
     f ∘ Sum.elim g h = Sum.elim (f ∘ g) (f ∘ h) :=
-  funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
+  funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
 @[simp] theorem elim_comp_inl_inr {α β γ : Sort _} (f : Sum α β → γ) :
     Sum.elim (f ∘ inl) (f ∘ inr) = f :=
-  funext fun x ↦ Sum.casesOn x (fun _ ↦ rfl) fun _ ↦ rfl
+  funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
 
 /-! ### `Sum.map` -/
 
@@ -125,7 +125,7 @@ theorem comp_elim {α β γ δ : Sort _} (f : γ → δ) (g : α → γ) (h : β
   funext <| map_map f' g' f g
 
 @[simp] theorem map_id_id (α β) : Sum.map (@id α) (@id β) = id :=
-  funext fun x ↦ Sum.recOn x (fun _ ↦ rfl) fun _ ↦ rfl
+  funext fun x => Sum.recOn x (fun _ => rfl) fun _ => rfl
 
 theorem elim_map {α β γ δ ε : Sort _} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} {x} :
     Sum.elim f₂ g₂ (Sum.map f₁ g₁ x) = Sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) x := by
@@ -173,11 +173,11 @@ theorem LiftRel.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a
 
 theorem LiftRel.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : LiftRel r₁ s x y) :
     LiftRel r₂ s x y :=
-  (h.mono hr) fun _ _ ↦ id
+  (h.mono hr) fun _ _ => id
 
 theorem LiftRel.mono_right (hs : ∀ a b, s₁ a b → s₂ a b) (h : LiftRel r s₁ x y) :
     LiftRel r s₂ x y :=
-  h.mono (fun _ _ ↦ id) hs
+  h.mono (fun _ _ => id) hs
 
 protected theorem LiftRel.swap (h : LiftRel r s x y) : LiftRel s r x.swap y.swap := by
   cases h
@@ -185,7 +185,7 @@ protected theorem LiftRel.swap (h : LiftRel r s x y) : LiftRel s r x.swap y.swap
   · exact LiftRel.inl ‹_›
 
 @[simp] theorem liftRel_swap_iff : LiftRel s r x.swap y.swap ↔ LiftRel r s x y :=
-  ⟨fun h ↦ by
+  ⟨fun h => by
     rw [← swap_swap x, ← swap_swap y]
     exact h.swap, LiftRel.swap⟩
 
@@ -208,10 +208,10 @@ theorem Lex.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b �
   · exact Lex.sep _ _
 
 theorem Lex.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : Lex r₁ s x y) : Lex r₂ s x y :=
-  (h.mono hr) fun _ _ ↦ id
+  (h.mono hr) fun _ _ => id
 
 theorem Lex.mono_right (hs : ∀ a b, s₁ a b → s₂ a b) (h : Lex r s₁ x y) : Lex r s₂ x y :=
-  h.mono (fun _ _ ↦ id) hs
+  h.mono (fun _ _ => id) hs
 
 theorem lex_acc_inl {a} (aca : Acc r a) : Acc (Lex r s) (inl a) := by
   induction aca with
@@ -232,8 +232,8 @@ theorem lex_acc_inr (aca : ∀ a, Acc (Lex r s) (inl a)) {b} (acb : Acc s b) :
     | sep => exact aca _
 
 theorem lex_wf (ha : WellFounded r) (hb : WellFounded s) : WellFounded (Lex r s) :=
-  have aca : ∀ a, Acc (Lex r s) (inl a) := fun a ↦ lex_acc_inl (ha.apply a)
-  ⟨fun x ↦ Sum.recOn x aca fun b ↦ lex_acc_inr aca (hb.apply b)⟩
+  have aca : ∀ a, Acc (Lex r s) (inl a) := fun a => lex_acc_inl (ha.apply a)
+  ⟨fun x => Sum.recOn x aca fun b => lex_acc_inr aca (hb.apply b)⟩
 
 end Lex
 
@@ -251,7 +251,7 @@ theorem elim_const_const (c : γ) :
   cases x <;> rfl
 
 @[simp] theorem elim_lam_const_lam_const (c : γ) :
-    (Sum.elim (fun _ : α ↦ c) fun _ : β ↦ c) = fun _ ↦ c :=
+    (Sum.elim (fun _ : α => c) fun _ : β => c) = fun _ => c :=
   Sum.elim_const_const c
 
 end Sum

@@ -91,7 +91,7 @@ end get
 
 /-- Define a function on `α ⊕ β` by giving separate definitions on `α` and `β`. -/
 protected def elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum α β → γ :=
-  fun x ↦ Sum.casesOn x f g
+  fun x => Sum.casesOn x f g
 
 @[simp] theorem elim_inl {α β γ : Sort _} (f : α → γ) (g : β → γ) (x : α) :
     Sum.elim f g (inl x) = f x := rfl
@@ -126,7 +126,7 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
   | protected inr {b d} : s b d → LiftRel r s (inr b) (inr d)
 
 @[simp] theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
-  ⟨fun h ↦ by
+  ⟨fun h => by
     cases h
     assumption, LiftRel.inl⟩
 
@@ -135,7 +135,7 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : Sum α β 
 @[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := fun.
 
 @[simp] theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
-  ⟨fun h ↦ by
+  ⟨fun h => by
     cases h
     assumption, LiftRel.inr⟩
 
@@ -164,12 +164,12 @@ inductive Lex (r : α → α → Prop) (s : β → β → Prop) : Sum α β → 
 attribute [simp] Lex.sep
 
 @[simp] theorem lex_inl_inl : Lex r s (inl a₁) (inl a₂) ↔ r a₁ a₂ :=
-  ⟨fun h ↦ by
+  ⟨fun h => by
     cases h
     assumption, Lex.inl⟩
 
 @[simp] theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
-  ⟨fun h ↦ by
+  ⟨fun h => by
     cases h
     assumption, Lex.inr⟩
 
