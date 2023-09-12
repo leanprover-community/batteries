@@ -72,14 +72,16 @@ def classifyType (ty : Expr) : MetaM Label :=
       else if ty.isAppOfArity ``Iff 2 then pure (ty.getArg! 0, ty.getArg! 1)
       else throwError "norm_cast: lemma must be = or ↔, but is{indentExpr ty}"
     let lhsCoes ← countCoes lhs
-    if lhsCoes = 0 then throwError "norm_cast: badly shaped lemma, lhs must contain at least one coe{indentExpr lhs}"
+    if lhsCoes = 0 then
+      throwError "norm_cast: badly shaped lemma, lhs must contain at least one coe{indentExpr lhs}"
     let lhsHeadCoes ← countHeadCoes lhs
     let rhsHeadCoes ← countHeadCoes rhs
     let rhsInternalCoes ← countInternalCoes rhs
     if lhsHeadCoes = 0 then
       return Label.elim
     else if lhsHeadCoes = 1 then do
-      unless rhsHeadCoes = 0 do throwError "norm_cast: badly shaped lemma, rhs can't start with coe{indentExpr rhs}"
+      unless rhsHeadCoes = 0 do
+        throwError "norm_cast: badly shaped lemma, rhs can't start with coe{indentExpr rhs}"
       if rhsInternalCoes = 0 then
         return Label.squash
       else
@@ -87,7 +89,9 @@ def classifyType (ty : Expr) : MetaM Label :=
     else if rhsHeadCoes < lhsHeadCoes then do
       return Label.squash
     else do
-      throwError "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs{indentExpr ty}"
+      throwError
+          ("norm_cast: badly shaped shaped squash lemma, " ++
+        "rhs must have fewer head coes than lhs{indentExpr ty}")
 
 /-- The `push_cast` simp attribute. -/
 initialize pushCastExt : SimpExtension ←
