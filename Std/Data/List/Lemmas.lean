@@ -171,16 +171,24 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
 
+/-! ### zipWith -/
+
+@[simp] theorem zipWith_nil_left {f : α → β → γ} : zipWith f [] l = [] := by
+  simp [zipWith]
+
+@[simp] theorem zipWith_nil_right {f : α → β → γ} : zipWith f l [] = [] := by
+  simp [zipWith]
+
+@[simp] theorem zipWith_cons_cons {f : α → β → γ} :
+    zipWith f (a :: as) (b :: bs) = f a b :: zipWith f as bs := by
+  simp [zipWith]
+
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
 /-! ### join -/
-
-theorem join_nil : join ([] : List (List α)) = [] := rfl
-
-theorem join_cons : join (a :: l : List (List α)) = a ++ join l := rfl
 
 theorem mem_join : ∀ {L : List (List α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l
   | [] => by simp
@@ -526,13 +534,11 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 @[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
 
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
-  induction l₁ <;> simp [*]
+  induction l₁ <;> simp [*, dropLast]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
 /-! ### nth element -/
-
-@[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
   (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
@@ -748,6 +754,13 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 
 /-! ### take and drop -/
 
+@[simp] theorem take_zero : List.take 0 l = [] := rfl
+
+@[simp] theorem take_nil : ([] : List α).take i = [] := by
+  cases i <;> rfl
+
+@[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
+
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
@@ -763,9 +776,6 @@ theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i 
 
 theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
   | _, _, rfl => drop_nil
-
-@[simp] theorem take_nil : ([] : List α).take i = [] := by
-  cases i <;> rfl
 
 theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
   | _, _, rfl => take_nil
@@ -946,6 +956,13 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
   rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
+
+@[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
+
+@[simp] theorem contains_cons [BEq α] :
+    (a :: as : List α).contains x = (x == a || as.contains x) := by
+  simp only [contains, elem]
+  split <;> simp_all
 
 theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
   induction l with simp | cons b l => cases a == b <;> simp [*]
@@ -1331,7 +1348,7 @@ theorem find?_cons_of_neg (l) (h : ¬p a) : find? p (a :: l) = find? p l :=
   by simp [find?, h]
 
 theorem find?_eq_none : find? p l = none ↔ ∀ x ∈ l, ¬ p x := by
-  induction l <;> simp; split <;> simp [*]
+  induction l <;> simp [find?]; split <;> simp [*]
 
 theorem find?_some : ∀ {l}, find? p l = some a → p a
   | b :: l, H => by
@@ -1557,6 +1574,18 @@ theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
     forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
   induction l generalizing init <;> simp [*, map_eq_pure_bind]
   congr; ext (b | b) <;> simp
+
+-- TODO: Is `List.forM` or `ForM.forM` the simp normal form?
+-- It seems from `forM_append` and statements in `AssocList`
+-- that `Std` is treating `List.forM` as the normal form.
+
+-- In that case we need the following two,
+-- as `List.forM_nil` and `List.forM_cons` in Lean are about `ForM.forM`.
+@[simp] theorem forM_nil' [Monad m] : ([] : List α).forM f = (pure .unit : m PUnit) := rfl
+
+@[simp] theorem forM_cons' [Monad m] :
+    (a::as).forM f = (f a >>= fun _ => as.forM f : m PUnit) :=
+  List.forM_cons _ _ _
 
 @[simp] theorem forM_append [Monad m] [LawfulMonad m] (l₁ l₂ : List α) (f : α → m PUnit) :
     (l₁ ++ l₂).forM f = (do l₁.forM f; l₂.forM f) := by induction l₁ <;> simp [*]

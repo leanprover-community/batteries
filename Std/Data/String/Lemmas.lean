@@ -56,7 +56,7 @@ private theorem ne_self_add_add_csize : i ≠ i + (n + csize c) :=
 
 @[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm, List.reverseAux]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
@@ -457,7 +457,7 @@ theorem splitAux_of_valid (p l m r acc) :
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
   unfold splitAux
   simp [by simpa using atEnd_of_valid (l ++ m) r]; split
-  · subst r; simpa using extract_of_valid l m []
+  · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
     simp [by simpa using (⟨get_of_valid (l++m) (c::r), next_of_valid (l++m) c r,
       extract_of_valid l m (c::r)⟩ : _∧_∧_), List.splitOnP.go]

@@ -189,7 +189,7 @@ def unzipTR (l : List (α × β)) : List α × List β :=
   l.foldr (fun (a, b) (al, bl) => (a::al, b::bl)) ([], [])
 
 @[csimp] theorem unzip_eq_unzipTR : @unzip = @unzipTR := by
-  funext α β l; simp [unzipTR]; induction l <;> simp [*]
+  funext α β l; simp [unzipTR]; induction l <;> simp [*, unzip]
 
 /-- Tail recursive version of `enumFrom`. -/
 def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
@@ -202,7 +202,9 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
   let rec go : ∀ l n, l.foldr f (n + l.length, []) = (n, enumFrom n l)
     | [], n => rfl
     | a::as, n => by
-      rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]; simp; rfl
+      rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
+      simp [enumFrom]
+      rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
@@ -226,7 +228,7 @@ def intersperseTR (sep : α) : List α → List α
   funext α sep l; simp [intersperseTR]
   match l with
   | [] | [_] => rfl
-  | x::y::xs => simp [intersperse]; induction xs generalizing y <;> simp [*]
+  | x::y::xs => simp [intersperse]; induction xs generalizing y <;> simp [*, intersperse]
 
 /-- Tail recursive version of `intercalate`. -/
 def intercalateTR (sep : List α) : List (List α) → List α
@@ -244,12 +246,12 @@ where
   funext α sep l; simp [intercalate, intercalateTR]
   match l with
   | [] => rfl
-  | [_] => simp
+  | [_] => simp [intersperse]
   | x::y::xs =>
     let rec go {acc x} : ∀ xs,
       intercalateTR.go sep.toArray x xs acc = acc.data ++ join (intersperse sep (x::xs))
-    | [] => by simp [intercalateTR.go]
-    | _::_ => by simp [intercalateTR.go, go]
+    | [] => by simp [intercalateTR.go, intersperse]
+    | _::_ => by simp [intercalateTR.go, go, intersperse]
     simp [intersperse, go]
 
 /-! ## New definitions -/

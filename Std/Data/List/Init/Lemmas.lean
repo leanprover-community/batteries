@@ -15,15 +15,12 @@ These are theorems used in the definitions of `Std.Data.List.Basic`.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-attribute [simp] get reverseAux eraseIdx map join find? findSome?
-  replace elem lookup drop take foldl foldr zipWith unzip range.loop enumFrom
-  intersperse isPrefixOf isEqv dropLast iota mapM.loop mapA List.forM forA filterAuxM
-  filterMapM.loop List.foldlM firstM anyM allM findM? findSomeM? forIn.loop forIn'.loop
-  concat_eq_append append_assoc
+attribute [simp] concat_eq_append append_assoc
 
 @[simp] theorem get?_nil : @get? α [] n = none := rfl
 @[simp] theorem get?_cons_zero : @get? α (a::l) 0 = some a := rfl
 @[simp] theorem get?_cons_succ : @get? α (a::l) (n+1) = get? l n := rfl
+@[simp] theorem get_cons_zero : get (a::l) ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 @[simp] theorem head?_nil : @head? α [] = none := rfl
 @[simp] theorem head?_cons : @head? α (a::l) = some a := rfl
 @[simp 1100] theorem headD_nil : @headD α [] d = d := rfl
@@ -86,9 +83,9 @@ theorem append_left_inj {s₁ s₂ : List α} (t) : s₁ ++ t = s₂ ++ t ↔ s�
 
 /-! ### map -/
 
-theorem map_nil {f : α → β} : map f [] = [] := rfl
+@[simp] theorem map_nil {f : α → β} : map f [] = [] := rfl
 
-theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
+@[simp] theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
 
 @[simp] theorem map_append (f : α → β) : ∀ l₁ l₂, map f (l₁ ++ l₂) = map f l₁ ++ map f l₂ := by
   intro l₁; induction l₁ <;> intros <;> simp_all
@@ -110,6 +107,12 @@ theorem map_cons (f : α → β) a l : map f (a :: l) = f a :: map f l := rfl
   induction xs; {rfl}; simp_all [cons_bind, append_assoc]
 
 @[simp] theorem bind_id (l : List (List α)) : List.bind l id = l.join := by simp [List.bind]
+
+/-! ### join -/
+
+@[simp] theorem join_nil : List.join ([] : List (List α)) = [] := rfl
+
+@[simp] theorem join_cons : (l :: ls).join = l ++ ls.join := rfl
 
 /-! ### bounded quantifiers over Lists -/
 
@@ -147,6 +150,10 @@ theorem take_length_le {l : List α} (h : l.length ≤ i) : take i l = l := by
   have := take_append_drop i l
   rw [drop_length_le h, append_nil] at this; exact this
 
+@[simp] theorem drop_zero (l : List α) : l.drop 0 = l := rfl
+
+@[simp] theorem drop_succ_cons : (a :: l).drop (n + 1) = l.drop n := rfl
+
 @[simp] theorem drop_length (l : List α) : drop l.length l = [] := drop_length_le (Nat.le_refl _)
 
 @[simp] theorem take_length (l : List α) : take l.length l = l := take_length_le (Nat.le_refl _)
@@ -161,6 +168,12 @@ theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.re
 
 @[simp] theorem foldlM_reverse [Monad m] (l : List α) (f : β → α → m β) (b) :
     l.reverse.foldlM f b = l.foldrM (fun x y => f y x) b := rfl
+
+@[simp] theorem foldlM_nil [Monad m] (f : β → α → m β) (b) : [].foldlM f b = pure b := rfl
+
+@[simp] theorem foldlM_cons [Monad m] (f : β → α → m β) (b) (a) (l : List α) :
+    (a :: l).foldlM f b = f b a >>= l.foldlM f := by
+  simp [List.foldlM]
 
 @[simp] theorem foldlM_append [Monad m] [LawfulMonad m] (f : β → α → m β) (b) (l l' : List α) :
     (l ++ l').foldlM f b = l.foldlM f b >>= l'.foldlM f := by
@@ -183,7 +196,7 @@ theorem foldl_eq_foldlM (f : β → α → β) (b) (l : List α) :
 
 theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
     l.foldr f b = l.foldrM (m := Id) f b := by
-  induction l <;> simp [*]
+  induction l <;> simp [*, foldr]
 
 @[simp] theorem foldl_reverse (l : List α) (f : β → α → β) (b) :
     l.reverse.foldl f b = l.foldr (fun x y => f y x) b := by simp [foldl_eq_foldlM, foldr_eq_foldrM]
@@ -202,26 +215,34 @@ theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
 @[simp] theorem foldr_append (f : α → β → β) (b) (l l' : List α) :
     (l ++ l').foldr f b = l.foldr f (l'.foldr f b) := by simp [foldr_eq_foldrM]
 
+@[simp] theorem foldl_nil : [].foldl f b = b := rfl
+
+@[simp] theorem foldl_cons (l : List α) (b : β) : (a :: l).foldl f b = l.foldl f (f b a) := rfl
+
+@[simp] theorem foldr_nil : [].foldr f b = b := rfl
+
+@[simp] theorem foldr_cons (l : List α) : (a :: l).foldr f b = f a (l.foldr f b) := rfl
+
 @[simp] theorem foldr_self_append (l : List α) : l.foldr cons l' = l ++ l' := by
   induction l <;> simp [*]
 
 theorem foldr_self (l : List α) : l.foldr cons [] = l := by simp
 
 /-- Alternate (non-tail-recursive) form of mapM for proofs. -/
-@[simp] def mapM' [Monad m] (f : α → m β) : List α → m (List β)
+def mapM' [Monad m] (f : α → m β) : List α → m (List β)
   | [] => pure []
   | a :: l => return (← f a) :: (← l.mapM' f)
 
 theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) :
     mapM' f l = mapM f l := by simp [go, mapM] where
   go : ∀ l acc, mapM.loop f l acc = return acc.reverse ++ (← mapM' f l)
-    | [], acc => by simp
-    | a::l, acc => by simp [go l]
+    | [], acc => by simp [mapM.loop, mapM']
+    | a::l, acc => by simp [go l, mapM.loop, mapM']
 
 @[simp] theorem mapM_nil [Monad m] (f : α → m β) : [].mapM f = pure [] := rfl
 
 @[simp] theorem mapM_cons [Monad m] [LawfulMonad m] (f : α → m β) :
-    (a :: l).mapM f = (return (← f a) :: (← l.mapM f)) := by simp [← mapM'_eq_mapM]
+    (a :: l).mapM f = (return (← f a) :: (← l.mapM f)) := by simp [← mapM'_eq_mapM, mapM']
 
 @[simp] theorem mapM_append [Monad m] [LawfulMonad m] (f : α → m β) {l₁ l₂ : List α} :
     (l₁ ++ l₂).mapM f = (return (← l₁.mapM f) ++ (← l₂.mapM f)) := by induction l₁ <;> simp [*]

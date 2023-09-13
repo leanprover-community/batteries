@@ -3,7 +3,7 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.List.Basic
+import Std.Data.List.Lemmas
 
 namespace Std
 
@@ -102,7 +102,7 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 
 @[simp] theorem findEntryP?_eq (p : α → β → Bool) (l : AssocList α β) :
     findEntryP? p l = l.toList.find? fun (a, b) => p a b := by
-  induction l <;> simp [findEntryP?]; split <;> simp [*]
+  induction l <;> simp [findEntryP?, List.find?]; split <;> simp [*]
 
 /-- `O(n)`. Returns the first entry in the list whose key is equal to `a`. -/
 @[inline] def findEntry? [BEq α] (a : α) (l : AssocList α β) : Option (α × β) :=
@@ -120,7 +120,7 @@ def find? [BEq α] (a : α) : AssocList α β → Option β
 
 theorem find?_eq_findEntry? [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.findEntry? a).map (·.2) := by
-  induction l <;> simp [find?]; split <;> simp [*]
+  induction l <;> simp [find?, List.find?]; split <;> simp [*]
 
 @[simp] theorem find?_eq [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.toList.find? (·.1 == a)).map (·.2) := by simp [find?_eq_findEntry?]
