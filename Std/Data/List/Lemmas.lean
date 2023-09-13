@@ -174,14 +174,14 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 /-! ### zipWith -/
 
 @[simp] theorem zipWith_nil_left {f : α → β → γ} : zipWith f [] l = [] := by
-  simp [zipWith]
+  rfl
 
 @[simp] theorem zipWith_nil_right {f : α → β → γ} : zipWith f l [] = [] := by
   simp [zipWith]
 
 @[simp] theorem zipWith_cons_cons {f : α → β → γ} :
     zipWith f (a :: as) (b :: bs) = f a b :: zipWith f as bs := by
-  simp [zipWith]
+  rfl
 
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
@@ -192,13 +192,13 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 /-! ### zip -/
 
 @[simp] theorem zip_nil_left : zip ([] : List α) (l : List β)  = [] := by
-  simp [zip]
+  rfl
 
 @[simp] theorem zip_nil_right : zip (l : List α) ([] : List β)  = [] := by
   simp [zip]
 
 @[simp] theorem zip_cons_cons : zip (a :: as) (b :: bs) = (a, b) :: zip as bs := by
-  simp [zip]
+  rfl
 
 @[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
     length (zip l₁ l₂) = min (length l₁) (length l₂) := by
