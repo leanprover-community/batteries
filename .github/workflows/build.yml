@@ -59,4 +59,4 @@ jobs:
       - name: Check for forbidden 'import Lean'
         if: always()
         run: |
-          ! (find . -name "*.lean" -type f -exec grep -E -H '^import Lean$' {} \;)
+          ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
