@@ -250,3 +250,12 @@ theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) 
 
 @[simp] theorem mapM_append [Monad m] [LawfulMonad m] (f : α → m β) {l₁ l₂ : List α} :
     (l₁ ++ l₂).mapM f = (return (← l₁.mapM f) ++ (← l₂.mapM f)) := by induction l₁ <;> simp [*]
+
+-- We use `List.forM` as the simp normal form, rather that `ForM.forM`.
+-- As such we need to replace `List.forM_nil` and `List.forM_cons` from Lean:
+
+@[simp] theorem forM_nil' [Monad m] : ([] : List α).forM f = (pure .unit : m PUnit) := rfl
+
+@[simp] theorem forM_cons' [Monad m] :
+    (a::as).forM f = (f a >>= fun _ => as.forM f : m PUnit) :=
+  List.forM_cons _ _ _

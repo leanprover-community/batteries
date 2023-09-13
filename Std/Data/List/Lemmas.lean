@@ -1596,18 +1596,6 @@ theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
   induction l generalizing init <;> simp [*, map_eq_pure_bind]
   congr; ext (b | b) <;> simp
 
--- TODO: Is `List.forM` or `ForM.forM` the simp normal form?
--- It seems from `forM_append` and statements in `AssocList`
--- that `Std` is treating `List.forM` as the normal form.
-
--- In that case we need the following two,
--- as `List.forM_nil` and `List.forM_cons` in Lean are about `ForM.forM`.
-@[simp] theorem forM_nil' [Monad m] : ([] : List α).forM f = (pure .unit : m PUnit) := rfl
-
-@[simp] theorem forM_cons' [Monad m] :
-    (a::as).forM f = (f a >>= fun _ => as.forM f : m PUnit) :=
-  List.forM_cons _ _ _
-
 @[simp] theorem forM_append [Monad m] [LawfulMonad m] (l₁ l₂ : List α) (f : α → m PUnit) :
     (l₁ ++ l₂).forM f = (do l₁.forM f; l₂.forM f) := by induction l₁ <;> simp [*]
 
