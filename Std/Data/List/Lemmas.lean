@@ -188,6 +188,22 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
+
+/-! ### zip -/
+
+@[simp] theorem zip_nil_left : zip ([] : List α) (l : List β)  = [] := by
+  simp [zip]
+
+@[simp] theorem zip_nil_right : zip (l : List α) ([] : List β)  = [] := by
+  simp [zip]
+
+@[simp] theorem zip_cons_cons : zip (a :: as) (b :: bs) = (a, b) :: zip as bs := by
+  simp [zip]
+
+@[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
+    length (zip l₁ l₂) = min (length l₁) (length l₂) := by
+  simp [zip]
+
 /-! ### join -/
 
 theorem mem_join : ∀ {L : List (List α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l
