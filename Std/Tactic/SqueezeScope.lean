@@ -65,7 +65,7 @@ open Meta
 
 /--
 We implement `squeeze_scope` using a global variable that tracks all `squeeze_scope` invocations
-in flight. It is a map `a ↦ (x ↦ (stx, simps))` where `a` is a unique identifier for
+in flight. It is a map `a => (x => (stx, simps))` where `a` is a unique identifier for
 the `squeeze_scope` invocation which is shared with all contained simps, and `x` is a unique
 identifier for a particular piece of simp syntax (which can be called multiple times).
 Within that, `stx` is the simp syntax itself, and `simps` is the aggregated list of simps used

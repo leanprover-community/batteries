@@ -61,6 +61,9 @@ import Std.Data.Rat.Lemmas
 import Std.Data.String
 import Std.Data.String.Basic
 import Std.Data.String.Lemmas
+import Std.Data.Sum
+import Std.Data.Sum.Basic
+import Std.Data.Sum.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
@@ -119,6 +122,7 @@ import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
+import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace

@@ -1852,8 +1852,8 @@ attribute [simp] Chain.nil
 
 @[simp]
 theorem chain_cons {a b : α} {l : List α} : Chain R a (b :: l) ↔ R a b ∧ Chain R b l :=
-  ⟨fun p ↦ by cases p with | cons n p => exact ⟨n, p⟩,
-   fun ⟨n, p⟩ ↦ p.cons n⟩
+  ⟨fun p => by cases p with | cons n p => exact ⟨n, p⟩,
+   fun ⟨n, p⟩ => p.cons n⟩
 
 theorem rel_of_chain_cons {a b : α} {l : List α} (p : Chain R a (b :: l)) : R a b :=
   (chain_cons.1 p).1
