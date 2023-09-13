@@ -75,7 +75,7 @@ def registerLabelAttr (attrName : Name) (attrDescr : String)
 
 /--
 Initialize a new "label" attribute.
-Declarations tagged with the attribute can be retrieved using `Mathlib.Tactic.LabelAttr.labelled`.
+Declarations tagged with the attribute can be retrieved using `Std.Tactic.LabelAttr.labelled`.
 -/
 macro (name := _root_.Lean.Parser.Command.registerLabelAttr) doc:(docComment)?
   "register_label_attr " id:ident : command => do
