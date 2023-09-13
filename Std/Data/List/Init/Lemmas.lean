@@ -20,6 +20,8 @@ attribute [simp] concat_eq_append append_assoc
 @[simp] theorem get?_nil : @get? α [] n = none := rfl
 @[simp] theorem get?_cons_zero : @get? α (a::l) 0 = some a := rfl
 @[simp] theorem get?_cons_succ : @get? α (a::l) (n+1) = get? l n := rfl
+-- This is not in simp normal form, and we can't use `nolint simpNF` here,
+-- so it has been added to `nolints.json`.
 @[simp] theorem get_cons_zero : get (a::l) ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
 @[simp] theorem head?_nil : @head? α [] = none := rfl
 @[simp] theorem head?_cons : @head? α (a::l) = some a := rfl

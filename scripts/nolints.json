@@ -49,4 +49,5 @@
  ["docBlame", "String.foldrAuxWF.loop"],
  ["docBlame", "String.replaceWF.loop"],
  ["docBlame", "String.substrEqWF.loop"],
- ["docBlame", "Substring.splitOnWF.loop"]]
+ ["docBlame", "Substring.splitOnWF.loop"],
+ ["simpNF", "List.get_cons_zero"]]
