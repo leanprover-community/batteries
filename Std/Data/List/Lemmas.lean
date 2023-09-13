@@ -559,6 +559,8 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
   (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
 
+@[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
+
 theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
   | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
