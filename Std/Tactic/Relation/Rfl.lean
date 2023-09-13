@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Newell Jensen, Thomas Murrills
 -/
 import Std.Lean.Elab.Tactic
+import Lean.Meta.Tactic.Apply
 
 /-!
 # `rfl` tactic extension for reflexive relations
