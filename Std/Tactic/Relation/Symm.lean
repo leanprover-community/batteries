@@ -22,14 +22,14 @@ namespace Std.Tactic
 initialize symmExt :
     SimpleScopedEnvExtension (Name × Array (DiscrTree.Key true)) (DiscrTree Name true) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) ↦ dt.insertCore ks n
+    addEntry := fun dt (n, ks) => dt.insertCore ks n
     initial := {}
   }
 
 initialize registerBuiltinAttribute {
   name := `symm
   descr := "symmetric relation"
-  add := fun decl _ kind ↦ MetaM.run' do
+  add := fun decl _ kind => MetaM.run' do
     let declTy := (← getConstInfo decl).type
     let (xs, _, targetTy) ← withReducible <| forallMetaTelescopeReducing declTy
     let fail := throwError
@@ -125,4 +125,4 @@ open Lean.Elab.Tactic
 elab "symm" loc:((Parser.Tactic.location)?) : tactic =>
   let atHyp h := liftMetaTactic1 fun g => g.symmAt h
   let atTarget := liftMetaTactic1 fun g => g.symm
-  withLocation (expandOptLocation loc) atHyp atTarget fun _ ↦ throwError "symm made no progress"
+  withLocation (expandOptLocation loc) atHyp atTarget fun _ => throwError "symm made no progress"
