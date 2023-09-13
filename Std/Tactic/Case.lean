@@ -45,9 +45,8 @@ syntax casePattBody := casePattTac <|> casePattExpr
 
 * `case _ : t₁ | _ : t₂ | ... => tac`
   is equivalent to `(case _ : t₁ => tac); (case _ : t₂ => tac); ...`
-  but with all matching done on the original list of goals, in case pattern elaboration creates
-  new goals.
-  Each goal is consumed as they are matched, so patterns may repeat.
+  but with all matching done on the original list of goals --
+  each goal is consumed as they are matched, so patterns may repeat or overlap.
 
 * `case _ : t` will make the matched goal be the first goal.
   `case _ : t₁ | _ : t₂ | ...` makes the matched goals be the first goals in the given order.
@@ -63,7 +62,7 @@ syntax (name := casePatt) (priority := low)
 
 macro_rules
   | `(tactic| case $[$ps:casePattArg]|* := $t) => `(tactic| case $[$ps:casePattArg]|* => exact $t)
-  | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => _)
+  | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => ?_)
 
 /-- `case' _ : t => tac` is similar to the `case _ : t => tac` tactic,
 but it does not ensure the goal has been solved after applying `tac`,
@@ -110,7 +109,7 @@ def findGoalOfPatt (gs : List MVarId)
         let s ← saveState
         try
           let g ← renameInaccessibles g renameI
-          -- Make a copy of `g` so that we don't assign to `g` if we don't need to.
+          -- Make a copy of `g` so that we don't assign type hints to `g` if we don't need to.
           let gCopy ← g.withContext <| mkFreshExprSyntheticOpaqueMVar (← g.getType) (← g.getTag)
           let g' :: gs' ← run gCopy.mvarId! <| withoutRecover <|
                             evalTactic (← `(tactic| refine_lift show $patt from ?_))
@@ -131,12 +130,14 @@ def findGoalOfPatt (gs : List MVarId)
                 ""}or too many names provided for renaming {
                 ""}inaccessible variables."
 
-/-- Given a `casePattBody`, either give a hole or a tactic sequence
-(along with the syntax for the `=>`). -/
+/-- Given a `casePattBody`, either give a synthetic hole or a tactic sequence
+(along with the syntax for the `=>`).
+Converts holes into synthetic holes since they are processed with `elabTermWithHoles`. -/
 def processCasePattBody (stx : TSyntax ``casePattTac) :
     TacticM (Term ⊕ (Syntax × TSyntax ``Parser.Tactic.tacticSeq)) := do
   match stx with
-  | `(casePattTac| => $t:hole) | `(casePattTac| => $t:syntheticHole) => return Sum.inl ⟨t⟩
+  | `(casePattTac| => $t:hole) => return Sum.inl ⟨← withRef t `(?_)⟩
+  | `(casePattTac| => $t:syntheticHole) => return Sum.inl ⟨t⟩
   | `(casePattTac| =>%$arr $tac:tacticSeq) => return Sum.inr (arr, tac)
   | _ => throwUnsupportedSyntax
 
@@ -158,19 +159,18 @@ def evalCase (close : Bool) (stx : Syntax)
     pattref := pattref ++ gs'
     match body with
     | Sum.inl hole =>
-      -- Copied from `induction` tactic. Elaborating the hole is how we can rename the goal tag.
-      let gs' ← g.withContext <| withRef hole do
-        let mvarDecl ← g.getDecl
-        let val ← elabTermEnsuringType hole mvarDecl.type
+      let gs' ← run g <| withRef hole do
+        let (val, gs') ← elabTermWithHoles hole (← getMainTarget) `case
+        unless ← occursCheck g val do
+          throwError "'case' tactic failed, value{indentExpr val}\n{
+            ""}depends on the main goal metavariable '{Expr.mvar g}'"
         g.assign val
-        let gs' ← getMVarsNoDelayed val
-        tagUntaggedGoals mvarDecl.userName `case gs'.toList
-        pure gs'
-      acc := acc ++ gs'.toList
+        setGoals gs'
+      acc := acc ++ gs'
     | Sum.inr (arr, tac) =>
       if close then
         if tag matches `(binderIdent|$_:ident) then
-          -- If a tag is provided, follow the core `case` tactic and clear the tag.
+          -- If a tag is provided, follow the behavior of the core `case` tactic and clear the tag.
           g.setTag .anonymous
         discard <| run g do
           withCaseRef arr tac do
@@ -182,7 +182,7 @@ def evalCase (close : Bool) (stx : Syntax)
           -- If a single goal is remaining, follow the core `case'` tactic and preserve the tag.
           g'.setTag mvarTag
         acc := acc ++ gs'
-  setGoals (acc ++ pattref ++ (← getGoals))
+  setGoals (acc ++ pattref ++ (← getUnsolvedGoals))
 
 elab_rules : tactic
   | `(tactic| case $[$tags $hss* $[: $patts?]?]|* $caseBody:casePattTac) => do

@@ -1,5 +1,6 @@
 import Std.Tactic.Case
 import Std.Tactic.GuardExpr
+import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 
@@ -53,6 +54,40 @@ example (h : x = y) : x = y ∧ x = y ∧ x = y := by
   · exact h
   case _ : x = y | _ : x = y => ?foo
   -- This metavariable was already assigned, so no more goals.
+
+/--
+error: 'case' tactic failed, value
+  ?left
+depends on the main goal metavariable '?left'
+-/
+#guard_msgs in
+example : False ∧ True := by
+  constructor
+  case _ : False => ?left
+
+/--
+error: type mismatch
+  ?right
+has type
+  True : Prop
+but is expected to have type
+  False : Prop
+-/
+#guard_msgs in
+example : False ∧ True := by
+  constructor
+  case _ : False => ?right
+
+/--
+error: 'case' tactic failed, value
+  ?right
+depends on the main goal metavariable '?right'
+-/
+#guard_msgs in
+example : False ∧ False := by
+  constructor
+  case left => ?right
+  case right => ?left
 
 example (h : x = y) (h' : z = w) : x = y ∧ z + 0 = w := by
   constructor
