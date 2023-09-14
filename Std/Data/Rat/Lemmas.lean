@@ -205,7 +205,7 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
     n₁ /. d₁ + n₂ /. d₂ = (n₁ * d₂ + n₂ * d₁) /. (d₁ * d₂) := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [Int.ofNat_eq_zero, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
+  simp_all [-Int.natCast_mul, Int.ofNat_eq_zero, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
     Int.ofNat_mul_ofNat, Int.neg_add, Int.neg_mul, mkRat_add_mkRat]
 
 @[simp] theorem neg_num (a : Rat) : (-a).num = -a.num := rfl
@@ -285,7 +285,8 @@ theorem divInt_mul_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
     (n₁ /. d₁) * (n₂ /. d₂) = (n₁ * n₂) /. (d₁ * d₂) := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [divInt_neg', Int.mul_neg, Int.ofNat_mul_ofNat,  Int.neg_mul, mkRat_mul_mkRat]
+  simp_all [-Int.natCast_mul, divInt_neg', Int.mul_neg, Int.ofNat_mul_ofNat,  Int.neg_mul,
+    mkRat_mul_mkRat]
 
 theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
   unfold Rat.inv; split
@@ -343,3 +344,6 @@ theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
 @[simp] theorem intCast_mul (a b : Int) : ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
   rw [mul_def]
   ext <;> simp [normalize_eq]
+
+example (a b : Nat) : ((a + b : Nat) : Rat) = (a : Rat) + (b : Rat) := by simp
+example (a b : Nat) : ((a * b : Nat) : Rat) = (a : Rat) * (b : Rat) := by simp
