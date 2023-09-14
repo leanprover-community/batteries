@@ -1,4 +1,4 @@
-import Std.Tactic.DummyLabelAttr
+import Std.Test.Internal.DummyLabelAttr
 import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
