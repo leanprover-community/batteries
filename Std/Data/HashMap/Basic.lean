@@ -280,7 +280,7 @@ def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := ⟨self.1
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
-replaced with `a ↦ b`.
+replaced with `a => b`.
 -/
 @[inline] def insert' (m : HashMap α β) (a : α) (b : β) : HashMap α β × Bool :=
   let old := m.size

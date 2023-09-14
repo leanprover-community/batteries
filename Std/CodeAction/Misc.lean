@@ -252,10 +252,13 @@ It also works for `cases`.
 @[tactic_code_action Parser.Tactic.cases Parser.Tactic.induction]
 def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
-  let (discr, induction) ← match info.stx with
-    | `(tactic| cases $[$_ :]? $e) => pure (e, false)
-    | `(tactic| induction $e $[generalizing $_*]?) => pure (e, true)
+  let (discr, induction, alts) ← match info.stx with
+    | `(tactic| cases $[$_ :]? $e $[$alts:inductionAlts]?) => pure (e, false, alts)
+    | `(tactic| induction $e $[generalizing $_*]? $[$alts:inductionAlts]?) => pure (e, true, alts)
     | _ => return #[]
+  if let some alts := alts then
+    -- this detects the incomplete syntax `cases e with`
+    unless alts.raw[2][0][0][0][0].isMissing do return #[]
   let some (.ofTermInfo discrInfo) := node.findInfo? fun i =>
     i.stx.getKind == discr.raw.getKind && i.stx.getRange? == discr.raw.getRange?
     | return #[]
@@ -272,27 +275,33 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
     lazy? := some do
       let tacPos := info.stx.getPos?.get!
       let endPos := doc.meta.text.utf8PosToLspPos info.stx.getTailPos?.get!
-      let mut str := " with"
-      let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+      let startPos := if alts.isSome then
+        let stx' := info.stx.setArg (if induction then 4 else 3) mkNullNode
+        doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!
+      else endPos
       let elimName := if induction then mkRecName name else mkCasesOnName name
-      for (name, args) in ← discrInfo.runMetaM ctx (getElimNames elimName) do
-        let mut ctor := toString name
-        if let some _ := (Parser.getTokenTable snap.env).find? ctor then
-          ctor := s!"{idBeginEscape}{ctor}{idEndEscape}"
-        str := str ++ indent ++ s!"| {ctor}"
-        -- replace n_ih with just ih if there is only one
-        let args := if induction &&
-          args.foldl (fun c n =>
-            if n.eraseMacroScopes.getString!.endsWith "_ih" then c+1 else c) 0 == 1
-        then
-          args.map (fun n => if !n.hasMacroScopes && n.getString!.endsWith "_ih" then `ih else n)
-        else args
-        for arg in args do
-          str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-        str := str ++ s!" => sorry"
+      let ctors ← discrInfo.runMetaM ctx (getElimNames elimName)
+      let newText := if ctors.isEmpty then "" else Id.run do
+        let mut str := " with"
+        let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+        for (name, args) in ctors do
+          let mut ctor := toString name
+          if let some _ := (Parser.getTokenTable snap.env).find? ctor then
+            ctor := s!"{idBeginEscape}{ctor}{idEndEscape}"
+          str := str ++ indent ++ s!"| {ctor}"
+          -- replace n_ih with just ih if there is only one
+          let args := if induction &&
+            args.foldl (fun c n =>
+              if n.eraseMacroScopes.getString!.endsWith "_ih" then c+1 else c) 0 == 1
+          then
+            args.map (fun n => if !n.hasMacroScopes && n.getString!.endsWith "_ih" then `ih else n)
+          else args
+          for arg in args do
+            str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+          str := str ++ s!" => sorry"
+        str
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri
-          { range := ⟨endPos, endPos⟩, newText := str }
+        edit? := some <|.ofTextEdit params.textDocument.uri { range := ⟨startPos, endPos⟩, newText }
       }
   }]
 
