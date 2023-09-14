@@ -18,7 +18,7 @@ namespace Rat
   · rfl
 
 theorem normalize.reduced' {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.coprime (den / g) := by
+    (e : g = num.natAbs.gcd den) : (num / g).natAbs.Coprime (den / g) := by
   rw [← Int.div_eq_ediv_of_dvd (e ▸ Int.ofNat_dvd_left.2 (Nat.gcd_dvd_left ..))]
   exact normalize.reduced den_nz e
 
