@@ -100,6 +100,7 @@ import Std.Logic
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
+import Std.Tactic.Case
 import Std.Tactic.Classical
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
