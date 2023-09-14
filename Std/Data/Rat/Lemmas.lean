@@ -317,3 +317,29 @@ theorem ofScientific_false_def : Rat.ofScientific m false e = (m * 10 ^ e : Nat)
 theorem ofScientific_def : Rat.ofScientific m s e =
     if s then mkRat m (10 ^ e) else (m * 10 ^ e : Nat) := by
   cases s; exact ofScientific_false_def; exact ofScientific_true_def
+
+@[simp] theorem intCast_den (a : Int) : (a : Rat).den = 1 := rfl
+
+@[simp] theorem intCast_num (a : Int) : (a : Rat).num = a := rfl
+
+-- The following lemmas are later subsumed by e.g. `Int.cast_add` and `Int.cast_mul` in Mathlib
+-- but it is convenient to have these earlier, for users who only need `Int` and `Rat`.
+
+theorem intCast_zero : ((0 : Int) : Rat) = (0 : Rat) := rfl
+
+theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
+
+@[simp] theorem intCast_add (a b : Int) : ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
+  rw [add_def]
+  ext <;> simp [normalize_eq]
+
+@[simp] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
+  ext <;> simp [normalize_eq]
+
+@[simp] theorem intCast_sub (a b : Int) : ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
+  rw [sub_def]
+  ext <;> simp [normalize_eq]
+
+@[simp] theorem intCast_mul (a b : Int) : ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
+  rw [mul_def]
+  ext <;> simp [normalize_eq]
