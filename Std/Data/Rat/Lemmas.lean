@@ -323,8 +323,10 @@ theorem ofScientific_def : Rat.ofScientific m s e =
 
 @[simp] theorem intCast_num (a : Int) : (a : Rat).num = a := rfl
 
--- The following lemmas are later subsumed by e.g. `Int.cast_add` and `Int.cast_mul` in Mathlib
--- but it is convenient to have these earlier, for users who only need `Int` and `Rat`.
+/-!
+The following lemmas are later subsumed by e.g. `Int.cast_add` and `Int.cast_mul` in Mathlib
+but it is convenient to have these earlier, for users who only need `Int` and `Rat`.
+-/
 
 theorem intCast_zero : ((0 : Int) : Rat) = (0 : Rat) := rfl
 
