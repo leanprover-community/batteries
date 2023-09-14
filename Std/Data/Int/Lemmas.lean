@@ -1430,5 +1430,3 @@ theorem natCast_one : ((1 : Nat) : Int) = (1 : Int) := rfl
 
 @[simp] theorem natCast_mul (a b : Nat) : ((a * b : Nat) : Int) = (a : Int) * (b : Int) := by
   simp
-
-end Int

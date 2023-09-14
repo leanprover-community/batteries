@@ -344,6 +344,3 @@ theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
 @[simp] theorem intCast_mul (a b : Int) : ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
   rw [mul_def]
   ext <;> simp [normalize_eq]
-
-example (a b : Nat) : ((a + b : Nat) : Rat) = (a : Rat) + (b : Rat) := by simp
-example (a b : Nat) : ((a * b : Nat) : Rat) = (a : Rat) * (b : Rat) := by simp
