@@ -102,7 +102,6 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
-import Std.Tactic.DummyLabelAttr
 import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
@@ -132,6 +131,7 @@ import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
+import Std.Test.Internal.DummyLabelAttr
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
