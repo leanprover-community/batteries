@@ -214,7 +214,8 @@ theorem perm_induction_on
   Perm.recOn p nil cons (fun x y l => swap x y l l (Perm.refl l) (P_refl l)) @trans
 
 @[deprecated]
-theorem perm_induction_on_old {P : List α → List α → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂) (h₁ : P [] [])
+theorem perm_induction_on_old {P : List α → List α → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
+    (h₁ : P [] [])
     (h₂ : ∀ x l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (x :: l₁) (x :: l₂))
     (h₃ : ∀ x y l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (y :: x :: l₁) (x :: y :: l₂))
     (h₄ : ∀ l₁ l₂ l₃, l₁ ~ l₂ → l₂ ~ l₃ → P l₁ l₂ → P l₂ l₃ → P l₁ l₃) : P l₁ l₂ :=
@@ -730,7 +731,9 @@ theorem subperm_append_diff_self_of_count_le {l₁ l₂ : List α}
   | cons hd tl IH =>
     have : hd ∈ l₂ := by
       rw [← count_pos_iff_mem]
-      exact Nat.lt_of_lt_of_le (count_pos_iff_mem.mpr (mem_cons_self _ _)) (h hd (mem_cons_self _ _))
+      exact Nat.lt_of_lt_of_le
+        (count_pos_iff_mem.mpr (mem_cons_self _ _))
+        (h hd (mem_cons_self _ _))
     have := perm_cons_erase this
     refine' Perm.trans _ this.symm
     rw [cons_append, diff_cons, perm_cons]
