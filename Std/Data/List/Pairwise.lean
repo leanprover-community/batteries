@@ -28,9 +28,6 @@ open Nat Function
 
 namespace List
 
-variable {R : α → α → Prop}
-
-
 /-! ### Pairwise -/
 
 theorem rel_of_pairwise_cons (p : (a :: l).Pairwise R) : ∀ {a'}, a' ∈ l → R a a' :=
@@ -119,13 +116,13 @@ theorem pairwise_pair {a b : α} : Pairwise R [a, b] ↔ R a b := by
   simp only [pairwise_cons, mem_singleton, forall_eq, Pairwise.nil,
     and_true, not_mem_nil, false_implies, implies_true]
 
-theorem pairwise_append_comm (s : ∀ {x y}, R x y → R y x) {l₁ l₂ : List α} :
+theorem pairwise_append_comm {R : α → α → Prop} (s : ∀ {x y}, R x y → R y x) {l₁ l₂ : List α} :
     Pairwise R (l₁ ++ l₂) ↔ Pairwise R (l₂ ++ l₁) := by
   have : ∀ l₁ l₂ : List α, (∀ x : α, x ∈ l₁ → ∀ y : α, y ∈ l₂ → R x y) →
     ∀ x : α, x ∈ l₂ → ∀ y : α, y ∈ l₁ → R x y := fun l₁ l₂ a x xm y ym => s (a y ym x xm)
   simp only [pairwise_append, and_left_comm]; rw [Iff.intro (this l₁ l₂) (this l₂ l₁)]
 
-theorem pairwise_middle (s : ∀ {x y}, R x y → R y x) {a : α} {l₁ l₂ : List α} :
+theorem pairwise_middle {R : α → α → Prop} (s : ∀ {x y}, R x y → R y x) {a : α} {l₁ l₂ : List α} :
     Pairwise R (l₁ ++ a :: l₂) ↔ Pairwise R (a :: (l₁ ++ l₂)) :=
   show Pairwise R (l₁ ++ ([a] ++ l₂)) ↔ Pairwise R ([a] ++ l₁ ++ l₂) by
     rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁), pairwise_append_comm s]
@@ -290,17 +287,15 @@ theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx :
 
 /-! ### Pairwise filtering -/
 
-variable [DecidableRel R]
+@[simp] theorem pwFilter_nil [DecidableRel R] : pwFilter R [] = [] := rfl
 
-@[simp] theorem pwFilter_nil : pwFilter R [] = [] := rfl
+@[simp] theorem pwFilter_cons_of_pos [DecidableRel (α := α) R] {a : α} {l : List α}
+    (h : ∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = a :: pwFilter R l := if_pos h
 
-@[simp] theorem pwFilter_cons_of_pos {a : α} {l : List α} (h : ∀ b ∈ pwFilter R l, R a b) :
-    pwFilter R (a :: l) = a :: pwFilter R l := if_pos h
+@[simp] theorem pwFilter_cons_of_neg [DecidableRel (α := α) R] {a : α} {l : List α}
+    (h : ¬∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = pwFilter R l := if_neg h
 
-@[simp] theorem pwFilter_cons_of_neg {a : α} {l : List α} (h : ¬∀ b ∈ pwFilter R l, R a b) :
-    pwFilter R (a :: l) = pwFilter R l := if_neg h
-
-theorem pwFilter_map (f : β → α) :
+theorem pwFilter_map [DecidableRel (α := α) R] (f : β → α) :
     ∀ l : List β, pwFilter R (map f l) = map f (pwFilter (fun x y => R (f x) (f y)) l)
   | [] => rfl
   | x :: xs =>
@@ -320,7 +315,7 @@ theorem pwFilter_map (f : β → α) :
           exact hh _ hb₀
       rw [map, pwFilter_cons_of_neg h, pwFilter_cons_of_neg h', pwFilter_map f xs]
 
-theorem pwFilter_sublist : ∀ l : List α, pwFilter R l <+ l
+theorem pwFilter_sublist [DecidableRel (α := α) R] : ∀ l : List α, pwFilter R l <+ l
   | [] => nil_sublist _
   | x :: l => by
     by_cases h : ∀ y ∈ pwFilter R l, R x y
@@ -329,10 +324,10 @@ theorem pwFilter_sublist : ∀ l : List α, pwFilter R l <+ l
     · rw [pwFilter_cons_of_neg h]
       exact Sublist.cons _ (pwFilter_sublist l)
 
-theorem pwFilter_subset (l : List α) : pwFilter R l ⊆ l :=
+theorem pwFilter_subset [DecidableRel (α := α) R] (l : List α) : pwFilter R l ⊆ l :=
   (pwFilter_sublist _).subset
 
-theorem pairwise_pwFilter : ∀ l : List α, Pairwise R (pwFilter R l)
+theorem pairwise_pwFilter [DecidableRel (α := α) R] : ∀ l : List α, Pairwise R (pwFilter R l)
   | [] => Pairwise.nil
   | x :: l => by
     by_cases h : ∀ y ∈ pwFilter R l, R x y
@@ -341,7 +336,7 @@ theorem pairwise_pwFilter : ∀ l : List α, Pairwise R (pwFilter R l)
     · rw [pwFilter_cons_of_neg h]
       exact pairwise_pwFilter l
 
-theorem pwFilter_eq_self {l : List α} : pwFilter R l = l ↔ Pairwise R l :=
+theorem pwFilter_eq_self [DecidableRel (α := α) R] {l : List α} : pwFilter R l = l ↔ Pairwise R l :=
   ⟨fun e => e ▸ pairwise_pwFilter l, fun p =>
     by
     induction l with
@@ -354,11 +349,13 @@ theorem pwFilter_eq_self {l : List α} : pwFilter R l = l ↔ Pairwise R l :=
         apply al _ hb)
       rw [this, IH p]⟩
 
-@[simp] theorem pwFilter_idempotent : pwFilter R (pwFilter R l) = pwFilter R l := by
+@[simp] theorem pwFilter_idempotent [DecidableRel (α := α) R] :
+    pwFilter R (pwFilter R l) = pwFilter R l := by
   rw [pwFilter_eq_self]
   apply pairwise_pwFilter
 
-theorem forall_mem_pwFilter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z) (a : α) (l : List α) :
+theorem forall_mem_pwFilter [DecidableRel (α := α) R]
+    (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z) (a : α) (l : List α) :
     (∀ b ∈ pwFilter R l, R a b) ↔ ∀ b ∈ l, R a b :=
   ⟨by
     induction l with
