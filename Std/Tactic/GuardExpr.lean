@@ -172,7 +172,6 @@ syntax (name := guardHyp)
 def evalGuardHyp : Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?)
   | `(conv| guard_hyp $h $[$c $ty]? $[$eq $val]?) => withMainContext do
-    if c.isNone && eq.isNone then throwUnsupportedSyntax
     let fvarid ← getFVarId h
     let lDecl ←
       match (← getLCtx).find? fvarid with
