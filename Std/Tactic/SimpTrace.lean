@@ -17,7 +17,7 @@ namespace Std.Tactic
 open Lean Elab Parser Tactic Meta Simp
 
 /-- The common arguments of `simp?` and `simp?!`. -/
-syntax simpTraceArgsRest := (config)? (discharger)? (&" only")? (simpArgs)? (location)?
+syntax simpTraceArgsRest := (config)? (discharger)? (&" only")? (simpArgs)? (ppSpace location)?
 
 /--
 `simp?` takes the same arguments as `simp`, but reports an equivalent call to `simp only`
@@ -111,7 +111,7 @@ elab_rules : tactic
     TryThis.addSuggestion tk stx (origSpan? := ← getRef)
 
 /-- The common arguments of `dsimp?` and `dsimp?!`. -/
-syntax dsimpTraceArgsRest := (config)? (&" only")? (dsimpArgs)? (location)?
+syntax dsimpTraceArgsRest := (config)? (&" only")? (dsimpArgs)? (ppSpace location)?
 
 -- TODO: move to core
 /-- Implementation of `dsimp`. -/

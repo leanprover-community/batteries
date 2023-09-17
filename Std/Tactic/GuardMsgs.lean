@@ -18,7 +18,7 @@ open Lean Parser.Tactic Elab Command
 namespace Std.Tactic.GuardMsgs
 
 /-- Element that can be part of a `#guard_msgs` specification. -/
-syntax guardMsgsSpecElt := &"drop "? (&"info" <|> &"warning" <|> &"error" <|> &"all")
+syntax guardMsgsSpecElt := &"drop"? (&"info" <|> &"warning" <|> &"error" <|> &"all")
 
 /-- Specification for `#guard_msgs` command. -/
 syntax guardMsgsSpec := "(" guardMsgsSpecElt,* ")"

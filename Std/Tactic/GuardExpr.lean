@@ -134,7 +134,7 @@ Tactic to check that the target agrees with a given expression.
 The term `e` is elaborated with the type of the goal as the expected type, which is mostly
 useful within `conv` mode.
 -/
-syntax (name := guardTarget) "guard_target" equal term : tactic
+syntax (name := guardTarget) "guard_target " equal term : tactic
 @[inherit_doc guardTarget] syntax (name := guardTargetConv) "guard_target " equal term : conv
 
 @[inherit_doc guardTarget, tactic guardTarget, tactic guardTargetConv]
