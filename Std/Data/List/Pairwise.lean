@@ -204,9 +204,9 @@ theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α
       by_cases H : hd = x
       · rw [H]
         refine' hr ..
-        simp [H, Nat.add_one]
-        apply Nat.succ_le_succ
-        simp [hx]
+        simp only [H, count_cons, Nat.add_one]
+        apply Nat.succ_lt_succ
+        apply count_pos_iff_mem.mpr hx
       · exact h hd (mem_cons_self ..) x (mem_cons_of_mem _ hx) H
     · refine' IH ..
       · intro x hx
@@ -330,7 +330,7 @@ theorem forall_mem_pwFilter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z)
     | nil => exact fun _ _ h => (not_mem_nil _ h).elim
     | cons x l IH =>
       simp only [forall_mem_cons]
-      by_cases h : ∀ y ∈ pwFilter R l, R x y <;> dsimp at h
+      by_cases h : ∀ y ∈ pwFilter R l, R x y
       · simp only [pwFilter_cons_of_pos h, forall_mem_cons, and_imp]
         exact fun r H => ⟨r, IH H⟩
       · rw [pwFilter_cons_of_neg h]

@@ -5,6 +5,11 @@ import Std.Data.Rat.Basic
 
 namespace Rat
 
+@[simp] theorem zero_num : (0 : Rat).num = 0 := rfl
+@[simp] theorem zero_den : (0 : Rat).den = 1 := rfl
+@[simp] theorem one_num : (1 : Rat).num = 1 := rfl
+@[simp] theorem one_den : (1 : Rat).den = 1 := rfl
+
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
     { num := num.div g, den := den / g, den_nz, reduced } := by
@@ -13,7 +18,7 @@ namespace Rat
   · rfl
 
 theorem normalize.reduced' {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.coprime (den / g) := by
+    (e : g = num.natAbs.gcd den) : (num / g).natAbs.Coprime (den / g) := by
   rw [← Int.div_eq_ediv_of_dvd (e ▸ Int.ofNat_dvd_left.2 (Nat.gcd_dvd_left ..))]
   exact normalize.reduced den_nz e
 

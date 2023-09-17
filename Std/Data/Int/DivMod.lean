@@ -373,6 +373,9 @@ theorem emod_nonneg : ∀ (a : Int) {b : Int}, b ≠ 0 → 0 ≤ a % b
 theorem fmod_nonneg {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a.fmod b :=
   fmod_eq_mod ha hb ▸ mod_nonneg _ ha
 
+theorem fmod_nonneg' (a : Int) {b : Int} (hb : 0 < b) : 0 ≤ a.fmod b :=
+  fmod_eq_emod _ (Int.le_of_lt hb) ▸ emod_nonneg _ (Int.ne_of_lt hb).symm
+
 theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
   match a, b, eq_succ_of_zero_lt H with
   | ofNat _, _, ⟨n, rfl⟩ => ofNat_lt.2 <| Nat.mod_lt _ n.succ_pos
@@ -381,10 +384,8 @@ theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
 
 theorem emod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a % b < b :=
   match a, b, eq_succ_of_zero_lt H with
-  | ofNat m, _, ⟨n, rfl⟩ => ofNat_lt.2 (Nat.mod_lt _ (Nat.succ_pos _))
-  | -[m+1], _, ⟨n, rfl⟩ => by
-    simp [emod, Int.subNatNat_eq_coe]
-    exact Int.sub_lt_self _ (ofNat_lt.2 <| Nat.succ_pos _)
+  | ofNat _, _, ⟨_, rfl⟩ => ofNat_lt.2 (Nat.mod_lt _ (Nat.succ_pos _))
+  | -[_+1], _, ⟨_, rfl⟩ => Int.sub_lt_self _ (ofNat_lt.2 <| Nat.succ_pos _)
 
 theorem fmod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a.fmod b < b :=
   fmod_eq_emod _ (Int.le_of_lt H) ▸ emod_lt_of_pos a H
@@ -875,7 +876,8 @@ protected theorem mul_le_of_le_div {a b c : Int} (H1 : 0 < c) (H2 : a ≤ b / c)
   le_trans (Decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (Int.div_mul_le _ (ne_of_gt H1))
 
 protected theorem le_div_of_mul_le {a b c : Int} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
-  le_of_lt_add_one <| lt_of_mul_lt_mul_right (lt_of_le_of_lt H2 (lt_div_add_one_mul_self _ H1)) (le_of_lt H1)
+  le_of_lt_add_one <|
+    lt_of_mul_lt_mul_right (lt_of_le_of_lt H2 (lt_div_add_one_mul_self _ H1)) (le_of_lt H1)
 
 protected theorem le_div_iff_mul_le {a b c : Int} (H : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
   ⟨Int.mul_le_of_le_div H, Int.le_div_of_mul_le H⟩
@@ -892,13 +894,16 @@ protected theorem lt_mul_of_div_lt {a b c : Int} (H1 : 0 < c) (H2 : a / c < b) :
 protected theorem div_lt_iff_lt_mul {a b c : Int} (H : 0 < c) : a / c < b ↔ a < b * c :=
   ⟨Int.lt_mul_of_div_lt H, Int.div_lt_of_lt_mul H⟩
 
-protected theorem le_mul_of_div_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) : a ≤ c * b := by
+protected theorem le_mul_of_div_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
+    a ≤ c * b := by
   rw [← Int.div_mul_cancel H2] <;> exact Decidable.mul_le_mul_of_nonneg_right H3 H1
 
-protected theorem lt_div_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) : a < c / b :=
+protected theorem lt_div_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
+    a < c / b :=
   lt_of_not_ge <| mt (Int.le_mul_of_div_le H1 H2) (not_le_of_gt H3)
 
-protected theorem lt_div_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) : a < b / c ↔ a * c < b :=
+protected theorem lt_div_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) :
+    a < b / c ↔ a * c < b :=
   ⟨Int.mul_lt_of_lt_div H, Int.lt_div_of_mul_lt (le_of_lt H) H'⟩
 
 theorem div_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b ∣ a) : 0 < a / b :=
@@ -906,13 +911,13 @@ theorem div_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b �
     (by
       rwa [zero_mul])
 
-theorem div_eq_div_of_mul_eq_mul {a b c d : Int} (H2 : d ∣ c) (H3 : b ≠ 0) (H4 : d ≠ 0) (H5 : a * d = b * c) :
-    a / b = c / d :=
+theorem div_eq_div_of_mul_eq_mul {a b c d : Int}
+    (H2 : d ∣ c) (H3 : b ≠ 0) (H4 : d ≠ 0) (H5 : a * d = b * c) : a / b = c / d :=
   Int.div_eq_of_eq_mul_right H3 <| by
     rw [← Int.mul_div_assoc _ H2] <;> exact (Int.div_eq_of_eq_mul_left H4 H5.symm).symm
 
-theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : Int} (hb : b ≠ 0) (hbc : b ∣ c) (h : b * a = c * d) :
-    a = c / b * d := by
+theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : Int}
+    (hb : b ≠ 0) (hbc : b ∣ c) (h : b * a = c * d) : a = c / b * d := by
   cases' hbc with k hk
   subst hk
   rw [Int.mul_div_cancel_left _ hb]
@@ -921,7 +926,8 @@ theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : Int} (hb : b ≠ 0) (hbc
 
 /-- If an integer with larger absolute value divides an integer, it is
 zero. -/
-theorem eq_zero_of_dvd_ofNatAbs_lt_natAbs {a b : Int} (w : a ∣ b) (h : natAbs b < natAbs a) : b = 0 := by
+theorem eq_zero_of_dvd_ofNatAbs_lt_natAbs {a b : Int} (w : a ∣ b) (h : natAbs b < natAbs a) :
+    b = 0 := by
   rw [← natAbs_dvd, ← dvd_natAbs, ofNat_dvd] at w
   rw [← natAbs_eq_zero]
   exact eq_zero_of_dvd_of_lt w h
@@ -931,7 +937,8 @@ theorem eq_zero_of_dvd_of_nonneg_of_lt {a b : Int} (w₁ : 0 ≤ a) (w₂ : a < 
 
 /-- If two integers are congruent to a sufficiently large modulus,
 they are equal. -/
-theorem eq_of_mod_eq_ofNatAbs_sub_lt_natAbs {a b c : Int} (h1 : a % b = c) (h2 : natAbs (a - c) < natAbs b) : a = c :=
+theorem eq_of_mod_eq_ofNatAbs_sub_lt_natAbs {a b c : Int}
+    (h1 : a % b = c) (h2 : natAbs (a - c) < natAbs b) : a = c :=
   eq_of_sub_eq_zero (eq_zero_of_dvd_ofNatAbs_lt_natAbs (dvd_sub_of_mod_eq h1) h2)
 
 theorem ofNat_add_negSucc_of_lt {m n : Nat} (h : m < n.succ) : ofNat m + -[n+1] = -[n+1 - m] := by
@@ -941,7 +948,8 @@ theorem ofNat_add_negSucc_of_lt {m n : Nat} (h : m < n.succ) : ofNat m + -[n+1] 
   apply le_of_lt_succ h
   simp [*, subNatNat]
 
-theorem ofNat_add_negSucc_of_ge {m n : Nat} (h : n.succ ≤ m) : ofNat m + -[n+1] = ofNat (m - n.succ) := by
+theorem ofNat_add_negSucc_of_ge {m n : Nat} (h : n.succ ≤ m) :
+    ofNat m + -[n+1] = ofNat (m - n.succ) := by
   change subNatNat _ _ = _
   have h' : n.succ - m = 0
   apply tsub_eq_zero_iff_le.mpr h

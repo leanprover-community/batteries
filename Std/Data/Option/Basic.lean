@@ -18,6 +18,9 @@ instance : Membership α (Option α) := ⟨fun a b => b = some a⟩
 
 @[simp] theorem mem_def {a : α} {b : Option α} : a ∈ b ↔ b = some a := .rfl
 
+instance [DecidableEq α] (j : α) (o : Option α) : Decidable (j ∈ o) :=
+  inferInstanceAs <| Decidable (o = some j)
+
 theorem isNone_iff_eq_none {o : Option α} : o.isNone ↔ o = none :=
   ⟨Option.eq_none_of_isNone, fun e => e.symm ▸ rfl⟩
 
@@ -144,3 +147,13 @@ result.
   match x with
   | some a => pure a
   | none => y
+
+instance (α) [BEq α] [LawfulBEq α] : LawfulBEq (Option α) where
+  rfl {x} :=
+    match x with
+    | some x => LawfulBEq.rfl (α := α)
+    | none => rfl
+  eq_of_beq {x y h} := by
+    match x, y with
+    | some x, some y => rw [LawfulBEq.eq_of_beq (α := α) h]
+    | none, none => rfl

@@ -41,6 +41,7 @@ We skip all declarations that contain `sorry` in their value. -/
     let info ← getConstInfo declName
     let ty := info.type
     let some val := info.value? | return none
+    if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
       let mut e := (mkAppN val args).headBeta
       e := mkApp e ty
@@ -61,7 +62,7 @@ We skip all declarations that contain `sorry` in their value. -/
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
-      return none
+      return none -- FIXME: scoped/local instances should also not be linted
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
@@ -230,11 +231,11 @@ uncommon problem. -/
     "refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
     "replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
     "in proofs appear as if they are used. " ++
-    "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where" ++
-    " `proof_of_goal` does not refer to `foo`. " ++
+    "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo`" ++
+    " where `proof_of_goal` does not refer to `foo`. " ++
     "Such statements have no effect on the generated proof, and can just be replaced by " ++
-    "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
-    "proofs appear as if they are used. "
+    "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions " ++
+    "in proofs appear as if they are used. "
   test declName := do
     if ← isAutoDecl declName then return none
     let info ← getConstInfo declName

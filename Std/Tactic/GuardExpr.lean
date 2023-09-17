@@ -111,7 +111,7 @@ def elabAndEvalMatchKind (mk : MatchKind) (a b : Term) : TermElabM Bool :=
     let b ← Term.elabTerm b none
     -- Unify types before synthesizing pending metavariables:
     _ ← isDefEqGuarded (← inferType a) (← inferType b)
-    Term.synthesizeSyntheticMVars (mayPostpone := false)
+    Term.synthesizeSyntheticMVarsNoPostponing
     mk.isEq (← instantiateMVars a) (← instantiateMVars b)
 
 @[inherit_doc guardExpr, tactic guardExpr, tactic guardExprConv]
@@ -172,7 +172,6 @@ syntax (name := guardHyp)
 def evalGuardHyp : Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?)
   | `(conv| guard_hyp $h $[$c $ty]? $[$eq $val]?) => withMainContext do
-    if c.isNone && eq.isNone then throwUnsupportedSyntax
     let fvarid ← getFVarId h
     let lDecl ←
       match (← getLCtx).find? fvarid with

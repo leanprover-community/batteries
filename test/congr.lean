@@ -43,7 +43,8 @@ example {ls : List Nat} :
   guard_target =ₐ 1 + y = y.succ
   rw [Nat.add_comm]
 
-example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} : (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
+example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
+    (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
   rcongr x
   exact h x
 
@@ -53,6 +54,11 @@ example : () = () := by rcongr
 example : 0 = 0 := by rcongr
 
 example {α} (a : α) : a = a := by congr
+
+example : { f : Nat → Nat // f = id } :=
+  ⟨_, by
+    congr (config := { closePre := false, closePost := false }) with x
+    exact Nat.zero_add x⟩
 
 -- FIXME(?): congr doesn't fail
 -- example {α} (a b : α) (h : False) : a = b := by

@@ -28,7 +28,7 @@ private theorem numElems_le_iff {start stop step i} (hstep : 0 < step) :
     _ ↔ stop - start + step - 1 < step * i + 1 + (step - 1) := by
       rw [Nat.add_right_comm, Nat.add_assoc, Nat.sub_add_cancel hstep]
     _ ↔ stop ≤ start + step * i := by
-      rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_lt_right, Nat.lt_succ,
+      rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_right, Nat.lt_succ,
         Nat.sub_le_iff_le_add']
 
 theorem mem_range'_elems (r : Range) (h : x ∈ List.range' r.start r.numElems r.step) : x ∈ r := by
@@ -93,7 +93,7 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
     suffices ∀ fuel i hl b, forIn'.loop r.start r.stop r.step (fun x _ => f x) fuel i hl b =
         forIn.loop f fuel i r.stop r.step b from (this _ ..).symm
     intro fuel; induction fuel <;> intro i hl b <;>
-      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> simp
+      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> try simp
     · simp [if_neg (Nat.not_le.2 ‹_›)]
     · simp [if_pos (Nat.not_lt.1 ‹_›)]
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..

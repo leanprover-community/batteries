@@ -106,7 +106,9 @@ def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
         let c ← mkConstWithFreshMVarLevels lem.declName
         let (_, _, declTy) ← withDefault <| forallMetaTelescopeReducing (← inferType c)
         guard (← isDefEq tgt declTy)
-      return ← goal.apply (← mkConstWithFreshMVarLevels lem.declName)
+      -- We use `newGoals := .all` as this is
+      -- more useful in practice with dependently typed arguments of `@[ext]` lemmas.
+      return ← goal.apply (cfg := { newGoals := .all }) (← mkConstWithFreshMVarLevels lem.declName)
     catch _ => s.restore
   throwError "no applicable extensionality lemma found for{indentExpr ty}"
 
@@ -125,7 +127,7 @@ def tryIntros [Monad m] [MonadLiftT TermElabM m] (g : MVarId) (pats : List (TSyn
     if (← (g.withContext g.getType' : TermElabM _)).isForall then
       let mut n := 0
       for g in ← RCases.rintro #[p] none g do
-        n := n.max (← k g ps)
+        n := n.max (← tryIntros g ps k)
       pure (n + 1)
     else k g pats
 

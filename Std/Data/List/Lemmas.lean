@@ -149,6 +149,9 @@ theorem mem_append_left {a : α} {l₁ : List α} (l₂ : List α) (h : a ∈ l�
 theorem mem_append_right {a : α} (l₁ : List α) {l₂ : List α} (h : a ∈ l₂) : a ∈ l₁ ++ l₂ :=
   mem_append.2 (Or.inr h)
 
+theorem mem_iff_append {a : α} {l : List α} : a ∈ l ↔ ∃ s t : List α, l = s ++ a :: t :=
+  ⟨append_of_mem, fun ⟨s, t, e⟩ => e ▸ by simp⟩
+
 /-! ### map -/
 
 theorem map_singleton (f : α → β) (a : α) : map f [a] = [f a] := rfl
@@ -234,6 +237,12 @@ theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈
 
 theorem Subset.trans {l₁ l₂ l₃ : List α} (h₁ : l₁ ⊆ l₂) (h₂ : l₂ ⊆ l₃) : l₁ ⊆ l₃ :=
   fun _ i => h₂ (h₁ i)
+
+instance : Trans (Membership.mem : α → List α → Prop) Subset Membership.mem :=
+  ⟨fun h₁ h₂ => h₂ h₁⟩
+
+instance : Trans (Subset : List α → List α → Prop) Subset Subset :=
+  ⟨Subset.trans⟩
 
 @[simp] theorem subset_cons (a : α) (l : List α) : l ⊆ a :: l := fun _ => Mem.tail _
 
@@ -404,6 +413,15 @@ theorem Sublist.subset : l₁ <+ l₂ → l₁ ⊆ l₂
   | .cons₂ .., _, .head .. => .head ..
   | .cons₂ _ s, _, .tail _ h => .tail _ (s.subset h)
 
+instance : Trans (@Sublist α) Subset Subset :=
+  ⟨fun h₁ h₂ => trans h₁.subset h₂⟩
+
+instance : Trans Subset (@Sublist α) Subset :=
+  ⟨fun h₁ h₂ => trans h₁ h₂.subset⟩
+
+instance : Trans (Membership.mem : α → List α → Prop) Sublist Membership.mem :=
+  ⟨fun h₁ h₂ => h₂.subset h₁⟩
+
 theorem Sublist.length_le : l₁ <+ l₂ → length l₁ ≤ length l₂
   | .slnil => Nat.le_refl 0
   | .cons _l s => le_succ_of_le (length_le s)
@@ -432,6 +450,27 @@ theorem Sublist.eq_of_length_le (s : l₁ <+ l₂) (h : length l₂ ≤ length l
   · induction h with
     | refl => apply Sublist.refl
     | step => simp [*, replicate, Sublist.cons]
+
+theorem isSublist_iff_sublist [DecidableEq α] {l₁ l₂ : List α} : l₁.isSublist l₂ ↔ l₁ <+ l₂ := by
+  cases l₁ <;> cases l₂ <;> simp [isSublist]
+  case cons.cons hd₁ tl₁ hd₂ tl₂ =>
+    if h_eq : hd₁ = hd₂ then
+      simp [h_eq, cons_sublist_cons, isSublist_iff_sublist]
+    else
+      simp only [h_eq]
+      constructor
+      · intro h_sub
+        apply Sublist.cons
+        exact isSublist_iff_sublist.mp h_sub
+      · intro h_sub
+        cases h_sub
+        case cons h_sub =>
+          exact isSublist_iff_sublist.mpr h_sub
+        case cons₂ =>
+          contradiction
+
+instance [DecidableEq α] (l₁ l₂ : List α) : Decidable (l₁ <+ l₂) :=
+  decidable_of_iff (l₁.isSublist l₂) isSublist_iff_sublist
 
 /-! ### head -/
 
@@ -502,13 +541,28 @@ theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
   | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
 
-theorem get?_eq_get : ∀ {l : List α} {n} h, l.get? n = some (get l ⟨n, h⟩)
+theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
+
+theorem get!_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
+  | _ :: _, 0, _ => rfl
+  | _ :: l, _+1, _ => get?_eq_get (l := l) _
+
+theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
+    (a::l).get! (n+1) = get! l n := rfl
+
+theorem get!_cons_zero [Inhabited α] (l : List α) (a : α) : (a::l).get! 0 = a := rfl
+
+theorem get!_nil [Inhabited α] (n : Nat) : [].get! n = (default : α) := rfl
 
 theorem get?_len_le : ∀ {l : List α} {n}, length l ≤ n → l.get? n = none
   | [], _, _ => rfl
   | _ :: l, _+1, h => get?_len_le (l := l) <| Nat.le_of_succ_le_succ h
+
+theorem get!_len_le [Inhabited α] : ∀ {l : List α} {n}, length l ≤ n → l.get! n = (default : α)
+  | [], _, _ => rfl
+  | _ :: l, _+1, h => get!_len_le (l := l) <| Nat.le_of_succ_le_succ h
 
 theorem get?_eq_some : l.get? n = some a ↔ ∃ h, get l ⟨n, h⟩ = a :=
   ⟨fun e =>
@@ -687,6 +741,11 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | _a::_, 0, _ => rfl
   | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
+@[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
+  | [], _      => rfl
+  | _a::_, 0   => rfl
+  | _a::l, n+1 => get!_eq_getD l n
+
 /-! ### take and drop -/
 
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
@@ -701,6 +760,21 @@ theorem length_take_of_le (h : n ≤ length l) : length (take n l) = n := by sim
 theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i l
   | _::_, ⟨0, _⟩ => rfl
   | _::_, ⟨i+1, _⟩ => get_cons_drop _ ⟨i, _⟩
+
+theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
+  | _, _, rfl => drop_nil
+
+@[simp] theorem take_nil : ([] : List α).take i = [] := by
+  cases i <;> rfl
+
+theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
+  | _, _, rfl => take_nil
+
+theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
+  mt drop_eq_nil_of_eq_nil h
+
+theorem ne_nil_of_take_ne_nil {as : List α} {i : Nat} (h: as.take i ≠ []) : as ≠ [] :=
+  mt take_eq_nil_of_eq_nil h
 
 theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
     (h : map f l = s₁ ++ s₂) : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ map f l₁ = s₁ ∧ map f l₂ = s₂ := by
@@ -878,11 +952,11 @@ theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.a
 
 /-! ### reverse -/
 
-@[simp] theorem mem_reverseAux (x : α) : ∀ as bs, x ∈ reverseAux as bs ↔ x ∈ as ∨ x ∈ bs
-  | [], _ => by simp
-  | a :: _, _ => by simp [mem_reverseAux]; rw [← or_assoc, @or_comm (x = a)]
+@[simp] theorem mem_reverseAux {x : α} : ∀ {as bs}, x ∈ reverseAux as bs ↔ x ∈ as ∨ x ∈ bs
+  | [], _ => ⟨.inr, fun | .inr h => h⟩
+  | a :: _, _ => by rw [reverseAux, mem_cons, or_assoc, or_left_comm, mem_reverseAux, mem_cons]
 
-@[simp] theorem mem_reverse (x : α) (as : List α) : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
+@[simp] theorem mem_reverse {x : α} {as : List α} : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
 
 /-! ### insert -/
 
@@ -1428,21 +1502,25 @@ section union
 
 variable [DecidableEq α]
 
-@[simp] theorem nil_union (l : List α) : nil.union l = l := by simp [List.union, foldr]
+theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
+
+@[simp] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
 
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
-    (a :: l₁).union l₂ = (l₁.union l₂).insert a := by simp [List.union, foldr]
+    (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
 @[simp] theorem mem_union_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
-    x ∈ l₁.union l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
+    x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
 
 end union
 
 /-! ### inter -/
 
+theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
+
 @[simp] theorem mem_inter_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
-    x ∈ l₁.inter l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
-  cases l₁ <;> simp [List.inter, mem_filter]
+    x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
+  cases l₁ <;> simp [List.inter_def, mem_filter]
 
 /-! ### product -/
 
@@ -1774,8 +1852,8 @@ attribute [simp] Chain.nil
 
 @[simp]
 theorem chain_cons {a b : α} {l : List α} : Chain R a (b :: l) ↔ R a b ∧ Chain R b l :=
-  ⟨fun p ↦ by cases p with | cons n p => exact ⟨n, p⟩,
-   fun ⟨n, p⟩ ↦ p.cons n⟩
+  ⟨fun p => by cases p with | cons n p => exact ⟨n, p⟩,
+   fun ⟨n, p⟩ => p.cons n⟩
 
 theorem rel_of_chain_cons {a b : α} {l : List α} (p : Chain R a (b :: l)) : R a b :=
   (chain_cons.1 p).1

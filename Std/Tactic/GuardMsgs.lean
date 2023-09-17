@@ -140,7 +140,7 @@ elab_rules : command
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD "" |>.trim
     let specFn ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
-    elabCommand cmd
+    elabCommandTopLevel cmd
     let msgs := (← get).messages
     let mut toCheck : MessageLog := .empty
     let mut toPassthrough : MessageLog := .empty
@@ -150,7 +150,8 @@ elab_rules : command
       | .drop        => pure ()
       | .passthrough => toPassthrough := toPassthrough.add msg
     let res := "---\n".intercalate (← toCheck.toList.mapM (messageToStringWithoutPos ·)) |>.trim
-    if expected == res then
+    -- We do some whitespace normalization here to allow users to break long lines.
+    if expected.replace "\n" " " == res.replace "\n" " " then
       -- Passed. Only put toPassthrough messages back on the message log
       modify fun st => { st with messages := initMsgs ++ toPassthrough }
     else

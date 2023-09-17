@@ -17,33 +17,43 @@ and subgoals, where the extra binding is inconvenient.
 namespace Std.Tactic
 
 /-- `haveI` behaves like `have`, but inlines the value instead of producing a `let_fun` term. -/
-@[term_parser] def «haveI» := leading_parser withPosition ("haveI " >> haveDecl) >> optSemicolon termParser
+@[term_parser] def «haveI» := leading_parser
+  withPosition ("haveI " >> haveDecl) >> optSemicolon termParser
 /-- `letI` behaves like `let`, but inlines the value instead of producing a `let_fun` term. -/
-@[term_parser] def «letI» := leading_parser withPosition ("letI " >> haveDecl) >> optSemicolon termParser
+@[term_parser] def «letI» := leading_parser
+  withPosition ("letI " >> haveDecl) >> optSemicolon termParser
 
 macro_rules
-  | `(haveI $_ : $_ := $_; $_) => throwUnsupported -- handled by elab
-  | `(haveI $[: $ty]? := $val; $body) => `(haveI $(mkIdent `this) $[: $ty]? := $val; $body)
-  | `(haveI $x := $val; $body) => `(haveI $x : _ := $val; $body)
-  | `(haveI $decl:haveDecl; $body) => `(haveI x := have $decl:haveDecl; x; $body)
+  | `(haveI $hy:hygieneInfo $bs* $[: $ty]? := $val; $body) =>
+    `(haveI $(HygieneInfo.mkIdent hy `this (canonical := true)) $bs* $[: $ty]? := $val; $body)
+  | `(haveI _ $bs* := $val; $body) => `(haveI x $bs* : _ := $val; $body)
+  | `(haveI _ $bs* : $ty := $val; $body) => `(haveI x $bs* : $ty := $val; $body)
+  | `(haveI $x:ident $bs* := $val; $body) => `(haveI $x $bs* : _ := $val; $body)
+  | `(haveI $_:ident $_* : $_ := $_; $_) => throwUnsupported -- handled by elab
 
 macro_rules
-  | `(letI $_ : $_ := $_; $_) => throwUnsupported -- handled by elab
-  | `(letI $[: $ty]? := $val; $body) => `(letI $(mkIdent `this) $[: $ty]? := $val; $body)
-  | `(letI $x := $val; $body) => `(letI $x : _ := $val; $body)
-  | `(letI $decl:haveDecl; $body) => `(letI x := have $decl:haveDecl; x; $body)
+  | `(letI $hy:hygieneInfo $bs* $[: $ty]? := $val; $body) =>
+    `(letI $(HygieneInfo.mkIdent hy `this (canonical := true)) $bs* $[: $ty]? := $val; $body)
+  | `(letI _ $bs* := $val; $body) => `(letI x $bs* : _ := $val; $body)
+  | `(letI _ $bs* : $ty := $val; $body) => `(letI x $bs* : $ty := $val; $body)
+  | `(letI $x:ident $bs* := $val; $body) => `(letI $x $bs* : _ := $val; $body)
+  | `(letI $_:ident $_* : $_ := $_; $_) => throwUnsupported -- handled by elab
 
 elab_rules <= expectedType
-  | `(haveI $x : $ty := $val; $body) => do
-    let ty ← elabType ty
-    let val ← elabTermEnsuringType val ty
+  | `(haveI $x:ident $bs* : $ty := $val; $body) => do
+    let (ty, val) ← elabBinders bs fun bs => do
+      let ty ← elabType ty
+      let val ← elabTermEnsuringType val ty
+      pure (← mkForallFVars bs ty, ← mkLambdaFVars bs val)
     withLocalDeclD x.getId ty fun x => do
       return (← (← elabTerm body expectedType).abstractM #[x]).instantiate #[val]
 
 elab_rules <= expectedType
-  | `(letI $x : $ty := $val; $body) => do
-    let ty ← elabType ty
-    let val ← elabTermEnsuringType val ty
+  | `(letI $x:ident $bs* : $ty := $val; $body) => do
+    let (ty, val) ← elabBinders bs fun bs => do
+      let ty ← elabType ty
+      let val ← elabTermEnsuringType val ty
+      pure (← mkForallFVars bs ty, ← mkLambdaFVars bs val)
     withLetDecl x.getId ty val fun x => do
       return (← (← elabTerm body expectedType).abstractM #[x]).instantiate #[val]
 
