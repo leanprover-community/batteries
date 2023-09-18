@@ -56,7 +56,7 @@ jobs:
         run: |
           ! (find . -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
 
-      - name: Check for forbidden 'import Lean'
+      - name: Don't 'import Lean', use precise imports
         if: always()
         run: |
           ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
