@@ -288,7 +288,8 @@ We say a goal is independent of other goals if assigning a value to it
 can not change the assignability of the other goals.
 
 Examples:
-* `?m_1 : Type` is not independent of `?m_2 : ?m_1`, because we could assign `true : Bool` to `?m_2`,
+* `?m_1 : Type` is not independent of `?m_2 : ?m_1`,
+  because we could assign `true : Bool` to `?m_2`,
   but if we first assign `Nat` to `?m_1` then that is no longer possible.
 * `?m_1 : Nat` is not independent of `?m_2 : Fin ?m_1`,
   because we could assign `37 : Fin 42` to `?m_2`,
