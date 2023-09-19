@@ -786,6 +786,17 @@ theorem map_eq_append_split {f : α → β} {l : List α} {s₁ s₂ : List β}
   rw [← length_map l f, h, length_append]
   apply Nat.le_add_right
 
+/-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`
+in `l₁`, dropping the elements up to `n - l₁.length` in `l₂`, and appending them. -/
+theorem drop_append_eq_append_drop {l₁ l₂ : List α} :
+    drop n (l₁ ++ l₂) = drop n l₁ ++ drop (n - l₁.length) l₂ := by
+  induction l₁ generalizing n; · simp
+  cases n <;> simp [*]
+
+theorem drop_append_of_le_length {l₁ l₂ : List α} (h : n ≤ l₁.length) :
+    (l₁ ++ l₂).drop n = l₁.drop n ++ l₂ := by
+  simp [drop_append_eq_append_drop, Nat.sub_eq_zero_of_le h]
+
 /-! ### modify nth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
@@ -1852,8 +1863,8 @@ attribute [simp] Chain.nil
 
 @[simp]
 theorem chain_cons {a b : α} {l : List α} : Chain R a (b :: l) ↔ R a b ∧ Chain R b l :=
-  ⟨fun p ↦ by cases p with | cons n p => exact ⟨n, p⟩,
-   fun ⟨n, p⟩ ↦ p.cons n⟩
+  ⟨fun p => by cases p with | cons n p => exact ⟨n, p⟩,
+   fun ⟨n, p⟩ => p.cons n⟩
 
 theorem rel_of_chain_cons {a b : α} {l : List α} (p : Chain R a (b :: l)) : R a b :=
   (chain_cons.1 p).1
