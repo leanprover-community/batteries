@@ -304,8 +304,8 @@ Examples:
   (note that `Meta.getMVars` follows delayed assignments).
 
 This function only calculates a conservative approximation of this condition.
-(That is, it may return `false` when it should return `true`.
-In particular it returns false whenever the type of `g` contains a metavariable,
+That is, it may return `false` when it should return `true`.
+(In particular it returns false whenever the type of `g` contains a metavariable,
 regardless of whether this is related to the metavariables in `L`.)
 -/
 def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := do
