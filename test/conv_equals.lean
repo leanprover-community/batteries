@@ -14,7 +14,7 @@ import Std.Tactic.GuardExpr
 
 /-- warning: declaration uses 'sorry' -/
 #guard_msgs in
-example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
+example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) => equals 0 =>
     -- current goal: ⊢ n - n = 0
     guard_target =ₛ n - n = 0
@@ -37,7 +37,7 @@ n : Nat
 error: no goals to be solved
 -/
 #guard_msgs in
-example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
+example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) =>
     equals 0 => skip -- this should complain
     -- and at this point, there should be no goal left
