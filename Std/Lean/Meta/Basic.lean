@@ -315,7 +315,7 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := do
     -- we conservatively say that `g` is not independent.
     -- It would be possible to check if `L` depends on these meta-variables.
     return false
-  if t.isProp then
+  if (← inferType t).isProp then
     -- If the goal is propositional,
     -- proof-irrelevance ensures it is independent of any other goals.
     return true
