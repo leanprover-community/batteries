@@ -349,8 +349,8 @@ theorem lookup_cons [BEq α] {k : α} :
 /-! ### unzip -/
 
 @[simp] theorem unzip_nil : ([] : List (α × β)).unzip = ([], []) := rfl
-@[simp] theorem unzip_cons {a : α} {b : β} :
-    ((a, b) :: t).unzip = match unzip t with | (al, bl) => (a::al, b::bl) := rfl
+@[simp] theorem unzip_cons {h : α × β} :
+    (h :: t).unzip = match unzip t with | (al, bl) => (h.1::al, h.2::bl) := rfl
 
 /-! ### enumFrom -/
 
@@ -366,7 +366,7 @@ theorem lookup_cons [BEq α] {k : α} :
 
 @[simp] theorem intersperse_nil (sep : α) : ([] : List α).intersperse sep = [] := rfl
 @[simp] theorem intersperse_single (sep : α) : [x].intersperse sep = [x] := rfl
-@[simp] theorem intersperse_cons_cons (sep : α) :
+@[simp] theorem intersperse_cons₂ (sep : α) :
     (x::y::zs).intersperse sep = x::sep::((y::zs).intersperse sep) := rfl
 
 /-! ### isPrefixOf -/
@@ -374,23 +374,23 @@ theorem lookup_cons [BEq α] {k : α} :
 @[simp] theorem isPrefixOf_nil_left [BEq α] : isPrefixOf ([] : List α) l = true := by
   simp [isPrefixOf]
 @[simp] theorem isPrefixOf_cons_nil [BEq α] : isPrefixOf (a::as) ([] : List α) = false := rfl
-theorem isPrefixOf_cons_cons [BEq α] {a : α} :
+theorem isPrefixOf_cons₂ [BEq α] {a : α} :
     isPrefixOf (a::as) (b::bs) = (a == b && isPrefixOf as bs) := rfl
-@[simp] theorem isPrefixOf_cons_cons_self [BEq α] [LawfulBEq α] {a : α} :
-    isPrefixOf (a::as) (a::bs) = isPrefixOf as bs := by simp [isPrefixOf_cons_cons]
+@[simp] theorem isPrefixOf_cons₂_self [BEq α] [LawfulBEq α] {a : α} :
+    isPrefixOf (a::as) (a::bs) = isPrefixOf as bs := by simp [isPrefixOf_cons₂]
 
 /-! ### isEqv -/
 
 @[simp] theorem isEqv_nil_nil : isEqv ([] : List α) [] eqv = true := rfl
 @[simp] theorem isEqv_nil_cons : isEqv ([] : List α) (a::as) eqv = false := rfl
 @[simp] theorem isEqv_cons_nil : isEqv (a::as : List α) [] eqv = false := rfl
-theorem isEqv_cons_cons : isEqv (a::as) (b::bs) eqv = (eqv a b && isEqv as bs eqv) := rfl
+theorem isEqv_cons₂ : isEqv (a::as) (b::bs) eqv = (eqv a b && isEqv as bs eqv) := rfl
 
 /-! ### dropLast -/
 
 @[simp] theorem dropLast_nil : ([] : List α).dropLast = [] := rfl
 @[simp] theorem dropLast_single : [x].dropLast = [] := rfl
-@[simp] theorem dropLast_cons_cons :
+@[simp] theorem dropLast_cons₂ :
     (x::y::zs).dropLast = x :: (y::zs).dropLast := rfl
 
 -- We may want to replace these `simp` attributes with explicit equational lemmas,

@@ -525,8 +525,6 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
-@[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
-
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
   induction l₁ <;> simp [*, dropLast]
 
@@ -1342,7 +1340,7 @@ theorem find?_cons_of_neg (l) (h : ¬p a) : find? p (a :: l) = find? p l :=
   by simp [find?, h]
 
 theorem find?_eq_none : find? p l = none ↔ ∀ x ∈ l, ¬ p x := by
-  induction l <;> simp [find?]; split <;> simp [*]
+  induction l <;> simp [find?_cons]; split <;> simp [*]
 
 theorem find?_some : ∀ {l}, find? p l = some a → p a
   | b :: l, H => by

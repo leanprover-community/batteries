@@ -189,7 +189,7 @@ def unzipTR (l : List (α × β)) : List α × List β :=
   l.foldr (fun (a, b) (al, bl) => (a::al, b::bl)) ([], [])
 
 @[csimp] theorem unzip_eq_unzipTR : @unzip = @unzipTR := by
-  funext α β l; simp [unzipTR]; induction l <;> simp [*, unzip]
+  funext α β l; simp [unzipTR]; induction l <;> simp [*]
 
 /-- Tail recursive version of `enumFrom`. -/
 def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
@@ -228,7 +228,7 @@ def intersperseTR (sep : α) : List α → List α
   funext α sep l; simp [intersperseTR]
   match l with
   | [] | [_] => rfl
-  | x::y::xs => simp [intersperse]; induction xs generalizing y <;> simp [*, intersperse]
+  | x::y::xs => simp [intersperse]; induction xs generalizing y <;> simp [*]
 
 /-- Tail recursive version of `intercalate`. -/
 def intercalateTR (sep : List α) : List (List α) → List α
@@ -246,12 +246,12 @@ where
   funext α sep l; simp [intercalate, intercalateTR]
   match l with
   | [] => rfl
-  | [_] => simp [intersperse]
+  | [_] => simp
   | x::y::xs =>
     let rec go {acc x} : ∀ xs,
       intercalateTR.go sep.toArray x xs acc = acc.data ++ join (intersperse sep (x::xs))
-    | [] => by simp [intercalateTR.go, intersperse]
-    | _::_ => by simp [intercalateTR.go, go, intersperse]
+    | [] => by simp [intercalateTR.go]
+    | _::_ => by simp [intercalateTR.go, go]
     simp [intersperse, go]
 
 /-! ## New definitions -/
