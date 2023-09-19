@@ -33,6 +33,7 @@ import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
+import Std.Data.Json
 import Std.Data.List.Basic
 import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
