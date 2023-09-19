@@ -58,7 +58,7 @@ instance : BEq (PersistentHashSet α) where
 
 /--
 Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 @[inline]
 def insert' (s : PersistentHashSet α) (a : α) : PersistentHashSet α × Bool :=
