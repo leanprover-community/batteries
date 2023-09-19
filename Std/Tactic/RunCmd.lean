@@ -49,7 +49,7 @@ syntax (name := byElab) "by_elab " doSeq : term
 @[term_elab byElab] def elabRunElab : TermElab := fun
 | `(by_elab $cmds:doSeq), expectedType? => do
   if let `(Lean.Parser.Term.doSeq| $e:term) := cmds then
-    if e matches `(Lean.Parser.Term.doSeq| fun $[$_args]* ↦ $_) then
+    if e matches `(Lean.Parser.Term.doSeq| fun $[$_args]* => $_) then
       let tac ← unsafe evalTerm
         (Option Expr → TermElabM Expr)
         (Lean.mkForall `x .default
