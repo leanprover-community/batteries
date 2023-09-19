@@ -80,7 +80,8 @@ def squash : (Unit → m (MLList m α)) → MLList m α := (MLList.spec m).squas
 
 /-- Deconstruct a `MLList`, returning inside the monad an optional pair `α × MLList m α`
 representing the head and tail of the list. -/
-@[inline] def uncons [Monad m] : MLList.{u} m α → m (Option (α × MLList m α)) := (MLList.spec m).uncons
+@[inline] def uncons [Monad m] : MLList.{u} m α → m (Option (α × MLList m α)) :=
+  (MLList.spec m).uncons
 
 instance : EmptyCollection (MLList m α) := ⟨nil⟩
 instance : Inhabited (MLList m α) := ⟨nil⟩
@@ -144,9 +145,9 @@ def ofList : List α → MLList m α
   | h :: t => cons h (thunk fun _ => ofList t)
 
 /-- Convert a `List` of values inside the monad into a `MLList`. -/
-def ofMLList [Monad m] : List (m α) → MLList m α
+def ofListM [Monad m] : List (m α) → MLList m α
   | [] => nil
-  | h :: t => squash fun _ => return cons (← h) (ofMLList t)
+  | h :: t => squash fun _ => return cons (← h) (ofListM t)
 
 /-- Extract a list inside the monad from a `MLList`. -/
 partial def force [Monad m] (L : MLList m α) : m (List α) := do
@@ -342,6 +343,22 @@ partial def runState [Monad m] (L : MLList (StateT.{u} σ m) α) (s : σ) : MLLi
 /-- Given a lazy list in a state monad, run it on some initial state. -/
 def runState' [Monad m] (L : MLList (StateT.{u} σ m) α) (s : σ) : MLList m α :=
   L.runState s |>.map (·.1)
+
+/-- Run a lazy list in a `ReaderT` monad on some fixed state. -/
+partial def runReader [Monad m] (L : MLList (ReaderT.{u, u} ρ m) α) (r : ρ) :
+    MLList m α :=
+  squash fun _ =>
+    return match ← (uncons L).run r with
+    | none => nil
+    | some (a, L') => cons a (L'.runReader r)
+
+/-- Run a lazy list in a `StateRefT'` monad on some initial state. -/
+partial def runStateRef [Monad m] [MonadLiftT (ST ω) m] (L : MLList (StateRefT' ω σ m) α) (s : σ) :
+    MLList m α :=
+  squash fun _ =>
+    return match ← (uncons L).run s with
+    | (none, _) => nil
+    | (some (a, L'), s') => cons a (L'.runStateRef s')
 
 /-- Return the head of a monadic lazy list if it exists, as an `Option` in the monad. -/
 def head? [Monad m] (L : MLList m α) : m (Option α) := return (← L.uncons).map (·.1)

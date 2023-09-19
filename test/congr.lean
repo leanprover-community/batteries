@@ -43,7 +43,8 @@ example {ls : List Nat} :
   guard_target =ₐ 1 + y = y.succ
   rw [Nat.add_comm]
 
-example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} : (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
+example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
+    (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
   rcongr x
   exact h x
 

@@ -58,7 +58,7 @@ instance : BEq (PersistentHashSet α) where
 
 /--
 Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 @[inline]
 def insert' (s : PersistentHashSet α) (a : α) : PersistentHashSet α × Bool :=
@@ -87,7 +87,7 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : PersistentHashSet
 Obtain a `PersistentHashSet` from a list.
 -/
 @[inline]
-protected def ofList [BEq α] [Hashable α] (as : Array α) : PersistentHashSet α :=
+protected def ofList [BEq α] [Hashable α] (as : List α) : PersistentHashSet α :=
   PersistentHashSet.empty.insertMany as
 
 /--

@@ -110,7 +110,8 @@ def insertUnexpander : Lean.PrettyPrinter.Unexpander
   | _ => throw ()
 
 /-- `insert x ∅ = {x}` -/
-class IsLawfulSingleton (α : Type u) (β : Type v) [EmptyCollection β] [Insert α β] [Singleton α β] : Prop where
+class IsLawfulSingleton (α : Type u) (β : Type v) [EmptyCollection β] [Insert α β] [Singleton α β] :
+    Prop where
   /-- `insert x ∅ = {x}` -/
   insert_emptyc_eq (x : α) : (insert x ∅ : β) = {x}
 export IsLawfulSingleton (insert_emptyc_eq)

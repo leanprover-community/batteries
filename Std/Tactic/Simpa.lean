@@ -73,7 +73,8 @@ private def mkSimpOnly (stx : Syntax) (usedSimps : UsedSimps) : MetaM Syntax.Tac
     match thm with
     | .decl declName => -- global definitions in the environment
       if env.contains declName && !simpOnlyBuiltins.contains declName then
-        args := args.push (← `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
+        args := args.push
+          (← `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
     | .fvar fvarId => -- local hypotheses in the context
       if isSimpAll then
         continue
