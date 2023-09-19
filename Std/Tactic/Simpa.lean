@@ -73,7 +73,8 @@ private def mkSimpOnly (stx : Syntax) (usedSimps : UsedSimps) : MetaM Syntax.Tac
     match thm with
     | .decl declName => -- global definitions in the environment
       if env.contains declName && !simpOnlyBuiltins.contains declName then
-        args := args.push (← `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
+        args := args.push
+          (← `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
     | .fvar fvarId => -- local hypotheses in the context
       if isSimpAll then
         continue
@@ -115,6 +116,8 @@ elab_rules : tactic
   let stx ← `(tactic| simp $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]?)
   let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
   let ctx := if unfold.isSome then { ctx with config.autoUnfold := true } else ctx
+  -- TODO: have `simpa` fail if it doesn't use `simp`.
+  let ctx := { ctx with config := { ctx.config with failIfUnchanged := false } }
   dischargeWrapper.with fun discharge? => do
     let (some (_, g), usedSimps) ←
         simpGoal (← getMainGoal) ctx (simplifyTarget := true) (discharge? := discharge?)

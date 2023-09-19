@@ -24,7 +24,7 @@ denominator is positive and the numerator and denominator are coprime.
   /-- The denominator is nonzero. -/
   den_nz : den ≠ 0 := by decide
   /-- The numerator and denominator are coprime: it is in "reduced form". -/
-  reduced : num.natAbs.coprime den := by decide
+  reduced : num.natAbs.Coprime den := by decide
   deriving DecidableEq
 
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
@@ -45,7 +45,7 @@ Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational n
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
 -/
 @[inline] def Rat.maybeNormalize (num : Int) (den g : Nat)
-    (den_nz : den / g ≠ 0) (reduced : (num.div g).natAbs.coprime (den / g)) : Rat :=
+    (den_nz : den / g ≠ 0) (reduced : (num.div g).natAbs.Coprime (den / g)) : Rat :=
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
@@ -57,7 +57,7 @@ theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
   e ▸ Nat.ne_of_gt (Nat.div_gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 theorem Rat.normalize.reduced {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num.div g).natAbs.coprime (den / g) :=
+    (e : g = num.natAbs.gcd den) : (num.div g).natAbs.Coprime (den / g) :=
   have : Int.natAbs (num.div ↑g) = num.natAbs / g := by
     match num, num.eq_nat_or_neg with
     | _, ⟨_, .inl rfl⟩ => rfl
@@ -186,8 +186,8 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
   have ae : ad * g = a.den := had ▸ Nat.div_mul_cancel (hg ▸ Nat.gcd_dvd_left ..)
   have be : bd * g = b.den := hbd ▸ Nat.div_mul_cancel (hg ▸ Nat.gcd_dvd_right ..)
   have hden : den = ad * bd * g := by rw [Nat.mul_assoc, be]
-  rw [hden, Nat.coprime.gcd_mul_left_cancel_right]
-  have cop : ad.coprime bd := had ▸ hbd ▸ hg ▸
+  rw [hden, Nat.Coprime.gcd_mul_left_cancel_right]
+  have cop : ad.Coprime bd := had ▸ hbd ▸ hg ▸
     Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_left _ a.den_pos)
   have H1 (d : Nat) :
       d.gcd num.natAbs ∣ a.num.natAbs * bd ↔ d.gcd num.natAbs ∣ b.num.natAbs * ad := by
@@ -196,7 +196,7 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     have := Int.dvd_iff_dvd_of_dvd_add this
     rwa [← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul,
       ← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul] at this
-  apply Nat.coprime.mul
+  apply Nat.Coprime.mul
   · have := (H1 ad).2 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_left ..)
     have := (cop.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_right this
     exact Nat.eq_one_of_dvd_one <| a.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|

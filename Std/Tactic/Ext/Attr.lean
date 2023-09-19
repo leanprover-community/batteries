@@ -5,6 +5,7 @@ Authors: Gabriel Ebner, Mario Carneiro
 -/
 import Std.Tactic.RCases
 import Std.Lean.Command
+import Std.Lean.Meta.DiscrTree
 
 namespace Std.Tactic.Ext
 open Lean Meta
@@ -22,21 +23,48 @@ structure ExtTheorem where
   keys : Array (DiscrTree.Key true)
   deriving Inhabited, Repr, BEq, Hashable
 
+/-- The state of the `ext` extension environment -/
+structure ExtTheorems where
+  /-- The tree of `ext` extensions. -/
+  tree   : DiscrTree ExtTheorem true := {}
+  /-- Erased `ext`s. -/
+  erased  : PHashSet Name := {}
+  deriving Inhabited
+
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension :
-    SimpleScopedEnvExtension ExtTheorem (DiscrTree ExtTheorem true) ←
+    SimpleScopedEnvExtension ExtTheorem ExtTheorems ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt thm => dt.insertCore thm.keys thm
+    addEntry := fun { tree, erased } thm =>
+      { tree := tree.insertCore thm.keys thm, erased := erased.erase thm.declName }
     initial := {}
   }
 
 /-- Get the list of `@[ext]` lemmas corresponding to the key `ty`,
 ordered from high priority to low. -/
-@[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) :=
+@[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) := do
+  let extTheorems := extExtension.getState (← getEnv)
+  let arr ← extTheorems.tree.getMatch ty
+  let erasedArr := arr.filter fun thm => !extTheorems.erased.contains thm.declName
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
-  return (← (extExtension.getState (← getEnv)).getMatch ty)
-    |>.insertionSort (·.priority < ·.priority) |>.reverse
+  return erasedArr.insertionSort (·.priority < ·.priority) |>.reverse
+
+/-- Erases a name marked `ext` by adding it to the state's `erased` field and
+  removing it from the state's list of `Entry`s. -/
+def ExtTheorems.eraseCore (d : ExtTheorems) (declName : Name) : ExtTheorems :=
+ { d with erased := d.erased.insert declName }
+
+/--
+  Erase a name marked as a `ext` attribute.
+  Check that it does in fact have the `ext` attribute by making sure it names a `ExtTheorem`
+  found somewhere in the state's tree, and is not erased.
+-/
+def ExtTheorems.erase [Monad m] [MonadError m] (d : ExtTheorems) (declName : Name) :
+    m ExtTheorems := do
+  unless d.tree.values.any (·.declName == declName) && !d.erased.contains declName do
+    throwError "'{declName}' does not have [ext] attribute"
+  return d.eraseCore declName
 
 /-- Registers an extensionality lemma.
 
@@ -73,4 +101,8 @@ initialize registerBuiltinAttribute {
       let priority ← liftCommandElabM do Elab.liftMacroM do
         evalPrio (prio.getD (← `(prio| default)))
       extExtension.add {declName, keys, priority} kind
+  erase := fun declName => do
+    let s := extExtension.getState (← getEnv)
+    let s ← s.erase declName
+    modifyEnv fun env => extExtension.modifyState env fun _ => s
 }

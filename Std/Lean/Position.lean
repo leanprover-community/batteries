@@ -14,6 +14,17 @@ def Lean.FileMap.utf8RangeToLspRange (text : FileMap) (range : String.Range) : L
 def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
   text.utf8RangeToLspRange <$> stx.getRange?
 
+/-- Convert a `Lean.Position` to a `String.Pos`. -/
+def Lean.FileMap.ofPosition (text : FileMap) (pos : Position) : String.Pos :=
+  let colPos :=
+    if h : pos.line - 1 < text.positions.size then
+      text.positions.get ⟨pos.line - 1, h⟩
+    else if text.positions.isEmpty then
+      0
+    else
+      text.positions.back
+  String.Iterator.nextn ⟨text.source, colPos⟩ pos.column |>.pos
+
 /-- Return the beginning of the line contatining character `pos`. -/
 def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
   match s.revFindAux (· = '\n') pos with

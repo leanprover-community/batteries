@@ -162,7 +162,7 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 @[simp] theorem mk_one : (⟨1, Nat.succ_lt_succ (Nat.succ_pos n)⟩ : Fin (n + 2)) = (1 : Fin _) := rfl
 
 theorem subsingleton_iff_le_one : Subsingleton (Fin n) ↔ n ≤ 1 := by
-  (match n with | 0 | 1 | n+2 => ?_) <;> simp
+  (match n with | 0 | 1 | n+2 => ?_) <;> try simp
   · exact ⟨fun.⟩
   · exact ⟨fun ⟨0, _⟩ ⟨0, _⟩ => rfl⟩
   · exact iff_of_false (fun h => Fin.ne_of_lt zero_lt_one (h.elim ..)) (of_decide_eq_false rfl)
@@ -560,9 +560,10 @@ This function has two arguments: `zero n` defines `0`-th element `motive (n+1) 0
   | Nat.succ _, ⟨Nat.succ i, h⟩ => succ _ _ (succRec zero succ ⟨i, Nat.lt_of_succ_lt_succ h⟩)
 
 /-- Define `motive n i` by induction on `i : Fin n` interpreted as `(0 : Fin (n - i)).succ.succ…`.
-This function has two arguments: `zero n` defines `0`-th element `motive (n+1) 0` of an `(n+1)`-tuple,
-and `succ n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
-of `n`-tuple.
+This function has two arguments:
+`zero n` defines the `0`-th element `motive (n+1) 0` of an `(n+1)`-tuple, and
+`succ n i` defines the `(i+1)`-st element of an `(n+1)`-tuple based on `n`, `i`,
+and the `i`-th element of an `n`-tuple.
 
 A version of `Fin.succRec` taking `i : Fin n` as the first argument. -/
 -- FIXME: Performance review

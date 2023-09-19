@@ -49,7 +49,7 @@ instance : BEq (HashSet α) where
 
 /--
 `O(1)` amortized. Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 @[inline]
 def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
@@ -68,7 +68,7 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
 `O(n)`. Obtain a `HashSet` from a list.
 -/
 @[inline]
-protected def ofList [BEq α] [Hashable α] (as : Array α) : HashSet α :=
+protected def ofList [BEq α] [Hashable α] (as : List α) : HashSet α :=
   HashSet.empty.insertMany as
 
 /--

@@ -70,6 +70,13 @@ macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic
     | refine Classical.byContradiction fun $e => ?_)
 
 /--
+Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
+If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
+-/
+macro "absurd " h:term : tactic =>
+  `(tactic| first | refine absurd ?_ $h | refine absurd $h ?_)
+
+/--
 `iterate n tac` runs `tac` exactly `n` times.
 `iterate tac` runs `tac` repeatedly until failure.
 
@@ -141,3 +148,16 @@ macro (name := triv) "triv" : tactic =>
 
 /-- `conv` tactic to close a goal using an equality theorem. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
+
+/-- The `conv` tactic `equals` claims that the currently focused subexpression is equal
+ to the given expression, and proves this claim using the given tactic.
+```
+example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
+  conv in (_ - _) => equals 0 =>
+    -- current goal: ⊢ n - n = 0
+    apply Nat.sub_self
+  -- current goal: P (fun n => 0)
+```
+-/
+macro (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv =>
+  `(conv| tactic => show (_ = $t); next => $tac)
