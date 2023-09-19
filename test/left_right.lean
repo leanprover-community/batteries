@@ -17,7 +17,8 @@ example : two = 2 := rfl
 set_option linter.missingDocs false
 
 /--
-error: tactic 'constructor' failed, left tactic works for inductive types with exactly 2 constructors
+error: tactic 'constructor' failed,
+left tactic works for inductive types with exactly 2 constructors
 ⊢ Unit
 -/
 #guard_msgs in
@@ -28,7 +29,8 @@ inductive F
 | a | b | c
 
 /--
-error: tactic 'constructor' failed, left tactic works for inductive types with exactly 2 constructors
+error: tactic 'constructor' failed,
+left tactic works for inductive types with exactly 2 constructors
 ⊢ F
 -/
 #guard_msgs in
