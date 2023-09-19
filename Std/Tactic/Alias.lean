@@ -130,7 +130,7 @@ Given a possibly forall-quantified iff expression `prf`, produce a value for one
 of the implication directions (determined by `mp`).
 -/
 def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
-  Meta.forallTelescope ty fun xs ty ↦ do
+  Meta.forallTelescope ty fun xs ty => do
     let some (lhs, rhs) := ty.iff?
       | throwError "Target theorem must have the form `∀ x y z, a ↔ b`"
     Meta.mkLambdaFVars xs <|

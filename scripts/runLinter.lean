@@ -37,7 +37,7 @@ unsafe def main (args : List String) : IO Unit := do
   let nolintsFile := "scripts/nolints.json"
   let nolints ← readJsonFile NoLints nolintsFile
   searchPathRef.set compile_time_search_path%
-  withImportModules [{module}] {} (trustLevel := 1024) fun env =>
+  withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
     let ctx := {fileName := "", fileMap := default}
     let state := {env}
     Prod.fst <$> (CoreM.toIO · ctx state) do
