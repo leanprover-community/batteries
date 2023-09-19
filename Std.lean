@@ -37,6 +37,7 @@ import Std.Data.List.Basic
 import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.List.Pairwise
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
@@ -100,6 +101,7 @@ import Std.Logic
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
+import Std.Tactic.Case
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -109,6 +111,7 @@ import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
 import Std.Tactic.Instances
+import Std.Tactic.LabelAttr
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -130,6 +133,7 @@ import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
+import Std.Test.Internal.DummyLabelAttr
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle

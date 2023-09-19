@@ -48,10 +48,10 @@ theorem negOfNat_eq : negOfNat n = -ofNat n := rfl
 
 @[simp] theorem add_def {a b : Int} : Int.add a b = a + b := rfl
 
-@[simp] theorem ofNat_add_ofNat (m n : Nat) : (↑m + ↑n : Int) = ↑(m + n) := rfl
-@[simp] theorem ofNat_add_negSucc (m n : Nat) : ↑m + -[n+1] = subNatNat m (succ n) := rfl
-@[simp] theorem negSucc_add_ofNat (m n : Nat) : -[m+1] + ↑n = subNatNat n (succ m) := rfl
-@[simp] theorem negSucc_add_negSucc (m n : Nat) : -[m+1] + -[n+1] = -[succ (m + n) +1] := rfl
+@[local simp] theorem ofNat_add_ofNat (m n : Nat) : (↑m + ↑n : Int) = ↑(m + n) := rfl
+@[local simp] theorem ofNat_add_negSucc (m n : Nat) : ↑m + -[n+1] = subNatNat m (succ n) := rfl
+@[local simp] theorem negSucc_add_ofNat (m n : Nat) : -[m+1] + ↑n = subNatNat n (succ m) := rfl
+@[local simp] theorem negSucc_add_negSucc (m n : Nat) : -[m+1] + -[n+1] = -[succ (m + n) +1] := rfl
 
 @[simp] theorem mul_def {a b : Int} : Int.mul a b = a * b := rfl
 
@@ -1415,3 +1415,20 @@ theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
 @[simp] theorem toNat_neg_nat : ∀ n : Nat, (-(n : Int)).toNat = 0
   | 0 => rfl
   | _+1 => rfl
+
+/-!
+The following lemmas are later subsumed by e.g. `Nat.cast_add` and `Nat.cast_mul` in Mathlib
+but it is convenient to have these earlier, for users who only need `Nat` and `Int`.
+-/
+
+theorem natCast_zero : ((0 : Nat) : Int) = (0 : Int) := rfl
+
+theorem natCast_one : ((1 : Nat) : Int) = (1 : Int) := rfl
+
+@[simp] theorem natCast_add (a b : Nat) : ((a + b : Nat) : Int) = (a : Int) + (b : Int) := by
+  -- Note this only works because of local simp attributes in this file,
+  -- so it still makes sense to tag the lemmas with `@[simp]`.
+  simp
+
+@[simp] theorem natCast_mul (a b : Nat) : ((a * b : Nat) : Int) = (a : Int) * (b : Int) := by
+  simp
