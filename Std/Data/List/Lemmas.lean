@@ -525,8 +525,6 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
-@[simp] theorem dropLast_nil : @dropLast α [] = [] := rfl
-@[simp] theorem dropLast_single : dropLast [a] = [] := rfl
 @[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
 
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
