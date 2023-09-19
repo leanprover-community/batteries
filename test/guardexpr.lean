@@ -19,6 +19,8 @@ example (n : Nat) : Nat := by
 
 -- Now with a generic type to test that default instances work correctly
 example [∀ n, OfNat α n] (n : α) : α := by
+  guard_hyp n
+  fail_if_success guard_hyp m
   guard_hyp n :ₛ α
   let q : α := 1
   guard_expr (1 : α) =ₛ 1
