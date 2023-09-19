@@ -173,32 +173,12 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 
 /-! ### zipWith -/
 
-@[simp] theorem zipWith_nil_left {f : α → β → γ} : zipWith f [] l = [] := by
-  rfl
-
-@[simp] theorem zipWith_nil_right {f : α → β → γ} : zipWith f l [] = [] := by
-  simp [zipWith]
-
-@[simp] theorem zipWith_cons_cons {f : α → β → γ} :
-    zipWith f (a :: as) (b :: bs) = f a b :: zipWith f as bs := by
-  rfl
-
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
-
 /-! ### zip -/
-
-@[simp] theorem zip_nil_left : zip ([] : List α) (l : List β)  = [] := by
-  rfl
-
-@[simp] theorem zip_nil_right : zip (l : List α) ([] : List β)  = [] := by
-  simp [zip]
-
-@[simp] theorem zip_cons_cons : zip (a :: as) (b :: bs) = (a, b) :: zip as bs := by
-  rfl
 
 @[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
     length (zip l₁ l₂) = min (length l₁) (length l₂) := by
@@ -774,11 +754,6 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | _a::l, n+1 => get!_eq_getD l n
 
 /-! ### take and drop -/
-
-@[simp] theorem take_zero : List.take 0 l = [] := rfl
-
-@[simp] theorem take_nil : ([] : List α).take i = [] := by
-  cases i <;> rfl
 
 @[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
 

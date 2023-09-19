@@ -127,6 +127,9 @@ theorem forall_mem_cons {p : α → Prop} {a : α} {l : List α} :
 
 /-! ### reverse -/
 
+@[simp] theorem reverseAux_nil : reverseAux [] r = r := rfl
+@[simp] theorem reverseAux_cons : reverseAux (a::l) r = reverseAux l (a::r) := rfl
+
 theorem reverseAux_eq (as bs : List α) : reverseAux as bs = reverse as ++ bs :=
   reverseAux_eq_append ..
 
@@ -154,6 +157,12 @@ theorem take_length_le {l : List α} (h : l.length ≤ i) : take i l = l := by
   have := take_append_drop i l
   rw [drop_length_le h, append_nil] at this; exact this
 
+@[simp] theorem take_zero (l : List α) : l.take 0 = [] := rfl
+
+@[simp] theorem take_nil : ([] : List α).take i = [] := by cases i <;> rfl
+
+@[simp] theorem take_cons_succ : (a::as).take (i+1) = a :: as.take i := rfl
+
 @[simp] theorem drop_zero (l : List α) : l.drop 0 = l := rfl
 
 @[simp] theorem drop_succ_cons : (a :: l).drop (n + 1) = l.drop n := rfl
@@ -169,6 +178,8 @@ theorem take_concat_get (l : List α) (i : Nat) (h : i < l.length) :
 
 theorem reverse_concat (l : List α) (a : α) : (l.concat a).reverse = a :: l.reverse := by
   rw [concat_eq_append, reverse_append]; rfl
+
+/-! ### foldlM and foldrM -/
 
 @[simp] theorem foldlM_reverse [Monad m] (l : List α) (f : β → α → m β) (b) :
     l.reverse.foldlM f b = l.foldrM (fun x y => f y x) b := rfl
@@ -202,6 +213,8 @@ theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
     l.foldr f b = l.foldrM (m := Id) f b := by
   induction l <;> simp [*, foldr]
 
+/-! ### foldl and foldr -/
+
 @[simp] theorem foldl_reverse (l : List α) (f : β → α → β) (b) :
     l.reverse.foldl f b = l.foldr (fun x y => f y x) b := by simp [foldl_eq_foldlM, foldr_eq_foldrM]
 
@@ -232,6 +245,8 @@ theorem foldr_eq_foldrM (f : α → β → β) (b) (l : List α) :
 
 theorem foldr_self (l : List α) : l.foldr cons [] = l := by simp
 
+/-! ### mapM -/
+
 /-- Alternate (non-tail-recursive) form of mapM for proofs. -/
 def mapM' [Monad m] (f : α → m β) : List α → m (List β)
   | [] => pure []
@@ -251,6 +266,8 @@ theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) 
 @[simp] theorem mapM_append [Monad m] [LawfulMonad m] (f : α → m β) {l₁ l₂ : List α} :
     (l₁ ++ l₂).mapM f = (return (← l₁.mapM f) ++ (← l₂.mapM f)) := by induction l₁ <;> simp [*]
 
+/-! ### forM -/
+
 -- We use `List.forM` as the simp normal form, rather that `ForM.forM`.
 -- As such we need to replace `List.forM_nil` and `List.forM_cons` from Lean:
 
@@ -259,3 +276,128 @@ theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) 
 @[simp] theorem forM_cons' [Monad m] :
     (a::as).forM f = (f a >>= fun _ => as.forM f : m PUnit) :=
   List.forM_cons _ _ _
+
+/-! ### eraseIdx -/
+
+@[simp] theorem eraseIdx_nil : ([] : List α).eraseIdx i = [] := rfl
+@[simp] theorem eraseIdx_cons_zero : (a::as).eraseIdx 0 = as := rfl
+@[simp] theorem eraseIdx_cons_succ : (a::as).eraseIdx (i+1) = a :: as.eraseIdx i := rfl
+
+/-! ### find? -/
+
+@[simp] theorem find?_nil : ([] : List α).find? p = none := rfl
+theorem find?_cons : (a::as).find? p = match p a with | true => some a | false => as.find? p :=
+  rfl
+
+/-! ### findSome? -/
+
+@[simp] theorem findSome?_nil : ([] : List α).findSome? f = none := rfl
+theorem findSome?_cons {f : α → Option β} :
+    (a::as).findSome? f = match f a with | some b => some b | none => as.findSome? f :=
+  rfl
+
+/-! ### replace -/
+
+@[simp] theorem replace_nil [BEq α] : ([] : List α).replace a b = [] := rfl
+theorem replace_cons [BEq α] {a : α} :
+    (a::as).replace b c = match a == b with | true => c::as | false => a :: replace as b c :=
+  rfl
+@[simp] theorem replace_cons_self [BEq α] [LawfulBEq α] {a : α} : (a::as).replace a b = b::as := by
+  simp [replace_cons]
+
+/-! ### elem -/
+
+@[simp] theorem elem_nil [BEq α] : ([] : List α).elem a = false := rfl
+theorem elem_cons [BEq α] {a : α} :
+    (a::as).elem b = match b == a with | true => true | false => as.elem b :=
+  rfl
+@[simp] theorem elem_cons_self [BEq α] [LawfulBEq α] {a : α} : (a::as).elem a = true := by
+  simp [elem_cons]
+
+/-! ### lookup -/
+
+@[simp] theorem lookup_nil [BEq α] : ([] : List (α × β)).lookup a = none := rfl
+theorem lookup_cons [BEq α] {k : α} :
+    ((k,b)::es).lookup a = match a == k with | true => some b | false => es.lookup a :=
+  rfl
+@[simp] theorem lookup_cons_self [BEq α] [LawfulBEq α] {k : α} : ((k,b)::es).lookup k = some b := by
+  simp [lookup_cons]
+
+/-! ### zipWith -/
+
+@[simp] theorem zipWith_nil_left {f : α → β → γ} : zipWith f [] l = [] := by
+  rfl
+
+@[simp] theorem zipWith_nil_right {f : α → β → γ} : zipWith f l [] = [] := by
+  simp [zipWith]
+
+@[simp] theorem zipWith_cons_cons {f : α → β → γ} :
+    zipWith f (a :: as) (b :: bs) = f a b :: zipWith f as bs := by
+  rfl
+
+/-! ### zip -/
+
+@[simp] theorem zip_nil_left : zip ([] : List α) (l : List β)  = [] := by
+  rfl
+
+@[simp] theorem zip_nil_right : zip (l : List α) ([] : List β)  = [] := by
+  simp [zip]
+
+@[simp] theorem zip_cons_cons : zip (a :: as) (b :: bs) = (a, b) :: zip as bs := by
+  rfl
+
+/-! ### unzip -/
+
+@[simp] theorem unzip_nil : ([] : List (α × β)).unzip = ([], []) := rfl
+@[simp] theorem unzip_cons {a : α} {b : β} :
+    ((a, b) :: t).unzip = match unzip t with | (al, bl) => (a::al, b::bl) := rfl
+
+/-! ### enumFrom -/
+
+@[simp] theorem enumFrom_nil : ([] : List α).enumFrom i = [] := rfl
+@[simp] theorem enumFrom_cons : (a::as).enumFrom i = (i, a) :: as.enumFrom (i+1) := rfl
+
+/-! ### iota -/
+
+@[simp] theorem iota_zero : iota 0 = [] := rfl
+@[simp] theorem iota_succ : iota (i+1) = (i+1) :: iota i := rfl
+
+/-! ### intersperse -/
+
+@[simp] theorem intersperse_nil (sep : α) : ([] : List α).intersperse sep = [] := rfl
+@[simp] theorem intersperse_single (sep : α) : [x].intersperse sep = [x] := rfl
+@[simp] theorem intersperse_cons_cons (sep : α) :
+    (x::y::zs).intersperse sep = x::sep::((y::zs).intersperse sep) := rfl
+
+/-! ### isPrefixOf -/
+
+@[simp] theorem isPrefixOf_nil_left [BEq α] : isPrefixOf ([] : List α) l = true := by
+  simp [isPrefixOf]
+@[simp] theorem isPrefixOf_cons_nil [BEq α] : isPrefixOf (a::as) ([] : List α) = false := rfl
+theorem isPrefixOf_cons_cons [BEq α] {a : α} :
+    isPrefixOf (a::as) (b::bs) = (a == b && isPrefixOf as bs) := rfl
+@[simp] theorem isPrefixOf_cons_cons_self [BEq α] [LawfulBEq α] {a : α} :
+    isPrefixOf (a::as) (a::bs) = isPrefixOf as bs := by simp [isPrefixOf_cons_cons]
+
+/-! ### isEqv -/
+
+@[simp] theorem isEqv_nil_nil : isEqv ([] : List α) [] eqv = true := rfl
+@[simp] theorem isEqv_nil_cons : isEqv ([] : List α) (a::as) eqv = false := rfl
+@[simp] theorem isEqv_cons_nil : isEqv (a::as : List α) [] eqv = false := rfl
+theorem isEqv_cons_cons : isEqv (a::as) (b::bs) eqv = (eqv a b && isEqv as bs eqv) := rfl
+
+/-! ### dropLast -/
+
+@[simp] theorem dropLast_nil : ([] : List α).dropLast = [] := rfl
+@[simp] theorem dropLast_single : [x].dropLast = [] := rfl
+@[simp] theorem dropLast_cons_cons :
+    (x::y::zs).dropLast = x :: (y::zs).dropLast := rfl
+
+-- We may want to replace these `simp` attributes with explicit equational lemmas,
+-- as we already have for all the non-monadic functions.
+attribute [simp] mapA forA List.forM filterAuxM firstM anyM allM findM? findSomeM?
+
+-- Previously `range.loop`, `mapM.loop`, `filterMapM.loop`, `forIn.loop`, `forIn'.loop`
+-- had attribute `@[simp]`.
+-- We don't currently provide simp lemmas,
+-- as this is an internal implementation and they don't seem to be needed.
