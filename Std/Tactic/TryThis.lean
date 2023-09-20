@@ -428,6 +428,7 @@ The parameters are:
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try these:") : MetaM Unit := do
+  if suggestions.isEmpty then throwErrorAt ref "no suggestions available"
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"

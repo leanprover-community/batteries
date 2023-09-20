@@ -186,3 +186,7 @@ info: Grab bag:
     postInfo? := " at 0.166667.",
     style? := some (.value (1/6))}
 ] with_header "Grab bag:"
+
+/-- error: no suggestions available -/
+#guard_msgs in
+#demo #[]
