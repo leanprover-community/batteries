@@ -1,7 +1,7 @@
 import Std.Tactic.GuardMsgs
 import Std.Data.Json
 
-open scoped ProofWidgets.Json
+open scoped Std.Json
 
 /-- info: {"lookACalc": 131,
  "lemonCount": 100000000000000000000000000000000,
@@ -20,7 +20,6 @@ open scoped ProofWidgets.Json
 }
 
 -- See https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/json.20elaborator
-open scoped ProofWidgets.Json in
 example : Lean.Json := Id.run do
   let _x := true
   return json% {"x" : 1}
