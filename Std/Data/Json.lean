@@ -11,7 +11,7 @@ import Std.Lean.Json
 Now you can write
 
 ```lean
-open scoped ProofWidgets.Json
+open scoped Std.Json
 
 #eval json% {
   hello : "world",
