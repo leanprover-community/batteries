@@ -66,10 +66,15 @@ We skip all declarations that contain `sorry` in their value. -/
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
-    let kind ← match ← getConstInfo declName with
+    let info ← getConstInfo declName
+    let kind ← match info with
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
-      | .defnInfo .. => pure "definition"
+      | .defnInfo .. =>
+          -- projections are generated as `def`s even when they should be `theorem`s
+          if (← isProjectionFn declName) && (← isProp info.type) then
+            return none
+          pure "definition"
       | .inductInfo .. => pure "inductive"
       | _ => return none
     let (none) ← findDocString? (← getEnv) declName | return none
@@ -82,8 +87,15 @@ We skip all declarations that contain `sorry` in their value. -/
   test declName := do
     if ← isAutoDecl declName then
       return none
-    let kind ← match ← getConstInfo declName with
+    let info ← getConstInfo declName
+    let kind ← match info with
       | .thmInfo .. => pure "theorem"
+      | .defnInfo .. =>
+          -- projections are generated as `def`s even when they should be `theorem`s
+          if (← isProjectionFn declName) && (← isProp info.type) then
+            return "Prop projection"
+          else
+            return none
       | _ => return none
     let (none) ← findDocString? (← getEnv) declName | return none
     return m!"{kind} missing documentation string"
