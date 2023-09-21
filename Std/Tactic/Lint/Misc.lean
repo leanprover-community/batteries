@@ -72,7 +72,7 @@ We skip all declarations that contain `sorry` in their value. -/
       | .opaqueInfo .. => pure "constant"
       | .defnInfo .. =>
           -- projections are generated as `def`s even when they should be `theorem`s
-          if (← isProjectionFn declName) && (← isProp info.type) then
+          if ← isProjectionFn declName <&&> isProp info.type then
             return none
           pure "definition"
       | .inductInfo .. => pure "inductive"
