@@ -10,6 +10,6 @@ structure AtLeastThirtySeven where
   prop : 37 ≤ val
 
 /-- and here -/
-theorem AtLeastThirdySeven.lt (x : AtLeastThirtySeven) : 36 < x.val := x.prop
+theorem AtLeastThirtySeven.lt (x : AtLeastThirtySeven) : 36 < x.val := x.prop
 
 #lint- only docBlameThm
