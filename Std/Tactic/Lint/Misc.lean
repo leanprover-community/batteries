@@ -93,7 +93,7 @@ We skip all declarations that contain `sorry` in their value. -/
       | .defnInfo .. =>
           -- projections are generated as `def`s even when they should be `theorem`s
           if ← isProjectionFn declName <&&> isProp info.type then
-            return "Prop projection"
+            pure "Prop projection"
           else
             return none
       | _ => return none
