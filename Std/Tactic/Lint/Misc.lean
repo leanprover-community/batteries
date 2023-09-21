@@ -66,11 +66,10 @@ We skip all declarations that contain `sorry` in their value. -/
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
-    let info ← getConstInfo declName
-    let kind ← match info with
+    let kind ← match ← getConstInfo declName with
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
-      | .defnInfo .. =>
+      | .defnInfo info =>
           -- projections are generated as `def`s even when they should be `theorem`s
           if ← isProjectionFn declName <&&> isProp info.type then
             return none
@@ -87,10 +86,9 @@ We skip all declarations that contain `sorry` in their value. -/
   test declName := do
     if ← isAutoDecl declName then
       return none
-    let info ← getConstInfo declName
-    let kind ← match info with
+    let kind ← match ← getConstInfo declName with
       | .thmInfo .. => pure "theorem"
-      | .defnInfo .. =>
+      | .defnInfo info =>
           -- projections are generated as `def`s even when they should be `theorem`s
           if ← isProjectionFn declName <&&> isProp info.type then
             pure "Prop projection"
