@@ -265,7 +265,9 @@ instance decidableBEx (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∃ x ∈ l, p x)
   | [] => isFalse fun.
   | x :: xs =>
-    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
+    match ‹DecidablePred p› x with
+    | isTrue h₁ => isTrue ⟨x, .head .., h₁⟩
+    | isFalse h₁ =>
       match decidableBEx p xs with
       | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
       | isFalse h₂ => isFalse fun
@@ -276,13 +278,14 @@ instance decidableBAll (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∀ x ∈ l, p x)
   | [] => isTrue fun.
   | x :: xs =>
-    if h₁ : p x then
+    match ‹DecidablePred p› x with
+    | isTrue h₁ =>
       match decidableBAll p xs with
       | isTrue h₂ => isTrue fun
         | y, .tail _ h => h₂ y h
         | _, .head .. => h₁
       | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
-    else isFalse fun H => h₁ <| H x (.head ..)
+    | isFalse h₁ => isFalse fun H => h₁ <| H x (.head ..)
 
 instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
   fun _ _ => decidableBAll _ _
