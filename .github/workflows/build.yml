@@ -41,7 +41,7 @@ jobs:
 
       - name: Check for forbidden character ↦
         run: |
-          if grep -r --include=\*.lean -e '↦' . ; then
+          if grep -r -n --include=\*.lean -e '↦' . ; then
             echo "Error: Found forbidden character ↦"
             exit 1
           fi
