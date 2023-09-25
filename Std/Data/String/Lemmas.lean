@@ -439,10 +439,10 @@ theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
   split <;> [rfl; rw [extract.go₁_cons_addChar]]
 
 theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
-| ⟨[]⟩ => rfl
-| ⟨c :: cs⟩ => by
-  simp [extract, Nat.ne_of_gt add_csize_pos]; congr
-  apply extract.go₁_zero_utf8Len
+  | ⟨[]⟩ => rfl
+  | ⟨c :: cs⟩ => by
+    simp [extract, Nat.ne_of_gt add_csize_pos]; congr
+    apply extract.go₁_zero_utf8Len
 
 theorem extract_of_valid (l m r : List Char) :
     extract ⟨l ++ m ++ r⟩ ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = ⟨m⟩ := by

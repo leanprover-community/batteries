@@ -245,14 +245,14 @@ theorem succ_inj' : succ n = succ m ↔ n = m :=
   ⟨succ.inj, congrArg _⟩
 
 theorem pred_inj : ∀ {a b : Nat}, 0 < a → 0 < b → Nat.pred a = Nat.pred b → a = b
-| a+1, b+1, _,  _, h => by rw [show a = b from h]
-| a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
-| 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
-| 0,   0,   _,  _, _ => rfl
+  | a+1, b+1, _,  _, h => by rw [show a = b from h]
+  | a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
+  | 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
+  | 0,   0,   _,  _, _ => rfl
 
 theorem pred_lt_pred : ∀ {n m : Nat}, n ≠ 0 → n < m → pred n < pred m
-| 0,   _,   h, _ => (h rfl).elim
-| _+1, _+1, _, h => lt_of_succ_lt_succ h
+  | 0,   _,   h, _ => (h rfl).elim
+  | _+1, _+1, _, h => lt_of_succ_lt_succ h
 
 theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
   ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -271,10 +271,10 @@ theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
 /-! ### add -/
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m : Nat}, n + m = 0 → n = 0
-| 0,   m => by simp [Nat.zero_add]
-| n+1, m => fun h => by
-  rw [add_one, succ_add] at h
-  cases succ_ne_zero _ h
+  | 0,   m => by simp [Nat.zero_add]
+  | n+1, m => fun h => by
+    rw [add_one, succ_add] at h
+    cases succ_ne_zero _ h
 
 protected theorem eq_zero_of_add_eq_zero_left {n m : Nat} (h : n + m = 0) : m = 0 :=
   @Nat.eq_zero_of_add_eq_zero_right m n (Nat.add_comm n m ▸ h)

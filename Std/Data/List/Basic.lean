@@ -1587,18 +1587,18 @@ or as
 -- TODO(Mario): tail recursive
 /-- Ternary version of `List.zipWith`. -/
 def zipWith₃ (f : α → β → γ → δ) : List α → List β → List γ → List δ
-| x :: xs, y :: ys, z :: zs => f x y z :: zipWith₃ f xs ys zs
-| _, _, _ => []
+  | x :: xs, y :: ys, z :: zs => f x y z :: zipWith₃ f xs ys zs
+  | _, _, _ => []
 
 /-- Quaternary version of `List.zipWith`. -/
 def zipWith₄ (f : α → β → γ → δ → ε) : List α → List β → List γ → List δ → List ε
-| x :: xs, y :: ys, z :: zs, u :: us => f x y z u :: zipWith₄ f xs ys zs us
-| _, _, _, _ => []
+  | x :: xs, y :: ys, z :: zs, u :: us => f x y z u :: zipWith₄ f xs ys zs us
+  | _, _, _, _ => []
 
 /-- Quinary version of `List.zipWith`. -/
 def zipWith₅ (f : α → β → γ → δ → ε → ζ) : List α → List β → List γ → List δ → List ε → List ζ
-| x :: xs, y :: ys, z :: zs, u :: us, v :: vs => f x y z u v :: zipWith₅ f xs ys zs us vs
-| _, _, _, _, _ => []
+  | x :: xs, y :: ys, z :: zs, u :: us, v :: vs => f x y z u v :: zipWith₅ f xs ys zs us vs
+  | _, _, _, _, _ => []
 
 /-- An auxiliary function for `List.mapWithPrefixSuffix`. -/
 -- TODO(Mario): tail recursive
