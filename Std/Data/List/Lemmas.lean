@@ -312,6 +312,8 @@ theorem getLast_cons' {a : α} {l : List α} : ∀ (h₁ : a :: l ≠ nil) (h₂
   getLast (a :: l) h₁ = getLast l h₂ := by
   induction l <;> intros; {contradiction}; rfl
 
+@[simp] theorem getLast_singleton (a h) : @getLast α [a] h = a := rfl
+
 @[simp] theorem getLast_append {a : α} : ∀ (l : List α) h, getLast (l ++ [a]) h = a
   | [], _ => rfl
   | a::t, h => by
@@ -325,6 +327,26 @@ theorem eq_nil_or_concat : ∀ l : List α, l = [] ∨ ∃ L b, l = L ++ [b]
   | a::l => match l, eq_nil_or_concat l with
     | _, .inl rfl => .inr ⟨[], a, rfl⟩
     | _, .inr ⟨L, b, rfl⟩ => .inr ⟨a::L, b, rfl⟩
+
+@[simp] theorem getLastD_nil (a) : @getLastD α [] a = a := rfl
+@[simp] theorem getLastD_cons (a b l) : @getLastD α (b::l) a = getLastD l b := by cases l <;> rfl
+
+theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
+  cases l <;> rfl
+
+theorem getLastD_eq_getLast? (a l) : @getLastD α l a = (getLast? l).getD a := by
+  cases l <;> rfl
+
+theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
+  simp [getLast!, getLast_eq_getLastD]
+
+@[simp] theorem getLast?_nil : @getLast? α [] = none := rfl
+theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by
+  simp [getLast?, getLast_eq_getLastD]
+
+theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
+  | [], h => nomatch h rfl
+  | _::_, _ => rfl
 
 /-! ### sublists -/
 
@@ -498,30 +520,6 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
-
-/-! ### getLast -/
-
-@[simp] theorem getLastD_nil (a) : @getLastD α [] a = a := rfl
-@[simp] theorem getLastD_cons (a b l) : @getLastD α (b::l) a = getLastD l b := by cases l <;> rfl
-
-theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
-  cases l <;> rfl
-
-theorem getLastD_eq_getLast? (a l) : @getLastD α l a = (getLast? l).getD a := by
-  cases l <;> rfl
-
-theorem getLast_singleton (a h) : @getLast α [a] h = a := rfl
-
-theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
-  simp [getLast!, getLast_eq_getLastD]
-
-@[simp] theorem getLast?_nil : @getLast? α [] = none := rfl
-theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by
-  simp [getLast?, getLast_eq_getLastD]
-
-theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
-  | [], h => nomatch h rfl
-  | _::_, _ => rfl
 
 /-! ### dropLast -/
 
