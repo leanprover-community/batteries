@@ -10,6 +10,8 @@ import Std.Data.String.Basic
 import Std.Tactic.Ext.Attr
 import Std.Tactic.Simpa
 
+@[simp] theorem Char.length_toString (c : Char) : c.toString.length = 1 := rfl
+
 namespace String
 
 @[ext] theorem ext {s₁ s₂ : String} (h : s₁.data = s₂.data) : s₁ = s₂ :=
@@ -22,8 +24,6 @@ theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := 
 @[simp] theorem str_eq : str = push := rfl
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl
-
-@[simp] theorem length_toString (c : Char) : c.toString.length = 1 := rfl
 
 @[simp] theorem length_empty : "".length = 0 := rfl
 
