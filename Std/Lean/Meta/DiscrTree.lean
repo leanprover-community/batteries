@@ -147,13 +147,15 @@ where
       (ord := ⟨compareOn (·.fst)⟩) cs₁ cs₂
       (fun (k₁, t₁) (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
 
+  /-- The children of a path node -/
   pathChildren ks t : Array (Key s × Trie α s) :=
     -- by construction, ks is nonempty
     #[(ks.get! 0, mkPath (ks.extract 1 ks.size) t)]
 
-  -- smart constructor, ensuring a path is nonempty
+  /-- smart constructor around `.path`, ensuring a path is nonempty -/
   mkPath ks t := if ks.isEmpty then t else .path ks t
 
+  /-- smart constructor around `.branch`, ordering the keys correctly -/
   mkBranch2 (k1 : Key s) (t1 : Trie α s) (k2 : Key s) (t2 : Trie α s) : Trie α s:=
     if k1 < k2 then
       .branch #[(k1, t1), (k2, t2)]
