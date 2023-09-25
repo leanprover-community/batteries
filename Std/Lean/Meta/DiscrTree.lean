@@ -38,9 +38,13 @@ namespace Trie
 -- inhabited.
 private unsafe def foldMUnsafe [Monad m] (initialKeys : Array (Key s))
     (f : σ → Array (Key s) → α → m σ) (init : σ) : Trie α s → m σ
-  | Trie.node vs children => do
+  | .empty => pure init
+  | .values vs t => do
     let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
-    children.foldlM (init := s) fun s (k, t) =>
+    t.foldMUnsafe initialKeys f s
+  | .path ks t => t.foldMUnsafe (initialKeys ++ ks) f init
+  | .branch cs => do
+    cs.foldlM (init := init) fun s (k, t) =>
       t.foldMUnsafe (initialKeys.push k) f s
 
 /--
@@ -63,9 +67,13 @@ def fold (initialKeys : Array (Key s)) (f : σ → Array (Key s) → α → σ)
 -- inhabited.
 private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) :
     Trie α s → m σ
-| node vs children => do
-  let s ← vs.foldlM (init := init) f
-  children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
+  | .empty => pure init
+  | .values vs t => do
+    let s ← vs.foldlM (init := init) fun s v => f s v
+    t.foldValuesMUnsafe f s
+  | .path _ t => t.foldValuesMUnsafe f init
+  | .branch cs => do
+    cs.foldlM (init := init) fun s (_, t) => t.foldValuesMUnsafe f s
 
 /--
 Monadically fold the values stored in a `Trie`.
@@ -84,15 +92,53 @@ def foldValues (f : σ → α → σ) (init : σ) (t : Trie α s) : σ :=
 The number of values stored in a `Trie`.
 -/
 partial def size : Trie α s → Nat
-  | Trie.node vs children =>
-    children.foldl (init := vs.size) fun n (_, c) => n + size c
+  | .empty => 0
+  | .values vs t => vs.size + t.size
+  | .path _ t => t.size
+  | .branch cs => cs.foldl (init := 0) fun n (_, c) => n + c.size
+
+/-- Just until Ci built the toolchain -/
+opaque _root_.Lean.Meta.DiscrTree.commonPrefix (ks1 : Array (Key s)) (ks2 : Array (Key s)) (i : Nat) : Nat
+
 
 /--
 Merge two `Trie`s. Duplicate values are preserved.
 -/
 partial def mergePreservingDuplicates : Trie α s → Trie α s → Trie α s
-  | node vs₁ cs₁, node vs₂ cs₂ =>
-    node (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
+  | .empty, t => t
+  | t, .empty => t
+  | .values vs₁ t₁, .values vs₂ t₂ =>
+    .values (vs₁ ++ vs₂) (mergePreservingDuplicates t₁ t₂)
+  | .values vs₁ t₁, t₂ =>
+    .values vs₁ (mergePreservingDuplicates t₁ t₂)
+  | t₁, .values vs₂ t₂ =>
+    .values vs₂ (mergePreservingDuplicates t₁ t₂)
+
+  | .branch cs₁, .branch cs₂ =>
+    .branch (mergeChildren cs₁ cs₂)
+  -- paths and branches are merged by converting the path to a (singleton) branch
+  | .path ks t, .branch cs₂ =>
+    let cs₁ := pathChildren ks t
+    .branch (mergeChildren cs₁ cs₂)
+  | .branch cs₁, .path ks t =>
+    let cs₂ := pathChildren ks t
+    .branch (mergeChildren cs₁ cs₂)
+  -- two paths are merged by splitting after the common prefix
+  | .path ks₁ t₁, .path ks₂ t₂ =>
+    let j := Lean.Meta.DiscrTree.commonPrefix ks₁ ks₂ 0
+    mkPath (ks₁.extract 0 j) $ -- the common prefix
+      if h₁ : j < ks₁.size then
+        if h₂ : j < ks₂.size then
+          -- introduce a branch
+          mkBranch2 (ks₁.get ⟨j, h₁⟩) (mkPath (ks₁.extract (j + 1) ks₁.size) t₁)
+                    (ks₂.get ⟨j, h₂⟩) (mkPath (ks₂.extract (j + 1) ks₂.size) t₂)
+        else
+          -- ks₂ is a prefix of ks₁, split and merge
+          mergePreservingDuplicates (mkPath (ks₁.extract j ks₁.size) t₁) t₂
+      else
+        -- ks₁ is a prefix of ks₂, split and merge
+        mergePreservingDuplicates t₁ (mkPath (ks₂.extract j ks₂.size) t₂)
+
 where
   /-- Auxiliary definition for `mergePreservingDuplicates`. -/
   mergeChildren (cs₁ cs₂ : Array (Key s × Trie α s)) :
@@ -100,6 +146,30 @@ where
     Array.mergeSortedMergingDuplicates
       (ord := ⟨compareOn (·.fst)⟩) cs₁ cs₂
       (fun (k₁, t₁) (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
+
+  pathChildren ks t : Array (Key s × Trie α s) :=
+    -- by construction, ks is nonempty
+    #[(ks.get! 0, mkPath (ks.extract 1 ks.size) t)]
+
+  -- smart constructor, ensuring a path is nonempty
+  mkPath ks t := if ks.isEmpty then t else .path ks t
+
+  mkBranch2 (k1 : Key s) (t1 : Trie α s) (k2 : Key s) (t2 : Trie α s) : Trie α s:=
+    if k1 < k2 then
+      .branch #[(k1, t1), (k2, t2)]
+    else
+      .branch #[(k2, t2), (k1, t1)]
+
+
+/--
+Map a function over the arrays stored in the nodes of the tree.
+-/
+partial def mapArrays (d : Trie α s) (f : Array α → Array α) : Trie α s :=
+  match d with
+  | .empty => .empty
+  | .values vs t => .values (f vs) (t.mapArrays f)
+  | .path ks t => .path ks (t.mapArrays f)
+  | .branch cs => .branch (cs.map fun (k, c) => (k, c.mapArrays f))
 
 end Trie
 
@@ -162,3 +232,9 @@ Merge two `DiscrTree`s. Duplicate values are preserved.
 def mergePreservingDuplicates (t u : DiscrTree α s) : DiscrTree α s :=
   ⟨t.root.mergeWith u.root fun _ trie₁ trie₂ =>
     trie₁.mergePreservingDuplicates trie₂⟩
+
+/--
+Map a function over the arrays stored in the nodes of the tree.
+-/
+def mapArrays (d : DiscrTree α s) (f : Array α → Array α) : DiscrTree α s :=
+  ⟨ d.root.map (·.mapArrays f) ⟩
