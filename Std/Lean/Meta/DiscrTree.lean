@@ -97,10 +97,6 @@ partial def size : Trie α s → Nat
   | .path _ t => t.size
   | .branch cs => cs.foldl (init := 0) fun n (_, c) => n + c.size
 
-/-- Just until Ci built the toolchain -/
-opaque _root_.Lean.Meta.DiscrTree.commonPrefix (ks1 : Array (Key s)) (ks2 : Array (Key s)) (i : Nat) : Nat
-
-
 /--
 Merge two `Trie`s. Duplicate values are preserved.
 -/
