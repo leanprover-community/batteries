@@ -397,7 +397,7 @@ theorem isEqv_cons₂ : isEqv (a::as) (b::bs) eqv = (eqv a b && isEqv as bs eqv)
 
 -- We may want to replace these `simp` attributes with explicit equational lemmas,
 -- as we already have for all the non-monadic functions.
-attribute [simp] mapA forA List.forM filterAuxM firstM anyM allM findM? findSomeM?
+attribute [simp] mapA forA filterAuxM firstM anyM allM findM? findSomeM?
 
 -- Previously `range.loop`, `mapM.loop`, `filterMapM.loop`, `forIn.loop`, `forIn'.loop`
 -- had attribute `@[simp]`.
