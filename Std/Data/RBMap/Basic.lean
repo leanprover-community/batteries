@@ -839,7 +839,7 @@ def filter (t : RBSet α cmp) (p : α → Bool) : RBSet α cmp :=
 If the function is monotone, consider using the more efficient `RBSet.mapMonotone` instead.
 -/
 def map (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
-  t.foldl (fun acc a => acc.insert <| f a) (mkRBSet β cmpβ)
+  t.foldl (init := ∅) fun acc a => acc.insert <| f a
 
 /--
 `O(n₁ * (log n₁ + log n₂))`. Constructs the set of all elements of `t₁` that are not in `t₂`.
