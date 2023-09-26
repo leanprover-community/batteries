@@ -249,6 +249,11 @@ def mapM' [Monad m] (f : α → m β) : List α → m (List β)
   | [] => pure []
   | a :: l => return (← f a) :: (← l.mapM' f)
 
+@[simp] theorem mapM'_nil [Monad m] {f : α → m β} : mapM' f [] = pure [] := rfl
+@[simp] theorem mapM'_cons [Monad m] {f : α → m β} :
+    mapM' f (a :: l) = return ((← f a) :: (← l.mapM' f)) :=
+  rfl
+
 theorem mapM'_eq_mapM [Monad m] [LawfulMonad m] (f : α → m β) (l : List α) :
     mapM' f l = mapM f l := by simp [go, mapM] where
   go : ∀ l acc, mapM.loop f l acc = return acc.reverse ++ (← mapM' f l)
