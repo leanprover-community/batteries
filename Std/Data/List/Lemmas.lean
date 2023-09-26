@@ -171,16 +171,20 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
 
+/-! ### zipWith -/
+
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
+/-! ### zip -/
+
+@[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
+    length (zip l₁ l₂) = min (length l₁) (length l₂) := by
+  simp [zip]
+
 /-! ### join -/
-
-theorem join_nil : join ([] : List (List α)) = [] := rfl
-
-theorem join_cons : join (a :: l : List (List α)) = a ++ join l := rfl
 
 theorem mem_join : ∀ {L : List (List α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l
   | [] => by simp
@@ -521,21 +525,20 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
-@[simp] theorem dropLast_nil : @dropLast α [] = [] := rfl
-@[simp] theorem dropLast_single : dropLast [a] = [] := rfl
-@[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
-
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
-  induction l₁ <;> simp [*]
+  induction l₁ <;> simp [*, dropLast]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
 /-! ### nth element -/
 
-@[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
-
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
   (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
+
+@[simp] theorem get_cons_succ' {as : List α} {i : Fin as.length} :
+  (a :: as).get i.succ = as.get i := rfl
+
+@[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
 theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
@@ -748,6 +751,8 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 
 /-! ### take and drop -/
 
+@[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
+
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
@@ -763,9 +768,6 @@ theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i 
 
 theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
   | _, _, rfl => drop_nil
-
-@[simp] theorem take_nil : ([] : List α).take i = [] := by
-  cases i <;> rfl
 
 theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
   | _, _, rfl => take_nil
@@ -957,6 +959,13 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
   rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
+
+@[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
+
+@[simp] theorem contains_cons [BEq α] :
+    (a :: as : List α).contains x = (x == a || as.contains x) := by
+  simp only [contains, elem]
+  split <;> simp_all
 
 theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
   induction l with simp | cons b l => cases a == b <;> simp [*]
@@ -1342,7 +1351,7 @@ theorem find?_cons_of_neg (l) (h : ¬p a) : find? p (a :: l) = find? p l :=
   by simp [find?, h]
 
 theorem find?_eq_none : find? p l = none ↔ ∀ x ∈ l, ¬ p x := by
-  induction l <;> simp; split <;> simp [*]
+  induction l <;> simp [find?_cons]; split <;> simp [*]
 
 theorem find?_some : ∀ {l}, find? p l = some a → p a
   | b :: l, H => by

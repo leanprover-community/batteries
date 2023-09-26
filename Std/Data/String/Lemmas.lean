@@ -467,7 +467,7 @@ theorem splitAux_of_valid (p l m r acc) :
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
   unfold splitAux
   simp [by simpa using atEnd_of_valid (l ++ m) r]; split
-  · subst r; simpa using extract_of_valid l m []
+  · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
     simp [by simpa using (⟨get_of_valid (l++m) (c::r), next_of_valid (l++m) c r,
       extract_of_valid l m (c::r)⟩ : _∧_∧_), List.splitOnP.go]
