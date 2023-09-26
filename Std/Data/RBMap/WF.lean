@@ -506,8 +506,9 @@ namespace RBSet
 export RBNode (IsMonotone)
 
 /--
-`O(n)`. Map a function on every value in the tree.
+`O(n)`. Map a function on every value in the set.
 This requires `IsMonotone` on the function in order to preserve the order invariant.
+If the function is not monotone, use `RBSet.map` instead.
 -/
 @[inline] def mapMonotone (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
   ⟨t.1.map f, have ⟨h₁, _, _, h₂⟩ := t.2.out; .mk (h₁.map _) h₂.map⟩
