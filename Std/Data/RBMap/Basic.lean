@@ -836,9 +836,9 @@ def filter (t : RBSet α cmp) (p : α → Bool) : RBSet α cmp :=
 
 /--
 `O(n * log n)`. Map a function on every value in the set.
-If the function is monotone, consider using the more efficient `RBSet.mapMonotone` instead.
+If the function is monotone, consider using the more efficient `RBSet.map` instead.
 -/
-def map (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
+def image (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
   t.foldl (init := ∅) fun acc a => acc.insert <| f a
 
 /--
