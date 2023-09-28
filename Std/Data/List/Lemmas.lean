@@ -526,6 +526,14 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
   | [], h => nomatch h rfl
   | _::_, _ => rfl
 
+theorem getLastD_concat (a l) : (concat l a).getLastD d = a := by
+  induction l generalizing d
+  case nil => rfl
+  case cons hd tl IH => simp only [concat_eq_append, cons_append, getLastD_cons] at *; rw [IH]
+
+theorem getLast!_concat [Inhabited α] {a : α} {l : List α} : (concat l a).getLast! = a := by
+  rw [getLast!_eq_getLastD, getLastD_concat]
+
 /-! ### dropLast -/
 
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
