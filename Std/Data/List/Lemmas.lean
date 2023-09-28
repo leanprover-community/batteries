@@ -510,6 +510,9 @@ theorem getLast_eq_getLastD (a l h) : @getLast α (a::l) h = getLastD l a := by
 theorem getLastD_eq_getLast? (a l) : @getLastD α l a = (getLast? l).getD a := by
   cases l <;> rfl
 
+theorem getLast!_eq_getLastD [Inhabited α] (l : List α) : l.getLast! = l.getLastD default := by
+  cases l <;> rfl
+
 theorem getLast_singleton (a h) : @getLast α [a] h = a := rfl
 
 theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := by
