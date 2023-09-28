@@ -548,10 +548,6 @@ theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some 
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
 
-theorem get!_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
-  | _ :: _, 0, _ => rfl
-  | _ :: l, _+1, _ => get?_eq_get (l := l) _
-
 theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
     (a::l).get! (n+1) = get! l n := rfl
 
@@ -699,6 +695,12 @@ theorem getLast?_eq_get? : ∀ (l : List α), getLast? l = l.get? (l.length - 1)
 @[simp] theorem getLastD_concat (a b l) : @getLastD α (l ++ [b]) a = b := by
   rw [getLastD_eq_getLast?, getLast?_concat]; rfl
 
+@[simp] theorem List.getLast!_concat [Inhabited α] (xs : List α) (x : α) :
+    (xs.concat x).getLast! = x := by
+  cases xs
+  · simp only [getLast!, concat_eq_append, nil_append]; rfl
+  · simp [List.getLast!_cons]
+
 theorem get_cons_length (x : α) (xs : List α) (n : Nat) (h : n = xs.length) :
     (x :: xs).get ⟨n, by simp [h]⟩ = (x :: xs).getLast (cons_ne_nil x xs) := by
   rw [getLast_eq_get]; cases h; rfl
@@ -735,6 +737,14 @@ theorem get?_reverse {l : List α} (i) (h : i < length l) :
     rw [Nat.add_sub_of_le (Nat.le_pred_of_lt h),
       Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
 
+theorem getD_eq_get {l : List α} {n} (hn : n < l.length) : l.getD n d = l.get ⟨n, hn⟩ := by
+  induction l generalizing n
+  case nil => exact absurd hn (fun h => by cases h)
+  case cons hd tl IH =>
+    cases n
+    case zero => simp [getD]
+    case succ n => exact IH _
+
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
   | _a::_, 0, rfl => rfl
   | _::l, _+1, e => get!_of_get? (l := l) e
@@ -748,6 +758,9 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
   | [], _      => rfl
   | _a::_, 0   => rfl
   | _a::l, n+1 => get!_eq_getD l n
+
+theorem get!_eq_get [Inhabited α] {l : List α} {n} (h : n < l.length) :
+    l.get! n = get l ⟨n, h⟩ := by rw [get!_eq_getD, getD_eq_get]
 
 /-! ### take and drop -/
 
