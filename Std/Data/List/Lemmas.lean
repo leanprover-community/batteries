@@ -529,7 +529,8 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
 theorem dropLast_cons_of_ne_nil {α : Type u} {x : α}
-    {l : List α} (h : l ≠ []) : (x :: l).dropLast = x :: l.dropLast := by simp [h]
+    {l : List α} (h : l ≠ []) : (x :: l).dropLast = x :: l.dropLast :=
+  by simp [dropLast, h]
 
 @[simp]
 theorem dropLast_append_of_ne_nil {α : Type u} {l : List α} :
@@ -761,12 +762,6 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 /-! ### take -/
 
 @[simp]
-theorem take_zero (l : List α) : take 0 l = [] :=
-  rfl
-
-@[simp] theorem take_nil : ([] : List α).take i = [] := by
-  cases i <;> rfl
-
 theorem take_cons (n) (a : α) (l : List α) : take (succ n) (a :: l) = a :: take n l :=
   rfl
 
