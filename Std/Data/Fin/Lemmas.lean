@@ -155,6 +155,11 @@ theorem eq_last_of_not_lt {i : Fin (n + 1)} (h : ¬(i : Nat) < n) : i = last n :
 theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
   Decidable.not_imp_comm.1 eq_last_of_not_lt
 
+@[simp] theorem rev_last (n : Nat) : rev (last n) = 0 := ext <| by simp
+
+@[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
+  rw [← rev_rev (last _), rev_last]
+
 /-! ### addition, numerals, and coercion from Nat -/
 
 @[simp] theorem val_one (n : Nat) : (1 : Fin (n + 2)).val = 1 := rfl
@@ -477,6 +482,16 @@ theorem cast_addNat {n : Nat} (m : Nat) (i : Fin n) :
 
 theorem natAdd_castSucc {m n : Nat} {i : Fin m} : natAdd n (castSucc i) = castSucc (natAdd n i) :=
   rfl
+
+theorem rev_castAdd (k : Fin n) (m : Nat) : rev (castAdd m k) = addNat (rev k) m := ext <| by
+  rw [val_rev, coe_castAdd, coe_addNat, val_rev, Nat.sub_add_comm (Nat.succ_le_of_lt k.is_lt)]
+
+theorem rev_addNat (k : Fin n) (m : Nat) : rev (addNat k m) = castAdd m (rev k) := by
+  rw [← rev_rev (castAdd ..), rev_castAdd, rev_rev]
+
+theorem rev_castSucc (k : Fin n) : rev (castSucc k) = succ (rev k) := k.rev_castAdd 1
+
+theorem rev_succ (k : Fin n) : rev (succ k) = castSucc (rev k) := k.rev_addNat 1
 
 /-! ### pred -/
 
