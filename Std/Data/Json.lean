@@ -1,9 +1,10 @@
 /-
  Copyright (c) 2022 E.W.Ayers. All rights reserved.
  Released under Apache 2.0 license as described in the file LICENSE.
- Authors: E.W.Ayers
+ Authors: E.W.Ayers, Wojciech Nawrocki
 -/
 import Std.Lean.Json
+import Lean.Syntax
 
 /-!
 # JSON-like syntax for Lean.
@@ -11,7 +12,7 @@ import Std.Lean.Json
 Now you can write
 
 ```lean
-open scoped Std.Json
+open Std.Json
 
 #eval json% {
   hello : "world",
@@ -33,39 +34,31 @@ declare_syntax_cat jso (behavior := symbol)
 declare_syntax_cat jso_field
 /-- Json identifier syntax. -/
 declare_syntax_cat jso_ident
-
-
-/-- Json array syntax. -/
-scoped syntax "[" jso,* "]" : jso
-/-- Json number negation syntax for scientific numbers. -/
-scoped syntax "-"? scientific : jso
-/-- Json number negation syntax for ordinary numbers. -/
-scoped syntax "-"? num : jso
-/-- Json string syntax. -/
-scoped syntax str : jso
-/-- Json true value syntax. -/
-scoped syntax "true" : jso
-/-- Json false value syntax. -/
-scoped syntax "false" : jso
 /-- Json null value syntax. -/
-scoped syntax "null" : jso
+syntax "null" : jso
+/-- Json true value syntax. -/
+syntax "true" : jso
+/-- Json false value syntax. -/
+syntax "false" : jso
+/-- Json string syntax. -/
+syntax str : jso
+/-- Json number negation syntax for ordinary numbers. -/
+syntax "-"? num : jso
+/-- Json number negation syntax for scientific numbers. -/
+syntax "-"? scientific : jso
+/-- Json array syntax. -/
+syntax "[" jso,* "]" : jso
 /-- Json identifier syntax. -/
-scoped syntax ident : jso_ident
-/-- Json quotation syntax for keys. -/
-scoped syntax "$(" term ")" : jso_ident
-/-- Json string key syntax. -/
-scoped syntax str : jso_ident
+syntax jsoIdent := ident <|> str
 /-- Json key/value syntax. -/
-scoped syntax jso_ident ": " jso : jso_field
+syntax jsoField := jsoIdent ": " jso
 /-- Json dictionary syntax. -/
-scoped syntax "{" jso_field,* "}" : jso
-/-- Json quotation syntax for values. -/
-scoped syntax "$(" term ")" : jso
+syntax "{" jsoField,* "}" : jso
 /-- Allows to use Json syntax in a Lean file. -/
-scoped syntax "json% " jso  : term
+syntax "json% " jso  : term
+
 
 macro_rules
-  | `(json% $($t))          => `(Lean.toJson $t)
   | `(json% null)           => `(Lean.Json.null)
   | `(json% true)           => `(Lean.Json.bool Bool.true)
   | `(json% false)          => `(Lean.Json.bool Bool.false)
@@ -75,12 +68,17 @@ macro_rules
   | `(json% -$n:num)        => `(Lean.Json.num (-$n))
   | `(json% -$n:scientific) => `(Lean.Json.num (-$n))
   | `(json% [$[$xs],*])     => `(Lean.Json.arr #[$[json% $xs],*])
-  | `(json% {$[$ks:jso_ident : $vs:jso],*}) =>
-    let ks : Array (TSyntax `term) := ks.map fun
-      | `(jso_ident| $k:ident)   => (k.getId |> toString |> quote)
-      | `(jso_ident| $k:str)     => k
-      | `(jso_ident| $($k:term)) => k
-      | stx                      => panic! s!"unrecognized ident syntax {stx}"
+  | `(json% {$[$ks:jsoIdent : $vs:jso],*}) => do
+    let ks : Array (TSyntax `term) ← ks.mapM fun
+      | `(jsoIdent| $k:ident) => pure (k.getId |> toString |> quote)
+      | `(jsoIdent| $k:str)   => pure k
+      | _                     => Macro.throwUnsupported
     `(Lean.Json.mkObj [$[($ks, json% $vs)],*])
+  | `(json% $stx)           =>
+    if stx.raw.isAntiquot then
+      let stx := ⟨stx.raw.getAntiquotTerm⟩
+      `(Lean.toJson $stx)
+    else
+      Macro.throwUnsupported
 
 end Std.Json
