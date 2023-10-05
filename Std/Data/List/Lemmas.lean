@@ -523,11 +523,6 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 
 /-! ### dropLast -/
 
-@[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
-  induction l₁ <;> simp [*, dropLast]
-
-@[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
-
 theorem dropLast_cons_of_ne_nil {α : Type u} {x : α}
     {l : List α} (h : l ≠ []) : (x :: l).dropLast = x :: l.dropLast :=
   by simp [dropLast, h]
@@ -539,6 +534,11 @@ theorem dropLast_append_of_ne_nil {α : Type u} {l : List α} :
   | a :: l', h => by
     rw [cons_append, dropLast, dropLast_append_of_ne_nil l' h, cons_append]
     simp [h]
+
+@[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
+
+theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
+  induction l₁ <;> simp [*, dropLast]
 
 /-! ### nth element -/
 
