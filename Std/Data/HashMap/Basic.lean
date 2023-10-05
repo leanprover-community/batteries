@@ -253,7 +253,7 @@ def _root_.Std.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] := {m 
 open HashMap.Imp
 
 /-- Make a new hash map with the specified capacity. -/
-@[inline] def _root_.Std.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
+@[inline] def _root_.Std.mkHashMap [BEq α] [Hashable α] (capacity := 8) : HashMap α β :=
   ⟨.empty capacity, .empty⟩
 
 instance [BEq α] [Hashable α] : Inhabited (HashMap α β) where
