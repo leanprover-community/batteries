@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 import Std.Data.HashMap.Basic
 import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
-import Std.Tactic.ShowTerm
 
 namespace Std.HashMap
 namespace Imp
@@ -21,8 +20,9 @@ namespace Buckets
 theorem update_data (self : Buckets α β) (i d h) :
     (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
 
+/-- This theorem, small it may seem, is really useful. Apply whenever possible. -/
 theorem exists_of_update (self : Buckets α β) (i d h) :
-    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
+    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i.toNat] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
   simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
 
@@ -69,7 +69,7 @@ theorem reinsertAux_size [Hashable α] (data : Buckets α β) (a : α) (b : β) 
 
 theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b : β} (H : data.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
-      haveI := mkIdx data.2 (hash a).toUSize
+      haveI := mkIdx (hash a) data.2
       (data.val[this.1]'this.2).All fun x _ => ¬(a == x)) :
     (reinsertAux data a b).WF :=
   H.update (.cons h₁) fun
@@ -331,7 +331,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
       simp; exact match f a.1 a.2 with
       | none => .cons _ ih
       | some b => .cons₂ _ ih
-  suffices ∀ bk sz (h : 0 < bk.length),
+  suffices ∀ bk sz (h : bk.length.isPowerOfTwo),
     m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
     WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]

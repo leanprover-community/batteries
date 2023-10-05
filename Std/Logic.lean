@@ -709,6 +709,28 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
 @[simp] theorem ite_not (P : Prop) [Decidable P] (x y : α) : ite (¬P) x y = ite P y x :=
   dite_not P (fun _ => x) (fun _ => y)
 
+/-! ## Bool -/
+
+theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
+  | true => .inl rfl
+  | false => .inr rfl
+
+theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
+  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
+
+theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
+
+theorem Bool.beq_eq_false_iff [BEq α] {a a' : α} :
+    (a == a') = false ↔ a != a' := by
+  simp only [bne, not_eq_true']
+
+@[simp] theorem Bool.bne_eq_false_iff [BEq α] {a a' : α} :
+    (a != a') = false ↔ a == a' := by
+  simp only [bne, not_eq_false']
+
+theorem Bool.bne_iff_not_beq [BEq α] {a a' : α} : a != a' ↔ ¬(a == a') := by
+  simp only [not_eq_true, beq_eq_false_iff]
+
 /-! ## miscellaneous -/
 
 attribute [simp] inline
@@ -761,14 +783,5 @@ example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
   ⟨fun ⟨x, _⟩ ⟨y, _⟩ => by congr; exact Subsingleton.elim x y⟩
 
 theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
-
-theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
-  | true => .inl rfl
-  | false => .inr rfl
-
-theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
-  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
-
-theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
