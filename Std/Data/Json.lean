@@ -28,12 +28,8 @@ open Std.Json
 namespace Std.Json
 open Lean
 
-/-- Json data syntax. -/
+/-- Json syntactic category -/
 declare_syntax_cat jso (behavior := symbol)
-/-- Json data field syntax. -/
-declare_syntax_cat jso_field
-/-- Json identifier syntax. -/
-declare_syntax_cat jso_ident
 /-- Json null value syntax. -/
 syntax "null" : jso
 /-- Json true value syntax. -/
@@ -52,7 +48,7 @@ syntax "[" jso,* "]" : jso
 syntax jsoIdent := ident <|> str
 /-- Json key/value syntax. -/
 syntax jsoField := jsoIdent ": " jso
-/-- Json dictionary syntax. -/
+/-- Json object syntax. -/
 syntax "{" jsoField,* "}" : jso
 /-- Allows to use Json syntax in a Lean file. -/
 syntax "json% " jso  : term
