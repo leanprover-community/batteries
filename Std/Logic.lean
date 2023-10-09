@@ -639,13 +639,13 @@ This is the same as `decidable_of_iff` but the iff is flipped. -/
 instance Decidable.predToBool (p : α → Prop) [DecidablePred p] :
     CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
 
-theorem Bool.ff_ne_tt : false ≠ true := fun.
+theorem Bool.false_ne_true : false ≠ true := fun.
 
 /-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
 (This is sometimes taken as an alternate definition of decidability.) -/
 def decidable_of_bool : ∀ (b : Bool), (b ↔ a) → Decidable a
   | true, h => isTrue (h.1 rfl)
-  | false, h => isFalse (mt h.2 Bool.ff_ne_tt)
+  | false, h => isFalse (mt h.2 Bool.false_ne_true)
 
 /-! ## classical logic -/
 
