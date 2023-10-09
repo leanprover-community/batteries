@@ -804,28 +804,28 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 @[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
-`isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
+`IsPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
 that is, `l₂` has the form `l₁ ++ t` for some `t`.
 -/
-def isPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
+def IsPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
 
 /--
-`isSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
+`IsSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
 that is, `l₂` has the form `t ++ l₁` for some `t`.
 -/
-def isSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
+def IsSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
 
 /--
-`isInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
+`IsInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
 substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, t`.
 -/
-def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
+def IsInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inherit_doc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] infixl:50 " <+: " => IsPrefix
 
-@[inherit_doc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] infixl:50 " <:+ " => IsSuffix
 
-@[inherit_doc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] infixl:50 " <:+: " => IsInfix
 
 /--
 `inits l` is the list of initial segments of `l`.
