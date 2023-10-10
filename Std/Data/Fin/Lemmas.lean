@@ -695,7 +695,7 @@ decreasing_by decreasing_with
 
 @[simp] theorem addCases_left {m n : Nat} {motive : Fin (m + n) → Sort _} {left right} (i : Fin m) :
     addCases (motive := motive) left right (Fin.castAdd n i) = left i := by
-  rw [addCases, dif_pos (castAdd_lt _ _)]; rfl
+  rw [addCases, dif_pos (castAdd_lt _ _)]
 
 @[simp]
 theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right} (i : Fin n) :
