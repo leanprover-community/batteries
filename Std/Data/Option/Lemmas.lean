@@ -22,10 +22,10 @@ protected theorem «exists» {p : Option α → Prop} : (∃ x, p x) ↔ p none 
    fun | .inl h => ⟨_, h⟩ | .inr ⟨_, hx⟩ => ⟨_, hx⟩⟩
 
 theorem get_mem : ∀ {o : Option α} (h : isSome o), o.get h ∈ o
-| some _, _ => rfl
+  | some _, _ => rfl
 
 theorem get_of_mem : ∀ {o : Option α} (h : isSome o), a ∈ o → o.get h = a
-| _, _, rfl => rfl
+  | _, _, rfl => rfl
 
 theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
 

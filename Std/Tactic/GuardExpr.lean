@@ -231,10 +231,12 @@ expression equals `true`. -/
 elab "#guard " e:term : command =>
   Lean.Elab.Command.liftTermElabM do
     let e ← Term.elabTermEnsuringType e (mkConst ``Bool)
-    Term.synthesizeSyntheticMVarsUsingDefault
+    Term.synthesizeSyntheticMVarsNoPostponing
     let e ← instantiateMVars e
-    if e.hasMVar then
-      throwError "expression{indentExpr e}\nhas metavariables"
-    let v ← unsafe (evalExpr Bool (mkConst ``Bool) e)
-    unless v do
-      throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    let mvars ← getMVars e
+    if mvars.isEmpty then
+      let v ← unsafe evalExpr Bool (mkConst ``Bool) e
+      unless v do
+        throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    else
+      _ ← Term.logUnassignedUsingErrorInfos mvars

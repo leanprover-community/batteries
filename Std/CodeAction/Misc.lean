@@ -214,13 +214,14 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
 Similar to `getElabInfo`, but returns the names of binders instead of just the numbers;
 intended for code actions which need to name the binders.
 -/
-def getElimNames (declName : Name) : MetaM (Array (Name × Array Name)) := do
+def getElimNames (inductName declName : Name) : MetaM (Array (Name × Array Name)) := do
+  let inductVal ← getConstInfoInduct inductName
   let decl ← getConstInfo declName
   forallTelescopeReducing decl.type fun xs type => do
     let motive  := type.getAppFn
     let targets := type.getAppArgs
     let mut altsInfo := #[]
-    for i in [:xs.size] do
+    for i in [inductVal.numParams:xs.size] do
       let x := xs[i]!
       if x != motive && !targets.contains x then
         let xDecl ← x.fvarId!.getDecl
@@ -280,7 +281,7 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
         doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!
       else endPos
       let elimName := if induction then mkRecName name else mkCasesOnName name
-      let ctors ← discrInfo.runMetaM ctx (getElimNames elimName)
+      let ctors ← discrInfo.runMetaM ctx (getElimNames name elimName)
       let newText := if ctors.isEmpty then "" else Id.run do
         let mut str := " with"
         let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1

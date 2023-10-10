@@ -171,16 +171,20 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
 
+/-! ### zipWith -/
+
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
+/-! ### zip -/
+
+@[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
+    length (zip l₁ l₂) = min (length l₁) (length l₂) := by
+  simp [zip]
+
 /-! ### join -/
-
-theorem join_nil : join ([] : List (List α)) = [] := rfl
-
-theorem join_cons : join (a :: l : List (List α)) = a ++ join l := rfl
 
 theorem mem_join : ∀ {L : List (List α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l
   | [] => by simp
@@ -521,21 +525,20 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
-@[simp] theorem dropLast_nil : @dropLast α [] = [] := rfl
-@[simp] theorem dropLast_single : dropLast [a] = [] := rfl
-@[simp] theorem dropLast_cons₂ : dropLast (a::b::l) = a :: dropLast (b::l) := rfl
-
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
-  induction l₁ <;> simp [*]
+  induction l₁ <;> simp [*, dropLast]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
 /-! ### nth element -/
 
-@[simp] theorem get_cons_zero {as : List α} : (a :: as).get ⟨0, Nat.zero_lt_succ _⟩ = a := rfl
-
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
   (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
+
+@[simp] theorem get_cons_succ' {as : List α} {i : Fin as.length} :
+  (a :: as).get i.succ = as.get i := rfl
+
+@[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
 theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
@@ -748,6 +751,8 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 
 /-! ### take and drop -/
 
+@[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
+
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
@@ -763,9 +768,6 @@ theorem get_cons_drop : ∀ (l : List α) i, get l i :: drop (i + 1) l = drop i 
 
 theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = []
   | _, _, rfl => drop_nil
-
-@[simp] theorem take_nil : ([] : List α).take i = [] := by
-  cases i <;> rfl
 
 theorem take_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.take i = []
   | _, _, rfl => take_nil
@@ -957,6 +959,13 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
   rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
+
+@[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
+
+@[simp] theorem contains_cons [BEq α] :
+    (a :: as : List α).contains x = (x == a || as.contains x) := by
+  simp only [contains, elem]
+  split <;> simp_all
 
 theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
   induction l with simp | cons b l => cases a == b <;> simp [*]
@@ -1342,7 +1351,7 @@ theorem find?_cons_of_neg (l) (h : ¬p a) : find? p (a :: l) = find? p l :=
   by simp [find?, h]
 
 theorem find?_eq_none : find? p l = none ↔ ∀ x ∈ l, ¬ p x := by
-  induction l <;> simp; split <;> simp [*]
+  induction l <;> simp [find?_cons]; split <;> simp [*]
 
 theorem find?_some : ∀ {l}, find? p l = some a → p a
   | b :: l, H => by
@@ -1550,12 +1559,12 @@ theorem leftpad_length (n : Nat) (a : α) (l : List α) :
   simp only [leftpad, length_append, length_replicate, Nat.sub_add_eq_max]
 
 theorem leftpad_prefix (n : Nat) (a : α) (l : List α) :
-    isPrefix (replicate (n - length l) a) (leftpad n a l) := by
-  simp only [isPrefix, leftpad]
+    IsPrefix (replicate (n - length l) a) (leftpad n a l) := by
+  simp only [IsPrefix, leftpad]
   exact Exists.intro l rfl
 
-theorem leftpad_suffix (n : Nat) (a : α) (l : List α) : isSuffix l (leftpad n a l) := by
-  simp only [isSuffix, leftpad]
+theorem leftpad_suffix (n : Nat) (a : α) (l : List α) : IsSuffix l (leftpad n a l) := by
+  simp only [IsSuffix, leftpad]
   exact Exists.intro (replicate (n - length l) a) rfl
 
 /-! ### monadic operations -/
@@ -1654,9 +1663,9 @@ theorem infix_append (l₁ l₂ l₃ : List α) : l₂ <:+: l₁ ++ l₂ ++ l₃
 @[simp] theorem infix_append' (l₁ l₂ l₃ : List α) : l₂ <:+: l₁ ++ (l₂ ++ l₃) := by
   rw [← List.append_assoc]; apply infix_append
 
-theorem isPrefix.isInfix : l₁ <+: l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨[], t, h⟩
+theorem IsPrefix.isInfix : l₁ <+: l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨[], t, h⟩
 
-theorem isSuffix.isInfix : l₁ <:+ l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨t, [], by rw [h, append_nil]⟩
+theorem IsSuffix.isInfix : l₁ <:+ l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨t, [], by rw [h, append_nil]⟩
 
 theorem nil_prefix (l : List α) : [] <+: l := ⟨l, rfl⟩
 
@@ -1677,31 +1686,31 @@ theorem infix_cons : l₁ <:+: l₂ → l₁ <:+: a :: l₂ := fun ⟨L₁, L₂
 theorem infix_concat : l₁ <:+: l₂ → l₁ <:+: concat l₂ a := fun ⟨L₁, L₂, h⟩ =>
   ⟨L₁, concat L₂ a, by simp [← h, concat_eq_append, append_assoc]⟩
 
-theorem isPrefix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
+theorem IsPrefix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <+: l₂ → l₂ <+: l₃ → l₁ <+: l₃
   | _, _, _, ⟨r₁, rfl⟩, ⟨r₂, rfl⟩ => ⟨r₁ ++ r₂, (append_assoc _ _ _).symm⟩
 
-theorem isSuffix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+ l₂ → l₂ <:+ l₃ → l₁ <:+ l₃
+theorem IsSuffix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+ l₂ → l₂ <:+ l₃ → l₁ <:+ l₃
   | _, _, _, ⟨l₁, rfl⟩, ⟨l₂, rfl⟩ => ⟨l₂ ++ l₁, append_assoc _ _ _⟩
 
-theorem isInfix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+: l₂ → l₂ <:+: l₃ → l₁ <:+: l₃
+theorem IsInfix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+: l₂ → l₂ <:+: l₃ → l₁ <:+: l₃
   | l, _, _, ⟨l₁, r₁, rfl⟩, ⟨l₂, r₂, rfl⟩ => ⟨l₂ ++ l₁, r₁ ++ r₂, by simp only [append_assoc]⟩
 
-protected theorem isInfix.sublist : l₁ <:+: l₂ → l₁ <+ l₂
+protected theorem IsInfix.sublist : l₁ <:+: l₂ → l₁ <+ l₂
   | ⟨_, _, h⟩ => h ▸ (sublist_append_right ..).trans (sublist_append_left ..)
 
-protected theorem isInfix.subset (hl : l₁ <:+: l₂) : l₁ ⊆ l₂ :=
+protected theorem IsInfix.subset (hl : l₁ <:+: l₂) : l₁ ⊆ l₂ :=
   hl.sublist.subset
 
-protected theorem isPrefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ :=
+protected theorem IsPrefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ :=
   h.isInfix.sublist
 
-protected theorem isPrefix.subset (hl : l₁ <+: l₂) : l₁ ⊆ l₂ :=
+protected theorem IsPrefix.subset (hl : l₁ <+: l₂) : l₁ ⊆ l₂ :=
   hl.sublist.subset
 
-protected theorem isSuffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ :=
+protected theorem IsSuffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ :=
   h.isInfix.sublist
 
-protected theorem isSuffix.subset (hl : l₁ <:+ l₂) : l₁ ⊆ l₂ :=
+protected theorem IsSuffix.subset (hl : l₁ <:+ l₂) : l₁ ⊆ l₂ :=
   hl.sublist.subset
 
 @[simp] theorem reverse_suffix : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
@@ -1717,13 +1726,13 @@ protected theorem isSuffix.subset (hl : l₁ <:+ l₂) : l₁ ⊆ l₂ :=
       reverse_reverse]
   · rw [append_assoc, ← reverse_append, ← reverse_append, e]
 
-theorem isInfix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length :=
+theorem IsInfix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length :=
   h.sublist.length_le
 
-theorem isPrefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length :=
+theorem IsPrefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length :=
   h.sublist.length_le
 
-theorem isSuffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length :=
+theorem IsSuffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length :=
   h.sublist.length_le
 
 @[simp] theorem infix_nil : l <:+: [] ↔ l = [] := ⟨(sublist_nil.1 ·.sublist), (· ▸ infix_refl _)⟩
@@ -1736,13 +1745,13 @@ theorem infix_iff_prefix_suffix (l₁ l₂ : List α) : l₁ <:+: l₂ ↔ ∃ t
   ⟨fun ⟨_, t, e⟩ => ⟨l₁ ++ t, ⟨_, rfl⟩, e ▸ append_assoc .. ▸ ⟨_, rfl⟩⟩,
     fun ⟨_, ⟨t, rfl⟩, s, e⟩ => ⟨s, t, append_assoc .. ▸ e⟩⟩
 
-theorem isInfix.eq_of_length (h : l₁ <:+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
+theorem IsInfix.eq_of_length (h : l₁ <:+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
   h.sublist.eq_of_length
 
-theorem isPrefix.eq_of_length (h : l₁ <+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
+theorem IsPrefix.eq_of_length (h : l₁ <+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
   h.sublist.eq_of_length
 
-theorem isSuffix.eq_of_length (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
+theorem IsSuffix.eq_of_length (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
   h.sublist.eq_of_length
 
 theorem prefix_of_prefix_length_le :
@@ -1793,7 +1802,7 @@ theorem infix_of_mem_join : ∀ {L : List (List α)}, l ∈ L → l <:+: join L
     match h with
     | List.Mem.head .. => infix_append [] _ _
     | List.Mem.tail _ hlMemL =>
-      isInfix.trans (infix_of_mem_join hlMemL) <| (suffix_append _ _).isInfix
+      IsInfix.trans (infix_of_mem_join hlMemL) <| (suffix_append _ _).isInfix
 
 theorem prefix_append_right_inj (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ :=
   exists_congr fun r => by rw [append_assoc, append_right_inj]
@@ -1822,17 +1831,17 @@ theorem drop_subset (n) (l : List α) : drop n l ⊆ l :=
 theorem mem_of_mem_take {l : List α} (h : a ∈ l.take n) : a ∈ l :=
   take_subset n l h
 
-theorem isPrefix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <+: l₂) :
+theorem IsPrefix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <+: l₂) :
     l₁.filter p <+: l₂.filter p := by
   obtain ⟨xs, rfl⟩ := h
   rw [filter_append]; apply prefix_append
 
-theorem isSuffix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+ l₂) :
+theorem IsSuffix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+ l₂) :
     l₁.filter p <:+ l₂.filter p := by
   obtain ⟨xs, rfl⟩ := h
   rw [filter_append]; apply suffix_append
 
-theorem isInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+: l₂) :
+theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+: l₂) :
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _

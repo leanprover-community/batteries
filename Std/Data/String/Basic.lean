@@ -13,7 +13,7 @@ instance : Coe String Substring := ⟨String.toSubstring⟩
 namespace String
 
 protected theorem Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
-| _, _, hlt, rfl => Nat.not_lt_zero _ hlt
+  | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
 
 /-- Knuth-Morris-Pratt matcher type
 
