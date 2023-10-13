@@ -117,8 +117,9 @@ partial def mapArrays (t : Trie α s) (f : Array α → Array β) : Trie β s :=
   let .node vs0 cs0 := t
   go (.mkEmpty cs0.size) (f vs0) cs0.reverse Ctxt.empty
 where
-  /-- This implementation as a single tail-recursive function is chosen to not blow the
-      interpreter stack when the `Trie` is very deep -/
+  -- This implementation as a single tail-recursive function is chosen to not blow the
+  -- interpreter stack when the `Trie` is very deep
+  /-- Internal loop of `Trie.mapArrays` -/
   go cs vs todo ps :=
     if todo.isEmpty then
       let c := .node vs cs
