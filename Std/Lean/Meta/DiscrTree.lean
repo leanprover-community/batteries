@@ -231,7 +231,7 @@ def mapArrays (d : DiscrTree α s) (f : Array α → Array β) : DiscrTree β s 
   { root := d.root.map (fun t => t.mapArrays f) }
 
 /--
-Remove elements for which `p` returns `false` from the given `DiscrTrie`.
+Remove elements for which `p` returns `false` from the given `DiscrTree`.
 The removed elements are monadically folded over using `f` and `init`, so `f`
 is called once for each removed element and the final state of type `σ` is
 returned.
