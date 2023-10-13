@@ -140,13 +140,13 @@ returned.
 private partial def filterFoldM [Monad m] [Inhabited σ] (f : σ → α → m σ)
     (p : α → m (ULift Bool)) (init : σ) : Trie α s → m (Trie α s × σ)
   | .node vs children => do
-    let (vs, acc) ← vs.foldlM (init := (#[], init)) λ (vs, acc) v => do
+    let (vs, acc) ← vs.foldlM (init := (#[], init)) fun (vs, acc) v => do
       if (← p v).down then
         return (vs.push v, acc)
       else
         return (vs, ← f acc v)
     let (children, acc) ← go acc 0 children
-    let children := children.filter λ (_, c) => ! c.isEmpty
+    let children := children.filter fun (_, c) => !c.isEmpty
     return (.node vs children, acc)
   where
     go (acc : σ) (i : Nat) (children : Array (Key s × Trie α s)) :
@@ -242,7 +242,7 @@ def filterFoldM [Monad m] [Inhabited σ] (p : α → m (ULift Bool))
     (f : σ → α → m σ) (init : σ) (t : DiscrTree α s) :
     m (DiscrTree α s × σ) := do
   let (root, acc) ←
-    t.root.foldlM (init := (.empty, init)) λ (root, acc) key t => do
+    t.root.foldlM (init := (.empty, init)) fun (root, acc) key t => do
       let (t, acc) ← t.filterFoldM f p acc
       let root := if t.isEmpty then root else root.insert key t
       return (root, acc)
