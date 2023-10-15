@@ -1380,7 +1380,7 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     split_ifs <;> simp_all
 
 theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
-    xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = List.replicate i false ++ [true] := by
+    xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = replicate i false ++ [true] := by
   induction xs generalizing i with
   | nil => simp
   | cons x xs ih =>
