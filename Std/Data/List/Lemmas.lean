@@ -178,6 +178,27 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
+@[simp]
+theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
+    zipWith f (l₁.map g) (l₂.map h) = zipWith (fun a b => f (g a) (h b)) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_map_left (l₁ : List α) (l₂ : List β) (f : α → α') (g : α' → β → γ) :
+    zipWith g (l₁.map f) l₂ = zipWith (fun a b => g (f a) b) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_map_right (l₁ : List α) (l₂ : List β) (f : β → β') (g : α → β' → γ) :
+    zipWith g l₁ (l₂.map f) = zipWith (fun a b => g a (f b)) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_foldr_eq_zip_foldr {f : α → β → γ} (i : δ):
+    (zipWith f l₁ l₂).foldr g i = (zip l₁ l₂).foldr (fun p r => g (f p.1 p.2) r) i := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_foldl_eq_zip_foldl {f : α → β → γ} (i : δ):
+    (zipWith f l₁ l₂).foldl g i = (zip l₁ l₂).foldl (fun r p => g r (f p.1 p.2)) i := by
+  induction l₁ generalizing i l₂ <;> cases l₂ <;> simp_all
+
 /-! ### zip -/
 
 @[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
