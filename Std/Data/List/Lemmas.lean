@@ -1365,6 +1365,52 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
 
+/-! ### findIdx -/
+
+@[simp] theorem findIdx_nil {α : Type _} (p : α → Bool) : [].findIdx p = 0 := rfl
+
+theorem findIdx_cons (p : α → Bool) (b : α) (l : List α) :
+    (b :: l).findIdx p = bif p b then 0 else (l.findIdx p) + 1 := by
+  cases H : p b with
+  | true => simp [H, findIdx, findIdx.go]
+  | false => simp [H, findIdx, findIdx.go, findIdx_go_succ]
+where
+  findIdx_go_succ (p : α → Bool) (l : List α) (n : Nat) :
+      List.findIdx.go p l (n + 1) = (findIdx.go p l n) + 1 := by
+    cases l with
+    | nil => unfold findIdx.go; exact Nat.succ_eq_add_one n
+    | cons head tail =>
+      unfold findIdx.go
+      cases p head <;> simp only [cond_false, cond_true]
+      exact findIdx_go_succ p tail (n + 1)
+
+theorem findIdx_of_get?_eq_some {xs : List α} (w : xs.get? (xs.findIdx p) = some y) : p y := by
+  induction xs with
+  | nil => simp_all
+  | cons x xs ih => by_cases h : p x <;> simp_all [findIdx_cons]
+
+theorem findIdx_get {xs : List α} {w : xs.findIdx p < xs.length} :
+    p (xs.get ⟨xs.findIdx p, w⟩) :=
+  xs.findIdx_of_get?_eq_some (get?_eq_get w)
+
+theorem findIdx_lt_length_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
+    xs.findIdx p < xs.length := by
+  induction xs with
+  | nil => simp_all
+  | cons x xs ih =>
+    by_cases p x
+    · simp_all only [forall_exists_index, and_imp, mem_cons, exists_eq_or_imp, true_or,
+        findIdx_cons, cond_true, length_cons]
+      apply Nat.succ_pos
+    · simp_all [findIdx_cons]
+      refine Nat.succ_lt_succ ?_
+      obtain ⟨x', m', h'⟩ := h
+      exact ih x' m' h'
+
+theorem findIdx_get?_eq_get_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
+    xs.get? (xs.findIdx p) = some (xs.get ⟨xs.findIdx p, xs.findIdx_lt_length_of_exists h⟩) :=
+  get?_eq_get (findIdx_lt_length_of_exists h)
+
 /-! ### pairwise -/
 
 theorem Pairwise.sublist : l₁ <+ l₂ → l₂.Pairwise R → l₁.Pairwise R
