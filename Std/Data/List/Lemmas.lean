@@ -184,11 +184,11 @@ theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) 
   induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
 
 theorem zipWith_map_left (l₁ : List α) (l₂ : List β) (f : α → α') (g : α' → β → γ) :
-    zipWith g (l₁.map f) l₂ = zipWith (fun a b => g (f a) b) l₁ l₂ := by
+    zipWith g (l₁.map f) l₂ = zipWith (g ∘ f) l₁ l₂ := by
   induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
 
 theorem zipWith_map_right (l₁ : List α) (l₂ : List β) (f : β → β') (g : α → β' → γ) :
-    zipWith g l₁ (l₂.map f) = zipWith (fun a b => g a (f b)) l₁ l₂ := by
+    zipWith g l₁ (l₂.map f) = zipWith (fun a => g a ∘ f) l₁ l₂ := by
   induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
 
 theorem zipWith_foldr_eq_zip_foldr {f : α → β → γ} (i : δ):
