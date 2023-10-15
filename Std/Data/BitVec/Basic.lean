@@ -136,8 +136,8 @@ def rotateRight (x : BitVec w) (n : Nat) : BitVec w :=
   x >>> n ||| x <<< (w - n)
 
 /-- Append. -/
-def append (a : BitVec n) (b : BitVec m) : BitVec (n+m) :=
-  .ofNat (n+m) (a.toNat <<< m + b.toNat)
+def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
+  .ofNat (n+m) (msbs.toNat <<< m + lsbs.toNat)
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨BitVec.append⟩
 
