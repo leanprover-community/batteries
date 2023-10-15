@@ -46,3 +46,6 @@ protected theorem max_comm (a b : Nat) : max a b = max b a := by
 protected theorem le_max_left (a b : Nat) : a ≤ max a b := by rw [Nat.max_def]; split <;> simp [*]
 
 protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. ▸ Nat.le_max_left ..
+
+protected theorem pow_two_gt_zero (w : Nat) : 2^w > 0 := by
+  apply Nat.pos_pow_of_pos; decide

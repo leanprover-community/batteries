@@ -4,6 +4,8 @@ institutional affiliations. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura
 -/
+import Std.Data.Nat.Init.Lemmas
+
 namespace Std
 /-!
 We define bitvectors. We choose the `Fin` representation over others for its relative efficiency
@@ -29,12 +31,9 @@ structure BitVec (w : Nat) where
 
 namespace BitVec
 
-theorem pow_two_gt_zero (w : Nat) : 2^w > 0 := by
-  apply Nat.pos_pow_of_pos; decide
-
 /-- The BitVector `i mod 2^n`. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n :=
-  { val := Fin.ofNat' i (pow_two_gt_zero _) }
+  { val := Fin.ofNat' i (Nat.pow_two_gt_zero _) }
 
 /-- Given a bitvector `a`, return the underlying `Nat`. -/
 protected def toNat (a : BitVec n) : Nat :=
