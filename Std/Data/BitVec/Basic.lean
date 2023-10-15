@@ -77,15 +77,26 @@ protected def add (x y : BitVec n) : BitVec n :=
 /-- Subtraction for bit vectors. -/
 protected def sub (x y : BitVec n) : BitVec n :=
   { val := x.val - y.val }
+/-- Bit vector of size `n` where all bits are `1`s -/
+protected def allOnes (n : Nat) : BitVec n :=
+  BitVec.sub (BitVec.ofNat n 0) (BitVec.ofNat n 1)
 /-- Multiplication for bit vectors. -/
 protected def mul (x y : BitVec n) : BitVec n :=
   { val := x.val * y.val }
 /-- Modulo for bit vectors. -/
 protected def mod (x y : BitVec n) : BitVec n :=
   { val := x.val % y.val }
-/-- Division for bit vectors. -/
+/--
+Division for bit vectors.
+Note that `div x 0 = allOnes n` as specified by the SMT-Lib standard.
+See the spec at http://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml.
+This is also consistent with a simple division circuit.
+-/
 protected def div (x y : BitVec n) : BitVec n :=
-  { val := x.val / y.val }
+  if y = BitVec.zero n then
+    BitVec.allOnes n
+  else
+    { val := x.val / y.val }
 /-- Less than for bit vectors. -/
 protected def lt (x y : BitVec n) : Bool :=
   x.val < y.val
