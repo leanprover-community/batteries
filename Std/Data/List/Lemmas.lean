@@ -10,6 +10,7 @@ import Std.Data.Option.Lemmas
 import Std.Classes.BEq
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
+import Std.Tactic.SplitIfs
 
 namespace List
 
@@ -1364,6 +1365,76 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     by_cases h : p b <;> simp [find?, h] at H
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
+
+/-! ### findIdx? -/
+
+@[simp] theorem findIdx?_nil : ([] : List α).findIdx? p i = none := rfl
+@[simp] theorem findIdx?_cons :
+    (x :: xs).findIdx? p i = if p x then some i else findIdx? p xs (i + 1) := rfl
+@[simp] theorem findIdx?_succ :
+    (xs : List α).findIdx? p (i+1) = (xs.findIdx? p i).map fun i => i + 1 := by
+  induction xs generalizing i with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [findIdx?_cons]
+    split_ifs <;> simp_all
+
+theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
+    xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = List.replicate i false ++ [true] := by
+  induction xs generalizing i with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [findIdx?_cons, Nat.zero_add, findIdx?_succ, take_succ_cons, map_cons]
+    split_ifs with h
+    · cases i <;> simp_all
+    · cases i <;> simp_all
+
+theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p = some i) :
+    match xs.get? i with | some a => p a | none => false := by
+  induction xs generalizing i with
+  | nil => simp_all
+  | cons x xs ih =>
+    simp_all only [findIdx?_cons, Nat.zero_add, findIdx?_succ]
+    split_ifs at w with h
+    · cases i <;> simp_all
+    · cases i <;> simp_all
+
+theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p = none) :
+    ∀ i, match xs.get? i with | some a => ¬ p a | none => true := by
+  intro i
+  induction xs generalizing i with
+  | nil => simp_all
+  | cons x xs ih =>
+    simp_all only [Bool.not_eq_true, findIdx?_cons, Nat.zero_add, findIdx?_succ]
+    cases i with
+    | zero =>
+      split_ifs at w
+      simp_all
+    | succ i =>
+      simp only [get?_cons_succ]
+      apply ih
+      split_ifs at w
+      simp_all
+
+@[simp] theorem findIdx?_append :
+    (xs ++ ys : List α).findIdx? p =
+      (xs.findIdx? p <|> (ys.findIdx? p).map fun i => i + xs.length) := by
+  induction xs with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [cons_append, findIdx?_cons, Nat.zero_add, findIdx?_succ]
+    split_ifs
+    · simp
+    · simp_all only [Bool.not_eq_true, Option.map_orElse, Option.map_map, length_cons]
+      rfl
+
+@[simp] theorem findIdx?_replicate :
+    (replicate n a).findIdx? p = if 0 < n ∧ p a then some 0 else none := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    simp only [replicate, findIdx?_cons, Nat.zero_add, findIdx?_succ, Nat.zero_lt_succ, true_and]
+    split_ifs <;> simp_all
 
 /-! ### pairwise -/
 
