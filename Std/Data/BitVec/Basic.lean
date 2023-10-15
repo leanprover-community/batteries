@@ -82,10 +82,10 @@ protected def mul (x y : BitVec n) : BitVec n :=
   { val := x.val * y.val }
 /-- Modulo for bit vectors. -/
 protected def mod (x y : BitVec n) : BitVec n :=
-  { val := ⟨x.val % y.val, Nat.lt_of_le_of_lt (Nat.mod_le _ _) x.val.isLt⟩ }
+  { val := x.val % y.val }
 /-- Division for bit vectors. -/
 protected def div (x y : BitVec n) : BitVec n :=
-  { val := ⟨x.val / y.val, Nat.lt_of_le_of_lt (Nat.div_le_self _ _) x.val.isLt⟩ }
+  { val := x.val / y.val }
 /-- Less than for bit vectors. -/
 protected def lt (x y : BitVec n) : Bool :=
   x.val < y.val
@@ -182,4 +182,3 @@ def shrink (v : Nat) (x : BitVec w) : BitVec v :=
 /-- Return the `i`-th least significant bit. -/
 def lsbGet (x : BitVec w) (i : Nat) : Bool :=
   x.extract i i != 0
-
