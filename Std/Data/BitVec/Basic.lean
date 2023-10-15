@@ -97,6 +97,11 @@ protected def div (x y : BitVec n) : BitVec n :=
     BitVec.allOnes n
   else
     { val := x.val / y.val }
+/--
+Division for bit vectors using the Lean convention where division by zero returns zero.
+-/
+protected def div' (x y : BitVec n) : BitVec n :=
+  { val := x.val / y.val }
 /-- Less than for bit vectors. -/
 protected def lt (x y : BitVec n) : Bool :=
   x.val < y.val
