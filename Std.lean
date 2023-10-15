@@ -70,6 +70,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
 import Std.Lean.Float
 import Std.Lean.Format
@@ -131,6 +132,7 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Std.Tactic.Simpa
+import Std.Tactic.SplitIfs
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
