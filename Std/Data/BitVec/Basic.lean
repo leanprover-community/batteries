@@ -168,12 +168,12 @@ def extract (i j : Nat) (a : BitVec n) : BitVec (i - j + 1) :=
 `repeat_ i x` means concatenate `i` copies of `x`.
 Recall that `repeat` is a keyword in Lean.
 -/
-def repeat_ : (i : Nat) → BitVec w → BitVec (w*i)
+def replicate : (i : Nat) → BitVec w → BitVec (w*i)
   | 0,   _ => 0
   | n+1, x =>
     have hEq : w + w*n = w*(n + 1) := by
       rw [Nat.mul_add, Nat.add_comm, Nat.mul_one]
-    hEq ▸ (x ++ repeat_ n x)
+    hEq ▸ (x ++ replicate n x)
 
 /-- Zero extension. -/
 def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
@@ -184,7 +184,7 @@ def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
   have hEq : ((w-1) - (w-1) + 1)*i + w = w+i := by
     rw [Nat.sub_self, Nat.zero_add, Nat.one_mul, Nat.add_comm]
-  hEq ▸ ((repeat_ i (extract (w-1) (w-1) x)) ++ x)
+  hEq ▸ ((replicate i (extract (w-1) (w-1) x)) ++ x)
 
 /-- Return a prefix of size `v` of bit vector `x`. -/
 def shrink (v : Nat) (x : BitVec w) : BitVec v :=
