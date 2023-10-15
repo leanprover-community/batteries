@@ -548,10 +548,6 @@ theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some 
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
 
-theorem get!_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
-  | _ :: _, 0, _ => rfl
-  | _ :: l, _+1, _ => get?_eq_get (l := l) _
-
 theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
     (a::l).get! (n+1) = get! l n := rfl
 
