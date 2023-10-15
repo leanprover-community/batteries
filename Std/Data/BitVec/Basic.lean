@@ -9,7 +9,7 @@ namespace Std
 We define bitvectors. We choose the `Fin` representation over others for its relative efficiency
 (Lean has special support for `Nat`), alignment with `UIntXY` types which are also represented
 with `Fin`, and the fact that bitwise operations on `Fin` are already defined. Some other possible
-representations are `List Bool`, `{ l : List Bool // l.length = w}`, `Fin w → Bool`.
+representations are `List Bool`, `{ l : List Bool // l.length = w }`, `Fin w → Bool`.
 
 We also define many bitvector operations from the
 [`QF_BV` logic](https://smtlib.cs.uiowa.edu/logics-all.shtml#QF_BV).
@@ -54,7 +54,7 @@ instance : OfNat (BitVec n) i where
 Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`.
 TODO: is this a good notation? Do we need it? We can also write `(i : BitVec n)`
 -/
-syntax:max num noWs "#" noWs num : term
+scoped syntax:max num noWs "#" noWs num : term
 macro_rules | `($i:num#$n:num) => `(BitVec.ofNat $n $i)
 
 /-- Unexpander for bit vector literals. -/
@@ -140,6 +140,7 @@ def append (a : BitVec n) (b : BitVec m) : BitVec (n+m) :=
   .ofNat (n+m) (a.toNat <<< m + b.toNat)
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨BitVec.append⟩
+
 /--
 Extraction of bits `i` down to `j` from a bit vector of size `n` to yield a
 new bitvector of size `i - j + 1`
@@ -163,7 +164,7 @@ def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
   have hEq : w+i = i+w := Nat.add_comm _ _
   hEq ▸ ((0 : BitVec i) ++ x)
 
-/-- Signed extension. -/
+/-- Signed extension. Left-pads with copies of the left-most bit. -/
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
   have hEq : ((w-1) - (w-1) + 1)*i + w = w+i := by
     rw [Nat.sub_self, Nat.zero_add, Nat.one_mul, Nat.add_comm]
@@ -182,4 +183,3 @@ def shrink (v : Nat) (x : BitVec w) : BitVec v :=
 def lsbGet (x : BitVec w) (i : Nat) : Bool :=
   x.extract i i != 0
 
-end Std.BitVec
