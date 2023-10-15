@@ -16,8 +16,6 @@ representations are `List Bool`, `{ l : List Bool // l.length = w }`, `Fin w →
 We also define many bitvector operations from the
 [`QF_BV` logic](https://smtlib.cs.uiowa.edu/logics-all.shtml#QF_BV).
 of SMT-LIBv2.
-
-TODO(Leo): match the interface to what SMT-LIB provides
 -/
 
 /--
@@ -70,26 +68,41 @@ instance : ToString (BitVec n) where
 /-- Theorem for normalizing the bit vector literal representation. -/
 @[simp] theorem ofNat_eq_ofNat : @OfNat.ofNat (BitVec n) i _ = BitVec.ofNat n i := rfl
 
-/-- Addition for bit vectors. -/
+/--
+Addition for bit vectors.
+SMT-Lib name: `bvadd`.
+-/
 protected def add (x y : BitVec n) : BitVec n :=
   { val := x.val + y.val }
-/-- Subtraction for bit vectors. -/
+/--
+Subtraction for bit vectors.
+-/
 protected def sub (x y : BitVec n) : BitVec n :=
   { val := x.val - y.val }
-/-- Negation for bit vectors. -/
+/--
+Negation for bit vectors.
+SMT-Lib name: `bvneg`.
+-/
 protected def neg (x : BitVec n) : BitVec n :=
   BitVec.sub 0 x
 /-- Bit vector of size `n` where all bits are `1`s -/
 protected def allOnes (n : Nat) : BitVec n :=
   BitVec.neg 1
-/-- Multiplication for bit vectors. -/
+/--
+Multiplication for bit vectors.
+SMT-Lib name: `bvmul`.
+-/
 protected def mul (x y : BitVec n) : BitVec n :=
   { val := x.val * y.val }
-/-- Modulo for bit vectors. -/
+/--
+Modulo for bit vectors.
+SMT-Lib name: `bvurem`.
+-/
 protected def mod (x y : BitVec n) : BitVec n :=
   { val := x.val % y.val }
 /--
 Division for bit vectors.
+SMT-Lib name: `bvudiv`.
 Note that `div x 0 = allOnes n` as specified by the SMT-Lib standard.
 See the spec at http://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml.
 This is also consistent with a simple division circuit.
@@ -104,7 +117,10 @@ Division for bit vectors using the Lean convention where division by zero return
 -/
 protected def div' (x y : BitVec n) : BitVec n :=
   { val := x.val / y.val }
-/-- Less than for bit vectors. -/
+/--
+Less than for bit vectors.
+SMT-Lib name: `bvult`.
+-/
 protected def lt (x y : BitVec n) : Bool :=
   x.val < y.val
 /-- Less than or equal to for bit vectors. -/
@@ -120,22 +136,37 @@ instance : Neg (BitVec n) := ⟨BitVec.neg⟩
 instance : LT (BitVec n)  := ⟨fun x y => BitVec.lt x y⟩
 instance : LE (BitVec n)  := ⟨fun x y => BitVec.le x y⟩
 
-/-- Bitwise and for bit vectors. -/
+/--
+Bitwise and for bit vectors.
+SMT-Lib name: `bvand`.
+-/
 protected def and (x y : BitVec n) : BitVec n :=
   { val := x.val &&& y.val }
-/-- Bitwise or for bit vectors. -/
+/--
+Bitwise or for bit vectors.
+SMT-Lib name: `bvor`.
+-/
 protected def or (x y : BitVec n) : BitVec n :=
   { val := x.val ||| y.val }
 /-- Bitwise xor for bit vectors. -/
 protected def xor (x y : BitVec n) : BitVec n :=
   { val := x.val ^^^ y.val }
-/-- Complement for bit vectors. -/
+/--
+Complement for bit vectors.
+SMT-Lib name: `bvnot`.
+-/
 protected def not (x : BitVec n) : BitVec n :=
   -(x + .ofNat n 1)
-/-- Shift left for bit vectors. -/
+/--
+Shift left for bit vectors.
+SMT-Lib name: `bvshl`.
+-/
 protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n :=
   .ofNat n (a.toNat <<< s)
-/-- Shift right for bit vectors. -/
+/--
+Shift right for bit vectors.
+SMT-Lib name: `bvlshr`.
+-/
 protected def shiftRight (a : BitVec n) (s : Nat) : BitVec n :=
   .ofNat n (a.toNat >>> s)
 
@@ -154,7 +185,10 @@ def rotateLeft (x : BitVec w) (n : Nat) : BitVec w :=
 def rotateRight (x : BitVec w) (n : Nat) : BitVec w :=
   x >>> n ||| x <<< (w - n)
 
-/-- Append. -/
+/--
+Append.
+SMT-Lib name: `concat`.
+-/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
   .ofNat (n+m) (msbs.toNat <<< m + lsbs.toNat)
 
@@ -163,13 +197,13 @@ instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨BitVec.append⟩
 /--
 Extraction of bits `i` down to `j` from a bit vector of size `n` to yield a
 new bitvector of size `i - j + 1`
+SMT-Lib name: `extract`.
 -/
 def extract (i j : Nat) (a : BitVec n) : BitVec (i - j + 1) :=
   BitVec.ofNat _ (a.toNat >>> j)
 
 /--
-`repeat_ i x` means concatenate `i` copies of `x`.
-Recall that `repeat` is a keyword in Lean.
+`replicate i x` means concatenate `i` copies of `x`.
 -/
 def replicate : (i : Nat) → BitVec w → BitVec (w*i)
   | 0,   _ => 0
