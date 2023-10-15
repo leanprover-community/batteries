@@ -76,9 +76,12 @@ protected def add (x y : BitVec n) : BitVec n :=
 /-- Subtraction for bit vectors. -/
 protected def sub (x y : BitVec n) : BitVec n :=
   { val := x.val - y.val }
+/-- Negation for bit vectors. -/
+protected def neg (x : BitVec n) : BitVec n :=
+  BitVec.sub 0 x
 /-- Bit vector of size `n` where all bits are `1`s -/
 protected def allOnes (n : Nat) : BitVec n :=
-  BitVec.sub (BitVec.ofNat n 0) (BitVec.ofNat n 1)
+  BitVec.neg 1
 /-- Multiplication for bit vectors. -/
 protected def mul (x y : BitVec n) : BitVec n :=
   { val := x.val * y.val }
@@ -113,6 +116,7 @@ instance : Sub (BitVec n) := ⟨BitVec.sub⟩
 instance : Mul (BitVec n) := ⟨BitVec.mul⟩
 instance : Mod (BitVec n) := ⟨BitVec.mod⟩
 instance : Div (BitVec n) := ⟨BitVec.div⟩
+instance : Neg (BitVec n) := ⟨BitVec.neg⟩
 instance : LT (BitVec n)  := ⟨fun x y => BitVec.lt x y⟩
 instance : LE (BitVec n)  := ⟨fun x y => BitVec.le x y⟩
 
@@ -126,8 +130,8 @@ protected def or (x y : BitVec n) : BitVec n :=
 protected def xor (x y : BitVec n) : BitVec n :=
   { val := x.val ^^^ y.val }
 /-- Complement for bit vectors. -/
-protected def complement (x : BitVec n) : BitVec n :=
-  0 - (x + .ofNat n 1)
+protected def not (x : BitVec n) : BitVec n :=
+  -(x + .ofNat n 1)
 /-- Shift left for bit vectors. -/
 protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n :=
   .ofNat n (a.toNat <<< s)
@@ -135,7 +139,7 @@ protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n :=
 protected def shiftRight (a : BitVec n) (s : Nat) : BitVec n :=
   .ofNat n (a.toNat >>> s)
 
-instance : Complement (BitVec w) := ⟨BitVec.complement⟩
+instance : Complement (BitVec w) := ⟨BitVec.not⟩
 instance : AndOp (BitVec w) := ⟨BitVec.and⟩
 instance : OrOp (BitVec w) := ⟨BitVec.or⟩
 instance : Xor (BitVec w) := ⟨BitVec.xor⟩
