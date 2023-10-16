@@ -31,4 +31,11 @@ theorem asda (a b : Nat) (h : a = b) : 2 * a = 2 * b := by
 --  longdef a b h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h
 --    h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h
 --    h h h h h
+  have : 2 * a = 2 * b := by
+    test
+--  exact
+--    longdef a b h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h
+--      h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h
+--      h h h h h h h
+    sorry
   sorry
