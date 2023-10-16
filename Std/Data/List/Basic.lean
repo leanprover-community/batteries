@@ -1463,6 +1463,7 @@ zipRight = zipWithRight prod.mk
 Version of `List.zipWith` that continues to the end of both lists, passing `none` to one argument
 once the shorter list has run out.
 -/
+-- TODO We should add a tail-recursive version as we do for other `zip` functions above.
 def zipWithAll (f : Option α → Option β → γ) : List α → List β → List γ
   | [], bs => bs.map fun b => f none (some b)
   | a :: as, [] => (a :: as).map fun a => f (some a) none
