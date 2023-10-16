@@ -61,7 +61,13 @@ macro_rules | `($i:num#$n:num) => `(BitVec.ofNat $n $i)
   | `($(_) $n:num $i:num) => `($i:num#$n:num)
   | _ => throw ()
 
-instance : Repr (BitVec n) where reprPrec a _ := repr a.toFin ++ "#" ++ repr n
+/-- Convert bitvector into a fixed-width hex number. -/
+protected def toHex {n:Nat} (x:BitVec n) : String :=
+  let s := (Nat.toDigits 16 x.toNat).asString
+  let t := (List.replicate ((n+3) / 4 - s.length) '0').asString
+  t ++ s
+
+instance : Repr (BitVec n) where reprPrec a _ := "0x" ++ (a.toHex : Format) ++ "#" ++ repr n
 
 instance : ToString (BitVec n) where toString a := toString (repr a)
 
