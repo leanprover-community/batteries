@@ -195,12 +195,18 @@ def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨BitVec.append⟩
 
 /--
-Extraction of bits `i` down to `j` from a bit vector of size `n` to yield a
-new bitvector of size `i - j + 1`
+Extraction of bits `start` to `start + len - 1` from a bit vector of size `n` to yield a
+new bitvector of size `len`. If `start + len > n`, then the vector will be zero-padded in the
+high bits.
+-/
+def extract' (start len : Nat) (a : BitVec n) : BitVec len := .ofNat _ (a.toNat >>> start)
+
+/--
+Extraction of bits `hi` (inclusive) down to `lo` (inclusive) from a bit vector of size `n` to
+yield a new bitvector of size `hi - lo + 1`.
 SMT-Lib name: `extract`.
 -/
-def extract (i j : Nat) (a : BitVec n) : BitVec (i - j + 1) :=
-  BitVec.ofNat _ (a.toNat >>> j)
+def extract (hi lo : Nat) (a : BitVec n) : BitVec (hi - lo + 1) := extract' lo _ a
 
 /--
 `replicate i x` means concatenate `i` copies of `x`.
