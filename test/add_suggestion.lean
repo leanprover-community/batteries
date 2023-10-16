@@ -18,7 +18,7 @@ elab "test" : tactic => do
 end Std.Tactic.TryThis
 
 -- ideally we would have a #guard_widgets or #guard_infos too, but instead we can simply check by
--- hand that  the widget suggestion (not the message fits into 100 chars)
+-- hand that the widget suggestion (not the message) fits into 100 columns
 theorem asda (a b : Nat) (h : a = b) : 2 * a = 2 * b := by
   test
 --exact
