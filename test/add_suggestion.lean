@@ -4,7 +4,10 @@ section width
 -- here we test that the width of try this suggestions is not too big
 
 -- simulate a long and complicated term
-def longdef (a b : Nat) (h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h : a = b) :
+def longdef (a b : Nat) (h h h h h h h h h h h h h h h h h
+    h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h
+    h h h h h h h h h h h h h h h h h h h h h h h
+    h h h h h h h h h h h h h h h h h h h h h : a = b) :
   2 * a = 2 * b := by rw [h]
 
 namespace Std.Tactic.TryThis
@@ -13,7 +16,10 @@ open Lean Elab Tactic
 set_option hygiene false in
 elab "test" : tactic => do
   addSuggestion (← getRef) (←
-  `(tactic| exact longdef a b h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h))
+  `(tactic| exact longdef a b h h h h h h h h h h h h h h
+      h h h h h h h h h h h h h h h h h h h h h h
+      h h h h h h h h h h h h h h h h h h h h h h
+      h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h))
 
 end Std.Tactic.TryThis
 
