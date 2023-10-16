@@ -1377,7 +1377,7 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
   | nil => simp
   | cons x xs ih =>
     simp only [findIdx?_cons]
-    split_ifs <;> simp_all
+    split <;> simp_all
 
 theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
     xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = replicate i false ++ [true] := by
@@ -1385,7 +1385,7 @@ theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
   | nil => simp
   | cons x xs ih =>
     simp only [findIdx?_cons, Nat.zero_add, findIdx?_succ, take_succ_cons, map_cons]
-    split_ifs with h
+    split
     · cases i <;> simp_all
     · cases i <;> simp_all
 
@@ -1395,7 +1395,7 @@ theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
   | nil => simp_all
   | cons x xs ih =>
     simp_all only [findIdx?_cons, Nat.zero_add, findIdx?_succ]
-    split_ifs at w with h
+    split at w
     · cases i <;> simp_all
     · cases i <;> simp_all
 
@@ -1408,13 +1408,11 @@ theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
     simp_all only [Bool.not_eq_true, findIdx?_cons, Nat.zero_add, findIdx?_succ]
     cases i with
     | zero =>
-      split_ifs at w
-      simp_all
+      split at w <;> simp_all
     | succ i =>
       simp only [get?_cons_succ]
       apply ih
-      split_ifs at w
-      simp_all
+      split at w <;> simp_all
 
 @[simp] theorem findIdx?_append :
     (xs ++ ys : List α).findIdx? p =
@@ -1423,7 +1421,7 @@ theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
   | nil => simp
   | cons x xs ih =>
     simp only [cons_append, findIdx?_cons, Nat.zero_add, findIdx?_succ]
-    split_ifs
+    split
     · simp
     · simp_all only [Bool.not_eq_true, Option.map_orElse, Option.map_map, length_cons]
       rfl
@@ -1434,7 +1432,7 @@ theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
   | zero => simp
   | succ n ih =>
     simp only [replicate, findIdx?_cons, Nat.zero_add, findIdx?_succ, Nat.zero_lt_succ, true_and]
-    split_ifs <;> simp_all
+    split <;> simp_all
 
 /-! ### pairwise -/
 
