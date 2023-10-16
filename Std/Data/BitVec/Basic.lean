@@ -27,10 +27,10 @@ in both the runtime and the kernel, inheriting all the special support for `Nat`
 structure BitVec (w : Nat) where
   /-- Construct a `BitVec w` from a number less than `2^w`.
   O(1), because we use `Fin` as the internal representation of a bitvector. -/
-  mk ::
+  ofFin ::
   /-- Interpret a bitvector as a number less than `2^w`.
   O(1), because we use `Fin` as the internal representation of a bitvector. -/
-  val : Fin (2^w)
+  toFin : Fin (2^w)
   deriving DecidableEq
 
 namespace BitVec
@@ -38,11 +38,11 @@ namespace BitVec
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  val := Fin.ofNat' i (Nat.pow_two_pos _)
+  toFin := Fin.ofNat' i (Nat.pow_two_pos _)
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
-protected def toNat (a : BitVec n) : Nat := a.val.val
+protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
 /-- Return a bitvector `0` of size `n`. This is the bitvector with all zero bits. -/
 protected def zero (n : Nat) : BitVec n := .ofNat n 0
@@ -61,7 +61,7 @@ macro_rules | `($i:num#$n:num) => `(BitVec.ofNat $n $i)
   | `($(_) $n:num $i:num) => `($i:num#$n:num)
   | _ => throw ()
 
-instance : Repr (BitVec n) where reprPrec a _ := repr a.val ++ "#" ++ repr n
+instance : Repr (BitVec n) where reprPrec a _ := repr a.toFin ++ "#" ++ repr n
 
 instance : ToString (BitVec n) where toString a := toString (repr a)
 
@@ -75,14 +75,14 @@ modulo `2^n`.
 
 SMT-Lib name: `bvadd`.
 -/
-protected def add (x y : BitVec n) : BitVec n where val := x.val + y.val
+protected def add (x y : BitVec n) : BitVec n where toFin := x.toFin + y.toFin
 instance : Add (BitVec n) := ⟨BitVec.add⟩
 
 /--
 Subtraction for bit vectors. This can be interpreted as either signed or unsigned subtraction
 modulo `2^n`.
 -/
-protected def sub (x y : BitVec n) : BitVec n where val := x.val - y.val
+protected def sub (x y : BitVec n) : BitVec n where toFin := x.toFin - y.toFin
 instance : Sub (BitVec n) := ⟨BitVec.sub⟩
 
 /--
@@ -103,7 +103,7 @@ modulo `2^n`.
 
 SMT-Lib name: `bvmul`.
 -/
-protected def mul (x y : BitVec n) : BitVec n where val := x.val * y.val
+protected def mul (x y : BitVec n) : BitVec n := ofFin <| x.toFin * y.toFin
 instance : Mul (BitVec n) := ⟨.mul⟩
 
 /--
@@ -111,13 +111,13 @@ Unsigned modulo for bit vectors.
 
 SMT-Lib name: `bvurem`.
 -/
-protected def mod (x y : BitVec n) : BitVec n where val := x.val % y.val
+protected def mod (x y : BitVec n) : BitVec n := ofFin <| x.toFin % y.toFin
 instance : Mod (BitVec n) := ⟨.mod⟩
 
 /--
 Unsigned division for bit vectors using the Lean convention where division by zero returns zero.
 -/
-protected def div' (x y : BitVec n) : BitVec n where val := x.val / y.val
+protected def div' (x y : BitVec n) : BitVec n := ofFin <| x.toFin / y.toFin
 
 /--
 Unsigned division for bit vectors using the
@@ -134,19 +134,19 @@ Unsigned less-than for bit vectors.
 
 SMT-Lib name: `bvult`.
 -/
-protected def lt (x y : BitVec n) : Bool := x.val < y.val
-instance : LT (BitVec n) where lt x y := x.val < y.val
+protected def lt (x y : BitVec n) : Bool := x.toFin < y.toFin
+instance : LT (BitVec n) where lt x y := x.toFin < y.toFin
 
 /-- Unsigned less-than-or-equal-to for bit vectors. -/
-protected def le (x y : BitVec n) : Bool := x.val ≤ y.val
-instance : LE (BitVec n) where le x y := x.val ≤ y.val
+protected def le (x y : BitVec n) : Bool := x.toFin ≤ y.toFin
+instance : LE (BitVec n) where le x y := x.toFin ≤ y.toFin
 
 /--
 Bitwise AND for bit vectors.
 
 SMT-Lib name: `bvand`.
 -/
-protected def and (x y : BitVec n) : BitVec n where val := x.val &&& y.val
+protected def and (x y : BitVec n) : BitVec n where toFin := x.toFin &&& y.toFin
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -154,11 +154,11 @@ Bitwise OR for bit vectors.
 
 SMT-Lib name: `bvor`.
 -/
-protected def or (x y : BitVec n) : BitVec n where val := x.val ||| y.val
+protected def or (x y : BitVec n) : BitVec n where toFin := x.toFin ||| y.toFin
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /-- Bitwise XOR for bit vectors. -/
-protected def xor (x y : BitVec n) : BitVec n where val := x.val ^^^ y.val
+protected def xor (x y : BitVec n) : BitVec n where toFin := x.toFin ^^^ y.toFin
 instance : Xor (BitVec w) := ⟨.xor⟩
 
 /--
