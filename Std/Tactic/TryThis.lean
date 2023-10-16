@@ -76,6 +76,9 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
 def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
+/-- The maximum width of an ideal line in source code, 100 is the current convention. -/
+def lineWidth : Nat := 100
+
 /-- Add a "try this" suggestion. This has three effects:
 
 * An info diagnostic is displayed saying `Try this: <suggestion>`
@@ -102,7 +105,7 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     let text ← PrettyPrinter.ppCategory kind suggestion
     let start := findLineStart map.source range.start
     let body := map.source.findAux (· ≠ ' ') range.start start
-    let text := Format.prettyExtra text
+    let text := Format.prettyExtra text (w := lineWidth)
       (indent := (body - start).1) (column := (range.start - start).1)
     let stxRange := ref.getRange?.getD range
     let stxRange :=
