@@ -35,7 +35,7 @@ structure BitVec (w : Nat) where
 
 namespace BitVec
 
-/-- The `BitVector` with value `i mod 2^n`. Treated as an operation on bitvectors,
+/-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   val := Fin.ofNat' i (Nat.pow_two_pos _)
