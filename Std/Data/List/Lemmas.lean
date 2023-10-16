@@ -178,11 +178,45 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
   induction l₁ generalizing l₂ <;> cases l₂ <;>
     simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
 
+@[simp]
+theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
+    zipWith f (l₁.map g) (l₂.map h) = zipWith (fun a b => f (g a) (h b)) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_map_left (l₁ : List α) (l₂ : List β) (f : α → α') (g : α' → β → γ) :
+    zipWith g (l₁.map f) l₂ = zipWith (fun a b => g (f a) b) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_map_right (l₁ : List α) (l₂ : List β) (f : β → β') (g : α → β' → γ) :
+    zipWith g l₁ (l₂.map f) = zipWith (fun a b => g a (f b)) l₁ l₂ := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_foldr_eq_zip_foldr {f : α → β → γ} (i : δ):
+    (zipWith f l₁ l₂).foldr g i = (zip l₁ l₂).foldr (fun p r => g (f p.1 p.2) r) i := by
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_foldl_eq_zip_foldl {f : α → β → γ} (i : δ):
+    (zipWith f l₁ l₂).foldl g i = (zip l₁ l₂).foldl (fun r p => g r (f p.1 p.2)) i := by
+  induction l₁ generalizing i l₂ <;> cases l₂ <;> simp_all
+
 /-! ### zip -/
 
 @[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
     length (zip l₁ l₂) = min (length l₁) (length l₂) := by
   simp [zip]
+
+theorem zip_map (f : α → γ) (g : β → δ) :
+    ∀ (l₁ : List α) (l₂ : List β), zip (l₁.map f) (l₂.map g) = (zip l₁ l₂).map (Prod.map f g)
+  | [], l₂ => rfl
+  | l₁, [] => by simp only [map, zip_nil_right]
+  | a :: l₁, b :: l₂ => by
+    simp only [map, zip_cons_cons, zip_map, Prod.map]; constructor
+
+theorem zip_map_left (f : α → γ) (l₁ : List α) (l₂ : List β) :
+    zip (l₁.map f) l₂ = (zip l₁ l₂).map (Prod.map f id) := by rw [← zip_map, map_id]
+
+theorem zip_map_right (f : β → γ) (l₁ : List α) (l₂ : List β) :
+    zip l₁ (l₂.map f) = (zip l₁ l₂).map (Prod.map id f) := by rw [← zip_map, map_id]
 
 /-! ### join -/
 
@@ -545,10 +579,6 @@ theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
   | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
 
 theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
-  | _ :: _, 0, _ => rfl
-  | _ :: l, _+1, _ => get?_eq_get (l := l) _
-
-theorem get!_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
 
@@ -1364,6 +1394,52 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     by_cases h : p b <;> simp [find?, h] at H
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
+
+/-! ### findIdx -/
+
+@[simp] theorem findIdx_nil {α : Type _} (p : α → Bool) : [].findIdx p = 0 := rfl
+
+theorem findIdx_cons (p : α → Bool) (b : α) (l : List α) :
+    (b :: l).findIdx p = bif p b then 0 else (l.findIdx p) + 1 := by
+  cases H : p b with
+  | true => simp [H, findIdx, findIdx.go]
+  | false => simp [H, findIdx, findIdx.go, findIdx_go_succ]
+where
+  findIdx_go_succ (p : α → Bool) (l : List α) (n : Nat) :
+      List.findIdx.go p l (n + 1) = (findIdx.go p l n) + 1 := by
+    cases l with
+    | nil => unfold findIdx.go; exact Nat.succ_eq_add_one n
+    | cons head tail =>
+      unfold findIdx.go
+      cases p head <;> simp only [cond_false, cond_true]
+      exact findIdx_go_succ p tail (n + 1)
+
+theorem findIdx_of_get?_eq_some {xs : List α} (w : xs.get? (xs.findIdx p) = some y) : p y := by
+  induction xs with
+  | nil => simp_all
+  | cons x xs ih => by_cases h : p x <;> simp_all [findIdx_cons]
+
+theorem findIdx_get {xs : List α} {w : xs.findIdx p < xs.length} :
+    p (xs.get ⟨xs.findIdx p, w⟩) :=
+  xs.findIdx_of_get?_eq_some (get?_eq_get w)
+
+theorem findIdx_lt_length_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
+    xs.findIdx p < xs.length := by
+  induction xs with
+  | nil => simp_all
+  | cons x xs ih =>
+    by_cases p x
+    · simp_all only [forall_exists_index, and_imp, mem_cons, exists_eq_or_imp, true_or,
+        findIdx_cons, cond_true, length_cons]
+      apply Nat.succ_pos
+    · simp_all [findIdx_cons]
+      refine Nat.succ_lt_succ ?_
+      obtain ⟨x', m', h'⟩ := h
+      exact ih x' m' h'
+
+theorem findIdx_get?_eq_get_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
+    xs.get? (xs.findIdx p) = some (xs.get ⟨xs.findIdx p, xs.findIdx_lt_length_of_exists h⟩) :=
+  get?_eq_get (findIdx_lt_length_of_exists h)
 
 /-! ### pairwise -/
 

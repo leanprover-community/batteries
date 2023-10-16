@@ -140,6 +140,7 @@ theorem map_congr {x : Option α} (h : ∀ a ∈ x, f a = g a) : x.map f = x.map
   cases x <;> simp only [map_none', map_some', h, mem_def]
 
 @[simp] theorem map_id' : Option.map (@id α) = id := map_id
+@[simp] theorem map_id'' {x : Option α} : (x.map fun a => a) = x := congrFun map_id x
 
 @[simp] theorem map_map (h : β → γ) (g : α → β) (x : Option α) :
     (x.map g).map h = x.map (h ∘ g) := by
@@ -170,6 +171,9 @@ theorem mem_of_mem_join {a : α} {x : Option (Option α)} (h : a ∈ x.join) : s
 @[simp] theorem none_orElse (x : Option α) : (none <|> x) = x := rfl
 
 @[simp] theorem orElse_none (x : Option α) : (x <|> none) = x := by cases x <;> rfl
+
+theorem map_orElse {x y : Option α} : (x <|> y).map f = (x.map f <|> y.map f) := by
+  cases x <;> simp
 
 @[simp] theorem guard_eq_some [DecidablePred p] : guard p a = some b ↔ a = b ∧ p a := by
   by_cases h : p a <;> simp [Option.guard, h]

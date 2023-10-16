@@ -71,6 +71,7 @@ import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
