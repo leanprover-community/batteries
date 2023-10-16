@@ -7,6 +7,7 @@ Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura
 import Std.Data.Nat.Init.Lemmas
 
 namespace Std
+
 /-!
 We define bitvectors. We choose the `Fin` representation over others for its relative efficiency
 (Lean has special support for `Nat`), alignment with `UIntXY` types which are also represented
@@ -30,22 +31,18 @@ structure BitVec (w : Nat) where
 namespace BitVec
 
 /-- The BitVector `i mod 2^n`. -/
-protected def ofNat (n : Nat) (i : Nat) : BitVec n :=
-  { val := Fin.ofNat' i (Nat.pow_two_gt_zero _) }
+protected def ofNat (n : Nat) (i : Nat) : BitVec n where
+  val := Fin.ofNat' i (Nat.pow_two_gt_zero _)
 
 /-- Given a bitvector `a`, return the underlying `Nat`. -/
-protected def toNat (a : BitVec n) : Nat :=
-  a.val.val
+protected def toNat (a : BitVec n) : Nat := a.val.val
 
 /-- Return a bitvector `0` of size `n`.  -/
-protected def zero (n : Nat) : BitVec n :=
-  BitVec.ofNat n 0
+protected def zero (n : Nat) : BitVec n := .ofNat n 0
 
-instance : Inhabited (BitVec n) where
-  default := BitVec.zero n
+instance : Inhabited (BitVec n) where default := BitVec.zero n
 
-instance : OfNat (BitVec n) i where
-  ofNat := BitVec.ofNat n i
+instance : OfNat (BitVec n) i where ofNat := BitVec.ofNat n i
 
 /--
 Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`.
@@ -57,7 +54,7 @@ macro_rules | `($i:num#$n:num) => `(BitVec.ofNat $n $i)
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNat] def unexpandBitVecOfNat : Lean.PrettyPrinter.Unexpander
   | `($(_) $n:num $i:num) => `($i:num#$n:num)
-  | _                => throw ()
+  | _ => throw ()
 
 instance : Repr (BitVec n) where
   reprPrec a _ := repr a.val ++ "#" ++ repr n
@@ -70,41 +67,45 @@ instance : ToString (BitVec n) where
 
 /--
 Addition for bit vectors.
+
 SMT-Lib name: `bvadd`.
 -/
-protected def add (x y : BitVec n) : BitVec n :=
-  { val := x.val + y.val }
-/--
-Subtraction for bit vectors.
--/
-protected def sub (x y : BitVec n) : BitVec n :=
-  { val := x.val - y.val }
+protected def add (x y : BitVec n) : BitVec n where val := x.val + y.val
+
+/-- Subtraction for bit vectors. -/
+protected def sub (x y : BitVec n) : BitVec n where val := x.val - y.val
+
 /--
 Negation for bit vectors.
+
 SMT-Lib name: `bvneg`.
 -/
-protected def neg (x : BitVec n) : BitVec n :=
-  BitVec.sub 0 x
+protected def neg (x : BitVec n) : BitVec n := .sub 0 x
+
 /-- Bit vector of size `n` where all bits are `1`s -/
-protected def allOnes (n : Nat) : BitVec n :=
-  BitVec.neg 1
+protected def allOnes (n : Nat) : BitVec n := .neg 1
+
 /--
 Multiplication for bit vectors.
+
 SMT-Lib name: `bvmul`.
 -/
-protected def mul (x y : BitVec n) : BitVec n :=
-  { val := x.val * y.val }
+protected def mul (x y : BitVec n) : BitVec n where val := x.val * y.val
+
 /--
 Modulo for bit vectors.
+
 SMT-Lib name: `bvurem`.
 -/
-protected def mod (x y : BitVec n) : BitVec n :=
-  { val := x.val % y.val }
+protected def mod (x y : BitVec n) : BitVec n where val := x.val % y.val
+
 /--
 Division for bit vectors.
+
 SMT-Lib name: `bvudiv`.
-Note that `div x 0 = allOnes n` as specified by the SMT-Lib standard.
-See the spec at http://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml.
+
+Note that `div x 0 = allOnes n` as specified by the
+[SMT-Lib standard](http://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml).
 This is also consistent with a simple division circuit.
 -/
 protected def div (x y : BitVec n) : BitVec n :=
@@ -112,20 +113,18 @@ protected def div (x y : BitVec n) : BitVec n :=
     BitVec.allOnes n
   else
     { val := x.val / y.val }
-/--
-Division for bit vectors using the Lean convention where division by zero returns zero.
--/
-protected def div' (x y : BitVec n) : BitVec n :=
-  { val := x.val / y.val }
+/-- Division for bit vectors using the Lean convention where division by zero returns zero. -/
+protected def div' (x y : BitVec n) : BitVec n := { val := x.val / y.val }
+
 /--
 Less than for bit vectors.
+
 SMT-Lib name: `bvult`.
 -/
-protected def lt (x y : BitVec n) : Bool :=
-  x.val < y.val
+protected def lt (x y : BitVec n) : Bool := x.val < y.val
+
 /-- Less than or equal to for bit vectors. -/
-protected def le (x y : BitVec n) : Bool :=
-  x.val ≤ y.val
+protected def le (x y : BitVec n) : Bool := x.val ≤ y.val
 
 instance : Add (BitVec n) := ⟨BitVec.add⟩
 instance : Sub (BitVec n) := ⟨BitVec.sub⟩
@@ -138,61 +137,64 @@ instance : LE (BitVec n)  := ⟨fun x y => BitVec.le x y⟩
 
 /--
 Bitwise and for bit vectors.
+
 SMT-Lib name: `bvand`.
 -/
-protected def and (x y : BitVec n) : BitVec n :=
-  { val := x.val &&& y.val }
+protected def and (x y : BitVec n) : BitVec n := { val := x.val &&& y.val }
+
 /--
 Bitwise or for bit vectors.
+
 SMT-Lib name: `bvor`.
 -/
-protected def or (x y : BitVec n) : BitVec n :=
-  { val := x.val ||| y.val }
+protected def or (x y : BitVec n) : BitVec n := { val := x.val ||| y.val }
+
 /-- Bitwise xor for bit vectors. -/
-protected def xor (x y : BitVec n) : BitVec n :=
-  { val := x.val ^^^ y.val }
+protected def xor (x y : BitVec n) : BitVec n := { val := x.val ^^^ y.val }
+
 /--
 Complement for bit vectors.
+
 SMT-Lib name: `bvnot`.
 -/
-protected def not (x : BitVec n) : BitVec n :=
-  -(x + .ofNat n 1)
+protected def not (x : BitVec n) : BitVec n := -(x + .ofNat n 1)
+
 /--
 Shift left for bit vectors.
+
 SMT-Lib name: `bvshl`.
 -/
-protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n :=
-  .ofNat n (a.toNat <<< s)
+protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat <<< s)
+
 /--
 Shift right for bit vectors.
+
 SMT-Lib name: `bvlshr`.
 -/
-protected def shiftRight (a : BitVec n) (s : Nat) : BitVec n :=
-  .ofNat n (a.toNat >>> s)
+protected def shiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat >>> s)
 
-instance : Complement (BitVec w) := ⟨BitVec.not⟩
-instance : AndOp (BitVec w) := ⟨BitVec.and⟩
-instance : OrOp (BitVec w) := ⟨BitVec.or⟩
-instance : Xor (BitVec w) := ⟨BitVec.xor⟩
-instance : HShiftLeft (BitVec w) Nat (BitVec w) := ⟨BitVec.shiftLeft⟩
-instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨BitVec.shiftRight⟩
+instance : Complement (BitVec w) := ⟨.not⟩
+instance : AndOp (BitVec w) := ⟨.and⟩
+instance : OrOp (BitVec w) := ⟨.or⟩
+instance : Xor (BitVec w) := ⟨.xor⟩
+instance : HShiftLeft (BitVec w) Nat (BitVec w) := ⟨.shiftLeft⟩
+instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.shiftRight⟩
 
 /-- Rotate left. -/
-def rotateLeft (x : BitVec w) (n : Nat) : BitVec w :=
-  x <<< n ||| x >>> (w - n)
+def rotateLeft (x : BitVec w) (n : Nat) : BitVec w := x <<< n ||| x >>> (w - n)
 
 /-- Rotate right. -/
-def rotateRight (x : BitVec w) (n : Nat) : BitVec w :=
-  x >>> n ||| x <<< (w - n)
+def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 
 /--
 Append.
+
 SMT-Lib name: `concat`.
 -/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
   .ofNat (n+m) (msbs.toNat <<< m + lsbs.toNat)
 
-instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨BitVec.append⟩
+instance : HAppend (BitVec w) (BitVec v) (BitVec (w+v)) := ⟨.append⟩
 
 /--
 Extraction of bits `start` to `start + len - 1` from a bit vector of size `n` to yield a
@@ -204,13 +206,12 @@ def extract' (start len : Nat) (a : BitVec n) : BitVec len := .ofNat _ (a.toNat 
 /--
 Extraction of bits `hi` (inclusive) down to `lo` (inclusive) from a bit vector of size `n` to
 yield a new bitvector of size `hi - lo + 1`.
+
 SMT-Lib name: `extract`.
 -/
 def extract (hi lo : Nat) (a : BitVec n) : BitVec (hi - lo + 1) := extract' lo _ a
 
-/--
-`replicate i x` means concatenate `i` copies of `x`.
--/
+/-- `replicate i x` means concatenate `i` copies of `x`. -/
 def replicate : (i : Nat) → BitVec w → BitVec (w*i)
   | 0,   _ => 0
   | n+1, x =>
@@ -219,9 +220,7 @@ def replicate : (i : Nat) → BitVec w → BitVec (w*i)
     hEq ▸ (x ++ replicate n x)
 
 /-- Zero extension. -/
-def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
-  have hEq : w+i = i+w := Nat.add_comm _ _
-  hEq ▸ ((0 : BitVec i) ++ x)
+def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) := Nat.add_comm .. ▸ ((0 : BitVec i) ++ x)
 
 /-- Signed extension. Left-pads with copies of the left-most bit. -/
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
@@ -239,5 +238,4 @@ def shrink (v : Nat) (x : BitVec w) : BitVec v :=
   else 0
 
 /-- Return the `i`-th least significant bit. -/
-def lsbGet (x : BitVec w) (i : Nat) : Bool :=
-  x.extract i i != 0
+def lsbGet (x : BitVec w) (i : Nat) : Bool := x.extract i i != 0
