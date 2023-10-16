@@ -367,7 +367,7 @@ theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a →
 theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b := forall_exists_index
 
 @[simp] theorem exists_const (α) [i : Nonempty α] : (∃ _ : α, b) ↔ b :=
-  ⟨fun ⟨_, h⟩ ↦ h, i.elim Exists.intro⟩
+  ⟨fun ⟨_, h⟩ => h, i.elim Exists.intro⟩
 
 section forall_congr
 
@@ -504,7 +504,7 @@ theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p 
 
 @[simp] theorem forall_apply_eq_imp_iff₂ {f : α → β} {p : α → Prop} {q : β → Prop} :
     (∀ b a, p a → f a = b → q b) ↔ ∀ a, p a → q (f a) :=
-  ⟨fun h a ha ↦ h (f a) a ha rfl, fun h _ a ha hb ↦ hb ▸ h a ha⟩
+  ⟨fun h a ha => h (f a) a ha rfl, fun h _ a ha hb => hb ▸ h a ha⟩
 
 end quantifiers
 
@@ -662,7 +662,7 @@ def decidable_of_bool : ∀ (b : Bool), (b ↔ a) → Decidable a
 
 protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p x)]
     [∀ x, Decidable (p x)] : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
-  ⟨Decidable.not_imp_symm fun nx x ↦ Decidable.not_imp_symm (fun h ↦ ⟨x, h⟩) nx,
+  ⟨Decidable.not_imp_symm fun nx x => Decidable.not_imp_symm (fun h => ⟨x, h⟩) nx,
    not_forall_of_exists_not⟩
 
 protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, p x)] :
