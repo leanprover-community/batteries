@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.Nat.Init.Lemmas
+import Std.Tactic.Alias
 
 namespace Std
 
@@ -37,7 +38,7 @@ namespace BitVec
 /-- The `BitVector` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  val := Fin.ofNat' i (Nat.pow_two_gt_zero _)
+  val := Fin.ofNat' i (Nat.pow_two_pos _)
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
@@ -103,7 +104,7 @@ modulo `2^n`.
 SMT-Lib name: `bvmul`.
 -/
 protected def mul (x y : BitVec n) : BitVec n where val := x.val * y.val
-instance : Mul (BitVec n) := ⟨BitVec.mul⟩
+instance : Mul (BitVec n) := ⟨.mul⟩
 
 /--
 Unsigned modulo for bit vectors.
@@ -111,7 +112,7 @@ Unsigned modulo for bit vectors.
 SMT-Lib name: `bvurem`.
 -/
 protected def mod (x y : BitVec n) : BitVec n where val := x.val % y.val
-instance : Mod (BitVec n) := ⟨BitVec.mod⟩
+instance : Mod (BitVec n) := ⟨.mod⟩
 
 /--
 Unsigned division for bit vectors using the Lean convention where division by zero returns zero.
@@ -205,7 +206,7 @@ input is on the left, so `0xAB#8 ++ 0xCD#8 = 0xABCD#16`.
 SMT-Lib name: `concat`.
 -/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
-  .ofNat (n + m) (msbs.toNat <<< m + lsbs.toNat)
+  .ofNat (n + m) (msbs.toNat <<< m ||| lsbs.toNat)
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 
@@ -232,29 +233,27 @@ def replicate : (i : Nat) → BitVec w → BitVec (w*i)
       rw [Nat.mul_add, Nat.add_comm, Nat.mul_one]
     hEq ▸ (x ++ replicate n x)
 
-/-- Zero extend a vector of length `w` with `i` additional zeros in the high bits. -/
-def zeroExtend (i : Nat) (x : BitVec w) : BitVec (w+i) := Nat.add_comm .. ▸ ((0 : BitVec i) ++ x)
+/-- Fills a bitvector with `w` copies of the bit `b`. -/
+def fill (w : Nat) (b : Bool) : BitVec w := bif b then -1 else 0
+
+/-- Return the `i`-th least significant bit. -/
+def lsbGet (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
+
+/--
+Zero extend vector `x` of length `w` by adding zeros in the high bits until it has length `v`.
+If `v < w` then it truncates the high bits instead.
+-/
+def zeroExtend (v : Nat) (x : BitVec w) : BitVec v := .ofNat v x.toNat
+
+/--
+Truncate the high bits of bitvector `x` of length `w`, resulting in a vector of length `v`.
+If `v > w` then it zero-extends the vector instead.
+-/
+alias truncate := zeroExtend
 
 /--
 Sign extend a vector of length `w`, extending with `i` additional copies of the most significant
 bit in `x`. If `x` is an empty vector, then the sign is treated as zero.
 -/
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
-  have hEq : ((w-1) - (w-1) + 1)*i + w = w+i := by
-    rw [Nat.sub_self, Nat.zero_add, Nat.one_mul, Nat.add_comm]
-  hEq ▸ ((replicate i (extract (w-1) (w-1) x)) ++ x)
-
-/--
-Truncate the high bits of bitvector `x` of length `w`, resulting in a vector of length `v`.
-If `v > w` then it zero-extends the vector instead.
--/
-def shrink (v : Nat) (x : BitVec w) : BitVec v :=
-  if hZero : 0 < v then
-    have hEq : v - 1 + 0 + 1 = v := by
-      rw [Nat.add_zero]
-      exact Nat.sub_add_cancel hZero
-    hEq ▸ x.extract (v - 1) 0
-  else 0
-
-/-- Return the `i`-th least significant bit. -/
-def lsbGet (x : BitVec w) (i : Nat) : Bool := x.extract i i != 0
+  Nat.add_comm .. ▸ (fill i (lsbGet x (w-1)) ++ x)
