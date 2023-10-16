@@ -202,7 +202,9 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
   let rec go : ∀ l n, l.foldr f (n + l.length, []) = (n, enumFrom n l)
     | [], n => rfl
     | a::as, n => by
-      rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]; simp; rfl
+      rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
+      simp [enumFrom]
+      rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
@@ -802,28 +804,28 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 @[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
-`isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
+`IsPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
 that is, `l₂` has the form `l₁ ++ t` for some `t`.
 -/
-def isPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
+def IsPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
 
 /--
-`isSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
+`IsSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
 that is, `l₂` has the form `t ++ l₁` for some `t`.
 -/
-def isSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
+def IsSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
 
 /--
-`isInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
+`IsInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
 substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, t`.
 -/
-def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
+def IsInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inherit_doc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] infixl:50 " <+: " => IsPrefix
 
-@[inherit_doc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] infixl:50 " <:+ " => IsSuffix
 
-@[inherit_doc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] infixl:50 " <:+: " => IsInfix
 
 /--
 `inits l` is the list of initial segments of `l`.
@@ -1587,18 +1589,18 @@ or as
 -- TODO(Mario): tail recursive
 /-- Ternary version of `List.zipWith`. -/
 def zipWith₃ (f : α → β → γ → δ) : List α → List β → List γ → List δ
-| x :: xs, y :: ys, z :: zs => f x y z :: zipWith₃ f xs ys zs
-| _, _, _ => []
+  | x :: xs, y :: ys, z :: zs => f x y z :: zipWith₃ f xs ys zs
+  | _, _, _ => []
 
 /-- Quaternary version of `List.zipWith`. -/
 def zipWith₄ (f : α → β → γ → δ → ε) : List α → List β → List γ → List δ → List ε
-| x :: xs, y :: ys, z :: zs, u :: us => f x y z u :: zipWith₄ f xs ys zs us
-| _, _, _, _ => []
+  | x :: xs, y :: ys, z :: zs, u :: us => f x y z u :: zipWith₄ f xs ys zs us
+  | _, _, _, _ => []
 
 /-- Quinary version of `List.zipWith`. -/
 def zipWith₅ (f : α → β → γ → δ → ε → ζ) : List α → List β → List γ → List δ → List ε → List ζ
-| x :: xs, y :: ys, z :: zs, u :: us, v :: vs => f x y z u v :: zipWith₅ f xs ys zs us vs
-| _, _, _, _, _ => []
+  | x :: xs, y :: ys, z :: zs, u :: us, v :: vs => f x y z u v :: zipWith₅ f xs ys zs us vs
+  | _, _, _, _, _ => []
 
 /-- An auxiliary function for `List.mapWithPrefixSuffix`. -/
 -- TODO(Mario): tail recursive

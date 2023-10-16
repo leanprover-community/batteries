@@ -26,6 +26,7 @@ import Std.Data.BinomialHeap.Lemmas
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
+import Std.Data.Fin.Init.Lemmas
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -70,6 +71,7 @@ import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Expr
+import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
