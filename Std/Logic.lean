@@ -669,7 +669,8 @@ protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, 
     (¬∀ x, ¬p x) ↔ ∃ x, p x :=
   (@Decidable.not_iff_comm _ _ _ (decidable_of_iff (¬∃ x, p x) not_exists)).1 not_exists
 
-protected theorem Decidable.not_exists_not {p : α → Prop} [∀ x, Decidable (p x)] : (¬∃ x, ¬p x) ↔ ∀ x, p x := by
+protected theorem Decidable.not_exists_not {p : α → Prop} [∀ x, Decidable (p x)] :
+    (¬∃ x, ¬p x) ↔ ∀ x, p x := by
   simp only [not_exists, Decidable.not_not]
 
 /-! ## classical logic -/
