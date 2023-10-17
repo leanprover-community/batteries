@@ -13,7 +13,7 @@ This extends the `rfl` tactic so that it works on any reflexive relation,
 provided the reflexivity lemma has been marked as `@[refl]`.
 -/
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 
 open Lean Meta
 

@@ -60,7 +60,7 @@ and in `Lean.MVarId.symm` and `Lean.MVarId.symmAt` this result will be a new goa
 -/
 -- This function is rather opaque, but the design with a generic continuation `k`
 -- is necessary in order to factor out all the common requirements below.
-def symmAux (tgt : Expr) (k : Expr → Array Expr → Expr → MetaM α) : MetaM α := do
+private def symmAux (tgt : Expr) (k : Expr → Array Expr → Expr → MetaM α) : MetaM α := do
   let .app (.app rel _) _ := tgt
     | throwError "symmetry lemmas only apply to binary relations, not{indentExpr tgt}"
   for lem in ← (symmExt.getState (← getEnv)).getMatch rel do
@@ -91,7 +91,8 @@ given a candidate `symm` lemma `lem`, which will have type `∀ args, body`.
 Depending on whether we are working on a hypothesis or a goal,
 `k` will internally use either `replace` or `assign`.
 -/
-def symmAux (tgt : Expr) (k : Expr → Array Expr → Expr → MVarId → MetaM MVarId) (g : MVarId) :
+private def symmAux
+    (tgt : Expr) (k : Expr → Array Expr → Expr → MVarId → MetaM MVarId) (g : MVarId) :
     MetaM MVarId := do
   tgt.symmAux fun lem args body => do
     let g' ← k lem args body g
@@ -112,7 +113,7 @@ def symmAt (h : FVarId) (g : MVarId) : MetaM MVarId := do
 
 end Lean.MVarId
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 
 open Lean.Elab.Tactic
 
