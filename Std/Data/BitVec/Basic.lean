@@ -56,7 +56,6 @@ protected def toNat (a : BitVec n) : Nat := a.toFin.val
 /-- Return the `i`-th least significant bit. -/
 @[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := getLsb x (w-1-i)
 
-
 /-- Return most-significant bit in bitvector. -/
 @[inline] protected def msb (a : BitVec n) : Bool := getMsb a 0
 
@@ -66,7 +65,7 @@ protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   | Int.ofNat a => .ofNat n a
   | Int.negSucc a => .ofNat n (2^n - 1 - a % 2^n)
 
-/-- Given a bitvector -/
+/-- Interpret the bitvector as an integer stored in two's complement form. -/
 protected def toInt (a : BitVec n) : Int :=
   if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
 
@@ -78,13 +77,12 @@ instance : Inhabited (BitVec n) where default := .zero n
 instance : OfNat (BitVec n) i where ofNat := .ofNat n i
 
 /-- Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`. -/
--- TODO: is this a good notation? Do we need it? We can also write `(i : BitVec n)`
-scoped syntax:max num noWs "#" noWs num : term
-macro_rules | `($i:num#$n:num) => `(BitVec.ofNat $n $i)
+scoped syntax:max term:max noWs "#" noWs term:max : term
+macro_rules | `($i#$n) => `(BitVec.ofNat $n $i)
 
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNat] def unexpandBitVecOfNat : Lean.PrettyPrinter.Unexpander
-  | `($(_) $n:num $i:num) => `($i:num#$n:num)
+  | `($(_) $n $i) => `($i#$n)
   | _ => throw ()
 
 /-- Convert bitvector into a fixed-width hex number. -/
