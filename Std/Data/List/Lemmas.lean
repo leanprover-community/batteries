@@ -166,7 +166,7 @@ theorem exists_of_mem_map (h : b ∈ map f l) : ∃ a, a ∈ l ∧ f a = b := me
 
 theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
     (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) := by
-  simp; exact ⟨fun H j h => H _ _ h rfl, fun H i x h e => e ▸ H _ h⟩
+  simp
 
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
