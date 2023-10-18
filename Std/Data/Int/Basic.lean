@@ -130,7 +130,7 @@ instance : Dvd Int := ⟨fun a b => ∃ c, b = a * c⟩
 /-! ## bit operations -/
 
 /--
-Bitwise complement
+Bitwise not
 
 Interprets the integer as an infinite sequence of bits in two's complement
 and complements each bit.
@@ -140,11 +140,11 @@ and complements each bit.
 ~~~(-1:Int) = 0
 ```
 -/
-protected def complement : Int -> Int
+protected def not : Int -> Int
   | Int.ofNat n => Int.negSucc n
   | Int.negSucc n => Int.ofNat n
 
-instance : Complement Int := ⟨.complement⟩
+instance : Complement Int := ⟨.not⟩
 
 /--
 Bitwise shift right.

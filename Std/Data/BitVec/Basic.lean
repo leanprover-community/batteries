@@ -50,14 +50,21 @@ protected def ofNat (n : Nat) (i : Nat) : BitVec n where
 (zero-cost) wrapper around a `Nat`. -/
 protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
+/-- Return the `i`-th least significant bit. -/
+@[inline] def getLsb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
+
+/-- Return the `i`-th least significant bit. -/
+@[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := getLsb x (w-1-i)
+
+
 /-- Return most-significant bit in bitvector. -/
-protected def msb (a : BitVec n) : Bool := (a.toNat &&& (2^ (n-1))) ≠ 0
+@[inline] protected def msb (a : BitVec n) : Bool := getMsb a 0
 
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
 protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   match i with
   | Int.ofNat a => .ofNat n a
-  | Int.negSucc a => .ofNat n (2^n - 1 - (a % 2^n))
+  | Int.negSucc a => .ofNat n (2^n - 1 - a % 2^n)
 
 /-- Given a bitvector -/
 protected def toInt (a : BitVec n) : Int :=
@@ -125,7 +132,7 @@ def allOnes (n : Nat) : BitVec n := -1
 /--
 Return the absolute value of a signed bitvector.
 -/
-protected def abs (s : BitVec n) : BitVec n := if s.msb then (.neg s) else s
+protected def abs (s : BitVec n) : BitVec n := if s.msb then .neg s else s
 
 /--
 Multiplication for bit vectors. This can be interpreted as either signed or unsigned negation
@@ -157,7 +164,7 @@ where division by zero returns the `allOnes` bitvector.
 
 SMT-Lib name: `bvudiv`.
 -/
-def smt_udiv (x y : BitVec n) : BitVec n := if y = 0 then -1 else .udiv x y
+def smtUDiv (x y : BitVec n) : BitVec n := if y = 0 then -1 else .udiv x y
 
 /--
 Signed t-division for bit vectors using the Lean convention where division
@@ -185,21 +192,16 @@ def sdiv (s t : BitVec n) : BitVec n :=
 /--
 Signed division for bit vectors using SMTLIB rules for division by zero.
 
-Specifically, `smt_sdiv x 0 = if x >= 0 then -1 else 1`
+Specifically, `smtSDiv x 0 = if x >= 0 then -1 else 1`
 
 SMT-Lib name: `bvsdiv`.
 -/
-def smt_sdiv (s t : BitVec n) : BitVec n :=
-  if t.msb then
-    if s.msb then
-      .smt_udiv (.neg s) (.neg t)
-    else
-      .neg (.smt_udiv s (.neg t))
-  else
-    if s.msb then
-      .neg (.smt_udiv (.neg s) t)
-    else
-      .smt_udiv s t
+def smtSDiv (s t : BitVec n) : BitVec n :=
+  match s.msb, t.msb with
+  | false, false => smtUDiv s t
+  | false, true  => .neg (smtUDiv s (.neg t))
+  | true,  false => .neg (smtUDiv (.neg s) t)
+  | true,  true  => smtUDiv (.neg s) (.neg t)
 
 /--
 Remainder for signed division rounding to zero.
@@ -207,14 +209,11 @@ Remainder for signed division rounding to zero.
 SMT_Lib name: `bvsrem`.
 -/
 def srem (s t : BitVec n) : BitVec n :=
-  if !s.msb ∧ !t.msb then
-    .umod s t
-  else if s.msb ∧ !t.msb then
-    .neg (.umod (.neg s) t)
-  else if !s.msb ∧ t.msb then
-    .umod s (.neg t)
-  else
-    .neg (.umod (.neg s) (.neg t))
+  match s.msb, t.msb with
+  | false, false => .umod s t
+  | true,  false => .neg (.umod (.neg s) t)
+  | false, true  => .umod s (.neg t)
+  | true,  true  => .neg (.umod (.neg s) (.neg t))
 
 /--
 Remainder for signed division rounded to negative infinity.
@@ -222,18 +221,15 @@ Remainder for signed division rounded to negative infinity.
 SMT_Lib name: `bvsmod`.
 -/
 def smod (s t : BitVec m) : BitVec m :=
-  if t.msb then
-    if !s.msb then
-      let u := .umod s (.neg t)
-      (if u = BitVec.ofNat m 0 then u else .add u t)
-    else
-      .neg (.umod (.neg s) (.neg t))
-  else
-    if s.msb then
-      let u := .umod (.neg s) t
-      (if u = BitVec.ofNat m 0 then u else .sub t u)
-    else
-      .umod s t
+  match s.msb, t.msb with
+  | false, false => .umod s t
+  | false, true =>
+    let u := .umod s (.neg t)
+    (if u = BitVec.ofNat m 0 then u else .add u t)
+  | true, false =>
+    let u := .umod (.neg s) t
+    (if u = BitVec.ofNat m 0 then u else .sub t u)
+  | true, true => .neg (.umod (.neg s) (.neg t))
 
 /--
 Unsigned less-than for bit vectors.
@@ -263,14 +259,12 @@ SMT-Lib name: `bvslt`.
 -/
 protected def slt (x y : BitVec n) : Bool := x.toInt < y.toInt
 
-
 /--
 Signed less-than-or-equal-to for bit vectors.
 
 SMT-Lib name: `bvsle`.
 -/
 protected def sle (x y : BitVec n) : Bool := x.toInt ≤ y.toInt
-
 
 /--
 Bitwise AND for bit vectors.
@@ -311,6 +305,9 @@ instance : Xor (BitVec w) := ⟨.xor⟩
 /--
 Bitwise NOT for bit vectors.
 
+```lean
+~~~(0b0101#4) == 0b1010
+```
 SMT-Lib name: `bvnot`.
 -/
 protected def not (x : BitVec n) : BitVec n := -(x + .ofNat n 1)
@@ -359,7 +356,7 @@ Rotate right for bit vectors. All the bits of `x` are shifted to lower positions
 bottom `n` bits wrapping around to fill the high bits.
 
 ```lean
-rotateRight 0b0010#4 2 = 0b1000
+rotateRight 0b01001#5 1 = 0b10100
 ```
 SMT-Lib name: `rotate_right`.
 -/
@@ -376,18 +373,12 @@ def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 
-/-- Return the `i`-th least significant bit. -/
-def get_lsb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
-
-/-- Return the `i`-th least significant bit. -/
-def get_msb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< (w-1-i)) != 0
-
 /--
 Extraction of bits `start` to `start + len - 1` from a bit vector of size `n` to yield a
 new bitvector of size `len`. If `start + len > n`, then the vector will be zero-padded in the
 high bits.
 -/
-def extract_lsb' (start len : Nat) (a : BitVec n) : BitVec len := .ofNat _ (a.toNat >>> start)
+def extractLsb' (start len : Nat) (a : BitVec n) : BitVec len := .ofNat _ (a.toNat >>> start)
 
 /--
 Extraction of bits `hi` (inclusive) down to `lo` (inclusive) from a bit vector of size `n` to
@@ -395,8 +386,9 @@ yield a new bitvector of size `hi - lo + 1`.
 
 SMT-Lib name: `extract`.
 -/
-def extract_lsb (hi lo : Nat) (a : BitVec n) : BitVec (hi - lo + 1) := extract_lsb' lo _ a
+def extractLsb (hi lo : Nat) (a : BitVec n) : BitVec (hi - lo + 1) := extractLsb' lo _ a
 
+-- TODO: write this using multiplication
 /-- `replicate i x` concatenates `i` copies of `x` into a new vector of length `w*i`. -/
 def replicate : (i : Nat) → BitVec w → BitVec (w*i)
   | 0,   _ => 0

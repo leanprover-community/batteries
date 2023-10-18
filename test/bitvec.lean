@@ -70,19 +70,19 @@ open Std.BitVec
 
 -- get/extract
 
-#guard !get_msb 0b0101#4 0
-#guard get_msb 0b0101#4 1
-#guard !get_msb 0b0101#4 2
-#guard get_msb 0b0101#4 3
+#guard !getMsb 0b0101#4 0
+#guard getMsb 0b0101#4 1
+#guard !getMsb 0b0101#4 2
+#guard getMsb 0b0101#4 3
 
-#guard get_lsb 0b0101#4 0
-#guard !get_lsb 0b0101#4 1
-#guard get_lsb 0b0101#4 2
-#guard !get_lsb 0b0101#4 3
+#guard getLsb 0b0101#4 0
+#guard !getLsb 0b0101#4 1
+#guard getLsb 0b0101#4 2
+#guard !getLsb 0b0101#4 3
 
-#guard extract_lsb 3 0 0x1234#16 = 4
-#guard extract_lsb 7 4 0x1234#16 = 3
-#guard extract_lsb' 0 4 0x1234#16 = 0x4#4
+#guard extractLsb 3 0 0x1234#16 = 4
+#guard extractLsb 7 4 0x1234#16 = 3
+#guard extractLsb' 0 4 0x1234#16 = 0x4#4
 
 -- Pretty-printing
 
