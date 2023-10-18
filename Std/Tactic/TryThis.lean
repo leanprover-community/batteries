@@ -87,7 +87,7 @@ register_option format.inputWidth : Nat := {
 }
 
 /-- get the input width specified in the options -/
-def getInputWidth (o : Options) : Nat := o.get `format.inputWidth inputWidth
+def getInputWidth (o : Options) : Nat := format.inputWidth.get o
 
 /-- Add a "try this" suggestion. This has three effects:
 
