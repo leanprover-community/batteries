@@ -889,9 +889,17 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
+  l.foldr (fun a acc => join (acc.map fun x => [x, a :: x])) [[]]
+
+/-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
+def sublistsFast (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := Array.mkEmpty (arr.size * 2))
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
+
+-- The fact that this transformation is safe is proved in mathlib. Using a `csimp` lemma here is
+-- impractical as we are missing a lot of lemmas about lists.
+attribute [implemented_by sublistsFast] sublists
 
 section Forall₂
 
