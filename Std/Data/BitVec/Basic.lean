@@ -176,16 +176,11 @@ sdiv (-7#4) (-2) = 3#4
 ```
 -/
 def sdiv (s t : BitVec n) : BitVec n :=
-  if t.msb then
-    if s.msb then
-      .udiv (.neg s) (.neg t)
-    else
-      .neg (.udiv s (.neg t))
-  else
-    if s.msb then
-      .neg (.udiv (.neg s) t)
-    else
-      .udiv s t
+  match s.msb, t.msb with
+  | false, false => udiv s t
+  | false, true  => .neg (udiv s (.neg t))
+  | true,  false => .neg (udiv (.neg s) t)
+  | true,  true  => udiv (.neg s) (.neg t)
 
 /--
 Signed division for bit vectors using SMTLIB rules for division by zero.
@@ -208,10 +203,10 @@ SMT_Lib name: `bvsrem`.
 -/
 def srem (s t : BitVec n) : BitVec n :=
   match s.msb, t.msb with
-  | false, false => .umod s t
-  | true,  false => .neg (.umod (.neg s) t)
-  | false, true  => .umod s (.neg t)
-  | true,  true  => .neg (.umod (.neg s) (.neg t))
+  | false, false => umod s t
+  | false, true  => umod s (.neg t)
+  | true,  false => .neg (umod (.neg s) t)
+  | true,  true  => .neg (umod (.neg s) (.neg t))
 
 /--
 Remainder for signed division rounded to negative infinity.
