@@ -889,7 +889,7 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
-  l.foldr (fun a acc => join (acc.map fun x => [x, a :: x])) [[]]
+  l.foldr (fun a acc => acc.bind fun x => [x, a :: x]) [[]]
 
 /-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
 def sublistsFast (l : List α) : List (List α) :=
