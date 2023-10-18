@@ -429,6 +429,3 @@ SMT-Lib name: `sign_extend`.
 -/
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
   Nat.add_comm .. ▸ (fill i x.msb ++ x)
-
-#print Fin.cast
-def cast {n : Nat} : u = v -> BitVec u -> BitVec v
