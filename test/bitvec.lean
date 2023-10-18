@@ -74,11 +74,13 @@ open Std.BitVec
 #guard getMsb 0b0101#4 1
 #guard !getMsb 0b0101#4 2
 #guard getMsb 0b0101#4 3
+#guard !getMsb 0b1111#4 4
 
 #guard getLsb 0b0101#4 0
 #guard !getLsb 0b0101#4 1
 #guard getLsb 0b0101#4 2
 #guard !getLsb 0b0101#4 3
+#guard !getLsb 0b1111#4 4
 
 #guard extractLsb 3 0 0x1234#16 = 4
 #guard extractLsb 7 4 0x1234#16 = 3
