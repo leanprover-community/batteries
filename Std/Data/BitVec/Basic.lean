@@ -50,11 +50,11 @@ protected def ofNat (n : Nat) (i : Nat) : BitVec n where
 (zero-cost) wrapper around a `Nat`. -/
 protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
-/-- Return the `i`-th least significant bit. -/
+/-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
 @[inline] def getLsb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
 
-/-- Return the `i`-th least significant bit. -/
-@[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := getLsb x (w-1-i)
+/-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
+@[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
 
 /-- Return most-significant bit in bitvector. -/
 @[inline] protected def msb (a : BitVec n) : Bool := getMsb a 0
@@ -310,7 +310,7 @@ instance : Complement (BitVec w) := ⟨.not⟩
 Left shift for bit vectors. The low bits are filled with zeros. As a numeric operation, this is
 equivalent to `a * 2^s`, modulo `2^n`.
 
-SMT-Lib name: `bvshl`.
+SMT-Lib name: `bvshl` except this operator uses a `Nat` shift value.
 -/
 protected def shiftLeft (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat <<< s)
 instance : HShiftLeft (BitVec w) Nat (BitVec w) := ⟨.shiftLeft⟩
@@ -319,7 +319,7 @@ instance : HShiftLeft (BitVec w) Nat (BitVec w) := ⟨.shiftLeft⟩
 (Logical) right shift for bit vectors. The high bits are filled with zeros.
 As a numeric operation, this is equivalent to `a / 2^s`, rounding down.
 
-SMT-Lib name: `bvlshr`.
+SMT-Lib name: `bvlshr` except this operator uses a `Nat` shift value.
 -/
 def ushiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat >>> s)
 instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.ushiftRight⟩
@@ -329,9 +329,12 @@ Arithmetic right shift for bit vectors. The high bits are filled with the
 most-significant bit.
 As a numeric operation, this is equivalent to `a.toInt >>> s`.
 
-SMT-Lib name: `bvashr`.
+SMT-Lib name: `bvashr` except this operator uses a `Nat` shift value.
 -/
 def sshiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofInt n (a.toInt >>> s)
+
+instance {n} : HShiftLeft  (BitVec m) (BitVec n) (BitVec m) := ⟨fun x y => x <<< y.toNat⟩
+instance {n} : HShiftRight (BitVec m) (BitVec n) (BitVec m) := ⟨fun x y => x >>> y.toNat⟩
 
 /--
 Rotate left for bit vectors. All the bits of `x` are shifted to higher positions, with the top `n`
@@ -340,7 +343,7 @@ bits wrapping around to fill the low bits.
 ```lean
 rotateLeft  0b0011#4 3 = 0b1001
 ```
-SMT-Lib name: `rotate_left`.
+SMT-Lib name: `rotate_left` except this operator uses a `Nat` shift amount.
 -/
 def rotateLeft (x : BitVec w) (n : Nat) : BitVec w := x <<< n ||| x >>> (w - n)
 
@@ -351,7 +354,7 @@ bottom `n` bits wrapping around to fill the high bits.
 ```lean
 rotateRight 0b01001#5 1 = 0b10100
 ```
-SMT-Lib name: `rotate_right`.
+SMT-Lib name: `rotate_right` except this operator uses a `Nat` shift amount.
 -/
 def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 
