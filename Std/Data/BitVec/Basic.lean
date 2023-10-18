@@ -333,6 +333,9 @@ SMT-Lib name: `bvashr` except this operator uses a `Nat` shift value.
 -/
 def sshiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofInt n (a.toInt >>> s)
 
+instance {n} : HShiftLeft  (BitVec m) (BitVec n) (BitVec m) := ⟨fun x y => x <<< y.toNat⟩
+instance {n} : HShiftRight (BitVec m) (BitVec n) (BitVec m) := ⟨fun x y => x >>> y.toNat⟩
+
 /--
 Rotate left for bit vectors. All the bits of `x` are shifted to higher positions, with the top `n`
 bits wrapping around to fill the low bits.
