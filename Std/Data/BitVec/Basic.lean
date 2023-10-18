@@ -38,7 +38,8 @@ structure BitVec (w : Nat) where
 namespace BitVec
 
 /-- `cast eq i` embeds `i` into an equal `BitVec` type. -/
-@[inline] def cast (eq : n = m) (i : BitVec n) : BitVec m := .ofFin (Fin.cast (congrArg _ eq) i.toFin)
+@[inline] def cast (eq : n = m) (i : BitVec n) : BitVec m :=
+  .ofFin (Fin.cast (congrArg _ eq) i.toFin)
 
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
