@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.Nat.Init.Lemmas
+import Std.Data.Fin.Basic
 import Std.Data.Int.Basic
 import Std.Tactic.Alias
 
@@ -35,6 +36,9 @@ structure BitVec (w : Nat) where
   deriving DecidableEq
 
 namespace BitVec
+
+/-- `cast eq i` embeds `i` into an equal `BitVec` type. -/
+@[inline] def cast (eq : n = m) (i : BitVec n) : BitVec m := .ofFin (Fin.cast (congrArg _ eq) i.toFin)
 
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
@@ -425,3 +429,6 @@ SMT-Lib name: `sign_extend`.
 -/
 def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
   Nat.add_comm .. ▸ (fill i x.msb ++ x)
+
+#print Fin.cast
+def cast {n : Nat} : u = v -> BitVec u -> BitVec v
