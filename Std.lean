@@ -23,6 +23,8 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
+import Std.Data.BitVec
+import Std.Data.BitVec.Basic
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
