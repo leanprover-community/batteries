@@ -974,14 +974,11 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 
 /-! ### shiftRight -/
 
-@[simp]
-theorem shiftRight_zero : n >>> 0 = n := rfl
+@[simp] theorem shiftRight_zero : n >>> 0 = n := rfl
 
-@[simp]
-theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
+@[simp] theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
 
-@[simp]
-theorem zero_shiftRight : ∀ n, 0 >>> n = 0
+@[simp] theorem zero_shiftRight : ∀ n, 0 >>> n = 0
   | 0 => by simp [shiftRight]
   | n + 1 => by simp [shiftRight, zero_shiftRight]
 
