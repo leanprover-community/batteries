@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
+import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 
@@ -478,7 +479,11 @@ theorem min_succ_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
 
 @[simp] protected theorem min_zero_left (a) : min 0 a = 0 := Nat.min_eq_left (Nat.zero_le _)
 
+protected alias zero_min := Nat.min_zero_left
+
 @[simp] protected theorem min_zero_right (a) : min a 0 = 0 := Nat.min_eq_right (Nat.zero_le _)
+
+protected alias min_zero := Nat.min_zero_right
 
 protected theorem min_assoc : ∀ (a b c : Nat), min (min a b) c = min a (min b c)
 | 0, _, _ => by rw [Nat.min_zero_left, Nat.min_zero_left, Nat.min_zero_left]
@@ -527,7 +532,11 @@ protected theorem max_lt {a b c : Nat} : max a b < c ↔ a < c ∧ b < c := by
 
 @[simp] protected theorem max_zero_left (a) : max 0 a = a := Nat.max_eq_right (Nat.zero_le _)
 
+protected alias zero_max := Nat.max_zero_left
+
 @[simp] protected theorem max_zero_right (a) : max a 0 = a := Nat.max_eq_left (Nat.zero_le _)
+
+protected alias max_zero := Nat.max_zero_right
 
 protected theorem max_assoc : ∀ (a b c : Nat), max (max a b) c = max a (max b c)
 | 0, _, _ => by rw [Nat.max_zero_left, Nat.max_zero_left]
