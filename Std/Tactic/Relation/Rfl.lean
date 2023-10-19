@@ -48,16 +48,16 @@ relation, that is, a relation which has a reflexive lemma tagged with the attrib
 -/
 def _root_.Lean.MVarId.applyRfl (goal : MVarId) : MetaM Unit := do
   let .app (.app rel _) _ ← whnfR <|← instantiateMVars <|← goal.getType
-    | throwError "reflexivity lemmas only apply to binary relations, not
-      {indentExpr (← goal.getType)}"
+    | throwError "reflexivity lemmas only apply to binary relations, not{
+        indentExpr (← goal.getType)}"
   let s ← saveState
   let mut ex? := none
   for lem in ← (reflExt.getState (← getEnv)).getMatch rel do
     try
       let gs ← goal.apply (← mkConstWithFreshMVarLevels lem)
       if gs.isEmpty then return () else
-        logError <| MessageData.tagged `Tactic.unsolvedGoals <| m!"unsolved goals\n
-          {goalsToMessageData gs}"
+        logError <| MessageData.tagged `Tactic.unsolvedGoals <| m!"unsolved goals\n{
+          goalsToMessageData gs}"
     catch e =>
       ex? := ex? <|> (some (← saveState, e)) -- stash the first failure of `apply`
     s.restore
@@ -72,4 +72,4 @@ This tactic applies to a goal whose target has the form `x ~ x`, where `~` is a 
 relation, that is, a relation which has a reflexive lemma tagged with the attribute [refl].
 -/
 elab_rules : tactic
-| `(tactic| rfl) => withMainContext do liftMetaFinishingTactic (·.applyRfl)
+  | `(tactic| rfl) => withMainContext do liftMetaFinishingTactic (·.applyRfl)
