@@ -76,6 +76,19 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
 def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
+/-- The default maximum width of an ideal line in source code, 100 is the current convention. -/
+def inputWidth : Nat := 100
+
+/-- an option allowing the user to customize the ideal input width, this controls output format when
+the output is intended to be copied back into a lean file -/
+register_option format.inputWidth : Nat := {
+  defValue := inputWidth
+  descr := "ideal input width"
+}
+
+/-- get the input width specified in the options -/
+def getInputWidth (o : Options) : Nat := format.inputWidth.get o
+
 /-- Add a "try this" suggestion. This has three effects:
 
 * An info diagnostic is displayed saying `Try this: <suggestion>`
@@ -102,7 +115,7 @@ def addSuggestion (ref : Syntax) {kind : Name} (suggestion : TSyntax kind)
     let text ← PrettyPrinter.ppCategory kind suggestion
     let start := findLineStart map.source range.start
     let body := map.source.findAux (· ≠ ' ') range.start start
-    let text := Format.prettyExtra text
+    let text := Format.prettyExtra text (w := getInputWidth (← getOptions))
       (indent := (body - start).1) (column := (range.start - start).1)
     let stxRange := ref.getRange?.getD range
     let stxRange :=
