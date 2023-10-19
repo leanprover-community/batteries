@@ -897,8 +897,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib. Using a `csimp` lemma here is
--- impractical as we are missing a lot of lemmas about lists.
+-- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
+-- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
+-- TODO(std4#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
+-- `Std/Data/List/Lemmas.lean`.
 attribute [implemented_by sublistsFast] sublists
 
 section Forall₂
