@@ -108,7 +108,8 @@ elab "repeat' " tac:tacticSeq : tactic => do
 `repeat1 tac` applies `tac` to main goal at least once. If the application succeeds,
 the tactic is applied recursively to the generated subgoals until it eventually fails.
 -/
-macro "repeat1 " tac:tacticSeq : tactic => `(tactic| focus (($tac); repeat' $tac))
+elab "repeat1 " tac:tacticSeq : tactic => do
+  setGoals (← repeat1' (evalTacticAtRaw tac) (← getGoals))
 
 /-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
 elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
