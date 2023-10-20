@@ -416,5 +416,4 @@ bit in `x`. If `x` is an empty vector, then the sign is treated as zero.
 
 SMT-Lib name: `sign_extend`.
 -/
-def signExtend (i : Nat) (x : BitVec w) : BitVec (w+i) :=
-  Nat.add_comm .. ▸ (fill i x.msb ++ x)
+def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
