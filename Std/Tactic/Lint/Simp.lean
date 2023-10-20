@@ -76,16 +76,6 @@ def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option 
 def isSimpTheorem (declName : Name) : MetaM Bool := do
   pure $ (← getSimpTheorems).lemmaNames.contains (.decl declName)
 
-open Lean.Meta.DiscrTree in
-/-- Returns the list of elements in the discrimination tree. -/
-partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α s) : Array α :=
-  d.root.foldl (init := #[]) fun arr _ => trieElements arr
-where
-  /-- Returns the list of elements in the trie. -/
-  trieElements (arr)
-  | Trie.node vs children =>
-    children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
-
 open Std
 
 /-- Add message `msg` to any errors thrown inside `k`. -/
