@@ -8,11 +8,19 @@ open Std.BitVec
 #guard 3#5 * 7#5 = 0x15#5
 #guard 3#4 * 7#4 = 0x05#4
 
+#guard zeroExtend  4 0x7f#8 = 0xf#4
+#guard zeroExtend 12 0x7f#8 = 0x07f#12
+#guard zeroExtend 12 0x80#8 = 0x080#12
+#guard zeroExtend 16 0xff#8 = 0x00ff#16
+
+#guard signExtend  4 0x7f#8 = 0xf#4
+#guard signExtend 12 0x7f#8 = 0x07f#12
+#guard signExtend 12 0x80#8 = 0xf80#12
+#guard signExtend 16 0xff#8 = 0xffff#16
+
 -- Division and mod/rem
 
-
 #guard 3#4 / 0 = 0
-
 #guard 10#4 / 2 = 5
 
 #guard 8#4 % 0 = 8
