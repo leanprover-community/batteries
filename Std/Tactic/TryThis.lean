@@ -62,7 +62,7 @@ apply the replacement.
       eager.title := "Apply 'Try this'"
       eager.kind? := "quickfix"
       eager.isPreferred? := true
-      eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
+      eager.edit? := some <| .ofTextEdit doc.versionedIdentifier { range, newText }
     }
 
 /-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
