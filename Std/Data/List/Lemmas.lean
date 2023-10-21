@@ -821,8 +821,8 @@ theorem take_append_eq_append_take {l₁ l₂ : List α} {n : Nat} :
   cases n <;> simp [*]
 
 theorem take_append_of_le_length {l₁ l₂ : List α} {n : Nat} (h : n ≤ l₁.length) :
-    (l₁ ++ l₂).take n = l₁.take n :=
-  by simp [take_append_eq_append_take, Nat.sub_eq_zero_of_le h]
+    (l₁ ++ l₂).take n = l₁.take n := by
+  simp [take_append_eq_append_take, Nat.sub_eq_zero_of_le h]
 
 /-- Taking the first `l₁.length + i` elements in `l₁ ++ l₂` is the same as appending the first
 `i` elements of `l₂` to `l₁`. -/
