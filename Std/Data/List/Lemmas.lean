@@ -1963,8 +1963,8 @@ theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
   | [], _, _ => by simp
   | x :: xs, hl, h => by
-    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
-      drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
+    cases m <;> cases n <;> simp only [disjoint_cons_left, drop, not_mem_nil, disjoint_nil_left,
+      take, not_false_eq_true, and_self]
     · case succ.zero => cases h
     · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
@@ -2117,7 +2117,7 @@ theorem range_sublist {m n : Nat} : range m <+ range n ↔ m ≤ n := by
   simp only [range_eq_range', range'_sublist_right]
 
 theorem range_subset {m n : Nat} : range m ⊆ range n ↔ m ≤ n := by
-  simp only [range_eq_range', range'_subset_right]
+  simp only [range_eq_range', range'_subset_right, lt_succ_self]
 
 @[simp]
 theorem mem_range {m n : Nat} : m ∈ range n ↔ m < n := by
