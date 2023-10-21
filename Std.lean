@@ -23,6 +23,8 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
+import Std.Data.BitVec
+import Std.Data.BitVec.Basic
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
@@ -70,6 +72,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
 import Std.Lean.Float
 import Std.Lean.Format
@@ -126,6 +129,8 @@ import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
+import Std.Tactic.Relation.Rfl
+import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm

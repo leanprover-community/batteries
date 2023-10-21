@@ -971,3 +971,23 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
+
+/-! ### shiftRight -/
+
+@[simp] theorem shiftRight_zero : n >>> 0 = n := rfl
+
+@[simp] theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
+
+@[simp] theorem zero_shiftRight : ∀ n, 0 >>> n = 0
+  | 0 => by simp [shiftRight]
+  | n + 1 => by simp [shiftRight, zero_shiftRight]
+
+theorem shiftRight_add (m n : Nat) : ∀ k, m >>> (n + k) = (m >>> n) >>> k
+  | 0 => rfl
+  | k + 1 => by simp [add_succ, shiftRight_add]
+
+theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
+  | 0 => (Nat.div_one _).symm
+  | k + 1 => by
+    rw [shiftRight_add, shiftRight_eq_div_pow m k]
+    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
