@@ -524,8 +524,8 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 /-! ### dropLast -/
 
 theorem dropLast_cons_of_ne_nil {α : Type u} {x : α}
-    {l : List α} (h : l ≠ []) : (x :: l).dropLast = x :: l.dropLast :=
-  by simp [dropLast, h]
+    {l : List α} (h : l ≠ []) : (x :: l).dropLast = x :: l.dropLast := by
+  simp [dropLast, h]
 
 @[simp]
 theorem dropLast_append_of_ne_nil {α : Type u} {l : List α} :
@@ -998,14 +998,16 @@ theorem drop_sizeOf_le [SizeOf α] (l : List α) (n : Nat) : sizeOf (l.drop n) �
     | succ n =>
       exact Trans.trans (lih _) (Nat.le_add_left _ _)
 
+theorem lt_length_drop (L : List α) {i j : Nat} (h : i + j < L.length) : j < (L.drop i).length := by
+  have A : i < L.length := Nat.lt_of_le_of_lt (Nat.le.intro rfl) h
+  rw [(take_append_drop i L).symm] at h
+  simpa only [Nat.le_of_lt A, Nat.min_eq_left, Nat.add_lt_add_iff_left, length_take,
+    length_append] using h
+
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/
 theorem get_drop (L : List α) {i j : Nat} (h : i + j < L.length) :
-    get L ⟨i + j, h⟩ = get (L.drop i) ⟨j, by
-      have A : i < L.length := Nat.lt_of_le_of_lt (Nat.le.intro rfl) h
-      rw [(take_append_drop i L).symm] at h
-      simpa only [Nat.le_of_lt A, Nat.min_eq_left, Nat.add_lt_add_iff_left, length_take,
-        length_append] using h⟩ := by
+    get L ⟨i + j, h⟩ = get (L.drop i) ⟨j, lt_length_drop L h⟩ := by
   have : i ≤ L.length := Nat.le_trans (Nat.le_add_right _ _) (Nat.le_of_lt h)
   rw [get_of_eq (take_append_drop i L).symm ⟨i + j, h⟩, get_append_right'] <;>
     simp [Nat.min_eq_left this, Nat.add_sub_cancel_left, Nat.le_add_right]
@@ -1058,20 +1060,20 @@ theorem reverse_take {α} {xs : List α} (n : Nat) (h : n ≤ xs.length) :
   induction xs generalizing n <;>
     simp only [reverse_cons, drop, reverse_nil, Nat.zero_sub, length, take_nil]
   next xs_hd xs_tl xs_ih =>
-    cases Nat.lt_or_eq_of_le h with
-    | inl h' =>
-      have h' := Nat.le_of_succ_le_succ h'
-      rw [take_append_of_le_length, xs_ih _ h']
-      rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n) from _, drop]
-      · rwa [succ_eq_add_one, Nat.sub_add_comm]
-      · rwa [length_reverse]
-    | inr h' =>
-      subst h'
-      rw [length, Nat.sub_self, drop]
-      suffices xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length by
-        rw [this, take_length, reverse_cons]
-      rw [length_append, length_reverse]
-      rfl
+  cases Nat.lt_or_eq_of_le h with
+  | inl h' =>
+    have h' := Nat.le_of_succ_le_succ h'
+    rw [take_append_of_le_length, xs_ih _ h']
+    rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n) from _, drop]
+    · rwa [succ_eq_add_one, Nat.sub_add_comm]
+    · rwa [length_reverse]
+  | inr h' =>
+    subst h'
+    rw [length, Nat.sub_self, drop]
+    suffices xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length by
+      rw [this, take_length, reverse_cons]
+    rw [length_append, length_reverse]
+    rfl
 
 /-! ### modify nth -/
 
