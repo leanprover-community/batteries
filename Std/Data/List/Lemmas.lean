@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Control.ForInStep.Lemmas
+import Std.Data.Fin.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
@@ -559,10 +560,37 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
+/-! NB: `dropLast` is the specification for `Array.pop`, so theorems about `List.dropLast`
+are often used for theorems about `Array.pop`.  -/
+
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
   induction l₁ <;> simp [*, dropLast]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
+
+@[simp] theorem length_dropLast (xs : List α) : xs.dropLast.length = xs.length - 1 := by
+  match xs with
+  | [] => rfl
+  | x::xs => simp [Nat.succ_sub_succ_eq_sub]
+
+@[simp] theorem get_dropLast (xs : List α) (i : Fin xs.dropLast.length) :
+    xs.dropLast.get i = xs.get (i.castLE (xs.length_dropLast ▸ Nat.sub_le _ _ )) := by
+  cases i with | _ i hi =>
+  induction i generalizing xs
+  case zero =>
+    cases xs
+    case nil => rfl
+    case cons x xs =>
+      cases xs
+      case nil => simp at hi
+      case cons => simp
+  case succ i IH =>
+    cases xs
+    case nil => rfl
+    case cons x xs =>
+      cases xs
+      case nil => apply False.elim (Nat.not_lt_zero _ hi)
+      case cons y ys => apply IH
 
 /-! ### nth element -/
 
