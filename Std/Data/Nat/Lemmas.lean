@@ -1130,7 +1130,7 @@ theorem bit_decomp (n : Nat) : bit (bodd n) (div2 n) = n :=
 /-- For a predicate `C : Nat → Sort u`, if instances can be
   constructed for natural numbers of the form `bit b n`,
   they can be constructed for any given natural number. -/
-@[specialize]
+@[inline]
 def bitCasesOn {C : Nat → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n := bit_decomp n ▸ h _ _
 
 theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n := by
