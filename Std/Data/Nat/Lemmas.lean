@@ -1049,11 +1049,9 @@ theorem bit_val (b n) : bit b n = cond b 1 0 + 2 * n := by
 theorem bodd_zero : bodd 0 = false :=
   rfl
 
-@[simp]
 theorem bodd_one : bodd 1 = true :=
   rfl
 
-@[simp]
 theorem bodd_two : bodd 2 = false :=
   rfl
 
