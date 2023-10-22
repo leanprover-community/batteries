@@ -812,3 +812,7 @@ theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
 theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
+
+@[simp] theorem Bool.beq_true (b : Bool) : (b == true) = b := by cases b <;> rfl
+@[simp] theorem Bool.beq_false (b : Bool) : (b == false) = !b := by cases b <;> rfl
+theorem Bool.not_beq_not (a b : Bool) : (!a == !b) = (a == b) := by cases a <;> cases b <;> rfl

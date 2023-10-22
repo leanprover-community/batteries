@@ -126,3 +126,20 @@ where
     else
       guess
 termination_by iter guess => guess
+
+/-- `bodd n` returns `true` if `n` is odd-/
+def bodd (n : Nat) : Bool :=
+  (1 &&& n) != 0
+
+/-- `div2 n = ⌊n/2⌋` the greatest integer smaller than `n/2`-/
+def div2 (n : Nat) : Nat :=
+  n >>> 1
+
+/-- `bit b` appends the digit `b` to the binary representation of
+  its natural number input. -/
+def bit (b : Bool) (n : Nat) : Nat :=
+  cond b (n + n + 1) (n + n)
+
+/-- `testBit m n` returns whether the `(n+1)ˢᵗ` least significant bit is `1` or `0`-/
+def testBit (m n : Nat) : Bool :=
+  bodd (m >>> n)
