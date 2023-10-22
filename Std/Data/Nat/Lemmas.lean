@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
+import Std.Tactic.RCases
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 
@@ -1125,6 +1126,11 @@ theorem div2_bit (b n) : div2 (bit b n) = n := by
 theorem bit_decomp (n : Nat) : bit (bodd n) (div2 n) = n :=
   (bit_val _ _).trans (bodd_add_div2 _)
 
+theorem bit_eq_zero_iff {n : Nat} {b : Bool} : bit b n = 0 ↔ n = 0 ∧ b = false := by
+  constructor
+  · cases b <;> simp [Nat.bit, Nat.add_eq_zero]
+  · simp (config := {contextual := true})
+
 /-! ### binary rec/cases -/
 
 /-- For a predicate `C : Nat → Sort u`, if instances can be
@@ -1156,18 +1162,15 @@ theorem binaryRec_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (b
   rw [binaryRec]
   rfl
 
-theorem binaryRec_eq {C : Nat → Sort u} {z : C 0} {f : ∀ b n, C n → C (bit b n)}
-    (h : f false 0 z = z) (b n) : binaryRec z f (bit b n) = f b n (binaryRec z f n) := by
+theorem binaryRec_eq {C : Nat → Sort u} {z : C 0} {f : ∀ b n, C n → C (bit b n)} (b n)
+    (h : f false 0 z = z ∨ (n = 0 → b = true)) :
+    binaryRec z f (bit b n) = f b n (binaryRec z f n) := by
   rw [binaryRec]
   by_cases h : bit b n = 0
   -- Note: this renames the original `h : f false 0 z = z` to `h'` and leaves `h : bit b n = 0`
   case pos h' =>
-    rw [dif_pos h]
-    have bf := bodd_bit b n
-    have n0 := div2_bit b n
-    rw [h] at bf n0
-    dsimp at bf n0
-    subst bf n0
+    obtain ⟨rfl, rfl⟩ := bit_eq_zero_iff.mp h
+    simp only [or_false] at h'
     exact h'.symm
   case neg h' =>
     simp only [dif_neg h]
@@ -1185,11 +1188,6 @@ theorem binaryRec_of_ne_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n �
   intro _ _
   rw [bodd_bit, div2_bit]
   intro; rfl
-
-theorem bit_eq_zero_iff {n : Nat} {b : Bool} : bit b n = 0 ↔ n = 0 ∧ b = false := by
-  constructor
-  · cases b <;> simp [Nat.bit, Nat.add_eq_zero]
-  · simp (config := {contextual := true})
 
 /-- The same as `binaryRec`, but the induction step can assume that if `n=0`,
   the bit being appended is `true`-/
