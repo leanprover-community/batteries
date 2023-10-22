@@ -1132,6 +1132,7 @@ theorem bit_decomp (n : Nat) : bit (bodd n) (div2 n) = n :=
 /-- For a predicate `C : Nat → Sort u`, if instances can be
   constructed for natural numbers of the form `bit b n`,
   they can be constructed for any given natural number. -/
+@[specialize]
 def bitCasesOn {C : Nat → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n := bit_decomp n ▸ h _ _
 
 theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n := by
@@ -1145,7 +1146,7 @@ theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n := by
   For a predicate `C : Nat → Sort u`, if instances can be
   constructed for natural numbers of the form `bit b n`,
   they can be constructed for all natural numbers. -/
-@[specialize]
+@[elab_as_elim, specialize]
 def binaryRec {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) (n : Nat) : C n :=
   if n0 : n = 0 then by rw [n0]; exact z
   else by rw [← n.bit_decomp]; exact f n.bodd n.div2 (binaryRec z f n.div2)
@@ -1194,7 +1195,7 @@ theorem bit_eq_zero_iff {n : Nat} {b : Bool} : bit b n = 0 ↔ n = 0 ∧ b = fal
 
 /-- The same as `binaryRec`, but the induction step can assume that if `n=0`,
   the bit being appended is `true`-/
-@[elab_as_elim]
+@[elab_as_elim, specialize]
 def binaryRec' {C : Nat → Sort u} (z : C 0)
     (f : ∀ b n, (n = 0 → b = true) → C n → C (bit b n)) : ∀ n, C n :=
   binaryRec z fun b n ih =>
@@ -1206,7 +1207,7 @@ def binaryRec' {C : Nat → Sort u} (z : C 0)
       exact this ▸ z
 
 /-- The same as `binaryRec`, but special casing both 0 and 1 as base cases -/
-@[elab_as_elim]
+@[elab_as_elim, specialize]
 def binaryRecFromOne {C : Nat → Sort u} (z₀ : C 0) (z₁ : C 1)
     (f : ∀ b n, n ≠ 0 → C n → C (bit b n)) : ∀ n, C n :=
   binaryRec' z₀ fun b n h ih =>
