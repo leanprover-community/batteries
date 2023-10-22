@@ -583,7 +583,7 @@ are often used for theorems about `Array.pop`.  -/
     case cons x xs =>
       cases xs
       case nil => simp at hi
-      case cons => simp
+      case cons => rfl
   case succ i IH =>
     cases xs
     case nil => rfl
