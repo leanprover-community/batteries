@@ -49,7 +49,7 @@ instance : BEq (HashSet α) where
 
 /--
 `O(1)` amortized. Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 @[inline]
 def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=

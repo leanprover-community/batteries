@@ -41,7 +41,8 @@ theorem strongRec_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → m
   conv => lhs; unfold Nat.strongRec
 
 theorem strongRecOn_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
-    (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind := Nat.strongRec_eq ..
+    (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind :=
+  Nat.strongRec_eq ..
 
 @[simp] theorem recDiagAux_zero_left {motive : Nat → Nat → Sort _}
     (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
@@ -244,14 +245,14 @@ theorem succ_inj' : succ n = succ m ↔ n = m :=
   ⟨succ.inj, congrArg _⟩
 
 theorem pred_inj : ∀ {a b : Nat}, 0 < a → 0 < b → Nat.pred a = Nat.pred b → a = b
-| a+1, b+1, _,  _, h => by rw [show a = b from h]
-| a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
-| 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
-| 0,   0,   _,  _, _ => rfl
+  | a+1, b+1, _,  _, h => by rw [show a = b from h]
+  | a+1, 0,   _, hb, _ => absurd hb (Nat.lt_irrefl _)
+  | 0,   b+1, ha, _, _ => absurd ha (Nat.lt_irrefl _)
+  | 0,   0,   _,  _, _ => rfl
 
 theorem pred_lt_pred : ∀ {n m : Nat}, n ≠ 0 → n < m → pred n < pred m
-| 0,   _,   h, _ => (h rfl).elim
-| _+1, _+1, _, h => lt_of_succ_lt_succ h
+  | 0,   _,   h, _ => (h rfl).elim
+  | _+1, _+1, _, h => lt_of_succ_lt_succ h
 
 theorem succ_le_succ_iff {a b : Nat} : succ a ≤ succ b ↔ a ≤ b :=
   ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -270,10 +271,10 @@ theorem le_pred_of_lt {m n : Nat} (h : m < n) : m ≤ n - 1 :=
 /-! ### add -/
 
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m : Nat}, n + m = 0 → n = 0
-| 0,   m => by simp [Nat.zero_add]
-| n+1, m => fun h => by
-  rw [add_one, succ_add] at h
-  cases succ_ne_zero _ h
+  | 0,   m => by simp [Nat.zero_add]
+  | n+1, m => fun h => by
+    rw [add_one, succ_add] at h
+    cases succ_ne_zero _ h
 
 protected theorem eq_zero_of_add_eq_zero_left {n m : Nat} (h : n + m = 0) : m = 0 :=
   @Nat.eq_zero_of_add_eq_zero_right m n (Nat.add_comm n m ▸ h)
@@ -807,7 +808,8 @@ protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
   | zero => rfl
   | succ _ ih => rw [Nat.pow_succ, Nat.mul_one, ih]
 
-@[simp] protected theorem pow_one (a : Nat) : a ^ 1 = a := by rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
+@[simp] protected theorem pow_one (a : Nat) : a ^ 1 = a := by
+  rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
 
 protected theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
 
@@ -816,16 +818,19 @@ protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
   | zero => rw [Nat.add_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.add_succ, Nat.pow_succ, Nat.pow_succ, ih, Nat.mul_assoc]
 
-protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by rw [←Nat.pow_add, Nat.add_comm]
+protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by
+  rw [←Nat.pow_add, Nat.add_comm]
 
 protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
   induction n with
   | zero => rw [Nat.mul_zero, Nat.pow_zero, Nat.pow_zero]
   | succ _ ih => rw [Nat.mul_succ, Nat.pow_add, Nat.pow_succ, ih]
 
-protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.mul_comm]
+protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by
+  rw [←Nat.pow_mul, Nat.mul_comm]
 
-protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by rw [←Nat.pow_mul, Nat.pow_mul']
+protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by
+  rw [←Nat.pow_mul, Nat.pow_mul']
 
 protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
@@ -966,3 +971,23 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
+
+/-! ### shiftRight -/
+
+@[simp] theorem shiftRight_zero : n >>> 0 = n := rfl
+
+@[simp] theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
+
+@[simp] theorem zero_shiftRight : ∀ n, 0 >>> n = 0
+  | 0 => by simp [shiftRight]
+  | n + 1 => by simp [shiftRight, zero_shiftRight]
+
+theorem shiftRight_add (m n : Nat) : ∀ k, m >>> (n + k) = (m >>> n) >>> k
+  | 0 => rfl
+  | k + 1 => by simp [add_succ, shiftRight_add]
+
+theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
+  | 0 => (Nat.div_one _).symm
+  | k + 1 => by
+    rw [shiftRight_add, shiftRight_eq_div_pow m k]
+    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]

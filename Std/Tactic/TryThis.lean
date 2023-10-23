@@ -343,6 +343,19 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
 def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
+/-- The default maximum width of an ideal line in source code, 100 is the current convention. -/
+def inputWidth : Nat := 100
+
+/-- an option allowing the user to customize the ideal input width, this controls output format when
+the output is intended to be copied back into a lean file -/
+register_option format.inputWidth : Nat := {
+  defValue := inputWidth
+  descr := "ideal input width"
+}
+
+/-- get the input width specified in the options -/
+def getInputWidth (o : Options) : Nat := format.inputWidth.get o
+
 /-- Delaborate `e` into a suggestion suitable for use by `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
   return { suggestion := ← delabToRefinableSyntax e, messageData? := e }

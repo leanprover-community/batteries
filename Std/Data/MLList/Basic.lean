@@ -80,7 +80,8 @@ def squash : (Unit → m (MLList m α)) → MLList m α := (MLList.spec m).squas
 
 /-- Deconstruct a `MLList`, returning inside the monad an optional pair `α × MLList m α`
 representing the head and tail of the list. -/
-@[inline] def uncons [Monad m] : MLList.{u} m α → m (Option (α × MLList m α)) := (MLList.spec m).uncons
+@[inline] def uncons [Monad m] : MLList.{u} m α → m (Option (α × MLList m α)) :=
+  (MLList.spec m).uncons
 
 instance : EmptyCollection (MLList m α) := ⟨nil⟩
 instance : Inhabited (MLList m α) := ⟨nil⟩

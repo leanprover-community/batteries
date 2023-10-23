@@ -172,7 +172,6 @@ syntax (name := guardHyp)
 def evalGuardHyp : Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?)
   | `(conv| guard_hyp $h $[$c $ty]? $[$eq $val]?) => withMainContext do
-    if c.isNone && eq.isNone then throwUnsupportedSyntax
     let fvarid ← getFVarId h
     let lDecl ←
       match (← getLCtx).find? fvarid with
@@ -232,10 +231,12 @@ expression equals `true`. -/
 elab "#guard " e:term : command =>
   Lean.Elab.Command.liftTermElabM do
     let e ← Term.elabTermEnsuringType e (mkConst ``Bool)
-    Term.synthesizeSyntheticMVarsUsingDefault
+    Term.synthesizeSyntheticMVarsNoPostponing
     let e ← instantiateMVars e
-    if e.hasMVar then
-      throwError "expression{indentExpr e}\nhas metavariables"
-    let v ← unsafe (evalExpr Bool (mkConst ``Bool) e)
-    unless v do
-      throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    let mvars ← getMVars e
+    if mvars.isEmpty then
+      let v ← unsafe evalExpr Bool (mkConst ``Bool) e
+      unless v do
+        throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    else
+      _ ← Term.logUnassignedUsingErrorInfos mvars

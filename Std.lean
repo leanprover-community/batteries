@@ -23,9 +23,12 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
+import Std.Data.BitVec
+import Std.Data.BitVec.Basic
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
+import Std.Data.Fin.Init.Lemmas
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
@@ -37,6 +40,7 @@ import Std.Data.List.Basic
 import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.List.Pairwise
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
@@ -61,11 +65,16 @@ import Std.Data.Rat.Lemmas
 import Std.Data.String
 import Std.Data.String.Basic
 import Std.Data.String.Lemmas
+import Std.Data.Sum
+import Std.Data.Sum.Basic
+import Std.Data.Sum.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
+import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
@@ -97,6 +106,7 @@ import Std.Logic
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
+import Std.Tactic.Case
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -106,6 +116,7 @@ import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
 import Std.Tactic.Instances
+import Std.Tactic.LabelAttr
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -118,6 +129,8 @@ import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
 import Std.Tactic.RCases
+import Std.Tactic.Relation.Rfl
+import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
@@ -127,6 +140,7 @@ import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
+import Std.Test.Internal.DummyLabelAttr
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
