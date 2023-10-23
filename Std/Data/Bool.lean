@@ -238,7 +238,8 @@ theorem not_inj' : ∀ {x y : Bool}, (!x) = (!y) ↔ x = y := by
 theorem and_or_inj_right : ∀ {m x y : Bool}, (x && m) = (y && m) → (x || m) = (y || m) → x = y := by
   decide
 
-theorem and_or_inj_right' : ∀ {m x y : Bool}, (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
+theorem and_or_inj_right' :
+    ∀ {m x y : Bool}, (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
   decide
 
 theorem and_or_inj_left : ∀ {m x y : Bool}, (m && x) = (m && y) → (m || x) = (m || y) → x = y := by
