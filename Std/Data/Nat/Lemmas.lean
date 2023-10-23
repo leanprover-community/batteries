@@ -780,11 +780,6 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
-theorem mod_two_eq_zero_or_one (n : Nat) : n % 2 = 0 ∨ n % 2 = 1 :=
-  match n % 2, @Nat.mod_lt n 2 (by simp) with
-  | 0, _ => .inl rfl
-  | 1, _ => .inr rfl
-
 @[simp]
 theorem mod_two_ne_one (n : Nat) : ¬n % 2 = 1 ↔ n % 2 = 0 := by
   cases mod_two_eq_zero_or_one n with | _ h => simp [h]
@@ -1041,11 +1036,6 @@ theorem bitwise_zero : bitwise f 0 0 = 0 := by
 
 /-! ### bodd -/
 
-theorem bit_val (b n) : bit b n = cond b 1 0 + 2 * n := by
-  cases b <;> rw [Nat.add_comm, Nat.mul_comm]
-  · exact congrArg (· + n) n.zero_add.symm
-  · exact congrArg (· + n + 1) n.zero_add.symm
-
 @[simp]
 theorem bodd_zero : bodd 0 = false :=
   rfl
@@ -1055,15 +1045,6 @@ theorem bodd_one : bodd 1 = true :=
 
 theorem bodd_two : bodd 2 = false :=
   rfl
-
-theorem mod_two_of_bodd (n : Nat) : n % 2 = cond (bodd n) 1 0 := by
-  dsimp [bodd, (· &&& ·), AndOp.and, land]
-  unfold bitwise
-  by_cases n0 : n = 0
-  · simp [n0]
-  · simp only [ite_false, decide_True, Bool.true_and, decide_eq_true_eq, n0,
-      show 1 / 2 = 0 by decide]
-    cases mod_two_eq_zero_or_one n with | _ h => simp [h]
 
 theorem bodd_eq_mod_two_bne_zero (n : Nat) : bodd n = (n % 2 != 0) := by
   rw [mod_two_of_bodd]
@@ -1094,8 +1075,6 @@ theorem bodd_bit (b n) : bodd (bit b n) = b := by
 
 /-! ### div2 -/
 
-theorem div2_val (n) : div2 n = n / 2 := rfl
-
 @[simp]
 theorem div2_zero : div2 0 = 0 :=
   rfl
@@ -1108,53 +1087,19 @@ theorem div2_two : div2 2 = 1 :=
 
 theorem div2_eq_div_two (n : Nat) : div2 n = n / 2 := rfl
 
-theorem bodd_add_div2 (n : Nat) : cond (bodd n) 1 0 + 2 * div2 n = n := by
-  rw [← mod_two_of_bodd, div2_eq_div_two, Nat.mod_add_div]
-
 @[simp]
 theorem div2_succ (n : Nat) : div2 (succ n) = cond (bodd n) (succ (div2 n)) (div2 n) := by
   apply Nat.eq_of_mul_eq_mul_left (by decide : 0 < 2)
-  apply Nat.add_left_cancel (n := cond (bodd (succ n)) 1 0)
+  apply Nat.add_right_cancel (m := cond (bodd (succ n)) 1 0)
   rw (config := {occs := .pos [1]}) [bodd_add_div2, bodd_succ, ← bodd_add_div2 n]
   cases bodd n <;> simp [succ_eq_add_one, Nat.add_comm 1, Nat.mul_add]
 
 theorem div2_bit (b n) : div2 (bit b n) = n := by
-  rw [bit_val, div2_val, add_mul_div_left, div_eq_of_lt, Nat.zero_add]
+  rw [bit_val, div2_val, Nat.add_comm, add_mul_div_left, div_eq_of_lt, Nat.zero_add]
   · cases b <;> decide
   · decide
 
-theorem bit_decomp (n : Nat) : bit (bodd n) (div2 n) = n :=
-  (bit_val _ _).trans (bodd_add_div2 _)
-
-theorem bit_eq_zero_iff {n : Nat} {b : Bool} : bit b n = 0 ↔ n = 0 ∧ b = false := by
-  constructor
-  · cases b <;> simp [Nat.bit, Nat.add_eq_zero]
-  · simp (config := {contextual := true})
-
 /-! ### binary rec/cases -/
-
-/-- For a predicate `C : Nat → Sort u`, if instances can be
-  constructed for natural numbers of the form `bit b n`,
-  they can be constructed for any given natural number. -/
-@[inline]
-def bitCasesOn {C : Nat → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n := bit_decomp n ▸ h _ _
-
-theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n := by
-  rw [div2_val]
-  apply (div_lt_iff_lt_mul <| succ_pos 1).2
-  have := Nat.mul_lt_mul_of_pos_left (lt_succ_self 1)
-    (Nat.lt_of_le_of_ne n.zero_le h.symm)
-  rwa [Nat.mul_one] at this
-
-/-- A recursion principle for `bit` representations of natural numbers.
-  For a predicate `C : Nat → Sort u`, if instances can be
-  constructed for natural numbers of the form `bit b n`,
-  they can be constructed for all natural numbers. -/
-@[specialize]
-def binaryRec {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) (n : Nat) : C n :=
-  if n0 : n = 0 then by rw [n0]; exact z
-  else by rw [← n.bit_decomp]; exact f n.bodd n.div2 (binaryRec z f n.div2)
-  decreasing_by exact binaryRec_decreasing n0
 
 @[simp]
 theorem binaryRec_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) :
@@ -1188,26 +1133,3 @@ theorem binaryRec_of_ne_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n �
   intro _ _
   rw [bodd_bit, div2_bit]
   intro; rfl
-
-/-- The same as `binaryRec`, but the induction step can assume that if `n=0`,
-  the bit being appended is `true`-/
-@[elab_as_elim, specialize]
-def binaryRec' {C : Nat → Sort u} (z : C 0)
-    (f : ∀ b n, (n = 0 → b = true) → C n → C (bit b n)) : ∀ n, C n :=
-  binaryRec z fun b n ih =>
-    if h : n = 0 → b = true then f b n h ih
-    else by
-      have : bit b n = 0 := by
-        rw [Decidable.not_imp, Bool.not_eq_true] at h
-        rwa [bit_eq_zero_iff]
-      exact this ▸ z
-
-/-- The same as `binaryRec`, but special casing both 0 and 1 as base cases -/
-@[elab_as_elim, specialize]
-def binaryRecFromOne {C : Nat → Sort u} (z₀ : C 0) (z₁ : C 1)
-    (f : ∀ b n, n ≠ 0 → C n → C (bit b n)) : ∀ n, C n :=
-  binaryRec' z₀ fun b n h ih =>
-    if h' : n = 0 then by
-      rw [h', h h']
-      exact z₁
-    else f b n h' ih
