@@ -413,6 +413,8 @@ The parameters are:
 * `e`: the replacement expression
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
+* `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
+  `Remaining subgoals:`
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
     (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
@@ -426,6 +428,8 @@ The parameters are:
 * `es`: the array of replacement expressions
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
+* `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
+  `Remaining subgoals:`
 -/
 def addExactSuggestions (ref : Syntax) (es : Array Expr)
     (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
