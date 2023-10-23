@@ -124,7 +124,7 @@ partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
     if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
 
 /-- Delaborate `e` into syntax suitable for use by `refine`. -/
-def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
+def delabToRefinableSyntax (e : Expr) : MetaM Term :=
   return ⟨← replaceMVarsByUnderscores (← delab e)⟩
 
 /-- The default maximum width of an ideal line in source code, 100 is the current convention. -/
@@ -306,12 +306,12 @@ structure Suggestion where
   messageData? : Option MessageData := none
 deriving Inhabited
 
-/-- Converts a `Suggestion` to `Json` in `MetaM`. We need `MetaM` in order to pretty-print syntax.
+/-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
 
 If `w := none`, then `w := getInputWidth (← getOptions)` is used.
 -/
 def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
-    MetaM Json := do
+    CoreM Json := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
@@ -328,7 +328,7 @@ instance : Coe SuggestionText Suggestion where
   coe t := { suggestion := t }
 
 /-- Delaborate `e` into a suggestion suitable for use by `refine`. -/
-def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
+def delabToRefinableSuggestion (e : Expr) : MetaM Suggestion :=
   return { suggestion := ← delabToRefinableSyntax e, messageData? := e }
 
 /-! # Widget hooks -/
@@ -339,23 +339,25 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (header : String) (isInline : Bool)
     (origSpan? : Option Syntax := none)
     (style? : Option SuggestionStyle := none) :
-    MetaM Unit := do
+    CoreM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
+    -- FIXME: this produces incorrect results when `by` is at the beginning of the line, i.e.
+    -- replacing `tac` in `by tac`, because the next line will only be 2 space indented
+    -- (less than `tac` which starts at column 3)
     let (indent, column) := getIndentAndColumn map range
     let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
     let stxRange := ref.getRange?.getD range
     let stxRange :=
       { start := map.lineStart (map.toPosition stxRange.start).line
         stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    let json := json% {
+    Widget.saveWidgetInfo ``tryThisWidget (.ofRange stxRange) (props := json% {
       suggestions: $suggestions,
       range: $(map.utf8RangeToLspRange range),
       header: $header,
       isInline: $isInline,
       style: $style?
-    }
-    Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
+    })
 
 
 /-- Add a "try this" suggestion. This has three effects:
@@ -384,7 +386,7 @@ The parameters are:
 -/
 def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
-    (header : String := "Try this: ") : MetaM Unit := do
+    (header : String := "Try this: ") : CoreM Unit := do
   logInfoAt ref m!"{header}{s}"
   addSuggestionCore ref #[s] header (isInline := true) origSpan?
 
@@ -415,14 +417,14 @@ The parameters are:
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none) (header : String := "Try these:")
-    (style? : Option SuggestionStyle := none) : MetaM Unit := do
+    (style? : Option SuggestionStyle := none) : CoreM Unit := do
   if suggestions.isEmpty then throwErrorAt ref "no suggestions available"
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
   addSuggestionCore ref suggestions header (isInline := false) origSpan? style?
 
-private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElabM Suggestion := do
+private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : MetaM Suggestion := do
   let stx ← delabToRefinableSyntax e
   let mvars ← getMVars e
   let suggestion ← if mvars.isEmpty then `(tactic| exact $stx) else `(tactic| refine $stx)
@@ -445,7 +447,7 @@ The parameters are:
   If not provided it defaults to `ref`.
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
   addSuggestion ref (← addExactSuggestionCore addSubgoalsMsg e)
     (origSpan? := origSpan?)
 
@@ -458,7 +460,7 @@ The parameters are:
   If not provided it defaults to `ref`.
 -/
 def addExactSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
   let suggestions ← es.mapM <| addExactSuggestionCore addSubgoalsMsg
   addSuggestions ref suggestions (origSpan? := origSpan?)
 
@@ -472,7 +474,7 @@ The parameters are:
 * `header`: a string which precedes the suggestion. By default, it's `"Try this: "`.
 -/
 def addTermSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try this: ") : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try this: ") : MetaM Unit := do
   addSuggestion ref (← delabToRefinableSuggestion e) (origSpan? := origSpan?) (header := header)
 
 /-- Add term suggestions.
@@ -485,6 +487,6 @@ The parameters are:
 * `header`: a string which precedes the list of suggestions. By default, it's `"Try these:"`.
 -/
 def addTermSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try these:") : TermElabM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try these:") : MetaM Unit := do
   addSuggestions ref (← es.mapM delabToRefinableSuggestion)
     (origSpan? := origSpan?) (header := header)
