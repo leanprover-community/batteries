@@ -262,11 +262,13 @@ def pretty : SuggestionText → CoreM Format
 /- Note that this is essentially `return (← s.pretty).prettyExtra w indent column`, but we
 special-case strings to avoid converting them to `Format`s and back. -/
 /-- Pretty-prints a `SuggestionText` as a `String` and wraps with respect to the pane width,
-indentation, and column, via `Format.prettyExtra`. Raw `String`s are returned as-is. -/
-def prettyExtra (s : SuggestionText) (w : Nat := Format.defWidth)
+indentation, and column, via `Format.prettyExtra`. If `w := none`, then
+`w := getInputWidth (← getOptions)` is used. Raw `String`s are returned as-is. -/
+def prettyExtra (s : SuggestionText) (w : Option Nat := none)
     (indent column : Nat := 0) : CoreM String :=
   match s with
-  | .tsyntax (kind := kind) stx =>
+  | .tsyntax (kind := kind) stx => do
+    let w ← match w with | none => do pure <| getInputWidth (← getOptions) | some n => pure n
     return (← PrettyPrinter.ppCategory kind stx).prettyExtra w indent column
   | .string text => return text
 
@@ -339,8 +341,10 @@ structure Suggestion where
 deriving Inhabited
 
 /-- Converts a `Suggestion` to `Json` in `MetaM`. We need `MetaM` in order to pretty-print syntax.
+
+If `w := none`, then `w := getInputWidth (← getOptions)` is used.
 -/
-def Suggestion.toJsonM (s : Suggestion) (w : Nat := Format.defWidth) (indent column : Nat := 0)
+def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0)
     : MetaM Json := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
