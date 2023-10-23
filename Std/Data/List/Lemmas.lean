@@ -988,9 +988,6 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 @[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
 
-theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
-  rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
-
 @[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
 
 @[simp] theorem contains_cons [BEq α] :
@@ -1023,10 +1020,10 @@ theorem and_any_distrib_right (l : List α) (p : α → Bool) (q : Bool) :
     (l.any p && q) = l.any fun a => p a && q := by
   induction l with simp | cons _ _ ih => rw [Bool.and_or_distrib_right, ih]
 
-theorem any_eq_not_all_not (l : List α) (p : α → Bool) : l.any p = !l.all fun c => !p c := by
+theorem any_eq_not_all_not (l : List α) (p : α → Bool) : l.any p = !l.all (!p .) := by
   simp only [not_all_eq_any_not, Bool.not_not]
 
-theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any fun c => !p c := by
+theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!p .) := by
   simp only [not_any_eq_all_not, Bool.not_not]
 
 /-! ### reverse -/
