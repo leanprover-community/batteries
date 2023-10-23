@@ -8,6 +8,7 @@ import Lean.Widget.UserWidget
 import Std.Lean.Name
 import Std.Lean.Format
 import Std.Lean.Position
+import Std.Data.Json
 
 /-!
 # "Try this" support
@@ -45,90 +46,36 @@ where `<replacement*>` is a link which will perform the replacement.
 import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
 const e = React.createElement;
-export default function(props) {
+export default function ({ pos, suggestions, range, header, isInline, style }) {
   const editorConnection = React.useContext(EditorContext)
-
-  // Construct the style from the object corresponding to a given SuggestionStyle.
-  function getStyle(style) {
-    return !style ? {
-        className:'link pointer dim',
-        style:{color:'var(--vscode-textLink-foreground)'}
-      }
-      : style?.error ? (
-        style.error.decorated ? {
-          className:'pointer dim',
-          style:{
-            color:'var(--vscode-errorForeground)',
-            textDecoration:'underline wavy var(--vscode-editorError-foreground) 1pt'
-          }
-        }
-        : {className:'pointer dim', style:{color:'var(--vscode-errorForeground)'}}
-      )
-      : style?.warning ? (
-        style.warning.decorated ? {
-          className:'gold pointer dim',
-          style:{textDecoration:'underline wavy var(--vscode-editorWarning-foreground) 1pt'}
-        }
-        : {className:'gold pointer dim'}
-      )
-      : style === 'success' ? {className:'information pointer dim'}
-      : style === 'asHypothesis' ? {className:'goal-hyp pointer dim'}
-      : style === 'asInaccessible' ? {className:'goal-inaccessible pointer dim'}
-      : style?.value ? {
-        className:'pointer dim',
-        // Clip `t` to lie between 0 and 1. Interpolate between 0 and 120 (red and green).
-        // Dim the lightness from 60% at the ends to 45% in the middle parabolically to at least
-        // avoid total illegibility in light themes.
-        style:{
-          color:`hsl(${Math.round(Math.min(Math.max(style.value.t,0),1) * 120)} 95% ${
-            60*(0.25 * Math.pow(2 * Math.min(Math.max(style.value.t,0),1) - 1,2) + 0.75)}%)`
-        },
-        title:(style.value.showValueInHoverText
-          ? `Apply suggestion (${Math.min(Math.max(style.value.t,0),1)})`
-          : 'Apply suggestion')
-      }
-      : {
-        className:'link pointer dim',
-        style:{border:'solid thin red'},
-        title:'An unexpected styling error has occurred.'
-          + 'Please report this on the std4 repo or on Zulip.'
-        }
+  const defStyle = style || {
+    className: 'link pointer dim',
+    style: { color: 'var(--vscode-textLink-foreground)' }
   }
 
   // Construct the children of the HTML element for a given suggestion.
-  function makeSuggestion({suggestion, preInfo, postInfo, style}) {
-
+  function makeSuggestion({ suggestion, preInfo, postInfo, style }) {
     function onClick() {
       editorConnection.api.applyEdit({
-        changes: { [props.pos.uri]: [{ range: props.range, newText: suggestion }] }
+        changes: { [pos.uri]: [{ range, newText: suggestion }] }
       })
     }
-
     return [
       preInfo,
-      e('span',
-        {onClick, title: 'Apply suggestion', ...getStyle(style)},
-        suggestion),
+      e('span', { onClick, title: 'Apply suggestion', ...style || defStyle }, suggestion),
       postInfo
     ]
   }
 
   // Choose between an inline 'Try this'-like display and a list-based 'Try these'-like display.
-  if (props.isInline) {
-    return e('div', {className: 'ml1'},
-      e('pre', {className: 'font-code pre-wrap'},
-        props.header,
-        makeSuggestion(props.suggestions[0]))
-    )
+  if (isInline) {
+    return e('div', { className: 'ml1' },
+      e('pre', { className: 'font-code pre-wrap' }, header, makeSuggestion(suggestions[0])))
   } else {
-    function makeListElement(s) {
-      return e('li', {className:'font-code pre-wrap'}, makeSuggestion(s))
-    }
-    const s = props.suggestions.map(makeListElement)
-    return e('div', {className: 'ml1'},
-      e('pre', {className: 'font-code pre-wrap'}, props.header),
-      e('ul', {style:{paddingInlineStart:'20px'}}, s)
-    )
+    return e('div', { className: 'ml1' },
+      e('pre', { className: 'font-code pre-wrap' }, header),
+      e('ul', { style: { paddingInlineStart: '20px' } }, suggestions.map(s =>
+        e('li', { className: 'font-code pre-wrap' }, makeSuggestion(s)))))
   }
 }"
 
@@ -273,46 +220,66 @@ def prettyExtra (s : SuggestionText) (w : Option Nat := none)
 
 end SuggestionText
 
-/-- Style hooks for `Suggestion`s. The possible values are
-* `.error`; takes an optional boolean argument which determines whether to show an error squiggle
-(true by default)
-* `.warning`; takes an optional boolean argument which determines whether to show a warning
-squiggle (true by default)
-* `.success`
-* `.asHypothesis`, the style of goal hypotheses
-* `.asInaccessible`, the style of inaccessible goal hypotheses
-* `.value t` where `t : Float`, which draws from a red-yellow-green gradient with red at `t = 0.0`
-and green at `t = 1.0`. `t` is assumed to be between `0.0` and `1.0`. Values outside this range are
-silently clipped to lie within this range. An optional boolean argument may be supplied which
-determines whether to include the value `t` in hover text (`true` by default).
+/--
+Style hooks for `Suggestion`s. See `SuggestionStyle.error`, `.warning`, `.success`, `.value`,
+and other definitions here for style presets. This is an arbitrary `Json` object, with the following
+interesting fields:
+* `title`: the hover text in the suggestion link
+* `className`: the CSS classes applied to the link
+* `style`: A `Json` object with additional inline CSS styles such as `color` or `textDecoration`.
 -/
-inductive SuggestionStyle where
+def SuggestionStyle := Json deriving Inhabited, ToJson
+
 /-- Style as an error. By default, decorates the text with an undersquiggle; providing the argument
 `decorated := false` turns this off. -/
--- The VS code error foreground theme color (`--vscode-errorForeground`).
-| error (decorated := true)
+def SuggestionStyle.error (decorated := true) : SuggestionStyle :=
+  let style := if decorated then
+    json% {
+      -- The VS code error foreground theme color (`--vscode-errorForeground`).
+      color: "var(--vscode-errorForeground)",
+      textDecoration: "underline wavy var(--vscode-editorError-foreground) 1pt"
+    }
+  else json% { color: "var(--vscode-errorForeground)" }
+  json% { className: "pointer dim", style: $style }
+
 /-- Style as a warning. By default, decorates the text with an undersquiggle; providing the
 argument `decorated := false` turns this off. -/
--- The `.gold` CSS class, which the infoview uses when e.g. building a file.
-| warning (decorated := true)
+def SuggestionStyle.warning (decorated := true) : SuggestionStyle :=
+  if decorated then
+    json% {
+      -- The `.gold` CSS class, which the infoview uses when e.g. building a file.
+      className: "gold pointer dim",
+      style: { textDecoration: "underline wavy var(--vscode-editorWarning-foreground) 1pt" }
+    }
+  else json% { className: "gold pointer dim" }
+
 /-- Style as a success. -/
--- The `.information` CSS class, which the infoview uses on successes.
-| success
+def SuggestionStyle.success : SuggestionStyle :=
+  -- The `.information` CSS class, which the infoview uses on successes.
+  json% { className: "information pointer dim" }
+
 /-- Style the same way as a hypothesis appearing in the infoview. -/
--- The `.goal-hyp` CSS class.
-| asHypothesis
+def SuggestionStyle.asHypothesis : SuggestionStyle :=
+  json% { className: "goal-hyp pointer dim" }
+
 /-- Style the same way as an inaccessible hypothesis appearing in the infoview. -/
--- The `.goal-inaccessible` CSS class.
-| asInaccessible
+def SuggestionStyle.asInaccessible : SuggestionStyle :=
+  json% { className: "goal-inaccessible pointer dim" }
+
 /-- Draws the color from a red-yellow-green color gradient with red at `0.0`, yellow at `0.5`, and
 green at `1.0`. Values outside the range `[0.0, 1.0]` are clipped to lie within this range.
 
 With `showValueInHoverText := true` (the default), the value `t` will be included in the `title` of
 the HTML element (which appears on hover). -/
-/- interpolates linearly from 0º to 120º with 95% saturation and lightness varying around 50% in
-HSL space. -/
-| value (t : Float) (showValueInHoverText := true)
-deriving Inhabited, Repr, ToJson, FromJson
+def SuggestionStyle.value (t : Float) (showValueInHoverText := true) : SuggestionStyle :=
+  let t := min (max t 0) 1
+  json% {
+    className: "pointer dim",
+    -- interpolates linearly from 0º to 120º with 95% saturation and lightness
+    -- varying around 50% in HSL space
+    style: { color: $(s!"hsl({(t * 120).round} 95% {60 * ((t - 0.5)^2 + 0.75)}%)") },
+    title: $(if showValueInHoverText then s!"Apply suggestion ({t})" else "Apply suggestion")
+  }
 
 /-- Holds a `suggestion` for replacement, along with `preInfo` and `postInfo` strings to be printed
 immediately before and after that suggestion, respectively. It also includes an optional
@@ -343,8 +310,8 @@ deriving Inhabited
 
 If `w := none`, then `w := getInputWidth (← getOptions)` is used.
 -/
-def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0)
-    : MetaM Json := do
+def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
+    MetaM Json := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
@@ -369,8 +336,10 @@ def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
 /-- Core of `addSuggestion` and `addSuggestions`. Whether we use an inline display for a single
 element or a list display is controlled by `isInline`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
+    (header : String) (isInline : Bool)
     (origSpan? : Option Syntax := none)
-    (header : String) (isInline : Bool) : MetaM Unit := do
+    (style? : Option SuggestionStyle := none) :
+    MetaM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     let (indent, column) := getIndentAndColumn map range
@@ -379,12 +348,13 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     let stxRange :=
       { start := map.lineStart (map.toPosition stxRange.start).line
         stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    let range := map.utf8RangeToLspRange range
-    let json := Json.mkObj [
-      ("suggestions", Json.arr suggestions),
-      ("range", toJson range),
-      ("header", header),
-      ("isInline", toJson isInline)]
+    let json := json% {
+      suggestions: $suggestions,
+      range: $(map.utf8RangeToLspRange range),
+      header: $header,
+      isInline: $isInline,
+      style: $style?
+    }
     Widget.saveWidgetInfo ``tryThisWidget json (.ofRange stxRange)
 
 
@@ -416,7 +386,7 @@ def addSuggestion (ref : Syntax) (s : Suggestion)
     (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
-  addSuggestionCore ref ⟨[s]⟩ origSpan? header (isInline := true)
+  addSuggestionCore ref #[s] header (isInline := true) origSpan?
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
@@ -441,15 +411,16 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
+* `style?`: Applies a default style for all suggestions which do not have a custom `style?` set
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
-    (origSpan? : Option Syntax := none)
-    (header : String := "Try these:") : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try these:")
+    (style? : Option SuggestionStyle := none) : MetaM Unit := do
   if suggestions.isEmpty then throwErrorAt ref "no suggestions available"
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
-  addSuggestionCore ref suggestions origSpan? header (isInline := false)
+  addSuggestionCore ref suggestions header (isInline := false) origSpan? style?
 
 private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : TermElabM Suggestion := do
   let stx ← delabToRefinableSyntax e
