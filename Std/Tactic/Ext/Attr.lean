@@ -31,7 +31,6 @@ structure ExtTheorems where
   erased  : PHashSet Name := {}
   deriving Inhabited
 
-
 /-- Discrimation tree settings for the `ext` extension. -/
 def extExt.config : WhnfCoreConfig := {}
 
