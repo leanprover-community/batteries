@@ -149,13 +149,13 @@ for a single `kind : SyntaxNodeKind` or a raw `String`.
 Instead of using constructors directly, there are coercions available from these types to
 `SuggestionText`. -/
 inductive SuggestionText where
-/-- `TSyntax kind` used as suggested replacement text in the infoview. Note that while `TSyntax` is
-in general parameterized by a list of `SyntaxNodeKind`s, we only allow one here; this unambiguously
-guides pretty-printing. -/
-| tsyntax {kind : SyntaxNodeKind} : TSyntax kind → SuggestionText
-/-- A raw string to be used as suggested replacement text in the infoview. -/
-| string : String → SuggestionText
-deriving Inhabited
+  /-- `TSyntax kind` used as suggested replacement text in the infoview. Note that while `TSyntax`
+  is in general parameterized by a list of `SyntaxNodeKind`s, we only allow one here; this
+  unambiguously guides pretty-printing. -/
+  | tsyntax {kind : SyntaxNodeKind} : TSyntax kind → SuggestionText
+  /-- A raw string to be used as suggested replacement text in the infoview. -/
+  | string : String → SuggestionText
+  deriving Inhabited
 
 instance : ToMessageData SuggestionText where
   toMessageData
@@ -173,8 +173,8 @@ namespace SuggestionText
 /-- Pretty-prints a `SuggestionText` as a `Format`. If the `SuggestionText` is some `TSyntax kind`,
 we use the appropriate pretty-printer; strings are coerced to `Format`s as-is. -/
 def pretty : SuggestionText → CoreM Format
-| .tsyntax (kind := kind) stx => ppCategory kind stx
-| .string text => return text
+  | .tsyntax (kind := kind) stx => ppCategory kind stx
+  | .string text => return text
 
 /- Note that this is essentially `return (← s.pretty).prettyExtra w indent column`, but we
 special-case strings to avoid converting them to `Format`s and back. -/
@@ -275,7 +275,7 @@ structure Suggestion where
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
-deriving Inhabited
+  deriving Inhabited
 
 /-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
 
@@ -307,10 +307,8 @@ def delabToRefinableSuggestion (e : Expr) : MetaM Suggestion :=
 /-- Core of `addSuggestion` and `addSuggestions`. Whether we use an inline display for a single
 element or a list display is controlled by `isInline`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
-    (header : String) (isInline : Bool)
-    (origSpan? : Option Syntax := none)
-    (style? : Option SuggestionStyle := none) :
-    CoreM Unit := do
+    (header : String) (isInline : Bool) (origSpan? : Option Syntax := none)
+    (style? : Option SuggestionStyle := none) : CoreM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     -- FIXME: this produces incorrect results when `by` is at the beginning of the line, i.e.
@@ -355,8 +353,7 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `header`: a string that begins the display. By default, it is `"Try this: "`.
 -/
-def addSuggestion (ref : Syntax) (s : Suggestion)
-    (origSpan? : Option Syntax := none)
+def addSuggestion (ref : Syntax) (s : Suggestion) (origSpan? : Option Syntax := none)
     (header : String := "Try this: ") : CoreM Unit := do
   logInfoAt ref m!"{header}{s}"
   addSuggestionCore ref #[s] header (isInline := true) origSpan?
@@ -384,7 +381,7 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
-* `style?`: Applies a default style for all suggestions which do not have a custom `style?` set
+* `style?`: a default style for all suggestions which do not have a custom `style?` set.
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none) (header : String := "Try these:")
