@@ -9,7 +9,8 @@ import Std.Tactic.GuardMsgs
 
 open Std.Tactic.TryThis
 
-/-! This test file demonstrates the `Try This:` widget and describes how certain examples should
+/-!
+This test file demonstrates the `Try This:` widget and describes how certain examples should
 look. Note that while the evaluations here shouldn't fail, they also aren't tests in the traditional
 sense—CI has no way of inspecting the HTML output, and therefore no way of checking that the
 output is styled correctly.
@@ -61,9 +62,19 @@ private def s : Suggestion := Unhygienic.run `(tactic| rfl)
 
 /-! # Demos -/
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` with `rfl` in text-link color.
 #demo1 s
 
+/--
+info: Try these:
+• rfl
+• rfl
+• rfl
+• rfl
+-/
+#guard_msgs in
 /-
 ```
 Try these:
@@ -76,6 +87,17 @@ with `rfl` in text-link color.
 -/
 #demo #[s,s,s,s]
 
+/--
+info: Try these:
+• rfl
+• rfl
+• rfl
+• rfl
+• rfl
+• rfl
+• rfl
+-/
+#guard_msgs in
 /-
 ```
 Try these:
@@ -90,24 +112,38 @@ Try these:
 -/
 #demo #[0.0, 1/6, 2/6, 3/6, 4/6, 5/6, 1.0].map fun t => {s with style? := some <| .value t}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- error color with error squiggle
 #demo1 {s with style? := some .error}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- error color, no squiggle
 #demo1 {s with style? := some <| .error (decorated := false)}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- gold color with warning squiggle
 #demo1 {s with style? := some .warning}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- gold color with no squiggle
 #demo1 {s with style? := some <| .warning (decorated := false)}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- Lean green
 #demo1 {s with style? := some .success}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- styled like a goal hypothesis
 #demo1 {s with style? := some .asHypothesis}
 
+/-- info: Try this: rfl -/
+#guard_msgs in
 -- `Try this: rfl` -- styled like an inaccessible goal hypothesis
 #demo1 {s with style? := some .asInaccessible}
 
