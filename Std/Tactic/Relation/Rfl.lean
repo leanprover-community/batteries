@@ -17,11 +17,14 @@ namespace Std.Tactic
 
 open Lean Meta
 
+/-- Discrimation tree settings for the `refl` extension. -/
+def reflExt.config : WhnfCoreConfig := {}
+
 /-- Environment extensions for `refl` lemmas -/
 initialize reflExt :
-    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key true)) (DiscrTree Name true) ←
+    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key)) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n
+    addEntry := fun dt (n, ks) => dt.insertCore ks n reflExt.config
     initial := {}
   }
 
@@ -35,7 +38,7 @@ initialize registerBuiltinAttribute {
       "@[refl] attribute only applies to lemmas proving x ∼ x, got {declTy}"
     let .app (.app rel lhs) rhs := targetTy | fail
     unless ← withNewMCtxDepth <| isDefEq lhs rhs do fail
-    let key ← DiscrTree.mkPath rel
+    let key ← DiscrTree.mkPath rel reflExt.config
     reflExt.add (decl, key) kind
 }
 
@@ -52,7 +55,7 @@ def _root_.Lean.MVarId.applyRfl (goal : MVarId) : MetaM Unit := do
         indentExpr (← goal.getType)}"
   let s ← saveState
   let mut ex? := none
-  for lem in ← (reflExt.getState (← getEnv)).getMatch rel do
+  for lem in ← (reflExt.getState (← getEnv)).getMatch rel reflExt.config do
     try
       let gs ← goal.apply (← mkConstWithFreshMVarLevels lem)
       if gs.isEmpty then return () else
