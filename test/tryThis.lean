@@ -27,9 +27,9 @@ elab "add_suggestion" s:term : tactic => unsafe do
   addSuggestion (← getRef) (← evalTerm Suggestion (.const ``Suggestion []) s)
 
 /-- Add a suggestion with a header. -/
-elab "add_suggestion" s:term "with_header" h:term : tactic => unsafe do
+elab "add_suggestion" s:term "with_header" h:str : tactic => unsafe do
   addSuggestion (← getRef) (← evalTerm Suggestion (.const ``Suggestion []) s)
-    (header := ← evalTerm String (.const ``String []) h)
+    (header := h.getString)
 
 /-- Add a suggestion. -/
 elab "add_suggestions" s:term : tactic => unsafe do
@@ -37,15 +37,15 @@ elab "add_suggestions" s:term : tactic => unsafe do
   addSuggestions (← getRef) s
 
 /-- Add suggestions with a header. -/
-elab "add_suggestions" s:term "with_header" h:term : tactic => unsafe do
+elab "add_suggestions" s:term "with_header" h:str : tactic => unsafe do
   let s ← evalTerm (Array Suggestion) (.app (.const ``Array [.zero]) (.const ``Suggestion [])) s
-  addSuggestions (← getRef) s (header := ← evalTerm String (.const ``String []) h)
+  addSuggestions (← getRef) s (header := h.getString)
 
 /-- Demo adding a suggestion. -/
 macro "#demo1" s:term : command => `(example : True := by add_suggestion $s; trivial)
 
 /-- Demo adding a suggestion with a header. -/
-macro "#demo1" s:term "with_header" h:term : command => `(example : True := by
+macro "#demo1" s:term "with_header" h:str : command => `(example : True := by
   add_suggestion $s with_header $h; trivial)
 
 /-- Demo adding suggestions. -/
@@ -53,18 +53,11 @@ macro "#demo" s:term : command => `(example : True := by
   add_suggestions $s; trivial)
 
 /-- Demo adding suggestions with a header. -/
-macro "#demo" s:term "with_header" h:term : command => `(example : True := by
+macro "#demo" s:term "with_header" h:str : command => `(example : True := by
   add_suggestions $s with_header $h; trivial)
 
-/-- The syntax you typically get from ``←`(tactic|rfl)`` -/
-private def demoSyntax : TSyntax `tactic := {
-  raw := Lean.Syntax.node
-    (Lean.SourceInfo.none)
-    `Lean.Parser.Tactic.tacticRfl
-    #[Lean.Syntax.atom (Lean.SourceInfo.none) "rfl"] }
-
 /-- A basic suggestion. -/
-private def s : Suggestion := demoSyntax
+private def s : Suggestion := Unhygienic.run `(tactic| rfl)
 
 /-! # Demos -/
 
