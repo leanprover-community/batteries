@@ -160,6 +160,41 @@ apply the replacement.
     let result ← pushSuggestion result s (isPreferred? := true)
     suggestions.foldlM (init := result) (start := 1) (pushSuggestion (isPreferred? := none))
 
+/-! # Formatting -/
+
+/-- Yields `(indent, column)` given a `FileMap` and a `String.Range`, where `indent` is the number
+of spaces by which the line that first includes `range` is initially indented, and `column` is the
+column `range` starts at in that line. -/
+def getIndentAndColumn (map : FileMap) (range : String.Range) : Nat × Nat :=
+  let start := findLineStart map.source range.start
+  let body := map.source.findAux (· ≠ ' ') range.start start
+  ((body - start).1, (range.start - start).1)
+
+/-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
+partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
+    (s : Syntax) : m Syntax :=
+  s.replaceM fun s => do
+    let `(?$id:ident) := s | pure none
+    if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
+
+/-- Delaborate `e` into syntax suitable for use by `refine`. -/
+def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
+  return ⟨← replaceMVarsByUnderscores (← delab e)⟩
+
+/-- The default maximum width of an ideal line in source code, 100 is the current convention. -/
+def inputWidth : Nat := 100
+
+/-- An option allowing the user to customize the ideal input width, this controls output format when
+the output is intended to be copied back into a lean file -/
+register_option format.inputWidth : Nat := {
+  defValue := inputWidth
+  descr := "ideal input width"
+}
+
+/-- Get the input width specified in the options -/
+def getInputWidth (o : Options) : Nat := format.inputWidth.get o
+
+
 /-! # `Suggestion` data -/
 
 -- TODO: we could also support `Syntax` and `Format`
@@ -321,40 +356,6 @@ instance : ToMessageData Suggestion where
 
 instance : Coe SuggestionText Suggestion where
   coe t := { suggestion := t }
-
-/-! # Formatting -/
-
-/-- Yields `(indent, column)` given a `FileMap` and a `String.Range`, where `indent` is the number
-of spaces by which the line that first includes `range` is initially indented, and `column` is the
-column `range` starts at in that line. -/
-def getIndentAndColumn (map : FileMap) (range : String.Range) : Nat × Nat :=
-  let start := findLineStart map.source range.start
-  let body := map.source.findAux (· ≠ ' ') range.start start
-  ((body - start).1, (range.start - start).1)
-
-/-- Replace subexpressions like `?m.1234` with `?_` so it can be copy-pasted. -/
-partial def replaceMVarsByUnderscores [Monad m] [MonadQuotation m]
-    (s : Syntax) : m Syntax :=
-  s.replaceM fun s => do
-    let `(?$id:ident) := s | pure none
-    if id.getId.hasNum || id.getId.isInternal then `(?_) else pure none
-
-/-- Delaborate `e` into syntax suitable for use by `refine`. -/
-def delabToRefinableSyntax (e : Expr) : TermElabM Term :=
-  return ⟨← replaceMVarsByUnderscores (← delab e)⟩
-
-/-- The default maximum width of an ideal line in source code, 100 is the current convention. -/
-def inputWidth : Nat := 100
-
-/-- an option allowing the user to customize the ideal input width, this controls output format when
-the output is intended to be copied back into a lean file -/
-register_option format.inputWidth : Nat := {
-  defValue := inputWidth
-  descr := "ideal input width"
-}
-
-/-- get the input width specified in the options -/
-def getInputWidth (o : Options) : Nat := format.inputWidth.get o
 
 /-- Delaborate `e` into a suggestion suitable for use by `refine`. -/
 def delabToRefinableSuggestion (e : Expr) : TermElabM Suggestion :=
