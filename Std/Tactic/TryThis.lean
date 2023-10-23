@@ -140,7 +140,6 @@ register_option format.inputWidth : Nat := {
 /-- Get the input width specified in the options -/
 def getInputWidth (o : Options) : Nat := format.inputWidth.get o
 
-
 /-! # `Suggestion` data -/
 
 -- TODO: we could also support `Syntax` and `Format`
@@ -156,14 +155,7 @@ guides pretty-printing. -/
 | tsyntax {kind : SyntaxNodeKind} : TSyntax kind → SuggestionText
 /-- A raw string to be used as suggested replacement text in the infoview. -/
 | string : String → SuggestionText
-deriving Repr, Inhabited
-
-instance : BEq SuggestionText where
-  beq
-  | .tsyntax (kind := kind₁) stx₁, .tsyntax (kind := kind₂) stx₂ =>
-    kind₁ == kind₂ && stx₁.raw == stx₂.raw
-  | .string s₁, .string s₂ => s₁ == s₂
-  | _, _ => false
+deriving Inhabited
 
 instance : ToMessageData SuggestionText where
   toMessageData
@@ -171,38 +163,17 @@ instance : ToMessageData SuggestionText where
   | .string s => s
 
 instance {kind : SyntaxNodeKind} : CoeHead (TSyntax kind) SuggestionText where
-  coe t := .tsyntax t
+  coe := .tsyntax
 
 instance : Coe String SuggestionText where
   coe := .string
 
 namespace SuggestionText
 
-/-- `true` when `SuggestionText` is underlyingly a `TSyntax`. -/
-def isTSyntax : SuggestionText → Bool
-| .tsyntax _ => true
-| _ => false
-
-/-- `true` when `SuggestionText` is underlyingly a `String`. -/
-def isString : SuggestionText → Bool
-| .string _ => true
-| _ => false
-
-/-- Gets the underlying `TSyntax` of a `SuggestionText` if there is one. -/
-def getTSyntax? : SuggestionText → Option ((kind : SyntaxNodeKind) × TSyntax kind)
-| .tsyntax (kind := kind) stx => some ⟨kind, stx⟩
-| _ => none
-
-/-- Gets the underlying `String` of a `SuggestionText` if there is one. -/
-def getString? : SuggestionText → Option String
-| .string s => s
-| _ => none
-
 /-- Pretty-prints a `SuggestionText` as a `Format`. If the `SuggestionText` is some `TSyntax kind`,
 we use the appropriate pretty-printer; strings are coerced to `Format`s as-is. -/
 def pretty : SuggestionText → CoreM Format
-| .tsyntax (kind := kind) stx =>
-  PrettyPrinter.ppCategory kind stx
+| .tsyntax (kind := kind) stx => ppCategory kind stx
 | .string text => return text
 
 /- Note that this is essentially `return (← s.pretty).prettyExtra w indent column`, but we
@@ -215,7 +186,7 @@ def prettyExtra (s : SuggestionText) (w : Option Nat := none)
   match s with
   | .tsyntax (kind := kind) stx => do
     let w ← match w with | none => do pure <| getInputWidth (← getOptions) | some n => pure n
-    return (← PrettyPrinter.ppCategory kind stx).prettyExtra w indent column
+    return (← ppCategory kind stx).prettyExtra w indent column
   | .string text => return text
 
 end SuggestionText
