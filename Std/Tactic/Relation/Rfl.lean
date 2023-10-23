@@ -22,7 +22,7 @@ def reflExt.config : WhnfCoreConfig := {}
 
 /-- Environment extensions for `refl` lemmas -/
 initialize reflExt :
-    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key)) (DiscrTree Name) ←
+    SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
     addEntry := fun dt (n, ks) => dt.insertCore ks n reflExt.config
     initial := {}
