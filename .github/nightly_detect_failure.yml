@@ -22,4 +22,4 @@ jobs:
         type: 'stream'
         topic: 'CI failure on the nightly-testing branch'
         content: |
-          The latest CI for Std's [`night-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
+          The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
