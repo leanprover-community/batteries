@@ -163,7 +163,13 @@ info: Try these:
 • another secret message
 -/
 #guard_msgs in
--- `Try this: rfl`
+/-
+```
+Try these:
+• rfl
+• rfl
+```
+-/
 #demo #[
   {s with messageData? := m!"a secret message"},
   {s with messageData? := m!"another secret message"}
