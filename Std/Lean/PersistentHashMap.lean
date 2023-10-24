@@ -12,7 +12,7 @@ variable [BEq α] [Hashable α]
 
 /--
 Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 def insert' (m : PersistentHashMap α β) (a : α) (b : β) : PersistentHashMap α β × Bool :=
   let oldSize := m.size
