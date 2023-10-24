@@ -80,6 +80,9 @@ instance : OfNat (BitVec n) i where ofNat := .ofNat n i
 scoped syntax:max term:max noWs "#" noWs term:max : term
 macro_rules | `($i#$n) => `(BitVec.ofNat $n $i)
 
+/- Support for `i#n` notation in patterns.  -/
+attribute [match_pattern] BitVec.ofNat
+
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNat] def unexpandBitVecOfNat : Lean.PrettyPrinter.Unexpander
   | `($(_) $n $i) => `($i#$n)
