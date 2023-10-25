@@ -17,7 +17,7 @@ namespace Elab.Command
 private def appendMatchingConstants (msg : String)
     (ϕ : ConstantInfo → MetaM Bool) (opts : EnvironmentSearchOptions := {}) : MetaM String := do
   let cinfos ← getMatchingConstants ϕ opts
-  let cinfos := cinfos.qsort fun p q ↦ p.name.lt q.name
+  let cinfos := cinfos.qsort fun p q => p.name.lt q.name
   let mut msg := msg
   for cinfo in cinfos do
     msg := msg ++ s!"{cinfo.name} : {← Meta.ppExpr cinfo.type}\n"
@@ -36,10 +36,10 @@ the namespace `foo`.
 | `(#print prefix%$tk $name:ident) => do
   let nameId := name.getId
   liftTermElabM do
-    let mut msg ← appendMatchingConstants "" fun cinfo ↦ pure $ nameId.isPrefixOf cinfo.name
+    let mut msg ← appendMatchingConstants "" fun cinfo => pure $ nameId.isPrefixOf cinfo.name
     if msg.isEmpty then
       if let [name] ← resolveGlobalConst name then
-        msg ← appendMatchingConstants msg fun cinfo ↦ pure $ name.isPrefixOf cinfo.name
+        msg ← appendMatchingConstants msg fun cinfo => pure $ name.isPrefixOf cinfo.name
     if !msg.isEmpty then
       logInfoAt tk msg
 | _ => throwUnsupportedSyntax
