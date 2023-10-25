@@ -22,7 +22,10 @@ structure EnvironmentSearchOptions where
 /--
 Find constants in current environment that match find options and predicate.
 -/
-def getMatchingConstants {m} [Monad m] [MonadEnv m] (p : ConstantInfo → m Bool) (opts : EnvironmentSearchOptions := {}) : m (Array ConstantInfo) := do
+def getMatchingConstants {m} [Monad m] [MonadEnv m]
+    (p : ConstantInfo → m Bool)
+    (opts : EnvironmentSearchOptions := {})
+    : m (Array ConstantInfo) := do
   let matches_ ← if opts.stage1 then
                     (← getEnv).constants.map₁.foldM (init := #[]) check
                    else
