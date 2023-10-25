@@ -29,6 +29,7 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m] (p : ConstantInfo → m Bool
                     pure #[]
   (← getEnv).constants.map₂.foldlM (init := matches_) check
 where
+  /-- Check constant should be returned -/
   check matches_ name cinfo := do
     if opts.checkPrivate || !isPrivateName name then
       if ← p cinfo then
