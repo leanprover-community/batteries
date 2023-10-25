@@ -131,6 +131,7 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
+import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
