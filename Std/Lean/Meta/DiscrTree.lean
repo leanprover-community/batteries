@@ -34,8 +34,9 @@ end Key
 
 namespace Trie
 
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
+-- TODO: Many functions below are labeled partial (or even unsafe when Lean doesn't realize that
+-- their type is inhabited), which would be proven to be terminating.
+
 private unsafe def foldMUnsafe [Monad m] (initialKeys : Array (Key s))
     (f : σ → Array (Key s) → α → m σ) (init : σ) : Trie α s → m σ
   | Trie.node vs children => do
@@ -59,8 +60,6 @@ def fold (initialKeys : Array (Key s)) (f : σ → Array (Key s) → α → σ)
     (init : σ) (t : Trie α s) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
 
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
 private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) :
     Trie α s → m σ
 | node vs children => do
