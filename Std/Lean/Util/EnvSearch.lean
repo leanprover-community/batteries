@@ -11,7 +11,7 @@ open Lean
 namespace Lean
 
 /--
-Options to control getMatchingConstants options below.
+Options to control `getMatchingConstants` options below.
 -/
 structure EnvironmentSearchOptions where
   /-- Include declarations in imported environment. -/
