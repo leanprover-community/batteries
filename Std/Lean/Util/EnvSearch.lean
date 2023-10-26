@@ -26,10 +26,11 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
     (p : ConstantInfo → m Bool)
     (opts : EnvironmentSearchOptions := {})
     : m (Array ConstantInfo) := do
-  let matches_ ← if opts.stage1 then
-                    (← getEnv).constants.map₁.foldM (init := #[]) check
-                   else
-                    pure #[]
+  let matches_ ← 
+    if opts.stage1 then
+      (← getEnv).constants.map₁.foldM (init := #[]) check
+    else
+      pure #[]
   (← getEnv).constants.map₂.foldlM (init := matches_) check
 where
   /-- Check constant should be returned -/
