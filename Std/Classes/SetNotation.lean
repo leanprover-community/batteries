@@ -84,7 +84,7 @@ class Sep (α : outParam <| Type u) (γ : Type v) where
   sep : (α → Prop) → γ → γ
 
 /-- Declare `∃ x ∈ y, ...` as syntax for `∃ x, x ∈ y ∧ ...` -/
-binder_predicate x " ∈ " y:term => `($x ∈ $y)
+binder_predicate x " ∈ " y:term => x ∈ y
 
 /--
 `{ a, b, c }` is a set with elements `a`, `b`, and `c`.
