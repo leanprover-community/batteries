@@ -232,20 +232,25 @@ protected theorem min_eq_and : ∀ (x y : Bool), min x y = (x && y) := by
 theorem not_inj : ∀ {x y : Bool}, (!x) = (!y) → x = y := by
   decide
 
-theorem not_inj' : ∀ {x y : Bool}, (!x) = (!y) ↔ x = y := by
+theorem not_inj_iff : ∀ {x y : Bool}, (!x) = (!y) ↔ x = y := by
   decide
 
 theorem and_or_inj_right : ∀ {m x y : Bool}, (x && m) = (y && m) → (x || m) = (y || m) → x = y := by
   decide
 
-theorem and_or_inj_right' :
+theorem and_or_inj_right_iff :
     ∀ {m x y : Bool}, (x && m) = (y && m) ∧ (x || m) = (y || m) ↔ x = y := by
   decide
 
 theorem and_or_inj_left : ∀ {m x y : Bool}, (m && x) = (m && y) → (m || x) = (m || y) → x = y := by
   decide
 
-theorem and_or_inj_left' : ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by
+theorem and_or_inj_left_iff :
+    ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by
   decide
 
-end Bool
+/-! ### deprecated -/
+
+@[deprecated] alias not_inj' := not_inj_iff
+@[deprecated] alias and_or_inj_left' := and_or_inj_left_iff
+@[deprecated] alias and_or_inj_right' := and_or_inj_right_iff
