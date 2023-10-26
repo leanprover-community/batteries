@@ -6,13 +6,7 @@ Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 import Std.Lean.Util.EnvSearch
 import Lean.Elab.Command
 
-open Lean Meta Elab Command
-
-namespace Lean
-
-
-namespace Elab.Command
-
+namespace Lean.Elab.Command
 
 private def appendMatchingConstants (msg : String)
     (ϕ : ConstantInfo → MetaM Bool) (opts : EnvironmentSearchOptions := {}) : MetaM String := do
@@ -43,6 +37,3 @@ the namespace `foo`.
     if !msg.isEmpty then
       logInfoAt tk msg
 | _ => throwUnsupportedSyntax
-
-end Elab.Command
-end Lean

@@ -3,10 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-
 import Lean.Modifiers
-
-open Lean
 
 namespace Lean
 
@@ -26,7 +23,7 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
     (p : ConstantInfo → m Bool)
     (opts : EnvironmentSearchOptions := {})
     : m (Array ConstantInfo) := do
-  let matches_ ← 
+  let matches_ ←
     if opts.stage1 then
       (← getEnv).constants.map₁.foldM (init := #[]) check
     else
@@ -42,5 +39,3 @@ where
         pure matches_
     else
       pure matches_
-
-end Lean
