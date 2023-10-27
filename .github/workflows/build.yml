@@ -48,4 +48,4 @@ jobs:
 
       - name: Check for long lines
         run: |
-          ! (find . -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
+          ! (find Std -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')

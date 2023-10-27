@@ -101,6 +101,7 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Lean.Util.EnvSearch
 import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
@@ -131,6 +132,7 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
+import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
