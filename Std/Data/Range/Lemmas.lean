@@ -71,7 +71,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
         conv => lhs; rw [← Nat.one_mul stop]
         exact Nat.mul_le_mul_right stop hstep
       intro fuel; induction fuel with intro l i hle H h1 h2 init
-      | zero => simp [forIn'.loop, Nat.le_zero.1 h1]; split <;> simp
+      | zero => simp [forIn'.loop, Nat.le_zero.1 h1]
       | succ fuel ih =>
         cases l with
         | zero => rw [forIn'.loop]; simp [Nat.not_lt.2 <| by simpa using (h2 0).2 (Nat.le_refl _)]
@@ -93,7 +93,7 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
     suffices ∀ fuel i hl b, forIn'.loop r.start r.stop r.step (fun x _ => f x) fuel i hl b =
         forIn.loop f fuel i r.stop r.step b from (this _ ..).symm
     intro fuel; induction fuel <;> intro i hl b <;>
-      unfold forIn.loop forIn'.loop <;> simp [*] <;> split <;> try simp
+      unfold forIn.loop forIn'.loop <;> simp [*]; split
     · simp [if_neg (Nat.not_le.2 ‹_›)]
     · simp [if_pos (Nat.not_lt.1 ‹_›)]
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
