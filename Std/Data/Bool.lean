@@ -76,6 +76,7 @@ theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y =
 theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by
   decide
 
+/-! non infix aliases -/
 alias and_not_self_left := Bool.not_and_self
 alias and_not_self_right := Bool.and_not_self
 alias and_false_left := Bool.false_and
@@ -116,6 +117,7 @@ theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = 
 theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y = false := by
   decide
 
+/-! non infix aliases -/
 alias or_not_self_left := Bool.not_or_self
 alias or_not_self_right := Bool.or_not_self
 alias or_false_left := Bool.false_or
@@ -168,6 +170,7 @@ theorem xor_right_comm : ∀ (x y z : Bool), xor (xor x y) z = xor (xor x z) y :
 theorem xor_assoc : ∀ (x y z : Bool), xor (xor x y) z = xor x (xor y z) := by
   decide
 
+/-! non infix aliases -/
 alias xor_not_self_left := Bool.not_xor_self
 alias xor_not_self_right := Bool.xor_not_self
 alias xor_not_left := Bool.not_xor
