@@ -29,17 +29,21 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
   | _, isTrue hf => isTrue ⟨_, hf⟩
   | isFalse ht, isFalse hf => isFalse fun | ⟨true, h⟩ => absurd h ht | ⟨false, h⟩ => absurd h hf
 
-instance : LE Bool := leOfOrd
-instance : LT Bool := ltOfOrd
-instance : Max Bool := maxOfLe
-instance : Min Bool := minOfLe
+instance : LE Bool := ⟨(!. || .)⟩
+instance : LT Bool := ⟨(!. && .)⟩
+
+instance (x y : Bool) : Decidable (x ≤ y) := inferInstanceAs (Decidable (!x || y))
+instance (x y : Bool) : Decidable (x < y) := inferInstanceAs (Decidable (!x && y))
+
+instance : Max Bool := ⟨(. || .)⟩
+instance : Min Bool := ⟨(. && .)⟩
 
 /-! ### and -/
 
-@[simp] theorem and_not_self_left : ∀ (x : Bool), (!x && x) = false := by
+@[simp] theorem not_and_self : ∀ (x : Bool), (!x && x) = false := by
   decide
 
-@[simp] theorem and_not_self_right : ∀ (x : Bool), (x && !x) = false := by
+@[simp] theorem and_not_self : ∀ (x : Bool), (x && !x) = false := by
   decide
 
 theorem and_comm : ∀ (x y : Bool), (x && y) = (y && x) := by
@@ -72,6 +76,8 @@ theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y =
 theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by
   decide
 
+alias and_not_self_left := Bool.not_and_self
+alias and_not_self_right := Bool.and_not_self
 alias and_false_left := Bool.false_and
 alias and_false_right := Bool.and_false
 alias and_true_left := Bool.true_and
@@ -80,10 +86,10 @@ alias not_and := Bool.and_deMorgan
 
 /-! ### or -/
 
-@[simp] theorem or_not_self_left : ∀ (x : Bool), (!x || x) = true := by
+@[simp] theorem not_or_self : ∀ (x : Bool), (!x || x) = true := by
   decide
 
-@[simp] theorem or_not_self_right : ∀ (x : Bool), (x || !x) = true := by
+@[simp] theorem or_not_self : ∀ (x : Bool), (x || !x) = true := by
   decide
 
 theorem or_comm : ∀ (x y : Bool), (x || y) = (y || x) := by
@@ -110,6 +116,8 @@ theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = 
 theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y = false := by
   decide
 
+alias or_not_self_left := Bool.not_or_self
+alias or_not_self_right := Bool.or_not_self
 alias or_false_left := Bool.false_or
 alias or_false_right := Bool.or_false
 alias or_true_left := Bool.true_or
@@ -118,31 +126,31 @@ alias not_or := Bool.or_deMorgan
 
 /-! ### xor -/
 
-@[simp] theorem xor_false_left : ∀ (x : Bool), xor false x = x := by
+@[simp] theorem false_xor : ∀ (x : Bool), xor false x = x := by
   decide
 
-@[simp] theorem xor_false_right : ∀ (x : Bool), xor x false = x := by
+@[simp] theorem xor_false : ∀ (x : Bool), xor x false = x := by
   decide
 
-@[simp] theorem xor_true_left : ∀ (x : Bool), xor true x = !x := by
+@[simp] theorem true_xor : ∀ (x : Bool), xor true x = !x := by
   decide
 
-@[simp] theorem xor_true_right : ∀ (x : Bool), xor x true = !x := by
+@[simp] theorem xor_true : ∀ (x : Bool), xor x true = !x := by
   decide
 
-@[simp] theorem xor_not_self_left : ∀ (x : Bool), xor (!x) x = true := by
+@[simp] theorem not_xor_self : ∀ (x : Bool), xor (!x) x = true := by
   decide
 
-@[simp] theorem xor_not_self_right : ∀ (x : Bool), xor x (!x) = true := by
+@[simp] theorem xor_not_self : ∀ (x : Bool), xor x (!x) = true := by
   decide
 
-@[simp] theorem xor_not_left : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by
+theorem not_xor : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by
   decide
 
-@[simp] theorem xor_not_right : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by
+theorem xor_not : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by
   decide
 
-theorem xor_not_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by
+theorem not_xor_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by
   decide
 
 theorem xor_self : ∀ (x : Bool), xor x x = false := by
@@ -159,6 +167,12 @@ theorem xor_right_comm : ∀ (x y z : Bool), xor (xor x y) z = xor (xor x z) y :
 
 theorem xor_assoc : ∀ (x y z : Bool), xor (xor x y) z = xor x (xor y z) := by
   decide
+
+alias xor_not_self_left := Bool.not_xor_self
+alias xor_not_self_right := Bool.xor_not_self
+alias xor_not_left := Bool.not_xor
+alias xor_not_right := Bool.xor_not
+alias xor_not_not := Bool.not_xor_not
 
 /-! ### le/lt -/
 
