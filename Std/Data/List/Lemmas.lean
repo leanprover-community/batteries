@@ -199,6 +199,32 @@ theorem zipWith_foldl_eq_zip_foldl {f : α → β → γ} (i : δ):
     (zipWith f l₁ l₂).foldl g i = (zip l₁ l₂).foldl (fun r p => g r (f p.1 p.2)) i := by
   induction l₁ generalizing i l₂ <;> cases l₂ <;> simp_all
 
+theorem zipWith_get? {f : α → β → γ} :
+    (List.zipWith f as bs).get? i = match as.get? i, bs.get? i with
+      | some a, some b => some (f a b) | _, _ => none := by
+  induction as generalizing bs i with
+  | nil => cases bs with
+    | nil => simp
+    | cons b bs => simp
+  | cons a as aih => cases bs with
+    | nil => simp
+    | cons b bs => cases i <;> simp_all
+
+/-! ### zipWithAll -/
+
+theorem zipWithAll_get? {f : Option α → Option β → γ} :
+    (zipWithAll f as bs).get? i = match as.get? i, bs.get? i with
+      | none, none => .none | a?, b? => some (f a? b?) := by
+  induction as generalizing bs i with
+  | nil => induction bs generalizing i with
+    | nil => simp
+    | cons b bs bih => cases i <;> simp_all
+  | cons a as aih => cases bs with
+    | nil =>
+      specialize @aih []
+      cases i <;> simp_all
+    | cons b bs => cases i <;> simp_all
+
 /-! ### zip -/
 
 @[simp] theorem length_zip (l₁ : List α) (l₂ : List β) :
