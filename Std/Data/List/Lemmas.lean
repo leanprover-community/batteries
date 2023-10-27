@@ -1421,6 +1421,16 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
 
+/-! ### findSome? -/
+
+theorem exists_of_findSome?_eq_some {l : List α} {f : α → Option β} (w : l.findSome? f = some b) :
+    ∃ a, a ∈ l ∧ f a = b := by
+  induction l with
+  | nil => simp_all
+  | cons h l ih =>
+    simp_all only [findSome?_cons, mem_cons, exists_eq_or_imp]
+    split at w <;> simp_all
+
 /-! ### findIdx -/
 
 @[simp] theorem findIdx_nil {α : Type _} (p : α → Bool) : [].findIdx p = 0 := rfl
