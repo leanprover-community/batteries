@@ -1666,7 +1666,7 @@ variable [DecidableEq α]
 @[simp] theorem diff_nil (l : List α) : l.diff [] = l := rfl
 
 @[simp] theorem diff_cons (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ := by
-  simp [List.diff]; split <;> simp [*, erase_of_not_mem]
+  simp only [List.diff, elem_iff]; split <;> simp [*, erase_of_not_mem]
 
 theorem diff_cons_right (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.diff l₂).erase a := by
   apply Eq.symm; induction l₂ generalizing l₁ <;> simp [erase_comm, *]
