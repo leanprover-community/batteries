@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Control.ForInStep.Lemmas
+import Std.Data.Bool
 import Std.Data.Fin.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
@@ -1015,9 +1016,6 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 @[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
 
-theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
-  rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
-
 @[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
 
 @[simp] theorem contains_cons [BEq α] :
@@ -1027,6 +1025,34 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (f
 
 theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
   induction l with simp | cons b l => cases a == b <;> simp [*]
+
+theorem not_all_eq_any_not (l : List α) (p : α → Bool) : (!l.all p) = l.any fun a => !p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.not_and, ih]
+
+theorem not_any_eq_all_not (l : List α) (p : α → Bool) : (!l.any p) = l.all fun a => !p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.not_or, ih]
+
+theorem or_all_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
+    (q || l.all p) = l.all fun a => q || p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.or_and_distrib_left, ih]
+
+theorem or_all_distrib_right (l : List α) (p : α → Bool) (q : Bool) :
+    (l.all p || q) = l.all fun a => p a || q := by
+  induction l with simp | cons _ _ ih => rw [Bool.or_and_distrib_right, ih]
+
+theorem and_any_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
+    (q && l.any p) = l.any fun a => q && p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.and_or_distrib_left, ih]
+
+theorem and_any_distrib_right (l : List α) (p : α → Bool) (q : Bool) :
+    (l.any p && q) = l.any fun a => p a && q := by
+  induction l with simp | cons _ _ ih => rw [Bool.and_or_distrib_right, ih]
+
+theorem any_eq_not_all_not (l : List α) (p : α → Bool) : l.any p = !l.all (!p .) := by
+  simp only [not_all_eq_any_not, Bool.not_not]
+
+theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!p .) := by
+  simp only [not_any_eq_all_not, Bool.not_not]
 
 /-! ### reverse -/
 
@@ -1422,6 +1448,16 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     by_cases h : p b <;> simp [find?, h] at H
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
+
+/-! ### findSome? -/
+
+theorem exists_of_findSome?_eq_some {l : List α} {f : α → Option β} (w : l.findSome? f = some b) :
+    ∃ a, a ∈ l ∧ f a = b := by
+  induction l with
+  | nil => simp_all
+  | cons h l ih =>
+    simp_all only [findSome?_cons, mem_cons, exists_eq_or_imp]
+    split at w <;> simp_all
 
 /-! ### findIdx -/
 
