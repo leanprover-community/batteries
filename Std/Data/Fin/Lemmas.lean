@@ -209,7 +209,7 @@ theorem zero_ne_one : (0 : Fin (n + 2)) ≠ 1 := Fin.ne_of_lt one_pos
 
 /-! ### succ and casts into larger Fin types -/
 
-@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := by cases j; simp [Fin.succ]
+@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := rfl
 
 @[simp] theorem succ_pos (a : Fin n) : (0 : Fin (n + 1)) < a.succ := by
   simp [Fin.lt_def, Nat.succ_pos]
