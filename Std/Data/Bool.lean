@@ -238,11 +238,9 @@ protected theorem eq_false_of_le_false : ∀ {x : Bool}, x ≤ false → x = fal
 
 /-! ### min/max -/
 
-protected theorem max_eq_or : ∀ (x y : Bool), max x y = (x || y) := by
-  decide
+@[simp] protected theorem max_eq_or : max = or := rfl
 
-protected theorem min_eq_and : ∀ (x y : Bool), min x y = (x && y) := by
-  decide
+@[simp] protected theorem min_eq_and : min = and := rfl
 
 /-! ### injectivity lemmas -/
 
