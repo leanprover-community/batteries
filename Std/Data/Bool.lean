@@ -67,7 +67,8 @@ theorem and_xor_distrib_left : ∀ (x y z : Bool), (x && xor y z) = xor (x && y)
 theorem and_xor_distrib_right : ∀ (x y z : Bool), (xor x y && z) = xor (x && z) (y && z) := by
   decide
 
-theorem and_deMorgan : ∀ (x y : Bool), (!(x && y)) = (!x || !y) := by
+/-- De Morgan's law for boolean and -/
+theorem not_and : ∀ (x y : Bool), (!(x && y)) = (!x || !y) := by
   decide
 
 theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y = true := by
@@ -75,15 +76,6 @@ theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y =
 
 theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by
   decide
-
-/-! non infix aliases -/
-alias and_not_self_left := Bool.not_and_self
-alias and_not_self_right := Bool.and_not_self
-alias and_false_left := Bool.false_and
-alias and_false_right := Bool.and_false
-alias and_true_left := Bool.true_and
-alias and_true_right := Bool.and_true
-alias not_and := Bool.and_deMorgan
 
 /-! ### or -/
 
@@ -108,7 +100,8 @@ theorem or_and_distrib_left : ∀ (x y z : Bool), (x || (y && z)) = ((x || y) &&
 theorem or_and_distrib_right : ∀ (x y z : Bool), ((x && y) || z) = ((x || z) && (y || z)) := by
   decide
 
-theorem or_deMorgan : ∀ (x y : Bool), (!(x || y)) = (!x && !y) := by
+/-- De Morgan's law for boolean or -/
+theorem not_or : ∀ (x y : Bool), (!(x || y)) = (!x && !y) := by
   decide
 
 theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = true := by
@@ -116,15 +109,6 @@ theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = 
 
 theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y = false := by
   decide
-
-/-! non infix aliases -/
-alias or_not_self_left := Bool.not_or_self
-alias or_not_self_right := Bool.or_not_self
-alias or_false_left := Bool.false_or
-alias or_false_right := Bool.or_false
-alias or_true_left := Bool.true_or
-alias or_true_right := Bool.or_true
-alias not_or := Bool.or_deMorgan
 
 /-! ### xor -/
 
@@ -169,13 +153,6 @@ theorem xor_right_comm : ∀ (x y z : Bool), xor (xor x y) z = xor (xor x z) y :
 
 theorem xor_assoc : ∀ (x y z : Bool), xor (xor x y) z = xor x (xor y z) := by
   decide
-
-/-! non infix aliases -/
-alias xor_not_self_left := Bool.not_xor_self
-alias xor_not_self_right := Bool.xor_not_self
-alias xor_not_left := Bool.not_xor
-alias xor_not_right := Bool.xor_not
-alias xor_not_not := Bool.not_xor_not
 
 /-! ### le/lt -/
 
