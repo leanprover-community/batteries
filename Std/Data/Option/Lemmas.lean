@@ -93,14 +93,15 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
 @[simp] theorem seq_some_some (h : α → β) a : Seq.seq (some h) (fun _ => some a) = some (h a) := rfl
 @[simp] theorem seq_none_left (h : Unit → Option α) : Seq.seq none h = (none : Option β) := rfl
 @[simp] theorem seq_none_right (h : Option (α → β)) : Seq.seq h (fun _ => none) = none := by
-cases h <;> rfl
+  cases h <;> rfl
 
 /-! ### bind -/
 
 @[simp] theorem bind_none_left (f : α → Option β) : Option.bind none f = none := rfl
 @[simp] theorem bind_some_left (x : α) (f : α → Option β): Option.bind (some x) f = f x := rfl
 
-@[simp] theorem bind_none_right (x : Option α) : Option.bind x (fun _ => (none : Option β)) = none := by
+@[simp] theorem bind_none_right (x : Option α)
+    : Option.bind x (fun _ => (none : Option β)) = none := by
   cases x <;> rfl
 @[simp] theorem bind_some_right (x : Option α) : Option.bind x some = x := by cases x <;> rfl
 
