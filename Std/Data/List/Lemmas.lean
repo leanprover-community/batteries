@@ -2179,60 +2179,46 @@ theorem minimum?_cons [Min α] {xs : List α} : (x :: xs).minimum? = foldl min x
 @[simp] theorem minimum?_eq_none_iff {xs : List α} [Min α] : xs.minimum? = none ↔ xs = [] := by
   cases xs <;> simp [minimum?]
 
--- This could be refactored by designing appropriate typeclasses to replace `le_refl`, `le_total`,
--- and `le_min_iff`. The facts `min_le_left`, `min_le_right`, and `min_def` in the proof below
--- would then be factored out into lemmas.
-theorem minimum?_eq_some_iff [Min α] [LE α] [DecidableRel ((· : α) ≤ ·)]
-    [Trans ((· : α) ≤ ·) (· ≤ ·) (· ≤ ·)] [Antisymm ((· : α) ≤ ·)]
-    (le_refl : ∀ a : α, a ≤ a) (le_total : ∀ a b : α, a ≤ b ∨ b ≤ a)
-    (le_min_iff : ∀ a b c : α, a ≤ min b c ↔ a ≤ b ∧ a ≤ c) {xs : List α} :
-    xs.minimum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, a ≤ b) := by
-  cases xs with
-  | nil => simp
-  | cons x xs =>
-    rw [minimum?]
-    simp only [Option.some.injEq, mem_cons, forall_eq_or_imp]
+theorem minimum?_mem [Min α] (min_eq_or : ∀ a b : α, min a b = a ∨ min a b = b) :
+    {xs : List α} → xs.minimum? = some a → a ∈ xs
+  | nil => by simp
+  | cons x xs => by
+    rw [minimum?]; rintro ⟨⟩
+    induction xs generalizing x with simp at *
+    | cons y xs ih =>
+      rcases ih (min x y) with h | h <;> simp [h]
+      simp [← or_assoc, min_eq_or x y]
+
+theorem le_minimum?_iff [Min α] [LE α]
+    (le_min_iff : ∀ a b c : α, a ≤ min b c ↔ a ≤ b ∧ a ≤ c) :
+    {xs : List α} → xs.minimum? = some a → ∀ x, x ≤ a ↔ ∀ b ∈ xs, x ≤ b
+  | nil => by simp
+  | cons x xs => by
+    rw [minimum?]; rintro ⟨⟩ y
     induction xs generalizing x with
-    | nil => constructor <;> simp_all
-    | cons x' xs ih =>
-      simp only [foldl_cons, mem_cons, forall_eq_or_imp]
-      rw [ih]
-      have min_le_left := fun a b => ((le_min_iff (min a b) a b).mp (le_refl _)).1
-      have min_le_right := fun a b => ((le_min_iff (min a b) a b).mp (le_refl _)).2
-      have min_def : ∀ a b : α, min a b = if a ≤ b then a else b := by
-        intro a b
-        apply Antisymm.antisymm (r := (· ≤ ·))
-        · split
-          · apply min_le_left
-          · apply min_le_right
-        · split <;> rename_i h
-          · exact (le_min_iff a a b).mpr ⟨le_refl _, h⟩
-          · exact (le_min_iff b a b).mpr ⟨(le_total a b).resolve_left h, le_refl _⟩
-      constructor
-      · rintro ⟨rfl | h₁, h₂, h₃⟩
-        · refine ⟨?_, min_le_left _ _, min_le_right _ _, h₃⟩
-          · rw [min_def]
-            split <;> simp
-        · exact ⟨Or.inr (Or.inr h₁), trans h₂ (min_le_left x x'),
-            trans h₂ (min_le_right x x'), h₃⟩
-      · rintro ⟨rfl | rfl | h₁, h₂, h₃, h₄⟩
-        · have : min a x' = a := by rw [min_def, if_pos h₃]
-          exact ⟨Or.inl this.symm, by rw [this]; apply le_refl, h₄⟩
-        · have : min x a = a := by
-            rw [min_def]
-            by_cases h : x = a
-            · simp_all
-            · rw [if_neg]
-              exact fun h' => h (Antisymm.antisymm h' h₂)
-          exact ⟨Or.inl this.symm, by rw [this]; apply le_refl, h₄⟩
-        · exact ⟨Or.inr h₁, by rw [min_def]; split <;> assumption, h₄⟩
+    | nil => simp
+    | cons y xs ih => simp [ih, le_min_iff, and_assoc]
+
+-- This could be refactored by designing appropriate typeclasses to replace `le_refl`, `min_eq_or`,
+-- and `le_min_iff`.
+theorem minimum?_eq_some_iff [Min α] [LE α] [anti : Antisymm ((· : α) ≤ ·)]
+    (le_refl : ∀ a : α, a ≤ a)
+    (min_eq_or : ∀ a b : α, min a b = a ∨ min a b = b)
+    (le_min_iff : ∀ a b c : α, a ≤ min b c ↔ a ≤ b ∧ a ≤ c) {xs : List α} :
+    xs.minimum? = some a ↔ a ∈ xs ∧ ∀ b ∈ xs, a ≤ b := by
+  refine ⟨fun h => ⟨minimum?_mem min_eq_or h, (le_minimum?_iff le_min_iff h _).1 (le_refl _)⟩, ?_⟩
+  intro ⟨h₁, h₂⟩
+  cases xs with
+  | nil => simp at h₁
+  | cons x xs =>
+    exact congrArg some <| anti.1
+      ((le_minimum?_iff le_min_iff (xs := x::xs) rfl _).1 (le_refl _) _ h₁)
+      (h₂ _ (minimum?_mem min_eq_or (xs := x::xs) rfl))
 
 -- A specialization of `minimum?_eq_some_iff` to Nat.
 theorem minimum?_eq_some_iff' {xs : List Nat} :
     xs.minimum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, a ≤ b) :=
-  minimum?_eq_some_iff Nat.le_refl Nat.le_total (by
-    intros a b c
-    rw [Nat.min_def]
-    split <;> rename_i h
-    · exact ⟨fun h' => ⟨h', Nat.le_trans h' h⟩, fun h' => h'.1⟩
-    · exact ⟨fun h' => ⟨Nat.le_trans h' (Nat.le_of_lt (Nat.lt_of_not_le h)), h'⟩, fun h' => h'.2⟩)
+  minimum?_eq_some_iff
+    (le_refl := Nat.le_refl)
+    (min_eq_or := fun _ _ => Nat.min_def .. ▸ by split <;> simp)
+    (le_min_iff := fun _ _ _ => Nat.le_min)
