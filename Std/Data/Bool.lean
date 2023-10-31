@@ -130,10 +130,10 @@ theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y
 @[simp] theorem xor_not_self : ∀ (x : Bool), xor x (!x) = true := by
   decide
 
-theorem not_xor : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by
+@[simp] theorem not_xor : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by
   decide
 
-theorem xor_not : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by
+@[simp] theorem xor_not : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by
   decide
 
 theorem not_xor_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by
