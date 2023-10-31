@@ -177,7 +177,7 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
-    simp_all [add_one, min_succ_succ, Nat.min_zero_left, Nat.min_zero_right]
+    simp_all [add_one, succ_min_succ, Nat.zero_min, Nat.min_zero]
 
 @[simp]
 theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
@@ -785,9 +785,9 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 @[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
 
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
-  | 0, l => by simp [Nat.min_zero_left]
-  | succ n, [] => by simp [Nat.min_zero_right]
-  | succ n, _ :: l => by simp [Nat.min_succ_succ, add_one, length_take]
+  | 0, l => by simp [Nat.zero_min]
+  | succ n, [] => by simp [Nat.min_zero]
+  | succ n, _ :: l => by simp [Nat.succ_min_succ, add_one, length_take]
 
 theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
 
