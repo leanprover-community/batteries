@@ -85,7 +85,7 @@ instance : Monad Id := {
         else
           str := str ++ indent ++ "}"
       pure { eager with
-        edit? := some <| .ofTextEdit params.textDocument.uri {
+        edit? := some <| .ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
@@ -131,7 +131,7 @@ def foo : Expr → Unit := fun
 ```
 
 -/
-@[hole_code_action] def eqnStub : HoleCodeAction := fun params snap ctx info => do
+@[hole_code_action] def eqnStub : HoleCodeAction := fun _ snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .forallE _ dom .. ← info.runMetaM ctx (whnf ty) | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf dom)).getAppFn | return #[]
@@ -156,7 +156,7 @@ def foo : Expr → Unit := fun
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
@@ -164,14 +164,14 @@ def foo : Expr → Unit := fun
   }]
 
 /-- Invoking hole code action "Start a tactic proof" will fill in a hole with `by done`. -/
-@[hole_code_action] def startTacticStub : HoleCodeAction := fun params _ _ info => do
+@[hole_code_action] def startTacticStub : HoleCodeAction := fun _ _ _ info => do
   let holePos := info.stx.getPos?.get!
   let doc ← readDoc
   let indent := (findIndentAndIsStart doc.meta.text.source holePos).1
   pure #[{
     eager.title := "Start a tactic proof."
     eager.kind? := "quickfix"
-    eager.edit? := some <|.ofTextEdit params.textDocument.uri {
+    eager.edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
       newText := "by\n".pushn ' ' (indent + 2) ++ "done"
     }
@@ -192,7 +192,7 @@ example : True := by
 ```
 -/
 @[tactic_code_action*]
-def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
+def removeAfterDoneAction : TacticCodeAction := fun _ _ _ stk node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
   unless info.goalsBefore.isEmpty do return #[]
   let _ :: (seq, i) :: _ := stk | return #[]
@@ -203,7 +203,7 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
     title := "Remove tactics after 'no goals'"
     kind? := "quickfix"
     isPreferred? := true
-    edit? := some <|.ofTextEdit params.textDocument.uri {
+    edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨prev, stop⟩
       newText := ""
     }
@@ -251,7 +251,7 @@ example (x : Nat) : x = x := by
 It also works for `cases`.
 -/
 @[tactic_code_action Parser.Tactic.cases Parser.Tactic.induction]
-def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
+def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
   let (discr, induction, alts) ← match info.stx with
     | `(tactic| cases $[$_ :]? $e $[$alts:inductionAlts]?) => pure (e, false, alts)
@@ -302,7 +302,10 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
           str := str ++ s!" => sorry"
         str
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri { range := ⟨startPos, endPos⟩, newText }
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
+          range := ⟨startPos, endPos⟩
+          newText
+        }
       }
   }]
 
@@ -356,7 +359,7 @@ def addSubgoalsActionCore (params : Lsp.CodeActionParams)
       for _ in goals.tail! do
         newText := newText ++ indent ++ "· done"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange range
           newText
         }
