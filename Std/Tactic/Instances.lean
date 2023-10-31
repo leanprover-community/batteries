@@ -35,7 +35,7 @@ elab (name := instancesCmd) tk:"#instances " stx:term : command => runTermElabM 
     let some className ← isClass? type
       | throwErrorAt stx "type class instance expected{indentExpr type}"
     let globalInstances ← getGlobalInstancesIndex
-    let result ← globalInstances.getUnify type
+    let result ← globalInstances.getUnify type tcDtConfig
     let erasedInstances ← getErasedInstances
     let mut msgs := #[]
     for e in result.insertionSort fun e₁ e₂ => e₁.priority < e₂.priority do

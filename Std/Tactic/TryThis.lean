@@ -102,7 +102,7 @@ apply the replacement.
         eager.kind? := "quickfix"
         -- Only make the first option preferred
         eager.isPreferred? := if i = 0 then true else none
-        eager.edit? := some <| .ofTextEdit params.textDocument.uri { range, newText }
+        eager.edit? := some <| .ofTextEdit doc.versionedIdentifier { range, newText }
       }
     result
 
