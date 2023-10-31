@@ -23,6 +23,9 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
+import Std.Data.BitVec
+import Std.Data.BitVec.Basic
+import Std.Data.Bool
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
@@ -34,6 +37,7 @@ import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
+import Std.Data.Json
 import Std.Data.List.Basic
 import Std.Data.List.Count
 import Std.Data.List.Init.Lemmas
@@ -70,11 +74,14 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
+import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
+import Std.Lean.Json
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -94,6 +101,7 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Lean.Util.EnvSearch
 import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
@@ -124,7 +132,10 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
+import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
+import Std.Tactic.Relation.Rfl
+import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
