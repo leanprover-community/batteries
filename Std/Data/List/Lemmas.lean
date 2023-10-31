@@ -2167,3 +2167,48 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 
 @[simp] theorem enum_map_fst (l : List α) : map Prod.fst (enum l) = range l.length := by
   simp only [enum, enumFrom_map_fst, range_eq_range']
+
+/-! ### minimum? -/
+
+@[simp] theorem minimum?_nil [Min α] : ([] : List α).minimum? = none := rfl
+
+-- We don't put `@[simp]` on `minimum?_cons`,
+-- because the definition in terms of `foldl` is not useful for proofs.
+theorem minimum?_cons [Min α] {xs : List α} : (x :: xs).minimum? = foldl min x xs := rfl
+
+@[simp] theorem minimum?_eq_none_iff {xs : List α} [Min α] : xs.minimum? = none ↔ xs = [] := by
+  cases xs <;> simp [minimum?]
+
+-- This could be generalized away from `Nat`.
+-- The standard library doesn't yet have the order typeclasses
+-- that would be necessary for such a generalization.
+theorem minimum?_eq_some_iff {xs : List Nat} :
+    xs.minimum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, a ≤ b) := by
+  cases xs with
+  | nil => simp
+  | cons x xs =>
+    rw [minimum?]
+    simp only [Option.some.injEq, mem_cons, forall_eq_or_imp]
+    induction xs generalizing x with
+    | nil => constructor <;> simp_all
+    | cons x' xs ih =>
+      simp only [foldl_cons, mem_cons, forall_eq_or_imp]
+      rw [ih]
+      constructor
+      · rintro ⟨rfl | h₁, h₂, h₃⟩
+        · refine ⟨?_, Nat.min_le_left _ _, Nat.min_le_right _ _, h₃⟩
+          · rw [Nat.min_def]
+            split <;> simp
+        · exact ⟨Or.inr (Or.inr h₁), Nat.le_trans h₂ (Nat.min_le_left x x'),
+            Nat.le_trans h₂ (Nat.min_le_right x x'), h₃⟩
+      · rintro ⟨rfl | rfl | h₁, h₂, h₃, h₄⟩
+        · have : min a x' = a := by rw [Nat.min_def, if_pos h₃]
+          exact ⟨Or.inl this.symm, by rw [this]; apply Nat.le_refl, h₄⟩
+        · have : min x a = a := by
+            rw [Nat.min_def]
+            by_cases h : x = a
+            · simp_all
+            · rw [if_neg]
+              simpa using Nat.lt_of_le_of_ne h₂ (Ne.symm h)
+          exact ⟨Or.inl this.symm, by rw [this]; apply Nat.le_refl, h₄⟩
+        · exact ⟨Or.inr h₁, by rw [Nat.min_def]; split <;> assumption, h₄⟩
