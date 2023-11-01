@@ -212,7 +212,7 @@ protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
 
 protected theorem two_pos : 0 < 2 := Nat.zero_lt_two
 
-protected theorem eq_zero_of_nonpos (h : ¬0 < n) : n = 0 :=
+protected theorem eq_zero_of_not_pos (h : ¬0 < n) : n = 0 :=
   Nat.eq_zero_of_le_zero (Nat.not_lt.1 h)
 
 /-! ## succ/pred -/
