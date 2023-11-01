@@ -228,6 +228,13 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 @[simp] protected theorem ediv_self {a : Int} (H : a ≠ 0) : a / a = 1 := by
   have := Int.mul_ediv_cancel 1 H; rwa [Int.one_mul] at this
 
+theorem div_nonneg_iff_of_pos {a b : Int} (h : 0 < b) : a / b ≥ 0 ↔ a ≥ 0 := by
+  rw [Int.div_def]
+  match b, h with
+  | Int.ofNat (b+1), _ =>
+    rcases a with ⟨a⟩ <;> simp [Int.ediv]
+    exact decide_eq_decide.mp rfl
+
 /-! ### mod -/
 
 theorem mod_def' (m n : Int) : m % n = emod m n := rfl
