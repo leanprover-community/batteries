@@ -163,27 +163,26 @@ protected theorem lt_asymm {a b : Nat} (h : a < b) : ¬ b < a := Nat.not_lt.2 (N
 protected alias not_lt_of_gt := Nat.lt_asymm
 protected alias not_lt_of_lt := Nat.lt_asymm
 
-protected theorem lt_iff_le_and_not_ge {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
+protected theorem lt_iff_le_not_le {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun ⟨_, h⟩ => Nat.lt_of_not_ge h⟩
-
-protected alias lt_iff_le_not_le := Nat.lt_iff_le_and_not_ge
+protected alias lt_iff_le_and_not_ge := Nat.lt_iff_le_not_le
 
 protected theorem lt_iff_le_and_ne {a b : Nat} : a < b ↔ a ≤ b ∧ a ≠ b :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.ne_of_lt h⟩, fun h => Nat.lt_of_le_of_ne h.1 h.2⟩
 
 protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
   ⟨fun | rfl => ⟨Nat.le_refl _, Nat.le_refl _⟩, fun ⟨hle, hge⟩ => Nat.le_antisymm hle hge⟩
-
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
-  rw [←Nat.not_le, ←Nat.not_le, ←Decidable.not_and, and_comm]
+  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and, and_comm]
   exact mt Nat.le_antisymm_iff.2
+protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
+@[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
 
-protected theorem lt_or_gt_iff_ne {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
+protected theorem ne_iff_lt_or_gt {a b : Nat} : a ≠ b ↔ a < b ∨ b < a :=
   ⟨Nat.lt_or_gt_of_ne, fun | .inl h => Nat.ne_of_lt h | .inr h => Nat.ne_of_gt h⟩
-
-protected alias ne_iff_lt_or_gt := Nat.lt_or_gt_iff_ne
+protected alias lt_or_gt := Nat.ne_iff_lt_or_gt
 
 protected alias le_or_ge := Nat.le_total
 protected alias le_or_le := Nat.le_total
@@ -209,8 +208,8 @@ theorem compare_def_lt (a b : Nat) :
     compare a b = if a < b then .lt else if b < a then .gt else .eq := by
   simp only [compare, compareOfLessAndEq]
   split
-  next => rfl
-  next h =>
+  · rfl
+  · next h =>
     match Nat.lt_or_eq_of_le (Nat.not_lt.1 h) with
     | .inl h => simp [h, Nat.ne_of_gt h]
     | .inr rfl => simp
@@ -219,56 +218,36 @@ theorem compare_def_le (a b : Nat) :
     compare a b = if a ≤ b then if b ≤ a then .eq else .lt else .gt := by
   rw [compare_def_lt]
   split
-  next hlt => simp [Nat.le_of_lt hlt, Nat.not_le.2 hlt]
-  next hge =>
+  · next hlt => simp [Nat.le_of_lt hlt, Nat.not_le.2 hlt]
+  · next hge =>
     split
-    next hgt => simp [Nat.le_of_lt hgt, Nat.not_le.2 hgt]
-    next hle => simp [Nat.not_lt.1 hge, Nat.not_lt.1 hle]
+    · next hgt => simp [Nat.le_of_lt hgt, Nat.not_le.2 hgt]
+    · next hle => simp [Nat.not_lt.1 hge, Nat.not_lt.1 hle]
 
 protected theorem compare_swap_symm (a b : Nat) : (compare a b).swap = compare b a := by
   simp only [compare_def_le]
-  split
-  next h => split <;> next h' => simp [h, h']
-  next h =>
-    split
-    next h' => simp [h, h']
-    next h' => cases Nat.le_total a b <;> contradiction
+  (repeat' split) <;> try rfl
+  next h1 h2 => cases h1 (Nat.le_of_not_le h2)
 
 protected theorem eq_iff_compare_eq_eq {a b : Nat} : a = b ↔ compare a b = .eq := by
   rw [compare_def_lt]
   constructor
   · intro | rfl => simp
   · intro h
-    split at h
-    next => contradiction
-    next hlt =>
-      split at h
-      next => contradiction
-      next hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
+    (repeat' split at h) <;> try contradiction
+    next hlt hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
 
 protected theorem lt_iff_compare_eq_lt {a b : Nat} : a < b ↔ compare a b = .lt := by
-  rw [compare_def_lt]
-  split
-  next h => simp [h]
-  next h => split <;> simp [h]
+  rw [compare_def_lt]; (repeat' split) <;> simp [*]
 
 protected theorem gt_iff_compare_eq_gt {a b : Nat} : b < a ↔ compare a b = .gt := by
-  rw [compare_def_lt]
-  split
-  next h => simp [Nat.le_of_lt h]
-  next h => split <;> next h' => simp [h, h']
+  rw [compare_def_lt]; (repeat' split) <;> simp [Nat.le_of_lt, *]
 
 protected theorem le_iff_compare_ne_gt {a b : Nat} : a ≤ b ↔ compare a b ≠ .gt := by
-  rw [compare_def_le]
-  split
-  next h => split <;> simp [h]
-  next h => simp [h]
+  rw [compare_def_le]; (repeat' split) <;> simp [*]
 
 protected theorem ge_iff_compare_ne_lt {a b : Nat} : b ≤ a ↔ compare a b ≠ .lt := by
-  rw [compare_def_le]
-  split
-  next h => split <;> next h' => simp [h, h']
-  next h => simp [Nat.le_of_lt (Nat.not_le.1 h)]
+  rw [compare_def_le]; (repeat' split) <;> simp [Nat.le_of_not_le, *]
 
 /-- Strong case analysis on `a < b ∨ b ≤ a` -/
 protected def lt_sum_ge (a b : Nat) : a < b ⊕' b ≤ a :=
@@ -283,12 +262,11 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ## zero/one/two -/
 
-protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
-  ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
+protected theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 := ⟨ne_of_gt, Nat.pos_of_ne_zero⟩
 
 theorem le_zero : i ≤ 0 ↔ i = 0 := ⟨Nat.eq_zero_of_le_zero, fun | rfl => Nat.le_refl _⟩
 
-protected theorem one_pos : 0 < 1 := Nat.zero_lt_one
+protected alias one_pos := Nat.zero_lt_one
 
 protected theorem two_pos : 0 < 2 := Nat.zero_lt_succ _
 
@@ -1057,7 +1035,7 @@ protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
   | succ _ ih => rw [Nat.add_succ, Nat.pow_succ, Nat.pow_succ, ih, Nat.mul_assoc]
 
 protected theorem pow_add' (a m n : Nat) : a ^ (m + n) = a ^ n * a ^ m := by
-  rw [←Nat.pow_add, Nat.add_comm]
+  rw [← Nat.pow_add, Nat.add_comm]
 
 protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
   induction n with
@@ -1065,10 +1043,10 @@ protected theorem pow_mul (a m n : Nat) : a ^ (m * n) = (a ^ m) ^ n := by
   | succ _ ih => rw [Nat.mul_succ, Nat.pow_add, Nat.pow_succ, ih]
 
 protected theorem pow_mul' (a m n : Nat) : a ^ (m * n) = (a ^ n) ^ m := by
-  rw [←Nat.pow_mul, Nat.mul_comm]
+  rw [← Nat.pow_mul, Nat.mul_comm]
 
 protected theorem pow_right_comm (a m n : Nat) : (a ^ m) ^ n = (a ^ n) ^ m := by
-  rw [←Nat.pow_mul, Nat.pow_mul']
+  rw [← Nat.pow_mul, Nat.pow_mul']
 
 protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
@@ -1229,9 +1207,3 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
-
-/-! ## deprecated -/
-
-@[deprecated] protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
-
-@[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
