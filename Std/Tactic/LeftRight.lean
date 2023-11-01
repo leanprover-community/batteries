@@ -32,14 +32,12 @@ open NthConstructor
 
 /--
 Apply the first constructor,
-in the case that the goal is an inductive type with exactly two constructions.
+in the case that the goal is an inductive type with exactly two constructors.
 -/
-elab "left" : tactic => do
-  liftMetaTactic (nthConstructor `left 0 (some 2))
+elab "left" : tactic => liftMetaTactic (nthConstructor `left 0 (some 2))
 
 /--
 Apply the second constructor,
-in the case that the goal is an inductive type with exactly two constructions.
+in the case that the goal is an inductive type with exactly two constructors.
 -/
-elab "right" : tactic => do
-  liftMetaTactic (nthConstructor `right 1 (some 2))
+elab "right" : tactic => liftMetaTactic (nthConstructor `right 1 (some 2))
