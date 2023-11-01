@@ -147,6 +147,7 @@ import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
+import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
