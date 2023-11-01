@@ -166,26 +166,26 @@ def mergePreservingDuplicates (t u : DiscrTree α) : DiscrTree α :=
 Inserts a new key into a discrimination tree,
 but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
 -/
-def insertIfSpecific [BEq α] (d : DiscrTree α s)
-    (keys : Array (DiscrTree.Key s)) (v : α) : DiscrTree α s :=
+def insertIfSpecific [BEq α] (d : DiscrTree α)
+    (keys : Array DiscrTree.Key) (v : α) (config : WhnfCoreConfig) : DiscrTree α :=
   if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
     d
   else
-    d.insertCore keys v
+    d.insertCore keys v config
 
 variable {m : Type → Type} [Monad m]
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
-partial def Trie.mapArraysM (t : DiscrTree.Trie α s) (f : Array α → m (Array β)) :
-    m (DiscrTree.Trie β s) :=
+partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array β)) :
+    m (DiscrTree.Trie β) :=
   match t with
   | .node vs children =>
     return .node (← f vs) (← children.mapM fun (k, t') => do pure (k, ← t'.mapArraysM f))
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
-def mapArraysM (d : DiscrTree α s) (f : Array α → m (Array β)) : m (DiscrTree β s) := do
+def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) := do
   pure { root := ← d.root.mapM (fun t => t.mapArraysM f) }
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
-def mapArrays (d : DiscrTree α s) (f : Array α → Array β) : DiscrTree β s :=
+def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
   Id.run <| d.mapArraysM fun A => pure (f A)
