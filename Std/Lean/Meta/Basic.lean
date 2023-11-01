@@ -274,6 +274,41 @@ where
           modify (·.insert pendingMVarId)
         go pendingMVarId
 
+/--
+Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
+The new hypothesis is given the same user name as the original,
+it attempts to avoid reordering hypotheses, and the original is cleared if possible.
+-/
+-- adapted from Lean.Meta.replaceLocalDeclCore
+def replace (g : MVarId) (hyp : FVarId) (proof : Expr) (typeNew : Option Expr := none) :
+    MetaM AssertAfterResult :=
+  g.withContext do
+    let typeNew ← match typeNew with
+    | some t => pure t
+    | none => inferType proof
+    let ldecl ← hyp.getDecl
+    -- `typeNew` may contain variables that occur after `hyp`.
+    -- Thus, we use the auxiliary function `findMaxFVar` to ensure `typeNew` is well-formed
+    -- at the position we are inserting it.
+    let (_, ldecl') ← findMaxFVar typeNew |>.run ldecl
+    let result ← g.assertAfter ldecl'.fvarId ldecl.userName typeNew proof
+    (return { result with mvarId := ← result.mvarId.clear hyp }) <|> pure result
+where
+  /-- Finds the `LocalDecl` for the FVar in `e` with the highest index. -/
+  findMaxFVar (e : Expr) : StateRefT LocalDecl MetaM Unit :=
+    e.forEach' fun e => do
+      if e.isFVar then
+        let ldecl' ← e.fvarId!.getDecl
+        modify fun ldecl => if ldecl'.index > ldecl.index then ldecl' else ldecl
+        return false
+      else
+        return e.hasFVar
+
+/-- Get the type the given metavariable after instantiating metavariables and cleaning up
+annotations. -/
+def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
+  return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
+
 end MVarId
 
 
@@ -315,7 +350,7 @@ or until `maxIters` total calls to `f` have occurred.
 Returns a boolean indicating whether `f` succeeded at least once, and
 all the remaining goals (i.e. those on which `f` failed).
 -/
-def repeat'Core [Monad m] [MonadError m] [MonadMCtx m]
+def repeat'Core [Monad m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) :
     m (Bool × List MVarId) := do
   let (progress, acc) ← go maxIters false gs [] #[]
@@ -334,9 +369,9 @@ where
       match n with
       | 0 => pure <| (p, acc.push g ++ gs |> stk.foldl .appendList)
       | n+1 =>
-        match ← observing (f g) with
-        | .ok gs' => go n true gs' (gs::stk) acc
-        | .error _ => go n p gs stk (acc.push g)
+        match ← observing? (f g) with
+        | some gs' => go n true gs' (gs::stk) acc
+        | none => go n p gs stk (acc.push g)
 termination_by _ n p gs stk _ => (n, stk, gs)
 
 /--
@@ -345,7 +380,7 @@ then runs `f` again on all of those goals, and repeats until `f` fails on all re
 or until `maxIters` total calls to `f` have occurred.
 Always succeeds (returning the original goals if `f` fails on all of them).
 -/
-def repeat' [Monad m] [MonadError m] [MonadMCtx m]
+def repeat' [Monad m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) :=
   repeat'Core f gs maxIters <&> (·.2)
 
@@ -355,7 +390,7 @@ then runs `f` again on all of those goals, and repeats until `f` fails on all re
 or until `maxIters` total calls to `f` have occurred.
 Fails if `f` does not succeed at least once.
 -/
-def repeat1' [Monad m] [MonadError m] [MonadMCtx m]
+def repeat1' [Monad m] [MonadError m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) := do
   let (.true, gs) ← repeat'Core f gs maxIters | throwError "repeat1' made no progress"
   pure gs
