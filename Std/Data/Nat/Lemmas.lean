@@ -249,7 +249,7 @@ theorem succ_lt_succ_iff : succ a < succ b ↔ a < b := ⟨lt_of_succ_lt_succ, s
 theorem pred_inj : ∀ {a b}, 0 < a → 0 < b → pred a = pred b → a = b
   | _+1, _+1, _, _ => congrArg _
 
-theorem pred_ne_self : ∀ {a}, 0 ≠ a → pred a ≠ a
+theorem pred_ne_self : ∀ {a}, a ≠ 0 → pred a ≠ a
   | _+1, _ => (succ_ne_self _).symm
 
 theorem pred_lt_self : ∀ {a}, 0 < a → pred a < a
