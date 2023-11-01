@@ -298,7 +298,9 @@ protected theorem eq_zero_of_add_eq_zero_left {n m : Nat} (h : n + m = 0) : m = 
 theorem succ_add_eq_succ_add (n m : Nat) : succ n + m = n + succ m := by
   simp [succ_add, add_succ]
 
-theorem one_add (n : Nat) : 1 + n = succ n := by simp [Nat.add_comm]
+theorem one_add (n : Nat) : 1 + n = succ n := Nat.add_comm ..
+
+theorem succ_eq_one_add (n) : succ n = 1 + n := (one_add _).symm
 
 theorem eq_zero_of_add_eq_zero {n m : Nat} (H : n + m = 0) : n = 0 ∧ m = 0 :=
   ⟨Nat.eq_zero_of_add_eq_zero_right H, Nat.eq_zero_of_add_eq_zero_left H⟩
@@ -1139,8 +1141,3 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
-
-/-! ## deprecated -/
-
-@[deprecated Nat.one_add]
-theorem succ_eq_one_add (n) : succ n = 1 + n := (one_add _).symm
