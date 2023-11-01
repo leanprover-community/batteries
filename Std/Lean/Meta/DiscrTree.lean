@@ -54,17 +54,15 @@ opaque foldM [Monad m] (initalKeys : Array Key)
 Fold the keys and values stored in a `Trie`.
 -/
 @[inline]
-def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ)
-    (init : σ) (t : Trie α) : σ :=
+def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ) (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
 
 -- This is just a partial function, but Lean doesn't realise that its type is
 -- inhabited.
-private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) :
-    Trie α → m σ
-| node vs children => do
-  let s ← vs.foldlM (init := init) f
-  children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
+private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) : Trie α → m σ
+  | node vs children => do
+    let s ← vs.foldlM (init := init) f
+    children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
 
 /--
 Monadically fold the values stored in a `Trie`.

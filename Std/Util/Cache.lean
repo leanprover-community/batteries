@@ -69,8 +69,8 @@ def Cache.get [Monad m] [MonadEnv m] [MonadLog m] [MonadOptions m] [MonadLiftT B
       cache.set (m := BaseIO) (.inr res)
       pure res
   match t.get with
-    | Except.ok res => pure res
-    | Except.error err => throw err
+  | Except.ok res => pure res
+  | Except.error err => throw err
 
 /--
 Cached fold over the environment's declarations,
@@ -84,7 +84,7 @@ structure DeclCache (α : Type) where mk' ::
   /-- Function for adding a declaration from the library to the cache.
   Defaults to the same behaviour as adding a declaration from the current file. -/
   addLibraryDecl : Name → ConstantInfo → α → MetaM α := addDecl
-deriving Nonempty
+  deriving Nonempty
 
 /--
 Creates a `DeclCache`.
@@ -116,8 +116,7 @@ A type synonym for a `DeclCache` containing a pair of discrimination trees.
 The first will store declarations in the current file,
 the second will store declarations from imports (and will hopefully be "read-only" after creation).
 -/
-@[reducible] def DiscrTreeCache (α : Type) : Type :=
-  DeclCache (DiscrTree α × DiscrTree α)
+@[reducible] def DiscrTreeCache (α : Type) : Type := DeclCache (DiscrTree α × DiscrTree α)
 
 /-- Discrimation tree settings for the `DiscrTreeCache`. -/
 def DiscrTreeCache.config : WhnfCoreConfig := {}
