@@ -148,13 +148,13 @@ protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :
   ⟨Nat.gt_of_not_le, Nat.not_le_of_gt⟩
 protected alias ⟨lt_of_not_ge, _⟩ := Nat.not_le
 protected alias ⟨lt_of_not_le, not_le_of_lt⟩ := Nat.not_le
-protected alias ⟨_, lt_le_antisymm⟩ := Nat.not_le
+protected alias ⟨_, lt_le_asymm⟩ := Nat.not_le
 
 @[simp] protected theorem not_lt {a b : Nat} : ¬ a < b ↔ b ≤ a :=
   ⟨Nat.ge_of_not_lt, flip Nat.not_le_of_gt⟩
 protected alias ⟨le_of_not_gt, not_lt_of_ge⟩ := Nat.not_lt
 protected alias ⟨le_of_not_lt, not_lt_of_le⟩ := Nat.not_lt
-protected alias ⟨_, le_lt_antisymm⟩ := Nat.not_lt
+protected alias ⟨_, le_lt_asymm⟩ := Nat.not_lt
 
 protected theorem le_of_not_le {a b : Nat} (h : ¬ b ≤ a) : a ≤ b := Nat.le_of_lt (Nat.not_le.1 h)
 protected alias le_of_not_ge := Nat.le_of_not_le
