@@ -26,8 +26,7 @@ protected def cmp : Key s → Key s → Ordering
     s₁.quickCmp s₂ |>.then <| compare i₁ i₂ |>.then <| compare a₁ a₂
   | k₁,             k₂             => compare k₁.ctorIdx k₂.ctorIdx
 
-instance : Ord (Key s) :=
-  ⟨Key.cmp⟩
+instance : Ord (Key s) := ⟨Key.cmp⟩
 
 end Key
 
@@ -178,7 +177,7 @@ variable {m : Type → Type} [Monad m]
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
 partial def Trie.mapArraysM (t : DiscrTree.Trie α s) (f : Array α → m (Array β)) :
-    m (DiscrTree.Trie β s) := do
+    m (DiscrTree.Trie β s) :=
   match t with
   | .node vs children =>
     return .node (← f vs) (← children.mapM fun (k, t') => do pure (k, ← t'.mapArraysM f))
@@ -189,6 +188,4 @@ def mapArraysM (d : DiscrTree α s) (f : Array α → m (Array β)) : m (DiscrTr
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
 def mapArrays (d : DiscrTree α s) (f : Array α → Array β) : DiscrTree β s :=
-  d.mapArraysM fun A => (pure (f A) : Id (Array β))
-
-end Lean.Meta.DiscrTree
+  Id.run <| d.mapArraysM fun A => pure (f A)

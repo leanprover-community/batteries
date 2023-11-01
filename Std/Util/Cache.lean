@@ -10,16 +10,11 @@ import Std.Lean.Meta.DiscrTree
 
 This file defines cache data structures for tactics
 that are initialized the first time they are accessed.
-Since Lean 4 starts one process per file,
-these caches are once-per-file
-and can for example be used to cache information
-about the imported modules.
+Since Lean 4 starts one process per file, these caches are once-per-file
+and can for example be used to cache information about the imported modules.
 
-The `Cache α` data structure is
-the most generic version we define.
-It is created using `Cache.mk f`
-where `f : MetaM α` performs
-the initialization of the cache:
+The `Cache α` data structure is the most generic version we define.
+It is created using `Cache.mk f` where `f : MetaM α` performs the initialization of the cache:
 ```
 initialize numberOfImports : Cache Nat ← Cache.mk do
   (← getEnv).imports.size
@@ -28,16 +23,12 @@ initialize numberOfImports : Cache Nat ← Cache.mk do
 #eval show MetaM Nat from numberOfImports.get
 ```
 
-The `DeclCache α` data structure computes
-a fold over the environment's constants:
+The `DeclCache α` data structure computes a fold over the environment's constants:
 `DeclCache.mk empty f` constructs such a cache
 where `empty : α` and `f : Name → ConstantInfo → α → MetaM α`.
-The result of the constants in the imports is cached
-between tactic invocations,
-while for constants defined in the same file
-`f` is evaluated again every time.
-This kind of cache can be used e.g.
-to populate discrimination trees.
+The result of the constants in the imports is cached between tactic invocations,
+while for constants defined in the same file `f` is evaluated again every time.
+This kind of cache can be used e.g. to populate discrimination trees.
 -/
 
 open Lean Meta
@@ -45,47 +36,37 @@ open Lean Meta
 namespace Mathlib.Tactic
 
 /-- Once-per-file cache. -/
-def Cache (α : Type) :=
-  IO.Ref <| Sum (MetaM α) <|
-    Task <| Except Exception α
+def Cache (α : Type) := IO.Ref <| MetaM α ⊕ Task (Except Exception α)
 
 -- This instance is required as we use `Cache` with `initialize`.
 -- One might expect an `Inhabited` instance here,
 -- but there is no way to construct such without using choice anyway.
-instance : Nonempty (Cache α) :=
-  inferInstanceAs <| Nonempty (IO.Ref _)
+instance : Nonempty (Cache α) := inferInstanceAs <| Nonempty (IO.Ref _)
 
 /-- Creates a cache with an initialization function. -/
-def Cache.mk (init : MetaM α) : IO (Cache α) :=
-  IO.mkRef <| Sum.inl init
+def Cache.mk (init : MetaM α) : IO (Cache α) := IO.mkRef <| Sum.inl init
 
 /--
-Access the cache.
-Calling this function for the first time
-will initialize the cache with the function
-provided in the constructor.
+Access the cache. Calling this function for the first time will initialize the cache
+with the function provided in the constructor.
 -/
 def Cache.get [Monad m] [MonadEnv m] [MonadLog m] [MonadOptions m] [MonadLiftT BaseIO m]
     [MonadExcept Exception m] (cache : Cache α) : m α := do
-  let t ← match ← show BaseIO _ from ST.Ref.get cache with
-    | Sum.inr t => pure t
-    | Sum.inl init =>
+  let t ← match ← ST.Ref.get (m := BaseIO) cache with
+    | .inr t => pure t
+    | .inl init =>
       let env ← getEnv
       let fileName ← getFileName
       let fileMap ← getFileMap
       let options ← getOptions -- TODO: sanitize options?
       -- Default heartbeats to a reasonable value.
-      -- otherwise librarySearch times out on mathlib
+      -- otherwise exact? times out on mathlib
       -- TODO: add customization option
       let options := Core.maxHeartbeats.set options <|
         options.get? Core.maxHeartbeats.name |>.getD 1000000
-      let res ← EIO.asTask do
-        let metaCtx : Meta.Context := {}
-        let metaState : Meta.State := {}
-        let coreCtx : Core.Context := {options, fileName, fileMap}
-        let coreState : Core.State := {env}
-        pure (← ((init ‹_›).run ‹_› ‹_›).run ‹_›).1.1
-      show BaseIO _ from cache.set (Sum.inr res)
+      let res ← EIO.asTask <|
+        init {} |>.run' {} { options, fileName, fileMap } |>.run' { env }
+      cache.set (m := BaseIO) (.inr res)
       pure res
   match t.get with
     | Except.ok res => pure res
@@ -118,23 +99,17 @@ def DeclCache.mk (profilingName : String) (empty : α)
     (post : α → MetaM α := fun a => pure a) : IO (DeclCache α) := do
   let cache ← Cache.mk do
     profileitM Exception profilingName (← getOptions) do
-    let mut a := empty
-    for (n, c) in (← getEnv).constants.map₁.toList do
-      a ← addLibraryDecl n c a
-    return (← post a)
-  pure { cache := cache, addDecl := addDecl }
+      post <|← (← getEnv).constants.map₁.foldM (init := empty) fun a n c =>
+        addLibraryDecl n c a
+  pure { cache, addDecl }
 
 /--
-Access the cache.
-Calling this function for the first time
-will initialize the cache with the function
-provided in the constructor.
+Access the cache. Calling this function for the first time will initialize the cache
+with the function provided in the constructor.
 -/
 def DeclCache.get (cache : DeclCache α) : MetaM α := do
-  let mut a ← cache.cache.get
-  for (n, c) in (← getEnv).constants.map₂.toList do
-    a ← cache.addDecl n c a
-  return a
+  (← getEnv).constants.map₂.foldlM (init := ← cache.cache.get) fun a n c =>
+    cache.addDecl n c a
 
 /--
 A type synonym for a `DeclCache` containing a pair of discrimination trees.
