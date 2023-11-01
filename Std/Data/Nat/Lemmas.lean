@@ -482,10 +482,10 @@ theorem succ_min_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
 @[simp] protected theorem min_zero (a) : min a 0 = 0 := Nat.min_eq_right (Nat.zero_le _)
 
 protected theorem min_assoc : ∀ (a b c : Nat), min (min a b) c = min a (min b c)
-| 0, _, _ => by rw [Nat.zero_min, Nat.zero_min, Nat.zero_min]
-| _, 0, _ => by rw [Nat.zero_min, Nat.min_zero, Nat.zero_min]
-| _, _, 0 => by rw [Nat.min_zero, Nat.min_zero, Nat.min_zero]
-| _+1, _+1, _+1 => by simp only [Nat.succ_min_succ]; exact congrArg succ <| Nat.min_assoc ..
+  | 0, _, _ => by rw [Nat.zero_min, Nat.zero_min, Nat.zero_min]
+  | _, 0, _ => by rw [Nat.zero_min, Nat.min_zero, Nat.zero_min]
+  | _, _, 0 => by rw [Nat.min_zero, Nat.min_zero, Nat.min_zero]
+  | _+1, _+1, _+1 => by simp only [Nat.succ_min_succ]; exact congrArg succ <| Nat.min_assoc ..
 
 protected theorem sub_sub_eq_min : ∀ (a b : Nat), a - (a - b) = min a b
   | 0, _ => by rw [Nat.zero_sub, Nat.zero_min]
@@ -531,10 +531,10 @@ protected theorem max_lt {a b c : Nat} : max a b < c ↔ a < c ∧ b < c := by
 @[simp] protected theorem max_zero (a) : max a 0 = a := Nat.max_eq_left (Nat.zero_le _)
 
 protected theorem max_assoc : ∀ (a b c : Nat), max (max a b) c = max a (max b c)
-| 0, _, _ => by rw [Nat.zero_max, Nat.zero_max]
-| _, 0, _ => by rw [Nat.zero_max, Nat.max_zero]
-| _, _, 0 => by rw [Nat.max_zero, Nat.max_zero]
-| _+1, _+1, _+1 => by simp only [Nat.succ_max_succ]; exact congrArg succ <| Nat.max_assoc ..
+  | 0, _, _ => by rw [Nat.zero_max, Nat.zero_max]
+  | _, 0, _ => by rw [Nat.zero_max, Nat.max_zero]
+  | _, _, 0 => by rw [Nat.max_zero, Nat.max_zero]
+  | _+1, _+1, _+1 => by simp only [Nat.succ_max_succ]; exact congrArg succ <| Nat.max_assoc ..
 
 protected theorem sub_add_eq_max (a b : Nat) : a - b + b = max a b := by
   match Nat.le_total a b with
