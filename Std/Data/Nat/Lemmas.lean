@@ -624,6 +624,14 @@ protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min
 
 /-! ## mul -/
 
+@[deprecated Nat.mul_le_mul_left]
+protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
+  Nat.mul_le_mul_left c
+
+@[deprecated Nat.mul_le_mul_right]
+protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
+  Nat.mul_le_mul_right c
+
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
 
@@ -659,15 +667,27 @@ protected theorem mul_lt_mul_of_lt_of_le (hac : a < c) (hbd : b ≤ d) (hd : 0 <
     a * b < c * d :=
   Nat.lt_of_le_of_lt (Nat.mul_le_mul_left _ hbd) (Nat.mul_lt_mul_of_pos_right hac hd)
 
+protected theorem mul_lt_mul_of_lt_of_le' (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_lt_of_le hac hbd (Nat.lt_of_lt_of_le hb hbd)
+
+@[deprecated] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
+
 protected theorem mul_lt_mul_of_le_of_lt (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) :
     a * b < c * d :=
   Nat.lt_of_le_of_lt (Nat.mul_le_mul_right _ hac) (Nat.mul_lt_mul_of_pos_left hbd hc)
+
+protected theorem mul_lt_mul_of_le_of_lt' (hac : a ≤ c) (hbd : b < d) (ha : 0 < a) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt hac hbd (Nat.lt_of_lt_of_le ha hac)
+
+@[deprecated] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
 
 protected theorem mul_lt_mul_of_lt_of_lt {a b c d : Nat} (hac : a < c) (hbd : b < d) :
     a * b < c * d :=
   Nat.mul_lt_mul_of_le_of_lt (Nat.le_of_lt hac) hbd (Nat.zero_lt_of_lt hac)
 
-theorem succ_mul_succ_eq (a b) : succ a * succ b = a * b + a + b + 1 := by
+theorem succ_mul_succ (a b) : succ a * succ b = a * b + a + b + 1 := by
   rw [succ_mul, mul_succ]; rfl
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
@@ -1124,21 +1144,3 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
-
-/-! ## deprecated -/
-
-@[deprecated Nat.mul_le_mul_left]
-protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
-  Nat.mul_le_mul_left c
-
-@[deprecated Nat.mul_le_mul_right]
-protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
-  Nat.mul_le_mul_right c
-
-@[deprecated Nat.mul_lt_mul_of_lt_of_le]
-protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) : a * b < c * d :=
-  Nat.mul_lt_mul_of_lt_of_le hac hbd (Nat.lt_of_lt_of_le hb hbd)
-
-@[deprecated Nat.mul_lt_mul_of_le_of_lt]
-protected theorem mul_lt_mul' (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) : a * b < c * d :=
-  Nat.mul_lt_mul_of_le_of_lt hac hbd hc
