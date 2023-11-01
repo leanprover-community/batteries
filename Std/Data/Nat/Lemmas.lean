@@ -135,7 +135,7 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
 /-! ### le/lt -/
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
-theorem ne_of_lt' {a b : Nat} (h : b < a) : a ≠ b := Nat.ne_of_gt h
+alias ne_of_lt' := ne_of_gt
 
 protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun h => Nat.gt_of_not_le h.2⟩
@@ -224,29 +224,24 @@ theorem compare_def_le (a b : Nat) :
     · next hgt => simp [Nat.le_of_lt hgt, Nat.not_le.2 hgt]
     · next hle => simp [Nat.not_lt.1 hge, Nat.not_lt.1 hle]
 
-protected theorem compare_swap_symm (a b : Nat) : (compare a b).swap = compare b a := by
-  simp only [compare_def_le]
-  (repeat' split) <;> try rfl
+protected theorem compare_swap (a b : Nat) : (compare a b).swap = compare b a := by
+  simp only [compare_def_le]; (repeat' split) <;> try rfl
   next h1 h2 => cases h1 (Nat.le_of_not_le h2)
 
-protected theorem eq_iff_compare_eq_eq {a b : Nat} : a = b ↔ compare a b = .eq := by
-  rw [compare_def_lt]
-  constructor
-  · intro | rfl => simp
-  · intro h
-    (repeat' split at h) <;> try contradiction
-    next hlt hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
+protected theorem compare_eq_eq {a b : Nat} : compare a b = .eq ↔ a = b := by
+  rw [compare_def_lt]; (repeat' split) <;> simp [Nat.ne_of_lt, Nat.ne_of_gt, *]
+  next hlt hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
 
-protected theorem lt_iff_compare_eq_lt {a b : Nat} : a < b ↔ compare a b = .lt := by
+protected theorem compare_eq_lt {a b : Nat} : compare a b = .lt ↔ a < b := by
   rw [compare_def_lt]; (repeat' split) <;> simp [*]
 
-protected theorem gt_iff_compare_eq_gt {a b : Nat} : b < a ↔ compare a b = .gt := by
+protected theorem compare_eq_gt {a b : Nat} : compare a b = .gt ↔ b < a := by
   rw [compare_def_lt]; (repeat' split) <;> simp [Nat.le_of_lt, *]
 
-protected theorem le_iff_compare_ne_gt {a b : Nat} : a ≤ b ↔ compare a b ≠ .gt := by
+protected theorem compare_ne_gt {a b : Nat} : compare a b ≠ .gt ↔ a ≤ b := by
   rw [compare_def_le]; (repeat' split) <;> simp [*]
 
-protected theorem ge_iff_compare_ne_lt {a b : Nat} : b ≤ a ↔ compare a b ≠ .lt := by
+protected theorem compare_ne_lt {a b : Nat} : compare a b ≠ .lt ↔ b ≤ a := by
   rw [compare_def_le]; (repeat' split) <;> simp [Nat.le_of_not_le, *]
 
 /-- Strong case analysis on `a < b ∨ b ≤ a` -/
@@ -256,9 +251,9 @@ protected def lt_sum_ge (a b : Nat) : a < b ⊕' b ≤ a :=
 /-- Strong case analysis on `a < b ∨ a = b ∨ b < a` -/
 protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
   match h : compare a b with
-  | .lt => .inl (Nat.lt_iff_compare_eq_lt.2 h)
-  | .eq => .inr (.inl (Nat.eq_iff_compare_eq_eq.2 h))
-  | .gt => .inr (.inr (Nat.gt_iff_compare_eq_gt.2 h))
+  | .lt => .inl (Nat.compare_eq_lt.1 h)
+  | .eq => .inr (.inl (Nat.compare_eq_eq.1 h))
+  | .gt => .inr (.inr (Nat.compare_eq_gt.1 h))
 
 /-! ## zero/one/two -/
 
