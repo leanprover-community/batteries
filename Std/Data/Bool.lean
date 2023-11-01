@@ -29,10 +29,10 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
   | _, isTrue hf => isTrue ⟨_, hf⟩
   | isFalse ht, isFalse hf => isFalse fun | ⟨true, h⟩ => absurd h ht | ⟨false, h⟩ => absurd h hf
 
-instance : LE Bool := ⟨(!. || .)⟩
+instance : LE Bool := ⟨(. → .)⟩
 instance : LT Bool := ⟨(!. && .)⟩
 
-instance (x y : Bool) : Decidable (x ≤ y) := inferInstanceAs (Decidable (!x || y))
+instance (x y : Bool) : Decidable (x ≤ y) := inferInstanceAs (Decidable (x → y))
 instance (x y : Bool) : Decidable (x < y) := inferInstanceAs (Decidable (!x && y))
 
 instance : Max Bool := ⟨or⟩
