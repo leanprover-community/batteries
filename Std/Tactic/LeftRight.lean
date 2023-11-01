@@ -33,11 +33,21 @@ open NthConstructor
 /--
 Apply the first constructor,
 in the case that the goal is an inductive type with exactly two constructors.
+```
+example : True ∨ False := by
+  left
+  trivial
+```
 -/
 elab "left" : tactic => liftMetaTactic (nthConstructor `left 0 (some 2))
 
 /--
 Apply the second constructor,
 in the case that the goal is an inductive type with exactly two constructors.
+```
+example {p q : Prop} (h : q) : p ∨ q := by
+  right
+  exact h
+```
 -/
 elab "right" : tactic => liftMetaTactic (nthConstructor `right 1 (some 2))
