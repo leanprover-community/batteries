@@ -326,6 +326,11 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := do
   -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
   L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
 
+/-- Solve a goal by synthesizing an instance. -/
+-- FIXME: probably can just be `g.inferInstance` once leanprover/lean4#2054 is fixed
+def synthInstance (g : MVarId) : MetaM Unit := do
+  g.assign (← Lean.Meta.synthInstance (← g.getType))
+
 /--
 Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
 The new hypothesis is given the same user name as the original,
@@ -469,3 +474,32 @@ where
       match ← tac goal with
       | none => acc.modify λ s => s.push goal
       | some goals => goals.forM (go acc)
+
+/-- Return local hypotheses which are not "implementation detail", as `Expr`s. -/
+def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
+  let mut hs := #[]
+  for d in ← getLCtx do
+    if !d.isImplementationDetail then hs := hs.push d.toExpr
+  return hs
+
+/-- Count how many local hypotheses appear in an expression. -/
+def countLocalHypsUsed [Monad m] [MonadLCtx m] [MonadMCtx m] (e : Expr) : m Nat := do
+  let e' ← instantiateMVars e
+  return (← getLocalHyps).foldr (init := 0) fun h n => if h.occurs e' then n + 1 else n
+
+/--
+Given a monadic function `F` that takes a type and a term of that type and produces a new term,
+lifts this to the monadic function that opens a `∀` telescope, applies `F` to the body,
+and then builds the lambda telescope term for the new term.
+-/
+def mapForallTelescope' (F : Expr → Expr → MetaM Expr) (forallTerm : Expr) : MetaM Expr := do
+  forallTelescope (← Meta.inferType forallTerm) fun xs ty => do
+    Meta.mkLambdaFVars xs (← F ty (mkAppN forallTerm xs))
+
+/--
+Given a monadic function `F` that takes a term and produces a new term,
+lifts this to the monadic function that opens a `∀` telescope, applies `F` to the body,
+and then builds the lambda telescope term for the new term.
+-/
+def mapForallTelescope (F : Expr → MetaM Expr) (forallTerm : Expr) : MetaM Expr := do
+  mapForallTelescope' (fun _ e => F e) forallTerm
