@@ -145,6 +145,9 @@ theorem imp_iff_not (hb : ¬b) : a → b ↔ ¬a := imp_congr_right fun _ => iff
 /-- Non-dependent eliminator for `And`. -/
 abbrev And.elim (f : a → b → α) (h : a ∧ b) : α := f h.1 h.2
 
+-- TODO: rename and_self to and_self_eq
+theorem and_self_iff : a ∧ a ↔ a := and_self _ ▸ .rfl
+
 theorem And.symm : a ∧ b → b ∧ a | ⟨ha, hb⟩ => ⟨hb, ha⟩
 
 theorem And.imp (f : a → c) (g : b → d) (h : a ∧ b) : c ∧ d := ⟨f h.1, g h.2⟩
@@ -243,6 +246,9 @@ theorem not_and_self_iff (a : Prop) : ¬a ∧ a ↔ False := iff_false_intro not
 /-! ## or -/
 
 theorem not_not_em (a : Prop) : ¬¬(a ∨ ¬a) := fun h => h (.inr (h ∘ .inl))
+
+-- TODO: rename or_self to or_self_eq
+theorem or_self_iff : a ∨ a ↔ a := or_self _ ▸ .rfl
 
 theorem Or.symm : a ∨ b → b ∨ a := .rec .inr .inl
 
@@ -366,6 +372,9 @@ theorem Exists.imp' {β} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a →
 
 theorem exists_imp : ((∃ x, p x) → b) ↔ ∀ x, p x → b := forall_exists_index
 
+@[simp] theorem exists_const (α) [i : Nonempty α] : (∃ _ : α, b) ↔ b :=
+  ⟨fun ⟨_, h⟩ => h, i.elim Exists.intro⟩
+
 section forall_congr
 
 -- Port note: this is `forall_congr` from Lean 3. In Lean 4, there is already something
@@ -466,7 +475,7 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 
 @[simp] theorem exists_eq_left' : (∃ a, a' = a ∧ p a) ↔ p a' := by simp [@eq_comm _ a']
 
--- this theorem is needed to simplify the output of `list.mem_cons_iff`
+-- this theorem is needed to simplify the output of `List.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a := by
   simp only [or_imp, forall_and, forall_eq]
 
@@ -492,6 +501,16 @@ theorem forall_comm {p : α → β → Prop} : (∀ a b, p a b) ↔ (∀ b a, p 
 
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p a b) :=
   ⟨fun ⟨a, b, h⟩ => ⟨b, a, h⟩, fun ⟨b, a, h⟩ => ⟨a, b, h⟩⟩
+
+@[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
+    (∀ b a, f a = b → p b) ↔ ∀ a, p (f a) := by simp [forall_comm]
+
+@[simp] theorem forall_eq_apply_imp_iff {f : α → β} {p : β → Prop} :
+    (∀ b a, b = f a → p b) ↔ ∀ a, p (f a) := by simp [forall_comm]
+
+@[simp] theorem forall_apply_eq_imp_iff₂ {f : α → β} {p : α → Prop} {q : β → Prop} :
+    (∀ b a, p a → f a = b → q b) ↔ ∀ a, p a → q (f a) :=
+  ⟨fun h a ha => h (f a) a ha rfl, fun h _ a ha hb => hb ▸ h a ha⟩
 
 end quantifiers
 
@@ -647,6 +666,19 @@ def decidable_of_bool : ∀ (b : Bool), (b ↔ a) → Decidable a
   | true, h => isTrue (h.1 rfl)
   | false, h => isFalse (mt h.2 Bool.false_ne_true)
 
+protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p x)]
+    [∀ x, Decidable (p x)] : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
+  ⟨Decidable.not_imp_symm fun nx x => Decidable.not_imp_symm (fun h => ⟨x, h⟩) nx,
+   not_forall_of_exists_not⟩
+
+protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, p x)] :
+    (¬∀ x, ¬p x) ↔ ∃ x, p x :=
+  (@Decidable.not_iff_comm _ _ _ (decidable_of_iff (¬∃ x, p x) not_exists)).1 not_exists
+
+protected theorem Decidable.not_exists_not {p : α → Prop} [∀ x, Decidable (p x)] :
+    (¬∃ x, ¬p x) ↔ ∀ x, p x := by
+  simp only [not_exists, Decidable.not_not]
+
 /-! ## classical logic -/
 
 namespace Classical
@@ -655,6 +687,20 @@ namespace Classical
 The left-to-right direction, double negation elimination (DNE),
 is classically true but not constructively. -/
 @[scoped simp] theorem not_not : ¬¬a ↔ a := Decidable.not_not
+
+@[simp]
+theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
+  Decidable.not_forall
+
+theorem not_forall_not {p : α → Prop} : (¬∀ x, ¬p x) ↔ ∃ x, p x := Decidable.not_forall_not
+
+theorem not_exists_not {p : α → Prop} : (¬∃ x, ¬p x) ↔ ∀ x, p x := Decidable.not_exists_not
+
+theorem forall_or_exists_not (P : α → Prop) : (∀ a, P a) ∨ ∃ a, ¬ P a := by
+  rw [← not_forall]; exact em _
+
+theorem exists_or_forall_not (P : α → Prop) : (∃ a, P a) ∨ ∀ a, ¬ P a := by
+  rw [← not_exists]; exact em _
 
 end Classical
 

@@ -889,9 +889,19 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
+  l.foldr (fun a acc => acc.bind fun x => [x, a :: x]) [[]]
+
+/-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
+def sublistsFast (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := Array.mkEmpty (arr.size * 2))
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
+
+-- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
+-- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
+-- TODO(std4#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
+-- `Std/Data/List/Lemmas.lean`.
+attribute [implemented_by sublistsFast] sublists
 
 section Forall₂
 
@@ -1458,6 +1468,27 @@ zipRight = zipWithRight prod.mk
 ```
 -/
 @[inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
+
+/--
+Version of `List.zipWith` that continues to the end of both lists, passing `none` to one argument
+once the shorter list has run out.
+-/
+-- TODO We should add a tail-recursive version as we do for other `zip` functions above.
+def zipWithAll (f : Option α → Option β → γ) : List α → List β → List γ
+  | [], bs => bs.map fun b => f none (some b)
+  | a :: as, [] => (a :: as).map fun a => f (some a) none
+  | a :: as, b :: bs => f a b :: zipWithAll f as bs
+
+@[simp] theorem zipWithAll_nil_right :
+    zipWithAll f as [] = as.map fun a => f (some a) none := by
+  cases as <;> rfl
+
+@[simp] theorem zipWithAll_nil_left :
+    zipWithAll f [] bs = bs.map fun b => f none (some b) := by
+  rw [zipWithAll]
+
+@[simp] theorem zipWithAll_cons_cons :
+    zipWithAll f (a :: as) (b :: bs) = f (some a) (some b) :: zipWithAll f as bs := rfl
 
 /--
 If all elements of `xs` are `some xᵢ`, `allSome xs` returns the `xᵢ`. Otherwise

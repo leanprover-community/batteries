@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jannis Limperg
+Authors: Jannis Limperg, Scott Morrison
 -/
 
 import Lean.Meta.DiscrTree
@@ -18,7 +18,7 @@ namespace Key
 Compare two `Key`s. The ordering is total but otherwise arbitrary. (It uses
 `Name.quickCmp` internally.)
 -/
-protected def cmp : Key s → Key s → Ordering
+protected def cmp : Key → Key → Ordering
   | .lit v₁,        .lit v₂        => compare v₁ v₂
   | .fvar n₁ a₁,    .fvar n₂ a₂    => n₁.name.quickCmp n₂.name |>.then <| compare a₁ a₂
   | .const n₁ a₁,   .const n₂ a₂   => n₁.quickCmp n₂ |>.then <| compare a₁ a₂
@@ -26,8 +26,7 @@ protected def cmp : Key s → Key s → Ordering
     s₁.quickCmp s₂ |>.then <| compare i₁ i₂ |>.then <| compare a₁ a₂
   | k₁,             k₂             => compare k₁.ctorIdx k₂.ctorIdx
 
-instance : Ord (Key s) :=
-  ⟨Key.cmp⟩
+instance : Ord Key := ⟨Key.cmp⟩
 
 end Key
 
@@ -37,8 +36,8 @@ namespace Trie
 -- TODO: Many functions below are labeled partial (or even unsafe when Lean doesn't realize that
 -- their type is inhabited), which would be proven to be terminating.
 
-private unsafe def foldMUnsafe [Monad m] (initialKeys : Array (Key s))
-    (f : σ → Array (Key s) → α → m σ) (init : σ) : Trie α s → m σ
+private unsafe def foldMUnsafe [Monad m] (initialKeys : Array Key)
+    (f : σ → Array Key → α → m σ) (init : σ) : Trie α → m σ
   | Trie.node vs children => do
     let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
     children.foldlM (init := s) fun s (k, t) =>
@@ -48,71 +47,69 @@ private unsafe def foldMUnsafe [Monad m] (initialKeys : Array (Key s))
 Monadically fold the keys and values stored in a `Trie`.
 -/
 @[implemented_by foldMUnsafe]
-opaque foldM [Monad m] (initalKeys : Array (Key s))
-    (f : σ → Array (Key s) → α → m σ) (init : σ) (t : Trie α s) : m σ :=
+opaque foldM [Monad m] (initalKeys : Array Key)
+    (f : σ → Array Key → α → m σ) (init : σ) (t : Trie α) : m σ :=
   pure init
 
 /--
 Fold the keys and values stored in a `Trie`.
 -/
 @[inline]
-def fold (initialKeys : Array (Key s)) (f : σ → Array (Key s) → α → σ)
-    (init : σ) (t : Trie α s) : σ :=
+def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ) (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
 
-private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) :
-    Trie α s → m σ
-| node vs children => do
-  let s ← vs.foldlM (init := init) f
-  children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
+private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) : Trie α → m σ
+  | node vs children => do
+    let s ← vs.foldlM (init := init) f
+    children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
 
 /--
 Monadically fold the values stored in a `Trie`.
 -/
 @[implemented_by foldValuesMUnsafe]
-opaque foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : Trie α s) : m σ := pure init
+opaque foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : Trie α) : m σ := pure init
 
 /--
 Fold the values stored in a `Trie`.
 -/
 @[inline]
-def foldValues (f : σ → α → σ) (init : σ) (t : Trie α s) : σ :=
+def foldValues (f : σ → α → σ) (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldValuesM (init := init) f
 
 /--
 The number of values stored in a `Trie`.
 -/
-partial def size : Trie α s → Nat
+partial def size : Trie α → Nat
   | Trie.node vs children =>
     children.foldl (init := vs.size) fun n (_, c) => n + size c
 
 /--
 Whether the `Trie` is empty.
 -/
-partial def isEmpty : Trie α s → Bool
+partial def isEmpty : Trie α → Bool
   | .node vs children => vs.isEmpty && children.all fun (_, c) => c.isEmpty
 
 /--
 Merge two `Trie`s. Duplicate values are preserved.
 -/
-partial def mergePreservingDuplicates : Trie α s → Trie α s → Trie α s
+partial def mergePreservingDuplicates : Trie α → Trie α → Trie α
   | node vs₁ cs₁, node vs₂ cs₂ =>
     node (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
 where
   /-- Auxiliary definition for `mergePreservingDuplicates`. -/
-  mergeChildren (cs₁ cs₂ : Array (Key s × Trie α s)) :
-      Array (Key s × Trie α s) :=
+  mergeChildren (cs₁ cs₂ : Array (Key × Trie α)) :
+      Array (Key × Trie α) :=
     Array.mergeSortedMergingDuplicates
       (ord := ⟨compareOn (·.fst)⟩) cs₁ cs₂
       (fun (k₁, t₁) (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
 
 /-- The explicit stack of `mapArrays` -/
-private inductive Ctxt {α β s}
+private inductive Ctxt {α β}
   | empty : Ctxt
-  | ctxt : Array (Key s × Trie β s) → Array β → Array (Key s × Trie α s) → Key s → Ctxt → Ctxt
+  | ctxt : Array (Key × Trie β) → Array β → Array (Key × Trie α) → Key → Ctxt → Ctxt
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
-partial def mapArrays (t : Trie α s) (f : Array α → Array β) : Trie β s :=
+partial def mapArrays (t : Trie α) (f : Array α → Array β) : Trie β :=
   let .node vs0 cs0 := t
   go (.mkEmpty cs0.size) (f vs0) cs0.reverse Ctxt.empty
 where
@@ -137,7 +134,7 @@ returned.
 -/
 @[specialize]
 private partial def filterFoldM [Monad m] [Inhabited σ] (f : σ → α → m σ)
-    (p : α → m (ULift Bool)) (init : σ) : Trie α s → m (Trie α s × σ)
+    (p : α → m (ULift Bool)) (init : σ) : Trie α → m (Trie α × σ)
   | .node vs children => do
     let (vs, acc) ← vs.foldlM (init := (#[], init)) fun (vs, acc) v => do
       if (← p v).down then
@@ -148,8 +145,8 @@ private partial def filterFoldM [Monad m] [Inhabited σ] (f : σ → α → m σ
     let children := children.filter fun (_, c) => !c.isEmpty
     return (.node vs children, acc)
   where
-    go (acc : σ) (i : Nat) (children : Array (Key s × Trie α s)) :
-        m (Array (Key s × Trie α s) × σ) := do
+    go (acc : σ) (i : Nat) (children : Array (Key × Trie α)) :
+        m (Array (Key × Trie α) × σ) := do
       if h : i < children.size then
         let (key, t) := children[i]'h
         let (t, acc) ← filterFoldM f p acc t
@@ -165,22 +162,22 @@ end Trie
 Monadically fold over the keys and values stored in a `DiscrTree`.
 -/
 @[inline]
-def foldM [Monad m] (f : σ → Array (Key s) → α → m σ) (init : σ)
-    (t : DiscrTree α s) : m σ :=
+def foldM [Monad m] (f : σ → Array Key → α → m σ) (init : σ)
+    (t : DiscrTree α) : m σ :=
   t.root.foldlM (init := init) fun s k t => t.foldM #[k] (init := s) f
 
 /--
 Fold over the keys and values stored in a `DiscrTree`
 -/
 @[inline]
-def fold (f : σ → Array (Key s) → α → σ) (init : σ) (t : DiscrTree α s) : σ :=
+def fold (f : σ → Array Key → α → σ) (init : σ) (t : DiscrTree α) : σ :=
   Id.run <| t.foldM (init := init) fun s keys a => return f s keys a
 
 /--
 Monadically fold over the values stored in a `DiscrTree`.
 -/
 @[inline]
-def foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : DiscrTree α s) :
+def foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : DiscrTree α) :
     m σ :=
   t.root.foldlM (init := init) fun s _ t => t.foldValuesM (init := s) f
 
@@ -188,46 +185,57 @@ def foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : DiscrTree α
 Fold over the values stored in a `DiscrTree`.
 -/
 @[inline]
-def foldValues (f : σ → α → σ) (init : σ) (t : DiscrTree α s) : σ :=
+def foldValues (f : σ → α → σ) (init : σ) (t : DiscrTree α) : σ :=
   Id.run <| t.foldValuesM (init := init) f
 
 /--
 Extract the values stored in a `DiscrTree`.
 -/
 @[inline]
-def values (t : DiscrTree α s) : Array α :=
+def values (t : DiscrTree α) : Array α :=
   t.foldValues (init := #[]) fun as a => as.push a
 
 /--
 Extract the keys and values stored in a `DiscrTree`.
 -/
 @[inline]
-def toArray (t : DiscrTree α s) : Array (Array (Key s) × α) :=
+def toArray (t : DiscrTree α) : Array (Array Key × α) :=
   t.fold (init := #[]) fun as keys a => as.push (keys, a)
 
 /--
 Get the number of values stored in a `DiscrTree`. O(n) in the size of the tree.
 -/
 @[inline]
-def size (t : DiscrTree α s) : Nat :=
+def size (t : DiscrTree α) : Nat :=
   t.root.foldl (init := 0) fun n _ t => n + t.size
 
 /--
 Whether the `DiscrTree` is empty.
 -/
-def isEmpty (t : DiscrTree α s) : Bool :=
+def isEmpty (t : DiscrTree α) : Bool :=
   t.root.foldl (init := True) fun b _ t => b && t.isEmpty
 
 /--
 Merge two `DiscrTree`s. Duplicate values are preserved.
 -/
 @[inline]
-def mergePreservingDuplicates (t u : DiscrTree α s) : DiscrTree α s :=
+def mergePreservingDuplicates (t u : DiscrTree α) : DiscrTree α :=
   ⟨t.root.mergeWith u.root fun _ trie₁ trie₂ =>
     trie₁.mergePreservingDuplicates trie₂⟩
 
+/--
+Inserts a new key into a discrimination tree,
+but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
+-/
+def insertIfSpecific [BEq α] (d : DiscrTree α)
+    (keys : Array DiscrTree.Key) (v : α) (config : WhnfCoreConfig) : DiscrTree α :=
+  if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
+    d
+  else
+    d.insertCore keys v config
+
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
-def mapArrays (d : DiscrTree α s) (f : Array α → Array β) : DiscrTree β s :=
+def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
   { root := d.root.map (fun t => t.mapArrays f) }
 
 /--
@@ -238,8 +246,8 @@ returned.
 -/
 @[specialize]
 def filterFoldM [Monad m] [Inhabited σ] (p : α → m (ULift Bool))
-    (f : σ → α → m σ) (init : σ) (t : DiscrTree α s) :
-    m (DiscrTree α s × σ) := do
+    (f : σ → α → m σ) (init : σ) (t : DiscrTree α) :
+    m (DiscrTree α × σ) := do
   let (root, acc) ←
     t.root.foldlM (init := (.empty, init)) fun (root, acc) key t => do
       let (t, acc) ← t.filterFoldM f p acc
