@@ -121,6 +121,7 @@ import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
+import Std.Tactic.LeftRight
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -146,6 +147,7 @@ import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
+import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle

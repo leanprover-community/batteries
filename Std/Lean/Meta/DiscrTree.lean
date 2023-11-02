@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jannis Limperg
+Authors: Jannis Limperg, Scott Morrison
 -/
 
 import Lean.Meta.DiscrTree
@@ -26,8 +26,7 @@ protected def cmp : Key → Key → Ordering
     s₁.quickCmp s₂ |>.then <| compare i₁ i₂ |>.then <| compare a₁ a₂
   | k₁,             k₂             => compare k₁.ctorIdx k₂.ctorIdx
 
-instance : Ord Key :=
-  ⟨Key.cmp⟩
+instance : Ord Key := ⟨Key.cmp⟩
 
 end Key
 
@@ -55,17 +54,15 @@ opaque foldM [Monad m] (initalKeys : Array Key)
 Fold the keys and values stored in a `Trie`.
 -/
 @[inline]
-def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ)
-    (init : σ) (t : Trie α) : σ :=
+def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ) (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
 
 -- This is just a partial function, but Lean doesn't realise that its type is
 -- inhabited.
-private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) :
-    Trie α → m σ
-| node vs children => do
-  let s ← vs.foldlM (init := init) f
-  children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
+private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) : Trie α → m σ
+  | node vs children => do
+    let s ← vs.foldlM (init := init) f
+    children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
 
 /--
 Monadically fold the values stored in a `Trie`.
@@ -162,3 +159,31 @@ Merge two `DiscrTree`s. Duplicate values are preserved.
 def mergePreservingDuplicates (t u : DiscrTree α) : DiscrTree α :=
   ⟨t.root.mergeWith u.root fun _ trie₁ trie₂ =>
     trie₁.mergePreservingDuplicates trie₂⟩
+
+/--
+Inserts a new key into a discrimination tree,
+but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
+-/
+def insertIfSpecific [BEq α] (d : DiscrTree α)
+    (keys : Array DiscrTree.Key) (v : α) (config : WhnfCoreConfig) : DiscrTree α :=
+  if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
+    d
+  else
+    d.insertCore keys v config
+
+variable {m : Type → Type} [Monad m]
+
+/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
+partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array β)) :
+    m (DiscrTree.Trie β) :=
+  match t with
+  | .node vs children =>
+    return .node (← f vs) (← children.mapM fun (k, t') => do pure (k, ← t'.mapArraysM f))
+
+/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
+def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) := do
+  pure { root := ← d.root.mapM (fun t => t.mapArraysM f) }
+
+/-- Apply a function to the array of values at each node in a `DiscrTree`. -/
+def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
+  Id.run <| d.mapArraysM fun A => pure (f A)
