@@ -49,6 +49,7 @@ import Std.Data.Nat.Basic
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
+import Std.Data.Nondet.Basic
 import Std.Data.Option.Basic
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Lemmas
@@ -108,6 +109,7 @@ import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
 import Std.Logic
 import Std.Tactic.Alias
+import Std.Tactic.Backtrack
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
@@ -122,6 +124,7 @@ import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
+import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -142,6 +145,7 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Std.Tactic.Simpa
+import Std.Tactic.SolveByElim
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
