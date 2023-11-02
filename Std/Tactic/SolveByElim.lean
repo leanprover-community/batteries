@@ -262,7 +262,7 @@ def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM
         run [← g.exfalso]
     | _, _ => throw e
 where
-  -- Run either backtracking search, or repeated application, on the list of goals.
+  /-- Run either backtracking search, or repeated application, on the list of goals. -/
   run : List MVarId → MetaM (List MVarId) := if cfg.backtracking then
     backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
   else
