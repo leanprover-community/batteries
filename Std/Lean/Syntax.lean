@@ -14,7 +14,8 @@ namespace Lean
 /--
 Applies the given function to every subsyntax.
 
-Like `Syntax.replaceM` but for typed syntax. (Note there are no guarantees of type correctness here.)
+Like `Syntax.replaceM` but for typed syntax.
+(Note there are no guarantees of type correctness here.)
 -/
 def TSyntax.replaceM [Monad M] (f : Syntax → M (Option Syntax)) (stx : TSyntax k) : M (TSyntax k) :=
   .mk <$> stx.1.replaceM f
