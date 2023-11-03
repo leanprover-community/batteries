@@ -539,7 +539,7 @@ protected theorem max_min_distrib_left : ∀ (a b c : Nat), max a (min b c) = mi
     exact congrArg succ <| Nat.max_min_distrib_left ..
 
 protected theorem min_max_distrib_left : ∀ (a b c : Nat), min a (max b c) = max (min a b) (min a c)
-  | 0, _, _ => by simp only [Nat.zero_min]
+  | 0, _, _ => by simp only [Nat.zero_min, Nat.max_self]
   | _, 0, _ => by simp only [Nat.min_zero, Nat.zero_max]
   | _, _, 0 => by simp only [Nat.min_zero, Nat.max_zero]
   | _+1, _+1, _+1 => by
