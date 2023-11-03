@@ -149,6 +149,9 @@ theorem imp_iff_not (hb : ¬b) : a → b ↔ ¬a := imp_congr_right fun _ => iff
 /-- Non-dependent eliminator for `And`. -/
 abbrev And.elim (f : a → b → α) (h : a ∧ b) : α := f h.1 h.2
 
+-- TODO: rename and_self to and_self_eq
+theorem and_self_iff : a ∧ a ↔ a := and_self _ ▸ .rfl
+
 theorem And.symm : a ∧ b → b ∧ a | ⟨ha, hb⟩ => ⟨hb, ha⟩
 
 theorem And.imp (f : a → c) (g : b → d) (h : a ∧ b) : c ∧ d := ⟨f h.1, g h.2⟩
@@ -247,6 +250,9 @@ theorem not_and_self_iff (a : Prop) : ¬a ∧ a ↔ False := iff_false_intro not
 /-! ## or -/
 
 theorem not_not_em (a : Prop) : ¬¬(a ∨ ¬a) := fun h => h (.inr (h ∘ .inl))
+
+-- TODO: rename or_self to or_self_eq
+theorem or_self_iff : a ∨ a ↔ a := or_self _ ▸ .rfl
 
 theorem Or.symm : a ∨ b → b ∨ a := .rec .inr .inl
 
