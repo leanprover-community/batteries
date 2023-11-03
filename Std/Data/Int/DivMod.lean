@@ -736,7 +736,7 @@ protected theorem mul_ediv_assoc' (b : Int) {a c : Int}
   rw [Int.mul_comm, Int.mul_ediv_assoc _ h, Int.mul_comm]
 
 theorem div_dvd_div : ∀ {a b c : Int}, a ∣ b → b ∣ c → b.div a ∣ c.div a
-  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => if az : a = 0 then by simp_arith [az] else by
+  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => if az : a = 0 then by simp [az]; decide else by
     rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
     apply Int.dvd_mul_right
 

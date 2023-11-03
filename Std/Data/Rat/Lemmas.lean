@@ -298,9 +298,7 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
     apply (divInt_self _).symm.trans
     simp [Int.le_antisymm (Int.not_lt.1 h₂) (Int.not_lt.1 h₁)]
 
-@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by
-  unfold Rat.inv
-  rfl
+@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by unfold Rat.inv; rfl
 
 @[simp] theorem inv_divInt (n d : Int) : (n /. d).inv = d /. n := by
   if z : d = 0 then simp [z] else

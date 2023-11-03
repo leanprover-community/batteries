@@ -972,9 +972,8 @@ theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
   | k+1 =>
     rw [log2]; split
     · have n0 : 0 < n / 2 := (Nat.le_div_iff_mul_le (by decide)).2 ‹_›
-      simp only [Nat.add_le_add_iff_right, le_log2 (Nat.ne_of_gt n0), le_div_iff_mul_le,
-        Nat.pow_succ]
-      exact Nat.le_div_iff_mul_le (by decide)
+      simp [Nat.add_le_add_iff_right, le_log2 (Nat.ne_of_gt n0), le_div_iff_mul_le,
+        Nat.pow_succ, Nat.succ_pos]
     · simp only [le_zero_eq, succ_ne_zero, false_iff]
       refine mt (Nat.le_trans ?_) ‹_›
       exact Nat.pow_le_pow_of_le_right (Nat.succ_pos 1) (Nat.le_add_left 1 k)
