@@ -136,8 +136,6 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
 
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 
-protected theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := (Nat.le_total a b).resolve_left
-
 protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun h => Nat.gt_of_not_le h.2⟩
 
@@ -180,8 +178,6 @@ protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
 
 protected theorem eq_or_lt_of_not_lt {a b : Nat} (hnlt : ¬ a < b) : a = b ∨ b < a :=
   (Nat.lt_trichotomy a b).resolve_left hnlt
-
-protected theorem not_lt_of_le {n m : Nat} (h₁ : m ≤ n) : ¬ n < m := (Nat.not_le_of_gt · h₁)
 
 protected theorem not_le_of_lt {n m : Nat} : m < n → ¬ n ≤ m := Nat.not_le_of_gt
 
@@ -453,22 +449,6 @@ protected theorem sub_add_lt_sub {n m k : Nat} (h₁ : m + k ≤ n) (h₂ : 0 < 
       (Nat.sub_le_sub_left _ $ Nat.le_add_right ..)
 
 /-! ## min/max -/
-
-protected theorem min_eq_left {a b : Nat} (h : a ≤ b) : min a b = a := if_pos h
-
-protected theorem min_eq_right {a b : Nat} (h : b ≤ a) : min a b = b := by
-  rw [Nat.min_comm]; exact Nat.min_eq_left h
-
-protected theorem le_min_of_le_of_le {a b c : Nat} : a ≤ b → a ≤ c → a ≤ min b c := by
-  intros; cases Nat.le_total b c with
-  | inl h => rw [Nat.min_eq_left h]; assumption
-  | inr h => rw [Nat.min_eq_right h]; assumption
-
-protected theorem le_min {a b c : Nat} : a ≤ min b c ↔ a ≤ b ∧ a ≤ c :=
-  ⟨fun h => ⟨Nat.le_trans h (Nat.min_le_left ..), Nat.le_trans h (Nat.min_le_right ..)⟩,
-   fun ⟨h₁, h₂⟩ => Nat.le_min_of_le_of_le h₁ h₂⟩
-
-protected theorem lt_min {a b c : Nat} : a < min b c ↔ a < b ∧ a < c := Nat.le_min
 
 theorem succ_min_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
   cases Nat.le_total x y with
