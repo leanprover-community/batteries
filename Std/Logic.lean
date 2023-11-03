@@ -702,6 +702,12 @@ theorem forall_or_exists_not (P : α → Prop) : (∀ a, P a) ∨ ∃ a, ¬ P a 
 theorem exists_or_forall_not (P : α → Prop) : (∃ a, P a) ∨ ∀ a, ¬ P a := by
   rw [← not_exists]; exact em _
 
+theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
+  Decidable.or_iff_not_imp_left
+
+theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
+  Decidable.or_iff_not_imp_right
+
 end Classical
 
 /-! ## equality -/
