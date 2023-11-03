@@ -871,8 +871,9 @@ namespace Classical
 variable {P}
 
 theorem dite_eq_iff' : dite P A B = c ↔ (∀ h, A h = c) ∧ ∀ h, B h = c :=
-  ⟨fun he => ⟨fun h => (dif_pos h).symm.trans he, fun h => (dif_neg h).symm.trans he⟩, fun he =>
-    (Classical.em P).elim (fun h => (dif_pos h).trans <| he.1 h) fun h => (dif_neg h).trans <| he.2 h⟩
+  ⟨fun he => ⟨fun h => (dif_pos h).symm.trans he, fun h => (dif_neg h).symm.trans he⟩,
+   fun he => (Classical.em P).elim (fun h => (dif_pos h).trans <| he.1 h)
+     fun h => (dif_neg h).trans <| he.2 h⟩
 
 theorem ite_eq_iff' : ite P a b = c ↔ (P → a = c) ∧ (¬P → b = c) := dite_eq_iff'
 
