@@ -772,7 +772,7 @@ theorem get?_reverse' : ∀ {l : List α} (i j), i + j + 1 = length l →
 theorem get?_reverse {l : List α} (i) (h : i < length l) :
     get? l.reverse i = get? l (l.length - 1 - i) :=
   get?_reverse' _ _ <| by
-    rw [Nat.add_sub_of_le (Nat.le_pred_of_lt h),
+    rw [Nat.add_sub_of_le (Nat.le_sub_one_of_lt h),
       Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
 
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
