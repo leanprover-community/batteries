@@ -82,6 +82,8 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
 import Std.Lean.Json
+import Std.Lean.KVMap
+import Std.Lean.Linter
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -142,6 +144,8 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Std.Tactic.Simpa
+import Std.Tactic.Simps.Basic
+import Std.Tactic.Simps.NotationClass
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
