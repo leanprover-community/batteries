@@ -34,7 +34,7 @@ There are three attributes being defined here
   `Zero`. This specifies that the projections that `@[simps]` used are the projections from
   these notation classes instead of the projections of the superclasses.
   Example: if `Mul` is tagged with `@[notation_class]` then the projection used for `Semigroup`
-  will be `fun α hα ↦ @Mul.mul α (@Semigroup.toMul α hα)` instead of `@Semigroup.mul`.
+  will be `fun α hα => @Mul.mul α (@Semigroup.toMul α hα)` instead of `@Semigroup.mul`.
   [this is not correctly implemented in Lean 4 yet]
 
 ### Possible Future Improvements
@@ -63,7 +63,7 @@ open Elab.Term hiding mkConst
   either as prefix or as suffix (specified by `isPrefix`), separated by `_`.
   Used by `simps_add_projections`. -/
 def updateName (nm : Name) (s : String) (isPrefix : Bool) : Name :=
-  nm.updateLast fun s' ↦ if isPrefix then s ++ "_" ++ s' else s' ++ "_" ++ s
+  nm.updateLast fun s' => if isPrefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 -- move
 namespace Lean.Meta
@@ -451,11 +451,11 @@ instance : ToMessageData ProjectionRule where toMessageData
 def projectionsInfo (l : List ProjectionData) (pref : String) (str : Name) : MessageData :=
   let ⟨defaults, nondefaults⟩ := l.partition (·.isDefault)
   let toPrint : List MessageData :=
-    defaults.map fun s ↦
+    defaults.map fun s =>
       let prefixStr := if s.isPrefix then "(prefix) " else ""
       m!"Projection {prefixStr}{s.name}: {s.expr}"
   let print2 : MessageData :=
-    String.join <| (nondefaults.map fun nm : ProjectionData ↦ toString nm.1).intersperse ", "
+    String.join <| (nondefaults.map fun nm : ProjectionData => toString nm.1).intersperse ", "
   let toPrint :=
     toPrint ++
       if nondefaults.isEmpty then [] else
@@ -484,7 +484,7 @@ partial def getCompositeOfProjectionsAux (proj : String) (e : Expr) (pos : Array
   let .const structName _ := (← whnf (←inferType e)).getAppFn |
     throwError "{e} doesn't have a structure as type"
   let projs := getStructureFieldsFlattened env structName
-  let projInfo := projs.toList.map fun p ↦ do
+  let projInfo := projs.toList.map fun p => do
     ((← proj.dropPrefix? (p.getString ++ "_")).toString, p)
   let some (projRest, projName) := projInfo.reduceOption.getLast? |
     throwError "Failed to find constructor {proj.dropRight 1} in structure {structName}."
@@ -495,7 +495,7 @@ partial def getCompositeOfProjectionsAux (proj : String) (e : Expr) (pos : Array
     let newE ← mkLambdaFVars args newE
     return (newE, newPos)
   let type ← inferType newE
-  forallTelescopeReducing type fun typeArgs _tgt ↦ do
+  forallTelescopeReducing type fun typeArgs _tgt => do
     getCompositeOfProjectionsAux projRest (mkAppN newE typeArgs) newPos (args ++ typeArgs)
 
 /-- Suppose we are given a structure `str` and a projection `proj`, that could be multiple nested
@@ -510,13 +510,13 @@ partial def getCompositeOfProjectionsAux (proj : String) (e : Expr) (pos : Array
   initialize_simps_projections (toFun_toFun_toFun → myMul)
   ```
   we will be able to generate the "projection"
-    `λ {A} (f : gradedFun A) (x : A i) (y : A j) ↦ ↑(↑(f.toFun i j) x) y`,
+    `λ {A} (f : gradedFun A) (x : A i) (y : A j) => ↑(↑(f.toFun i j) x) y`,
   which projection notation cannot do. -/
 def getCompositeOfProjections (structName : Name) (proj : String) : MetaM (Expr × Array Nat) := do
   let strExpr ← mkConstWithLevelParams structName
   let type ← inferType strExpr
-  forallTelescopeReducing type fun typeArgs _ ↦
-  withLocalDeclD `x (mkAppN strExpr typeArgs) fun e ↦
+  forallTelescopeReducing type fun typeArgs _ =>
+  withLocalDeclD `x (mkAppN strExpr typeArgs) fun e =>
   getCompositeOfProjectionsAux (proj ++ "_") e #[] <| typeArgs.push e
 
 /-- Get the default `ParsedProjectionData` for structure `str`.
@@ -528,23 +528,23 @@ def mkParsedProjectionData (structName : Name) : CoreM (Array ParsedProjectionDa
   let projs := getStructureFields env structName
   if projs.size == 0 then
     throwError "Declaration {structName} is not a structure."
-  let projData := projs.map fun fieldName ↦ {
+  let projData := projs.map fun fieldName => {
     strName := fieldName, newName := fieldName,
     isDefault := isSubobjectField? env structName fieldName |>.isNone }
   let parentProjs := getStructureFieldsFlattened env structName false
   let parentProjs := parentProjs.filter (!projs.contains ·)
-  let parentProjData := parentProjs.map fun nm ↦
+  let parentProjData := parentProjs.map fun nm =>
     {strName := nm, newName := nm}
   return projData ++ parentProjData
 
 /-- Execute the projection renamings (and turning off projections) as specified by `rules`. -/
 def applyProjectionRules (projs : Array ParsedProjectionData) (rules : Array ProjectionRule) :
     CoreM (Array ParsedProjectionData) := do
-  let projs : Array ParsedProjectionData := rules.foldl (init := projs) fun projs rule ↦
+  let projs : Array ParsedProjectionData := rules.foldl (init := projs) fun projs rule =>
     match rule with
     | .rename strName strStx newName newStx =>
       if (projs.map (·.newName)).contains strName then
-        projs.map fun proj ↦ if proj.newName == strName then
+        projs.map fun proj => if proj.newName == strName then
           { proj with
             newName,
             newStx,
@@ -553,7 +553,7 @@ def applyProjectionRules (projs : Array ParsedProjectionData) (rules : Array Pro
         projs.push {strName, strStx, newName, newStx}
     | .erase nm stx =>
       if (projs.map (·.newName)).contains nm then
-        projs.map fun proj ↦ if proj.newName = nm then
+        projs.map fun proj => if proj.newName = nm then
           { proj with
             isDefault := false,
             strStx := if proj.strStx.isMissing then stx else proj.strStx } else
@@ -561,7 +561,7 @@ def applyProjectionRules (projs : Array ParsedProjectionData) (rules : Array Pro
         projs.push {strName := nm, newName := nm, strStx := stx, newStx := stx, isDefault := false}
     | .add nm stx =>
       if (projs.map (·.newName)).contains nm then
-        projs.map fun proj ↦ if proj.newName = nm then
+        projs.map fun proj => if proj.newName = nm then
           { proj with
             isDefault := true,
             strStx := if proj.strStx.isMissing then stx else proj.strStx } else
@@ -569,7 +569,7 @@ def applyProjectionRules (projs : Array ParsedProjectionData) (rules : Array Pro
         projs.push {strName := nm, newName := nm, strStx := stx, newStx := stx}
     | .prefix nm stx =>
       if (projs.map (·.newName)).contains nm then
-        projs.map fun proj ↦ if proj.newName = nm then
+        projs.map fun proj => if proj.newName = nm then
           { proj with
             isPrefix := true,
             strStx := if proj.strStx.isMissing then stx else proj.strStx } else
@@ -666,7 +666,7 @@ def findAutomaticProjectionsAux (str : Name) (proj : ParsedProjectionData) (args
         trace[simps.debug] "Projection doesn't have the right type for the automatic projection:\n{
           ex.toMessageData}"
         return none
-    return ← withLocalDeclD `self eStr fun instStr ↦ do
+    return ← withLocalDeclD `self eStr fun instStr => do
       trace[simps.debug] "found projection {proj.strName}. Trying to synthesize {eInstType}."
       let eInst ← try synthInstance eInstType
       catch ex =>
@@ -687,7 +687,7 @@ def findAutomaticProjections (str : Name) (projs : Array ParsedProjectionData) :
   let strDecl ← getConstInfo str
   trace[simps.debug] "debug: {projs}"
   MetaM.run' <| TermElabM.run' (s := {levelNames := strDecl.levelParams}) <|
-  forallTelescope strDecl.type fun args _ ↦ do
+  forallTelescope strDecl.type fun args _ => do
   let projs ← projs.mapM fun proj => do
     if let some (projExpr, projName) := ← findAutomaticProjectionsAux str proj args then
       unless ← isDefEq projExpr proj.expr?.get! do
@@ -760,12 +760,12 @@ def getRawProjections (stx : Syntax) (str : Name) (traceIfExists : Bool := false
   let rawUnivs := rawLevels.map Level.param
   let projs ← mkParsedProjectionData str
   let projs ← applyProjectionRules projs rules
-  let projs ← projs.mapM fun proj ↦ findProjection str proj rawUnivs
+  let projs ← projs.mapM fun proj => findProjection str proj rawUnivs
   checkForUnusedCustomProjs stx str projs
   let projs ← findAutomaticProjections str projs
   let projs := projs.map (·.toProjectionData)
   -- make all proofs non-default.
-  let projs ← projs.mapM fun proj ↦ do
+  let projs ← projs.mapM fun proj => do
     match (← MetaM.run' <| isProof proj.expr) with
     | true => pure { proj with isDefault := false }
     | false => pure proj
@@ -875,11 +875,11 @@ partial def _root_.Lean.Expr.instantiateLambdasOrApps (es : Array Expr) (e : Exp
      (`(y), `snd, `(@Prod.snd.{u v} α β), [], true, false)]
   ```
 
-  Example 2: ``getProjectionExprs env `(α ≃ α) `(⟨id, id, fun _ ↦ rfl, fun _ ↦ rfl⟩)``
+  Example 2: ``getProjectionExprs env `(α ≃ α) `(⟨id, id, fun _ => rfl, fun _ => rfl⟩)``
   will give the output
   ```
     [(`(id), `apply, (Equiv.toFun), [], true, false),
-     (`(id), `symm_apply, (fun e ↦ e.symm.toFun), [], true, false),
+     (`(id), `symm_apply, (fun e => e.symm.toFun), [], true, false),
      ...,
      ...]
   ```
@@ -888,13 +888,13 @@ def getProjectionExprs (stx : Syntax) (tgt : Expr) (rhs : Expr) (cfg : Config) :
     MetaM <| Array <| Expr × ProjectionData := do
   -- the parameters of the structure
   let params := tgt.getAppArgs
-  if cfg.debug && !(← (params.zip rhs.getAppArgs).allM fun ⟨a, b⟩ ↦ isDefEq a b) then
+  if cfg.debug && !(← (params.zip rhs.getAppArgs).allM fun ⟨a, b⟩ => isDefEq a b) then
     throwError "unreachable code: parameters are not definitionally equal"
   let str := tgt.getAppFn.constName?.getD default
   -- the fields of the object
   let rhsArgs := rhs.getAppArgs.toList.drop params.size
   let (rawUnivs, projDeclata) ← getRawProjections stx str
-  return projDeclata.map fun proj ↦
+  return projDeclata.map fun proj =>
     (rhsArgs.getD (a₀ := default) proj.projNrs.head!,
       { proj with
         expr := (proj.expr.instantiateLevelParams rawUnivs
@@ -947,7 +947,7 @@ def addProjection (declName : Name) (type lhs rhs : Expr) (args : Array Expr)
     ← mkConstWithLevelParams declName
   if cfg.isSimp then
     addSimpTheorem simpExtension declName true false .global <| eval_prio default
-  _ ← cfg.attrs.mapM fun simpAttr ↦ do
+  _ ← cfg.attrs.mapM fun simpAttr => do
     let .some simpDecl ← getSimpExtension? simpAttr |
       throwError "{simpAttr} is not a simp-attribute."
     addSimpTheorem simpDecl declName true false .global <| eval_prio default
@@ -977,7 +977,7 @@ partial def headStructureEtaReduce (e : Expr) : MetaM Expr := do
     return e
   trace[simps.debug] "Potential structure-eta-reduct:{indentExpr e}\nto{indentExpr reduct}"
   let allArgs := params.toArray.push reduct
-  let isEta ← (fieldsTail.zip fieldNamesTail).allM fun (field, fieldName) ↦
+  let isEta ← (fieldsTail.zip fieldNamesTail).allM fun (field, fieldName) =>
     if field.getAppFnArgs == (struct ++ fieldName, allArgs) then pure true else isProof field
   unless isEta do return e
   trace[simps.debug] "Structure-eta-reduce:{indentExpr e}\nto{indentExpr reduct}"
@@ -995,7 +995,7 @@ partial def addProjections (nm : Name) (type lhs rhs : Expr)
   (todo : List (String × Syntax)) (toApply : List Nat) : MetaM (Array Name) := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
   trace[simps.debug] "Type of the Expression before normalizing: {type}"
-  withTransparency cfg.typeMd <| forallTelescopeReducing type fun typeArgs tgt ↦ withDefault do
+  withTransparency cfg.typeMd <| forallTelescopeReducing type fun typeArgs tgt => withDefault do
   trace[simps.debug] "Type after removing pi's: {tgt}"
   let tgt ← whnfD tgt
   trace[simps.debug] "Type after reduction: {tgt}"
@@ -1099,12 +1099,12 @@ partial def addProjections (nm : Name) (type lhs rhs : Expr)
   /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
   automatically choose projections -/
   if todo.length == 1 && todo.head!.1 == "" then return #[nm]
-  let projs : Array Name := projInfo.map fun x ↦ x.2.name
+  let projs : Array Name := projInfo.map fun x => x.2.name
   let todo := todoNext
   trace[simps.debug] "Next todo: {todoNext}"
   -- check whether all elements in `todo` have a projection as prefix
-  if let some (x, _) := todo.find? fun (x, _) ↦ projs.all
-    fun proj ↦ !(proj.getString ++ "_").isPrefixOf x then
+  if let some (x, _) := todo.find? fun (x, _) => projs.all
+    fun proj => !(proj.getString ++ "_").isPrefixOf x then
     let simpLemma := nm.appendAfter x
     let neededProj := (x.splitOn "_")[0]!
     throwError "Invalid simp lemma {simpLemma}. Structure {str} does not have projection {""
@@ -1112,10 +1112,10 @@ partial def addProjections (nm : Name) (type lhs rhs : Expr)
       }by running\n  `initialize_simps_projections? {str}`.\nNote: these projection names might {""
       }be customly defined for `simps`, and could differ from the projection names of the {""
       }structure."
-  let nms ← projInfo.concatMapM fun ⟨newRhs, proj, projExpr, projNrs, isDefault, isPrefix⟩ ↦ do
+  let nms ← projInfo.concatMapM fun ⟨newRhs, proj, projExpr, projNrs, isDefault, isPrefix⟩ => do
     let newType ← inferType newRhs
     let newTodo := todo.filterMap
-      fun (x, stx) ↦ (x.dropPrefix? (proj.getString ++ "_")).map (·.toString, stx)
+      fun (x, stx) => (x.dropPrefix? (proj.getString ++ "_")).map (·.toString, stx)
     -- we only continue with this field if it is default or mentioned in todo
     if !(isDefault && todo.isEmpty) && newTodo.isEmpty then return #[]
     let newLhs := projExpr.instantiateLambdasOrApps #[lhsAp]
@@ -1137,7 +1137,7 @@ def simpsTac (ref : Syntax) (nm : Name) (cfg : Config := {})
   let env ← getEnv
   let some d := env.find? nm | throwError "Declaration {nm} doesn't exist."
   let lhs : Expr := mkConst d.name <| d.levelParams.map Level.param
-  let todo := todo.pwFilter (·.1 ≠ ·.1) |>.map fun (proj, stx) ↦ (proj ++ "_", stx)
+  let todo := todo.pwFilter (·.1 ≠ ·.1) |>.map fun (proj, stx) => (proj ++ "_", stx)
   let mut cfg := cfg
   MetaM.run' <| addProjections ref d.levelParams
     nm d.type lhs (d.value?.getD default) #[] (mustBeStr := true) cfg todo []
