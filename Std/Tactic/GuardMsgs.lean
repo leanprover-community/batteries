@@ -163,7 +163,7 @@ elab_rules : command
 open CodeAction Server RequestM in
 /-- A code action which will update the doc comment on a `#guard_msgs` invocation. -/
 @[command_code_action guardMsgsCmd]
-def guardMsgsCodeAction : CommandCodeAction := fun params _ _ node => do
+def guardMsgsCodeAction : CommandCodeAction := fun _ _ _ node => do
   let .node _ ts := node | return #[]
   let res := ts.findSome? fun
     | .node (.ofCustomInfo { stx, value }) _ => return (stx, (← value.get? GuardMsgFailure).res)
@@ -187,7 +187,7 @@ def guardMsgsCodeAction : CommandCodeAction := fun params _ _ node => do
       else
         s!"/--\n{res}\n-/\n"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨start, tail⟩
           newText
         }

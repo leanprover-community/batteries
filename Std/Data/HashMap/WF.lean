@@ -302,8 +302,8 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
     simp [List.pairwise_map]
     exact fun _ => h₂.1 _
   · simp [AssocList.All] at h ⊢
-    rintro a x hx rfl
-    apply h₂.2 _ _ x hx
+    intro a m
+    apply h₂.2 _ _ _ m
 
 theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by

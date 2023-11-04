@@ -2,12 +2,15 @@ import Lake
 
 open Lake DSL
 
-package std := Id.run do
-  let mut moreServerArgs := #["-Dlinter.missingDocs=true"]
-  if get_config? disable_new_compiler |>.isSome then
-    moreServerArgs := moreServerArgs.push "-Dcompiler.enableNew=false"
-  let moreLeanArgs := moreServerArgs.push "-DwarningAsError=true"
-  pure { name := `std, moreLeanArgs, moreServerArgs }
+package std where
+  moreLeanArgs := moreServerArgs.push "-DwarningAsError=true"
+  moreServerArgs := moreServerArgs
+where
+  moreServerArgs := Id.run do
+    let mut moreServerArgs := #["-Dlinter.missingDocs=true"]
+    if get_config? disable_new_compiler |>.isSome then
+      moreServerArgs := moreServerArgs.push "-Dcompiler.enableNew=false"
+    moreServerArgs
 
 @[default_target]
 lean_lib Std

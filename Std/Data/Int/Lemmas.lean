@@ -1319,6 +1319,12 @@ protected theorem eq_of_mul_eq_mul_left {a b c : Int} (ha : a ≠ 0) (h : a * b 
   have : b - c = 0 := (Int.mul_eq_zero.1 this).resolve_left ha
   Int.eq_of_sub_eq_zero this
 
+theorem mul_eq_mul_left_iff {a b c : Int} (h : c ≠ 0) : c * a = c * b ↔ a = b :=
+  ⟨Int.eq_of_mul_eq_mul_left h, fun w => congrArg (fun x => c * x) w⟩
+
+theorem mul_eq_mul_right_iff {a b c : Int} (h : c ≠ 0) : a * c = b * c ↔ a = b :=
+  ⟨Int.eq_of_mul_eq_mul_right h, fun w => congrArg (fun x => x * c) w⟩
+
 theorem eq_one_of_mul_eq_self_left {a b : Int} (Hpos : a ≠ 0) (H : b * a = a) : b = 1 :=
   Int.eq_of_mul_eq_mul_right Hpos <| by rw [Int.one_mul, H]
 
