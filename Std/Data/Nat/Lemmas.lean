@@ -8,6 +8,7 @@ import Std.Tactic.Basic
 import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
+import Std.Data.Ord
 
 namespace Nat
 
@@ -137,21 +138,10 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
 theorem ne_of_gt {a b : Nat} (h : b < a) : a ≠ b := (ne_of_lt h).symm
 alias ne_of_lt' := ne_of_gt
 
-protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
-  ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun h => Nat.gt_of_not_le h.2⟩
-
-protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :=
-  Nat.lt_iff_le_not_le.trans (and_congr_right fun h =>
-    not_congr ⟨Nat.le_antisymm h, fun e => e ▸ Nat.le_refl _⟩)
-
-@[simp] protected theorem not_le {a b : Nat} : ¬ a ≤ b ↔ b < a :=
-  ⟨Nat.gt_of_not_le, Nat.not_le_of_gt⟩
 protected alias ⟨lt_of_not_ge, _⟩ := Nat.not_le
 protected alias ⟨lt_of_not_le, not_le_of_lt⟩ := Nat.not_le
 protected alias ⟨_, lt_le_asymm⟩ := Nat.not_le
 
-@[simp] protected theorem not_lt {a b : Nat} : ¬ a < b ↔ b ≤ a :=
-  ⟨Nat.ge_of_not_lt, flip Nat.not_le_of_gt⟩
 protected alias ⟨le_of_not_gt, not_lt_of_ge⟩ := Nat.not_lt
 protected alias ⟨le_of_not_lt, not_lt_of_le⟩ := Nat.not_lt
 protected alias ⟨_, le_lt_asymm⟩ := Nat.not_lt
@@ -163,11 +153,11 @@ protected theorem lt_asymm {a b : Nat} (h : a < b) : ¬ b < a := Nat.not_lt.2 (N
 protected alias not_lt_of_gt := Nat.lt_asymm
 protected alias not_lt_of_lt := Nat.lt_asymm
 
-protected theorem lt_iff_le_not_le {a b : Nat} : a < b ↔ a ≤ b ∧ ¬ b ≤ a :=
+protected theorem lt_iff_le_not_le {m n : Nat} : m < n ↔ m ≤ n ∧ ¬ n ≤ m :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.not_le_of_gt h⟩, fun ⟨_, h⟩ => Nat.lt_of_not_ge h⟩
 protected alias lt_iff_le_and_not_ge := Nat.lt_iff_le_not_le
 
-protected theorem lt_iff_le_and_ne {a b : Nat} : a < b ↔ a ≤ b ∧ a ≠ b :=
+protected theorem lt_iff_le_and_ne {m n : Nat} : m < n ↔ m ≤ n ∧ m ≠ n :=
   ⟨fun h => ⟨Nat.le_of_lt h, Nat.ne_of_lt h⟩, fun h => Nat.lt_of_le_of_ne h.1 h.2⟩
 
 protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
