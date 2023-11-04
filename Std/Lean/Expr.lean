@@ -40,6 +40,14 @@ def lambdaArity : Expr → Nat
   | lam _ _ b _ => 1 + lambdaArity b
   | _ => 0
 
+/-- If the expression is a constant, return that name. Otherwise return `Name.anonymous`. -/
+def constName (e : Expr) : Name :=
+  e.constName?.getD Name.anonymous
+
+/-- Return the function (name) and arguments of an application. -/
+def getAppFnArgs (e : Expr) : Name × Array Expr :=
+  withApp e λ e a => (e.constName, a)
+
 /-- Like `getAppFn` but ignores metadata. -/
 def getAppFn' : Expr → Expr
   | mdata _ b => getAppFn' b
