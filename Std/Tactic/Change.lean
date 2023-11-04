@@ -98,14 +98,14 @@ the main goal. -/
 elab_rules : tactic
   | `(tactic| change $newType:term $[$loc:location]?) => do
     withLocation (expandOptLocation (Lean.mkOptionalNode loc))
-      (atLocal := fun h ↦ do
+      (atLocal := fun h => do
         let hTy ← h.getType
         -- This is a hack to get the new type to elaborate in the same sort of way that
         -- it would for a `show` expression for the goal.
         let mvar ← mkFreshExprMVar none
         let (_, mvars) ← elabTermWithHoles
                           (← `(term | show $newType from $(← Term.exprToSyntax mvar))) hTy `change
-        liftMetaTactic fun mvarId ↦ do
+        liftMetaTactic fun mvarId => do
           return (← mvarId.changeLocalDecl' h (← inferType mvar)) :: mvars)
       (atTarget := evalTactic <| ← `(tactic| refine_lift show $newType from ?_))
-      (failed := fun _ ↦ throwError "change tactic failed")
+      (failed := fun _ => throwError "change tactic failed")
