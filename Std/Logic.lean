@@ -77,7 +77,7 @@ theorem not_iff_false_intro (h : a) : ¬a ↔ False := iff_false_intro (not_not_
 theorem iff_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : (a ↔ b) ↔ (c ↔ d) :=
   ⟨fun h => h₁.symm.trans <| h.trans h₂, fun h => h₁.trans <| h.trans h₂.symm⟩
 
-@[simp] theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
+theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
 
 theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
 
@@ -701,6 +701,12 @@ theorem forall_or_exists_not (P : α → Prop) : (∀ a, P a) ∨ ∃ a, ¬ P a 
 
 theorem exists_or_forall_not (P : α → Prop) : (∃ a, P a) ∨ ∀ a, ¬ P a := by
   rw [← not_exists]; exact em _
+
+theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
+  Decidable.or_iff_not_imp_left
+
+theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
+  Decidable.or_iff_not_imp_right
 
 end Classical
 

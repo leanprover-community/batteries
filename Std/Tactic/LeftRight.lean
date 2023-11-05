@@ -3,7 +3,8 @@ Copyright (c) 2022 Siddhartha Gadgil. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Siddhartha Gadgil
 -/
-import Lean
+import Lean.Elab.Tactic.Basic
+import Lean.Meta.Tactic.Apply
 
 open Lean Meta Elab Tactic
 
