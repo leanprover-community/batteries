@@ -1444,8 +1444,10 @@ theorem findIdx_get?_eq_get_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
   /-! ### findIdx? -/
 
 @[simp] theorem findIdx?_nil : ([] : List α).findIdx? p i = none := rfl
+
 @[simp] theorem findIdx?_cons :
     (x :: xs).findIdx? p i = if p x then some i else findIdx? p xs (i + 1) := rfl
+
 @[simp] theorem findIdx?_succ :
     (xs : List α).findIdx? p (i+1) = (xs.findIdx? p i).map fun i => i + 1 := by
   induction xs generalizing i with simp
