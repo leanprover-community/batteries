@@ -42,7 +42,6 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
--- Will be generalized to Euclidean domains.
 @[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
