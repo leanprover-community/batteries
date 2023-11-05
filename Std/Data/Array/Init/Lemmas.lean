@@ -235,7 +235,7 @@ theorem anyM_eq_anyM_loop [Monad m] (p : α → m Bool) (as : Array α) (start s
 
 theorem anyM_stop_le_start [Monad m] (p : α → m Bool) (as : Array α) (start stop)
     (h : min stop as.size ≤ start) : anyM p as start stop = pure false := by
-  rw [anyM_eq_anyM_loop, anyM.loop, dif_neg (Nat.not_lt_of_le h)]
+  rw [anyM_eq_anyM_loop, anyM.loop, dif_neg (Nat.not_lt.2 h)]
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
@@ -285,7 +285,7 @@ theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
   | inr hstart =>
     rw [anyM_stop_le_start (h := hstart)]
     refine .pure ?_; simp; intro j h₁ h₂
-    cases Nat.not_lt_of_le (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
+    cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
 
 theorem any_iff_exists (p : α → Bool) (as : Array α) (start stop) :
     any as p start stop ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ p as[i] := by
