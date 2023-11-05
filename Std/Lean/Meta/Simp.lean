@@ -30,6 +30,9 @@ def mkCast (r : Simp.Result) (e : Expr) : MetaM Expr := do
 
 export private mkDischargeWrapper from Lean.Elab.Tactic.Simp
 
+/-- Construct a `Simp.DischargeWrapper` from the `Syntax` for a `simp` discharger. -/
+add_decl_doc mkDischargeWrapper
+
 -- copied from core
 /--
 If `ctx == false`, the config argument is assumed to have type `Meta.Simp.Config`,
