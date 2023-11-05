@@ -1,4 +1,5 @@
-[["docBlame", "String.allWF"],
+[["docBlame", "Lean.Elab.Tactic.mkDischargeWrapper"],
+ ["docBlame", "String.allWF"],
  ["docBlame", "String.anyAuxWF"],
  ["docBlame", "String.anyWF"],
  ["docBlame", "String.containsWF"],
