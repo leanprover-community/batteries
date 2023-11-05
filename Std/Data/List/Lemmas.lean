@@ -1448,11 +1448,8 @@ theorem findIdx_get?_eq_get_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
     (x :: xs).findIdx? p i = if p x then some i else findIdx? p xs (i + 1) := rfl
 @[simp] theorem findIdx?_succ :
     (xs : List α).findIdx? p (i+1) = (xs.findIdx? p i).map fun i => i + 1 := by
-  induction xs generalizing i with
-  | nil => simp
-  | cons x xs ih =>
-    simp only [findIdx?_cons]
-    split <;> simp_all
+  induction xs generalizing i with simp
+  | cons _ _ _ => split <;> simp_all
 
 theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
     xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = replicate i false ++ [true] := by
@@ -1460,9 +1457,7 @@ theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
   | nil => simp
   | cons x xs ih =>
     simp only [findIdx?_cons, Nat.zero_add, findIdx?_succ, take_succ_cons, map_cons]
-    split
-    · cases i <;> simp_all
-    · cases i <;> simp_all
+    split <;> cases i <;> simp_all
 
 theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p = some i) :
     match xs.get? i with | some a => p a | none => false := by
@@ -1470,9 +1465,7 @@ theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
   | nil => simp_all
   | cons x xs ih =>
     simp_all only [findIdx?_cons, Nat.zero_add, findIdx?_succ]
-    split at w
-    · cases i <;> simp_all
-    · cases i <;> simp_all
+    split at w <;> cases i <;> simp_all
 
 theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p = none) :
     ∀ i, match xs.get? i with | some a => ¬ p a | none => true := by
@@ -1492,14 +1485,8 @@ theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
 @[simp] theorem findIdx?_append :
     (xs ++ ys : List α).findIdx? p =
       (xs.findIdx? p <|> (ys.findIdx? p).map fun i => i + xs.length) := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih =>
-    simp only [cons_append, findIdx?_cons, Nat.zero_add, findIdx?_succ]
-    split
-    · simp
-    · simp_all only [Bool.not_eq_true, Option.map_orElse, Option.map_map, length_cons]
-      rfl
+  induction xs with simp
+  | cons _ _ _ => split <;> simp_all [Option.map_orElse, Option.map_map]; rfl
 
 @[simp] theorem findIdx?_replicate :
     (replicate n a).findIdx? p = if 0 < n ∧ p a then some 0 else none := by
