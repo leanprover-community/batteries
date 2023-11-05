@@ -335,8 +335,6 @@ theorem le_pred_of_lt (h : n < m) : n ≤ pred m := (le_pred_iff_lt (Nat.zero_lt
 
 /-! ### add -/
 
-theorem add_one_ne_zero (n) : n + 1 ≠ 0 := Nat.succ_ne_zero _
-
 protected theorem eq_zero_of_add_eq_zero_right : ∀ {n m : Nat}, n + m = 0 → n = 0
   | 0,   m => by simp [Nat.zero_add]
   | n+1, m => fun h => by
