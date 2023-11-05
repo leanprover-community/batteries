@@ -328,21 +328,29 @@ The following lemmas are later subsumed by e.g. `Int.cast_add` and `Int.cast_mul
 but it is convenient to have these earlier, for users who only need `Int` and `Rat`.
 -/
 
+@[simp, norm_cast] theorem intCast_inj {a b : Int} : (a : Rat) = (b : Rat) ↔ a = b := by
+  constructor
+  · rintro ⟨⟩; rfl
+  · simp_all
+
 theorem intCast_zero : ((0 : Int) : Rat) = (0 : Rat) := rfl
 
 theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
 
-@[simp] theorem intCast_add (a b : Int) : ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
+@[simp, norm_cast] theorem intCast_add (a b : Int) :
+    ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
   rw [add_def]
   ext <;> simp [normalize_eq]
 
-@[simp] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
+@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
   ext <;> simp [normalize_eq]
 
-@[simp] theorem intCast_sub (a b : Int) : ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
+@[simp, norm_cast] theorem intCast_sub (a b : Int) :
+    ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
   rw [sub_def]
   ext <;> simp [normalize_eq]
 
-@[simp] theorem intCast_mul (a b : Int) : ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
+@[simp, norm_cast] theorem intCast_mul (a b : Int) :
+    ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
   rw [mul_def]
   ext <;> simp [normalize_eq]
