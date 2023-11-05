@@ -212,14 +212,14 @@ open Tactic Parser.Tactic Elab.Tactic
 
 /-- Implementation of the `norm_cast` tactic when operating on the main goal. -/
 def normCastTarget : TacticM Unit :=
-  liftMetaTactic1 fun goal ↦ do
+  liftMetaTactic1 fun goal => do
     let tgt ← instantiateMVars (← goal.getType)
     let prf ← derive tgt
     applySimpResultToTarget goal tgt prf
 
 /-- Implementation of the `norm_cast` tactic when operating on a hypothesis. -/
 def normCastHyp (fvarId : FVarId) : TacticM Unit :=
-  liftMetaTactic1 fun goal ↦ do
+  liftMetaTactic1 fun goal => do
     let hyp ← instantiateMVars (← fvarId.getDecl).type
     let prf ← derive hyp
     return (← applySimpResultToLocalDecl goal fvarId prf false).map (·.snd)
@@ -280,7 +280,7 @@ Rewrite with the given rules and normalize casts between steps.
 syntax "rw_mod_cast" (config)? rwRuleSeq (location)? : tactic
 macro_rules
   | `(tactic| rw_mod_cast $[$config]? [$rules,*] $[$loc]?) => do
-    let tacs ← rules.getElems.mapM fun rule ↦
+    let tacs ← rules.getElems.mapM fun rule =>
       `(tactic| (norm_cast at *; rw $[$config]? [$rule] $[$loc]?))
     `(tactic| ($[$tacs]*))
 
@@ -298,7 +298,7 @@ macro "apply_mod_cast " e:term : tactic => `(tactic| apply mod_cast ($e : _))
 syntax (name := convNormCast) "norm_cast" : conv
 
 @[inherit_doc convNormCast, tactic convNormCast] def evalConvNormCast : Tactic :=
-  open Elab.Tactic.Conv in fun _ ↦ withMainContext do
+  open Elab.Tactic.Conv in fun _ => withMainContext do
     applySimpResult (← derive (← getLhs))
 
 /--
@@ -325,9 +325,9 @@ The implementation and behavior of the `norm_cast` family is described in detail
 syntax (name := pushCast) "push_cast " (config)? (discharger)? (&" only")?
   (" [" (simpStar <|> simpErase <|> simpLemma),* "]")? (location)? : tactic
 
-@[inherit_doc pushCast, tactic pushCast] def evalPushCast : Tactic := fun stx ↦ do
+@[inherit_doc pushCast, tactic pushCast] def evalPushCast : Tactic := fun stx => do
   let { ctx, dischargeWrapper, .. } ← withMainContext do
     mkSimpContext' (← pushCastExt.getTheorems) stx (eraseLocal := false)
   let ctx := { ctx with config := { ctx.config with failIfUnchanged := false } }
-  dischargeWrapper.with fun discharge? ↦
+  dischargeWrapper.with fun discharge? =>
     discard <| simpLocation ctx discharge? (expandOptLocation stx[5])
