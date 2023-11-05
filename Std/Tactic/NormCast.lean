@@ -3,7 +3,7 @@ Copyright (c) 2019 Paul-Nicolas Madelaine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 -/
-
+import Lean.Elab.Tactic.Conv.Simp
 import Std.Lean.Meta.Simp
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.CoeExt
