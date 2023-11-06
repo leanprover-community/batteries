@@ -630,7 +630,7 @@ theorem head!_mem_head? [Inhabited α] : ∀ {l : List α}, l ≠ [] → head! l
 theorem cons_head!_tail [Inhabited α] : ∀ {l : List α}, l ≠ [] → head! l :: tail l = l
   | _::_, _ => rfl
 
-theorem head!_mem_self [Inhabited α] : ∀ {l : List α}, l ≠ [] → l.head! ∈ l 
+theorem head!_mem_self [Inhabited α] : ∀ {l : List α}, l ≠ [] → l.head! ∈ l
   | _::_, _ => mem_cons_self ..
 
 @[simp] theorem head?_map (f : α → β) (l) : head? (map f l) = (head? l).map f := by
@@ -654,7 +654,7 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 theorem tail_append_singleton_of_ne_nil {a : α} : ∀ {l}, l ≠ [] → tail (l ++ [a]) = tail l ++ [a]
   | _::_, _ => rfl
 
-theorem tail_append_of_ne_nil : ∀ (l l' : List α), l ≠ [] → (l ++ l').tail = l.tail ++ l' 
+theorem tail_append_of_ne_nil : ∀ (l l' : List α), l ≠ [] → (l ++ l').tail = l.tail ++ l'
   | _::_, _, _ => rfl
 
 /-! ### next? -/
