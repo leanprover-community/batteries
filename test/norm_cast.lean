@@ -1,9 +1,13 @@
-/-
-Tests for norm_cast
--/
-
 import Std.Tactic.NormCast
 import Std
+
+/-!
+# Tests for norm_cast
+
+Since the behaviour of `norm_cast` depends on the `@[norm_cast]` attribute being applied correctly,
+this test file imports all of `Std` as an integration test.
+-/
+
 
 set_option linter.missingDocs false
 
@@ -24,6 +28,11 @@ example : az > (1 : Nat) ↔ az > 1 := by norm_cast
 example : az > (0 : Nat) ↔ az > 0 := by norm_cast
 example : (an : Int) ≠ 0 ↔ an ≠ 0 := by norm_cast
 example : aq < (1 : Nat) ↔ (aq : Rat) < (1 : Int) := by norm_cast
+
+example (a b : Nat) (h : False) : (a : Int) < ((2 * b : Nat) : Int) := by
+  push_cast
+  guard_target = (a : Int) < 2 * (b : Int)
+  cases h
 
 example : (an : Int) + bn = (an + bn : Nat) := by norm_cast
 
