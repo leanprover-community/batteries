@@ -17,7 +17,7 @@ open Lean Meta Simp
 open Std.Tactic.NormCast
 open Std.Tactic.Coe
 
-namespace Tactic.NormCast
+namespace Std.Tactic.NormCast
 
 initialize registerTraceClass `Tactic.norm_cast
 
@@ -121,10 +121,9 @@ def splittingProcedure (expr : Expr) : MetaM Simp.Result := do
 
 /--
 Discharging function used during simplification in the "squash" step.
-
-TODO: normCast takes a list of expressions to use as lemmas for the discharger
-TODO: a tactic to print the results the discharger fails to prove
 -/
+-- TODO: normCast takes a list of expressions to use as lemmas for the discharger
+-- TODO: a tactic to print the results the discharger fails to prove
 def prove (e : Expr) : SimpM (Option Expr) := do
   withTraceNode `Tactic.norm_cast (return m!"{exceptOptionEmoji ·} discharging: {e}") do
   return (← findLocalDeclWithType? e).map mkFVar
@@ -322,7 +321,7 @@ end
 The implementation and behavior of the `norm_cast` family is described in detail at
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
 -/
-syntax (name := pushCast) "push_cast " (config)? (discharger)? (&" only")?
+syntax (name := pushCast) "push_cast" (config)? (discharger)? (&" only")?
   (" [" (simpStar <|> simpErase <|> simpLemma),* "]")? (location)? : tactic
 
 @[inherit_doc pushCast, tactic pushCast] def evalPushCast : Tactic := fun stx => do
