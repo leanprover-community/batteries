@@ -1,11 +1,8 @@
 import Std.Tactic.NormCast
-import Std
+import Std.Data.Rat.Lemmas
 
 /-!
 # Tests for norm_cast
-
-Since the behaviour of `norm_cast` depends on the `@[norm_cast]` attribute being applied correctly,
-this test file imports all of `Std` as an integration test.
 -/
 
 
