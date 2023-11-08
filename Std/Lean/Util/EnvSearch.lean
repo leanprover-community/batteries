@@ -12,9 +12,25 @@ Options to control `getMatchingConstants` options below.
 -/
 structure EnvironmentSearchOptions where
   /-- Include declarations in imported environment. -/
-  stage1       : Bool := true
-  /-- Include private declarations. -/
-  checkPrivate : Bool := false
+  imported : Bool := true
+  /--
+  Set to true to include internal declarations (names with "_" or ending with match_ or proof_)
+  -/
+  internals : Bool := false
+
+/--
+Returns true if any part of name starts with underscore or uses a num.
+
+This can be used to hide internally generated names.
+-/
+def isInternalDetail : Name → Bool
+  | .str p s     =>
+    s.startsWith "_"
+      || s.startsWith "match_"
+      || s.startsWith "proof_"
+      || p.isInternal
+  | .num p _     => p.isInternal
+  | _            => false
 
 /--
 Find constants in current environment that match find options and predicate.
@@ -24,7 +40,7 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
     (opts : EnvironmentSearchOptions := {})
     : m (Array ConstantInfo) := do
   let matches_ ←
-    if opts.stage1 then
+    if opts.imported then
       (← getEnv).constants.map₁.foldM (init := #[]) check
     else
       pure #[]
@@ -32,10 +48,9 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
 where
   /-- Check constant should be returned -/
   check matches_ name cinfo := do
-    if opts.checkPrivate || !isPrivateName name then
-      if ← p cinfo then
-        pure $ matches_.push cinfo
-      else
-        pure matches_
+    let runFilter : Bool := opts.internals || !isInternalDetail name
+    let include ← if runFilter then p cinfo else pure false
+    if include then
+      pure $ matches_.push cinfo
     else
       pure matches_

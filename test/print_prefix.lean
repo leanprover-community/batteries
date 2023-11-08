@@ -21,9 +21,6 @@ end Prefix.Test
 
 /--
 info: Prefix.Test.foo : List String → Int
-Prefix.Test.foo._cstage1 : List String → Int
-Prefix.Test.foo._cstage2 : _obj → _obj
-Prefix.Test.foo._closed_1._cstage2 : _obj
 -/
 #guard_msgs in
 #print prefix Prefix.Test
@@ -54,4 +51,4 @@ TestStruct.mk.injEq : ∀ (foo bar foo_1 bar_1 : Int),
 TestStruct.mk.sizeOf_spec : ∀ (foo bar : Int), sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 -/
 #guard_msgs in
-#print prefix TestStruct
+#print prefix (config:={internals:=true}) TestStruct
