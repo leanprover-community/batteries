@@ -52,3 +52,28 @@ TestStruct.mk.sizeOf_spec : ∀ (foo bar : Int), sizeOf { foo := foo, bar := bar
 -/
 #guard_msgs in
 #print prefix (config:={internals:=true}) TestStruct
+
+/--
+-/
+#guard_msgs in
+#print prefix (config:={imported:=false}) Array
+
+private inductive TestInd where
+| foo : TestInd
+| bar : TestInd
+
+/--
+info: _private.test.print_prefix.0.TestInd : Type
+_private.test.print_prefix.0.TestInd.bar : TestInd
+_private.test.print_prefix.0.TestInd.casesOn : {motive : TestInd → Sort u} → (t : TestInd) → motive TestInd.foo → motive TestInd.bar → motive t
+_private.test.print_prefix.0.TestInd.foo : TestInd
+_private.test.print_prefix.0.TestInd.noConfusion : {P : Sort v✝} → {x y : TestInd} → x = y → TestInd.noConfusionType P x y
+_private.test.print_prefix.0.TestInd.noConfusionType : Sort v✝ → TestInd → TestInd → Sort v✝
+_private.test.print_prefix.0.TestInd.rec : {motive : TestInd → Sort u} → motive TestInd.foo → motive TestInd.bar → (t : TestInd) → motive t
+_private.test.print_prefix.0.TestInd.recOn : {motive : TestInd → Sort u} → (t : TestInd) → motive TestInd.foo → motive TestInd.bar → motive t
+_private.test.print_prefix.0.TestInd.toCtorIdx : TestInd → Nat
+_private.test.print_prefix.0.TestInd.bar.sizeOf_spec : sizeOf TestInd.bar = 1
+_private.test.print_prefix.0.TestInd.foo.sizeOf_spec : sizeOf TestInd.foo = 1
+-/
+#guard_msgs in
+#print prefix TestInd
