@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Basic
+import Std.Tactic.RCases
 import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
@@ -898,11 +899,6 @@ theorem mul_div_le (m n : Nat) : n * (m / n) ≤ m := by
   | _, Or.inl rfl => rw [Nat.zero_mul]; exact m.zero_le
   | n, Or.inr h => rw [Nat.mul_comm, ← Nat.le_div_iff_mul_le h]; exact Nat.le_refl _
 
-theorem mod_two_eq_zero_or_one (n : Nat) : n % 2 = 0 ∨ n % 2 = 1 :=
-  match n % 2, @Nat.mod_lt n 2 (by simp) with
-  | 0, _ => .inl rfl
-  | 1, _ => .inr rfl
-
 theorem le_of_mod_lt {a b : Nat} (h : a % b < a) : b ≤ a :=
   Nat.not_lt.1 fun hf => (ne_of_lt h).elim (Nat.mod_eq_of_lt hf)
 
@@ -980,10 +976,18 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
 
+theorem succ_mod_two_eq_one_sub_mod_two (n : Nat) : (n + 1) % 2 = 1 - n % 2 := by
+  rw [add_mod]
+  cases mod_two_eq_zero_or_one n with | _ h => simp [h]
+
 /-! ### pow -/
 
 theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
   rw [Nat.pow_succ, Nat.mul_comm]
+
+theorem two_pow_succ (n : Nat) : 2 ^ (n + 1) = 2 ^ n + 2 ^ n := by simp [pow_succ, Nat.mul_two]
+
+theorem two_pow_pos (n : Nat) : 0 < 2 ^ n := Nat.pos_pow_of_pos _ (by decide)
 
 @[simp] theorem pow_eq {m n : Nat} : m.pow n = m ^ n := rfl
 
@@ -1190,3 +1194,125 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
+
+/-! ### shiftLeft -/
+
+theorem shiftLeft_zero (m) : m <<< 0 = m := rfl
+
+theorem shiftLeft_succ (m n) : m <<< (n + 1) = 2 * (m <<< n) := by
+  simp only [shiftLeft_eq, Nat.pow_add, Nat.pow_one, ← Nat.mul_assoc, Nat.mul_comm]
+
+/-! ### bitwise -/
+
+@[simp]
+theorem bitwise_zero_left (m : Nat) : bitwise f 0 m = if f false true then m else 0 :=
+  rfl
+
+@[simp]
+theorem bitwise_zero_right (n : Nat) : bitwise f n 0 = if f true false then n else 0 := by
+  unfold bitwise
+  simp only [ite_self, decide_False, Nat.zero_div, ite_true]
+  cases n <;> simp
+
+theorem bitwise_zero : bitwise f 0 0 = 0 := by
+  simp only [bitwise_zero_right, ite_self]
+
+/-! ### bodd -/
+
+@[simp]
+theorem bodd_zero : bodd 0 = false :=
+  rfl
+
+theorem bodd_one : bodd 1 = true :=
+  rfl
+
+theorem bodd_two : bodd 2 = false :=
+  rfl
+
+theorem bodd_eq_mod_two_bne_zero (n : Nat) : bodd n = (n % 2 != 0) := by
+  rw [mod_two_of_bodd]
+  cases bodd n with | false | true => rfl
+
+@[simp]
+theorem bodd_succ (n : Nat) : bodd (succ n) = not (bodd n) := by
+  simp only [bodd_eq_mod_two_bne_zero, succ_eq_add_one, succ_mod_two_eq_one_sub_mod_two]
+  cases mod_two_eq_zero_or_one n with | _ h => simp [h]
+
+@[simp]
+theorem bodd_add (m n : Nat) : bodd (m + n) = (bodd m != bodd n) := by
+  induction n with
+  | zero => simp [bne]
+  | succ n ih => simp [add_succ, ih, bne, Bool.not_beq_not]
+
+@[simp]
+theorem bodd_mul (m n : Nat) : bodd (m * n) = (bodd m && bodd n) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    simp [mul_succ, ih]
+    cases bodd m <;> cases bodd n <;> rfl
+
+theorem bodd_bit (b n) : bodd (bit b n) = b := by
+  rw [bit_val, Nat.mul_comm, Nat.add_comm, bodd_add, bodd_mul]
+  cases b <;> cases bodd n <;> rfl
+
+/-! ### div2 -/
+
+@[simp]
+theorem div2_zero : div2 0 = 0 :=
+  rfl
+
+theorem div2_one : div2 1 = 0 :=
+  rfl
+
+theorem div2_two : div2 2 = 1 :=
+  rfl
+
+theorem div2_eq_div_two (n : Nat) : div2 n = n / 2 := rfl
+
+@[simp]
+theorem div2_succ (n : Nat) : div2 (succ n) = cond (bodd n) (succ (div2 n)) (div2 n) := by
+  apply Nat.eq_of_mul_eq_mul_left (by decide : 0 < 2)
+  apply Nat.add_right_cancel (m := cond (bodd (succ n)) 1 0)
+  rw (config := {occs := .pos [1]}) [bodd_add_div2, bodd_succ, ← bodd_add_div2 n]
+  cases bodd n <;> simp [succ_eq_add_one, Nat.add_comm 1, Nat.mul_add]
+
+theorem div2_bit (b n) : div2 (bit b n) = n := by
+  rw [bit_val, div2_val, Nat.add_comm, add_mul_div_left, div_eq_of_lt, Nat.zero_add]
+  · cases b <;> decide
+  · decide
+
+/-! ### binary rec/cases -/
+
+@[simp]
+theorem binaryRec_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) :
+    binaryRec z f 0 = z := by
+  rw [binaryRec]
+  rfl
+
+theorem binaryRec_eq {C : Nat → Sort u} {z : C 0} {f : ∀ b n, C n → C (bit b n)} (b n)
+    (h : f false 0 z = z ∨ (n = 0 → b = true)) :
+    binaryRec z f (bit b n) = f b n (binaryRec z f n) := by
+  rw [binaryRec]
+  by_cases h : bit b n = 0
+  -- Note: this renames the original `h : f false 0 z = z` to `h'` and leaves `h : bit b n = 0`
+  case pos h' =>
+    obtain ⟨rfl, rfl⟩ := bit_eq_zero_iff.mp h
+    simp only [or_false] at h'
+    exact h'.symm
+  case neg h' =>
+    simp only [dif_neg h]
+    generalize bit_decomp (bit b n) = e
+    revert e
+    rw [bodd_bit, div2_bit]
+    intros; rfl
+
+theorem binaryRec_of_ne_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) {n}
+    (h : n ≠ 0) :
+    binaryRec z f n = bit_decomp n ▸ f n.bodd n.div2 (binaryRec z f n.div2) := by
+  rw [binaryRec, dif_neg h]
+  generalize bit_decomp n = e; revert e
+  apply bitCasesOn n
+  intro _ _
+  rw [bodd_bit, div2_bit]
+  intro; rfl

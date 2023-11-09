@@ -95,6 +95,9 @@ theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y
 
 /-! ### xor -/
 
+/-- Infix notation for xor -/
+infix:30 " ^^ " => xor
+
 @[simp] theorem false_xor : ∀ (x : Bool), xor false x = x := by decide
 
 @[simp] theorem xor_false : ∀ (x : Bool), xor x false = x := by decide
@@ -189,3 +192,7 @@ theorem and_or_inj_left : ∀ {m x y : Bool}, (m && x) = (m && y) → (m || x) =
 theorem and_or_inj_left_iff :
     ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by decide
 @[deprecated] alias and_or_inj_left' := and_or_inj_left_iff
+
+/-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
+def toNat (b : Bool) : Nat :=
+  cond b 1 0
