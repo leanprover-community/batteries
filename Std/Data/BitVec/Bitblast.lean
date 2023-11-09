@@ -17,7 +17,7 @@ theorem bodd_eq_bodd_iff {m n} : bodd n = bodd m ↔ n % 2 = m % 2 := by
   cases hn : bodd n <;> cases hm : bodd m
   <;> simp [mod_two_of_bodd, hn, hm]
 
-theorem testBit_two_pow_mul_add {n b w i} (h: i < w) :
+theorem testBit_two_pow_mul_add {n b w i} (h : i < w) :
     Nat.testBit (2 ^ w * b + n) i = Nat.testBit n i := by
   simp only [testBit, shiftRight_eq_div_pow, bodd_eq_bodd_iff]
   rw [← Nat.add_sub_of_le (succ_le_of_lt h), Nat.succ_eq_add_one, Nat.add_assoc]
@@ -25,13 +25,13 @@ theorem testBit_two_pow_mul_add {n b w i} (h: i < w) :
   rw [Nat.pow_add, Nat.pow_one, Nat.mul_assoc]
   simp
 
-theorem testBit_two_pow_mul_toNat_add {n w b} (h: n < 2 ^ w) :
+theorem testBit_two_pow_mul_toNat_add {n w b} (h : n < 2 ^ w) :
     testBit (2 ^ w * (bit b 0) + n) w = b := by
   simp only [testBit, shiftRight_eq_div_pow]
   rw [Nat.add_comm, add_mul_div_left _ _ (two_pow_pos _), Nat.div_eq_of_lt h, Nat.zero_add]
   cases b <;> simp
 
-@[simp] theorem toNat_eq_bif {b: Bool}: cond b 1 0 = toNat b := by simp [cond, toNat]
+@[simp] theorem toNat_eq_bif {b: Bool} : cond b 1 0 = toNat b := by simp [cond, toNat]
 
 theorem shiftRight_eq_testBit (x i : Nat) : (x >>> i) % 2 = toNat (testBit x i) := by
   simp [Nat.testBit, Nat.mod_two_of_bodd, toNat_eq_bif]
@@ -63,7 +63,7 @@ theorem ofBits_succ {f : Nat → Bool} {i z : Nat} : ofBits f z i = 2 ^ i * z + 
                   rw [bit_val, Nat.mul_add, ← Nat.mul_assoc, ← pow_succ]
                   simp [bit_val, Nat.add_assoc]
 
-theorem ofBits_lt {f: Nat → Bool} : ofBits f 0 i < 2^i := by
+theorem ofBits_lt {f : Nat → Bool} : ofBits f 0 i < 2^i := by
   induction i with
   | zero => simp [ofBits, bit_val, lt_succ]
   | succ i ih =>  simp only [ofBits]
@@ -96,10 +96,10 @@ def bitwise_carry (x y : Nat) : Nat → Bool
   | i + 1 => (x.testBit i && y.testBit i) || ((x.testBit i ^^ y.testBit i) && bitwise_carry x y i)
 
 /-- Bitwise addition implemented via a ripple carry adder. -/
-@[simp] def bitwise_add (x y i: Nat) :=
+@[simp] def bitwise_add (x y i : Nat) :=
   ofBits (λ j => (x.testBit j ^^ y.testBit j) ^^ bitwise_carry x y j) 0 i
 
-theorem bitwise_add_eq_add_base (x y i: Nat) :
+theorem bitwise_add_eq_add_base (x y i : Nat) :
   x % (2 ^ i) + y % (2 ^ i) = bitwise_add x y i + 2 ^ i * toNat (bitwise_carry x y i) := by
   induction i with
   | zero => simp [mod_one, ofBits, bitwise_carry]
@@ -117,6 +117,6 @@ theorem bitwise_add_eq_add (x y : Nat) : bitwise_add x y i = (x + y) % 2 ^ i := 
   · simp [mod_one, ofBits]
   · simp [bitwise_add, Nat.mod_eq_of_lt ofBits_lt]
 
-theorem BV_add {x y : BitVec w}: bitwise_add (x.toNat) y.toNat w = (x + y).toNat := by
+theorem BV_add {x y : BitVec w} : bitwise_add (x.toNat) y.toNat w = (x + y).toNat := by
   rw [bitwise_add_eq_add]
   rfl
