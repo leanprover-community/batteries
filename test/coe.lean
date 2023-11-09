@@ -7,8 +7,8 @@ structure WrappedNat where
   val : Nat
 
 
-structure WrappedFun where
-  fn : Nat → Nat
+structure WrappedFun (α) where
+  fn : Nat → α
 
 
 structure WrappedType where
@@ -17,19 +17,24 @@ structure WrappedType where
 attribute [coe] WrappedNat.val
 instance : Coe WrappedNat Nat where coe := WrappedNat.val
 
-#eval Std.Tactic.Coe.registerCoercion ``WrappedFun.fn (some ⟨1, 0, .coeFun⟩)
-instance : CoeFun WrappedFun (fun _ => Nat → Nat) where coe := WrappedFun.fn
+#eval Std.Tactic.Coe.registerCoercion ``WrappedFun.fn (some ⟨2, 1, .coeFun⟩)
+instance : CoeFun (WrappedFun α) (fun _ => Nat → α) where coe := WrappedFun.fn
 
 #eval Std.Tactic.Coe.registerCoercion ``WrappedType.typ (some ⟨1, 0, .coeSort⟩)
 instance : CoeSort WrappedType Type where coe := WrappedType.typ
 
-
-variable (n : WrappedNat) (f : WrappedFun) (t : WrappedType)
+section coe
+variable (n : WrappedNat)
 
 /-- info: ↑n : Nat -/
 #guard_msgs in #check n.val
 /-- info: ↑n : Nat -/
 #guard_msgs in #check (↑n : Nat)
+
+end coe
+
+section coeFun
+variable (f : WrappedFun Nat) (g : Nat → WrappedFun Nat) (h : WrappedFun (WrappedFun Nat))
 
 /-- info: ⇑f : Nat → Nat -/
 #guard_msgs in #check f.fn
@@ -39,7 +44,28 @@ variable (n : WrappedNat) (f : WrappedFun) (t : WrappedType)
 /-- info: f 1 : Nat -/
 #guard_msgs in #check ⇑f 1
 
+/-- info: ⇑(g 1) : Nat → Nat -/
+#guard_msgs in #check ⇑(g 1)
+/-- info: (g 1) 2 : Nat -/  -- TODO: remove the `()`?
+#guard_msgs in #check g 1 2
+
+/-- info: ⇑h : Nat → WrappedFun Nat -/
+#guard_msgs in #check ⇑h
+/-- info: h 1 : WrappedFun Nat -/
+#guard_msgs in #check h 1
+/-- info: ⇑(h 1) : Nat → Nat -/
+#guard_msgs in #check ⇑(h 1)
+/-- info: (h 1) 2 : Nat -/  -- TODO: remove the `()`?
+#guard_msgs in #check h 1 2
+
+end coeFun
+
+section coeSort
+variable (t : WrappedType)
+
 /-- info: ↥t : Type -/
 #guard_msgs in #check t.typ
 /-- info: ↥t : Type -/
 #guard_msgs in #check ↥t
+
+end coeSort
