@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
 import Lean.Modifiers
+import Std.Tactic.Lint.Misc
 
 namespace Lean
 
@@ -22,7 +23,8 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
   (← getEnv).constants.map₂.foldlM (init := matches_) check
 where
   /-- Check constant should be returned -/
-  check matches_ _ cinfo := do
+  @[nolint unusedArguments]
+  check matches_ (_name : Name) cinfo := do
     let include ← p cinfo
     if include then
       pure $ matches_.push cinfo
