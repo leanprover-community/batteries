@@ -7,6 +7,19 @@ import Lean.PrettyPrinter.Delaborator.Builtins
 import Std.Lean.Delaborator
 open Lean Elab.Term Meta Std
 
+/-!
+# The `@[coe]` attribute, used to delaborate coercion functions as `↑`
+
+When writing a coercion, if the pattern
+```
+@[coe]
+def A.toB (a : A) : B := sorry
+
+instance : Coe A B where coe := A.toB
+```
+is used, then `A.toB a` will be pretty-printed as `↑a`.
+-/
+
 namespace Std.Tactic.Coe
 
 
