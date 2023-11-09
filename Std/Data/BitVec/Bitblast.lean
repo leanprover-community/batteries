@@ -39,8 +39,6 @@ theorem shiftRight_eq_testBit (x i : Nat) : (x >>> i) % 2 = toNat (testBit x i) 
 theorem div_add_mod_two_pow (m n : Nat) : n = 2 ^ m * n >>> m + n % (2 ^ m):= by
   simp [shiftRight_eq_div_pow, Nat.div_add_mod]
 
-#check Eq.trans
-
 theorem mod_two_pow_succ (x i : Nat) :
   x % 2 ^ (i + 1) = 2 ^ i * toNat (Nat.testBit x i) + x % (2 ^ i):= by
   have h1 := div_add_mod_two_pow i x
@@ -118,3 +116,7 @@ theorem bitwise_add_eq_add (x y : Nat) : bitwise_add x y i = (x + y) % 2 ^ i := 
   cases i
   · simp [mod_one, ofBits]
   · simp [bitwise_add, Nat.mod_eq_of_lt ofBits_lt]
+
+theorem BV_add {x y : BitVec w}: bitwise_add (x.toNat) y.toNat w = (x + y).toNat := by
+  rw [bitwise_add_eq_add]
+  rfl
