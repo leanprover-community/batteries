@@ -18,15 +18,16 @@ def A.toB (a : A) : B := sorry
 instance : Coe A B where coe := A.toB
 ```
 is used, then `A.toB a` will be pretty-printed as `↑a`.
+
+This file also provides `⇑f` and `↥t` notation, which are syntax for `Lean.meta.coerceToFunction?`
+and `Lean.Meta.coerceToSort?` respectively.
 -/
 
 namespace Std.Tactic.Coe
 
-
 /-- `⇑ t` coerces `t` to a function. -/
--- We increase the right precedence so this goes above most binary operators.
--- Otherwise `⇑f = g` will parse as `⇑(f = g)`.
-elab:1024 "⇑" m:term:1024 : term => do
+-- the precendence matches that of `coeNotation`
+elab:1024 (name := coeFunNotation) "⇑" m:term:1024 : term => do
   let x ← elabTerm m none
   if let some ty ← coerceToFunction? x then
     return ty
@@ -34,13 +35,12 @@ elab:1024 "⇑" m:term:1024 : term => do
     throwError "cannot coerce to function{indentExpr x}"
 
 /-- `↥ t` coerces `t` to a type. -/
-elab:1024 "↥" t:term:1024 : term => do
+elab:1024 (name := coeSortNotation) "↥" t:term:1024 : term => do
   let x ← elabTerm t none
   if let some ty ← coerceToSort? x then
     return ty
   else
     throwError "cannot coerce to sort{indentExpr x}"
-
 
 /-- The different types of coercions that are supported by the `coe` attribute. -/
 inductive CoeFnType
