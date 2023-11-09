@@ -31,11 +31,12 @@ variable (n : WrappedNat) (f : WrappedFun) (t : WrappedType)
 /-- info: ↑n : Nat -/
 #guard_msgs in #check (↑n : Nat)
 
-/-- info: ⇑f : Nat → Nat-/
+/-- info: ⇑f : Nat → Nat -/
 #guard_msgs in #check f.fn
-/-- info: ⇑f : Nat → Nat-/
+/-- info: ⇑f : Nat → Nat -/
 #guard_msgs in #check ⇑f
-/-- info: ⇑f 1 : Nat-/
+-- applied functions do not need the `⇑`
+/-- info: f 1 : Nat -/
 #guard_msgs in #check ⇑f 1
 
 /-- info: ↥t : Type -/

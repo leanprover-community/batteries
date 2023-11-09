@@ -92,10 +92,15 @@ For example, `Int.ofNat` is a coercion, so instead of printing `ofNat n` we just
 and when re-parsing this we can (usually) recover the specific coercion being used.
 -/
 def coeDelaborator (info : CoeFnInfo) : Delab := whenPPOption getPPCoercions do
+  let n := (← getExpr).getAppNumArgs
   withOverApp info.numArgs do
     match info.type with
     | .coe => `(↑$(← withNaryArg info.coercee delab))
-    | .coeFun => `(⇑$(← withNaryArg info.coercee delab))
+    | .coeFun =>
+      if n = info.numArgs then
+        `(⇑$(← withNaryArg info.coercee delab))
+      else
+        withNaryArg info.coercee delab
     | .coeSort => `(↥$(← withNaryArg info.coercee delab))
 
 /-- Add a coercion delaborator for the given function. -/
