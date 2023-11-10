@@ -8,7 +8,21 @@ import Std.Data.BitVec.Basic
 import Std.Data.Nat.Lemmas
 import Std.Data.Bool
 
+/-!
+# Bitblasting of bitvectors
+
+We prove the equivalence of a bitblasting operations and their `BitVec` implementation.
+
+## Main results
+* `BV_add`: Bitblasted addition `bitadd` is equivalent to `BitVec.add`.
+
+## Future work
+All other operations are to be PR'ed later and are already proved in
+https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/BitVec.lean.
+-/
+
 namespace Std
+
 open Nat Bool
 
 /-! ### Preliminaries -/
