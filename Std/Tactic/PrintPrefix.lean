@@ -11,16 +11,22 @@ namespace Lean.Elab.Command
 /--
 Options to control `getMatchingConstants` options below.
 -/
-structure EnvironmentSearchOptions where
+structure PrintPrefixConfig where
   /-- Include declarations in imported environment. -/
   imported : Bool := true
+  /-- Include declarations who types are propositions. -/
+  propositions : Bool := true
+  /-- Exclude definitions who types are not propositions. -/
+  propositionsOnly : Bool := false
+  /-- Flag to control whether we should print the type of a declartion. -/
+  showTypes : Bool := true
   /--
   Set to true to include internal declarations (names with "_" or ending with match_ or proof_)
   -/
   internals : Bool := false
 
 /-- Function elaborating `Config`. -/
-declare_config_elab elabEnvironmentSearchOptions EnvironmentSearchOptions
+declare_config_elab elabPrintPrefixConfig PrintPrefixConfig
 
 /--
 Command for #print prefix
@@ -62,21 +68,41 @@ private def takeNameSuffix (cnt : Nat) (name:Name) (prev:Name := .anonymous) : N
 /--
 `matchName opts pre cinfo` returns true if the search options should include the constant.
 -/
-private def matchName (opts : EnvironmentSearchOptions) (pre:Name) (cinfo:ConstantInfo) := Id.run do
+private def matchName (opts : PrintPrefixConfig) (pre:Name) (cinfo:ConstantInfo) : MetaM Bool := do
   let name := cinfo.name
   let preCnt := pre.getNumParts
   let nameCnt := name.getNumParts
   if preCnt > nameCnt then return false
   let (root, post) := takeNameSuffix (nameCnt - preCnt) name
-  pure <| root == pre && (opts.internals || !isInternalDetail post)
+  if root ≠ pre then return false
+  if !opts.internals && isInternalDetail post then return false
+  let isProp := (Expr.isProp <$> Lean.Meta.inferType cinfo.type) <|> pure false
+  if opts.propositions then do
+    if opts.propositionsOnly && !(←isProp) then return false
+  else do
+    if opts.propositionsOnly || (←isProp) then return false
+  pure true
 
-private def appendMatchingConstants (msg : String) (opts : EnvironmentSearchOptions) (pre:Name)
+private def lexNameLt : Name -> Name -> Bool
+| _, .anonymous => false
+| .anonymous, _ => true
+| .num p m, .num q n => m < n || m == n && lexNameLt p q
+| .num _ _, .str _ _ => true
+| .str _ _, .num _ _ => false
+| .str p m, .str q n => m < n || m == n && lexNameLt p q
+
+private def appendMatchingConstants (msg : String) (opts : PrintPrefixConfig) (pre:Name)
      : MetaM String := do
-  let cinfos ← getMatchingConstants (pure ∘ matchName opts pre) opts.imported
-  let cinfos := cinfos.qsort fun p q => p.name.lt q.name
+  let cinfos ← getMatchingConstants (matchName opts pre) opts.imported
+  let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
   let mut msg := msg
+  let ppInfo cinfo :=
+        if opts.showTypes then do
+          pure s!"{cinfo.name} : {← Meta.ppExpr cinfo.type}\n"
+        else
+          pure s!"{cinfo.name}\n"
   for cinfo in cinfos do
-    msg := msg ++ s!"{cinfo.name} : {← Meta.ppExpr cinfo.type}\n"
+    msg := msg ++ (← ppInfo cinfo)
   pure msg
 
 /--
@@ -111,7 +137,7 @@ The command below will exclude imported names:
 | `(#print prefix%$tk $[$cfg:config]? $name:ident) => do
   let nameId := name.getId
   liftTermElabM do
-    let opts ← elabEnvironmentSearchOptions (mkOptionalNode cfg)
+    let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
     let mut msg ← appendMatchingConstants "" opts nameId
     if msg.isEmpty then
       if let [name] ← resolveGlobalConst name then
