@@ -433,3 +433,21 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem add_eq (x y : BitVec w)                   : BitVec.add x y = x + y            := rfl
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
+
+/-- Turn a `Bool` into a bitvector of length `1` -/
+def ofBool : Bool → BitVec 1
+  | false => 1
+  | true  => 0
+
+/-- The empty bitvector -/
+def nil : BitVec 0 :=
+  BitVec.zero 0
+
+/-- Append a single bit to the end of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the least significant bit. -/
+def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool lsb)
+
+/-- Prepend a single bit to the front of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the most significant bit. -/
+def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
+  ((ofBool msb) ++ lsbs).cast (Nat.add_comm ..)
