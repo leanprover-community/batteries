@@ -49,7 +49,7 @@ theorem mod_two_pow_succ (x i : Nat) :
 
 /-- Generic method to create a natural number by appending bits tail-recursively.
 It takes a boolean function `f` on each bit the number of bits `i`.  It is
-almost always specialized  `i = w`; the length of the binary representation.
+almost always specialized to `i = w`, the length of the binary representation.
 This is an alternative to using `List` and is used to define bitadd, bitneg, bitmul etc.-/
 def ofBits (f : Nat → Bool) (z : Nat) : Nat → Nat
   | 0 => z
