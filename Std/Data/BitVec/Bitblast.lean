@@ -34,16 +34,16 @@ theorem testBit_two_pow_mul_bit_add {n w b} (h : n < 2 ^ w) :
 @[simp] theorem cond_eq_toNat {b: Bool} : cond b 1 0 = toNat b := by simp [cond, toNat]
 
 theorem shiftRight_eq_testBit (x i : Nat) : (x >>> i) % 2 = toNat (testBit x i) := by
-  simp [Nat.testBit, Nat.mod_two_of_bodd, toNat_eq_bif]
+  simp [Nat.testBit, Nat.mod_two_of_bodd, cond_eq_toNat]
 
-theorem div_add_mod_two_pow (m n : Nat) : n = 2 ^ m * n >>> m + n % (2 ^ m) := by
+theorem shiftRight_add_mod_two_pow (m n : Nat) : n = 2 ^ m * n >>> m + n % (2 ^ m) := by
   simp [shiftRight_eq_div_pow, Nat.div_add_mod]
 
 theorem mod_two_pow_succ (x i : Nat) :
   x % 2 ^ (i + 1) = 2 ^ i * toNat (Nat.testBit x i) + x % (2 ^ i):= by
-  have h1 := div_add_mod_two_pow i x
+  have h1 := shiftRight_add_mod_two_pow i x
   rw [←div_add_mod (x >>> i) 2, Nat.mul_add, ←Nat.mul_assoc, ←pow_succ, shiftRight_eq_testBit] at h1
-  have h2 := Eq.trans (div_add_mod_two_pow (i + 1) x).symm h1
+  have h2 := Eq.trans (shiftRight_add_mod_two_pow (i + 1) x).symm h1
   rw [shiftRight_succ, succ_eq_add_one, Nat.add_assoc] at h2
   exact Nat.add_left_cancel h2
 
@@ -86,7 +86,7 @@ theorem ofBits_testBit {f : Nat → Bool} (h1: i < j) : (ofBits f 0 j).testBit i
       rw [lt_succ] at hi
       cases Nat.lt_or_eq_of_le hi with
       | inl h1 => rw [← ih h1, ofBits, ofBits_succ, testBit_two_pow_mul_add h1]
-      | inr h1 => rw [h1, ofBits, ofBits_succ, testBit_two_pow_mul_toNat_add (ofBits_lt)]
+      | inr h1 => rw [h1, ofBits, ofBits_succ, testBit_two_pow_mul_bit_add (ofBits_lt)]
 
 /-! ### Addition -/
 
