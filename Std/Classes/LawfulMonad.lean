@@ -94,7 +94,7 @@ protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
     (hx : SatisfiesM p x) (hf : ∀ {a}, p a → q (f a)) : SatisfiesM q (f <$> x) := by
   let ⟨x', hx⟩ := hx
   refine ⟨(fun ⟨a, h⟩ => ⟨f a, hf h⟩) <$> x', ?_⟩
-  rw [← hx];
+  rw [← hx]
   simp (config := { unfoldPartialApp := true }) [← comp_map, Function.comp]
 
 /--
