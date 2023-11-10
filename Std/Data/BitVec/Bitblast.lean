@@ -36,7 +36,7 @@ theorem testBit_two_pow_mul_toNat_add {n w b} (h : n < 2 ^ w) :
 theorem shiftRight_eq_testBit (x i : Nat) : (x >>> i) % 2 = toNat (testBit x i) := by
   simp [Nat.testBit, Nat.mod_two_of_bodd, toNat_eq_bif]
 
-theorem div_add_mod_two_pow (m n : Nat) : n = 2 ^ m * n >>> m + n % (2 ^ m):= by
+theorem div_add_mod_two_pow (m n : Nat) : n = 2 ^ m * n >>> m + n % (2 ^ m) := by
   simp [shiftRight_eq_div_pow, Nat.div_add_mod]
 
 theorem mod_two_pow_succ (x i : Nat) :
