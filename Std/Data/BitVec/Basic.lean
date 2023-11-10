@@ -436,8 +436,8 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 
 /-- Turn a `Bool` into a bitvector of length `1` -/
 def ofBool : Bool → BitVec 1
-  | false => 1
-  | true  => 0
+  | false => 0
+  | true  => 1
 
 /-- The empty bitvector -/
 def nil : BitVec 0 :=
