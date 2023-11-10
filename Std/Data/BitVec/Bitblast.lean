@@ -48,7 +48,7 @@ theorem mod_two_pow_succ (x i : Nat) :
   exact Nat.add_left_cancel h2
 
 /-- Generic method to create a natural number by appending bits tail-recursively.
-It takes a boolean function `f` on each bit the number of bits `i`.  It is
+It takes a boolean function `f` on each bit and the number of bits `i`.  It is
 almost always specialized to `i = w`, the length of the binary representation.
 This is an alternative to using `List` and is used to define bitadd, bitneg, bitmul etc.-/
 def ofBits (f : Nat → Bool) (z : Nat) : Nat → Nat
@@ -91,32 +91,32 @@ theorem ofBits_testBit {f : Nat → Bool} (h1: i < j) : (ofBits f 0 j).testBit i
 /-! ### Addition -/
 
 /-- Carry function for bitwise addition. -/
-def bitwise_carry (x y : Nat) : Nat → Bool
+def carry (x y : Nat) : Nat → Bool
   | 0     => false
-  | i + 1 => (x.testBit i && y.testBit i) || ((x.testBit i ^^ y.testBit i) && bitwise_carry x y i)
+  | i + 1 => (x.testBit i && y.testBit i) || ((x.testBit i ^^ y.testBit i) && carry x y i)
 
 /-- Bitwise addition implemented via a ripple carry adder. -/
-@[simp] def bitwise_add (x y i : Nat) :=
-  ofBits (λ j => (x.testBit j ^^ y.testBit j) ^^ bitwise_carry x y j) 0 i
+@[simp] def bitadd (x y i : Nat) :=
+  ofBits (λ j => (x.testBit j ^^ y.testBit j) ^^ carry x y j) 0 i
 
-theorem bitwise_add_eq_add_base (x y i : Nat) :
-  x % (2 ^ i) + y % (2 ^ i) = bitwise_add x y i + 2 ^ i * toNat (bitwise_carry x y i) := by
+theorem bitadd_eq_add_base (x y i : Nat) :
+  x % (2 ^ i) + y % (2 ^ i) = bitadd x y i + 2 ^ i * toNat (carry x y i) := by
   induction i with
-  | zero => simp [mod_one, ofBits, bitwise_carry]
+  | zero => simp [mod_one, ofBits, carry]
   | succ i hi => rw [mod_two_pow_succ x, mod_two_pow_succ y]
                  rw [Nat.add_assoc, Nat.add_comm _ (y % 2 ^ i), ← Nat.add_assoc (x % 2 ^ i)]
-                 rw [hi, bitwise_carry, two_pow_succ i]
+                 rw [hi, carry, two_pow_succ i]
                  cases hx : Nat.testBit x i <;> cases hy : Nat.testBit y i
-                 <;> cases hc : bitwise_carry x y i
+                 <;> cases hc : carry x y i
                  <;> simp [bit_val, toNat, @ofBits_succ _ i 1, two_pow_succ, hx, hy, hc,
                            ofBits, Nat.add_comm, Nat.add_assoc]
 
-theorem bitwise_add_eq_add (x y : Nat) : bitwise_add x y i = (x + y) % 2 ^ i := by
-  rw [Nat.add_mod, bitwise_add_eq_add_base]
+theorem bitadd_eq_add (x y : Nat) : bitadd x y i = (x + y) % 2 ^ i := by
+  rw [Nat.add_mod, bitadd_eq_add_base]
   cases i
   · simp [mod_one, ofBits]
-  · simp [bitwise_add, Nat.mod_eq_of_lt ofBits_lt]
+  · simp [bitadd, Nat.mod_eq_of_lt ofBits_lt]
 
-theorem BV_add {x y : BitVec w} : bitwise_add (x.toNat) y.toNat w = (x + y).toNat := by
-  rw [bitwise_add_eq_add]
+theorem BV_add {x y : BitVec w} : bitadd (x.toNat) y.toNat w = (x + y).toNat := by
+  rw [bitadd_eq_add]
   rfl
