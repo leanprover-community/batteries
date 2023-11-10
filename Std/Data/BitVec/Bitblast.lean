@@ -25,7 +25,7 @@ theorem testBit_two_pow_mul_add {n b w i} (h : i < w) :
   rw [Nat.pow_add, Nat.pow_one, Nat.mul_assoc]
   simp
 
-theorem testBit_two_pow_mul_toNat_add {n w b} (h : n < 2 ^ w) :
+theorem testBit_two_pow_mul_bit_add {n w b} (h : n < 2 ^ w) :
     testBit (2 ^ w * (bit b 0) + n) w = b := by
   simp only [testBit, shiftRight_eq_div_pow]
   rw [Nat.add_comm, add_mul_div_left _ _ (two_pow_pos _), Nat.div_eq_of_lt h, Nat.zero_add]
