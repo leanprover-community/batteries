@@ -31,7 +31,7 @@ theorem testBit_two_pow_mul_bit_add {n w b} (h : n < 2 ^ w) :
   rw [Nat.add_comm, add_mul_div_left _ _ (two_pow_pos _), Nat.div_eq_of_lt h, Nat.zero_add]
   cases b <;> simp
 
-@[simp] theorem toNat_eq_bif {b: Bool} : cond b 1 0 = toNat b := by simp [cond, toNat]
+@[simp] theorem cond_eq_toNat {b: Bool} : cond b 1 0 = toNat b := by simp [cond, toNat]
 
 theorem shiftRight_eq_testBit (x i : Nat) : (x >>> i) % 2 = toNat (testBit x i) := by
   simp [Nat.testBit, Nat.mod_two_of_bodd, toNat_eq_bif]
