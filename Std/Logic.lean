@@ -513,7 +513,7 @@ theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p 
   ⟨fun h a ha => h (f a) a ha rfl, fun h _ a ha hb => hb ▸ h a ha⟩
 
 theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬p) : (∀ h' : p, q h') ↔ True :=
-  iff_true_intro fun h ↦ hn.elim h
+  iff_true_intro fun h => hn.elim h
 
 end quantifiers
 
@@ -765,11 +765,11 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
   dite_not P (fun _ => x) (fun _ => y)
 
 @[simp] theorem dite_eq_left_iff {P : Prop} [Decidable P] {B : ¬ P → α} :
-    dite P (fun _ ↦ a) B = a ↔ ∀ h, B h = a := by
+    dite P (fun _ => a) B = a ↔ ∀ h, B h = a := by
   by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
 
 @[simp] theorem dite_eq_right_iff {P : Prop} [Decidable P] {A : P → α} :
-    (dite P A fun _ ↦ b) = b ↔ ∀ h, A h = b := by
+    (dite P A fun _ => b) = b ↔ ∀ h, A h = b := by
   by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
 
 @[simp] theorem ite_eq_left_iff {P : Prop} [Decidable P] : ite P a b = a ↔ ¬P → b = a :=
