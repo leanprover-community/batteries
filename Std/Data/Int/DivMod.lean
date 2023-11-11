@@ -32,7 +32,7 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
-@[local simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
+@[simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
@@ -42,8 +42,7 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
--- Will be generalized to Euclidean domains.
-@[local simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
+@[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
@@ -605,7 +604,7 @@ protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
 protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
   | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
 
-protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
+@[simp] protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
   ⟨fun ⟨k, e⟩ => by rw [e, Int.zero_mul], fun h => h.symm ▸ Int.dvd_refl _⟩
 
 protected theorem neg_dvd {a b : Int} : -a ∣ b ↔ a ∣ b := by

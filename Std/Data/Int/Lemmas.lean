@@ -30,7 +30,7 @@ theorem subNatNat_of_sub_eq_zero {m n : Nat} (h : n - m = 0) : subNatNat m n = �
 theorem subNatNat_of_sub_eq_succ {m n k : Nat} (h : n - m = succ k) : subNatNat m n = -[k+1] := by
   rw [subNatNat, h]
 
-@[local simp] protected theorem neg_zero : -(0:Int) = 0 := rfl
+@[simp] protected theorem neg_zero : -(0:Int) = 0 := rfl
 
 theorem ofNat_add (n m : Nat) : (↑(n + m) : Int) = n + m := rfl
 theorem ofNat_mul (n m : Nat) : (↑(n * m) : Int) = n * m := rfl
@@ -87,7 +87,7 @@ theorem negSucc_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 protected theorem neg_inj {a b : Int} : -a = -b ↔ a = b :=
   ⟨fun h => by rw [← Int.neg_neg a, ← Int.neg_neg b, h], congrArg _⟩
 
-protected theorem neg_eq_zero : -a = 0 ↔ a = 0 := Int.neg_inj (b := 0)
+@[simp] protected theorem neg_eq_zero : -a = 0 ↔ a = 0 := Int.neg_inj (b := 0)
 
 protected theorem neg_ne_zero : -a ≠ 0 ↔ a ≠ 0 := not_congr Int.neg_eq_zero
 
@@ -221,11 +221,11 @@ protected theorem add_comm : ∀ a b : Int, a + b = b + a
   | -[_+1],  ofNat _ => rfl
   | -[_+1],  -[_+1]  => by simp [Nat.add_comm]
 
-@[local simp] protected theorem add_zero : ∀ a : Int, a + 0 = a
+@[simp] protected theorem add_zero : ∀ a : Int, a + 0 = a
   | ofNat _ => rfl
   | -[_+1]  => rfl
 
-@[local simp] protected theorem zero_add (a : Int) : 0 + a = a := Int.add_comm .. ▸ a.add_zero
+@[simp] protected theorem zero_add (a : Int) : 0 + a = a := Int.add_comm .. ▸ a.add_zero
 
 theorem ofNat_add_negSucc_of_lt (h : m < n.succ) : ofNat m + -[n+1] = -[n - m+1] :=
   show subNatNat .. = _ by simp [succ_sub (le_of_lt_succ h), subNatNat]
@@ -340,12 +340,12 @@ protected theorem add_left_cancel {a b c : Int} (h : a + b = a + c) : b = c := b
 
 @[simp] theorem negSucc_sub_one (n : Nat) : -[n+1] - 1 = -[n + 1 +1] := rfl
 
-protected theorem sub_self (a : Int) : a - a = 0 := by
+@[simp] protected theorem sub_self (a : Int) : a - a = 0 := by
   rw [Int.sub_eq_add_neg, Int.add_right_neg]
 
-protected theorem sub_zero (a : Int) : a - 0 = a := by simp [Int.sub_eq_add_neg]
+@[simp] protected theorem sub_zero (a : Int) : a - 0 = a := by simp [Int.sub_eq_add_neg]
 
-protected theorem zero_sub (a : Int) : 0 - a = -a := by simp [Int.sub_eq_add_neg]
+@[simp] protected theorem zero_sub (a : Int) : 0 - a = -a := by simp [Int.sub_eq_add_neg]
 
 protected theorem sub_eq_zero_of_eq {a b : Int} (h : a = b) : a - b = 0 := by
   rw [h, Int.sub_self]
