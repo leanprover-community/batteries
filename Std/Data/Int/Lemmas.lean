@@ -20,6 +20,8 @@ namespace Int
 
 @[simp] theorem ofNat_one  : ((1 : Nat) : Int) = 1 := rfl
 
+theorem ofNat_two : ((2 : Nat) : Int) = 2 := rfl
+
 @[simp] theorem default_eq_zero : default = (0 : Int) := rfl
 
 /- ## Definitions of basic functions -/
@@ -194,9 +196,10 @@ theorem natAbs_eq_iff {a : Int} {n : Nat} : a.natAbs = n ↔ a = n ∨ a = -↑n
 
 @[simp] theorem sign_zero : sign 0 = 0 := rfl
 @[simp] theorem sign_one : sign 1 = 1 := rfl
-theorem sign_neg_one : sign (-1) = -1 := rfl
+@[simp] theorem sign_neg_one : sign (-1) = -1 := rfl
 
-theorem sign_of_succ (n : Nat) : sign (Nat.succ n) = 1 := rfl
+@[simp] theorem sign_of_add_one (x : Nat) : Int.sign (x + 1) = 1 := rfl
+@[simp] theorem sign_negSucc (x : Nat) : Int.sign (Int.negSucc x) = -1 := rfl
 
 theorem natAbs_sign (z : Int) : z.sign.natAbs = if z = 0 then 0 else 1 :=
   match z with | 0 | succ _ | -[_+1] => rfl
@@ -206,7 +209,7 @@ theorem natAbs_sign_of_nonzero {z : Int} (hz : z ≠ 0) : z.sign.natAbs = 1 := b
 
 theorem sign_ofNat_of_nonzero {n : Nat} (hn : n ≠ 0) : Int.sign n = 1 :=
   match n, Nat.exists_eq_succ_of_ne_zero hn with
-  | _, ⟨n, rfl⟩ => Int.sign_of_succ n
+  | _, ⟨n, rfl⟩ => Int.sign_of_add_one n
 
 @[simp] theorem sign_neg (z : Int) : Int.sign (-z) = -Int.sign z := by
   match z with | 0 | succ _ | -[_+1] => rfl
