@@ -196,7 +196,7 @@ theorem natAbs_eq_iff {a : Int} {n : Nat} : a.natAbs = n ↔ a = n ∨ a = -↑n
 
 @[simp] theorem sign_zero : sign 0 = 0 := rfl
 @[simp] theorem sign_one : sign 1 = 1 := rfl
-@[simp] theorem sign_neg_one : sign (-1) = -1 := rfl
+theorem sign_neg_one : sign (-1) = -1 := rfl
 
 @[simp] theorem sign_of_add_one (x : Nat) : Int.sign (x + 1) = 1 := rfl
 @[simp] theorem sign_negSucc (x : Nat) : Int.sign (Int.negSucc x) = -1 := rfl
