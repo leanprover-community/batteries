@@ -450,3 +450,12 @@ def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool 
     That is, the new bit is the most significant bit. -/
 def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
   ((ofBool msb) ++ lsbs).cast (Nat.add_comm ..)
+
+/-- Every bitvector of length 0 is equal to `nil`, i.e., there is only one empty bitvector -/
+theorem eq_nil : ∀ (x : BitVec 0), x = nil
+  | ofFin ⟨0, _⟩ => rfl
+
+@[simp]
+theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
+    msbs ++ ofBool lsb = concat msbs lsb :=
+  rfl
