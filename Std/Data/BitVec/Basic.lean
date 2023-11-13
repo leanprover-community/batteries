@@ -479,12 +479,10 @@ def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
 theorem eq_nil : ∀ (x : BitVec 0), x = nil
   | ofFin ⟨0, _⟩ => rfl
 
-@[simp]
 theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
     msbs ++ ofBool lsb = concat msbs lsb :=
   rfl
 
-@[simp]
 theorem ofBool_append (msb : Bool) (lsbs : BitVec w) :
     ofBool msb ++ lsbs = (cons msb lsbs).cast (Nat.add_comm ..) :=
   rfl
