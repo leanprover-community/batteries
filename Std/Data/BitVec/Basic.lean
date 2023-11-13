@@ -433,6 +433,7 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem add_eq (x y : BitVec w)                   : BitVec.add x y = x + y            := rfl
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
+@[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
 
 @[simp]
 theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
