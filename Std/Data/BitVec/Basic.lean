@@ -458,6 +458,14 @@ def ofBool : Bool → BitVec 1
 /-- The empty bitvector -/
 abbrev nil : BitVec 0 := 0
 
+/-!
+### Cons and Concat
+We give special names to the operations of adding a single bit to either end of a bitvector.
+We follow the precedent of `Vector.cons`/`Vector.concat` both for the name, and for the decision
+to have the resulting size be `n + 1` for both operations (rather than `1 + n`, which would be the
+result of appending a single bit to the front in the naive implementation).
+-/
+
 /-- Append a single bit to the end of a bitvector, using big endian order (see `append`).
     That is, the new bit is the least significant bit. -/
 def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool lsb)
