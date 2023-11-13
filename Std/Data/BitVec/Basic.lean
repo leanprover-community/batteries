@@ -475,6 +475,10 @@ def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool 
 def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
   ((ofBool msb) ++ lsbs).cast (Nat.add_comm ..)
 
+/-- All empty bitvectors are equal -/
+instance : Subsingleton (BitVec 0) where
+  allEq := by intro ⟨0, _⟩ ⟨0, _⟩; rfl
+
 /-- Every bitvector of length 0 is equal to `nil`, i.e., there is only one empty bitvector -/
 theorem eq_nil : ∀ (x : BitVec 0), x = nil
   | ofFin ⟨0, _⟩ => rfl
