@@ -440,8 +440,7 @@ def ofBool : Bool → BitVec 1
   | true  => 1
 
 /-- The empty bitvector -/
-def nil : BitVec 0 :=
-  BitVec.zero 0
+abbrev nil : BitVec 0 := 0
 
 /-- Append a single bit to the end of a bitvector, using big endian order (see `append`).
     That is, the new bit is the least significant bit. -/
