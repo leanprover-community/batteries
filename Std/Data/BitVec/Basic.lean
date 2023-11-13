@@ -434,6 +434,21 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
 
+@[simp]
+theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
+    cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
+  subst h; rfl
+
+@[simp]
+theorem cast_cast {n m k : Nat} (h₁ : n = m) (h₂ : m = k) (x : BitVec n) :
+    cast h₂ (cast h₁ x) = cast (h₁ ▸ h₂) x :=
+  rfl
+
+@[simp]
+theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
+    cast h x = x :=
+  rfl
+
 /-- Turn a `Bool` into a bitvector of length `1` -/
 def ofBool : Bool → BitVec 1
   | false => 0
@@ -458,4 +473,9 @@ theorem eq_nil : ∀ (x : BitVec 0), x = nil
 @[simp]
 theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
     msbs ++ ofBool lsb = concat msbs lsb :=
+  rfl
+
+@[simp]
+theorem ofBool_append (msb : Bool) (lsbs : BitVec w) :
+    ofBool msb ++ lsbs = (cons msb lsbs).cast (Nat.add_comm ..) :=
   rfl
