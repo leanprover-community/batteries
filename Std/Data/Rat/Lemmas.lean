@@ -99,7 +99,7 @@ theorem mkRat_self (a : Rat) : mkRat a.num a.den = a := by
 theorem mk_eq_mkRat (num den nz c) : ⟨num, den, nz, c⟩ = mkRat num den := by
   simp [mk_eq_normalize, normalize_eq_mkRat]
 
-@[simp] theorem zero_mkRat (n) : mkRat 0 n = 0 := by simp [mkRat_def]; apply ite_self
+@[simp] theorem zero_mkRat (n) : mkRat 0 n = 0 := by simp [mkRat_def]
 
 @[simp] theorem mkRat_zero (n) : mkRat n 0 = 0 := by simp [mkRat_def]
 
