@@ -928,35 +928,20 @@ theorem dvd_bmod_sub_self {x : Int} {m : Nat} : (m : Int) ∣ bmod x m - x := by
   · rw [Int.sub_sub, Int.add_comm, ← Int.sub_sub]
     exact Int.dvd_sub dvd_emod_sub_self (Int.dvd_refl _)
 
-theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - m/2 ≤ Int.bmod x m := by
+theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - (m/2) ≤ Int.bmod x m := by
   dsimp [bmod]
   have v : (m : Int) % 2 = 0 ∨ (m : Int) % 2 = 1 := emod_two_eq _
   split <;> rename_i w
   · refine Int.le_trans ?_ (Int.emod_nonneg _ ?_)
-    · rw [← ediv_add_emod m 2, Int.neg_add, ← Int.neg_mul, Int.neg_mul_comm,
-        Int.add_ediv_of_dvd_left, Int.mul_ediv_cancel_left, ← Int.add_zero 0]
-      apply Int.add_le_add
-      · rw [← Int.neg_zero]
-        apply Int.neg_le_neg
-        apply Int.ediv_nonneg
-        · apply Int.le_of_lt
-          simp only [ofNat_pos]
-          assumption
-        · decide
-      · generalize h : (m : Int) % 2 = r at *
-        rcases v with rfl | rfl <;> decide
-      · decide
-      · apply Int.dvd_mul_right
-    · apply Int.ne_of_gt
-      simp only [ofNat_pos]
-      assumption
+    · exact Int.neg_nonpos_of_nonneg (Int.ediv_nonneg (Int.ofNat_nonneg _) (by decide))
+    · exact Int.ne_of_gt (ofNat_pos.mpr h)
   · simp [Int.not_lt] at w
     refine Int.le_trans ?_ (Int.sub_le_sub_right w _)
     rw [← ediv_add_emod m 2]
     generalize (m : Int) / 2 = q
     generalize h : (m : Int) % 2 = r at *
     rcases v with rfl | rfl
-    · rw [Int.add_zero, Int.neg_ediv_of_dvd, Int.mul_ediv_cancel_left, Int.add_ediv_of_dvd_left,
+    · rw [Int.add_zero, Int.mul_ediv_cancel_left, Int.add_ediv_of_dvd_left,
         Int.mul_ediv_cancel_left, show (1 / 2 : Int) = 0 by decide, Int.add_zero,
         Int.neg_eq_neg_one_mul]
       conv => rhs; congr; rw [← Int.one_mul q]
@@ -964,21 +949,17 @@ theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - m/2 ≤ Int.bmod x m := by
       apply Int.le_refl
       all_goals try decide
       all_goals apply Int.dvd_mul_right
-    · rw [Int.neg_add, Int.add_ediv_of_dvd_left, Int.neg_ediv_of_dvd, Int.mul_ediv_cancel_left,
-        show (-1 / 2 : Int) = -1 by decide, Int.add_assoc, Int.add_ediv_of_dvd_left,
+    · rw [Int.add_ediv_of_dvd_left, Int.mul_ediv_cancel_left,
+        show (1 / 2 : Int) = 0 by decide, Int.add_assoc, Int.add_ediv_of_dvd_left,
         Int.mul_ediv_cancel_left, show ((1 + 1) / 2 : Int) = 1 by decide, ← Int.sub_sub,
         Int.sub_eq_add_neg, Int.sub_eq_add_neg, Int.add_right_comm, Int.add_assoc q,
         show (1 + -1 : Int) = 0 by decide, Int.add_zero, ← Int.neg_mul]
-      apply Int.le_of_lt
-      apply Int.sub_one_lt_of_le
       rw [Int.neg_eq_neg_one_mul]
       conv => rhs; congr; rw [← Int.one_mul q]
       rw [← Int.add_mul, show (1 + -2 : Int) = -1 by decide]
       apply Int.le_refl
       all_goals try decide
       all_goals try apply Int.dvd_mul_right
-      rw [← Int.neg_mul, Int.neg_mul_comm]
-      apply Int.dvd_mul_right
 
 theorem bmod_lt {x : Int} {m : Nat} (h : 0 < m) : bmod x m < (m + 1) / 2 := by
   dsimp [bmod]
