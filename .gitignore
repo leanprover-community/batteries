@@ -1,6 +1,4 @@
-/build
-/prelude/build
-lakefile.olean
+/.lake/
 # Note: because std has no dependencies, the lake-manifest contains no information
 # that is not regenerated automatically by lake, so this avoids conflicts when
 # lake decides to upgrade its manifest version.
