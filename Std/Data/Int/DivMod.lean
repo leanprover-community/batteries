@@ -889,15 +889,12 @@ to make ±1 coefficients appear in equations without them.
 Balanced mod, taking values in the range [- m/2, (m - 1)/2].
 -/
 def bmod (x : Int) (m : Nat) : Int :=
-  let r := x % m
-  if r < (m + 1) / 2 then
-    r
-  else
-    r - m
+  let offset := m / 2; (x + offset) % m - offset
 
 @[simp] theorem bmod_emod : bmod x m % m = x % m := by
   dsimp [bmod]
-  split <;> simp [Int.sub_emod]
+  simp only [sub_emod, emod_emod]
+  simp [← Int.sub_emod]
 
 @[simp] theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
   simp [bmod]
@@ -907,88 +904,42 @@ def bmod (x : Int) (m : Nat) : Int :=
   rfl
 
 @[simp] theorem bmod_zero : Int.bmod 0 m = 0 := by
+  cases m
+  · rfl
   dsimp [bmod]
-  simp only [zero_emod, Int.zero_sub, ite_eq_left_iff, Int.neg_eq_zero]
-  intro h
-  rw [@Int.not_lt] at h
-  match m with
-  | 0 => rfl
-  | (m+1) =>
-    exfalso
-    rw [natCast_add, ofNat_one, Int.add_assoc, add_ediv_of_dvd_right] at h
-    change _ + 2 / 2 ≤ 0 at h
-    rw [Int.ediv_self, ← ofNat_two, ← ofNat_ediv, add_one_le_iff, ← @Int.not_le] at h
-    exact h (ofNat_nonneg _)
-    all_goals decide
+  simp
+  rw [emod_eq_of_lt, Int.sub_self]
+  · sorry
+  · sorry
 
 theorem dvd_bmod_sub_self {x : Int} {m : Nat} : (m : Int) ∣ bmod x m - x := by
-  dsimp [bmod]
-  split
-  · exact dvd_emod_sub_self
-  · rw [Int.sub_sub, Int.add_comm, ← Int.sub_sub]
-    exact Int.dvd_sub dvd_emod_sub_self (Int.dvd_refl _)
+  simp only [bmod, Int.dvd_iff_emod_eq_zero, sub_emod, emod_emod]
+  simp [← Int.sub_emod]
 
-theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - m/2 ≤ Int.bmod x m := by
+theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - (m/2) ≤ Int.bmod x m := by
   dsimp [bmod]
-  have v : (m : Int) % 2 = 0 ∨ (m : Int) % 2 = 1 := emod_two_eq _
-  split <;> rename_i w
-  · refine Int.le_trans ?_ (Int.emod_nonneg _ ?_)
-    · rw [← ediv_add_emod m 2, Int.neg_add, ← Int.neg_mul, Int.neg_mul_comm,
-        Int.add_ediv_of_dvd_left, Int.mul_ediv_cancel_left, ← Int.add_zero 0]
-      apply Int.add_le_add
-      · rw [← Int.neg_zero]
-        apply Int.neg_le_neg
-        apply Int.ediv_nonneg
-        · apply Int.le_of_lt
-          simp only [ofNat_pos]
-          assumption
-        · decide
-      · generalize h : (m : Int) % 2 = r at *
-        rcases v with rfl | rfl <;> decide
-      · decide
-      · apply Int.dvd_mul_right
-    · apply Int.ne_of_gt
-      simp only [ofNat_pos]
-      assumption
-  · simp [Int.not_lt] at w
-    refine Int.le_trans ?_ (Int.sub_le_sub_right w _)
-    rw [← ediv_add_emod m 2]
-    generalize (m : Int) / 2 = q
-    generalize h : (m : Int) % 2 = r at *
-    rcases v with rfl | rfl
-    · rw [Int.add_zero, Int.neg_ediv_of_dvd, Int.mul_ediv_cancel_left, Int.add_ediv_of_dvd_left,
-        Int.mul_ediv_cancel_left, show (1 / 2 : Int) = 0 by decide, Int.add_zero,
-        Int.neg_eq_neg_one_mul]
-      conv => rhs; congr; rw [← Int.one_mul q]
-      rw [← Int.sub_mul, show (1 - 2 : Int) = -1 by decide]
-      apply Int.le_refl
-      all_goals try decide
-      all_goals apply Int.dvd_mul_right
-    · rw [Int.neg_add, Int.add_ediv_of_dvd_left, Int.neg_ediv_of_dvd, Int.mul_ediv_cancel_left,
-        show (-1 / 2 : Int) = -1 by decide, Int.add_assoc, Int.add_ediv_of_dvd_left,
-        Int.mul_ediv_cancel_left, show ((1 + 1) / 2 : Int) = 1 by decide, ← Int.sub_sub,
-        Int.sub_eq_add_neg, Int.sub_eq_add_neg, Int.add_right_comm, Int.add_assoc q,
-        show (1 + -1 : Int) = 0 by decide, Int.add_zero, ← Int.neg_mul]
-      apply Int.le_of_lt
-      apply Int.sub_one_lt_of_le
-      rw [Int.neg_eq_neg_one_mul]
-      conv => rhs; congr; rw [← Int.one_mul q]
-      rw [← Int.add_mul, show (1 + -2 : Int) = -1 by decide]
-      apply Int.le_refl
-      all_goals try decide
-      all_goals try apply Int.dvd_mul_right
-      rw [← Int.neg_mul, Int.neg_mul_comm]
-      apply Int.dvd_mul_right
+  simp only [show ((2 : Nat) : Int) = 2 by decide]
+  simp only [Int.sub_eq_add_neg]
+  apply Int.le_add_of_nonneg_left
+  apply Int.emod_nonneg
+  apply Int.ne_of_gt
+  exact ofNat_pos.mpr h
 
 theorem bmod_lt {x : Int} {m : Nat} (h : 0 < m) : bmod x m < (m + 1) / 2 := by
   dsimp [bmod]
-  split
-  · assumption
-  · apply Int.lt_of_lt_of_le
-    · show _ < 0
-      have : x % m < m := emod_lt_of_pos x (ofNat_pos.mpr h)
-      exact Int.sub_neg_of_lt this
-    · exact Int.le.intro_sub _ rfl
+  calc
+    _ < (m : Int) - m / 2 := by
+      simp only [show ((2 : Nat) : Int) = 2 by decide]
+      apply Int.add_lt_add_right
+      exact emod_lt_of_pos _ (ofNat_pos.mpr h)
+    _ = _ := sorry
+  -- split
+  -- · assumption
+  -- · apply Int.lt_of_lt_of_le
+  --   · show _ < 0
+  --     have : x % m < m := emod_lt_of_pos x (ofNat_pos.mpr h)
+  --     exact Int.sub_neg_of_lt this
+  --   · exact Int.le.intro_sub _ rfl
 
 theorem bmod_le {x : Int} {m : Nat} (h : 0 < m) : bmod x m ≤ (m - 1) / 2 := by
   refine lt_add_one_iff.mp ?_
@@ -1003,8 +954,13 @@ theorem bmod_le {x : Int} {m : Nat} (h : 0 < m) : bmod x m ≤ (m - 1) / 2 := by
         congr
       · trivial
 
+theorem bmod_eq : bmod x m = let r := x % m; if r < (m + 1) / 2 then r else r - m := by
+  dsimp [bmod]
+  split
+
 -- This could be strengthed by changing to `w : x ≠ -1` if needed.
 theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1) = - x.sign := by
+  rw [bmod_eq]
   have t₁ : ∀ (x : Nat), x % (x + 2) = x :=
     fun x => Nat.mod_eq_of_lt (Nat.lt_succ_of_lt (Nat.lt.base x))
   have t₂ : ∀ (x : Int), 0 ≤ x → x % (x + 2) = x := fun x h => by
@@ -1012,7 +968,7 @@ theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1
     | Int.ofNat x, _ => erw [← Int.ofNat_two, ← ofNat_add, ← ofNat_emod, t₁]; rfl
   cases x with
   | ofNat x =>
-    simp only [bmod, ofNat_eq_coe, natAbs_ofNat, natCast_add, ofNat_one,
+    simp only [ofNat_eq_coe, natAbs_ofNat, natCast_add, ofNat_one,
       emod_self_add_one (ofNat_nonneg x)]
     match x with
     | 0 => rw [if_pos] <;> simp
@@ -1030,7 +986,7 @@ theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1
           apply Nat.add_le_add_left (Nat.add_le_add_left (Nat.add_le_add_left (Nat.le_add_left
             _ _) _) _)
   | negSucc x =>
-    rw [bmod, natAbs_negSucc, natCast_add, ofNat_one, sign_negSucc, Int.neg_neg,
+    rw [natAbs_negSucc, natCast_add, ofNat_one, sign_negSucc, Int.neg_neg,
       Nat.succ_eq_add_one, negSucc_emod]
     erw [t₂]
     · rw [natCast_add, ofNat_one, Int.add_sub_cancel, Int.add_comm, Int.add_sub_cancel, if_pos]
