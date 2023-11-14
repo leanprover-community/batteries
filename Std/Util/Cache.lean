@@ -33,7 +33,7 @@ This kind of cache can be used e.g. to populate discrimination trees.
 
 open Lean Meta
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 
 /-- Once-per-file cache. -/
 def Cache (α : Type) := IO.Ref <| MetaM α ⊕ Task (Except Exception α)
