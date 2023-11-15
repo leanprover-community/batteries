@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
-import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.RCases
+import Std.Data.Bool
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
@@ -1255,10 +1255,10 @@ theorem bodd_succ (n : Nat) : bodd (succ n) = not (bodd n) := by
   cases mod_two_eq_zero_or_one n with | _ h => simp [h]
 
 @[simp]
-theorem bodd_add (m n : Nat) : bodd (m + n) = (bodd m != bodd n) := by
+theorem bodd_add (m n : Nat) : bodd (m + n) = ((bodd m).xor (bodd n)) := by
   induction n with
-  | zero => simp [bne]
-  | succ n ih => simp [add_succ, ih, bne, Bool.not_beq_not]
+  | zero => simp
+  | succ n ih => simp [add_succ, ih, Bool.xor_not]
 
 @[simp]
 theorem bodd_mul (m n : Nat) : bodd (m * n) = (bodd m && bodd n) := by
