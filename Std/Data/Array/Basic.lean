@@ -3,9 +3,9 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
+import Std.Data.List.Init.Attach
 import Std.Data.Array.Init.Basic
 import Std.Data.Ord
-import Std.Data.List.Basic
 
 /-!
 ## Definitions on Arrays
