@@ -4,9 +4,9 @@ institutional affiliations. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura, Mario Carneiro, Alex Keizer
 -/
-import Std.Data.Nat.Init.Lemmas
 import Std.Data.Fin.Basic
 import Std.Data.Int.Basic
+import Std.Data.Nat.Bitwise
 import Std.Tactic.Alias
 
 namespace Std
@@ -50,8 +50,18 @@ protected def ofNat (n : Nat) (i : Nat) : BitVec n where
 (zero-cost) wrapper around a `Nat`. -/
 protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
+/-- Return the bound in terms of toNat. -/
+theorem isLt (x : BitVec w) : x.toNat < 2^w := x.toFin.isLt
+
+/-- Prove equality of bitvectors in terms of nat operations. -/
+theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
+  | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
+
+theorem toNat_eq (x y : BitVec n) : x = y ↔ x.toNat = y.toNat :=
+  Iff.intro (congrArg BitVec.toNat) eq_of_toNat_eq
+
 /-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
-@[inline] def getLsb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
+@[inline] def getLsb : BitVec w -> Nat -> Bool | ⟨x,_⟩, i => (x >>> i) % 2 == 1
 
 /-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
 @[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
@@ -271,7 +281,8 @@ Bitwise AND for bit vectors.
 
 SMT-Lib name: `bvand`.
 -/
-protected def and (x y : BitVec n) : BitVec n where toFin := x.toFin &&& y.toFin
+protected def and (x y : BitVec n) : BitVec n where toFin :=
+   ⟨x.toNat &&& y.toNat, Nat.land_lt_2_pow x.isLt y.isLt⟩
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -283,7 +294,8 @@ Bitwise OR for bit vectors.
 
 SMT-Lib name: `bvor`.
 -/
-protected def or (x y : BitVec n) : BitVec n where toFin := x.toFin ||| y.toFin
+protected def or (x y : BitVec n) : BitVec n where toFin :=
+   ⟨x.toNat ||| y.toNat, Nat.lor_lt_2_pow x.isLt y.isLt⟩
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
@@ -295,7 +307,8 @@ instance : OrOp (BitVec w) := ⟨.or⟩
 
 SMT-Lib name: `bvxor`.
 -/
-protected def xor (x y : BitVec n) : BitVec n where toFin := x.toFin ^^^ y.toFin
+protected def xor (x y : BitVec n) : BitVec n where toFin :=
+   ⟨x.toNat ^^^ y.toNat, Nat.xor_lt_2_pow x.isLt y.isLt⟩
 instance : Xor (BitVec w) := ⟨.xor⟩
 
 /--
@@ -362,13 +375,28 @@ SMT-Lib name: `rotate_right` except this operator uses a `Nat` shift amount.
 def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 
 /--
+A version of `zeroExtend` that requires a proof, but is a noop.
+-/
+def zeroExtend' (w:Nat) (x : BitVec n) (le : n ≤ w) : BitVec w :=
+  ⟨x.toNat, by
+    apply Nat.lt_of_lt_of_le x.isLt
+    exact Nat.pow_le_pow_of_le_right (by trivial) le⟩
+
+/--
 Concatenation of bitvectors. This uses the "big endian" convention that the more significant
 input is on the left, so `0xab#8 ++ 0xcd#8 = 0xabcd#16`.
 
 SMT-Lib name: `concat`.
 -/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
-  .ofNat (n + m) (msbs.toNat <<< m ||| lsbs.toNat)
+  ⟨msbs.toNat <<< m, by
+    apply Nat.shiftLeft_lt_2_pow
+    simp only [Nat.add_sub_cancel]
+    exact msbs.isLt
+  ⟩ ||| zeroExtend' (n+m) lsbs (by apply Nat.le_add_left)
+
+  -- (by apply Nat.le_add_right) <<< m)
+
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 

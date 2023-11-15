@@ -30,6 +30,6 @@ theorem Heap.deleteMin_fst : ((s : Heap α).deleteMin le).map (·.1) = s.head? l
   | .nil, _ => rfl
   | .cons .., ⟨_, h₁, h₂⟩ => by
     simp [size, Nat.shiftLeft, size_eq h₂, Nat.pow_succ, Nat.mul_succ]
-    simp [Nat.add_assoc, Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
+    simp [Nat.add_assoc, Nat.shiftLeft_eq, h₁.realSize_eq, h₂.size_eq]
 
 end Imp

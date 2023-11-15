@@ -1014,14 +1014,6 @@ theorem pow_succ' {m n : Nat} : m ^ n.succ = m * m ^ n := by
 
 @[simp] theorem pow_eq {m n : Nat} : m.pow n = m ^ n := rfl
 
-@[simp] theorem shiftLeft_eq (a b : Nat) : a <<< b = a * 2 ^ b :=
-  match b with
-  | 0 => (Nat.mul_one _).symm
-  | b+1 => (shiftLeft_eq _ b).trans <| by
-    simp [pow_succ, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
-
-theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
-
 attribute [simp] Nat.pow_zero
 
 protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
@@ -1200,22 +1192,50 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
 
-/-! ### shiftRight -/
+/-! ### shiftLeft and shiftRight -/
+
+theorem shiftLeft_eq (a b : Nat) : a <<< b = a * 2 ^ b :=
+  match b with
+  | 0 => (Nat.mul_one _).symm
+  | b+1 => (shiftLeft_eq _ b).trans <| by
+    simp [pow_succ, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
+
+@[deprecated]
+theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
+
+@[simp] theorem shiftLeft_zero : n <<< 0 = n := rfl
+
+/-- Shiftleft on successor with multiple moved inside. -/
+theorem shiftLeft_succ_inside (m n : Nat) : m <<< (n+1) = (2*m) <<< n := rfl
+
+/-- Shiftleft on successor with multiple moved to outside. -/
+theorem shiftLeft_succ : ∀(m n), m <<< (n + 1) = 2 * (m <<< n)
+| m, 0 => rfl
+| m, k + 1 => by
+  rw [shiftLeft_succ_inside _ (k+1)]
+  rw [shiftLeft_succ _ k, shiftLeft_succ_inside]
 
 @[simp] theorem shiftRight_zero : n >>> 0 = n := rfl
 
-@[simp] theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
+theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
+
+/-- Shiftleft on successor with division moved inside. -/
+theorem shiftRight_succ_inside : ∀m n, m >>> (n+1) = (m/2) >>> n
+| m, 0 => rfl
+| m, k + 1 => by
+  rw [shiftRight_succ _ (k+1)]
+  rw [shiftRight_succ_inside _ k, shiftRight_succ]
 
 @[simp] theorem zero_shiftRight : ∀ n, 0 >>> n = 0
   | 0 => by simp [shiftRight]
-  | n + 1 => by simp [shiftRight, zero_shiftRight]
+  | n + 1 => by simp [shiftRight, zero_shiftRight, shiftRight_succ]
 
 theorem shiftRight_add (m n : Nat) : ∀ k, m >>> (n + k) = (m >>> n) >>> k
   | 0 => rfl
-  | k + 1 => by simp [add_succ, shiftRight_add]
+  | k + 1 => by simp [add_succ, shiftRight_add, shiftRight_succ]
 
 theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | 0 => (Nat.div_one _).symm
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
-    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
+    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ, shiftRight_succ]
