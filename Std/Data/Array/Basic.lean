@@ -159,7 +159,6 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
 
 end Subarray
 
-
 /--
 Unsafe implementation of `attach`, taking advantage of the fact that the representation of
 `Array {x // x ∈ xs}` is the same as the input `Array α`.
