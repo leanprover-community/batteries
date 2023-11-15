@@ -7,6 +7,7 @@ import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
+import Std.Data.List.Init.Attach
 
 namespace List
 
@@ -746,39 +747,6 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 
 /-- Return the index of the first occurrence of `a` in the list. -/
 @[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
-
-/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
-  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
-  but is defined only when all members of `l` satisfy `p`, using the proof
-  to apply `f`. -/
-@[simp] def pmap {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β
-  | [], _ => []
-  | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
-
-/--
-Unsafe implementation of `attach`, taking advantage of the fact that the representation of
-`List {x // x ∈ l}` is the same as the input `List α`.
-(Someday, the compiler might do this optimization automatically, but until then...)
--/
-@[inline] private unsafe def attachImpl (l : List α) : List {x // x ∈ l} := unsafeCast l
-
-/-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
-  with the same elements but in the type `{x // x ∈ l}`. -/
-@[implemented_by attachImpl] def attach (l : List α) : List {x // x ∈ l} :=
-  pmap Subtype.mk l fun _ => id
-
-/-- Implementation of `pmap` using the zero-copy version of `attach`. -/
-@[inline] private def pmapImpl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) :
-    List β := l.attach.map fun ⟨x, h'⟩ => f x (h _ h')
-
-@[csimp] private theorem pmap_eq_pmapImpl : @pmap = @pmapImpl := by
-  funext α β p f L h'
-  let rec go : ∀ L' (hL' : L' ⊆ L),
-      pmap f L' (fun _ h => h' _ <| hL' h) =
-      map (fun ⟨x, hx⟩ => f x (h' _ hx)) (pmap Subtype.mk L' hL')
-  | nil, hL' => rfl
-  | cons _ L', hL' => congrArg _ <| go L' fun _ hx => hL' (.tail _ hx)
-  exact go L fun _ hx => hx
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
