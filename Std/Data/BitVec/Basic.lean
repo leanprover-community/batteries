@@ -395,9 +395,6 @@ def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
     exact msbs.isLt
   ⟩ ||| zeroExtend' (n+m) lsbs (by apply Nat.le_add_left)
 
-  -- (by apply Nat.le_add_right) <<< m)
-
-
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 
 /--
