@@ -61,7 +61,7 @@ theorem toNat_eq (x y : BitVec n) : x = y ↔ x.toNat = y.toNat :=
   Iff.intro (congrArg BitVec.toNat) eq_of_toNat_eq
 
 /-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
-@[inline] def getLsb : BitVec w -> Nat -> Bool | ⟨x,_⟩, i => (x >>> i) % 2 == 1
+@[inline] def getLsb : BitVec w -> Nat -> Bool | ⟨x,_⟩, i => x.testBit i
 
 /-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
 @[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
