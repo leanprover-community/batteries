@@ -6,6 +6,7 @@ Authors: Jannis Limperg, Scott Morrison
 
 import Lean.Meta.DiscrTree
 import Std.Data.Array.Merge
+import Std.Data.Array.Attach
 import Std.Data.Ord
 import Std.Lean.Meta.Expr
 import Std.Lean.PersistentHashMap
@@ -33,42 +34,50 @@ end Key
 
 namespace Trie
 
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
-private unsafe def foldMUnsafe [Monad m] (initialKeys : Array Key)
-    (f : σ → Array Key → α → m σ) (init : σ) : Trie α → m σ
-  | Trie.node vs children => do
-    let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
-    children.foldlM (init := s) fun s (k, t) =>
-      t.foldMUnsafe (initialKeys.push k) f s
+theorem termination_helper {cs : Array (Key × Trie α)} {k : Key} {c : Trie α} (h : (k, c) ∈ cs) :
+    sizeOf c < sizeOf cs := calc
+  sizeOf c < sizeOf (k, c) := by simp_arith
+  _ < sizeOf cs := Array.sizeOf_lt_of_mem h
+
+/--
+A termination tactic specialized to the recursion patterns of `Trie`.
+(A more compositional setup of the default decreasing tactics might make this unnecessary.)
+-/
+macro "decreasing_trie" : tactic =>
+  `(tactic| decreasing_with first
+      | decreasing_trivial
+      | apply termination_helper (by assumption); done
+      | apply Nat.lt_trans (termination_helper (by assumption)); simp_arith; done)
 
 /--
 Monadically fold the keys and values stored in a `Trie`.
 -/
-@[implemented_by foldMUnsafe]
-opaque foldM [Monad m] (initalKeys : Array Key)
-    (f : σ → Array Key → α → m σ) (init : σ) (t : Trie α) : m σ :=
-  pure init
+def foldM [Monad m] (initialKeys : Array Key)
+    (f : σ → Array Key → α → m σ) (init : σ) : Trie α → m σ
+  | Trie.node vs children => do
+    let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
+    children.attach.foldlM (init := s) fun s ⟨(k, t), _h⟩ =>
+      t.foldM (initialKeys.push k) f s
+termination_by _ _ _ _ t => t
+decreasing_by decreasing_trie
 
 /--
 Fold the keys and values stored in a `Trie`.
 -/
 @[inline]
-def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ) (init : σ) (t : Trie α) : σ :=
+def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ)
+    (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
-
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
-private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) : Trie α → m σ
-  | node vs children => do
-    let s ← vs.foldlM (init := init) f
-    children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
 
 /--
 Monadically fold the values stored in a `Trie`.
 -/
-@[implemented_by foldValuesMUnsafe]
-opaque foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : Trie α) : m σ := pure init
+def foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) :
+    Trie α → m σ
+| node vs children => do
+  let s ← vs.foldlM (init := init) f
+  children.attach.foldlM (init := s) fun s ⟨(_, c), _⟩ => c.foldValuesM (init := s) f
+decreasing_by decreasing_trie
 
 /--
 Fold the values stored in a `Trie`.
@@ -80,23 +89,29 @@ def foldValues (f : σ → α → σ) (init : σ) (t : Trie α) : σ :=
 /--
 The number of values stored in a `Trie`.
 -/
-partial def size : Trie α → Nat
+def size : Trie α → Nat
   | Trie.node vs children =>
-    children.foldl (init := vs.size) fun n (_, c) => n + size c
+    children.attach.foldl (init := vs.size) fun n ⟨(_, c),_ ⟩ => n + size c
+decreasing_by decreasing_trie
 
 /--
 Merge two `Trie`s. Duplicate values are preserved.
 -/
-partial def mergePreservingDuplicates : Trie α → Trie α → Trie α
+def mergePreservingDuplicates : Trie α → Trie α → Trie α
   | node vs₁ cs₁, node vs₂ cs₂ =>
     node (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
 where
   /-- Auxiliary definition for `mergePreservingDuplicates`. -/
   mergeChildren (cs₁ cs₂ : Array (Key × Trie α)) :
-      Array (Key × Trie α) :=
-    Array.mergeSortedMergingDuplicates
-      (ord := ⟨compareOn (·.fst)⟩) cs₁ cs₂
-      (fun (k₁, t₁) (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
+        Array (Key × Trie α) :=
+      Array.mergeSortedMergingDuplicates
+        (compare := fun x y => compare x.val.fst y.fst) cs₁.attach cs₂
+        Subtype.val id
+        (fun ⟨(k₁, t₁),_⟩ (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
+termination_by
+  mergePreservingDuplicates t _ => sizeOf t
+  mergeChildren cs _ => sizeOf cs
+decreasing_by decreasing_trie
 
 end Trie
 

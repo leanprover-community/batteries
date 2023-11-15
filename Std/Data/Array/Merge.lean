@@ -49,17 +49,17 @@ respects the order (i.e. for all `x`, `y`, `y'`, `z`, if `x < y < z` and
 `x < y' < z` then `x < merge y y' < z`) then the resulting array is again
 sorted.
 -/
-def mergeSortedMergingDuplicates [ord : Ord α] (xs ys : Array α)
-    (merge : α → α → α) : Array α :=
+def mergeSortedMergingDuplicates (compare : α → β → Ordering) (xs : Array α) (ys : Array β)
+    (left : α → γ) (right : β → γ) (merge : α → β → γ) : Array γ :=
   let acc := Array.mkEmpty (xs.size + ys.size)
   go acc 0 0
 where
   /-- Auxiliary definition for `mergeSortedMergingDuplicates`. -/
-  go (acc : Array α) (i j : Nat) : Array α :=
+  go (acc : Array γ) (i j : Nat) : Array γ :=
     if hi : i ≥ xs.size then
-      acc ++ ys[j:]
+      acc ++ Array.map right ys[j:]
     else if hj : j ≥ ys.size then
-      acc ++ xs[i:]
+      acc ++ Array.map left xs[i:]
     else
       have hi : i < xs.size := Nat.lt_of_not_le hi
       have hj : j < ys.size := Nat.lt_of_not_le hj
@@ -71,11 +71,11 @@ where
         have : xs.size + ys.size - (i + 1 + j) < xs.size + ys.size - (i + j) := by
           rw [show i + 1 + j = i + j + 1 by simp_arith]
           exact Nat.sub_succ_lt_self _ _ hij
-        go (acc.push x) (i + 1) j
+        go (acc.push (left x)) (i + 1) j
       | Ordering.gt =>
         have : xs.size + ys.size - (i + j + 1) < xs.size + ys.size - (i + j) :=
           Nat.sub_succ_lt_self _ _ hij
-        go (acc.push y) i (j + 1)
+        go (acc.push (right y)) i (j + 1)
       | Ordering.eq =>
         have : xs.size + ys.size - (i + 1 + (j + 1)) < xs.size + ys.size - (i + j) := by
           rw [show i + 1 + (j + 1) = i + j + 2 by simp_arith]
@@ -91,8 +91,8 @@ not contain duplicates. If an element appears in both `xs` and `ys`, only one
 copy is kept.
 -/
 @[inline]
-def mergeSortedDeduplicating [ord : Ord α] (xs ys : Array α) : Array α :=
-  mergeSortedMergingDuplicates (ord := ord) xs ys fun x _ => x
+def mergeSortedDeduplicating [Ord α] (xs ys : Array α) : Array α :=
+  mergeSortedMergingDuplicates (compare := compare) xs ys (fun x => x) (fun x => x) (fun x _ => x)
 
 set_option linter.unusedVariables false in
 /--
