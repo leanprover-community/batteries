@@ -9,6 +9,21 @@ import Std.Logic
 namespace Fin
 
 /--
+`hIterateFrom f i bnd a` applies `f` over indices `[i:n]` to compute `P n`
+from `P i`.
+
+See `hIterate` below for more details.
+-/
+def hIterateFrom (P : Nat → Sort _) {n} (f : ∀(i:Fin n), P i.val → P (i.val+1))
+      (i : Nat) (ubnd : i ≤ n) (a : P i) : P n :=
+  if g : i < n then
+    hIterateFrom P f (i+1) g (f ⟨i, g⟩ a)
+  else
+    have p : i = n := (or_iff_left g).mp (Nat.eq_or_lt_of_le ubnd)
+    cast (congrArg P p) a
+  termination_by hIterateFrom i _ _ => n - i
+
+/--
 `hIterate` is a heterogenous iterative operation that applies a
 index-dependent function `f` to a value `init : P start` a total of
 `stop - start` times to produce a value of type `P stop`.
@@ -29,16 +44,9 @@ def hIterate (P : Nat → Sort _)
              (init : P 0)
              (f : ∀(i:Fin n), P i.val → P (i.val+1))
              : P n :=
-    let rec loop (i : Nat) (ubnd : i ≤ n) (a : P i) : P n :=
-            if g : i < n then
-              loop (i+1) g (f ⟨i, g⟩ a)
-            else
-              have p : i = n := (or_iff_left g).mp (Nat.eq_or_lt_of_le ubnd)
-              cast (congrArg P p) a
-    loop 0 (Nat.zero_le n) init
-  termination_by loop i _ _ => n - i
+  hIterateFrom P f 0 (Nat.zero_le n) init
 
-private theorem hIterate_loop_elim
+private theorem hIterateFrom_elim
     {P : Nat → Sort _}
     (Q : ∀(i:Nat), P i → Prop)
     {n  : Nat}
@@ -48,18 +56,18 @@ private theorem hIterate_loop_elim
     (s : P i)
     (init : Q i s)
     (step : ∀(k:Fin n) (s:P k.val), Q k.val s → Q (k.val+1) (f k s))
-    : Q n (hIterate.loop P f i ubnd s) := by
+    : Q n (hIterateFrom P f i ubnd s) := by
   let ⟨j, p⟩ := Nat.le.dest ubnd
   induction j generalizing i ubnd init with
   | zero =>
-    unfold hIterate.loop
+    unfold hIterateFrom
     have g : ¬ (i < n) := by simp at p; simp [p]
     simp [g]
     have r : Q n (cast (congrArg P p) s) :=
       @Eq.rec Nat i (fun k eq => Q k (cast (congrArg P eq) s)) init n p
     exact r
   | succ j inv =>
-    unfold hIterate.loop
+    unfold hIterateFrom
     have d : Nat.succ i + j = n := by simp [Nat.succ_add]; exact p
     have g : i < n := Nat.le.intro d
     simp [g]
@@ -79,7 +87,7 @@ theorem hIterate_elim
     (init : Q 0 s)
     (step : ∀(k:Fin n) (s:P k.val), Q k.val s → Q (k.val+1) (f k s))
     : Q n (hIterate P s f) := by
-  exact hIterate_loop_elim _ _ _ _ init step
+  exact hIterateFrom_elim _ _ _ _ init step
 
 /-
 `hIterate_eq`provides a mechanism for replacing hIterate with another
