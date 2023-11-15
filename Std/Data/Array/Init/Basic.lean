@@ -12,6 +12,10 @@ This file contains some definitions in `Array` needed for `Std.List.Basic`.
 
 namespace Array
 
+/-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
+def zipWithIndex (arr : Array α) : Array (α × Nat) :=
+  arr.mapIdx fun i a => (a, i)
+
 /-- Like `as.toList ++ l`, but in a single pass. -/
 @[inline] def toListAppend (as : Array α) (l : List α) : List α :=
   as.foldr List.cons l
