@@ -383,17 +383,24 @@ def zeroExtend' (w:Nat) (x : BitVec n) (le : n ≤ w) : BitVec w :=
     exact Nat.pow_le_pow_of_le_right (by trivial) le⟩
 
 /--
+`shiftLeftZeroExtend x n` returns `zeroExtend (w+n) x <<< n` without
+needing to compute `x % 2^(2+n)`.
+-/
+def shiftLeftZeroExtend (msbs : BitVec w) (m:Nat) : BitVec (w+m) :=
+  let shiftLeftLt {x:Nat} (p : x < 2^w) (m:Nat) : x <<< m < 2^(w+m) := by
+        apply Nat.shiftLeft_lt_2_pow
+        simp only [Nat.add_sub_cancel]
+        exact p
+  ⟨msbs.toNat <<< m, shiftLeftLt msbs.isLt m⟩
+
+/--
 Concatenation of bitvectors. This uses the "big endian" convention that the more significant
-input is on the left, so `0xab#8 ++ 0xcd#8 = 0xabcd#16`.
+input is on the left, so `0xAB#8 ++ 0xCD#8 = 0xABCD#16`.
 
 SMT-Lib name: `concat`.
 -/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
-  ⟨msbs.toNat <<< m, by
-    apply Nat.shiftLeft_lt_2_pow
-    simp only [Nat.add_sub_cancel]
-    exact msbs.isLt
-  ⟩ ||| zeroExtend' (n+m) lsbs (by apply Nat.le_add_left)
+  shiftLeftZeroExtend msbs m ||| zeroExtend' (n+m) lsbs (Nat.le_add_left _ _)
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 
