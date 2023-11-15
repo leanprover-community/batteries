@@ -2173,6 +2173,13 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 @[simp] theorem enum_map_fst (l : List α) : map Prod.fst (enum l) = range l.length := by
   simp only [enum, enumFrom_map_fst, range_eq_range']
 
+@[simp] theorem enumFrom_length : ∀ {n} {l : List α}, (enumFrom n l).length = l.length
+  | _, [] => rfl
+  | _, _ :: _ => congrArg Nat.succ enumFrom_length
+
+@[simp] theorem enum_length : (enum l).length = l.length :=
+  enumFrom_length
+
 /-! ### minimum? -/
 
 @[simp] theorem minimum?_nil [Min α] : ([] : List α).minimum? = none := rfl
