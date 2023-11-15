@@ -20,10 +20,6 @@ namespace Array
 def reduceOption (l : Array (Option α)) : Array α :=
   l.filterMap id
 
-/-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
-def zipWithIndex (arr : Array α) : Array (α × Nat) :=
-  arr.mapIdx fun i a => (a, i)
-
 /--
 Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
 elements when disregarding order and duplicates. `O(n*m)`! If your element type
