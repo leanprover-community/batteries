@@ -6,7 +6,7 @@ Authors: Jannis Limperg, Scott Morrison
 
 import Lean.Meta.DiscrTree
 import Std.Data.Array.Merge
-import Std.Data.Array.Attach
+import Std.Data.Array.Basic
 import Std.Data.Ord
 import Std.Lean.Meta.Expr
 import Std.Lean.PersistentHashMap

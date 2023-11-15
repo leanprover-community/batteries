@@ -13,7 +13,6 @@ import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
-import Std.Data.Array.Attach
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
@@ -41,6 +40,7 @@ import Std.Data.Int.Lemmas
 import Std.Data.Json
 import Std.Data.List.Basic
 import Std.Data.List.Count
+import Std.Data.List.Init.Attach
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.List.Pairwise
