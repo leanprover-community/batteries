@@ -3,6 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
+import Std.Data.List.Init.Attach
 import Std.Data.Array.Init.Basic
 import Std.Data.Ord
 
@@ -104,6 +105,17 @@ considered.
 protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
+
+/--
+Unsafe implementation of `attach`, taking advantage of the fact that the representation of
+`Array {x // x ∈ xs}` is the same as the input `Array α`.
+-/
+@[inline] private unsafe def attachImpl (xs : Array α) : Array {x // x ∈ xs} := unsafeCast xs
+
+/-- "Attach" the proof that the elements of `xs` are in `xs` to produce a new list
+  with the same elements but in the type `{x // x ∈ xs}`. -/
+@[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
+  ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
 
 end Array
 
