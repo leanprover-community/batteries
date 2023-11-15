@@ -6,7 +6,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 import Lean.Util.CollectLevelParams
 import Lean.Meta.ForEachExpr
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Basic
+import Std.Data.Array.Init.Basic
 
 open Lean Meta
 
@@ -70,7 +70,7 @@ We skip all declarations that contain `sorry` in their value. -/
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
       | .defnInfo info =>
-          -- leanprover/lean4#2575: 
+          -- leanprover/lean4#2575:
           -- projections are generated as `def`s even when they should be `theorem`s
           if ← isProjectionFn declName <&&> isProp info.type then
             return none
@@ -90,7 +90,7 @@ We skip all declarations that contain `sorry` in their value. -/
     let kind ← match ← getConstInfo declName with
       | .thmInfo .. => pure "theorem"
       | .defnInfo info =>
-          -- leanprover/lean4#2575: 
+          -- leanprover/lean4#2575:
           -- projections are generated as `def`s even when they should be `theorem`s
           if ← isProjectionFn declName <&&> isProp info.type then
             pure "Prop projection"
@@ -108,7 +108,7 @@ has been used. -/
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none
-    -- leanprover/lean4#2575: 
+    -- leanprover/lean4#2575:
     -- projections are generated as `def`s even when they should be `theorem`s
     if ← isProjectionFn declName then return none
     let info ← getConstInfo declName

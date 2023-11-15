@@ -18,11 +18,14 @@ open Lean Meta
 
 namespace Std.Tactic
 
+/-- Discrimation tree settings for the `symm` extension. -/
+def symmExt.config : WhnfCoreConfig := {}
+
 /-- Environment extensions for symm lemmas -/
 initialize symmExt :
-    SimpleScopedEnvExtension (Name × Array (DiscrTree.Key true)) (DiscrTree Name true) ←
+    SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n
+    addEntry := fun dt (n, ks) => dt.insertCore ks n symmExt.config
     initial := {}
   }
 
@@ -37,7 +40,7 @@ initialize registerBuiltinAttribute {
     let some _ := xs.back? | fail
     let targetTy ← reduce targetTy
     let .app (.app rel _) _ := targetTy | fail
-    let key ← withReducible <| DiscrTree.mkPath rel
+    let key ← withReducible <| DiscrTree.mkPath rel symmExt.config
     symmExt.add (decl, key) kind
 }
 
@@ -70,7 +73,7 @@ where
   go (tgt : Expr) {α} (k : Expr → Array Expr → Expr → MetaM α) : MetaM α := do
     let .app (.app rel _) _ := tgt
       | throwError "symmetry lemmas only apply to binary relations, not{indentExpr tgt}"
-    for lem in ← (symmExt.getState (← getEnv)).getMatch rel do
+    for lem in ← (symmExt.getState (← getEnv)).getMatch rel symmExt.config do
       try
         let lem ← mkConstWithFreshMVarLevels lem
         let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)

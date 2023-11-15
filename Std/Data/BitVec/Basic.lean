@@ -2,7 +2,7 @@
 Copyright (c) 2022 by the authors listed in the file AUTHORS and their
 institutional affiliations. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura, Mario Carneiro
+Authors: Joe Hendrix, Wojciech Nawrocki, Leonardo de Moura, Mario Carneiro, Alex Keizer
 -/
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Fin.Basic
@@ -79,6 +79,9 @@ instance : OfNat (BitVec n) i where ofNat := .ofNat n i
 /-- Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`. -/
 scoped syntax:max term:max noWs "#" noWs term:max : term
 macro_rules | `($i#$n) => `(BitVec.ofNat $n $i)
+
+/- Support for `i#n` notation in patterns.  -/
+attribute [match_pattern] BitVec.ofNat
 
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNat] def unexpandBitVecOfNat : Lean.PrettyPrinter.Unexpander
@@ -417,3 +420,73 @@ bit in `x`. If `x` is an empty vector, then the sign is treated as zero.
 SMT-Lib name: `sign_extend`.
 -/
 def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
+
+/-! We add simp-lemmas that rewrite bitvector operations into the equivalent notation -/
+@[simp] theorem append_eq (x : BitVec w) (y : BitVec v)   : BitVec.append x y = x ++ y        := rfl
+@[simp] theorem shiftLeft_eq (x : BitVec w) (n : Nat)     : BitVec.shiftLeft x n = x <<< n    := rfl
+@[simp] theorem ushiftRight_eq (x : BitVec w) (n : Nat)   : BitVec.ushiftRight x n = x >>> n  := rfl
+@[simp] theorem not_eq (x : BitVec w)                     : BitVec.not x = ~~~x               := rfl
+@[simp] theorem and_eq (x y : BitVec w)                   : BitVec.and x y = x &&& y          := rfl
+@[simp] theorem or_eq (x y : BitVec w)                    : BitVec.or x y = x ||| y           := rfl
+@[simp] theorem xor_eq (x y : BitVec w)                   : BitVec.xor x y = x ^^^ y          := rfl
+@[simp] theorem neg_eq (x : BitVec w)                     : BitVec.neg x = -x                 := rfl
+@[simp] theorem add_eq (x y : BitVec w)                   : BitVec.add x y = x + y            := rfl
+@[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
+@[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
+@[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
+
+@[simp]
+theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
+    cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
+  subst h; rfl
+
+@[simp]
+theorem cast_cast {n m k : Nat} (h₁ : n = m) (h₂ : m = k) (x : BitVec n) :
+    cast h₂ (cast h₁ x) = cast (h₁ ▸ h₂) x :=
+  rfl
+
+@[simp]
+theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
+    cast h x = x :=
+  rfl
+
+/-- Turn a `Bool` into a bitvector of length `1` -/
+def ofBool : Bool → BitVec 1
+  | false => 0
+  | true  => 1
+
+/-- The empty bitvector -/
+abbrev nil : BitVec 0 := 0
+
+/-!
+### Cons and Concat
+We give special names to the operations of adding a single bit to either end of a bitvector.
+We follow the precedent of `Vector.cons`/`Vector.concat` both for the name, and for the decision
+to have the resulting size be `n + 1` for both operations (rather than `1 + n`, which would be the
+result of appending a single bit to the front in the naive implementation).
+-/
+
+/-- Append a single bit to the end of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the least significant bit. -/
+def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool lsb)
+
+/-- Prepend a single bit to the front of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the most significant bit. -/
+def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
+  ((ofBool msb) ++ lsbs).cast (Nat.add_comm ..)
+
+/-- All empty bitvectors are equal -/
+instance : Subsingleton (BitVec 0) where
+  allEq := by intro ⟨0, _⟩ ⟨0, _⟩; rfl
+
+/-- Every bitvector of length 0 is equal to `nil`, i.e., there is only one empty bitvector -/
+theorem eq_nil : ∀ (x : BitVec 0), x = nil
+  | ofFin ⟨0, _⟩ => rfl
+
+theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
+    msbs ++ ofBool lsb = concat msbs lsb :=
+  rfl
+
+theorem ofBool_append (msb : Bool) (lsbs : BitVec w) :
+    ofBool msb ++ lsbs = (cons msb lsbs).cast (Nat.add_comm ..) :=
+  rfl

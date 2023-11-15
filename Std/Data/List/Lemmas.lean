@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Control.ForInStep.Lemmas
+import Std.Data.Bool
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
@@ -55,13 +56,7 @@ theorem length_eq_one {l : List α} : length l = 1 ↔ ∃ a, l = [a] :=
 
 /-! ### mem -/
 
-@[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := fun.
-
 theorem mem_nil_iff (a : α) : a ∈ ([] : List α) ↔ False := by simp
-
-@[simp] theorem mem_cons : a ∈ (b :: l) ↔ a = b ∨ a ∈ l :=
-  ⟨fun h => by cases h <;> simp [Membership.mem, *],
-   fun | Or.inl rfl => by constructor | Or.inr h => by constructor; assumption⟩
 
 theorem mem_cons_self (a : α) (l : List α) : a ∈ a :: l := .head ..
 
@@ -176,7 +171,7 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
-    simp_all [add_one, min_succ_succ, Nat.zero_min, Nat.min_zero]
+    simp_all [add_one, succ_min_succ, Nat.zero_min, Nat.min_zero]
 
 @[simp]
 theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
@@ -198,6 +193,32 @@ theorem zipWith_foldr_eq_zip_foldr {f : α → β → γ} (i : δ):
 theorem zipWith_foldl_eq_zip_foldl {f : α → β → γ} (i : δ):
     (zipWith f l₁ l₂).foldl g i = (zip l₁ l₂).foldl (fun r p => g r (f p.1 p.2)) i := by
   induction l₁ generalizing i l₂ <;> cases l₂ <;> simp_all
+
+theorem zipWith_get? {f : α → β → γ} :
+    (List.zipWith f as bs).get? i = match as.get? i, bs.get? i with
+      | some a, some b => some (f a b) | _, _ => none := by
+  induction as generalizing bs i with
+  | nil => cases bs with
+    | nil => simp
+    | cons b bs => simp
+  | cons a as aih => cases bs with
+    | nil => simp
+    | cons b bs => cases i <;> simp_all
+
+/-! ### zipWithAll -/
+
+theorem zipWithAll_get? {f : Option α → Option β → γ} :
+    (zipWithAll f as bs).get? i = match as.get? i, bs.get? i with
+      | none, none => .none | a?, b? => some (f a? b?) := by
+  induction as generalizing bs i with
+  | nil => induction bs generalizing i with
+    | nil => simp
+    | cons b bs bih => cases i <;> simp_all
+  | cons a as aih => cases bs with
+    | nil =>
+      specialize @aih []
+      cases i <;> simp_all
+    | cons b bs => cases i <;> simp_all
 
 /-! ### zip -/
 
@@ -574,10 +595,6 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 @[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
-theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
-  | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
-  | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
-
 theorem get?_eq_get : ∀ {l : List α} {n} (h : n < l.length), l.get? n = some (get l ⟨n, h⟩)
   | _ :: _, 0, _ => rfl
   | _ :: l, _+1, _ => get?_eq_get (l := l) _
@@ -609,15 +626,8 @@ theorem get?_eq_some : l.get? n = some a ↔ ∃ h, get l ⟨n, h⟩ = a :=
 theorem get?_of_mem {a} {l : List α} (h : a ∈ l) : ∃ n, l.get? n = some a :=
   let ⟨⟨n, _⟩, e⟩ := get_of_mem h; ⟨n, e ▸ get?_eq_get _⟩
 
-theorem get_mem : ∀ (l : List α) n h, get l ⟨n, h⟩ ∈ l
-  | _ :: _, 0, _ => .head ..
-  | _ :: l, _+1, _ => .tail _ (get_mem l ..)
-
 theorem get?_mem {l : List α} {n a} (e : l.get? n = some a) : a ∈ l :=
   let ⟨_, e⟩ := get?_eq_some.1 e; e ▸ get_mem ..
-
-theorem mem_iff_get {a} {l : List α} : a ∈ l ↔ ∃ n, get l n = a :=
-  ⟨get_of_mem, fun ⟨_, e⟩ => e ▸ get_mem ..⟩
 
 -- TODO(Mario): move somewhere else
 theorem Fin.exists_iff (p : Fin n → Prop) : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
@@ -762,7 +772,7 @@ theorem get?_reverse' : ∀ {l : List α} (i j), i + j + 1 = length l →
 theorem get?_reverse {l : List α} (i) (h : i < length l) :
     get? l.reverse i = get? l (l.length - 1 - i) :=
   get?_reverse' _ _ <| by
-    rw [Nat.add_sub_of_le (Nat.le_pred_of_lt h),
+    rw [Nat.add_sub_of_le (Nat.le_sub_one_of_lt h),
       Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
 
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
@@ -786,7 +796,7 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
-  | succ n, _ :: l => by simp [Nat.min_succ_succ, add_one, length_take]
+  | succ n, _ :: l => by simp [Nat.succ_min_succ, add_one, length_take]
 
 theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
 
@@ -983,13 +993,6 @@ theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i
 
 /-! ### all / any -/
 
-@[simp] theorem all_eq_true {l : List α} : l.all p ↔ ∀ x ∈ l, p x := by induction l <;> simp [*]
-
-@[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
-
-theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (fun c => !p c) := by
-  rw [Bool.eq_iff_iff]; simp; rw [← Bool.not_eq_true, List.any_eq_true]; simp
-
 @[simp] theorem contains_nil [BEq α] : ([] : List α).contains a = false := rfl
 
 @[simp] theorem contains_cons [BEq α] :
@@ -999,6 +1002,34 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (f
 
 theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.any (a == ·) := by
   induction l with simp | cons b l => cases a == b <;> simp [*]
+
+theorem not_all_eq_any_not (l : List α) (p : α → Bool) : (!l.all p) = l.any fun a => !p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.not_and, ih]
+
+theorem not_any_eq_all_not (l : List α) (p : α → Bool) : (!l.any p) = l.all fun a => !p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.not_or, ih]
+
+theorem or_all_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
+    (q || l.all p) = l.all fun a => q || p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.or_and_distrib_left, ih]
+
+theorem or_all_distrib_right (l : List α) (p : α → Bool) (q : Bool) :
+    (l.all p || q) = l.all fun a => p a || q := by
+  induction l with simp | cons _ _ ih => rw [Bool.or_and_distrib_right, ih]
+
+theorem and_any_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
+    (q && l.any p) = l.any fun a => q && p a := by
+  induction l with simp | cons _ _ ih => rw [Bool.and_or_distrib_left, ih]
+
+theorem and_any_distrib_right (l : List α) (p : α → Bool) (q : Bool) :
+    (l.any p && q) = l.any fun a => p a && q := by
+  induction l with simp | cons _ _ ih => rw [Bool.and_or_distrib_right, ih]
+
+theorem any_eq_not_all_not (l : List α) (p : α → Bool) : l.any p = !l.all (!p .) := by
+  simp only [not_all_eq_any_not, Bool.not_not]
+
+theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!p .) := by
+  simp only [not_any_eq_all_not, Bool.not_not]
 
 /-! ### reverse -/
 
@@ -1395,6 +1426,16 @@ theorem find?_some : ∀ {l}, find? p l = some a → p a
     · exact H ▸ .head _
     · exact .tail _ (mem_of_find?_eq_some H)
 
+/-! ### findSome? -/
+
+theorem exists_of_findSome?_eq_some {l : List α} {f : α → Option β} (w : l.findSome? f = some b) :
+    ∃ a, a ∈ l ∧ f a = b := by
+  induction l with
+  | nil => simp_all
+  | cons h l ih =>
+    simp_all only [findSome?_cons, mem_cons, exists_eq_or_imp]
+    split at w <;> simp_all
+
 /-! ### findIdx -/
 
 @[simp] theorem findIdx_nil {α : Type _} (p : α → Bool) : [].findIdx p = 0 := rfl
@@ -1666,7 +1707,7 @@ variable [DecidableEq α]
 @[simp] theorem diff_nil (l : List α) : l.diff [] = l := rfl
 
 @[simp] theorem diff_cons (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ := by
-  simp [List.diff]; split <;> simp [*, erase_of_not_mem]
+  simp_all [List.diff, erase_of_not_mem]
 
 theorem diff_cons_right (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.diff l₂).erase a := by
   apply Eq.symm; induction l₂ generalizing l₁ <;> simp [erase_comm, *]
@@ -2131,3 +2172,58 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 
 @[simp] theorem enum_map_fst (l : List α) : map Prod.fst (enum l) = range l.length := by
   simp only [enum, enumFrom_map_fst, range_eq_range']
+
+/-! ### minimum? -/
+
+@[simp] theorem minimum?_nil [Min α] : ([] : List α).minimum? = none := rfl
+
+-- We don't put `@[simp]` on `minimum?_cons`,
+-- because the definition in terms of `foldl` is not useful for proofs.
+theorem minimum?_cons [Min α] {xs : List α} : (x :: xs).minimum? = foldl min x xs := rfl
+
+@[simp] theorem minimum?_eq_none_iff {xs : List α} [Min α] : xs.minimum? = none ↔ xs = [] := by
+  cases xs <;> simp [minimum?]
+
+theorem minimum?_mem [Min α] (min_eq_or : ∀ a b : α, min a b = a ∨ min a b = b) :
+    {xs : List α} → xs.minimum? = some a → a ∈ xs
+  | nil => by simp
+  | cons x xs => by
+    rw [minimum?]; rintro ⟨⟩
+    induction xs generalizing x with simp at *
+    | cons y xs ih =>
+      rcases ih (min x y) with h | h <;> simp [h]
+      simp [← or_assoc, min_eq_or x y]
+
+theorem le_minimum?_iff [Min α] [LE α]
+    (le_min_iff : ∀ a b c : α, a ≤ min b c ↔ a ≤ b ∧ a ≤ c) :
+    {xs : List α} → xs.minimum? = some a → ∀ x, x ≤ a ↔ ∀ b ∈ xs, x ≤ b
+  | nil => by simp
+  | cons x xs => by
+    rw [minimum?]; rintro ⟨⟩ y
+    induction xs generalizing x with
+    | nil => simp
+    | cons y xs ih => simp [ih, le_min_iff, and_assoc]
+
+-- This could be refactored by designing appropriate typeclasses to replace `le_refl`, `min_eq_or`,
+-- and `le_min_iff`.
+theorem minimum?_eq_some_iff [Min α] [LE α] [anti : Antisymm ((· : α) ≤ ·)]
+    (le_refl : ∀ a : α, a ≤ a)
+    (min_eq_or : ∀ a b : α, min a b = a ∨ min a b = b)
+    (le_min_iff : ∀ a b c : α, a ≤ min b c ↔ a ≤ b ∧ a ≤ c) {xs : List α} :
+    xs.minimum? = some a ↔ a ∈ xs ∧ ∀ b ∈ xs, a ≤ b := by
+  refine ⟨fun h => ⟨minimum?_mem min_eq_or h, (le_minimum?_iff le_min_iff h _).1 (le_refl _)⟩, ?_⟩
+  intro ⟨h₁, h₂⟩
+  cases xs with
+  | nil => simp at h₁
+  | cons x xs =>
+    exact congrArg some <| anti.1
+      ((le_minimum?_iff le_min_iff (xs := x::xs) rfl _).1 (le_refl _) _ h₁)
+      (h₂ _ (minimum?_mem min_eq_or (xs := x::xs) rfl))
+
+-- A specialization of `minimum?_eq_some_iff` to Nat.
+theorem minimum?_eq_some_iff' {xs : List Nat} :
+    xs.minimum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, a ≤ b) :=
+  minimum?_eq_some_iff
+    (le_refl := Nat.le_refl)
+    (min_eq_or := fun _ _ => Nat.min_def .. ▸ by split <;> simp)
+    (le_min_iff := fun _ _ _ => Nat.le_min)

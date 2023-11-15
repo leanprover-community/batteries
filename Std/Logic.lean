@@ -145,6 +145,9 @@ theorem imp_iff_not (hb : ¬b) : a → b ↔ ¬a := imp_congr_right fun _ => iff
 /-- Non-dependent eliminator for `And`. -/
 abbrev And.elim (f : a → b → α) (h : a ∧ b) : α := f h.1 h.2
 
+-- TODO: rename and_self to and_self_eq
+theorem and_self_iff : a ∧ a ↔ a := and_self _ ▸ .rfl
+
 theorem And.symm : a ∧ b → b ∧ a | ⟨ha, hb⟩ => ⟨hb, ha⟩
 
 theorem And.imp (f : a → c) (g : b → d) (h : a ∧ b) : c ∧ d := ⟨f h.1, g h.2⟩
@@ -243,6 +246,9 @@ theorem not_and_self_iff (a : Prop) : ¬a ∧ a ↔ False := iff_false_intro not
 /-! ## or -/
 
 theorem not_not_em (a : Prop) : ¬¬(a ∨ ¬a) := fun h => h (.inr (h ∘ .inl))
+
+-- TODO: rename or_self to or_self_eq
+theorem or_self_iff : a ∨ a ↔ a := or_self _ ▸ .rfl
 
 theorem Or.symm : a ∨ b → b ∨ a := .rec .inr .inl
 
@@ -476,10 +482,10 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 @[simp] theorem exists_eq_or_imp : (∃ a, (a = a' ∨ q a) ∧ p a) ↔ p a' ∨ ∃ a, q a ∧ p a := by
   simp only [or_and_right, exists_or, exists_eq_left]
 
-@[simp] theorem exists_eq_right_right : (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b := by
+@[simp] theorem exists_eq_right_right : (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' := by
   simp [← and_assoc]
 
-@[simp] theorem exists_eq_right_right' : (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b := by
+@[simp] theorem exists_eq_right_right' : (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' := by
   (conv in _=_ => rw [eq_comm]); simp
 
 @[simp] theorem exists_prop : (∃ _h : a, b) ↔ a ∧ b :=
@@ -505,6 +511,9 @@ theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p 
 @[simp] theorem forall_apply_eq_imp_iff₂ {f : α → β} {p : α → Prop} {q : β → Prop} :
     (∀ b a, p a → f a = b → q b) ↔ ∀ a, p a → q (f a) :=
   ⟨fun h a ha => h (f a) a ha rfl, fun h _ a ha hb => hb ▸ h a ha⟩
+
+theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬p) : (∀ h' : p, q h') ↔ True :=
+  iff_true_intro fun h => hn.elim h
 
 end quantifiers
 
@@ -696,6 +705,12 @@ theorem forall_or_exists_not (P : α → Prop) : (∀ a, P a) ∨ ∃ a, ¬ P a 
 theorem exists_or_forall_not (P : α → Prop) : (∃ a, P a) ∨ ∀ a, ¬ P a := by
   rw [← not_exists]; exact em _
 
+theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
+  Decidable.or_iff_not_imp_left
+
+theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
+  Decidable.or_iff_not_imp_right
+
 end Classical
 
 /-! ## equality -/
@@ -748,6 +763,20 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
 /-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
 @[simp] theorem ite_not (P : Prop) [Decidable P] (x y : α) : ite (¬P) x y = ite P y x :=
   dite_not P (fun _ => x) (fun _ => y)
+
+@[simp] theorem dite_eq_left_iff {P : Prop} [Decidable P] {B : ¬ P → α} :
+    dite P (fun _ => a) B = a ↔ ∀ h, B h = a := by
+  by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
+
+@[simp] theorem dite_eq_right_iff {P : Prop} [Decidable P] {A : P → α} :
+    (dite P A fun _ => b) = b ↔ ∀ h, A h = b := by
+  by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
+
+@[simp] theorem ite_eq_left_iff {P : Prop} [Decidable P] : ite P a b = a ↔ ¬P → b = a :=
+  dite_eq_left_iff
+
+@[simp] theorem ite_eq_right_iff {P : Prop} [Decidable P] : ite P a b = b ↔ P → a = b :=
+  dite_eq_right_iff
 
 /-! ## miscellaneous -/
 
