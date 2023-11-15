@@ -5,6 +5,7 @@ Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.Array.Init.Basic
 import Std.Data.Ord
+import Std.Data.List.Basic
 
 /-!
 ## Definitions on Arrays
@@ -161,3 +162,15 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
       none
 
 end Subarray
+
+
+/--
+Unsafe implementation of `attach`, taking advantage of the fact that the representation of
+`Array {x // x ∈ xs}` is the same as the input `Array α`.
+-/
+@[inline] private unsafe def attachImpl (xs : Array α) : Array {x // x ∈ xs} := unsafeCast xs
+
+/-- "Attach" the proof that the elements of `xs` are in `xs` to produce a new list
+  with the same elements but in the type `{x // x ∈ xs}`. -/
+@[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
+  ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
