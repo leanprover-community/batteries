@@ -19,7 +19,7 @@ namespace Nat
 /--
 An induction principal that works on divison by two.
 -/
-theorem div2InductionOn
+noncomputable def div2InductionOn
     {motive : Nat → Sort u}
     (n : Nat)
     (base : motive 0)
@@ -34,25 +34,126 @@ theorem div2InductionOn
       have p : x/2 < x := Nat.div_lt_self x_pos (Nat.le_refl _)
       apply induct _ x_pos (ind _ p)
 
+/-! ### bitwise -/
 
-/-! ### testBit -/
+@[local simp]
+private theorem eq_0_of_lt_one (x:Nat) : x < 1 ↔ x = 0 :=
+  Iff.intro
+    (fun p =>
+      match x with
+      | 0 => Eq.refl 0
+      | _+1 => False.elim (not_lt_zero _ (Nat.lt_of_succ_lt_succ p)))
+    (fun p => by simp [p, Nat.zero_lt_succ])
 
-theorem zero_testBit (i:Nat) : testBit 0 i = false := by
-  unfold testBit
-  simp [zero_shiftRight]
+private theorem eq_0_of_lt (x:Nat) : x < 2^ 0 ↔ x = 0 := eq_0_of_lt_one x
 
-theorem testBit_succ (x:Nat) : testBit x (succ i) = testBit (x >>> 1) i := by
-  unfold testBit
-  simp [shiftRight_succ_inside]
+@[local simp]
+private theorem zero_lt_pow (n:Nat) : 0 < 2^n := by
+  induction n
+  case zero => simp [eq_0_of_lt]
+  case succ n hyp =>
+    simp [pow_succ]
+    exact (Nat.mul_lt_mul_of_pos_right hyp (by trivial : 2 > 0) : 0 < 2 ^ n * 2)
 
+private
+theorem div_2_le_of_lt_two {m n : Nat} (p : m < 2 ^ succ n) : m / 2 < 2^n := by
+  simp [div_lt_iff_lt_mul (by trivial : 0 < 2)]
+  exact p
+
+/-- This provides a bound on bitwise operations. -/
+theorem bitwise_lt_2_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y) < 2^n := by
+  induction n generalizing x y with
+  | zero =>
+    simp only [eq_0_of_lt] at left right
+    unfold bitwise
+    simp [left, right]
+  | succ n hyp =>
+    unfold bitwise
+    if x_zero : x = 0 then
+      simp only [x_zero, if_true]
+      by_cases p : f false true = true <;> simp [p, right]
+    else if y_zero : y = 0 then
+      simp only [x_zero, y_zero, if_false, if_true]
+      by_cases p : f true false = true <;> simp [p, left]
+    else
+      simp only [x_zero, y_zero, if_false]
+      have hyp1 := hyp (div_2_le_of_lt_two left) (div_2_le_of_lt_two right)
+      by_cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) = true <;>
+        simp [p, pow_succ, mul_succ, Nat.add_assoc]
+      case pos =>
+        apply lt_of_succ_le
+        simp only [← Nat.succ_add]
+        apply Nat.add_le_add <;> exact hyp1
+      case neg =>
+        apply Nat.add_lt_add <;> exact hyp1
+
+/-! ### land -/
+
+@[simp]
 theorem land_zero (x:Nat) : x &&& 0 = 0 := by
   simp [HAnd.hAnd, AndOp.and, land]
   unfold bitwise
   simp
 
+theorem land_lt_2_pow (x : Nat) {y n : Nat} (right : y < 2^n) : (x &&& y) < 2^n := by
+  induction n generalizing x y with
+  | zero =>
+    simp only [eq_0_of_lt] at right
+    simp [right]
+  | succ n hyp =>
+    simp [HAnd.hAnd, AndOp.and, land]
+    unfold bitwise
+    if x_zero : x = 0 then
+      simp [x_zero, if_true, if_false]
+    else if y_zero : y = 0 then
+      simp [x_zero, y_zero, if_false, if_true]
+    else
+      simp only [x_zero, y_zero, if_false]
+      have hyp1 := hyp (x / 2) (div_2_le_of_lt_two right)
+      by_cases p : decide (x % 2 = 1) && decide (y % 2 = 1) <;>
+        simp [p, pow_succ, mul_succ, Nat.add_assoc]
+      case pos =>
+        apply lt_of_succ_le
+        simp only [← Nat.succ_add]
+        apply Nat.add_le_add <;> exact hyp1
+      case neg =>
+        apply Nat.add_lt_add <;> exact hyp1
+
+/-! ### lor -/
+
+theorem lor_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : (x ||| y) < 2^n :=
+  bitwise_lt_2_pow left right
+
+/-! ### xor -/
+
+theorem xor_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : (x ^^^ y) < 2^n :=
+  bitwise_lt_2_pow left right
+
+/-! ### shiftLeft -/
+
+theorem shiftLeft_lt_2_pow {x m n : Nat} (bound : x < 2^(n-m)) : (x <<< m) < 2^n := by
+  induction m generalizing x n with
+  | zero => exact bound
+  | succ m hyp =>
+    simp [shiftLeft_succ_inside]
+    apply hyp
+    revert bound
+    rw [Nat.sub_succ]
+    match n - m with
+    | 0 =>
+      intro bound
+      simp [eq_0_of_lt_one] at bound
+      simp [bound]
+    | d + 1 =>
+      intro bound
+      simp [Nat.pow_succ, Nat.mul_comm _ 2]
+      exact Nat.mul_lt_mul_of_pos_left bound (by trivial : 0 < 2)
+
+/-! ### testBit -/
+
 theorem testBit_zero_is_mod2 (x:Nat) : testBit x 0 = decide (x % 2 = 1) := by
-  rw [←div_add_mod x 2]
   simp [testBit]
+  rw [←div_add_mod x 2]
   simp [HAnd.hAnd, AndOp.and, land]
   unfold bitwise
   have one_div_2 : 1 / 2 = 0 := by trivial
@@ -62,6 +163,14 @@ theorem testBit_zero_is_mod2 (x:Nat) : testBit x 0 = decide (x % 2 = 1) := by
   simp [Nat.add_comm (2 * _) _]
   intro x_mod
   simp [x_mod, Nat.succ_add]
+
+theorem zero_testBit (i:Nat) : testBit 0 i = false := by
+  unfold testBit
+  simp [zero_shiftRight]
+
+theorem testBit_succ (x:Nat) : testBit x (succ i) = testBit (x >>> 1) i := by
+  unfold testBit
+  simp [shiftRight_succ_inside]
 
 theorem ne_zero_implies_bit_true {x : Nat} (p : x ≠ 0) : ∃ i, testBit x i := by
   induction x using div2InductionOn with
@@ -117,81 +226,3 @@ theorem eq_of_testBit_eq {x y : Nat} (pred : ∀i, testBit x i = testBit y i) : 
     let ⟨i,eq⟩ := ne_implies_bit_diff h
     have p := pred i
     contradiction
-
-/-! ### bitwise and related -/
-
-@[local simp]
-private theorem eq_0_of_lt_one (x:Nat) : x < 1 ↔ x = 0 :=
-  Iff.intro
-    (fun p =>
-      match x with
-      | 0 => Eq.refl 0
-      | _+1 => False.elim (not_lt_zero _ (Nat.lt_of_succ_lt_succ p)))
-    (fun p => by simp [p, Nat.zero_lt_succ])
-
-private theorem eq_0_of_lt (x:Nat) : x < 2^ 0 ↔ x = 0 := eq_0_of_lt_one x
-
-@[local simp]
-private theorem zero_lt_pow (n:Nat) : 0 < 2^n := by
-  induction n
-  case zero => simp [eq_0_of_lt]
-  case succ n hyp =>
-    simp [pow_succ]
-    exact (Nat.mul_lt_mul_of_pos_right hyp (by trivial : 2 > 0) : 0 < 2 ^ n * 2)
-
-/-- This provides a bound on bitwise operations. -/
-theorem bitwise_lt_2_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y) < 2^n := by
-  induction n generalizing x y with
-  | zero =>
-    simp only [eq_0_of_lt] at left right
-    unfold bitwise
-    simp [left, right]
-  | succ n hyp =>
-    unfold bitwise
-    if x_zero : x = 0 then
-      simp only [x_zero, if_true]
-      by_cases p : f false true = true <;> simp [p, right]
-    else if y_zero : y = 0 then
-      simp only [x_zero, y_zero, if_false, if_true]
-      by_cases p : f true false = true <;> simp [p, left]
-    else
-      simp only [x_zero, y_zero, if_false]
-      have lt : 0 < 2 := by trivial
-      have xlb : x / 2 < 2^n := by simp [div_lt_iff_lt_mul lt]; exact left
-      have ylb : y / 2 < 2^n := by simp [div_lt_iff_lt_mul lt]; exact right
-      have hyp1 := hyp xlb ylb
-      by_cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) = true <;>
-        simp [p, pow_succ, mul_succ, Nat.add_assoc]
-      case pos =>
-        apply lt_of_succ_le
-        simp only [← Nat.succ_add]
-        apply Nat.add_le_add <;> exact hyp1
-      case neg =>
-        apply Nat.add_lt_add <;> exact hyp1
-
-theorem lor_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : (x ||| y) < 2^n :=
-  bitwise_lt_2_pow left right
-
-theorem land_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : (x &&& y) < 2^n :=
-  bitwise_lt_2_pow left right
-
-theorem xor_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : (x ^^^ y) < 2^n :=
-  bitwise_lt_2_pow left right
-
-theorem shiftLeft_lt_2_pow {x m n : Nat} (bound : x < 2^(n-m)) : (x <<< m) < 2^n := by
-  induction m generalizing x n with
-  | zero => exact bound
-  | succ m hyp =>
-    simp [shiftLeft_succ_inside]
-    apply hyp
-    revert bound
-    rw [Nat.sub_succ]
-    match n - m with
-    | 0 =>
-      intro bound
-      simp [eq_0_of_lt_one] at bound
-      simp [bound]
-    | d + 1 =>
-      intro bound
-      simp [Nat.pow_succ, Nat.mul_comm _ 2]
-      exact Nat.mul_lt_mul_of_pos_left bound (by trivial : 0 < 2)

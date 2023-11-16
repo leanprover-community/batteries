@@ -44,7 +44,11 @@ namespace BitVec
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  toFin := Fin.ofNat' i (Nat.pow_two_pos _)
+  toFin :=
+    let p : i &&& 2^n-1 < 2^n := by
+        apply Nat.land_lt_2_pow
+        exact Nat.sub_lt (Nat.pow_two_pos n) (Nat.le_refl 1)
+    ⟨i &&& 2^n-1, p⟩
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
@@ -80,7 +84,7 @@ protected def toInt (a : BitVec n) : Int :=
   if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
 
 /-- Return a bitvector `0` of size `n`. This is the bitvector with all zero bits. -/
-protected def zero (n : Nat) : BitVec n := .ofNat n 0
+protected def zero (n : Nat) : BitVec n := ⟨0, Nat.pow_two_pos n⟩
 
 instance : Inhabited (BitVec n) where default := .zero n
 
@@ -282,7 +286,7 @@ Bitwise AND for bit vectors.
 SMT-Lib name: `bvand`.
 -/
 protected def and (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat &&& y.toNat, Nat.land_lt_2_pow x.isLt y.isLt⟩
+   ⟨x.toNat &&& y.toNat, Nat.land_lt_2_pow x.toNat y.isLt⟩
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -437,7 +441,12 @@ If `v < w` then it truncates the high bits instead.
 
 SMT-Lib name: `zero_extend`.
 -/
-def zeroExtend (v : Nat) (x : BitVec w) : BitVec v := .ofNat v x.toNat
+def zeroExtend (v : Nat) : BitVec w → BitVec v
+| ⟨x, x_lt⟩ =>
+  if h : w ≤ v then
+    ⟨x, Nat.lt_of_lt_of_le x_lt (Nat.pow_le_pow_of_le_right (by trivial : 2 > 0) h)⟩
+  else
+    .ofNat v x
 
 /--
 Truncate the high bits of bitvector `x` of length `w`, resulting in a vector of length `v`.

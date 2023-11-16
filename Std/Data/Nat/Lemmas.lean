@@ -767,6 +767,26 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib,
       Nat.mul_comm b a, Nat.add_comm (a*a) (a*b), Nat.add_sub_add_left]
 
+protected theorem mul_left_cancel {n m k : Nat} (np : 0 < n) (h:n * m = n * k) : m = k := by
+  match Nat.lt_trichotomy m k with
+  | Or.inl p =>
+    have r : n * m < n * k := Nat.mul_lt_mul_of_pos_left p np
+    simp [h] at r
+  | Or.inr (Or.inl p) => exact p
+  | Or.inr (Or.inr p) =>
+    have r : n * k < n * m := Nat.mul_lt_mul_of_pos_left p np
+    simp [h] at r
+
+protected theorem mul_right_cancel {n m k : Nat} (mp : 0 < m) (h:n * m = k * m) : n = k := by
+  simp [Nat.mul_comm _ m] at h
+  apply Nat.mul_left_cancel mp h
+
+protected theorem mul_left_cancel_iff {n m k : Nat} (p : 0 < n) : n * m = n * k ↔ m = k :=
+  ⟨Nat.mul_left_cancel p, fun | rfl => rfl⟩
+
+protected theorem mul_right_cancel_iff {n m k : Nat} (p : 0 < m) : n * m = k * m ↔ n = k :=
+  ⟨Nat.mul_right_cancel p, fun | rfl => rfl⟩
+
 /-! ## div/mod -/
 
 -- TODO mod_core_congr, mod_def
