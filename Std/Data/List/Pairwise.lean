@@ -231,7 +231,7 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
   | cons₂ _ _ IH =>
     rcases IH with ⟨is,IH⟩
     refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
-    simp (config := { unfoldPartialApp := true }) [comp, pairwise_map, IH]
+    simp [comp_def, pairwise_map, IH]
 
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_forall_sublist]
