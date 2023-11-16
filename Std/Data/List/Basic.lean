@@ -657,7 +657,7 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
 @[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp [scanlTR, scanlTR_go_eq]
+  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -834,7 +834,7 @@ def tailsTR (l : List α) : List (List α) := go l #[] where
   funext α
   have H (l : List α) : ∀ acc, tailsTR.go l acc = acc.toList ++ tails l := by
     induction l <;> simp [*, tailsTR.go]
-  simp [tailsTR, H]
+  simp (config := { unfoldPartialApp := true }) [tailsTR, H]
 
 /--
 `sublists' l` is the list of all (non-contiguous) sublists of `l`.

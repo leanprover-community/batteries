@@ -74,7 +74,8 @@ namespace SatisfiesM
 /-- If `p` is always true, then every `x` satisfies it. -/
 theorem of_true [Applicative m] [LawfulApplicative m] {x : m α}
     (h : ∀ a, p a) : SatisfiesM p x :=
-  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp]⟩
+  ⟨(fun a => ⟨a, h a⟩) <$> x,
+    by simp (config := { unfoldPartialApp := true }) [← comp_map, Function.comp]⟩
 
 /--
 If `p` is always true, then every `x` satisfies it.
@@ -93,7 +94,8 @@ protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
     (hx : SatisfiesM p x) (hf : ∀ {a}, p a → q (f a)) : SatisfiesM q (f <$> x) := by
   let ⟨x', hx⟩ := hx
   refine ⟨(fun ⟨a, h⟩ => ⟨f a, hf h⟩) <$> x', ?_⟩
-  rw [← hx]; simp [← comp_map, Function.comp]
+  rw [← hx]
+  simp (config := { unfoldPartialApp := true }) [← comp_map, Function.comp]
 
 /--
 `SatisfiesM` distributes over `<$>`, strongest postcondition version.
@@ -126,8 +128,10 @@ protected theorem seq [Applicative m] [LawfulApplicative m] {x : m α}
     (H : ∀ {f a}, p₁ f → p₂ a → q (f a)) : SatisfiesM q (f <*> x) := by
   match f, x, hf, hx with | _, _, ⟨f, rfl⟩, ⟨x, rfl⟩ => ?_
   refine ⟨(fun ⟨a, h₁⟩ ⟨b, h₂⟩ => ⟨a b, H h₁ h₂⟩) <$> f <*> x, ?_⟩
-  simp only [← pure_seq]; simp [SatisfiesM, seq_assoc]
-  simp only [← pure_seq]; simp [seq_assoc, Function.comp]
+  simp only [← pure_seq]
+  simp only [seq_assoc, map_pure, seq_pure]
+  simp only [← pure_seq]
+  simp (config := { unfoldPartialApp := true }) only [Function.comp, seq_assoc, map_pure, seq_pure]
 
 /-- `SatisfiesM` distributes over `<*>`, strongest postcondition version. -/
 protected theorem seq_post [Applicative m] [LawfulApplicative m] {x : m α}

@@ -82,7 +82,7 @@ theorem append_of_mem {a : α} {l : List α} : a ∈ l → ∃ s t : List α, l 
   | .head l => ⟨[], l, rfl⟩
   | .tail b h => let ⟨s, t, h'⟩ := append_of_mem h; ⟨b::s, t, by rw [h', cons_append]⟩
 
-@[simp] theorem elem_iff [DecidableEq α] {a : α} {as : List α} :
+@[simp] theorem elem_iff {_ : DecidableEq α} {a : α} {as : List α} :
     elem a as ↔ a ∈ as := ⟨mem_of_elem_eq_true, elem_eq_true_of_mem⟩
 
 theorem mem_of_ne_of_mem {a y : α} {l : List α} (h₁ : a ≠ y) (h₂ : a ∈ y :: l) : a ∈ l :=
@@ -1646,7 +1646,7 @@ theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = fold
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
     (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
-@[simp] theorem mem_union_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_union_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
 
 end union
@@ -1655,7 +1655,7 @@ end union
 
 theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
 
-@[simp] theorem mem_inter_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_inter_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
   cases l₁ <;> simp [List.inter_def, mem_filter]
 
@@ -1968,8 +1968,8 @@ theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
   | [], _, _ => by simp
   | x :: xs, hl, h => by
-    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
-      drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
+    cases m <;> cases n <;> simp only [disjoint_cons_left, drop, not_mem_nil, disjoint_nil_left,
+      take, not_false_eq_true, and_self]
     · case succ.zero => cases h
     · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
@@ -2122,7 +2122,7 @@ theorem range_sublist {m n : Nat} : range m <+ range n ↔ m ≤ n := by
   simp only [range_eq_range', range'_sublist_right]
 
 theorem range_subset {m n : Nat} : range m ⊆ range n ↔ m ≤ n := by
-  simp only [range_eq_range', range'_subset_right]
+  simp only [range_eq_range', range'_subset_right, lt_succ_self]
 
 @[simp]
 theorem mem_range {m n : Nat} : m ∈ range n ↔ m < n := by

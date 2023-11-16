@@ -131,7 +131,7 @@ theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
 
 @[simp] theorem get_push_eq (a : Array α) (x : α) : (a.push x)[a.size] = x := by
   simp only [push, getElem_eq_data_get, List.concat_eq_append]
-  rw [List.get_append_right] <;> simp [getElem_eq_data_get]
+  rw [List.get_append_right] <;> simp [getElem_eq_data_get, Nat.zero_lt_one]
 
 theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
     (a.push x)[i] = if h : i < a.size then a[i] else x := by
