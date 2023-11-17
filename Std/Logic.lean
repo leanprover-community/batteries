@@ -9,6 +9,8 @@ import Std.Tactic.Lint.Misc
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
+theorem Function.comp_def {α β δ} (f : β → δ) (g : α → β) : f ∘ g = fun x => f (g x) := rfl
+
 /-! ## not -/
 
 theorem Not.intro {a : Prop} (h : a → False) : ¬a := h
