@@ -126,7 +126,7 @@ theorem mk_eq_divInt (num den nz c) : ⟨num, den, nz, c⟩ = num /. (den : Nat)
 
 theorem divInt_self (a : Rat) : a.num /. a.den = a := by rw [divInt_ofNat, mkRat_self]
 
-@[simp] theorem zero_divInt (n) : 0 /. n = 0 := by cases n <;> simp [divInt]
+@[simp] theorem zero_divInt (n) : 0 /. n = 0 := by cases n <;> simp [divInt]; rfl
 
 @[simp] theorem divInt_zero (n) : n /. 0 = 0 := mkRat_zero n
 
@@ -215,7 +215,7 @@ theorem neg_normalize (n d z) : -normalize n d z = normalize (-n) d z := by
   simp [normalize, maybeNormalize_eq]; ext <;> simp [Int.neg_div]
 
 theorem neg_mkRat (n d) : -mkRat n d = mkRat (-n) d := by
-  if z : d = 0 then simp [z] else simp [← normalize_eq_mkRat z, neg_normalize]
+  if z : d = 0 then simp [z]; rfl else simp [← normalize_eq_mkRat z, neg_normalize]
 
 theorem neg_divInt (n d) : -(n /. d) = -n /. d := by
   rcases Int.eq_nat_or_neg d with ⟨_, rfl | rfl⟩ <;> simp [divInt_neg', neg_mkRat]
@@ -298,9 +298,7 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
     apply (divInt_self _).symm.trans
     simp [Int.le_antisymm (Int.not_lt.1 h₂) (Int.not_lt.1 h₁)]
 
-@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by
-  unfold Rat.inv
-  simp
+@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by unfold Rat.inv; rfl
 
 @[simp] theorem inv_divInt (n d : Int) : (n /. d).inv = d /. n := by
   if z : d = 0 then simp [z] else
