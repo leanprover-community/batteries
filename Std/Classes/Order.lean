@@ -102,6 +102,10 @@ instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCm
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
 
+theorem ge_iff_le [LE α] {x y : α} : x ≥ y ↔ y ≤ x := Iff.rfl
+
+theorem gt_iff_lt [LT α] {x y : α} : x > y ↔ y < x := Iff.rfl
+
 theorem le_of_eq_of_le {a b c : α} [LE α] (h₁ : a = b) (h₂ : b ≤ c) : a ≤ c := by subst h₁; exact h₂
 
 theorem le_of_le_of_eq {a b c : α} [LE α] (h₁ : a ≤ b) (h₂ : b = c) : a ≤ c := by subst h₂; exact h₁
