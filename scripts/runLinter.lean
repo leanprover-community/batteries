@@ -36,9 +36,18 @@ unsafe def main (args : List String) : IO Unit := do
         | name => some name
       | _ => none
     | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat.Basic]" *> IO.Process.exit 1
+  searchPathRef.set compile_time_search_path%
+  let mFile ← findOLean module
+  unless (← mFile.pathExists) do
+    -- run `lake build module` (and ignore result) if the file hasn't been built yet
+    let child ← IO.Process.spawn {
+      cmd := (← IO.getEnv "LAKE").getD "lake"
+      args := #["build", s!"+{module}"]
+      stdin := .null
+    }
+    _ ← child.wait
   let nolintsFile := "scripts/nolints.json"
   let nolints ← readJsonFile NoLints nolintsFile
-  searchPathRef.set compile_time_search_path%
   withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
     let ctx := { fileName := "", fileMap := default }
     let state := { env }
