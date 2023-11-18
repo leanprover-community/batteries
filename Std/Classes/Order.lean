@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Ord
 import Std.Tactic.Simpa
+import Std.Tactic.Alias
 
 /-! ## Ordering -/
 
@@ -107,9 +108,13 @@ instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCm
 @[simp] theorem gt_iff_lt [LT α] {x y : α} : x > y ↔ y < x := Iff.rfl
 
 theorem le_of_eq_of_le {a b c : α} [LE α] (h₁ : a = b) (h₂ : b ≤ c) : a ≤ c := by subst h₁; exact h₂
+alias Eq.trans_le := le_of_eq_of_le
 
 theorem le_of_le_of_eq {a b c : α} [LE α] (h₁ : a ≤ b) (h₂ : b = c) : a ≤ c := by subst h₂; exact h₁
+alias LE.le.trans_eq := le_of_le_of_eq
 
 theorem lt_of_eq_of_lt {a b c : α} [LT α] (h₁ : a = b) (h₂ : b < c) : a < c := by subst h₁; exact h₂
+alias Eq.trans_lt := lt_of_eq_of_lt
 
 theorem lt_of_lt_of_eq {a b c : α} [LT α] (h₁ : a < b) (h₂ : b = c) : a < c := by subst h₂; exact h₁
+alias LT.lt.trans_eq := lt_of_lt_of_eq
