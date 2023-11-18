@@ -19,7 +19,7 @@ instance : Coe A B where coe := A.toB
 ```
 is used, then `A.toB a` will be pretty-printed as `↑a`.
 
-This file also provides `⇑f` and `↥t` notation, which are syntax for `Lean.meta.coerceToFunction?`
+This file also provides `⇑f` and `↥t` notation, which are syntax for `Lean.Meta.coerceToFunction?`
 and `Lean.Meta.coerceToSort?` respectively.
 -/
 
