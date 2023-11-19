@@ -9,6 +9,8 @@ import Std.Tactic.Lint.Misc
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
+theorem Function.comp_def {α β δ} (f : β → δ) (g : α → β) : f ∘ g = fun x => f (g x) := rfl
+
 /-! ## not -/
 
 theorem Not.intro {a : Prop} (h : a → False) : ¬a := h
@@ -77,7 +79,7 @@ theorem not_iff_false_intro (h : a) : ¬a ↔ False := iff_false_intro (not_not_
 theorem iff_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : (a ↔ b) ↔ (c ↔ d) :=
   ⟨fun h => h₁.symm.trans <| h.trans h₂, fun h => h₁.trans <| h.trans h₂.symm⟩
 
-@[simp] theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
+theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
 
 theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
 
@@ -482,10 +484,10 @@ theorem not_forall_of_exists_not {p : α → Prop} : (∃ x, ¬p x) → ¬∀ x,
 @[simp] theorem exists_eq_or_imp : (∃ a, (a = a' ∨ q a) ∧ p a) ↔ p a' ∨ ∃ a, q a ∧ p a := by
   simp only [or_and_right, exists_or, exists_eq_left]
 
-@[simp] theorem exists_eq_right_right : (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b := by
+@[simp] theorem exists_eq_right_right : (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' := by
   simp [← and_assoc]
 
-@[simp] theorem exists_eq_right_right' : (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b := by
+@[simp] theorem exists_eq_right_right' : (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' := by
   (conv in _=_ => rw [eq_comm]); simp
 
 @[simp] theorem exists_prop : (∃ _h : a, b) ↔ a ∧ b :=
@@ -511,6 +513,9 @@ theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ (∃ b a, p 
 @[simp] theorem forall_apply_eq_imp_iff₂ {f : α → β} {p : α → Prop} {q : β → Prop} :
     (∀ b a, p a → f a = b → q b) ↔ ∀ a, p a → q (f a) :=
   ⟨fun h a ha => h (f a) a ha rfl, fun h _ a ha hb => hb ▸ h a ha⟩
+
+theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬p) : (∀ h' : p, q h') ↔ True :=
+  iff_true_intro fun h => hn.elim h
 
 end quantifiers
 
@@ -542,10 +547,10 @@ else isTrue fun h2 => absurd h2 h
 
 theorem decide_eq_true_iff (p : Prop) [Decidable p] : (decide p = true) ↔ p := by simp
 
-@[simp] theorem decide_eq_false_iff_not (p : Prop) [Decidable p] : (decide p = false) ↔ ¬p :=
+@[simp] theorem decide_eq_false_iff_not (p : Prop) {_ : Decidable p} : (decide p = false) ↔ ¬p :=
   ⟨of_decide_eq_false, decide_eq_false⟩
 
-@[simp] theorem decide_eq_decide {p q : Prop} [Decidable p] [Decidable q] :
+@[simp] theorem decide_eq_decide {p q : Prop} {_ : Decidable p} {_ : Decidable q} :
     decide p = decide q ↔ (p ↔ q) :=
   ⟨fun h => by rw [← decide_eq_true_iff p, h, decide_eq_true_iff], fun h => by simp [h]⟩
 
@@ -753,13 +758,27 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
   apply_dite f P (fun _ => x) (fun _ => y)
 
 /-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
-@[simp] theorem dite_not (P : Prop) [Decidable P]  (x : ¬P → α) (y : ¬¬P → α) :
+@[simp] theorem dite_not (P : Prop) {_ : Decidable P}  (x : ¬P → α) (y : ¬¬P → α) :
     dite (¬P) x y = dite P (fun h => y (not_not_intro h)) x := by
   by_cases h : P <;> simp [h]
 
 /-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-@[simp] theorem ite_not (P : Prop) [Decidable P] (x y : α) : ite (¬P) x y = ite P y x :=
+@[simp] theorem ite_not (P : Prop) {_ : Decidable P} (x y : α) : ite (¬P) x y = ite P y x :=
   dite_not P (fun _ => x) (fun _ => y)
+
+@[simp] theorem dite_eq_left_iff {P : Prop} [Decidable P] {B : ¬ P → α} :
+    dite P (fun _ => a) B = a ↔ ∀ h, B h = a := by
+  by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
+
+@[simp] theorem dite_eq_right_iff {P : Prop} [Decidable P] {A : P → α} :
+    (dite P A fun _ => b) = b ↔ ∀ h, A h = b := by
+  by_cases P <;> simp [*, forall_prop_of_true, forall_prop_of_false]
+
+@[simp] theorem ite_eq_left_iff {P : Prop} [Decidable P] : ite P a b = a ↔ ¬P → b = a :=
+  dite_eq_left_iff
+
+@[simp] theorem ite_eq_right_iff {P : Prop} [Decidable P] : ite P a b = b ↔ P → a = b :=
+  dite_eq_right_iff
 
 /-! ## miscellaneous -/
 

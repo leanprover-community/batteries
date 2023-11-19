@@ -54,9 +54,11 @@ protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. �
 
 protected theorem pow_two_pos (w : Nat) : 0 < 2^w := Nat.pos_pow_of_pos _ (by decide)
 
-protected theorem not_lt_of_le {n m : Nat} (h₁ : m ≤ n) : ¬ n < m := (Nat.not_le_of_gt · h₁)
+@[simp] protected theorem not_le {a b : Nat} : ¬ a ≤ b ↔ b < a :=
+  ⟨Nat.gt_of_not_le, Nat.not_le_of_gt⟩
 
-protected theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := (Nat.le_total a b).resolve_left
+@[simp] protected theorem not_lt {a b : Nat} : ¬ a < b ↔ b ≤ a :=
+  ⟨Nat.ge_of_not_lt, flip Nat.not_le_of_gt⟩
 
 protected theorem le_min_of_le_of_le {a b c : Nat} : a ≤ b → a ≤ c → a ≤ min b c := by
   intros; cases Nat.le_total b c with
