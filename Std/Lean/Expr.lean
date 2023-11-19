@@ -46,7 +46,7 @@ def constName (e : Expr) : Name :=
 
 /-- Return the function (name) and arguments of an application. -/
 def getAppFnArgs (e : Expr) : Name × Array Expr :=
-  withApp e λ e a => (e.constName, a)
+  withApp e fun e a => (e.constName, a)
 
 /-- Like `getAppFn` but ignores metadata. -/
 def getAppFn' : Expr → Expr
