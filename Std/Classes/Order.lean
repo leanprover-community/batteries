@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Ord
 import Std.Tactic.Simpa
-import Std.Tactic.Alias
 
 /-! ## Ordering -/
 
