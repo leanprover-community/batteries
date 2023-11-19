@@ -48,3 +48,20 @@ def natAdd (n) (i : Fin m) : Fin (n + m) := ⟨n + i, Nat.add_lt_add_left i.2 _�
 
 /-- `min n m` as an element of `Fin (m + 1)` -/
 def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
+
+/-- Folds over `Fin n` from the left: `foldl 3 f x = f (f (f x 0) 1) 2` -/
+def foldl (n) (f : α → Fin n → α) (init : α) : α :=
+  let rec loop (val : α) : Nat → α
+  | i => if h : i < n then loop (f val ⟨i, h⟩) (i+1) else val
+  loop init 0
+termination_by loop i => n - i
+
+/-- Folds over `Fin n` from the right: `foldr 3 f x = f 0 (f 1 (f 2 x)` -/
+def foldr (n) (f : Fin n → α → α) (init : α) : α :=
+  match n with
+  | 0 => init
+  | n+1 =>
+    let rec loop : Fin (n+1) → α → α
+    | ⟨0, h⟩, val => f ⟨0, h⟩ val
+    | ⟨i+1, h⟩, val => loop ⟨i, Nat.lt_trans (Nat.lt_succ_self i) h⟩ (f ⟨i+1, h⟩ val)
+    loop ⟨n, Nat.lt_succ_self n⟩ init
