@@ -1,5 +1,6 @@
 import Std.Tactic.Ext
 import Std.Logic
+import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 axiom mySorry {α : Sort _} : α
@@ -41,6 +42,8 @@ example (f g : Nat × Nat → Nat) : f = g := by
   guard_target = f (x, y) = g (x, y); exact mySorry
 
 -- Check that we generate a warning if there are too many patterns.
+/-- warning: `ext` did not consume the patterns: [j] [linter.unusedRCasesPattern] -/
+#guard_msgs in
 example (f g : Nat → Nat) (h : f = g) : f = g := by
   ext i j
   exact h ▸ rfl
@@ -78,12 +81,14 @@ example (f : Empty → Empty) : f = f := by
 
 @[ext] theorem ext_intros {n m : Nat} (w : ∀ n m : Nat, n = m) : n = m := by apply w
 
+#guard_msgs (drop warning) in
 example : 3 = 7 := by
   ext : 1
   rename_i n m
   guard_target = n = m
   admit
 
+#guard_msgs (drop warning) in
 example : 3 = 7 := by
   ext n m : 1
   guard_target = n = m
