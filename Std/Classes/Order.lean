@@ -90,6 +90,12 @@ theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z 
 
 end TransCmp
 
+end Std
+
+namespace Ordering
+
+open Std
+
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
 @[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
 
@@ -101,6 +107,8 @@ instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCm
 
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
+
+end Ordering
 
 @[simp] theorem ge_iff_le [LE α] {x y : α} : x ≥ y ↔ y ≤ x := Iff.rfl
 
