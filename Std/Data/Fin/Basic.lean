@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro
 -/
 import Std.Data.Nat.Init.Lemmas
+import Std.Tactic.Lint
 
 namespace Fin
 
@@ -51,8 +52,9 @@ def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le
 
 /-- Folds over `Fin n` from the left: `foldl 3 f x = f (f (f x 0) 1) 2` -/
 @[inline] def foldl (n) (f : α → Fin n → α) (init : α) : α :=
-  let rec loop (val : α) : Nat → α
-  | i => if h : i < n then loop (f val ⟨i, h⟩) (i+1) else val
+  let rec /-- Inner loop for `Fin.foldl` -/
+    loop (val : α) : Nat → α
+    | i => if h : i < n then loop (f val ⟨i, h⟩) (i+1) else val
   loop init 0
 termination_by loop i => n - i
 
@@ -61,7 +63,8 @@ termination_by loop i => n - i
   match n with
   | 0 => init
   | n+1 =>
-    let rec loop : Fin (n+1) → α → α
-    | ⟨0, h⟩, val => f ⟨0, h⟩ val
-    | ⟨i+1, h⟩, val => loop ⟨i, Nat.lt_trans (Nat.lt_succ_self i) h⟩ (f ⟨i+1, h⟩ val)
+    let rec /-- Inner loop for `Fin.foldl` -/
+      loop : Fin (n+1) → α → α
+      | ⟨0, h⟩, val => f ⟨0, h⟩ val
+      | ⟨i+1, h⟩, val => loop ⟨i, Nat.lt_trans (Nat.lt_succ_self i) h⟩ (f ⟨i+1, h⟩ val)
     loop ⟨n, Nat.lt_succ_self n⟩ init
