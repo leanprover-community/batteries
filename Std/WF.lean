@@ -46,7 +46,7 @@ private local instance wfRel {r : α → α → Prop} : WellFoundedRelation { va
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
 /-- A computable version of `Acc.rec`. Workaround until Lean has native support for this. -/
-@[elab_as_elim] private def recC {motive : (a : α) → Acc r a → Sort v}
+@[specialize, elab_as_elim] private def recC {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
@@ -68,7 +68,7 @@ private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     congr; funext y hr; exact ih _ hr
 
 /-- A computable version of `Acc.ndrec`. Workaround until Lean has native support for this. -/
-private abbrev ndrecC {C : α → Sort v}
+@[inline] private abbrev ndrecC {C : α → Sort v}
     (m : (x : α) → ((y : α) → r y x → Acc r y) → ((y : α) → (a : r y x) → C y) → C x)
     {a : α} (n : Acc r a) : C a :=
   n.recC m
@@ -78,7 +78,7 @@ private abbrev ndrecC {C : α → Sort v}
   rw [Acc.ndrec, rec_eq_recC, Acc.ndrecC]
 
 /-- A computable version of `Acc.ndrecOn`. Workaround until Lean has native support for this. -/
-private abbrev ndrecOnC {C : α → Sort v} {a : α} (n : Acc r a)
+@[inline] private abbrev ndrecOnC {C : α → Sort v} {a : α} (n : Acc r a)
     (m : (x : α) → ((y : α) → r y x → Acc r y) → ((y : α) → r y x → C y) → C x) : C a :=
   n.recC m
 
@@ -92,7 +92,7 @@ namespace WellFounded
 
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
-private def fixFC {α : Sort u} {r : α → α → Prop}
+@[inline] private def fixFC {α : Sort u} {r : α → α → Prop}
     {C : α → Sort v} (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) (a : Acc r x) : C x := by
   induction a using Acc.recC with
   | intro x₁ _ ih => exact F x₁ ih
@@ -102,12 +102,11 @@ private def fixFC {α : Sort u} {r : α → α → Prop}
   rw [fixF, Acc.rec_eq_recC, fixFC]
 
 /-- A computable version of `fix`. Workaround until Lean has native support for this. -/
-private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop} (hwf : WellFounded r)
-    (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
-  fixFC F x (apply hwf x)
+@[specialize] private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
+    (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
+  F x (fun y _ => fixC hwf F y)
+termination_by' ⟨r, hwf⟩
 
-@[csimp] private theorem fix_eq_fixC : @fix = @fixC := by
-  funext α C r hwf F x
-  rw [fix, fixF_eq_fixFC, fixC]
+@[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
 end WellFounded
