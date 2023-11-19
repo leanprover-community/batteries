@@ -83,8 +83,6 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
 import Std.Lean.Json
-import Std.Lean.KVMap
-import Std.Lean.Linter
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
