@@ -21,7 +21,7 @@ structure PrintPrefixConfig where
   /-- Flag to control whether we should print the type of a declartion. -/
   showTypes : Bool := true
   /--
-  Set to true to include internal declarations (names with "_" or ending with match_ or proof_)
+  Include internal declarations (names starting with `_`, `match_` or `proof_`)
   -/
   internals : Bool := false
 
