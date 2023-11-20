@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
 import Std.Tactic.Basic
+import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
@@ -429,7 +430,7 @@ end forall_congr
 
 @[simp] theorem not_exists : (¬∃ x, p x) ↔ ∀ x, ¬p x := exists_imp
 
-theorem forall_not_of_not_exists (hne : ¬∃ x, p x) (x) : ¬p x | hp => hne ⟨x, hp⟩
+alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
 
 theorem forall_and : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
   ⟨fun h => ⟨fun x => (h x).1, fun x => (h x).2⟩, fun ⟨h₁, h₂⟩ x => ⟨h₁ x, h₂ x⟩⟩
@@ -676,6 +677,8 @@ protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p 
   ⟨Decidable.not_imp_symm fun nx x => Decidable.not_imp_symm (fun h => ⟨x, h⟩) nx,
    not_forall_of_exists_not⟩
 
+protected alias ⟨Decidable.exists_not_of_not_forall, _⟩ := Decidable.not_forall
+
 protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, p x)] :
     (¬∀ x, ¬p x) ↔ ∃ x, p x :=
   (@Decidable.not_iff_comm _ _ _ (decidable_of_iff (¬∃ x, p x) not_exists)).1 not_exists
@@ -696,6 +699,8 @@ is classically true but not constructively. -/
 @[simp]
 theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
   Decidable.not_forall
+
+alias ⟨exists_not_of_not_forall, _⟩ := not_forall
 
 theorem not_forall_not {p : α → Prop} : (¬∀ x, ¬p x) ↔ ∃ x, p x := Decidable.not_forall_not
 
