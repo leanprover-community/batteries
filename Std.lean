@@ -10,7 +10,6 @@ import Std.CodeAction.Attr
 import Std.CodeAction.Basic
 import Std.CodeAction.Deprecated
 import Std.CodeAction.Misc
-import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
 import Std.Control.Lemmas
@@ -21,10 +20,8 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Match
 import Std.Data.Array.Merge
 import Std.Data.AssocList
-import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
-import Std.Data.BitVec
 import Std.Data.BitVec.Basic
 import Std.Data.Bool
 import Std.Data.Char
@@ -32,7 +29,6 @@ import Std.Data.DList
 import Std.Data.Fin.Basic
 import Std.Data.Fin.Init.Lemmas
 import Std.Data.Fin.Lemmas
-import Std.Data.HashMap
 import Std.Data.HashMap.Basic
 import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
@@ -57,19 +53,15 @@ import Std.Data.Option.Lemmas
 import Std.Data.Ord
 import Std.Data.PairingHeap
 import Std.Data.Prod.Lex
-import Std.Data.RBMap
 import Std.Data.RBMap.Alter
 import Std.Data.RBMap.Basic
 import Std.Data.RBMap.Lemmas
 import Std.Data.RBMap.WF
 import Std.Data.Range.Lemmas
-import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
-import Std.Data.String
 import Std.Data.String.Basic
 import Std.Data.String.Lemmas
-import Std.Data.Sum
 import Std.Data.Sum.Basic
 import Std.Data.Sum.Lemmas
 import Std.Lean.AttributeExtra
