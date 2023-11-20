@@ -589,29 +589,14 @@ are often used for theorems about `Array.pop`.  -/
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
-@[simp] theorem length_dropLast (xs : List α) : xs.dropLast.length = xs.length - 1 := by
-  match xs with
+@[simp] theorem length_dropLast : ∀ (xs : List α), xs.dropLast.length = xs.length - 1
   | [] => rfl
-  | x::xs => simp [Nat.succ_sub_succ_eq_sub]
+  | x::xs => by simp
 
-@[simp] theorem get_dropLast (xs : List α) (i : Fin xs.dropLast.length) :
-    xs.dropLast.get i = xs.get (i.castLE (xs.length_dropLast ▸ Nat.sub_le _ _ )) := by
-  cases i with | _ i hi =>
-  induction i generalizing xs
-  case zero =>
-    cases xs
-    case nil => rfl
-    case cons x xs =>
-      cases xs
-      case nil => simp at hi
-      case cons => rfl
-  case succ i IH =>
-    cases xs
-    case nil => rfl
-    case cons x xs =>
-      cases xs
-      case nil => apply False.elim (Nat.not_lt_zero _ hi)
-      case cons y ys => apply IH
+@[simp] theorem get_dropLast : ∀ (xs : List α) (i : Fin xs.dropLast.length),
+    xs.dropLast.get i = xs.get (i.castLE (xs.length_dropLast ▸ Nat.sub_le ..))
+  | _::_::_, ⟨0, _⟩ => rfl
+  | _::_::_, ⟨i+1, _⟩ => get_dropLast _ ⟨i, _⟩
 
 /-! ### nth element -/
 
