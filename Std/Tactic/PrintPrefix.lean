@@ -14,7 +14,7 @@ Options to control `getMatchingConstants` options below.
 structure PrintPrefixConfig where
   /-- Include declarations in imported environment. -/
   imported : Bool := true
-  /-- Include declarations who types are propositions. -/
+  /-- Include declarations whose types are propositions. -/
   propositions : Bool := true
   /-- Exclude definitions who types are not propositions. -/
   propositionsOnly : Bool := false
