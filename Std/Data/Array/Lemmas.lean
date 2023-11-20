@@ -227,6 +227,26 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
   simp only [reverse]; split <;> simp [go]
 termination_by _ => j - i
 
+@[simp] theorem size_range {n : Nat} : (range n).size = n := by
+  unfold range
+  induction n with
+  | zero      => simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
+  | succ k ih => simp only [Nat.fold, flip, size_push, ih]
+
+theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
+    SatisfiesM (·.size = a.size) (a.modifyM i f) := by
+  unfold modifyM
+  split
+  case inl h =>
+    exact SatisfiesM.bind_pre <| SatisfiesM.of_true
+          <| fun _ => SatisfiesM.pure <| by simp only [size_set]
+  case inr h => exact SatisfiesM.pure rfl
+
+@[simp]
+theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
+  rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
+  exact size_modifyM _ _ _
+
 @[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
       (h : i + j + 1 = a.size) (h₂ : as.size = a.size)
