@@ -50,7 +50,7 @@ def isInternalDetail : Name → Bool
 /--
 `reverseName name` reverses the components of a name.
 -/
-private def reverseName : Name → (pre:Name := .anonymous) → Name
+private def reverseName : Name → (pre : Name := .anonymous) → Name
 | .anonymous, p => p
 | .str q s, p => reverseName q (.str p s)
 | .num q n, p => reverseName q (.num p n)
