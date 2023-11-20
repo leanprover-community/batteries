@@ -59,10 +59,10 @@ private def reverseName : Name → (pre:Name := .anonymous) → Name
 `takeNameSuffix n name` returns a pair `(pre, suf)` where `suf` contains the last `n` components
 of the name and `pre` contains the rest.
 -/
-private def takeNameSuffix (cnt : Nat) (name:Name) (prev:Name := .anonymous) : Name × Name :=
+private def takeNameSuffix (cnt : Nat) (name : Name) (pre : Name := .anonymous) : Name × Name :=
   match cnt, name with
-  | .succ cnt, .str q s => takeNameSuffix cnt q (.str prev s)
-  | .succ cnt, .num q n => takeNameSuffix cnt q (.num prev n)
+  | .succ cnt, .str q s => takeNameSuffix cnt q (.str pre s)
+  | .succ cnt, .num q n => takeNameSuffix cnt q (.num pre n)
   | _, name => (name, reverseName prev)
 
 /--
