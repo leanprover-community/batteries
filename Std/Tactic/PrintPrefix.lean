@@ -18,7 +18,7 @@ structure PrintPrefixConfig where
   propositions : Bool := true
   /-- Exclude definitions who types are not propositions. -/
   propositionsOnly : Bool := false
-  /-- Flag to control whether we should print the type of a declartion. -/
+  /-- Print the type of a declaration. -/
   showTypes : Bool := true
   /--
   Include internal declarations (names starting with `_`, `match_` or `proof_`)
