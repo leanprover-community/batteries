@@ -208,7 +208,9 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
 syntax inProject := " in " ident
 
 open Elab Command in
-/-- The command `#lint` runs the linters on the current file (by default). -/
+/-- The command `#lint` runs the linters on the current file (by default).
+
+`#lint only someLinter` can be used to run only a single linter. -/
 elab tk:"#lint" verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
     linters:(ppSpace ident)* project:(inProject)? : command => do
   let (decls, whereDesc, groupByFilename) ← match project with

@@ -150,7 +150,7 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
       · next i hi' =>
         exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
   simp [foldrM]; split; {exact go _ h0}
-  · next h => exact .pure (Nat.eq_zero_of_nonpos _ h ▸ h0)
+  · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
 theorem foldr_induction
     {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive as.size init) {f : α → β → β}

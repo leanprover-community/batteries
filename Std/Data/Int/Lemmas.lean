@@ -30,10 +30,10 @@ theorem subNatNat_of_sub_eq_zero {m n : Nat} (h : n - m = 0) : subNatNat m n = �
 theorem subNatNat_of_sub_eq_succ {m n k : Nat} (h : n - m = succ k) : subNatNat m n = -[k+1] := by
   rw [subNatNat, h]
 
-@[local simp] protected theorem neg_zero : -(0:Int) = 0 := rfl
+@[simp] protected theorem neg_zero : -(0:Int) = 0 := rfl
 
-theorem ofNat_add (n m : Nat) : (↑(n + m) : Int) = n + m := rfl
-theorem ofNat_mul (n m : Nat) : (↑(n * m) : Int) = n * m := rfl
+@[norm_cast] theorem ofNat_add (n m : Nat) : (↑(n + m) : Int) = n + m := rfl
+@[norm_cast] theorem ofNat_mul (n m : Nat) : (↑(n * m) : Int) = n * m := rfl
 theorem ofNat_succ (n : Nat) : (succ n : Int) = n + 1 := rfl
 
 @[local simp] theorem neg_ofNat_zero : -((0 : Nat) : Int) = 0 := rfl
@@ -63,7 +63,7 @@ theorem negOfNat_eq : negOfNat n = -ofNat n := rfl
 
 /- ## some basic functions and properties -/
 
-theorem ofNat_inj : ((m : Nat) : Int) = (n : Nat) ↔ m = n := ⟨ofNat.inj, congrArg _⟩
+@[norm_cast] theorem ofNat_inj : ((m : Nat) : Int) = (n : Nat) ↔ m = n := ⟨ofNat.inj, congrArg _⟩
 
 theorem ofNat_eq_zero : ((n : Nat) : Int) = 0 ↔ n = 0 := ofNat_inj
 
@@ -77,6 +77,9 @@ theorem negSucc_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 
 @[simp] theorem zero_ne_negSucc (n : Nat) : 0 ≠ -[n+1] := fun.
 
+@[simp, norm_cast] theorem Nat.cast_ofNat_Int :
+  (Nat.cast (no_index (OfNat.ofNat n)) : Int) = OfNat.ofNat n := rfl
+
 /- ## neg -/
 
 @[simp] protected theorem neg_neg : ∀ a : Int, -(-a) = a
@@ -87,7 +90,7 @@ theorem negSucc_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 protected theorem neg_inj {a b : Int} : -a = -b ↔ a = b :=
   ⟨fun h => by rw [← Int.neg_neg a, ← Int.neg_neg b, h], congrArg _⟩
 
-protected theorem neg_eq_zero : -a = 0 ↔ a = 0 := Int.neg_inj (b := 0)
+@[simp] protected theorem neg_eq_zero : -a = 0 ↔ a = 0 := Int.neg_inj (b := 0)
 
 protected theorem neg_ne_zero : -a ≠ 0 ↔ a ≠ 0 := not_congr Int.neg_eq_zero
 
@@ -221,11 +224,11 @@ protected theorem add_comm : ∀ a b : Int, a + b = b + a
   | -[_+1],  ofNat _ => rfl
   | -[_+1],  -[_+1]  => by simp [Nat.add_comm]
 
-@[local simp] protected theorem add_zero : ∀ a : Int, a + 0 = a
+@[simp] protected theorem add_zero : ∀ a : Int, a + 0 = a
   | ofNat _ => rfl
   | -[_+1]  => rfl
 
-@[local simp] protected theorem zero_add (a : Int) : 0 + a = a := Int.add_comm .. ▸ a.add_zero
+@[simp] protected theorem zero_add (a : Int) : 0 + a = a := Int.add_comm .. ▸ a.add_zero
 
 theorem ofNat_add_negSucc_of_lt (h : m < n.succ) : ofNat m + -[n+1] = -[n - m+1] :=
   show subNatNat .. = _ by simp [succ_sub (le_of_lt_succ h), subNatNat]
@@ -340,12 +343,12 @@ protected theorem add_left_cancel {a b c : Int} (h : a + b = a + c) : b = c := b
 
 @[simp] theorem negSucc_sub_one (n : Nat) : -[n+1] - 1 = -[n + 1 +1] := rfl
 
-protected theorem sub_self (a : Int) : a - a = 0 := by
+@[simp] protected theorem sub_self (a : Int) : a - a = 0 := by
   rw [Int.sub_eq_add_neg, Int.add_right_neg]
 
-protected theorem sub_zero (a : Int) : a - 0 = a := by simp [Int.sub_eq_add_neg]
+@[simp] protected theorem sub_zero (a : Int) : a - 0 = a := by simp [Int.sub_eq_add_neg]
 
-protected theorem zero_sub (a : Int) : 0 - a = -a := by simp [Int.sub_eq_add_neg]
+@[simp] protected theorem zero_sub (a : Int) : 0 - a = -a := by simp [Int.sub_eq_add_neg]
 
 protected theorem sub_eq_zero_of_eq {a b : Int} (h : a = b) : a - b = 0 := by
   rw [h, Int.sub_self]
@@ -492,7 +495,7 @@ protected theorem zero_ne_one : (0 : Int) ≠ 1 := fun.
 protected theorem add_sub_assoc (a b c : Int) : a + b - c = a + (b - c) := by
   rw [Int.sub_eq_add_neg, Int.add_assoc, ← Int.sub_eq_add_neg]
 
-theorem ofNat_sub (h : m ≤ n) : ((n - m : Nat) : Int) = n - m := by
+@[norm_cast] theorem ofNat_sub (h : m ≤ n) : ((n - m : Nat) : Int) = n - m := by
   match m with
   | 0 => rfl
   | succ m =>
@@ -1318,6 +1321,12 @@ protected theorem eq_of_mul_eq_mul_left {a b c : Int} (ha : a ≠ 0) (h : a * b 
   have : a * (b - c) = 0 := by rw [Int.mul_sub, this]
   have : b - c = 0 := (Int.mul_eq_zero.1 this).resolve_left ha
   Int.eq_of_sub_eq_zero this
+
+theorem mul_eq_mul_left_iff {a b c : Int} (h : c ≠ 0) : c * a = c * b ↔ a = b :=
+  ⟨Int.eq_of_mul_eq_mul_left h, fun w => congrArg (fun x => c * x) w⟩
+
+theorem mul_eq_mul_right_iff {a b c : Int} (h : c ≠ 0) : a * c = b * c ↔ a = b :=
+  ⟨Int.eq_of_mul_eq_mul_right h, fun w => congrArg (fun x => x * c) w⟩
 
 theorem eq_one_of_mul_eq_self_left {a b : Int} (Hpos : a ≠ 0) (H : b * a = a) : b = 1 :=
   Int.eq_of_mul_eq_mul_right Hpos <| by rw [Int.one_mul, H]

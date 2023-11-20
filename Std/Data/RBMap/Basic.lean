@@ -849,7 +849,7 @@ The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
 def RBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : Type (max u v) :=
-  RBSet (α × β) (byKey Prod.fst cmp)
+  RBSet (α × β) (Ordering.byKey Prod.fst cmp)
 
 /-- `O(1)`. Construct a new empty map. -/
 @[inline] def mkRBMap (α : Type u) (β : Type v) (cmp : α → α → Ordering) : RBMap α β cmp :=
