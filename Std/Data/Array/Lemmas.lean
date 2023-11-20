@@ -235,17 +235,13 @@ termination_by _ => j - i
 
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = a.size) (a.modifyM i f) := by
-  unfold modifyM
-  split
-  case inl h =>
-    exact SatisfiesM.bind_pre <| SatisfiesM.of_true
-          <| fun _ => SatisfiesM.pure <| by simp only [size_set]
-  case inr h => exact SatisfiesM.pure rfl
+  unfold modifyM; split
+  · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
+  · exact .pure rfl
 
-@[simp]
-theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
+@[simp] theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
   rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
-  exact size_modifyM _ _ _
+  apply size_modifyM
 
 @[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
