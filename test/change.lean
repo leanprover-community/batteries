@@ -67,7 +67,7 @@ example (α : Type) [LT α] (x : α) (h : x < x) : x < id x := by
   guard_target =ₛ x < x
   exact h
 
--- This example shows using named and anoynmous placeholders to create a new goal.
+-- This example shows using named and anonymous placeholders to create a new goal.
 example (x y : Nat) (h : x = y) : True := by
   change (if 1 < 2 then x else ?z + ?_) = y at h
   rotate_left
@@ -77,6 +77,6 @@ example (x y : Nat) (h : x = y) : True := by
   · trivial
 
 example : let x := 22; let y : Nat := x; let z : Fin (y + 1) := 0; z.1 < y + 1 := by
-  intro x y z -- `z` was erroneously marked as unused
+  intro x y z -- `z` was previously erroneously marked as unused
   change _ at y
   exact z.2
