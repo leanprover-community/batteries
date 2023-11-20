@@ -37,6 +37,9 @@ theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
 theorem getD_of_ne_none {x : Option α} (hx : x ≠ none) (y : α) : some (x.getD y) = x := by
   cases x; {contradiction}; rw [getD_some]
 
+theorem getD_eq_iff {o : Option α} {a b} : o.getD a = b ↔ (o = some b ∨ o = none ∧ a = b) := by
+  cases o <;> simp
+
 theorem mem_unique {o : Option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
   some.inj <| ha ▸ hb
 
@@ -89,6 +92,9 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
       exact this⟩
 
 @[simp] theorem bind_some (x : Option α) : x.bind some = x := by cases x <;> rfl
+
+@[simp] theorem bind_none (x : Option α) : x.bind (fun _ => none (α := β)) = none := by
+  cases x <;> rfl
 
 @[simp] theorem bind_eq_some : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b := by
   cases x <;> simp

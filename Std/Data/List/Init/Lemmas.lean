@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Data.Fin.Init.Lemmas
+import Std.Classes.SetNotation
+import Std.Logic
 
 namespace List
 
@@ -49,6 +51,14 @@ theorem ne_nil_of_length_eq_succ (_ : length l = succ n) : l ≠ [] := fun _ => 
 
 theorem length_eq_zero : length l = 0 ↔ l = [] :=
   ⟨eq_nil_of_length_eq_zero, fun h => h ▸ rfl⟩
+
+/-! ### mem -/
+
+@[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := fun.
+
+@[simp] theorem mem_cons : a ∈ (b :: l) ↔ a = b ∨ a ∈ l :=
+  ⟨fun h => by cases h <;> simp [Membership.mem, *],
+   fun | Or.inl rfl => by constructor | Or.inr h => by constructor; assumption⟩
 
 /-! ### append -/
 
@@ -132,6 +142,19 @@ theorem reverseAux_eq (as bs : List α) : reverseAux as bs = reverse as ++ bs :=
 
 theorem reverse_map (f : α → β) (l : List α) : (l.map f).reverse = l.reverse.map f := by
   induction l <;> simp [*]
+
+/-! ### nth element -/
+
+theorem get_of_mem : ∀ {a} {l : List α}, a ∈ l → ∃ n, get l n = a
+  | _, _ :: _, .head .. => ⟨⟨0, Nat.succ_pos _⟩, rfl⟩
+  | _, _ :: _, .tail _ m => let ⟨⟨n, h⟩, e⟩ := get_of_mem m; ⟨⟨n+1, Nat.succ_lt_succ h⟩, e⟩
+
+theorem get_mem : ∀ (l : List α) n h, get l ⟨n, h⟩ ∈ l
+  | _ :: _, 0, _ => .head ..
+  | _ :: l, _+1, _ => .tail _ (get_mem l ..)
+
+theorem mem_iff_get {a} {l : List α} : a ∈ l ↔ ∃ n, get l n = a :=
+  ⟨get_of_mem, fun ⟨_, e⟩ => e ▸ get_mem ..⟩
 
 /-! ### take and drop -/
 
@@ -353,6 +376,12 @@ theorem lookup_cons [BEq α] {k : α} :
 @[simp] theorem unzip_nil : ([] : List (α × β)).unzip = ([], []) := rfl
 @[simp] theorem unzip_cons {h : α × β} :
     (h :: t).unzip = match unzip t with | (al, bl) => (h.1::al, h.2::bl) := rfl
+
+/-! ### all / any -/
+
+@[simp] theorem all_eq_true {l : List α} : l.all p ↔ ∀ x ∈ l, p x := by induction l <;> simp [*]
+
+@[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
 
 /-! ### enumFrom -/
 
