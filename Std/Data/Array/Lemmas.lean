@@ -136,6 +136,10 @@ theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
 
 @[simp] theorem pop_push (a : Array α) : (a.push x).pop = a := by simp [pop]
 
+@[simp] theorem getElem_pop (a : Array α) (i : Nat) (hi : i < a.pop.size) :
+    a.pop[i] = a[i]'(Nat.lt_of_lt_of_le (a.size_pop ▸ hi) (Nat.sub_le _ _)) :=
+  List.get_dropLast ..
+
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
     {init : β} (h0 : motive as.size init) {f : α → β → m β}
