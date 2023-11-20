@@ -141,6 +141,7 @@ import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
+import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
