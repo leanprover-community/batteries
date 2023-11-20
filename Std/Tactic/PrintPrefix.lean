@@ -68,7 +68,7 @@ private def takeNameSuffix (cnt : Nat) (name:Name) (prev:Name := .anonymous) : N
 /--
 `matchName opts pre cinfo` returns true if the search options should include the constant.
 -/
-private def matchName (opts : PrintPrefixConfig) (pre:Name) (cinfo:ConstantInfo) : MetaM Bool := do
+private def matchName (opts : PrintPrefixConfig) (pre : Name) (cinfo : ConstantInfo) : MetaM Bool := do
   let name := cinfo.name
   let preCnt := pre.getNumParts
   let nameCnt := name.getNumParts
