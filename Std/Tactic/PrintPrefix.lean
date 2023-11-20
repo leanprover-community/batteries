@@ -16,7 +16,7 @@ structure PrintPrefixConfig where
   imported : Bool := true
   /-- Include declarations whose types are propositions. -/
   propositions : Bool := true
-  /-- Exclude definitions who types are not propositions. -/
+  /-- Exclude declarations whose types are not propositions. -/
   propositionsOnly : Bool := false
   /-- Print the type of a declaration. -/
   showTypes : Bool := true
