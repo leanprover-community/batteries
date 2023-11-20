@@ -202,7 +202,9 @@ syntax "ext?" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
 end Std.Tactic.Ext
 
-attribute [ext] funext propext
+attribute [ext] funext propext Subtype.eq
+attribute [ext] Prod PProd Sigma PSigma
 
 @[ext] protected theorem PUnit.ext (x y : PUnit) : x = y := rfl
 protected theorem Unit.ext (x y : Unit) : x = y := rfl
+
