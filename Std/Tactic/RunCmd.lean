@@ -18,7 +18,7 @@ Defines commands to compile and execute a command / term / tactic on the spot:
 * `by_elab doSeq` term which executes code in `TermElabM Expr` to produce an expression.
 -/
 
-namespace Mathlib.RunCmd
+namespace Std.Tactic.RunCmd
 open Lean Meta Elab Command Term Tactic
 
 /--
