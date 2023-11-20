@@ -91,7 +91,7 @@ private def lexNameLt : Name -> Name -> Bool
 | .str _ _, .num _ _ => false
 | .str p m, .str q n => m < n || m == n && lexNameLt p q
 
-private def appendMatchingConstants (msg : String) (opts : PrintPrefixConfig) (pre:Name)
+private def appendMatchingConstants (msg : String) (opts : PrintPrefixConfig) (pre : Name)
      : MetaM String := do
   let cinfos ← getMatchingConstants (matchName opts pre) opts.imported
   let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
