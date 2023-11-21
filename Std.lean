@@ -13,6 +13,7 @@ import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
+import Std.Control.Lemmas
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
@@ -113,6 +114,7 @@ import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
+import Std.Tactic.Change
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -141,6 +143,7 @@ import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
+import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace

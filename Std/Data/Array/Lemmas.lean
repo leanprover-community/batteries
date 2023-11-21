@@ -136,6 +136,10 @@ theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
 
 @[simp] theorem pop_push (a : Array α) : (a.push x).pop = a := by simp [pop]
 
+@[simp] theorem getElem_pop (a : Array α) (i : Nat) (hi : i < a.pop.size) :
+    a.pop[i] = a[i]'(Nat.lt_of_lt_of_le (a.size_pop ▸ hi) (Nat.sub_le _ _)) :=
+  List.get_dropLast ..
+
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
     {init : β} (h0 : motive as.size init) {f : α → β → m β}
@@ -226,6 +230,22 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
     else simp [h]
   simp only [reverse]; split <;> simp [go]
 termination_by _ => j - i
+
+@[simp] theorem size_range {n : Nat} : (range n).size = n := by
+  unfold range
+  induction n with
+  | zero      => simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
+  | succ k ih => simp only [Nat.fold, flip, size_push, ih]
+
+theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
+    SatisfiesM (·.size = a.size) (a.modifyM i f) := by
+  unfold modifyM; split
+  · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
+  · exact .pure rfl
+
+@[simp] theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
+  rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
+  apply size_modifyM
 
 @[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
