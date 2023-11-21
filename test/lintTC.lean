@@ -1,5 +1,6 @@
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.GuardMsgs
+import Std.Tactic.RunCmd
 
 open Std.Tactic.Lint
 
@@ -9,15 +10,15 @@ namespace A
 #guard_msgs in
 local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨default⟩
 
-#eval do guard (← impossibleInstance.test ``impossible).isSome
+run_meta guard (← impossibleInstance.test ``impossible).isSome
 
 end A
 
 namespace B
 instance bad : Nat := 1
 
-#eval do guard (← nonClassInstance.test ``bad).isSome
+run_meta guard (← nonClassInstance.test ``bad).isSome
 instance good : Inhabited Nat := ⟨1⟩
 
-#eval do guard (← nonClassInstance.test ``good).isNone
+run_meta guard (← nonClassInstance.test ``good).isNone
 end B

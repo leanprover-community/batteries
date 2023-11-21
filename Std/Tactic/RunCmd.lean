@@ -32,6 +32,25 @@ elab (name := runCmd) "run_cmd " elems:doSeq : command => do
       (mkApp (mkConst ``CommandElabM) (mkConst ``Unit))
       (← `(discard do $elems))
 
+/--
+Helper function for `run_meta` command.
+-/
+def _root_.Lean.Elab.Command.runMeta (x : MetaM α) : CommandElabM α := do
+  (·.1) <$> Core.CoreM.toIO (MetaM.run' x) { (← read) with } { env := (← get).env }
+
+/--
+The `run_meta doSeq` command executes code in `MetaM Unit`.
+This is almost the same as `#eval show MetaM Unit from do doSeq`,
+except that it doesn't print an empty diagnostic.
+-/
+elab (name := runMeta) "run_meta " elems:doSeq : command => do
+  ← liftTermElabM <|
+    unsafe evalTerm (CommandElabM Unit)
+      (mkApp (mkConst ``CommandElabM) (mkConst ``Unit))
+      (← `(Command.runMeta <| discard do $elems))
+
+run_meta guard <| 1 = 1
+
 /-- The `run_tac doSeq` tactic executes code in `TacticM Unit`. -/
 elab (name := runTac) "run_tac " e:doSeq : tactic => do
   ← unsafe evalTerm (TacticM Unit) (mkApp (mkConst ``TacticM) (mkConst ``Unit))
