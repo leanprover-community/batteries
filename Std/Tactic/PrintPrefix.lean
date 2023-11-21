@@ -3,6 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
+import Std.Lean.Name
 import Std.Lean.Util.EnvSearch
 import Lean.Elab.Tactic.Config
 
@@ -58,20 +59,6 @@ for `Lean.Elab.Command.PrintPrefixConfig`.
 syntax (name := printPrefix) "#print prefix " (Lean.Parser.Tactic.config)? ident : command
 
 /--
-Returns true if any part of name starts with underscore or uses a num.
-
-This can be used to hide internally generated names.
--/
-def isInternalDetail : Name → Bool
-  | .str p s     =>
-    s.startsWith "_"
-      || s.startsWith "match_"
-      || s.startsWith "proof_"
-      || p.isInternal
-  | .num p _     => p.isInternal
-  | _            => false
-
-/--
 `reverseName name` reverses the components of a name.
 -/
 private def reverseName : Name → (pre : Name := .anonymous) → Name
@@ -100,7 +87,7 @@ private def matchName (opts : PrintPrefixConfig)
   if preCnt > nameCnt then return false
   let (root, post) := takeNameSuffix (nameCnt - preCnt) name
   if root ≠ pre then return false
-  if !opts.internals && isInternalDetail post then return false
+  if !opts.internals && post.isInternalDetail then return false
   let isProp := (Expr.isProp <$> Lean.Meta.inferType cinfo.type) <|> pure false
   if opts.propositions then do
     if opts.propositionsOnly && !(←isProp) then return false
