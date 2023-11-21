@@ -325,6 +325,9 @@ theorem Subperm.trans {l₁ l₂ l₃ : List α} : l₁ <+~ l₂ → l₂ <+~ l�
     let ⟨l₁', p₁, s₁⟩ := p₂.subperm_left.2 s
     ⟨l₁', p₁, s₁.trans s₂⟩
 
+theorem Subperm.cons_right {α : Type _} {l l' : List α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
+  h.trans (sublist_cons x l').subperm
+
 theorem Subperm.length_le {l₁ l₂ : List α} : l₁ <+~ l₂ → length l₁ ≤ length l₂
   | ⟨_l, p, s⟩ => p.length_eq ▸ s.length_le
 
@@ -695,9 +698,6 @@ theorem perm_iff_count {l₁ l₂ : List α} : l₁ ~ l₂ ↔ ∀ a, count a l�
       specialize H b
       rw [(perm_cons_erase this).count_eq] at H
       by_cases h : b = a <;> simp [h] at H ⊢ <;> assumption⟩
-
-theorem Subperm.cons_right {α : Type _} {l l' : List α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
-  h.trans (sublist_cons x l').subperm
 
 /-- The list version of `add_tsub_cancel_of_le` for multisets. -/
 theorem subperm_append_diff_self_of_count_le {l₁ l₂ : List α}
