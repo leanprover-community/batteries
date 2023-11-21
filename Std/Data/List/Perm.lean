@@ -409,52 +409,43 @@ theorem Perm.rec_heq {β : List α → Sort _} {f : ∀ a l, β l → β (a :: l
   case swap a a' l => exact f_swap
   case trans l₁ l₂ l₃ _h₁ _h₂ ih₁ ih₂ => exact HEq.trans ih₁ ih₂
 
+/-- Lemma used to destruct perms element by element. -/
 theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : List α} :
     l₁ ++ a :: r₁ ~ l₂ ++ a :: r₂ → l₁ ++ r₁ ~ l₂ ++ r₂ :=
   by
-  generalize e₁ : l₁ ++ a :: r₁ = s₁; generalize e₂ : l₂ ++ a :: r₂ = s₂
-  intro p; revert l₁ l₂ r₁ r₂ e₁ e₂; clear l₁ l₂ β
-  show ∀ _ _ _ _, _
-  refine
-      perm_induction_on p ?_ (fun x t₁ t₂ p IH => ?_) (fun x y t₁ t₂ p IH => ?_)
-        fun t₁ t₂ t₃ p₁ p₂ IH₁ IH₂ => ?_
+  -- Necessary generalization for `induction`
+  suffices ∀ s₁ s₂ (_ : s₁ ~ s₂) l₁ l₂ r₁ r₂,
+    l₁ ++ a :: r₁ = s₁ →
+    l₂ ++ a :: r₂ = s₂ →
+    l₁ ++ r₁ ~ l₂ ++ r₂
+    from
+    fun p => this _ _ p _ _ _ _ rfl rfl
+  intro s₁ s₂ p
+  induction p using perm_induction_on
     <;> intro l₁ l₂ r₁ r₂ e₁ e₂
-  · apply (not_mem_nil a).elim
-    rw [← e₁]
-    simp
-  · cases l₁ <;> cases l₂ <;> dsimp at e₁ e₂ <;> injections <;> subst_vars
-    case nil.nil =>
-      exact p
-    case nil.cons =>
-      exact p.trans perm_middle
-    case cons.nil =>
-      exact perm_middle.symm.trans p
-    case cons.cons =>
-      exact (IH _ _ _ _ rfl rfl).cons _
-  · rcases l₁ with (_ | ⟨y, _ | ⟨z, l₁⟩⟩) <;> rcases l₂ with (_ | ⟨u, _ | ⟨v, l₂⟩⟩) <;>
-          dsimp at e₁ e₂ <;> injections <;> subst_vars
-    · subst_vars
-      exact p.cons _
-    · subst_vars
-      exact p.cons u
-    · subst_vars
-      exact (p.trans perm_middle).cons u
-    · subst_vars
-      exact p.cons y
-    · subst_vars
-      exact p.cons _
-    · subst_vars
-      exact ((p.trans perm_middle).cons _).trans (swap _ _ _)
-    · subst_vars
-      exact (perm_middle.symm.trans p).cons y
-    · subst_vars
-      exact (swap _ _ _).trans ((perm_middle.symm.trans p).cons u)
-    · subst_vars
-      exact (IH _ _ _ _ rfl rfl).swap' _ _
-  · subst t₁ t₃
+  case nil =>
+    simp at e₁
+  case cons x t₁ t₂ p IH =>
+    cases l₁ <;> cases l₂ <;>
+      dsimp at e₁ e₂ <;> injections <;> subst_vars
+    · exact p
+    · exact p.trans perm_middle
+    · exact perm_middle.symm.trans p
+    · exact (IH _ _ _ _ rfl rfl).cons _
+  case swap x y t₁ t₂ p IH =>
+    rcases l₁ with (_ | ⟨y, _ | ⟨z, l₁⟩⟩)
+      <;> rcases l₂ with (_ | ⟨u, _ | ⟨v, l₂⟩⟩)
+      <;> dsimp at e₁ e₂ <;> injections <;> subst_vars
+      <;> try exact p.cons _
+    · exact (p.trans perm_middle).cons u
+    · exact ((p.trans perm_middle).cons _).trans (swap _ _ _)
+    · exact (perm_middle.symm.trans p).cons y
+    · exact (swap _ _ _).trans ((perm_middle.symm.trans p).cons u)
+    · exact (IH _ _ _ _ rfl rfl).swap' _ _
+  case trans t₁ t₂ t₃ p₁ p₂ IH₁ IH₂ =>
+    subst t₁ t₃
     have : a ∈ t₂ := p₁.subset (by simp)
-    rcases append_of_mem this with ⟨l₂, r₂, e₂⟩
-    subst t₂
+    rcases append_of_mem this with ⟨l₂, r₂, rfl⟩
     exact (IH₁ _ _ _ _ rfl rfl).trans (IH₂ _ _ _ _ rfl rfl)
 
 theorem Perm.cons_inv {a : α} {l₁ l₂ : List α} : a :: l₁ ~ a :: l₂ → l₁ ~ l₂ :=
