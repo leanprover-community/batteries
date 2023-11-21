@@ -343,6 +343,7 @@ theorem one_add (n) : 1 + n = succ n := Nat.add_comm ..
 theorem succ_eq_one_add (n) : succ n = 1 + n := (one_add _).symm
 
 theorem succ_add_eq_add_succ (a b) : succ a + b = a + succ b := Nat.succ_add ..
+@[deprecated] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
 
 theorem eq_zero_of_add_eq_zero : ∀ {n m}, n + m = 0 → n = 0 ∧ m = 0
   | 0, 0, _ => ⟨rfl, rfl⟩
@@ -1204,8 +1205,3 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
     simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
-
-/-! ## deprecated -/
-
-@[deprecated Nat.succ_add_eq_add_succ]
-theorem succ_add_eq_succ_add (n m) : succ n + m = n + succ m := Nat.succ_add_eq_add_succ ..
