@@ -29,7 +29,31 @@ structure PrintPrefixConfig where
 declare_config_elab elabPrintPrefixConfig PrintPrefixConfig
 
 /--
-Command for #print prefix
+The command `#print prefix foo` will print all definitions that start with
+the namespace `foo`.
+
+For example, the command below will print out definitions in the `List` namespace:
+
+```lean
+#print prefix List
+```
+
+`#print prefix` can be controlled by flags in `PrintPrefixConfig`.  These provide
+options for filtering names and formatting.   For example,
+`#print prefix` by default excludes internal names, but this can be controlled
+via config:
+```lean
+#print prefix (config:={internals:=true}) List
+```
+
+By default, `#print prefix` prints the type after each name.  This can be controlled
+by setting `showTypes` to `false`:
+```lean
+#print prefix (config:={showTypes:=false}) List
+```
+
+The complete set of flags can be seen in the documentation
+for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
 syntax (name := printPrefix) "#print prefix " (Lean.Parser.Tactic.config)? ident : command
 
@@ -107,34 +131,7 @@ private def appendMatchingConstants (msg : String) (opts : PrintPrefixConfig) (p
   pure msg
 
 /--
-The command `#print prefix foo` will print all definitions that start with
-the namespace `foo`.
-
-By default, it will included imported names and filter out auto-generated
-and internal names.  These options can be controlled by passing in config flags.
-If the prefix itself contains internal components,
-
-For example, the command below will print out all non-internal names in the
-`List namespace.
-
-```lean
-#print prefix List
-```
-
-This command will also include internal commands:
-
-```lean
-#print prefix (config:={internals:=true}) List
-```
-
-The command below will exclude imported names:
-
-```lean
-#print prefix (config:={imported:=false}) List
-```
-
-The complete set of flags can be seen in the documentation
-for `Lean.Elab.Command.PrintPrefixConfig`.
+Implementation for #print prefix
 -/
 @[command_elab printPrefix] def elabPrintPrefix : CommandElab
 | `(#print prefix%$tk $[$cfg:config]? $name:ident) => do
