@@ -645,7 +645,7 @@ theorem exists_fin_two {p : Fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
   exists_fin_succ.trans <| or_congr_right exists_fin_one
 
 theorem fin_two_eq_of_eq_zero_iff : ∀ {a b : Fin 2}, (a = 0 ↔ b = 0) → a = b := by
-  simp [forall_fin_two]
+  simp only [forall_fin_two]; decide
 
 /--
 Define `motive i` by reverse induction on `i : Fin (n + 1)` via induction on the underlying `Nat`
