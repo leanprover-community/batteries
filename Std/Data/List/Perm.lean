@@ -524,7 +524,7 @@ theorem Subperm.exists_of_length_lt {l₁ l₂ : List α} :
       exact (IH <| Nat.lt_of_succ_lt_succ h).imp fun a s =>
           (swap _ _ _).subperm_right.1 <| (subperm_cons _).2 s
 
-protected theorem Nodup.subperm (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
+theorem subperm_of_subset (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
   by
   induction d with
   | nil => exact ⟨nil, Perm.nil, nil_sublist _⟩
@@ -536,7 +536,7 @@ protected theorem Nodup.subperm (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ 
 theorem perm_ext {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : Nodup l₂) :
     l₁ ~ l₂ ↔ ∀ a, a ∈ l₁ ↔ a ∈ l₂ :=
   ⟨fun p _ => p.mem_iff, fun H =>
-    (d₁.subperm fun a => (H a).1).antisymm <| d₂.subperm fun a => (H a).2⟩
+    (subperm_of_subset d₁ fun a => (H a).1).antisymm <| subperm_of_subset d₂ fun a => (H a).2⟩
 
 theorem Nodup.sublist_ext {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) :
     l₁ ~ l₂ ↔ l₁ = l₂ :=
