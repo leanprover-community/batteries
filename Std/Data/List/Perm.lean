@@ -194,12 +194,6 @@ theorem perm_cons_erase [DecidableEq α] {a : α} {l : List α} (h : a ∈ l) : 
   let ⟨_l₁, _l₂, _, e₁, e₂⟩ := exists_erase_eq h
   e₂.symm ▸ e₁.symm ▸ perm_middle
 
-/-- The way Lean 4 computes the motive with `elab_as_elim` has changed
-relative to the behaviour of `elab_as_eliminator` in Lean 3.
-See
-https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Potential.20elaboration.20bug.20with.20.60elabAsElim.60/near/299573172
-for an explanation of the change made here relative to mathlib3.
--/
 @[elab_as_elim]
 theorem perm_induction_on
     {P : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
@@ -212,15 +206,6 @@ theorem perm_induction_on
   have P_refl l : P l l (.refl l) :=
     List.recOn l nil fun x xs ih => cons x xs xs (Perm.refl xs) ih
   Perm.recOn p nil cons (fun x y l => swap x y l l (Perm.refl l) (P_refl l)) @trans
-
-@[deprecated]
-theorem perm_induction_on_old {P : List α → List α → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
-    (h₁ : P [] [])
-    (h₂ : ∀ x l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (x :: l₁) (x :: l₂))
-    (h₃ : ∀ x y l₁ l₂, l₁ ~ l₂ → P l₁ l₂ → P (y :: x :: l₁) (x :: y :: l₂))
-    (h₄ : ∀ l₁ l₂ l₃, l₁ ~ l₂ → l₂ ~ l₃ → P l₁ l₂ → P l₂ l₃ → P l₁ l₃) : P l₁ l₂ :=
-  have P_refl : ∀ l, P l l := fun l => List.recOn l h₁ fun x xs ih => h₂ x xs xs (Perm.refl xs) ih
-  p.rec h₁ h₂ (fun x y l => h₃ x y l l (Perm.refl l) (P_refl l)) @h₄
 
 theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ l₂) :
     filterMap f l₁ ~ filterMap f l₂ :=
