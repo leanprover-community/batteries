@@ -56,7 +56,7 @@ by setting `showTypes` to `false`:
 The complete set of flags can be seen in the documentation
 for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
-syntax (name := printPrefix) "#print prefix " (Lean.Parser.Tactic.config)? ident : command
+syntax (name := printPrefix) "#print" "prefix" (Lean.Parser.Tactic.config)? ident : command
 
 /--
 `reverseName name` reverses the components of a name.
