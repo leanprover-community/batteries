@@ -33,7 +33,7 @@ This kind of cache can be used e.g. to populate discrimination trees.
 
 open Lean Meta
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 
 /-- Once-per-file cache. -/
 def Cache (α : Type) := IO.Ref <| MetaM α ⊕ Task (Except Exception α)
@@ -132,7 +132,7 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
-      t.insertIfSpecific k v config
+      t.insertCore k v config
   let addDecl := fun name constInfo (tree₁, tree₂) =>
     return (← updateTree name constInfo tree₁, tree₂)
   let addLibraryDecl := fun name constInfo (tree₁, tree₂) =>

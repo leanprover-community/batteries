@@ -5,9 +5,42 @@ Authors: Gabriel Ebner, Mario Carneiro
 -/
 import Lean.PrettyPrinter.Delaborator.Builtins
 import Std.Lean.Delaborator
-open Lean Meta Std
+open Lean Elab.Term Meta Std
+
+/-!
+# The `@[coe]` attribute, used to delaborate coercion functions as `↑`
+
+When writing a coercion, if the pattern
+```
+@[coe]
+def A.toB (a : A) : B := sorry
+
+instance : Coe A B where coe := A.toB
+```
+is used, then `A.toB a` will be pretty-printed as `↑a`.
+
+This file also provides `⇑f` and `↥t` notation, which are syntax for `Lean.Meta.coerceToFunction?`
+and `Lean.Meta.coerceToSort?` respectively.
+-/
 
 namespace Std.Tactic.Coe
+
+/-- `⇑ t` coerces `t` to a function. -/
+-- the precendence matches that of `coeNotation`
+elab:1024 (name := coeFunNotation) "⇑" m:term:1024 : term => do
+  let x ← elabTerm m none
+  if let some ty ← coerceToFunction? x then
+    return ty
+  else
+    throwError "cannot coerce to function{indentExpr x}"
+
+/-- `↥ t` coerces `t` to a type. -/
+elab:1024 (name := coeSortNotation) "↥" t:term:1024 : term => do
+  let x ← elabTerm t none
+  if let some ty ← coerceToSort? x then
+    return ty
+  else
+    throwError "cannot coerce to sort{indentExpr x}"
 
 /-- The different types of coercions that are supported by the `coe` attribute. -/
 inductive CoeFnType
@@ -59,8 +92,16 @@ For example, `Int.ofNat` is a coercion, so instead of printing `ofNat n` we just
 and when re-parsing this we can (usually) recover the specific coercion being used.
 -/
 def coeDelaborator (info : CoeFnInfo) : Delab := whenPPOption getPPCoercions do
+  let n := (← getExpr).getAppNumArgs
   withOverApp info.numArgs do
-    `(↑$(← withNaryArg info.coercee delab))
+    match info.type with
+    | .coe => `(↑$(← withNaryArg info.coercee delab))
+    | .coeFun =>
+      if n = info.numArgs then
+        `(⇑$(← withNaryArg info.coercee delab))
+      else
+        withNaryArg info.coercee delab
+    | .coeSort => `(↥$(← withNaryArg info.coercee delab))
 
 /-- Add a coercion delaborator for the given function. -/
 def addCoeDelaborator (name : Name) (info : CoeFnInfo) : MetaM Unit := do
