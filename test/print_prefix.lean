@@ -46,14 +46,6 @@ structure TestStruct where
   /-- Supress lint -/
   bar : Int
 
-/-
-  /-- Include declarations whose types are propositions. -/
-  propositions : Bool := true
-  /-- Exclude declarations whose types are not propositions. -/
-  propositionsOnly : Bool := false
-  /-- Print the type of a declaration. -/
-  showTypes : Bool := true
--/
 /--
 info: TestStruct : Type
 TestStruct.bar : TestStruct → Int
