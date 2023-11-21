@@ -1,6 +1,20 @@
 import Std.Tactic.PrintPrefix
 import Std.Tactic.GuardMsgs
 
+/--
+info: Empty : Type
+Empty.casesOn : (motive : Empty → Sort u) → (t : Empty) → motive t
+Empty.rec : (motive : Empty → Sort u) → (t : Empty) → motive t
+Empty.recOn : (motive : Empty → Sort u) → (t : Empty) → motive t
+-/
+#guard_msgs in
+#print prefix Empty -- Test type that probably won't change much.
+
+/--
+-/
+#guard_msgs in
+#print prefix (config:={imported:=false}) Empty
+
 namespace EmptyPrefixTest
 
 end EmptyPrefixTest
@@ -32,6 +46,71 @@ structure TestStruct where
   /-- Supress lint -/
   bar : Int
 
+/-
+  /-- Include declarations whose types are propositions. -/
+  propositions : Bool := true
+  /-- Exclude declarations whose types are not propositions. -/
+  propositionsOnly : Bool := false
+  /-- Print the type of a declaration. -/
+  showTypes : Bool := true
+-/
+/--
+info: TestStruct : Type
+TestStruct.bar : TestStruct → Int
+TestStruct.casesOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
+TestStruct.foo : TestStruct → Int
+TestStruct.mk : Int → Int → TestStruct
+TestStruct.mk.inj : ∀ {foo bar foo_1 bar_1 : Int}, { foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 } → foo = foo_1 ∧ bar = bar_1
+TestStruct.mk.injEq : ∀ (foo bar foo_1 bar_1 : Int),
+  ({ foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 }) = (foo = foo_1 ∧ bar = bar_1)
+TestStruct.mk.sizeOf_spec : ∀ (foo bar : Int), sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
+TestStruct.noConfusion : {P : Sort u} → {v1 v2 : TestStruct} → v1 = v2 → TestStruct.noConfusionType P v1 v2
+TestStruct.noConfusionType : Sort u → TestStruct → TestStruct → Sort u
+TestStruct.rec : {motive : TestStruct → Sort u} → ((foo bar : Int) → motive { foo := foo, bar := bar }) → (t : TestStruct) → motive t
+TestStruct.recOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
+-/
+#guard_msgs in
+#print prefix TestStruct
+
+/--
+info: TestStruct : Type
+TestStruct.bar : TestStruct → Int
+TestStruct.casesOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
+TestStruct.foo : TestStruct → Int
+TestStruct.mk : Int → Int → TestStruct
+TestStruct.noConfusion : {P : Sort u} → {v1 v2 : TestStruct} → v1 = v2 → TestStruct.noConfusionType P v1 v2
+TestStruct.noConfusionType : Sort u → TestStruct → TestStruct → Sort u
+TestStruct.rec : {motive : TestStruct → Sort u} → ((foo bar : Int) → motive { foo := foo, bar := bar }) → (t : TestStruct) → motive t
+TestStruct.recOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
+-/
+#guard_msgs in
+#print prefix (config:={propositions:=false}) TestStruct
+
+/--
+info: TestStruct.mk.inj : ∀ {foo bar foo_1 bar_1 : Int}, { foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 } → foo = foo_1 ∧ bar = bar_1
+TestStruct.mk.injEq : ∀ (foo bar foo_1 bar_1 : Int),
+  ({ foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 }) = (foo = foo_1 ∧ bar = bar_1)
+TestStruct.mk.sizeOf_spec : ∀ (foo bar : Int), sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
+-/
+#guard_msgs in
+#print prefix (config:={propositionsOnly:=true}) TestStruct
+
+/--
+info: TestStruct
+TestStruct.bar
+TestStruct.casesOn
+TestStruct.foo
+TestStruct.mk
+TestStruct.mk.inj
+TestStruct.mk.injEq
+TestStruct.mk.sizeOf_spec
+TestStruct.noConfusion
+TestStruct.noConfusionType
+TestStruct.rec
+TestStruct.recOn
+-/
+#guard_msgs in
+#print prefix (config:={showTypes:=false}) TestStruct
 
 /--
 info: TestStruct : Type
@@ -52,11 +131,6 @@ TestStruct.recOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((f
 -/
 #guard_msgs in
 #print prefix (config:={internals:=true}) TestStruct
-
-/--
--/
-#guard_msgs in
-#print prefix (config:={imported:=false}) Array
 
 private inductive TestInd where
 | foo : TestInd

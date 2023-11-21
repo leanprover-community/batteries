@@ -63,12 +63,13 @@ private def takeNameSuffix (cnt : Nat) (name : Name) (pre : Name := .anonymous) 
   match cnt, name with
   | .succ cnt, .str q s => takeNameSuffix cnt q (.str pre s)
   | .succ cnt, .num q n => takeNameSuffix cnt q (.num pre n)
-  | _, name => (name, reverseName prev)
+  | _, name => (name, reverseName pre)
 
 /--
 `matchName opts pre cinfo` returns true if the search options should include the constant.
 -/
-private def matchName (opts : PrintPrefixConfig) (pre : Name) (cinfo : ConstantInfo) : MetaM Bool := do
+private def matchName (opts : PrintPrefixConfig)
+                      (pre : Name) (cinfo : ConstantInfo) : MetaM Bool := do
   let name := cinfo.name
   let preCnt := pre.getNumParts
   let nameCnt := name.getNumParts
@@ -113,7 +114,6 @@ By default, it will included imported names and filter out auto-generated
 and internal names.  These options can be controlled by passing in config flags.
 If the prefix itself contains internal components,
 
-
 For example, the command below will print out all non-internal names in the
 `List namespace.
 
@@ -132,6 +132,9 @@ The command below will exclude imported names:
 ```lean
 #print prefix (config:={imported:=false}) List
 ```
+
+The complete set of flags can be seen in the documentation
+for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
 @[command_elab printPrefix] def elabPrintPrefix : CommandElab
 | `(#print prefix%$tk $[$cfg:config]? $name:ident) => do
