@@ -225,11 +225,11 @@ theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ 
 theorem Perm.map (f : α → β) {l₁ l₂ : List α} (p : l₁ ~ l₂) : map f l₁ ~ map f l₂ :=
   filterMap_eq_map f ▸ p.filterMap _
 
-theorem Perm.filter (p : α → Prop) [DecidablePred p] {l₁ l₂ : List α} (s : l₁ ~ l₂) :
+theorem Perm.filter (p : α → Bool) {l₁ l₂ : List α} (s : l₁ ~ l₂) :
     filter p l₁ ~ filter p l₂ := by rw [← filterMap_eq_filter] ; apply s.filterMap _
 
-theorem filter_append_perm (p : α → Prop) [DecidablePred p] (l : List α) :
-    filter p l ++ filter (fun x => ¬p x) l ~ l :=
+theorem filter_append_perm (p : α → Bool) (l : List α) :
+    filter p l ++ filter (fun x => !p x) l ~ l :=
   by
   induction l with
   | nil => simp [filter]
@@ -337,7 +337,7 @@ theorem Subperm.antisymm {l₁ l₂ : List α} (h₁ : l₁ <+~ l₂) (h₂ : l�
 theorem Subperm.subset {l₁ l₂ : List α} : l₁ <+~ l₂ → l₁ ⊆ l₂
   | ⟨_l, p, s⟩ => Subset.trans p.symm.subset s.subset
 
-theorem Subperm.filter (p : α → Prop) [DecidablePred p] ⦃l l' : List α⦄ (h : l <+~ l') :
+theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
     filter p l <+~ filter p l' := by
   obtain ⟨xs, hp, h⟩ := h
   exact ⟨_, hp.filter p, h.filter _⟩
@@ -353,16 +353,16 @@ theorem Sublist.exists_perm_append : ∀ {l₁ l₂ : List α}, l₁ <+ l₂ →
     let ⟨l, p⟩ := Sublist.exists_perm_append s
     ⟨l, p.cons a⟩
 
-theorem Perm.countP_eq (p : α → Prop) [DecidablePred p] {l₁ l₂ : List α} (s : l₁ ~ l₂) :
+theorem Perm.countP_eq (p : α → Bool) {l₁ l₂ : List α} (s : l₁ ~ l₂) :
     countP p l₁ = countP p l₂ := by
   simp only [countP_eq_length_filter]
   exact (s.filter _).length_eq
 
-theorem Subperm.countP_le (p : α → Prop) [DecidablePred p] {l₁ l₂ : List α} :
+theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} :
     l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
   | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le p
 
-theorem Perm.countP_congr (s : l₁ ~ l₂) {p p' : α → Prop} [DecidablePred p] [DecidablePred p']
+theorem Perm.countP_congr (s : l₁ ~ l₂) {p p' : α → Bool}
     (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countP p = l₂.countP p' :=
   by
   rw [← s.countP_eq p']
@@ -373,8 +373,8 @@ theorem Perm.countP_congr (s : l₁ ~ l₂) {p p' : α → Prop} [DecidablePred 
     simp only [mem_cons, forall_eq_or_imp] at hp
     simp only [countP_cons, hs hp.2, hp.1]
 
-theorem countP_eq_countP_filter_add (l : List α) (p q : α → Prop) [DecidablePred p]
-    [DecidablePred q] : l.countP p = (l.filter q).countP p + (l.filter fun a => ¬q a).countP p :=
+theorem countP_eq_countP_filter_add (l : List α) (p q : α → Bool)
+    : l.countP p = (l.filter q).countP p + (l.filter fun a => !q a).countP p :=
   by
   rw [← countP_append]
   exact Perm.countP_eq _ (filter_append_perm _ _).symm
@@ -622,9 +622,9 @@ theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l
     simp [List.diff]; apply ite_congr rfl <;> (intro; apply ih)
   | swap x y =>
     simp [List.diff]
-    match (inferInstance : DecidableEq _) x y with
-    | isTrue h => simp [h]
-    | isFalse h =>
+    if h : x = y then
+      simp [h]
+    else
     simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm x y]
     split <;> (next h => simp [h])
   | trans =>
@@ -875,7 +875,7 @@ theorem Perm.join_congr :
   | _, _, Forall₂.nil => Perm.refl _
   | _ :: _, _ :: _, Forall₂.cons h₁ h₂ => h₁.append (Perm.join_congr h₂)
 
-theorem Perm.erasep (f : α → Prop) [DecidablePred f] {l₁ l₂ : List α}
+theorem Perm.eraseP (f : α → Bool) {l₁ l₂ : List α}
     (H : Pairwise (fun a b => f a → f b → False) l₁) (p : l₁ ~ l₂) : eraseP f l₁ ~ eraseP f l₂ := by
   induction p with
   | nil => simp
