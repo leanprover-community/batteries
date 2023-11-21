@@ -72,27 +72,15 @@ theorem Perm.of_eq (h : l₁ = l₂) : l₁ ~ l₂ :=
 instance isSetoid (α) : Setoid (List α) :=
   Setoid.mk (@Perm α) (Perm.eqv α)
 
-theorem Perm.subset {l₁ l₂ : List α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ := fun a =>
-  p.rec
-  (fun h => h)
-  (fun x l₁ l₂ _r hs h => by
-    cases h
-    . apply Mem.head
-    . apply Mem.tail
-      apply hs
-      assumption)
-  (fun x y l h => by
-    match h with
-    | .head _ => exact Mem.tail x (Mem.head l)
-    | .tail _ (.head _) => apply Mem.head
-    | .tail _ (.tail _ h) => exact Mem.tail x (Mem.tail y h))
-  (fun _ _ h₁ h₂ h => by
-    apply h₂
-    apply h₁
-    assumption)
-
 theorem Perm.mem_iff {a : α} {l₁ l₂ : List α} (h : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ :=
-  Iff.intro (fun m => h.subset m) fun m => h.symm.subset m
+  h.rec
+    Iff.rfl
+    (by simp (config := {contextual := true}) only [mem_cons, implies_true])
+    (by intros; simp only [mem_cons, or_left_comm])
+    (by simp (config := {contextual := true}))
+
+theorem Perm.subset {l₁ l₂ : List α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
+  fun _ => p.mem_iff.mp
 
 theorem Perm.append_right {l₁ l₂ : List α} (t₁ : List α) (p : l₁ ~ l₂) : l₁ ++ t₁ ~ l₂ ++ t₁ :=
   p.rec
