@@ -470,7 +470,8 @@ theorem subperm_cons (a : α) {l₁ l₂ : List α} : a :: l₁ <+~ a :: l₂ �
     | .cons₂ _ s' => exact ⟨_, p.cons_inv, s'⟩
   , fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons₂ _⟩⟩
 
-theorem cons_subperm_of_mem {a : α} {l₁ l₂ : List α} (d₁ : Nodup l₁) (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
+/-- Weaker version of `Subperm.cons_left` -/
+theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
     (s : l₁ <+~ l₂) : a :: l₁ <+~ l₂ :=
   by
   rcases s with ⟨l, p, s⟩
@@ -483,7 +484,7 @@ theorem cons_subperm_of_mem {a : α} {l₁ l₂ : List α} (d₁ : Nodup l₁) (
       subst_vars
       exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
     | .inr m =>
-      rcases ih d₁ h₁ m p with ⟨t, p', s'⟩
+      rcases ih h₁ m p with ⟨t, p', s'⟩
       exact ⟨t, p', s'.cons _⟩
   case cons₂ r₁ r₂ b _ ih =>
     have bm : b ∈ l₁ := p.subset <| mem_cons_self _ _
@@ -492,7 +493,7 @@ theorem cons_subperm_of_mem {a : α} {l₁ l₂ : List α} (d₁ : Nodup l₁) (
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
     rcases append_of_mem bm with ⟨t₁, t₂, rfl⟩
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
-    rcases ih (d₁.sublist st) (mt (fun x => st.subset x) h₁) am
+    rcases ih (mt (fun x => st.subset x) h₁) am
         (Perm.cons_inv <| p.trans perm_middle) with
       ⟨t, p', s'⟩
     exact
@@ -527,10 +528,10 @@ protected theorem Nodup.subperm (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ 
   by
   induction d with
   | nil => exact ⟨nil, Perm.nil, nil_sublist _⟩
-  | cons h d IH =>
+  | cons h _ IH =>
     have ⟨H₁, H₂⟩ := forall_mem_cons.1 H
     have := fun contra => h _ contra rfl
-    exact cons_subperm_of_mem d this H₁ (IH H₂)
+    exact cons_subperm_of_not_mem_of_mem this H₁ (IH H₂)
 
 theorem perm_ext {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : Nodup l₂) :
     l₁ ~ l₂ ↔ ∀ a, a ∈ l₁ ↔ a ∈ l₂ :=
