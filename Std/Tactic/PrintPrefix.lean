@@ -9,7 +9,7 @@ import Lean.Elab.Tactic.Config
 namespace Lean.Elab.Command
 
 /--
-Options to control `getMatchingConstants` options below.
+Options to control `#print prefix` command and `getMatchingConstants`.
 -/
 structure PrintPrefixConfig where
   /-- Include declarations in imported environment. -/
