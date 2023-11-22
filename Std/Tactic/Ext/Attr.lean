@@ -20,23 +20,26 @@ structure ExtTheorem where
   /-- Priority of the extensionality theorem. -/
   priority : Nat
   /-- Key in the discrimination tree. -/
-  keys : Array (DiscrTree.Key true)
+  keys : Array DiscrTree.Key
   deriving Inhabited, Repr, BEq, Hashable
 
 /-- The state of the `ext` extension environment -/
 structure ExtTheorems where
   /-- The tree of `ext` extensions. -/
-  tree   : DiscrTree ExtTheorem true := {}
+  tree   : DiscrTree ExtTheorem := {}
   /-- Erased `ext`s. -/
   erased  : PHashSet Name := {}
   deriving Inhabited
+
+/-- Discrimation tree settings for the `ext` extension. -/
+def extExt.config : WhnfCoreConfig := {}
 
 /-- The environment extension to track `@[ext]` lemmas. -/
 initialize extExtension :
     SimpleScopedEnvExtension ExtTheorem ExtTheorems ←
   registerSimpleScopedEnvExtension {
     addEntry := fun { tree, erased } thm =>
-      { tree := tree.insertCore thm.keys thm, erased := erased.erase thm.declName }
+      { tree := tree.insertCore thm.keys thm extExt.config, erased := erased.erase thm.declName }
     initial := {}
   }
 
@@ -44,7 +47,7 @@ initialize extExtension :
 ordered from high priority to low. -/
 @[inline] def getExtLemmas (ty : Expr) : MetaM (Array ExtTheorem) := do
   let extTheorems := extExtension.getState (← getEnv)
-  let arr ← extTheorems.tree.getMatch ty
+  let arr ← extTheorems.tree.getMatch ty extExt.config
   let erasedArr := arr.filter fun thm => !extTheorems.erased.contains thm.declName
   -- Using insertion sort because it is stable and the list of matches should be mostly sorted.
   -- Most ext lemmas have default priority.
@@ -97,7 +100,7 @@ initialize registerBuiltinAttribute {
         "@[ext] attribute only applies to structures or lemmas proving x = y, got {declTy}"
       let some (ty, lhs, rhs) := declTy.eq? | failNotEq
       unless lhs.isMVar && rhs.isMVar do failNotEq
-      let keys ← withReducible <| DiscrTree.mkPath ty
+      let keys ← withReducible <| DiscrTree.mkPath ty extExt.config
       let priority ← liftCommandElabM do Elab.liftMacroM do
         evalPrio (prio.getD (← `(prio| default)))
       extExtension.add {declName, keys, priority} kind

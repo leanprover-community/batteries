@@ -22,10 +22,10 @@ protected theorem «exists» {p : Option α → Prop} : (∃ x, p x) ↔ p none 
    fun | .inl h => ⟨_, h⟩ | .inr ⟨_, hx⟩ => ⟨_, hx⟩⟩
 
 theorem get_mem : ∀ {o : Option α} (h : isSome o), o.get h ∈ o
-| some _, _ => rfl
+  | some _, _ => rfl
 
 theorem get_of_mem : ∀ {o : Option α} (h : isSome o), a ∈ o → o.get h = a
-| _, _, rfl => rfl
+  | _, _, rfl => rfl
 
 theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
 
@@ -36,6 +36,9 @@ theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
 
 theorem getD_of_ne_none {x : Option α} (hx : x ≠ none) (y : α) : some (x.getD y) = x := by
   cases x; {contradiction}; rw [getD_some]
+
+theorem getD_eq_iff {o : Option α} {a b} : o.getD a = b ↔ (o = some b ∨ o = none ∧ a = b) := by
+  cases o <;> simp
 
 theorem mem_unique {o : Option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
   some.inj <| ha ▸ hb
@@ -90,6 +93,9 @@ theorem ball_ne_none {p : Option α → Prop} : (∀ x (_ : x ≠ none), p x) �
 
 @[simp] theorem bind_some (x : Option α) : x.bind some = x := by cases x <;> rfl
 
+@[simp] theorem bind_none (x : Option α) : x.bind (fun _ => none (α := β)) = none := by
+  cases x <;> rfl
+
 @[simp] theorem bind_eq_some : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b := by
   cases x <;> simp
 
@@ -140,6 +146,7 @@ theorem map_congr {x : Option α} (h : ∀ a ∈ x, f a = g a) : x.map f = x.map
   cases x <;> simp only [map_none', map_some', h, mem_def]
 
 @[simp] theorem map_id' : Option.map (@id α) = id := map_id
+@[simp] theorem map_id'' {x : Option α} : (x.map fun a => a) = x := congrFun map_id x
 
 @[simp] theorem map_map (h : β → γ) (g : α → β) (x : Option α) :
     (x.map g).map h = x.map (h ∘ g) := by
@@ -170,6 +177,9 @@ theorem mem_of_mem_join {a : α} {x : Option (Option α)} (h : a ∈ x.join) : s
 @[simp] theorem none_orElse (x : Option α) : (none <|> x) = x := rfl
 
 @[simp] theorem orElse_none (x : Option α) : (x <|> none) = x := by cases x <;> rfl
+
+theorem map_orElse {x y : Option α} : (x <|> y).map f = (x.map f <|> y.map f) := by
+  cases x <;> simp
 
 @[simp] theorem guard_eq_some [DecidablePred p] : guard p a = some b ↔ a = b ∧ p a := by
   by_cases h : p a <;> simp [Option.guard, h]

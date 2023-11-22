@@ -10,6 +10,8 @@ import Std.Data.String.Basic
 import Std.Tactic.Ext.Attr
 import Std.Tactic.Simpa
 
+@[simp] theorem Char.length_toString (c : Char) : c.toString.length = 1 := rfl
+
 namespace String
 
 @[ext] theorem ext {s₁ s₂ : String} (h : s₁.data = s₂.data) : s₁ = s₂ :=
@@ -22,6 +24,14 @@ theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := 
 @[simp] theorem str_eq : str = push := rfl
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl
+
+@[simp] theorem length_empty : "".length = 0 := rfl
+
+@[simp] theorem length_singleton (c : Char) : (String.singleton c).length = 1 := rfl
+
+@[simp] theorem length_push (c : Char) : (String.push s c).length = s.length + 1 := by
+  rw [push, mk_length, List.length_append, List.length_singleton, Nat.succ.injEq]
+  rfl
 
 @[simp] theorem data_push (s : String) (c : Char) : (s.push c).1 = s.1 ++ [c] := rfl
 
@@ -439,10 +449,10 @@ theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
   split <;> [rfl; rw [extract.go₁_cons_addChar]]
 
 theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
-| ⟨[]⟩ => rfl
-| ⟨c :: cs⟩ => by
-  simp [extract, Nat.ne_of_gt add_csize_pos]; congr
-  apply extract.go₁_zero_utf8Len
+  | ⟨[]⟩ => rfl
+  | ⟨c :: cs⟩ => by
+    simp [extract, Nat.ne_of_gt add_csize_pos]; congr
+    apply extract.go₁_zero_utf8Len
 
 theorem extract_of_valid (l m r : List Char) :
     extract ⟨l ++ m ++ r⟩ ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = ⟨m⟩ := by
@@ -457,7 +467,7 @@ theorem splitAux_of_valid (p l m r acc) :
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
   unfold splitAux
   simp [by simpa using atEnd_of_valid (l ++ m) r]; split
-  · subst r; simpa using extract_of_valid l m []
+  · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
     simp [by simpa using (⟨get_of_valid (l++m) (c::r), next_of_valid (l++m) c r,
       extract_of_valid l m (c::r)⟩ : _∧_∧_), List.splitOnP.go]
