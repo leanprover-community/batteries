@@ -231,9 +231,9 @@ theorem filter_append_perm (p : α → Bool) (l : List α) :
   | nil => apply Perm.refl
   | cons x l ih =>
     by_cases h : p x
-    · simp only [h, filter_cons_of_pos, filter_cons_of_neg, not_true, not_false_iff, cons_append]
+    · simp [h]
       exact ih.cons x
-    · simp only [h, filter_cons_of_neg, not_false_iff, filter_cons_of_pos]
+    · simp [h]
       refine' Perm.trans _ (ih.cons x)
       exact perm_append_comm.trans (perm_append_comm.cons _)
 
