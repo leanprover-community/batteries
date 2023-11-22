@@ -104,25 +104,40 @@ TestStruct.recOn
 #guard_msgs in
 #print prefix (config:={showTypes:=false}) TestStruct
 
+/-- Artificial test function to show #print prefix filters out internals including match_/proof_ -/
+def testMatchProof : (n : Nat) → Fin n → Unit
+  | _,  ⟨0, _⟩ => ()
+  | Nat.succ as, ⟨Nat.succ i, h⟩ => testMatchProof as ⟨i, Nat.le_of_succ_le_succ h⟩
+
 /--
-info: TestStruct : Type
-TestStruct._sizeOf_1 : TestStruct → Nat
-TestStruct._sizeOf_inst : SizeOf TestStruct
-TestStruct.bar : TestStruct → Int
-TestStruct.casesOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
-TestStruct.foo : TestStruct → Int
-TestStruct.mk : Int → Int → TestStruct
-TestStruct.mk.inj : ∀ {foo bar foo_1 bar_1 : Int}, { foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 } → foo = foo_1 ∧ bar = bar_1
-TestStruct.mk.injEq : ∀ (foo bar foo_1 bar_1 : Int),
-  ({ foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 }) = (foo = foo_1 ∧ bar = bar_1)
-TestStruct.mk.sizeOf_spec : ∀ (foo bar : Int), sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
-TestStruct.noConfusion : {P : Sort u} → {v1 v2 : TestStruct} → v1 = v2 → TestStruct.noConfusionType P v1 v2
-TestStruct.noConfusionType : Sort u → TestStruct → TestStruct → Sort u
-TestStruct.rec : {motive : TestStruct → Sort u} → ((foo bar : Int) → motive { foo := foo, bar := bar }) → (t : TestStruct) → motive t
-TestStruct.recOn : {motive : TestStruct → Sort u} → (t : TestStruct) → ((foo bar : Int) → motive { foo := foo, bar := bar }) → motive t
+info: testMatchProof : (n : Nat) → Fin n → Unit
 -/
 #guard_msgs in
-#print prefix (config:={internals:=true}) TestStruct
+#print prefix testMatchProof
+
+/--
+info: testMatchProof : (n : Nat) → Fin n → Unit
+testMatchProof._cstage1 : (n : Nat) → Fin n → Unit
+testMatchProof._cstage2 : _obj → _obj → _obj
+testMatchProof._sunfold : (n : Nat) → Fin n → Unit
+testMatchProof._unsafe_rec : (n : Nat) → Fin n → Unit
+testMatchProof.match_1 : (motive : (x : Nat) → Fin x → Sort u_1) →
+  (x : Nat) →
+    (x_1 : Fin x) →
+      ((n : Nat) → (isLt : 0 < n) → motive n { val := 0, isLt := isLt }) →
+        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) { val := Nat.succ i, isLt := h }) →
+          motive x x_1
+testMatchProof.match_1._cstage1 : (motive : (x : Nat) → Fin x → Sort u_1) →
+  (x : Nat) →
+    (x_1 : Fin x) →
+      ((n : Nat) → (isLt : 0 < n) → motive n { val := 0, isLt := isLt }) →
+        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) { val := Nat.succ i, isLt := h }) →
+          motive x x_1
+testMatchProof.proof_1 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
+testMatchProof.proof_2 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
+-/
+#guard_msgs in
+#print prefix (config:={internals:=true}) testMatchProof
 
 private inductive TestInd where
 | foo : TestInd
