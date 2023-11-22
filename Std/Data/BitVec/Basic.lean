@@ -52,13 +52,13 @@ protected def ofNat (n : Nat) (i : Nat) : BitVec n where
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
-protected def toNat : BitVec n → Nat | ⟨a, _⟩ => a
+protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
 /-- Return the bound in terms of toNat. -/
 theorem isLt (x : BitVec w) : x.toNat < 2^w := x.toFin.isLt
 
 /-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
-@[inline] def getLsb (x:BitVec w) (i:Nat) : Bool := x.toNat.testBit i
+@[inline] def getLsb (x : BitVec w) (i : Nat) : Bool := x.toNat.testBit i
 
 /-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
 @[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
