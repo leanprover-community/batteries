@@ -51,10 +51,6 @@ noncomputable def div2Induction
       apply hyp
       exact Nat.div_lt_self n_pos (Nat.le_refl _)
 
-/--
-These theorems are needed for basic lemmas to equate proving properties of natural
-numbers with testBit.
--/
 @[simp]
 theorem and_zero (x:Nat) : x &&& 0 = 0 := by
   simp [HAnd.hAnd, AndOp.and, land]
@@ -71,6 +67,8 @@ theorem and_1_is_mod (x:Nat) : x &&& 1 = x % 2 := by
     simp [HAnd.hAnd, AndOp.and, land]
     unfold bitwise
     cases mod_two_eq_zero_or_one x with | _ p => simp [xz, p, andz, one_div_two]
+
+/-! ### testBit -/
 
 @[simp]
 theorem zero_testBit (i:Nat) : testBit 0 i = false := by
@@ -92,19 +90,6 @@ theorem testBit_to_div_mod {x : Nat} : testBit x i = decide (x / 2^i % 2 = 1) :=
   | succ i hyp =>
     simp [testBit_succ_div2, hyp,
           Nat.div_div_eq_div_mul, Nat.pow_succ, Nat.mul_comm 2]
-
-/-
-theorem testBit_to_div_mod {x : Nat} : testBit x i = decide (x / 2^i % 2 = 1) := by
-  induction i generalizing x with
-  | zero =>
-    unfold testBit
-    cases mod_two_eq_zero_or_one x with | _ xz => simp [xz]
-  | succ i hyp =>
-    simp [testBit_succ_div2, hyp,
-          Nat.div_div_eq_div_mul, Nat.pow_succ, Nat.mul_comm 2]
--/
-
-/-! ### testBit Principals -/
 
 theorem ne_zero_implies_bit_true {x : Nat} (xnz : x ≠ 0) : ∃ i, testBit x i := by
   induction x using div2Induction with
@@ -404,16 +389,16 @@ theorem and_lt_2_pow (x : Nat) {y n : Nat} (right : y < 2^n) : (x &&& y) < 2^n :
           exact pow_le_pow_of_le_right Nat.zero_lt_two i_ge_n
   simp [testBit_and, yf]
 
-theorem and_pow_2_is_mod (x n : Nat) : x &&& (2^n-1) = x % 2^n := by
+@[simp]
+theorem and_pow_two_is_mod (x n : Nat) : x &&& (2^n-1) = x % 2^n := by
   apply eq_of_testBit_eq
   intro i
   simp [testBit_and, testBit_mod_two_pow]
   cases testBit x i <;> simp
 
-@[simp]
-theorem and_pow_2_identity {x:Nat} (lt : x < 2^n) : x &&& 2^n-1 = x := by
-  rw [and_pow_2_is_mod]
-  apply (Nat.mod_eq_of_lt lt)
+theorem and_pow_two_identity {x:Nat} (lt : x < 2^n) : x &&& 2^n-1 = x := by
+  rw [and_pow_two_is_mod]
+  apply Nat.mod_eq_of_lt lt
 
 /-! ### lor -/
 

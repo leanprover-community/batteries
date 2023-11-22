@@ -374,7 +374,7 @@ def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 /--
 A version of `zeroExtend` that requires a proof, but is a noop.
 -/
-def zeroExtend' (w:Nat) (x : BitVec n) (le : n ≤ w) : BitVec w :=
+def zeroExtend' {n w:Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
   ⟨x.toNat, by
     apply Nat.lt_of_lt_of_le x.isLt
     exact Nat.pow_le_pow_of_le_right (by trivial) le⟩
@@ -385,7 +385,7 @@ needing to compute `x % 2^(2+n)`.
 -/
 def shiftLeftZeroExtend (msbs : BitVec w) (m:Nat) : BitVec (w+m) :=
   let shiftLeftLt {x:Nat} (p : x < 2^w) (m:Nat) : x <<< m < 2^(w+m) := by
-        simp [← Nat.mul_two_pow, Nat.pow_add]
+        simp [Nat.shiftLeft_eq, Nat.pow_add]
         apply Nat.mul_lt_mul_of_pos_right p
         exact (Nat.pow_two_pos m)
   ⟨msbs.toNat <<< m, shiftLeftLt msbs.isLt m⟩
@@ -397,7 +397,7 @@ input is on the left, so `0xAB#8 ++ 0xCD#8 = 0xABCD#16`.
 SMT-Lib name: `concat`.
 -/
 def append (msbs : BitVec n) (lsbs : BitVec m) : BitVec (n+m) :=
-  shiftLeftZeroExtend msbs m ||| zeroExtend' (n+m) lsbs (Nat.le_add_left _ _)
+  shiftLeftZeroExtend msbs m ||| zeroExtend' (Nat.le_add_left m n) lsbs
 
 instance : HAppend (BitVec w) (BitVec v) (BitVec (w + v)) := ⟨.append⟩
 
@@ -434,12 +434,11 @@ If `v < w` then it truncates the high bits instead.
 
 SMT-Lib name: `zero_extend`.
 -/
-def zeroExtend (v : Nat) : BitVec w → BitVec v
-| ⟨x, x_lt⟩ =>
+def zeroExtend (v : Nat) (x:BitVec w) : BitVec v :=
   if h : w ≤ v then
-    ⟨x, Nat.lt_of_lt_of_le x_lt (Nat.pow_le_pow_of_le_right (by trivial : 2 > 0) h)⟩
+    zeroExtend' h x
   else
-    .ofNat v x
+    .ofNat v x.toNat
 
 /--
 Truncate the high bits of bitvector `x` of length `w`, resulting in a vector of length `v`.

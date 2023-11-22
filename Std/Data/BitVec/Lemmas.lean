@@ -81,8 +81,9 @@ theorem ofNat_toNat (m : Nat) (x : BitVec n)
     unfold zeroExtend
     simp [BitVec.toNat, BitVec.ofNat]
     if h : n ≤ m then
+      unfold zeroExtend'
       have lt_m : x < 2 ^ m := lt_two_pow_of_le lt_n h
-      simp [h, lt_m, Nat.and_pow_2_is_mod]
+      simp [h, lt_m, Nat.mod_eq_of_lt]
     else
       simp [h]
 
@@ -120,50 +121,47 @@ theorem getLsb_cons (b:Bool) {n} (x : BitVec n) (i:Nat)
 
 /-! ### zeroExtend and truncate -/
 
+@[simp]
+theorem toNat_zeroExtend' {m n : Nat} (p : m ≤ n) (x : BitVec m)
+    : (zeroExtend' p x).toNat = x.toNat := by
+  unfold zeroExtend'
+  simp [p, x.isLt, Nat.mod_eq_of_lt]
+
+theorem toNat_zeroExtend (i:Nat) (x : BitVec n)
+  : BitVec.toNat (zeroExtend i x) = x.toNat % 2^i := by
+  let ⟨x, lt_n⟩ := x
+  simp only [zeroExtend]
+  if n_le_i : n ≤ i then
+    have x_lt_two_i : x < 2 ^ i := lt_two_pow_of_le lt_n n_le_i
+    simp [n_le_i, Nat.mod_eq_of_lt, x_lt_two_i]
+  else
+    simp [n_le_i, toNat_ofNat]
 
 @[simp]
 theorem zeroExtend_eq (x : BitVec n) : zeroExtend n x = x := by
+  apply eq_of_toNat_eq
+
   let ⟨x, lt_n⟩ := x
   simp [truncate, zeroExtend]
 
 @[simp]
 theorem truncate_eq (x : BitVec n) : truncate n x = x := zeroExtend_eq x
 
-theorem toNat_zeroExtend (i:Nat) (x : BitVec n)
-  : BitVec.toNat (zeroExtend i x) = x.toNat % 2^i := by
-  let ⟨x, lt_n⟩ := x
-  simp only [zeroExtend]
-
-  if n_le_i : n ≤ i then
-    have x_lt_two_i : x < 2 ^ i := lt_two_pow_of_le lt_n n_le_i
-    simp [n_le_i, Nat.mod_eq_of_lt x_lt_two_i]
-  else
-    simp [n_le_i, Nat.and_pow_2_is_mod, toNat_ofNat]
-
 @[simp]
 theorem toNat_truncate (x : BitVec n)
     : (truncate i x).toNat = x.toNat % 2^i := toNat_zeroExtend i x
 
-theorem getLsb_zeroExtend {n} (x : BitVec n) (m i:Nat)
-    : getLsb (zeroExtend m x) i = (decide (i < m) && getLsb x i) := by
-  let ⟨x, x_lt_n⟩ := x
-  simp [zeroExtend, getLsb]
-  if i_lt_m : i < m then
-    if n_le_m : n ≤ m then
-      simp [i_lt_m, n_le_m]
-    else
-      simp [i_lt_m, n_le_m, Nat.testBit_and,  toNat_ofNat]
-  else
-    if n_le_m : n ≤ m then
-      have x_lt_i : x < 2 ^ i := lt_two_pow_of_le x_lt_n
-              (Nat.le_trans n_le_m (Nat.le_of_not_lt i_lt_m))
-      simp [i_lt_m, n_le_m, Nat.testBit_lt_two x_lt_i]
-    else
-      simp [i_lt_m, n_le_m, Nat.testBit_and, toNat_ofNat]
+theorem getLsb_zeroExtend' (ge : m ≥ n) (x : BitVec n) (i : Nat)
+    : getLsb (zeroExtend' ge x) i = getLsb x i := by
+  simp [getLsb, toNat_zeroExtend']
 
-theorem getLsb_truncate {n} (x : BitVec n) (m i:Nat)
+theorem getLsb_zeroExtend (m : Nat) (x : BitVec n) (i : Nat)
+    : getLsb (zeroExtend m x) i = (decide (i < m) && getLsb x i) := by
+  simp [getLsb, toNat_zeroExtend, Nat.testBit_mod_two_pow]
+
+theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat)
     : getLsb (truncate m x) i = (decide (i < m) && getLsb x i) :=
-  getLsb_zeroExtend x m i
+  getLsb_zeroExtend m x i
 
 theorem cons_getLsb_truncate (x : BitVec w)
     : truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
