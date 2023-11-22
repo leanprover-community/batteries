@@ -594,8 +594,8 @@ theorem dropLast_append_of_ne_nil {α : Type u} {l : List α} :
     rw [cons_append, dropLast, dropLast_append_of_ne_nil l' h, cons_append]
     simp [h]
 
-@[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
-  induction l₁ <;> simp [*, dropLast]
+theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
+  simp only [ne_eq, not_false_eq_true, dropLast_append_of_ne_nil]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
 
