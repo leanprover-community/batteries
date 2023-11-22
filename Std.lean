@@ -26,6 +26,9 @@ import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
 import Std.Data.BitVec
 import Std.Data.BitVec.Basic
+import Std.Data.BitVec.Bitblast
+import Std.Data.BitVec.Folds
+import Std.Data.BitVec.Lemmas
 import Std.Data.Bool
 import Std.Data.Char
 import Std.Data.DList

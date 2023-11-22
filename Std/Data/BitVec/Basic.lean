@@ -46,26 +46,19 @@ this is truncation of the high bits when downcasting and zero-extension when upc
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin :=
     let p : i &&& 2^n-1 < 2^n := by
-        apply Nat.land_lt_2_pow
+        apply Nat.and_lt_2_pow
         exact Nat.sub_lt (Nat.pow_two_pos n) (Nat.le_refl 1)
     ⟨i &&& 2^n-1, p⟩
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
-protected def toNat (a : BitVec n) : Nat := a.toFin.val
+protected def toNat : BitVec n → Nat | ⟨a, _⟩ => a
 
 /-- Return the bound in terms of toNat. -/
 theorem isLt (x : BitVec w) : x.toNat < 2^w := x.toFin.isLt
 
-/-- Prove equality of bitvectors in terms of nat operations. -/
-theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
-  | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
-
-theorem toNat_eq (x y : BitVec n) : x = y ↔ x.toNat = y.toNat :=
-  Iff.intro (congrArg BitVec.toNat) eq_of_toNat_eq
-
 /-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
-@[inline] def getLsb : BitVec w -> Nat -> Bool | ⟨x,_⟩, i => x.testBit i
+@[inline] def getLsb (x:BitVec w) (i:Nat) : Bool := x.toNat.testBit i
 
 /-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
 @[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
@@ -286,7 +279,7 @@ Bitwise AND for bit vectors.
 SMT-Lib name: `bvand`.
 -/
 protected def and (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat &&& y.toNat, Nat.land_lt_2_pow x.toNat y.isLt⟩
+   ⟨x.toNat &&& y.toNat, Nat.and_lt_2_pow x.toNat y.isLt⟩
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -299,7 +292,7 @@ Bitwise OR for bit vectors.
 SMT-Lib name: `bvor`.
 -/
 protected def or (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat ||| y.toNat, Nat.lor_lt_2_pow x.isLt y.isLt⟩
+   ⟨x.toNat ||| y.toNat, Nat.or_lt_2_pow x.isLt y.isLt⟩
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
@@ -392,9 +385,9 @@ needing to compute `x % 2^(2+n)`.
 -/
 def shiftLeftZeroExtend (msbs : BitVec w) (m:Nat) : BitVec (w+m) :=
   let shiftLeftLt {x:Nat} (p : x < 2^w) (m:Nat) : x <<< m < 2^(w+m) := by
-        apply Nat.shiftLeft_lt_2_pow
-        simp only [Nat.add_sub_cancel]
-        exact p
+        simp [← Nat.mul_two_pow, Nat.pow_add]
+        apply Nat.mul_lt_mul_of_pos_right p
+        exact (Nat.pow_two_pos m)
   ⟨msbs.toNat <<< m, shiftLeftLt msbs.isLt m⟩
 
 /--
@@ -492,9 +485,10 @@ theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
   rfl
 
 /-- Turn a `Bool` into a bitvector of length `1` -/
-def ofBool : Bool → BitVec 1
-  | false => 0
-  | true  => 1
+def ofBool (b:Bool) : BitVec 1 := cond b 1 0
+
+@[simp] theorem ofBool_false : ofBool false = 0 := by trivial
+@[simp] theorem ofBool_true  : ofBool true  = 1 := by trivial
 
 /-- The empty bitvector -/
 abbrev nil : BitVec 0 := 0

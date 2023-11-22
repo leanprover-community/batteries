@@ -739,10 +739,24 @@ theorem mul_eq_zero {n m : Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 :=
     | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
    fun | .inl h | .inr h => by simp [h]⟩
 
+theorem zero_eq_mul {n m : Nat} : 0 = n * m ↔ n = 0 ∨ m = 0 := by
+  simp only [eq_comm, Nat.mul_eq_zero]
+
 protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by simp [mul_eq_zero, not_or]
 
 protected theorem mul_ne_zero (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0 :=
   Nat.mul_ne_zero_iff.2 ⟨n0, m0⟩
+
+theorem mul_eq_one (x y : Nat) : x * y = 1 ↔ x = 1 ∧ y = 1 := by
+  match x, y with
+  | 0, _ => simp
+  | 1, _ => simp
+  | _, 0 => simp
+  | Nat.succ (Nat.succ x), Nat.succ y =>
+    simp [Nat.succ_mul, Nat.add_succ, Nat.succ_add]
+
+theorem one_eq_mul (x y : Nat) : 1 = x * y ↔ x = 1 ∧ y = 1 := by
+  simp only [eq_comm, Nat.mul_eq_one]
 
 protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} (h₁ : a ≤ b) : c * a ≤ c * b := by
   if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
@@ -786,6 +800,13 @@ protected theorem mul_left_cancel_iff {n m k : Nat} (p : 0 < n) : n * m = n * k 
 
 protected theorem mul_right_cancel_iff {n m k : Nat} (p : 0 < m) : n * m = k * m ↔ n = k :=
   ⟨Nat.mul_right_cancel p, fun | rfl => rfl⟩
+
+theorem mul_le_add_right (m k n : Nat) : k * m ≤ m + n ↔ (k-1) * m ≤ n := by
+  match k with
+  | 0 =>
+    simp
+  | succ k =>
+    simp [succ_mul, Nat.add_comm _ m, Nat.add_le_add_iff_left]
 
 /-! ## div/mod -/
 
@@ -993,8 +1014,6 @@ theorem mul_mod_mul_left (z x y : Nat) : (z * x) % (z * y) = z * (x % y) :=
 theorem mul_mod_mul_right (z x y : Nat) : (x * z) % (y * z) = (x % y) * z := by
   rw [Nat.mul_comm x z, Nat.mul_comm y z, Nat.mul_comm (x % y) z]; apply mul_mod_mul_left
 
--- TODO cont_to_bool_mod_two
-
 theorem sub_mul_mod {x k n : Nat} (h₁ : n*k ≤ x) : (x - n*k) % n = x % n := by
   match k with
   | 0 => rw [Nat.mul_zero, Nat.sub_zero]
@@ -1022,7 +1041,8 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
   rwa [Nat.add_right_comm, mod_add_div] at this
 
 @[simp] theorem add_mod_mod (m n k : Nat) : (m + n % k) % k = (m + n) % k := by
-  rw [Nat.add_comm, mod_add_mod, Nat.add_comm]
+  simp only [Nat.add_comm m]
+  exact mod_add_mod n k m
 
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
@@ -1088,7 +1108,7 @@ theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
       exact Nat.le_div_iff_mul_le (by decide)
     · simp only [le_zero_eq, succ_ne_zero, false_iff]
       refine mt (Nat.le_trans ?_) ‹_›
-      exact Nat.pow_le_pow_of_le_right (Nat.succ_pos 1) (Nat.le_add_left 1 k)
+      exact Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) (Nat.le_add_left 1 k)
 
 theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
   rw [← Nat.not_le, ← Nat.not_le, le_log2 h]
@@ -1099,9 +1119,19 @@ theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.
 
 /-! ### dvd -/
 
+@[simp]
 protected theorem dvd_refl (a : Nat) : a ∣ a := ⟨1, by simp⟩
 
+@[simp]
 protected theorem dvd_zero (a : Nat) : a ∣ 0 := ⟨0, by simp⟩
+
+@[simp]
+protected theorem one_dvd (n:Nat) : 1 ∣ n := Exists.intro n (Nat.one_mul n).symm
+
+@[simp]
+protected theorem dvd_one (a : Nat) : a ∣ 1 ↔ a = 1 :=
+  Iff.intro (fun ⟨n,eq⟩  => by simp [Nat.one_eq_mul] at eq; exact eq.left)
+            (fun e => by simp only [e, Nat.one_dvd])
 
 protected theorem dvd_mul_left (a b : Nat) : a ∣ b * a := ⟨b, Nat.mul_comm b a⟩
 
@@ -1114,6 +1144,10 @@ protected theorem dvd_trans {a b c : Nat} (h₁ : a ∣ b) (h₂ : b ∣ c) : a 
 
 protected theorem eq_zero_of_zero_dvd {a : Nat} (h : 0 ∣ a) : a = 0 :=
   let ⟨c, H'⟩ := h; H'.trans c.zero_mul
+
+@[simp]
+protected theorem zero_dvd_eq (n:Nat) : 0 ∣ n ↔ n = 0 :=
+  Iff.intro Nat.eq_zero_of_zero_dvd (fun d => by simp only [d, Nat.dvd_zero 0])
 
 protected theorem dvd_add {a b c : Nat} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
   let ⟨d, hd⟩ := h₁; let ⟨e, he⟩ := h₂; ⟨d + e, by simp [Nat.left_distrib, hd, he]⟩
@@ -1214,15 +1248,6 @@ protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) 
 
 /-! ### shiftLeft and shiftRight -/
 
-theorem shiftLeft_eq (a b : Nat) : a <<< b = a * 2 ^ b :=
-  match b with
-  | 0 => (Nat.mul_one _).symm
-  | b+1 => (shiftLeft_eq _ b).trans <| by
-    simp [pow_succ, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
-
-@[deprecated]
-theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by rw [shiftLeft_eq, Nat.one_mul]
-
 @[simp] theorem shiftLeft_zero : n <<< 0 = n := rfl
 
 /-- Shiftleft on successor with multiple moved inside. -/
@@ -1246,16 +1271,88 @@ theorem shiftRight_succ_inside : ∀m n, m >>> (n+1) = (m/2) >>> n
   rw [shiftRight_succ _ (k+1)]
   rw [shiftRight_succ_inside _ k, shiftRight_succ]
 
+@[simp] theorem zero_shiftLeft : ∀ n, 0 <<< n = 0
+  | 0 => by simp [shiftLeft]
+  | n + 1 => by simp [shiftLeft, zero_shiftLeft, shiftLeft_succ]
+
 @[simp] theorem zero_shiftRight : ∀ n, 0 >>> n = 0
   | 0 => by simp [shiftRight]
   | n + 1 => by simp [shiftRight, zero_shiftRight, shiftRight_succ]
 
-theorem shiftRight_add (m n : Nat) : ∀ k, m >>> (n + k) = (m >>> n) >>> k
-  | 0 => rfl
-  | k + 1 => by simp [add_succ, shiftRight_add, shiftRight_succ]
 
-theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
-  | 0 => (Nat.div_one _).symm
-  | k + 1 => by
-    rw [shiftRight_add, shiftRight_eq_div_pow m k]
-    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ, shiftRight_succ]
+theorem mul_two_pow (a b : Nat) : a * (2^b) = a <<< b := by
+  match b with
+  | 0 => exact Nat.mul_one _
+  | b+1 =>
+    simp [pow_succ, Nat.mul_comm _ 2, ←Nat.mul_assoc, mul_two_pow (2*a) b,
+          Nat.shiftLeft_succ_inside]
+
+theorem two_pow_mul (a b : Nat) : 2^a * b = b <<< a := by
+  simp only [Nat.mul_comm (2^_), mul_two_pow]
+
+theorem one_shiftLeft (n : Nat) : 1 <<< n = 2 ^ n := by
+  simp [←mul_two_pow 1 n]
+
+theorem shiftLeft_shiftLeft (m n : Nat) : ∀ k, (m <<< n) <<< k = m <<< (n + k)
+  | 0 => rfl
+  | k + 1 => by simp [add_succ, shiftLeft_shiftLeft _ _ k, shiftLeft_succ]
+
+theorem shiftLeft_shiftRight_ge
+      (m : Nat) {n k : Nat} (ge : n ≥ k) : (m <<< n) >>> k = m <<< (n - k) := by
+  induction n generalizing k with
+  | zero =>
+    have k_eq : k = 0 := Nat.eq_zero_of_le_zero ge
+    simp [k_eq]
+  | succ n hyp =>
+    match k with
+    | 0 => simp
+    | succ k =>
+      have n_ge_k : n ≥ k := Nat.le_of_succ_le_succ ge
+      simp [shiftLeft_succ, shiftRight_succ_inside, hyp n_ge_k]
+
+theorem shiftLeft_shiftRight_le
+      {n k : Nat} (le : n ≤ k) (m : Nat) : (m <<< n) >>> k = m >>> (k - n) := by
+  induction n generalizing k with
+  | zero =>
+    simp
+  | succ n hyp =>
+    match k with
+    | 0 =>
+      contradiction
+    | succ k =>
+      have n_le_k : n ≤ k := Nat.le_of_succ_le_succ le
+      simp [shiftLeft_succ, shiftRight_succ_inside, hyp n_le_k]
+
+theorem shiftRight_shiftRight (m n : Nat) : ∀ k, (m >>> n) >>> k = m >>> (n + k)
+  | 0 => rfl
+  | k + 1 => by simp [add_succ, shiftRight_shiftRight, shiftRight_succ]
+
+theorem div_two_pow (m : Nat) : ∀(n), m / 2^n = m >>> n
+  | 0 => Nat.div_one _
+  | n + 1 => by
+    rw [Nat.pow_succ]
+    rw [←Nat.div_div_eq_div_mul]
+    rw [←shiftRight_shiftRight, shiftRight_succ]
+    simp [div_two_pow m n]
+
+theorem mul_add_div {m : Nat} (m_pos : m > 0) (x y : Nat) : (m * x + y) / m = x + y / m := by
+  match x with
+  | 0 => simp
+  | x + 1 =>
+    simp [Nat.mul_succ, Nat.add_assoc _ m,
+          mul_add_div m_pos x (m+y),
+          div_eq (m+y) m,
+          m_pos,
+          Nat.le_add_right m, Nat.add_succ, Nat.succ_add]
+
+theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
+  match x with
+  | 0 => simp
+  | x + 1 =>
+    simp [Nat.mul_succ, Nat.add_assoc _ m, mul_add_mod _ x]
+
+@[simp]
+theorem mod_div_self (m n : Nat) : m % n / n = 0 := by
+  cases n
+  · exact (m % 0).div_zero
+  · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)
