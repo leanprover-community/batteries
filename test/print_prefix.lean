@@ -104,7 +104,14 @@ TestStruct.recOn
 #guard_msgs in
 #print prefix (config:={showTypes:=false}) TestStruct
 
-/-- Artificial test function to show #print prefix filters out internals including match_/proof_ -/
+/--
+Artificial test function to show #print prefix filters out internals
+including match_/proof_.
+
+Note.  Internal names are inherently subject to change.  This test case may
+fail regularly when the Lean version is changed.  If so, we should disable
+the test case using this function below until a more robust solution is found.
+-/
 def testMatchProof : (n : Nat) → Fin n → Unit
   | _,  ⟨0, _⟩ => ()
   | Nat.succ as, ⟨Nat.succ i, h⟩ => testMatchProof as ⟨i, Nat.le_of_succ_le_succ h⟩
