@@ -13,4 +13,4 @@ test/%.run: build
 	lake env lean test/$*
 
 lint: build
-	./build/bin/runLinter
+	./.lake/build/bin/runLinter

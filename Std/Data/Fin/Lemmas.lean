@@ -14,7 +14,8 @@ namespace Fin
 /-- If you actually have an element of `Fin n`, then the `n` is always positive -/
 theorem size_pos (i : Fin n) : 0 < n := Nat.lt_of_le_of_lt (Nat.zero_le _) i.2
 
-theorem mod_def (a m : Fin n) : a % m = Fin.mk ((a % m) % n) (Nat.mod_lt _ a.size_pos) := rfl
+theorem mod_def (a m : Fin n) : a % m = Fin.mk (a % m) (Nat.lt_of_le_of_lt (Nat.mod_le _ _) a.2) :=
+  rfl
 
 theorem mul_def (a b : Fin n) : a * b = Fin.mk ((a * b) % n) (Nat.mod_lt _ a.size_pos) := rfl
 
@@ -58,13 +59,13 @@ theorem mk_val (i : Fin n) : (⟨i, i.isLt⟩ : Fin n) = i := Fin.eta ..
 @[simp] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
 
 @[simp] theorem mod_val (a b : Fin n) : (a % b).val = a.val % b.val :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le ..) a.2)
+  rfl
 
 @[simp] theorem div_val (a b : Fin n) : (a / b).val = a.val / b.val :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self ..) a.2)
+  rfl
 
 @[simp] theorem modn_val (a : Fin n) (b : Nat) : (a.modn b).val = a.val % b :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le ..) a.2)
+  rfl
 
 theorem ite_val {n : Nat} {c : Prop} [Decidable c] {x : c → Fin n} (y : ¬c → Fin n) :
     (if h : c then x h else y h).val = if h : c then (x h).val else (y h).val := by
@@ -208,7 +209,7 @@ theorem zero_ne_one : (0 : Fin (n + 2)) ≠ 1 := Fin.ne_of_lt one_pos
 
 /-! ### succ and casts into larger Fin types -/
 
-@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := by cases j; simp [Fin.succ]
+@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := rfl
 
 @[simp] theorem succ_pos (a : Fin n) : (0 : Fin (n + 1)) < a.succ := by
   simp [Fin.lt_def, Nat.succ_pos]
@@ -644,7 +645,7 @@ theorem exists_fin_two {p : Fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
   exists_fin_succ.trans <| or_congr_right exists_fin_one
 
 theorem fin_two_eq_of_eq_zero_iff : ∀ {a b : Fin 2}, (a = 0 ↔ b = 0) → a = b := by
-  simp [forall_fin_two]
+  simp only [forall_fin_two]; decide
 
 /--
 Define `motive i` by reverse induction on `i : Fin (n + 1)` via induction on the underlying `Nat`

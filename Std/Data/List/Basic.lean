@@ -7,6 +7,7 @@ import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
+import Std.Data.List.Init.Attach
 
 namespace List
 
@@ -656,7 +657,7 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
 @[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp [scanlTR, scanlTR_go_eq]
+  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -747,39 +748,6 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 /-- Return the index of the first occurrence of `a` in the list. -/
 @[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
 
-/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
-  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
-  but is defined only when all members of `l` satisfy `p`, using the proof
-  to apply `f`. -/
-@[simp] def pmap {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β
-  | [], _ => []
-  | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
-
-/--
-Unsafe implementation of `attach`, taking advantage of the fact that the representation of
-`List {x // x ∈ l}` is the same as the input `List α`.
-(Someday, the compiler might do this optimization automatically, but until then...)
--/
-@[inline] private unsafe def attachImpl (l : List α) : List {x // x ∈ l} := unsafeCast l
-
-/-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
-  with the same elements but in the type `{x // x ∈ l}`. -/
-@[implemented_by attachImpl] def attach (l : List α) : List {x // x ∈ l} :=
-  pmap Subtype.mk l fun _ => id
-
-/-- Implementation of `pmap` using the zero-copy version of `attach`. -/
-@[inline] private def pmapImpl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) :
-    List β := l.attach.map fun ⟨x, h'⟩ => f x (h _ h')
-
-@[csimp] private theorem pmap_eq_pmapImpl : @pmap = @pmapImpl := by
-  funext α β p f L h'
-  let rec go : ∀ L' (hL' : L' ⊆ L),
-      pmap f L' (fun _ h => h' _ <| hL' h) =
-      map (fun ⟨x, hx⟩ => f x (h' _ hx)) (pmap Subtype.mk L' hL')
-  | nil, hL' => rfl
-  | cons _ L', hL' => congrArg _ <| go L' fun _ hx => hL' (.tail _ hx)
-  exact go L fun _ hx => hx
-
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
 `lookmap f l` will apply `f : α → Option α` to each element of the list,
@@ -804,28 +772,28 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 @[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
-`isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
+`IsPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
 that is, `l₂` has the form `l₁ ++ t` for some `t`.
 -/
-def isPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
+def IsPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
 
 /--
-`isSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
+`IsSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
 that is, `l₂` has the form `t ++ l₁` for some `t`.
 -/
-def isSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
+def IsSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
 
 /--
-`isInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
+`IsInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
 substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, t`.
 -/
-def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
+def IsInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inherit_doc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] infixl:50 " <+: " => IsPrefix
 
-@[inherit_doc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] infixl:50 " <:+ " => IsSuffix
 
-@[inherit_doc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] infixl:50 " <:+: " => IsInfix
 
 /--
 `inits l` is the list of initial segments of `l`.
@@ -866,7 +834,7 @@ def tailsTR (l : List α) : List (List α) := go l #[] where
   funext α
   have H (l : List α) : ∀ acc, tailsTR.go l acc = acc.toList ++ tails l := by
     induction l <;> simp [*, tailsTR.go]
-  simp [tailsTR, H]
+  simp (config := { unfoldPartialApp := true }) [tailsTR, H]
 
 /--
 `sublists' l` is the list of all (non-contiguous) sublists of `l`.
@@ -889,9 +857,19 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
+  l.foldr (fun a acc => acc.bind fun x => [x, a :: x]) [[]]
+
+/-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
+def sublistsFast (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := Array.mkEmpty (arr.size * 2))
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
+
+-- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
+-- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
+-- TODO(std4#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
+-- `Std/Data/List/Lemmas.lean`.
+attribute [implemented_by sublistsFast] sublists
 
 section Forall₂
 
@@ -1458,6 +1436,27 @@ zipRight = zipWithRight prod.mk
 ```
 -/
 @[inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
+
+/--
+Version of `List.zipWith` that continues to the end of both lists, passing `none` to one argument
+once the shorter list has run out.
+-/
+-- TODO We should add a tail-recursive version as we do for other `zip` functions above.
+def zipWithAll (f : Option α → Option β → γ) : List α → List β → List γ
+  | [], bs => bs.map fun b => f none (some b)
+  | a :: as, [] => (a :: as).map fun a => f (some a) none
+  | a :: as, b :: bs => f a b :: zipWithAll f as bs
+
+@[simp] theorem zipWithAll_nil_right :
+    zipWithAll f as [] = as.map fun a => f (some a) none := by
+  cases as <;> rfl
+
+@[simp] theorem zipWithAll_nil_left :
+    zipWithAll f [] bs = bs.map fun b => f none (some b) := by
+  rw [zipWithAll]
+
+@[simp] theorem zipWithAll_cons_cons :
+    zipWithAll f (a :: as) (b :: bs) = f (some a) (some b) :: zipWithAll f as bs := rfl
 
 /--
 If all elements of `xs` are `some xᵢ`, `allSome xs` returns the `xᵢ`. Otherwise

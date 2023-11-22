@@ -13,6 +13,7 @@ import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
+import Std.Control.Lemmas
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
@@ -23,6 +24,9 @@ import Std.Data.AssocList
 import Std.Data.BinomialHeap
 import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
+import Std.Data.BitVec
+import Std.Data.BitVec.Basic
+import Std.Data.Bool
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
@@ -34,8 +38,10 @@ import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
 import Std.Data.Int.Lemmas
+import Std.Data.Json
 import Std.Data.List.Basic
 import Std.Data.List.Count
+import Std.Data.List.Init.Attach
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.List.Pairwise
@@ -70,11 +76,14 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
+import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
+import Std.Lean.Json
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -84,6 +93,7 @@ import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
 import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
+import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.Name
@@ -94,6 +104,7 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
+import Std.Lean.Util.EnvSearch
 import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
@@ -103,6 +114,7 @@ import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
+import Std.Tactic.Change
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -113,6 +125,7 @@ import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
+import Std.Tactic.LeftRight
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
@@ -120,12 +133,17 @@ import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.NoMatch
+import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PrintDependents
+import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
+import Std.Tactic.Relation.Rfl
+import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
+import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
@@ -135,6 +153,7 @@ import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
+import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
