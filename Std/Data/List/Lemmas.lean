@@ -814,11 +814,7 @@ theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
 
 /-! ### take -/
 
-@[simp]
-theorem take_cons (n) (a : α) (l : List α) : take (succ n) (a :: l) = a :: take n l :=
-  rfl
-
-@[simp] theorem take_succ_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
+@[simp] theorem take_cons : (a :: as).take (i + 1) = a :: as.take i := rfl
 
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
