@@ -18,6 +18,7 @@ namespace Nat
 @[local simp]
 private theorem one_div_two : 1/2 = 0 := by trivial
 
+private
 theorem two_pow_succ_sub_one_div : (2 ^ (n+1) - 1) / 2 = 2^n - 1 := by
   apply fun x => (Nat.sub_eq_of_eq_add x).symm
   apply Eq.trans _
@@ -26,6 +27,7 @@ theorem two_pow_succ_sub_one_div : (2 ^ (n+1) - 1) / 2 = 2^n - 1 := by
   rw [ Nat.add_sub_assoc Nat.zero_lt_two ]
   simp [Nat.pow_succ, Nat.mul_comm _ 2, Nat.mul_add_div]
 
+private
 theorem two_mul_sub_one (n:Nat) (n_pos : n > 0) : (2*n - 1) % 2 = 1 := by
   match n with
   | 0 => contradiction
@@ -61,7 +63,7 @@ theorem and_zero (x:Nat) : x &&& 0 = 0 := by
   simp
 
 @[simp]
-theorem and_1_is_mod (x:Nat) : x &&& 1 = x % 2 := by
+theorem and_one_is_mod (x:Nat) : x &&& 1 = x % 2 := by
   if xz : x = 0 then
     simp [xz, zero_and]
   else
@@ -71,8 +73,6 @@ theorem and_1_is_mod (x:Nat) : x &&& 1 = x % 2 := by
     unfold bitwise
     cases mod_two_eq_zero_or_one x with | _ p =>
       simp [xz, p, andz, one_div_two, mod_eq_of_lt]
-
-
 
 /-! ### testBit -/
 
