@@ -1260,39 +1260,19 @@ theorem shiftRight_succ_inside : ∀m n, m >>> (n+1) = (m/2) >>> n
   | 0 => by simp [shiftRight]
   | n + 1 => by simp [shiftRight, zero_shiftRight, shiftRight_succ]
 
+theorem shiftRight_add (m n : Nat) : ∀ k, m >>> (n + k) = (m >>> n) >>> k
+  | 0 => rfl
+  | k + 1 => by simp [add_succ, shiftRight_add, shiftRight_succ]
+
 theorem shiftLeft_shiftLeft (m n : Nat) : ∀ k, (m <<< n) <<< k = m <<< (n + k)
   | 0 => rfl
   | k + 1 => by simp [add_succ, shiftLeft_shiftLeft _ _ k, shiftLeft_succ]
 
-theorem shiftLeft_shiftRight_ge
-      (m : Nat) {n k : Nat} (ge : n ≥ k) : (m <<< n) >>> k = m <<< (n - k) := by
-  induction n generalizing k with
-  | zero =>
-    have k_eq : k = 0 := Nat.eq_zero_of_le_zero ge
-    simp [k_eq]
-  | succ n hyp =>
-    match k with
-    | 0 => simp
-    | succ k =>
-      have n_ge_k : n ≥ k := Nat.le_of_succ_le_succ ge
-      simp [shiftLeft_succ, shiftRight_succ_inside, hyp n_ge_k]
-
-theorem shiftLeft_shiftRight_le
-      {n k : Nat} (le : n ≤ k) (m : Nat) : (m <<< n) >>> k = m >>> (k - n) := by
-  induction n generalizing k with
-  | zero =>
-    simp
-  | succ n hyp =>
-    match k with
-    | 0 =>
-      contradiction
-    | succ k =>
-      have n_le_k : n ≤ k := Nat.le_of_succ_le_succ le
-      simp [shiftLeft_succ, shiftRight_succ_inside, hyp n_le_k]
-
-theorem shiftRight_shiftRight (m n : Nat) : ∀ k, (m >>> n) >>> k = m >>> (n + k)
-  | 0 => rfl
-  | k + 1 => by simp [add_succ, shiftRight_shiftRight, shiftRight_succ]
+theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
+  | 0 => (Nat.div_one _).symm
+  | k + 1 => by
+    rw [shiftRight_add, shiftRight_eq_div_pow m k]
+    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ, shiftRight_succ]
 
 theorem mul_add_div {m : Nat} (m_pos : m > 0) (x y : Nat) : (m * x + y) / m = x + y / m := by
   match x with

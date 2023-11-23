@@ -58,11 +58,10 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
 
-@[simp]
-theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
+@[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
-theorem toNat_ofNat (x w : Nat)
-    : (BitVec.ofNat w x).toNat = x &&& 2^w-1 := rfl
+theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
+  simp [BitVec.toNat, BitVec.ofNat]
 
 /--
 Definition of bitvector addition as a nat.
@@ -97,7 +96,7 @@ theorem toNat_cast (e:m = n) (x : BitVec m)
 theorem toNat_cons (b:Bool) (x : BitVec w)
     : (cons b x).toNat = (b.toNat <<< w) ||| x.toNat := by
     let ⟨x, _⟩ := x
-    simp [cons, toNat_append, toNat_ofBool,  toNat_ofNat]
+    simp [cons, toNat_append, toNat_ofBool]
 
 /-! ### cons -/
 

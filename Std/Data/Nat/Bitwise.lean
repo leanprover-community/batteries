@@ -78,8 +78,7 @@ theorem and_1_is_mod (x:Nat) : x &&& 1 = x % 2 := by
 
 @[simp]
 theorem zero_testBit (i:Nat) : testBit 0 i = false := by
-  unfold testBit
-  simp [zero_shiftRight]
+  simp only [testBit, zero_shiftRight, zero_and, bne_self_eq_false]
 
 theorem testBit_zero_is_mod2 (x:Nat) : testBit x 0 = decide (x % 2 = 1) := by
   cases mod_two_eq_zero_or_one x with | _ p => simp [testBit, p]
@@ -211,9 +210,9 @@ private theorem succ_mod_2 : succ x % 2 = 1 - x % 2 := by
 
 
 private theorem testBit_succ_zero : testBit (x + 1) 0 = not (testBit x 0) := by
-  simp [testBit, succ_mod_2]
+  simp [testBit_to_div_mod, succ_mod_2]
   cases Nat.mod_two_eq_zero_or_one x with | _ p =>
-    simp [p, (by trivial : 1 != 0)]
+    simp [p]
 
 theorem testBit_two_pow_add_eq (x i : Nat)
     : testBit (2^i + x) i = not (testBit x i) := by
@@ -502,4 +501,4 @@ theorem testBit_shiftLeft (x:Nat) : testBit (x <<< i) j =
   simp [shiftLeft_eq, Nat.mul_comm _ (2^_), testBit_mul_pow_two]
 
 theorem testBit_shiftRight (x:Nat) : testBit (x >>> i) j = testBit x (i+j) := by
-  simp only [testBit, shiftRight_shiftRight]
+  simp [testBit, ←shiftRight_add]
