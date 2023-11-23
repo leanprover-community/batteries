@@ -206,7 +206,6 @@ theorem true_eq_decide_iff {p : Prop} [h : Decidable p] : true = decide p ↔ p 
 
 /-! ## toNat -/
 
-
 /-- convert a `Bool` to a `Nat`, `false -> 0`, `true -> 1` -/
 def toNat (b:Bool) : Nat := cond b 1 0
 
