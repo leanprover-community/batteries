@@ -50,6 +50,7 @@ theorem testBit_limit {x i : Nat} (x_lt_succ : x < 2^(i+1)) : testBit x i = deci
                  _ ≤ 2 ^ j := Nat.pow_le_pow_of_le_right Nat.zero_lt_two x_lt
                  _ ≤ x := testBit_implies_ge jp
 
+private
 theorem mod_two_pow_succ (x i : Nat) :
   x % 2^(i+1) = 2^i*(x.testBit i).toNat + x % (2 ^ i):= by
   apply Nat.eq_of_testBit_eq
@@ -87,11 +88,11 @@ theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.pow_tw
 
 /-! ### Addition -/
 
-/-- Carry function for bitwise addition. -/
-def carry_clean (w x y : Nat) (c : Bool) : Bool :=  decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
+/-- carry w x y c returns true if the `w` carry bit is true when computing `x + y + c`. -/
+def carry (w x y : Nat) (c : Bool) : Bool :=  decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
 
-@[simp] theorem carry_spec_zero : carry_clean 0 x y c = c := by
-  cases c <;> simp [carry_clean, mod_one]
+@[simp] theorem carry_zero : carry 0 x y c = c := by
+  cases c <;> simp [carry, mod_one]
 
 /-- Carry function for bitwise addition. -/
 def adcb (x y c : Bool) : Bool × Bool := (x && y || x && c || y && c, Bool.xor x (Bool.xor y c))
@@ -109,13 +110,9 @@ theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toN
   exact (Nat.add_le_add_left (Bool.toNat_le_one c) _)
   exact Nat.mod_lt _ (Nat.pow_two_pos i)
 
-theorem carry_clean_succ (w x y : Nat) (c : Bool) :
-  carry_clean (succ w) x y c =
-    decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry_clean w x y c).toNat ≥ 2) := by
-  simp [carry_clean]
-
-  simp [mod_two_pow_succ x w]
-  simp [mod_two_pow_succ y w]
+theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
+    decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry w x y c).toNat ≥ 2) := by
+  simp [carry, mod_two_pow_succ _ w]
   generalize testBit x w = xh
   generalize testBit y w = yh
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
@@ -136,10 +133,8 @@ theorem carry_clean_succ (w x y : Nat) (c : Bool) :
           pred]
 
 theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool)
-    : getLsb (x + y + zeroExtend w (ofBool c)) i
-      = Bool.xor (getLsb x i)
-                 (Bool.xor (getLsb y i)
-                            (carry_clean i x.toNat y.toNat c)) := by
+    : getLsb (x + y + zeroExtend w (ofBool c)) i =
+        Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
   let ⟨x, x_lt⟩ := x
   let ⟨y, y_lt⟩ := y
   simp [getLsb, toNat_add, toNat_zeroExtend, i_lt]
@@ -155,28 +150,28 @@ theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool)
       Nat.add_left_comm (_%_) (_ * _) _,
       testBit_limit (adc_overflow_limit x y i c)
     ]
-  simp [testBit_to_div_mod, carry_clean, Nat.add_assoc]
+  simp [testBit_to_div_mod, carry, Nat.add_assoc]
 
 theorem adc_correct (w:Nat) (x y : BitVec w) (c : Bool) :
-    adc x y c = (carry_clean w x.toNat y.toNat c, x + y + zeroExtend w (ofBool c)) := by
+    adc x y c = (carry w x.toNat y.toNat c, x + y + zeroExtend w (ofBool c)) := by
   simp only [adc]
   apply iunfoldr_replace
-          (fun i => carry_clean i x.toNat y.toNat c)
+          (fun i => carry i x.toNat y.toNat c)
           (x + y + zeroExtend w (ofBool c))
           c
   case init =>
-    simp [carry_clean, Nat.mod_one]
+    simp [carry, Nat.mod_one]
     cases c <;> rfl
   case step =>
     intro ⟨i, lt⟩
     simp [adcb]
-    rw [carry_clean_succ]
+    rw [carry_succ]
     apply And.intro
     case left =>
       rw [testBit_toNat, testBit_toNat]
       cases x.getLsb i <;>
       cases y.getLsb i <;>
-      cases carry_clean i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
+      cases carry i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
     case right =>
       simp [adc_value_step lt]
 
