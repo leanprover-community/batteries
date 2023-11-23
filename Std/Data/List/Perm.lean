@@ -160,11 +160,11 @@ theorem replicate_perm {n : Nat} {a : α} {l : List α} :
 
 @[simp]
 theorem perm_singleton {a : α} {l : List α} : l ~ [a] ↔ l = [a] :=
-  @perm_replicate α 1 a l
+  perm_replicate (n := 1)
 
 @[simp]
 theorem singleton_perm {a : α} {l : List α} : [a] ~ l ↔ [a] = l :=
-  @replicate_perm α 1 a l
+  replicate_perm (n := 1)
 
 theorem Perm.eq_singleton {a : α} {l : List α} (p : l ~ [a]) : l = [a] :=
   perm_singleton.1 p
@@ -176,7 +176,7 @@ theorem singleton_perm_singleton {a b : α} : [a] ~ [b] ↔ a = b := by simp
 
 theorem perm_cons_erase [DecidableEq α] {a : α} {l : List α} (h : a ∈ l) : l ~ a :: l.erase a :=
   let ⟨_l₁, _l₂, _, e₁, e₂⟩ := exists_erase_eq h
-  e₂.symm ▸ e₁.symm ▸ perm_middle
+  e₂ ▸ e₁ ▸ perm_middle
 
 @[elab_as_elim]
 theorem perm_induction_on
