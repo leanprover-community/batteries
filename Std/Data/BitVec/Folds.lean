@@ -47,7 +47,7 @@ private theorem iunfoldr.eq_test
     case left =>
       simp [step]
     case right =>
-      simp [step, cons_getLsb_truncate]
+      simp [step, truncate_succ]
 
 theorem iunfoldr_replace
     {w:Nat}

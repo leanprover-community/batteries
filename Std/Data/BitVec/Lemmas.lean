@@ -162,7 +162,7 @@ theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat)
     : getLsb (truncate m x) i = (decide (i < m) && getLsb x i) :=
   getLsb_zeroExtend m x i
 
-theorem cons_getLsb_truncate (x : BitVec w)
+theorem truncate_succ (x : BitVec w)
     : truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
   apply eq_of_getLsb_eq
   intro j
