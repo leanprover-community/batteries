@@ -260,7 +260,7 @@ theorem exists_perm_sublist {l₁ l₂ l₂' : List α} (s : l₁ <+ l₂) (p : 
 
 theorem Perm.sizeOf_eq_sizeOf [SizeOf α] {l₁ l₂ : List α} (h : l₁ ~ l₂) :
     sizeOf l₁ = sizeOf l₂ := by
-  induction h with -- hd l₁ l₂ h₁₂ h_sz₁₂ a b l l₁ l₂ l₃ h₁₂ h₂₃ h_sz₁₂ h_sz₂₃
+  induction h with
   | nil => rfl
   | cons _ _ h_sz₁₂ => simp [h_sz₁₂]
   | swap => simp [Nat.add_left_comm]
