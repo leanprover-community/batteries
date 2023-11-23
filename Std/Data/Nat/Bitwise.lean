@@ -178,10 +178,7 @@ theorem testBit_implies_ge {x : Nat} (p : testBit x i = true) : x ≥ 2^i := by
   simp only [testBit_to_div_mod] at p
   by_contra not_ge
   have x_lt : x < 2^i := Nat.lt_of_not_le not_ge
-  have x_lt_2 : x < 2^i * 2 := by
-        rw [←Nat.mul_one x]
-        apply Nat.mul_lt_mul x_lt (by trivial : 1 ≤ 2) (by trivial : 0 < 1)
-  simp [x_lt_2, mod_eq_of_lt, x_lt, div_eq_of_lt] at p
+  simp [div_eq_of_lt x_lt] at p
 
 theorem testBit_lt_two {x i : Nat} (lt : x < 2^i) : x.testBit i = false := by
   match p : x.testBit i with
