@@ -21,11 +21,7 @@ The notation `~` is used for permutation equivalence.
 
 open Nat
 
-universe uu vv
-
 namespace List
-
-variable {α : Type uu} {β : Type vv} {l₁ l₂ : List α}
 
 /-- `Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
   of each other. This is defined by induction using pairwise swaps. -/
@@ -103,7 +99,7 @@ theorem Perm.append_cons (a : α) {h₁ h₂ t₁ t₂ : List α} (p₁ : h₁ ~
 @[simp]
 theorem perm_middle {a : α} : ∀ {l₁ l₂ : List α}, l₁ ++ a :: l₂ ~ a :: (l₁ ++ l₂)
   | [], _ => Perm.refl _
-  | b :: l₁, l₂ => ((@perm_middle a l₁ l₂).cons _).trans (swap a b _)
+  | b :: _, _ => (Perm.cons _ perm_middle).trans (swap a b _)
 
 @[simp]
 theorem perm_append_singleton (a : α) (l : List α) : l ++ [a] ~ a :: l :=
@@ -355,7 +351,7 @@ theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} :
     l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
   | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le p
 
-theorem Perm.countP_congr (s : l₁ ~ l₂) {p p' : α → Bool}
+theorem Perm.countP_congr {l₁ l₂ : List α} (s : l₁ ~ l₂) {p p' : α → Bool}
     (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countP p = l₂.countP p' := by
   rw [← s.countP_eq p']
   clear s
@@ -533,7 +529,7 @@ theorem Nodup.sublist_ext {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ 
     | cons a s₂ IH =>
       simp [Nodup] at d
       cases s₁
-      next _ _ _ s₁ =>
+      next s₁ =>
         exact IH d.2 s₁ h
       next l₁ _ _ s₁ =>
         have := Subperm.subset ⟨_, h.symm, s₂⟩ (mem_cons_self _ _)
@@ -541,7 +537,7 @@ theorem Nodup.sublist_ext {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ 
     | cons₂ a _ IH =>
       simp [Nodup] at d
       cases s₁
-      next _ _ _ s₁ =>
+      next s₁ =>
         have := Subperm.subset ⟨_, h, s₁⟩ (mem_cons_self _ _)
         exact (d.1 _ this rfl).elim
       next l₁ _ _ s₁ =>
@@ -549,7 +545,7 @@ theorem Nodup.sublist_ext {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ 
   , fun h => by rw [h]; apply Perm.refl⟩
 
 
-section
+section DecidableEq
 
 variable [DecidableEq α]
 
@@ -789,7 +785,7 @@ theorem Perm.inter_left (l : List α) {t₁ t₂ : List α} (p : t₁ ~ t₂) : 
 theorem Perm.inter {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
   p₂.inter_left l₂ ▸ p₁.inter_right t₁
 
-end
+end DecidableEq
 
 theorem Perm.pairwise_iff {R : α → α → Prop} (S : ∀ {x y}, R x y → R y x) :
     ∀ {l₁ l₂ : List α} (_p : l₁ ~ l₂), Pairwise R l₁ ↔ Pairwise R l₂ :=
