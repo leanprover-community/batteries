@@ -521,8 +521,8 @@ theorem perm_ext_iff_of_nodup {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : 
   ⟨fun p _ => p.mem_iff, fun H =>
     (subperm_of_subset d₁ fun a => (H a).1).antisymm <| subperm_of_subset d₂ fun a => (H a).2⟩
 
-theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) :
-    l₁ ~ l₂ ↔ l₁ = l₂ :=
+theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
+    (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ :=
   ⟨fun h => by
     induction s₂ generalizing l₁ with
     | slnil => exact h.eq_nil
