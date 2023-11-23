@@ -175,19 +175,6 @@ theorem adc_correct (w:Nat) (x y : BitVec w) (c : Bool) :
     case right =>
       simp [adc_value_step lt]
 
-@[simp]
-theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
 
-@[simp]
-theorem zeroExtend_zero (m n : Nat) : zeroExtend m (0#n) = 0#m := by
-  apply eq_of_toNat_eq
-  simp [toNat_zeroExtend]
-
-@[simp]
-theorem add_zero (x : BitVec n) : x + (0#n) = x := by
-  apply eq_of_toNat_eq
-  simp [toNat_add, isLt, Nat.mod_eq_of_lt]
-
-theorem add_as_adc (w:Nat) (x y : BitVec w) :
-  x + y = (adc x y false).snd := by
+theorem add_as_adc (w:Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_correct]

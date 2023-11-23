@@ -63,10 +63,8 @@ theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
 theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat]
 
-/--
-Definition of bitvector addition as a nat.
--/
-theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := by rfl
+@[simp]
+theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
 
 private
 theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) : x < 2 ^ n :=
@@ -144,6 +142,11 @@ theorem zeroExtend_eq (x : BitVec n) : zeroExtend n x = x := by
   simp [truncate, zeroExtend]
 
 @[simp]
+theorem zeroExtend_zero (m n : Nat) : zeroExtend m (0#n) = 0#m := by
+  apply eq_of_toNat_eq
+  simp [toNat_zeroExtend]
+
+@[simp]
 theorem truncate_eq (x : BitVec n) : truncate n x = x := zeroExtend_eq x
 
 @[simp]
@@ -172,3 +175,15 @@ theorem truncate_succ (x : BitVec w)
   else
     have j_lt : j.val < i := Nat.lt_of_le_of_ne (Nat.le_of_succ_le_succ j.isLt) j_eq
     simp [j_eq, j_lt]
+
+/-! ### add -/
+
+/--
+Definition of bitvector addition as a nat.
+-/
+theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := by rfl
+
+@[simp]
+theorem add_zero (x : BitVec n) : x + (0#n) = x := by
+  apply eq_of_toNat_eq
+  simp [toNat_add, isLt, Nat.mod_eq_of_lt]
