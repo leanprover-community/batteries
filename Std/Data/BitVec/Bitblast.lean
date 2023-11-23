@@ -130,6 +130,8 @@ theorem carry_clean_succ (w x y : Nat) (c : Bool) :
           mul_le_add_right,
           le_add_right,
           Nat.not_le_of_lt,
+          Nat.add_succ,
+          Nat.succ_le_succ,
           sum_bnd,
           pred]
 
@@ -174,7 +176,7 @@ theorem adc_correct (w:Nat) (x y : BitVec w) (c : Bool) :
       rw [testBit_toNat, testBit_toNat]
       cases x.getLsb i <;>
       cases y.getLsb i <;>
-      cases carry_clean i x.toNat y.toNat c <;> simp
+      cases carry_clean i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
     case right =>
       simp [adc_value_step lt]
 
