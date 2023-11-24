@@ -377,7 +377,7 @@ theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l�
   s.countP_le _
 
 theorem Perm.foldl_eq' {f : β → α → β} {l₁ l₂ : List α} (p : l₁ ~ l₂)
-    (assoc : ∀ x ∈ l₁, ∀ y ∈ l₁, ∀ (z), f (f z x) y = f (f z y) x)
+    (comm : ∀ x ∈ l₁, ∀ y ∈ l₁, ∀ (z), f (f z x) y = f (f z y) x)
   : ∀ b, foldl f b l₁ = foldl f b l₂ := by
   intro b
   induction p using recOnSwap' generalizing b
@@ -385,19 +385,19 @@ theorem Perm.foldl_eq' {f : β → α → β} {l₁ l₂ : List α} (p : l₁ ~ 
   case cons x t₁ t₂ _p IH =>
     simp only [foldl]
     apply IH
-    intros; apply assoc
+    intros; apply comm
     repeat (apply Mem.tail; assumption)
   case swap' x y t₁ t₂ _p IH =>
     simp only [foldl]
-    rw [assoc x (.tail _ <| .head _) y (.head _)]
+    rw [comm x (.tail _ <| .head _) y (.head _)]
     apply IH
-    intros; apply assoc
+    intros; apply comm
     repeat (apply Mem.tail; apply Mem.tail; assumption)
   case trans t₁ t₂ t₃ p₁ _p₂ IH₁ IH₂ =>
     apply Eq.trans
-    · exact IH₁ assoc b
+    · exact IH₁ comm b
     · apply IH₂
-      intros; apply assoc
+      intros; apply comm
       · apply p₁.symm.subset; assumption
       · apply p₁.symm.subset; assumption
 
