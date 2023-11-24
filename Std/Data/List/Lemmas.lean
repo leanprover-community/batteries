@@ -1279,6 +1279,12 @@ end erase
 @[simp] theorem filter_cons_of_neg {p : α → Bool} {a : α} (l) (pa : ¬ p a) :
     filter p (a :: l) = filter p l := by rw [filter, eq_false_of_ne_true pa]
 
+theorem filter_cons :
+    (x :: xs : List α).filter p = if p x then x :: (xs.filter p) else xs.filter p := by
+  split <;> rename_i h
+  · rw [filter_cons_of_pos _ h]
+  · rw [filter_cons_of_neg _ h]
+
 @[simp] theorem filter_append {p : α → Bool} :
     ∀ (l₁ l₂ : List α), filter p (l₁ ++ l₂) = filter p l₁ ++ filter p l₂
   | [], l₂ => rfl

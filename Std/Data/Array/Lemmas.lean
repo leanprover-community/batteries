@@ -37,6 +37,8 @@ attribute [simp] isEmpty uget
 @[simp] theorem toArray_data : (a : Array α) → a.data.toArray = a
   | ⟨l⟩ => ext' (data_toArray l)
 
+@[simp] theorem data_length {l : Array α} : l.data.length = l.size := rfl
+
 @[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
 @[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
@@ -336,3 +338,58 @@ theorem forIn_eq_data_forIn [Monad m]
       simp [← this]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl
+
+/-! ### map -/
+
+@[simp] theorem mem_map {f : α → β} {l : Array α} : b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b := by
+  simp only [mem_def, map_data, List.mem_map]
+
+/-! ### filter -/
+
+@[simp] theorem filter_data (p : α → Bool) (l : Array α) :
+    (l.filter p).data = l.data.filter p := by
+  dsimp only [filter]
+  rw [foldl_eq_foldl_data]
+  generalize l.data = l
+  suffices ∀ a, (List.foldl (fun r a => if p a = true then push r a else r) a l).data =
+      a.data ++ List.filter p l by
+    simpa using this #[]
+  induction l
+  · simp_all
+  · simp only [List.filter_cons]
+    split <;> simp_all
+
+@[simp] theorem filter_filter (q) (l : Array α) :
+    filter p (filter q l) = filter (fun a => p a ∧ q a) l := by
+  apply ext'
+  simp only [filter_data, List.filter_filter]
+
+theorem size_filter_le (p : α → Bool) (l : Array α) :
+    (l.filter p).size ≤ l.size := by
+  simp only [← data_length, filter_data]
+  apply List.length_filter_le
+
+theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
+  simp only [mem_def, filter_data, List.mem_filter]
+
+theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
+  (mem_filter.mp h).1
+
+/-! ### filterMap -/
+
+@[simp] theorem filterMap_data (f : α → Option β) (l : Array α) :
+    (l.filterMap f).data = l.data.filterMap f := by
+  dsimp only [filterMap, filterMapM]
+  rw [foldlM_eq_foldlM_data]
+  generalize l.data = l
+  have this : ∀ a : Array β, (Id.run (List.foldlM (m := Id) ?_ a l)).data =
+    a.data ++ List.filterMap f l := ?_
+  exact this #[]
+  induction l
+  · simp_all [Id.run]
+  · simp_all [Id.run]
+    split <;> simp_all
+
+@[simp] theorem mem_filterMap (f : α → Option β) (l : Array α) {b : β} :
+    b ∈ filterMap f l ↔ ∃ a, a ∈ l ∧ f a = some b := by
+  simp only [mem_def, filterMap_data, List.mem_filterMap]
