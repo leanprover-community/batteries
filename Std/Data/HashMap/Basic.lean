@@ -37,7 +37,7 @@ def update (data : Buckets α β) (i : UInt64)
 The number of elements in the bucket array.
 Note: this is marked `noncomputable` because it is only intended for specification.
 -/
-def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
+noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
     (self.update i d h).1.size = self.1.size := Array.size_set ..
