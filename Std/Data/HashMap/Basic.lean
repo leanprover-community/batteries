@@ -29,18 +29,18 @@ def mk (buckets := 8) (h : 0 < buckets := by decide) : Buckets α β :=
   ⟨mkArray buckets .nil, by simp [h]⟩
 
 /-- Update one bucket in the bucket array with a new value. -/
-def update (data : Buckets α β) (i : USize)
+def update (data : Buckets α β) (i : UInt64)
     (d : AssocList α β) (h : i.toNat < data.1.size) : Buckets α β :=
-  ⟨data.1.uset i d h, (Array.size_uset ..).symm ▸ data.2⟩
+  ⟨data.1.set ⟨i.toNat, h⟩ d, (Array.size_set ..).symm ▸ data.2⟩
 
 /--
 The number of elements in the bucket array.
 Note: this is marked `noncomputable` because it is only intended for specification.
 -/
-noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
+def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
 
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
-    (self.update i d h).1.size = self.1.size := Array.size_uset ..
+    (self.update i d h).1.size = self.1.size := Array.size_set ..
 
 /-- Map a function over the values in the map. -/
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
@@ -92,8 +92,8 @@ def empty (capacity := 0) : Imp α β :=
   empty' n n.2
 
 /-- Calculates the bucket index from a hash value `u`. -/
-def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
-  ⟨u % n, USize.modn_lt _ h⟩
+def mkIdx {n : Nat} (h : 0 < n) (u : UInt64) : {u : UInt64 // u.toNat < n} :=
+  ⟨u % n, Fin.modn_lt _ h⟩
 
 /--
 Inserts a key-value pair into the bucket array. This function assumes that the data is not
@@ -101,8 +101,8 @@ already in the array, which is appropriate when reinserting elements into the ar
 -/
 @[inline] def reinsertAux [Hashable α]
     (data : Buckets α β) (a : α) (b : β) : Buckets α β :=
-  let ⟨i, h⟩ := mkIdx data.2 (hash a |>.toUSize)
-  data.update i (.cons a b data.1[i]) h
+  let ⟨i, h⟩ := mkIdx data.2 (hash a)
+  data.update i (.cons a b data.1[i.toNat]) h
 
 /-- Folds a monadic function over the elements in the map (in arbitrary order). -/
 @[inline] def foldM [Monad m] (f : δ → α → β → m δ) (d : δ) (map : Imp α β) : m δ :=
@@ -119,20 +119,20 @@ already in the array, which is appropriate when reinserting elements into the ar
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
 def findEntry? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option (α × β) :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  buckets.1[i].findEntry? a
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  buckets.1[i.toNat].findEntry? a
 
 /-- Looks up an element in the map with key `a`. -/
 def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  buckets.1[i].find? a
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  buckets.1[i.toNat].find? a
 
 /-- Returns true if the element `a` is in the map. -/
 def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
   let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  buckets.1[i].contains a
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  buckets.1[i.toNat].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
 def expand [Hashable α] (size : Nat) (buckets : Buckets α β) : Imp α β :=
@@ -159,8 +159,8 @@ If an element equal to `a` is already in the map, it is replaced by `b`.
 -/
 @[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (a : α) (b : β) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  let bkt := buckets.1[i]
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  let bkt := buckets.1[i.toNat]
   bif bkt.contains a then
     ⟨size, buckets.update i (bkt.replace a b) h⟩
   else
@@ -176,8 +176,8 @@ Removes key `a` from the map. If it does not exist in the map, the map is return
 -/
 def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  let bkt := buckets.1[i]
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  let bkt := buckets.1[i.toNat]
   bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
 
 /-- Map a function over the values in the map. -/
@@ -187,8 +187,8 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
 /-- Performs an in-place edit of the value, ensuring that the value is used linearly. -/
 def modify [BEq α] [Hashable α] (m : Imp α β) (a : α) (f : α → β → β) : Imp α β :=
   let ⟨size, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
-  let bkt := buckets.1[i]
+  let ⟨i, h⟩ := mkIdx buckets.2 (hash a)
+  let bkt := buckets.1[i.toNat]
   let buckets := buckets.update i .nil h -- for linearity
   ⟨size, buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h)⟩
 
@@ -369,3 +369,7 @@ def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → �
     match m.find? p.1 with
     | none   => m.insert p.1 p.2
     | some v => m.insert p.1 <| f v p.2
+
+-- Verify that basic operations are computable in the kernel, and not blocked by
+-- `System.Platform.numBits`.
+example : (HashMap.empty.insert 0 0).isEmpty = false := rfl
