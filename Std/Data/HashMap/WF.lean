@@ -22,7 +22,7 @@ theorem update_data (self : Buckets α β) (i d h) :
     (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
 
 theorem exists_of_update (self : Buckets α β) (i d h) :
-    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
+    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i.toNat] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
   simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
 
@@ -45,10 +45,10 @@ theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF 
 
 theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : buckets.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
-      (buckets.1[i].toList.Pairwise fun a b => ¬(a.1 == b.1)) →
+      (buckets.1[i.toNat].toList.Pairwise fun a b => ¬(a.1 == b.1)) →
       d.toList.Pairwise fun a b => ¬(a.1 == b.1))
-    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) →
-      d.All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) :
+    (h₂ : (buckets.1[i.toNat].All fun k _ => ((hash k) % buckets.1.size).toNat = i.toNat) →
+      d.All fun k _ => ((hash k) % buckets.1.size).toNat = i.toNat) :
     (buckets.update i d h).WF := by
   refine ⟨fun l hl => ?_, fun i hi p hp => ?_⟩
   · exact match List.mem_or_eq_of_mem_set hl with
@@ -69,8 +69,8 @@ theorem reinsertAux_size [Hashable α] (data : Buckets α β) (a : α) (b : β) 
 
 theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b : β} (H : data.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
-      haveI := mkIdx data.2 (hash a).toUSize
-      (data.val[this.1]'this.2).All fun x _ => ¬(a == x)) :
+      haveI := mkIdx data.2 (hash a)
+      (data.val[this.1.toNat]'this.2).All fun x _ => ¬(a == x)) :
     (reinsertAux data a b).WF :=
   H.update (.cons h₁) fun
     | _, _, .head .. => rfl
@@ -148,9 +148,9 @@ where
       (hs₁ : ∀ [LawfulHashable α] [PartialEquivBEq α], ∀ bucket ∈ source.data,
         bucket.toList.Pairwise fun a b => ¬(a.1 == b.1))
       (hs₂ : ∀ (j : Nat) (h : j < source.size),
-        source[j].All fun k _ => ((hash k).toUSize % source.size).toNat = j)
+        source[j].All fun k _ => ((hash k) % source.size).toNat = j)
       {target : Buckets α β} (ht : target.WF ∧ ∀ bucket ∈ target.1.data,
-        bucket.All fun k _ => ((hash k).toUSize % source.size).toNat < i) :
+        bucket.All fun k _ => ((hash k) % source.size).toNat < i) :
       (expand.go i source target).WF := by
     unfold expand.go; split
     · next H =>
@@ -161,7 +161,7 @@ where
       · simp [Array.getElem_eq_data_get, List.get_set]; split
         · intro.
         · exact hs₂ _ (by simp_all)
-      · let rank (k : α) := ((hash k).toUSize % source.size).toNat
+      · let rank (k : α) := ((hash k) % source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
         · simp; exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩
         · exact hs₁ _ (Array.getElem_mem_data ..)

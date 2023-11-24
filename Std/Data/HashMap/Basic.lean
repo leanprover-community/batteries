@@ -56,7 +56,7 @@ structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
     bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
   /-- Every element in a bucket should hash to its location. -/
   hash_self (i : Nat) (h : i < buckets.1.size) :
-    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
+    buckets.1[i].All fun k _ => ((hash k) % buckets.1.size).toNat = i
 
 end Buckets
 end Imp
