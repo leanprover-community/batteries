@@ -178,18 +178,20 @@ theorem perm_cons_erase [DecidableEq α] {a : α} {l : List α} (h : a ∈ l) : 
   let ⟨_l₁, _l₂, _, e₁, e₂⟩ := exists_erase_eq h
   e₂ ▸ e₁ ▸ perm_middle
 
+/-- Similar to `Perm.recOn`, but the `swap` case is generalized to `Perm.swap'`,
+where the tail of the lists are not necessarily the same. -/
 @[elab_as_elim]
-theorem perm_induction_on
-    {P : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
-    (nil : P [] [] .nil)
-    (cons : ∀ x l₁ l₂, (h : l₁ ~ l₂) → P l₁ l₂ h → P (x :: l₁) (x :: l₂) (.cons x h))
-    (swap : ∀ x y l₁ l₂, (h : l₁ ~ l₂) → P l₁ l₂ h →
-      P (y :: x :: l₁) (x :: y :: l₂) (.trans (.swap x y _) (.cons _ (.cons _ h))))
-    (trans : ∀ l₁ l₂ l₃, (h₁ : l₁ ~ l₂) → (h₂ : l₂ ~ l₃) → P l₁ l₂ h₁ → P l₂ l₃ h₂ →
-      P l₁ l₃ (.trans h₁ h₂)) : P l₁ l₂ p :=
-  have P_refl l : P l l (.refl l) :=
+def Perm.recOnSwap'
+    {motive : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
+    (nil : motive [] [] .nil)
+    (cons : ∀ x l₁ l₂, (h : l₁ ~ l₂) → motive l₁ l₂ h → motive (x :: l₁) (x :: l₂) (.cons x h))
+    (swap' : ∀ x y l₁ l₂, (h : l₁ ~ l₂) → motive l₁ l₂ h →
+      motive (y :: x :: l₁) (x :: y :: l₂) (.swap' _ _ h))
+    (trans : ∀ l₁ l₂ l₃, (h₁ : l₁ ~ l₂) → (h₂ : l₂ ~ l₃) → motive l₁ l₂ h₁ → motive l₂ l₃ h₂ →
+      motive l₁ l₃ (.trans h₁ h₂)) : motive l₁ l₂ p :=
+  have motive_refl l : motive l l (.refl l) :=
     List.recOn l nil fun x xs ih => cons x xs xs (Perm.refl xs) ih
-  Perm.recOn p nil cons (fun x y l => swap x y l l (Perm.refl l) (P_refl l)) @trans
+  Perm.recOn p nil cons (fun x y l => swap' x y l l (Perm.refl l) (motive_refl l)) @trans
 
 theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ l₂) :
     filterMap f l₁ ~ filterMap f l₂ := by
@@ -374,16 +376,30 @@ theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l�
     count a l₁ ≤ count a l₂ :=
   s.countP_le _
 
-theorem Perm.foldl_eq' {f : β → α → β} {l₁ l₂ : List α} (p : l₁ ~ l₂) :
-    (∀ x ∈ l₁, ∀ y ∈ l₁, ∀ (z), f (f z x) y = f (f z y) x) → ∀ b, foldl f b l₁ = foldl f b l₂ :=
-  perm_induction_on p (fun _H b => rfl)
-    (fun x t₁ t₂ _p r H b => r (fun x hx y hy => H _ (.tail _ hx) _ (.tail _ hy)) _)
-    (fun x y t₁ t₂ _p r H b => by
-      simp only [foldl]
-      rw [H x (.tail _ <| .head _) y (.head _)]
-      exact r (fun x hx y hy => H _ (.tail _ <| .tail _ hx) _ (.tail _ <| .tail _ hy)) _)
-    fun t₁ t₂ t₃ p₁ _p₂ r₁ r₂ H b =>
-    Eq.trans (r₁ H b) (r₂ (fun x hx y hy => H _ (p₁.symm.subset hx) _ (p₁.symm.subset hy)) b)
+theorem Perm.foldl_eq' {f : β → α → β} {l₁ l₂ : List α} (p : l₁ ~ l₂)
+    (assoc : ∀ x ∈ l₁, ∀ y ∈ l₁, ∀ (z), f (f z x) y = f (f z y) x)
+  : ∀ b, foldl f b l₁ = foldl f b l₂ := by
+  intro b
+  induction p using recOnSwap' generalizing b
+  case nil => simp
+  case cons x t₁ t₂ _p IH =>
+    simp only [foldl]
+    apply IH
+    intros; apply assoc
+    repeat (apply Mem.tail; assumption)
+  case swap' x y t₁ t₂ _p IH =>
+    simp only [foldl]
+    rw [assoc x (.tail _ <| .head _) y (.head _)]
+    apply IH
+    intros; apply assoc
+    repeat (apply Mem.tail; apply Mem.tail; assumption)
+  case trans t₁ t₂ t₃ p₁ _p₂ IH₁ IH₂ =>
+    apply Eq.trans
+    · exact IH₁ assoc b
+    · apply IH₂
+      intros; apply assoc
+      · apply p₁.symm.subset; assumption
+      · apply p₁.symm.subset; assumption
 
 theorem Perm.rec_heq {β : List α → Sort _} {f : ∀ a l, β l → β (a :: l)} {b : β []} {l l' : List α}
     (hl : Perm l l') (f_congr : ∀ {a l l' b b'}, Perm l l' → HEq b b' → HEq (f a l b) (f a l' b'))
@@ -406,7 +422,7 @@ theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : List α} :
     from
     fun p => this _ _ p _ _ _ _ rfl rfl
   intro s₁ s₂ p
-  induction p using perm_induction_on
+  induction p using Perm.recOnSwap'
     <;> intro l₁ l₂ r₁ r₂ e₁ e₂
   case nil =>
     simp at e₁
@@ -417,7 +433,7 @@ theorem perm_inv_core {a : α} {l₁ l₂ r₁ r₂ : List α} :
     · exact p.trans perm_middle
     · exact perm_middle.symm.trans p
     · exact (IH _ _ _ _ rfl rfl).cons _
-  case swap x y t₁ t₂ p IH =>
+  case swap' x y t₁ t₂ p IH =>
     rcases l₁ with (_ | ⟨y, _ | ⟨z, l₁⟩⟩)
       <;> rcases l₂ with (_ | ⟨u, _ | ⟨v, l₂⟩⟩)
       <;> dsimp at e₁ e₂ <;> injections <;> subst_vars
