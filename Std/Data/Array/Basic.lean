@@ -117,6 +117,13 @@ Unsafe implementation of `attach`, taking advantage of the fact that the represe
 @[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
   ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
 
+/--
+`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
+* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
+-/
+def join (l : Array (Array α)) : Array α :=
+  l.foldl (init := #[]) fun a m => m.foldl (init := a) fun a' x => a'.push x
+
 end Array
 
 
