@@ -181,7 +181,7 @@ theorem perm_cons_erase [DecidableEq α] {a : α} {l : List α} (h : a ∈ l) : 
 /-- Similar to `Perm.recOn`, but the `swap` case is generalized to `Perm.swap'`,
 where the tail of the lists are not necessarily the same. -/
 @[elab_as_elim]
-def Perm.recOnSwap'
+theorem Perm.recOnSwap'
     {motive : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
     (nil : motive [] [] .nil)
     (cons : ∀ x l₁ l₂, (h : l₁ ~ l₂) → motive l₁ l₂ h → motive (x :: l₁) (x :: l₂) (.cons x h))
