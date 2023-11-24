@@ -59,7 +59,7 @@ theorem get?_len_le (a : Array α) (i : Nat) (h : a.size ≤ i) : a[i]? = none :
   simp [getElem?_neg, h]
 
 theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
-  simp [getElem_eq_data_get, List.get_mem]
+  simp only [getElem_eq_data_get, List.get_mem]
 
 theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i := by
   by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]; rfl
