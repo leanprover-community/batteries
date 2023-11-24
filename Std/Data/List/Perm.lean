@@ -46,12 +46,12 @@ protected theorem Perm.refl : ∀ l : List α, l ~ l
   | [] => Perm.nil
   | x :: xs => (Perm.refl xs).cons x
 
-protected theorem Perm.symm {l₁ l₂ : List α} (p : l₁ ~ l₂) : l₂ ~ l₁ :=
-  p.rec
-    .nil
-    (fun x _ _ _ r₁ => .cons x r₁)
-    (fun x y l => .swap y x l)
-    (fun _ _ r₁ r₂ => .trans r₂ r₁)
+protected theorem Perm.symm {l₁ l₂ : List α} (h : l₁ ~ l₂) : l₂ ~ l₁ := by
+  induction h with
+  | nil => exact nil
+  | cons _ _ ih => exact cons _ ih
+  | swap => exact swap ..
+  | trans _ _ ih₁ ih₂ => exact trans ih₂ ih₁
 
 theorem perm_comm {l₁ l₂ : List α} : l₁ ~ l₂ ↔ l₂ ~ l₁ :=
   ⟨Perm.symm, Perm.symm⟩
@@ -68,22 +68,22 @@ theorem Perm.of_eq (h : l₁ = l₂) : l₁ ~ l₂ :=
 instance isSetoid (α) : Setoid (List α) :=
   Setoid.mk (@Perm α) (Perm.eqv α)
 
-theorem Perm.mem_iff {a : α} {l₁ l₂ : List α} (p : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ :=
-  p.rec
-    Iff.rfl
-    (by simp (config := {contextual := true}) only [mem_cons, implies_true])
-    (by intros; simp only [mem_cons, or_left_comm])
-    (by simp (config := {contextual := true}))
+theorem Perm.mem_iff {a : α} {l₁ l₂ : List α} (p : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ := by
+  induction p with
+  | nil => rfl
+  | cons _ _ ih => simp only [mem_cons, ih]
+  | swap => simp only [mem_cons, or_left_comm]
+  | trans _ _ ih₁ ih₂ => simp only [ih₁, ih₂]
 
 theorem Perm.subset {l₁ l₂ : List α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
   fun _ => p.mem_iff.mp
 
-theorem Perm.append_right {l₁ l₂ : List α} (t₁ : List α) (p : l₁ ~ l₂) : l₁ ++ t₁ ~ l₂ ++ t₁ :=
-  p.rec
-    (Perm.refl ([] ++ t₁))
-    (fun x _ _ _ r₁ => r₁.cons x)
-    (fun x y _ => swap x y _)
-    (fun _ _ r₁ r₂ => r₁.trans r₂)
+theorem Perm.append_right {l₁ l₂ : List α} (t₁ : List α) (p : l₁ ~ l₂) : l₁ ++ t₁ ~ l₂ ++ t₁ := by
+  induction p with
+  | nil => exact Perm.refl _
+  | cons _ _ ih => exact cons _ ih
+  | swap => exact swap ..
+  | trans _ _ ih₁ ih₂ => exact trans ih₁ ih₂
 
 theorem Perm.append_left {t₁ t₂ : List α} : ∀ l : List α, t₁ ~ t₂ → l ++ t₁ ~ l ++ t₂
   | [], p => p
@@ -111,12 +111,12 @@ theorem perm_append_comm : ∀ {l₁ l₂ : List α}, l₁ ++ l₂ ~ l₂ ++ l�
 
 theorem concat_perm (l : List α) (a : α) : concat l a ~ a :: l := by simp
 
-theorem Perm.length_eq {l₁ l₂ : List α} (p : l₁ ~ l₂) : length l₁ = length l₂ :=
-  p.rec
-    rfl
-    (fun _x l₁ l₂ _p r => by simp [r])
-    (fun _x _y l => by simp)
-    (fun _p₁ _p₂ r₁ r₂ => Eq.trans r₁ r₂)
+theorem Perm.length_eq {l₁ l₂ : List α} (p : l₁ ~ l₂) : length l₁ = length l₂ := by
+  induction p with
+  | nil => rfl
+  | cons _ _ ih => simp only [length_cons, ih]
+  | swap => rfl
+  | trans _ _ ih₁ ih₂ => simp only [ih₁, ih₂]
 
 theorem Perm.eq_nil {l : List α} (p : l ~ []) : l = [] :=
   eq_nil_of_length_eq_zero p.length_eq
@@ -814,13 +814,12 @@ theorem Perm.pairwise {R : α → α → Prop} {l l' : List α} (hl : l ~ l') (h
 theorem Perm.nodup_iff {l₁ l₂ : List α} : l₁ ~ l₂ → (Nodup l₁ ↔ Nodup l₂) :=
   Perm.pairwise_iff <| @Ne.symm α
 
-theorem Perm.join {l₁ l₂ : List (List α)} (h : l₁ ~ l₂) : l₁.join ~ l₂.join :=
-  Perm.recOn h (Perm.refl _) (fun x xs₁ xs₂ _ ih => ih.append_left x)
-    (fun x₁ x₂ xs => by
-      simp [join]
-      rw [←append_assoc, ←append_assoc]
-      refine perm_append_comm.append_right ?_)
-    @fun xs₁ xs₂ xs₃ _ _ => Perm.trans
+theorem Perm.join {l₁ l₂ : List (List α)} (h : l₁ ~ l₂) : l₁.join ~ l₂.join := by
+  induction h with
+  | nil => exact Perm.refl _
+  | cons _ _ ih => simp only [join_cons, perm_append_left_iff, ih]
+  | swap => simp only [join_cons, ←append_assoc, perm_append_right_iff]; exact perm_append_comm ..
+  | trans _ _ ih₁ ih₂ => exact trans ih₁ ih₂
 
 theorem Perm.bind_right {l₁ l₂ : List α} (f : α → List β) (p : l₁ ~ l₂) : l₁.bind f ~ l₂.bind f :=
   (p.map _).join
