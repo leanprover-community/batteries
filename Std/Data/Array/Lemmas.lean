@@ -336,3 +336,26 @@ theorem forIn_eq_data_forIn [Monad m]
       simp [← this]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl
+
+theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
+    all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
+  have := SatisfiesM_anyM_iff_exists (m := Id) (fun a => ! p a) as start stop (! p as[·]) (by simp)
+  rw [SatisfiesM_Id_eq] at this
+  dsimp [all, allM, Id.run]
+  rw [show ∀ b : Bool, (!b) = true ↔ !(b = true) by decide]
+  simp [this]
+
+theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
+  simp [all_iff_forall, Fin.isLt]
+
+theorem all_def {p : α → Bool} (as : Array α) : as.all p = as.data.all p := by
+  rw [Bool.eq_iff_iff, all_eq_true, List.all_eq_true]; simp only [List.mem_iff_get]
+  constructor
+  · rintro w x ⟨r, rfl⟩
+    rw [← getElem_eq_data_get]
+    apply w
+  · intro w i
+    exact w as[i] ⟨i, (getElem_eq_data_get as i.2).symm⟩
+
+theorem all_eq_true_iff_forall_mem {l : Array α} : l.all p ↔ ∀ x, x ∈ l → p x := by
+  simp only [all_def, List.all_eq_true, mem_def]
