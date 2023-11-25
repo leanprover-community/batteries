@@ -37,14 +37,15 @@ inductive Perm : List α → List α → Prop
 
 open Perm (swap)
 
-/-- `Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
-  of each other. This is defined by induction using pairwise swaps. -/
-scoped infixl:50 " ~ " => Perm
+@[inherit_doc] scoped infixl:50 " ~ " => Perm
 
 @[simp]
 protected theorem Perm.refl : ∀ l : List α, l ~ l
   | [] => Perm.nil
   | x :: xs => (Perm.refl xs).cons x
+
+theorem Perm.of_eq (h : l₁ = l₂) : l₁ ~ l₂ :=
+  h ▸ Perm.refl l₁
 
 protected theorem Perm.symm {l₁ l₂ : List α} (h : l₁ ~ l₂) : l₂ ~ l₁ := by
   induction h with
@@ -59,11 +60,23 @@ theorem perm_comm {l₁ l₂ : List α} : l₁ ~ l₂ ↔ l₂ ~ l₁ :=
 theorem Perm.swap' (x y : α) {l₁ l₂ : List α} (p : l₁ ~ l₂) : y :: x :: l₁ ~ x :: y :: l₂ :=
   (swap _ _ _).trans ((p.cons _).cons _)
 
+/-- Similar to `Perm.recOn`, but the `swap` case is generalized to `Perm.swap'`,
+where the tail of the lists are not necessarily the same. -/
+@[elab_as_elim]
+theorem Perm.recOnSwap'
+    {motive : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
+    (nil : motive [] [] .nil)
+    (cons : ∀ x {l₁ l₂}, (h : l₁ ~ l₂) → motive l₁ l₂ h → motive (x :: l₁) (x :: l₂) (.cons x h))
+    (swap' : ∀ x y {l₁ l₂}, (h : l₁ ~ l₂) → motive l₁ l₂ h →
+      motive (y :: x :: l₁) (x :: y :: l₂) (.swap' _ _ h))
+    (trans : ∀ {l₁ l₂ l₃}, (h₁ : l₁ ~ l₂) → (h₂ : l₂ ~ l₃) → motive l₁ l₂ h₁ → motive l₂ l₃ h₂ →
+      motive l₁ l₃ (.trans h₁ h₂)) : motive l₁ l₂ p :=
+  have motive_refl l : motive l l (.refl l) :=
+    List.recOn l nil fun x xs ih => cons x (Perm.refl xs) ih
+  Perm.recOn p nil cons (fun x y l => swap' x y (Perm.refl l) (motive_refl l)) trans
+
 theorem Perm.eqv (α) : Equivalence (@Perm α) :=
   ⟨Perm.refl, Perm.symm, Perm.trans⟩
-
-theorem Perm.of_eq (h : l₁ = l₂) : l₁ ~ l₂ :=
-  h ▸ Perm.refl l₁
 
 instance isSetoid (α) : Setoid (List α) :=
   Setoid.mk (@Perm α) (Perm.eqv α)
@@ -166,32 +179,14 @@ theorem perm_singleton {a : α} {l : List α} : l ~ [a] ↔ l = [a] :=
 theorem singleton_perm {a : α} {l : List α} : [a] ~ l ↔ [a] = l :=
   replicate_perm (n := 1)
 
-theorem Perm.eq_singleton {a : α} {l : List α} (p : l ~ [a]) : l = [a] :=
-  perm_singleton.1 p
-
-theorem Perm.singleton_eq {a : α} {l : List α} (p : [a] ~ l) : [a] = l :=
-  p.symm.eq_singleton.symm
+alias ⟨Perm.eq_singleton,_⟩ := perm_singleton
+alias ⟨Perm.singleton_eq,_⟩ := singleton_perm
 
 theorem singleton_perm_singleton {a b : α} : [a] ~ [b] ↔ a = b := by simp
 
 theorem perm_cons_erase [DecidableEq α] {a : α} {l : List α} (h : a ∈ l) : l ~ a :: l.erase a :=
   let ⟨_l₁, _l₂, _, e₁, e₂⟩ := exists_erase_eq h
   e₂ ▸ e₁ ▸ perm_middle
-
-/-- Similar to `Perm.recOn`, but the `swap` case is generalized to `Perm.swap'`,
-where the tail of the lists are not necessarily the same. -/
-@[elab_as_elim]
-theorem Perm.recOnSwap'
-    {motive : (l₁ : List α) → (l₂ : List α) → l₁ ~ l₂ → Prop} {l₁ l₂ : List α} (p : l₁ ~ l₂)
-    (nil : motive [] [] .nil)
-    (cons : ∀ x l₁ l₂, (h : l₁ ~ l₂) → motive l₁ l₂ h → motive (x :: l₁) (x :: l₂) (.cons x h))
-    (swap' : ∀ x y l₁ l₂, (h : l₁ ~ l₂) → motive l₁ l₂ h →
-      motive (y :: x :: l₁) (x :: y :: l₂) (.swap' _ _ h))
-    (trans : ∀ l₁ l₂ l₃, (h₁ : l₁ ~ l₂) → (h₂ : l₂ ~ l₃) → motive l₁ l₂ h₁ → motive l₂ l₃ h₂ →
-      motive l₁ l₃ (.trans h₁ h₂)) : motive l₁ l₂ p :=
-  have motive_refl l : motive l l (.refl l) :=
-    List.recOn l nil fun x xs ih => cons x xs xs (Perm.refl xs) ih
-  Perm.recOn p nil cons (fun x y l => swap' x y l l (Perm.refl l) (motive_refl l)) @trans
 
 theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ l₂) :
     filterMap f l₁ ~ filterMap f l₂ := by
@@ -277,10 +272,7 @@ section Subperm
 def Subperm (l₁ l₂ : List α) : Prop :=
   ∃ (l : _) (_ : l ~ l₁), l <+ l₂
 
-/-- `Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
-  a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
-  multiplicities of elements, and is used for the `≤` relation on multisets. -/
-scoped infixl:50 " <+~ " => Subperm
+@[inherit_doc] scoped infixl:50 " <+~ " => Subperm
 
 theorem nil_subperm {l : List α} : [] <+~ l :=
   ⟨[], Perm.nil, by simp⟩
