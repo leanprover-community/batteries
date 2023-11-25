@@ -370,7 +370,7 @@ theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l�
 
 theorem Perm.foldl_eq' {f : β → α → β} {l₁ l₂ : List α} (p : l₁ ~ l₂)
     (comm : ∀ x ∈ l₁, ∀ y ∈ l₁, ∀ (z), f (f z x) y = f (f z y) x)
-  : ∀ b, foldl f b l₁ = foldl f b l₂ := by
+  : ∀ init, foldl f init l₁ = foldl f init l₂ := by
   intro b
   induction p using recOnSwap' generalizing b
   case nil => simp
