@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 import Std.Tactic.Basic
 import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
-import Std.Tactic.Lint.Simp
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
@@ -850,6 +849,5 @@ theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> sim
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
-@[nolint simpVarHead, simp]
 theorem congr_ndrec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
   f x' (Eq.ndrec y h) = f x y := by cases h; rfl
