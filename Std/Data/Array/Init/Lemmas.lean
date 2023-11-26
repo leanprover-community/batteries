@@ -217,6 +217,11 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
   rw [← appendList_eq_append]; unfold Array.appendList
   induction l generalizing arr <;> simp [*]
 
+@[simp] theorem appendList_nil (arr : Array α) : arr ++ ([] : List α) = arr := Array.ext' (by simp)
+
+@[simp] theorem appendList_cons (arr : Array α) (a : α) (l : List α) :
+    arr ++ (a :: l) = arr.push a ++ l := Array.ext' (by simp)
+
 theorem foldl_data_eq_bind (l : List α) (acc : Array β)
     (F : Array β → α → Array β) (G : α → List β)
     (H : ∀ acc a, (F acc a).data = acc.data ++ G a) :
