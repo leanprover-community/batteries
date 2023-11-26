@@ -39,7 +39,7 @@ attribute [simp] isEmpty uget
 
 @[simp] theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
-@[simp] theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
 
 theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
   erw [Array.mem_def, getElem_eq_data_get]
