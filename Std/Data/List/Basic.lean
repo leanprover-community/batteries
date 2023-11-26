@@ -13,7 +13,49 @@ namespace List
 
 /-! ## Tail recursive implementations for definitions from core -/
 
-/-- Tail recursive version of `erase`. -/
+/-- Tail recursive version of `List.any`, with short-circuiting. -/
+def anyTR (xs : List α) (p : α → Bool) : Bool :=
+  go false xs
+where
+  /-- Auxiliary for `anyTR`. -/
+  go : Bool → List α → Bool
+  | true, _ => true
+  | false, [] => false
+  | false, h :: t => go (p h) t
+
+@[csimp] theorem any_eq_anyTR : @any = @anyTR := by
+  funext α xs p
+  dsimp [any, anyTR]
+  induction xs with
+  | nil => simp [anyTR.go]
+  | cons h t ih =>
+    simp_all only [foldr_cons, anyTR.go]
+    by_cases w : p h
+    · simp [w, anyTR.go]
+    · simp [w]
+
+/-- Tail recursive version of `List.all`, with short-circuiting. -/
+def allTR (xs : List α) (p : α → Bool) : Bool :=
+  go true xs
+where
+  /-- Auxiliary for `allTR`. -/
+  go : Bool → List α → Bool
+  | false, _ => false
+  | true, [] => true
+  | true, h :: t => go (p h) t
+
+@[csimp] theorem all_eq_allTR : @all = @allTR := by
+  funext α xs p
+  dsimp [all, allTR]
+  induction xs with
+  | nil => simp [allTR.go]
+  | cons h t ih =>
+    simp_all only [foldr_cons, allTR.go]
+    by_cases w : p h
+    · simp [w]
+    · simp [w, allTR.go]
+
+/-- Tail recursive version of `set`. -/
 @[inline] def setTR (l : List α) (n : Nat) (a : α) : List α := go l n #[] where
   /-- Auxiliary for `setTR`: `setTR.go l a xs n acc = acc.toList ++ set xs a`,
   unless `n ≥ l.length` in which case it returns `l` -/
