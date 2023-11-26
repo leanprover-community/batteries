@@ -32,7 +32,7 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
-@[local simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
+@[simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
@@ -42,8 +42,7 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
--- Will be generalized to Euclidean domains.
-@[local simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
+@[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
@@ -227,6 +226,13 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 
 @[simp] protected theorem ediv_self {a : Int} (H : a ≠ 0) : a / a = 1 := by
   have := Int.mul_ediv_cancel 1 H; rwa [Int.one_mul] at this
+
+theorem div_nonneg_iff_of_pos {a b : Int} (h : 0 < b) : a / b ≥ 0 ↔ a ≥ 0 := by
+  rw [Int.div_def]
+  match b, h with
+  | Int.ofNat (b+1), _ =>
+    rcases a with ⟨a⟩ <;> simp [Int.ediv]
+    exact decide_eq_decide.mp rfl
 
 /-! ### mod -/
 
@@ -598,7 +604,7 @@ protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
 protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
   | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
 
-protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
+@[simp] protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
   ⟨fun ⟨k, e⟩ => by rw [e, Int.zero_mul], fun h => h.symm ▸ Int.dvd_refl _⟩
 
 protected theorem neg_dvd {a b : Int} : -a ∣ b ↔ a ∣ b := by
@@ -729,9 +735,10 @@ protected theorem mul_ediv_assoc' (b : Int) {a c : Int}
   rw [Int.mul_comm, Int.mul_ediv_assoc _ h, Int.mul_comm]
 
 theorem div_dvd_div : ∀ {a b c : Int}, a ∣ b → b ∣ c → b.div a ∣ c.div a
-  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => if az : a = 0 then by simp [az] else by
-    rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
-    apply Int.dvd_mul_right
+  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => by
+    if az : a = 0 then simp [az] else
+      rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
+      apply Int.dvd_mul_right
 
 protected theorem eq_mul_of_div_eq_right {a b c : Int}
     (H1 : b ∣ a) (H2 : a.div b = c) : a = b * c := by rw [← H2, Int.mul_div_cancel' H1]
