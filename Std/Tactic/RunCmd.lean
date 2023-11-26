@@ -41,7 +41,7 @@ elab (name := runMeta) "run_meta " elems:doSeq : command => do
   ← liftTermElabM <|
     unsafe evalTerm (CommandElabM Unit)
       (mkApp (mkConst ``CommandElabM) (mkConst ``Unit))
-      (← `(Command.runMeta <| discard do $elems))
+      (← `(Command.liftTermElabM <| discard do $elems))
 
 /-- The `run_tac doSeq` tactic executes code in `TacticM Unit`. -/
 elab (name := runTac) "run_tac " e:doSeq : tactic => do
