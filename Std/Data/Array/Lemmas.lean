@@ -354,10 +354,8 @@ theorem forIn_eq_data_forIn [Monad m]
   suffices ∀ a, (List.foldl (fun r a => if p a = true then push r a else r) a l).data =
       a.data ++ List.filter p l by
     simpa using this #[]
-  induction l
-  · simp_all
-  · simp only [List.filter_cons]
-    split <;> simp_all
+  induction l with simp
+  | cons => split <;> simp [*]
 
 @[simp] theorem filter_filter (q) (l : Array α) :
     filter p (filter q l) = filter (fun a => p a ∧ q a) l := by

@@ -1281,9 +1281,7 @@ end erase
 
 theorem filter_cons :
     (x :: xs : List α).filter p = if p x then x :: (xs.filter p) else xs.filter p := by
-  split <;> rename_i h
-  · rw [filter_cons_of_pos _ h]
-  · rw [filter_cons_of_neg _ h]
+  split <;> simp [*]
 
 @[simp] theorem filter_append {p : α → Bool} :
     ∀ (l₁ l₂ : List α), filter p (l₁ ++ l₂) = filter p l₁ ++ filter p l₂
