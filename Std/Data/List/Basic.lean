@@ -361,7 +361,7 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
   | a :: l, n => bif p a then n else go l (n + 1)
 
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
-def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
+def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
 /-- Removes the `n`th element of `l`, or the original list if `n` is out of bounds. -/
 @[simp] def removeNth : List α → Nat → List α

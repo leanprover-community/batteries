@@ -2247,3 +2247,61 @@ theorem minimum?_eq_some_iff' {xs : List Nat} :
     (le_refl := Nat.le_refl)
     (min_eq_or := fun _ _ => Nat.min_def .. ▸ by split <;> simp)
     (le_min_iff := fun _ _ _ => Nat.le_min)
+
+/-! ### indexOf and indexesOf -/
+
+theorem foldrIdx_start :
+    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
+  induction xs generalizing f i s with
+  | nil => rfl
+  | cons h t ih =>
+    dsimp [foldrIdx]
+    simp only [@ih f]
+    simp only [@ih (fun i => f (i + s))]
+    simp [Nat.add_assoc, Nat.add_comm 1 s]
+
+@[simp] theorem foldrIdx_cons :
+    (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
+
+theorem findIdxs_cons_aux (p : α → Bool) :
+    foldrIdx (fun i a is ↦ if p a = true then (i + 1) :: is else is) [] xs s =
+      map (fun x ↦ x + 1) (foldrIdx (fun i a is ↦ if p a = true then i :: is else is) [] xs s) := by
+  induction xs generalizing s with
+  | nil => rfl
+  | cons x xs ih =>
+    simp only [foldrIdx]
+    split <;> simp [ih]
+
+theorem findIdxs_cons :
+    (x :: xs : List α).findIdxs p =
+      bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
+  dsimp [findIdxs]
+  rw [cond_eq_if]
+  split <;>
+  · simp only [Nat.zero_add, foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+    apply findIdxs_cons_aux
+
+@[simp] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
+    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
+  simp [indexesOf, findIdxs_cons]
+
+@[simp] theorem indexOf_nil [BEq α] : ([] : List α).indexOf x = 0 := rfl
+theorem indexOf_cons [BEq α] :
+    (x :: xs : List α).indexOf y = bif x == y then 0 else xs.indexOf y + 1 := by
+  dsimp [indexOf]
+  simp [findIdx_cons]
+
+theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.indexOf x ∈ xs.indexesOf x := by
+  induction xs with
+  | nil => simp_all
+  | cons h t ih =>
+    simp [indexOf_cons, indexesOf_cons, cond_eq_if]
+    split <;> rename_i w
+    · apply mem_cons_self
+    · cases m
+      case _ => simp_all
+      case tail m =>
+        specialize ih m
+        simpa

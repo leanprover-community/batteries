@@ -189,3 +189,10 @@ theorem and_or_inj_left : ∀ {m x y : Bool}, (m && x) = (m && y) → (m || x) =
 theorem and_or_inj_left_iff :
     ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by decide
 @[deprecated] alias and_or_inj_left' := and_or_inj_left_iff
+
+end Bool
+
+/-! ### cond -/
+
+theorem cond_eq_if : (bif b then x else y) = (if b then x else y) := by
+  cases b <;> simp
