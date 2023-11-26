@@ -1,10 +1,12 @@
+/-
+Copyright (c) 2023 J. W. Gerbscheid. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: J. W. Gerbscheid
+-/
 import Std.Data.DiscrTree.Init.Basic
 import Std.Data.ListState
 import Std.Data.List.Basic
 import Lean.Meta
-namespace Tree.DiscrTree
-
-open Lean Meta DiscrTree
 
 /-!
 This file is a modification of DiscrTree.lean in Lean, with some parts removed and some new features added.
@@ -53,6 +55,10 @@ These are the features that are not in Lean's discrimination trees:
   `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]` and by
   `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
 -/
+
+namespace Std.DiscrTree
+
+open Lean Meta
 
 
 /-- The discrimination tree ignores instance implicit arguments and proofs.
@@ -103,9 +109,6 @@ def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
 
 -- **Transforming from Expr to the possible DTExpr**
 
-
-instance : Inhabited (DiscrTree α) where
-  default := {}
 
 /-- Return true if `a` should be ignored in the `DiscrTree`. -/
 private def ignoreArg (a : Expr) (i : Nat) (infos : Array ParamInfo) : MetaM Bool := do
@@ -258,7 +261,7 @@ partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α
         introEtaBVars e' (b.instantiate1 fvar) k
   | _ => k b
 
-partial def mkPathAux (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
+partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
   if hasNoindexAnnotation e then
     return .star tmpMVarId
   else
@@ -267,16 +270,17 @@ partial def mkPathAux (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
   let argPaths : M (Array DTExpr) := do
     let info ← getFunInfoNArgs fn args.size
     let args ← ignoreArgs info.paramInfo args
-    args.mapM (mkPathAux config)
+    args.mapM (mkPathAux false config)
 
   match fn with
   | .const c _ =>
-    if let some v := toNatLit? e then
-      return .lit v
+    unless root do
+      if let some v := toNatLit? e then
+        return .lit v
     return .const c (← argPaths)
   | .proj s i a =>
     let a := if isClass (← getEnv) s then mkNoindexAnnotation a else a
-    return .proj s i (← mkPathAux config a) (← argPaths)
+    return .proj s i (← mkPathAux false config a) (← argPaths)
   | .fvar fvarId =>
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
@@ -297,10 +301,10 @@ partial def mkPathAux (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
     <|>
     match starEtaExpanded b 1 with
       | some b => do
-        introEtaBVars fn b (mkPathAux config)
+        introEtaBVars fn b (mkPathAux false config)
       | none => failure
 
-  | .forallE _ d b _ => return .forall (← mkPathAux config d) (← mkPathBinder d b)
+  | .forallE _ d b _ => return .forall (← mkPathAux false config d) (← mkPathBinder d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
   | _           => unreachable!
@@ -309,13 +313,13 @@ where
   mkPathBinder (domain body : Expr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (m := M) (fun c => { bvars := fvar.fvarId! :: c.bvars }) $
-        mkPathAux config (body.instantiate1 fvar)
+        mkPathAux false config (body.instantiate1 fvar)
 
 end MkPath
 
 /-- return all encodings of `e` as a `DTExpr`. -/
 def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (List DTExpr) :=
-  withReducible do (MkPath.mkPathAux config e |>.run {}).run' {}
+  withReducible do (MkPath.mkPathAux true config e |>.run {}).run' {}
 
 -- def mkPath (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (Array Key) :=
 --   DTExpr.flatten <$> mkDTExpr e config

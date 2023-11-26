@@ -1,10 +1,15 @@
+/-
+Copyright (c) 2023 J. W. Gerbscheid. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: J. W. Gerbscheid
+-/
 import Lean.Expr
 
 /-! See file `DiscrTree.lean` for the actual implementation and documentation. -/
 
 open Lean
 
-namespace Tree.DiscrTree
+namespace Std.DiscrTree
 
 /--
 Discrimination tree key. See `DiscrTree`
@@ -165,12 +170,13 @@ Discrimination trees. It is an index from terms to values of type `α`.
 -/
 structure DiscrTree (α : Type) where
   root : PersistentHashMap Key (Trie α) := {}
+deriving Inhabited
 
-partial def format [ToFormat α] (d : DiscrTree α) : Format :=
+partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :=
   let (_, r) := d.root.foldl
     (fun (p : Bool × Format) k c =>
       (false, p.2 ++ (if p.1 then Format.nil else Format.line) ++ Format.paren (Std.format k ++ " => " ++ Std.format c)))
     (true, Format.nil)
   Format.group r
 
-instance [ToFormat α] : ToFormat (DiscrTree α) := ⟨format⟩
+instance [ToFormat α] : ToFormat (DiscrTree α) := ⟨DiscrTree.format⟩
