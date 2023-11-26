@@ -30,11 +30,11 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
 
 @[simp] protected theorem zero_div : ∀ b : Int, div 0 b = 0
   | ofNat _ => show ofNat _ = _ by simp
-  | -[_+1] => show -ofNat _ = _ by simp; rfl
+  | -[_+1] => show -ofNat _ = _ by simp
 
-@[local simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
+@[simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
   | ofNat _ => show ofNat _ = _ by simp
-  | -[_+1] => show -ofNat _ = _ by simp; rfl
+  | -[_+1] => show -ofNat _ = _ by simp
 
 @[simp] theorem zero_fdiv (b : Int) : fdiv 0 b = 0 := by cases b <;> rfl
 
@@ -42,8 +42,7 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
--- Will be generalized to Euclidean domains.
-@[local simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
+@[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
@@ -174,7 +173,7 @@ theorem add_mul_ediv_left (a : Int) {b : Int}
   Int.mul_comm .. ▸ Int.add_mul_ediv_right _ _ H
 
 theorem add_ediv_of_dvd_right {a b c : Int} (H : c ∣ b) : (a + b) / c = a / c + b / c :=
-  if h : c = 0 then by simp [h]; rfl else by
+  if h : c = 0 then by simp [h] else by
     let ⟨k, hk⟩ := H
     rw [hk, Int.mul_comm c k, Int.add_mul_ediv_right _ _ h,
       ← Int.zero_add (k * c), Int.add_mul_ediv_right _ _ h, Int.zero_ediv, Int.zero_add]
@@ -605,7 +604,7 @@ protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
 protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
   | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
 
-protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
+@[simp] protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
   ⟨fun ⟨k, e⟩ => by rw [e, Int.zero_mul], fun h => h.symm ▸ Int.dvd_refl _⟩
 
 protected theorem neg_dvd {a b : Int} : -a ∣ b ↔ a ∣ b := by
@@ -737,7 +736,7 @@ protected theorem mul_ediv_assoc' (b : Int) {a c : Int}
 
 theorem div_dvd_div : ∀ {a b c : Int}, a ∣ b → b ∣ c → b.div a ∣ c.div a
   | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => by
-    if az : a = 0 then simp [az]; decide else
+    if az : a = 0 then simp [az] else
       rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
       apply Int.dvd_mul_right
 
@@ -808,7 +807,7 @@ theorem fdiv_eq_ediv_of_dvd : ∀ {a b : Int}, b ∣ a → a.fdiv b = a / b
     rw [mul_fdiv_cancel_left _ bz, mul_ediv_cancel_left _ bz]
 
 theorem neg_ediv_of_dvd : ∀ {a b : Int}, b ∣ a → (-a) / b = -(a / b)
-  | _, b, ⟨c, rfl⟩ => by if bz : b = 0 then simp [bz]; rfl else
+  | _, b, ⟨c, rfl⟩ => by if bz : b = 0 then simp [bz] else
     rw [Int.neg_mul_eq_mul_neg, Int.mul_ediv_cancel_left _ bz, Int.mul_ediv_cancel_left _ bz]
 
 theorem sub_ediv_of_dvd (a : Int) {b c : Int}
