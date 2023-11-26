@@ -433,3 +433,60 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem add_eq (x y : BitVec w)                   : BitVec.add x y = x + y            := rfl
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
+@[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
+
+@[simp]
+theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
+    cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
+  subst h; rfl
+
+@[simp]
+theorem cast_cast {n m k : Nat} (h₁ : n = m) (h₂ : m = k) (x : BitVec n) :
+    cast h₂ (cast h₁ x) = cast (h₁ ▸ h₂) x :=
+  rfl
+
+@[simp]
+theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
+    cast h x = x :=
+  rfl
+
+/-- Turn a `Bool` into a bitvector of length `1` -/
+def ofBool : Bool → BitVec 1
+  | false => 0
+  | true  => 1
+
+/-- The empty bitvector -/
+abbrev nil : BitVec 0 := 0
+
+/-!
+### Cons and Concat
+We give special names to the operations of adding a single bit to either end of a bitvector.
+We follow the precedent of `Vector.cons`/`Vector.concat` both for the name, and for the decision
+to have the resulting size be `n + 1` for both operations (rather than `1 + n`, which would be the
+result of appending a single bit to the front in the naive implementation).
+-/
+
+/-- Append a single bit to the end of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the least significant bit. -/
+def concat {n} (msbs : BitVec n) (lsb : Bool) : BitVec (n+1) := msbs ++ (ofBool lsb)
+
+/-- Prepend a single bit to the front of a bitvector, using big endian order (see `append`).
+    That is, the new bit is the most significant bit. -/
+def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
+  ((ofBool msb) ++ lsbs).cast (Nat.add_comm ..)
+
+/-- All empty bitvectors are equal -/
+instance : Subsingleton (BitVec 0) where
+  allEq := by intro ⟨0, _⟩ ⟨0, _⟩; rfl
+
+/-- Every bitvector of length 0 is equal to `nil`, i.e., there is only one empty bitvector -/
+theorem eq_nil : ∀ (x : BitVec 0), x = nil
+  | ofFin ⟨0, _⟩ => rfl
+
+theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
+    msbs ++ ofBool lsb = concat msbs lsb :=
+  rfl
+
+theorem ofBool_append (msb : Bool) (lsbs : BitVec w) :
+    ofBool msb ++ lsbs = (cons msb lsbs).cast (Nat.add_comm ..) :=
+  rfl

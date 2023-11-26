@@ -750,9 +750,10 @@ protected theorem mul_ediv_assoc' (b : Int) {a c : Int}
   rw [Int.mul_comm, Int.mul_ediv_assoc _ h, Int.mul_comm]
 
 theorem div_dvd_div : ∀ {a b c : Int}, a ∣ b → b ∣ c → b.div a ∣ c.div a
-  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => if az : a = 0 then by simp [az] else by
-    rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
-    apply Int.dvd_mul_right
+  | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => by
+    if az : a = 0 then simp [az] else
+      rw [Int.mul_div_cancel_left _ az, Int.mul_assoc, Int.mul_div_cancel_left _ az]
+      apply Int.dvd_mul_right
 
 protected theorem eq_mul_of_div_eq_right {a b c : Int}
     (H1 : b ∣ a) (H2 : a.div b = c) : a = b * c := by rw [← H2, Int.mul_div_cancel' H1]

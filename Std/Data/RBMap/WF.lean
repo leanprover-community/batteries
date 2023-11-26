@@ -525,6 +525,8 @@ We extract this as a function so that `IsMonotone (mapSnd f)` can be an instance
 -/
 @[inline] def mapSnd (f : α → β → γ) := fun (a, b) => (a, f a b)
 
+open Ordering (byKey)
+
 instance (cmp : α → α → Ordering) (f : α → β → γ) :
     IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
   lt_mono | ⟨h⟩ => ⟨@fun _ => @h {

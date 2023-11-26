@@ -51,6 +51,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check for 'namespace Mathlib'
+        if: always()
+        run: |
+          if grep -r -n --include=\*.lean -e 'namespace Mathlib' . ; then
+            echo "Error: Found 'namespace Mathlib'"
+            exit 1
+          fi
+
       - name: Check for long lines
         if: always()
         run: |

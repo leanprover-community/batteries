@@ -34,8 +34,8 @@ theorem subNatNat_of_sub_eq_succ {m n k : Nat} (h : n - m = succ k) : subNatNat 
 
 @[simp] protected theorem neg_zero : -(0:Int) = 0 := rfl
 
-theorem ofNat_add (n m : Nat) : (↑(n + m) : Int) = n + m := rfl
-theorem ofNat_mul (n m : Nat) : (↑(n * m) : Int) = n * m := rfl
+@[norm_cast] theorem ofNat_add (n m : Nat) : (↑(n + m) : Int) = n + m := rfl
+@[norm_cast] theorem ofNat_mul (n m : Nat) : (↑(n * m) : Int) = n * m := rfl
 theorem ofNat_succ (n : Nat) : (succ n : Int) = n + 1 := rfl
 
 @[local simp] theorem neg_ofNat_zero : -((0 : Nat) : Int) = 0 := rfl
@@ -65,7 +65,7 @@ theorem negOfNat_eq : negOfNat n = -ofNat n := rfl
 
 /- ## some basic functions and properties -/
 
-theorem ofNat_inj : ((m : Nat) : Int) = (n : Nat) ↔ m = n := ⟨ofNat.inj, congrArg _⟩
+@[norm_cast] theorem ofNat_inj : ((m : Nat) : Int) = (n : Nat) ↔ m = n := ⟨ofNat.inj, congrArg _⟩
 
 theorem ofNat_eq_zero : ((n : Nat) : Int) = 0 ↔ n = 0 := ofNat_inj
 
@@ -78,6 +78,9 @@ theorem negSucc_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 @[simp] theorem negSucc_ne_zero (n : Nat) : -[n+1] ≠ 0 := fun.
 
 @[simp] theorem zero_ne_negSucc (n : Nat) : 0 ≠ -[n+1] := fun.
+
+@[simp, norm_cast] theorem Nat.cast_ofNat_Int :
+  (Nat.cast (no_index (OfNat.ofNat n)) : Int) = OfNat.ofNat n := rfl
 
 /- ## neg -/
 
@@ -495,7 +498,7 @@ protected theorem zero_ne_one : (0 : Int) ≠ 1 := fun.
 protected theorem add_sub_assoc (a b c : Int) : a + b - c = a + (b - c) := by
   rw [Int.sub_eq_add_neg, Int.add_assoc, ← Int.sub_eq_add_neg]
 
-theorem ofNat_sub (h : m ≤ n) : ((n - m : Nat) : Int) = n - m := by
+@[norm_cast] theorem ofNat_sub (h : m ≤ n) : ((n - m : Nat) : Int) = n - m := by
   match m with
   | 0 => rfl
   | succ m =>

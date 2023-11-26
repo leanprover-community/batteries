@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
 import Std.Tactic.Basic
+import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
+
+theorem Function.comp_def {α β δ} (f : β → δ) (g : α → β) : f ∘ g = fun x => f (g x) := rfl
 
 /-! ## not -/
 
@@ -77,7 +80,7 @@ theorem not_iff_false_intro (h : a) : ¬a ↔ False := iff_false_intro (not_not_
 theorem iff_congr (h₁ : a ↔ c) (h₂ : b ↔ d) : (a ↔ b) ↔ (c ↔ d) :=
   ⟨fun h => h₁.symm.trans <| h.trans h₂, fun h => h₁.trans <| h.trans h₂.symm⟩
 
-@[simp] theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
+theorem not_true : (¬True) ↔ False := iff_false_intro (not_not_intro ⟨⟩)
 
 theorem not_false_iff : (¬False) ↔ True := iff_true_intro not_false
 
@@ -427,7 +430,7 @@ end forall_congr
 
 @[simp] theorem not_exists : (¬∃ x, p x) ↔ ∀ x, ¬p x := exists_imp
 
-theorem forall_not_of_not_exists (hne : ¬∃ x, p x) (x) : ¬p x | hp => hne ⟨x, hp⟩
+alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
 
 theorem forall_and : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
   ⟨fun h => ⟨fun x => (h x).1, fun x => (h x).2⟩, fun ⟨h₁, h₂⟩ x => ⟨h₁ x, h₂ x⟩⟩
@@ -545,10 +548,10 @@ else isTrue fun h2 => absurd h2 h
 
 theorem decide_eq_true_iff (p : Prop) [Decidable p] : (decide p = true) ↔ p := by simp
 
-@[simp] theorem decide_eq_false_iff_not (p : Prop) [Decidable p] : (decide p = false) ↔ ¬p :=
+@[simp] theorem decide_eq_false_iff_not (p : Prop) {_ : Decidable p} : (decide p = false) ↔ ¬p :=
   ⟨of_decide_eq_false, decide_eq_false⟩
 
-@[simp] theorem decide_eq_decide {p q : Prop} [Decidable p] [Decidable q] :
+@[simp] theorem decide_eq_decide {p q : Prop} {_ : Decidable p} {_ : Decidable q} :
     decide p = decide q ↔ (p ↔ q) :=
   ⟨fun h => by rw [← decide_eq_true_iff p, h, decide_eq_true_iff], fun h => by simp [h]⟩
 
@@ -674,6 +677,8 @@ protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p 
   ⟨Decidable.not_imp_symm fun nx x => Decidable.not_imp_symm (fun h => ⟨x, h⟩) nx,
    not_forall_of_exists_not⟩
 
+protected alias ⟨Decidable.exists_not_of_not_forall, _⟩ := Decidable.not_forall
+
 protected theorem Decidable.not_forall_not {p : α → Prop} [Decidable (∃ x, p x)] :
     (¬∀ x, ¬p x) ↔ ∃ x, p x :=
   (@Decidable.not_iff_comm _ _ _ (decidable_of_iff (¬∃ x, p x) not_exists)).1 not_exists
@@ -694,6 +699,8 @@ is classically true but not constructively. -/
 @[simp]
 theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
   Decidable.not_forall
+
+alias ⟨exists_not_of_not_forall, _⟩ := not_forall
 
 theorem not_forall_not {p : α → Prop} : (¬∀ x, ¬p x) ↔ ∃ x, p x := Decidable.not_forall_not
 
@@ -756,12 +763,12 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
   apply_dite f P (fun _ => x) (fun _ => y)
 
 /-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
-@[simp] theorem dite_not (P : Prop) [Decidable P]  (x : ¬P → α) (y : ¬¬P → α) :
+@[simp] theorem dite_not (P : Prop) {_ : Decidable P}  (x : ¬P → α) (y : ¬¬P → α) :
     dite (¬P) x y = dite P (fun h => y (not_not_intro h)) x := by
   by_cases h : P <;> simp [h]
 
 /-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-@[simp] theorem ite_not (P : Prop) [Decidable P] (x y : α) : ite (¬P) x y = ite P y x :=
+@[simp] theorem ite_not (P : Prop) {_ : Decidable P} (x y : α) : ite (¬P) x y = ite P y x :=
   dite_not P (fun _ => x) (fun _ => y)
 
 @[simp] theorem dite_eq_left_iff {P : Prop} [Decidable P] {B : ¬ P → α} :
