@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Std.Tactic.NoMatch
 import Std.Tactic.HaveI
 import Std.Classes.LawfulMonad
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.List.Init.Lemmas
 import Std.Data.Array.Init.Basic
 
@@ -130,7 +131,7 @@ theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
 
 @[simp] theorem get_push_eq (a : Array α) (x : α) : (a.push x)[a.size] = x := by
   simp only [push, getElem_eq_data_get, List.concat_eq_append]
-  rw [List.get_append_right] <;> simp [getElem_eq_data_get]
+  rw [List.get_append_right] <;> simp [getElem_eq_data_get, Nat.zero_lt_one]
 
 theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
     (a.push x)[i] = if h : i < a.size then a[i] else x := by
@@ -216,6 +217,11 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
   rw [← appendList_eq_append]; unfold Array.appendList
   induction l generalizing arr <;> simp [*]
 
+@[simp] theorem appendList_nil (arr : Array α) : arr ++ ([] : List α) = arr := Array.ext' (by simp)
+
+@[simp] theorem appendList_cons (arr : Array α) (a : α) (l : List α) :
+    arr ++ (a :: l) = arr.push a ++ l := Array.ext' (by simp)
+
 theorem foldl_data_eq_bind (l : List α) (acc : Array β)
     (F : Array β → α → Array β) (G : α → List β)
     (H : ∀ acc a, (F acc a).data = acc.data ++ G a) :
@@ -227,3 +233,82 @@ theorem foldl_data_eq_map (l : List α) (acc : Array β) (G : α → β) :
   induction l generalizing acc <;> simp [*]
 
 theorem size_uset (a : Array α) (v i h) : (uset a i v h).size = a.size := by simp
+
+theorem anyM_eq_anyM_loop [Monad m] (p : α → m Bool) (as : Array α) (start stop) :
+    anyM p as start stop = anyM.loop p as (min stop as.size) (Nat.min_le_right ..) start := by
+  simp only [anyM, Nat.min_def]; split <;> rfl
+
+theorem anyM_stop_le_start [Monad m] (p : α → m Bool) (as : Array α) (start stop)
+    (h : min stop as.size ≤ start) : anyM p as start stop = pure false := by
+  rw [anyM_eq_anyM_loop, anyM.loop, dif_neg (Nat.not_lt.2 h)]
+
+theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
+    (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
+    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
+      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
+    SatisfiesM
+      (fun res => bif res then tru else fal (min stop as.size))
+      (anyM p as start stop) := by
+  let rec go {stop j} (hj' : j ≤ stop) (hstop : stop ≤ as.size) (h0 : fal j)
+    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
+      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
+    SatisfiesM
+      (fun res => bif res then tru else fal stop)
+      (anyM.loop p as stop hstop j) := by
+    unfold anyM.loop; split
+    · next hj =>
+      exact (hp ⟨j, Nat.lt_of_lt_of_le hj hstop⟩ hj h0).bind fun
+        | true, h => .pure h
+        | false, h => go hj hstop h hp
+    · next hj => exact .pure <| Nat.le_antisymm hj' (Nat.ge_of_not_lt hj) ▸ h0
+  simp only [Array.anyM_eq_anyM_loop]
+  exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
+termination_by go => stop - j
+
+theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
+    (p : α → m Bool) (as : Array α) (start stop) (q : Fin as.size → Prop)
+    (hp : ∀ i : Fin as.size, start ≤ i.1 → i.1 < stop → SatisfiesM (· = true ↔ q i) (p as[i])) :
+    SatisfiesM
+      (fun res => res = true ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i)
+      (anyM p as start stop) := by
+  cases Nat.le_total start (min stop as.size) with
+  | inl hstart =>
+    refine (SatisfiesM_anyM _ _ _ _ hstart
+      (fal := fun j => start ≤ j ∧ ¬ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < j ∧ q i)
+      (tru := ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i) ?_ ?_).imp ?_
+    · exact ⟨Nat.le_refl _, fun ⟨i, h₁, h₂, _⟩ => (Nat.not_le_of_gt h₂ h₁).elim⟩
+    · refine fun i h₂ ⟨h₁, h₃⟩ => (hp _ h₁ h₂).imp fun hq => ?_
+      unfold cond; split <;> simp at hq
+      · exact ⟨_, h₁, h₂, hq⟩
+      · refine ⟨Nat.le_succ_of_le h₁, h₃.imp fun ⟨j, h₃, h₄, h₅⟩ => ⟨j, h₃, ?_, h₅⟩⟩
+        refine Nat.lt_of_le_of_ne (Nat.le_of_lt_succ h₄) fun e => hq (Fin.eq_of_val_eq e ▸ h₅)
+    · intro
+      | true, h => simp only [true_iff]; exact h
+      | false, h =>
+        simp only [false_iff]
+        exact h.2.imp fun ⟨j, h₁, h₂, hq⟩ => ⟨j, h₁, Nat.lt_min.2 ⟨h₂, j.2⟩, hq⟩
+  | inr hstart =>
+    rw [anyM_stop_le_start (h := hstart)]
+    refine .pure ?_; simp; intro j h₁ h₂
+    cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
+
+theorem any_iff_exists (p : α → Bool) (as : Array α) (start stop) :
+    any as p start stop ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ p as[i] := by
+  have := SatisfiesM_anyM_iff_exists (m := Id) p as start stop (p as[·]) (by simp)
+  rwa [SatisfiesM_Id_eq] at this
+
+theorem any_eq_true (p : α → Bool) (as : Array α) :
+    any as p ↔ ∃ i : Fin as.size, p as[i] := by simp [any_iff_exists, Fin.isLt]
+
+theorem mem_def (a : α) (as : Array α) : a ∈ as ↔ a ∈ as.data :=
+  ⟨fun | .mk h => h, Array.Mem.mk⟩
+
+theorem any_def {p : α → Bool} (as : Array α) : as.any p = as.data.any p := by
+  rw [Bool.eq_iff_iff, any_eq_true, List.any_eq_true]; simp only [List.mem_iff_get]
+  exact ⟨fun ⟨i, h⟩ => ⟨_, ⟨i, rfl⟩, h⟩, fun ⟨_, ⟨i, rfl⟩, h⟩ => ⟨i, h⟩⟩
+
+theorem contains_def [DecidableEq α] {a : α} {as : Array α} : as.contains a ↔ a ∈ as := by
+  rw [mem_def, contains, any_def, List.any_eq_true]; simp [and_comm]
+
+instance [DecidableEq α] (a : α) (as : Array α) : Decidable (a ∈ as) :=
+  decidable_of_iff _ contains_def

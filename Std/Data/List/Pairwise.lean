@@ -167,8 +167,7 @@ theorem pairwise_join {L : List (List α)} :
 theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β} :
     List.Pairwise R (l.bind f) ↔
       (∀ a ∈ l, Pairwise R (f a)) ∧ Pairwise (fun a₁ a₂ => ∀ x ∈ f a₁, ∀ y ∈ f a₂, R x y) l := by
-  simpa [List.bind, pairwise_join, pairwise_map] using fun _ =>
-    ⟨fun h _ hx => h _ _ hx rfl, fun d e f g h => h ▸ d _ g⟩
+  simp [List.bind, pairwise_join, pairwise_map]
 
 theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
   induction l with
@@ -232,8 +231,7 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
   | cons₂ _ _ IH =>
     rcases IH with ⟨is,IH⟩
     refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
-    simp [comp, pairwise_map, IH]
-    rintro _ _ _ rfl; apply Nat.zero_lt_succ
+    simp [comp_def, pairwise_map, IH]
 
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_forall_sublist]
@@ -251,7 +249,7 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
 theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
     ∀ n : Nat, Pairwise r (List.replicate n x)
   | 0 => by simp
-  | n + 1 => by simpa [mem_replicate, hx, pairwise_replicate hx n] using fun _ _ h => h ▸ hx
+  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n]
 
 /-! ### Pairwise filtering -/
 

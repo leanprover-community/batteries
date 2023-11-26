@@ -274,6 +274,93 @@ where
           modify (·.insert pendingMVarId)
         go pendingMVarId
 
+/-- Check if a goal is of a subsingleton type. -/
+def isSubsingleton (g : MVarId) : MetaM Bool := do
+  try
+    discard <| synthInstance (← mkAppM ``Subsingleton #[← g.getType])
+    return true
+  catch _ =>
+    return false
+
+/--
+Check if a goal is "independent" of a list of other goals.
+We say a goal is independent of other goals if assigning a value to it
+can not change the assignability of the other goals.
+
+Examples:
+* `?m_1 : Type` is not independent of `?m_2 : ?m_1`,
+  because we could assign `true : Bool` to `?m_2`,
+  but if we first assign `Nat` to `?m_1` then that is no longer possible.
+* `?m_1 : Nat` is not independent of `?m_2 : Fin ?m_1`,
+  because we could assign `37 : Fin 42` to `?m_2`,
+  but if we first assign `2` to `?m_1` then that is no longer possible.
+* `?m_1 : ?m_2` is not independent of `?m_2 : Type`, because we could assign `Bool` to ?m_2`,
+  but if we first assign `0 : Nat` to `?m_1` then that is no longer possible.
+* Given `P : Prop` and `f : P → Type`, `?m_1 : P` is independent of `?m_2 : f ?m_1`
+  by proof irrelevance.
+* Similarly given `f : Fin 0 → Type`, `?m_1 : Fin 0` is independent of `?m_2 : f ?m_1`,
+  because `Fin 0` is a subsingleton.
+* Finally `?m_1 : Nat` is independent of `?m_2 : α`,
+  as long as `?m_1` does not appear in `Meta.getMVars α`
+  (note that `Meta.getMVars` follows delayed assignments).
+
+This function only calculates a conservative approximation of this condition.
+That is, it may return `false` when it should return `true`.
+(In particular it returns false whenever the type of `g` contains a metavariable,
+regardless of whether this is related to the metavariables in `L`.)
+-/
+def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext do
+  let t ← instantiateMVars (← g.getType)
+  if t.hasExprMVar then
+    -- If the goal's type contains other meta-variables,
+    -- we conservatively say that `g` is not independent.
+    -- It would be possible to check if `L` depends on these meta-variables.
+    return false
+  if (← inferType t).isProp then
+    -- If the goal is propositional,
+    -- proof-irrelevance ensures it is independent of any other goals.
+    return true
+  if ← g.isSubsingleton then
+    -- If the goal is a subsingleton, it is independent of any other goals.
+    return true
+  -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
+  L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
+
+/--
+Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
+The new hypothesis is given the same user name as the original,
+it attempts to avoid reordering hypotheses, and the original is cleared if possible.
+-/
+-- adapted from Lean.Meta.replaceLocalDeclCore
+def replace (g : MVarId) (hyp : FVarId) (proof : Expr) (typeNew : Option Expr := none) :
+    MetaM AssertAfterResult :=
+  g.withContext do
+    let typeNew ← match typeNew with
+    | some t => pure t
+    | none => inferType proof
+    let ldecl ← hyp.getDecl
+    -- `typeNew` may contain variables that occur after `hyp`.
+    -- Thus, we use the auxiliary function `findMaxFVar` to ensure `typeNew` is well-formed
+    -- at the position we are inserting it.
+    let (_, ldecl') ← findMaxFVar typeNew |>.run ldecl
+    let result ← g.assertAfter ldecl'.fvarId ldecl.userName typeNew proof
+    (return { result with mvarId := ← result.mvarId.clear hyp }) <|> pure result
+where
+  /-- Finds the `LocalDecl` for the FVar in `e` with the highest index. -/
+  findMaxFVar (e : Expr) : StateRefT LocalDecl MetaM Unit :=
+    e.forEach' fun e => do
+      if e.isFVar then
+        let ldecl' ← e.fvarId!.getDecl
+        modify fun ldecl => if ldecl'.index > ldecl.index then ldecl' else ldecl
+        return false
+      else
+        return e.hasFVar
+
+/-- Get the type the given metavariable after instantiating metavariables and cleaning up
+annotations. -/
+def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
+  return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
+
 end MVarId
 
 
@@ -315,7 +402,7 @@ or until `maxIters` total calls to `f` have occurred.
 Returns a boolean indicating whether `f` succeeded at least once, and
 all the remaining goals (i.e. those on which `f` failed).
 -/
-def repeat'Core [Monad m] [MonadError m] [MonadMCtx m]
+def repeat'Core [Monad m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) :
     m (Bool × List MVarId) := do
   let (progress, acc) ← go maxIters false gs [] #[]
@@ -334,9 +421,9 @@ where
       match n with
       | 0 => pure <| (p, acc.push g ++ gs |> stk.foldl .appendList)
       | n+1 =>
-        match ← observing (f g) with
-        | .ok gs' => go n true gs' (gs::stk) acc
-        | .error _ => go n p gs stk (acc.push g)
+        match ← observing? (f g) with
+        | some gs' => go n true gs' (gs::stk) acc
+        | none => go n p gs stk (acc.push g)
 termination_by _ n p gs stk _ => (n, stk, gs)
 
 /--
@@ -345,7 +432,7 @@ then runs `f` again on all of those goals, and repeats until `f` fails on all re
 or until `maxIters` total calls to `f` have occurred.
 Always succeeds (returning the original goals if `f` fails on all of them).
 -/
-def repeat' [Monad m] [MonadError m] [MonadMCtx m]
+def repeat' [Monad m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) :=
   repeat'Core f gs maxIters <&> (·.2)
 
@@ -355,7 +442,7 @@ then runs `f` again on all of those goals, and repeats until `f` fails on all re
 or until `maxIters` total calls to `f` have occurred.
 Fails if `f` does not succeed at least once.
 -/
-def repeat1' [Monad m] [MonadError m] [MonadMCtx m]
+def repeat1' [Monad m] [MonadError m] [MonadExcept ε m] [MonadBacktrack s m] [MonadMCtx m]
     (f : MVarId → m (List MVarId)) (gs : List MVarId) (maxIters := 100000) : m (List MVarId) := do
   let (.true, gs) ← repeat'Core f gs maxIters | throwError "repeat1' made no progress"
   pure gs
