@@ -136,6 +136,10 @@ theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
 
 @[simp] theorem pop_push (a : Array α) : (a.push x).pop = a := by simp [pop]
 
+@[simp] theorem getElem_pop (a : Array α) (i : Nat) (hi : i < a.pop.size) :
+    a.pop[i] = a[i]'(Nat.lt_of_lt_of_le (a.size_pop ▸ hi) (Nat.sub_le _ _)) :=
+  List.get_dropLast ..
+
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
     {init : β} (h0 : motive as.size init) {f : α → β → m β}
@@ -150,7 +154,7 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
       · next i hi' =>
         exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
   simp [foldrM]; split; {exact go _ h0}
-  · next h => exact .pure (Nat.eq_zero_of_nonpos _ h ▸ h0)
+  · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
 theorem foldr_induction
     {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive as.size init) {f : α → β → β}
@@ -227,6 +231,22 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
   simp only [reverse]; split <;> simp [go]
 termination_by _ => j - i
 
+@[simp] theorem size_range {n : Nat} : (range n).size = n := by
+  unfold range
+  induction n with
+  | zero      => simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
+  | succ k ih => simp only [Nat.fold, flip, size_push, ih]
+
+theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
+    SatisfiesM (·.size = a.size) (a.modifyM i f) := by
+  unfold modifyM; split
+  · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
+  · exact .pure rfl
+
+@[simp] theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
+  rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
+  apply size_modifyM
+
 @[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
       (h : i + j + 1 = a.size) (h₂ : as.size = a.size)
@@ -300,3 +320,19 @@ termination_by _ => n - i
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
   getElem_ofFn_go _ _ _ (by simp) (by simp) fun.
+
+theorem forIn_eq_data_forIn [Monad m]
+    (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
+    forIn as b f = forIn as.data b f := by
+  let rec loop : ∀ {i h b j}, j + i = as.size →
+      Array.forIn.loop as f i h b = forIn (as.data.drop j) b f
+    | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
+    | i+1, _, _, j, ij => by
+      simp [forIn.loop]
+      have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
+      have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
+      have : as[size as - 1 - i] :: as.data.drop (j + 1) = as.data.drop j := by
+        rw [j_eq]; exact List.get_cons_drop _ ⟨_, this⟩
+      simp [← this]; congr; funext x; congr; funext b
+      rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
+  simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl

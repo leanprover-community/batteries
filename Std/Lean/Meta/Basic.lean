@@ -309,7 +309,7 @@ That is, it may return `false` when it should return `true`.
 (In particular it returns false whenever the type of `g` contains a metavariable,
 regardless of whether this is related to the metavariables in `L`.)
 -/
-def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := do
+def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext do
   let t ← instantiateMVars (← g.getType)
   if t.hasExprMVar then
     -- If the goal's type contains other meta-variables,

@@ -13,6 +13,7 @@ import Std.CodeAction.Misc
 import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
+import Std.Control.Lemmas
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
@@ -40,6 +41,7 @@ import Std.Data.Int.Lemmas
 import Std.Data.Json
 import Std.Data.List.Basic
 import Std.Data.List.Count
+import Std.Data.List.Init.Attach
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.List.Pairwise
@@ -92,6 +94,7 @@ import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
 import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
+import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.Name
@@ -113,6 +116,7 @@ import Std.Tactic.Backtrack
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
+import Std.Tactic.Change
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -132,6 +136,7 @@ import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.NoMatch
+import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
@@ -141,6 +146,7 @@ import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
+import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace

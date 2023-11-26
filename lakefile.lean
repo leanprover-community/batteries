@@ -17,7 +17,7 @@ lean_lib Std
 
 @[default_target]
 lean_exe runLinter where
-  root := `scripts.runLinter
+  srcDir := "scripts"
   supportInterpreter := true
 
 meta if get_config? doc = some "on" then
