@@ -19,7 +19,7 @@ If `n` is negative this is counted from the back.
 `swap` is a shortcut for `pick_goal 2`, which interchanges the 1st and 2nd goals.
 -/
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 
 open Lean Elab.Tactic
 
