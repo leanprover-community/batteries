@@ -121,8 +121,7 @@ Unsafe implementation of `attach`, taking advantage of the fact that the represe
 `O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
 * `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
 -/
-def join (l : Array (Array α)) : Array α :=
-  l.foldl (init := #[]) fun a m => m.foldl (init := a) fun a' x => a'.push x
+@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
 
 end Array
 

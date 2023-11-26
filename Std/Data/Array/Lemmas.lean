@@ -347,10 +347,8 @@ theorem forIn_eq_data_forIn [Monad m]
   have : ∀ a : Array α, (List.foldl ?_ a l).data = a.data ++ ?_ := ?_
   exact this #[]
   induction l with
-  | nil => simp_all
-  | cons h t ih =>
-    simp only [List.foldl_cons, ih, List.map_cons, List.join_cons, ← List.append_assoc]
-    induction h.data <;> simp_all
+  | nil => simp
+  | cons h => induction h.data <;> simp [*]
 
 theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
   simp only [mem_def, join_data, List.mem_join, List.mem_map]
