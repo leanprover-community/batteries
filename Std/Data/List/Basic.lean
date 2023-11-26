@@ -24,15 +24,9 @@ where
   | false, h :: t => go (p h) t
 
 @[csimp] theorem any_eq_anyTR : @any = @anyTR := by
-  funext α xs p
-  dsimp [any, anyTR]
-  induction xs with
-  | nil => simp [anyTR.go]
-  | cons h t ih =>
-    simp_all only [foldr_cons, anyTR.go]
-    by_cases w : p h
-    · simp [w, anyTR.go]
-    · simp [w]
+  funext _ xs p
+  induction xs with simp_all [any, anyTR, anyTR.go]
+  | cons h => cases p h <;> simp [anyTR.go]
 
 /-- Tail recursive version of `List.all`, with short-circuiting. -/
 def allTR (xs : List α) (p : α → Bool) : Bool :=
@@ -45,15 +39,9 @@ where
   | true, h :: t => go (p h) t
 
 @[csimp] theorem all_eq_allTR : @all = @allTR := by
-  funext α xs p
-  dsimp [all, allTR]
-  induction xs with
-  | nil => simp [allTR.go]
-  | cons h t ih =>
-    simp_all only [foldr_cons, allTR.go]
-    by_cases w : p h
-    · simp [w]
-    · simp [w, allTR.go]
+  funext _ xs p
+  induction xs with simp_all [all, allTR, allTR.go]
+  | cons h => cases p h <;> simp [allTR.go]
 
 /-- Tail recursive version of `set`. -/
 @[inline] def setTR (l : List α) (n : Nat) (a : α) : List α := go l n #[] where
