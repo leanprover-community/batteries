@@ -2264,8 +2264,8 @@ theorem foldrIdx_start :
     (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
 
 theorem findIdxs_cons_aux (p : α → Bool) :
-    foldrIdx (fun i a is ↦ if p a = true then (i + 1) :: is else is) [] xs s =
-      map (fun x ↦ x + 1) (foldrIdx (fun i a is ↦ if p a = true then i :: is else is) [] xs s) := by
+    foldrIdx (fun i a is => if p a = true then (i + 1) :: is else is) [] xs s =
+      map (· + 1) (foldrIdx (fun i a is => if p a = true then i :: is else is) [] xs s) := by
   induction xs generalizing s with
   | nil => rfl
   | cons x xs ih =>
