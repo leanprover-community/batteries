@@ -218,6 +218,8 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
     (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
   (mapIdx_induction' _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
 
+theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
+
 @[simp] theorem size_swap! (a : Array α) (i j) (hi : i < a.size) (hj : j < a.size) :
     (a.swap! i j).size = a.size := by simp [swap!, hi, hj]
 
@@ -336,3 +338,78 @@ theorem forIn_eq_data_forIn [Monad m]
       simp [← this]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl
+
+/-! ### zipWith / zip -/
+
+theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Array β) :
+    (as.zipWith bs f).data = as.data.zipWith f bs.data := by
+  let rec loop : ∀ (i : Nat) cs, i ≤ as.size → i ≤ bs.size →
+      (zipWithAux f as bs i cs).data = cs.data ++ (as.data.drop i).zipWith f (bs.data.drop i) := by
+    intro i cs hia hib
+    unfold zipWithAux
+    by_cases h : i = as.size ∨ i = bs.size
+    case pos =>
+      have : ¬(i < as.size) ∨ ¬(i < bs.size) := by
+        cases h <;> simp_all only [Nat.not_lt, Nat.le_refl, true_or, or_true]
+      -- Cleaned up aesop output below
+      simp_all only [Nat.not_lt]
+      cases h <;> [(cases this); (cases this)]
+      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
+                      List.zipWith_nil_left, List.append_nil]
+      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
+                      List.zipWith_nil_left, List.append_nil]
+      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
+                      List.zipWith_nil_right, List.append_nil]
+        split <;> simp_all only [Nat.not_lt]
+      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
+                      List.zipWith_nil_right, List.append_nil]
+        split <;> simp_all only [Nat.not_lt]
+    case neg =>
+      rw [not_or] at h
+      have has : i < as.size := Nat.lt_of_le_of_ne hia h.1
+      have hbs : i < bs.size := Nat.lt_of_le_of_ne hib h.2
+      simp only [has, hbs, dite_true]
+      rw [loop (i+1) _ has hbs, Array.push_data]
+      have h₁ : [f as[i] bs[i]] = List.zipWith f [as[i]] [bs[i]] := rfl
+      let i_as : Fin as.data.length := ⟨i, has⟩
+      let i_bs : Fin bs.data.length := ⟨i, hbs⟩
+      rw [h₁, List.append_assoc]
+      congr
+      rw [← List.zipWith_append (h := by simp), getElem_eq_data_get, getElem_eq_data_get]
+      show List.zipWith f ((List.get as.data i_as) :: List.drop (i_as + 1) as.data)
+        ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
+        List.zipWith f (List.drop i as.data) (List.drop i bs.data)
+      simp only [List.get_cons_drop]
+  simp [zipWith, loop 0 #[] (by simp) (by simp)]
+termination_by loop i _ _ _ => as.size - i
+
+theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
+    (as.zipWith bs f).size = min as.size bs.size := by
+  simp [size_eq_length_data, zipWith_eq_zipWith_data, List.length_zipWith]
+
+theorem size_zipWith_left (as : Array α) (bs : Array β) (h : as.size ≤ bs.size)
+    (f : α → β → γ) : (as.zipWith bs f).size = as.size := by
+  rw [size_zipWith, Nat.min_eq_left h]
+
+theorem size_zipWith_right (as : Array α) (bs : Array β) (h : bs.size ≤ as.size)
+    (f : α → β → γ) : (as.zipWith bs f).size = bs.size := by
+  rw [size_zipWith, Nat.min_eq_right h]
+
+theorem Array.zip_eq_zip_data (as : Array α) (bs : Array β) :
+    (as.zip bs).data = as.data.zip bs.data :=
+  zipWith_eq_zipWith_data Prod.mk as bs
+
+theorem Array.size_zip (as : Array α) (bs : Array β) :
+    (as.zip bs).size = min as.size bs.size :=
+  as.size_zipWith bs Prod.mk
+
+theorem Array.size_zip_left (as : Array α) (bs : Array β) (h : as.size ≤ bs.size) :
+    (as.zip bs).size = as.size := by
+  rw [size_zip, Nat.min_eq_left h]
+
+theorem Array.size_zip_right (as : Array α) (bs : Array β) (h : bs.size ≤ as.size) :
+    (as.zip bs).size = bs.size := by
+  rw [size_zip, Nat.min_eq_right h]
+
+@[simp] theorem Array.size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
+  Array.size_mapIdx _ _
