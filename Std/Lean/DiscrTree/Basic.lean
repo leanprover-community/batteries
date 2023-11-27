@@ -61,13 +61,14 @@ namespace Std.DiscrTree
 open Lean Meta
 
 
-/-- The discrimination tree ignores instance implicit arguments and proofs.
-   We use the following auxiliary id as a "mark". -/
+-- ## Encoding an Expr
+
+/-- This `MVarId` is used to represent expressions that should be indexed with a unique `Key.star`. -/
 private def tmpMVarId : MVarId := { name := `_discr_tree_tmp }
 private def tmpStar : Expr := mkMVar tmpMVarId
 
 
-/-- this state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into indexing by `Nat` in `Key`. -/
+/-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into indexing by `Nat` in `Key`. -/
 private structure Flatten.State where
   stars : Array MVarId := #[]
   fvars : Array FVarId := #[]
@@ -99,7 +100,7 @@ private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Fla
   | .«forall» d b => do flattenAux (← flattenAux (todo.push .forall) d) b
   | .proj n i e args => do args.foldlM (init := ← flattenAux (todo.push (.proj n i args.size)) e) flattenAux
 
-/-- given a `DTExpr`, return the linearized encoding in terms of `Key`, which is used for `DiscrTree` indexing. -/
+/-- Given a `DTExpr`, return the linearized encoding in terms of `Key`, which is used for `DiscrTree` indexing. -/
 def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
   (DTExpr.flattenAux (.mkEmpty initCapacity) e).run' {}
 
@@ -124,11 +125,11 @@ private def ignoreArgs (infos : Array ParamInfo) (args : Array Expr) : MetaM (Ar
   args.mapIdxM (fun i arg => return if ← ignoreArg arg i infos then tmpStar else arg)
 
 /--
-  Return true if `e` is one of the following
-  - A nat literal (numeral)
-  - `Nat.zero`
-  - `Nat.succ x` where `isNumeral x`
-  - `OfNat.ofNat _ x _` where `isNumeral x` -/
+Return true if `e` is one of the following
+- A nat literal (numeral)
+- `Nat.zero`
+- `Nat.succ x` where `isNumeral x`
+- `OfNat.ofNat _ x _` where `isNumeral x` -/
 private partial def isNumeral (e : Expr) : Bool :=
   if e.isNatLit then true
   else
@@ -177,13 +178,6 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
 
 
 
-private def mkNoindexAnnotation (e : Expr) : Expr :=
-  mkAnnotation `noindex e
-
-private def hasNoindexAnnotation (e : Expr) : Bool :=
-  annotation? `noindex e |>.isSome
-
-
 /-- Check whether the expression is represented by `Key.star`. -/
 def isStar : Expr → Bool
   | .mvar .. => true
@@ -226,7 +220,8 @@ def DTExpr.hasLooseBVars (e : DTExpr) : Bool :=
 namespace MkPath
 
 private structure Context where
-  /-- Free variables that have been introduced from a lambda. -/
+  /-- Free variables that came from a lambda or forall binder.
+  The list index gives the De Bruijn index. -/
   bvars : List FVarId := []
   /-- Free variables that come from a lambda that has been removed via η-reduction. -/
   unbvars : List FVarId := []
@@ -258,7 +253,9 @@ partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α
         introEtaBVars e' (b.instantiate1 fvar) k
   | _ => k b
 
-private partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
+/-- return all encodings of `e` as a `DTExpr`.
+If `root = false`, then `e` is a strict sub expression of the original expression. -/
+partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
   let e ← reduce e config
   Expr.withApp e fun fn args => do
   let argPaths : M (Array DTExpr) := do
@@ -306,7 +303,7 @@ private partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr)
 where
   mkPathBinder (domain body : Expr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
-      withReader (m := M) (fun c => { bvars := fvar.fvarId! :: c.bvars }) $
+      withReader (fun c => { bvars := fvar.fvarId! :: c.bvars }) do
         mkPathAux false config (body.instantiate1 fvar)
 
 end MkPath
@@ -317,7 +314,7 @@ def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (List DTExpr) :
 
 
 
--- **Inserting intro a DiscrTree**
+-- ## Inserting intro a DiscrTree
 
 /--
 If `vs` contains an element `v'` such that `v == v'`, then replace `v'` with `v`.
@@ -382,44 +379,57 @@ def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreCon
 
 
 
--- **Retrieving from a DiscrTree**
+-- ## Matching with a DiscrTree
 
 namespace GetUnify
 
-def findKey (cs : Array (Key × Trie α)) (k : Key) : Option (Trie α) :=
-  (·.2) <$> cs.binSearch (k, default) (fun a b => a.1 < b.1)
+/-- If `k` is a key in `children`, return the corresponding `Trie α`. Otherwise return `none`. -/
+def findKey (children : Array (Key × Trie α)) (k : Key) : Option (Trie α) :=
+  (·.2) <$> children.binSearch (k, default) (fun a b => a.1 < b.1)
 
 private structure Context where
+  /-- Free variables that came from a lambda or forall binder.
+  The list index gives the De Bruijn index. -/
   boundVars : List FVarId := []
   config : WhnfCoreConfig
 
 private structure State where
+  /-- Score representing how good the match is. -/
   score : Nat := 0
+  /-- Metavariable assignments for the `Key.star` patterns in the `DiscrTree`. -/
   assignments : HashMap Nat Expr := {}
 
 private abbrev M := ReaderT Context $ ListStateT (State) MetaM
 
+/-- Return all values from `x` in a list, together with their scores. -/
 private def M.run (config : WhnfCoreConfig) (x : M (Trie α)) : MetaM (List (Array α × Nat)) :=
   (List.map fun (t, s) => (t.values!, s.score)) <$> (x.run {config}).run {}
 
-def incrementScore (n : Nat) : M Unit :=
+/-- increase the score by `n`. -/
+private def incrementScore (n : Nat) : M Unit :=
   modify fun s => { s with score := s.score + n }
 
-def insertAssignment (n : Nat) (e : Expr) : M Unit :=
+/-- Log a metavariable assignment in the `State`. -/
+private def insertAssignment (n : Nat) (e : Expr) : M Unit :=
   modify fun s => { s with assignments := s.assignments.insert n e }
 
+/-- Return the possible `Trie α` that match with `n` metavariable. -/
 partial def skipEntries (t : Trie α) : Nat → M (Trie α)
   | 0      => pure t
   | skip+1 =>
-    t.children!.foldr (init := failure) fun (k, c) x => (do skipEntries c (skip + k.arity)) <|> x
+    t.children!.foldr (init := failure) fun (k, c) x => skipEntries c (skip + k.arity) <|> x
 
+/-- Return the possible `Trie α` that match with a metavariable. -/
 def matchMVar (children : Array (Key × Trie α)) : M (Trie α) :=
-  children.foldr (init := failure) (fun (k, c) x => (do
+  children.foldr (init := failure) fun (k, c) x => (do
     if k matches .fvar .. then
       incrementScore 1
     skipEntries c k.arity
-    ) <|> x)
+    ) <|> x
 
+/-- Return the possible `Trie α` that come from a `Key.star i` key.
+We keep track of the assignments of `Key.star i`, and if there is already an assignment,
+we do an `isDefEq` check, without modifying the state. -/
 def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := do
   let {assignments, ..} ← get
   let mut result := failure
@@ -429,8 +439,6 @@ def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := d
       match assignments.find? i with
       | some assignment =>
         try
-          /- it would be nicer if we could keep the `isDefEq` state,
-          but if we do so the state will leak to alternative cases, which is a problem. -/
           if ← liftMetaM (withoutModifyingState (isDefEq e assignment)) then
             result := (pure c) <|> result
         catch _ =>
@@ -440,6 +448,7 @@ def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := d
     | _ => break
   result
 
+/-- An exact match succeeds for keys other than `.star` and `.fvar`, which are treated separately. -/
 private inductive exactMatchResult (α : Type) where
   | mvar
   | fvar
@@ -447,6 +456,7 @@ private inductive exactMatchResult (α : Type) where
 deriving Inhabited
 
 mutual
+  /-- Return the possible `Trie α` that match with `e`. -/
   partial def matchExpr (e : Expr) (t : Trie α) : M (Trie α) := do
     let e ← reduce e (← read).config
     let children := t.children!
@@ -455,7 +465,9 @@ mutual
       | .fvar => matchStars e children
       | .exact result => result <|> matchStars e children
 
+  /-- Return the possible `Trie α` that match with `e` where the first `Key` matches exactly. -/
   partial def exactMatch (e : Expr) (boundVars : List FVarId) (find? : Key → Option (Trie α)) (root : Bool) : exactMatchResult α :=
+
     let find (k : Key) (x : Trie α → M (Trie α)) (score := 1) : exactMatchResult α := .exact do
       match find? k with
         | none => failure
@@ -480,18 +492,24 @@ mutual
     | .forallE _ d b _ => find .forall (matchExpr d >=> matchBoundExpr d b)
     | _                => find .sort   pure
 
-
+  /-- Return the possible `Trie α` that match the arguments of `e`. -/
   partial def matchArgs (e : Expr) (t : Trie α) : M (Trie α) :=
     e.getAppRevArgs.foldrM (fun a c => matchExpr a c) t
 
-  partial def matchBoundExpr (domain body : Expr) (t : Trie α) : M (Trie α) :=
+  /-- Introduce a bound variable of type `domain` to the context,
+  and then return the possible `Trie α` that match `e`. -/
+  partial def matchBoundExpr (domain e : Expr) (t : Trie α) : M (Trie α) :=
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { c with boundVars := fvar.fvarId! :: c.boundVars }) do
-        matchExpr (body.instantiate1 fvar) t
+        matchExpr (e.instantiate1 fvar) t
 
 end
 
-/-- return the results from the DiscrTree that match the given expression, together with their matching scores. -/
+end GetUnify
+
+open GetUnify in
+/-- return the results from the `DiscrTree` that match the given expression,
+together with their matching scores. -/
 partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreConfig) : MetaM (List (Array α × Nat)) :=
   withReducible $ M.run config do
     let e ← reduce e config
@@ -503,8 +521,6 @@ partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreCo
     | .mvar => failure
     | .fvar => matchStar
     | .exact result => result <|> matchStar
-
-end GetUnify
 
 
 variable {m : Type → Type} [Monad m]
@@ -522,8 +538,8 @@ partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array �
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
 def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) :=
-  d.mapM (fun t => t.mapArraysM f)
+  d.mapM (·.mapArraysM f)
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
 def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
-  d.mapArraysM fun A => (pure (f A) : Id (Array β))
+  d.mapArraysM (m := Id) f
