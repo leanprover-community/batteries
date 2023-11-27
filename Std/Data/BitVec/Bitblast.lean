@@ -55,17 +55,9 @@ theorem mod_two_pow_succ (x i : Nat) :
   x % 2^(i+1) = 2^i*(x.testBit i).toNat + x % (2 ^ i):= by
   apply Nat.eq_of_testBit_eq
   intro j
-  simp only [
-        Nat.mul_add_lt_is_or,
-        testBit_or,
-        testBit_mod_two_pow,
-        testBit_shiftLeft,
-        Nat.testBit_bool_to_nat,
-        Nat.sub_eq_zero_iff_le,
-        Nat.mod_lt,
-        Nat.pow_two_pos,
-        testBit_mul_pow_two
-        ]
+  simp only [Nat.mul_add_lt_is_or, testBit_or, testBit_mod_two_pow, testBit_shiftLeft, 
+    Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.pow_two_pos,
+    testBit_mul_pow_two]
   match Nat.lt_trichotomy i j with
   | Or.inl i_lt_j =>
     have i_le_j : i ≤ j := Nat.le_of_lt i_lt_j
