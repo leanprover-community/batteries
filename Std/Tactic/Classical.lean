@@ -7,7 +7,7 @@ import Lean.Elab.ElabRules
 
 /-! # `classical` and `classical!` tactics -/
 
-namespace Mathlib.Tactic
+namespace Std.Tactic
 open Lean Meta
 
 /--
