@@ -74,6 +74,23 @@ protected def toNat (a : BitVec n) : Nat := a.toFin.val
 /-- Return least-significant bit in bitvector, or `false` if the bitvector is empty. -/
 @[inline] protected def lsbD (x : BitVec n) : Bool := getLsbD x 0
 
+theorem getLsb_eq_getLsbD (x : BitVec w) (i : Fin w) :
+    x.getLsb i = x.getLsbD i.val :=
+  rfl
+
+theorem getLsbD_eq_getLsb (x : BitVec w) (i : Nat) (h : i < w) :
+    x.getLsbD i = x.getLsb ⟨i, h⟩ :=
+  rfl
+
+theorem getMsb_eq_getMsbD (x : BitVec w) (i : Fin w) :
+    x.getMsb i = x.getMsbD i.val := by
+  simp only [getMsb, Fin.rev, getLsb_eq_getLsbD, getMsbD, i.2, decide_True, Bool.true_and]
+  rw [Nat.add_comm, Nat.sub_add_eq]
+
+theorem getMsbD_eq_getMsb (x : BitVec w) (i : Nat) (h : i < w) :
+    x.getMsbD i = x.getMsb ⟨i, h⟩ := by
+  rw [getMsb_eq_getMsbD]
+
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
 protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   match i with
