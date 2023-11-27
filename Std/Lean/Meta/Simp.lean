@@ -33,7 +33,55 @@ export private mkDischargeWrapper from Lean.Elab.Tactic.Simp
 /-- Construct a `Simp.DischargeWrapper` from the `Syntax` for a `simp` discharger. -/
 add_decl_doc mkDischargeWrapper
 
--- copied from core
+open Simp
+
+/-- Make `MkSimpContextResult` giving data instead of Syntax. Doesn't support arguments.
+Intended to be very similar to `Lean.Elab.Tactic.mkSimpContext`
+Todo: support arguments. -/
+def mkSimpContextResult (cfg : Meta.Simp.Config := {}) (simpOnly := false) (kind := SimpKind.simp)
+    (dischargeWrapper := DischargeWrapper.default) (hasStar := false) :
+    MetaM MkSimpContextResult := do
+  match dischargeWrapper with
+  | .default => pure ()
+  | _ =>
+    if kind == SimpKind.simpAll then
+      throwError "'simp_all' tactic does not support 'discharger' option"
+    if kind == SimpKind.dsimp then
+      throwError "'dsimp' tactic does not support 'discharger' option"
+  let simpTheorems ← if simpOnly then
+    simpOnlyBuiltins.foldlM (·.addConst ·) ({} : SimpTheorems)
+  else
+    Meta.getSimpTheorems
+  let congrTheorems ← Meta.getSimpCongrTheorems
+  let ctx : Simp.Context := {
+    config       := cfg
+    simpTheorems := #[simpTheorems], congrTheorems
+  }
+  if !hasStar then
+    return { ctx, dischargeWrapper }
+  else
+    let mut simpTheorems := ctx.simpTheorems
+    let hs ← getPropHyps
+    for h in hs do
+      unless simpTheorems.isErased (.fvar h) do
+        simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
+    let ctx := { ctx with simpTheorems }
+    return { ctx, dischargeWrapper }
+
+/-- Make `Simp.Context` giving data instead of Syntax. Doesn't support arguments.
+Intended to be very similar to `Lean.Elab.Tactic.mkSimpContext`
+Todo: support arguments. -/
+def mkSimpContext (cfg : Meta.Simp.Config := {}) (simpOnly := false) (kind := SimpKind.simp)
+    (dischargeWrapper := DischargeWrapper.default) (hasStar := false) :
+    MetaM Simp.Context := do
+  let data ← mkSimpContextResult cfg simpOnly kind dischargeWrapper hasStar
+  return data.ctx
+
+-- This has been copied from Lean, where it is unfortunately private.
+-- Notice there is considerable duplication with `mkSimpContextResult` above.
+-- Ideally this would be resolved in Lean,
+-- by cleanly dividing this code into the pieces that handle `Syntax`
+-- and the pieces that don't, and making these functions public.
 /--
 If `ctx == false`, the config argument is assumed to have type `Meta.Simp.Config`,
 and `Meta.Simp.ConfigCtx` otherwise.
@@ -71,6 +119,7 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
       unless simpTheorems.isErased (.fvar h) do
         simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
     return { ctx := { r.ctx with simpTheorems }, dischargeWrapper }
+
 
 end Simp
 

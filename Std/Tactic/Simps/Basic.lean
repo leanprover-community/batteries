@@ -3,7 +3,7 @@ Copyright (c) 2022 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-
+import Std.Lean.Meta.Simp
 import Std.Tactic.Simps.NotationClass
 import Std.Classes.Dvd
 import Std.Data.String.Basic
@@ -59,55 +59,8 @@ open Elab.Term hiding mkConst
 /-- `updateName nm s isPrefix` adds `s` to the last component of `nm`,
   either as prefix or as suffix (specified by `isPrefix`), separated by `_`.
   Used by `simps_add_projections`. -/
-def updateName (nm : Name) (s : String) (isPrefix : Bool) : Name :=
+private def updateName (nm : Name) (s : String) (isPrefix : Bool) : Name :=
   nm.updateLast fun s' => if isPrefix then s ++ "_" ++ s' else s' ++ "_" ++ s
-
--- move
-namespace Lean.Meta
-open Tactic Simp
-/-- Make `MkSimpContextResult` giving data instead of Syntax. Doesn't support arguments.
-Intended to be very similar to `Lean.Elab.Tactic.mkSimpContext`
-Todo: support arguments. -/
-def mkSimpContextResult (cfg : Meta.Simp.Config := {}) (simpOnly := false) (kind := SimpKind.simp)
-    (dischargeWrapper := DischargeWrapper.default) (hasStar := false) :
-    MetaM MkSimpContextResult := do
-  match dischargeWrapper with
-  | .default => pure ()
-  | _ =>
-    if kind == SimpKind.simpAll then
-      throwError "'simp_all' tactic does not support 'discharger' option"
-    if kind == SimpKind.dsimp then
-      throwError "'dsimp' tactic does not support 'discharger' option"
-  let simpTheorems ← if simpOnly then
-    simpOnlyBuiltins.foldlM (·.addConst ·) ({} : SimpTheorems)
-  else
-    getSimpTheorems
-  let congrTheorems ← getSimpCongrTheorems
-  let ctx : Simp.Context := {
-    config       := cfg
-    simpTheorems := #[simpTheorems], congrTheorems
-  }
-  if !hasStar then
-    return { ctx, dischargeWrapper }
-  else
-    let mut simpTheorems := ctx.simpTheorems
-    let hs ← getPropHyps
-    for h in hs do
-      unless simpTheorems.isErased (.fvar h) do
-        simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
-    let ctx := { ctx with simpTheorems }
-    return { ctx, dischargeWrapper }
-
-/-- Make `Simp.Context` giving data instead of Syntax. Doesn't support arguments.
-Intended to be very similar to `Lean.Elab.Tactic.mkSimpContext`
-Todo: support arguments. -/
-def mkSimpContext (cfg : Meta.Simp.Config := {}) (simpOnly := false) (kind := SimpKind.simp)
-    (dischargeWrapper := DischargeWrapper.default) (hasStar := false) :
-    MetaM Simp.Context := do
-  let data ← mkSimpContextResult cfg simpOnly kind dischargeWrapper hasStar
-  return data.ctx
-
-end Lean.Meta
 
 /-- Tests whether `declName` has the `@[simp]` attribute in `env`. -/
 def hasSimpAttribute (env : Environment) (declName : Name) : Bool :=
@@ -139,7 +92,7 @@ declaration.
 
 Example:
 ```lean
-@[simps] def foo : ℕ × ℤ := (1, 2)
+@[simps] def foo : Nat × Int := (1, 2)
 ```
 derives two `simp` lemmas:
 ```lean
@@ -183,7 +136,7 @@ derives two `simp` lemmas:
   Example:
   ```lean
   structure MyProd (α β : Type*) := (fst : α) (snd : β)
-  @[simps] def foo : Prod ℕ ℕ × MyProd ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
+  @[simps] def foo : Prod Nat Nat × MyProd Nat Nat := ⟨⟨1, 2⟩, 3, 4⟩
   ```
   generates
   ```lean
@@ -200,7 +153,7 @@ derives two `simp` lemmas:
   Example:
   ```lean
   structure MyProd (α β : Type*) := (fst : α) (snd : β)
-  @[simps fst fst_fst snd] def foo : Prod ℕ ℕ × MyProd ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
+  @[simps fst fst_fst snd] def foo : Prod Nat Nat × MyProd Nat Nat := ⟨⟨1, 2⟩, 3, 4⟩
   ```
   generates
   ```lean
@@ -460,9 +413,12 @@ def projectionsInfo (l : List ProjectionData) (pref : String) (str : Name) : Mes
   let toPrint := MessageData.joinSep toPrint ("\n" : MessageData)
   m!"{pref} {str}:\n{toPrint}"
 
-/-- Find the indices of the projections that need to be applied to elaborate `$e.$projName`.
-Example: If `e : α ≃+ β` and ``projName = `invFun`` then this returns `[0, 1]`, because the first
-projection of `MulEquiv` is `toEquiv` and the second projection of `Equiv` is `invFun`. -/
+/--
+Find the indices of the projections that need to be applied to elaborate `$e.$projName`,
+where `e` is a term of type `$strName`.
+Example: If `e : α ≃* β` (so ``strName = `MulEquiv``) and ``projName = `invFun`` then
+this returns `[0, 1]`, because the first projection of `MulEquiv` is `toEquiv` and
+the second projection of `Equiv` is `invFun`. -/
 def findProjectionIndices (strName projName : Name) : MetaM (List Nat) := do
   let env ← getEnv
   let .some baseStr := findField? env strName projName |
@@ -502,12 +458,12 @@ partial def getCompositeOfProjectionsAux (proj : String) (e : Expr) (pos : Array
   Note that this function is similar to elaborating dot notation, but it can do a little more.
   Example: if we do
   ```
-  structure gradedFun (A : ℕ → Type*) where
+  structure gradedFun (A : Nat → Type*) where
     toFun := ∀ i j, A i →+ A j →+ A (i + j)
   initialize_simps_projections (toFun_toFun_toFun → myMul)
   ```
   we will be able to generate the "projection"
-    `λ {A} (f : gradedFun A) (x : A i) (y : A j) => ↑(↑(f.toFun i j) x) y`,
+    `fun {A} (f : gradedFun A) (x : A i) (y : A j) => ↑(↑(f.toFun i j) x) y`,
   which projection notation cannot do. -/
 def getCompositeOfProjections (structName : Name) (proj : String) : MetaM (Expr × Array Nat) := do
   let strExpr ← mkConstWithLevelParams structName
@@ -912,7 +868,7 @@ def addProjection (declName : Name) (type lhs rhs : Expr) (args : Array Expr)
   let lvl ← getLevel type
   let mut (rhs, prf) := (rhs, mkAppN (mkConst `Eq.refl [lvl]) #[type, lhs])
   if cfg.simpRhs then
-    let ctx ← mkSimpContext
+    let ctx ← Simp.mkSimpContext
     let (rhs2, _) ← dsimp rhs ctx
     if rhs != rhs2 then
       trace[simps.debug] "`dsimp` simplified rhs to{indentExpr rhs2}"
