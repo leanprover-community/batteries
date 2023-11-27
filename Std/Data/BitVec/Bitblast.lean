@@ -27,8 +27,8 @@ open Nat Bool
 
 namespace BitVec
 
-private
-theorem testBit_limit {x i : Nat} (x_lt_succ : x < 2^(i+1)) : testBit x i = decide (x ≥ 2^i) := by
+private theorem testBit_limit {x i : Nat} (x_lt_succ : x < 2^(i+1)) :
+    testBit x i = decide (x ≥ 2^i) := by
   cases xi : testBit x i with
   | true =>
     simp [testBit_implies_ge xi]
@@ -45,13 +45,11 @@ theorem testBit_limit {x i : Nat} (x_lt_succ : x < 2^(i+1)) : testBit x i = deci
       | inl x_lt =>
         exfalso
         apply Nat.lt_irrefl
-        exact
-            calc x < 2^(i+1) := x_lt_succ
-                 _ ≤ 2 ^ j := Nat.pow_le_pow_of_le_right Nat.zero_lt_two x_lt
-                 _ ≤ x := testBit_implies_ge jp
+        calc x < 2^(i+1) := x_lt_succ
+             _ ≤ 2 ^ j := Nat.pow_le_pow_of_le_right Nat.zero_lt_two x_lt
+             _ ≤ x := testBit_implies_ge jp
 
-private
-theorem mod_two_pow_succ (x i : Nat) :
+private theorem mod_two_pow_succ (x i : Nat) :
   x % 2^(i+1) = 2^i*(x.testBit i).toNat + x % (2 ^ i):= by
   apply Nat.eq_of_testBit_eq
   intro j
@@ -75,8 +73,7 @@ theorem mod_two_pow_succ (x i : Nat) :
     have not_j_ge_i : ¬(j ≥ i) := Nat.not_le_of_lt j_lt_i
     simp [j_lt_i, j_le_i, not_j_ge_i, j_le_i_succ]
 
-private
-theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.pow_two_pos _)
+private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.pow_two_pos _)
 
 /-! ### Addition -/
 
@@ -90,9 +87,8 @@ def carry (w x y : Nat) (c : Bool) : Bool :=  decide (x % 2^w + y % 2^w + c.toNa
 def adcb (x y c : Bool) : Bool × Bool := (x && y || x && c || y && c, Bool.xor x (Bool.xor y c))
 
 /-- Bitwise addition implemented via a ripple carry adder. -/
-def adc {w:Nat} (x y : BitVec w) : Bool → Bool × BitVec w :=
-  iunfoldr fun (i:Fin w) c =>
-    adcb (x.getLsb i) (y.getLsb i) c
+def adc (x y : BitVec w) : Bool → Bool × BitVec w :=
+  iunfoldr fun (i : Fin w) c => adcb (x.getLsb i) (y.getLsb i) c
 
 theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toNat) < 2^(i+1) := by
   apply Nat.lt_of_succ_le
@@ -124,9 +120,9 @@ theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
           sum_bnd,
           pred]
 
-theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool)
-    : getLsb (x + y + zeroExtend w (ofBool c)) i =
-        Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
+theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
+    getLsb (x + y + zeroExtend w (ofBool c)) i =
+      Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
   let ⟨x, x_lt⟩ := x
   let ⟨y, y_lt⟩ := y
   simp [getLsb, toNat_add, toNat_zeroExtend, i_lt]
@@ -144,7 +140,7 @@ theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool)
     ]
   simp [testBit_to_div_mod, carry, Nat.add_assoc]
 
-theorem adc_correct (w:Nat) (x y : BitVec w) (c : Bool) :
+theorem adc_correct (x y : BitVec w) (c : Bool) :
     adc x y c = (carry w x.toNat y.toNat c, x + y + zeroExtend w (ofBool c)) := by
   simp only [adc]
   apply iunfoldr_replace
@@ -168,5 +164,5 @@ theorem adc_correct (w:Nat) (x y : BitVec w) (c : Bool) :
       simp [adc_value_step lt]
 
 
-theorem add_as_adc (w:Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
+theorem add_as_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_correct]

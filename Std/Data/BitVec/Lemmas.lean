@@ -19,9 +19,8 @@ theorem testBit_toNat (x : BitVec w) : x.toNat.testBit i = x.getLsb i := rfl
   apply Nat.lt_of_lt_of_le x_lt
   apply Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) ge
 
-theorem eq_of_getLsb_eq
-    {x y : BitVec w}
-    (pred : ∀(i:Fin w), x.getLsb i.val = y.getLsb i.val) : x = y := by
+theorem eq_of_getLsb_eq {x y : BitVec w}
+    (pred : ∀(i : Fin w), x.getLsb i.val = y.getLsb i.val) : x = y := by
   apply eq_of_toNat_eq
   apply Nat.eq_of_testBit_eq
   intro i
@@ -33,7 +32,7 @@ theorem eq_of_getLsb_eq
     simp [getLsb_ge _ _ p]
 
 theorem eq_of_getMsb_eq {x y : BitVec w}
-    (pred : ∀(i:Fin w), x.getMsb i = y.getMsb i.val) : x = y := by
+    (pred : ∀(i : Fin w), x.getMsb i = y.getMsb i.val) : x = y := by
   simp [getMsb] at pred
   apply eq_of_getLsb_eq
   intro ⟨i, i_lt⟩
@@ -54,8 +53,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
     simp [q_lt, Nat.sub_sub_self, r] at q
     exact q
 
-@[simp]
-theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
+@[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
@@ -63,16 +61,12 @@ theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
 theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat]
 
-@[simp]
-theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
+@[simp] theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
 
-private
-theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) : x < 2 ^ n :=
+private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) : x < 2 ^ n :=
   Nat.lt_of_lt_of_le lt (Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) le)
 
-@[simp]
-theorem ofNat_toNat (m : Nat) (x : BitVec n)
-    : (BitVec.ofNat m x.toNat) = truncate m x := by
+@[simp] theorem ofNat_toNat (m : Nat) (x : BitVec n) : (BitVec.ofNat m x.toNat) = truncate m x := by
     let ⟨x, lt_n⟩ := x
     unfold truncate
     unfold zeroExtend
@@ -84,22 +78,20 @@ theorem ofNat_toNat (m : Nat) (x : BitVec n)
     else
       simp [h]
 
-theorem toNat_append (x : BitVec m) (y : BitVec n)
-    : (x ++ y).toNat = x.toNat <<< n ||| y.toNat := rfl
+theorem toNat_append (x : BitVec m) (y : BitVec n) : (x ++ y).toNat = x.toNat <<< n ||| y.toNat :=
+  rfl
 
-@[simp]
-theorem toNat_cast (e:m = n) (x : BitVec m)
-    : (cast e x).toNat = x.toNat := rfl
+@[simp] theorem toNat_cast (e : m = n) (x : BitVec m) : (cast e x).toNat = x.toNat := rfl
 
-theorem toNat_cons (b:Bool) (x : BitVec w)
-    : (cons b x).toNat = (b.toNat <<< w) ||| x.toNat := by
-    let ⟨x, _⟩ := x
-    simp [cons, toNat_append, toNat_ofBool]
+theorem toNat_cons (b : Bool) (x : BitVec w) :
+    (cons b x).toNat = (b.toNat <<< w) ||| x.toNat := by
+  let ⟨x, _⟩ := x
+  simp [cons, toNat_append, toNat_ofBool]
 
 /-! ### cons -/
 
-theorem getLsb_cons (b:Bool) {n} (x : BitVec n) (i:Nat)
-    : getLsb (cons b x) i = if i = n then b else getLsb x i := by
+theorem getLsb_cons (b : Bool) {n} (x : BitVec n) (i : Nat) :
+    getLsb (cons b x) i = if i = n then b else getLsb x i := by
   simp [getLsb, toNat_cons, Nat.testBit_or]
   rw [Nat.testBit_shiftLeft]
   match Nat.lt_trichotomy i n with
@@ -118,14 +110,13 @@ theorem getLsb_cons (b:Bool) {n} (x : BitVec n) (i:Nat)
 
 /-! ### zeroExtend and truncate -/
 
-@[simp]
-theorem toNat_zeroExtend' {m n : Nat} (p : m ≤ n) (x : BitVec m)
-    : (zeroExtend' p x).toNat = x.toNat := by
+@[simp] theorem toNat_zeroExtend' {m n : Nat} (p : m ≤ n) (x : BitVec m) :
+    (zeroExtend' p x).toNat = x.toNat := by
   unfold zeroExtend'
   simp [p, x.isLt, Nat.mod_eq_of_lt]
 
-theorem toNat_zeroExtend (i:Nat) (x : BitVec n)
-  : BitVec.toNat (zeroExtend i x) = x.toNat % 2^i := by
+theorem toNat_zeroExtend (i : Nat) (x : BitVec n) :
+    BitVec.toNat (zeroExtend i x) = x.toNat % 2^i := by
   let ⟨x, lt_n⟩ := x
   simp only [zeroExtend]
   if n_le_i : n ≤ i then
@@ -134,39 +125,35 @@ theorem toNat_zeroExtend (i:Nat) (x : BitVec n)
   else
     simp [n_le_i, toNat_ofNat]
 
-@[simp]
-theorem zeroExtend_eq (x : BitVec n) : zeroExtend n x = x := by
+@[simp] theorem zeroExtend_eq (x : BitVec n) : zeroExtend n x = x := by
   apply eq_of_toNat_eq
 
   let ⟨x, lt_n⟩ := x
   simp [truncate, zeroExtend]
 
-@[simp]
-theorem zeroExtend_zero (m n : Nat) : zeroExtend m (0#n) = 0#m := by
+@[simp] theorem zeroExtend_zero (m n : Nat) : zeroExtend m (0#n) = 0#m := by
   apply eq_of_toNat_eq
   simp [toNat_zeroExtend]
 
-@[simp]
-theorem truncate_eq (x : BitVec n) : truncate n x = x := zeroExtend_eq x
+@[simp] theorem truncate_eq (x : BitVec n) : truncate n x = x := zeroExtend_eq x
 
-@[simp]
-theorem toNat_truncate (x : BitVec n)
-    : (truncate i x).toNat = x.toNat % 2^i := toNat_zeroExtend i x
+@[simp] theorem toNat_truncate (x : BitVec n) : (truncate i x).toNat = x.toNat % 2^i :=
+  toNat_zeroExtend i x
 
-theorem getLsb_zeroExtend' (ge : m ≥ n) (x : BitVec n) (i : Nat)
-    : getLsb (zeroExtend' ge x) i = getLsb x i := by
+theorem getLsb_zeroExtend' (ge : m ≥ n) (x : BitVec n) (i : Nat) :
+    getLsb (zeroExtend' ge x) i = getLsb x i := by
   simp [getLsb, toNat_zeroExtend']
 
-theorem getLsb_zeroExtend (m : Nat) (x : BitVec n) (i : Nat)
-    : getLsb (zeroExtend m x) i = (decide (i < m) && getLsb x i) := by
+theorem getLsb_zeroExtend (m : Nat) (x : BitVec n) (i : Nat) :
+    getLsb (zeroExtend m x) i = (decide (i < m) && getLsb x i) := by
   simp [getLsb, toNat_zeroExtend, Nat.testBit_mod_two_pow]
 
-theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat)
-    : getLsb (truncate m x) i = (decide (i < m) && getLsb x i) :=
+theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat) :
+    getLsb (truncate m x) i = (decide (i < m) && getLsb x i) :=
   getLsb_zeroExtend m x i
 
-theorem truncate_succ (x : BitVec w)
-    : truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
+theorem truncate_succ (x : BitVec w) :
+    truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
   apply eq_of_getLsb_eq
   intro j
   simp [getLsb_truncate, getLsb_cons, j.isLt]
@@ -183,7 +170,6 @@ Definition of bitvector addition as a nat.
 -/
 theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := by rfl
 
-@[simp]
-theorem add_zero (x : BitVec n) : x + (0#n) = x := by
+@[simp] theorem add_zero (x : BitVec n) : x + (0#n) = x := by
   apply eq_of_toNat_eq
   simp [toNat_add, isLt, Nat.mod_eq_of_lt]

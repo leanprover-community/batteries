@@ -96,7 +96,7 @@ attribute [match_pattern] BitVec.ofNat
   | _ => throw ()
 
 /-- Convert bitvector into a fixed-width hex number. -/
-protected def toHex {n:Nat} (x:BitVec n) : String :=
+protected def toHex {n : Nat} (x : BitVec n) : String :=
   let s := (Nat.toDigits 16 x.toNat).asString
   let t := (List.replicate ((n+3) / 4 - s.length) '0').asString
   t ++ s
@@ -374,7 +374,7 @@ def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 /--
 A version of `zeroExtend` that requires a proof, but is a noop.
 -/
-def zeroExtend' {n w:Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
+def zeroExtend' {n w : Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
   ⟨x.toNat, by
     apply Nat.lt_of_lt_of_le x.isLt
     exact Nat.pow_le_pow_of_le_right (by trivial) le⟩
@@ -383,8 +383,8 @@ def zeroExtend' {n w:Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
 `shiftLeftZeroExtend x n` returns `zeroExtend (w+n) x <<< n` without
 needing to compute `x % 2^(2+n)`.
 -/
-def shiftLeftZeroExtend (msbs : BitVec w) (m:Nat) : BitVec (w+m) :=
-  let shiftLeftLt {x:Nat} (p : x < 2^w) (m:Nat) : x <<< m < 2^(w+m) := by
+def shiftLeftZeroExtend (msbs : BitVec w) (m : Nat) : BitVec (w+m) :=
+  let shiftLeftLt {x : Nat} (p : x < 2^w) (m : Nat) : x <<< m < 2^(w+m) := by
         simp [Nat.shiftLeft_eq, Nat.pow_add]
         apply Nat.mul_lt_mul_of_pos_right p
         exact (Nat.pow_two_pos m)
@@ -434,7 +434,7 @@ If `v < w` then it truncates the high bits instead.
 
 SMT-Lib name: `zero_extend`.
 -/
-def zeroExtend (v : Nat) (x:BitVec w) : BitVec v :=
+def zeroExtend (v : Nat) (x : BitVec w) : BitVec v :=
   if h : w ≤ v then
     zeroExtend' h x
   else
@@ -468,23 +468,20 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
 @[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
 
-@[simp]
-theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
+@[simp] theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
     cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
   subst h; rfl
 
-@[simp]
-theorem cast_cast {n m k : Nat} (h₁ : n = m) (h₂ : m = k) (x : BitVec n) :
+@[simp] theorem cast_cast {n m k : Nat} (h₁ : n = m) (h₂ : m = k) (x : BitVec n) :
     cast h₂ (cast h₁ x) = cast (h₁ ▸ h₂) x :=
   rfl
 
-@[simp]
-theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
+@[simp] theorem cast_eq {n : Nat} (h : n = n) (x : BitVec n) :
     cast h x = x :=
   rfl
 
 /-- Turn a `Bool` into a bitvector of length `1` -/
-def ofBool (b:Bool) : BitVec 1 := cond b 1 0
+def ofBool (b : Bool) : BitVec 1 := cond b 1 0
 
 @[simp] theorem ofBool_false : ofBool false = 0 := by trivial
 @[simp] theorem ofBool_true  : ofBool true  = 1 := by trivial

@@ -1290,8 +1290,7 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
   | x + 1 =>
     simp [Nat.mul_succ, Nat.add_assoc _ m, mul_add_mod _ x]
 
-@[simp]
-theorem mod_div_self (m n : Nat) : m % n / n = 0 := by
+@[simp] theorem mod_div_self (m n : Nat) : m % n / n = 0 := by
   cases n
   · exact (m % 0).div_zero
   · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)

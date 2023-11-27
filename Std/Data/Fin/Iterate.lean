@@ -14,7 +14,7 @@ from `P i`.
 
 See `hIterate` below for more details.
 -/
-def hIterateFrom (P : Nat → Sort _) {n} (f : ∀(i:Fin n), P i.val → P (i.val+1))
+def hIterateFrom (P : Nat → Sort _) {n} (f : ∀(i : Fin n), P i.val → P (i.val+1))
       (i : Nat) (ubnd : i ≤ n) (a : P i) : P n :=
   if g : i < n then
     hIterateFrom P f (i+1) g (f ⟨i, g⟩ a)
@@ -39,24 +39,20 @@ Because it is heterogenous and must return a value of type `P stop`,
 One can prove properties of `hIterate` using the general theorem
 `hIterate_elim` or other more specialzied theorems.
  -/
-def hIterate (P : Nat → Sort _)
-             {n : Nat}
-             (init : P 0)
-             (f : ∀(i:Fin n), P i.val → P (i.val+1))
-             : P n :=
+def hIterate (P : Nat → Sort _) {n : Nat} (init : P 0) (f : ∀(i : Fin n), P i.val → P (i.val+1)) :
+    P n :=
   hIterateFrom P f 0 (Nat.zero_le n) init
 
 private theorem hIterateFrom_elim
     {P : Nat → Sort _}
-    (Q : ∀(i:Nat), P i → Prop)
+    (Q : ∀(i : Nat), P i → Prop)
     {n  : Nat}
-    (f : ∀(i:Fin n), P i.val → P (i.val+1))
-    {i : Nat}
-    (ubnd : i ≤ n)
+    (f : ∀(i : Fin n), P i.val → P (i.val+1))
+    {i : Nat} (ubnd : i ≤ n)
     (s : P i)
     (init : Q i s)
-    (step : ∀(k:Fin n) (s:P k.val), Q k.val s → Q (k.val+1) (f k s))
-    : Q n (hIterateFrom P f i ubnd s) := by
+    (step : ∀(k : Fin n) (s : P k.val), Q k.val s → Q (k.val+1) (f k s)) :
+    Q n (hIterateFrom P f i ubnd s) := by
   let ⟨j, p⟩ := Nat.le.dest ubnd
   induction j generalizing i ubnd init with
   | zero =>
@@ -78,15 +74,10 @@ private theorem hIterateFrom_elim
 `hIterate` satisifies a property `Q stop` by showing that the states
 at the intermediate indices `i : start ≤ i < stop` satisfy `Q i`.
 -/
-theorem hIterate_elim
-    {P : Nat → Sort _}
-    (Q : ∀(i:Nat), P i → Prop)
-    {n : Nat}
-    (f : ∀(i:Fin n), P i.val → P (i.val+1))
-    (s : P 0)
-    (init : Q 0 s)
-    (step : ∀(k:Fin n) (s:P k.val), Q k.val s → Q (k.val+1) (f k s))
-    : Q n (hIterate P s f) := by
+theorem hIterate_elim {P : Nat → Sort _} (Q : ∀(i : Nat), P i → Prop)
+    {n : Nat} (f : ∀(i : Fin n), P i.val → P (i.val+1)) (s : P 0) (init : Q 0 s)
+    (step : ∀(k : Fin n) (s : P k.val), Q k.val s → Q (k.val+1) (f k s)) :
+    Q n (hIterate P s f) := by
   exact hIterateFrom_elim _ _ _ _ init step
 
 /-
@@ -95,15 +86,11 @@ function overshowing that the result of
 `hIterate` satisifies a property `Q stop` by showing that the states
 at the intermediate indices `i : start ≤ i < stop` satisfy `Q i`.
 -/
-theorem hIterate_eq
-    {P : Nat → Sort _}
-    (state : ∀(i:Nat), P i)
-    {n : Nat}
-    (f : ∀(i:Fin n), P i.val → P (i.val+1))
-    (s : P 0)
+theorem hIterate_eq {P : Nat → Sort _}
+    (state : ∀(i : Nat), P i) {n : Nat} (f : ∀(i : Fin n), P i.val → P (i.val+1)) (s : P 0)
     (init : s = state 0)
-    (step : ∀(i:Fin n), f i (state i) = state (i+1))
-    : hIterate P s f = state n := by
+    (step : ∀(i : Fin n), f i (state i) = state (i+1)) :
+    hIterate P s f = state n := by
   apply hIterate_elim (fun i s => s = state i) f s init
   intro i s s_eq
   simp only [s_eq, step]
