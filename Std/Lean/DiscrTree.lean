@@ -624,7 +624,8 @@ private def insertAssignment (n : Nat) (e : Expr) : M Unit :=
 partial def skipEntries (t : Trie α) : Nat → M (Trie α)
   | 0      => pure t
   | skip+1 =>
-    t.children!.foldr (init := failure) fun (k, c) x => skipEntries c (skip + k.arity) <|> x
+    t.children!.foldr (init := failure) fun (k, c) x =>
+      skipEntries c (skip + k.arity) <|> x
 
 /-- Return the possible `Trie α` that match with a metavariable. -/
 def matchMVar (children : Array (Key × Trie α)) : M (Trie α) :=
@@ -647,7 +648,7 @@ def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := d
     if let some assignment := assignments.find? i then
       try
         if ← liftMetaM (withoutModifyingState (isDefEq e assignment)) then
-          result := (pure c) <|> result
+          result := (incrementScore 1 *> pure c) <|> result
       catch _ =>
         pure ()
     else
