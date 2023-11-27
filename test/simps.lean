@@ -193,6 +193,11 @@ def nested2 : Nat × MyProd Nat Nat :=
 end CountNested
 
 -- TODO: restore these tests when #247 is merged
+
+-- /-- Tests whether `declName` has the `@[simp]` attribute in `env`. -/
+-- def hasSimpAttribute (env : Environment) (declName : Name) : Bool :=
+--   simpExtension.getState env |>.lemmaNames.contains <| .decl declName
+
 -- run_cmd liftTermElabM <| do
 --   let env ← getEnv
 --   guard <| env.find? `CountNested.nested1_fst |>.isSome
