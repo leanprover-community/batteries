@@ -12,6 +12,7 @@ It is primarily intended to support the bitvector library.
 -/
 import Std.Data.Bool
 import Std.Data.Nat.Lemmas
+import Std.Tactic.RCases
 
 namespace Nat
 
@@ -237,20 +238,16 @@ theorem testBit_mod_two_pow (x j i : Nat) :
   induction x using Nat.strongInductionOn generalizing j i with
   | ind x hyp =>
     rw [mod_eq]
-    cases Nat.lt_or_ge x (2^j) with
-    | inl x_lt_j =>
-      have not_j_le_x := Nat.not_le_of_gt x_lt_j
+    rcases Nat.lt_or_ge x (2^j) with x_lt_j | x_ge_j
+    · have not_j_le_x := Nat.not_le_of_gt x_lt_j
       simp [not_j_le_x]
-      cases Nat.lt_or_ge i j with
-      | inl i_lt_j =>
-        simp [i_lt_j]
-      | inr i_ge_j =>
-      have x_lt : x < 2^i :=
-          calc x < 2^j := x_lt_j
-               _ ≤ 2^i := Nat.pow_le_pow_of_le_right Nat.zero_lt_two i_ge_j
-      simp [Nat.testBit_lt_two x_lt]
-    | inr x_ge_j =>
-      generalize y_eq : x - 2^j = y
+      rcases Nat.lt_or_ge i j with i_lt_j | i_ge_j
+      · simp [i_lt_j]
+      · have x_lt : x < 2^i :=
+            calc x < 2^j := x_lt_j
+                _ ≤ 2^i := Nat.pow_le_pow_of_le_right Nat.zero_lt_two i_ge_j
+        simp [Nat.testBit_lt_two x_lt]
+    · generalize y_eq : x - 2^j = y
       have x_eq : x = y + 2^j := Nat.eq_add_of_sub_eq x_ge_j y_eq
       simp [x_eq, Nat.le_add_left, Nat.pow_two_pos]
       have y_lt_x : y < x := by

@@ -43,9 +43,7 @@ def hIterate (P : Nat → Sort _) {n : Nat} (init : P 0) (f : ∀(i : Fin n), P 
     P n :=
   hIterateFrom P f 0 (Nat.zero_le n) init
 
-private theorem hIterateFrom_elim
-    {P : Nat → Sort _}
-    (Q : ∀(i : Nat), P i → Prop)
+private theorem hIterateFrom_elim {P : Nat → Sort _}(Q : ∀(i : Nat), P i → Prop)
     {n  : Nat}
     (f : ∀(i : Fin n), P i.val → P (i.val+1))
     {i : Nat} (ubnd : i ≤ n)
@@ -58,15 +56,14 @@ private theorem hIterateFrom_elim
   | zero =>
     unfold hIterateFrom
     have g : ¬ (i < n) := by simp at p; simp [p]
-    simp [g]
     have r : Q n (cast (congrArg P p) s) :=
       @Eq.rec Nat i (fun k eq => Q k (cast (congrArg P eq) s)) init n p
-    exact r
+    simp only [g, r, dite_false]
   | succ j inv =>
     unfold hIterateFrom
     have d : Nat.succ i + j = n := by simp [Nat.succ_add]; exact p
     have g : i < n := Nat.le.intro d
-    simp [g]
+    simp only [g]
     exact inv _ _ (step ⟨i,g⟩ s init) d
 
 /-

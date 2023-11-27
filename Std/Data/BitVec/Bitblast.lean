@@ -19,13 +19,11 @@ All other operations are to be PR'ed later and are already proved in
 https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/BitVec.lean.
 -/
 
-namespace Std
-
 open Nat Bool
 
 /-! ### Preliminaries -/
 
-namespace BitVec
+namespace Std.BitVec
 
 private theorem testBit_limit {x i : Nat} (x_lt_succ : x < 2^(i+1)) :
     testBit x i = decide (x ≥ 2^i) := by
@@ -53,22 +51,18 @@ private theorem mod_two_pow_succ (x i : Nat) :
   x % 2^(i+1) = 2^i*(x.testBit i).toNat + x % (2 ^ i):= by
   apply Nat.eq_of_testBit_eq
   intro j
-  simp only [Nat.mul_add_lt_is_or, testBit_or, testBit_mod_two_pow, testBit_shiftLeft, 
+  simp only [Nat.mul_add_lt_is_or, testBit_or, testBit_mod_two_pow, testBit_shiftLeft,
     Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.pow_two_pos,
     testBit_mul_pow_two]
-  match Nat.lt_trichotomy i j with
-  | Or.inl i_lt_j =>
-    have i_le_j : i ≤ j := Nat.le_of_lt i_lt_j
+  rcases Nat.lt_trichotomy i j with i_lt_j | i_eq_j | j_lt_i
+  · have i_le_j : i ≤ j := Nat.le_of_lt i_lt_j
     have not_j_le_i : ¬(j ≤ i) := Nat.not_le_of_lt i_lt_j
     have not_j_lt_i : ¬(j < i) := Nat.not_lt_of_le i_le_j
     have not_j_lt_i_succ : ¬(j < i + 1) :=
           Nat.not_le_of_lt (Nat.succ_lt_succ i_lt_j)
     simp [i_le_j, not_j_le_i, not_j_lt_i, not_j_lt_i_succ]
-
-  | Or.inr (Or.inl i_eq_j) =>
-    simp [i_eq_j]
-  | Or.inr (Or.inr j_lt_i) =>
-    have j_le_i : j ≤ i := Nat.le_of_lt j_lt_i
+  · simp [i_eq_j]
+  · have j_le_i : j ≤ i := Nat.le_of_lt j_lt_i
     have j_le_i_succ : j < i + 1 := Nat.succ_le_succ j_le_i
     have not_j_ge_i : ¬(j ≥ i) := Nat.not_le_of_lt j_lt_i
     simp [j_lt_i, j_le_i, not_j_ge_i, j_le_i_succ]
@@ -100,7 +94,7 @@ theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toN
 
 theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
     decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry w x y c).toNat ≥ 2) := by
-  simp [carry, mod_two_pow_succ _ w]
+  simp only [carry, mod_two_pow_succ _ w, decide_eq_decide]
   generalize testBit x w = xh
   generalize testBit y w = yh
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
@@ -108,24 +102,17 @@ theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
           exact adc_overflow_limit x y w c
   simp only [Nat.pow_succ]
   cases xh <;> cases yh <;> cases Decidable.em (x%2^w + (y%2^w + toNat c) ≥ 2 ^ w) with | _ pred =>
-    simp [Nat.one_shiftLeft,
-          Nat.add_assoc,
-          Nat.add_left_comm _ (2^_) _,
-          Nat.mul_comm (2^_) _,
-          mul_le_add_right,
-          le_add_right,
-          Nat.not_le_of_lt,
-          Nat.add_succ,
-          Nat.succ_le_succ,
-          sum_bnd,
-          pred]
+    simp [Nat.one_shiftLeft, Nat.add_assoc, Nat.add_left_comm _ (2^_) _, Nat.mul_comm (2^_) _,
+          Nat.not_le_of_lt, Nat.add_succ, Nat.succ_le_succ,
+          mul_le_add_right, le_add_right, sum_bnd, pred]
 
 theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     getLsb (x + y + zeroExtend w (ofBool c)) i =
       Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
   let ⟨x, x_lt⟩ := x
   let ⟨y, y_lt⟩ := y
-  simp [getLsb, toNat_add, toNat_zeroExtend, i_lt]
+  simp only [getLsb, toNat_add, toNat_zeroExtend, i_lt, toNat_ofFin, toNat_ofBool,
+    Nat.mod_add_mod, Nat.add_mod_mod]
   apply Eq.trans
   rw [← Nat.div_add_mod x (2^i), ← Nat.div_add_mod y (2^i)]
   simp only
@@ -152,8 +139,7 @@ theorem adc_correct (x y : BitVec w) (c : Bool) :
     cases c <;> rfl
   case step =>
     intro ⟨i, lt⟩
-    simp [adcb]
-    rw [carry_succ]
+    simp only [adcb, Prod.mk.injEq, carry_succ]
     apply And.intro
     case left =>
       rw [testBit_toNat, testBit_toNat]
@@ -162,7 +148,6 @@ theorem adc_correct (x y : BitVec w) (c : Bool) :
       cases carry i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
     case right =>
       simp [adc_value_step lt]
-
 
 theorem add_as_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_correct]

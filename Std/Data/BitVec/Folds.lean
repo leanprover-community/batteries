@@ -2,6 +2,7 @@ import Std.Data.BitVec.Lemmas
 import Std.Data.Fin.Iterate
 import Std.Data.Nat.Lemmas
 
+
 namespace Std.BitVec
 
 /--
@@ -22,8 +23,7 @@ theorem iunfoldr.fst_eq
     exact init
   case step =>
     intro i ⟨s, v⟩ p
-    simp at p
-    simp [p, ind i]
+    simp_all [ind i]
 
 private theorem iunfoldr.eq_test
     {f : Fin w → α → α × Bool} (state : Nat → α) (value : BitVec w) (a : α)
@@ -35,17 +35,11 @@ private theorem iunfoldr.eq_test
     simp only [init, eq_nil]
   case step =>
     intro i
-    simp
-    apply And.intro
-    case left =>
-      simp [step]
-    case right =>
-      simp [step, truncate_succ]
+    simp_all [truncate_succ]
 
 theorem iunfoldr_replace
     {f : Fin w → α → α × Bool} (state : Nat → α) (value : BitVec w) (a : α)
     (init : state 0 = a)
     (step : ∀(i : Fin w), f i (state i.val) = (state (i.val+1), value.getLsb i.val)) :
     iunfoldr f a = (state w, value) := by
-  have h := iunfoldr.eq_test state value a init step
-  simp [h]
+  simp [iunfoldr.eq_test state value a init step]

@@ -2,6 +2,8 @@ import Std.Data.Bool
 import Std.Data.BitVec.Basic
 import Std.Data.Nat.Lemmas
 
+import Std.Tactic.Simpa
+
 namespace Std.BitVec
 
 /-- Prove equality of bitvectors in terms of nat operations. -/
@@ -33,25 +35,22 @@ theorem eq_of_getLsb_eq {x y : BitVec w}
 
 theorem eq_of_getMsb_eq {x y : BitVec w}
     (pred : ∀(i : Fin w), x.getMsb i = y.getMsb i.val) : x = y := by
-  simp [getMsb] at pred
+  simp only [getMsb] at pred
   apply eq_of_getLsb_eq
   intro ⟨i, i_lt⟩
   if w_zero : w = 0 then
     simp [w_zero]
   else
     have w_pos := Nat.pos_of_ne_zero w_zero
-
     have r : i ≤ w - 1 := by
-        simp [Nat.le_sub_iff_add_le w_pos, Nat.add_succ]
-        exact i_lt
-
+      simp [Nat.le_sub_iff_add_le w_pos, Nat.add_succ]
+      exact i_lt
     have q_lt : w - 1 - i < w := by
-          simp [Nat.sub_sub]
-          apply Nat.sub_lt w_pos
-          simp [Nat.succ_add]
+      simp [Nat.sub_sub]
+      apply Nat.sub_lt w_pos
+      simp [Nat.succ_add]
     have q := pred ⟨w - 1 - i, q_lt⟩
-    simp [q_lt, Nat.sub_sub_self, r] at q
-    exact q
+    simpa [q_lt, Nat.sub_sub_self, r] using q
 
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
@@ -83,8 +82,7 @@ theorem toNat_append (x : BitVec m) (y : BitVec n) : (x ++ y).toNat = x.toNat <<
 
 @[simp] theorem toNat_cast (e : m = n) (x : BitVec m) : (cast e x).toNat = x.toNat := rfl
 
-theorem toNat_cons (b : Bool) (x : BitVec w) :
-    (cons b x).toNat = (b.toNat <<< w) ||| x.toNat := by
+theorem toNat_cons (b : Bool) (x : BitVec w) : (cons b x).toNat = (b.toNat <<< w) ||| x.toNat := by
   let ⟨x, _⟩ := x
   simp [cons, toNat_append, toNat_ofBool]
 
@@ -94,16 +92,13 @@ theorem getLsb_cons (b : Bool) {n} (x : BitVec n) (i : Nat) :
     getLsb (cons b x) i = if i = n then b else getLsb x i := by
   simp [getLsb, toNat_cons, Nat.testBit_or]
   rw [Nat.testBit_shiftLeft]
-  match Nat.lt_trichotomy i n with
-  | Or.inl i_lt_n =>
-      have i_ge_n := Nat.not_le_of_gt i_lt_n
-      have not_eq := Nat.ne_of_lt i_lt_n
-      simp [i_ge_n, not_eq]
-  | Or.inr (Or.inl i_eq_n) =>
-     simp [i_eq_n, testBit_toNat]
-     cases b <;> trivial
-  | Or.inr (Or.inr n_lt_i) =>
-    have i_ge_n : n ≤ i := Nat.le_of_lt n_lt_i
+  rcases Nat.lt_trichotomy i n with i_lt_n | i_eq_n | n_lt_i
+  · have i_ge_n := Nat.not_le_of_gt i_lt_n
+    have not_eq := Nat.ne_of_lt i_lt_n
+    simp [i_ge_n, not_eq]
+  · simp [i_eq_n, testBit_toNat]
+    cases b <;> trivial
+  · have i_ge_n : n ≤ i := Nat.le_of_lt n_lt_i
     have not_eq := Nat.ne_of_gt n_lt_i
     have neq_zero : i - n ≠ 0 := Nat.sub_ne_zero_of_lt n_lt_i
     simp [i_ge_n, not_eq, Nat.testBit_bool_to_nat, neq_zero]
@@ -127,7 +122,6 @@ theorem toNat_zeroExtend (i : Nat) (x : BitVec n) :
 
 @[simp] theorem zeroExtend_eq (x : BitVec n) : zeroExtend n x = x := by
   apply eq_of_toNat_eq
-
   let ⟨x, lt_n⟩ := x
   simp [truncate, zeroExtend]
 
