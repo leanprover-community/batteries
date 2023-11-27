@@ -157,5 +157,6 @@ import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
+import Std.Util.ProofWanted
 import Std.Util.TermUnsafe
 import Std.WF
