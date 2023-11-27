@@ -66,6 +66,7 @@ import Std.Data.Range.Lemmas
 import Std.Data.Rat
 import Std.Data.Rat.Basic
 import Std.Data.Rat.Lemmas
+import Std.Data.StateList
 import Std.Data.String
 import Std.Data.String.Basic
 import Std.Data.String.Lemmas
@@ -76,6 +77,7 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
+import Std.Lean.DiscrTree
 import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
 import Std.Lean.Float
