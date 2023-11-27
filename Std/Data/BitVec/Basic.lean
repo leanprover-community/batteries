@@ -50,14 +50,29 @@ protected def ofNat (n : Nat) (i : Nat) : BitVec n where
 (zero-cost) wrapper around a `Nat`. -/
 protected def toNat (a : BitVec n) : Nat := a.toFin.val
 
+/-- Return the `i`-th least significant bit, where `i : Fin w` to ensure the index is in bounds. -/
+@[inline] def getLsb (x : BitVec w) (i : Fin w) : Bool := x.toNat &&& (1 <<< i.val) != 0
+
 /-- Return the `i`-th least significant bit or `false` if `i ≥ w`. -/
-@[inline] def getLsb (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
+@[inline] def getLsbD (x : BitVec w) (i : Nat) : Bool := x.toNat &&& (1 <<< i) != 0
+
+/-- Return the `i`-th most significant bit, where `i : Fin w` to ensure the index is in bounds. -/
+@[inline] def getMsb (x : BitVec w) (i : Fin w) : Bool := getLsb x i.rev
 
 /-- Return the `i`-th most significant bit or `false` if `i ≥ w`. -/
-@[inline] def getMsb (x : BitVec w) (i : Nat) : Bool := i < w && getLsb x (w-1-i)
+@[inline] def getMsbD (x : BitVec w) (i : Nat) : Bool := i < w && getLsbD x (w-1-i)
 
-/-- Return most-significant bit in bitvector. -/
-@[inline] protected def msb (a : BitVec n) : Bool := getMsb a 0
+/-- Return most-significant bit in non-empty bitvector. -/
+@[inline] protected def msb (x : BitVec <| n + 1) : Bool := getMsb x 0
+
+/-- Return most-significant bit in bitvector, or `false` if the bitvector is empty. -/
+@[inline] protected def msbD (x : BitVec n) : Bool := getMsbD x 0
+
+/-- Return least-significant bit in non-empty bitvector. -/
+@[inline] protected def lsb (x : BitVec <| n + 1) : Bool := getLsb x 0
+
+/-- Return least-significant bit in bitvector, or `false` if the bitvector is empty. -/
+@[inline] protected def lsbD (x : BitVec n) : Bool := getLsbD x 0
 
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
 protected def ofInt (n : Nat) (i : Int) : BitVec n :=
@@ -67,7 +82,7 @@ protected def ofInt (n : Nat) (i : Int) : BitVec n :=
 
 /-- Interpret the bitvector as an integer stored in two's complement form. -/
 protected def toInt (a : BitVec n) : Int :=
-  if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
+  if a.msbD then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
 
 /-- Return a bitvector `0` of size `n`. This is the bitvector with all zero bits. -/
 protected def zero (n : Nat) : BitVec n := .ofNat n 0
@@ -133,7 +148,7 @@ def allOnes (n : Nat) : BitVec n := -1
 /--
 Return the absolute value of a signed bitvector.
 -/
-protected def abs (s : BitVec n) : BitVec n := if s.msb then .neg s else s
+protected def abs (s : BitVec n) : BitVec n := if s.msbD then .neg s else s
 
 /--
 Multiplication for bit vectors. This can be interpreted as either signed or unsigned negation
@@ -179,7 +194,7 @@ sdiv (-7#4) (-2) = 3#4
 ```
 -/
 def sdiv (s t : BitVec n) : BitVec n :=
-  match s.msb, t.msb with
+  match s.msbD, t.msbD with
   | false, false => udiv s t
   | false, true  => .neg (udiv s (.neg t))
   | true,  false => .neg (udiv (.neg s) t)
@@ -193,7 +208,7 @@ Specifically, `smtSDiv x 0 = if x >= 0 then -1 else 1`
 SMT-Lib name: `bvsdiv`.
 -/
 def smtSDiv (s t : BitVec n) : BitVec n :=
-  match s.msb, t.msb with
+  match s.msbD, t.msbD with
   | false, false => smtUDiv s t
   | false, true  => .neg (smtUDiv s (.neg t))
   | true,  false => .neg (smtUDiv (.neg s) t)
@@ -205,7 +220,7 @@ Remainder for signed division rounding to zero.
 SMT_Lib name: `bvsrem`.
 -/
 def srem (s t : BitVec n) : BitVec n :=
-  match s.msb, t.msb with
+  match s.msbD, t.msbD with
   | false, false => umod s t
   | false, true  => umod s (.neg t)
   | true,  false => .neg (umod (.neg s) t)
@@ -217,7 +232,7 @@ Remainder for signed division rounded to negative infinity.
 SMT_Lib name: `bvsmod`.
 -/
 def smod (s t : BitVec m) : BitVec m :=
-  match s.msb, t.msb with
+  match s.msbD, t.msbD with
   | false, false => .umod s t
   | false, true =>
     let u := .umod s (.neg t)
