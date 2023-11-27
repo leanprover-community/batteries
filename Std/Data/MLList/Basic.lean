@@ -104,7 +104,23 @@ instance [Monad m] [MonadLiftT m n] : ForIn n (MLList m α) α where
 partial def fix [Monad m] (f : α → m α) (x : α) : MLList m α :=
   cons x <| squash fun _ => fix f <$> f x
 
-/-- Construct a `MLList` recursively. If `f` returns `none` the list will terminate. -/
+/--
+Constructs an `MLList` recursively, with state in `α`, recording terms from `β`.
+If `f` returns `none` the list will terminate.
+
+Variant of `MLList.fix?` that allows returning values of a different type.
+-/
+partial def fix?' [Monad m] (f : α → m (Option (β × α))) (init : α) : MLList m β :=
+  squash fun _ => do
+    match ← f init with
+    | none => pure .nil
+    | some (b, a) => pure (.cons b (fix?' f a))
+
+/--
+Constructs an `MLList` recursively. If `f` returns `none` the list will terminate.
+
+Returns the initial value as the first element.
+-/
 partial def fix? [Monad m] (f : α → m (Option α)) (x : α) : MLList m α :=
   cons x <| squash fun _ => do
     match ← f x with
