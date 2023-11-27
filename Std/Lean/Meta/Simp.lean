@@ -120,7 +120,6 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
         simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
     return { ctx := { r.ctx with simpTheorems }, dischargeWrapper }
 
-
 end Simp
 
 end Lean.Meta
