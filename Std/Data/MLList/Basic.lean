@@ -117,7 +117,7 @@ partial def fix?' [Monad m] (f : α → m (Option (β × α))) (init : α) : MLL
     | some (b, a) => pure (.cons b (fix?' f a))
 
 /--
-Construcst an `MLList` recursively. If `f` returns `none` the list will terminate.
+Constructs an `MLList` recursively. If `f` returns `none` the list will terminate.
 
 Returns the initial value as the first element.
 -/
