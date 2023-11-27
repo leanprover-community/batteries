@@ -387,14 +387,6 @@ theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
   simp [size_eq_length_data, zipWith_eq_zipWith_data, List.length_zipWith]
 
-theorem size_zipWith_left (as : Array α) (bs : Array β) (h : as.size ≤ bs.size)
-    (f : α → β → γ) : (as.zipWith bs f).size = as.size := by
-  rw [size_zipWith, Nat.min_eq_left h]
-
-theorem size_zipWith_right (as : Array α) (bs : Array β) (h : bs.size ≤ as.size)
-    (f : α → β → γ) : (as.zipWith bs f).size = bs.size := by
-  rw [size_zipWith, Nat.min_eq_right h]
-
 theorem zip_eq_zip_data (as : Array α) (bs : Array β) :
     (as.zip bs).data = as.data.zip bs.data :=
   zipWith_eq_zipWith_data Prod.mk as bs
@@ -402,14 +394,6 @@ theorem zip_eq_zip_data (as : Array α) (bs : Array β) :
 theorem size_zip (as : Array α) (bs : Array β) :
     (as.zip bs).size = min as.size bs.size :=
   as.size_zipWith bs Prod.mk
-
-theorem size_zip_left (as : Array α) (bs : Array β) (h : as.size ≤ bs.size) :
-    (as.zip bs).size = as.size := by
-  rw [size_zip, Nat.min_eq_left h]
-
-theorem size_zip_right (as : Array α) (bs : Array β) (h : bs.size ≤ as.size) :
-    (as.zip bs).size = bs.size := by
-  rw [size_zip, Nat.min_eq_right h]
 
 @[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
   Array.size_mapIdx _ _
