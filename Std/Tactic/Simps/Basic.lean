@@ -62,10 +62,6 @@ open Elab.Term hiding mkConst
 private def updateName (nm : Name) (s : String) (isPrefix : Bool) : Name :=
   nm.updateLast fun s' => if isPrefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
-/-- Tests whether `declName` has the `@[simp]` attribute in `env`. -/
-def hasSimpAttribute (env : Environment) (declName : Name) : Bool :=
-  simpExtension.getState env |>.lemmaNames.contains <| .decl declName
-
 namespace Lean.Parser
 namespace Attr
 
