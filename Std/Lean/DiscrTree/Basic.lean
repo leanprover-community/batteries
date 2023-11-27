@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: J. W. Gerbscheid
 -/
 import Std.Lean.DiscrTree.Init.Basic
-import Std.Data.ListState
+import Std.Data.StateList
 import Std.Data.List.Basic
 import Lean.Meta
 
@@ -226,7 +226,7 @@ private structure Context where
   /-- Free variables that come from a lambda that has been removed via η-reduction. -/
   unbvars : List FVarId := []
 
-private abbrev M := ReaderT Context $ ListStateT (AssocList Expr DTExpr) MetaM
+private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
 
 /-
 Caching values is a bit dangerous, because when two expressions are be equal and they live under
@@ -399,7 +399,7 @@ private structure State where
   /-- Metavariable assignments for the `Key.star` patterns in the `DiscrTree`. -/
   assignments : HashMap Nat Expr := {}
 
-private abbrev M := ReaderT Context $ ListStateT (State) MetaM
+private abbrev M := ReaderT Context $ StateListT (State) MetaM
 
 /-- Return all values from `x` in a list, together with their scores. -/
 private def M.run (config : WhnfCoreConfig) (x : M (Trie α)) : MetaM (List (Array α × Nat)) :=

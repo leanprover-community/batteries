@@ -3,6 +3,22 @@ Copyright (c) 2023 J. W. Gerbscheid. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: J. W. Gerbscheid
 
+The combined state and list monad transformer.
+`StateListT σ α` is equivalent to `StateT σ (ListT α)` but more efficient.
+
+WARNING: `StateListT σ α m` is only a monad if `m` is a commutative monad.
+For example,
+```
+def problem : StateListT Unit (StateM (Array Nat)) Unit := do
+  Alternative.orElse (pure ()) (fun _ => pure ())
+  StateListT.lift $ modify (·.push 0)
+  StateListT.lift $ modify (·.push 1)
+
+#eval ((problem.run' ()).run #[]).2
+```
+will yield either `#[0,1,0,1]`, or `#[0,0,1,1]`, depending on the order in which the actions
+in the do block are combined.
+
 -/
 
 /-- `StateList` is a List with a state associated to each element.
@@ -44,121 +60,106 @@ private def foldrM {m : Type u → Type v} [Monad m] {β : Type u} {α σ : Type
 
 end StateList
 
-/-- The combined list and state monad transformer.
-`ListStateT σ α` is equivalent to `StateT σ (ListT α)` but more efficient.
-
-WARNING: `ListStateT σ α m` is only a monad if `m` is a commutative monad.
-For example,
-```
-def problem : ListStateT Unit (StateM (Array Nat)) Unit := do
-  Alternative.orElse (pure ()) (fun _ => pure ())
-  ListStateT.lift $ modify (·.push 0)
-  ListStateT.lift $ modify (·.push 1)
-
-#eval ((problem.run' ()).run #[]).2
-```
-will yield either `#[0,1,0,1]`, or `#[0,0,1,1]`, depending on the order in which the actions
-in the do block are combined.
--/
-def ListStateT (σ : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
+/-- The combined state and list monad transformer. -/
+def StateListT (σ : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
   σ → m (StateList σ α)
 
 /-- Run `x` on a given state `s`, returning the list of values with corresponding states. -/
 @[always_inline, inline]
-def ListStateT.run {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : ListStateT σ m α) (s : σ) : m (List (α × σ)) :=
+def StateListT.run {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : StateListT σ m α) (s : σ) : m (List (α × σ)) :=
   StateList.toList <$> x s
 
 /-- Run `x` on a given state `s`, returning the list of values. -/
 @[always_inline, inline]
-def ListStateT.run' {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : ListStateT σ m α) (s : σ) : m (List α) :=
+def StateListT.run' {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : StateListT σ m α) (s : σ) : m (List α) :=
   StateList.toList' <$> x s
 
-/-- The combined list and state monad. -/
+/-- The combined state and list monad. -/
 @[reducible]
-def ListStateM (σ α : Type u) : Type u := ListStateT σ Id α
+def StateListM (σ α : Type u) : Type u := StateListT σ Id α
 
-namespace ListStateT
+namespace StateListT
 section
 variable {σ : Type u} {m : Type u → Type v}
 variable [Monad m] {α β : Type u}
 
 @[always_inline, inline]
-private def pure (a : α) : ListStateT σ m α :=
+private def pure (a : α) : StateListT σ m α :=
   fun s => return StateList.nil.cons a s
 
 @[always_inline, inline]
-private def bind (x : ListStateT σ m α) (f : α → ListStateT σ m β) : ListStateT σ m β :=
+private def bind (x : StateListT σ m α) (f : α → StateListT σ m β) : StateListT σ m β :=
   fun s => do
     (← x s).foldrM (fun a s bs => return (← f a s) ++ bs) .nil
 
 @[always_inline, inline]
-private def map (f : α → β) (x : ListStateT σ m α) : ListStateT σ m β :=
+private def map (f : α → β) (x : StateListT σ m α) : StateListT σ m β :=
   fun s => StateList.map f <$> x s
 
 @[always_inline]
-instance : Monad (ListStateT σ m) where
-  pure := ListStateT.pure
-  bind := ListStateT.bind
-  map  := ListStateT.map
+instance : Monad (StateListT σ m) where
+  pure := StateListT.pure
+  bind := StateListT.bind
+  map  := StateListT.map
 
 @[always_inline, inline]
-private def orElse {α : Type u} (x : ListStateT σ m α) (y : Unit → ListStateT σ m α) : ListStateT σ m α :=
+private def orElse {α : Type u} (x : StateListT σ m α) (y : Unit → StateListT σ m α) : StateListT σ m α :=
   fun s => (· ++ ·) <$> x s <*> y () s
 
 @[always_inline, inline]
-private def failure {α : Type u} : ListStateT σ m α :=
+private def failure {α : Type u} : StateListT σ m α :=
   fun _ => return .nil
 
-instance : Alternative (ListStateT σ m) where
-  failure := ListStateT.failure
-  orElse  := ListStateT.orElse
+instance : Alternative (StateListT σ m) where
+  failure := StateListT.failure
+  orElse  := StateListT.orElse
 
-/-- Return the state from `ListStateT σ m`. -/
+/-- Return the state from `StateListT σ m`. -/
 @[always_inline, inline]
-protected def get : ListStateT σ m σ :=
+protected def get : StateListT σ m σ :=
   fun s => return StateList.nil.cons s s
 
-/-- Set the state in `ListStateT σ m`. -/
+/-- Set the state in `StateListT σ m`. -/
 @[always_inline, inline]
-protected def set : σ → ListStateT σ m PUnit :=
+protected def set : σ → StateListT σ m PUnit :=
   fun s' _ => return StateList.nil.cons ⟨⟩ s'
 
-/-- Modify and get the state in `ListStateT σ m`. -/
+/-- Modify and get the state in `StateListT σ m`. -/
 @[always_inline, inline]
-protected def modifyGet (f : σ → α × σ) : ListStateT σ m α :=
+protected def modifyGet (f : σ → α × σ) : StateListT σ m α :=
   fun s => let a := f s; return StateList.nil.cons a.1 a.2
 
-/-- Lift an action from `m α` to `ListStateT σ m α`. -/
+/-- Lift an action from `m α` to `StateListT σ m α`. -/
 @[always_inline, inline]
-protected def lift {α : Type u} (t : m α) : ListStateT σ m α :=
+protected def lift {α : Type u} (t : m α) : StateListT σ m α :=
   fun s => do let a ← t; return StateList.nil.cons a s
 
-instance : MonadLift m (ListStateT σ m) := ⟨ListStateT.lift⟩
+instance : MonadLift m (StateListT σ m) := ⟨StateListT.lift⟩
 
 @[always_inline]
-instance (σ m) [Monad m] : MonadFunctor m (ListStateT σ m) := ⟨fun f x s => f (x s)⟩
+instance (σ m) [Monad m] : MonadFunctor m (StateListT σ m) := ⟨fun f x s => f (x s)⟩
 
 @[always_inline]
-instance (ε) [MonadExceptOf ε m] : MonadExceptOf ε (ListStateT σ m) := {
-  throw    := ListStateT.lift ∘ throwThe ε
+instance (ε) [MonadExceptOf ε m] : MonadExceptOf ε (StateListT σ m) := {
+  throw    := StateListT.lift ∘ throwThe ε
   tryCatch := fun x c s => tryCatchThe ε (x s) (fun e => c e s)
 }
 
 end
-end ListStateT
+end StateListT
 
 section
 variable {σ : Type u} {m : Type u → Type v}
 
-instance [Monad m] : MonadStateOf σ (ListStateT σ m) where
-  get       := ListStateT.get
-  set       := ListStateT.set
-  modifyGet := ListStateT.modifyGet
+instance [Monad m] : MonadStateOf σ (StateListT σ m) where
+  get       := StateListT.get
+  set       := StateListT.set
+  modifyGet := StateListT.modifyGet
 
 end
 
 @[always_inline]
-instance ListStateT.monadControl (σ : Type u) (m : Type u → Type v) [Monad m] : MonadControl m (ListStateT σ m) where
+instance StateListT.monadControl (σ : Type u) (m : Type u → Type v) [Monad m] : MonadControl m (StateListT σ m) where
   stM      := StateList σ
   liftWith := fun f => do let s ← get; liftM (f (fun x => x s))
   restoreM := fun x _ => x
