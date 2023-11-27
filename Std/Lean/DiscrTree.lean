@@ -456,7 +456,7 @@ partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α
         introEtaBVars e' (b.instantiate1 fvar) k
   | _ => k b
 
-/-- return all encodings of `e` as a `DTExpr`.
+/-- Return all encodings of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
 partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
   let e ← reduce e config
@@ -505,10 +505,12 @@ partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M D
   | _           => unreachable!
 
 where
-  mkDTExprBinder (domain body : Expr) : M DTExpr := do
+  /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
+  and then return all encodings of `e` as a `DTExpr` -/
+  mkDTExprBinder (domain e : Expr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprAux false config (body.instantiate1 fvar)
+        mkDTExprAux false config (e.instantiate1 fvar)
 
 end MkDTExpr
 
@@ -703,7 +705,7 @@ mutual
     | .forallE _ d b _ => find .forall (matchExpr d >=> matchBinderBody d b)
     | _                => find .sort
 
-  /-- Introduce a bound variable of type `domain` to the context,
+  /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return the possible `Trie α` that match `e`. -/
   partial def matchBinderBody (domain e : Expr) (t : Trie α) : M (Trie α) :=
     withLocalDeclD `_a domain fun fvar =>
