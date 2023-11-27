@@ -3,7 +3,7 @@ Copyright (c) 2023 J. W. Gerbscheid. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: J. W. Gerbscheid
 -/
-import Std.Data.DiscrTree.Init.Basic
+import Std.Lean.DiscrTree.Init.Basic
 import Std.Data.ListState
 import Std.Data.List.Basic
 import Lean.Meta
@@ -64,20 +64,21 @@ open Lean Meta
 /-- The discrimination tree ignores instance implicit arguments and proofs.
    We use the following auxiliary id as a "mark". -/
 private def tmpMVarId : MVarId := { name := `_discr_tree_tmp }
-private def tmpStar := mkMVar tmpMVarId
+private def tmpStar : Expr := mkMVar tmpMVarId
 
-/- this state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into indexing by `Nat` in `Key`. -/
-structure Flatten.State where
+
+/-- this state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into indexing by `Nat` in `Key`. -/
+private structure Flatten.State where
   stars : Array MVarId := #[]
   fvars : Array FVarId := #[]
 
-def getFVar (fvarId : FVarId) : StateM Flatten.State Nat :=
+private def getFVar (fvarId : FVarId) : StateM Flatten.State Nat :=
   modifyGet fun s =>
   match s.fvars.findIdx? (· == fvarId) with
   | some idx => (idx, s)
   | none => (s.fvars.size, { s with fvars := s.fvars.push fvarId })
 
-def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
+private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
   modifyGet fun s =>
   if mvarId != tmpMVarId then
     if let some idx := s.stars.findIdx? (· == mvarId) then
@@ -86,7 +87,6 @@ def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
       (s.stars.size, { s with stars := s.stars.push mvarId })
   else
     (s.stars.size, { s with stars := s.stars.push mvarId })
-
 
 private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Flatten.State (Array Key)
   | .const n args =>   args.foldlM (init := todo.push (.const n args.size)) flattenAux
@@ -104,10 +104,6 @@ def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
   (DTExpr.flattenAux (.mkEmpty initCapacity) e).run' {}
 
 
-
-
-
--- **Transforming from Expr to the possible DTExpr**
 
 
 /-- Return true if `a` should be ignored in the `DiscrTree`. -/
@@ -170,7 +166,7 @@ where
         failure
     | _ => failure
 
-
+/-- The weak head normal form function for indexing expressions in a `DiscrTree`. -/
 partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
   let e ← whnfCore e config
   match (← unfoldDefinition? e) with
@@ -181,10 +177,10 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
 
 
 
-def mkNoindexAnnotation (e : Expr) : Expr :=
+private def mkNoindexAnnotation (e : Expr) : Expr :=
   mkAnnotation `noindex e
 
-def hasNoindexAnnotation (e : Expr) : Bool :=
+private def hasNoindexAnnotation (e : Expr) : Bool :=
   annotation? `noindex e |>.isSome
 
 
@@ -199,7 +195,7 @@ def isStarWithArg (arg : Expr) : Expr → Bool
   | .app f a => if a == arg then isStar f else isStarWithArg arg f
   | _ => false
 
-def starEtaExpandedBody : Expr → Nat → Nat → Option Expr
+private def starEtaExpandedBody : Expr → Nat → Nat → Option Expr
   | .app b a, n+1, i => if isStarWithArg (.bvar i) a then starEtaExpandedBody b n (i+1) else none
   | _,        _+1, _ => none
   | b,        0,   _ => some b
@@ -213,7 +209,7 @@ def starEtaExpanded : Expr → Nat → Option Expr
   | b,            n => starEtaExpandedBody b n 0
 
 
-partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
+private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
   | .const _ as    => as.any (hasLooseBVarsAux i)
   | .fvar _ as     => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
@@ -222,6 +218,7 @@ partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
   | .lam b         => b.hasLooseBVarsAux (i+1)
   | _              => false
 
+/-- Return `true` if `e` contains a loose bound variable. -/
 def DTExpr.hasLooseBVars (e : DTExpr) : Bool :=
   e.hasLooseBVarsAux 0
 
@@ -261,10 +258,7 @@ partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α
         introEtaBVars e' (b.instantiate1 fvar) k
   | _ => k b
 
-partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
-  if hasNoindexAnnotation e then
-    return .star tmpMVarId
-  else
+private partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
   let e ← reduce e config
   Expr.withApp e fun fn args => do
   let argPaths : M (Array DTExpr) := do
@@ -279,8 +273,8 @@ partial def mkPathAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTE
         return .lit v
     return .const c (← argPaths)
   | .proj s i a =>
-    let a := if isClass (← getEnv) s then mkNoindexAnnotation a else a
-    return .proj s i (← mkPathAux false config a) (← argPaths)
+    let a ← if isClass (← getEnv) s then pure (.star tmpMVarId) else mkPathAux false config a
+    return .proj s i a (← argPaths)
   | .fvar fvarId =>
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
@@ -321,9 +315,6 @@ end MkPath
 def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (List DTExpr) :=
   withReducible do (MkPath.mkPathAux true config e |>.run {}).run' {}
 
--- def mkPath (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (Array Key) :=
---   DTExpr.flatten <$> mkDTExpr e config
-
 
 
 -- **Inserting intro a DiscrTree**
@@ -347,8 +338,8 @@ where
       vs.push v
 termination_by loop i => vs.size - i
 
-
-private partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie α → Trie α
+/-- insert the value `v` at index `keys : Array Key` in a `Trie α`. -/
+partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie α → Trie α
   | .node cs =>
       let k := keys[i]!
       let c := Id.run $ cs.binInsertM
@@ -369,23 +360,25 @@ private partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) 
         return .mkPath shared (.mkNode2 k1 (.singleton keys v (i+n+1)) k2 (.mkPath rest c))
     return .path ks (insertInTrie keys v (i + ks.size) c)
 
+/-- insert the value `v` at index `keys : Array Key` in a `DiscrTree α`. -/
 def insertInDiscrTree [BEq α] (d : DiscrTree α) (keys : Array Key) (v : α) : DiscrTree α :=
   let k := keys[0]!
-  match d.root.find? k with
+  match d.find? k with
   | none =>
     let c := .singleton keys v 1
-    { root := d.root.insert k c }
+    d.insert k c
   | some c =>
     let c := insertInTrie keys v 1 c
-    { root := d.root.insert k c }
+    d.insert k c
 
+/-- insert the value `v` at index `e : DTExpr` in a `DiscrTree α`. -/
 def insertDTExpr [BEq α] (d : DiscrTree α) (e : DTExpr) (v : α) : DiscrTree α :=
   insertInDiscrTree d e.flatten v
 
-def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig) : MetaM (DiscrTree α) := do
+/-- insert the value `v` at index `e : Expr` in a `DiscrTree α`. -/
+def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {}) : MetaM (DiscrTree α) := do
   let keys ← mkDTExprs e config
   return keys.foldl (insertDTExpr · · v) d
-
 
 
 
@@ -502,11 +495,11 @@ end
 partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreConfig) : MetaM (List (Array α × Nat)) :=
   withReducible $ M.run config do
     let e ← reduce e config
-    let matchStar := match d.root.find? (.star 0) with
+    let matchStar := match d.find? (.star 0) with
       | none => failure
       | some c => pure c
 
-    match exactMatch e [] (d.root.find?) true with
+    match exactMatch e [] (d.find?) true with
     | .mvar => failure
     | .fvar => matchStar
     | .exact result => result <|> matchStar
@@ -528,8 +521,8 @@ partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array �
     return .path ks (← c.mapArraysM f)
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
-def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) := do
-  pure { root := ← d.root.mapM (fun t => t.mapArraysM f) }
+def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) :=
+  d.mapM (fun t => t.mapArraysM f)
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
 def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
