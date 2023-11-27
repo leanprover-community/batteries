@@ -641,7 +641,7 @@ an applicable name. (e.g. `Iso.inv`)
 Implementation note: getting rid of TermElabM is tricky, since `Expr.mkAppOptM` doesn't allow to
 keep metavariables around, which are necessary for `OutParam`. -/
 def findAutomaticProjectionsAux (str : Name) (proj : ParsedProjectionData) (args : Array Expr) :
-    TermElabM <| Option (Expr × Name) := do
+    TermElabM (Option (Expr × Name)) := do
   if let some ⟨className, isNotation, findArgs⟩ :=
     notationClassAttr.find? (← getEnv) proj.strName then
     let findArgs ← unsafe evalConst findArgType findArgs
@@ -882,7 +882,7 @@ partial def _root_.Lean.Expr.instantiateLambdasOrApps (es : Array Expr) (e : Exp
   ```
 -/
 def getProjectionExprs (stx : Syntax) (tgt : Expr) (rhs : Expr) (cfg : Config) :
-    MetaM <| Array <| Expr × ProjectionData := do
+    MetaM (Array (Expr × ProjectionData)) := do
   -- the parameters of the structure
   let params := tgt.getAppArgs
   if cfg.debug && !(← (params.zip rhs.getAppArgs).allM fun ⟨a, b⟩ => isDefEq a b) then
