@@ -8,8 +8,9 @@ import Std.Data.List.Basic
 import Lean.Meta
 
 /-!
-This file is a modification of DiscrTree.lean in Lean, with some parts removed and some new features added.
-I document only what is different from that file.
+This file defines discrimination trees.
+It is based on `DiscrTree` that is already present in Lean.
+I document here what is not in the original.
 
 We define discrimination trees for the purpose of unifying local expressions with library results.
 
@@ -20,16 +21,17 @@ These are the features that are not in Lean's discrimination trees:
   `*0` corresponds to the type of `a`, `*1` to the `Hadd` instance, and `*2` to `a`.
   This means that it will only match an expression `x+y` if `x` is definitionally equal to `y`.
 
-  `Key.fvar` is used in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
+  `Key.fvar` is used in lemmas like
+  `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
   where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, .fvar 0 0]`.
   the first argument of `Key.fvar` is the identifier, and the second argument is the arity.
 
   If a discrimination tree is built locally, there is a need for a `Key.fvar` that takes an `FVarId`
   as an idenitifier, which is what the DiscrTree defined in Lean does, but this is of no use for us.
 
-- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for patterns under binders.
-  For example, this allows for more specific matching with the left hand side of
-  `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`
+- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for
+  patterns under binders. For example, this allows for more specific matching with
+  the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`
 
 - We keep track of a matching score of a unification.
   This score represent the number of keys that had to be the same for the unification to succeed.
@@ -39,7 +41,8 @@ These are the features that are not in Lean's discrimination trees:
   and matching `*0` two times after its first appearence gives another 2 points.
   Similarly, matching it with `add_assoc` gives a score of 7.
 
-  TODO?: the third type parameter of `Hadd.hadd` is an outparam, so its matching should not be counted to the score.
+  TODO?: the third type parameter of `Hadd.hadd` is an outparam,
+  so its matching should not be counted in the score.
 
 - Patterns that have the potential to be η-reduced are put into the `DiscrTree` under all
   possible reduced key sequences. This is for terms of the form `fun x => f (?m x₁ .. xₙ)`, where
@@ -115,9 +118,10 @@ private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
   | .lit v₁,        .lit v₂        => v₁ < v₂
   | .fvar n₁ a₁,    .fvar n₂ a₂    => n₁ < n₂ || (n₁ == n₂ && a₁ < a₂)
-  | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
-  | .proj s₁ i₁ a₁, .proj s₂ i₂ a₂ => Name.quickLt s₁ s₂ || (s₁ == s₂ && i₁ < i₂) || (s₁ == s₂ && i₁ == i₂ && a₁ < a₂)
   | .bvar i₁ a₁,    .bvar i₂ a₂    => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
+  | .proj s₁ i₁ a₁, .proj s₂ i₂ a₂ =>
+    Name.quickLt s₁ s₂ || (s₁ == s₂ && (i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)))
+  | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
   | k₁,             k₂             => k₁.ctorIdx < k₂.ctorIdx
 
 instance : LT Key := ⟨fun a b => Key.lt a b⟩
@@ -129,7 +133,7 @@ private def Key.format : Key → Format
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
   | .const k a              => "⟨" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
-  | .proj s i a             => "⟨" ++ Std.format s ++ "." ++ Std.format i ++ ", " ++ Std.format a ++ "⟩"
+  | .proj s i a             => "⟨" ++ Std.format s ++"."++ Std.format i ++", "++ Std.format a ++ "⟩"
   | .fvar k a               => "⟨" ++ "f" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
   | .bvar i a               => "⟨" ++ "#" ++ Std.format i ++ ", " ++ Std.format a ++ "⟩"
   | .forall                 => "→"
@@ -235,7 +239,9 @@ private partial def DTExpr.format : DTExpr → Format
   | .lam b                  => "λ " ++ DTExpr.format b
 where
   formatArray (as : Array DTExpr) :=
-    if as.isEmpty then .nil else " " ++ Format.paren (@Format.joinSep _ ⟨DTExpr.format⟩ as.toList ", ")
+    if as.isEmpty
+      then .nil
+      else " " ++ Format.paren (@Format.joinSep _ ⟨DTExpr.format⟩ as.toList ", ")
 
 instance : ToFormat DTExpr := ⟨DTExpr.format⟩
 
@@ -246,7 +252,9 @@ def _root_.Std.DiscrTree (α : Type) := PersistentHashMap Key (Trie α)
 private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :=
   let (_, r) := d.foldl
     (fun (p : Bool × Format) k c =>
-      (false, p.2 ++ (if p.1 then Format.nil else Format.line) ++ Format.paren (Std.format k ++ " => " ++ Std.format c)))
+      (false,
+        p.2 ++ (if p.1 then Format.nil else Format.line) ++
+          Format.paren (Std.format k ++ " => " ++ Std.format c)))
     (true, Format.nil)
   Format.group r
 
@@ -257,12 +265,14 @@ instance [ToFormat α] : ToFormat (DiscrTree α) := ⟨DiscrTree.format⟩
 
 -- ## Encoding an Expr
 
-/-- This `MVarId` is used to represent expressions that should be indexed with a unique `Key.star`. -/
+/-- This `MVarId` is used to represent expressions that should be indexed with a unique
+`Key.star`. -/
 private def tmpMVarId : MVarId := { name := `_discr_tree_tmp }
 private def tmpStar : Expr := mkMVar tmpMVarId
 
 
-/-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into indexing by `Nat` in `Key`. -/
+/-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into
+indexing by `Nat` in `Key`. -/
 private structure Flatten.State where
   stars : Array MVarId := #[]
   fvars : Array FVarId := #[]
@@ -289,9 +299,11 @@ private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Fla
   | .sort => return todo.push .sort
   | .lam b => flattenAux (todo.push .lam) b
   | .«forall» d b => do flattenAux (← flattenAux (todo.push .forall) d) b
-  | .proj n i e args => do args.foldlM (init := ← flattenAux (todo.push (.proj n i args.size)) e) flattenAux
+  | .proj n i e args => do
+    args.foldlM (init := ← flattenAux (todo.push (.proj n i args.size)) e) flattenAux
 
-/-- Given a `DTExpr`, return the linearized encoding in terms of `Key`, which is used for `DiscrTree` indexing. -/
+/-- Given a `DTExpr`, return the linearized encoding in terms of `Key`,
+which is used for `DiscrTree` indexing. -/
 def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
   (DTExpr.flattenAux (.mkEmpty initCapacity) e).run' {}
 
@@ -565,7 +577,8 @@ def insertDTExpr [BEq α] (d : DiscrTree α) (e : DTExpr) (v : α) : DiscrTree �
   insertInDiscrTree d e.flatten v
 
 /-- insert the value `v` at index `e : Expr` in a `DiscrTree α`. -/
-def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {}) : MetaM (DiscrTree α) := do
+def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
+  : MetaM (DiscrTree α) := do
   let keys ← mkDTExprs e config
   return keys.foldl (insertDTExpr · · v) d
 
@@ -625,7 +638,8 @@ we do an `isDefEq` check, without modifying the state. -/
 def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := do
   let {assignments, ..} ← get
   let mut result := failure
-  /- The `.star` patterns are all at the start of the `Array`, so this for loop will find them all. -/
+  /- The `.star` patterns are all at the start of the `Array`,
+  so this for loop will find them all. -/
   for (k, c) in children do
     let .star i := k | break
     if let some assignment := assignments.find? i then
@@ -638,7 +652,8 @@ def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := d
       result := (insertAssignment i e *> pure c) <|> result
   result
 
-/-- An exact match succeeds for keys other than `.star` and `.fvar`, which are treated separately. -/
+/-- An exact match succeeds for keys other than `.star` and `.fvar`,
+which are treated separately. -/
 private inductive exactMatchResult (α : Type) where
   | mvar
   | fvar
@@ -656,10 +671,11 @@ mutual
       | .exact result => result <|> matchStars e children
 
   /-- Return the possible `Trie α` that match with `e` where the first `Key` matches exactly. -/
-  partial def exactMatch (e : Expr) (boundVars : List FVarId) (find? : Key → Option (Trie α)) (root : Bool) : exactMatchResult α :=
+  partial def exactMatch (e : Expr) (boundVars : List FVarId) (find? : Key → Option (Trie α))
+    (root : Bool) : exactMatchResult α :=
 
-    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : exactMatchResult α := .exact do
-      match find? k with
+    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : exactMatchResult α :=
+      .exact $ match find? k with
         | none => failure
         | some trie => do
           incrementScore score
@@ -700,7 +716,8 @@ end GetUnify
 
 /-- return the results from the `DiscrTree` that match the given expression,
 together with their matching scores. -/
-partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreConfig) : MetaM (List (Array α × Nat)) :=
+partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreConfig)
+  : MetaM (List (Array α × Nat)) :=
   withReducible $ GetUnify.M.run config do
     let e ← reduce e config
     let matchStar := match d.find? (.star 0) with

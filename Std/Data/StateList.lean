@@ -30,9 +30,10 @@ inductive StateList (σ α : Type u) where
   list with first element `a` with state `s` and `l` as the rest of the list. -/
   | cons : α → σ → StateList σ α → StateList σ α
 
-namespace StateList
+universe u
+variable {α β σ : Type u}
 
-variable {α σ : Type u}
+namespace StateList
 
 private def toList : StateList σ α → List (α × σ)
   | .cons a s l => (a, s) :: l.toList
@@ -53,7 +54,7 @@ private def append : (xs ys : StateList σ α) → StateList σ α
 instance : Append (StateList σ α) := ⟨StateList.append⟩
 
 @[specialize]
-private def foldrM {m : Type u → Type v} [Monad m] {β : Type u} {α σ : Type w} : (f : α → σ → β → m β) → (init : β) → StateList σ α → m β
+private def foldrM [Monad m] : (f : α → σ → β → m β) → (init : β) → StateList σ α → m β
   | _, b, .nil     => pure b
   | f, b, .cons a s l => do
     f a s (← l.foldrM f b)
@@ -64,14 +65,17 @@ end StateList
 def StateListT (σ : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
   σ → m (StateList σ α)
 
+universe v
+variable {m : Type u → Type v} [Monad m]
+
 /-- Run `x` on a given state `s`, returning the list of values with corresponding states. -/
 @[always_inline, inline]
-def StateListT.run {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : StateListT σ m α) (s : σ) : m (List (α × σ)) :=
+def StateListT.run [Functor m] (x : StateListT σ m α) (s : σ) : m (List (α × σ)) :=
   StateList.toList <$> x s
 
 /-- Run `x` on a given state `s`, returning the list of values. -/
 @[always_inline, inline]
-def StateListT.run' {σ : Type u} {m : Type u → Type v} [Functor m] {α : Type u} (x : StateListT σ m α) (s : σ) : m (List α) :=
+def StateListT.run' [Functor m] (x : StateListT σ m α) (s : σ) : m (List α) :=
   StateList.toList' <$> x s
 
 /-- The combined state and list monad. -/
@@ -80,8 +84,6 @@ def StateListM (σ α : Type u) : Type u := StateListT σ Id α
 
 namespace StateListT
 section
-variable {σ : Type u} {m : Type u → Type v}
-variable [Monad m] {α β : Type u}
 
 @[always_inline, inline]
 private def pure (a : α) : StateListT σ m α :=
@@ -103,11 +105,11 @@ instance : Monad (StateListT σ m) where
   map  := StateListT.map
 
 @[always_inline, inline]
-private def orElse {α : Type u} (x : StateListT σ m α) (y : Unit → StateListT σ m α) : StateListT σ m α :=
+private def orElse (x : StateListT σ m α) (y : Unit → StateListT σ m α) : StateListT σ m α :=
   fun s => (· ++ ·) <$> x s <*> y () s
 
 @[always_inline, inline]
-private def failure {α : Type u} : StateListT σ m α :=
+private def failure : StateListT σ m α :=
   fun _ => return .nil
 
 instance : Alternative (StateListT σ m) where
@@ -131,16 +133,16 @@ protected def modifyGet (f : σ → α × σ) : StateListT σ m α :=
 
 /-- Lift an action from `m α` to `StateListT σ m α`. -/
 @[always_inline, inline]
-protected def lift {α : Type u} (t : m α) : StateListT σ m α :=
+protected def lift (t : m α) : StateListT σ m α :=
   fun s => do let a ← t; return StateList.nil.cons a s
 
 instance : MonadLift m (StateListT σ m) := ⟨StateListT.lift⟩
 
 @[always_inline]
-instance (σ m) [Monad m] : MonadFunctor m (StateListT σ m) := ⟨fun f x s => f (x s)⟩
+instance : MonadFunctor m (StateListT σ m) := ⟨fun f x s => f (x s)⟩
 
 @[always_inline]
-instance (ε) [MonadExceptOf ε m] : MonadExceptOf ε (StateListT σ m) := {
+instance [MonadExceptOf ε m] : MonadExceptOf ε (StateListT σ m) := {
   throw    := StateListT.lift ∘ throwThe ε
   tryCatch := fun x c s => tryCatchThe ε (x s) (fun e => c e s)
 }
@@ -148,18 +150,15 @@ instance (ε) [MonadExceptOf ε m] : MonadExceptOf ε (StateListT σ m) := {
 end
 end StateListT
 
-section
-variable {σ : Type u} {m : Type u → Type v}
 
-instance [Monad m] : MonadStateOf σ (StateListT σ m) where
+instance : MonadStateOf σ (StateListT σ m) where
   get       := StateListT.get
   set       := StateListT.set
   modifyGet := StateListT.modifyGet
 
-end
 
 @[always_inline]
-instance StateListT.monadControl (σ : Type u) (m : Type u → Type v) [Monad m] : MonadControl m (StateListT σ m) where
+instance StateListT.monadControl : MonadControl m (StateListT σ m) where
   stM      := StateList σ
   liftWith := fun f => do let s ← get; liftM (f (fun x => x s))
   restoreM := fun x _ => x
