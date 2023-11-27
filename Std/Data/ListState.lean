@@ -28,13 +28,6 @@ def map (f : α → β) : StateList σ α → StateList σ β
   | .cons a s l   => .cons (f a) s (l.map f)
   | .nil => .nil
 
-def reverseAux : StateList σ α → StateList σ α → StateList σ α
-  | .nil,   r => r
-  | .cons a s l, r => reverseAux l (.cons a s r)
-
-def reverse (l : StateList σ α) : StateList σ α :=
-  reverseAux l .nil
-
 def append : (xs ys : StateList σ α) → StateList σ α
   | .nil,         bs => bs
   | .cons a s l, bs => .cons a s (l.append bs)
@@ -42,15 +35,10 @@ def append : (xs ys : StateList σ α) → StateList σ α
 instance : Append (StateList σ α) := ⟨StateList.append⟩
 
 @[specialize]
-def foldlM {m : Type u → Type v} [Monad m] {β : Type u} {α σ : Type w} : (f : β → α → σ → m β) → (init : β) → StateList σ α → m β
+protected def foldrM {m : Type u → Type v} [Monad m] {β : Type u} {α σ : Type w} : (f : α → σ → β → m β) → (init : β) → StateList σ α → m β
   | _, b, .nil     => pure b
   | f, b, .cons a s l => do
-    let s' ← f b a s
-    StateList.foldlM f s' l
-
-@[inline]
-def foldrM {m : Type u → Type v} [Monad m] {b : Type u} {α σ : Type w} (f : α → σ → b → m b) (init : b) (l : StateList σ α) : m b :=
-  l.reverse.foldlM (fun b a s => f a s b) init
+    f a s (← l.foldrM f b)
 
 end StateList
 
