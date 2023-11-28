@@ -130,7 +130,7 @@ termination_by iter guess => guess
 /-!
 ### testBit
 We define an operation for testing individual bits in the binary representation
-of  a number.
+of a number.
 -/
 
 /-- `testBit m n` returns whether the `(n+1)ˢᵗ` least significant bit is `1` or `0`-/
