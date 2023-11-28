@@ -726,21 +726,30 @@ Each entry of type `Array α × Nat` corresponds to one pattern.
 
 If the head of `e` is a metavariable, no results are returned, since this
 
-If `unify = false`, then metavariables in `e` are treated as opaque variables.
-This is is for when you don't want the match results to instantiate metavariables in `e`. -/
-partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
-  : MetaM (Array (Array α × Nat)) :=
-  withReducible $ GetUnify.M.run unify config do
-    let matchTargetStar := match d.root.find? (.star 0) with
-      | none => failure
-      | some c => pure c
+If `unify := false`, then metavariables in `e` are treated as opaque variables.
+This is is for when you don't want the matched keys to instantiate metavariables in `e`.
 
+If `allowRootStar := false`, then we don't allow `e` or the matched key in `d`
+to be a star pattern. -/
+partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
+    (allowRootStar : Bool := false) : MetaM (Array (Array α × Nat)) :=
+  (·.qsort (·.2 > ·.2)) <$> withReducible ((do
     match ← GetUnify.exactMatch e d.root.find? true with
-    /- Matching with an mvar means that we should return all entries of the DiscrTree,
-    but that is much too inefficient, so instead we don't return anything.
-    TODO: add configuration option for this behaviour. -/
-    | none => failure
-    | some result => result <|> matchTargetStar
+    | none =>
+      if allowRootStar then do
+        d.root.foldl (init := failure) fun x k c => (do
+              if k == Key.opaque then
+                GetUnify.incrementScore 1
+              GetUnify.skipEntries c k.arity) <|> x
+      else
+        failure
+    | some result =>
+      if allowRootStar then
+        result <|> match d.root.find? (.star 0) with
+          | none => failure
+          | some c => pure c
+      else
+        result).run unify config)
 
 
 variable {m : Type → Type} [Monad m]
