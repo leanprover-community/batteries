@@ -46,7 +46,7 @@ this is truncation of the high bits when downcasting and zero-extension when upc
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin :=
     let p : i &&& 2^n-1 < 2^n := by
-        apply Nat.and_lt_2_pow
+        apply Nat.and_lt_two_pow
         exact Nat.sub_lt (Nat.pow_two_pos n) (Nat.le_refl 1)
     ⟨i &&& 2^n-1, p⟩
 
@@ -279,7 +279,7 @@ Bitwise AND for bit vectors.
 SMT-Lib name: `bvand`.
 -/
 protected def and (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat &&& y.toNat, Nat.and_lt_2_pow x.toNat y.isLt⟩
+   ⟨x.toNat &&& y.toNat, Nat.and_lt_two_pow x.toNat y.isLt⟩
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
