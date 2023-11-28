@@ -37,7 +37,7 @@ attribute [simp] isEmpty uget
 @[simp] theorem toArray_data : (a : Array α) → a.data.toArray = a
   | ⟨l⟩ => ext' (data_toArray l)
 
-@[simp] theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
+theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
 theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
 
