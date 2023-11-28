@@ -20,12 +20,12 @@ I document here what is not in the original.
 
 - The constructor `Key.opaque` has been introduced in order to index existential variables
   in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
-  where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, .opaque 0 0]`.
-  the first argument of `Key.opaque` is the identifier, and the second argument is the arity.
+  where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, ◾]`. (◾ represents `Key.opaque`)
 
 - The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to
   allow for patterns under binders. For example, this allows for more specific matching with
-  the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`
+  the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`,
+  which is indexed by `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`
 
 - We keep track of the matching score of a unification.
   This score represent the number of keys that had to be the same for the unification to succeed.
@@ -50,6 +50,12 @@ I document here what is not in the original.
   is indexed by
   `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]` and by
   `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
+
+TODO:
+- The matching algorithm currently doesn't remember assignments of metavariables in the target
+  expression, only of those in the `DiscrTree`. This means that the targets `?a + ?a` and `?a + ?b`
+  get the same results. Keeping track of all assignments and avoiding circular assignments is
+  tricky, but should be possible.
 -/
 
 open Lean Meta
@@ -62,9 +68,8 @@ namespace Std.DiscrTree
 inductive Key where
   /-- A metavariable. This key matches with anything. It stores an index. -/
   | star : Nat → Key
-  /-- An opaque variable. This key only matches with itself or `Key.star`.
-  It stores an index and an arity. -/
-  | opaque : Nat → Nat → Key
+  /-- An opaque variable. This key only matches with itself or `Key.star`. -/
+  | opaque : Key
   /-- A constant. It stores a `Name` and an arity. -/
   | const : Name → Nat → Key
   /-- A free variable. It stores a `FVarId` and an arity. -/
@@ -85,7 +90,7 @@ inductive Key where
 
 private nonrec def Key.hash : Key → UInt64
   | .star i     => mixHash 7883 $ hash i
-  | .opaque n a => mixHash 3541 $ mixHash (hash n) (hash a)
+  | .opaque     => 342
   | .const n a  => mixHash 5237 $ mixHash (hash n) (hash a)
   | .fvar  n a  => mixHash 8765 $ mixHash (hash n) (hash a)
   | .bvar i a   => mixHash 4323 $ mixHash (hash i) (hash a)
@@ -115,7 +120,6 @@ def Key.ctorIdx : Key → Nat
 /-- The (arbitrary) order on `Key` used in the `DiscrTree`. -/
 private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
-  | .opaque i₁ a₁,  .opaque i₂ a₂  => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
   | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
   | .fvar f₁ a₁,    .fvar f₂ a₂    => Name.quickLt f₁.name f₂.name || (f₁ == f₂ && a₁ < a₂)
   | .bvar i₁ a₁,    .bvar i₂ a₂    => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
@@ -129,7 +133,7 @@ instance (a b : Key) : Decidable (a < b) := inferInstanceAs (Decidable (Key.lt a
 
 private def Key.format : Key → Format
   | .star i                 => "*" ++ Std.format i
-  | .opaque k a             => "⟨" ++ "◾" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
+  | .opaque                 => "◾"
   | .const k a              => "⟨" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
   | .fvar k a               => "⟨" ++ Std.format k.name ++ ", " ++ Std.format a ++ "⟩"
   | .lit (Literal.natVal v) => Std.format v
@@ -144,7 +148,6 @@ instance : ToFormat Key := ⟨Key.format⟩
 
 /-- Return the number of argumets that the `Key` takes. -/
 def Key.arity : Key → Nat
-  | .opaque _ a => a
   | .const _ a  => a
   | .fvar _ a   => a
   | .bvar _ a   => a
@@ -225,7 +228,7 @@ inductive DTExpr where
   /-- A metavariable. -/
   | star : MVarId → DTExpr
   /-- An opaque variable. -/
-  | opaque : FVarId → Array DTExpr → DTExpr
+  | opaque : DTExpr
   /-- A constant. -/
   | const : Name → Array DTExpr → DTExpr
   /-- A free variable. -/
@@ -246,7 +249,7 @@ deriving Inhabited
 
 private partial def DTExpr.format : DTExpr → Format
   | .star _                 => "*"
-  | .opaque _ as            => "◾" ++ formatArgs as
+  | .opaque                 => "◾"
   | .const n as             => Std.format n ++ formatArgs as
   | .fvar n as             => Std.format n.name ++ formatArgs as
   | .bvar i as              => "#" ++ Std.format i  ++ formatArgs as
@@ -278,14 +281,7 @@ private def tmpStar : Expr := mkMVar tmpMVarId
 /-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into
 indexing by `Nat` in `Key`. -/
 private structure Flatten.State where
-  stars   : Array MVarId := #[]
-  opaques : Array FVarId := #[]
-
-private def getOpaque (fvarId : FVarId) : StateM Flatten.State Nat :=
-  modifyGet fun s =>
-  match s.opaques.findIdx? (· == fvarId) with
-  | some idx => (idx, s)
-  | none => (s.opaques.size, { s with opaques := s.opaques.push fvarId })
+  stars : Array MVarId := #[]
 
 private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
   modifyGet fun s => Id.run do
@@ -296,10 +292,10 @@ private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
 
 private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Flatten.State (Array Key)
   | .star i => return todo.push (.star (← getStar i))
-  | .opaque f as => do as.foldlM flattenAux (todo.push (.opaque (← getOpaque f) as.size))
-  | .const  n as =>    as.foldlM flattenAux (todo.push (.const n as.size))
-  | .fvar   f as =>    as.foldlM flattenAux (todo.push (.fvar f as.size))
-  | .bvar   i as =>    as.foldlM flattenAux (todo.push (.bvar i as.size))
+  | .opaque => return todo.push .opaque
+  | .const n as => as.foldlM flattenAux (todo.push (.const n as.size))
+  | .fvar  f as => as.foldlM flattenAux (todo.push (.fvar f as.size))
+  | .bvar  i as => as.foldlM flattenAux (todo.push (.bvar i as.size))
   | .lit l => return todo.push (.lit l)
   | .sort  => return todo.push .sort
   | .lam b => flattenAux (todo.push .lam) b
@@ -410,7 +406,6 @@ def starEtaExpanded : Expr → Nat → Option Expr
 
 
 private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
-  | .opaque _ as   => as.any (hasLooseBVarsAux i)
   | .const  _ as   => as.any (hasLooseBVarsAux i)
   | .fvar   _ as   => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
@@ -490,7 +485,7 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : M DTExpr := do
     if (← read).fvarInContext fvarId then
       return .fvar fvarId (← argDTExprs)
     else
-      return .opaque fvarId (← argDTExprs)
+      return .opaque
   | .mvar mvarId =>
     if (e matches .app ..) then
       return .star tmpMVarId
@@ -623,8 +618,8 @@ private abbrev M := ReaderT Context $ StateListT (State) MetaM
 
 /-- Return all values from `x` in a list, together with their scores. -/
 private def M.run (unify : Bool) (config : WhnfCoreConfig) (x : M (Trie α))
-  : MetaM (List (Array α × Nat)) :=
-  List.map (fun (t, s) => (t.values!, s.score)) <$> (x.run { unify, config }).run {}
+  : MetaM (Array (Array α × Nat)) :=
+  (·.toArray.map (fun (t, s) => (t.values!, s.score))) <$> (x.run { unify, config }).run {}
 
 /-- Increment the score by `n`. -/
 private def incrementScore (n : Nat) : M Unit :=
@@ -642,11 +637,11 @@ partial def skipEntries (t : Trie α) : Nat → M (Trie α)
       skipEntries c (skip + k.arity) <|> x
 
 /-- Return the possible `Trie α` that match with anything.
-We add 1 to the matching score when the key is `.opaque`,
+We add 1 to the matching score when the key equals `.opaque`,
 since this pattern is "harder" to match with. -/
-def matchTargetStar (children : Array (Key × Trie α)) : M (Trie α) :=
-  children.foldr (init := failure) fun (k, c) x => (do
-    if k matches .opaque .. then
+def matchTargetStar (t : Trie α) : M (Trie α) :=
+  t.children!.foldr (init := failure) fun (k, c) x => (do
+    if k == .opaque then
       incrementScore 1
     skipEntries c k.arity
     ) <|> x
@@ -654,12 +649,12 @@ def matchTargetStar (children : Array (Key × Trie α)) : M (Trie α) :=
 /-- Return the possible `Trie α` that come from a `Key.star i` key.
 We keep track of the assignments of `Key.star i`, and if there is already an assignment,
 we do an `isDefEq` check, without modifying the state. -/
-def matchTreeStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := do
+def matchTreeStars (e : Expr) (t : Trie α) : M (Trie α) := do
   let {assignments, ..} ← get
   let mut result := failure
   /- The `.star` patterns are all at the start of the `Array`,
   so this for loop will find them all. -/
-  for (k, c) in children do
+  for (k, c) in t.children! do
     let .star i := k | break
     if let some assignment := assignments.find? i then
       try
@@ -671,29 +666,20 @@ def matchTreeStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) 
       result := (insertAssignment i e *> pure c) <|> result
   result
 
-/-- An exact match succeeds for keys other than `.star` and `.opaque`,
-which are treated separately. -/
-private inductive exactMatchResult (α : Type) where
-  | star
-  | opaque
-  | exact (result : M (Trie α))
-deriving Inhabited
-
 mutual
   /-- Return the possible `Trie α` that match with `e`. -/
   partial def matchExpr (e : Expr) (t : Trie α) : M (Trie α) := do
-    let children := t.children!
-    match ← exactMatch e (findKey children) false with
-      | .star => matchTargetStar children
-      | .opaque => matchTreeStars e children
-      | .exact result => result <|> matchTreeStars e children
+    match ← exactMatch e (findKey t.children!) false with
+      | none => matchTargetStar t
+      | some result => result <|> matchTreeStars e t
 
-  /-- Return the possible `Trie α` that match with `e` where the first `Key` matches exactly. -/
+  /-- If the head of `e` is not a metavariable,
+  return the possible `Trie α` that exactly match with `e`. -/
   partial def exactMatch (e : Expr) (find? : Key → Option (Trie α)) (root : Bool)
-    : M (exactMatchResult α) := do
+    : M (Option (M (Trie α))) := do
 
-    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : M (exactMatchResult α) :=
-      return .exact $ match find? k with
+    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : M (Trie α) :=
+      match find? k with
         | none => failure
         | some trie => do
           incrementScore score
@@ -705,22 +691,22 @@ mutual
     let e ← reduce e (← read).config
     match e.getAppFn with
     | .const c _       =>
-      if let some v := guard (!root) *> toNatLit? e then
-        find (.lit v)
-      else
-        find (.const c e.getAppNumArgs) matchArgs
+      unless root do
+        if let some v := toNatLit? e then
+          return find (.lit v)
+      return find (.const c e.getAppNumArgs) matchArgs
 
     | .fvar fvarId     =>
       if let some i := (← read).boundVars.findIdx? (· == fvarId) then
-        find (.bvar i e.getAppNumArgs) matchArgs
+        return find (.bvar i e.getAppNumArgs) matchArgs
       else
-        return .opaque
-    | .proj s i a      => find (.proj s i e.getAppNumArgs) (matchExpr a >=> matchArgs)
-    | .lit v           => find (.lit v)
-    | .mvar _          => return if (← read).unify then .star else .opaque
-    | .lam _ d b _     => find .lam (score := 0) (matchBinderBody d b)
-    | .forallE _ d b _ => find .forall (matchExpr d >=> matchBinderBody d b)
-    | _                => find .sort
+        return find (.fvar fvarId e.getAppNumArgs) matchArgs
+    | .proj s i a      => return find (.proj s i e.getAppNumArgs) (matchExpr a >=> matchArgs)
+    | .lit v           => return find (.lit v)
+    | .mvar _          => return if (← read).unify then none else failure
+    | .lam _ d b _     => return find .lam (score := 0) (matchBinderBody d b)
+    | .forallE _ d b _ => return find .forall (matchExpr d >=> matchBinderBody d b)
+    | _                => return find .sort
 
   /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return the possible `Trie α` that match `e`. -/
@@ -734,14 +720,16 @@ end
 end GetUnify
 
 /-- Return the results from the `DiscrTree` that match the given expression,
-together with their matching scores.
+together with their matching scores, in decreasing order of score.
 
 Each entry of type `Array α × Nat` corresponds to one pattern.
+
+If the head of `e` is a metavariable, no results are returned, since this
 
 If `unify = false`, then metavariables in `e` are treated as opaque variables.
 This is is for when you don't want the match results to instantiate metavariables in `e`. -/
 partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
-  : MetaM (List (Array α × Nat)) :=
+  : MetaM (Array (Array α × Nat)) :=
   withReducible $ GetUnify.M.run unify config do
     let matchTargetStar := match d.root.find? (.star 0) with
       | none => failure
@@ -751,9 +739,8 @@ partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (conf
     /- Matching with an mvar means that we should return all entries of the DiscrTree,
     but that is much too inefficient, so instead we don't return anything.
     TODO: add configuration option for this behaviour. -/
-    | .star => failure
-    | .opaque => matchTargetStar
-    | .exact result => result <|> matchTargetStar
+    | none => failure
+    | some result => result <|> matchTargetStar
 
 
 variable {m : Type → Type} [Monad m]
