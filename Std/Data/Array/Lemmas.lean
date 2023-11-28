@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.Array.Basic
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
 
@@ -391,3 +392,54 @@ theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
 @[simp] theorem mem_filterMap (f : α → Option β) (l : Array α) {b : β} :
     b ∈ filterMap f l ↔ ∃ a, a ∈ l ∧ f a = some b := by
   simp only [mem_def, filterMap_data, List.mem_filterMap]
+
+/-! ### join -/
+
+@[simp] theorem join_data {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
+  dsimp [join]
+  simp only [foldl_eq_foldl_data]
+  generalize l.data = l
+  have : ∀ a : Array α, (List.foldl ?_ a l).data = a.data ++ ?_ := ?_
+  exact this #[]
+  induction l with
+  | nil => simp
+  | cons h => induction h.data <;> simp [*]
+
+theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
+  simp only [mem_def, join_data, List.mem_join, List.mem_map]
+  intro l
+  constructor
+  · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
+    exact ⟨s, m, h⟩
+  · rintro ⟨s, h₁, h₂⟩
+    refine ⟨s.data, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+
+/-! ### append -/
+
+@[simp] theorem mem_append {a : α} {s t : Array α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
+  simp only [mem_def, append_data, List.mem_append]
+
+/-! ### all -/
+
+theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
+    all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
+  have := SatisfiesM_anyM_iff_exists (m := Id) (fun a => ! p a) as start stop (! p as[·]) (by simp)
+  rw [SatisfiesM_Id_eq] at this
+  dsimp [all, allM, Id.run]
+  rw [Bool.not_eq_true', Bool.eq_false_iff, Ne]
+  simp [this]
+
+theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
+  simp [all_iff_forall, Fin.isLt]
+
+theorem all_def {p : α → Bool} (as : Array α) : as.all p = as.data.all p := by
+  rw [Bool.eq_iff_iff, all_eq_true, List.all_eq_true]; simp only [List.mem_iff_get]
+  constructor
+  · rintro w x ⟨r, rfl⟩
+    rw [← getElem_eq_data_get]
+    apply w
+  · intro w i
+    exact w as[i] ⟨i, (getElem_eq_data_get as i.2).symm⟩
+
+theorem all_eq_true_iff_forall_mem {l : Array α} : l.all p ↔ ∀ x, x ∈ l → p x := by
+  simp only [all_def, List.all_eq_true, mem_def]

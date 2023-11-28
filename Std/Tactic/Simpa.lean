@@ -6,7 +6,7 @@ Authors: Arthur Paulino, Gabriel Ebner, Mario Carneiro
 import Lean.Meta.Tactic.Assumption
 import Lean.Elab.Tactic.Simp
 import Lean.Linter.Util
-import Std.Lean.Meta.LCtx
+import Std.Lean.LocalContext
 import Std.Lean.Parser
 import Std.Tactic.OpenPrivate
 import Std.Tactic.TryThis
