@@ -34,6 +34,7 @@ import Std.Data.Fin.Init.Lemmas
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
+import Std.Data.HashMap.Lemmas
 import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
@@ -84,6 +85,7 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
 import Std.Lean.Json
+import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -91,7 +93,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
@@ -137,6 +138,7 @@ import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
@@ -157,5 +159,6 @@ import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
+import Std.Util.ProofWanted
 import Std.Util.TermUnsafe
 import Std.WF

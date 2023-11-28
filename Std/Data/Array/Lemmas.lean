@@ -6,8 +6,10 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.Array.Basic
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
+import Std.Util.ProofWanted
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 
@@ -75,12 +77,16 @@ theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default
 
 theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
+proof_wanted get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]?
+
 theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     (a.push x)[i]? = some a[i] := by
   rw [getElem?_pos, get_push_lt]
 
 theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := by
   rw [getElem?_pos, get_push_eq]
+
+@[simp] proof_wanted get?_size {a : Array α} : a[a.size]? = none
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
@@ -397,3 +403,58 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 @[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
   Array.size_mapIdx _ _
+
+/-! ### join -/
+
+@[simp] theorem join_data {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
+  dsimp [join]
+  simp only [foldl_eq_foldl_data]
+  generalize l.data = l
+  have : ∀ a : Array α, (List.foldl ?_ a l).data = a.data ++ ?_ := ?_
+  exact this #[]
+  induction l with
+  | nil => simp
+  | cons h => induction h.data <;> simp [*]
+
+theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
+  simp only [mem_def, join_data, List.mem_join, List.mem_map]
+  intro l
+  constructor
+  · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
+    exact ⟨s, m, h⟩
+  · rintro ⟨s, h₁, h₂⟩
+    refine ⟨s.data, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+
+/-! ### append -/
+
+@[simp] theorem mem_append {a : α} {s t : Array α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
+  simp only [mem_def, append_data, List.mem_append]
+
+/-! ### all -/
+
+theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
+    all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
+  have := SatisfiesM_anyM_iff_exists (m := Id) (fun a => ! p a) as start stop (! p as[·]) (by simp)
+  rw [SatisfiesM_Id_eq] at this
+  dsimp [all, allM, Id.run]
+  rw [Bool.not_eq_true', Bool.eq_false_iff, Ne]
+  simp [this]
+
+theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
+  simp [all_iff_forall, Fin.isLt]
+
+theorem all_def {p : α → Bool} (as : Array α) : as.all p = as.data.all p := by
+  rw [Bool.eq_iff_iff, all_eq_true, List.all_eq_true]; simp only [List.mem_iff_get]
+  constructor
+  · rintro w x ⟨r, rfl⟩
+    rw [← getElem_eq_data_get]
+    apply w
+  · intro w i
+    exact w as[i] ⟨i, (getElem_eq_data_get as i.2).symm⟩
+
+theorem all_eq_true_iff_forall_mem {l : Array α} : l.all p ↔ ∀ x, x ∈ l → p x := by
+  simp only [all_def, List.all_eq_true, mem_def]
+
+/-! ### erase -/
+
+@[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
