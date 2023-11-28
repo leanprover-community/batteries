@@ -201,8 +201,7 @@ instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 
 
 
-/--
-`DTExpr` is a simplified form of `Expr`.
+/-- `DTExpr` is a simplified form of `Expr`.
 It is intermediate step for going from `Expr` to `Array Key`. See `DiscrTree`. -/
 inductive DTExpr where
   /-- A constant. -/
