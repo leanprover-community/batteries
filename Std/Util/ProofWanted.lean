@@ -15,7 +15,14 @@ open Lean Parser Elab Command
 The syntax of `proof_wanted` declarations is just like that of `theorem`, but without `:=` or the
 proof. Lean checks that `proof_wanted` declarations are well-formed (e.g. it ensures that all the
 mentioned names are in scope, and that the theorem statement is a valid proposition), but they are
-discarded afterwards. This means that they cannot be used as axioms. -/
+discarded afterwards. This means that they cannot be used as axioms.
+
+Typical usage:
+```
+@[simp] proof_wanted empty_find? [BEq α] [Hashable α] {a : α} :
+    (∅ : HashMap α β).find? a = none
+```
+-/
 @[command_parser]
 def «proof_wanted» := leading_parser
   declModifiers false >> "proof_wanted" >> declId >> ppIndent declSig
