@@ -65,15 +65,15 @@ private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) :
   Nat.lt_of_lt_of_le lt (Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) le)
 
 @[simp] theorem ofNat_toNat (m : Nat) (x : BitVec n) : (BitVec.ofNat m x.toNat) = truncate m x := by
-    let ⟨x, lt_n⟩ := x
-    unfold truncate
-    unfold zeroExtend
-    if h : n ≤ m then
-      unfold zeroExtend'
-      have lt_m : x < 2 ^ m := lt_two_pow_of_le lt_n h
-      simp [h, lt_m, Nat.mod_eq_of_lt, BitVec.toNat, BitVec.ofNat]
-    else
-      simp [h]
+  let ⟨x, lt_n⟩ := x
+  unfold truncate
+  unfold zeroExtend
+  if h : n ≤ m then
+    unfold zeroExtend'
+    have lt_m : x < 2 ^ m := lt_two_pow_of_le lt_n h
+    simp [h, lt_m, Nat.mod_eq_of_lt, BitVec.toNat, BitVec.ofNat]
+  else
+    simp [h]
 
 theorem toNat_append (x : BitVec m) (y : BitVec n) : (x ++ y).toNat = x.toNat <<< n ||| y.toNat :=
   rfl
