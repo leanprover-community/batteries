@@ -26,12 +26,11 @@ theorem eq_of_getLsb_eq {x y : BitVec w}
   apply eq_of_toNat_eq
   apply Nat.eq_of_testBit_eq
   intro i
-  simp [testBit_toNat]
   if i_lt : i < w then
     exact pred ⟨i, i_lt⟩
   else
     have p : i ≥ w := Nat.le_of_not_gt i_lt
-    simp [getLsb_ge _ _ p]
+    simp [testBit_toNat, getLsb_ge _ _ p]
 
 theorem eq_of_getMsb_eq {x y : BitVec w}
     (pred : ∀(i : Fin w), x.getMsb i = y.getMsb i.val) : x = y := by
@@ -46,7 +45,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
       simp [Nat.le_sub_iff_add_le w_pos, Nat.add_succ]
       exact i_lt
     have q_lt : w - 1 - i < w := by
-      simp [Nat.sub_sub]
+      simp only [Nat.sub_sub]
       apply Nat.sub_lt w_pos
       simp [Nat.succ_add]
     have q := pred ⟨w - 1 - i, q_lt⟩
@@ -69,11 +68,10 @@ private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) :
     let ⟨x, lt_n⟩ := x
     unfold truncate
     unfold zeroExtend
-    simp [BitVec.toNat, BitVec.ofNat]
     if h : n ≤ m then
       unfold zeroExtend'
       have lt_m : x < 2 ^ m := lt_two_pow_of_le lt_n h
-      simp [h, lt_m, Nat.mod_eq_of_lt]
+      simp [h, lt_m, Nat.mod_eq_of_lt, BitVec.toNat, BitVec.ofNat]
     else
       simp [h]
 
@@ -90,7 +88,7 @@ theorem toNat_cons (b : Bool) (x : BitVec w) : (cons b x).toNat = (b.toNat <<< w
 
 theorem getLsb_cons (b : Bool) {n} (x : BitVec n) (i : Nat) :
     getLsb (cons b x) i = if i = n then b else getLsb x i := by
-  simp [getLsb, toNat_cons, Nat.testBit_or]
+  simp only [getLsb, toNat_cons, Nat.testBit_or]
   rw [Nat.testBit_shiftLeft]
   rcases Nat.lt_trichotomy i n with i_lt_n | i_eq_n | n_lt_i
   · have i_ge_n := Nat.not_le_of_gt i_lt_n
@@ -150,7 +148,7 @@ theorem truncate_succ (x : BitVec w) :
     truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
   apply eq_of_getLsb_eq
   intro j
-  simp [getLsb_truncate, getLsb_cons, j.isLt]
+  simp only [getLsb_truncate, getLsb_cons, j.isLt, decide_True, Bool.true_and]
   if j_eq : j.val = i then
     simp [j_eq]
   else

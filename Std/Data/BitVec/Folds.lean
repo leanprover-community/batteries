@@ -2,11 +2,16 @@ import Std.Data.BitVec.Lemmas
 import Std.Data.Fin.Iterate
 import Std.Data.Nat.Lemmas
 
-
 namespace Std.BitVec
 
 /--
-`iunfoldr f a` returns
+iunfoldr is an iterative operation that applies a function `f` repeatedly.
+
+It produces a sequence of state values `[s_0, s_1 .. s_w]` and a bitvector
+`v` where `f i s_i = (s_{i+1}, b_i)` and `b_i` is bit `i`th least-significant bit
+in `v` (e.g., `getLsb v i = b_i`).
+
+Theorems involving `iunfoldr` can be eliminated using `iunfoldr_replace` below.
 -/
 def iunfoldr (f : Fin w -> α → α × Bool) (s : α) : α × BitVec w :=
   Fin.hIterate (fun i => α × BitVec i) (s, nil) fun i q =>
@@ -37,6 +42,9 @@ private theorem iunfoldr.eq_test
     intro i
     simp_all [truncate_succ]
 
+/--
+Correctness theorem for `iunfoldr`.
+-/
 theorem iunfoldr_replace
     {f : Fin w → α → α × Bool} (state : Nat → α) (value : BitVec w) (a : α)
     (init : state 0 = a)

@@ -9,10 +9,16 @@ import Std.Data.BitVec.Folds
 /-!
 # Bitblasting of bitvectors
 
-We prove the equivalence of a bitblasting operations and their `BitVec` implementation.
+This module provides theorems for showing the equivalence between BitVec operations using
+the `Fin 2^n` representation and Boolean vectors.  It is still under development, but
+intended to provide a path for converting SAT and SMT solver proofs about BitVectors
+as vectors of bits into proofs about Lean `BitVec` values.
+
+The module is named for the bit-blasting operation in an SMT solver that converts bitvector
+expressions into expressions about individual bits in each vector.
 
 ## Main results
-* `BV_add`: Bitblasted addition `bitadd` is equivalent to `BitVec.add`.
+* `x + y : BitVec w` is equivalent to `adc x y false`.
 
 ## Future work
 All other operations are to be PR'ed later and are already proved in
