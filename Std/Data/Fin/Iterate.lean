@@ -37,7 +37,7 @@ Because it is heterogenous and must return a value of type `P stop`,
 `hIterate` requires proof that `start ≤ stop`.
 
 One can prove properties of `hIterate` using the general theorem
-`hIterate_elim` or other more specialzied theorems.
+`hIterate_elim` or other more specialized theorems.
  -/
 def hIterate (P : Nat → Sort _) {n : Nat} (init : P 0) (f : ∀(i : Fin n), P i.val → P (i.val+1)) :
     P n :=
