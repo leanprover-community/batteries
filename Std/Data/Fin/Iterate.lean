@@ -80,7 +80,7 @@ theorem hIterate_elim {P : Nat → Sort _} (Q : ∀(i : Nat), P i → Prop)
 /-
 `hIterate_eq`provides a mechanism for replacing hIterate with another
 function overshowing that the result of
-`hIterate` satisifies a property `Q stop` by showing that the states
+`hIterate` satisfies a property `Q stop` by showing that the states
 at the intermediate indices `i : start ≤ i < stop` satisfy `Q i`.
 -/
 theorem hIterate_eq {P : Nat → Sort _}
