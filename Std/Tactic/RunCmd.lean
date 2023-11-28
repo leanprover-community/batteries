@@ -33,8 +33,8 @@ elab (name := runCmd) "run_cmd " elems:doSeq : command => do
       (← `(discard do $elems))
 
 /--
-The `run_meta doSeq` command executes code in `MetaM Unit`.
-This is almost the same as `#eval show MetaM Unit from do doSeq`,
+The `run_meta doSeq` command executes code in `TermElabM Unit`.
+This is almost the same as `#eval show TermElabM Unit from do doSeq`,
 except that it doesn't print an empty diagnostic.
 -/
 elab (name := runMeta) "run_meta " elems:doSeq : command => do
