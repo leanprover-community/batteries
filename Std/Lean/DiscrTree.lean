@@ -16,21 +16,18 @@ We define discrimination trees for the purpose of unifying local expressions wit
 
 These are the features that are not in Lean's discrimination trees:
 
-- The constructor `Key.fvar` and `Key.star` now take a `Nat` as an argument, as an identifier.
+- The constructor `Key.star` now takes a `Nat` identifier as an argument.
   For example, the library pattern `a+a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
   `*0` corresponds to the type of `a`, `*1` to the `Hadd` instance, and `*2` to `a`.
   This means that it will only match an expression `x+y` if `x` is definitionally equal to `y`.
 
-  `Key.fvar` is used in lemmas like
-  `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
-  where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, .fvar 0 0]`.
-  the first argument of `Key.fvar` is the identifier, and the second argument is the arity.
+- The constructor `Key.opaque` has been introduced in order to index existential variables
+  in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
+  where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, .opaque 0 0]`.
+  the first argument of `Key.opaque` is the identifier, and the second argument is the arity.
 
-  If a discrimination tree is built locally, there is a need for a `Key.fvar` that takes an `FVarId`
-  as an idenitifier, which is what the DiscrTree defined in Lean does, but this is of no use for us.
-
-- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for
-  patterns under binders. For example, this allows for more specific matching with
+- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to
+  allow for patterns under binders. For example, this allows for more specific matching with
   the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`
 
 - We keep track of a matching score of a unification.
@@ -68,8 +65,8 @@ namespace Std.DiscrTree
 inductive Key where
   /-- A constant. It stores a `Name` and an arity. -/
   | const  : Name → Nat → Key
-  /-- A free variable. It stores an index and an arity. -/
-  | fvar   : Nat → Nat → Key
+  /-- An opaque variable. It stores an index and an arity. -/
+  | opaque   : Nat → Nat → Key
   /-- A bound variable, from either a `.lam` or a `.forall`. It stores an index and an arity. -/
   | bvar   : Nat → Nat → Key
   /-- A metavariable. It stores an index. -/
@@ -87,15 +84,15 @@ inductive Key where
   deriving Inhabited, BEq, Repr
 
 private nonrec def Key.hash : Key → UInt64
-  | .const n a   => mixHash 5237 $ mixHash (hash n) (hash a)
-  | .fvar n a    => mixHash 3541 $ mixHash (hash n) (hash a)
-  | .bvar i a    => mixHash 4323 $ mixHash (hash i) (hash a)
-  | .star i      => mixHash 7883 $ hash i
-  | .lit v       => mixHash 1879 $ hash v
-  | .sort        => 2411
-  | .lam         => 4742
-  | .«forall»    => 9752
-  | .proj s i a  => mixHash (hash a) $ mixHash (hash s) (hash i)
+  | .const n a  => mixHash 5237 $ mixHash (hash n) (hash a)
+  | .opaque n a => mixHash 3541 $ mixHash (hash n) (hash a)
+  | .bvar i a   => mixHash 4323 $ mixHash (hash i) (hash a)
+  | .star i     => mixHash 7883 $ hash i
+  | .lit v      => mixHash 1879 $ hash v
+  | .sort       => 2411
+  | .lam        => 4742
+  | .«forall»   => 9752
+  | .proj s i a => mixHash (hash a) $ mixHash (hash s) (hash i)
 
 instance : Hashable Key := ⟨Key.hash⟩
 
@@ -103,21 +100,21 @@ instance : Hashable Key := ⟨Key.hash⟩
 Note that the index of the star pattern is 0, so that when looking up in a `Trie`,
 we can look at the start of the sorted array for all `.star` patterns. -/
 def Key.ctorIdx : Key → Nat
-  | .star ..  => 0
-  | .sort     => 1
-  | .lit ..   => 2
-  | .fvar ..  => 3
-  | .bvar ..  => 4
-  | .lam      => 5
-  | .forall   => 6
-  | .proj ..  => 7
-  | .const .. => 8
+  | .star ..   => 0
+  | .sort      => 1
+  | .lit ..    => 2
+  | .opaque .. => 3
+  | .bvar ..   => 4
+  | .lam       => 5
+  | .forall    => 6
+  | .proj ..   => 7
+  | .const ..  => 8
 
 /-- The (arbitrary) order on `Key` used in the `DiscrTree`. -/
 private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
   | .lit v₁,        .lit v₂        => v₁ < v₂
-  | .fvar n₁ a₁,    .fvar n₂ a₂    => n₁ < n₂ || (n₁ == n₂ && a₁ < a₂)
+  | .opaque n₁ a₁,  .opaque n₂ a₂  => n₁ < n₂ || (n₁ == n₂ && a₁ < a₂)
   | .bvar i₁ a₁,    .bvar i₂ a₂    => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
   | .proj s₁ i₁ a₁, .proj s₂ i₂ a₂ =>
     Name.quickLt s₁ s₂ || (s₁ == s₂ && (i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)))
@@ -129,12 +126,12 @@ instance (a b : Key) : Decidable (a < b) := inferInstanceAs (Decidable (Key.lt a
 
 private def Key.format : Key → Format
   | .star i                 => "*" ++ Std.format i
-  | .sort                   => "◾"
+  | .sort                   => "sort"
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
   | .const k a              => "⟨" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
   | .proj s i a             => "⟨" ++ Std.format s ++"."++ Std.format i ++", "++ Std.format a ++ "⟩"
-  | .fvar k a               => "⟨" ++ "f" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
+  | .opaque k a             => "⟨" ++ "◾" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
   | .bvar i a               => "⟨" ++ "#" ++ Std.format i ++ ", " ++ Std.format a ++ "⟩"
   | .forall                 => "→"
   | .lam                    => "λ"
@@ -144,7 +141,7 @@ instance : ToFormat Key := ⟨Key.format⟩
 /-- Return the number of argumets that the `Key` takes. -/
 def Key.arity : Key → Nat
   | .const _ a  => a
-  | .fvar _ a   => a
+  | .opaque _ a => a
   | .bvar _ a   => a
   | .lam        => 1
   | .forall     => 2
@@ -206,8 +203,8 @@ It is intermediate step for going from `Expr` to `Array Key`. See `DiscrTree`. -
 inductive DTExpr where
   /-- A constant. -/
   | const  : Name → Array DTExpr → DTExpr
-  /-- A free variable. -/
-  | fvar   : FVarId → Array DTExpr → DTExpr
+  /-- An opaque variable. -/
+  | opaque   : FVarId → Array DTExpr → DTExpr
   /-- A bound variable. -/
   | bvar   : Nat → Array DTExpr → DTExpr
   /-- A meta variable. -/
@@ -227,12 +224,12 @@ deriving Inhabited
 
 private partial def DTExpr.format : DTExpr → Format
   | .star _                 => "*"
-  | .sort                   => "◾"
+  | .sort                   => "Sort"
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
   | .const n as             => Std.format n  ++ formatArray as
   | .proj _ i a as          => DTExpr.format a ++ "." ++ Std.format i ++ formatArray as
-  | .fvar _ as              => "fvar" ++ formatArray as
+  | .opaque _ as            => "◾" ++ formatArray as
   | .bvar i as              => "#" ++ Std.format i  ++ formatArray as
   | .forall d b             => DTExpr.format d ++ " → " ++ DTExpr.format b
   | .lam b                  => "λ " ++ DTExpr.format b
@@ -273,14 +270,14 @@ private def tmpStar : Expr := mkMVar tmpMVarId
 /-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into
 indexing by `Nat` in `Key`. -/
 private structure Flatten.State where
-  stars : Array MVarId := #[]
-  fvars : Array FVarId := #[]
+  stars   : Array MVarId := #[]
+  opaques : Array FVarId := #[]
 
-private def getFVar (fvarId : FVarId) : StateM Flatten.State Nat :=
+private def getOpaque (fvarId : FVarId) : StateM Flatten.State Nat :=
   modifyGet fun s =>
-  match s.fvars.findIdx? (· == fvarId) with
+  match s.opaques.findIdx? (· == fvarId) with
   | some idx => (idx, s)
-  | none => (s.fvars.size, { s with fvars := s.fvars.push fvarId })
+  | none => (s.opaques.size, { s with opaques := s.opaques.push fvarId })
 
 private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
   modifyGet fun s => Id.run do
@@ -291,7 +288,7 @@ private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
 
 private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Flatten.State (Array Key)
   | .const n args =>   args.foldlM (init := todo.push (.const n args.size)) flattenAux
-  | .fvar i args => do args.foldlM (init := todo.push (.fvar (← getFVar i) args.size)) flattenAux
+  | .opaque i args => do args.foldlM (init := todo.push (.opaque (← getOpaque i) args.size)) flattenAux
   | .bvar i args =>    args.foldlM (init := todo.push (.bvar i args.size)) flattenAux
   | .star i => return todo.push (.star (← getStar i))
   | .lit l => return todo.push (.lit l)
@@ -407,7 +404,7 @@ def starEtaExpanded : Expr → Nat → Option Expr
 
 private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
   | .const _ as    => as.any (hasLooseBVarsAux i)
-  | .fvar _ as     => as.any (hasLooseBVarsAux i)
+  | .opaque _ as   => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
   | .proj _ _ a as => a.hasLooseBVarsAux i || as.any (hasLooseBVarsAux i)
   | .forall d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
@@ -422,10 +419,10 @@ def DTExpr.hasLooseBVars (e : DTExpr) : Bool :=
 namespace MkDTExpr
 
 private structure Context where
-  /-- Free variables that came from a lambda or forall binder.
+  /-- Variables that come from a lambda or forall binder.
   The list index gives the De Bruijn index. -/
   bvars : List FVarId := []
-  /-- Free variables that come from a lambda that has been removed via η-reduction. -/
+  /-- Variables that come from a lambda that has been removed via η-reduction. -/
   unbvars : List FVarId := []
 
 private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
@@ -446,7 +443,7 @@ instance : MonadCache Expr DTExpr M where
       modify (·.insert e e')
 
 /-- If `e` is of the form `(fun x₁ ... xₙ => b y₁ ... yₙ)`,
-then introduce free variables for `x₁`, ..., `xₙ`, instantiate these in `b`, and run `k` on `b`. -/
+then introduce variables for `x₁`, ..., `xₙ`, instantiate these in `b`, and run `k` on `b`. -/
 partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α :=
   match e with
   | .lam n d e' _ =>
@@ -483,7 +480,7 @@ partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M D
       if c.unbvars.contains fvarId then
         failure
       else
-        return .fvar fvarId (← argDTExprs)
+        return .opaque fvarId (← argDTExprs)
   | .mvar mvarId =>
     if (e matches .app ..) then
       return .star tmpMVarId
@@ -594,7 +591,7 @@ def findKey (children : Array (Key × Trie α)) (k : Key) : Option (Trie α) :=
   (·.2) <$> children.binSearch (k, default) (fun a b => a.1 < b.1)
 
 private structure Context where
-  /-- Free variables that came from a lambda or forall binder.
+  /-- Variables that came from a lambda or forall binder.
   The list index gives the De Bruijn index. -/
   boundVars : List FVarId := []
   unify : Bool
@@ -629,11 +626,11 @@ partial def skipEntries (t : Trie α) : Nat → M (Trie α)
       skipEntries c (skip + k.arity) <|> x
 
 /-- Return the possible `Trie α` that match with anything.
-We add 1 to the matching score when the key is `.fvar`,
-since this pattern is "harder" to match with: it only matches with metavariables. -/
-def unifyMVar (children : Array (Key × Trie α)) : M (Trie α) :=
+We add 1 to the matching score when the key is `.opaque`,
+since this pattern is "harder" to match with. -/
+def matchTargetStar (children : Array (Key × Trie α)) : M (Trie α) :=
   children.foldr (init := failure) fun (k, c) x => (do
-    if k matches .fvar _ _ then
+    if k matches .opaque .. then
       incrementScore 1
     skipEntries c k.arity
     ) <|> x
@@ -641,7 +638,7 @@ def unifyMVar (children : Array (Key × Trie α)) : M (Trie α) :=
 /-- Return the possible `Trie α` that come from a `Key.star i` key.
 We keep track of the assignments of `Key.star i`, and if there is already an assignment,
 we do an `isDefEq` check, without modifying the state. -/
-def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := do
+def matchTreeStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := do
   let {assignments, ..} ← get
   let mut result := failure
   /- The `.star` patterns are all at the start of the `Array`,
@@ -658,11 +655,11 @@ def matchStars (e : Expr) (children : Array (Key × Trie α)) : M (Trie α) := d
       result := (insertAssignment i e *> pure c) <|> result
   result
 
-/-- An exact match succeeds for keys other than `.star` and `.fvar`,
+/-- An exact match succeeds for keys other than `.star` and `.opaque`,
 which are treated separately. -/
 private inductive exactMatchResult (α : Type) where
-  | mvar
-  | fvar
+  | star
+  | opaque
   | exact (result : M (Trie α))
 deriving Inhabited
 
@@ -671,9 +668,9 @@ mutual
   partial def matchExpr (e : Expr) (t : Trie α) : M (Trie α) := do
     let children := t.children!
     match ← exactMatch e (findKey children) false with
-      | .mvar => unifyMVar children
-      | .fvar => matchStars e children
-      | .exact result => result <|> matchStars e children
+      | .star => matchTargetStar children
+      | .opaque => matchTreeStars e children
+      | .exact result => result <|> matchTreeStars e children
 
   /-- Return the possible `Trie α` that match with `e` where the first `Key` matches exactly. -/
   partial def exactMatch (e : Expr) (find? : Key → Option (Trie α)) (root : Bool)
@@ -701,10 +698,10 @@ mutual
       if let some i := (← read).boundVars.findIdx? (· == fvarId) then
         find (.bvar i e.getAppNumArgs) matchArgs
       else
-        return .fvar
+        return .opaque
     | .proj s i a      => find (.proj s i e.getAppNumArgs) (matchExpr a >=> matchArgs)
     | .lit v           => find (.lit v)
-    | .mvar _          => return if (← read).unify then .mvar else .fvar
+    | .mvar _          => return if (← read).unify then .star else .opaque
     | .lam _ d b _     => find .lam (score := 0) (matchBinderBody d b)
     | .forallE _ d b _ => find .forall (matchExpr d >=> matchBinderBody d b)
     | _                => find .sort
@@ -725,12 +722,12 @@ together with their matching scores.
 
 Each entry of type `Array α × Nat` corresponds to one pattern.
 
-If `unify = false`, then metavariables in `e` are treated as free variables.
+If `unify = false`, then metavariables in `e` are treated as opaque variables.
 This is is for when you don't want the match results to instantiate metavariables in `e`. -/
 partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
   : MetaM (List (Array α × Nat)) :=
   withReducible $ GetUnify.M.run unify config do
-    let matchStar := match d.find? (.star 0) with
+    let matchTargetStar := match d.find? (.star 0) with
       | none => failure
       | some c => pure c
 
@@ -738,9 +735,9 @@ partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (conf
     /- Matching with an mvar means that we should return all entries of the DiscrTree,
     but that is much too inefficient, so instead we don't return anything.
     TODO: add configuration option for this behaviour. -/
-    | .mvar => failure
-    | .fvar => matchStar
-    | .exact result => result <|> matchStar
+    | .star => failure
+    | .opaque => matchTargetStar
+    | .exact result => result <|> matchTargetStar
 
 
 variable {m : Type → Type} [Monad m]
