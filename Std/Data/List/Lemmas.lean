@@ -344,12 +344,12 @@ theorem zip_map' (f : α → β) (g : α → γ) :
   | [] => rfl
   | a :: l => by simp only [map, zip_cons_cons, zip_map']
 
-theorem mem_zip {a b} : ∀ {l₁ : List α} {l₂ : List β}, (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
+theorem of_mem_zip {a b} : ∀ {l₁ : List α} {l₂ : List β}, (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
   | _ :: l₁, _ :: l₂, h => by
     cases h
     case head => simp
     case tail h =>
-    · have := mem_zip h
+    · have := of_mem_zip h
       exact ⟨Mem.tail _ this.1, Mem.tail _ this.2⟩
 
 theorem map_fst_zip :
