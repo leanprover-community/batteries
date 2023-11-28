@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.Array.Basic
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
 
@@ -336,6 +337,34 @@ theorem forIn_eq_data_forIn [Monad m]
       simp [← this]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl
+
+/-! ### join -/
+
+@[simp] theorem join_data {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
+  dsimp [join]
+  simp only [foldl_eq_foldl_data]
+  generalize l.data = l
+  have : ∀ a : Array α, (List.foldl ?_ a l).data = a.data ++ ?_ := ?_
+  exact this #[]
+  induction l with
+  | nil => simp
+  | cons h => induction h.data <;> simp [*]
+
+theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
+  simp only [mem_def, join_data, List.mem_join, List.mem_map]
+  intro l
+  constructor
+  · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
+    exact ⟨s, m, h⟩
+  · rintro ⟨s, h₁, h₂⟩
+    refine ⟨s.data, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+
+/-! ### append -/
+
+@[simp] theorem mem_append {a : α} {s t : Array α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
+  simp only [mem_def, append_data, List.mem_append]
+
+/-! ### all -/
 
 theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
     all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
