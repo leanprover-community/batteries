@@ -432,14 +432,19 @@ partial def getCompositeOfProjectionsAux (proj : String) (e : Expr) (pos : Array
   let env ← getEnv
   let .const structName _ := (← whnf (←inferType e)).getAppFn |
     throwError "{e} doesn't have a structure as type"
+  /- We look if there is a projection in the structure whose name is a prefix of `proj`.
+  In case of ambiguity (which shouldn't happen), we take the last one. -/
   let projs := getStructureFieldsFlattened env structName
   let projInfo := projs.toList.map fun p => do
     ((← proj.dropPrefix? (p.getString ++ "_")).toString, p)
   let some (projRest, projName) := projInfo.reduceOption.getLast? |
     throwError "Failed to find constructor {proj.dropRight 1} in structure {structName}."
+  /- We apply the projection to `e` -/
   let newE ← mkProjection e projName
   let newPos := pos ++ (← findProjectionIndices structName projName)
-  -- we do this here instead of in a recursive call in order to not get an unnecessary eta-redex
+  /- If this is the last projection to be applied, we return `newE`.
+  We don't want to do that in the recursive call, because that would result in an unnecessary
+  eta-redex -/
   if projRest.isEmpty then
     let newE ← mkLambdaFVars args newE
     return (newE, newPos)
