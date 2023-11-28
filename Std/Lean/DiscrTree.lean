@@ -8,13 +8,10 @@ import Std.Data.List.Basic
 import Lean.Meta
 
 /-!
-This file defines discrimination trees.
-It is based on `DiscrTree` that is already present in Lean.
-I document here what is not in the original.
-
 We define discrimination trees for the purpose of unifying local expressions with library results.
 
-These are the features that are not in Lean's discrimination trees:
+This implementation is based on the `DiscrTree` in Lean.
+I document here what is not in the original.
 
 - The constructor `Key.star` now takes a `Nat` identifier as an argument.
   For example, the library pattern `a+a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
@@ -30,7 +27,7 @@ These are the features that are not in Lean's discrimination trees:
   allow for patterns under binders. For example, this allows for more specific matching with
   the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`
 
-- We keep track of a matching score of a unification.
+- We keep track of the matching score of a unification.
   This score represent the number of keys that had to be the same for the unification to succeed.
   For example, matching `(1 + 2) + 3` with `add_comm` gives a score of 3,
   since the pattern of commutativity is [⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3],
@@ -63,31 +60,35 @@ namespace Std.DiscrTree
 
 /-- Discrimination tree key. -/
 inductive Key where
+  /-- A metavariable. This key matches with anything. It stores an index. -/
+  | star : Nat → Key
+  /-- An opaque variable. This key only matches with itself or `Key.star`.
+  It stores an index and an arity. -/
+  | opaque : Nat → Nat → Key
   /-- A constant. It stores a `Name` and an arity. -/
-  | const  : Name → Nat → Key
-  /-- An opaque variable. It stores an index and an arity. -/
-  | opaque   : Nat → Nat → Key
+  | const : Name → Nat → Key
+  /-- A free variable. It stores a `FVarId` and an arity. -/
+  | fvar : FVarId → Nat → Key
   /-- A bound variable, from either a `.lam` or a `.forall`. It stores an index and an arity. -/
-  | bvar   : Nat → Nat → Key
-  /-- A metavariable. It stores an index. -/
-  | star   : Nat → Key
+  | bvar : Nat → Nat → Key
   /-- A literal. -/
-  | lit    : Literal → Key
+  | lit : Literal → Key
   /-- A sort. Universe levels are ignored. -/
-  | sort   : Key
+  | sort : Key
   /-- A lambda function. -/
-  | lam    : Key
+  | lam : Key
   /-- A dependent arrow. -/
   | forall : Key
   /-- A projection. It takes the constructor name, the projection index and the arity. -/
-  | proj   : Name → Nat → Nat → Key
+  | proj : Name → Nat → Nat → Key
   deriving Inhabited, BEq, Repr
 
 private nonrec def Key.hash : Key → UInt64
-  | .const n a  => mixHash 5237 $ mixHash (hash n) (hash a)
-  | .opaque n a => mixHash 3541 $ mixHash (hash n) (hash a)
-  | .bvar i a   => mixHash 4323 $ mixHash (hash i) (hash a)
   | .star i     => mixHash 7883 $ hash i
+  | .opaque n a => mixHash 3541 $ mixHash (hash n) (hash a)
+  | .const n a  => mixHash 5237 $ mixHash (hash n) (hash a)
+  | .fvar  n a  => mixHash 8765 $ mixHash (hash n) (hash a)
+  | .bvar i a   => mixHash 4323 $ mixHash (hash i) (hash a)
   | .lit v      => mixHash 1879 $ hash v
   | .sort       => 2411
   | .lam        => 4742
@@ -101,24 +102,26 @@ Note that the index of the star pattern is 0, so that when looking up in a `Trie
 we can look at the start of the sorted array for all `.star` patterns. -/
 def Key.ctorIdx : Key → Nat
   | .star ..   => 0
-  | .sort      => 1
-  | .lit ..    => 2
-  | .opaque .. => 3
+  | .opaque .. => 1
+  | .const ..  => 2
+  | .fvar ..   => 3
   | .bvar ..   => 4
-  | .lam       => 5
-  | .forall    => 6
-  | .proj ..   => 7
-  | .const ..  => 8
+  | .lit ..    => 5
+  | .sort      => 6
+  | .lam       => 7
+  | .forall    => 8
+  | .proj ..   => 9
 
 /-- The (arbitrary) order on `Key` used in the `DiscrTree`. -/
 private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
-  | .lit v₁,        .lit v₂        => v₁ < v₂
-  | .opaque n₁ a₁,  .opaque n₂ a₂  => n₁ < n₂ || (n₁ == n₂ && a₁ < a₂)
-  | .bvar i₁ a₁,    .bvar i₂ a₂    => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
-  | .proj s₁ i₁ a₁, .proj s₂ i₂ a₂ =>
-    Name.quickLt s₁ s₂ || (s₁ == s₂ && (i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)))
+  | .opaque i₁ a₁,  .opaque i₂ a₂  => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
   | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
+  | .fvar f₁ a₁,    .fvar f₂ a₂    => Name.quickLt f₁.name f₂.name || (f₁ == f₂ && a₁ < a₂)
+  | .bvar i₁ a₁,    .bvar i₂ a₂    => i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)
+  | .lit v₁,        .lit v₂        => v₁ < v₂
+  | .proj s₁ i₁ a₁, .proj s₂ i₂ a₂ => Name.quickLt s₁ s₂ ||
+    (s₁ == s₂ && (i₁ < i₂ || (i₁ == i₂ && a₁ < a₂)))
   | k₁,             k₂             => k₁.ctorIdx < k₂.ctorIdx
 
 instance : LT Key := ⟨fun a b => Key.lt a b⟩
@@ -126,22 +129,24 @@ instance (a b : Key) : Decidable (a < b) := inferInstanceAs (Decidable (Key.lt a
 
 private def Key.format : Key → Format
   | .star i                 => "*" ++ Std.format i
-  | .sort                   => "sort"
+  | .opaque k a             => "⟨" ++ "◾" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
+  | .const k a              => "⟨" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
+  | .fvar k a               => "⟨" ++ Std.format k.name ++ ", " ++ Std.format a ++ "⟩"
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
-  | .const k a              => "⟨" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
-  | .proj s i a             => "⟨" ++ Std.format s ++"."++ Std.format i ++", "++ Std.format a ++ "⟩"
-  | .opaque k a             => "⟨" ++ "◾" ++ Std.format k ++ ", " ++ Std.format a ++ "⟩"
+  | .sort                   => "sort"
   | .bvar i a               => "⟨" ++ "#" ++ Std.format i ++ ", " ++ Std.format a ++ "⟩"
-  | .forall                 => "→"
   | .lam                    => "λ"
+  | .forall                 => "→"
+  | .proj s i a             => "⟨" ++ Std.format s ++"."++ Std.format i ++", "++ Std.format a ++ "⟩"
 
 instance : ToFormat Key := ⟨Key.format⟩
 
 /-- Return the number of argumets that the `Key` takes. -/
 def Key.arity : Key → Nat
-  | .const _ a  => a
   | .opaque _ a => a
+  | .const _ a  => a
+  | .fvar _ a   => a
   | .bvar _ a   => a
   | .lam        => 1
   | .forall     => 2
@@ -156,7 +161,7 @@ inductive Trie (α : Type) where
   | node (children : Array (Key × Trie α))
   /-- Sequence of nodes with only one child. `keys` is an `Array` of size at least 1. -/
   | path (keys : Array Key) (child : Trie α)
-  /-- Leaf of the Trie. values is an `Array` of size at least 1. -/
+  /-- Leaf of the Trie. `values` is an `Array` of size at least 1. -/
   | values (vs : Array α)
 instance : Inhabited (Trie α) := ⟨.node #[]⟩
 
@@ -197,56 +202,13 @@ private partial def Trie.format [ToFormat α] : Trie α → Format
 instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 
 
-
-/-- `DTExpr` is a simplified form of `Expr`.
-It is intermediate step for going from `Expr` to `Array Key`. See `DiscrTree`. -/
-inductive DTExpr where
-  /-- A constant. -/
-  | const  : Name → Array DTExpr → DTExpr
-  /-- An opaque variable. -/
-  | opaque   : FVarId → Array DTExpr → DTExpr
-  /-- A bound variable. -/
-  | bvar   : Nat → Array DTExpr → DTExpr
-  /-- A meta variable. -/
-  | star   : MVarId → DTExpr
-  /-- A literal. -/
-  | lit    : Literal → DTExpr
-  /-- A sort. -/
-  | sort   : DTExpr
-  /-- A lambda function. -/
-  | lam    : DTExpr → DTExpr
-  /-- A dependent arrow. -/
-  | forall : DTExpr → DTExpr → DTExpr
-  /-- A projection. -/
-  | proj   : Name → Nat → DTExpr → Array DTExpr → DTExpr
-deriving Inhabited
-
-
-private partial def DTExpr.format : DTExpr → Format
-  | .star _                 => "*"
-  | .sort                   => "Sort"
-  | .lit (Literal.natVal v) => Std.format v
-  | .lit (Literal.strVal v) => repr v
-  | .const n as             => Std.format n  ++ formatArray as
-  | .proj _ i a as          => DTExpr.format a ++ "." ++ Std.format i ++ formatArray as
-  | .opaque _ as            => "◾" ++ formatArray as
-  | .bvar i as              => "#" ++ Std.format i  ++ formatArray as
-  | .forall d b             => DTExpr.format d ++ " → " ++ DTExpr.format b
-  | .lam b                  => "λ " ++ DTExpr.format b
-where
-  formatArray (as : Array DTExpr) :=
-    if as.isEmpty
-      then .nil
-      else " " ++ Format.paren (@Format.joinSep _ ⟨DTExpr.format⟩ as.toList ", ")
-
-instance : ToFormat DTExpr := ⟨DTExpr.format⟩
-
-
 /-- Discrimination tree. It is an index from expressions to values of type `α`. -/
-def _root_.Std.DiscrTree (α : Type) := PersistentHashMap Key (Trie α)
+structure _root_.Std.DiscrTree (α : Type) where
+  /-- The underlying `PersistentHashMap` of a `DiscrTree`. -/
+  root : PersistentHashMap Key (Trie α)
 
 private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :=
-  let (_, r) := d.foldl
+  let (_, r) := d.root.foldl
     (fun (p : Bool × Format) k c =>
       (false,
         p.2 ++ (if p.1 then Format.nil else Format.line) ++
@@ -255,6 +217,52 @@ private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :
   Format.group r
 
 instance [ToFormat α] : ToFormat (DiscrTree α) := ⟨DiscrTree.format⟩
+
+
+/-- `DTExpr` is a simplified form of `Expr`.
+It is intermediate step in converting from `Expr` to `Array Key`. -/
+inductive DTExpr where
+  /-- A metavariable. -/
+  | star : MVarId → DTExpr
+  /-- An opaque variable. -/
+  | opaque : FVarId → Array DTExpr → DTExpr
+  /-- A constant. -/
+  | const : Name → Array DTExpr → DTExpr
+  /-- A free variable. -/
+  | fvar : FVarId → Array DTExpr → DTExpr
+  /-- A bound variable. -/
+  | bvar : Nat → Array DTExpr → DTExpr
+  /-- A literal. -/
+  | lit : Literal → DTExpr
+  /-- A sort. -/
+  | sort : DTExpr
+  /-- A lambda function. -/
+  | lam : DTExpr → DTExpr
+  /-- A dependent arrow. -/
+  | forall : DTExpr → DTExpr → DTExpr
+  /-- A projection. -/
+  | proj : Name → Nat → DTExpr → Array DTExpr → DTExpr
+deriving Inhabited
+
+private partial def DTExpr.format : DTExpr → Format
+  | .star _                 => "*"
+  | .opaque _ as            => "◾" ++ formatArgs as
+  | .const n as             => Std.format n ++ formatArgs as
+  | .fvar n as             => Std.format n.name ++ formatArgs as
+  | .bvar i as              => "#" ++ Std.format i  ++ formatArgs as
+  | .lit (Literal.natVal v) => Std.format v
+  | .lit (Literal.strVal v) => repr v
+  | .sort                   => "Sort"
+  | .forall d b             => DTExpr.format d ++ " → " ++ DTExpr.format b
+  | .lam b                  => "λ " ++ DTExpr.format b
+  | .proj _ i a as          => DTExpr.format a ++ "." ++ Std.format i ++ formatArgs as
+where
+  formatArgs (as : Array DTExpr) :=
+    if as.isEmpty
+      then .nil
+      else " " ++ Format.paren (@Format.joinSep _ ⟨DTExpr.format⟩ as.toList ", ")
+
+instance : ToFormat DTExpr := ⟨DTExpr.format⟩
 
 
 
@@ -287,22 +295,21 @@ private def getStar (mvarId : MVarId) : StateM Flatten.State Nat :=
     return (s.stars.size, { s with stars := s.stars.push mvarId })
 
 private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Flatten.State (Array Key)
-  | .const n args =>   args.foldlM (init := todo.push (.const n args.size)) flattenAux
-  | .opaque i args => do args.foldlM (init := todo.push (.opaque (← getOpaque i) args.size)) flattenAux
-  | .bvar i args =>    args.foldlM (init := todo.push (.bvar i args.size)) flattenAux
   | .star i => return todo.push (.star (← getStar i))
+  | .opaque f as => do as.foldlM flattenAux (todo.push (.opaque (← getOpaque f) as.size))
+  | .const  n as =>    as.foldlM flattenAux (todo.push (.const n as.size))
+  | .fvar   f as =>    as.foldlM flattenAux (todo.push (.fvar f as.size))
+  | .bvar   i as =>    as.foldlM flattenAux (todo.push (.bvar i as.size))
   | .lit l => return todo.push (.lit l)
-  | .sort => return todo.push .sort
+  | .sort  => return todo.push .sort
   | .lam b => flattenAux (todo.push .lam) b
   | .«forall» d b => do flattenAux (← flattenAux (todo.push .forall) d) b
-  | .proj n i e args => do
-    args.foldlM (init := ← flattenAux (todo.push (.proj n i args.size)) e) flattenAux
+  | .proj n i e as => do as.foldlM flattenAux (← flattenAux (todo.push (.proj n i as.size)) e)
 
 /-- Given a `DTExpr`, return the linearized encoding in terms of `Key`,
 which is used for `DiscrTree` indexing. -/
 def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
   (DTExpr.flattenAux (.mkEmpty initCapacity) e).run' {}
-
 
 
 
@@ -323,8 +330,7 @@ private def ignoreArg (a : Expr) (i : Nat) (infos : Array ParamInfo) : MetaM Boo
 private def ignoreArgs (infos : Array ParamInfo) (args : Array Expr) : MetaM (Array Expr) :=
   args.mapIdxM (fun i arg => return if ← ignoreArg arg i infos then tmpStar else arg)
 
-/--
-Return true if `e` is one of the following
+/-- Return true if `e` is one of the following
 - A nat literal (numeral)
 - `Nat.zero`
 - `Nat.succ x` where `isNumeral x`
@@ -341,6 +347,7 @@ private partial def isNumeral (e : Expr) : Bool :=
       else if fName == ``Nat.zero && e.getAppNumArgs == 0 then true
       else false
 
+/-- Return `some n` if `e` is definitionally equal to the natural number `n`. -/
 private partial def toNatLit? (e : Expr) : Option Literal :=
   if isNumeral e then
     if let some n := loop e then
@@ -359,14 +366,14 @@ where
         let r ← loop e.appArg!
         return r+1
       else if fName == ``OfNat.ofNat && e.getAppNumArgs == 3 then
-        loop (e.getArg! 1 3)
+        loop (e.getArg! 1)
       else if fName == ``Nat.zero && e.getAppNumArgs == 0 then
         return 0
       else
         failure
     | _ => failure
 
-/-- The weak head normal form function for indexing expressions in a `DiscrTree`. -/
+/-- Reduction procedure for the `DiscrTree` indexing. -/
 partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
   let e ← whnfCore e config
   match (← unfoldDefinition? e) with
@@ -394,7 +401,7 @@ private def starEtaExpandedBody : Expr → Nat → Nat → Option Expr
   | b,        0,   _ => some b
 
 /-- If `e` is of the form `(fun x₀ ... xₙ => b y₀ ... yₙ)`,
-where each `yᵢ` has a meta variable head with `xᵢ` as an argument,
+where each `yᵢ` has a metavariable head with `xᵢ` as an argument,
 then return `some b`. Otherwise, return `none`.
 -/
 def starEtaExpanded : Expr → Nat → Option Expr
@@ -403,8 +410,9 @@ def starEtaExpanded : Expr → Nat → Option Expr
 
 
 private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
-  | .const _ as    => as.any (hasLooseBVarsAux i)
   | .opaque _ as   => as.any (hasLooseBVarsAux i)
+  | .const  _ as   => as.any (hasLooseBVarsAux i)
+  | .fvar   _ as   => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
   | .proj _ _ a as => a.hasLooseBVarsAux i || as.any (hasLooseBVarsAux i)
   | .forall d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
@@ -424,6 +432,8 @@ private structure Context where
   bvars : List FVarId := []
   /-- Variables that come from a lambda that has been removed via η-reduction. -/
   unbvars : List FVarId := []
+  config : WhnfCoreConfig
+  fvarInContext : FVarId → Bool
 
 private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
 
@@ -454,14 +464,14 @@ partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α
 
 /-- Return all encodings of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M DTExpr := do
-  let e ← reduce e config
+partial def mkDTExprAux (root : Bool) (e : Expr) : M DTExpr := do
+  let e ← reduce e (← read).config
   Expr.withApp e fun fn args => do
 
   let argDTExprs : M (Array DTExpr) := do
     let info ← getFunInfoNArgs fn args.size
     let args ← ignoreArgs info.paramInfo args
-    args.mapM (mkDTExprAux false config)
+    args.mapM (mkDTExprAux false)
 
   match fn with
   | .const c _ =>
@@ -470,17 +480,17 @@ partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M D
         return .lit v
     return .const c (← argDTExprs)
   | .proj s i a =>
-    let a ← if isClass (← getEnv) s then pure (.star tmpMVarId) else mkDTExprAux false config a
+    let a ← if isClass (← getEnv) s then pure (.star tmpMVarId) else mkDTExprAux false a
     return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
-    let c ← read
-    if let some idx := c.bvars.findIdx? (· == fvarId) then
+    if let some idx := (← read).bvars.findIdx? (· == fvarId) then
       return .bvar idx (← argDTExprs)
+    if (← read).unbvars.contains fvarId then
+      failure
+    if (← read).fvarInContext fvarId then
+      return .fvar fvarId (← argDTExprs)
     else
-      if c.unbvars.contains fvarId then
-        failure
-      else
-        return .opaque fvarId (← argDTExprs)
+      return .opaque fvarId (← argDTExprs)
   | .mvar mvarId =>
     if (e matches .app ..) then
       return .star tmpMVarId
@@ -492,10 +502,10 @@ partial def mkDTExprAux (root : Bool) (config : WhnfCoreConfig) (e : Expr) : M D
     <|>
     match starEtaExpanded b 1 with
       | some b => do
-        introEtaBVars fn b (mkDTExprAux false config)
+        introEtaBVars fn b (mkDTExprAux false)
       | none => failure
 
-  | .forallE _ d b _ => return .forall (← mkDTExprAux false config d) (← mkDTExprBinder d b)
+  | .forallE _ d b _ => return .forall (← mkDTExprAux false d) (← mkDTExprBinder d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
   | _           => unreachable!
@@ -505,21 +515,24 @@ where
   and then return all encodings of `e` as a `DTExpr` -/
   mkDTExprBinder (domain e : Expr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
-      withReader (fun c => { bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprAux false config (e.instantiate1 fvar)
+      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
+        mkDTExprAux false (e.instantiate1 fvar)
 
 end MkDTExpr
 
-/-- return all encodings of `e` as a `DTExpr`. -/
-def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {}) : MetaM (List DTExpr) :=
-  withReducible do (MkDTExpr.mkDTExprAux true config e |>.run {}).run' {}
+/-- Return all encodings of `e` as a `DTExpr`.
+The argument `fvarInContext` allows you to specify which free variables in `e` will still be
+in the context when the `DiscrTree` is being used for lookup.
+It should return true only if the `DiscrTree` is build and used locally. -/
+def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {})
+    (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (List DTExpr) :=
+  withReducible do (MkDTExpr.mkDTExprAux true e |>.run {config, fvarInContext}).run' {}
 
 
 
 -- ## Inserting intro a DiscrTree
 
-/--
-If `vs` contains an element `v'` such that `v == v'`, then replace `v'` with `v`.
+/-- If `vs` contains an element `v'` such that `v == v'`, then replace `v'` with `v`.
 Otherwise, push `v`.
 See issue #2155
 Recall that `BEq α` may not be Lawful.
@@ -537,7 +550,7 @@ where
       vs.push v
 termination_by loop i => vs.size - i
 
-/-- insert the value `v` at index `keys : Array Key` in a `Trie α`. -/
+/-- Insert the value `v` at index `keys : Array Key` in a `Trie`. -/
 partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie α → Trie α
   | .node cs =>
       let k := keys[i]!
@@ -559,25 +572,28 @@ partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie �
         return .mkPath shared (.mkNode2 k1 (.singleton keys v (i+n+1)) k2 (.mkPath rest c))
     return .path ks (insertInTrie keys v (i + ks.size) c)
 
-/-- insert the value `v` at index `keys : Array Key` in a `DiscrTree α`. -/
+/-- Insert the value `v` at index `keys : Array Key` in a `DiscrTree`. -/
 def insertInDiscrTree [BEq α] (d : DiscrTree α) (keys : Array Key) (v : α) : DiscrTree α :=
   let k := keys[0]!
-  match d.find? k with
+  match d.root.find? k with
   | none =>
     let c := .singleton keys v 1
-    d.insert k c
+    { root := d.root.insert k c }
   | some c =>
     let c := insertInTrie keys v 1 c
-    d.insert k c
+    { root := d.root.insert k c }
 
-/-- insert the value `v` at index `e : DTExpr` in a `DiscrTree α`. -/
+/-- Insert the value `v` at index `e : DTExpr` in a `DiscrTree`. -/
 def insertDTExpr [BEq α] (d : DiscrTree α) (e : DTExpr) (v : α) : DiscrTree α :=
   insertInDiscrTree d e.flatten v
 
-/-- insert the value `v` at index `e : Expr` in a `DiscrTree α`. -/
+/-- Insert the value `v` at index `e : Expr` in a `DiscrTree`.
+The argument `fvarInContext` allows you to specify which free variables in `e` will still be
+in the context when the `DiscrTree` is being used for lookup.
+It should return true only if the DiscrTree is build and used locally. -/
 def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
-  : MetaM (DiscrTree α) := do
-  let keys ← mkDTExprs e config
+  (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (DiscrTree α) := do
+  let keys ← mkDTExprs e config fvarInContext
   return keys.foldl (insertDTExpr · · v) d
 
 
@@ -610,7 +626,7 @@ private def M.run (unify : Bool) (config : WhnfCoreConfig) (x : M (Trie α))
   : MetaM (List (Array α × Nat)) :=
   List.map (fun (t, s) => (t.values!, s.score)) <$> (x.run { unify, config }).run {}
 
-/-- increase the score by `n`. -/
+/-- Increment the score by `n`. -/
 private def incrementScore (n : Nat) : M Unit :=
   modify fun s => { s with score := s.score + n }
 
@@ -727,11 +743,11 @@ This is is for when you don't want the match results to instantiate metavariable
 partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
   : MetaM (List (Array α × Nat)) :=
   withReducible $ GetUnify.M.run unify config do
-    let matchTargetStar := match d.find? (.star 0) with
+    let matchTargetStar := match d.root.find? (.star 0) with
       | none => failure
       | some c => pure c
 
-    match ← GetUnify.exactMatch e d.find? true with
+    match ← GetUnify.exactMatch e d.root.find? true with
     /- Matching with an mvar means that we should return all entries of the DiscrTree,
     but that is much too inefficient, so instead we don't return anything.
     TODO: add configuration option for this behaviour. -/
@@ -755,7 +771,7 @@ partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array �
 
 /-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
 def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) :=
-  d.mapM (·.mapArraysM f)
+  return { root := ← d.root.mapM (·.mapArraysM f) }
 
 /-- Apply a function to the array of values at each node in a `DiscrTree`. -/
 def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
