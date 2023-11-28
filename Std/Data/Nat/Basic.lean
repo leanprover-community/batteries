@@ -133,5 +133,5 @@ We define an operation for testing individual bits in the binary representation
 of a number.
 -/
 
-/-- `testBit m n` returns whether the `(n+1)ˢᵗ` least significant bit is `1` or `0`-/
+/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
 def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0

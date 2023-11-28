@@ -78,13 +78,14 @@ theorem hIterate_elim {P : Nat → Sort _} (Q : ∀(i : Nat), P i → Prop)
   exact hIterateFrom_elim _ _ _ _ init step
 
 /-
-`hIterate_eq`provides a mechanism for replacing hIterate with another
-function overshowing that the result of
-`hIterate` satisfies a property `Q stop` by showing that the states
-at the intermediate indices `i : start ≤ i < stop` satisfy `Q i`.
+`hIterate_eq`provides a mechanism for replacing `hIterate P s f` with a
+function `state` showing that matches the steps performed by `hIterate`.
+
+This allows rewriting incremental code using `hIterate` with a
+non-incremental state function.
 -/
-theorem hIterate_eq {P : Nat → Sort _}
-    (state : ∀(i : Nat), P i) {n : Nat} (f : ∀(i : Fin n), P i.val → P (i.val+1)) (s : P 0)
+theorem hIterate_eq {P : Nat → Sort _} (state : ∀(i : Nat), P i)
+    {n : Nat} (f : ∀(i : Fin n), P i.val → P (i.val+1)) (s : P 0)
     (init : s = state 0)
     (step : ∀(i : Fin n), f i (state i) = state (i+1)) :
     hIterate P s f = state n := by

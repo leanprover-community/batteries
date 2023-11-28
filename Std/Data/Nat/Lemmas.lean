@@ -1245,7 +1245,7 @@ theorem shiftLeft_succ : ∀(m n), m <<< (n + 1) = 2 * (m <<< n)
 
 theorem shiftRight_succ (m n) : m >>> (n + 1) = (m >>> n) / 2 := rfl
 
-/-- Shiftleft on successor with division moved inside. -/
+/-- Shiftright on successor with division moved inside. -/
 theorem shiftRight_succ_inside : ∀m n, m >>> (n+1) = (m/2) >>> n
 | m, 0 => rfl
 | m, k + 1 => by
