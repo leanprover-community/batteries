@@ -597,6 +597,7 @@ private structure Context where
   /-- Free variables that came from a lambda or forall binder.
   The list index gives the De Bruijn index. -/
   boundVars : List FVarId := []
+  unify : Bool
   config : WhnfCoreConfig
 
 private structure State where
@@ -608,8 +609,9 @@ private structure State where
 private abbrev M := ReaderT Context $ StateListT (State) MetaM
 
 /-- Return all values from `x` in a list, together with their scores. -/
-private def M.run (config : WhnfCoreConfig) (x : M (Trie α)) : MetaM (List (Array α × Nat)) :=
-  (List.map fun (t, s) => (t.values!, s.score)) <$> (x.run {config}).run {}
+private def M.run (unify : Bool) (config : WhnfCoreConfig) (x : M (Trie α))
+  : MetaM (List (Array α × Nat)) :=
+  List.map (fun (t, s) => (t.values!, s.score)) <$> (x.run { unify, config }).run {}
 
 /-- increase the score by `n`. -/
 private def incrementScore (n : Nat) : M Unit :=
@@ -626,10 +628,12 @@ partial def skipEntries (t : Trie α) : Nat → M (Trie α)
     t.children!.foldr (init := failure) fun (k, c) x =>
       skipEntries c (skip + k.arity) <|> x
 
-/-- Return the possible `Trie α` that match with a metavariable. -/
-def matchMVar (children : Array (Key × Trie α)) : M (Trie α) :=
+/-- Return the possible `Trie α` that match with anything.
+We add 1 to the matching score when the key is `.fvar`,
+since this pattern is "harder" to match with: it only matches with metavariables. -/
+def unifyMVar (children : Array (Key × Trie α)) : M (Trie α) :=
   children.foldr (init := failure) fun (k, c) x => (do
-    if k matches .fvar .. then
+    if k matches .fvar _ _ then
       incrementScore 1
     skipEntries c k.arity
     ) <|> x
@@ -665,19 +669,18 @@ deriving Inhabited
 mutual
   /-- Return the possible `Trie α` that match with `e`. -/
   partial def matchExpr (e : Expr) (t : Trie α) : M (Trie α) := do
-    let e ← reduce e (← read).config
     let children := t.children!
-    match exactMatch e (← read).boundVars (findKey children) false with
-      | .mvar => matchMVar children
+    match ← exactMatch e (findKey children) false with
+      | .mvar => unifyMVar children
       | .fvar => matchStars e children
       | .exact result => result <|> matchStars e children
 
   /-- Return the possible `Trie α` that match with `e` where the first `Key` matches exactly. -/
-  partial def exactMatch (e : Expr) (boundVars : List FVarId) (find? : Key → Option (Trie α))
-    (root : Bool) : exactMatchResult α :=
+  partial def exactMatch (e : Expr) (find? : Key → Option (Trie α)) (root : Bool)
+    : M (exactMatchResult α) := do
 
-    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : exactMatchResult α :=
-      .exact $ match find? k with
+    let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : M (exactMatchResult α) :=
+      return .exact $ match find? k with
         | none => failure
         | some trie => do
           incrementScore score
@@ -686,6 +689,7 @@ mutual
     let matchArgs (t : Trie α) : M (Trie α) :=
       e.getAppRevArgs.foldrM (fun a c => matchExpr a c) t
 
+    let e ← reduce e (← read).config
     match e.getAppFn with
     | .const c _       =>
       if let some v := guard (!root) *> toNatLit? e then
@@ -694,13 +698,13 @@ mutual
         find (.const c e.getAppNumArgs) matchArgs
 
     | .fvar fvarId     =>
-      if let some i := boundVars.findIdx? (· == fvarId) then
+      if let some i := (← read).boundVars.findIdx? (· == fvarId) then
         find (.bvar i e.getAppNumArgs) matchArgs
       else
-        .fvar
+        return .fvar
     | .proj s i a      => find (.proj s i e.getAppNumArgs) (matchExpr a >=> matchArgs)
     | .lit v           => find (.lit v)
-    | .mvar _          => .mvar
+    | .mvar _          => return if (← read).unify then .mvar else .fvar
     | .lam _ d b _     => find .lam (score := 0) (matchBinderBody d b)
     | .forallE _ d b _ => find .forall (matchExpr d >=> matchBinderBody d b)
     | _                => find .sort
@@ -716,17 +720,24 @@ end
 
 end GetUnify
 
-/-- return the results from the `DiscrTree` that match the given expression,
-together with their matching scores. -/
-partial def getUnifyWithScore (d : DiscrTree α) (e : Expr) (config : WhnfCoreConfig)
+/-- Return the results from the `DiscrTree` that match the given expression,
+together with their matching scores.
+
+Each entry of type `Array α × Nat` corresponds to one pattern.
+
+If `unify = false`, then metavariables in `e` are treated as free variables.
+This is is for when you don't want the match results to instantiate metavariables in `e`. -/
+partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
   : MetaM (List (Array α × Nat)) :=
-  withReducible $ GetUnify.M.run config do
-    let e ← reduce e config
+  withReducible $ GetUnify.M.run unify config do
     let matchStar := match d.find? (.star 0) with
       | none => failure
       | some c => pure c
 
-    match GetUnify.exactMatch e [] (d.find?) true with
+    match ← GetUnify.exactMatch e d.find? true with
+    /- Matching with an mvar means that we should return all entries of the DiscrTree,
+    but that is much too inefficient, so instead we don't return anything.
+    TODO: add configuration option for this behaviour. -/
     | .mvar => failure
     | .fvar => matchStar
     | .exact result => result <|> matchStar
