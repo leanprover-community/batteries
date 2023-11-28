@@ -370,9 +370,3 @@ def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → �
     match m.find? p.1 with
     | none   => m.insert p.1 p.2
     | some v => m.insert p.1 <| f v p.2
-
-@[simp] proof_wanted Std.HashMap.empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none
-
-proof_wanted insert_find? [BEq α] [Hashable α] (m : HashMap α β) (a a' : α) (b : β) :
-    (m.insert a b).find? a' = if a' == a then some b else m.find? a'
