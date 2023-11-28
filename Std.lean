@@ -84,6 +84,7 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
 import Std.Lean.Json
+import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -91,7 +92,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
