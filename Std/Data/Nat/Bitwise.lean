@@ -186,7 +186,7 @@ theorem lt_pow_two_of_testBit (x : Nat) (p : ∀i, i ≥ n → testBit x i = fal
 
 /-! ### testBit -/
 
-private theorem succ_mod_2 : succ x % 2 = 1 - x % 2 := by
+private theorem succ_mod_two : succ x % 2 = 1 - x % 2 := by
   induction x with
   | zero =>
     trivial
@@ -196,12 +196,12 @@ private theorem succ_mod_2 : succ x % 2 = 1 - x % 2 := by
     cases Nat.mod_two_eq_zero_or_one x with | _ p => simp [p]
 
 private theorem testBit_succ_zero : testBit (x + 1) 0 = not (testBit x 0) := by
-  simp [testBit_to_div_mod, succ_mod_2]
+  simp [testBit_to_div_mod, succ_mod_two]
   cases Nat.mod_two_eq_zero_or_one x with | _ p =>
     simp [p]
 
 theorem testBit_two_pow_add_eq (x i : Nat) : testBit (2^i + x) i = not (testBit x i) := by
-  simp [testBit_to_div_mod, add_div_left, Nat.pow_two_pos, succ_mod_2]
+  simp [testBit_to_div_mod, add_div_left, Nat.pow_two_pos, succ_mod_two]
   cases mod_two_eq_zero_or_one (x / 2 ^ i) with
   | _ p => simp [p]
 
@@ -213,7 +213,7 @@ theorem testBit_mul_two_pow_add_eq (a b i : Nat) :
     simp [Nat.mul_succ, Nat.add_assoc,
           testBit_mul_two_pow_add_eq a,
           testBit_two_pow_add_eq,
-          Nat.succ_mod_2]
+          Nat.succ_mod_two]
     cases mod_two_eq_zero_or_one a with
     | _ p => simp [p]
 
@@ -332,12 +332,12 @@ private theorem zero_lt_pow (n : Nat) : 0 < 2^n := by
     simp [pow_succ]
     exact (Nat.mul_lt_mul_of_pos_right hyp Nat.zero_lt_two : 0 < 2 ^ n * 2)
 
-private theorem div_2_le_of_lt_two {m n : Nat} (p : m < 2 ^ succ n) : m / 2 < 2^n := by
+private theorem div_two_le_of_lt_two {m n : Nat} (p : m < 2 ^ succ n) : m / 2 < 2^n := by
   simp [div_lt_iff_lt_mul Nat.zero_lt_two]
   exact p
 
 /-- This provides a bound on bitwise operations. -/
-theorem bitwise_lt_2_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y) < 2^n := by
+theorem bitwise_lt_two_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y) < 2^n := by
   induction n generalizing x y with
   | zero =>
     simp only [eq_0_of_lt] at left right
@@ -353,7 +353,7 @@ theorem bitwise_lt_2_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y
       by_cases p : f true false = true <;> simp [p, left]
     else
       simp only [x_zero, y_zero, if_false]
-      have hyp1 := hyp (div_2_le_of_lt_two left) (div_2_le_of_lt_two right)
+      have hyp1 := hyp (div_two_le_of_lt_two left) (div_two_le_of_lt_two right)
       by_cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) = true <;>
         simp [p, pow_succ, mul_succ, Nat.add_assoc]
       case pos =>
@@ -368,7 +368,7 @@ theorem bitwise_lt_2_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x y
 theorem testBit_and (x y i : Nat) : (x &&& y).testBit i = (x.testBit i && y.testBit i) := by
   simp [HAnd.hAnd, AndOp.and, land, testBit_bitwise ]
 
-theorem and_lt_2_pow (x : Nat) {y n : Nat} (right : y < 2^n) : (x &&& y) < 2^n := by
+theorem and_lt_two_pow (x : Nat) {y n : Nat} (right : y < 2^n) : (x &&& y) < 2^n := by
   apply lt_pow_two_of_testBit
   intro i i_ge_n
   have yf : testBit y i = false := by
@@ -402,16 +402,16 @@ theorem and_pow_two_identity {x : Nat} (lt : x < 2^n) : x &&& 2^n-1 = x := by
 theorem testBit_or (x y i : Nat) : (x ||| y).testBit i = (x.testBit i || y.testBit i) := by
   simp [HOr.hOr, OrOp.or, lor, testBit_bitwise ]
 
-theorem or_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ||| y < 2^n :=
-  bitwise_lt_2_pow left right
+theorem or_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ||| y < 2^n :=
+  bitwise_lt_two_pow left right
 
 /-! ### xor -/
 
 theorem testBit_xor (x y i : Nat) : (x ^^^ y).testBit i = Bool.xor (x.testBit i) (y.testBit i) := by
   simp [HXor.hXor, Xor.xor, xor, testBit_bitwise ]
 
-theorem xor_lt_2_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ^^^ y < 2^n :=
-  bitwise_lt_2_pow left right
+theorem xor_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ^^^ y < 2^n :=
+  bitwise_lt_two_pow left right
 
 /-! ### Arithmetic -/
 

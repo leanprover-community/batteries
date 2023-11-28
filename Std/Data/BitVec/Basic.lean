@@ -292,7 +292,7 @@ Bitwise OR for bit vectors.
 SMT-Lib name: `bvor`.
 -/
 protected def or (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat ||| y.toNat, Nat.or_lt_2_pow x.isLt y.isLt⟩
+   ⟨x.toNat ||| y.toNat, Nat.or_lt_two_pow x.isLt y.isLt⟩
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
@@ -305,7 +305,7 @@ instance : OrOp (BitVec w) := ⟨.or⟩
 SMT-Lib name: `bvxor`.
 -/
 protected def xor (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat ^^^ y.toNat, Nat.xor_lt_2_pow x.isLt y.isLt⟩
+   ⟨x.toNat ^^^ y.toNat, Nat.xor_lt_two_pow x.isLt y.isLt⟩
 instance : Xor (BitVec w) := ⟨.xor⟩
 
 /--
