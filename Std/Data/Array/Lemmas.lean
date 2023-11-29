@@ -9,6 +9,7 @@ import Std.Data.List.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
+import Std.Util.ProofWanted
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 
@@ -40,6 +41,14 @@ attribute [simp] isEmpty uget
 
 @[simp] theorem data_length {l : Array α} : l.data.length = l.size := rfl
 
+theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
+
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+
+theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
+  erw [Array.mem_def, getElem_eq_data_get]
+  apply List.get_mem
+
 @[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
 @[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
@@ -54,7 +63,7 @@ theorem get?_len_le (a : Array α) (i : Nat) (h : a.size ≤ i) : a[i]? = none :
   simp [getElem?_neg, h]
 
 theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
-  simp [getElem_eq_data_get, List.get_mem]
+  simp only [getElem_eq_data_get, List.get_mem]
 
 theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i := by
   by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]; rfl
@@ -78,12 +87,16 @@ theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default
 
 theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
+proof_wanted get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]?
+
 theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     (a.push x)[i]? = some a[i] := by
   rw [getElem?_pos, get_push_lt]
 
 theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := by
   rw [getElem?_pos, get_push_eq]
+
+@[simp] proof_wanted get?_size {a : Array α} : a[a.size]? = none
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
@@ -443,3 +456,7 @@ theorem all_def {p : α → Bool} (as : Array α) : as.all p = as.data.all p := 
 
 theorem all_eq_true_iff_forall_mem {l : Array α} : l.all p ↔ ∀ x, x ∈ l → p x := by
   simp only [all_def, List.all_eq_true, mem_def]
+
+/-! ### erase -/
+
+@[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a

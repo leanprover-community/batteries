@@ -26,14 +26,19 @@ import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
 import Std.Data.BitVec
 import Std.Data.BitVec.Basic
+import Std.Data.BitVec.Bitblast
+import Std.Data.BitVec.Folds
+import Std.Data.BitVec.Lemmas
 import Std.Data.Bool
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
 import Std.Data.Fin.Init.Lemmas
+import Std.Data.Fin.Iterate
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
+import Std.Data.HashMap.Lemmas
 import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
@@ -48,6 +53,7 @@ import Std.Data.List.Pairwise
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
+import Std.Data.Nat.Bitwise
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
@@ -158,5 +164,6 @@ import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
+import Std.Util.ProofWanted
 import Std.Util.TermUnsafe
 import Std.WF

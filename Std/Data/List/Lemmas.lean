@@ -63,6 +63,9 @@ theorem mem_cons_self (a : α) (l : List α) : a ∈ a :: l := .head ..
 
 theorem mem_cons_of_mem (y : α) {a : α} {l : List α} : a ∈ l → a ∈ y :: l := .tail _
 
+@[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
+  simp [Array.mem_def]
+
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
 
 theorem eq_of_mem_singleton : a ∈ [b] → a = b
