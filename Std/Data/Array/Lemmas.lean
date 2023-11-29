@@ -368,7 +368,7 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
   simp only [← data_length, filter_data]
   apply List.length_filter_le
 
-theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
+@[simp] theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
   simp only [mem_def, filter_data, List.mem_filter]
 
 theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
