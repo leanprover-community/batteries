@@ -128,7 +128,7 @@ from a function that returns a collection of keys and values for each declaratio
 def DiscrTreeCache.mk [BEq α] (profilingName : String)
     (processDecl : Name → ConstantInfo → MetaM (Array (Array DiscrTree.Key × α)))
     (post? : Option (Array α → Array α) := none)
-    (init : Option (DiscrTree α) := none) :
+    (init : Option (MetaM (DiscrTree α)) := none) :
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
@@ -141,7 +141,7 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
   | some f => fun (T₁, T₂) => return (T₁, T₂.mapArrays f)
   | none => fun T => pure T
   match init with
-  | some t => return ⟨← Cache.mk (pure ({}, t)), addDecl, addLibraryDecl⟩
+  | some t => return ⟨← Cache.mk (return ({}, ← t)), addDecl, addLibraryDecl⟩
   | none => DeclCache.mk profilingName ({}, {}) addDecl addLibraryDecl (post := post)
 
 /--
