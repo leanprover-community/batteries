@@ -39,6 +39,14 @@ attribute [simp] isEmpty uget
 @[simp] theorem toArray_data : (a : Array α) → a.data.toArray = a
   | ⟨l⟩ => ext' (data_toArray l)
 
+theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
+
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+
+theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
+  erw [Array.mem_def, getElem_eq_data_get]
+  apply List.get_mem
+
 @[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
 @[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
@@ -53,7 +61,7 @@ theorem get?_len_le (a : Array α) (i : Nat) (h : a.size ≤ i) : a[i]? = none :
   simp [getElem?_neg, h]
 
 theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
-  simp [getElem_eq_data_get, List.get_mem]
+  simp only [getElem_eq_data_get, List.get_mem]
 
 theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i := by
   by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]; rfl

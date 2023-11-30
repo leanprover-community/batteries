@@ -696,8 +696,7 @@ The left-to-right direction, double negation elimination (DNE),
 is classically true but not constructively. -/
 @[scoped simp] theorem not_not : ¬¬a ↔ a := Decidable.not_not
 
-@[simp]
-theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
+@[simp] theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
   Decidable.not_forall
 
 alias ⟨exists_not_of_not_forall, _⟩ := not_forall
