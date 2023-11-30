@@ -106,6 +106,10 @@ def DeclCache.mk (profilingName : String) (pre : Option (MetaM α)) (empty : α)
     (post : α → MetaM α := fun a => pure a) : IO (DeclCache α) := do
   let cache ← Cache.mk do
     try
+      -- We allow arbitrary failures in the `pre` tactic,
+      -- and fall back on folding over the entire environment.
+      -- In practice the `pre` tactic may be unpickling an `.olean`,
+      -- and may fail after leanprover/lean4#2766 because the embedded hash is incorrect.
       match pre with
       | none => failure
       | some r => r
