@@ -100,7 +100,7 @@ Finally, the result is cached.
 
 When `get` is called, `addDecl` is also called for every constant in the current file.
 -/
-def DeclCache.mk (profilingName : String) (pre : Option (MetaM α)) (empty : α)
+def DeclCache.mk (profilingName : String) (pre : MetaM α := failure) (empty : α)
     (addDecl : Name → ConstantInfo → α → MetaM α)
     (addLibraryDecl : Name → ConstantInfo → α → MetaM α := addDecl)
     (post : α → MetaM α := fun a => pure a) : IO (DeclCache α) := do
@@ -110,9 +110,7 @@ def DeclCache.mk (profilingName : String) (pre : Option (MetaM α)) (empty : α)
       -- and fall back on folding over the entire environment.
       -- In practice the `pre` tactic may be unpickling an `.olean`,
       -- and may fail after leanprover/lean4#2766 because the embedded hash is incorrect.
-      match pre with
-      | none => failure
-      | some r => r
+      pre
     catch _ =>
       profileitM Exception profilingName (← getOptions) do
         post <|← (← getEnv).constants.map₁.foldM (init := empty) fun a n c =>
@@ -144,7 +142,7 @@ from a function that returns a collection of keys and values for each declaratio
 def DiscrTreeCache.mk [BEq α] (profilingName : String)
     (processDecl : Name → ConstantInfo → MetaM (Array (Array DiscrTree.Key × α)))
     (post? : Option (Array α → Array α) := none)
-    (init : Option (MetaM (DiscrTree α)) := none) :
+    (init : MetaM (DiscrTree α) := failure) :
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
@@ -156,7 +154,7 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
   let post := match post? with
   | some f => fun (T₁, T₂) => return (T₁, T₂.mapArrays f)
   | none => fun T => pure T
-  let init' := init.map fun r => return ({}, ← r)
+  let init' := return ({}, ← init)
   DeclCache.mk profilingName init' ({}, {}) addDecl addLibraryDecl (post := post)
 
 /--
