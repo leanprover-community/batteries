@@ -170,8 +170,10 @@ syntax (name := lemma) declModifiers
 /-- `lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic` -/
 @[command_elab «lemma»] def elabLemma : CommandElab := fun stx => do
   let lemmaStx := stx[1][0]
-  Elab.Command.liftTermElabM <| Std.Tactic.TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
-  logWarningAt lemmaStx "`lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic`"
+  Elab.Command.liftTermElabM <|
+    Std.Tactic.TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
+  logWarningAt lemmaStx
+    "`lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic`"
   let out ← Elab.liftMacroM <| do
     let stx := stx.modifyArg 1 fun stx =>
       let stx := stx.modifyArg 0 (mkAtomFrom · "theorem" (canonical := true))
