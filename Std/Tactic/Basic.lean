@@ -167,16 +167,22 @@ macro (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv =>
 syntax (name := lemma) declModifiers
   group("lemma " declId ppIndent(declSig) declVal Parser.Command.terminationSuffix) : command
 
-/-- `lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic` -/
-@[command_elab «lemma»] def elabLemma : CommandElab := fun stx => do
-  let lemmaStx := stx[1][0]
-  Elab.Command.liftTermElabM <|
-    Std.Tactic.TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
-  logWarningAt lemmaStx
-    "`lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic`"
+/-- Elaborator for the `lemma` command, with a boolean flag to control
+whether the command emits a warning and code action
+instructing the user to use `theorem` instead.-/
+def elabLemma' (allow : Bool) : CommandElab := fun stx => do
+  if !allow then
+    let lemmaStx := stx[1][0]
+    Elab.Command.liftTermElabM <|
+      Std.Tactic.TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
+    logWarningAt lemmaStx
+      "`lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic`"
   let out ← Elab.liftMacroM <| do
     let stx := stx.modifyArg 1 fun stx =>
       let stx := stx.modifyArg 0 (mkAtomFrom · "theorem" (canonical := true))
       stx.setKind ``Parser.Command.theorem
     pure <| stx.setKind ``Parser.Command.declaration
   Elab.Command.elabCommand out
+
+/-- `lemma` is not supported, please use `theorem` or import `Mathlib.Tactic.Basic` -/
+@[command_elab «lemma»] def elabLemma : CommandElab := elabLemma' false
