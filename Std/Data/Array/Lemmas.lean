@@ -95,11 +95,11 @@ theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := b
 theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]? := by
   split
   . next heq => rw [heq, getElem?_pos, get_push_eq]
-  · next hne => simp only [getElem?, size_push]
-                split <;> split <;> try simp only [*, get_push_lt]
-                · next p q => have tmp := Nat.le_of_lt_succ p
-                              apply Or.elim (Nat.eq_or_lt_of_le tmp) <;> assumption
-                · next p q => exact p (Nat.lt.step q)
+  · next hne =>
+    simp only [getElem?, size_push]
+    split <;> split <;> try simp only [*, get_push_lt]
+    · next p q => exact Or.elim (Nat.eq_or_lt_of_le (Nat.le_of_lt_succ p)) hne q
+    · next p q => exact p (Nat.lt.step q)
 
 @[simp] theorem get?_size {a : Array α} : a[a.size]? = none := by
   simp only [getElem?, Nat.lt_irrefl, dite_false]
