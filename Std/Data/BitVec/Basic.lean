@@ -70,7 +70,7 @@ theorem isLt (x : BitVec w) : x.toNat < 2^w := x.toFin.isLt
 protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   match i with
   | Int.ofNat a => .ofNat n a
-  | Int.negSucc a => .ofNat n (2^n - 1 - a % 2^n)
+  | Int.negSucc a => ~~~.ofNat n a
 
 /-- Interpret the bitvector as an integer stored in two's complement form. -/
 protected def toInt (a : BitVec n) : Int :=
