@@ -48,3 +48,9 @@ Note that documentation for the latest nightly of `std4` is available as part of
 documentation][mathlib4 docs].
 
 [mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Std.html
+
+# Contributing
+
+The easiest way to contribute is to find a missing proof and complete it. The `proof_wanted`
+declaration documents statements that have been identified as being useful, but that have not yet
+been proven.

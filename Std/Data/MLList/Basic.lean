@@ -91,7 +91,7 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
 /-- The implementation of `ForIn`, which enables `for a in L do ...` notation. -/
 @[specialize] protected partial def forIn [Monad m] [Monad n] [MonadLiftT m n]
     (as : MLList m α) (init : δ) (f : α → δ → n (ForInStep δ)) : n δ := do
-  match ← (as.uncons :) with
+  match ← as.uncons with
   | none => pure init
   | some (a, t) => match (← f a init) with
       | ForInStep.done d  => pure d
