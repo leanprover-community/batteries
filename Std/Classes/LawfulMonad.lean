@@ -59,13 +59,13 @@ instance : LawfulMonad (EStateM ε σ) := .mk'
     match x s with
     | .ok _ _ => rfl
     | .error _ _ => rfl)
-  (pure_bind := fun a x => rfl)
+  (pure_bind := fun _ _ => rfl)
   (bind_assoc := fun x f g => funext <| fun s => by
     dsimp only [EStateM.instMonadEStateM, EStateM.bind]
     match x s with
     | .ok _ _ => rfl
     | .error _ _ => rfl)
-  (map_const := fun x y => rfl)
+  (map_const := fun _ _ => rfl)
 
 instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
 instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
