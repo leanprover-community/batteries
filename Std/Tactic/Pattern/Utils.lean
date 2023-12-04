@@ -3,7 +3,10 @@ Copyright (c) 2023 Anand Rao Tadipatri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao Tadipatri
 -/
-import Lean
+import Lean.Elab.Term
+import Lean.SubExpr
+import Lean.Meta.ExprLens
+import Lean.HeadIndex
 
 open Lean Meta Elab Tactic
 

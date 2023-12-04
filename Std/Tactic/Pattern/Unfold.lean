@@ -3,7 +3,6 @@ Copyright (c) 2023 J. W. Gerbscheid, Anand Rao Tadipatri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: J. W. Gerbscheid, Anand Rao Tadipatri
 -/
-import Lean
 import Std.Tactic.Pattern.Utils
 
 open Lean Meta MonadExceptOf Elab
