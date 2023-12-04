@@ -65,7 +65,7 @@ elab "unfold'" occs:(occs)? p:term loc:(location)? : tactic => withMainContext d
   let goal ← getMainGoal
   goal.withContext do
     withLocation location
-      (atLocal := fun fvarId ↦ do
+      (atLocal := fun fvarId => do
         let hypType ← fvarId.getType
         let newGoal ← goal.replaceLocalDeclDefEq fvarId <| ←
           replaceByDef hypType pattern occurrences

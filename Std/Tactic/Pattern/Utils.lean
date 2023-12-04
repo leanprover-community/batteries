@@ -49,7 +49,7 @@ section PatternsAndOccurrences
 def SubExpr.patternAt (p : SubExpr.Pos) (root : Expr) : MetaM Expr := do
   let e ← Core.viewSubexpr p root
   let binders ← Core.viewBinders p root
-  let mvars ← binders.mapM fun (name, type) ↦
+  let mvars ← binders.mapM fun (name, type) =>
     mkFreshExprMVar type (userName := name)
   return e.instantiateRev mvars
 
