@@ -60,7 +60,7 @@ instance : LawfulMonad (EStateM ε σ) := .mk'
     | .ok _ _ => rfl
     | .error _ _ => rfl)
   (pure_bind := fun _ _ => rfl)
-  (bind_assoc := fun x f g => funext <| fun s => by
+  (bind_assoc := fun x _ _ => funext <| fun s => by
     dsimp only [EStateM.instMonadEStateM, EStateM.bind]
     match x s with
     | .ok _ _ => rfl
