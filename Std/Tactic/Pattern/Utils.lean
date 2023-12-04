@@ -63,7 +63,9 @@ def findMatchingOccurrence (position : SubExpr.Pos) (root : Expr) (pattern : Exp
   let pattern ← instantiateMVars pattern
   let pHeadIdx := pattern.toHeadIndex
   let pNumArgs := pattern.headNumArgs
-  let rec visit (e : Expr) (p : SubExpr.Pos) (offset : Nat) := do
+  let rec
+  /-- The recursive step in the expression traversal to search for matching occurrences. -/
+  visit (e : Expr) (p : SubExpr.Pos) (offset : Nat) := do
     let visitChildren : Unit → StateRefT Nat (OptionT MetaM) Unit := fun _ => do
       match e with
       | .app f a         => do
