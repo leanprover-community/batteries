@@ -33,16 +33,6 @@ def expandPattern (p : Term) : TermElabM AbstractMVarsResult :=
     Term.withoutErrToSorry do
       abstractMVars (← Term.elabTerm p none)
 
-open Parser Tactic Conv in
-/-- Expand syntax of type `occs` into `Occurrences`. -/
-def expandOccs : Option (TSyntax ``occs) → Occurrences
-  | none => .all
-  | some occs =>
-    match occs with
-      | `(occs| (occs := *)) => .all
-      | `(occs| (occs := $ids*)) => .pos <| ids.map TSyntax.getNat |>.toList
-      | _ => panic! s!"Invalid syntax {occs} for occurrences."
-
 end Expand
 
 section PatternsAndOccurrences
