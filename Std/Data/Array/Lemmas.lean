@@ -85,8 +85,6 @@ theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default
 
 theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
-proof_wanted get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]?
-
 theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     (a.push x)[i]? = some a[i] := by
   rw [getElem?_pos, get_push_lt]
@@ -94,7 +92,17 @@ theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
 theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := by
   rw [getElem?_pos, get_push_eq]
 
-@[simp] proof_wanted get?_size {a : Array α} : a[a.size]? = none
+theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]? := by
+  split
+  . next heq => rw [heq, getElem?_pos, get_push_eq]
+  · next hne =>
+    simp only [getElem?, size_push]
+    split <;> split <;> try simp only [*, get_push_lt]
+    · next p q => exact Or.elim (Nat.eq_or_lt_of_le (Nat.le_of_lt_succ p)) hne q
+    · next p q => exact p (Nat.lt.step q)
+
+@[simp] theorem get?_size {a : Array α} : a[a.size]? = none := by
+  simp only [getElem?, Nat.lt_irrefl, dite_false]
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
