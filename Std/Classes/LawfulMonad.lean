@@ -52,7 +52,6 @@ instance : LawfulMonad Option := LawfulMonad.mk'
 instance : LawfulApplicative Option := inferInstance
 instance : LawfulFunctor Option := inferInstance
 
-
 instance : LawfulMonad (EStateM ε σ) := .mk'
   (id_map := fun x => funext <| fun s => by
     dsimp only [EStateM.instMonadEStateM, EStateM.map]
@@ -66,13 +65,6 @@ instance : LawfulMonad (EStateM ε σ) := .mk'
     | .ok _ _ => rfl
     | .error _ _ => rfl)
   (map_const := fun _ _ => rfl)
-
-instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
-instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
-instance : LawfulMonad IO := inferInstance
-
-instance : LawfulMonad (EST ε σ) := inferInstanceAs <| LawfulMonad (EStateM _ _)
-instance : LawfulMonad (ST ε) := inferInstance
 
 /-!
 ## SatisfiesM
