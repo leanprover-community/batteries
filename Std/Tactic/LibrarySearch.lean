@@ -3,11 +3,11 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Scott Morrison
 -/
-import Std.Lean.Expr
-import Std.Util.Pickle
-import Std.Util.Cache
-import Std.Tactic.SolveByElim
 import Std.Data.MLList.Heartbeats
+import Std.Lean.Expr
+import Std.Lean.Meta.DiscrTree
+import Std.Tactic.SolveByElim
+import Std.Util.Pickle
 
 /-!
 # Library search
@@ -52,6 +52,28 @@ instance : ToString DeclMod where
   toString m := match m with | .none => "" | .mp => "mp" | .mpr => "mpr"
 
 /--
+LibrarySearch has an extension mechanism for replacing the function used
+to find candidate lemmas.
+-/
+@[reducible]
+def CandidateFinder := Expr → MetaM (List (Name × DeclMod))
+
+namespace DiscrTreeFinder
+
+open System (FilePath)
+
+/--
+LibrarySearch has an extension mechanism for replacing the function used
+to find candidate lemmas.
+-/
+@[reducible]
+def CandidateFinder := Expr → MetaM (List (Name × DeclMod))
+
+namespace DiscrTreeFinder
+
+open System (FilePath)
+
+/--
 An even wider class of "internal" names than reported by `Name.isInternalDetail`.
 -/
 -- from Lean.Server.Completion
@@ -65,70 +87,95 @@ private def isBlackListed (env : Environment) (declName : Name) : Bool :=
   || isRecCore env declName
   || isMatcherCore env declName
 
-/-- Prepare the discrimination tree entries for a lemma. -/
-def processLemma (name : Name) (constInfo : ConstantInfo) :
-    MetaM (Array (Array DiscrTree.Key × (Name × DeclMod))) := do
-  if constInfo.isUnsafe then return #[]
-  if isBlackListed (←getEnv) name then return #[]
-  withNewMCtxDepth do withReducible do
-    let (_, _, type) ← forallMetaTelescope constInfo.type
-    let keys ← DiscrTree.mkPath type discrTreeConfig
-    let mut r := #[(keys, (name, DeclMod.none))]
-    match type.getAppFnArgs with
-    | (``Iff, #[lhs, rhs]) => do
-      return r.push (← DiscrTree.mkPath rhs discrTreeConfig, (name, DeclMod.mp))
-        |>.push (← DiscrTree.mkPath lhs discrTreeConfig, (name, DeclMod.mpr))
-    | _ => return r
-
-/-- Insert a lemma into the discrimination tree. -/
--- Recall that `apply?` caches the discrimination tree on disk.
--- If you are modifying this file, you will probably want to delete
--- `build/lib/MathlibExtras/LibrarySearch.extra`
--- so that the cache is rebuilt.
-def addLemma (name : Name) (constInfo : ConstantInfo)
-    (lemmas : DiscrTree (Name × DeclMod)) : MetaM (DiscrTree (Name × DeclMod)) := do
-  let mut lemmas := lemmas
-  for (key, value) in ← processLemma name constInfo do
-    lemmas := lemmas.insertIfSpecific key value discrTreeConfig
-  return lemmas
-
-/-- Construct the discrimination tree of all lemmas. -/
-def buildDiscrTree : IO (DiscrTreeCache (Name × DeclMod)) :=
-  DiscrTreeCache.mk "apply?: init cache" processLemma
-    -- Sort so lemmas with longest names come first.
-    -- This is counter-intuitive, but the way that `DiscrTree.getMatch` returns results
-    -- means that the results come in "batches", with more specific matches *later*.
-    -- Thus we're going to call reverse on the result of `DiscrTree.getMatch`,
-    -- so if we want to try lemmas with shorter names first,
-    -- we need to put them into the `DiscrTree` backwards.
-    (post? := some fun A =>
-      A.map (fun (n, m) => (n.toString.length, n, m)) |>.qsort (fun p q => p.1 > q.1) |>.map (·.2))
-
-open System (FilePath)
-
 /--
 Once we reach Mathlib, and have `cache` available,
 it will be essential that we load a precomputed cache for `exact?` from a `.olean` file.
 
 This makes no sense here in Std, where there is no caching mechanism.
 -/
-def cachePath : IO FilePath :=
-  try
-    return (← findOLean `MathlibExtras.LibrarySearch).withExtension "extra"
-  catch _ =>
-    return "build" / "lib" / "MathlibExtras" / "LibrarySearch.extra"
+def cachePath : IO FilePath := do
+  let sp ← searchPathRef.get
+  if let buildPath :: _ := sp then
+    let path := buildPath / "LibrarySearch.extra"
+    if ← path.pathExists then
+      return path
+  return ".lake" / "build" / "lib" / "LibrarySearch.extra"
+
+private def addPath (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
+    (tp : Expr) (name : Name) (dm : DeclMod) : MetaM (DiscrTree (Name × DeclMod)) := do
+  let k ← DiscrTree.mkPath tp config
+  pure <| tree.insertCore k (name, dm) config
+
+/-- Adds a constant with given name to tree. -/
+private def updateTree (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
+    (name : Name) (constInfo : ConstantInfo) : MetaM (DiscrTree (Name × DeclMod)) := do
+  if constInfo.isUnsafe then return tree
+  if isBlackListed (←getEnv) name then return tree
+  withNewMCtxDepth do withReducible do
+    let (_, _, type) ← forallMetaTelescope constInfo.type
+    let tree ← addPath config tree type name DeclMod.none
+    match type.getAppFnArgs with
+    | (``Iff, #[lhs, rhs]) => do
+      let tree ← addPath config tree rhs name DeclMod.mp
+      let tree ← addPath config tree lhs name DeclMod.mpr
+      return tree
+    | _ =>
+      return tree
+
+/--
+Constructs an discriminator tree from the current environment.
+-/
+def buildImportCache (config : WhnfCoreConfig) : MetaM (DiscrTree (Name × DeclMod)) := do
+  let profilingName := "apply?: init cache"
+  -- Sort so lemmas with longest names come first.
+  -- This is counter-intuitive, but the way that `DiscrTree.getMatch` returns results
+  -- means that the results come in "batches", with more specific matches *later*.
+  -- Thus we're going to call reverse on the result of `DiscrTree.getMatch`,
+  -- so if we want to try lemmas with shorter names first,
+  -- we need to put them into the `DiscrTree` backwards.
+  let post (A : Array (Name × DeclMod)) :=
+        A.map (fun (n, m) => (n.toString.length, n, m)) |>.qsort (fun p q => p.1 > q.1) |>.map (·.2)
+  profileitM Exception profilingName (← getOptions) do
+    (·.mapArrays post) <$> (← getEnv).constants.map₁.foldM (init := {}) (updateTree config)
+
+/--
+Candidate finding function that uses strict discrimination tree for resolution.
+-/
+def discrTreeSearchFn (config : WhnfCoreConfig) (imports : DiscrTree (Name × DeclMod)) (ty : Expr) :
+    MetaM (List (Name × DeclMod)) := do
+  let locals ← (← getEnv).constants.map₂.foldlM (init := {}) (updateTree config)
+  pure <| ((← locals.getMatch  ty config).reverse
+        ++ (← imports.getMatch ty config).reverse).toList
+
+end DiscrTreeFinder
 
 /--
 Retrieve the current current of lemmas.
 -/
-initialize librarySearchLemmas : DiscrTreeCache (Name × DeclMod) ← unsafe do
-  let path ← cachePath
-  if (← path.pathExists) then
-    let (d, _r) ← unpickle (DiscrTree (Name × DeclMod)) path
-    -- We can drop the `CompactedRegion` value; we do not plan to free it
-    DiscrTreeCache.mk "apply?: using cache" processLemma (init := pure d)
+private initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
+  let path ← DiscrTreeFinder.cachePath
+  if ← path.pathExists then
+    let imports ← Prod.fst <$> unpickle (DiscrTree (Name × DeclMod)) path
+    -- `DiscrTree.getMatch` returns results in batches, with more specific lemmas coming later.
+    -- Hence we reverse this list, so we try out more specific lemmas earlier.
+    IO.mkRef (DiscrTreeFinder.discrTreeSearchFn {} imports)
   else
-    buildDiscrTree
+    let cache : IO.Ref (Option (DiscrTree (Name × DeclMod))) ← IO.mkRef none
+    IO.mkRef fun ty => do
+      let imports ←
+        if let .some imports ← cache.get then
+          pure imports
+        else
+          let imports ← DiscrTreeFinder.buildImportCache {}
+          cache.set (.some imports)
+          pure imports
+      DiscrTreeFinder.discrTreeSearchFn {} imports ty
+
+/--
+Update the candidate finder used by library search.
+-/
+def setDefaultCandidateFinder (cf : CandidateFinder) : IO Unit :=
+  defaultCandidateFinder.set cf
 
 /-- Shortcut for calling `solveByElim`. -/
 def solveByElim (goals : List MVarId) (required : List Expr) (exfalso := false) (depth) := do
@@ -169,11 +216,11 @@ def librarySearchLemma (lem : Name) (mod : DeclMod) (required : List Expr) (solv
 Returns a lazy list of the results of applying a library lemma,
 then calling `solveByElim` on the resulting goals.
 -/
-def librarySearchCore (goal : MVarId)
+def librarySearchCore (searchFn : CandidateFinder) (goal : MVarId)
     (required : List Expr) (solveByElimDepth := 6) : Nondet MetaM (List MVarId) :=
   .squash fun _ => do
     let ty ← goal.getType
-    let lemmas := (← librarySearchLemmas.getMatch ty).toList
+    let lemmas ← searchFn ty
     trace[Tactic.librarySearch.lemmas] m!"Candidate library_search lemmas:\n{lemmas}"
     return (Nondet.ofList lemmas).filterMapM fun (lem, mod) =>
       observing? <| librarySearchLemma lem mod required solveByElimDepth goal
@@ -181,13 +228,13 @@ def librarySearchCore (goal : MVarId)
 /--
 Run `librarySearchCore` on both the goal and `symm` applied to the goal.
 -/
-def librarySearchSymm (goal : MVarId)
+def librarySearchSymm (searchFn : CandidateFinder) (goal : MVarId)
     (required : List Expr) (solveByElimDepth := 6) :
     Nondet MetaM (List MVarId) :=
-  (librarySearchCore goal required solveByElimDepth) <|>
+  (librarySearchCore searchFn goal required solveByElimDepth) <|>
   .squash fun _ => do
     if let some symm ← observing? goal.applySymm then
-      return librarySearchCore symm required solveByElimDepth
+      return librarySearchCore searchFn symm required solveByElimDepth
     else
       return .nil
 
@@ -237,7 +284,7 @@ unless the goal was completely solved.)
 (Note that if `solveByElim` solves some but not all subsidiary goals,
 this is not currently tracked.)
 -/
-def librarySearch (goal : MVarId) (required : List Expr)
+def librarySearch (searchFn : CandidateFinder) (goal : MVarId) (required : List Expr)
     (solveByElimDepth := 6) (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   let librarySearchEmoji := fun
@@ -250,7 +297,7 @@ def librarySearch (goal : MVarId) (required : List Expr)
     _ ← solveByElim [goal] required (exfalso := true) (depth := solveByElimDepth)
     return none) <|>
   (do
-    let results ← librarySearchSymm goal required solveByElimDepth
+    let results ← librarySearchSymm searchFn goal required solveByElimDepth
       |>.mapM (fun x => do pure (x, ← getMCtx))
       |>.toMLList'
       -- Don't use too many heartbeats.
@@ -289,9 +336,10 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term))) (requireClo
     TacticM Unit := do
   let mvar ← getMainGoal
   let (_, goal) ← (← getMainGoal).intros
+  let searchFn ← defaultCandidateFinder.get
   goal.withContext do
     let required := (← (required.getD #[]).mapM getFVarId).toList.map .fvar
-    if let some suggestions ← librarySearch goal required then
+    if let some suggestions ← librarySearch searchFn goal required then
       if requireClose then
         throwError "`exact?` could not close the goal. Try `apply?` to see partial suggestions."
       reportOutOfHeartbeats `library_search tk
@@ -320,8 +368,9 @@ open Elab Term in
 elab tk:"exact?%" : term <= expectedType => do
   let goal ← mkFreshExprMVar expectedType
   let (_, introdGoal) ← goal.mvarId!.intros
+  let searchFn ← defaultCandidateFinder.get
   introdGoal.withContext do
-    if let some suggestions ← librarySearch introdGoal [] then
+    if let some suggestions ← librarySearch searchFn introdGoal [] then
       reportOutOfHeartbeats `library_search tk
       for suggestion in suggestions do
         withMCtx suggestion.2 do
