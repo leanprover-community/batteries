@@ -41,7 +41,7 @@ def log2p1 : Nat → Nat := -- works!
 
 namespace Acc
 
-private local instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val } where
+instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val } where
   rel := InvImage r (·.1)
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
@@ -90,23 +90,18 @@ end Acc
 
 namespace WellFounded
 
-/-- A wrapper type with an `WellFoundedRelation` instance that allows you to explicitly
-indicate the `WellFounded` relation to use in a `termination_by` clause. See `WellFounded.wrap` -/
-def Wrapped {α : Sort u} {r : α → α → Prop} (_h : WellFounded r) := α
+/-- Attaches to `x` the proof that `x` is accessible in the given well-founded relation.
+This can be used in recursive function definitions to explicitly use a differerent relation
+than the one inferred by default:
 
-instance : WellFoundedRelation (Wrapped h) := invImage id ⟨_, h⟩
-
-/-- Wraps a value in `WellFounded.Wrapper` to indicate that this `WellFounded` relation
-should be used.
-
-Example usage:
 ```
 def otherWF : WellFounded Nat := …
 def foo (n : Nat) := …
 termination_by foo n => otherWF.wrap n
 ```
 -/
-def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : h.Wrapped := x
+def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : {x : α // Acc r x} :=
+  ⟨_, h.apply x⟩
 
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
