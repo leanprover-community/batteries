@@ -23,23 +23,7 @@ open Nat
 
 namespace List
 
-/--
-`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
-of each other. This is defined by induction using pairwise swaps.
--/
-inductive Perm : List α → List α → Prop
-  /-- `[] ~ []` -/
-  | nil : Perm [] []
-  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
-  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
-  /-- `x::y::l ~ y::x::l` -/
-  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
-  /-- `Perm` is transitive. -/
-  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
-
 open Perm (swap)
-
-@[inherit_doc] scoped infixl:50 " ~ " => Perm
 
 @[simp, refl] protected theorem Perm.refl : ∀ l : List α, l ~ l
   | [] => .nil
@@ -225,15 +209,6 @@ theorem Perm.sizeOf_eq_sizeOf [SizeOf α] {l₁ l₂ : List α} (h : l₁ ~ l₂
   | trans _ _ h_sz₁₂ h_sz₂₃ => simp [h_sz₁₂, h_sz₂₃]
 
 section Subperm
-
-/--
-`Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
-a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
-multiplicities of elements, and is used for the `≤` relation on multisets.
--/
-def Subperm (l₁ l₂ : List α) : Prop := ∃ (l : _) (_ : l ~ l₁), l <+ l₂
-
-@[inherit_doc] scoped infixl:50 " <+~ " => Subperm
 
 theorem nil_subperm {l : List α} : [] <+~ l := ⟨[], Perm.nil, by simp⟩
 
@@ -604,8 +579,11 @@ theorem subperm_ext_iff {l₁ l₂ : List α} : l₁ <+~ l₂ ↔ ∀ x ∈ l₁
   refine this.trans (Perm.subperm ?_)
   exact perm_append_comm.trans (subperm_append_diff_self_of_count_le h)
 
+theorem isSubperm_iff {l₁ l₂ : List α} : l₁.isSubperm l₂ ↔ l₁ <+~ l₂ := by
+  simp [isSubperm, subperm_ext_iff]
+
 instance decidableSubperm : DecidableRel ((· <+~ ·) : List α → List α → Prop) := fun _ _ =>
-  decidable_of_iff _ subperm_ext_iff.symm
+  decidable_of_iff _ isSubperm_iff
 
 theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx : count x l₁ < count x l₂) :
     x :: l₁ <+~ l₂ := by
@@ -618,12 +596,12 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
     refine h y ?_
     simpa [hy'] using hy
 
-instance decidablePerm : ∀ l₁ l₂ : List α, Decidable (l₁ ~ l₂)
-  | [], [] => isTrue .rfl
-  | [], _ :: _ => isFalse fun h => nomatch h.nil_eq
-  | a :: l₁, l₂ =>
-    haveI := decidablePerm l₁ (l₂.erase a)
-    decidable_of_iff' _ cons_perm_iff_perm_erase
+theorem isPerm_iff : ∀ {l₁ l₂ : List α}, l₁.isPerm l₂ ↔ l₁ ~ l₂
+  | [], [] => by simp [isPerm, isEmpty]
+  | [], _ :: _ => by simp [isPerm, isEmpty, Perm.nil_eq]
+  | a :: l₁, l₂ => by simp [isPerm, isPerm_iff, cons_perm_iff_perm_erase]
+
+instance decidablePerm (l₁ l₂ : List α) : Decidable (l₁ ~ l₂) := decidable_of_iff _ isPerm_iff
 
 protected theorem Perm.insert (a : α) {l₁ l₂ : List α} (p : l₁ ~ l₂) :
     l₁.insert a ~ l₂.insert a := by
