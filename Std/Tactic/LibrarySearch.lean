@@ -6,6 +6,7 @@ Authors: Gabriel Ebner, Scott Morrison
 import Std.Data.MLList.Heartbeats
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
+import Std.Lean.Meta.LazyDiscrTree
 import Std.Tactic.SolveByElim
 import Std.Util.Pickle
 
@@ -139,20 +140,111 @@ def buildImportCache (config : WhnfCoreConfig) : MetaM (DiscrTree (Name × DeclM
     (·.mapArrays post) <$> (← getEnv).constants.map₁.foldM (init := {}) (updateTree config)
 
 /--
+Return matches from local constants.
+
+N.B. The efficiency of this could likely be considerably improved by caching in environment
+extension.
+-/
+def localMatches (config : WhnfCoreConfig) (ty : Expr) : MetaM (Array (Name × DeclMod)) := do
+  let locals ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree config)
+  pure <| (← locals.getMatch  ty config).reverse
+
+/--
 Candidate finding function that uses strict discrimination tree for resolution.
 -/
-def discrTreeSearchFn (config : WhnfCoreConfig) (imports : DiscrTree (Name × DeclMod)) (ty : Expr) :
+def discrTreeSearchFn (config : WhnfCoreConfig) (importTree : DiscrTree (Name × DeclMod)) (ty : Expr) :
     MetaM (List (Name × DeclMod)) := do
-  let locals ← (← getEnv).constants.map₂.foldlM (init := {}) (updateTree config)
-  pure <| ((← locals.getMatch  ty config).reverse
-        ++ (← imports.getMatch ty config).reverse).toList
+  let locals ← localMatches config ty
+  let imports := (← importTree.getMatch ty config).reverse
+  for (nm, d) in imports do
+    IO.println s!"Try {nm} : {d}"
+  pure <| (locals ++ imports).toList
+
+/--
+This builds the candidate finder tht uses the fully formed discrimination tree.
+-/
+def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
+  let cache : IO.Ref (Option (DiscrTree (Name × DeclMod))) ← IO.mkRef none
+  pure fun ty => do
+    let imports ←
+      if let .some imports ← cache.get then
+        pure imports
+      else
+        let imports ← buildImportCache {}
+        cache.set (.some imports)
+        pure imports
+    DiscrTreeFinder.discrTreeSearchFn config imports ty
 
 end DiscrTreeFinder
+
+namespace IncDiscrTreeFinder
+
+open DiscrTreeFinder (isBlackListed)
+
+private def matchIff (t : Expr) : Option (Expr × Expr) := do
+  match t.getAppFnArgs with
+  | (``Iff, #[lhs, rhs]) => do
+    .some (lhs, rhs)
+  | _ =>
+    .none
+
+/--
+This is a monad for building initial discrimination tree.
+-/
+@[reducible]
+private def TreeInitM := StateT (LazyDiscrTree (Name × DeclMod)) MetaM
+
+private def pushEntry (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name) (m : DeclMod) :
+    TreeInitM Unit := do
+  fun t => ((),·) <$> t.addEntry lctx type (name, m)
+
+/-- Push entries for constant to array. -/
+def getConstantEntries (name : Name) (constInfo : ConstantInfo) : TreeInitM Unit := do
+  if constInfo.isUnsafe then return ()
+  if isBlackListed (← getEnv) name then return ()
+  let (lctx, type) ← forallTelescope constInfo.type fun _ r => do
+    let lctx ← getLCtx
+    let linst ← Lean.Meta.getLocalInstances
+    pure ((lctx, linst), r)
+  match matchIff type with
+  | .none => do
+    pushEntry lctx type name DeclMod.none
+  | .some (lhs, rhs) => do
+    pushEntry lctx type name DeclMod.none
+    pushEntry lctx rhs  name DeclMod.mp
+    pushEntry lctx lhs  name DeclMod.mpr
+
+private def loadImportedModule (md : ModuleData) : TreeInitM Unit := do
+  let sz := md.constNames.size
+  for i in [0:sz] do
+    let nm := md.constNames[i]!
+    let c  := md.constants[i]!
+    getConstantEntries nm c
+
+private def initializeEntries : TreeInitM Unit := do
+  (← getEnv).header.moduleData.forM loadImportedModule
+
+private def createImportedEnvironment : MetaM (LazyDiscrTree (Name × DeclMod)) :=
+  Prod.snd <$> initializeEntries.run {}
+
+/--
+Candidate finding function that uses strict discrimination tree for resolution.
+-/
+def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
+  let ref ← IO.mkRef none
+  pure fun ty => do
+    let locals ← DiscrTreeFinder.localMatches config ty
+    let importTree ← (←ref.get).getDM $ createImportedEnvironment
+    let (imports, importTree) ← importTree.getMatch ty
+    ref.set importTree
+    pure <| (locals ++ imports).toList
+
+end IncDiscrTreeFinder
 
 /--
 Retrieve the current current of lemmas.
 -/
-private initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
+initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
   let path ← DiscrTreeFinder.cachePath
   if ← path.pathExists then
     let imports ← Prod.fst <$> unpickle (DiscrTree (Name × DeclMod)) path
@@ -160,16 +252,7 @@ private initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
     -- Hence we reverse this list, so we try out more specific lemmas earlier.
     IO.mkRef (DiscrTreeFinder.discrTreeSearchFn {} imports)
   else
-    let cache : IO.Ref (Option (DiscrTree (Name × DeclMod))) ← IO.mkRef none
-    IO.mkRef fun ty => do
-      let imports ←
-        if let .some imports ← cache.get then
-          pure imports
-        else
-          let imports ← DiscrTreeFinder.buildImportCache {}
-          cache.set (.some imports)
-          pure imports
-      DiscrTreeFinder.discrTreeSearchFn {} imports ty
+    IO.mkRef (←IncDiscrTreeFinder.mkCandidateFinder {})
 
 /--
 Update the candidate finder used by library search.
@@ -284,9 +367,11 @@ unless the goal was completely solved.)
 (Note that if `solveByElim` solves some but not all subsidiary goals,
 this is not currently tracked.)
 -/
-def librarySearch (searchFn : CandidateFinder) (goal : MVarId) (required : List Expr)
+def librarySearch (goal : MVarId) (required : List Expr)
+    (searchFn : Option CandidateFinder := .none)
     (solveByElimDepth := 6) (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
+  let searchFn ← searchFn.getDM defaultCandidateFinder.get
   let librarySearchEmoji := fun
     | .error _ => bombEmoji
     | .ok (some _) => crossEmoji
@@ -336,10 +421,9 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term))) (requireClo
     TacticM Unit := do
   let mvar ← getMainGoal
   let (_, goal) ← (← getMainGoal).intros
-  let searchFn ← defaultCandidateFinder.get
   goal.withContext do
     let required := (← (required.getD #[]).mapM getFVarId).toList.map .fvar
-    if let some suggestions ← librarySearch searchFn goal required then
+    if let some suggestions ← librarySearch goal required then
       if requireClose then
         throwError "`exact?` could not close the goal. Try `apply?` to see partial suggestions."
       reportOutOfHeartbeats `library_search tk
@@ -368,9 +452,8 @@ open Elab Term in
 elab tk:"exact?%" : term <= expectedType => do
   let goal ← mkFreshExprMVar expectedType
   let (_, introdGoal) ← goal.mvarId!.intros
-  let searchFn ← defaultCandidateFinder.get
   introdGoal.withContext do
-    if let some suggestions ← librarySearch searchFn introdGoal [] then
+    if let some suggestions ← librarySearch introdGoal [] then
       reportOutOfHeartbeats `library_search tk
       for suggestion in suggestions do
         withMCtx suggestion.2 do
