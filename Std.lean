@@ -26,14 +26,19 @@ import Std.Data.BinomialHeap.Basic
 import Std.Data.BinomialHeap.Lemmas
 import Std.Data.BitVec
 import Std.Data.BitVec.Basic
+import Std.Data.BitVec.Bitblast
+import Std.Data.BitVec.Folds
+import Std.Data.BitVec.Lemmas
 import Std.Data.Bool
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
 import Std.Data.Fin.Init.Lemmas
+import Std.Data.Fin.Iterate
 import Std.Data.Fin.Lemmas
 import Std.Data.HashMap
 import Std.Data.HashMap.Basic
+import Std.Data.HashMap.Lemmas
 import Std.Data.HashMap.WF
 import Std.Data.Int.Basic
 import Std.Data.Int.DivMod
@@ -49,6 +54,7 @@ import Std.Data.List.Perm
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
 import Std.Data.Nat.Basic
+import Std.Data.Nat.Bitwise
 import Std.Data.Nat.Gcd
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Lemmas
@@ -85,6 +91,7 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
 import Std.Lean.Json
+import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -92,7 +99,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.LCtx
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
@@ -138,6 +144,7 @@ import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.RCases
@@ -158,5 +165,6 @@ import Std.Util.Cache
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
+import Std.Util.ProofWanted
 import Std.Util.TermUnsafe
 import Std.WF

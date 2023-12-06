@@ -1629,6 +1629,14 @@ def mapWithComplement {α β} (f : α → List α → β) : List α → List β 
   mapWithPrefixSuffix fun pref a suff => f a (pref ++ suff)
 
 /--
+Map each element of a `List` to an action, evaluate these actions in order,
+and collect the results.
+-/
+protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
+  | [] => pure []
+  | x :: xs => List.cons <$> f x <*> List.traverse f xs
+
+/--
 `Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
 of each other. This is defined by induction using pairwise swaps.
 -/
