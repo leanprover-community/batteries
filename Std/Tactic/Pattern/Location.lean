@@ -79,6 +79,18 @@ def substitute (e : Expr) (pattern : AbstractMVarsResult) (occs : Occurrences) (
   let eAbst ← kabstract e p occs
   return Expr.instantiate1 eAbst (← replacement p)
 
+-- modified from `Lean/Meta/Tactic/Replace/_root_.Lean.MVarId.replaceLocalDeclDefEq`
+def _root_.Lean.MVarId.replaceLocalLetDefEq (mvarId : MVarId) (fvarId : FVarId) (valNew : Expr) : MetaM MVarId := do
+  mvarId.withContext do
+    if valNew == (← fvarId.getValue?) then
+      return mvarId
+    else
+      let mvarDecl ← mvarId.getDecl
+      let lctxNew := (← getLCtx).modifyLocalDecl fvarId (·.setValue valNew)
+      let mvarNew ← mkFreshExprMVarAt lctxNew (← getLocalInstances) mvarDecl.type mvarDecl.kind mvarDecl.userName
+      mvarId.assign mvarNew
+      return mvarNew.mvarId!
+
 def replaceOccurrencesDefEq (locs : Array GoalOccurrences)
     (pattern : AbstractMVarsResult) (replacement : Expr → MetaM Expr) : TacticM Unit := withMainContext do
   let mut mvarId ← getMainGoal
@@ -87,7 +99,9 @@ def replaceOccurrencesDefEq (locs : Array GoalOccurrences)
     | .hypType fvarId occs =>
       let hypType ← fvarId.getType
       mvarId ← mvarId.replaceLocalDeclDefEq fvarId <| ← substitute hypType pattern occs replacement
-    | .hypValue fvarId occs => pure () -- TODO: handle this case
+    | .hypValue fvarId occs =>
+      let .some hypValue ← fvarId.getValue? | throwError m!"Hypothesis {fvarId.name} is not a let-declaration."
+      mvarId ← mvarId.replaceLocalLetDefEq fvarId <| ← substitute hypValue pattern occs replacement
     | .target occs => do
       let targetType ← mvarId.getType'
       mvarId ← mvarId.replaceTargetDefEq <| ← substitute targetType pattern occs replacement
