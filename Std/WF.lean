@@ -90,6 +90,24 @@ end Acc
 
 namespace WellFounded
 
+/-- A wrapper type with an `WellFoundedRelation` instance that allows you to explicitly
+indicate the `WellFounded` relation to use in a `termination_by` clause. See `WellFounded.wrap` -/
+def Wrapped {α : Sort u} {r : α → α → Prop} (_h : WellFounded r) := α
+
+instance : WellFoundedRelation (Wrapped h) := invImage id ⟨_, h⟩
+
+/-- Wraps a value in `WellFounded.Wrapper` to indicate that this `WellFounded` relation
+should be used.
+
+Example usage:
+```
+def otherWF : WellFounded Nat := …
+def foo (n : Nat) := …
+termination_by foo n => otherWF.wrap n
+```
+-/
+def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : h.Wrapped := x
+
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
 @[inline] private def fixFC {α : Sort u} {r : α → α → Prop}
@@ -105,7 +123,7 @@ Workaround until Lean has native support for this. -/
 @[specialize] private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
     (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
   F x (fun y _ => fixC hwf F y)
-termination_by' ⟨r, hwf⟩
+termination_by _ x => hwf.wrap x
 
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
