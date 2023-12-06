@@ -152,12 +152,10 @@ def localMatches (config : WhnfCoreConfig) (ty : Expr) : MetaM (Array (Name × D
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
 -/
-def discrTreeSearchFn (config : WhnfCoreConfig) (importTree : DiscrTree (Name × DeclMod)) (ty : Expr) :
-    MetaM (List (Name × DeclMod)) := do
+def discrTreeSearchFn (config : WhnfCoreConfig) (importTree : DiscrTree (Name × DeclMod))
+    (ty : Expr) : MetaM (List (Name × DeclMod)) := do
   let locals ← localMatches config ty
   let imports := (← importTree.getMatch ty config).reverse
-  for (nm, d) in imports do
-    IO.println s!"Try {nm} : {d}"
   pure <| (locals ++ imports).toList
 
 /--
@@ -194,8 +192,8 @@ This is a monad for building initial discrimination tree.
 @[reducible]
 private def TreeInitM := StateT (LazyDiscrTree (Name × DeclMod)) MetaM
 
-private def pushEntry (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name) (m : DeclMod) :
-    TreeInitM Unit := do
+private def pushEntry (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name)
+    (m : DeclMod) : TreeInitM Unit := do
   fun t => ((),·) <$> t.addEntry lctx type (name, m)
 
 /-- Push entries for constant to array. -/

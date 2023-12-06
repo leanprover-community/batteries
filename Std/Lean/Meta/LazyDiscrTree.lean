@@ -53,7 +53,8 @@ private def ignoreArg (a : Expr) (i : Nat) (infos : Array ParamInfo) : MetaM Boo
   else
     isProof a
 
-private partial def pushArgsAux (infos : Array ParamInfo) : Nat → Expr → Array Expr → MetaM (Array Expr)
+private partial def pushArgsAux (infos : Array ParamInfo) : Nat → Expr → Array Expr →
+    MetaM (Array Expr)
   | i, .app f a, todo => do
     if (← ignoreArg a i infos) then
       pushArgsAux infos (i-1) f (todo.push tmpStar)
@@ -132,7 +133,8 @@ private def isOffset (fName : Name) (e : Expr) : MetaM Bool := do
   Remark: we currently tag "offset" terms as star to avoid having to add special
   support for offset terms.
   Example, suppose the discrimination tree contains the entry
-  `Nat.succ ?m |-> v`, and we are trying to retrieve the matches for `Expr.lit (Literal.natVal 1) _`.
+  `Nat.succ ?m |-> v`, and we are trying to retrieve the matches for
+  `Expr.lit (Literal.natVal 1) _`.
   In this scenario, we want to retrieve `Nat.succ ?m |-> v`
 -/
 private def shouldAddAsStar (fName : Name) (e : Expr) : MetaM Bool := do
@@ -166,7 +168,8 @@ private def elimLooseBVarsByBeta (e : Expr) : CoreM Expr :=
       else
         return .continue)
 
-private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig) : MetaM (Key × Array Expr) := do
+private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig) :
+    MetaM (Key × Array Expr) := do
   let e ← reduceDT e root config
   unless root do
     -- See pushArgs
@@ -177,9 +180,10 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
   | .const c _     =>
     if (← getConfig).isDefEqStuckEx && e.hasExprMVar then
       if (← isReducible c) then
-        /- `e` is a term `c ...` s.t. `c` is reducible and `e` has metavariables, but it was not unfolded.
-           This can happen if the metavariables in `e` are "blocking" smart unfolding.
-           If `isDefEqStuckEx` is enabled, then we must throw the `isDefEqStuck` exception to postpone TC resolution.
+        /- `e` is a term `c ...` s.t. `c` is reducible and `e` has metavariables, but it was not
+            unfolded.  This can happen if the metavariables in `e` are "blocking" smart unfolding.
+           If `isDefEqStuckEx` is enabled, then we must throw the `isDefEqStuck` exception to
+           postpone TC resolution.
            Here is an example. Suppose we have
            ```
             inductive Ty where
@@ -196,12 +200,13 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
       else if let some matcherInfo := isMatcherAppCore? (← getEnv) e then
         -- A matcher application is stuck is one of the discriminants has a metavariable
         let args := e.getAppArgs
-        for arg in args[matcherInfo.getFirstDiscrPos: matcherInfo.getFirstDiscrPos + matcherInfo.numDiscrs] do
+        let start := matcherInfo.getFirstDiscrPos
+        for arg in args[ start : start + matcherInfo.numDiscrs ] do
           if arg.hasExprMVar then
             Meta.throwIsDefEqStuck
       else if (← isRec c) then
-        /- Similar to the previous case, but for `match` and recursor applications. It may be stuck (i.e., did not reduce)
-           because of metavariables. -/
+        /- Similar to the previous case, but for `match` and recursor applications. It may be stuck
+           (i.e., did not reduce) because of metavariables. -/
         Meta.throwIsDefEqStuck
     let nargs := e.getAppNumArgs
     return (.const c nargs, e.getAppRevArgs)
@@ -247,7 +252,8 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
     return (.other, #[])
 
 /- Copy of Lean.Meta.DiscrTree.getMatchKeyArgs -/
-private abbrev getMatchKeyArgs (e : Expr) (root : Bool) (config : WhnfCoreConfig) : MetaM (Key × Array Expr) :=
+private abbrev getMatchKeyArgs (e : Expr) (root : Bool) (config : WhnfCoreConfig) :
+    MetaM (Key × Array Expr) :=
   getKeyArgs e (isMatch := true) (root := root) (config := config)
 
 end MatchClone
@@ -350,8 +356,9 @@ private def pushArgs (root : Bool) (todo : ExprRest) (e : Expr) (config : WhnfCo
       push (.const c nargs) nargs todo
     | .proj s i a =>
       /-
-      If `s` is a class, then `a` is an instance. Thus, we annotate `a` with `no_index` since we do not
-      index instances. This should only happen if users mark a class projection function as `[reducible]`.
+      If `s` is a class, then `a` is an instance. Thus, we annotate `a` with `no_index` since we do
+      not index instances. This should only happen if users mark a class projection function as
+      `[reducible]`.
 
       TODO: add better support for projections that are functions
       -/
@@ -384,12 +391,11 @@ private def pushArgs (root : Bool) (todo : ExprRest) (e : Expr) (config : WhnfCo
 private def initCapacity := 8
 
 /--
-Adds an association between the given expression (which should use free variables
+Adds a key and
 -/
-def addEntry : LazyDiscrTree α → LocalContext × LocalInstances → Expr → α → MetaM (LazyDiscrTree α)
-| { config := c, array := a, root := r }, lctx, type, v => withReducible $ do
-  let todo := Array.mkEmpty initCapacity
-  let (k, todo) ← withLCtx lctx.1 lctx.2 $ pushArgs true todo type c
+def addEntry' : LazyDiscrTree α → LocalContext × LocalInstances → Key → Array Expr → α →
+    MetaM (LazyDiscrTree α)
+| { config := c, array := a, root := r }, lctx, k, todo, v => withReducible $ do
   let rest := (todo, lctx, v)
   match r.find? k with
   | none =>
@@ -400,7 +406,25 @@ def addEntry : LazyDiscrTree α → LocalContext × LocalInstances → Expr → 
     let a := a.modify idx fun t => t.pushPending rest
     pure { config := c, array := a, root := r }
 
-private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key) (config : WhnfCoreConfig) : MetaM (Array Key) := do
+/--
+Get the root key of an expression using the config from the lazy dicriminator tree.
+-/
+def rootKey (d:LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (e : Expr) :
+    MetaM (Key × Array Expr) :=
+  let todo := Array.mkEmpty initCapacity
+  withReducible $ withLCtx lctx.1 lctx.2 $ pushArgs true todo e d.config
+
+/--
+Adds an association between the given expression.  Free variables are used to
+denote paramters that may be matched against.
+-/
+def addEntry (d : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
+    MetaM (LazyDiscrTree α) := do
+  let (k, todo) ← rootKey d lctx type
+  addEntry' d lctx k todo v
+
+private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
+    (config : WhnfCoreConfig) : MetaM (Array Key) := do
   if todo.isEmpty then
     return keys
   else
@@ -537,8 +561,10 @@ private partial def getMatchLoop (todo : Array Expr) (c : TrieIndex) (result : M
     | .star  => return result
     /-
       Note: dep-arrow vs arrow
-      Recall that dependent arrows are `(Key.other, #[])`, and non-dependent arrows are `(Key.arrow, #[a, b])`.
-      A non-dependent arrow may be an instance of a dependent arrow (stored at `DiscrTree`). Thus, we also visit the `Key.other` child.
+      Recall that dependent arrows are `(Key.other, #[])`, and non-dependent arrows are
+      `(Key.arrow, #[a, b])`.
+      A non-dependent arrow may be an instance of a dependent arrow (stored at `DiscrTree`).
+      Thus, we also visit the `Key.other` child.
     -/
     | .arrow => visitNonStar .other #[] (← visitNonStar k args result)
     | _      => visitNonStar k args result
