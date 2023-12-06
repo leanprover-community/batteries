@@ -24,9 +24,8 @@ run with the appropriate backtrackable state, and are responsible for updating t
 but just happens as a side effect in the monad `m`).
 -/
 
-set_option autoImplicit true
-
-open Lean
+open Lean (MonadBacktrack)
+open Lean.MonadBacktrack
 
 /--
 `Nondet m α` is variation on `MLList m α` suitable for use with backtrackable monads `m`.
