@@ -154,7 +154,8 @@ private def run (goals : List MVarId) (n : Nat) (curr acc : List MVarId) : MetaM
 A wrapper around `run`, which works on "independent" goals separately first,
 to reduce backtracking.
 -/
-private partial def processIndependentGoals (goals remaining : List MVarId) : MetaM (List MVarId) := do
+private partial def processIndependentGoals (goals remaining : List MVarId) :
+    MetaM (List MVarId) := do
   -- Partition the remaining goals into "independent" goals
   -- (which should be solvable without affecting the solvability of other goals)
   -- and all the others.
@@ -169,7 +170,8 @@ private partial def processIndependentGoals (goals remaining : List MVarId) : Me
     -- Invoke `run` on each of the independent goals separately,
     -- gathering the subgoals on which `run` fails,
     -- and the new subgoals generated from goals on which it is successful.
-    let (failed, newSubgoals') ← tryAllM igs (fun g => run cfg trace alternatives goals cfg.maxDepth [g] [])
+    let (failed, newSubgoals') ← tryAllM igs fun g =>
+      run cfg trace alternatives goals cfg.maxDepth [g] []
     let newSubgoals := newSubgoals'.join
     withTraceNode trace
       (fun _ => return m!"failed: {← ppMVarIds failed}, new: {← ppMVarIds newSubgoals}") do
