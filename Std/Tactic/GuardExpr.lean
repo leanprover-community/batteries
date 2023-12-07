@@ -143,7 +143,8 @@ def evalGuardTarget : Tactic :=
     let t ← getTgt >>= instantiateMVars
     let r ← elabTerm r (← inferType t)
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
-    unless ← mk.isEq r t do throwError "target of main goal is{indentExpr t}\nnot{indentExpr r}"
+    unless ← mk.isEq r t do
+      throwError "target of main goal is{indentExpr t}\nnot{indentExpr r}"
   fun
   | `(tactic| guard_target $eq $r) => go eq r getMainTarget
   | `(conv| guard_target $eq $r) => go eq r Conv.getLhs
@@ -181,7 +182,8 @@ def evalGuardHyp : Tactic := fun
       let some mk := colon.toMatchKind c | throwUnsupportedSyntax
       let e ← elabTerm p none
       let hty ← instantiateMVars lDecl.type
-      unless ← mk.isEq e hty do throwError m!"hypothesis {h} has type{indentExpr hty}\nnot {indentExpr e}"
+      unless ← mk.isEq e hty do
+        throwError m!"hypothesis {h} has type{indentExpr hty}\nnot {indentExpr e}"
     match lDecl.value?, val with
     | none, some _        => throwError m!"{h} is not a let binding"
     | some _, none        => throwError m!"{h} is a let binding"
@@ -189,7 +191,8 @@ def evalGuardHyp : Tactic := fun
       let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
       let e ← elabTerm val lDecl.type
       let hval ← instantiateMVars hval
-      unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value{indentExpr hval}\nnot {indentExpr e}"
+      unless ← mk.isEq e hval do
+        throwError m!"hypothesis {h} has value{indentExpr hval}\nnot {indentExpr e}"
     | none, none          => pure ()
   | _ => throwUnsupportedSyntax
 
