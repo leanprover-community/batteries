@@ -2,14 +2,14 @@ import Lake
 
 open Lake DSL
 
-macro "optArg?" x:ident v:term : term =>
+macro "opt_arg?" x:ident v:term : term =>
   `(if get_config? $x |>.isSome then $v else default)
 
 package std where
-  moreLeanArgs := optArg? werror #["-DwarningAsError=true"]
+  moreLeanArgs := opt_arg? werror #["-DwarningAsError=true"]
   leanOptions :=
     #[⟨`linter.missingDocs, true⟩] ++
-    optArg? disable_new_compiler #[⟨`compiler.enableNew, false⟩]
+    opt_arg? disable_new_compiler #[⟨`compiler.enableNew, false⟩]
 
 @[default_target]
 lean_lib Std
