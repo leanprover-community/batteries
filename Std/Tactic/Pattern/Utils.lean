@@ -7,6 +7,7 @@ import Lean.Elab.Term
 import Lean.SubExpr
 import Lean.Meta.ExprLens
 import Lean.HeadIndex
+import Std.Tactic.Pattern.Location
 
 open Lean Meta Elab Tactic
 
