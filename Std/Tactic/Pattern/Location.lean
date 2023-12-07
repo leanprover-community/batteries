@@ -32,7 +32,7 @@ syntax hypLoc := ident <|> ("‹" ident ppSpace (Parser.Tactic.Conv.occs)? (ppSp
 syntax goalPattern := patternIgnore( atomic("|" noWs "-") <|> "⊢")
 
 /-- The goal or target location with occurrences optionally specified. -/
-syntax goalLoc := goalPattern <|> ("‹" goalPattern ppSpace Parser.Tactic.Conv.occs "›")
+syntax goalLoc := goalPattern <|> ("<" goalPattern ppSpace Parser.Tactic.Conv.occs ">")
 
 /-- The wildcard location which refers to all valid locations. -/
 syntax wildcardLoc := "*"
@@ -96,7 +96,7 @@ where
   /-- Interpret `goalLoc` syntax as `GoalOccurrences`. -/
   expandGoalLoc : TSyntax ``goalLoc → GoalOccurrences
   | `(goalLoc| $_:goalPattern) => .target .all
-  | `(goalLoc| ‹$_goalPattern $occs›) => .target (expandOccs occs)
+  | `(goalLoc| <$_goalPattern $occs>) => .target (expandOccs occs)
   | stx => panic! s!"Invalid syntax {stx} for goal location."
 
 end Pattern.Location
