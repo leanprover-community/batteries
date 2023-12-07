@@ -192,7 +192,7 @@ def evalGuardHyp : Tactic := fun
       let e ← elabTerm val lDecl.type
       let hval ← instantiateMVars hval
       unless ← mk.isEq e hval do
-        throwError m!"hypothesis {h} has value{indentExpr hval}\nnot {indentExpr e}"
+        throwError m!"hypothesis {h} has value{indentExpr hval}\nnot{indentExpr e}"
     | none, none          => pure ()
   | _ => throwUnsupportedSyntax
 
