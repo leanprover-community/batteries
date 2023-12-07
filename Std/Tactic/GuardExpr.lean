@@ -183,7 +183,7 @@ def evalGuardHyp : Tactic := fun
       let e ← elabTerm p none
       let hty ← instantiateMVars lDecl.type
       unless ← mk.isEq e hty do
-        throwError m!"hypothesis {h} has type{indentExpr hty}\nnot {indentExpr e}"
+        throwError m!"hypothesis {h} has type{indentExpr hty}\nnot{indentExpr e}"
     match lDecl.value?, val with
     | none, some _        => throwError m!"{h} is not a let binding"
     | some _, none        => throwError m!"{h} is a let binding"
