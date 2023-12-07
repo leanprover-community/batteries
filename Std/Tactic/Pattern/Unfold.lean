@@ -46,17 +46,3 @@ elab "unfold'" p:term locs:locs : tactic => withMainContext do
   let pattern ← expandPattern p
   let occurrences ← expandLocs locs
   replaceOccurrencesDefEq occurrences pattern replaceByDef
-
-
-section Test
-
-def f := Nat.add
-
-def g := fun x ↦ x + 5
-
-example (h : f 0 0 = 0) (h' : g 1 = f 1 2 + f 3 3) : f 0 0 = g 0 := by
-  let h'' := f 5 5
-  unfold' f ?n ?n at h ‹h' (occs := 1)› ‹h'' (occs := 1) in body› <⊢ (occs := 1)>
-  sorry
-
-end Test
