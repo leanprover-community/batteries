@@ -2,8 +2,7 @@ import Lake
 
 open Lake DSL
 
-macro "opt_arg?" x:ident v:term : term =>
-  `(if get_config? $x |>.isSome then $v else default)
+macro "opt_arg?" x:ident v:term : term => `(if get_config? $x |>.isSome then $v else default)
 
 package std where
   moreLeanArgs := opt_arg? werror #["-DwarningAsError=true"]
