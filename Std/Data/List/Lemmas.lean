@@ -233,16 +233,6 @@ theorem zipWith_get? {f : α → β → γ} :
 theorem zipWith_eq_nil_iff {f : α → β → γ} {l l'} : zipWith f l l' = [] ↔ l = [] ∨ l' = [] := by
   cases l <;> cases l' <;> simp
 
-theorem lt_length_of_lt_zipWith_left_length {f : α → β → γ} {i : Nat} {l : List α} {l' : List β}
-    (h : i < (zipWith f l l').length) : i < l.length := by
-  rw [length_zipWith, Nat.lt_min] at h
-  exact h.left
-
-theorem lt_length_of_lt_zipwith_right_length {f : α → β → γ} {i : Nat} {l : List α} {l' : List β}
-    (h : i < (zipWith f l l').length) : i < l'.length := by
-  rw [length_zipWith, Nat.lt_min] at h
-  exact h.right
-
 theorem map_zipWith {δ : Type _} (f : α → β) (g : γ → δ → α) (l : List γ) (l' : List δ) :
     map f (zipWith g l l') = zipWith (fun x y => f (g x y)) l l' := by
   induction l generalizing l' with
@@ -322,14 +312,6 @@ theorem zip_map_left (f : α → γ) (l₁ : List α) (l₂ : List β) :
 
 theorem zip_map_right (f : β → γ) (l₁ : List α) (l₂ : List β) :
     zip l₁ (l₂.map f) = (zip l₁ l₂).map (Prod.map id f) := by rw [← zip_map, map_id]
-
-theorem lt_length_left_of_zip {i : Nat} {l : List α} {l' : List β} (h : i < (zip l l').length) :
-    i < l.length :=
-  lt_length_of_lt_zipWith_left_length h
-
-theorem lt_length_right_of_zip {i : Nat} {l : List α} {l' : List β} (h : i < (zip l l').length) :
-    i < l'.length :=
-  lt_length_of_lt_zipwith_right_length h
 
 theorem zip_append :
     ∀ {l₁ r₁ : List α} {l₂ r₂ : List β} (_h : length l₁ = length l₂),
