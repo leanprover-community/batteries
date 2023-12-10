@@ -66,12 +66,6 @@ theorem isLt (x : BitVec w) : x.toNat < 2^w := x.toFin.isLt
 /-- Return most-significant bit in bitvector. -/
 @[inline] protected def msb (a : BitVec n) : Bool := getMsb a 0
 
-/-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
-protected def ofInt (n : Nat) (i : Int) : BitVec n :=
-  match i with
-  | Int.ofNat a => .ofNat n a
-  | Int.negSucc a => .ofNat n (2^n - 1 - a % 2^n)
-
 /-- Interpret the bitvector as an integer stored in two's complement form. -/
 protected def toInt (a : BitVec n) : Int :=
   if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
@@ -316,8 +310,18 @@ Bitwise NOT for bit vectors.
 ```
 SMT-Lib name: `bvnot`.
 -/
-protected def not (x : BitVec n) : BitVec n := -(x + .ofNat n 1)
+protected def not (x : BitVec n) : BitVec n :=
+  let ones := .ofFin ⟨(1 <<< n).pred,
+    n.one_shiftLeft.symm ▸
+      (Nat.pred_lt <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ <| Nat.zero_lt_succ _)⟩;
+  ones ^^^ x
 instance : Complement (BitVec w) := ⟨.not⟩
+
+/-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
+protected def ofInt (n : Nat) (i : Int) : BitVec n :=
+  match i with
+  | Int.ofNat a => .ofNat n a
+  | Int.negSucc a => ~~~.ofNat n a
 
 /--
 Left shift for bit vectors. The low bits are filled with zeros. As a numeric operation, this is
