@@ -66,7 +66,6 @@ structure MyUnit
 example (x y : MyUnit) : x = y := by ext; rfl
 
 -- Check that we don't generate a warning when `x` only uses a pattern in one branch:
-attribute [ext] Prod
 example (f : ℕ × (ℕ → ℕ)) : f = f := by
   ext x
   · rfl

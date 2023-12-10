@@ -4,44 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jannis Limperg
 -/
 import Lean.Meta
+import Std.Lean.LocalContext
 
 open Lean Lean.Meta
 
 namespace Lean
-
-/--
-Set the kind of a `LocalDecl`.
--/
-def LocalDecl.setKind : LocalDecl → LocalDeclKind → LocalDecl
-  | cdecl index fvarId userName type bi _, kind =>
-      cdecl index fvarId userName type bi kind
-  | ldecl index fvarId userName type value nonDep _, kind =>
-      ldecl index fvarId userName type value nonDep kind
-
-
-namespace LocalContext
-
-/--
-Set the kind of the given fvar.
--/
-def setKind (lctx : LocalContext) (fvarId : FVarId)
-    (kind : LocalDeclKind) : LocalContext :=
-  lctx.modifyLocalDecl fvarId (·.setKind kind)
-
-/--
-Sort the given `FVarId`s by the order in which they appear in `lctx`. If any of
-the `FVarId`s do not appear in `lctx`, the result is unspecified.
--/
-def sortFVarsByContextOrder (lctx : LocalContext) (hyps : Array FVarId) :
-    Array FVarId :=
-  let hyps := hyps.map λ fvarId =>
-    match lctx.fvarIdToDecl.find? fvarId with
-    | none => (0, fvarId)
-    | some ldecl => (ldecl.index, fvarId)
-  hyps.qsort (λ h i => h.fst < i.fst) |>.map (·.snd)
-
-end LocalContext
-
 
 /--
 Sort the given `FVarId`s by the order in which they appear in the current local
@@ -309,7 +276,7 @@ That is, it may return `false` when it should return `true`.
 (In particular it returns false whenever the type of `g` contains a metavariable,
 regardless of whether this is related to the metavariables in `L`.)
 -/
-def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := do
+def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext do
   let t ← instantiateMVars (← g.getType)
   if t.hasExprMVar then
     -- If the goal's type contains other meta-variables,

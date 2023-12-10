@@ -127,3 +127,11 @@ def isAppOf' (e : Expr) (n : Name) : Bool :=
   match e.getAppFn' with
   | const c .. => c == n
   | _ => false
+
+/-- If the expression is a constant, return that name. Otherwise return `Name.anonymous`. -/
+def constName (e : Expr) : Name :=
+  e.constName?.getD Name.anonymous
+
+/-- Return the function (name) and arguments of an application. -/
+def getAppFnArgs (e : Expr) : Name × Array Expr :=
+  withApp e λ e a => (e.constName, a)
