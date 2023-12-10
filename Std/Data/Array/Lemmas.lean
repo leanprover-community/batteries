@@ -39,6 +39,16 @@ attribute [simp] isEmpty uget
 @[simp] theorem toArray_data : (a : Array α) → a.data.toArray = a
   | ⟨l⟩ => ext' (data_toArray l)
 
+@[simp] theorem data_length {l : Array α} : l.data.length = l.size := rfl
+
+theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
+
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+
+theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
+  erw [Array.mem_def, getElem_eq_data_get]
+  apply List.get_mem
+
 @[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
 @[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
@@ -53,7 +63,7 @@ theorem get?_len_le (a : Array α) (i : Nat) (h : a.size ≤ i) : a[i]? = none :
   simp [getElem?_neg, h]
 
 theorem getElem_mem_data (a : Array α) (h : i < a.size) : a[i] ∈ a.data := by
-  simp [getElem_eq_data_get, List.get_mem]
+  simp only [getElem_eq_data_get, List.get_mem]
 
 theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i := by
   by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]; rfl
@@ -77,8 +87,6 @@ theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default
 
 theorem back_push [Inhabited α] (a : Array α) : (a.push x).back = x := by simp
 
-proof_wanted get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]?
-
 theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
     (a.push x)[i]? = some a[i] := by
   rw [getElem?_pos, get_push_lt]
@@ -86,7 +94,17 @@ theorem get?_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
 theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := by
   rw [getElem?_pos, get_push_eq]
 
-@[simp] proof_wanted get?_size {a : Array α} : a[a.size]? = none
+theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]? := by
+  split
+  . next heq => rw [heq, getElem?_pos, get_push_eq]
+  · next hne =>
+    simp only [getElem?, size_push]
+    split <;> split <;> try simp only [*, get_push_lt]
+    · next p q => exact Or.elim (Nat.eq_or_lt_of_le (Nat.le_of_lt_succ p)) hne q
+    · next p q => exact p (Nat.lt.step q)
+
+@[simp] theorem get?_size {a : Array α} : a[a.size]? = none := by
+  simp only [getElem?, Nat.lt_irrefl, dite_false]
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
@@ -391,7 +409,7 @@ termination_by loop i _ _ _ => as.size - i
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
-  simp [size_eq_length_data, zipWith_eq_zipWith_data, List.length_zipWith]
+  rw [size_eq_length_data, zipWith_eq_zipWith_data, List.length_zipWith]
 
 theorem zip_eq_zip_data (as : Array α) (bs : Array β) :
     (as.zip bs).data = as.data.zip bs.data :=
@@ -403,6 +421,59 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 @[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
   Array.size_mapIdx _ _
+
+/-! ### map -/
+
+@[simp] theorem mem_map {f : α → β} {l : Array α} : b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b := by
+  simp only [mem_def, map_data, List.mem_map]
+
+/-! ### filter -/
+
+@[simp] theorem filter_data (p : α → Bool) (l : Array α) :
+    (l.filter p).data = l.data.filter p := by
+  dsimp only [filter]
+  rw [foldl_eq_foldl_data]
+  generalize l.data = l
+  suffices ∀ a, (List.foldl (fun r a => if p a = true then push r a else r) a l).data =
+      a.data ++ List.filter p l by
+    simpa using this #[]
+  induction l with simp
+  | cons => split <;> simp [*]
+
+@[simp] theorem filter_filter (q) (l : Array α) :
+    filter p (filter q l) = filter (fun a => p a ∧ q a) l := by
+  apply ext'
+  simp only [filter_data, List.filter_filter]
+
+theorem size_filter_le (p : α → Bool) (l : Array α) :
+    (l.filter p).size ≤ l.size := by
+  simp only [← data_length, filter_data]
+  apply List.length_filter_le
+
+@[simp] theorem mem_filter : x ∈ filter p as ↔ x ∈ as ∧ p x := by
+  simp only [mem_def, filter_data, List.mem_filter]
+
+theorem mem_of_mem_filter {a : α} {l} (h : a ∈ filter p l) : a ∈ l :=
+  (mem_filter.mp h).1
+
+/-! ### filterMap -/
+
+@[simp] theorem filterMap_data (f : α → Option β) (l : Array α) :
+    (l.filterMap f).data = l.data.filterMap f := by
+  dsimp only [filterMap, filterMapM]
+  rw [foldlM_eq_foldlM_data]
+  generalize l.data = l
+  have this : ∀ a : Array β, (Id.run (List.foldlM (m := Id) ?_ a l)).data =
+    a.data ++ List.filterMap f l := ?_
+  exact this #[]
+  induction l
+  · simp_all [Id.run]
+  · simp_all [Id.run]
+    split <;> simp_all
+
+@[simp] theorem mem_filterMap (f : α → Option β) (l : Array α) {b : β} :
+    b ∈ filterMap f l ↔ ∃ a, a ∈ l ∧ f a = some b := by
+  simp only [mem_def, filterMap_data, List.mem_filterMap]
 
 /-! ### join -/
 

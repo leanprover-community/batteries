@@ -88,19 +88,33 @@ structure DeclCache (α : Type) where mk' ::
 
 /--
 Creates a `DeclCache`.
-The cached structure `α` is initialized with `empty`,
-and then `addLibraryDecl` is called for every imported constant, and the result is cached.
+
+First, if `pre` is nonempty, run that for a value,
+and if successful populate the cache with that value.
+
+If `pre` is empty, or it fails,
+the cached structure `α` is initialized with `empty`,
+and then `addLibraryDecl` is called for every imported constant.
 After all imported constants have been added, we run `post`.
+Finally, the result is cached.
+
 When `get` is called, `addDecl` is also called for every constant in the current file.
 -/
-def DeclCache.mk (profilingName : String) (empty : α)
+def DeclCache.mk (profilingName : String) (pre : MetaM α := failure) (empty : α)
     (addDecl : Name → ConstantInfo → α → MetaM α)
     (addLibraryDecl : Name → ConstantInfo → α → MetaM α := addDecl)
     (post : α → MetaM α := fun a => pure a) : IO (DeclCache α) := do
   let cache ← Cache.mk do
-    profileitM Exception profilingName (← getOptions) do
-      post <|← (← getEnv).constants.map₁.foldM (init := empty) fun a n c =>
-        addLibraryDecl n c a
+    try
+      -- We allow arbitrary failures in the `pre` tactic,
+      -- and fall back on folding over the entire environment.
+      -- In practice the `pre` tactic may be unpickling an `.olean`,
+      -- and may fail after leanprover/lean4#2766 because the embedded hash is incorrect.
+      pre
+    catch _ =>
+      profileitM Exception profilingName (← getOptions) do
+        post <|← (← getEnv).constants.map₁.foldM (init := empty) fun a n c =>
+          addLibraryDecl n c a
   pure { cache, addDecl }
 
 /--
@@ -128,7 +142,7 @@ from a function that returns a collection of keys and values for each declaratio
 def DiscrTreeCache.mk [BEq α] (profilingName : String)
     (processDecl : Name → ConstantInfo → MetaM (Array (Array DiscrTree.Key × α)))
     (post? : Option (Array α → Array α) := none)
-    (init : Option (DiscrTree α) := none) :
+    (init : MetaM (DiscrTree α) := failure) :
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
@@ -140,9 +154,8 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
   let post := match post? with
   | some f => fun (T₁, T₂) => return (T₁, T₂.mapArrays f)
   | none => fun T => pure T
-  match init with
-  | some t => return ⟨← Cache.mk (pure ({}, t)), addDecl, addLibraryDecl⟩
-  | none => DeclCache.mk profilingName ({}, {}) addDecl addLibraryDecl (post := post)
+  let init' := return ({}, ← init)
+  DeclCache.mk profilingName init' ({}, {}) addDecl addLibraryDecl (post := post)
 
 /--
 Get matches from both the discrimination tree for declarations in the current file,
