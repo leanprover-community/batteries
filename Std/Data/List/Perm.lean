@@ -252,7 +252,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
   let ⟨xs, hp, h⟩ := h
   exact ⟨_, hp.filter p, h.filter p⟩
 
-@[simp] theorem subperm_singleton_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
+@[simp] theorem singleton_subperm_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
   refine ⟨fun ⟨s, hla, h⟩ => ?_, fun h => ⟨[a], .rfl, singleton_sublist.mpr h⟩⟩
   rwa [perm_singleton.mp hla, singleton_sublist] at h
 
