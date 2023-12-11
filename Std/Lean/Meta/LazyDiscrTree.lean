@@ -394,17 +394,17 @@ private def initCapacity := 8
 Adds a key and
 -/
 def addEntry' : LazyDiscrTree α → LocalContext × LocalInstances → Key → Array Expr → α →
-    MetaM (LazyDiscrTree α)
-| { config := c, array := a, root := r }, lctx, k, todo, v => withReducible $ do
+    LazyDiscrTree α
+| { config := c, array := a, root := r }, lctx, k, todo, v =>
   let rest := (todo, lctx, v)
   match r.find? k with
   | none =>
     let r := r.insert k a.size
     let a := a.push (.node #[] 0 {} #[rest])
-    pure { config := c, array := a, root := r }
+    { config := c, array := a, root := r }
   | some idx =>
     let a := a.modify idx fun t => t.pushPending rest
-    pure { config := c, array := a, root := r }
+    { config := c, array := a, root := r }
 
 /--
 Get the root key of an expression using the config from the lazy dicriminator tree.
@@ -415,13 +415,21 @@ def rootKey (d:LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (e : Ex
   withReducible $ withLCtx lctx.1 lctx.2 $ pushArgs true todo e d.config
 
 /--
+Get the root key of an expression using the config from the lazy dicriminator tree.
+-/
+def rootKey' (d:LazyDiscrTree α) (e : Expr) :
+    MetaM (Key × Array Expr) :=
+  pushArgs true (Array.mkEmpty initCapacity) e d.config
+
+
+/--
 Adds an association between the given expression.  Free variables are used to
 denote paramters that may be matched against.
 -/
 def addEntry (d : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
     MetaM (LazyDiscrTree α) := do
   let (k, todo) ← rootKey d lctx type
-  addEntry' d lctx k todo v
+  pure $ addEntry' d lctx k todo v
 
 private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
     (config : WhnfCoreConfig) : MetaM (Array Key) := do

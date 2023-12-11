@@ -50,64 +50,73 @@ open Std.Tactic
 
 namespace Lean.Expr
 
+/-- Return the symmetry lemmas that mattch the target type. -/
+def getSymmLems (tgt : Expr) : MetaM (Array Name) := do
+  let .app (.app rel _) _ := tgt
+    | throwError "symmetry lemmas only apply to binary relations, not{indentExpr tgt}"
+  (symmExt.getState (← getEnv)).getMatch rel symmExt.config
+
+/-- FIXME -/
+def unpackSymLem (lem : Name) : MetaM (Expr × Array Expr × Expr) := do
+  let lem ← mkConstWithFreshMVarLevels lem
+  let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)
+  return (lem, args, body)
+
 /-- Given a term `e : a ~ b`, construct a term in `b ~ a` using `@[symm]` lemmas. -/
 def applySymm (e : Expr) : MetaM Expr := do
-  go (← instantiateMVars (← inferType e)) fun lem args body => do
-    let .true ← isDefEq args.back e | failure
-    mkExpectedTypeHint (mkAppN lem args) (← instantiateMVars body)
-where
-  /--
-  Internal implementation of `Lean.Expr.applySymm`, `Lean.MVarId.applySymm`,
-  and the user-facing tactic.
-
-  `tgt` should be of the form `a ~ b`, and is used to index the symm lemmas.
-
-  `k lem args body` should calculate a result,
-  given a candidate `symm` lemma `lem`, which will have type `∀ args, body`.
-
-  In `Lean.Expr.applySymm` this result will be a new `Expr`,
-  and in `Lean.MVarId.applySymm` and `Lean.MVarId.applySymmAt` this result will be a new goal.
-  -/
-  -- This function is rather opaque, but the design with a generic continuation `k`
-  -- is necessary in order to factor out all the common requirements below.
-  go (tgt : Expr) {α} (k : Expr → Array Expr → Expr → MetaM α) : MetaM α := do
-    let .app (.app rel _) _ := tgt
-      | throwError "symmetry lemmas only apply to binary relations, not{indentExpr tgt}"
-    for lem in ← (symmExt.getState (← getEnv)).getMatch rel symmExt.config do
-      try
-        let lem ← mkConstWithFreshMVarLevels lem
-        let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)
-        return (← k lem args body)
-      catch _ => pure ()
-    throwError "no applicable symmetry lemma found for{indentExpr tgt}"
+  let tgt <- instantiateMVars (← inferType e)
+  let lems ← getSymmLems tgt
+  let act lem := do
+        let (lem, args, body) ← unpackSymLem lem
+        let .true ← isDefEq args.back e | failure
+        mkExpectedTypeHint (mkAppN lem args) (← instantiateMVars body)
+  lems.toList.firstM act
+    <|> throwError m!"no applicable symmetry lemma found for {indentExpr tgt}"
 
 end Lean.Expr
 
+namespace Std.Tactic
+
+/--
+This looks for a symmetry lemma matching the target type.
+
+If it finds it, it returns a pair (f, argType) where f has type `argType -> tgt`.
+-/
+def findSymm (tgt : Expr) : MetaM (Option (Expr × Expr)) := do
+  let lems ← Expr.getSymmLems <| (← instantiateMVars tgt).cleanupAnnotations
+  withNewMCtxDepth do
+    for lemName in lems do
+      let (lem, args, body) ← Expr.unpackSymLem lemName
+      if ← isDefEq tgt body then
+        let argType ← instantiateMVars args.back
+        let instArgs ←  args.pop.mapM instantiateMVars
+        -- Create lambda for apply lemma and return it.
+        return (mkAppN lem instArgs, argType)
+    return none
+
+end Std.Tactic
+
 namespace Lean.MVarId
 
-/-- Apply a symmetry lemma (i.e. marked with `@[symm]`) to a metavariable. -/
+
+/--
+Apply a symmetry lemma (i.e. marked with `@[symm]`) to a metavariable.
+
+The type of `g` should be of the form `a ~ b`, and is used to index the symm lemmas.
+
+-/
 def applySymm (g : MVarId) : MetaM MVarId := do
-  go (← g.getTypeCleanup) g fun lem args body g => do
-    let .true ← isDefEq (← g.getType) body | failure
-    g.assign (mkAppN lem args)
-    return args.back.mvarId!
-where
-  /--
-  Internal implementation of `Lean.MVarId.applySymm` and the user-facing tactic.
-
-  `tgt` should be of the form `a ~ b`, and is used to index the symm lemmas.
-
-  `k lem args body goal` should transform `goal` into a new goal,
-  given a candidate `symm` lemma `lem`, which will have type `∀ args, body`.
-  Depending on whether we are working on a hypothesis or a goal,
-  `k` will internally use either `replace` or `assign`.
-  -/
-  go (tgt : Expr) (g : MVarId) (k : Expr → Array Expr → Expr → MVarId → MetaM MVarId) :
-    MetaM MVarId := do
-  Expr.applySymm.go tgt fun lem args body => do
-    let g' ← k lem args body g
-    g'.setTag (← g.getTag)
-    return g'
+  let tgt <- g.getTypeCleanup
+  let lems ← Expr.getSymmLems tgt
+  let act lem : MetaM MVarId := do
+        let (lem, args, body) ← Expr.unpackSymLem lem
+        let .true ← isDefEq (← g.getType) body | failure
+        g.assign (mkAppN lem args)
+        let g' := args.back.mvarId!
+        g'.setTag (← g.getTag)
+        pure g'
+  lems.toList.firstM act
+    <|> throwError m!"no applicable symmetry lemma found for {indentExpr tgt}"
 
 /-- Use a symmetry lemma (i.e. marked with `@[symm]`) to replace a hypothesis in a goal. -/
 def applySymmAt (h : FVarId) (g : MVarId) : MetaM MVarId := do

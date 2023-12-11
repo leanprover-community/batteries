@@ -3,7 +3,7 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Scott Morrison
 -/
-import Std.Data.MLList.Heartbeats
+import Std.Lean.CoreM
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
@@ -30,8 +30,8 @@ namespace Std.Tactic.LibrarySearch
 
 open Lean Meta Std.Tactic.TryThis
 
-initialize registerTraceClass `Tactic.librarySearch
-initialize registerTraceClass `Tactic.librarySearch.lemmas
+initialize registerTraceClass `Tactic.stdLibrarySearch
+initialize registerTraceClass `Tactic.stdLibrarySearch.lemmas
 
 /-- Configuration for `DiscrTree`. -/
 def discrTreeConfig : WhnfCoreConfig := {}
@@ -51,17 +51,6 @@ deriving DecidableEq, Ord
 
 instance : ToString DeclMod where
   toString m := match m with | .none => "" | .mp => "mp" | .mpr => "mpr"
-
-/--
-LibrarySearch has an extension mechanism for replacing the function used
-to find candidate lemmas.
--/
-@[reducible]
-def CandidateFinder := Expr → MetaM (List (Name × DeclMod))
-
-namespace DiscrTreeFinder
-
-open System (FilePath)
 
 /--
 LibrarySearch has an extension mechanism for replacing the function used
@@ -102,23 +91,24 @@ def cachePath : IO FilePath := do
       return path
   return ".lake" / "build" / "lib" / "LibrarySearch.extra"
 
-private def addPath (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
-    (tp : Expr) (name : Name) (dm : DeclMod) : MetaM (DiscrTree (Name × DeclMod)) := do
+/-- Add a path to a discrimination tree.-/
+private def addPath [BEq α] (config : WhnfCoreConfig) (tree : DiscrTree α) (tp : Expr) (v : α) :
+    MetaM (DiscrTree α) := do
   let k ← DiscrTree.mkPath tp config
-  pure <| tree.insertCore k (name, dm) config
+  pure <| tree.insertCore k v config
 
 /-- Adds a constant with given name to tree. -/
 private def updateTree (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
     (name : Name) (constInfo : ConstantInfo) : MetaM (DiscrTree (Name × DeclMod)) := do
   if constInfo.isUnsafe then return tree
   if isBlackListed (←getEnv) name then return tree
-  withNewMCtxDepth do withReducible do
+  withReducible do
     let (_, _, type) ← forallMetaTelescope constInfo.type
-    let tree ← addPath config tree type name DeclMod.none
+    let tree ← addPath config tree type (name, DeclMod.none)
     match type.getAppFnArgs with
     | (``Iff, #[lhs, rhs]) => do
-      let tree ← addPath config tree rhs name DeclMod.mp
-      let tree ← addPath config tree lhs name DeclMod.mpr
+      let tree ← addPath config tree rhs (name, DeclMod.mp)
+      let tree ← addPath config tree lhs (name, DeclMod.mpr)
       return tree
     | _ =>
       return tree
@@ -192,38 +182,56 @@ This is a monad for building initial discrimination tree.
 @[reducible]
 private def TreeInitM := StateT (LazyDiscrTree (Name × DeclMod)) MetaM
 
-private def pushEntry (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name)
-    (m : DeclMod) : TreeInitM Unit := do
-  fun t => ((),·) <$> t.addEntry lctx type (name, m)
+private def pushEntry' (t : LazyDiscrTree (Name × DeclMod))
+                       (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name)
+    (m : DeclMod) : MetaM (LazyDiscrTree (Name × DeclMod)) := do
+  let (k, todo) ← t.rootKey' type
+  pure <| t.addEntry' lctx k todo (name, m)
 
-/-- Push entries for constant to array. -/
-def getConstantEntries (name : Name) (constInfo : ConstantInfo) : TreeInitM Unit := do
-  if constInfo.isUnsafe then return ()
-  if isBlackListed (← getEnv) name then return ()
-  let (lctx, type) ← forallTelescope constInfo.type fun _ r => do
-    let lctx ← getLCtx
-    let linst ← Lean.Meta.getLocalInstances
-    pure ((lctx, linst), r)
-  match matchIff type with
-  | .none => do
-    pushEntry lctx type name DeclMod.none
-  | .some (lhs, rhs) => do
-    pushEntry lctx type name DeclMod.none
-    pushEntry lctx rhs  name DeclMod.mp
-    pushEntry lctx lhs  name DeclMod.mpr
+private def libSearchContext : Meta.Context := {
+    config := { transparency := .reducible }
+  }
 
-private def loadImportedModule (md : ModuleData) : TreeInitM Unit := do
-  let sz := md.constNames.size
-  for i in [0:sz] do
-    let nm := md.constNames[i]!
+def addConstantEntries (env : Environment) (cache : Lean.Meta.Cache) (t : LazyDiscrTree (Name × DeclMod)) (name : Name)
+    (constInfo : ConstantInfo) : EIO Exception (Lean.Meta.Cache × LazyDiscrTree (Name × DeclMod)) := do
+  if constInfo.isUnsafe then return (cache, t)
+  if isBlackListed env name then return (cache, t)
+  let mm := forallTelescope constInfo.type fun _ type => do
+              let lctx ← getLCtx
+              let linst ← Lean.Meta.getLocalInstances
+              let lctx := (lctx, linst)
+              match matchIff type with
+              | .none => do
+                pushEntry' t lctx type name DeclMod.none
+              | .some (lhs, rhs) => do
+                let t ← pushEntry' t lctx type name DeclMod.none
+                let t ← pushEntry' t lctx rhs  name DeclMod.mp
+                pushEntry' t lctx lhs  name DeclMod.mpr
+  let mstate : Meta.State := { cache }
+  let cm : CoreM (LazyDiscrTree (Name × DeclMod) × _) := mm.run libSearchContext mstate
+  let cctx : Core.Context := {
+    fileName := default,
+    fileMap := default
+  }
+  let cstate : Core.State := {env}
+  let (t,s) ← Prod.fst <$> cm.run cctx cstate
+  pure (s.cache, t)
+
+private partial def loadImportedModule (env : Environment)
+    (cache : Lean.Meta.Cache)
+    (t : LazyDiscrTree (Name × DeclMod))
+    (md : ModuleData) (i : Nat := 0) : EIO Exception (Lean.Meta.Cache × LazyDiscrTree (Name × DeclMod)) := do
+  if h : i < md.constNames.size then
+    let nm := md.constNames[i]
     let c  := md.constants[i]!
-    getConstantEntries nm c
+    let (cache, t) ←  addConstantEntries env cache t nm c
+    loadImportedModule env cache t md (i+1)
+  else
+    pure (cache, t)
 
-private def initializeEntries : TreeInitM Unit := do
-  (← getEnv).header.moduleData.forM loadImportedModule
-
-private def createImportedEnvironment : MetaM (LazyDiscrTree (Name × DeclMod)) :=
-  Prod.snd <$> initializeEntries.run {}
+private def createImportedEnvironment (env : Environment) : EIO Exception (LazyDiscrTree (Name × DeclMod)) :=
+  Prod.snd <$> env.header.moduleData.foldlM (init := ({}, {})) fun (c, t) md => do
+    loadImportedModule env c t md
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
@@ -232,7 +240,10 @@ def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
   let ref ← IO.mkRef none
   pure fun ty => do
     let locals ← DiscrTreeFinder.localMatches config ty
-    let importTree ← (←ref.get).getDM $ createImportedEnvironment
+    let importTree ← (←ref.get).getDM $ do
+      let env ← getEnv
+      profileitM Exception "librarySearch import" (← getOptions) do
+        createImportedEnvironment env
     let (imports, importTree) ← importTree.getMatch ty
     ref.set importTree
     pure <| (locals ++ imports).toList
@@ -258,16 +269,15 @@ Update the candidate finder used by library search.
 def setDefaultCandidateFinder (cf : CandidateFinder) : IO Unit :=
   defaultCandidateFinder.set cf
 
-/-- Shortcut for calling `solveByElim`. -/
-def solveByElim (goals : List MVarId) (required : List Expr) (exfalso := false) (depth) := do
-  -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
-  -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
-  let cfg : SolveByElim.Config :=
-    { maxDepth := depth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
-  let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
-  SolveByElim.solveByElim.processSyntax cfg false false [] [] #[] goals
-
 private def emoji (e:Except ε α) := if e.toBool then checkEmoji else crossEmoji
+
+/-- Create lemma from name and mod. -/
+def mkLibrarySearchLemma (lem : Name) (mod : DeclMod) : MetaM Expr := do
+  let lem ← mkConstWithFreshMVarLevels lem
+  match mod with
+  | .none => pure lem
+  | .mp => mapForallTelescope (fun e => mkAppM ``Iff.mp #[e]) lem
+  | .mpr => mapForallTelescope (fun e => mkAppM ``Iff.mpr #[e]) lem
 
 /--
 Try applying the given lemma (with symmetry modifier) to the goal,
@@ -275,20 +285,13 @@ then try to close subsequent goals using `solveByElim`.
 If `solveByElim` succeeds, we return `[]` as the list of new subgoals,
 otherwise the full list of subgoals.
 -/
-def librarySearchLemma (lem : Name) (mod : DeclMod) (required : List Expr) (solveByElimDepth := 6)
-    (goal : MVarId) : MetaM (List MVarId) :=
+def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure : Bool) (goal : MVarId) (lem : Expr) : MetaM (List MVarId) := do
   withTraceNode `Tactic.librarySearch (return m!"{emoji ·} trying {lem}") do
-    let lem ← mkConstWithFreshMVarLevels lem
-    let lem ← match mod with
-    | .none => pure lem
-    | .mp => mapForallTelescope (fun e => mkAppM ``Iff.mp #[e]) lem
-    | .mpr => mapForallTelescope (fun e => mkAppM ``Iff.mpr #[e]) lem
     let newGoals ← goal.apply lem { allowSynthFailures := true }
     try
-      let subgoals ← solveByElim newGoals required (exfalso := false) (depth := solveByElimDepth)
-      pure subgoals
+      act newGoals
     catch _ =>
-      if required.isEmpty then
+      if allowFailure then
         pure newGoals
       else
         failure
@@ -297,27 +300,37 @@ def librarySearchLemma (lem : Name) (mod : DeclMod) (required : List Expr) (solv
 Returns a lazy list of the results of applying a library lemma,
 then calling `solveByElim` on the resulting goals.
 -/
-def librarySearchCore (searchFn : CandidateFinder) (goal : MVarId)
-    (required : List Expr) (solveByElimDepth := 6) : Nondet MetaM (List MVarId) :=
-  .squash fun _ => do
-    let ty ← goal.getType
-    let lemmas ← searchFn ty
-    trace[Tactic.librarySearch.lemmas] m!"Candidate library_search lemmas:\n{lemmas}"
-    return (Nondet.ofList lemmas).filterMapM fun (lem, mod) =>
-      observing? <| librarySearchLemma lem mod required solveByElimDepth goal
+def librarySearchCore (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array Expr) := do
+  let candidates ← searchFn tgt
+  trace[Tactic.stdLibrarySearch.lemmas] m!"Candidate library_search lemmas:\n{candidates}"
+  let mut res := Array.mkEmpty candidates.length
+  for (name, mod) in candidates do
+    try
+      res := res.push (←mkLibrarySearchLemma name mod)
+    catch _ =>
+      pure ()
+  return res
+
+/-- interleave x y interleaves the elements of x and y until one is empty and then returns final elements. -/
+def interleave [Inhabited α] (x y : Array α) : Array α := Id.run do
+  let mut res := Array.mkEmpty (x.size + y.size)
+  let n := min x.size y.size
+  for i in [0:n] do
+    res := res.push x[i]!
+    res := res.push y[i]!
+  pure $ res ++ (if x.size > n then x.extract n x.size else y.extract n y.size)
 
 /--
 Run `librarySearchCore` on both the goal and `symm` applied to the goal.
 -/
-def librarySearchSymm (searchFn : CandidateFinder) (goal : MVarId)
-    (required : List Expr) (solveByElimDepth := 6) :
-    Nondet MetaM (List MVarId) :=
-  (librarySearchCore searchFn goal required solveByElimDepth) <|>
-  .squash fun _ => do
-    if let some symm ← observing? goal.applySymm then
-      return librarySearchCore searchFn symm required solveByElimDepth
-    else
-      return .nil
+def librarySearchSymm (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array Expr) := do
+  let l1 ← librarySearchCore searchFn tgt
+  if let some (fn, symm) ← findSymm tgt then
+    let l2 ← librarySearchCore searchFn symm
+    let l2 ← l2.mapM (mapForallTelescope (fun e => pure (mkApp fn e)))
+    pure $ interleave l1 l2
+  else
+    pure $ l1
 
 /-- A type synonym for our subgoal ranking algorithm. -/
 def subgoalRankType : Type := Bool × Nat × Int
@@ -349,6 +362,56 @@ def sortResults (goal : MVarId) (R : Array (List MVarId × MetavarContext)) :
   let R'' := R'.qsort fun a b => compare a.1 b.1 = Ordering.gt
   return R''.map (·.2)
 
+/-- Invoke action on candidates until one succeeds by returning no goals. -/
+def tryCandidateLemmas (shouldAbort : MetaM Bool)
+    (act : MVarId → Expr → MetaM (List MVarId))
+    (goal : MVarId)
+    (candidates : Array Expr) :
+    MetaM (Option (Array (List MVarId × MetavarContext))) := do
+  let mut a := #[]
+  for c in candidates do
+    if ←shouldAbort then
+      break
+    let s ← saveState
+    match ← (tryCatch (.some <$> act goal c) (fun _ => pure none)) with
+    | none =>
+      restoreState s
+      pure ()
+    | some remaining =>
+      let ctx ← getMCtx
+      restoreState s
+      if remaining.isEmpty then
+        setMCtx ctx
+        return none
+      let ctx ← getMCtx
+      restoreState s
+      a := a.push (remaining, ctx)
+  return (.some a)
+
+/--
+Return an action that returns true when  the remaining heartbeats is less
+than the currently remaining heartbeats * leavePercent / 100.
+-/
+def mkHeartbeatCheck (leavePercent : Nat) : MetaM (MetaM Bool) := do
+  let maxHB ← getMaxHeartbeats
+  let hbThreshold := (← getRemainingHeartbeats) * leavePercent / 100
+  -- Return true if we should stop
+  pure $
+    if maxHB = 0 then
+      pure false
+    else do
+      return (← getRemainingHeartbeats) < hbThreshold
+
+/-- Shortcut for calling `solveByElim`. -/
+def solveByElim (required : List Expr) (exfalso := false) (depth) (goals : List MVarId) := do
+  -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
+  -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
+  let cfg : SolveByElim.Config :=
+    { maxDepth := depth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
+  let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
+  let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
+  SolveByElim.solveByElim cfg lemmas ctx goals
+
 /--
 Try to solve the goal either by:
 * calling `solveByElim`
@@ -376,23 +439,14 @@ def librarySearch (goal : MVarId) (required : List Expr)
     | .ok none => checkEmoji
   withTraceNode `Tactic.librarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
   profileitM Exception "librarySearch" (← getOptions) do
-  (do
-    _ ← solveByElim [goal] required (exfalso := true) (depth := solveByElimDepth)
-    return none) <|>
-  (do
-    let results ← librarySearchSymm searchFn goal required solveByElimDepth
-      |>.mapM (fun x => do pure (x, ← getMCtx))
-      |>.toMLList'
-      -- Don't use too many heartbeats.
-      |>.whileAtLeastHeartbeatsPercent leavePercentHeartbeats
-      -- Stop if we find something that closes the goal
-      |>.takeUpToFirst (·.1.isEmpty)
-      |>.asArray
-    match results.find? (·.1.isEmpty) with
-    | none => return (← sortResults goal results)
-    | some (_, ctx) => do
-      setMCtx ctx
-      return none)
+    let tactic newGoals := solveByElim required (exfalso := false) (depth := solveByElimDepth) newGoals
+    let act := librarySearchLemma tactic required.isEmpty
+    -- Return true if we should stop
+    let shouldAbort ← mkHeartbeatCheck leavePercentHeartbeats
+    let candidates ← librarySearchCore searchFn (← goal.getType)
+    match ← tryCandidateLemmas shouldAbort act goal candidates with
+    | none => pure none
+    | some a => pure (some (← sortResults goal a))
 
 open Lean.Parser.Tactic
 
@@ -403,19 +457,20 @@ open Lean.Parser.Tactic
 -- For now we only implement the basic functionality.
 -- The full syntax is recognized, but will produce a "Tactic has not been implemented" error.
 
-/-- Syntax for `exact?` -/
-syntax (name := exact?') "exact?" (config)? (simpArgs)?
-  (" using " (colGt term),+)? : tactic
+/-- Syntax for `std_exact?` -/
+syntax (name := std_exact?') "std_exact?" (config)? (simpArgs)? (" using " (colGt ident),+)?
+    ("=>" tacticSeq)? : tactic
 
-/-- Syntax for `apply?` -/
-syntax (name := apply?') "apply?" (config)? (simpArgs)?
-  (" using " (colGt term),+)? : tactic
-
+--/-- Syntax for `std_apply?` -/
+--syntax (name := apply?') "std_apply?" (config)? (simpArgs)?
+--  (" using " (colGt term),+)? : tactic
 
 open Elab.Tactic Elab Tactic
+open Parser.Tactic (tacticSeq)
 
 /-- Implementation of the `exact?` tactic. -/
-def exact? (tk : Syntax) (required : Option (Array (TSyntax `term))) (requireClose : Bool) :
+def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
+   (_solver : Option (TacticM Info)) (requireClose : Bool) :
     TacticM Unit := do
   let mvar ← getMainGoal
   let (_, goal) ← (← getMainGoal).intros
@@ -433,17 +488,21 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term))) (requireClo
     else
       addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta
 
-elab_rules : tactic | `(tactic| exact? $[using $[$required],*]?) => do
-  exact? (← getRef) required true
+elab_rules : tactic
+  | `(tactic| std_exact? $[using $[$required],*]? $[=> $solver]?) => do
+  let solver ← match solver with
+                | none => pure none
+                | some t => some <$> mkInitialTacticInfo t
+  exact? (← getRef) required solver true
 
-elab_rules : tactic | `(tactic| apply? $[using $[$required],*]?) => do
-  exact? (← getRef) required false
+--elab_rules : tactic | `(tactic| std_apply? $[using $[$required],*]?) => do
+--  exact? (← getRef) required false
 
-/-- Deprecation warning for `library_search`. -/
-elab tk:"library_search" : tactic => do
-  logWarning ("`library_search` has been renamed to `apply?`" ++
-    " (or `exact?` if you only want solutions closing the goal)")
-  exact? tk none false
+--/-- Deprecation warning for `library_search`. -/
+--elab tk:"library_search" : tactic => do
+--  logWarning ("`library_search` has been renamed to `apply?`" ++
+--    " (or `exact?` if you only want solutions closing the goal)")
+--  exact? tk none false
 
 open Elab Term in
 /-- Term elaborator using the `exact?` tactic. -/
@@ -461,3 +520,35 @@ elab tk:"exact?%" : term <= expectedType => do
     else
       addTermSuggestion tk (← instantiateMVars goal).headBeta
       instantiateMVars goal
+
+open LazyDiscrTree (Key)
+
+@[reducible]
+private def LibSearchEntry := HashMap Key (Name × DeclMod)
+
+private def LibSearchState := LibSearchEntry
+  deriving Inhabited
+
+private def mkInitialLibSearch : IO LibSearchState := do
+  pure HashMap.empty
+
+private def addImportedLibSearch (a : Array (Array LibSearchEntry)) : ImportM LibSearchState := do
+  let env := (←read).env
+--  for i in [0:a.size] do
+--    let b := a[i]!
+--    if b.size > 0 then
+--      IO.println s! "Imported {env.header.moduleNames[i]!}"
+  IO.FS.writeFile "/Users/jhendrix/repos/std4/msg"
+      s!"LibSearch import {a.size} {env.header.moduleData.size}"
+  --pure (some t)
+  pure HashMap.empty
+
+private def exportLibSearchEntries (_s : LibSearchState) : Array LibSearchEntry := #[HashMap.empty]
+
+private initialize ext : PersistentEnvExtension LibSearchEntry LibSearchEntry LibSearchState ←
+  registerPersistentEnvExtension {
+      mkInitial := mkInitialLibSearch,
+      addImportedFn := addImportedLibSearch,
+      addEntryFn := fun s _ => s,
+      exportEntriesFn := exportLibSearchEntries,
+  }
