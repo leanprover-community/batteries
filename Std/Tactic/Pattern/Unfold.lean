@@ -5,7 +5,7 @@ Authors: J. W. Gerbscheid, Anand Rao Tadipatri
 -/
 import Std.Tactic.Pattern.Utils
 
-open Lean Meta MonadExceptOf Elab
+open Lean Meta
 
 /-!
 
@@ -15,33 +15,47 @@ An implementation of a tactic to unfold patterns at specified locations.
 
 -/
 
-/-- If the expression is a projection under binders, calculate the projection. -/
-partial def reduceProjection (e : Expr) : MetaM Expr :=
-  e.withAppRev fun f revArgs =>
-    match f with
-    | .proj _ i b => do
-      let some value ← project? b i | throwError m!"Could not project expression {b}."
-      reduceProjection (value.betaRev revArgs)
-    | _ => return e
+/-- If the head of the expression is a projection, reduce the projection. -/
+def reduceProjection (e : Expr) : MetaM (Option Expr) := do
+  let .proj _ i b := e.getAppFn | return none
+  let some f ← project? b i | return none
+  return f.betaRev e.getAppRevArgs
 
-/-- Replace a constant under binders by its definition (also taking care of let reductions). -/
+/-- Reduction function for the `unfold'` tactic. -/
 def replaceByDef (e : Expr) : MetaM Expr := do
-  if let .letE _ _ v b _ := e then return b.instantiate1 v
-  e.withAppRev fun f revArgs => match f with
-    | .const name us => do
-      let info ← getConstInfoDefn name
-      let result := info.value.instantiateLevelParams info.levelParams us
-      if ← isDefEq result f then
-        reduceProjection (result.betaRev revArgs)
-      else
-        throwError m!"Could not replace {f} by its definition."
-    | _ => do
-      let result ← reduceProjection (f.betaRev revArgs)
-      if result == e then throwError m!"Could not find a definition for {e}."
-      else return result
+  /- β-reduction -/
+  if e.isHeadBetaTarget then
+    return e.withAppRev Expr.betaRev
+  /- η-reduction -/
+  if let some e := e.etaExpandedStrict? then
+    return e
+  /- ζ-reduction -/
+  if let .letE _ _ v b _ := e then
+    return b.instantiate1 v
+  /- projection reduction -/
+  if let some e ← reduceProjection e then
+    return e
+  /- unfolding a constant -/
+  if let some e ← withTransparency .all <| unfoldDefinition? e then
+    match ← reduceProjection e with
+      | some e => return e
+      | none => return e
 
-open Parser Tactic Conv Pattern Location in
-/-- A tactic to perform targeted unfolding of patterns. -/
+  throwError m! "Could not find a definition for {e}."
+
+open Elab.Tactic Pattern.Location
+
+/-- Unfold the selected expression in one of the following ways:
+
+- β-reduction: `(fun x₁ .. xₙ => t[x₁, .., xₙ]) a₁ .. aₙ` → `t[a₁, .., aₙ]`
+- η-reduction: `fun x₁ .. xₙ => f x₁ .. xₙ` → `f`
+- ζ-reduction: `let a := v; t[a]` → `t[v]`
+- projection reduction: `instAddNat.1 a b` → `Nat.add a b`
+- unfolding a constant: `Surjective f` → `∀ b, ∃ a, f a = b`
+
+Note that we always reduce a projection after unfolding a constant,
+so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
+ -/
 elab "unfold'" p:term locs:locs : tactic => withMainContext do
   let pattern ← expandPattern p
   let occurrences ← expandLocs locs
