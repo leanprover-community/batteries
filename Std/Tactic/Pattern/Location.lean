@@ -32,7 +32,7 @@ syntax hypLoc := ident <|> ("‹" ident ppSpace (Parser.Tactic.Conv.occs)? (ppSp
 syntax goalPattern := patternIgnore( atomic("|" noWs "-") <|> "⊢")
 
 /-- The goal or target location with occurrences optionally specified. -/
-syntax goalLoc := goalPattern <|> ("<" goalPattern ppSpace Parser.Tactic.Conv.occs ">")
+syntax goalLoc := goalPattern <|> ("‹" goalPattern ppSpace Parser.Tactic.Conv.occs "›")
 
 /-- The wildcard location which refers to all valid locations. -/
 syntax wildcardLoc := "*"
@@ -96,7 +96,7 @@ where
   /-- Interpret `goalLoc` syntax as `GoalOccurrences`. -/
   expandGoalLoc : TSyntax ``goalLoc → GoalOccurrences
   | `(goalLoc| $_:goalPattern) => .target .all
-  | `(goalLoc| <$_goalPattern $occs>) => .target (expandOccs occs)
+  | `(goalLoc| ‹$_:goalPattern $occs›) => .target (expandOccs occs)
   | stx => panic! s!"Invalid syntax {stx} for goal location."
 
 end Pattern.Location
@@ -149,3 +149,50 @@ def replaceOccurrencesDefEq (locs : Array GoalOccurrences) (pattern : AbstractMV
       let targetType ← mvarId.getType
       mvarId ← mvarId.replaceTargetDefEq <| ← substitute targetType pattern occs replacement
   replaceMainGoal [mvarId]
+
+/-- Replace the value of the local `let` declaration `fvarId` with
+    a new value `valNew` that is equal to the old one (witnessed by `eqProof`).
+
+    This follows the code of `Lean.MVarId.replaceLocalDecl`. -/
+def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew eqProof : Expr)
+    : MetaM AssertAfterResult := mvarId.withContext do
+  let mvarDecl ← mvarId.getDecl
+  let localDecl ← fvarId.getDecl
+  let (_, localDecl') ← findMaxFVar valNew |>.run localDecl
+  sorry -- TODO: Needs an equivalent of `assertAfter` for `let`-declarations
+where
+  findMaxFVar (e : Expr) : StateRefT LocalDecl MetaM Unit :=
+    e.forEach' fun e => do
+      if e.isFVar then
+        let localDecl' ← e.fvarId!.getDecl
+        modify fun localDecl => if localDecl'.index > localDecl.index then localDecl' else localDecl
+        return false
+      else
+        return e.hasFVar
+
+/-- Rewrite the equality term `heq` at the specified locations. -/
+def replaceOccurrencesEq (locs : Array GoalOccurrences)
+    (heq : Expr) (symm : Bool := false) : TacticM Unit := withMainContext do
+  let mut mvarId ← getMainGoal
+  let mut newGoals : List MVarId := []
+  for loc in locs do
+    match loc with
+    | .hypType fvarId occs =>
+      let hypType ← fvarId.getType
+      let rwResult ← Term.withSynthesize <|
+        mvarId.rewrite hypType heq symm (config := { occs := occs })
+      mvarId := (← mvarId.replaceLocalDecl fvarId rwResult.eNew rwResult.eqProof).mvarId
+      newGoals := newGoals ++ rwResult.mvarIds
+    | .hypValue fvarId occs =>
+      let .some hypValue ← fvarId.getValue? |
+        throwError m!"Hypothesis {fvarId.name} is not a `let`-declaration."
+      let rwResult ← Term.withSynthesize <|
+        mvarId.rewrite hypValue heq symm (config := { occs := occs })
+      mvarId := (← mvarId.replaceLocalLetDecl fvarId rwResult.eNew rwResult.eqProof).mvarId
+      newGoals := newGoals ++ rwResult.mvarIds
+    | .target occs => do
+      let targetType ← mvarId.getType
+      let rwResult ← mvarId.rewrite targetType heq symm (config := { occs := occs })
+      mvarId ← mvarId.replaceTargetEq rwResult.eNew rwResult.eqProof
+      newGoals := newGoals ++ rwResult.mvarIds
+  replaceMainGoal (mvarId :: newGoals)
