@@ -1339,6 +1339,7 @@ theorem eq_one_of_mul_eq_self_right {a b : Int} (Hpos : b ≠ 0) (H : b * a = b)
 
 /-! ### nat abs -/
 
+@[deprecated natAbs_of_nonneg]
 theorem ofNat_natAbs_eq_of_nonneg : ∀ a : Int, 0 ≤ a → Int.natAbs a = a
   | (_:Nat), _ => rfl
   | -[n+1],  h => absurd (negSucc_lt_zero n) (Int.not_lt.2 h)
