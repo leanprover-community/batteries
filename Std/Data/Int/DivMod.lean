@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import Std.Data.Int.Lemmas
+import Std.Tactic.Change
 
 /-!
 # Lemmas about integer division
@@ -363,6 +364,9 @@ theorem emod_eq_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a % b = a :=
   match a, b, eq_ofNat_of_zero_le H1, eq_ofNat_of_zero_le b0 with
   | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg ofNat <| Nat.mod_eq_of_lt (Int.ofNat_lt.1 H2)
 
+@[simp] theorem emod_self_add_one {x : Int} (h : 0 ≤ x) : x % (x + 1) = x :=
+  emod_eq_of_lt h (Int.lt_succ x)
+
 theorem mod_eq_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : mod a b = a := by
   rw [mod_eq_emod H1 (Int.le_trans H1 (Int.le_of_lt H2)), emod_eq_of_lt H1 H2]
 
@@ -395,6 +399,13 @@ theorem emod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a % b < b :=
 
 theorem fmod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a.fmod b < b :=
   fmod_eq_emod _ (Int.le_of_lt H) ▸ emod_lt_of_pos a H
+
+theorem emod_two_eq (x : Int) : x % 2 = 0 ∨ x % 2 = 1 := by
+  have h₁ : 0 ≤ x % 2 := Int.emod_nonneg x (by decide)
+  have h₂ : x % 2 < 2 := Int.emod_lt_of_pos x (by decide)
+  match x % 2, h₁, h₂ with
+  | 0, _, _ => simp
+  | 1, _, _ => simp
 
 theorem mod_add_div' (m k : Int) : mod m k + m.div k * k = m := by
   rw [Int.mul_comm]; apply mod_add_div
@@ -682,6 +693,10 @@ theorem dvd_of_mod_eq_zero {a b : Int} (H : mod b a = 0) : a ∣ b :=
 theorem dvd_of_emod_eq_zero {a b : Int} (H : b % a = 0) : a ∣ b :=
   ⟨b / a, (mul_ediv_cancel_of_emod_eq_zero H).symm⟩
 
+theorem dvd_emod_sub_self {x : Int} {m : Nat} : (m : Int) ∣ x % m - x := by
+  apply dvd_of_emod_eq_zero
+  simp [sub_emod]
+
 theorem mod_eq_zero_of_dvd : ∀ {a b : Int}, a ∣ b → mod b a = 0
   | _, _, ⟨_, rfl⟩ => mul_mod_right ..
 
@@ -863,6 +878,155 @@ theorem eq_one_of_mul_eq_one_right {a b : Int} (H : 0 ≤ a) (H' : a * b = 1) : 
 
 theorem eq_one_of_mul_eq_one_left {a b : Int} (H : 0 ≤ b) (H' : a * b = 1) : b = 1 :=
   eq_one_of_mul_eq_one_right H <| by rw [Int.mul_comm, H']
+
+/-!
+# `bmod` ("balanced" mod)
+
+We use balanced mod in the omega algorithm,
+to make ±1 coefficients appear in equations without them.
+-/
+
+/--
+Balanced mod, taking values in the range [- m/2, (m - 1)/2].
+-/
+def bmod (x : Int) (m : Nat) : Int :=
+  let r := x % m
+  if r < (m + 1) / 2 then
+    r
+  else
+    r - m
+
+@[simp] theorem bmod_emod : bmod x m % m = x % m := by
+  dsimp [bmod]
+  split <;> simp [Int.sub_emod]
+
+@[simp] theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
+  simp [bmod]
+
+@[simp] theorem bmod_bmod : bmod (bmod x m) m = bmod x m := by
+  rw [bmod, bmod_emod]
+  rfl
+
+@[simp] theorem bmod_zero : Int.bmod 0 m = 0 := by
+  dsimp [bmod]
+  simp only [zero_emod, Int.zero_sub, ite_eq_left_iff, Int.neg_eq_zero]
+  intro h
+  rw [@Int.not_lt] at h
+  match m with
+  | 0 => rfl
+  | (m+1) =>
+    exfalso
+    rw [natCast_add, ofNat_one, Int.add_assoc, add_ediv_of_dvd_right] at h
+    change _ + 2 / 2 ≤ 0 at h
+    rw [Int.ediv_self, ← ofNat_two, ← ofNat_ediv, add_one_le_iff, ← @Int.not_le] at h
+    exact h (ofNat_nonneg _)
+    all_goals decide
+
+theorem dvd_bmod_sub_self {x : Int} {m : Nat} : (m : Int) ∣ bmod x m - x := by
+  dsimp [bmod]
+  split
+  · exact dvd_emod_sub_self
+  · rw [Int.sub_sub, Int.add_comm, ← Int.sub_sub]
+    exact Int.dvd_sub dvd_emod_sub_self (Int.dvd_refl _)
+
+theorem le_bmod {x : Int} {m : Nat} (h : 0 < m) : - (m/2) ≤ Int.bmod x m := by
+  dsimp [bmod]
+  have v : (m : Int) % 2 = 0 ∨ (m : Int) % 2 = 1 := emod_two_eq _
+  split <;> rename_i w
+  · refine Int.le_trans ?_ (Int.emod_nonneg _ ?_)
+    · exact Int.neg_nonpos_of_nonneg (Int.ediv_nonneg (Int.ofNat_nonneg _) (by decide))
+    · exact Int.ne_of_gt (ofNat_pos.mpr h)
+  · simp [Int.not_lt] at w
+    refine Int.le_trans ?_ (Int.sub_le_sub_right w _)
+    rw [← ediv_add_emod m 2]
+    generalize (m : Int) / 2 = q
+    generalize h : (m : Int) % 2 = r at *
+    rcases v with rfl | rfl
+    · rw [Int.add_zero, Int.mul_ediv_cancel_left, Int.add_ediv_of_dvd_left,
+        Int.mul_ediv_cancel_left, show (1 / 2 : Int) = 0 by decide, Int.add_zero,
+        Int.neg_eq_neg_one_mul]
+      conv => rhs; congr; rw [← Int.one_mul q]
+      rw [← Int.sub_mul, show (1 - 2 : Int) = -1 by decide]
+      apply Int.le_refl
+      all_goals try decide
+      all_goals apply Int.dvd_mul_right
+    · rw [Int.add_ediv_of_dvd_left, Int.mul_ediv_cancel_left,
+        show (1 / 2 : Int) = 0 by decide, Int.add_assoc, Int.add_ediv_of_dvd_left,
+        Int.mul_ediv_cancel_left, show ((1 + 1) / 2 : Int) = 1 by decide, ← Int.sub_sub,
+        Int.sub_eq_add_neg, Int.sub_eq_add_neg, Int.add_right_comm, Int.add_assoc q,
+        show (1 + -1 : Int) = 0 by decide, Int.add_zero, ← Int.neg_mul]
+      rw [Int.neg_eq_neg_one_mul]
+      conv => rhs; congr; rw [← Int.one_mul q]
+      rw [← Int.add_mul, show (1 + -2 : Int) = -1 by decide]
+      apply Int.le_refl
+      all_goals try decide
+      all_goals try apply Int.dvd_mul_right
+
+theorem bmod_lt {x : Int} {m : Nat} (h : 0 < m) : bmod x m < (m + 1) / 2 := by
+  dsimp [bmod]
+  split
+  · assumption
+  · apply Int.lt_of_lt_of_le
+    · show _ < 0
+      have : x % m < m := emod_lt_of_pos x (ofNat_pos.mpr h)
+      exact Int.sub_neg_of_lt this
+    · exact Int.le.intro_sub _ rfl
+
+theorem bmod_le {x : Int} {m : Nat} (h : 0 < m) : bmod x m ≤ (m - 1) / 2 := by
+  refine lt_add_one_iff.mp ?_
+  calc
+    bmod x m < (m + 1) / 2  := bmod_lt h
+    _ = ((m + 1 - 2) + 2)/2 := by simp
+    _ = (m - 1) / 2 + 1     := by
+      rw [add_ediv_of_dvd_right]
+      · simp (config := {decide := true}) only [Int.ediv_self]
+        congr 2
+        rw [Int.add_sub_assoc, ← Int.sub_neg]
+        congr
+      · trivial
+
+-- This could be strengthed by changing to `w : x ≠ -1` if needed.
+theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1) = - x.sign := by
+  have t₁ : ∀ (x : Nat), x % (x + 2) = x :=
+    fun x => Nat.mod_eq_of_lt (Nat.lt_succ_of_lt (Nat.lt.base x))
+  have t₂ : ∀ (x : Int), 0 ≤ x → x % (x + 2) = x := fun x h => by
+    match x, h with
+    | Int.ofNat x, _ => erw [← Int.ofNat_two, ← ofNat_add, ← ofNat_emod, t₁]; rfl
+  cases x with
+  | ofNat x =>
+    simp only [bmod, ofNat_eq_coe, natAbs_ofNat, natCast_add, ofNat_one,
+      emod_self_add_one (ofNat_nonneg x)]
+    match x with
+    | 0 => rw [if_pos] <;> simp (config := {decide := true})
+    | (x+1) =>
+      rw [if_neg]
+      · simp [← Int.sub_sub]
+      · refine Int.not_lt.mpr ?_
+        simp only [← natCast_add, ← ofNat_one, ← ofNat_two, ← ofNat_ediv]
+        match x with
+        | 0 => apply Int.le_refl
+        | (x+1) =>
+          refine Int.ofNat_le.mpr ?_
+          apply Nat.div_le_of_le_mul
+          simp only [Nat.two_mul, Nat.add_assoc]
+          apply Nat.add_le_add_left (Nat.add_le_add_left (Nat.add_le_add_left (Nat.le_add_left
+            _ _) _) _)
+  | negSucc x =>
+    rw [bmod, natAbs_negSucc, natCast_add, ofNat_one, sign_negSucc, Int.neg_neg,
+      Nat.succ_eq_add_one, negSucc_emod]
+    erw [t₂]
+    · rw [natCast_add, ofNat_one, Int.add_sub_cancel, Int.add_comm, Int.add_sub_cancel, if_pos]
+      · match x, w with
+        | (x+1), _ =>
+          rw [Int.add_assoc, add_ediv_of_dvd_right, show (1 + 1 : Int) = 2 by decide, Int.ediv_self]
+          apply Int.lt_add_one_of_le
+          rw [Int.add_comm, ofNat_add, Int.add_assoc, add_ediv_of_dvd_right,
+            show ((1 : Nat) + 1 : Int) = 2 by decide, Int.ediv_self]
+          apply Int.le_add_of_nonneg_left
+          exact Int.le.intro_sub _ rfl
+          all_goals decide
+    · exact ofNat_nonneg x
+    · exact succ_ofNat_pos (x + 1)
 
 /- TODO
 
