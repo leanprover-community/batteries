@@ -47,7 +47,7 @@ inductive DeclMod
   | /-- the original declaration -/ none
   | /-- the forward direction of an `iff` -/ mp
   | /-- the backward direction of an `iff` -/ mpr
-deriving DecidableEq, Ord
+deriving DecidableEq, Inhabited, Ord
 
 instance : ToString DeclMod where
   toString m := match m with | .none => "" | .mp => "mp" | .mpr => "mpr"
@@ -182,56 +182,175 @@ This is a monad for building initial discrimination tree.
 @[reducible]
 private def TreeInitM := StateT (LazyDiscrTree (Name × DeclMod)) MetaM
 
-private def pushEntry' (t : LazyDiscrTree (Name × DeclMod))
-                       (lctx : LocalContext × LocalInstances) (type : Expr) (name : Name)
-    (m : DeclMod) : MetaM (LazyDiscrTree (Name × DeclMod)) := do
-  let (k, todo) ← t.rootKey' type
-  pure <| t.addEntry' lctx k todo (name, m)
+open LazyDiscrTree (Key LazyEntry)
 
 private def libSearchContext : Meta.Context := {
     config := { transparency := .reducible }
   }
 
-def addConstantEntries (env : Environment) (cache : Lean.Meta.Cache) (t : LazyDiscrTree (Name × DeclMod)) (name : Name)
-    (constInfo : ConstantInfo) : EIO Exception (Lean.Meta.Cache × LazyDiscrTree (Name × DeclMod)) := do
-  if constInfo.isUnsafe then return (cache, t)
-  if isBlackListed env name then return (cache, t)
-  let mm := forallTelescope constInfo.type fun _ type => do
-              let lctx ← getLCtx
-              let linst ← Lean.Meta.getLocalInstances
-              let lctx := (lctx, linst)
-              match matchIff type with
-              | .none => do
-                pushEntry' t lctx type name DeclMod.none
-              | .some (lhs, rhs) => do
-                let t ← pushEntry' t lctx type name DeclMod.none
-                let t ← pushEntry' t lctx rhs  name DeclMod.mp
-                pushEntry' t lctx lhs  name DeclMod.mpr
-  let mstate : Meta.State := { cache }
-  let cm : CoreM (LazyDiscrTree (Name × DeclMod) × _) := mm.run libSearchContext mstate
+private structure ErrorCollection (ε : Type) (α : Type) where
+  value  : α
+  errors : Array ε := #[]
+
+instance [Inhabited α] : Inhabited (ErrorCollection ε α) := ⟨{ value := default }⟩
+
+
+private def ErrorCollection.join (f : α → α → α) (x y : ErrorCollection ε α) : ErrorCollection ε α :=
+  let { value := xv, errors := xe } := x
+  let { value := yv, errors := ye } := y
+  { value := f xv yv, errors := xe ++ ye }
+
+private structure RootData (α : Type) where
+  keyMap : HashMap Key Nat := {}
+  array  : Array (Array (LazyEntry α)) := #[]
+  deriving Inhabited
+
+
+private def RootData.modifyAt (d : RootData α) (k : Key)
+    (f : Array (LazyEntry α) → Array (LazyEntry α)) : RootData α :=
+  let {keyMap := m, array := a } := d
+  match m.find? k with
+  | .none =>
+    let m := m.insert k a.size
+    { keyMap := m, array := a.push (f #[]) }
+  | .some i =>
+    { keyMap := m, array := a.modify i f }
+
+private def RootData.push (d : RootData α) (k : Key) (e : LazyEntry α) : RootData α :=
+  RootData.modifyAt d k (·.push e)
+
+private def RootData.toTree (d : (RootData α)) : LazyDiscrTree α :=
+  let f (ae : Array (LazyEntry α)) : LazyDiscrTree.Trie α :=
+      .node {} 0 {} ae
+  { config := {}, array := d.array.map f, root := d.keyMap }
+
+private def RootData.join (x y : RootData α) : RootData α :=
+  if x.keyMap.size ≥ y.keyMap.size then
+    aux y x (fun x y => y ++ x)
+  else
+    aux x y (fun x y => x ++ y)
+  where aux x y (f : Array (LazyEntry α) → Array (LazyEntry α) → Array (LazyEntry α)) :=
+    let { keyMap := xk, array := xa } := x
+    xk.fold (init := y) fun d k xi => d.modifyAt k (f xa[xi]!)
+
+private def pushEntry (r : IO.Ref (RootData α)) (lctx : LocalContext × LocalInstances) (type : Expr)
+    (v : α) : MetaM Unit := do
+  let (k, todo) ← LazyDiscrTree.rootKey' {} type
+  r.modify (·.push k (todo, lctx, v))
+
+/-- Information generation from imported modules. -/
+private structure ImportData where
+  cache : IO.Ref (Lean.Meta.Cache)
+  data : IO.Ref (RootData (Name × DeclMod))
+  errors : IO.Ref (Array (Name × Name))
+
+private def ImportData.new : BaseIO ImportData := do
+  let cache ← IO.mkRef {}
+  let data ← IO.mkRef {}
+  let errors ← IO.mkRef #[]
+  pure { cache, data, errors }
+
+private def addConstImportData (env : Environment) (modName : Name) (d : ImportData)
+    (name : Name) (constInfo : ConstantInfo) : BaseIO Unit := do
+  if constInfo.isUnsafe then return ()
+  if isBlackListed env name then return ()
+  let mstate : Meta.State := { cache := ←d.cache.get }
+  d.cache.set {}
+  let mm : MetaM Unit :=
+        forallTelescope constInfo.type fun _ type => do
+          let lctx ← getLCtx
+          let linst ← Lean.Meta.getLocalInstances
+          let lctx := (lctx, linst)
+          let (k, todo) ← LazyDiscrTree.rootKey' {} type
+          d.data.modify (·.push k (todo, lctx, (name, DeclMod.none)))
+          let biff := k == DiscrTree.Key.const ``Iff 2
+          if biff then
+            pushEntry d.data lctx todo[0]! (name, DeclMod.mp)
+            pushEntry d.data lctx todo[1]! (name, DeclMod.mpr)
+          else
+            pure ()
+  let cm : CoreM (Unit × _) := mm.run libSearchContext mstate
   let cctx : Core.Context := {
     fileName := default,
     fileMap := default
   }
   let cstate : Core.State := {env}
-  let (t,s) ← Prod.fst <$> cm.run cctx cstate
-  pure (s.cache, t)
+  match ←(cm.run cctx cstate).toBaseIO with
+  | .ok (((), ms), _) =>
+    d.cache.set ms.cache
+  | .error _ =>
+    d.errors.modify (·.push (modName, name))
 
 private partial def loadImportedModule (env : Environment)
-    (cache : Lean.Meta.Cache)
-    (t : LazyDiscrTree (Name × DeclMod))
-    (md : ModuleData) (i : Nat := 0) : EIO Exception (Lean.Meta.Cache × LazyDiscrTree (Name × DeclMod)) := do
-  if h : i < md.constNames.size then
-    let nm := md.constNames[i]
-    let c  := md.constants[i]!
-    let (cache, t) ←  addConstantEntries env cache t nm c
-    loadImportedModule env cache t md (i+1)
+    (d : ImportData)
+    (mname : Name)
+    (mdata : ModuleData) (i : Nat := 0) : BaseIO Unit := do
+  if h : i < mdata.constNames.size then
+    let nm := mdata.constNames[i]
+    let c  := mdata.constants[i]!
+    addConstImportData env mname d nm c
+    loadImportedModule env d mname mdata (i+1)
   else
-    pure (cache, t)
+    pure ()
 
-private def createImportedEnvironment (env : Environment) : EIO Exception (LazyDiscrTree (Name × DeclMod)) :=
-  Prod.snd <$> env.header.moduleData.foldlM (init := ({}, {})) fun (c, t) md => do
-    loadImportedModule env c t md
+private def ImportData.toFlat (d : ImportData) :
+    BaseIO (ErrorCollection (Name × Name) (RootData (Name × DeclMod))) := do
+  let dm ← d.data.swap {}
+  let de ← d.errors.swap #[]
+  pure ⟨dm, de⟩
+
+
+private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
+    BaseIO (ErrorCollection (Name × Name) (RootData (Name × DeclMod))) :=
+      do go (← ImportData.new) start stop
+    where go d (start stop : Nat) : BaseIO _ := do
+            if start < stop then
+              let mname := env.header.moduleNames[start]!
+              let mdata := env.header.moduleData[start]!
+              loadImportedModule env d mname mdata
+              go d (start+1) stop
+            else
+              d.toFlat
+  termination_by go _ idx stop => stop - idx
+
+/--
+The maximum number of constants an individual task performed.
+
+The value below was picked because it roughly correponded to 50ms of work on
+one of the development machines.
+-/
+private def constantsPerTask : Nat := 6500
+
+/-- This creates -/
+private def launchImportedEnvironment (env : Environment) :
+    BaseIO (Array (Task (ErrorCollection (Name × Name) (RootData (Name × DeclMod))))) := do
+  let n := env.header.moduleData.size
+  let rec go tasks start cnt idx := do
+        if h : idx < env.header.moduleData.size then
+          let mdata := env.header.moduleData[idx]
+          let cnt := cnt + mdata.constants.size
+          if cnt > constantsPerTask then
+            let t ← createImportedEnvironmentSeq env start (idx+1) |>.asTask
+            go (tasks.push t) (idx+1) 0 (idx+1)
+          else
+            go tasks start cnt (idx+1)
+        else
+          if start < n then
+            tasks.push <$> (createImportedEnvironmentSeq env start n).asTask
+          else
+            pure tasks
+  go #[] 0 0 0
+  termination_by go _ idx => env.header.moduleData.size - idx
+
+/-- Get the rests of each task and merge using combining function -/
+private partial def combineGet (z : α) (f : α → α → α) (tasks : Array (Task α)) : α :=
+  tasks.foldl (fun x t => f x t.get) (init := z)
+
+private partial def createImportedEnvironment (opts : Options) (env : Environment) :
+    BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
+  let tasks ← launchImportedEnvironment env
+  let r := combineGet default (fun x y => ErrorCollection.join RootData.join x y) tasks
+  pure <| r.value.toTree
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
@@ -241,9 +360,7 @@ def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
   pure fun ty => do
     let locals ← DiscrTreeFinder.localMatches config ty
     let importTree ← (←ref.get).getDM $ do
-      let env ← getEnv
-      profileitM Exception "librarySearch import" (← getOptions) do
-        createImportedEnvironment env
+      createImportedEnvironment (←getOptions) (←getEnv)
     let (imports, importTree) ← importTree.getMatch ty
     ref.set importTree
     pure <| (locals ++ imports).toList
@@ -540,7 +657,6 @@ private def addImportedLibSearch (a : Array (Array LibSearchEntry)) : ImportM Li
 --      IO.println s! "Imported {env.header.moduleNames[i]!}"
   IO.FS.writeFile "/Users/jhendrix/repos/std4/msg"
       s!"LibSearch import {a.size} {env.header.moduleData.size}"
-  --pure (some t)
   pure HashMap.empty
 
 private def exportLibSearchEntries (_s : LibSearchState) : Array LibSearchEntry := #[HashMap.empty]

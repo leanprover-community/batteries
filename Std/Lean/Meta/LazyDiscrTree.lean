@@ -264,6 +264,7 @@ export DiscrTree (Key)
 Stack of subexpressions to process to generate key.
 -/
 def ExprRest := Array Expr
+  deriving Inhabited
 
 /--
 An unprocessed entry in the lazy discriminator tree.
@@ -291,6 +292,7 @@ structure Trie (α : Type) where
     pending : Array (LazyEntry α)
   deriving Inhabited
 
+/-- Push lazy entry to trie. -/
 private def Trie.pushPending : Trie α  → LazyEntry α → Trie α
 | .node vs star cs p, e => .node vs star cs (p.push e)
 
@@ -407,20 +409,17 @@ def addEntry' : LazyDiscrTree α → LocalContext × LocalInstances → Key → 
     { config := c, array := a, root := r }
 
 /--
-Get the root key of an expression using the config from the lazy dicriminator tree.
+Get the root key of an expression using the specified config.
 -/
-def rootKey (d:LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (e : Expr) :
-    MetaM (Key × Array Expr) :=
-  let todo := Array.mkEmpty initCapacity
-  withReducible $ withLCtx lctx.1 lctx.2 $ pushArgs true todo e d.config
+def rootKey' (cfg: WhnfCoreConfig) (e : Expr) : MetaM (Key × Array Expr) :=
+  pushArgs true (Array.mkEmpty initCapacity) e cfg
 
 /--
 Get the root key of an expression using the config from the lazy dicriminator tree.
 -/
-def rootKey' (d:LazyDiscrTree α) (e : Expr) :
+def rootKey (cfg: WhnfCoreConfig) (lctx : LocalContext × LocalInstances) (e : Expr) :
     MetaM (Key × Array Expr) :=
-  pushArgs true (Array.mkEmpty initCapacity) e d.config
-
+  withReducible $ withLCtx lctx.1 lctx.2 $ rootKey' cfg e
 
 /--
 Adds an association between the given expression.  Free variables are used to
@@ -428,7 +427,7 @@ denote paramters that may be matched against.
 -/
 def addEntry (d : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
     MetaM (LazyDiscrTree α) := do
-  let (k, todo) ← rootKey d lctx type
+  let (k, todo) ← rootKey d.config lctx type
   pure $ addEntry' d lctx k todo v
 
 private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
