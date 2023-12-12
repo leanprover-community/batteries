@@ -57,7 +57,7 @@ LibrarySearch has an extension mechanism for replacing the function used
 to find candidate lemmas.
 -/
 @[reducible]
-def CandidateFinder := Expr → MetaM (List (Name × DeclMod))
+def CandidateFinder := Expr → MetaM (Array (Name × DeclMod))
 
 namespace DiscrTreeFinder
 
@@ -142,39 +142,15 @@ def localMatches (config : WhnfCoreConfig) (ty : Expr) : MetaM (Array (Name × D
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
 -/
-def discrTreeSearchFn (config : WhnfCoreConfig) (importTree : DiscrTree (Name × DeclMod))
-    (ty : Expr) : MetaM (List (Name × DeclMod)) := do
-  let locals ← localMatches config ty
-  let imports := (← importTree.getMatch ty config).reverse
-  pure <| (locals ++ imports).toList
-
-/--
-This builds the candidate finder tht uses the fully formed discrimination tree.
--/
-def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
-  let cache : IO.Ref (Option (DiscrTree (Name × DeclMod))) ← IO.mkRef none
-  pure fun ty => do
-    let imports ←
-      if let .some imports ← cache.get then
-        pure imports
-      else
-        let imports ← buildImportCache {}
-        cache.set (.some imports)
-        pure imports
-    DiscrTreeFinder.discrTreeSearchFn config imports ty
+def mkImportFinder (config : WhnfCoreConfig) (importTree : DiscrTree (Name × DeclMod))
+    (ty : Expr) : MetaM (Array (Name × DeclMod)) := do
+  pure <| (← importTree.getMatch ty config).reverse
 
 end DiscrTreeFinder
 
 namespace IncDiscrTreeFinder
 
 open DiscrTreeFinder (isBlackListed)
-
-private def matchIff (t : Expr) : Option (Expr × Expr) := do
-  match t.getAppFnArgs with
-  | (``Iff, #[lhs, rhs]) => do
-    .some (lhs, rhs)
-  | _ =>
-    .none
 
 /--
 This is a monad for building initial discrimination tree.
@@ -352,33 +328,38 @@ private partial def createImportedEnvironment (opts : Options) (env : Environmen
   let r := combineGet default (fun x y => ErrorCollection.join RootData.join x y) tasks
   pure <| r.value.toTree
 
+
+
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
 -/
-def mkCandidateFinder (config : WhnfCoreConfig) : IO CandidateFinder := do
+def mkImportFinder : IO CandidateFinder := do
   let ref ← IO.mkRef none
   pure fun ty => do
-    let locals ← DiscrTreeFinder.localMatches config ty
     let importTree ← (←ref.get).getDM $ do
       createImportedEnvironment (←getOptions) (←getEnv)
     let (imports, importTree) ← importTree.getMatch ty
     ref.set importTree
-    pure <| (locals ++ imports).toList
+    pure imports
 
 end IncDiscrTreeFinder
+
+private unsafe def mkImportFinder : IO CandidateFinder := do
+  let path ← DiscrTreeFinder.cachePath
+  if ← path.pathExists then
+    let (imports, _) ← unpickle (DiscrTree (Name × DeclMod)) path
+    -- `DiscrTree.getMatch` returns results in batches, with more specific lemmas coming later.
+    -- Hence we reverse this list, so we try out more specific lemmas earlier.
+    pure <| DiscrTreeFinder.mkImportFinder {} imports
+  else do
+    IncDiscrTreeFinder.mkImportFinder
+
 
 /--
 Retrieve the current current of lemmas.
 -/
 initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
-  let path ← DiscrTreeFinder.cachePath
-  if ← path.pathExists then
-    let imports ← Prod.fst <$> unpickle (DiscrTree (Name × DeclMod)) path
-    -- `DiscrTree.getMatch` returns results in batches, with more specific lemmas coming later.
-    -- Hence we reverse this list, so we try out more specific lemmas earlier.
-    IO.mkRef (DiscrTreeFinder.discrTreeSearchFn {} imports)
-  else
-    IO.mkRef (←IncDiscrTreeFinder.mkCandidateFinder {})
+  IO.mkRef (←mkImportFinder)
 
 /--
 Update the candidate finder used by library search.
@@ -420,7 +401,7 @@ then calling `solveByElim` on the resulting goals.
 def librarySearchCore (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array Expr) := do
   let candidates ← searchFn tgt
   trace[Tactic.stdLibrarySearch.lemmas] m!"Candidate library_search lemmas:\n{candidates}"
-  let mut res := Array.mkEmpty candidates.length
+  let mut res := Array.mkEmpty candidates.size
   for (name, mod) in candidates do
     try
       res := res.push (←mkLibrarySearchLemma name mod)
@@ -529,6 +510,15 @@ def solveByElim (required : List Expr) (exfalso := false) (depth) (goals : List 
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
   SolveByElim.solveByElim cfg lemmas ctx goals
 
+private def LibSearchState := Option CandidateFinder
+  deriving Inhabited
+
+private def mkInitialLibSearch : IO LibSearchState := do
+  pure .none
+
+private initialize ext : EnvExtension LibSearchState ←
+  registerEnvExtension mkInitialLibSearch
+
 /--
 Try to solve the goal either by:
 * calling `solveByElim`
@@ -546,10 +536,20 @@ unless the goal was completely solved.)
 this is not currently tracked.)
 -/
 def librarySearch (goal : MVarId) (required : List Expr)
-    (searchFn : Option CandidateFinder := .none)
     (solveByElimDepth := 6) (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
-  let searchFn ← searchFn.getDM defaultCandidateFinder.get
+
+  let importFinder ←
+        match ext.getState (←getEnv) with
+        | .some f => pure f
+        | .none =>
+          let f ← defaultCandidateFinder.get
+          modifyEnv (ext.setState · (.some f))
+          pure f
+  let searchFn (ty : Expr) := do
+      let localMap ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree {})
+      let locals := (← localMap.getMatch  ty {}).reverse
+      pure <| locals ++ (←importFinder ty)
   let librarySearchEmoji := fun
     | .error _ => bombEmoji
     | .ok (some _) => crossEmoji
@@ -637,34 +637,3 @@ elab tk:"exact?%" : term <= expectedType => do
     else
       addTermSuggestion tk (← instantiateMVars goal).headBeta
       instantiateMVars goal
-
-open LazyDiscrTree (Key)
-
-@[reducible]
-private def LibSearchEntry := HashMap Key (Name × DeclMod)
-
-private def LibSearchState := LibSearchEntry
-  deriving Inhabited
-
-private def mkInitialLibSearch : IO LibSearchState := do
-  pure HashMap.empty
-
-private def addImportedLibSearch (a : Array (Array LibSearchEntry)) : ImportM LibSearchState := do
-  let env := (←read).env
---  for i in [0:a.size] do
---    let b := a[i]!
---    if b.size > 0 then
---      IO.println s! "Imported {env.header.moduleNames[i]!}"
-  IO.FS.writeFile "/Users/jhendrix/repos/std4/msg"
-      s!"LibSearch import {a.size} {env.header.moduleData.size}"
-  pure HashMap.empty
-
-private def exportLibSearchEntries (_s : LibSearchState) : Array LibSearchEntry := #[HashMap.empty]
-
-private initialize ext : PersistentEnvExtension LibSearchEntry LibSearchEntry LibSearchState ←
-  registerPersistentEnvExtension {
-      mkInitial := mkInitialLibSearch,
-      addImportedFn := addImportedLibSearch,
-      addEntryFn := fun s _ => s,
-      exportEntriesFn := exportLibSearchEntries,
-  }
