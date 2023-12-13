@@ -176,40 +176,55 @@ private def ErrorCollection.join (f : α → α → α) (x y : ErrorCollection �
   let { value := yv, errors := ye } := y
   { value := f xv yv, errors := xe ++ ye }
 
-private structure RootData (α : Type) where
-  keyMap : HashMap Key Nat := {}
-  array  : Array (Array (LazyEntry α)) := #[]
+/--
+Structure for quickly initializing a lazy tree with a large number of elements.
+
+Designed for efficient insertion and merging multiple discrimination trees.
+-/
+structure PreDiscrTree (α : Type) where
+  /-- Maps keys to index in tries array. -/
+  roots : HashMap Key Nat := {}
+  /-- Lazy entries for root of treie-/
+  tries : Array (Array (LazyEntry α)) := #[]
   deriving Inhabited
 
+namespace PreDiscrTree
 
-private def RootData.modifyAt (d : RootData α) (k : Key)
-    (f : Array (LazyEntry α) → Array (LazyEntry α)) : RootData α :=
-  let {keyMap := m, array := a } := d
-  match m.find? k with
+private def modifyAt (d : PreDiscrTree α) (k : Key)
+    (f : Array (LazyEntry α) → Array (LazyEntry α)) : PreDiscrTree α :=
+  let { roots, tries } := d
+  match roots.find? k with
   | .none =>
-    let m := m.insert k a.size
-    { keyMap := m, array := a.push (f #[]) }
+    let roots := roots.insert k tries.size
+    { roots, tries := tries.push (f #[]) }
   | .some i =>
-    { keyMap := m, array := a.modify i f }
+    { roots, tries := tries.modify i f }
 
-private def RootData.push (d : RootData α) (k : Key) (e : LazyEntry α) : RootData α :=
-  RootData.modifyAt d k (·.push e)
+/-- Add an entries to the pre-discrimination tree.-/
+def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
+  d.modifyAt k (·.push e)
 
-private def RootData.toTree (d : (RootData α)) : LazyDiscrTree α :=
-  let f (ae : Array (LazyEntry α)) : LazyDiscrTree.Trie α :=
-      .node {} 0 {} ae
-  { config := {}, array := d.array.map f, root := d.keyMap }
+/-- Convert a pre-discrimination tree to a lazy discrimination tree. -/
+def toTree (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
+  let { roots, tries } := d
+  { config, root := roots, array := tries.map (.node {} 0 {}) }
 
-private def RootData.join (x y : RootData α) : RootData α :=
-  if x.keyMap.size ≥ y.keyMap.size then
-    aux y x (fun x y => y ++ x)
+/-- Merge two discrimination trees. -/
+protected def append (x y : PreDiscrTree α) : PreDiscrTree α :=
+  if x.roots.size ≥ y.roots.size then
+    aux x y (fun y x => x ++ y)
   else
-    aux x y (fun x y => x ++ y)
+    aux y x (fun x y => y ++ x)
   where aux x y (f : Array (LazyEntry α) → Array (LazyEntry α) → Array (LazyEntry α)) :=
-    let { keyMap := xk, array := xa } := x
-    xk.fold (init := y) fun d k xi => d.modifyAt k (f xa[xi]!)
+    let { roots := yk, tries := ya } := y
+    yk.fold (init := x) fun d k yi => d.modifyAt k (f ya[yi]!)
 
-private def pushEntry (r : IO.Ref (RootData α)) (lctx : LocalContext × LocalInstances) (type : Expr)
+instance : Append (PreDiscrTree α) where
+  append := PreDiscrTree.append
+
+end PreDiscrTree
+
+private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances) (type : Expr)
     (v : α) : MetaM Unit := do
   let (k, todo) ← LazyDiscrTree.rootKey' {} type
   r.modify (·.push k (todo, lctx, v))
@@ -217,7 +232,7 @@ private def pushEntry (r : IO.Ref (RootData α)) (lctx : LocalContext × LocalIn
 /-- Information generation from imported modules. -/
 private structure ImportData where
   cache : IO.Ref (Lean.Meta.Cache)
-  data : IO.Ref (RootData (Name × DeclMod))
+  data : IO.Ref (PreDiscrTree (Name × DeclMod))
   errors : IO.Ref (Array (Name × Name))
 
 private def ImportData.new : BaseIO ImportData := do
@@ -270,14 +285,14 @@ private partial def loadImportedModule (env : Environment)
     pure ()
 
 private def ImportData.toFlat (d : ImportData) :
-    BaseIO (ErrorCollection (Name × Name) (RootData (Name × DeclMod))) := do
+    BaseIO (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))) := do
   let dm ← d.data.swap {}
   let de ← d.errors.swap #[]
   pure ⟨dm, de⟩
 
 
 private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
-    BaseIO (ErrorCollection (Name × Name) (RootData (Name × DeclMod))) :=
+    BaseIO (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))) :=
       do go (← ImportData.new) start stop
     where go d (start stop : Nat) : BaseIO _ := do
             if start < stop then
@@ -299,7 +314,7 @@ private def constantsPerTask : Nat := 6500
 
 /-- This creates -/
 private def launchImportedEnvironment (env : Environment) :
-    BaseIO (Array (Task (ErrorCollection (Name × Name) (RootData (Name × DeclMod))))) := do
+    BaseIO (Array (Task (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))))) := do
   let n := env.header.moduleData.size
   let rec go tasks start cnt idx := do
         if h : idx < env.header.moduleData.size then
@@ -325,10 +340,8 @@ private partial def combineGet (z : α) (f : α → α → α) (tasks : Array (T
 private partial def createImportedEnvironment (opts : Options) (env : Environment) :
     BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
   let tasks ← launchImportedEnvironment env
-  let r := combineGet default (fun x y => ErrorCollection.join RootData.join x y) tasks
+  let r := combineGet default (fun x y => ErrorCollection.join Append.append x y) tasks
   pure <| r.value.toTree
-
-
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
