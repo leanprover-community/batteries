@@ -189,18 +189,20 @@ theorem count_replicate (a b : α) (n : Nat) : count a (replicate n b) = if a = 
   split
   exacts [‹a = b› ▸ count_replicate_self .., count_eq_zero.2 <| mt eq_of_mem_replicate ‹a ≠ b›]
 
-theorem filter_beq' (l : List α) (a : α) : l.filter (· == a) = replicate (count a l) a := by
+theorem filter_beq (l : List α) (a : α) : l.filter (· == a) = replicate (count a l) a := by
   simp only [count, countP_eq_length_filter, eq_replicate, mem_filter, beq_iff_eq]
   exact ⟨trivial, fun _ h => h.2⟩
 
-theorem filter_eq' (l : List α) (a : α) : l.filter (· = a) = replicate (count a l) a :=
-  filter_beq' l a
+theorem filter_eq (l : List α) (a : α) : l.filter (· = a) = replicate (count a l) a :=
+  filter_beq l a
 
-theorem filter_eq (l : List α) (a : α) : l.filter (a = ·) = replicate (count a l) a := by
-  simpa only [eq_comm] using filter_eq' l a
+@[deprecated filter_eq]
+theorem filter_eq' (l : List α) (a : α) : l.filter (a = ·) = replicate (count a l) a := by
+  simpa only [eq_comm] using filter_eq l a
 
-theorem filter_beq (l : List α) (a : α) : l.filter (a == ·) = replicate (count a l) a :=
-  filter_eq l a
+@[deprecated filter_beq]
+theorem filter_beq' (l : List α) (a : α) : l.filter (a == ·) = replicate (count a l) a := by
+  simpa only [eq_comm (b := a)] using filter_eq l a
 
 theorem le_count_iff_replicate_sublist {l : List α} : n ≤ count a l ↔ replicate n a <+ l := by
   refine ⟨fun h => ?_, fun h => ?_⟩
