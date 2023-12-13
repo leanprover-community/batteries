@@ -543,14 +543,17 @@ def solveByElim (required : List Expr) (exfalso := false) (depth) (goals : List 
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
   SolveByElim.solveByElim cfg lemmas ctx goals
 
-private def LibSearchState := Option CandidateFinder
-  deriving Inhabited
+/-- State for resolving imports -/
+private def LibSearchState := IO.Ref (Option CandidateFinder)
 
-private def mkInitialLibSearch : IO LibSearchState := do
-  pure .none
+private initialize LibSearchState.default : IO.Ref (Option CandidateFinder) ← do
+  IO.mkRef .none
+
+private instance : Inhabited LibSearchState where
+  default := LibSearchState.default
 
 private initialize ext : EnvExtension LibSearchState ←
-  registerEnvExtension mkInitialLibSearch
+  registerEnvExtension (IO.mkRef .none)
 
 /--
 Try to solve the goal either by:
@@ -571,18 +574,18 @@ this is not currently tracked.)
 def librarySearch (goal : MVarId) (required : List Expr)
     (solveByElimDepth := 6) (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
-
-  let importFinder ←
-        match ext.getState (←getEnv) with
+  let importFinder ← do
+        let r := ext.getState (←getEnv)
+        match ←r.get with
         | .some f => pure f
         | .none =>
           let f ← defaultCandidateFinder.get
-          modifyEnv (ext.setState · (.some f))
+          r.set (.some f)
           pure f
   let searchFn (ty : Expr) := do
       let localMap ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree {})
       let locals := (← localMap.getMatch  ty {}).reverse
-      pure <| locals ++ (←importFinder ty)
+      pure <| locals ++ (← importFinder ty)
   let librarySearchEmoji := fun
     | .error _ => bombEmoji
     | .ok (some _) => crossEmoji
