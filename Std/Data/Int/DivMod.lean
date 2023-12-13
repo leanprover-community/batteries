@@ -400,6 +400,16 @@ theorem emod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a % b < b :=
 theorem fmod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a.fmod b < b :=
   fmod_eq_emod _ (Int.le_of_lt H) ▸ emod_lt_of_pos a H
 
+theorem mul_ediv_self_le {x k : Int} (h : k ≠ 0) : k * (x / k) ≤ x :=
+  calc k * (x / k)
+    _ ≤ k * (x / k) + x % k := Int.le_add_of_nonneg_right (emod_nonneg x h)
+    _ = x                   := ediv_add_emod _ _
+
+theorem lt_mul_ediv_self_add {x k : Int} (h : 0 < k) : x < k * (x / k) + k :=
+  calc x
+    _ = k * (x / k) + x % k := (ediv_add_emod _ _).symm
+    _ < k * (x / k) + k     := Int.add_lt_add_left (emod_lt_of_pos x h) _
+
 theorem emod_two_eq (x : Int) : x % 2 = 0 ∨ x % 2 = 1 := by
   have h₁ : 0 ≤ x % 2 := Int.emod_nonneg x (by decide)
   have h₂ : x % 2 < 2 := Int.emod_lt_of_pos x (by decide)
