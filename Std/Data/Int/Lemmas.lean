@@ -1216,6 +1216,11 @@ protected theorem mul_le_mul_of_nonpos_right {a b c : Int}
   have : b * -c ≤ a * -c := Int.mul_le_mul_of_nonneg_right h this
   Int.le_of_neg_le_neg <| by rwa [← Int.neg_mul_eq_mul_neg, ← Int.neg_mul_eq_mul_neg] at this
 
+protected theorem mul_le_mul_of_nonpos_left {a b c : Int}
+    (ha : a ≤ 0) (h : c ≤ b) : a * b ≤ a * c := by
+  rw [Int.mul_comm a b, Int.mul_comm a c]
+  apply Int.mul_le_mul_of_nonpos_right h ha
+
 protected theorem mul_nonneg_of_nonpos_of_nonpos {a b : Int}
   (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a * b := by
   have : 0 * b ≤ a * b := Int.mul_le_mul_of_nonpos_right ha hb
