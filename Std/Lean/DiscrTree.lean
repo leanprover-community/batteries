@@ -208,7 +208,7 @@ instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 /-- Discrimination tree. It is an index from expressions to values of type `α`. -/
 structure _root_.Std.DiscrTree (α : Type) where
   /-- The underlying `PersistentHashMap` of a `DiscrTree`. -/
-  root : PersistentHashMap Key (Trie α)
+  root : PersistentHashMap Key (Trie α) := {}
 
 private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :=
   let (_, r) := d.root.foldl
@@ -677,6 +677,7 @@ mutual
   return the possible `Trie α` that exactly match with `e`. -/
   partial def exactMatch (e : Expr) (find? : Key → Option (Trie α)) (root : Bool)
     : M (Option (M (Trie α))) := do
+    let e ← reduce e (← read).config
 
     let find (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : M (Trie α) :=
       match find? k with
@@ -686,9 +687,8 @@ mutual
           x trie
 
     let matchArgs (t : Trie α) : M (Trie α) :=
-      e.getAppRevArgs.foldrM (fun a c => matchExpr a c) t
+      e.getAppRevArgs.foldrM matchExpr t
 
-    let e ← reduce e (← read).config
     match e.getAppFn with
     | .const c _       =>
       unless root do
