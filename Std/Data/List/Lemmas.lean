@@ -102,6 +102,11 @@ theorem not_mem_cons_of_ne_of_not_mem {a y : α} {l : List α} : a ≠ y → a �
 theorem ne_and_not_mem_of_not_mem_cons {a y : α} {l : List α} : a ∉ y::l → a ≠ y ∧ a ∉ l :=
   fun p => ⟨ne_of_not_mem_cons p, not_mem_of_not_mem_cons p⟩
 
+/-! ### isEmpty -/
+
+@[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
+@[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
+
 /-! ### append -/
 
 theorem append_eq_append : List.append l₁ l₂ = l₁ ++ l₂ := rfl
@@ -2061,6 +2066,21 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
     ∀ (l : List α), takeWhile p l ++ dropWhile p l = l
   | [] => rfl
   | x :: xs => by simp [takeWhile, dropWhile]; cases p x <;> simp [takeWhile_append_dropWhile p xs]
+
+@[simp] theorem dropWhile_nil : ([] : List α).dropWhile p = [] := rfl
+
+theorem dropWhile_cons :
+    (x :: xs : List α).dropWhile p = if p x then xs.dropWhile p else x :: xs := by
+  split <;> simp_all [dropWhile]
+
+theorem dropWhile_append {xs ys : List α} :
+    (xs ++ ys).dropWhile p =
+      if (xs.dropWhile p).isEmpty then ys.dropWhile p else xs.dropWhile p ++ ys := by
+  induction xs with
+  | nil => simp
+  | cons h t ih =>
+    simp only [cons_append, dropWhile_cons]
+    split <;> simp_all
 
 /-! ### Chain -/
 
