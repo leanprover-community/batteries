@@ -616,13 +616,13 @@ def toLazy (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree
 
 /-- Merge two discrimination trees. -/
 protected def append (x y : PreDiscrTree α) : PreDiscrTree α :=
-  if x.roots.size ≥ y.roots.size then
-    aux x y (fun y x => x ++ y)
-  else
-    aux y x (fun x y => y ++ x)
-  where aux x y (f : Array (LazyEntry α) → Array (LazyEntry α) → Array (LazyEntry α)) :=
-    let { roots := yk, tries := ya } := y
-    yk.fold (init := x) fun d k yi => d.modifyAt k (f ya[yi]!)
+  let (x, y, f) :=
+        if x.roots.size ≥ y.roots.size then
+          (x, y, fun y x => x ++ y)
+        else
+          (y, x, fun x y => x ++ y)
+  let { roots := yk, tries := ya } := y
+  yk.fold (init := x) fun d k yi => d.modifyAt k (f ya[yi]!)
 
 instance : Append (PreDiscrTree α) where
   append := PreDiscrTree.append
