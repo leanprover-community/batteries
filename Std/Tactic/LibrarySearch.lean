@@ -158,8 +158,8 @@ private def libSearchContext : Meta.Context := {
     config := { transparency := .reducible }
   }
 
-private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances) (type : Expr)
-    (v : α) : MetaM Unit := do
+private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances)
+    (type : Expr) (v : α) : MetaM Unit := do
   let (k, todo) ← LazyDiscrTree.rootKey' {} type
   r.modify (·.push k (todo, lctx, v))
 
@@ -363,7 +363,8 @@ then try to close subsequent goals using `solveByElim`.
 If `solveByElim` succeeds, we return `[]` as the list of new subgoals,
 otherwise the full list of subgoals.
 -/
-def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure : Bool) (goal : MVarId) (lem : Expr) : MetaM (List MVarId) := do
+def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure : Bool)
+    (goal : MVarId) (lem : Expr) : MetaM (List MVarId) := do
   withTraceNode `Tactic.librarySearch (return m!"{emoji ·} trying {lem}") do
     let newGoals ← goal.apply lem { allowSynthFailures := true }
     try
