@@ -292,8 +292,10 @@ structure Trie (α : Type) where
     pending : Array (LazyEntry α)
   deriving Inhabited
 
+instance : EmptyCollection (Trie α) := ⟨.node #[] 0 {} #[]⟩
+
 /-- Push lazy entry to trie. -/
-private def Trie.pushPending : Trie α  → LazyEntry α → Trie α
+private def Trie.pushPending : Trie α → LazyEntry α → Trie α
 | .node vs star cs p, e => .node vs star cs (p.push e)
 
 end LazyDiscrTree
@@ -315,9 +317,9 @@ structure LazyDiscrTree (α : Type) where
   /-- Configuration for normalization. -/
   config : Lean.Meta.WhnfCoreConfig := {}
   /-- Backing array of trie entries.  Should be owned by this trie. -/
-  array : Array (LazyDiscrTree.Trie α) := #[default]
+  tries : Array (LazyDiscrTree.Trie α) := #[default]
   /-- Map from disriminator trie roots to the index. -/
-  root : Lean.HashMap LazyDiscrTree.Key LazyDiscrTree.TrieIndex := {}
+  roots : Lean.HashMap LazyDiscrTree.Key LazyDiscrTree.TrieIndex := {}
 
 namespace LazyDiscrTree
 
@@ -327,7 +329,7 @@ instance : Inhabited (LazyDiscrTree α) where
   default := {}
 
 /-- Return true if trie is empty. -/
-def isEmpty (t:LazyDiscrTree α) : Bool := t.array.size ≤ 1
+def isEmpty (t:LazyDiscrTree α) : Bool := t.roots.size ≠ 0
 
 open Lean.Meta.DiscrTree (mkNoindexAnnotation hasNoindexAnnotation reduceDT)
 
@@ -393,20 +395,17 @@ private def pushArgs (root : Bool) (todo : ExprRest) (e : Expr) (config : WhnfCo
 private def initCapacity := 8
 
 /--
-Adds a key and
+`modifyAt` applies the function `f` to the trie at root `k`.
 -/
-def addEntry' : LazyDiscrTree α → LocalContext × LocalInstances → Key → Array Expr → α →
-    LazyDiscrTree α
-| { config := c, array := a, root := r }, lctx, k, todo, v =>
-  let rest := (todo, lctx, v)
+@[inline]
+def modifyAt (t : LazyDiscrTree α) (k : Key) (f : Trie α → Trie α) : LazyDiscrTree α :=
+  let { config := c, tries := a, roots := r } := t
   match r.find? k with
   | none =>
     let r := r.insert k a.size
-    let a := a.push (.node #[] 0 {} #[rest])
-    { config := c, array := a, root := r }
+    { config := c, tries := a.push (f {}), roots := r }
   | some idx =>
-    let a := a.modify idx fun t => t.pushPending rest
-    { config := c, array := a, root := r }
+    { config := c, tries := a.modify idx f, roots := r }
 
 /--
 Get the root key of an expression using the specified config.
@@ -421,14 +420,18 @@ def rootKey (cfg: WhnfCoreConfig) (lctx : LocalContext × LocalInstances) (e : E
     MetaM (Key × Array Expr) :=
   withReducible $ withLCtx lctx.1 lctx.2 $ rootKey' cfg e
 
+@[inline]
+private def addEntry' (t : LazyDiscrTree α) (k : Key) (e : LazyEntry α) : LazyDiscrTree α :=
+  modifyAt t k (·.pushPending e)
+
 /--
 Adds an association between the given expression.  Free variables are used to
 denote paramters that may be matched against.
 -/
-def addEntry (d : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
+private def addEntry (t : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
     MetaM (LazyDiscrTree α) := do
-  let (k, todo) ← rootKey d.config lctx type
-  pure $ addEntry' d lctx k todo v
+  let (k, todo) ← rootKey {} lctx type
+  pure $ addEntry' t k (todo, lctx, v)
 
 private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
     (config : WhnfCoreConfig) : MetaM (Array Key) := do
@@ -456,9 +459,9 @@ def mkPath (e : Expr) (config : WhnfCoreConfig) : MetaM (Array Key) := do
 private def MatchM α := ReaderT WhnfCoreConfig (StateRefT (Array (Trie α)) MetaM)
 
 private def runMatch (m : MatchM α β) (d : LazyDiscrTree α) : MetaM (β × LazyDiscrTree α) := do
-  let { config := c, array := a, root := r } := d
+  let { config := c, tries := a, roots := r } := d
   let (result, a) ← withReducible $ (m.run c).run a
-  pure (result, { config := c, array := a, root := r})
+  pure (result, { config := c, tries := a, roots := r})
 
 private def setTrie (i : TrieIndex) (v : Trie α) : MatchM α Unit :=
   modify (·.set! i v)
@@ -609,4 +612,4 @@ def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (Mat
   Find values that match `e` in `d`.
 -/
 def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
-  runMatch (MatchResult.toArrayRev <$> getMatchCore d.root e) d
+  runMatch (MatchResult.toArrayRev <$> getMatchCore d.roots e) d

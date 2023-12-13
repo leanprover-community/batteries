@@ -207,7 +207,7 @@ def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
 /-- Convert a pre-discrimination tree to a lazy discrimination tree. -/
 def toTree (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
   let { roots, tries } := d
-  { config, root := roots, array := tries.map (.node {} 0 {}) }
+  { config, roots, tries := tries.map (.node {} 0 {}) }
 
 /-- Merge two discrimination trees. -/
 protected def append (x y : PreDiscrTree α) : PreDiscrTree α :=
