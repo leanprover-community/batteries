@@ -328,9 +328,6 @@ open Lean Elab Meta
 instance : Inhabited (LazyDiscrTree α) where
   default := {}
 
-/-- Return true if trie is empty. -/
-def isEmpty (t:LazyDiscrTree α) : Bool := t.roots.size ≠ 0
-
 open Lean.Meta.DiscrTree (mkNoindexAnnotation hasNoindexAnnotation reduceDT)
 
 /--
@@ -395,43 +392,10 @@ private def pushArgs (root : Bool) (todo : ExprRest) (e : Expr) (config : WhnfCo
 private def initCapacity := 8
 
 /--
-`modifyAt` applies the function `f` to the trie at root `k`.
+Get the root key and rest of terms of an expression using the specified config.
 -/
-@[inline]
-def modifyAt (t : LazyDiscrTree α) (k : Key) (f : Trie α → Trie α) : LazyDiscrTree α :=
-  let { config := c, tries := a, roots := r } := t
-  match r.find? k with
-  | none =>
-    let r := r.insert k a.size
-    { config := c, tries := a.push (f {}), roots := r }
-  | some idx =>
-    { config := c, tries := a.modify idx f, roots := r }
-
-/--
-Get the root key of an expression using the specified config.
--/
-def rootKey' (cfg: WhnfCoreConfig) (e : Expr) : MetaM (Key × Array Expr) :=
+def rootKey (cfg: WhnfCoreConfig) (e : Expr) : MetaM (Key × Array Expr) :=
   pushArgs true (Array.mkEmpty initCapacity) e cfg
-
-/--
-Get the root key of an expression using the config from the lazy dicriminator tree.
--/
-def rootKey (cfg: WhnfCoreConfig) (lctx : LocalContext × LocalInstances) (e : Expr) :
-    MetaM (Key × Array Expr) :=
-  withReducible $ withLCtx lctx.1 lctx.2 $ rootKey' cfg e
-
-@[inline]
-private def addEntry' (t : LazyDiscrTree α) (k : Key) (e : LazyEntry α) : LazyDiscrTree α :=
-  modifyAt t k (·.pushPending e)
-
-/--
-Adds an association between the given expression.  Free variables are used to
-denote paramters that may be matched against.
--/
-private def addEntry (t : LazyDiscrTree α) (lctx : LocalContext × LocalInstances) (type : Expr) (v : α) :
-    MetaM (LazyDiscrTree α) := do
-  let (k, todo) ← rootKey {} lctx type
-  pure $ addEntry' t k (todo, lctx, v)
 
 private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
     (config : WhnfCoreConfig) : MetaM (Array Key) := do
@@ -466,16 +430,20 @@ private def runMatch (m : MatchM α β) (d : LazyDiscrTree α) : MetaM (β × La
 private def setTrie (i : TrieIndex) (v : Trie α) : MatchM α Unit :=
   modify (·.set! i v)
 
-private def modifyTrie (i:TrieIndex) (e : LazyEntry α) : MatchM α Unit :=
-  modify (·.modify i (·.pushPending e))
-
+/-- Create a new trie with the given lazy entry. -/
 private def newTrie [Monad m] [MonadState (Array (Trie α)) m] (e : LazyEntry α) : m TrieIndex := do
   modifyGet fun a => let sz := a.size; (sz, a.push (.node #[] 0 {} #[e]))
 
-private partial def processEntries (config : WhnfCoreConfig)
-    (values : Array α)
-    (starIdx : TrieIndex)
-    (children : HashMap Key TrieIndex)
+/-- Add a lazy entry to an existing trie. -/
+private def addLazyEntryToTrie (i:TrieIndex) (e : LazyEntry α) : MatchM α Unit :=
+  modify (·.modify i (·.pushPending e))
+
+/--
+This evaluates all lazy entries in a trie and adds updates values starIdx and children
+accordingly.
+-/
+private partial def evalLazyEntries (config : WhnfCoreConfig)
+    (values : Array α) (starIdx : TrieIndex) (children : HashMap Key TrieIndex)
     (entries : Array (LazyEntry α)) :
     MatchM α (Array α × TrieIndex × HashMap Key TrieIndex) := do
   if h : entries.size = 0 then
@@ -486,7 +454,7 @@ private partial def processEntries (config : WhnfCoreConfig)
     let entries := entries.pop
     if todo.isEmpty then
       let values := values.push v
-      processEntries config values starIdx children entries
+      evalLazyEntries config values starIdx children entries
     else
       let e    := todo.back
       let todo := todo.pop
@@ -494,18 +462,18 @@ private partial def processEntries (config : WhnfCoreConfig)
       if k == .star then
         if starIdx = 0 then
           let starIdx ← newTrie (todo, lctx, v)
-          processEntries config values starIdx children entries
+          evalLazyEntries config values starIdx children entries
         else
-          modifyTrie starIdx (todo, lctx, v)
-          processEntries config values starIdx children entries
+          addLazyEntryToTrie starIdx (todo, lctx, v)
+          evalLazyEntries config values starIdx children entries
       else
         match children.find? k with
         | none =>
           let children := children.insert k (← newTrie (todo, lctx, v))
-          processEntries config values starIdx children entries
+          evalLazyEntries config values starIdx children entries
         | some idx =>
-          modifyTrie idx (todo, lctx, v)
-          processEntries config values starIdx children entries
+          addLazyEntryToTrie idx (todo, lctx, v)
+          evalLazyEntries config values starIdx children entries
 
 private def evalNode (c : TrieIndex) :
     MatchM α (Array α × TrieIndex × HashMap Key TrieIndex) := do
@@ -515,7 +483,7 @@ private def evalNode (c : TrieIndex) :
   else
     let config ← read
     setTrie c default
-    let (vs, star, cs) ← processEntries config vs star cs pending
+    let (vs, star, cs) ← evalLazyEntries config vs star cs pending
     setTrie c <| .node vs star cs #[]
     pure (vs, star, cs)
 
@@ -612,7 +580,7 @@ def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (Mat
   Find values that match `e` in `d`.
 -/
 def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
-  runMatch (MatchResult.toArrayRev <$> getMatchCore d.roots e) d
+  (fun (r, d) => (r.toArrayRev, d)) <$> runMatch (getMatchCore d.roots e) d
 
 /--
 Structure for quickly initializing a lazy discrimination tree with a large number

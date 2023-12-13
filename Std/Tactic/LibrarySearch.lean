@@ -160,7 +160,7 @@ private def libSearchContext : Meta.Context := {
 
 private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances)
     (type : Expr) (v : α) : MetaM Unit := do
-  let (k, todo) ← LazyDiscrTree.rootKey' {} type
+  let (k, todo) ← LazyDiscrTree.rootKey {} type
   r.modify (·.push k (todo, lctx, v))
 
 /-- Information about a failed import. -/
@@ -172,25 +172,29 @@ private structure ImportFailure where
   /-- Exception that triggers error. -/
   exception : Exception
 
-private structure ErrorCollection (α : Type) where
+/--
+Contains the pre discrimination tree and any errors occuring during initialization of
+the library search tree.
+-/
+private structure InitResults (α : Type) where
   tree  : PreDiscrTree α := {}
   errors : Array ImportFailure := #[]
 
-instance : Inhabited (ErrorCollection α) where
+instance : Inhabited (InitResults α) where
   default := {}
 
-namespace ErrorCollection
+namespace InitResults
 
 /-- Combine two error collections. -/
-protected def append (x y : ErrorCollection α) : ErrorCollection α :=
+protected def append (x y : InitResults α) : InitResults α :=
   let { tree := xv, errors := xe } := x
   let { tree := yv, errors := ye } := y
   { tree := xv ++ yv, errors := xe ++ ye }
 
-instance : Append (ErrorCollection α) where
-  append := ErrorCollection.append
+instance : Append (InitResults α) where
+  append := InitResults.append
 
-end ErrorCollection
+end InitResults
 
 /-- Information generation from imported modules. -/
 private structure ImportData where
@@ -215,7 +219,7 @@ private def addConstImportData (env : Environment) (modName : Name) (d : ImportD
           let lctx ← getLCtx
           let linst ← Lean.Meta.getLocalInstances
           let lctx := (lctx, linst)
-          let (k, todo) ← LazyDiscrTree.rootKey' {} type
+          let (k, todo) ← LazyDiscrTree.rootKey {} type
           d.data.modify (·.push k (todo, lctx, (name, DeclMod.none)))
           let biff := k == DiscrTree.Key.const ``Iff 2
           if biff then
@@ -253,13 +257,13 @@ private partial def loadImportedModule (env : Environment)
     pure ()
 
 private def ImportData.toFlat (d : ImportData) :
-    BaseIO (ErrorCollection (Name × DeclMod)) := do
+    BaseIO (InitResults (Name × DeclMod)) := do
   let dm ← d.data.swap {}
   let de ← d.errors.swap #[]
   pure ⟨dm, de⟩
 
 private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
-    BaseIO (ErrorCollection (Name × DeclMod)) :=
+    BaseIO (InitResults (Name × DeclMod)) :=
       do go (← ImportData.new) start stop
     where go d (start stop : Nat) : BaseIO _ := do
             if start < stop then
@@ -274,14 +278,15 @@ private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) 
 /--
 The maximum number of constants an individual task performed.
 
-The value below was picked because it roughly correponded to 50ms of work on
-one of the development machines.
+The value below was picked because it roughly correponded to 50ms of work on the machine this was
+developed on.  Smaller numbers did not seem to improve performance when importing Std and larger
+numbers (<10k) seemed to degrade initialization performance.
 -/
 private def constantsPerTask : Nat := 6500
 
 /-- This creates -/
 private def launchImportedEnvironment (env : Environment) :
-    BaseIO <| Array <| Task <| ErrorCollection <| Name × DeclMod := do
+    BaseIO <| Array <| Task <| InitResults <| Name × DeclMod := do
   let n := env.header.moduleData.size
   let rec go tasks start cnt idx := do
         if h : idx < env.header.moduleData.size then
@@ -390,7 +395,10 @@ def librarySearchCore (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array E
       pure ()
   return res
 
-/-- interleave x y interleaves the elements of x and y until one is empty and then returns final elements. -/
+/--
+Interleave x y interleaves the elements of x and y until one is empty and then returns
+final elements in other list.
+-/
 def interleave [Inhabited α] (x y : Array α) : Array α := Id.run do
   let mut res := Array.mkEmpty (x.size + y.size)
   let n := min x.size y.size
