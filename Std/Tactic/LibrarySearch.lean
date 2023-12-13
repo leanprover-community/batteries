@@ -164,18 +164,6 @@ private def libSearchContext : Meta.Context := {
     config := { transparency := .reducible }
   }
 
-private structure ErrorCollection (ε : Type) (α : Type) where
-  value  : α
-  errors : Array ε := #[]
-
-instance [Inhabited α] : Inhabited (ErrorCollection ε α) := ⟨{ value := default }⟩
-
-
-private def ErrorCollection.join (f : α → α → α) (x y : ErrorCollection ε α) : ErrorCollection ε α :=
-  let { value := xv, errors := xe } := x
-  let { value := yv, errors := ye } := y
-  { value := f xv yv, errors := xe ++ ye }
-
 /--
 Structure for quickly initializing a lazy tree with a large number of elements.
 
@@ -229,11 +217,39 @@ private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × Loc
   let (k, todo) ← LazyDiscrTree.rootKey' {} type
   r.modify (·.push k (todo, lctx, v))
 
+/-- Information about a failed import. -/
+private structure ImportFailure where
+  /-- Module with constant that import failed on. -/
+  module  : Name
+  /-- Constant that import failed on. -/
+  const   : Name
+  /-- Exception that triggers error. -/
+  exception : Exception
+
+private structure ErrorCollection (α : Type) where
+  value  : α
+  errors : Array ImportFailure := #[]
+
+instance [Inhabited α] : Inhabited (ErrorCollection α) := ⟨{ value := default }⟩
+
+namespace ErrorCollection
+
+/-- Combine two error collections. -/
+protected def append [Append α] (x y : ErrorCollection α) : ErrorCollection α :=
+  let { value := xv, errors := xe } := x
+  let { value := yv, errors := ye } := y
+  { value := xv ++ yv, errors := xe ++ ye }
+
+instance [Append α] : Append (ErrorCollection α) where
+  append := ErrorCollection.append
+
+end ErrorCollection
+
 /-- Information generation from imported modules. -/
 private structure ImportData where
   cache : IO.Ref (Lean.Meta.Cache)
   data : IO.Ref (PreDiscrTree (Name × DeclMod))
-  errors : IO.Ref (Array (Name × Name))
+  errors : IO.Ref (Array ImportFailure)
 
 private def ImportData.new : BaseIO ImportData := do
   let cache ← IO.mkRef {}
@@ -269,8 +285,13 @@ private def addConstImportData (env : Environment) (modName : Name) (d : ImportD
   match ←(cm.run cctx cstate).toBaseIO with
   | .ok (((), ms), _) =>
     d.cache.set ms.cache
-  | .error _ =>
-    d.errors.modify (·.push (modName, name))
+  | .error e =>
+    let i : ImportFailure := {
+      module := modName,
+      const := name,
+      exception := e
+    }
+    d.errors.modify (·.push i)
 
 private partial def loadImportedModule (env : Environment)
     (d : ImportData)
@@ -285,14 +306,13 @@ private partial def loadImportedModule (env : Environment)
     pure ()
 
 private def ImportData.toFlat (d : ImportData) :
-    BaseIO (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))) := do
+    BaseIO (ErrorCollection (PreDiscrTree (Name × DeclMod))) := do
   let dm ← d.data.swap {}
   let de ← d.errors.swap #[]
   pure ⟨dm, de⟩
 
-
 private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
-    BaseIO (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))) :=
+    BaseIO (ErrorCollection (PreDiscrTree (Name × DeclMod))) :=
       do go (← ImportData.new) start stop
     where go d (start stop : Nat) : BaseIO _ := do
             if start < stop then
@@ -314,7 +334,7 @@ private def constantsPerTask : Nat := 6500
 
 /-- This creates -/
 private def launchImportedEnvironment (env : Environment) :
-    BaseIO (Array (Task (ErrorCollection (Name × Name) (PreDiscrTree (Name × DeclMod))))) := do
+    BaseIO (Array (Task (ErrorCollection (PreDiscrTree (Name × DeclMod))))) := do
   let n := env.header.moduleData.size
   let rec go tasks start cnt idx := do
         if h : idx < env.header.moduleData.size then
@@ -334,13 +354,13 @@ private def launchImportedEnvironment (env : Environment) :
   termination_by go _ idx => env.header.moduleData.size - idx
 
 /-- Get the rests of each task and merge using combining function -/
-private partial def combineGet (z : α) (f : α → α → α) (tasks : Array (Task α)) : α :=
-  tasks.foldl (fun x t => f x t.get) (init := z)
+private partial def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
+  tasks.foldl (fun x t => x ++ t.get) (init := z)
 
 private partial def createImportedEnvironment (opts : Options) (env : Environment) :
     BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
   let tasks ← launchImportedEnvironment env
-  let r := combineGet default (fun x y => ErrorCollection.join Append.append x y) tasks
+  let r := combineGet default tasks
   pure <| r.value.toTree
 
 /--
