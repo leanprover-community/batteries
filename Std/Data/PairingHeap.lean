@@ -173,7 +173,7 @@ by repeatedly pulling the minimum element out of the heap.
   | some (hd, tl) =>
     have : tl.size < s.size := by simp_arith [Heap.size_deleteMin_lt eq]
     do foldM le tl (← f init hd) f
-termination_by _ => s.size
+termination_by => s.size
 
 /--
 `O(n log n)`. Fold over the elements of a heap in increasing order,

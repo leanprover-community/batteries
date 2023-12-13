@@ -40,7 +40,7 @@ where
         have : xs.size + ys.size - (i + j + 1) < xs.size + ys.size - (i + j) :=
           Nat.sub_succ_lt_self _ _ hij
         go (acc.push y) i (j + 1)
-termination_by go => xs.size + ys.size - (i + j)
+  termination_by => xs.size + ys.size - (i + j)
 
 /--
 Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
@@ -83,7 +83,7 @@ where
           rw [show i + j + 2 = (i + 1) + (j + 1) by simp_arith]
           exact Nat.add_le_add hi hj
         go (acc.push (merge x y)) (i + 1) (j + 1)
-termination_by go => xs.size + ys.size - (i + j)
+    termination_by => xs.size + ys.size - (i + j)
 
 /--
 Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
@@ -130,7 +130,7 @@ where
         go (acc.push hd) (i + 1) x
     else
       acc.push hd
-termination_by _ i _ => xs.size - i
+termination_by i _ => xs.size - i
 
 /--
 Deduplicate a sorted array. The array must be sorted with to an order which

@@ -261,9 +261,9 @@ theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Arra
         | true, h => .pure h
         | false, h => go hj hstop h hp
     · next hj => exact .pure <| Nat.le_antisymm hj' (Nat.ge_of_not_lt hj) ▸ h0
+    termination_by => stop - j
   simp only [Array.anyM_eq_anyM_loop]
   exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
-termination_by go => stop - j
 
 theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
     (p : α → m Bool) (as : Array α) (start stop) (q : Fin as.size → Prop)

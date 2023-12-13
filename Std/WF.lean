@@ -51,7 +51,7 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
   intro a (fun x h => t.inv h) (fun y hr => recC intro (t.inv hr))
-termination_by _ a h => Subtype.mk a h
+termination_by a h => Subtype.mk a h
 
 private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
@@ -118,7 +118,7 @@ Workaround until Lean has native support for this. -/
 @[specialize] private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
     (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
   F x (fun y _ => fixC hwf F y)
-termination_by _ x => hwf.wrap x
+termination_by x => hwf.wrap x
 
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
