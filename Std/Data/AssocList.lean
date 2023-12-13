@@ -53,7 +53,7 @@ def size (L : AssocList α β) : Nat :=
 @[simp] theorem size_nil : size (nil : AssocList α β) = 0 := rfl
 @[simp] theorem size_cons : size (cons a b t) = size t + 1 := rfl
 
-@[simp] theorem toList_length (l : AssocList α β) : l.toList.length = l.size := by
+theorem toList_length (l : AssocList α β) : l.toList.length = l.size := by
   induction l <;> simp_all
 
 /-- `O(n)`. Fold a monadic function over the list, from head to tail. -/
