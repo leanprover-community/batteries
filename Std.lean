@@ -105,7 +105,7 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
---import Std.Lean.Meta.LazyDiscrTree
+import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
@@ -144,7 +144,7 @@ import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
---import Std.Tactic.LibrarySearch
+import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
