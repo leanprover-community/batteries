@@ -38,7 +38,7 @@ I document here what is not in the original.
   TODO?: the third type parameter of `Hadd.hadd` is an outparam,
   so its matching should not be counted in the score.
 
-- Patterns that have the potential to be η-reduced are put into the `DiscrTree` under all
+- Patterns that have the potential to be η-reduced are put into the `RefinedDiscrTree` under all
   possible reduced key sequences. This is for terms of the form `fun x => f (?m x₁ .. xₙ)`, where
   `?m` is a metavariable, and for some `i`, `xᵢ = x`.
   For example, the pattern `Continuous fun y => Real.exp (f y)])`
@@ -53,14 +53,14 @@ I document here what is not in the original.
 
 TODO:
 - The matching algorithm currently doesn't remember assignments of metavariables in the target
-  expression, only of those in the `DiscrTree`. This means that the targets `?a + ?a` and `?a + ?b`
+  expression, only of those in the `RefinedDiscrTree`. This means that the targets `?a + ?a` and `?a + ?b`
   get the same results. Keeping track of all assignments and avoiding circular assignments is
   tricky, but should be possible.
 -/
 
 open Lean Meta
 
-namespace Std.DiscrTree
+namespace Std.RefinedDiscrTree
 
 -- ## Definitions
 
@@ -117,7 +117,7 @@ def Key.ctorIdx : Key → Nat
   | .forall    => 8
   | .proj ..   => 9
 
-/-- The (arbitrary) order on `Key` used in the `DiscrTree`. -/
+/-- The (arbitrary) order on `Key` used in the `RefinedDiscrTree`. -/
 private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
   | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
@@ -157,7 +157,7 @@ def Key.arity : Key → Nat
   | _           => 0
 
 
-/-- Discrimination tree trie. See `DiscrTree`. -/
+/-- Discrimination tree trie. See `RefinedDiscrTree`. -/
 inductive Trie (α : Type) where
   /-- Map from `Key` to `Trie`. Children is an `Array` of size at least 2,
   sorted in increasing order using `Key.lt`. -/
@@ -206,11 +206,11 @@ instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 
 
 /-- Discrimination tree. It is an index from expressions to values of type `α`. -/
-structure _root_.Std.DiscrTree (α : Type) where
-  /-- The underlying `PersistentHashMap` of a `DiscrTree`. -/
+structure _root_.Std.RefinedDiscrTree (α : Type) where
+  /-- The underlying `PersistentHashMap` of a `RefinedDiscrTree`. -/
   root : PersistentHashMap Key (Trie α) := {}
 
-private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :=
+private partial def RefinedDiscrTree.format [ToFormat α] (d : RefinedDiscrTree α) : Format :=
   let (_, r) := d.root.foldl
     (fun (p : Bool × Format) k c =>
       (false,
@@ -219,7 +219,7 @@ private partial def DiscrTree.format [ToFormat α] (d : DiscrTree α) : Format :
     (true, Format.nil)
   Format.group r
 
-instance [ToFormat α] : ToFormat (DiscrTree α) := ⟨DiscrTree.format⟩
+instance [ToFormat α] : ToFormat (RefinedDiscrTree α) := ⟨RefinedDiscrTree.format⟩
 
 
 /-- `DTExpr` is a simplified form of `Expr`.
@@ -303,13 +303,13 @@ private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Fla
   | .proj n i e as => do as.foldlM flattenAux (← flattenAux (todo.push (.proj n i as.size)) e)
 
 /-- Given a `DTExpr`, return the linearized encoding in terms of `Key`,
-which is used for `DiscrTree` indexing. -/
+which is used for `RefinedDiscrTree` indexing. -/
 def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
   (DTExpr.flattenAux (.mkEmpty initCapacity) e).run' {}
 
 
 
-/-- Return true if `a` should be ignored in the `DiscrTree`. -/
+/-- Return true if `a` should be ignored in the `RefinedDiscrTree`. -/
 private def ignoreArg (a : Expr) (i : Nat) (infos : Array ParamInfo) : MetaM Bool := do
   if h : i < infos.size then
     let info := infos.get ⟨i, h⟩
@@ -369,7 +369,7 @@ where
         failure
     | _ => failure
 
-/-- Reduction procedure for the `DiscrTree` indexing. -/
+/-- Reduction procedure for the `RefinedDiscrTree` indexing. -/
 partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
   let e ← whnfCore e config
   match (← unfoldDefinition? e) with
@@ -517,15 +517,15 @@ end MkDTExpr
 
 /-- Return all encodings of `e` as a `DTExpr`.
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
-in the context when the `DiscrTree` is being used for lookup.
-It should return true only if the `DiscrTree` is build and used locally. -/
+in the context when the `RefinedDiscrTree` is being used for lookup.
+It should return true only if the `RefinedDiscrTree` is build and used locally. -/
 def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {})
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (List DTExpr) :=
   withReducible do (MkDTExpr.mkDTExprAux true e |>.run {config, fvarInContext}).run' {}
 
 
 
--- ## Inserting intro a DiscrTree
+-- ## Inserting intro a RefinedDiscrTree
 
 /-- If `vs` contains an element `v'` such that `v == v'`, then replace `v'` with `v`.
 Otherwise, push `v`.
@@ -567,8 +567,8 @@ partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie �
         return .mkPath shared (.mkNode2 k1 (.singleton keys v (i+n+1)) k2 (.mkPath rest c))
     return .path ks (insertInTrie keys v (i + ks.size) c)
 
-/-- Insert the value `v` at index `keys : Array Key` in a `DiscrTree`. -/
-def insertInDiscrTree [BEq α] (d : DiscrTree α) (keys : Array Key) (v : α) : DiscrTree α :=
+/-- Insert the value `v` at index `keys : Array Key` in a `RefinedDiscrTree`. -/
+def insertInRefinedDiscrTree [BEq α] (d : RefinedDiscrTree α) (keys : Array Key) (v : α) : RefinedDiscrTree α :=
   let k := keys[0]!
   match d.root.find? k with
   | none =>
@@ -578,22 +578,22 @@ def insertInDiscrTree [BEq α] (d : DiscrTree α) (keys : Array Key) (v : α) : 
     let c := insertInTrie keys v 1 c
     { root := d.root.insert k c }
 
-/-- Insert the value `v` at index `e : DTExpr` in a `DiscrTree`. -/
-def insertDTExpr [BEq α] (d : DiscrTree α) (e : DTExpr) (v : α) : DiscrTree α :=
-  insertInDiscrTree d e.flatten v
+/-- Insert the value `v` at index `e : DTExpr` in a `RefinedDiscrTree`. -/
+def insertDTExpr [BEq α] (d : RefinedDiscrTree α) (e : DTExpr) (v : α) : RefinedDiscrTree α :=
+  insertInRefinedDiscrTree d e.flatten v
 
-/-- Insert the value `v` at index `e : Expr` in a `DiscrTree`.
+/-- Insert the value `v` at index `e : Expr` in a `RefinedDiscrTree`.
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
-in the context when the `DiscrTree` is being used for lookup.
-It should return true only if the DiscrTree is build and used locally. -/
-def insert [BEq α] (d : DiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
-  (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (DiscrTree α) := do
+in the context when the `RefinedDiscrTree` is being used for lookup.
+It should return true only if the RefinedDiscrTree is build and used locally. -/
+def insert [BEq α] (d : RefinedDiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
+  (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (RefinedDiscrTree α) := do
   let keys ← mkDTExprs e config fvarInContext
   return keys.foldl (insertDTExpr · · v) d
 
 
 
--- ## Matching with a DiscrTree
+-- ## Matching with a RefinedDiscrTree
 
 namespace GetUnify
 
@@ -611,7 +611,7 @@ private structure Context where
 private structure State where
   /-- Score representing how good the match is. -/
   score : Nat := 0
-  /-- Metavariable assignments for the `Key.star` patterns in the `DiscrTree`. -/
+  /-- Metavariable assignments for the `Key.star` patterns in the `RefinedDiscrTree`. -/
   assignments : HashMap Nat Expr := {}
 
 private abbrev M := ReaderT Context $ StateListT (State) MetaM
@@ -719,7 +719,7 @@ end
 
 end GetUnify
 
-/-- Return the results from the `DiscrTree` that match the given expression,
+/-- Return the results from the `RefinedDiscrTree` that match the given expression,
 together with their matching scores, in decreasing order of score.
 
 Each entry of type `Array α × Nat` corresponds to one pattern.
@@ -731,7 +731,7 @@ This is is for when you don't want the matched keys to instantiate metavariables
 
 If `allowRootStar := false`, then we don't allow `e` or the matched key in `d`
 to be a star pattern. -/
-partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
+partial def getMatchWithScore (d : RefinedDiscrTree α) (e : Expr) (unify : Bool) (config : WhnfCoreConfig)
     (allowRootStar : Bool := false) : MetaM (Array (Array α × Nat)) :=
   (·.qsort (·.2 > ·.2)) <$> withReducible ((do
     match ← GetUnify.exactMatch e d.root.find? true with
@@ -754,8 +754,8 @@ partial def getMatchWithScore (d : DiscrTree α) (e : Expr) (unify : Bool) (conf
 
 variable {m : Type → Type} [Monad m]
 
-/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
-partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array β)) :
+/-- Apply a monadic function to the array of values at each node in a `RefinedDiscrTree`. -/
+partial def Trie.mapArraysM (t : RefinedDiscrTree.Trie α) (f : Array α → m (Array β)) :
     m (Trie β) := do
   match t with
   | .node children =>
@@ -765,10 +765,10 @@ partial def Trie.mapArraysM (t : DiscrTree.Trie α) (f : Array α → m (Array �
   | .path ks c =>
     return .path ks (← c.mapArraysM f)
 
-/-- Apply a monadic function to the array of values at each node in a `DiscrTree`. -/
-def mapArraysM (d : DiscrTree α) (f : Array α → m (Array β)) : m (DiscrTree β) :=
+/-- Apply a monadic function to the array of values at each node in a `RefinedDiscrTree`. -/
+def mapArraysM (d : RefinedDiscrTree α) (f : Array α → m (Array β)) : m (RefinedDiscrTree β) :=
   return { root := ← d.root.mapM (·.mapArraysM f) }
 
-/-- Apply a function to the array of values at each node in a `DiscrTree`. -/
-def mapArrays (d : DiscrTree α) (f : Array α → Array β) : DiscrTree β :=
+/-- Apply a function to the array of values at each node in a `RefinedDiscrTree`. -/
+def mapArrays (d : RefinedDiscrTree α) (f : Array α → Array β) : RefinedDiscrTree β :=
   d.mapArraysM (m := Id) f
