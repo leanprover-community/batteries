@@ -152,65 +152,11 @@ namespace IncDiscrTreeFinder
 
 open DiscrTreeFinder (isBlackListed)
 
-/--
-This is a monad for building initial discrimination tree.
--/
-@[reducible]
-private def TreeInitM := StateT (LazyDiscrTree (Name × DeclMod)) MetaM
-
-open LazyDiscrTree (Key LazyEntry)
+open LazyDiscrTree (Key LazyEntry PreDiscrTree)
 
 private def libSearchContext : Meta.Context := {
     config := { transparency := .reducible }
   }
-
-/--
-Structure for quickly initializing a lazy tree with a large number of elements.
-
-Designed for efficient insertion and merging multiple discrimination trees.
--/
-structure PreDiscrTree (α : Type) where
-  /-- Maps keys to index in tries array. -/
-  roots : HashMap Key Nat := {}
-  /-- Lazy entries for root of treie-/
-  tries : Array (Array (LazyEntry α)) := #[]
-  deriving Inhabited
-
-namespace PreDiscrTree
-
-private def modifyAt (d : PreDiscrTree α) (k : Key)
-    (f : Array (LazyEntry α) → Array (LazyEntry α)) : PreDiscrTree α :=
-  let { roots, tries } := d
-  match roots.find? k with
-  | .none =>
-    let roots := roots.insert k tries.size
-    { roots, tries := tries.push (f #[]) }
-  | .some i =>
-    { roots, tries := tries.modify i f }
-
-/-- Add an entries to the pre-discrimination tree.-/
-def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
-  d.modifyAt k (·.push e)
-
-/-- Convert a pre-discrimination tree to a lazy discrimination tree. -/
-def toTree (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
-  let { roots, tries } := d
-  { config, roots, tries := tries.map (.node {} 0 {}) }
-
-/-- Merge two discrimination trees. -/
-protected def append (x y : PreDiscrTree α) : PreDiscrTree α :=
-  if x.roots.size ≥ y.roots.size then
-    aux x y (fun y x => x ++ y)
-  else
-    aux y x (fun x y => y ++ x)
-  where aux x y (f : Array (LazyEntry α) → Array (LazyEntry α) → Array (LazyEntry α)) :=
-    let { roots := yk, tries := ya } := y
-    yk.fold (init := x) fun d k yi => d.modifyAt k (f ya[yi]!)
-
-instance : Append (PreDiscrTree α) where
-  append := PreDiscrTree.append
-
-end PreDiscrTree
 
 private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances) (type : Expr)
     (v : α) : MetaM Unit := do
@@ -227,20 +173,21 @@ private structure ImportFailure where
   exception : Exception
 
 private structure ErrorCollection (α : Type) where
-  value  : α
+  tree  : PreDiscrTree α := {}
   errors : Array ImportFailure := #[]
 
-instance [Inhabited α] : Inhabited (ErrorCollection α) := ⟨{ value := default }⟩
+instance : Inhabited (ErrorCollection α) where
+  default := {}
 
 namespace ErrorCollection
 
 /-- Combine two error collections. -/
-protected def append [Append α] (x y : ErrorCollection α) : ErrorCollection α :=
-  let { value := xv, errors := xe } := x
-  let { value := yv, errors := ye } := y
-  { value := xv ++ yv, errors := xe ++ ye }
+protected def append (x y : ErrorCollection α) : ErrorCollection α :=
+  let { tree := xv, errors := xe } := x
+  let { tree := yv, errors := ye } := y
+  { tree := xv ++ yv, errors := xe ++ ye }
 
-instance [Append α] : Append (ErrorCollection α) where
+instance : Append (ErrorCollection α) where
   append := ErrorCollection.append
 
 end ErrorCollection
@@ -306,13 +253,13 @@ private partial def loadImportedModule (env : Environment)
     pure ()
 
 private def ImportData.toFlat (d : ImportData) :
-    BaseIO (ErrorCollection (PreDiscrTree (Name × DeclMod))) := do
+    BaseIO (ErrorCollection (Name × DeclMod)) := do
   let dm ← d.data.swap {}
   let de ← d.errors.swap #[]
   pure ⟨dm, de⟩
 
 private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
-    BaseIO (ErrorCollection (PreDiscrTree (Name × DeclMod))) :=
+    BaseIO (ErrorCollection (Name × DeclMod)) :=
       do go (← ImportData.new) start stop
     where go d (start stop : Nat) : BaseIO _ := do
             if start < stop then
@@ -334,7 +281,7 @@ private def constantsPerTask : Nat := 6500
 
 /-- This creates -/
 private def launchImportedEnvironment (env : Environment) :
-    BaseIO (Array (Task (ErrorCollection (PreDiscrTree (Name × DeclMod))))) := do
+    BaseIO <| Array <| Task <| ErrorCollection <| Name × DeclMod := do
   let n := env.header.moduleData.size
   let rec go tasks start cnt idx := do
         if h : idx < env.header.moduleData.size then
@@ -361,7 +308,7 @@ private partial def createImportedEnvironment (opts : Options) (env : Environmen
     BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
   let tasks ← launchImportedEnvironment env
   let r := combineGet default tasks
-  pure <| r.value.toTree
+  pure <| r.tree.toLazy
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
@@ -493,26 +440,49 @@ def sortResults (goal : MVarId) (R : Array (List MVarId × MetavarContext)) :
   let R'' := R'.qsort fun a b => compare a.1 b.1 = Ordering.gt
   return R''.map (·.2)
 
-/-- Invoke action on candidates until one succeeds by returning no goals. -/
-def tryCandidateLemmas (shouldAbort : MetaM Bool)
-    (act : MVarId → Expr → MetaM (List MVarId))
-    (goal : MVarId)
-    (candidates : Array Expr) :
+/--
+An exception Id that indicates further speculation on candidate lemmas should stop
+and current results returned.
+-/
+private initialize abortSpeculationId : InternalExceptionId ←
+  registerInternalExceptionId `Std.Tactic.LibrarySearch.abortSpeculation
+
+/--
+Called to abort speculative execution in library search.
+-/
+def abortSpeculation [MonadExcept Exception m] : m α :=
+  throw (Exception.internal abortSpeculationId {})
+
+/-- Returns true if this is an abort speculation exception. -/
+def isAbortSpeculation : Exception → Bool
+| .internal id _ => id == abortSpeculationId
+| _ => false
+
+/--
+Sequentially invokes a tactic `act` on each value in candidates on the current state.
+
+The tactic `act` should return a list of meta-variables that still need to be resolved.
+If this list is empty, then no variables remain to be solved, and `tryOnEach` returns
+`none` with the environment set so each goal is resolved.
+
+If the action throws an internal exception with the `abortSpeculationId` id then
+further computation is stoped and intermediate results returned. If any other
+exception is thrown, then it is silently discarded.
+-/
+def tryOnEach
+    (act : α → MetaM (List MVarId))
+    (candidates : Array α) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   let mut a := #[]
+  let s ← saveState
   for c in candidates do
-    if ←shouldAbort then
-      break
-    let s ← saveState
-    match ← (tryCatch (.some <$> act goal c) (fun _ => pure none)) with
-    | none =>
+    match ← (tryCatch (Except.ok <$> act c) (pure ∘ Except.error)) with
+    | .error e =>
       restoreState s
-      pure ()
-    | some remaining =>
-      let ctx ← getMCtx
-      restoreState s
+      if isAbortSpeculation e then
+        break
+    | .ok remaining =>
       if remaining.isEmpty then
-        setMCtx ctx
         return none
       let ctx ← getMCtx
       restoreState s
@@ -534,11 +504,11 @@ def mkHeartbeatCheck (leavePercent : Nat) : MetaM (MetaM Bool) := do
       return (← getRemainingHeartbeats) < hbThreshold
 
 /-- Shortcut for calling `solveByElim`. -/
-def solveByElim (required : List Expr) (exfalso := false) (depth) (goals : List MVarId) := do
+def solveByElim (required : List Expr) (exfalso := false) (goals : List MVarId) := do
   -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
   -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
   let cfg : SolveByElim.Config :=
-    { maxDepth := depth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
+    { maxDepth := 6, exfalso := exfalso, symm := true, commitIndependentGoals := true }
   let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
   SolveByElim.solveByElim cfg lemmas ctx goals
@@ -571,8 +541,8 @@ unless the goal was completely solved.)
 (Note that if `solveByElim` solves some but not all subsidiary goals,
 this is not currently tracked.)
 -/
-def librarySearch (goal : MVarId) (required : List Expr)
-    (solveByElimDepth := 6) (leavePercentHeartbeats : Nat := 10) :
+def librarySearch (goal : MVarId) (tactic : List MVarId → MetaM (List MVarId))
+    (allowFailure : Bool := true) (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   let importFinder ← do
         let r := ext.getState (←getEnv)
@@ -592,12 +562,14 @@ def librarySearch (goal : MVarId) (required : List Expr)
     | .ok none => checkEmoji
   withTraceNode `Tactic.librarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
   profileitM Exception "librarySearch" (← getOptions) do
-    let tactic newGoals := solveByElim required (exfalso := false) (depth := solveByElimDepth) newGoals
-    let act := librarySearchLemma tactic required.isEmpty
-    -- Return true if we should stop
+    -- Create predicate that returns true when running low on heartbeats.
     let shouldAbort ← mkHeartbeatCheck leavePercentHeartbeats
+    let act e := do
+        if ←shouldAbort then
+          abortSpeculation
+        librarySearchLemma tactic allowFailure goal e
     let candidates ← librarySearchCore searchFn (← goal.getType)
-    match ← tryCandidateLemmas shouldAbort act goal candidates with
+    match ← tryOnEach act candidates with
     | none => pure none
     | some a => pure (some (← sortResults goal a))
 
@@ -623,29 +595,35 @@ open Parser.Tactic (tacticSeq)
 
 /-- Implementation of the `exact?` tactic. -/
 def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
-   (_solver : Option (TacticM Info)) (requireClose : Bool) :
+   (solver : Option (TSyntax `Lean.Parser.Tactic.tacticSeq)) (requireClose : Bool) :
     TacticM Unit := do
   let mvar ← getMainGoal
   let (_, goal) ← (← getMainGoal).intros
   goal.withContext do
     let required := (← (required.getD #[]).mapM getFVarId).toList.map .fvar
-    if let some suggestions ← librarySearch goal required then
+    let tactic ←
+      match solver with
+      | none => pure (solveByElim required)
+      | some t =>
+        let _ <- mkInitialTacticInfo t
+        throwError "Do not yet support custom exact?/apply? tactics."
+    match ← librarySearch goal tactic (allowFailure := required.isEmpty) with
+    -- Found goal that closed problem
+    | none =>
+      addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta
+    -- Found suggestions
+    | some suggestions =>
       if requireClose then
         throwError "`exact?` could not close the goal. Try `apply?` to see partial suggestions."
       reportOutOfHeartbeats `library_search tk
-      for suggestion in suggestions do
-        withMCtx suggestion.2 do
+      for (_, suggestionMCtx) in suggestions do
+        withMCtx suggestionMCtx do
           addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta (addSubgoalsMsg := true)
       if suggestions.isEmpty then logError "apply? didn't find any relevant lemmas"
       admitGoal goal
-    else
-      addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta
 
 elab_rules : tactic
   | `(tactic| std_exact? $[using $[$required],*]? $[=> $solver]?) => do
-  let solver ← match solver with
-                | none => pure none
-                | some t => some <$> mkInitialTacticInfo t
   exact? (← getRef) required solver true
 
 --elab_rules : tactic | `(tactic| std_apply? $[using $[$required],*]?) => do
@@ -663,7 +641,8 @@ elab tk:"exact?%" : term <= expectedType => do
   let goal ← mkFreshExprMVar expectedType
   let (_, introdGoal) ← goal.mvarId!.intros
   introdGoal.withContext do
-    if let some suggestions ← librarySearch introdGoal [] then
+    let tactic := solveByElim []
+    if let some suggestions ← librarySearch introdGoal tactic then
       reportOutOfHeartbeats `library_search tk
       for suggestion in suggestions do
         withMCtx suggestion.2 do

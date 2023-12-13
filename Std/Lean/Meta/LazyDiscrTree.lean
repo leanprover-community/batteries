@@ -613,3 +613,50 @@ def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (Mat
 -/
 def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
   runMatch (MatchResult.toArrayRev <$> getMatchCore d.roots e) d
+
+/--
+Structure for quickly initializing a lazy discrimination tree with a large number
+of elements using concurrent functions for generating entries.
+-/
+structure PreDiscrTree (α : Type) where
+  /-- Maps keys to index in tries array. -/
+  roots : HashMap Key Nat := {}
+  /-- Lazy entries for root of treie-/
+  tries : Array (Array (LazyEntry α)) := #[]
+  deriving Inhabited
+
+namespace PreDiscrTree
+
+private def modifyAt (d : PreDiscrTree α) (k : Key)
+    (f : Array (LazyEntry α) → Array (LazyEntry α)) : PreDiscrTree α :=
+  let { roots, tries } := d
+  match roots.find? k with
+  | .none =>
+    let roots := roots.insert k tries.size
+    { roots, tries := tries.push (f #[]) }
+  | .some i =>
+    { roots, tries := tries.modify i f }
+
+/-- Add an entries to the pre-discrimination tree.-/
+def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
+  d.modifyAt k (·.push e)
+
+/-- Convert a pre-discrimination tree to a lazy discrimination tree. -/
+def toLazy (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
+  let { roots, tries } := d
+  { config, roots, tries := tries.map (.node {} 0 {}) }
+
+/-- Merge two discrimination trees. -/
+protected def append (x y : PreDiscrTree α) : PreDiscrTree α :=
+  if x.roots.size ≥ y.roots.size then
+    aux x y (fun y x => x ++ y)
+  else
+    aux y x (fun x y => y ++ x)
+  where aux x y (f : Array (LazyEntry α) → Array (LazyEntry α) → Array (LazyEntry α)) :=
+    let { roots := yk, tries := ya } := y
+    yk.fold (init := x) fun d k yi => d.modifyAt k (f ya[yi]!)
+
+instance : Append (PreDiscrTree α) where
+  append := PreDiscrTree.append
+
+end PreDiscrTree
