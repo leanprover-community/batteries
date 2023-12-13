@@ -157,3 +157,24 @@ instance (α) [BEq α] [LawfulBEq α] : LawfulBEq (Option α) where
     match x, y with
     | some x, some y => rw [LawfulBEq.eq_of_beq (α := α) h]
     | none, none => rfl
+
+@[simp] theorem all_none : Option.all p none = true := rfl
+@[simp] theorem all_some : Option.all p (some x) = p x := rfl
+
+/-- The minimum of two optional values. -/
+@[simp] def min [Min α] : Option α → Option α → Option α
+  | some x, some y => some (Min.min x y)
+  | some x, none => some x
+  | none, some y => some y
+  | none, none => none
+
+instance [Min α] : Min (Option α) where min := min
+
+/-- The maximum of two optional values. -/
+@[simp] def max [Max α] : Option α → Option α → Option α
+  | some x, some y => some (Max.max x y)
+  | some x, none => some x
+  | none, some y => some y
+  | none, none => none
+
+instance [Max α] : Max (Option α) where max := max
