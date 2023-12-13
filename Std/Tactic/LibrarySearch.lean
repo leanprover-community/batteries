@@ -464,10 +464,10 @@ def librarySearchSymm (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array E
     pure $ l1
 
 /-- A type synonym for our subgoal ranking algorithm. -/
-def subgoalRankType : Type := Bool × Nat × Int
+def SubgoalRankType := Bool × Nat × Int
   deriving ToString
 
-instance : Ord subgoalRankType :=
+instance : Ord SubgoalRankType :=
   have : Ord (Nat × Int) := lexOrd
   lexOrd
 
@@ -479,7 +479,7 @@ instance : Ord subgoalRankType :=
 Larger values (i.e. no remaining goals, more local hypotheses, fewer remaining goals)
 are better.
 -/
-def subgoalRanking (goal : MVarId) (subgoals : List MVarId) : MetaM subgoalRankType := do
+def subgoalRanking (goal : MVarId) (subgoals : List MVarId) : MetaM SubgoalRankType := do
   return (subgoals.isEmpty, ← countLocalHypsUsed (.mvar goal), - subgoals.length)
 
 /-- Sort the incomplete results from `librarySearchCore` according to
