@@ -1055,6 +1055,9 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!
 
 @[simp] theorem mem_reverse {x : α} {as : List α} : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
 
+@[simp] theorem reverse_eq_nil_iff {xs : List α} : xs.reverse = [] ↔ xs = [] := by
+  induction xs <;> simp
+
 /-! ### insert -/
 
 section insert
