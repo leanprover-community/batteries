@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.List.Basic
+import Std.Util.ProofWanted
 
 namespace Std
 
@@ -42,6 +43,18 @@ def isEmpty : AssocList α β → Bool
 
 @[simp] theorem isEmpty_eq (l : AssocList α β) : isEmpty l = l.toList.isEmpty := by
   cases l <;> simp [*, isEmpty, List.isEmpty]
+
+/-- The number of entries in an `AssocList`. -/
+def size (L : AssocList α β) : Nat :=
+  match L with
+  | .nil => 0
+  | .cons _ _ t => t.size + 1
+
+@[simp] theorem size_nil : size (nil : AssocList α β) = 0 := rfl
+@[simp] theorem size_cons : size (cons a b t) = size t + 1 := rfl
+
+@[simp] theorem toList_length (l : AssocList α β) : l.toList.length = l.size := by
+  induction l <;> simp_all
 
 /-- `O(n)`. Fold a monadic function over the list, from head to tail. -/
 @[specialize] def foldlM [Monad m] (f : δ → α → β → m δ) : (init : δ) → AssocList α β → m δ
@@ -86,6 +99,9 @@ def toListTR (as : AssocList α β) : List (α × β) :=
     (mapKey f l).toList = l.toList.map (fun (a, b) => (f a, b)) := by
   induction l <;> simp [*]
 
+@[simp] theorem mapKey_size : (mapKey f l).size = l.size := by
+  induction l <;> simp_all
+
 /-- `O(n)`. Map a function `f` over the values of the list. -/
 @[simp] def mapVal (f : α → β → δ) : AssocList α β → AssocList α δ
   | nil        => nil
@@ -94,6 +110,9 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 @[simp] theorem mapVal_toList (f : α → β → δ) (l : AssocList α β) :
     (mapVal f l).toList = l.toList.map (fun (a, b) => (a, f a b)) := by
   induction l <;> simp [*]
+
+@[simp] theorem mapVal_size : (mapVal f l).size = l.size := by
+  induction l <;> simp_all
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
 @[specialize] def findEntryP? (p : α → β → Bool) : AssocList α β → Option (α × β)
@@ -166,6 +185,12 @@ with key equal to `a` to have key `a` and value `b`.
     l.toList.replaceF (bif ·.1 == a then some (a, b) else none) := by
   induction l <;> simp [replace]; split <;> simp [*]
 
+@[simp] theorem replace_size [BEq α] {a : α} : (replace a b l).size = l.size := by
+  induction l
+  · rfl
+  · simp only [replace, size_cons]
+    split <;> simp_all
+
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
 @[specialize, simp] def eraseP (p : α → β → Bool) : AssocList α β → AssocList α β
   | nil         => nil
@@ -198,6 +223,12 @@ with key equal to `a` to have key `a` and value `f a' b`.
   simp [cond]
   induction l with simp [List.replaceF]
   | cons k v es ih => cases k == a <;> simp [ih]
+
+@[simp] theorem modify_size [BEq α] {a : α} : (modify a f l).size = l.size := by
+  induction l
+  · rfl
+  · simp only [modify, size_cons]
+    split <;> simp_all
 
 /-- The implementation of `ForIn`, which enables `for (k, v) in aList do ...` notation. -/
 @[specialize] protected def forIn [Monad m]
@@ -235,4 +266,8 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
   induction l <;> simp [*]
 
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
+  induction l <;> simp [*]
+
+@[simp] theorem _root_.List.toAssocList_size (l : List (α × β)) :
+    l.toAssocList.size = l.length := by
   induction l <;> simp [*]
