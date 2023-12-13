@@ -784,6 +784,18 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
 @[simp] theorem ite_eq_right_iff {P : Prop} [Decidable P] : ite P a b = b ↔ P → a = b :=
   dite_eq_right_iff
 
+/-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
+@[simp] theorem dite_eq_ite [Decidable P] : (dite P (fun _ ↦ a) fun _ ↦ b) = ite P a b :=
+  rfl
+
+@[simp] theorem ite_some_none_eq_none [Decidable P] :
+    (if P then some x else none) = none ↔ ¬ P := by
+  split <;> simp_all
+
+@[simp] theorem ite_some_none_eq_some [Decidable P] :
+    (if P then some x else none) = some y ↔ P ∧ x = y := by
+  split <;> simp_all
+
 /-! ## miscellaneous -/
 
 attribute [simp] inline
