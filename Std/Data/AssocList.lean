@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.List.Basic
-import Std.Util.ProofWanted
 
 namespace Std
 
@@ -271,5 +270,7 @@ instance [BEq α] [LawfulBEq α] [BEq β] [LawfulBEq β] : LawfulBEq (AssocList 
         simp_all only [beq_cons₂, Bool.and_eq_true, beq_iff_eq, cons.injEq, true_and, and_imp]
         exact fun _ _ => ih
 
-proof_wanted beq_iff_toList_beq [BEq α] [BEq β] {L M : AssocList α β} :
-    L == M ↔ L.toList == M.toList
+protected theorem beq_eq [BEq α] [BEq β] {l m : AssocList α β} :
+    (l == m) = (l.toList == m.toList) := by
+  simp [(· == ·)]
+  induction l generalizing m <;> cases m <;> simp [*, (· == ·), AssocList.beq, List.beq]
