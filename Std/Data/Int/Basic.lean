@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Classes.Dvd
+import Lean.ToExpr
 
 open Nat
 
@@ -164,3 +165,10 @@ protected def shiftRight : Int → Nat → Int
   | Int.negSucc n, s => Int.negSucc (n >>> s)
 
 instance : HShiftRight Int Nat Int := ⟨.shiftRight⟩
+
+open Lean in
+instance : ToExpr Int where
+  toTypeExpr := .const ``Int []
+  toExpr i := match i with
+    | .ofNat n => mkApp (.const ``Int.ofNat []) (toExpr n)
+    | .negSucc n => mkApp (.const ``Int.negSucc []) (toExpr n)
