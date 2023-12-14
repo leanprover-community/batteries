@@ -415,8 +415,8 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
   exact (go #[] _).symm
 
 /-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [DecidableEq α] (a : α) (l : List α) : List α :=
-  if a ∈ l then l else a :: l
+@[inline] protected def insert [BEq α] (a : α) (l : List α) : List α :=
+  if l.elem a then l else a :: l
 
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.
