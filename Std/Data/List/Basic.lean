@@ -361,7 +361,7 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
   | a :: l, n => bif p a then n else go l (n + 1)
 
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
-def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
+def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
 /-- Removes the `n`th element of `l`, or the original list if `n` is out of bounds. -/
 @[simp] def removeNth : List α → Nat → List α
@@ -415,8 +415,8 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
   exact (go #[] _).symm
 
 /-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [DecidableEq α] (a : α) (l : List α) : List α :=
-  if a ∈ l then l else a :: l
+@[inline] protected def insert [BEq α] (a : α) (l : List α) : List α :=
+  if l.elem a then l else a :: l
 
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.
@@ -746,7 +746,7 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 | a :: l, i => if p a then some i else findIdx? p l (i + 1)
 
 /-- Return the index of the first occurrence of `a` in the list. -/
-@[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
+@[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (· == a)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -1627,5 +1627,52 @@ Example: if `f : Nat → list Nat → β`, `List.mapWithComplement f [1, 2, 3]` 
 -/
 def mapWithComplement {α β} (f : α → List α → β) : List α → List β :=
   mapWithPrefixSuffix fun pref a suff => f a (pref ++ suff)
+
+/--
+Map each element of a `List` to an action, evaluate these actions in order,
+and collect the results.
+-/
+protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
+  | [] => pure []
+  | x :: xs => List.cons <$> f x <*> List.traverse f xs
+
+/--
+`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
+of each other. This is defined by induction using pairwise swaps.
+-/
+inductive Perm : List α → List α → Prop
+  /-- `[] ~ []` -/
+  | nil : Perm [] []
+  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
+  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
+  /-- `x::y::l ~ y::x::l` -/
+  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
+  /-- `Perm` is transitive. -/
+  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
+
+@[inherit_doc] scoped infixl:50 " ~ " => Perm
+
+/--
+`O(|l₁| * |l₂|)`. Computes whether `l₁` is a permutation of `l₂`. See `isPerm_iff` for a
+characterization in terms of `List.Perm`.
+-/
+def isPerm [BEq α] : List α → List α → Bool
+  | [], l₂ => l₂.isEmpty
+  | a :: l₁, l₂ => l₂.contains a && l₁.isPerm (l₂.erase a)
+
+/--
+`Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
+a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
+multiplicities of elements, and is used for the `≤` relation on multisets.
+-/
+def Subperm (l₁ l₂ : List α) : Prop := ∃ l, l ~ l₁ ∧ l <+ l₂
+
+@[inherit_doc] scoped infixl:50 " <+~ " => Subperm
+
+/--
+`O(|l₁| * (|l₁| + |l₂|))`. Computes whether `l₁` is a sublist of a permutation of `l₂`.
+See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
+-/
+def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
 end List
