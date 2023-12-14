@@ -33,15 +33,25 @@ elab (name := runCmd) "run_cmd " elems:doSeq : command => do
       (← `(discard do $elems))
 
 /--
-The `run_meta doSeq` command executes code in `TermElabM Unit`.
+The `run_elab doSeq` command executes code in `TermElabM Unit`.
 This is almost the same as `#eval show TermElabM Unit from do doSeq`,
 except that it doesn't print an empty diagnostic.
 -/
-elab (name := runMeta) "run_meta " elems:doSeq : command => do
+elab (name := runElab) "run_elab " elems:doSeq : command => do
   ← liftTermElabM <|
     unsafe evalTerm (CommandElabM Unit)
       (mkApp (mkConst ``CommandElabM) (mkConst ``Unit))
       (← `(Command.liftTermElabM <| discard do $elems))
+
+/--
+The `run_meta doSeq` command executes code in `MetaM Unit`.
+This is almost the same as `#eval show MetaM Unit from do doSeq`,
+except that it doesn't print an empty diagnostic.
+
+(This is effectively a synonym for `run_elab`.)
+-/
+macro (name := runMeta) "run_meta " elems:doSeq : command =>
+  `(command| run_elab (show MetaM Unit from do $elems))
 
 /-- The `run_tac doSeq` tactic executes code in `TacticM Unit`. -/
 elab (name := runTac) "run_tac " e:doSeq : tactic => do
