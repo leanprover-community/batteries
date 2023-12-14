@@ -648,6 +648,25 @@ protected theorem lt_trichotomy (a b : Int) : a < b ∨ a = b ∨ b < a :=
   if le : a ≤ b then .inl <| Int.lt_iff_le_and_ne.2 ⟨le, eq⟩ else
   .inr <| .inr <| Int.not_le.1 le
 
+protected theorem ne_iff_lt_or_gt {a b : Int} : a ≠ b ↔ a < b ∨ b < a := by
+  constructor
+  · intro h
+    rcases Int.lt_trichotomy a b with lt | rfl | gt
+    · exact Or.inl lt
+    · simp_all
+    · exact Or.inr gt
+  · rintro (lt | gt)
+    · exact Int.ne_of_lt lt
+    · exact Int.ne_of_gt gt
+
+protected alias ⟨lt_or_gt_of_ne, _⟩ := Int.ne_iff_lt_or_gt
+
+protected theorem eq_iff_le_and_ge {x y : Int} : x = y ↔ x ≤ y ∧ y ≤ x := by
+  constructor
+  · simp_all
+  · rintro ⟨h₁, h₂⟩
+    exact Int.le_antisymm h₁ h₂
+
 protected theorem lt_of_le_of_lt {a b c : Int} (h₁ : a ≤ b) (h₂ : b < c) : a < c :=
   Int.not_le.1 fun h => Int.not_le.2 h₂ (Int.le_trans h h₁)
 
