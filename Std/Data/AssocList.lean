@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.List.Basic
+import Std.Util.ProofWanted
 
 namespace Std
 
@@ -237,6 +238,7 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]
 
+/-- Implementation of `==` on `AssocList`. -/
 protected def beq [BEq α] [BEq β] : AssocList α β → AssocList α β → Bool
   | .nil, .nil => true
   | .cons _ _ _, .nil => false
@@ -268,3 +270,6 @@ instance [BEq α] [LawfulBEq α] [BEq β] [LawfulBEq β] : LawfulBEq (AssocList 
       | cons a' b' M =>
         simp_all only [beq_cons₂, Bool.and_eq_true, beq_iff_eq, cons.injEq, true_and, and_imp]
         exact fun _ _ => ih
+
+proof_wanted beq_iff_toList_beq [BEq α] [BEq β] {L M : AssocList α β} :
+    L == M ↔ L.toList == M.toList
