@@ -241,13 +241,13 @@ protected def beq [BEq α] [BEq β] : AssocList α β → AssocList α β → Bo
   | .nil, .nil => true
   | .cons _ _ _, .nil => false
   | .nil, .cons _ _ _ => false
-  | .cons a b t, .cons a' b' t' => a == a' && b == b' && beq t t'
+  | .cons a b t, .cons a' b' t' => a == a' && b == b' && AssocList.beq t t'
 
 /--
 Boolean equality for `AssocList`.
 (This relation cares about the ordering of the key-value pairs.)
 -/
-instance [BEq α] [BEq β] : BEq (AssocList α β) where beq := beq
+instance [BEq α] [BEq β] : BEq (AssocList α β) where beq := AssocList.beq
 
 @[simp] theorem beq_nil₂ [BEq α] [BEq β] : ((.nil : AssocList α β) == .nil) = true := rfl
 @[simp] theorem beq_nil_cons [BEq α] [BEq β] : ((.nil : AssocList α β) == .cons a b t) = false :=
@@ -267,4 +267,4 @@ instance [BEq α] [LawfulBEq α] [BEq β] [LawfulBEq β] : LawfulBEq (AssocList 
       | nil => simp_all
       | cons a' b' M =>
         simp_all only [beq_cons₂, Bool.and_eq_true, beq_iff_eq, cons.injEq, true_and, and_imp]
-        exact fun _ _ => ih _
+        exact fun _ _ => ih
