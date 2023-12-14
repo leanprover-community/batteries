@@ -28,24 +28,48 @@ jobs:
           find Std -name "*.lean" | LC_ALL=C sort | sed 's/\.lean//;s,/,.,g;s/^/import /' > Std.lean
 
       - name: build std
-        run: lake build
+        id: build
+        run: lake build -Kwerror
 
       - name: test std
+        if: steps.build.outcome == 'success'
         run: make test
 
       - name: lint std
+        if: steps.build.outcome == 'success'
         run: make lint
 
       - name: check that all files are imported
+        if: always()
         run: git diff --exit-code
 
       - name: Check for forbidden character ↦
+        if: always()
         run: |
           if grep -r -n --include=\*.lean -e '↦' . ; then
             echo "Error: Found forbidden character ↦"
             exit 1
           fi
 
-      - name: Check for long lines
+      - name: Check for 'namespace Mathlib'
+        if: always()
         run: |
-          ! (find . -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
+          if grep -r -n --include=\*.lean -e 'namespace Mathlib' . ; then
+            echo "Error: Found 'namespace Mathlib'"
+            exit 1
+          fi
+
+      - name: Check for long lines
+        if: always()
+        run: |
+          ! (find Std -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
+
+      - name: Check for trailing whitespace
+        if: always()
+        run: |
+          scripts/lintWhitespace.sh
+
+      - name: Don't 'import Lean', use precise imports
+        if: always()
+        run: |
+          ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')

@@ -157,3 +157,34 @@ instance (α) [BEq α] [LawfulBEq α] : LawfulBEq (Option α) where
     match x, y with
     | some x, some y => rw [LawfulBEq.eq_of_beq (α := α) h]
     | none, none => rfl
+
+@[simp] theorem all_none : Option.all p none = true := rfl
+@[simp] theorem all_some : Option.all p (some x) = p x := rfl
+
+/-- The minimum of two optional values. -/
+protected def min [Min α] : Option α → Option α → Option α
+  | some x, some y => some (Min.min x y)
+  | some x, none => some x
+  | none, some y => some y
+  | none, none => none
+
+instance [Min α] : Min (Option α) where min := Option.min
+
+@[simp] theorem min_some_some [Min α] {a b : α} : min (some a) (some b) = some (min a b) := rfl
+@[simp] theorem min_some_none [Min α] {a : α} : min (some a) none = some a := rfl
+@[simp] theorem min_none_some [Min α] {b : α} : min none (some b) = some b := rfl
+@[simp] theorem min_none_none [Min α] : min (none : Option α) none = none := rfl
+
+/-- The maximum of two optional values. -/
+protected def max [Max α] : Option α → Option α → Option α
+  | some x, some y => some (Max.max x y)
+  | some x, none => some x
+  | none, some y => some y
+  | none, none => none
+
+instance [Max α] : Max (Option α) where max := Option.max
+
+@[simp] theorem max_some_some [Max α] {a b : α} : max (some a) (some b) = some (max a b) := rfl
+@[simp] theorem max_some_none [Max α] {a : α} : max (some a) none = some a := rfl
+@[simp] theorem max_none_some [Max α] {b : α} : max none (some b) = some b := rfl
+@[simp] theorem max_none_none [Max α] : max (none : Option α) none = none := rfl

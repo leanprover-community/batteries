@@ -1,5 +1,8 @@
 import Std.Tactic.TryThis
 
+set_option linter.unusedVariables false
+set_option linter.missingDocs false
+
 section width
 -- here we test that the width of try this suggestions is not too big
 

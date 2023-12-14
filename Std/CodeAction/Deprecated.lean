@@ -60,7 +60,7 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
         let pos := doc.meta.text.leanPosToLspPos msg.pos
         let endPos' := doc.meta.text.leanPosToLspPos endPos
         pure { eager with
-          edit? := some <| .ofTextEdit params.textDocument.uri {
+          edit? := some <| .ofTextEdit doc.versionedIdentifier {
             range := ⟨pos, endPos'⟩
             newText := toString c'
           }

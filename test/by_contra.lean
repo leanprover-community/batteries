@@ -13,7 +13,7 @@ private def decid (P : Prop) [Decidable P] (x : P) : P := by
   exact h x
 
 example (P : Prop) [Decidable P] : nonDecid P = decid P := by
-  delta nonDecid nonDecid.proof_1 decid decid.proof_1
+  delta nonDecid decid
   guard_target =
     (fun x : P => Classical.byContradiction fun h => h x) =
     (fun x : P => Decidable.byContradiction fun h => h x)
