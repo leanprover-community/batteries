@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.List.Basic
-import Std.Util.ProofWanted
 
 namespace Std
 
@@ -45,15 +44,15 @@ def isEmpty : AssocList α β → Bool
   cases l <;> simp [*, isEmpty, List.isEmpty]
 
 /-- The number of entries in an `AssocList`. -/
-def size (L : AssocList α β) : Nat :=
+def length (L : AssocList α β) : Nat :=
   match L with
   | .nil => 0
-  | .cons _ _ t => t.size + 1
+  | .cons _ _ t => t.length + 1
 
-@[simp] theorem size_nil : size (nil : AssocList α β) = 0 := rfl
-@[simp] theorem size_cons : size (cons a b t) = size t + 1 := rfl
+@[simp] theorem length_nil : length (nil : AssocList α β) = 0 := rfl
+@[simp] theorem length_cons : length (cons a b t) = length t + 1 := rfl
 
-theorem toList_length (l : AssocList α β) : l.toList.length = l.size := by
+theorem toList_length (l : AssocList α β) : l.toList.length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Fold a monadic function over the list, from head to tail. -/
@@ -99,7 +98,7 @@ def toListTR (as : AssocList α β) : List (α × β) :=
     (mapKey f l).toList = l.toList.map (fun (a, b) => (f a, b)) := by
   induction l <;> simp [*]
 
-@[simp] theorem mapKey_size : (mapKey f l).size = l.size := by
+@[simp] theorem mapKey_length : (mapKey f l).length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Map a function `f` over the values of the list. -/
@@ -111,7 +110,7 @@ def toListTR (as : AssocList α β) : List (α × β) :=
     (mapVal f l).toList = l.toList.map (fun (a, b) => (a, f a b)) := by
   induction l <;> simp [*]
 
-@[simp] theorem mapVal_size : (mapVal f l).size = l.size := by
+@[simp] theorem mapVal_length : (mapVal f l).length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
@@ -185,10 +184,10 @@ with key equal to `a` to have key `a` and value `b`.
     l.toList.replaceF (bif ·.1 == a then some (a, b) else none) := by
   induction l <;> simp [replace]; split <;> simp [*]
 
-@[simp] theorem replace_size [BEq α] {a : α} : (replace a b l).size = l.size := by
+@[simp] theorem replace_length [BEq α] {a : α} : (replace a b l).length = l.length := by
   induction l
   · rfl
-  · simp only [replace, size_cons]
+  · simp only [replace, length_cons]
     split <;> simp_all
 
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
@@ -224,10 +223,10 @@ with key equal to `a` to have key `a` and value `f a' b`.
   induction l with simp [List.replaceF]
   | cons k v es ih => cases k == a <;> simp [ih]
 
-@[simp] theorem modify_size [BEq α] {a : α} : (modify a f l).size = l.size := by
+@[simp] theorem modify_length [BEq α] {a : α} : (modify a f l).length = l.length := by
   induction l
   · rfl
-  · simp only [modify, size_cons]
+  · simp only [modify, length_cons]
     split <;> simp_all
 
 /-- The implementation of `ForIn`, which enables `for (k, v) in aList do ...` notation. -/
@@ -268,6 +267,6 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]
 
-@[simp] theorem _root_.List.toAssocList_size (l : List (α × β)) :
-    l.toAssocList.size = l.length := by
+@[simp] theorem _root_.List.toAssocList_length (l : List (α × β)) :
+    l.toAssocList.length = l.length := by
   induction l <;> simp [*]
