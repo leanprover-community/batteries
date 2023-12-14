@@ -841,6 +841,29 @@ protected theorem add_neg_of_nonpos_of_neg {a b : Int} (ha : a ≤ 0) (hb : b < 
 protected theorem lt_add_of_le_of_pos {a b c : Int} (hbc : b ≤ c) (ha : 0 < a) : b < c + a :=
   Int.add_zero b ▸ Int.add_lt_add_of_le_of_lt hbc ha
 
+protected theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
+  conv =>
+    lhs
+    rw [← Int.add_zero c, ← Int.sub_self (-b), Int.sub_eq_add_neg, ← Int.add_assoc, Int.neg_neg,
+      Int.add_le_add_iff_right]
+
+protected theorem le_add_iff_sub_le (a b c : Int) : a ≤ b + c ↔ a - c ≤ b := by
+  conv =>
+    lhs
+    rw [← Int.neg_neg c, ← Int.sub_eq_add_neg, ← Int.add_le_iff_le_sub]
+
+protected theorem add_le_zero_iff_le_neg (a b : Int) : a + b ≤ 0 ↔ a ≤ - b := by
+  rw [Int.add_le_iff_le_sub, Int.zero_sub]
+
+protected theorem add_le_zero_iff_le_neg' (a b : Int) : a + b ≤ 0 ↔ b ≤ -a := by
+  rw [Int.add_comm, Int.add_le_zero_iff_le_neg]
+
+protected theorem add_nonnneg_iff_neg_le (a b : Int) : 0 ≤ a + b ↔ -b ≤ a := by
+  rw [Int.le_add_iff_sub_le, Int.zero_sub]
+
+protected theorem add_nonnneg_iff_neg_le' (a b : Int) : 0 ≤ a + b ↔ -a ≤ b := by
+  rw [Int.add_comm, Int.add_nonnneg_iff_neg_le]
+
 theorem add_one_le_iff {a b : Int} : a + 1 ≤ b ↔ a < b := .rfl
 
 theorem lt_add_one_iff {a b : Int} : a < b + 1 ↔ a ≤ b := Int.add_le_add_iff_right _
