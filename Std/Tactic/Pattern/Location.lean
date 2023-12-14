@@ -150,16 +150,35 @@ def replaceOccurrencesDefEq (locs : Array GoalOccurrences) (pattern : AbstractMV
       mvarId ← mvarId.replaceTargetDefEq <| ← substitute targetType pattern occs replacement
   replaceMainGoal [mvarId]
 
+/--
+  Convert the given goal `Ctx |- target` into a goal containing `let userName : type := val`
+    after the local declaration with if `fvarId`.
+  It assumes `val` has type `type`, and that `type` is well-formed after `fvarId`.
+
+  This is modelled on `Lean.MVarId.assertAfter`. -/
+def Lean.MVarId.defineAfter (mvarId : MVarId) (fvarId : FVarId) (userName : Name) (type : Expr) (val : Expr) : MetaM AssertAfterResult := do
+  mvarId.checkNotAssigned `defineAfter
+  let (fvarIds, mvarId) ← mvarId.revertAfter fvarId
+  let mvarId ← mvarId.define userName type val
+  let (fvarIdNew, mvarId) ← mvarId.intro1P
+  let (fvarIdsNew, mvarId) ← mvarId.introNP fvarIds.size
+  let mut subst := {}
+  for f in fvarIds, fNew in fvarIdsNew do
+    subst := subst.insert f (mkFVar fNew)
+  return { fvarId := fvarIdNew, mvarId, subst }
+
 /-- Replace the value of the local `let` declaration `fvarId` with
     a new value `valNew` that is equal to the old one (witnessed by `eqProof`).
 
     This follows the code of `Lean.MVarId.replaceLocalDecl`. -/
 def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew eqProof : Expr)
     : MetaM AssertAfterResult := mvarId.withContext do
-  let mvarDecl ← mvarId.getDecl
   let localDecl ← fvarId.getDecl
   let (_, localDecl') ← findMaxFVar valNew |>.run localDecl
-  sorry -- TODO: Needs an equivalent of `assertAfter` for `let`-declarations
+  let result ← mvarId.defineAfter localDecl'.fvarId localDecl.userName (← fvarId.getType) valNew
+  (do let mvarIdNew ← result.mvarId.clear fvarId
+      pure { result with mvarId := mvarIdNew })
+    <|> pure result
 where
   findMaxFVar (e : Expr) : StateRefT LocalDecl MetaM Unit :=
     e.forEach' fun e => do
