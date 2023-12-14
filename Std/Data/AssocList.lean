@@ -236,3 +236,41 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
 
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]
+
+/-- Implementation of `==` on `AssocList`. -/
+protected def beq [BEq α] [BEq β] : AssocList α β → AssocList α β → Bool
+  | .nil, .nil => true
+  | .cons _ _ _, .nil => false
+  | .nil, .cons _ _ _ => false
+  | .cons a b t, .cons a' b' t' => a == a' && b == b' && AssocList.beq t t'
+
+/--
+Boolean equality for `AssocList`.
+(This relation cares about the ordering of the key-value pairs.)
+-/
+instance [BEq α] [BEq β] : BEq (AssocList α β) where beq := AssocList.beq
+
+@[simp] theorem beq_nil₂ [BEq α] [BEq β] : ((.nil : AssocList α β) == .nil) = true := rfl
+@[simp] theorem beq_nil_cons [BEq α] [BEq β] : ((.nil : AssocList α β) == .cons a b t) = false :=
+  rfl
+@[simp] theorem beq_cons_nil [BEq α] [BEq β] : ((.cons a b t : AssocList α β) == .nil) = false :=
+  rfl
+@[simp] theorem beq_cons₂ [BEq α] [BEq β] :
+    ((.cons a b t : AssocList α β) == .cons a' b' t') = (a == a' && b == b' && t == t') := rfl
+
+instance [BEq α] [LawfulBEq α] [BEq β] [LawfulBEq β] : LawfulBEq (AssocList α β) where
+  rfl {L} := by induction L <;> simp_all
+  eq_of_beq {L M} := by
+    induction L generalizing M with
+    | nil => cases M <;> simp_all
+    | cons a b L ih =>
+      cases M with
+      | nil => simp_all
+      | cons a' b' M =>
+        simp_all only [beq_cons₂, Bool.and_eq_true, beq_iff_eq, cons.injEq, true_and, and_imp]
+        exact fun _ _ => ih
+
+protected theorem beq_eq [BEq α] [BEq β] {l m : AssocList α β} :
+    (l == m) = (l.toList == m.toList) := by
+  simp [(· == ·)]
+  induction l generalizing m <;> cases m <;> simp [*, (· == ·), AssocList.beq, List.beq]
