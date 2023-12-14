@@ -348,6 +348,8 @@ theorem or_imp : (a ∨ b → c) ↔ (a → c) ∧ (b → c) :=
 
 theorem not_or : ¬(p ∨ q) ↔ ¬p ∧ ¬q := or_imp
 
+alias ⟨and_not_not_of_not_or, _⟩ := not_or
+
 theorem not_and_of_not_or_not (h : ¬a ∨ ¬b) : ¬(a ∧ b) := h.elim (mt (·.1)) (mt (·.2))
 
 @[simp] theorem or_self_left : a ∨ a ∨ b ↔ a ∨ b := ⟨.rec .inl id, .rec .inl (.inr ∘ .inr)⟩
@@ -648,6 +650,8 @@ theorem Decidable.or_congr_left' [Decidable c] (h : ¬c → (a ↔ b)) : a ∨ c
 
 theorem Decidable.or_congr_right' [Decidable a] (h : ¬a → (b ↔ c)) : a ∨ b ↔ a ∨ c := by
   rw [or_iff_not_imp_left, or_iff_not_imp_left]; exact imp_congr_right h
+
+alias ⟨Decidable.or_not_not_of_not_and, _⟩ := Decidable.not_and_iff_or_not
 
 /-- Transfer decidability of `a` to decidability of `b`, if the propositions are equivalent.
 **Important**: this function should be used instead of `rw` on `decidable b`, because the
