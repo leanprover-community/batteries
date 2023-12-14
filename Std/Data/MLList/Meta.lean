@@ -44,7 +44,8 @@ Given a list of values in `IO α`, executes them all in parallel as tasks, and r
 
 Note that the cancellation hook merely requests cooperative cancellation:
 the tasks must call `IO.checkCanceled` themselves.
-The tactic framework does so automatically, at the same time it checks for exceeding `maxHeartbeats`.
+The tactic framework does so automatically,
+at the same time it checks for exceeding `maxHeartbeats`.
 
 After calling the cancellation hook the behaviour of the monadic lazy list should not be relied on.
 It may continue returning values, or fail.
