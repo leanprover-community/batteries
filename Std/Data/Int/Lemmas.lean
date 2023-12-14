@@ -1350,7 +1350,7 @@ theorem sign_eq_neg_one_iff_neg (a : Int) : sign a = -1 ↔ a < 0 :=
   | .ofNat (_ + 1) =>
     simp (config := { decide := true }) only [sign, true_iff]
     exact Int.le_add_one (ofNat_nonneg _)
-  | .negSucc _ => simp (config := {decide := true}) [sign]
+  | .negSucc _ => simp (config := { decide := true }) [sign]
 
 
 /-! ### nat abs -/
