@@ -54,10 +54,7 @@ import Std.Data.List.Perm
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
 import Std.Data.MLList.IO
-<<<<<<< HEAD
 import Std.Data.MLList.Meta
-=======
->>>>>>> origin/main
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Bitwise
 import Std.Data.Nat.Gcd
