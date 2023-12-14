@@ -686,8 +686,8 @@ protected theorem ne_iff_lt_or_gt {a b : Int} : a ≠ b ↔ a < b ∨ b < a := b
     · simp_all
     · exact Or.inr gt
   · rintro (lt | gt)
-    exact Int.ne_of_lt lt
-    exact Int.ne_of_gt gt
+    · exact Int.ne_of_lt lt
+    · exact Int.ne_of_gt gt
 
 protected alias ⟨lt_or_gt_of_ne, _⟩ := Int.ne_iff_lt_or_gt
 
