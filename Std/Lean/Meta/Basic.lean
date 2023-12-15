@@ -436,3 +436,10 @@ where
       match ← tac goal with
       | none => acc.modify λ s => s.push goal
       | some goals => goals.forM (go acc)
+
+/-- Return local hypotheses which are not "implementation detail", as `Expr`s. -/
+def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
+  let mut hs := #[]
+  for d in ← getLCtx do
+    if !d.isImplementationDetail then hs := hs.push d.toExpr
+  return hs
