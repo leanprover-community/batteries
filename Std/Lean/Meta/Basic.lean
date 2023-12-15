@@ -98,7 +98,7 @@ only be replaced with defeq expressions.
 -/
 def modifyExprMVarLCtx (mctx : MetavarContext) (mvarId : MVarId)
     (f : LocalContext → LocalContext) : MetavarContext :=
-  mctx.modifyExprMVarDecl mvarId λ mdecl => { mdecl with lctx := f mdecl.lctx }
+  mctx.modifyExprMVarDecl mvarId fun mdecl => { mdecl with lctx := f mdecl.lctx }
 
 /--
 Set the kind of an fvar. If the given metavariable is not declared or the
@@ -438,5 +438,5 @@ where
   go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
     withIncRecDepth do
       match ← tac goal with
-      | none => acc.modify λ s => s.push goal
+      | none => acc.modify fun s => s.push goal
       | some goals => goals.forM (go acc)

@@ -19,7 +19,7 @@ def Lean.MVarId.tryClearMany' (goal : MVarId) (hyps : Array FVarId) :
   goal.withContext do
     let hyps ← sortFVarsByContextOrder hyps
     hyps.foldrM (init := (goal, Array.mkEmpty hyps.size))
-      λ h (goal, cleared) => do
+      fun h (goal, cleared) => do
         let goal' ← goal.tryClear h
         let cleared := if goal == goal' then cleared else cleared.push h
         return (goal', cleared)

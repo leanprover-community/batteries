@@ -34,7 +34,7 @@ set_option linter.unusedVariables.funArgs false in
 Sort an array using `compare` to compare elements.
 -/
 def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort λ x y => compare x y |>.isLT
+  xs.qsort fun x y => compare x y |>.isLT
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -45,7 +45,7 @@ considered.
 @[inline]
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.foldl (init := d) (start := start) (stop := stop) λ min x =>
+  xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
 set_option linter.unusedVariables.funArgs false in
