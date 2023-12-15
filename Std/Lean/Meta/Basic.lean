@@ -328,6 +328,10 @@ annotations. -/
 def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
   return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
 
+/-- Short-hand for applying a constant to the goal. -/
+def applyConst (mvar : MVarId) (c : Name) (cfg : ApplyConfig := {}) : MetaM (List MVarId) := do
+  mvar.apply (← mkConstWithFreshMVarLevels c) cfg
+
 end MVarId
 
 
