@@ -965,11 +965,6 @@ theorem mul_div_le (m n : Nat) : n * (m / n) ≤ m := by
   | _, Or.inl rfl => rw [Nat.zero_mul]; exact m.zero_le
   | n, Or.inr h => rw [Nat.mul_comm, ← Nat.le_div_iff_mul_le h]; exact Nat.le_refl _
 
-theorem mod_two_eq_zero_or_one (n : Nat) : n % 2 = 0 ∨ n % 2 = 1 :=
-  match n % 2, @Nat.mod_lt n 2 (by decide) with
-  | 0, _ => .inl rfl
-  | 1, _ => .inr rfl
-
 theorem le_of_mod_lt {a b : Nat} (h : a % b < a) : b ≤ a :=
   Nat.not_lt.1 fun hf => (ne_of_lt h).elim (Nat.mod_eq_of_lt hf)
 
@@ -1046,6 +1041,10 @@ theorem mul_mod (a b n : Nat) : a * b % n = (a % n) * (b % n) % n := by
 
 theorem add_mod (a b n : Nat) : (a + b) % n = ((a % n) + (b % n)) % n := by
   rw [add_mod_mod, mod_add_mod]
+
+@[simp]
+theorem one_mod (n : Nat) : 1 % (n + 2) = 1 :=
+  Nat.mod_eq_of_lt (succ_lt_succ n.succ_pos)
 
 @[simp]
 theorem mod_two_ne_one (n : Nat) : ¬n % 2 = 1 ↔ n % 2 = 0 := by
@@ -1310,7 +1309,7 @@ theorem shiftRight_eq_div_pow (m : Nat) : ∀ n, m >>> n = m / 2 ^ n
   | 0 => (Nat.div_one _).symm
   | k + 1 => by
     rw [shiftRight_add, shiftRight_eq_div_pow m k]
-    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ]
+    simp [Nat.div_div_eq_div_mul, ← Nat.pow_succ, shiftRight_succ]
 
 theorem mul_add_div {m : Nat} (m_pos : m > 0) (x y : Nat) : (m * x + y) / m = x + y / m := by
   match x with
