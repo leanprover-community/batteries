@@ -733,7 +733,7 @@ alias congr_fun := congrFun
 alias congr_arg := congrArg
 
 theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
-  fun w : x = y ↦ h (congr_arg f w)
+  fun w : x = y => h (congr_arg f w)
 
 theorem congr_arg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
@@ -752,7 +752,7 @@ theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
   | rfl, h => Eq.recOn h (HEq.refl _)
 
 theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
-  ⟨heq_of_cast_eq _, fun h ↦ by cases h; rfl⟩
+  ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
 
 section EqRec
 variable {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
@@ -792,10 +792,10 @@ theorem congr_fun₃ {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a)
   congr_fun₂ (congr_fun h _) _ _
 
 theorem funext₂ {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
-  funext fun _ ↦ funext <| h _
+  funext fun _ => funext <| h _
 
 theorem funext₃ {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
-  funext fun _ ↦ funext₂ <| h _
+  funext fun _ => funext₂ <| h _
 
 end Equality
 
