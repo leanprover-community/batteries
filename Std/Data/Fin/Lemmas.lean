@@ -199,7 +199,7 @@ theorem add_one_pos (i : Fin (n + 1)) (h : i < Fin.last n) : (0 : Fin (n + 1)) <
   match n with
   | 0 => cases h
   | n+1 =>
-    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right 1] at h
+    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right] at h
     rw [Fin.lt_def, val_add, val_zero, val_one, Nat.mod_eq_of_lt h]
     exact Nat.zero_lt_succ _
 
@@ -313,7 +313,7 @@ theorem castLE_of_eq {m n : Nat} (h : m = n) {h' : m ≤ n} : castLE h' = Fin.ca
 theorem castAdd_lt {m : Nat} (n : Nat) (i : Fin m) : (castAdd n i : Nat) < m := by simp
 
 @[simp] theorem castAdd_mk (m : Nat) (i : Nat) (h : i < n) :
-    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right i n m h⟩ := rfl
+    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right m h⟩ := rfl
 
 @[simp] theorem castAdd_castLT (m : Nat) (i : Fin (n + m)) (hi : i.val < n) :
     castAdd m (castLT i hi) = i := rfl
@@ -645,7 +645,7 @@ theorem exists_fin_two {p : Fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
   exists_fin_succ.trans <| or_congr_right exists_fin_one
 
 theorem fin_two_eq_of_eq_zero_iff : ∀ {a b : Fin 2}, (a = 0 ↔ b = 0) → a = b := by
-  simp [forall_fin_two]
+  simp only [forall_fin_two]; decide
 
 /--
 Define `motive i` by reverse induction on `i : Fin (n + 1)` via induction on the underlying `Nat`

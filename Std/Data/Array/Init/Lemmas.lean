@@ -131,7 +131,7 @@ theorem get_push_lt (a : Array α) (x : α) (i : Nat) (h : i < a.size) :
 
 @[simp] theorem get_push_eq (a : Array α) (x : α) : (a.push x)[a.size] = x := by
   simp only [push, getElem_eq_data_get, List.concat_eq_append]
-  rw [List.get_append_right] <;> simp [getElem_eq_data_get]
+  rw [List.get_append_right] <;> simp [getElem_eq_data_get, Nat.zero_lt_one]
 
 theorem get_push (a : Array α) (x : α) (i : Nat) (h : i < (a.push x).size) :
     (a.push x)[i] = if h : i < a.size then a[i] else x := by
@@ -216,6 +216,11 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     (arr ++ l).data = arr.data ++ l := by
   rw [← appendList_eq_append]; unfold Array.appendList
   induction l generalizing arr <;> simp [*]
+
+@[simp] theorem appendList_nil (arr : Array α) : arr ++ ([] : List α) = arr := Array.ext' (by simp)
+
+@[simp] theorem appendList_cons (arr : Array α) (a : α) (l : List α) :
+    arr ++ (a :: l) = arr.push a ++ l := Array.ext' (by simp)
 
 theorem foldl_data_eq_bind (l : List α) (acc : Array β)
     (F : Array β → α → Array β) (G : α → List β)

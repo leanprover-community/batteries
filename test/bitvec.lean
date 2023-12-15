@@ -1,5 +1,5 @@
 import Std.Tactic.GuardExpr
-import Std.Data.BitVec
+import Std.Data.BitVec.Basic
 
 open Std.BitVec
 

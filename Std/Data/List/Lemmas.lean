@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Control.ForInStep.Lemmas
 import Std.Data.Bool
+import Std.Data.Fin.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
@@ -62,6 +63,9 @@ theorem mem_cons_self (a : α) (l : List α) : a ∈ a :: l := .head ..
 
 theorem mem_cons_of_mem (y : α) {a : α} {l : List α} : a ∈ l → a ∈ y :: l := .tail _
 
+@[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
+  simp [Array.mem_def]
+
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
 
 theorem eq_of_mem_singleton : a ∈ [b] → a = b
@@ -82,7 +86,7 @@ theorem append_of_mem {a : α} {l : List α} : a ∈ l → ∃ s t : List α, l 
   | .head l => ⟨[], l, rfl⟩
   | .tail b h => let ⟨s, t, h'⟩ := append_of_mem h; ⟨b::s, t, by rw [h', cons_append]⟩
 
-@[simp] theorem elem_iff [DecidableEq α] {a : α} {as : List α} :
+@[simp] theorem elem_iff {_ : DecidableEq α} {a : α} {as : List α} :
     elem a as ↔ a ∈ as := ⟨mem_of_elem_eq_true, elem_eq_true_of_mem⟩
 
 theorem mem_of_ne_of_mem {a y : α} {l : List α} (h₁ : a ≠ y) (h₂ : a ∈ y :: l) : a ∈ l :=
@@ -97,6 +101,11 @@ theorem not_mem_cons_of_ne_of_not_mem {a y : α} {l : List α} : a ≠ y → a �
 
 theorem ne_and_not_mem_of_not_mem_cons {a y : α} {l : List α} : a ∉ y::l → a ≠ y ∧ a ∉ l :=
   fun p => ⟨ne_of_not_mem_cons p, not_mem_of_not_mem_cons p⟩
+
+/-! ### isEmpty -/
+
+@[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
+@[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
 
 /-! ### append -/
 
@@ -580,10 +589,22 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 /-! ### dropLast -/
 
+/-! NB: `dropLast` is the specification for `Array.pop`, so theorems about `List.dropLast`
+are often used for theorems about `Array.pop`.  -/
+
 @[simp] theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b::l₂) := by
   induction l₁ <;> simp [*, dropLast]
 
 @[simp 1100] theorem dropLast_concat : dropLast (l₁ ++ [b]) = l₁ := by simp
+
+@[simp] theorem length_dropLast : ∀ (xs : List α), xs.dropLast.length = xs.length - 1
+  | [] => rfl
+  | x::xs => by simp
+
+@[simp] theorem get_dropLast : ∀ (xs : List α) (i : Fin xs.dropLast.length),
+    xs.dropLast.get i = xs.get (i.castLE (xs.length_dropLast ▸ Nat.sub_le ..))
+  | _::_::_, ⟨0, _⟩ => rfl
+  | _::_::_, ⟨i+1, _⟩ => get_dropLast _ ⟨i, _⟩
 
 /-! ### nth element -/
 
@@ -685,7 +706,7 @@ theorem get_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.he
   | _::_, _ => rfl
 
 theorem get_append : ∀ {l₁ l₂ : List α} (n : Nat) (h : n < l₁.length),
-    (l₁ ++ l₂).get ⟨n, length_append .. ▸ Nat.lt_add_right _ _ _ h⟩ = l₁.get ⟨n, h⟩
+    (l₁ ++ l₂).get ⟨n, length_append .. ▸ Nat.lt_add_right _ h⟩ = l₁.get ⟨n, h⟩
 | a :: l, _, 0, h => rfl
 | a :: l, _, n+1, h => by simp only [get, cons_append]; apply get_append
 
@@ -1039,16 +1060,19 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!
 
 @[simp] theorem mem_reverse {x : α} {as : List α} : x ∈ reverse as ↔ x ∈ as := by simp [reverse]
 
+@[simp] theorem reverse_eq_nil_iff {xs : List α} : xs.reverse = [] ↔ xs = [] := by
+  induction xs <;> simp
+
 /-! ### insert -/
 
 section insert
 variable [DecidableEq α]
 
 @[simp] theorem insert_of_mem {l : List α} (h : a ∈ l) : l.insert a = l := by
-  simp only [List.insert, if_pos h]
+  simp only [List.insert, elem_iff, if_pos h]
 
 @[simp] theorem insert_of_not_mem {l : List α} (h : a ∉ l) : l.insert a = a :: l := by
-  simp only [List.insert, if_neg h]
+  simp only [List.insert,  elem_iff, if_neg h]
 
 @[simp] theorem mem_insert_iff {l : List α} : a ∈ l.insert b ↔ a = b ∨ a ∈ l := by
   if h : b ∈ l then
@@ -1266,6 +1290,10 @@ end erase
 @[simp] theorem filter_cons_of_neg {p : α → Bool} {a : α} (l) (pa : ¬ p a) :
     filter p (a :: l) = filter p l := by rw [filter, eq_false_of_ne_true pa]
 
+theorem filter_cons :
+    (x :: xs : List α).filter p = if p x then x :: (xs.filter p) else xs.filter p := by
+  split <;> simp [*]
+
 @[simp] theorem filter_append {p : α → Bool} :
     ∀ (l₁ l₂ : List α), filter p (l₁ ++ l₂) = filter p l₁ ++ filter p l₂
   | [], l₂ => rfl
@@ -1482,6 +1510,63 @@ theorem findIdx_get?_eq_get_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
     xs.get? (xs.findIdx p) = some (xs.get ⟨xs.findIdx p, xs.findIdx_lt_length_of_exists h⟩) :=
   get?_eq_get (findIdx_lt_length_of_exists h)
 
+  /-! ### findIdx? -/
+
+@[simp] theorem findIdx?_nil : ([] : List α).findIdx? p i = none := rfl
+
+@[simp] theorem findIdx?_cons :
+    (x :: xs).findIdx? p i = if p x then some i else findIdx? p xs (i + 1) := rfl
+
+@[simp] theorem findIdx?_succ :
+    (xs : List α).findIdx? p (i+1) = (xs.findIdx? p i).map fun i => i + 1 := by
+  induction xs generalizing i with simp
+  | cons _ _ _ => split <;> simp_all
+
+theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
+    xs.findIdx? p = some i ↔ (xs.take (i + 1)).map p = replicate i false ++ [true] := by
+  induction xs generalizing i with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [findIdx?_cons, Nat.zero_add, findIdx?_succ, take_succ_cons, map_cons]
+    split <;> cases i <;> simp_all
+
+theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p = some i) :
+    match xs.get? i with | some a => p a | none => false := by
+  induction xs generalizing i with
+  | nil => simp_all
+  | cons x xs ih =>
+    simp_all only [findIdx?_cons, Nat.zero_add, findIdx?_succ]
+    split at w <;> cases i <;> simp_all
+
+theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p = none) :
+    ∀ i, match xs.get? i with | some a => ¬ p a | none => true := by
+  intro i
+  induction xs generalizing i with
+  | nil => simp_all
+  | cons x xs ih =>
+    simp_all only [Bool.not_eq_true, findIdx?_cons, Nat.zero_add, findIdx?_succ]
+    cases i with
+    | zero =>
+      split at w <;> simp_all
+    | succ i =>
+      simp only [get?_cons_succ]
+      apply ih
+      split at w <;> simp_all
+
+@[simp] theorem findIdx?_append :
+    (xs ++ ys : List α).findIdx? p =
+      (xs.findIdx? p <|> (ys.findIdx? p).map fun i => i + xs.length) := by
+  induction xs with simp
+  | cons _ _ _ => split <;> simp_all [Option.map_orElse, Option.map_map]; rfl
+
+@[simp] theorem findIdx?_replicate :
+    (replicate n a).findIdx? p = if 0 < n ∧ p a then some 0 else none := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    simp only [replicate, findIdx?_cons, Nat.zero_add, findIdx?_succ, Nat.zero_lt_succ, true_and]
+    split <;> simp_all
+
 /-! ### pairwise -/
 
 theorem Pairwise.sublist : l₁ <+ l₂ → l₂.Pairwise R → l₁.Pairwise R
@@ -1646,7 +1731,7 @@ theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = fold
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
     (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
-@[simp] theorem mem_union_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_union_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
 
 end union
@@ -1655,7 +1740,7 @@ end union
 
 theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
 
-@[simp] theorem mem_inter_iff [DecidableEq α] {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_inter_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
   cases l₁ <;> simp [List.inter_def, mem_filter]
 
@@ -1968,8 +2053,8 @@ theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
   | [], _, _ => by simp
   | x :: xs, hl, h => by
-    cases m <;> cases n <;> simp only [disjoint_cons_left, mem_cons, disjoint_cons_right,
-      drop, true_or, eq_self_iff_true, not_true, false_and, not_mem_nil, disjoint_nil_left, take]
+    cases m <;> cases n <;> simp only [disjoint_cons_left, drop, not_mem_nil, disjoint_nil_left,
+      take, not_false_eq_true, and_self]
     · case succ.zero => cases h
     · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
@@ -1981,6 +2066,21 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
     ∀ (l : List α), takeWhile p l ++ dropWhile p l = l
   | [] => rfl
   | x :: xs => by simp [takeWhile, dropWhile]; cases p x <;> simp [takeWhile_append_dropWhile p xs]
+
+@[simp] theorem dropWhile_nil : ([] : List α).dropWhile p = [] := rfl
+
+theorem dropWhile_cons :
+    (x :: xs : List α).dropWhile p = if p x then xs.dropWhile p else x :: xs := by
+  split <;> simp_all [dropWhile]
+
+theorem dropWhile_append {xs ys : List α} :
+    (xs ++ ys).dropWhile p =
+      if (xs.dropWhile p).isEmpty then ys.dropWhile p else xs.dropWhile p ++ ys := by
+  induction xs with
+  | nil => simp
+  | cons h t ih =>
+    simp only [cons_append, dropWhile_cons]
+    split <;> simp_all
 
 /-! ### Chain -/
 
@@ -2122,7 +2222,7 @@ theorem range_sublist {m n : Nat} : range m <+ range n ↔ m ≤ n := by
   simp only [range_eq_range', range'_sublist_right]
 
 theorem range_subset {m n : Nat} : range m ⊆ range n ↔ m ≤ n := by
-  simp only [range_eq_range', range'_subset_right]
+  simp only [range_eq_range', range'_subset_right, lt_succ_self]
 
 @[simp]
 theorem mem_range {m n : Nat} : m ∈ range n ↔ m < n := by
@@ -2172,6 +2272,13 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 
 @[simp] theorem enum_map_fst (l : List α) : map Prod.fst (enum l) = range l.length := by
   simp only [enum, enumFrom_map_fst, range_eq_range']
+
+@[simp] theorem enumFrom_length : ∀ {n} {l : List α}, (enumFrom n l).length = l.length
+  | _, [] => rfl
+  | _, _ :: _ => congrArg Nat.succ enumFrom_length
+
+@[simp] theorem enum_length : (enum l).length = l.length :=
+  enumFrom_length
 
 /-! ### minimum? -/
 

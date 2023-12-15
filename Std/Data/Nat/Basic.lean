@@ -127,6 +127,15 @@ where
       guess
 termination_by iter guess => guess
 
+/-!
+### testBit
+We define an operation for testing individual bits in the binary representation
+of a number.
+-/
+
+/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
+def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0
+
 /-- `bodd n` returns `true` if `n` is odd-/
 def bodd (n : Nat) : Bool :=
   (1 &&& n) != 0
@@ -215,3 +224,11 @@ def binaryRecFromOne {C : Nat → Sort u} (z₀ : C 0) (z₁ : C 1)
       rw [h', h h']
       exact z₁
     else f b n h' ih
+/-!
+### testBit
+We define an operation for testing individual bits in the binary representation
+of a number.
+-/
+
+/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
+def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0

@@ -52,6 +52,20 @@ instance : LawfulMonad Option := LawfulMonad.mk'
 instance : LawfulApplicative Option := inferInstance
 instance : LawfulFunctor Option := inferInstance
 
+instance : LawfulMonad (EStateM ε σ) := .mk'
+  (id_map := fun x => funext <| fun s => by
+    dsimp only [EStateM.instMonadEStateM, EStateM.map]
+    match x s with
+    | .ok _ _ => rfl
+    | .error _ _ => rfl)
+  (pure_bind := fun _ _ => rfl)
+  (bind_assoc := fun x _ _ => funext <| fun s => by
+    dsimp only [EStateM.instMonadEStateM, EStateM.bind]
+    match x s with
+    | .ok _ _ => rfl
+    | .error _ _ => rfl)
+  (map_const := fun _ _ => rfl)
+
 /-!
 ## SatisfiesM
 
@@ -74,7 +88,7 @@ namespace SatisfiesM
 /-- If `p` is always true, then every `x` satisfies it. -/
 theorem of_true [Applicative m] [LawfulApplicative m] {x : m α}
     (h : ∀ a, p a) : SatisfiesM p x :=
-  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp]⟩
+  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp_def]⟩
 
 /--
 If `p` is always true, then every `x` satisfies it.
@@ -93,7 +107,7 @@ protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
     (hx : SatisfiesM p x) (hf : ∀ {a}, p a → q (f a)) : SatisfiesM q (f <$> x) := by
   let ⟨x', hx⟩ := hx
   refine ⟨(fun ⟨a, h⟩ => ⟨f a, hf h⟩) <$> x', ?_⟩
-  rw [← hx]; simp [← comp_map, Function.comp]
+  rw [← hx]; simp [← comp_map, Function.comp_def]
 
 /--
 `SatisfiesM` distributes over `<$>`, strongest postcondition version.
@@ -127,7 +141,7 @@ protected theorem seq [Applicative m] [LawfulApplicative m] {x : m α}
   match f, x, hf, hx with | _, _, ⟨f, rfl⟩, ⟨x, rfl⟩ => ?_
   refine ⟨(fun ⟨a, h₁⟩ ⟨b, h₂⟩ => ⟨a b, H h₁ h₂⟩) <$> f <*> x, ?_⟩
   simp only [← pure_seq]; simp [SatisfiesM, seq_assoc]
-  simp only [← pure_seq]; simp [seq_assoc, Function.comp]
+  simp only [← pure_seq]; simp [seq_assoc, Function.comp_def]
 
 /-- `SatisfiesM` distributes over `<*>`, strongest postcondition version. -/
 protected theorem seq_post [Applicative m] [LawfulApplicative m] {x : m α}
