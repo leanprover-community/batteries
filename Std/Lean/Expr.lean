@@ -135,3 +135,8 @@ def constName (e : Expr) : Name :=
 /-- Return the function (name) and arguments of an application. -/
 def getAppFnArgs (e : Expr) : Name × Array Expr :=
   withApp e λ e a => (e.constName, a)
+
+-- This has been PR'd to Lean as https://github.com/leanprover/lean4/pull/2900
+@[inherit_doc mkAppN]
+macro_rules
+  | `(mkAppN $f #[$xs,*]) => (xs.getElems.foldlM (fun x e => `(Expr.app $x $e)) f : MacroM Term)
