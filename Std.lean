@@ -145,6 +145,16 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega.Coeffs.IntList
+import Std.Tactic.Omega.Constraint
+import Std.Tactic.Omega.Core
+import Std.Tactic.Omega.Frontend
+import Std.Tactic.Omega.Int
+import Std.Tactic.Omega.IntList
+import Std.Tactic.Omega.LinearCombo
+import Std.Tactic.Omega.Logic
+import Std.Tactic.Omega.MinNatAbs
+import Std.Tactic.Omega.OmegaM
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
