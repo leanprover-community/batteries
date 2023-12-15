@@ -46,8 +46,6 @@ theorem eq_false_iff : {b : Bool} → b = false ↔ b ≠ true := by decide
 
 theorem eq_true_iff : {b : Bool} → b = true ↔ b ≠ false := by decide
 
-theorem eq_iff_iff : {a b : Bool} → a = b ↔ (a ↔ b) := by decide
-
 /-! ### beq -/
 
 @[simp] theorem beq_false_left : ∀ (x : Bool), (false == x) = !x := by decide
