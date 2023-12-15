@@ -58,6 +58,6 @@ _nothing else_.
 This will remove the previous label and replace it by the requested status label.
 
 One of the easiest ways to contribute is to find a missing proof and complete it. The
-(`proof_wanted`)[https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean]
+[`proof_wanted`](https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
