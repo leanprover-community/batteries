@@ -164,11 +164,14 @@ def nat? (e : Expr) : Option Nat := do
 
 /--
 Checks if an expression is an "integer in normal form",
-i.e. either a natural number in normal form, or the negation of one,
+i.e. either a natural number in normal form, or the negation of a positive natural number,
 and if so returns the integer.
 -/
 def int? (e : Expr) : Option Int :=
   if e.isAppOfArity ``Neg.neg 3 then
-    (- ·) <$> e.appArg!.nat?
+    match e.appArg!.nat? with
+    | none => none
+    | some 0 => none
+    | some n => some (-n)
   else
     e.nat?
