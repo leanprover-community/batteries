@@ -12,7 +12,7 @@ def Lean.LocalContext.inaccessibleFVars (lctx : LocalContext) :
   let (result, _) :=
     lctx.foldr (β := Array LocalDecl × HashSet Name)
       (init := (Array.mkEmpty lctx.numIndices, {}))
-      λ ldecl (result, seen) =>
+      fun ldecl (result, seen) =>
         if ldecl.isImplementationDetail then
           (result, seen)
         else
