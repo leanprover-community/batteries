@@ -1379,9 +1379,7 @@ theorem sign_eq_neg_one_iff_neg (a : Int) : sign a = -1 ↔ a < 0 :=
 
 /-! ### nat abs -/
 
-theorem ofNat_natAbs_eq_of_nonneg : ∀ a : Int, 0 ≤ a → Int.natAbs a = a
-  | (_:Nat), _ => rfl
-  | -[n+1],  h => absurd (negSucc_lt_zero n) (Int.not_lt.2 h)
+@[deprecated] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
 
 theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
   rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]
