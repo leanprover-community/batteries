@@ -261,7 +261,7 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
   | []          => nil
   | (a,b) :: es => cons a b (toAssocList es)
 
-@[simp] theorem _root_.List.toList_toAssoc (l : List (α × β)) : l.toAssocList.toList = l := by
+@[simp] theorem _root_.List.toList_toAssocList (l : List (α × β)) : l.toAssocList.toList = l := by
   induction l <;> simp [*]
 
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
