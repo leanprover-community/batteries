@@ -48,12 +48,9 @@ private theorem two_mul_sub_one {n : Nat} (n_pos : n > 0) : (2*n - 1) % 2 = 1 :=
   if xz : x = 0 then
     simp [xz, zero_and]
   else
-    have andz := and_zero (x/2)
-    simp only [HAnd.hAnd, AndOp.and, land] at andz
     simp only [HAnd.hAnd, AndOp.and, land]
     unfold bitwise
-    cases mod_two_eq_zero_or_one x with | _ p =>
-      simp [xz, p, andz, one_div_two, mod_eq_of_lt]
+    cases mod_two_eq_zero_or_one x with | _ p => simp [xz, p]
 
 /-! ### testBit -/
 
