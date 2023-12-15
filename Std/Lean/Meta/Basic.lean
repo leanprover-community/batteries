@@ -332,6 +332,23 @@ def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
 def applyConst (mvar : MVarId) (c : Name) (cfg : ApplyConfig := {}) : MetaM (List MVarId) := do
   mvar.apply (← mkConstWithFreshMVarLevels c) cfg
 
+/--
+Given `p : P ∨ Q` (or any inductive type with two one-argument constructors),
+split the goal into two subgoals:
+one containing the hypothesis `h : P` and another containing `h : Q`.
+-/
+def cases₂ (mvarId : MVarId) (p : Expr) (hName : Name := `h) :
+    MetaM ((MVarId × FVarId) × (MVarId × FVarId)) := do
+  let mvarId ← mvarId.assert `hByCases (← inferType p) p
+  let (fvarId, mvarId) ← mvarId.intro1
+  let #[s₁, s₂] ← mvarId.cases fvarId #[{ varNames := [hName] }, { varNames := [hName] }] |
+    throwError "'cases' tactic failed, unexpected number of subgoals"
+  let #[Expr.fvar f₁ ..] ← pure s₁.fields
+    | throwError "'cases' tactic failed, unexpected new hypothesis"
+  let #[Expr.fvar f₂ ..] ← pure s₂.fields
+    | throwError "'cases' tactic failed, unexpected new hypothesis"
+  return ((s₁.mvarId, f₁), (s₂.mvarId, f₂))
+
 end MVarId
 
 
