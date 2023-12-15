@@ -52,7 +52,7 @@ def length (L : AssocList α β) : Nat :=
 @[simp] theorem length_nil : length (nil : AssocList α β) = 0 := rfl
 @[simp] theorem length_cons : length (cons a b t) = length t + 1 := rfl
 
-theorem toList_length (l : AssocList α β) : l.toList.length = l.length := by
+theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Fold a monadic function over the list, from head to tail. -/
@@ -94,11 +94,11 @@ def toListTR (as : AssocList α β) : List (α × β) :=
   | nil        => nil
   | cons k v t => cons (f k) v (mapKey f t)
 
-@[simp] theorem mapKey_toList (f : α → δ) (l : AssocList α β) :
+@[simp] theorem toList_mapKey (f : α → δ) (l : AssocList α β) :
     (mapKey f l).toList = l.toList.map (fun (a, b) => (f a, b)) := by
   induction l <;> simp [*]
 
-@[simp] theorem mapKey_length : (mapKey f l).length = l.length := by
+@[simp] theorem length_mapKey : (mapKey f l).length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Map a function `f` over the values of the list. -/
@@ -106,11 +106,11 @@ def toListTR (as : AssocList α β) : List (α × β) :=
   | nil        => nil
   | cons k v t => cons k (f k v) (mapVal f t)
 
-@[simp] theorem mapVal_toList (f : α → β → δ) (l : AssocList α β) :
+@[simp] theorem toList_mapVal (f : α → β → δ) (l : AssocList α β) :
     (mapVal f l).toList = l.toList.map (fun (a, b) => (a, f a b)) := by
   induction l <;> simp [*]
 
-@[simp] theorem mapVal_length : (mapVal f l).length = l.length := by
+@[simp] theorem length_mapVal : (mapVal f l).length = l.length := by
   induction l <;> simp_all
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
@@ -179,12 +179,12 @@ with key equal to `a` to have key `a` and value `b`.
     | true  => cons a b es
     | false => cons k v (replace a b es)
 
-@[simp] theorem replace_toList [BEq α] (a : α) (b : β) (l : AssocList α β) :
+@[simp] theorem toList_replace [BEq α] (a : α) (b : β) (l : AssocList α β) :
     (replace a b l).toList =
     l.toList.replaceF (bif ·.1 == a then some (a, b) else none) := by
   induction l <;> simp [replace]; split <;> simp [*]
 
-@[simp] theorem replace_length [BEq α] {a : α} : (replace a b l).length = l.length := by
+@[simp] theorem length_replace [BEq α] {a : α} : (replace a b l).length = l.length := by
   induction l
   · rfl
   · simp only [replace, length_cons]
@@ -195,7 +195,7 @@ with key equal to `a` to have key `a` and value `b`.
   | nil         => nil
   | cons k v es => bif p k v then es else cons k v (eraseP p es)
 
-@[simp] theorem eraseP_toList (p) (l : AssocList α β) :
+@[simp] theorem toList_eraseP (p) (l : AssocList α β) :
     (eraseP p l).toList = l.toList.eraseP fun (a, b) => p a b := by
   induction l <;> simp [List.eraseP, cond]; split <;> simp [*]
 
@@ -203,8 +203,8 @@ with key equal to `a` to have key `a` and value `b`.
 @[inline] def erase [BEq α] (a : α) (l : AssocList α β) : AssocList α β :=
   eraseP (fun k _ => k == a) l
 
-@[simp] theorem erase_toList [BEq α] (a : α) (l : AssocList α β) :
-    (erase a l).toList = l.toList.eraseP (·.1 == a) := eraseP_toList ..
+@[simp] theorem toList_erase [BEq α] (a : α) (l : AssocList α β) :
+    (erase a l).toList = l.toList.eraseP (·.1 == a) := toList_eraseP ..
 
 /--
 `O(n)`. Replace the first entry `a', b` in the list
@@ -216,14 +216,14 @@ with key equal to `a` to have key `a` and value `f a' b`.
     | true  => cons a (f k v) es
     | false => cons k v (modify a f es)
 
-@[simp] theorem modify_toList [BEq α] (a : α) (l : AssocList α β) :
+@[simp] theorem toList_modify [BEq α] (a : α) (l : AssocList α β) :
     (modify a f l).toList =
     l.toList.replaceF fun (k, v) => bif k == a then some (a, f k v) else none := by
   simp [cond]
   induction l with simp [List.replaceF]
   | cons k v es ih => cases k == a <;> simp [ih]
 
-@[simp] theorem modify_length [BEq α] {a : α} : (modify a f l).length = l.length := by
+@[simp] theorem length_modify [BEq α] {a : α} : (modify a f l).length = l.length := by
   induction l
   · rfl
   · simp only [modify, length_cons]
@@ -261,13 +261,13 @@ instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
   | []          => nil
   | (a,b) :: es => cons a b (toAssocList es)
 
-@[simp] theorem _root_.List.toAssocList_toList (l : List (α × β)) : l.toAssocList.toList = l := by
+@[simp] theorem _root_.List.toList_toAssoc (l : List (α × β)) : l.toAssocList.toList = l := by
   induction l <;> simp [*]
 
 @[simp] theorem toList_toAssocList (l : AssocList α β) : l.toList.toAssocList = l := by
   induction l <;> simp [*]
 
-@[simp] theorem _root_.List.toAssocList_length (l : List (α × β)) :
+@[simp] theorem _root_.List.length_toAssocList (l : List (α × β)) :
     l.toAssocList.length = l.length := by
   induction l <;> simp [*]
 
