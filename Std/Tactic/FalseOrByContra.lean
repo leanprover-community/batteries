@@ -29,15 +29,15 @@ Otherwise, for a goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
 -/
 syntax (name := false_or_by_contra) "false_or_by_contra" : tactic
 
+open Meta Elab Tactic
+
 @[inherit_doc false_or_by_contra]
 def falseOrByContra (g : MVarId) : MetaM (List MVarId) := do
-  match ← g.getType with
+  match ← whnfR (← g.getType) with
   | .const ``False _ => pure [g]
   | .app (.const ``Not _) _
-  | mkAppN (.const ``Ne _) #[_, _, _] => pure [(← g.intro1).2]
+  | .app (.const ``Ne _) _ => pure [(← g.intro1).2]
   | _ => (← g.applyConst ``Classical.byContradiction).mapM fun s => (·.2) <$> s.intro1
-
-open Elab Tactic
 
 elab_rules : tactic
   | `(tactic| false_or_by_contra) => liftMetaTactic falseOrByContra

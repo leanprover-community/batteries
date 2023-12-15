@@ -36,7 +36,7 @@ def instantiateMVarsInLocalDecl [Monad m] [MonadMCtx m] [MonadError m]
     "unknown fvar '{fvarId.name}' (in local context of mvar '?{mvarId.name}')"
   let ldecl ← Lean.instantiateLocalDeclMVars ldecl
   let mdecl :=
-    { mdecl with lctx := mdecl.lctx.modifyLocalDecl fvarId λ _ => ldecl }
+    { mdecl with lctx := mdecl.lctx.modifyLocalDecl fvarId fun _ => ldecl }
   modifyMCtx (·.declareExprMVar mvarId mdecl)
   return ldecl
 
