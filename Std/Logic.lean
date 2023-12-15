@@ -662,7 +662,7 @@ This is the same as `decidable_of_iff` but the iff is flipped. -/
   decidable_of_decidable_of_iff h.symm
 
 instance Decidable.predToBool (p : α → Prop) [DecidablePred p] :
-  CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
+    CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
 
 /-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
 (This is sometimes taken as an alternate definition of decidability.) -/
