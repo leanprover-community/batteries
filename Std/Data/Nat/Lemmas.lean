@@ -1332,13 +1332,6 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
   · exact (m % 0).div_zero
   · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)
 
-/-! ### shiftLeft -/
-
-theorem shiftLeft_zero (m) : m <<< 0 = m := rfl
-
-theorem shiftLeft_succ (m n) : m <<< (n + 1) = 2 * (m <<< n) := by
-  simp only [shiftLeft_eq, Nat.pow_add, Nat.pow_one, ← Nat.mul_assoc, Nat.mul_comm]
-
 /-! ### bitwise -/
 
 @[simp]
@@ -1373,7 +1366,7 @@ theorem bodd_eq_mod_two_bne_zero (n : Nat) : bodd n = (n % 2 != 0) := by
 @[simp]
 theorem bodd_succ (n : Nat) : bodd (succ n) = not (bodd n) := by
   simp only [bodd_eq_mod_two_bne_zero, succ_eq_add_one, succ_mod_two_eq_one_sub_mod_two]
-  cases mod_two_eq_zero_or_one n with | _ h => simp [h]
+  cases mod_two_eq_zero_or_one n with | _ h => simp (config := {decide := true}) [h]
 
 @[simp]
 theorem bodd_add (m n : Nat) : bodd (m + n) = ((bodd m).xor (bodd n)) := by
@@ -1423,33 +1416,24 @@ theorem div2_bit (b n) : div2 (bit b n) = n := by
 
 @[simp]
 theorem binaryRec_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) :
-    binaryRec z f 0 = z := by
-  rw [binaryRec]
+    binaryRec z f 0 = z :=
   rfl
-
-theorem binaryRec_eq {C : Nat → Sort u} {z : C 0} {f : ∀ b n, C n → C (bit b n)} (b n)
-    (h : f false 0 z = z ∨ (n = 0 → b = true)) :
-    binaryRec z f (bit b n) = f b n (binaryRec z f n) := by
-  rw [binaryRec]
-  by_cases h : bit b n = 0
-  -- Note: this renames the original `h : f false 0 z = z` to `h'` and leaves `h : bit b n = 0`
-  case pos h' =>
-    obtain ⟨rfl, rfl⟩ := bit_eq_zero_iff.mp h
-    simp only [or_false] at h'
-    exact h'.symm
-  case neg h' =>
-    simp only [dif_neg h]
-    generalize bit_decomp (bit b n) = e
-    revert e
-    rw [bodd_bit, div2_bit]
-    intros; rfl
 
 theorem binaryRec_of_ne_zero {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) {n}
     (h : n ≠ 0) :
     binaryRec z f n = bit_decomp n ▸ f n.bodd n.div2 (binaryRec z f n.div2) := by
-  rw [binaryRec, dif_neg h]
-  generalize bit_decomp n = e; revert e
-  apply bitCasesOn n
-  intro _ _
-  rw [bodd_bit, div2_bit]
-  intro; rfl
+  rw [binaryRec, dif_neg h, Eq.rec_eq_cast, Eq.rec_eq_cast]
+
+theorem binaryRec_eq {C : Nat → Sort u} {z : C 0} {f : ∀ b n, C n → C (bit b n)} (b n)
+    (h : f false 0 z = z ∨ (n = 0 → b = true)) :
+    binaryRec z f (bit b n) = f b n (binaryRec z f n) := by
+  by_cases h' : bit b n = 0
+  case pos =>
+    obtain ⟨rfl, rfl⟩ := bit_eq_zero_iff.mp h'
+    simp only [forall_const, or_false] at h
+    exact h.symm
+  case neg =>
+    rw [binaryRec_of_ne_zero _ _ h']
+    generalize bit_decomp (bit b n) = e; revert e
+    rw [bodd_bit, div2_bit]
+    intros; rfl

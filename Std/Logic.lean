@@ -721,6 +721,8 @@ end Classical
 
 /-! ## equality -/
 
+section Equality
+
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
@@ -729,8 +731,72 @@ theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
 
-theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
+alias congr_fun := congrFun
+alias congr_arg := congrArg
+
+theorem congr_arg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
+
+@[simp] theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
+  rfl
+
+@[simp] theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
+  rfl
+
+@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
+    cast hb (cast ha a) = cast (ha.trans hb) a
+  | rfl, rfl, _ => rfl
+
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+  | rfl, h => Eq.recOn h (HEq.refl _)
+
+theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+  ⟨heq_of_cast_eq _, fun h ↦ by cases h; rfl⟩
+
+section EqRec
+variable {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+  (x : motive a (rfl : a = a)) {a' : α} (e : a = a')
+
+theorem Eq.rec_eq_cast : @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
+  subst e; rfl
+
+--Porting note: new theorem. More general version of `eqRec_heq`
+theorem eqRec_heq' : HEq (@Eq.rec α a motive x a' e) x := by
+  subst e; rfl
+
+@[simp]
+theorem rec_heq_iff_heq {β : Sort _} (y : β) : HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+  subst e; rfl
+
+@[simp]
+theorem heq_rec_iff_heq {β : Sort _} (y : β) : HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+  subst e; rfl
+
+end EqRec
+
+protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
+  subst h₁; subst h₂; rfl
+
+theorem Eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+
+theorem Eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
+
+variable {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+
+theorem congr_fun₂ {f g : ∀ a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+  congr_fun (congr_fun h _) _
+
+theorem congr_fun₃ {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+    f a b c = g a b c :=
+  congr_fun₂ (congr_fun h _) _ _
+
+theorem funext₂ {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+  funext fun _ ↦ funext <| h _
+
+theorem funext₃ {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+  funext fun _ ↦ funext₂ <| h _
+
+end Equality
 
 /-! ## membership -/
 

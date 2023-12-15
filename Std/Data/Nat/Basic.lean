@@ -165,9 +165,10 @@ theorem mod_two_eq_zero_or_one (n : Nat) : n % 2 = 0 ∨ n % 2 = 1 :=
 theorem mod_two_of_bodd (n : Nat) : n % 2 = cond (bodd n) 1 0 := by
   dsimp [bodd, (· &&& ·), AndOp.and, land]
   unfold bitwise
-  by_cases n0 : n = 0
-  · simp [n0]
-  · simp only [ite_false, decide_True, Bool.true_and, decide_eq_true_eq, n0,
+  match Nat.decEq n 0 with
+  | isTrue n0 => subst n0; decide
+  | isFalse n0 =>
+    simp only [ite_false, decide_True, Bool.true_and, decide_eq_true_eq, n0,
       show 1 / 2 = 0 by decide]
     cases mod_two_eq_zero_or_one n with | _ h => simp [h]; rfl
 
@@ -195,8 +196,8 @@ theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n :=
   they can be constructed for all natural numbers. -/
 @[specialize]
 def binaryRec {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) (n : Nat) : C n :=
-  if n0 : n = 0 then by rw [n0]; exact z
-  else by rw [← n.bit_decomp]; exact f n.bodd n.div2 (binaryRec z f n.div2)
+  if n0 : n = 0 then congrArg C n0 ▸ z -- `congrArg C _` is `rfl` in non-dependent case
+  else congrArg C n.bit_decomp ▸ f n.bodd n.div2 (binaryRec z f n.div2)
   decreasing_by exact binaryRec_decreasing n0
 
 /-- The same as `binaryRec`, but the induction step can assume that if `n=0`,
