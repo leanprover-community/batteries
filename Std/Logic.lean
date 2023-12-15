@@ -664,13 +664,11 @@ This is the same as `decidable_of_iff` but the iff is flipped. -/
 instance Decidable.predToBool (p : α → Prop) [DecidablePred p] :
     CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
 
-theorem Bool.false_ne_true : false ≠ true := fun.
-
 /-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
 (This is sometimes taken as an alternate definition of decidability.) -/
 def decidable_of_bool : ∀ (b : Bool), (b ↔ a) → Decidable a
   | true, h => isTrue (h.1 rfl)
-  | false, h => isFalse (mt h.2 Bool.false_ne_true)
+  | false, h => isFalse (mt h.2 Bool.noConfusion)
 
 protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p x)]
     [∀ x, Decidable (p x)] : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
@@ -914,14 +912,5 @@ example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
   ⟨fun ⟨x, _⟩ ⟨y, _⟩ => by congr; exact Subsingleton.elim x y⟩
 
 theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
-
-theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
-  | true => .inl rfl
-  | false => .inr rfl
-
-theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
-  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
-
-theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩

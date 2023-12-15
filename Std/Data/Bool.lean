@@ -38,6 +38,52 @@ instance (x y : Bool) : Decidable (x < y) := inferInstanceAs (Decidable (!x && y
 instance : Max Bool := ⟨or⟩
 instance : Min Bool := ⟨and⟩
 
+theorem false_ne_true : false ≠ true := Bool.noConfusion
+
+theorem eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false := by decide
+
+theorem eq_false_iff : {b : Bool} → b = false ↔ b ≠ true := by decide
+
+theorem eq_true_iff : {b : Bool} → b = true ↔ b ≠ false := by decide
+
+theorem eq_iff_iff : {a b : Bool} → a = b ↔ (a ↔ b) := by decide
+
+/-! ### beq -/
+
+@[simp] theorem beq_false_left : ∀ (x : Bool), (false == x) = !x := by decide
+
+@[simp] theorem beq_false_right : ∀ (x : Bool), (x == false) = !x := by decide
+
+@[simp] theorem beq_true_left : ∀ (x : Bool), (true == x) = x := by decide
+
+@[simp] theorem beq_true_right : ∀ (x : Bool), (x == true) = x := by decide
+
+theorem beq_not_left : ∀ (x y : Bool), (!x == y) = !(x == y) := by decide
+
+theorem beq_not_right : ∀ (x y : Bool), (x == !y) = !(x == y) := by decide
+
+@[simp] theorem beq_not_not : ∀ (x y : Bool), (!x == !y) = (x == y) := by decide
+
+theorem beq_eq_not_xor : ∀ (x y : Bool), (x == y) = !xor x y := by decide
+
+/-! ### bne -/
+
+@[simp] theorem bne_false_left : ∀ (x : Bool), (false != x) = x := by decide
+
+@[simp] theorem bne_false_right : ∀ (x : Bool), (x != false) = x := by decide
+
+@[simp] theorem bne_true_left : ∀ (x : Bool), (true != x) = !x := by decide
+
+@[simp] theorem bne_true_right : ∀ (x : Bool), (x != true) = !x := by decide
+
+theorem bne_not_left : ∀ (x y : Bool), (!x != y) = (x == y) := by decide
+
+theorem bne_not_right : ∀ (x y : Bool), (x != !y) = (x == y) := by decide
+
+@[simp] theorem bne_not_not : ∀ (x y : Bool), (!x != !y) = (x != y) := by decide
+
+theorem bne_eq_xor : ∀ (x y : Bool), (x != y) = xor x y := by decide
+
 /-! ### and -/
 
 @[simp] theorem not_and_self : ∀ (x : Bool), (!x && x) = false := by decide
