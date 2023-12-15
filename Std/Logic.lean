@@ -916,4 +916,6 @@ example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
 
 theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
 
+theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
+
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
