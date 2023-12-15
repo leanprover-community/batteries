@@ -1407,10 +1407,16 @@ theorem div2_succ (n : Nat) : div2 (succ n) = cond (bodd n) (succ (div2 n)) (div
   rw (config := {occs := .pos [1]}) [bodd_add_div2, bodd_succ, ← bodd_add_div2 n]
   cases bodd n <;> simp [succ_eq_add_one, Nat.add_comm 1, Nat.mul_add]
 
-theorem div2_bit (b n) : div2 (bit b n) = n := by
-  rw [bit_val, div2_val, Nat.add_comm, add_mul_div_left, div_eq_of_lt, Nat.zero_add]
+theorem bit_div_two (b n) : bit b n / 2 = n := by
+  rw [bit_val, Nat.add_comm, add_mul_div_left, div_eq_of_lt, Nat.zero_add]
   · cases b <;> decide
   · decide
+
+theorem div2_bit (b n) : div2 (bit b n) = n :=
+  bit_div_two b n
+
+theorem mul_two_le_bit {x b n} : x * 2 ≤ bit b n ↔ x ≤ n := by
+  rw [← le_div_iff_mul_le Nat.two_pos, bit_div_two]
 
 /-! ### binary rec/cases -/
 

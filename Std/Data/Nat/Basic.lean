@@ -129,7 +129,7 @@ termination_by iter guess => guess
 
 /-- `bodd n` returns `true` if `n` is odd-/
 def bodd (n : Nat) : Bool :=
-  (1 &&& n) != 0
+  (1 &&& n) != 0 -- `1 &&& n` is faster than `n &&& 1` for big `n`. This may change in the future.
 
 /-- `div2 n = ⌊n/2⌋` the greatest integer smaller than `n/2`-/
 def div2 (n : Nat) : Nat :=

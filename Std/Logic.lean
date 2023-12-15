@@ -732,6 +732,9 @@ theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
 alias congr_fun := congrFun
 alias congr_arg := congrArg
 
+theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
+  fun w : x = y ↦ h (congr_arg f w)
+
 theorem congr_arg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
 
