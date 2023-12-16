@@ -225,3 +225,9 @@ info: Grab bag:
 /-- error: no suggestions available -/
 #guard_msgs in
 #demo #[]
+
+/- The messages and suggestion should still read `Try this: rfl`, but the text in the lightbulb
+menu should read "Consider rfl, please" -/
+/-- info: Try this: rfl -/
+#guard_msgs in
+#demo1 { s with toCodeActionTitle? := fun text => "Consider " ++ text ++ ", please" }
