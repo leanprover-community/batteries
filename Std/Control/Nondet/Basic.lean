@@ -59,13 +59,13 @@ def nil : Nondet m α := .mk .nil
 instance : Inhabited (Nondet m α) := ⟨.nil⟩
 
 /--
-Squash a monadic nondeterministic value to a nondeterministic value.
+Squashes a monadic nondeterministic value to a nondeterministic value.
 -/
 def squash (L : Unit → m (Nondet m α)) : Nondet m α :=
   .mk <| MLList.squash fun _ => return (← L ()).toMLList
 
 /--
-Bind a nondeterministic function over a nondeterministic value,
+Binds a nondeterministic function over a nondeterministic value,
 ensuring the function is run with the relevant backtrackable state at each value.
 -/
 partial def bind (L : Nondet m α) (f : α → Nondet m β) : Nondet m β := .squash fun _ => do
@@ -78,13 +78,13 @@ partial def bind (L : Nondet m α) (f : α → Nondet m β) : Nondet m β := .sq
     | none => return r
     | some (y, ys) => return .mk <| .cons y (ys.append (fun _ => r.toMLList))
 
-/-- Convert any value in the monad to the singleton nondeterministic value. -/
+/-- Converts a value in the monad to the singleton nondeterministic value. -/
 def singletonM (x : m α) : Nondet m α :=
   .mk <| .singletonM do
     let a ← x
     return (a, ← saveState)
 
-/-- Convert a value to the singleton nondeterministic value. -/
+/-- Converts a value to the singleton nondeterministic value. -/
 def singleton (x : α) : Nondet m α := singletonM (pure x)
 
 /-- `Nondet m` is a monad. -/
@@ -101,7 +101,7 @@ instance : MonadLift m (Nondet m) where
   monadLift := singletonM
 
 /--
-Lift a list of monadic values to a nondeterministic value.
+Lifts a list of monadic values to a nondeterministic value.
 We ensure that each monadic value is evaluated with the same backtrackable state.
 -/
 def ofListM (L : List (m α)) : Nondet m α :=
@@ -113,46 +113,46 @@ def ofListM (L : List (m α)) : Nondet m α :=
       pure (a, ← saveState)
 
 /--
-Lift a list of values to a nondeterministic value.
+Lifts a list of values to a nondeterministic value.
 (The backtrackable state in each will be identical:
 whatever the state was when we first read from the result.)
 -/
 def ofList (L : List α) : Nondet m α := ofListM (L.map pure)
 
-/-- Apply a function which returns values in the monad to every alternative of a `Nondet m α`. -/
-partial def mapM (f : α → m β) (L : Nondet m α) : Nondet m β :=
+/-- Applies a function which returns values in the monad to every alternative of a `Nondet m α`. -/
+def mapM (f : α → m β) (L : Nondet m α) : Nondet m β :=
   L.bind fun a => singletonM (f a)
 
-/-- Apply a function to each alternative in a `Nondet m α` . -/
+/-- Applies a function to each alternative in a `Nondet m α` . -/
 def map (f : α → β) (L : Nondet m α) : Nondet m β :=
   L.mapM fun a => pure (f a)
 
-/-- Convert a monadic optional value to a nondeterministic value. -/
+/-- Converts a monadic optional value to a nondeterministic value. -/
 def ofOptionM (x : m (Option α)) : Nondet m α := .squash fun _ => do
   match ← x with
   | none => return .nil
   | some a => return singleton a
 
-/-- Convert an optional value to a nondeterministic value. -/
+/-- Converts an optional value to a nondeterministic value. -/
 def ofOption (x : Option α) : Nondet m α := ofOptionM (pure x)
 
-/-- Filter and map a nondeterministic value using a monadic function which may return `none`. -/
-partial def filterMapM (f : α → m (Option β)) (L : Nondet m α) : Nondet m β :=
+/-- Filters and map sa nondeterministic value using a monadic function which may return `none`. -/
+def filterMapM (f : α → m (Option β)) (L : Nondet m α) : Nondet m β :=
   L.bind fun a => ofOptionM (f a)
 
-/-- Filter and map a nondeterministic value. -/
+/-- Filters and maps a nondeterministic value using a function which may return `none`. -/
 def filterMap (f : α → Option β) (L : Nondet m α) : Nondet m β :=
   L.filterMapM fun a => pure (f a)
 
-/-- Filter a nondeterministic value using a monadic predicate. -/
-partial def filterM (p : α → m (ULift Bool)) (L : Nondet m α) : Nondet m α :=
+/-- Filters a nondeterministic value using a monadic predicate. -/
+def filterM (p : α → m (ULift Bool)) (L : Nondet m α) : Nondet m α :=
   L.filterMapM fun a => do
     if (← p a).down then
       pure (some a)
     else
       pure none
 
-/-- Filter a nondeterministic value. -/
+/-- Filters a nondeterministic value. -/
 def filter (p : α → Bool) (L : Nondet m α) : Nondet m α :=
   L.filterM fun a => pure <| .up (p a)
 
@@ -165,7 +165,7 @@ partial def iterate (f : α → Nondet m α) (a : α) : Nondet m α :=
   singleton a <|> (f a).bind (iterate f)
 
 /--
-Find the first alternative in a nondeterministic value, as a monadic value.
+Finds the first alternative in a nondeterministic value, as a monadic value.
 -/
 def head [Alternative m] (L : Nondet m α) : m α := do
   let (x, s) ← L.toMLList.head
@@ -173,24 +173,24 @@ def head [Alternative m] (L : Nondet m α) : m α := do
   return x
 
 /--
-Find the value of a monadic function on the first alternative in a nondeterministic value
+Finds the value of a monadic function on the first alternative in a nondeterministic value
 where the function succeeds.
 -/
 def firstM [Alternative m] (L : Nondet m α) (f : α → m (Option β)) : m β :=
   L.filterMapM f |>.head
 
 /--
-Convert a non-deterministic value into a lazy list, by discarding the backtrackable state.
+Converts a non-deterministic value into a lazy list, by discarding the backtrackable state.
 -/
 def toMLList' (L : Nondet m α) : MLList m α := L.toMLList.map (·.1)
 
 /--
-Convert a non-deterministic value into a list in the monad, retaining the backtrackable state.
+Converts a non-deterministic value into a list in the monad, retaining the backtrackable state.
 -/
 def toList (L : Nondet m α) : m (List (α × σ)) := L.toMLList.force
 
 /--
-Convert a non-deterministic value into a list in the monad, by discarding the backtrackable state.
+Converts a non-deterministic value into a list in the monad, by discarding the backtrackable state.
 -/
 def toList' (L : Nondet m α) : m (List α) := L.toMLList.map (·.1) |>.force
 
