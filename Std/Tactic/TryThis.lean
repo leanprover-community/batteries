@@ -94,12 +94,14 @@ apply the replacement.
     let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
     let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
     let .ok suggestions := suggestions.getArr? | panic! "bad type"
+    let codeActionPrefix :=
+      (props.getObjValAs? String "codeActionPrefix").toOption.getD "Try this: "
     let mut result := result
     for h : i in [:suggestions.size] do
       let suggestion := suggestions[i]'h.2
       let .ok newText := suggestion.getObjValAs? String "suggestion" | panic! "bad type"
       let codeActionTitle := (suggestion.getObjValAs? String "codeActionTitle").toOption.getD <|
-        "Try this: " ++ newText
+        codeActionPrefix ++ newText
       result := result.push {
         eager.title := codeActionTitle
         eager.kind? := "quickfix"
@@ -321,7 +323,8 @@ def delabToRefinableSuggestion (e : Expr) : MetaM Suggestion :=
 element or a list display is controlled by `isInline`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (header : String) (isInline : Bool) (origSpan? : Option Syntax := none)
-    (style? : Option SuggestionStyle := none) : CoreM Unit := do
+    (style? : Option SuggestionStyle := none) (codeActionPrefix? : Option String := none) :
+    CoreM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     -- FIXME: this produces incorrect results when `by` is at the beginning of the line, i.e.
@@ -338,7 +341,8 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
       range: $(map.utf8RangeToLspRange range),
       header: $header,
       isInline: $isInline,
-      style: $style?
+      style: $style?,
+      codeActionPrefix: $codeActionPrefix?
     })
 
 
@@ -396,20 +400,25 @@ The parameters are:
     `suggestion` instead.
   * `toCodeActionTitle?`: an optional function `String → String` describing how to transform the
     pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
-    If `none`, we simply prepend `"Try This: "` to the suggestion text.
+    If `none`, we simply prepend `codeActionPrefix?` to the suggestion text if provided (see
+    below), or else prepend `"Try this: "`.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
 * `style?`: a default style for all suggestions which do not have a custom `style?` set.
+* `codeActionPrefix?`: a default prefix string for code action messages in the lightbulb menu. This
+  is used for all suggestions which do not have a custom `toCodeActionTitle?`. (When `none`, the
+  default prefix is `"Try this: "`.)
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none) (header : String := "Try these:")
-    (style? : Option SuggestionStyle := none) : MetaM Unit := do
+    (style? : Option SuggestionStyle := none) (codeActionPrefix? : Option String := none) :
+    MetaM Unit := do
   if suggestions.isEmpty then throwErrorAt ref "no suggestions available"
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
   logInfoAt ref m!"{header}{msgs}"
-  addSuggestionCore ref suggestions header (isInline := false) origSpan? style?
+  addSuggestionCore ref suggestions header (isInline := false) origSpan? style? codeActionPrefix?
 
 private def addExactSuggestionCore (addSubgoalsMsg : Bool) (e : Expr) : MetaM Suggestion := do
   let stx ← delabToRefinableSyntax e
