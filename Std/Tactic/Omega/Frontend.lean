@@ -343,40 +343,32 @@ end MetaProblem
 
 /-- Implementation of the `omega` algorithm, and handling disjunctions. -/
 partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withContext do
-  let m' ← m.processFacts
-  guard m'.facts.isEmpty
-  let p := m'.problem
+  let m ← m.processFacts
+  guard m.facts.isEmpty
+  let p := m.problem
   trace[omega] "Extracted linear arithmetic problem:\nAtoms: {← atomsList}\n{p}"
   let p' ← if p.possible then p.solveEqualities else pure p
   let p'' ← if p'.possible then p'.run' else pure p'
   trace[omega] "After elimination:\nAtoms: {← atomsList}\n{p''}"
-  if p''.possible then
-    match m'.disjunctions with
+  match p''.possible, p''.proveFalse?, p''.proveFalse?_spec with
+  | true, _, _ =>
+    match m.disjunctions with
     | [] => throwError "omega did not find a contradiction:\n{p''}"
     | h :: t =>
       trace[omega] "Case splitting on {← inferType h}"
       let (⟨g₁, h₁⟩, ⟨g₂, h₂⟩) ← g.cases₂ h
       trace[omega] "Adding facts:\n{← g₁.withContext <| inferType (.fvar h₁)}"
-      let m₁ := { m' with
-        problem := p'
-        facts := [.fvar h₁]
-        disjunctions := t }
-      savingState do omegaImpl m₁ g₁
+      let m := { m with problem := p', facts := [.fvar h₁], disjunctions := t }
+      savingState do omegaImpl m g₁
       trace[omega] "Adding facts:\n{← g₂.withContext <| inferType (.fvar h₂)}"
-      let m₂ := { m' with
-        problem := p
-        facts := [.fvar h₂]
-        disjunctions := t }
-      omegaImpl m₂ g₂
-  else
-    match p''.proveFalse? with
-    | none => throwError "omega found a contradiction, but didn't produce a proof of False"
-    | some prf =>
-      trace[omega] "Justification:\n{p''.explanation?.get}"
-      let prf ← instantiateMVars (← prf)
-      trace[omega] "omega found a contradiction, proving {← inferType prf}"
-      trace[omega] "{prf}"
-      g.assign prf
+      let m := { m with problem := p, facts := [.fvar h₂], disjunctions := t }
+      omegaImpl m g₂
+  | false, .some prf, _ =>
+    trace[omega] "Justification:\n{p''.explanation?.get}"
+    let prf ← instantiateMVars (← prf)
+    trace[omega] "omega found a contradiction, proving {← inferType prf}"
+    trace[omega] "{prf}"
+    g.assign prf
 
 /--
 Given a collection of facts, try prove `False` using the omega algorithm,
@@ -395,20 +387,19 @@ If the goal is `¬ P`, introduce `P`.
 If the goal is `x ≠ y`, introduce `x = y`.
 Otherwise, for a goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
 -/
-syntax (name := false_or_by_contra) "false_or_by_contra" : tactic
-
-@[inherit_doc false_or_by_contra]
-def falseOrByContra (g : MVarId) : MetaM (List MVarId) := do
+def falseOrByContra (g : MVarId) : MetaM MVarId := do
   match ← g.getType with
-  | .const ``False _ => pure [g]
+  | .const ``False _ => pure g
   | .app (.const ``Not _) _
-  | mkAppN (.const ``Ne _) #[_, _, _] => pure [(← g.intro1).2]
-  | _ => (← g.applyConst ``Classical.byContradiction).mapM fun s => (·.2) <$> s.intro1
+  | mkAppN (.const ``Ne _) #[_, _, _] => pure (← g.intro1).2
+  | _ =>
+    let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
+    pure (← g.intro1).2
 
 open Lean Elab Tactic
 
-elab_rules : tactic
-  | `(tactic| false_or_by_contra) => liftMetaTactic falseOrByContra
+@[inherit_doc falseOrByContra]
+elab "false_or_by_contra" : tactic => liftMetaTactic1 (falseOrByContra ·)
 
 /--
 The `omega` tactic, for resolving integer and natural linear arithmetic problems.
@@ -428,16 +419,9 @@ On the first pass, we do not perform case splits on natural subtraction.
 If `omega` fails, we recursively perform a case split on
 a natural subtraction appearing in a hypothesis, and try again.
 -/
-def omegaTactic : TacticM Unit := do
-    liftMetaFinishingTactic fun g => do
-      let gs ← falseOrByContra g
-      _ ← gs.mapM fun g => g.withContext do
-        let hyps := (← getLocalHyps).toList
-        trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
-        omega hyps g
-
-@[inherit_doc omegaTactic]
-syntax "omega" : tactic
-
-elab_rules : tactic
-  | `(tactic| omega) => omegaTactic
+elab "omega" : tactic => liftMetaFinishingTactic fun g => do
+  let g ← falseOrByContra g
+  g.withContext do
+    let hyps := (← getLocalHyps).toList
+    trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
+    omega hyps g
