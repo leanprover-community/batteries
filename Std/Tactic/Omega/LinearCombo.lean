@@ -7,7 +7,6 @@ Authors: Scott Morrison
 -- replace `IntList` with `IntDict` here to use sparse representations
 import Std.Tactic.Omega.Coeffs.IntList
 
-
 /-!
 # Linear combinations
 
@@ -66,34 +65,26 @@ def coordinate (i : Nat) : LinearCombo where
     (coordinate i).eval v = v.get i := by
   simp [eval, coordinate]
 
-theorem coordinate_eval_0 : (coordinate 0).eval (.ofList (a0 :: t)) = a0 := by
-  simp
-theorem coordinate_eval_1 : (coordinate 1).eval (.ofList (a0 :: a1 :: t)) = a1 := by
-  simp
-theorem coordinate_eval_2 : (coordinate 2).eval (.ofList (a0 :: a1 :: a2 :: t)) = a2 := by
-  simp
-theorem coordinate_eval_3 : (coordinate 3).eval (.ofList (a0 :: a1 :: a2 :: a3 :: t)) = a3 := by
-  simp
+theorem coordinate_eval_0 : (coordinate 0).eval (.ofList (a0 :: t)) = a0 := by simp
+theorem coordinate_eval_1 : (coordinate 1).eval (.ofList (a0 :: a1 :: t)) = a1 := by simp
+theorem coordinate_eval_2 : (coordinate 2).eval (.ofList (a0 :: a1 :: a2 :: t)) = a2 := by simp
+theorem coordinate_eval_3 :
+    (coordinate 3).eval (.ofList (a0 :: a1 :: a2 :: a3 :: t)) = a3 := by simp
 theorem coordinate_eval_4 :
-    (coordinate 4).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: t)) = a4 := by
-  simp
+    (coordinate 4).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: t)) = a4 := by simp
 theorem coordinate_eval_5 :
-    (coordinate 5).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: t)) = a5 := by
-  simp
+    (coordinate 5).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: t)) = a5 := by simp
 theorem coordinate_eval_6 :
-    (coordinate 6).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: t)) = a6 := by
-  simp
+    (coordinate 6).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: t)) = a6 := by simp
 theorem coordinate_eval_7 :
-    (coordinate 7).eval (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: t)) = a7 := by
-  simp
+    (coordinate 7).eval
+      (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: t)) = a7 := by simp
 theorem coordinate_eval_8 :
     (coordinate 8).eval
-      (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: a8 :: t)) = a8 := by
-  simp
+      (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: a8 :: t)) = a8 := by simp
 theorem coordinate_eval_9 :
     (coordinate 9).eval
-      (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: a8 :: a9 :: t)) = a9 := by
-  simp
+      (.ofList (a0 :: a1 :: a2 :: a3 :: a4 :: a5 :: a6 :: a7 :: a8 :: a9 :: t)) = a9 := by simp
 
 /-- Implementation of addition on `LinearCombo`. -/
 def add (l₁ l₂ : LinearCombo) : LinearCombo where
@@ -141,27 +132,22 @@ instance : HMul Int LinearCombo LinearCombo := ⟨fun i lc => lc.smul i⟩
 @[simp] theorem smul_const {lc : LinearCombo} {i : Int} : (i * lc).const = i * lc.const := rfl
 @[simp] theorem smul_coeffs {lc : LinearCombo} {i : Int} : (i * lc).coeffs = i * lc.coeffs := rfl
 
-@[simp]
-theorem add_eval (l₁ l₂ : LinearCombo) (v : Coeffs) : (l₁ + l₂).eval v = l₁.eval v + l₂.eval v := by
+@[simp] theorem add_eval (l₁ l₂ : LinearCombo) (v : Coeffs) :
+    (l₁ + l₂).eval v = l₁.eval v + l₂.eval v := by
   rcases l₁ with ⟨r₁, c₁⟩; rcases l₂ with ⟨r₂, c₂⟩
   simp only [eval, add_const, add_coeffs, Int.add_assoc, Int.add_left_comm]
   congr
   exact Coeffs.dot_distrib_left c₁ c₂ v
 
-@[simp]
-theorem neg_eval (lc : LinearCombo) (v : Coeffs) : (-lc).eval v = - lc.eval v := by
+@[simp] theorem neg_eval (lc : LinearCombo) (v : Coeffs) : (-lc).eval v = - lc.eval v := by
   rcases lc with ⟨a, coeffs⟩
   simp [eval, Int.neg_add]
 
-@[simp]
-theorem sub_eval (l₁ l₂ : LinearCombo) (v : Coeffs) :
+@[simp] theorem sub_eval (l₁ l₂ : LinearCombo) (v : Coeffs) :
     (l₁ - l₂).eval v = l₁.eval v - l₂.eval v := by
   simp [sub_eq_add_neg, Int.sub_eq_add_neg]
 
-@[simp]
-theorem smul_eval (lc : LinearCombo) (i : Int) (v : Coeffs) :
+@[simp] theorem smul_eval (lc : LinearCombo) (i : Int) (v : Coeffs) :
     (i * lc).eval v = i * lc.eval v := by
   rcases lc with ⟨a, coeffs⟩
   simp [eval, Int.mul_add]
-
-end LinearCombo

@@ -142,9 +142,7 @@ def lookup (e : Expr) : OmegaM (Nat × Option (HashSet Expr)) := do
   if ← isTracingEnabledFor `omega then
     unless facts.isEmpty do
       trace[omega] "New facts: {← facts.toList.mapM fun e => inferType e}"
-  let i ← modifyGetThe State fun c => (c.atoms.size,
-    { c with
-      atoms := c.atoms.push e })
+  let i ← modifyGetThe State fun c => (c.atoms.size, { c with atoms := c.atoms.push e })
   return (i, some facts)
 
 end Omega

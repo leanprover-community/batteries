@@ -117,13 +117,13 @@ abbrev tidyCoeffs (s : Constraint) (x : Coeffs) : Coeffs := (tidy (s, x)).2
 
 theorem tidy_sat {s x v} (w : s.sat' x v) : (tidyConstraint s x).sat' (tidyCoeffs s x) v := by
   dsimp [tidyConstraint, tidyCoeffs, tidy, tidy?]
-  · split <;> rename_i hp
-    · split <;> rename_i hn
-      · simp_all
-      · rcases normalize?_eq_some hn with ⟨rfl, rfl⟩
-        exact normalize_sat w
-    · rcases positivize?_eq_some hp with ⟨rfl, rfl⟩
-      exact normalize_sat (positivize_sat w)
+  split <;> rename_i hp
+  · split <;> rename_i hn
+    · simp_all
+    · rcases normalize?_eq_some hn with ⟨rfl, rfl⟩
+      exact normalize_sat w
+  · rcases positivize?_eq_some hp with ⟨rfl, rfl⟩
+    exact normalize_sat (positivize_sat w)
 
 theorem combo_sat' (s t : Constraint)
     (a : Int) (x : Coeffs) (b : Int) (y : Coeffs) (v : Coeffs)
@@ -157,16 +157,16 @@ Our internal representation of argument "justifying" that a constraint holds on 
 We'll use this to construct the proof term once a contradiction is found.
 -/
 inductive Justification : Constraint → Coeffs → Type
-/--
-`Problem.assumptions[i]` generates a proof that `s.sat' coeffs atoms`
--/
-| assumption (s : Constraint) (x : Coeffs) (i : Nat) : Justification s x
-/-- The result of `tidy` on another `Justification`. -/
-| tidy (j : Justification s c) : Justification (tidyConstraint s c) (tidyCoeffs s c)
-/-- The result of `combine` on two `Justifications`. -/
-| combine {s t c} (j : Justification s c) (k : Justification t c) : Justification (s.combine t) c
-/-- A linear `combo` of two `Justifications`. -/
-| combo {s t x y} (a : Int) (j : Justification s x) (b : Int) (k : Justification t y) :
+  /--
+  `Problem.assumptions[i]` generates a proof that `s.sat' coeffs atoms`
+  -/
+  | assumption (s : Constraint) (x : Coeffs) (i : Nat) : Justification s x
+  /-- The result of `tidy` on another `Justification`. -/
+  | tidy (j : Justification s c) : Justification (tidyConstraint s c) (tidyCoeffs s c)
+  /-- The result of `combine` on two `Justifications`. -/
+  | combine {s t c} (j : Justification s c) (k : Justification t c) : Justification (s.combine t) c
+  /-- A linear `combo` of two `Justifications`. -/
+  | combo {s t x y} (a : Int) (j : Justification s x) (b : Int) (k : Justification t y) :
     Justification (Constraint.combo a s b t) (Coeffs.combo a x b y)
 /--
 The justification for the constraing constructed using "balanced mod" while
@@ -187,15 +187,15 @@ private def bullet (s : String) := "• " ++ s.replace "\n" "\n  "
 
 /-- Print a `Justification` as an indented tree structure. -/
 def toString : Justification s x → String
-| assumption _ _ i => s!"{x} ∈ {s}: assumption {i}"
-| @tidy s' x' j =>
-  if s == s' && x == x' then j.toString else s!"{x} ∈ {s}: tidying up:\n" ++ bullet j.toString
-| combine j k =>
-  s!"{x} ∈ {s}: combination of:\n" ++ bullet j.toString ++ "\n" ++ bullet k.toString
-| combo a j b k =>
-  s!"{x} ∈ {s}: {a} * x + {b} * y combo of:\n" ++ bullet j.toString ++ "\n" ++ bullet k.toString
-| bmod m _ i j =>
-  s!"{x} ∈ {s}: bmod with m={m} and i={i} of:\n" ++ bullet j.toString
+  | assumption _ _ i => s!"{x} ∈ {s}: assumption {i}"
+  | @tidy s' x' j =>
+    if s == s' && x == x' then j.toString else s!"{x} ∈ {s}: tidying up:\n" ++ bullet j.toString
+  | combine j k =>
+    s!"{x} ∈ {s}: combination of:\n" ++ bullet j.toString ++ "\n" ++ bullet k.toString
+  | combo a j b k =>
+    s!"{x} ∈ {s}: {a} * x + {b} * y combo of:\n" ++ bullet j.toString ++ "\n" ++ bullet k.toString
+  | bmod m _ i j =>
+    s!"{x} ∈ {s}: bmod with m={m} and i={i} of:\n" ++ bullet j.toString
 
 instance : ToString (Justification s x) where toString := toString
 
@@ -483,7 +483,7 @@ partial def solveEqualities (p : Problem) : OmegaM Problem :=
   else return p
 
 theorem addInequality_sat (w : c + Coeffs.dot x y ≥ 0) :
-    ({ lowerBound := some (-c), upperBound := none } : Constraint).sat' x y := by
+    Constraint.sat' { lowerBound := some (-c), upperBound := none } x y := by
   simp [Constraint.sat', Constraint.sat]
   rw [← Int.zero_sub c]
   exact Int.sub_left_le_of_le_add w
@@ -494,7 +494,7 @@ def addInequality_proof (c : Int) (x : Coeffs) (p : Proof) : Proof := do
   return mkApp4 (.const ``addInequality_sat []) (toExpr c) (toExpr x) (← atomsCoeffs) (← p)
 
 theorem addEquality_sat (w : c + Coeffs.dot x y = 0) :
-    ({ lowerBound := some (-c), upperBound := some (-c) } : Constraint).sat' x y := by
+    Constraint.sat' { lowerBound := some (-c), upperBound := some (-c) } x y := by
   simp [Constraint.sat', Constraint.sat]
   rw [Int.eq_iff_le_and_ge] at w
   rwa [Int.add_le_zero_iff_le_neg', Int.add_nonnneg_iff_neg_le', and_comm] at w
@@ -513,16 +513,16 @@ to a `Problem`.
 -- We are given `prf? : const + Coeffs.dot coeffs atoms ≥ 0`,
 -- and need to transform this to `Coeffs.dot coeffs atoms ≥ -const`.
 def addInequality (p : Problem) (const : Int) (coeffs : Coeffs) (prf? : Option Proof) : Problem :=
-    let prf := prf?.getD (do mkSorry (← mkFreshExprMVar none) false)
-    let i := p.assumptions.size
-    let p' := { p with assumptions := p.assumptions.push (addInequality_proof const coeffs prf) }
-    let f : Fact :=
-    { coeffs
-      constraint := { lowerBound := some (-const), upperBound := none }
-      justification := .assumption _ _ i }
-    let f := p.replayEliminations f
-    let f := f.tidy
-    p'.addConstraint f
+  let prf := prf?.getD (do mkSorry (← mkFreshExprMVar none) false)
+  let i := p.assumptions.size
+  let p' := { p with assumptions := p.assumptions.push (addInequality_proof const coeffs prf) }
+  let f : Fact :=
+  { coeffs
+    constraint := { lowerBound := some (-const), upperBound := none }
+    justification := .assumption _ _ i }
+  let f := p.replayEliminations f
+  let f := f.tidy
+  p'.addConstraint f
 
 /--
 Helper function for adding an equality of the form `const + Coeffs.dot coeffs atoms = 0`
@@ -531,16 +531,16 @@ to a `Problem`.
 (This is only used while initializing a `Problem`. During elimination we use `addConstraint`.)
 -/
 def addEquality (p : Problem) (const : Int) (coeffs : Coeffs) (prf? : Option Proof) : Problem :=
-    let prf := prf?.getD (do mkSorry (← mkFreshExprMVar none) false)
-    let i := p.assumptions.size
-    let p' := { p with assumptions := p.assumptions.push (addEquality_proof const coeffs prf) }
-    let f : Fact :=
-    { coeffs
-      constraint := { lowerBound := some (-const), upperBound := some (-const) }
-      justification := .assumption _ _ i }
-    let f := p.replayEliminations f
-    let f := f.tidy
-    p'.addConstraint f
+  let prf := prf?.getD (do mkSorry (← mkFreshExprMVar none) false)
+  let i := p.assumptions.size
+  let p' := { p with assumptions := p.assumptions.push (addEquality_proof const coeffs prf) }
+  let f : Fact :=
+  { coeffs
+    constraint := { lowerBound := some (-const), upperBound := some (-const) }
+    justification := .assumption _ _ i }
+  let f := p.replayEliminations f
+  let f := f.tidy
+  p'.addConstraint f
 
 /-- Folding `addInequality` over a list. -/
 def addInequalities (p : Problem) (ineqs : List (Int × Coeffs × Option Proof)) : Problem :=

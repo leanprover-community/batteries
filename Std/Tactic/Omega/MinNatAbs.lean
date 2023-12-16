@@ -82,36 +82,32 @@ theorem nonzeroMinimum_eq_of_nonzero {xs : List Nat} (h : xs.nonzeroMinimum ≠ 
   ⟨xs.nonzeroMinimum, ((nonzeroMinimum_eq_nonzero_iff h).mp rfl).1, rfl⟩
 
 theorem nonzeroMinimum_le_iff {xs : List Nat} {y : Nat} :
-    xs.nonzeroMinimum ≤ y ↔ xs.nonzeroMinimum = 0 ∨ ∃ x ∈ xs, x ≤ y ∧ x ≠ 0 :=
-  ⟨fun h => by
-    rw [Decidable.or_iff_not_imp_right]
+    xs.nonzeroMinimum ≤ y ↔ xs.nonzeroMinimum = 0 ∨ ∃ x ∈ xs, x ≤ y ∧ x ≠ 0 := by
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · rw [Decidable.or_iff_not_imp_right]
     simp only [ne_eq, not_exists, not_and, not_not, nonzeroMinimum_eq_zero_iff]
     intro w
     apply nonzeroMinimum_eq_zero_iff.mp
     by_cases p : xs.nonzeroMinimum = 0
     · exact p
-    · exact w _ (nonzeroMinimum_mem p) h,
-   fun h => by
-    cases h with
-    | inl h => simp [h]
-    | inr h =>
-      obtain ⟨x, m, le, ne⟩ := h
-      exact Nat.le_trans (nonzeroMinimum_le m ne) le⟩
+    · exact w _ (nonzeroMinimum_mem p) h
+  · match h with
+    | .inl h => simp [h]
+    | .inr ⟨x, m, le, ne⟩ => exact Nat.le_trans (nonzeroMinimum_le m ne) le
 
 theorem nonzeroMininum_map_le_nonzeroMinimum (f : α → β) (p : α → Nat) (q : β → Nat) (xs : List α)
     (h : ∀ a, a ∈ xs → (p a = 0 ↔ q (f a) = 0))
     (w : ∀ a, a ∈ xs → p a ≠ 0 → q (f a) ≤ p a) :
     ((xs.map f).map q).nonzeroMinimum ≤ (xs.map p).nonzeroMinimum := by
   rw [nonzeroMinimum_le_iff]
-  by_cases z : (xs.map p).nonzeroMinimum = 0
-  · left
+  if z : (xs.map p).nonzeroMinimum = 0 then
     rw [nonzeroMinimum_eq_zero_iff]
     simp_all
-  · right
+  else
     have := nonzeroMinimum_eq_of_nonzero z
     simp only [mem_map] at this
     obtain ⟨x, ⟨a, m, rfl⟩, eq⟩ := this
-    refine ⟨q (f a), List.mem_map_of_mem _ (List.mem_map_of_mem _ m), ?_, ?_⟩
+    refine .inr ⟨q (f a), List.mem_map_of_mem _ (List.mem_map_of_mem _ m), ?_, ?_⟩
     · rw [eq] at z ⊢
       apply w _ m z
     · rwa [Ne, ← h _ m, ← eq]
@@ -128,8 +124,7 @@ def minNatAbs (xs : List Int) : Nat := xs.map Int.natAbs |>.nonzeroMinimum
   simp [minNatAbs]
 
 theorem minNatAbs_eq_nonzero_iff (xs : List Int) (w : z ≠ 0) :
-    xs.minNatAbs = z ↔
-      (∃ y ∈ xs, y.natAbs = z) ∧ (∀ y ∈ xs, z ≤ y.natAbs ∨ y = 0) := by
+    xs.minNatAbs = z ↔ (∃ y ∈ xs, y.natAbs = z) ∧ (∀ y ∈ xs, z ≤ y.natAbs ∨ y = 0) := by
   simp [minNatAbs, nonzeroMinimum_eq_nonzero_iff w]
 
 @[simp] theorem minNatAbs_nil : ([] : List Int).minNatAbs = 0 := rfl
