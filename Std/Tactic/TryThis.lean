@@ -96,9 +96,12 @@ apply the replacement.
     let .ok suggestions := suggestions.getArr? | panic! "bad type"
     let mut result := result
     for h : i in [:suggestions.size] do
-      let .ok newText := (suggestions[i]'h.2).getObjValAs? String "suggestion" | panic! "bad type"
+      let suggestion := suggestions[i]'h.2
+      let .ok newText := suggestion.getObjValAs? String "suggestion" | panic! "bad type"
+      let codeActionTitle := (suggestion.getObjValAs? String "codeActionTitle").toOption.getD <|
+        "Try this: " ++ newText
       result := result.push {
-        eager.title := "Try this: " ++ newText
+        eager.title := codeActionTitle
         eager.kind? := "quickfix"
         -- Only make the first option preferred
         eager.isPreferred? := if i = 0 then true else none
@@ -275,6 +278,14 @@ structure Suggestion where
   /-- How to represent the suggestion as `MessageData`. This is used only in the info diagnostic.
   If `none`, we use `suggestion`. Use `toMessageData` to render a `Suggestion` in this manner. -/
   messageData? : Option MessageData := none
+  /-- How to construct the text that appears in the lightbulb menu from the suggestion text. If
+  `none`, we use `fun ppSuggestionText => "Try this: " ++ ppSuggestionText`. Only the pretty-printed
+  `suggestion : SuggestionText` is used here.
+
+  Note that (if not `none`) a prop `codeActionTitle : String` will be included in the Json, not
+  `toCodeActionTitle?` itself, as the application of `toCodeAction` to the pretty-printed
+  `suggestion : SuggestionText` must be performed before encoding. -/
+  toCodeActionTitle? : Option (String → String) := none
   deriving Inhabited
 
 /-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
@@ -288,6 +299,8 @@ def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column 
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
   if let some postInfo := s.postInfo? then json := ("postInfo", postInfo) :: json
   if let some style := s.style? then json := ("style", toJson style) :: json
+  if let some tocodeActionTitle := s.toCodeActionTitle? then
+    json := ("codeActionTitle", tocodeActionTitle text) :: json
   return Json.mkObj json
 
 /- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
@@ -349,6 +362,9 @@ The parameters are:
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
+  * `toCodeActionTitle?`: an optional function `String → String` describing how to transform the
+    pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
+    If `none`, we simply prepend `"Try This: "` to the suggestion text.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that begins the display. By default, it is `"Try this: "`.
@@ -378,6 +394,9 @@ The parameters are:
   * `messageData?`: an optional message to display in place of `suggestion` in the info diagnostic
     (only). The widget message uses only `suggestion`. If `messageData?` is `none`, we simply use
     `suggestion` instead.
+  * `toCodeActionTitle?`: an optional function `String → String` describing how to transform the
+    pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
+    If `none`, we simply prepend `"Try This: "` to the suggestion text.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
