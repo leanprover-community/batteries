@@ -119,7 +119,7 @@ the real and dark shadows coincide, and the grey shadows are empty. In this situ
 we don't lose anything by ignoring the dark and grey shadows.
 We call this situation an exact elimination.
 A sufficient condition for exactness is that either all upper bounds on `xᵢ` have unit coefficient,
-or all lower bounds on `xᵢ` has unit coefficient.
+or all lower bounds on `xᵢ` have unit coefficient.
 We always prefer to select the value of `i` so that this condition holds, if possible.
 We break ties by preferring to select a value of `i` that minimizes the number of new constraints
 introduced in the real shadow.
@@ -128,7 +128,7 @@ introduced in the real shadow.
 
 The real shadow for a variable `i` is just the Fourier-Motzkin elimination.
 
-We begin discard all inequalities involving the variable `i`.
+We begin by discarding all inequalities involving the variable `i`.
 
 Then, for each pair of constraints `f ≤ c * xᵢ` and `c' * xᵢ ≤ f'`
 with both `c` and `c'` positive (i.e. for each pair of an lower and upper bound on `xᵢ`)
@@ -180,7 +180,7 @@ If this fails, we then retrieve the first disjunction from the list, split it,
 and try to find a contradiction in both branches.
 
 (Note that we make no attempt to optimize the order in which we split disjunctions:
-it's currently on a first in last out basis.)
+it's currently on a first in first out basis.)
 
 The work done eliminating equalities can be reused when splitting disjunctions,
 but we need to redo all the work eliminating inequalities in each branch.
