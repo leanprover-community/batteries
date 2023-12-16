@@ -18,7 +18,7 @@ A meta-tactic for running backtracking search, given a non-deterministic tactic
 and the subgoals generated, backtracking as necessary.
 
 In its default behaviour, it will either solve all goals, or fail.
-A customisable `suspend` hook in `BacktrackConfig` allows suspend a goal (or subgoal),
+A customisable `suspend` hook in `BacktrackConfig` allows suspending a goal (or subgoal),
 so that it will be returned instead of processed further.
 Other hooks `proc` and `discharge` (described in `BacktrackConfig`) allow running other
 tactics before `alternatives`, or if all search branches from a given goal fail.
@@ -47,7 +47,7 @@ structure BacktrackConfig where
   and `curr` are the current goals.
   Returning `some l` will replace the current goals with `l` and recurse
   (consuming one step of maximum depth).
-  Returning `none` will proceed to generating alternative without changing goals.
+  Returning `none` will proceed to generating alternatives without changing goals.
   Failure will cause backtracking.
   (defaults to `none`) -/
   proc : List MVarId → List MVarId → MetaM (Option (List MVarId)) := fun _ _ => pure none
@@ -61,7 +61,7 @@ structure BacktrackConfig where
   discharge : MVarId → MetaM (Option (List MVarId)) := fun _ => failure
   /--
   If we solve any "independent" goals, don't fail.
-  See `Lean.MVarId.independent?` for the definition of independence.
+  See `Lean.MVarId.isIndependentOf` for the definition of independence.
   -/
   commitIndependentGoals : Bool := false
 
@@ -98,7 +98,7 @@ variable (alternatives : MVarId → Nondet MetaM (List MVarId))
 * `curr : List MVarId` the current list of unsolved goals.
 * `acc : List MVarId` a list of "suspended" goals, which will be returned as subgoals.
 -/
-  -- `acc` is intentionally a `List` rather than an `Array` so we can share across branches.
+-- `acc` is intentionally a `List` rather than an `Array` so we can share across branches.
 private def run (goals : List MVarId) (n : Nat) (curr acc : List MVarId) : MetaM (List MVarId) := do
   match n with
   | 0 => do
