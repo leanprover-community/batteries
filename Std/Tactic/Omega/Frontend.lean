@@ -388,10 +388,10 @@ If the goal is `x ≠ y`, introduce `x = y`.
 Otherwise, for a goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
 -/
 def falseOrByContra (g : MVarId) : MetaM MVarId := do
-  match ← g.getType with
+  match ← whnfR (← g.getType) with
   | .const ``False _ => pure g
   | .app (.const ``Not _) _
-  | mkAppN (.const ``Ne _) #[_, _, _] => pure (← g.intro1).2
+  | .app (.const ``Ne _) _ => pure (← g.intro1).2
   | _ =>
     let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
     pure (← g.intro1).2
