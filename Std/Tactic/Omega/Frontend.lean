@@ -361,7 +361,7 @@ partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withCont
       let m := { m with problem := p', facts := [.fvar h₁], disjunctions := t }
       savingState do omegaImpl m g₁
       trace[omega] "Adding facts:\n{← g₂.withContext <| inferType (.fvar h₂)}"
-      let m := { m with problem := p, facts := [.fvar h₂], disjunctions := t }
+      let m := { m with problem := p', facts := [.fvar h₂], disjunctions := t }
       omegaImpl m g₂
   | false, .some prf, _ =>
     trace[omega] "Justification:\n{p''.explanation?.get}"
