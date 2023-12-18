@@ -651,31 +651,28 @@ def fourierMotzkin (p : Problem) : Problem := Id.run do
       r := r.addConstraint (Fact.combo a f (-b) g).tidy
   return r
 
+mutual
+
 /--
 Run the `omega` algorithm (for now without dark and grey shadows!) on a problem.
 -/
-partial def run (p : Problem) : OmegaM Problem := do
+partial def runOmega (p : Problem) : OmegaM Problem := do
   trace[omega] "Running omega on:\n{p}"
   if p.possible then
     let p' ← p.solveEqualities
-    if p'.possible then
-      if p'.isEmpty then
-        return p'
-      else
-        trace[omega] "Running Fourier-Motzkin on:\n{p'}"
-        run p'.fourierMotzkin
-    else
-      return p'
+    elimination p'
   else
     return p
 
-/-- As for `run`, but assuming the first round of solving equalities has already happened. -/
-def run' (p : Problem) : OmegaM Problem :=
+/-- As for `runOmega`, but assuming the first round of solving equalities has already happened. -/
+partial def elimination (p : Problem) : OmegaM Problem :=
   if p.possible then
     if p.isEmpty then
       return p
     else do
-      trace[omega] "Running Fourier-Motzkin on:\n{p}"
-      run p.fourierMotzkin
+      trace[omega] "Running Fourier-Motzkin elimination on:\n{p}"
+      runOmega p.fourierMotzkin
   else
     return p
+
+end
