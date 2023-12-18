@@ -1404,7 +1404,7 @@ theorem div2_eq_div_two (n : Nat) : div2 n = n / 2 := rfl
 theorem div2_succ (n : Nat) : div2 (succ n) = cond (bodd n) (succ (div2 n)) (div2 n) := by
   apply Nat.eq_of_mul_eq_mul_left (by decide : 0 < 2)
   apply Nat.add_right_cancel (m := cond (bodd (succ n)) 1 0)
-  rw (config := {occs := .pos [1]}) [bodd_add_div2, bodd_succ, ← bodd_add_div2 n]
+  rw (config := {occs := .pos [1]}) [div2_add_bodd, bodd_succ, ← div2_add_bodd n]
   cases bodd n <;> simp [succ_eq_add_one, Nat.add_comm 1, Nat.mul_add]
 
 theorem bit_div_two (b n) : bit b n / 2 = n := by

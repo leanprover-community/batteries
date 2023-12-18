@@ -172,11 +172,11 @@ theorem mod_two_of_bodd (n : Nat) : n % 2 = cond (bodd n) 1 0 := by
       show 1 / 2 = 0 by decide]
     cases mod_two_eq_zero_or_one n with | _ h => simp [h]; rfl
 
-theorem bodd_add_div2 (n : Nat) : 2 * div2 n + cond (bodd n) 1 0 = n := by
+theorem div2_add_bodd (n : Nat) : 2 * div2 n + cond (bodd n) 1 0 = n := by
   rw [← mod_two_of_bodd, div2_val, Nat.div_add_mod]
 
 theorem bit_decomp (n : Nat) : bit (bodd n) (div2 n) = n :=
-  (bit_val _ _).trans (bodd_add_div2 _)
+  (bit_val _ _).trans (div2_add_bodd _)
 
 theorem bit_eq_zero_iff {n : Nat} {b : Bool} : bit b n = 0 ↔ n = 0 ∧ b = false := by
   cases n <;> cases b <;> simp [bit, Nat.succ_add]
