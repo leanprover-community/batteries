@@ -187,7 +187,7 @@ theorem testBit_two_pow_add_gt {i j : Nat} (j_lt_i : j < i) (x : Nat) :
     rw [Nat.sub_eq_zero_iff_le] at i_sub_j_eq
     exact Nat.not_le_of_gt j_lt_i i_sub_j_eq
   | d+1 =>
-    simp [pow_succ, Nat.mul_comm _ 2,  Nat.mul_add_mod]
+    simp [pow_succ, Nat.mul_comm _ 2, Nat.mul_add_mod]
 
 theorem testBit_mod_two_pow (x j i : Nat) :
     testBit (x % 2^j) i = (decide (i < j) && testBit x i) := by

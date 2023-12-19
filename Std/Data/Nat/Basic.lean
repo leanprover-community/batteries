@@ -194,7 +194,7 @@ theorem binaryRec_decreasing (h : n ≠ 0) : div2 n < n :=
   For a predicate `C : Nat → Sort u`, if instances can be
   constructed for natural numbers of the form `bit b n`,
   they can be constructed for all natural numbers. -/
-@[specialize]
+@[elab_as_elim, specialize]
 def binaryRec {C : Nat → Sort u} (z : C 0) (f : ∀ b n, C n → C (bit b n)) (n : Nat) : C n :=
   if n0 : n = 0 then congrArg C n0 ▸ z -- `congrArg C _` is `rfl` in non-dependent case
   else congrArg C n.bit_decomp ▸ f n.bodd n.div2 (binaryRec z f n.div2)
