@@ -168,12 +168,12 @@ inductive Justification : Constraint → Coeffs → Type
   /-- A linear `combo` of two `Justifications`. -/
   | combo {s t x y} (a : Int) (j : Justification s x) (b : Int) (k : Justification t y) :
     Justification (Constraint.combo a s b t) (Coeffs.combo a x b y)
-/--
-The justification for the constraing constructed using "balanced mod" while
-eliminating an equality.
--/
-| bmod (m : Nat) (r : Int) (i : Nat) {x} (j : Justification (.exact r) x) :
-    Justification (.exact (Int.bmod r m)) (bmod_coeffs m i x)
+  /--
+  The justification for the constraing constructed using "balanced mod" while
+  eliminating an equality.
+  -/
+  | bmod (m : Nat) (r : Int) (i : Nat) {x} (j : Justification (.exact r) x) :
+      Justification (.exact (Int.bmod r m)) (bmod_coeffs m i x)
 
 /-- Wrapping for `Justification.tidy` when `tidy?` is nonempty. -/
 nonrec def Justification.tidy? (j : Justification s c) : Option (Σ s' c', Justification s' c') :=
@@ -380,7 +380,13 @@ def addConstraint (p : Problem) : Fact → Problem
         | _ => p.insertConstraint f
       | some ⟨x', t, k⟩ =>
         if h : x = x' then
-          p.insertConstraint ⟨x, s.combine t, j.combine (h ▸ k)⟩
+          let r := s.combine t
+          if r = t then
+            -- No need to overwrite the existing fact
+            -- with the same fact with a more complicated justification
+            p
+          else
+            p.insertConstraint ⟨x, s.combine t, j.combine (h ▸ k)⟩
         else
           p -- unreachable
     else
