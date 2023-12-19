@@ -1047,11 +1047,11 @@ theorem one_mod (n : Nat) : 1 % (n + 2) = 1 :=
   Nat.mod_eq_of_lt (succ_lt_succ n.succ_pos)
 
 @[simp]
-theorem mod_two_ne_one (n : Nat) : ¬n % 2 = 1 ↔ n % 2 = 0 := by
+theorem mod_two_ne_one {n : Nat} : ¬n % 2 = 1 ↔ n % 2 = 0 := by
   cases mod_two_eq_zero_or_one n with | _ h => simp [h]
 
 @[simp]
-theorem mod_two_ne_zero (n : Nat) : ¬n % 2 = 0 ↔ n % 2 = 1 := by
+theorem mod_two_ne_zero {n : Nat} : ¬n % 2 = 0 ↔ n % 2 = 1 := by
   cases mod_two_eq_zero_or_one n with | _ h => simp [h]
 
 @[simp]
