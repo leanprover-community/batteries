@@ -552,6 +552,8 @@ def addEqualities (p : Problem) (eqs : List (Int × Coeffs × Option Proof)) : P
 
 /-- Representation of the data required to run Fourier-Motzkin elimination on a variable. -/
 structure FourierMotzkinData where
+  /-- Which variable is being eliminated. -/
+  var : Nat
   /-- The "irrelevant" facts which do not involve the target variable. -/
   irrelevant : List Fact := []
   /--
@@ -576,9 +578,13 @@ deriving Inhabited
 
 instance : ToString FourierMotzkinData where
   toString d :=
-    s!"• irrelevant: {d.irrelevant}\n"
-      ++ s!"• lowerBounds: {d.lowerBounds}\n"
-      ++ s!"• upperBounds: {d.upperBounds}"
+    let irrelevant := d.irrelevant.map fun ⟨x, s, _⟩ => s!"{x} ∈ {s}"
+    let lowerBounds := d.lowerBounds.map fun ⟨⟨x, s, _⟩, _⟩ => s!"{x} ∈ {s}"
+    let upperBounds := d.upperBounds.map fun ⟨⟨x, s, _⟩, _⟩ => s!"{x} ∈ {s}"
+    s!"Fourier-Motzkin elimination data for variable {d.var}\n"
+      ++ s!"• irrelevant: {irrelevant}\n"
+      ++ s!"• lowerBounds: {lowerBounds}\n"
+      ++ s!"• upperBounds: {upperBounds}"
 
 /-- Is a Fourier-Motzkin elimination empty (i.e. there are no relevant constraints). -/
 def FourierMotzkinData.isEmpty (d : FourierMotzkinData) : Bool :=
@@ -593,7 +599,8 @@ def FourierMotzkinData.exact (d : FourierMotzkinData) : Bool := d.lowerExact || 
 -- TODO we could short-circuit here, if we find one with `size = 0`.
 def fourierMotzkinData (p : Problem) : Array FourierMotzkinData := Id.run do
   let n := p.numVars
-  let mut data : Array FourierMotzkinData := Array.mkArray p.numVars {}
+  let mut data : Array FourierMotzkinData :=
+    (List.range p.numVars).foldl (fun a i => a.push { var := i}) #[]
   for (_, f@⟨xs, s, _⟩) in p.constraints.toList do -- We could make a forIn instance for HashMap
     for i in [0:n] do
       let x := Coeffs.get xs i
@@ -642,7 +649,7 @@ Run Fourier-Motzkin elimination on one variable.
 def fourierMotzkin (p : Problem) : Problem := Id.run do
   let data := p.fourierMotzkinData
   -- Now perform the elimination.
-  let ⟨irrelevant, lower, upper, _, _⟩ := fourierMotzkinSelect data
+  let ⟨_, irrelevant, lower, upper, _, _⟩ := fourierMotzkinSelect data
   let mut r : Problem := { assumptions := p.assumptions, eliminations := p.eliminations }
   for f in irrelevant do
     r := r.insertConstraint f
