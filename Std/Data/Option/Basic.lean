@@ -84,6 +84,12 @@ inductive Rel (r : α → β → Prop) : Option α → Option β → Prop
   /-- `none ~ none` -/
   | none : Rel r none none
 
+/-- Lifts a relation `α → β → Prop` to a relation `Option α → Option β → Prop` by making
+`none` incomparable. -/
+inductive StrictRel (r : α → β → Prop) : Option α → Option β → Prop
+  /-- If `a ~ b`, then `some a ~ some b` -/
+  | some {a b} : r a b → StrictRel r (some a) (some b)
+
 /--
 Partial bind. If for some `x : Option α`, `f : Π (a : α), a ∈ x → Option β` is a
 partial function defined on `a : α` giving an `Option β`, where `some a = x`,
