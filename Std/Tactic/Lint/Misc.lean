@@ -227,12 +227,13 @@ This actually finds all beta-redexes.
 def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
-    let some e := letFunAnnotation? e | return
-    let Expr.app (Expr.lam n t b ..) _ .. := e | return
-    if n.isInternal then return
-    if b.hasLooseBVars then return
-    let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
-    res.modify (·.push msg)
+    match e.letFun? with
+    | some (n, t, _, b) =>
+      if n.isInternal then return
+      if b.hasLooseBVars then return
+      let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
+      res.modify (·.push msg)
+    | _ => return
   res.get
 
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
