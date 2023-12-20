@@ -1069,10 +1069,10 @@ section insert
 variable [DecidableEq α]
 
 @[simp] theorem insert_of_mem {l : List α} (h : a ∈ l) : l.insert a = l := by
-  simp only [List.insert, if_pos h]
+  simp only [List.insert, elem_iff, if_pos h]
 
 @[simp] theorem insert_of_not_mem {l : List α} (h : a ∉ l) : l.insert a = a :: l := by
-  simp only [List.insert, if_neg h]
+  simp only [List.insert,  elem_iff, if_neg h]
 
 @[simp] theorem mem_insert_iff {l : List α} : a ∈ l.insert b ↔ a = b ∨ a ∈ l := by
   if h : b ∈ l then
@@ -2334,3 +2334,116 @@ theorem minimum?_eq_some_iff' {xs : List Nat} :
     (le_refl := Nat.le_refl)
     (min_eq_or := fun _ _ => Nat.min_def .. ▸ by split <;> simp)
     (le_min_iff := fun _ _ _ => Nat.le_min)
+
+/-! ### maximum? -/
+
+@[simp] theorem maximum?_nil [Max α] : ([] : List α).maximum? = none := rfl
+
+-- We don't put `@[simp]` on `minimum?_cons`,
+-- because the definition in terms of `foldl` is not useful for proofs.
+theorem maximum?_cons [Max α] {xs : List α} : (x :: xs).maximum? = foldl max x xs := rfl
+
+@[simp] theorem maximum?_eq_none_iff {xs : List α} [Max α] : xs.maximum? = none ↔ xs = [] := by
+  cases xs <;> simp [maximum?]
+
+theorem maximum?_mem [Max α] (min_eq_or : ∀ a b : α, max a b = a ∨ max a b = b) :
+    {xs : List α} → xs.maximum? = some a → a ∈ xs
+  | nil => by simp
+  | cons x xs => by
+    rw [maximum?]; rintro ⟨⟩
+    induction xs generalizing x with simp at *
+    | cons y xs ih =>
+      rcases ih (max x y) with h | h <;> simp [h]
+      simp [← or_assoc, min_eq_or x y]
+
+theorem maximum?_le_iff [Max α] [LE α]
+    (max_le_iff : ∀ a b c : α, max b c ≤ a ↔ b ≤ a ∧ c ≤ a) :
+    {xs : List α} → xs.maximum? = some a → ∀ x, a ≤ x ↔ ∀ b ∈ xs, b ≤ x
+  | nil => by simp
+  | cons x xs => by
+    rw [maximum?]; rintro ⟨⟩ y
+    induction xs generalizing x with
+    | nil => simp
+    | cons y xs ih => simp [ih, max_le_iff, and_assoc]
+
+-- This could be refactored by designing appropriate typeclasses to replace `le_refl`, `max_eq_or`,
+-- and `le_min_iff`.
+theorem maximum?_eq_some_iff [Max α] [LE α] [anti : Antisymm ((· : α) ≤ ·)]
+    (le_refl : ∀ a : α, a ≤ a)
+    (max_eq_or : ∀ a b : α, max a b = a ∨ max a b = b)
+    (max_le_iff : ∀ a b c : α, max b c ≤ a ↔ b ≤ a ∧ c ≤ a) {xs : List α} :
+    xs.maximum? = some a ↔ a ∈ xs ∧ ∀ b ∈ xs, b ≤ a := by
+  refine ⟨fun h => ⟨maximum?_mem max_eq_or h, (maximum?_le_iff max_le_iff h _).1 (le_refl _)⟩, ?_⟩
+  intro ⟨h₁, h₂⟩
+  cases xs with
+  | nil => simp at h₁
+  | cons x xs =>
+    exact congrArg some <| anti.1
+      (h₂ _ (maximum?_mem max_eq_or (xs := x::xs) rfl))
+      ((maximum?_le_iff max_le_iff (xs := x::xs) rfl _).1 (le_refl _) _ h₁)
+
+-- A specialization of `maximum?_eq_some_iff` to Nat.
+theorem maximum?_eq_some_iff' {xs : List Nat} :
+    xs.maximum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, b ≤ a) :=
+  maximum?_eq_some_iff
+    (le_refl := Nat.le_refl)
+    (max_eq_or := fun _ _ => Nat.max_def .. ▸ by split <;> simp)
+    (max_le_iff := fun _ _ _ => Nat.max_le)
+
+/-! ### indexOf and indexesOf -/
+
+theorem foldrIdx_start :
+    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
+  induction xs generalizing f i s with
+  | nil => rfl
+  | cons h t ih =>
+    dsimp [foldrIdx]
+    simp only [@ih f]
+    simp only [@ih (fun i => f (i + s))]
+    simp [Nat.add_assoc, Nat.add_comm 1 s]
+
+@[simp] theorem foldrIdx_cons :
+    (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
+
+theorem findIdxs_cons_aux (p : α → Bool) :
+    foldrIdx (fun i a is => if p a = true then (i + 1) :: is else is) [] xs s =
+      map (· + 1) (foldrIdx (fun i a is => if p a = true then i :: is else is) [] xs s) := by
+  induction xs generalizing s with
+  | nil => rfl
+  | cons x xs ih =>
+    simp only [foldrIdx]
+    split <;> simp [ih]
+
+theorem findIdxs_cons :
+    (x :: xs : List α).findIdxs p =
+      bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
+  dsimp [findIdxs]
+  rw [cond_eq_if]
+  split <;>
+  · simp only [Nat.zero_add, foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+    apply findIdxs_cons_aux
+
+@[simp] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
+    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
+  simp [indexesOf, findIdxs_cons]
+
+@[simp] theorem indexOf_nil [BEq α] : ([] : List α).indexOf x = 0 := rfl
+theorem indexOf_cons [BEq α] :
+    (x :: xs : List α).indexOf y = bif x == y then 0 else xs.indexOf y + 1 := by
+  dsimp [indexOf]
+  simp [findIdx_cons]
+
+theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.indexOf x ∈ xs.indexesOf x := by
+  induction xs with
+  | nil => simp_all
+  | cons h t ih =>
+    simp [indexOf_cons, indexesOf_cons, cond_eq_if]
+    split <;> rename_i w
+    · apply mem_cons_self
+    · cases m
+      case _ => simp_all
+      case tail m =>
+        specialize ih m
+        simpa

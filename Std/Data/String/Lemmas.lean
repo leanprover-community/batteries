@@ -712,7 +712,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
   rw [← m.reverse_reverse]
   induction m.reverse generalizing r a with (unfold foldrAux; simp)
   | cons c m IH =>
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [if_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
     simp [← Nat.add_assoc, by simpa using prev_of_valid (l++m.reverse) c r]
     simp [by simpa using get_of_valid (l++m.reverse) (c::r)]
     simpa using IH (c::r) (f c a)

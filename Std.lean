@@ -53,6 +53,7 @@ import Std.Data.List.Pairwise
 import Std.Data.List.Perm
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
+import Std.Data.MLList.IO
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Bitwise
 import Std.Data.Nat.Gcd
@@ -109,6 +110,7 @@ import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
+import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Lean.Util.EnvSearch
@@ -127,6 +129,7 @@ import Std.Tactic.Congr
 import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
+import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI

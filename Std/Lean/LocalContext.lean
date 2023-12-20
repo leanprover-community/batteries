@@ -40,10 +40,10 @@ Sort the given `FVarId`s by the order in which they appear in `lctx`. If any of
 the `FVarId`s do not appear in `lctx`, the result is unspecified.
 -/
 def sortFVarsByContextOrder (lctx : LocalContext) (hyps : Array FVarId) : Array FVarId :=
-  let hyps := hyps.map λ fvarId =>
+  let hyps := hyps.map fun fvarId =>
     match lctx.fvarIdToDecl.find? fvarId with
     | none => (0, fvarId)
     | some ldecl => (ldecl.index, fvarId)
-  hyps.qsort (λ h i => h.fst < i.fst) |>.map (·.snd)
+  hyps.qsort (fun h i => h.fst < i.fst) |>.map (·.snd)
 
 end LocalContext
