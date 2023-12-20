@@ -225,3 +225,33 @@ info: Grab bag:
 /-- error: no suggestions available -/
 #guard_msgs in
 #demo #[]
+
+/- The messages and suggestion should still read `Try this: rfl`, but the text in the lightbulb
+menu should read "Consider rfl, please" -/
+/-- info: Try this: rfl -/
+#guard_msgs in
+#demo1 { s with toCodeActionTitle? := fun text => "Consider " ++ text ++ ", please" }
+
+/-- Add suggestions with a default code action title prefix. -/
+elab "add_suggestions" s:term "with_code_action_prefix" h:str : tactic => unsafe do
+  let s ← evalTerm (Array Suggestion) (.app (.const ``Array [.zero]) (.const ``Suggestion [])) s
+  addSuggestions (← getRef) s (codeActionPrefix? := h.getString)
+
+/-- Demo adding suggestions with a header. -/
+macro "#demo" s:term "with_code_action_prefix" h:str : command => `(example : True := by
+  add_suggestions $s with_code_action_prefix $h; trivial)
+
+/- The messages and suggestions should still read `Try these: ...`, but the text in the lightbulb
+menu should read "Maybe use: rfl"; "Maybe use: rfl"; "Also consider rfl, please!" -/
+/--
+info: Try these:
+• rfl
+• rfl
+• rfl
+-/
+#guard_msgs in
+#demo #[
+  s,
+  s,
+  { s with toCodeActionTitle? := fun text => "Also consider " ++ text ++ ", please!" }
+] with_code_action_prefix "Maybe use: "
