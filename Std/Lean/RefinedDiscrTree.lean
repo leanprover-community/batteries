@@ -51,6 +51,25 @@ I document here what is not in the original.
   `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]` and by
   `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
 
+TODO:
+
+- Only reducible constants are reduced, so there are some terms with multiple
+  representations, that should really be represented in the same way. e.g.
+  - `fun x => x` and `id`.
+  - `(f ∘ g) x` and `f (g x)`.
+  - `fun x => f x + g x` and `f + g`. Similarly all of
+    `1`, `0`, `*`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, and `/` are defined point-wise on Pi-types.
+  - Any combination of `Nat.zero`, `Nat.succ` and `+` that reduces to an explicit numeral. This
+    one is already implemented.
+
+  This can either be programmed on a case by case basis,
+  or it can be designed to be extended dynamically.
+  And the normalization can happen on either the `Expr` or `DTExpr` level.
+
+  Note that for each of these equivalences, they should not apply at the root, so that
+  for example `Nat.add_one : ∀ n, n + 1 = Nat.succ n` can still be used for rewriting between
+  `1 + 1` and `Nat.succ 1`.
+
 -/
 
 open Lean Meta
@@ -309,19 +328,6 @@ def DTExpr.flatten (e : DTExpr) (initCapacity := 16) : Array Key :=
 
 
 
-/-- Return true if `a` should be ignored in the `RefinedDiscrTree`. -/
-private def ignoreArg (a : Expr) (i : Nat) (infos : Array ParamInfo) : MetaM Bool := do
-  if h : i < infos.size then
-    let info := infos.get ⟨i, h⟩
-    if info.isInstImplicit then
-      return true
-    else if info.isImplicit || info.isStrictImplicit then
-      return !(← isType a)
-    else
-      isProof a
-  else
-    isProof a
-
 /-- Return true if `e` is one of the following
 - A nat literal (numeral)
 - `Nat.zero`
@@ -426,32 +432,23 @@ private structure Context where
   config : WhnfCoreConfig
   fvarInContext : FVarId → Bool
 
-private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
-
-/-
-Caching values is a bit dangerous, because when two expressions are be equal and they live under
-a different number of binders, then the resulting De Bruijn indices are offset.
-In practice, getting a `.bvar` in a `DTExpr` is very rare, so we exclude such values from the cache.
--/
-instance : MonadCache Expr DTExpr M where
-  findCached? e := do
-    let c ← get
-    return c.find? e
-  cache e e' :=
-    if e'.hasLooseBVars then
-      return
-    else
-      modify (·.insert e e')
-
-/-- If `e` is of the form `(fun x₁ ... xₙ => b y₁ ... yₙ)`,
-then introduce variables for `x₁`, ..., `xₙ`, instantiate these in `b`, and run `k` on `b`. -/
-partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α :=
-  match e with
-  | .lam n d e' _ =>
-    withLocalDeclD n d fun fvar =>
-      withReader (fun c => { c with unbvars := fvar.fvarId! :: c.unbvars }) $
-        introEtaBVars e' (b.instantiate1 fvar) k
-  | _ => k b
+/-- Return `true` for each argument of `fn` that should be ignored in the `RefinedDiscrTree`. -/
+private def mapArgsIgnore [Monad m] [MonadControlT MetaM m] [MonadLiftT MetaM m]
+    (fn : Expr) (args : Array Expr) (f : Expr → Bool → m α) : m (Array α) := do
+  forallBoundedTelescope (← inferType fn) args.size fun fvars _ =>
+    args.mapIdxM fun i arg => do
+      let ignore ← match fvars.get? i with
+        | none => isProof arg
+        | some fvar => (do
+          let decl ← fvar.fvarId!.getDecl
+          if decl.type.isOutParam then
+            return true
+          else
+            match decl.binderInfo with
+            | .instImplicit => return true
+            | .default => isProof arg
+            | _ => return !(← isType arg))
+      f arg ignore
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
@@ -459,13 +456,11 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
   let e ← reduce e (← read).config
   Expr.withApp e fun fn args => do
 
-  let argDTExprs : ReaderT Context MetaM (Array DTExpr) := do
-    let info ← getFunInfoNArgs fn args.size
-    args.mapIdxM fun i arg => do
-      if ← ignoreArg arg i info.paramInfo then
-        return .star none
-      else
-        mkDTExprAux false arg
+  let argDTExpr (arg : Expr) (ignore : Bool) : ReaderT Context MetaM DTExpr :=
+    if ignore then pure (.star none) else mkDTExprAux false arg
+
+  let argDTExprs : ReaderT Context MetaM (Array DTExpr) :=
+    mapArgsIgnore fn args argDTExpr
 
   match fn with
   | .const c _ =>
@@ -474,7 +469,7 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
         return .lit v
     return .const c (← argDTExprs)
   | .proj s i a =>
-    let a ← if isClass (← getEnv) s then pure (.star none) else mkDTExprAux false a
+    let a ← argDTExpr a (isClass (← getEnv) s)
     return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
     if let some idx := (← read).bvars.findIdx? (· == fvarId) then
@@ -507,19 +502,44 @@ where
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
         mkDTExprAux false (e.instantiate1 fvar)
 
+private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
+
+/-
+Caching values is a bit dangerous, because when two expressions are be equal and they live under
+a different number of binders, then the resulting De Bruijn indices are offset.
+In practice, getting a `.bvar` in a `DTExpr` is very rare, so we exclude such values from the cache.
+-/
+instance : MonadCache Expr DTExpr M where
+  findCached? e := do
+    let c ← get
+    return c.find? e
+  cache e e' :=
+    if e'.hasLooseBVars then
+      return
+    else
+      modify (·.insert e e')
+
+/-- If `e` is of the form `(fun x₁ ... xₙ => b y₁ ... yₙ)`,
+then introduce variables for `x₁`, ..., `xₙ`, instantiate these in `b`, and run `k` on `b`. -/
+partial def introEtaBVars [Inhabited α] (e b : Expr) (k : Expr → M α) : M α :=
+  match e with
+  | .lam n d e' _ =>
+    withLocalDeclD n d fun fvar =>
+      withReader (fun c => { c with unbvars := fvar.fvarId! :: c.unbvars }) $
+        introEtaBVars e' (b.instantiate1 fvar) k
+  | _ => k b
+
 /-- Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
 partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
   let e ← reduce e (← read).config
   Expr.withApp e fun fn args => do
 
-  let argDTExprs : M (Array DTExpr) := do
-    let info ← getFunInfoNArgs fn args.size
-    args.mapIdxM fun i arg => do
-      if ← ignoreArg arg i info.paramInfo then
-        return .star none
-      else
-        mkDTExprsAux false arg
+  let argDTExpr (arg : Expr) (ignore : Bool) : M DTExpr :=
+    if ignore then pure (.star none) else mkDTExprsAux false arg
+
+  let argDTExprs : M (Array DTExpr) :=
+    mapArgsIgnore fn args argDTExpr
 
   match fn with
   | .const c _ =>
@@ -528,7 +548,7 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
         return .lit v
     return .const c (← argDTExprs)
   | .proj s i a =>
-    let a ← if isClass (← getEnv) s then pure (.star none) else mkDTExprsAux false a
+    let a ← argDTExpr a (isClass (← getEnv) s)
     return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
     if let some idx := (← read).bvars.findIdx? (· == fvarId) then
