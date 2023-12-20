@@ -75,35 +75,13 @@ def applySymm (e : Expr) : MetaM Expr := do
 
 end Lean.Expr
 
-namespace Std.Tactic
-
-/--
-This looks for a symmetry lemma matching the target type.
-
-If it finds it, it returns a pair (f, argType) where f has type `argType -> tgt`.
--/
-def findSymm (tgt : Expr) : MetaM (Option (Expr × Expr)) := do
-  let lems ← Expr.getSymmLems <| (← instantiateMVars tgt).cleanupAnnotations
-  withNewMCtxDepth do
-    for lemName in lems do
-      let (lem, args, body) ← Expr.unpackSymLem lemName
-      if ← isDefEq tgt body then
-        let argType ← instantiateMVars args.back
-        let instArgs ←  args.pop.mapM instantiateMVars
-        -- Create lambda for apply lemma and return it.
-        return (mkAppN lem instArgs, argType)
-    return none
-
-end Std.Tactic
 
 namespace Lean.MVarId
-
 
 /--
 Apply a symmetry lemma (i.e. marked with `@[symm]`) to a metavariable.
 
 The type of `g` should be of the form `a ~ b`, and is used to index the symm lemmas.
-
 -/
 def applySymm (g : MVarId) : MetaM MVarId := do
   let tgt <- g.getTypeCleanup

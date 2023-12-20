@@ -140,7 +140,6 @@ private def isOffset (fName : Name) (e : Expr) : MetaM Bool := do
 private def shouldAddAsStar (fName : Name) (e : Expr) : MetaM Bool := do
   isOffset fName e
 
-
 /--
   Try to eliminate loose bound variables by performing beta-reduction.
   We use this method when processing terms in discrimination trees.
@@ -446,34 +445,34 @@ private partial def evalLazyEntries (config : WhnfCoreConfig)
     (values : Array α) (starIdx : TrieIndex) (children : HashMap Key TrieIndex)
     (entries : Array (LazyEntry α)) :
     MatchM α (Array α × TrieIndex × HashMap Key TrieIndex) := do
-  if h : entries.size = 0 then
-    pure (values, starIdx, children)
-  else
-    let p : entries.size - 1 < entries.size := Nat.sub_lt (Nat.pos_of_ne_zero h) (Nat.le_refl _)
-    let (todo, lctx, v) := entries[entries.size - 1]
-    let entries := entries.pop
-    if todo.isEmpty then
-      let values := values.push v
-      evalLazyEntries config values starIdx children entries
-    else
-      let e    := todo.back
-      let todo := todo.pop
-      let (k, todo) ← withLCtx lctx.1 lctx.2 $ pushArgs false todo e config
-      if k == .star then
-        if starIdx = 0 then
-          let starIdx ← newTrie (todo, lctx, v)
-          evalLazyEntries config values starIdx children entries
+  let rec iter values starIdx children (i : Nat) : MatchM α _ := do
+        if p : i < entries.size then
+          let (todo, lctx, v) := entries[i]
+          if todo.isEmpty then
+            let values := values.push v
+            iter values starIdx children (i+1)
+          else
+            let e    := todo.back
+            let todo := todo.pop
+            let (k, todo) ← withLCtx lctx.1 lctx.2 $ pushArgs false todo e config
+            if k == .star then
+              if starIdx = 0 then
+                let starIdx ← newTrie (todo, lctx, v)
+                iter values starIdx children (i+1)
+              else
+                addLazyEntryToTrie starIdx (todo, lctx, v)
+                iter values starIdx children (i+1)
+            else
+              match children.find? k with
+              | none =>
+                let children := children.insert k (← newTrie (todo, lctx, v))
+                iter values starIdx children (i+1)
+              | some idx =>
+                addLazyEntryToTrie idx (todo, lctx, v)
+                iter values starIdx children (i+1)
         else
-          addLazyEntryToTrie starIdx (todo, lctx, v)
-          evalLazyEntries config values starIdx children entries
-      else
-        match children.find? k with
-        | none =>
-          let children := children.insert k (← newTrie (todo, lctx, v))
-          evalLazyEntries config values starIdx children entries
-        | some idx =>
-          addLazyEntryToTrie idx (todo, lctx, v)
-          evalLazyEntries config values starIdx children entries
+          pure (values, starIdx, children)
+  iter values starIdx children 0
 
 private def evalNode (c : TrieIndex) :
     MatchM α (Array α × TrieIndex × HashMap Key TrieIndex) := do
@@ -521,7 +520,6 @@ private partial def getMatchLoop (todo : Array Expr) (c : TrieIndex) (result : M
   else
     let e     := todo.back
     let todo  := todo.pop
-    let (k, args) ← MatchClone.getMatchKeyArgs e (root := false) (←read)
     /- We must always visit `Key.star` edges since they are wildcards.
         Thus, `todo` is not used linearly when there is `Key.star` edge
         and there is an edge for `k` and `k != Key.star`. -/
@@ -535,6 +533,7 @@ private partial def getMatchLoop (todo : Array Expr) (c : TrieIndex) (result : M
       | none   => return result
       | some c => getMatchLoop (todo ++ args) c result
     let result ← visitStar result
+    let (k, args) ← MatchClone.getMatchKeyArgs e (root := false) (←read)
     match k with
     | .star  => return result
     /-

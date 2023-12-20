@@ -284,9 +284,12 @@ numbers (<10k) seemed to degrade initialization performance.
 -/
 private def constantsPerTask : Nat := 6500
 
-/-- This creates -/
-private def launchImportedEnvironment (env : Environment) :
-    BaseIO <| Array <| Task <| InitResults <| Name × DeclMod := do
+/-- Get the rests of each task and merge using combining function -/
+private def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
+  tasks.foldl (fun x t => x ++ t.get) (init := z)
+
+private def createImportedEnvironment (opts : Options) (env : Environment) :
+    BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
   let n := env.header.moduleData.size
   let rec go tasks start cnt idx := do
         if h : idx < env.header.moduleData.size then
@@ -302,18 +305,9 @@ private def launchImportedEnvironment (env : Environment) :
             tasks.push <$> (createImportedEnvironmentSeq env start n).asTask
           else
             pure tasks
-  go #[] 0 0 0
+  let tasks ← go #[] 0 0 0
+  pure <| (combineGet default tasks).tree.toLazy
   termination_by go _ idx => env.header.moduleData.size - idx
-
-/-- Get the rests of each task and merge using combining function -/
-private partial def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
-  tasks.foldl (fun x t => x ++ t.get) (init := z)
-
-private partial def createImportedEnvironment (opts : Options) (env : Environment) :
-    BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
-  let tasks ← launchImportedEnvironment env
-  let r := combineGet default tasks
-  pure <| r.tree.toLazy
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
@@ -363,14 +357,24 @@ def mkLibrarySearchLemma (lem : Name) (mod : DeclMod) : MetaM Expr := do
   | .mpr => mapForallTelescope (fun e => mkAppM ``Iff.mpr #[e]) lem
 
 /--
+A library search candidate using symmetry includes the goal to solve, the metavar
+context for that goal, and the name and orientation of a rule to try using with goal.
+-/
+@[reducible]
+def Candidate :=  (MVarId × MetavarContext) × (Name × DeclMod)
+
+/--
 Try applying the given lemma (with symmetry modifier) to the goal,
 then try to close subsequent goals using `solveByElim`.
 If `solveByElim` succeeds, we return `[]` as the list of new subgoals,
 otherwise the full list of subgoals.
 -/
 def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure : Bool)
-    (goal : MVarId) (lem : Expr) : MetaM (List MVarId) := do
-  withTraceNode `Tactic.librarySearch (return m!"{emoji ·} trying {lem}") do
+    (cand : Candidate) : MetaM (List MVarId) := do
+  let ((goal, mctx), (name, mod)) := cand
+  withTraceNode `Tactic.stdLibrarySearch (return m!"{emoji ·} trying {name} with {mod} ") do
+    setMCtx mctx
+    let lem ← mkLibrarySearchLemma name mod
     let newGoals ← goal.apply lem { allowSynthFailures := true }
     try
       act newGoals
@@ -381,43 +385,42 @@ def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure
         failure
 
 /--
-Returns a lazy list of the results of applying a library lemma,
-then calling `solveByElim` on the resulting goals.
--/
-def librarySearchCore (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array Expr) := do
-  let candidates ← searchFn tgt
-  trace[Tactic.stdLibrarySearch.lemmas] m!"Candidate library_search lemmas:\n{candidates}"
-  let mut res := Array.mkEmpty candidates.size
-  for (name, mod) in candidates do
-    try
-      res := res.push (←mkLibrarySearchLemma name mod)
-    catch _ =>
-      pure ()
-  return res
-
-/--
 Interleave x y interleaves the elements of x and y until one is empty and then returns
 final elements in other list.
 -/
-def interleave [Inhabited α] (x y : Array α) : Array α := Id.run do
+def interleaveWith {α β γ} (f : α → γ) (x : Array α) (g : β → γ) (y : Array β) : Array γ  := Id.run do
   let mut res := Array.mkEmpty (x.size + y.size)
   let n := min x.size y.size
-  for i in [0:n] do
-    res := res.push x[i]!
-    res := res.push y[i]!
-  pure $ res ++ (if x.size > n then x.extract n x.size else y.extract n y.size)
+  for h : i in [0:n] do
+    have p : i < min x.size y.size := h.2
+    have q : i < x.size := Nat.le_trans p (Nat.min_le_left ..)
+    have r : i < y.size := Nat.le_trans p (Nat.min_le_right ..)
+    res := res.push (f x[i])
+    res := res.push (g y[i])
+  let last :=
+        if x.size > n then
+          (x.extract n x.size).map f
+        else
+          (y.extract n y.size).map g
+  pure $ res ++ last
 
 /--
-Run `librarySearchCore` on both the goal and `symm` applied to the goal.
+Run `searchFn` on both the goal and `symm` applied to the goal.
 -/
-def librarySearchSymm (searchFn : CandidateFinder) (tgt : Expr) : MetaM (Array Expr) := do
-  let l1 ← librarySearchCore searchFn tgt
-  if let some (fn, symm) ← findSymm tgt then
-    let l2 ← librarySearchCore searchFn symm
-    let l2 ← l2.mapM (mapForallTelescope (fun e => pure (mkApp fn e)))
-    pure $ interleave l1 l2
+def librarySearchSymm (searchFn : CandidateFinder) (goal : MVarId) : MetaM (Array Candidate) := do
+  let tgt ← goal.getType
+  let l1 ← searchFn tgt
+  let coreMCtx ← getMCtx
+  let coreGoalCtx := (goal, coreMCtx)
+  if let some symmGoal ← observing? goal.applySymm then
+    let newType ← instantiateMVars  (← symmGoal.getType)
+    let l2 ← searchFn newType
+    let symmMCtx ← getMCtx
+    let symmGoalCtx := (symmGoal, symmMCtx)
+    setMCtx coreMCtx
+    pure $ interleaveWith (coreGoalCtx, ·) l1 (symmGoalCtx, ·) l2
   else
-    pure $ l1
+    pure $ l1.map (coreGoalCtx, ·)
 
 /-- A type synonym for our subgoal ranking algorithm. -/
 def SubgoalRankType := Bool × Nat × Int
@@ -438,7 +441,7 @@ are better.
 def subgoalRanking (goal : MVarId) (subgoals : List MVarId) : MetaM SubgoalRankType := do
   return (subgoals.isEmpty, ← countLocalHypsUsed (.mvar goal), - subgoals.length)
 
-/-- Sort the incomplete results from `librarySearchCore` according to
+/-- Sort the incomplete results from `librarySearchSymm` according to
 * the number of local hypotheses used (the more the better) and
 * the number of remaining subgoals (the fewer the better).
 -/
@@ -479,8 +482,8 @@ further computation is stoped and intermediate results returned. If any other
 exception is thrown, then it is silently discarded.
 -/
 def tryOnEach
-    (act : α → MetaM (List MVarId))
-    (candidates : Array α) :
+    (act : Candidate → MetaM (List MVarId))
+    (candidates : Array Candidate) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   let mut a := #[]
   let s ← saveState
@@ -513,13 +516,13 @@ def mkHeartbeatCheck (leavePercent : Nat) : MetaM (MetaM Bool) := do
       return (← getRemainingHeartbeats) < hbThreshold
 
 /-- Shortcut for calling `solveByElim`. -/
-def solveByElim (required : List Expr) (exfalso := false) (goals : List MVarId) := do
+def solveByElim (required : List Expr) (exfalso : Bool) (goals : List MVarId) (maxDepth : Nat) := do
   -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
   -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
   let cfg : SolveByElim.Config :=
-    { maxDepth := 6, exfalso := exfalso, symm := true, commitIndependentGoals := true }
-  let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
+    { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
+  let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
   SolveByElim.solveByElim cfg lemmas ctx goals
 
 /-- State for resolving imports -/
@@ -533,6 +536,11 @@ private instance : Inhabited LibSearchState where
 
 private initialize ext : EnvExtension LibSearchState ←
   registerEnvExtension (IO.mkRef .none)
+
+private def librarySearchEmoji : Except ε (Option α) → String
+| .error _ => bombEmoji
+| .ok (some _) => crossEmoji
+| .ok none => checkEmoji
 
 /--
 Try to solve the goal either by:
@@ -550,8 +558,10 @@ unless the goal was completely solved.)
 (Note that if `solveByElim` solves some but not all subsidiary goals,
 this is not currently tracked.)
 -/
-def librarySearch (goal : MVarId) (tactic : List MVarId → MetaM (List MVarId))
-    (allowFailure : Bool := true) (leavePercentHeartbeats : Nat := 10) :
+def librarySearch (goal : MVarId)
+    (tactic : Bool → List MVarId → MetaM (List MVarId))
+    (allowFailure : Bool := true)
+    (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   let importFinder ← do
         let r := ext.getState (←getEnv)
@@ -565,22 +575,22 @@ def librarySearch (goal : MVarId) (tactic : List MVarId → MetaM (List MVarId))
       let localMap ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree {})
       let locals := (← localMap.getMatch  ty {}).reverse
       pure <| locals ++ (← importFinder ty)
-  let librarySearchEmoji := fun
-    | .error _ => bombEmoji
-    | .ok (some _) => crossEmoji
-    | .ok none => checkEmoji
-  withTraceNode `Tactic.librarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
+  withTraceNode `Tactic.stdLibrarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
   profileitM Exception "librarySearch" (← getOptions) do
+  (do
+    _ ← tactic true [goal]
+    return none)  <|>
+  (do
     -- Create predicate that returns true when running low on heartbeats.
     let shouldAbort ← mkHeartbeatCheck leavePercentHeartbeats
-    let act e := do
+    let candidates ← librarySearchSymm searchFn goal
+    let act := fun cand => do
         if ←shouldAbort then
           abortSpeculation
-        librarySearchLemma tactic allowFailure goal e
-    let candidates ← librarySearchCore searchFn (← goal.getType)
+        librarySearchLemma (tactic false) allowFailure cand
     match ← tryOnEach act candidates with
     | none => pure none
-    | some a => pure (some (← sortResults goal a))
+    | some a => pure (some (← sortResults goal a)))
 
 open Lean.Parser.Tactic
 
@@ -595,9 +605,8 @@ open Lean.Parser.Tactic
 syntax (name := std_exact?') "std_exact?" (config)? (simpArgs)? (" using " (colGt ident),+)?
     ("=>" tacticSeq)? : tactic
 
---/-- Syntax for `std_apply?` -/
---syntax (name := apply?') "std_apply?" (config)? (simpArgs)?
---  (" using " (colGt term),+)? : tactic
+/-- Syntax for `std_apply?` -/
+syntax (name := std_apply?') "std_apply?" (config)? (simpArgs)? (" using " (colGt term),+)? : tactic
 
 open Elab.Tactic Elab Tactic
 open Parser.Tactic (tacticSeq)
@@ -612,7 +621,8 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
     let required := (← (required.getD #[]).mapM getFVarId).toList.map .fvar
     let tactic ←
       match solver with
-      | none => pure (solveByElim required)
+      | none =>
+        pure (fun g => solveByElim required g (maxDepth := 6))
       | some t =>
         let _ <- mkInitialTacticInfo t
         throwError "Do not yet support custom exact?/apply? tactics."
@@ -632,11 +642,11 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
       admitGoal goal
 
 elab_rules : tactic
-  | `(tactic| std_exact? $[using $[$required],*]? $[=> $solver]?) => do
-  exact? (← getRef) required solver true
+  | `(tactic| std_exact? $[using $[$lemmas],*]? $[=> $solver]?) => do
+  exact? (← getRef) lemmas solver true
 
---elab_rules : tactic | `(tactic| std_apply? $[using $[$required],*]?) => do
---  exact? (← getRef) required false
+elab_rules : tactic | `(tactic| std_apply? $[using $[$required],*]?) => do
+  exact? (← getRef) required none false
 
 --/-- Deprecation warning for `library_search`. -/
 --elab tk:"library_search" : tactic => do
@@ -650,7 +660,7 @@ elab tk:"exact?%" : term <= expectedType => do
   let goal ← mkFreshExprMVar expectedType
   let (_, introdGoal) ← goal.mvarId!.intros
   introdGoal.withContext do
-    let tactic := solveByElim []
+    let tactic := fun exfalso g => solveByElim []  (maxDepth := 6) exfalso g
     if let some suggestions ← librarySearch introdGoal tactic then
       reportOutOfHeartbeats `library_search tk
       for suggestion in suggestions do
