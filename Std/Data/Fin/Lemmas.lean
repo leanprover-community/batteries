@@ -658,7 +658,7 @@ and `cast` defines the inductive step using `motive i.succ`, inducting downwards
   else
     let j : Fin n := ⟨i, Nat.lt_of_le_of_ne (Nat.le_of_lt_succ i.2) fun h => hi (Fin.ext h)⟩
     cast _ (reverseInduction last cast j.succ)
-termination_by => n + 1 - i
+termination_by n + 1 - i
 decreasing_by decreasing_with
   -- FIXME: we put the proof down here to avoid getting a dummy `have` in the definition
   exact Nat.add_sub_add_right .. ▸ Nat.sub_lt_sub_left i.2 (Nat.lt_succ_self i)

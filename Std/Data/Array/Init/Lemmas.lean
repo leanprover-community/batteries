@@ -151,7 +151,7 @@ where
     · rw [← List.get_drop_eq_drop _ i ‹_›]
       simp [aux (i+1), map_eq_pure_bind]; rfl
     · rw [List.drop_length_le (Nat.ge_of_not_lt ‹_›)]; rfl
-termination_by aux => arr.size - i
+  termination_by arr.size - i
 
 theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
     (motive : Nat → Prop) (h0 : motive 0)
@@ -261,7 +261,7 @@ theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Arra
         | true, h => .pure h
         | false, h => go hj hstop h hp
     · next hj => exact .pure <| Nat.le_antisymm hj' (Nat.ge_of_not_lt hj) ▸ h0
-    termination_by => stop - j
+    termination_by stop - j
   simp only [Array.anyM_eq_anyM_loop]
   exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
 

@@ -219,7 +219,7 @@ theorem Heap.realSize_merge (le) (s₁ s₂ : Heap α) :
       rw [combine] at eq; split at eq <;> cases eq <;>
         simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
     split <;> split <;> simp [IH₁, IH₂, IH₃, this, Nat.add_assoc, Nat.add_left_comm]
-termination_by => s₁.length + s₂.length
+termination_by s₁.length + s₂.length
 
 private def FindMin.HasSize (res : FindMin α) (n : Nat) : Prop :=
   ∃ m,
@@ -280,7 +280,7 @@ by repeatedly pulling the minimum element out of the heap.
   | some (hd, tl) => do
     have : tl.realSize < s.realSize := by simp_arith [Heap.realSize_deleteMin eq]
     foldM le tl (← f init hd) f
-termination_by => s.realSize
+termination_by s.realSize
 
 /--
 `O(n log n)`. Fold over the elements of a heap in increasing order,
@@ -402,7 +402,7 @@ theorem Heap.WF.merge' (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
     · let ⟨ih₁, ih₂⟩ := merge' ht₁ ht₂
       exact ⟨⟨Nat.le_succ_of_le hr₁, this, ih₁.of_rankGT (ih₂ (iff_of_false hl₁ hl₂))⟩,
         fun _ => Nat.lt_succ_of_le hr₁⟩
-termination_by => s₁.length + s₂.length
+termination_by s₁.length + s₂.length
 
 theorem Heap.WF.merge (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) : (merge le s₁ s₂).WF le n :=
   (merge' h₁ h₂).1
