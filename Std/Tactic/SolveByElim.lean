@@ -3,12 +3,11 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, David Renshaw
 -/
-import Std.Tactic.Backtrack
-import Lean.Meta.Tactic.Apply
-import Std.Tactic.LabelAttr
-import Std.Data.Sum.Basic
-import Std.Tactic.Relation.Symm
 import Std.Data.Option.Basic
+import Std.Data.Sum.Basic
+import Std.Tactic.LabelAttr
+import Std.Tactic.Relation.Symm
+import Std.Tactic.SolveByElim.Backtrack
 
 /-!
 # `solve_by_elim`, `apply_rules`, and `apply_assumption`.
@@ -86,13 +85,8 @@ def applyFirst (cfg : ApplyConfig := {}) (transparency : TransparencyMode := .de
     (lemmas : List Expr) (g : MVarId) : MetaM (List MVarId) :=
   (applyTactics cfg transparency lemmas g).head
 
-/--
-Configuration structure to control the behaviour of `solve_by_elim`:
-* transparency mode for calls to `apply`
-* whether to use `symm` on hypotheses and `exfalso` on the goal as needed,
-* see also `BacktrackConfig` for hooks allowing flow control.
--/
-structure Config extends BacktrackConfig, ApplyConfig where
+/-- The default `maxDepth` for `apply_rules` is higher. -/
+structure ApplyRulesConfig extends BacktrackConfig, ApplyConfig where
   /-- Transparency mode for calls to `apply`. -/
   transparency : TransparencyMode := .default
   /-- Also use symmetric versions (via `@[symm]`) of local hypotheses. -/
@@ -100,14 +94,20 @@ structure Config extends BacktrackConfig, ApplyConfig where
   /-- Try proving the goal via `exfalso` if `solve_by_elim` otherwise fails.
   This is only used when operating on a single goal. -/
   exfalso : Bool := true
+  maxDepth := 50
+
+/--
+Configuration structure to control the behaviour of `solve_by_elim`:
+* transparency mode for calls to `apply`
+* whether to use `symm` on hypotheses and `exfalso` on the goal as needed,
+* see also `BacktrackConfig` for hooks allowing flow control.
+-/
+structure Config extends ApplyRulesConfig where
   /-- Enable backtracking search. -/
   backtracking : Bool := true
+  maxDepth := 6
 
-instance : Coe Config BacktrackConfig := ⟨Config.toBacktrackConfig⟩
-
-/-- The default `maxDepth` for `apply_rules` is higher. -/
-structure ApplyRulesConfig extends Config where
-  maxDepth := 50
+instance : Coe Config BacktrackConfig := ⟨(·.toApplyRulesConfig.toBacktrackConfig)⟩
 
 /--
 Allow elaboration of `Config` arguments to tactics.
@@ -265,10 +265,11 @@ def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM
     | _, _ => throw e
 where
   /-- Run either backtracking search, or repeated application, on the list of goals. -/
-  run : List MVarId → MetaM (List MVarId) := if cfg.backtracking then
-    backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
-  else
-    repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
+  run : List MVarId → MetaM (List MVarId) :=
+    if cfg.backtracking then
+      backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
+    else
+      repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
 
 /--
 A `MetaM` analogue of the `apply_rules` user tactic.
@@ -285,7 +286,7 @@ def _root_.Lean.MVarId.applyRules (cfg : Config) (lemmas : List (TermElabM Expr)
   solveByElim { cfg with backtracking := false } lemmas ctx [g]
 
 open Lean.Parser.Tactic
-open Std.Tactic.LabelAttr
+open Std.Tactic.LabelAttr (labelled)
 
 /--
 `mkAssumptionSet` builds a collection of lemmas for use in
@@ -531,6 +532,5 @@ elab_rules : tactic |
   let (star, add, remove) := parseArgs t
   let use := parseUsing use
   let cfg ← elabApplyRulesConfig (mkOptionalNode cfg)
-  let cfg := { cfg with
-    backtracking := false }
+  let cfg := { cfg with backtracking := false }
   liftMetaTactic fun g => solveByElim.processSyntax cfg o.isSome star add remove use [g]

@@ -3,8 +3,6 @@ Copyright (c) 2023 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Lean.Meta.Basic
-import Lean.Meta.Tactic.Util
 import Std.Control.Nondet.Basic
 import Std.Data.List.Basic
 
