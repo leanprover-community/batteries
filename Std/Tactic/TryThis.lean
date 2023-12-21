@@ -21,7 +21,7 @@ namespace Std.Tactic.TryThis
 
 open Lean Elab PrettyPrinter Meta Server RequestM
 
-/-! # Raw widgets and code actions -/
+/-! # Raw widget -/
 
 /--
 This is a widget which is placed by `TryThis.addSuggestion` and `TryThis.addSuggestions`.
@@ -40,8 +40,7 @@ Try these:
 
 where `<replacement*>` is a link which will perform the replacement.
 -/
-@[widget] def tryThisWidget : Widget.UserWidgetDefinition where
-  name := "Suggestion"
+@[widget_module] def tryThisWidget : Widget.Module where
   javascript := "
 import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
@@ -68,16 +67,31 @@ export default function ({ pos, suggestions, range, header, isInline, style }) {
   }
 
   // Choose between an inline 'Try this'-like display and a list-based 'Try these'-like display.
+  let inner = null
   if (isInline) {
-    return e('div', { className: 'ml1' },
+    inner = e('div', { className: 'ml1' },
       e('pre', { className: 'font-code pre-wrap' }, header, makeSuggestion(suggestions[0])))
   } else {
-    return e('div', { className: 'ml1' },
+    inner = e('div', { className: 'ml1' },
       e('pre', { className: 'font-code pre-wrap' }, header),
       e('ul', { style: { paddingInlineStart: '20px' } }, suggestions.map(s =>
         e('li', { className: 'font-code pre-wrap' }, makeSuggestion(s)))))
   }
+  return e('details', { open: true },
+    e('summary', { className: 'mv2 pointer' }, 'Suggestions'),
+    inner)
 }"
+
+/-! # Code action -/
+
+/-- A packet of information about a "Try this" suggestion
+that we store in the infotree for the associated code action to retrieve. -/
+structure TryThisInfo : Type where
+  /-- The textual range to be replaced by one of the suggestions. -/
+  range : Lsp.Range
+  /-- A list of suggestions for the user to choose from. -/
+  suggestionTexts : Array String
+  deriving TypeName
 
 /--
 This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
@@ -86,17 +100,15 @@ apply the replacement.
 @[code_action_provider] def tryThisProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result
+    let .ofCustomInfo { stx, value } := info | result
+    let some { range, suggestionTexts } := value.get? TryThisInfo | result
     let some stxRange := stx.getRange? | result
     let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
     unless stxRange.start.line ≤ params.range.end.line do return result
     unless params.range.start.line ≤ stxRange.end.line do return result
-    let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
-    let .ok suggestions := suggestions.getArr? | panic! "bad type"
     let mut result := result
-    for h : i in [:suggestions.size] do
-      let .ok newText := (suggestions[i]'h.2).getObjValAs? String "suggestion" | panic! "bad type"
+    for h : i in [:suggestionTexts.size] do
+      let newText := suggestionTexts[i]'h.2
       result := result.push {
         eager.title := "Try this: " ++ newText
         eager.kind? := "quickfix"
@@ -315,19 +327,23 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     -- replacing `tac` in `by tac`, because the next line will only be 2 space indented
     -- (less than `tac` which starts at column 3)
     let (indent, column) := getIndentAndColumn map range
+    let suggestionTexts ←
+      suggestions.mapM (·.suggestion.prettyExtra (indent := indent) (column := column))
     let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
-    let stxRange := ref.getRange?.getD range
-    let stxRange :=
-      { start := map.lineStart (map.toPosition stxRange.start).line
-        stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    Widget.saveWidgetInfo ``tryThisWidget (.ofRange stxRange) (props := json% {
-      suggestions: $suggestions,
-      range: $(map.utf8RangeToLspRange range),
-      header: $header,
-      isInline: $isInline,
-      style: $style?
-    })
-
+    let ref := Syntax.ofRange <| ref.getRange?.getD range
+    let range := map.utf8RangeToLspRange range
+    pushInfoLeaf <| .ofCustomInfo {
+      stx := ref
+      value := Dynamic.mk { range, suggestionTexts : TryThisInfo }
+    }
+    Widget.savePanelWidgetInfo (hash tryThisWidget.javascript) ref
+      (props := return json% {
+        suggestions: $suggestions,
+        range: $range,
+        header: $header,
+        isInline: $isInline,
+        style: $style?
+      })
 
 /-- Add a "try this" suggestion. This has three effects:
 
