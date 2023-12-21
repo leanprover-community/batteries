@@ -21,6 +21,9 @@ example {x : Int} (_ : x % 2 > 5) : False := by omega
 example {x : Int} (_ : 2 * (x / 2) > x) : False := by omega
 example {x : Int} (_ : 2 * (x / 2) ≤ x - 2) : False := by omega
 
+example {x : Nat} : x / 0 = 0 := by omega
+example {x : Int} : x / 0 = 0 := by omega
+
 example (_ : 7 < 3) : False := by omega
 example (_ : 0 < 0) : False := by omega
 
