@@ -221,6 +221,8 @@ def addIntEquality (p : MetaProblem) (h x : Expr) : OmegaM MetaProblem := do
 
 /--
 Add an integer inequality to the `Problem`.
+
+We solve equalities as they are discovered, as this often results in an earlier contradiction.
 -/
 def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
   let (lc, prf, facts) ← asLinearCombo y
@@ -230,8 +232,8 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
   pure <|
   { p with
     facts := newFacts.toList ++ p.facts
-    problem := p.problem.addInequality lc.const lc.coeffs
-      (some do mkAppM ``le_of_le_of_eq #[h, (← prf)]) }
+    problem := ← (p.problem.addInequality lc.const lc.coeffs
+      (some do mkAppM ``le_of_le_of_eq #[h, (← prf)])) |>.solveEqualities }
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
 def pushNot (h P : Expr) : Option Expr := do
@@ -258,20 +260,22 @@ def pushNot (h P : Expr) : Option Expr := do
       (.app (.const ``Classical.propDecidable []) P₂) h)
   | _ => none
 
-/-- Parse an `Expr` and extract facts. -/
-partial def addFact (p : MetaProblem) (h : Expr) : OmegaM MetaProblem := do
+/--
+Parse an `Expr` and extract facts, also returning the number of new facts found.
+-/
+partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) := do
   if ! p.problem.possible then
-    return p
+    return (p, 0)
   else
     let t ← instantiateMVars (← inferType h)
     match t.getAppFnArgs with
     | (``Eq, #[.const ``Int [], x, y]) =>
       match y.int? with
-      | some 0 => p.addIntEquality h x
+      | some 0 => pure (← p.addIntEquality h x, 1)
       | _ => p.addFact (mkApp3 (.const ``Int.sub_eq_zero_of_eq []) x y h)
     | (``LE.le, #[.const ``Int [], _, x, y]) =>
       match x.int? with
-      | some 0 => p.addIntInequality h y
+      | some 0 => pure (← p.addIntInequality h y, 1)
       | _ => p.addFact (mkApp3 (.const ``Int.sub_nonneg_of_le []) y x h)
     | (``LT.lt, #[.const ``Int [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Int.add_one_le_of_lt []) x y h)
@@ -284,7 +288,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM MetaProblem := do
     | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
     | (``Not, #[P]) => match pushNot h P with
-      | none => return p
+      | none => return (p, 0)
       | some h' => p.addFact h'
     | (``Eq, #[.const ``Nat [], x, y]) =>
       p.addFact (mkApp3 (.const ``Int.ofNat_congr []) x y h)
@@ -297,34 +301,37 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM MetaProblem := do
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
       p.addFact (mkApp3 (.const ``Int.mod_eq_zero_of_dvd []) k x h)
     | (``And, #[t₁, t₂]) => do
-        (← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)).addFact
-          (mkApp3 (.const ``And.right []) t₁ t₂ h)
+        let (p₁, n₁) ← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)
+        let (p₂, n₂) ← p₁.addFact (mkApp3 (.const ``And.right []) t₁ t₂ h)
+        return (p₂, n₁ + n₂)
     | (``Exists, #[α, P]) =>
       p.addFact (mkApp3 (.const ``Exists.choose_spec [← getLevel α]) α P h)
     | (``Subtype, #[α, P]) =>
       p.addFact (mkApp3 (.const ``Subtype.property [← getLevel α]) α P h)
     | (``Or, #[_, _]) =>
       if (← cfg).splitDisjunctions then
-        return { p with disjunctions := p.disjunctions.insert h }
+        return ({ p with disjunctions := p.disjunctions.insert h }, 1)
       else
-        return p
-    | _ => pure p
+        return (p, 0)
+    | _ => pure (p, 0)
 
 /--
-Process all the facts in a `MetaProblem`.
+Process all the facts in a `MetaProblem`, returning the new problem, and the number of new facts.
 
 This is partial because new facts may be generated along the way.
 -/
-partial def processFacts (p : MetaProblem) : OmegaM MetaProblem := do
+partial def processFacts (p : MetaProblem) : OmegaM (MetaProblem × Nat) := do
   match p.facts with
-  | [] => pure p
+  | [] => pure (p, 0)
   | h :: t =>
     if p.processedFacts.contains h then
       processFacts { p with facts := t }
     else
-      (← MetaProblem.addFact { p with
+      let (p₁, n₁) ← MetaProblem.addFact { p with
         facts := t
-        processedFacts := p.processedFacts.insert h } h).processFacts
+        processedFacts := p.processedFacts.insert h } h
+      let (p₂, n₂) ← p₁.processFacts
+      return (p₂, n₁ + n₂)
 
 end MetaProblem
 
@@ -345,35 +352,57 @@ def cases₂ (mvarId : MVarId) (p : Expr) (hName : Name := `h) :
     | throwError "'cases' tactic failed, unexpected new hypothesis"
   return ((s₁.mvarId, f₁), (s₂.mvarId, f₂))
 
+
+mutual
+
+/--
+Split a disjunction in a `MetaProblem`, and if we find a new usable fact
+call `omegaImpl` in both branches.
+-/
+partial def splitDisjunction (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withContext do
+  match m.disjunctions with
+    | [] => throwError "omega did not find a contradiction:\n{m.problem}"
+    | h :: t =>
+      trace[omega] "Case splitting on {← inferType h}"
+      let ctx ← getMCtx
+      let (⟨g₁, h₁⟩, ⟨g₂, h₂⟩) ← cases₂ g h
+      trace[omega] "Adding facts:\n{← g₁.withContext <| inferType (.fvar h₁)}"
+      let m₁ := { m with facts := [.fvar h₁], disjunctions := t }
+      let r ← savingState do
+        let (m₁, n) ← g₁.withContext m₁.processFacts
+        if 0 < n then
+          omegaImpl m₁ g₁
+          pure true
+        else
+          pure false
+      if r then
+        trace[omega] "Adding facts:\n{← g₂.withContext <| inferType (.fvar h₂)}"
+        let m₂ := { m with facts := [.fvar h₂], disjunctions := t }
+        omegaImpl m₂ g₂
+      else
+        trace[omega] "No new facts found."
+        setMCtx ctx
+        splitDisjunction { m with disjunctions := t } g
+
 /-- Implementation of the `omega` algorithm, and handling disjunctions. -/
-partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit :=
-  g.withContext do
-  let m ← m.processFacts
+partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withContext do
+  let (m, _) ← m.processFacts
   guard m.facts.isEmpty
   let p := m.problem
   trace[omega] "Extracted linear arithmetic problem:\nAtoms: {← atomsList}\n{p}"
-  let p' ← if p.possible then p.solveEqualities else pure p
-  let p'' ← if p'.possible then p'.elimination else pure p'
-  trace[omega] "After elimination:\nAtoms: {← atomsList}\n{p''}"
-  match p''.possible, p''.proveFalse?, p''.proveFalse?_spec with
+  let p' ← if p.possible then p.elimination else pure p
+  trace[omega] "After elimination:\nAtoms: {← atomsList}\n{p'}"
+  match p'.possible, p'.proveFalse?, p'.proveFalse?_spec with
   | true, _, _ =>
-    match m.disjunctions with
-    | [] => throwError "omega did not find a contradiction:\n{p''}"
-    | h :: t =>
-      trace[omega] "Case splitting on {← inferType h}"
-      let (⟨g₁, h₁⟩, ⟨g₂, h₂⟩) ← cases₂ g h
-      trace[omega] "Adding facts:\n{← g₁.withContext <| inferType (.fvar h₁)}"
-      let m := { m with problem := p', facts := [.fvar h₁], disjunctions := t }
-      savingState do omegaImpl m g₁
-      trace[omega] "Adding facts:\n{← g₂.withContext <| inferType (.fvar h₂)}"
-      let m := { m with problem := p', facts := [.fvar h₂], disjunctions := t }
-      omegaImpl m g₂
+    splitDisjunction m g
   | false, .some prf, _ =>
-    trace[omega] "Justification:\n{p''.explanation?.get}"
+    trace[omega] "Justification:\n{p'.explanation?.get}"
     let prf ← instantiateMVars (← prf)
     trace[omega] "omega found a contradiction, proving {← inferType prf}"
     trace[omega] "{prf}"
     g.assign prf
+
+end
 
 /--
 Given a collection of facts, try prove `False` using the omega algorithm,

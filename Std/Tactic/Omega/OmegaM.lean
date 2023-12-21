@@ -118,7 +118,7 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
         -- `((a - b : Nat) : Int)` gives a dichotomy
         r := r.insert (mkApp2 (.const ``Int.ofNat_sub_dichotomy []) a b)
       | _, true, (``Int.natAbs, #[x]) =>
-        -- `((a - b : Nat) : Int)` gives a dichotomy
+        -- `(a.natAbs : Int)` gives a dichotomy
         r := r.insert (mkApp (.const ``Int.natAbs_dichotomy []) x)
       | _, _,_ => pure ()
     return r
