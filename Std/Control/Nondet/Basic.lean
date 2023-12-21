@@ -120,7 +120,7 @@ whatever the state was when we first read from the result.)
 def ofList (L : List α) : Nondet m α := ofListM (L.map pure)
 
 /-- Apply a function which returns values in the monad to every alternative of a `Nondet m α`. -/
-partial def mapM (f : α → m β) (L : Nondet m α) : Nondet m β :=
+def mapM (f : α → m β) (L : Nondet m α) : Nondet m β :=
   L.bind fun a => singletonM (f a)
 
 /-- Apply a function to each alternative in a `Nondet m α` . -/
@@ -137,7 +137,7 @@ def ofOptionM (x : m (Option α)) : Nondet m α := .squash fun _ => do
 def ofOption (x : Option α) : Nondet m α := ofOptionM (pure x)
 
 /-- Filter and map a nondeterministic value using a monadic function which may return `none`. -/
-partial def filterMapM (f : α → m (Option β)) (L : Nondet m α) : Nondet m β :=
+def filterMapM (f : α → m (Option β)) (L : Nondet m α) : Nondet m β :=
   L.bind fun a => ofOptionM (f a)
 
 /-- Filter and map a nondeterministic value. -/
@@ -145,7 +145,7 @@ def filterMap (f : α → Option β) (L : Nondet m α) : Nondet m β :=
   L.filterMapM fun a => pure (f a)
 
 /-- Filter a nondeterministic value using a monadic predicate. -/
-partial def filterM (p : α → m (ULift Bool)) (L : Nondet m α) : Nondet m α :=
+def filterM (p : α → m (ULift Bool)) (L : Nondet m α) : Nondet m α :=
   L.filterMapM fun a => do
     if (← p a).down then
       pure (some a)
