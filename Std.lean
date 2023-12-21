@@ -91,6 +91,7 @@ import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.InfoTree
+import Std.Lean.IO.Process
 import Std.Lean.Json
 import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
@@ -105,6 +106,7 @@ import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.Name
+import Std.Lean.NameMap
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
