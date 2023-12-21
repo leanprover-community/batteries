@@ -196,12 +196,6 @@ theorem and_or_inj_left_iff :
     ∀ {m x y : Bool}, (m && x) = (m && y) ∧ (m || x) = (m || y) ↔ x = y := by decide
 @[deprecated] alias and_or_inj_left' := and_or_inj_left_iff
 
-@[simp] theorem false_eq_decide_iff {p : Prop} [h : Decidable p] : false = decide p ↔ ¬p := by
-  cases h with | _ q => simp [q]
-
-@[simp] theorem true_eq_decide_iff {p : Prop} [h : Decidable p] : true = decide p ↔ p := by
-  cases h with | _ q => simp [q]
-
 /-! ## toNat -/
 
 /-- convert a `Bool` to a `Nat`, `false -> 0`, `true -> 1` -/
@@ -213,3 +207,18 @@ def toNat (b:Bool) : Nat := cond b 1 0
 
 theorem toNat_le_one (c:Bool) : c.toNat ≤ 1 := by
   cases c <;> trivial
+
+end Bool
+
+/-! ### cond -/
+
+theorem cond_eq_if : (bif b then x else y) = (if b then x else y) := by
+  cases b <;> simp
+
+/-! ### decide -/
+
+@[simp] theorem false_eq_decide_iff {p : Prop} [h : Decidable p] : false = decide p ↔ ¬p := by
+  cases h with | _ q => simp [q]
+
+@[simp] theorem true_eq_decide_iff {p : Prop} [h : Decidable p] : true = decide p ↔ p := by
+  cases h with | _ q => simp [q]
