@@ -89,15 +89,13 @@ that we store in the infotree for the associated code action to retrieve. -/
 structure TryThisInfo : Type where
   /-- The textual range to be replaced by one of the suggestions. -/
   range : Lsp.Range
-  /-- A list of suggestions for the user to choose from. -/
-  suggestionTexts : Array String
-  /-- The prefix to display before the code action for a "Try this" suggestion. -/
-  codeActionPrefix : String := "Try this: "
   /--
-  The title of the code action.
-  If this is `none`, then the title will be contructed out of `codeActionPrefix` and the suggestion.
+  A list of suggestions for the user to choose from.
+  Each suggestion may optionally come with an override for the code action title.
   -/
-  codeActionTitle? : Option String
+  suggestionTexts : Array (String × Option String)
+  /-- The prefix to display before the code action for a "Try this" suggestion. -/
+  codeActionPrefix? : Option String
   deriving TypeName
 
 /--
@@ -108,7 +106,7 @@ apply the replacement.
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
     let .ofCustomInfo { stx, value } := info | result
-    let some { range, suggestionTexts, codeActionPrefix, codeActionTitle? } :=
+    let some { range, suggestionTexts, codeActionPrefix? } :=
       value.get? TryThisInfo | result
     let some stxRange := stx.getRange? | result
     let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
@@ -116,8 +114,8 @@ apply the replacement.
     unless params.range.start.line ≤ stxRange.end.line do return result
     let mut result := result
     for h : i in [:suggestionTexts.size] do
-      let newText := suggestionTexts[i]'h.2
-      let title := codeActionTitle?.getD codeActionPrefix ++ newText
+      let (newText, title?) := suggestionTexts[i]'h.2
+      let title := title?.getD (codeActionPrefix?.getD "Try this: ") ++ newText
       result := result.push {
         eager.title := title
         eager.kind? := "quickfix"
@@ -347,15 +345,15 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     -- (less than `tac` which starts at column 3)
     let (indent, column) := getIndentAndColumn map range
     let suggestionTexts ←
-      suggestions.mapM (·.suggestion.prettyExtra (indent := indent) (column := column))
+      suggestions.mapM fun s => do
+        pure (← s.suggestion.prettyExtra (indent := indent) (column := column), none)
     let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
     let ref := Syntax.ofRange <| ref.getRange?.getD range
     let range := map.utf8RangeToLspRange range
-    let codeActionPrefix := codeActionPrefix?.getD "Try This: "
     pushInfoLeaf <| .ofCustomInfo {
       stx := ref
       value := Dynamic.mk
-        { range, suggestionTexts, codeActionPrefix, codeActionTitle? := none : TryThisInfo }
+        { range, suggestionTexts, codeActionPrefix? : TryThisInfo }
     }
     Widget.savePanelWidgetInfo (hash tryThisWidget.javascript) ref
       (props := return json% {
