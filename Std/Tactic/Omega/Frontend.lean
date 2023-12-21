@@ -172,6 +172,11 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
   | (``HDiv.hDiv, #[_, _, _, _, x, z]) =>
     match intCast? z with
     | some 0 => rewrite e (mkApp (.const ``Int.ediv_zero []) x)
+    | some i =>
+      if i < 0 then
+        rewrite e (mkApp2 (.const ``Int.ediv_neg []) x (toExpr (-i)))
+      else
+        mkAtomLinearCombo e
     | _ => mkAtomLinearCombo e
   | (``Nat.cast, #[_, _, n]) => match n.getAppFnArgs with
     | (``HAdd.hAdd, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_add []) a b)
