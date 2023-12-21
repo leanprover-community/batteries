@@ -156,7 +156,8 @@ def replaceOccurrencesDefEq (locs : Array GoalOccurrences) (pattern : AbstractMV
   It assumes `val` has type `type`, and that `type` is well-formed after `fvarId`.
 
   This is modelled on `Lean.MVarId.assertAfter`. -/
-def Lean.MVarId.defineAfter (mvarId : MVarId) (fvarId : FVarId) (userName : Name) (type : Expr) (val : Expr) : MetaM AssertAfterResult := do
+def Lean.MVarId.defineAfter (mvarId : MVarId) (fvarId : FVarId) (userName : Name)
+    (type : Expr) (val : Expr) : MetaM AssertAfterResult := do
   mvarId.checkNotAssigned `defineAfter
   let (fvarIds, mvarId) ← mvarId.revertAfter fvarId
   let mvarId ← mvarId.define userName type val
@@ -171,7 +172,7 @@ def Lean.MVarId.defineAfter (mvarId : MVarId) (fvarId : FVarId) (userName : Name
     a new value `valNew` that is equal to the old one (witnessed by `eqProof`).
 
     This follows the code of `Lean.MVarId.replaceLocalDecl`. -/
-def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew eqProof : Expr)
+def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew _eqProof : Expr)
     : MetaM AssertAfterResult := mvarId.withContext do
   let localDecl ← fvarId.getDecl
   let (_, localDecl') ← findMaxFVar valNew |>.run localDecl
