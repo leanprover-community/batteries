@@ -221,8 +221,7 @@ with rfl when elaboration results in a different term than the user intended. -/
       return none
 
 /--
-Return a list of unused have/suffices/let_fun terms in an expression.
-This actually finds all beta-redexes.
+Return a list of unused `let_fun` terms in an expression.
 -/
 def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   let res ← IO.mkRef #[]
