@@ -50,8 +50,10 @@ import Std.Data.List.Init.Attach
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.List.Pairwise
+import Std.Data.List.Perm
 import Std.Data.MLList.Basic
 import Std.Data.MLList.Heartbeats
+import Std.Data.MLList.IO
 import Std.Data.Nat.Basic
 import Std.Data.Nat.Bitwise
 import Std.Data.Nat.Gcd
@@ -108,6 +110,7 @@ import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
+import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Lean.Util.EnvSearch
@@ -126,6 +129,7 @@ import Std.Tactic.Congr
 import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
+import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
@@ -142,6 +146,18 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega
+import Std.Tactic.Omega.Coeffs.IntList
+import Std.Tactic.Omega.Config
+import Std.Tactic.Omega.Constraint
+import Std.Tactic.Omega.Core
+import Std.Tactic.Omega.Frontend
+import Std.Tactic.Omega.Int
+import Std.Tactic.Omega.IntList
+import Std.Tactic.Omega.LinearCombo
+import Std.Tactic.Omega.Logic
+import Std.Tactic.Omega.MinNatAbs
+import Std.Tactic.Omega.OmegaM
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
