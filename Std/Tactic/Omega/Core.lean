@@ -386,7 +386,11 @@ def addConstraint (p : Problem) : Fact → Problem
             -- with the same fact with a more complicated justification
             p
           else
-            p.insertConstraint ⟨x, s.combine t, j.combine (h ▸ k)⟩
+            if r = s then
+              -- The new constraint is strictly stronger, no need to combine with the old one:
+              p.insertConstraint ⟨x, s, j⟩
+            else
+              p.insertConstraint ⟨x, s.combine t, j.combine (h ▸ k)⟩
         else
           p -- unreachable
     else
