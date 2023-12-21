@@ -56,6 +56,8 @@ variable {m : Type → Type} [Monad m] [MonadBacktrack σ m]
 /-- The empty nondeterministic value. -/
 def nil : Nondet m α := .mk .nil
 
+instance : EmptyCollection (Nondet m α) := ⟨.nil⟩
+
 instance : Inhabited (Nondet m α) := ⟨.nil⟩
 
 /--
