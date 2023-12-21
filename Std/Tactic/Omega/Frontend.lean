@@ -439,6 +439,17 @@ and the relevant inequalities.
 On the first pass, we do not perform case splits on natural subtraction.
 If `omega` fails, we recursively perform a case split on
 a natural subtraction appearing in a hypothesis, and try again.
+
+The options
+```
+omega (config := { splitDisjunctions := true, splitNatSub := true, splitNatAbs := true})
+```
+can be used to:
+* `splitDisjunctions`: split any disjunctions found in the context,
+  if the problem is not otherwise solvable.
+* `splitNatSub`: for each appearance of `((a - b : Nat) : Int)`, split on `a ≤ b` if necessary.
+* `splitNatAbs`: for each appearance of `Int.natAbs a`, split on `0 ≤ a` if necessary.
+Currently, all of these are on by default.
 -/
 syntax (name := omegaSyntax) "omega" (config)? : tactic
 
