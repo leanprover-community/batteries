@@ -388,11 +388,14 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that begins the display. By default, it is `"Try this: "`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addSuggestion (ref : Syntax) (s : Suggestion) (origSpan? : Option Syntax := none)
-    (header : String := "Try this: ") : MetaM Unit := do
+    (header : String := "Try this: ") (codeActionPrefix? : Option String := none) : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
   addSuggestionCore ref #[s] header (isInline := true) origSpan?
+    (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
@@ -458,11 +461,14 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
   `Remaining subgoals:`
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false)
+    (codeActionPrefix? : Option String := none): MetaM Unit := do
   addSuggestion ref (← addExactSuggestionCore addSubgoalsMsg e)
-    (origSpan? := origSpan?)
+    (origSpan? := origSpan?) (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add `exact e` or `refine e` suggestions.
 
@@ -473,11 +479,15 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
   `Remaining subgoals:`
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addExactSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false)
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   let suggestions ← es.mapM <| addExactSuggestionCore addSubgoalsMsg
-  addSuggestions ref suggestions (origSpan? := origSpan?)
+  addSuggestions ref suggestions (origSpan? := origSpan?) (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add a term suggestion.
 
@@ -487,10 +497,14 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string which precedes the suggestion. By default, it's `"Try this: "`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addTermSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try this: ") : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try this: ")
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   addSuggestion ref (← delabToRefinableSuggestion e) (origSpan? := origSpan?) (header := header)
+    (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add term suggestions.
 
@@ -500,8 +514,12 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string which precedes the list of suggestions. By default, it's `"Try these:"`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addTermSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try these:") : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try these:")
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   addSuggestions ref (← es.mapM delabToRefinableSuggestion)
-    (origSpan? := origSpan?) (header := header)
+    (origSpan? := origSpan?) (header := header) (codeActionPrefix? := codeActionPrefix?)
