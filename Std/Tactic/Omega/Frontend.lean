@@ -7,6 +7,7 @@ import Std.Tactic.Omega.Core
 import Std.Tactic.Omega.LinearCombo
 import Std.Tactic.Omega.Logic
 import Std.Tactic.Omega.Int
+import Std.Tactic.FalseOrByContra
 import Std.Lean.Meta.Basic
 import Std.Lean.Elab.Tactic
 
@@ -377,29 +378,7 @@ and close the goal using that.
 def omega (facts : List Expr) (g : MVarId) : MetaM Unit := OmegaM.run do
   omegaImpl { facts } g
 
--- `false_or_by_contra` has been PR'd as https://github.com/leanprover/std4/pull/460
-
-/--
-Changes the goal to `False`, retaining as much information as possible:
-
-If the goal is `False`, do nothing.
-If the goal is `¬ P`, introduce `P`.
-If the goal is `x ≠ y`, introduce `x = y`.
-Otherwise, for a goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
--/
-def falseOrByContra (g : MVarId) : MetaM MVarId := do
-  match ← whnfR (← g.getType) with
-  | .const ``False _ => pure g
-  | .app (.const ``Not _) _
-  | .app (.const ``Ne _) _ => pure (← g.intro1).2
-  | _ =>
-    let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
-    pure (← g.intro1).2
-
 open Lean Elab Tactic
-
-@[inherit_doc falseOrByContra]
-elab "false_or_by_contra" : tactic => liftMetaTactic1 (falseOrByContra ·)
 
 /--
 The `omega` tactic, for resolving integer and natural linear arithmetic problems.
