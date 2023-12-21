@@ -26,6 +26,8 @@ example {x : Int} : x / 0 = 0 := by omega
 
 example {x : Int} : x / 2 + x / (-2) = 0 := by omega
 
+example {x y z : Nat} (_ : a ≤ c) (_ : b ≤ c) : a < Nat.succ c := by omega
+
 example (_ : 7 < 3) : False := by omega
 example (_ : 0 < 0) : False := by omega
 
