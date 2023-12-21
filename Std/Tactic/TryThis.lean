@@ -421,6 +421,9 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
 * `style?`: a default style for all suggestions which do not have a custom `style?` set.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none) (header : String := "Try these:")
