@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Classes.Order
 import Std.Data.Int.Lemmas
+import Std.Data.Prod.Lex
 import Std.Tactic.LeftRight
 
 /-!
@@ -30,6 +31,18 @@ protected alias ⟨_, lt_le_asymm⟩ := Int.not_le
 protected alias ⟨le_of_not_gt, not_lt_of_ge⟩ := Int.not_lt
 protected alias ⟨le_of_not_lt, not_lt_of_le⟩ := Int.not_lt
 protected alias ⟨_, le_lt_asymm⟩ := Int.not_lt
+
+theorem prodLex_ofNat_right {a c : Nat} {b d : Nat} (w : Prod.Lex (· < ·) (· < ·) (a, b) (c, d)) :
+    Prod.Lex (· < ·) (· < ·) (a, (b : Int)) (c, (d : Int)) := by
+  cases w
+  · exact .left _ _ ‹_›
+  · exact .right _ (ofNat_lt_of_lt ‹_›)
+
+theorem prodLex_ofNat_left {a c : Nat} {b d : Int} (w : Prod.Lex (· < ·) (· < ·) (a, b) (c, d)) :
+    Prod.Lex (· < ·) (· < ·) ((a : Int), b) ((c : Int), d) := by
+  cases w
+  · exact .left _ _ (ofNat_lt_of_lt ‹_›)
+  · exact .right _ ‹_›
 
 theorem add_congr {a b c d : Int} (h₁ : a = b) (h₂ : c = d) : a + c = b + d := by
   subst h₁; subst h₂; rfl
@@ -99,3 +112,10 @@ theorem lt_of_gt {x y : Nat} (h : x > y) : y < x := gt_iff_lt.mp h
 theorem le_of_ge {x y : Nat} (h : x ≥ y) : y ≤ x := ge_iff_le.mp h
 
 end Nat
+
+namespace Prod
+
+theorem of_lex (w : Prod.Lex r s p q) : r p.fst q.fst ∨ p.fst = q.fst ∧ s p.snd q.snd :=
+  (Prod.lex_def r s).mp w
+
+end Prod

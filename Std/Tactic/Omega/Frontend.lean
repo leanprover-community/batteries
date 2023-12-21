@@ -306,6 +306,21 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Int.ofNat_lt_of_lt []) x y h)
     | (``LE.le, #[.const ``Nat [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Int.ofNat_le_of_le []) x y h)
+    | (``Prod.Lex, #[.const ``Nat [], .const ``Nat [],
+        .lam _ (.const ``Nat []) (.lam _ (.const ``Nat []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        .lam _ (.const ``Nat []) (.lam _ (.const ``Nat []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        _, _]) =>
+      p.addFact (← mkAppM ``Int.prodLex_ofNat_right #[h])
+    | (``Prod.Lex, #[.const ``Nat [], .const ``Int [],
+        .lam _ (.const ``Nat []) (.lam _ (.const ``Nat []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        _, _]) =>
+      p.addFact (← mkAppM ``Int.prodLex_ofNat_left #[h])
+    | (``Prod.Lex, #[.const ``Int [], .const ``Nat [],
+        .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
+        _, _]) =>
+      p.addFact (← mkAppM ``Prod.of_lex #[h])
     | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
       p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
