@@ -168,11 +168,10 @@ def Lean.MVarId.defineAfter (mvarId : MVarId) (fvarId : FVarId) (userName : Name
     subst := subst.insert f (mkFVar fNew)
   return { fvarId := fvarIdNew, mvarId, subst }
 
-/-- Replace the value of the local `let` declaration `fvarId` with
-    a new value `valNew` that is equal to the old one (witnessed by `eqProof`).
+/-- Replace the value of the local `let` declaration `fvarId` with a new value `valNew`.
 
     This follows the code of `Lean.MVarId.replaceLocalDecl`. -/
-def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew _eqProof : Expr)
+def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew : Expr)
     : MetaM AssertAfterResult := mvarId.withContext do
   let localDecl ← fvarId.getDecl
   let (_, localDecl') ← findMaxFVar valNew |>.run localDecl
@@ -208,7 +207,7 @@ def replaceOccurrencesEq (locs : Array GoalOccurrences)
         throwError m!"Hypothesis {fvarId.name} is not a `let`-declaration."
       let rwResult ← Term.withSynthesize <|
         mvarId.rewrite hypValue heq symm (config := { occs := occs })
-      mvarId := (← mvarId.replaceLocalLetDecl fvarId rwResult.eNew rwResult.eqProof).mvarId
+      mvarId := (← mvarId.replaceLocalLetDecl fvarId rwResult.eNew).mvarId
       newGoals := newGoals ++ rwResult.mvarIds
     | .target occs => do
       let targetType ← mvarId.getType
