@@ -71,12 +71,12 @@ that continues using a CPU for 10 seconds after `hint` returns.
 -/
 
 /-- Busy wait for `millis` milliseconds, checking `checkCanceled`. -/
-def busy_wait (millis : Nat) : IO Bool := do
+def busyWait (millis : Nat) : IO Bool := do
   let start ← IO.monoMsNow
   while !(← IO.checkCanceled) && (← IO.monoMsNow) < start + millis do pure ()
   IO.checkCanceled
 
-register_hint run_tac busy_wait 10000
+register_hint run_tac busyWait 10000
 
 /--
 info: Try these:
