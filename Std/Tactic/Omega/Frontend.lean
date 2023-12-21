@@ -19,24 +19,6 @@ See `Std.Tactic.Omega` for an overview of the tactic.
 
 open Lean Meta
 
--- PR'd as https://github.com/leanprover/std4/pull/462
-/--
-Given `p : P ∨ Q` (or any inductive type with two one-argument constructors),
-split the goal into two subgoals:
-one containing the hypothesis `h : P` and another containing `h : Q`.
--/
-def _root_.Lean.MVarId.cases₂ (mvarId : MVarId) (p : Expr) (hName : Name := `h) :
-    MetaM ((MVarId × FVarId) × (MVarId × FVarId)) := do
-  let mvarId ← mvarId.assert `hByCases (← inferType p) p
-  let (fvarId, mvarId) ← mvarId.intro1
-  let #[s₁, s₂] ← mvarId.cases fvarId #[{ varNames := [hName] }, { varNames := [hName] }] |
-    throwError "'cases' tactic failed, unexpected number of subgoals"
-  let #[Expr.fvar f₁ ..] ← pure s₁.fields
-    | throwError "'cases' tactic failed, unexpected new hypothesis"
-  let #[Expr.fvar f₂ ..] ← pure s₂.fields
-    | throwError "'cases' tactic failed, unexpected new hypothesis"
-  return ((s₁.mvarId, f₁), (s₂.mvarId, f₂))
-
 namespace Std.Tactic.Omega
 
 /--
@@ -342,6 +324,23 @@ partial def processFacts (p : MetaProblem) : OmegaM MetaProblem := do
 
 end MetaProblem
 
+/--
+Given `p : P ∨ Q` (or any inductive type with two one-argument constructors),
+split the goal into two subgoals:
+one containing the hypothesis `h : P` and another containing `h : Q`.
+-/
+def cases₂ (mvarId : MVarId) (p : Expr) (hName : Name := `h) :
+    MetaM ((MVarId × FVarId) × (MVarId × FVarId)) := do
+  let mvarId ← mvarId.assert `hByCases (← inferType p) p
+  let (fvarId, mvarId) ← mvarId.intro1
+  let #[s₁, s₂] ← mvarId.cases fvarId #[{ varNames := [hName] }, { varNames := [hName] }] |
+    throwError "'cases' tactic failed, unexpected number of subgoals"
+  let #[Expr.fvar f₁ ..] ← pure s₁.fields
+    | throwError "'cases' tactic failed, unexpected new hypothesis"
+  let #[Expr.fvar f₂ ..] ← pure s₂.fields
+    | throwError "'cases' tactic failed, unexpected new hypothesis"
+  return ((s₁.mvarId, f₁), (s₂.mvarId, f₂))
+
 /-- Implementation of the `omega` algorithm, and handling disjunctions. -/
 partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withContext do
   let m ← m.processFacts
@@ -357,7 +356,7 @@ partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withCont
     | [] => throwError "omega did not find a contradiction:\n{p''}"
     | h :: t =>
       trace[omega] "Case splitting on {← inferType h}"
-      let (⟨g₁, h₁⟩, ⟨g₂, h₂⟩) ← g.cases₂ h
+      let (⟨g₁, h₁⟩, ⟨g₂, h₂⟩) ← cases₂ g h
       trace[omega] "Adding facts:\n{← g₁.withContext <| inferType (.fvar h₁)}"
       let m := { m with problem := p', facts := [.fvar h₁], disjunctions := t }
       savingState do omegaImpl m g₁
