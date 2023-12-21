@@ -6,7 +6,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 import Lean.Util.CollectLevelParams
 import Lean.Meta.ForEachExpr
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Basic
+import Std.Data.Array.Init.Basic
 
 open Lean Meta
 
@@ -69,7 +69,12 @@ We skip all declarations that contain `sorry` in their value. -/
     let kind ← match ← getConstInfo declName with
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
-      | .defnInfo .. => pure "definition"
+      | .defnInfo info =>
+          -- leanprover/lean4#2575:
+          -- projections are generated as `def`s even when they should be `theorem`s
+          if ← isProjectionFn declName <&&> isProp info.type then
+            return none
+          pure "definition"
       | .inductInfo .. => pure "inductive"
       | _ => return none
     let (none) ← findDocString? (← getEnv) declName | return none
@@ -84,6 +89,13 @@ We skip all declarations that contain `sorry` in their value. -/
       return none
     let kind ← match ← getConstInfo declName with
       | .thmInfo .. => pure "theorem"
+      | .defnInfo info =>
+          -- leanprover/lean4#2575:
+          -- projections are generated as `def`s even when they should be `theorem`s
+          if ← isProjectionFn declName <&&> isProp info.type then
+            pure "Prop projection"
+          else
+            return none
       | _ => return none
     let (none) ← findDocString? (← getEnv) declName | return none
     return m!"{kind} missing documentation string"
@@ -96,6 +108,8 @@ has been used. -/
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none
+    -- leanprover/lean4#2575:
+    -- projections are generated as `def`s even when they should be `theorem`s
     if ← isProjectionFn declName then return none
     let info ← getConstInfo declName
     let isThm ← match info with
@@ -231,11 +245,11 @@ uncommon problem. -/
     "refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
     "replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
     "in proofs appear as if they are used. " ++
-    "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where" ++
-    " `proof_of_goal` does not refer to `foo`. " ++
+    "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo`" ++
+    " where `proof_of_goal` does not refer to `foo`. " ++
     "Such statements have no effect on the generated proof, and can just be replaced by " ++
-    "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
-    "proofs appear as if they are used. "
+    "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions " ++
+    "in proofs appear as if they are used. "
   test declName := do
     if ← isAutoDecl declName then return none
     let info ← getConstInfo declName

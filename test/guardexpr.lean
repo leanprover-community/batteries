@@ -7,7 +7,7 @@ example (n : Nat) : Nat := by
   guard_expr 1 =ₛ (by exact 1)
   fail_if_success guard_expr 1 = (by exact 2)
   guard_hyp m := 1
-  guard_hyp m : (λ x => x) Nat :=~ id 1
+  guard_hyp m : (fun x => x) Nat :=~ id 1
   guard_target = Nat
   have : 1 = 1 := by conv =>
     guard_hyp m := 1
@@ -19,6 +19,8 @@ example (n : Nat) : Nat := by
 
 -- Now with a generic type to test that default instances work correctly
 example [∀ n, OfNat α n] (n : α) : α := by
+  guard_hyp n
+  fail_if_success guard_hyp m
   guard_hyp n :ₛ α
   let q : α := 1
   guard_expr (1 : α) =ₛ 1
@@ -26,7 +28,7 @@ example [∀ n, OfNat α n] (n : α) : α := by
   fail_if_success guard_expr 1 =ₛ (by exact (2 : α))
   guard_hyp q := 1
   guard_hyp q : α := 1
-  guard_hyp q : (λ x => x) α :=~ id 1
+  guard_hyp q : (fun x => x) α :=~ id 1
   guard_target = α
   have : (1 : α) = 1 := by conv =>
     guard_hyp q := 1

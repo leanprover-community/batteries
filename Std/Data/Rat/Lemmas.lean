@@ -18,7 +18,7 @@ namespace Rat
   · rfl
 
 theorem normalize.reduced' {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.coprime (den / g) := by
+    (e : g = num.natAbs.gcd den) : (num / g).natAbs.Coprime (den / g) := by
   rw [← Int.div_eq_ediv_of_dvd (e ▸ Int.ofNat_dvd_left.2 (Nat.gcd_dvd_left ..))]
   exact normalize.reduced den_nz e
 
@@ -99,7 +99,7 @@ theorem mkRat_self (a : Rat) : mkRat a.num a.den = a := by
 theorem mk_eq_mkRat (num den nz c) : ⟨num, den, nz, c⟩ = mkRat num den := by
   simp [mk_eq_normalize, normalize_eq_mkRat]
 
-@[simp] theorem zero_mkRat (n) : mkRat 0 n = 0 := by simp [mkRat_def]; apply ite_self
+@[simp] theorem zero_mkRat (n) : mkRat 0 n = 0 := by simp [mkRat_def]
 
 @[simp] theorem mkRat_zero (n) : mkRat n 0 = 0 := by simp [mkRat_def]
 
@@ -205,7 +205,7 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
     n₁ /. d₁ + n₂ /. d₂ = (n₁ * d₂ + n₂ * d₁) /. (d₁ * d₂) := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [Int.ofNat_eq_zero, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
+  simp_all [-Int.natCast_mul, Int.ofNat_eq_zero, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
     Int.ofNat_mul_ofNat, Int.neg_add, Int.neg_mul, mkRat_add_mkRat]
 
 @[simp] theorem neg_num (a : Rat) : (-a).num = -a.num := rfl
@@ -215,7 +215,7 @@ theorem neg_normalize (n d z) : -normalize n d z = normalize (-n) d z := by
   simp [normalize, maybeNormalize_eq]; ext <;> simp [Int.neg_div]
 
 theorem neg_mkRat (n d) : -mkRat n d = mkRat (-n) d := by
-  if z : d = 0 then simp [z] else simp [← normalize_eq_mkRat z, neg_normalize]
+  if z : d = 0 then simp [z]; rfl else simp [← normalize_eq_mkRat z, neg_normalize]
 
 theorem neg_divInt (n d) : -(n /. d) = -n /. d := by
   rcases Int.eq_nat_or_neg d with ⟨_, rfl | rfl⟩ <;> simp [divInt_neg', neg_mkRat]
@@ -285,7 +285,8 @@ theorem divInt_mul_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
     (n₁ /. d₁) * (n₂ /. d₂) = (n₁ * n₂) /. (d₁ * d₂) := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [divInt_neg', Int.mul_neg, Int.ofNat_mul_ofNat,  Int.neg_mul, mkRat_mul_mkRat]
+  simp_all [-Int.natCast_mul, divInt_neg', Int.mul_neg, Int.ofNat_mul_ofNat,  Int.neg_mul,
+    mkRat_mul_mkRat]
 
 theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
   unfold Rat.inv; split
@@ -297,9 +298,7 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
     apply (divInt_self _).symm.trans
     simp [Int.le_antisymm (Int.not_lt.1 h₂) (Int.not_lt.1 h₁)]
 
-@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by
-  unfold Rat.inv
-  simp
+@[simp] protected theorem inv_zero : (0 : Rat).inv = 0 := by unfold Rat.inv; rfl
 
 @[simp] theorem inv_divInt (n d : Int) : (n /. d).inv = d /. n := by
   if z : d = 0 then simp [z] else
@@ -317,3 +316,39 @@ theorem ofScientific_false_def : Rat.ofScientific m false e = (m * 10 ^ e : Nat)
 theorem ofScientific_def : Rat.ofScientific m s e =
     if s then mkRat m (10 ^ e) else (m * 10 ^ e : Nat) := by
   cases s; exact ofScientific_false_def; exact ofScientific_true_def
+
+@[simp] theorem intCast_den (a : Int) : (a : Rat).den = 1 := rfl
+
+@[simp] theorem intCast_num (a : Int) : (a : Rat).num = a := rfl
+
+/-!
+The following lemmas are later subsumed by e.g. `Int.cast_add` and `Int.cast_mul` in Mathlib
+but it is convenient to have these earlier, for users who only need `Int` and `Rat`.
+-/
+
+@[simp, norm_cast] theorem intCast_inj {a b : Int} : (a : Rat) = (b : Rat) ↔ a = b := by
+  constructor
+  · rintro ⟨⟩; rfl
+  · simp_all
+
+theorem intCast_zero : ((0 : Int) : Rat) = (0 : Rat) := rfl
+
+theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
+
+@[simp, norm_cast] theorem intCast_add (a b : Int) :
+    ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
+  rw [add_def]
+  ext <;> simp [normalize_eq]
+
+@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
+  ext <;> simp [normalize_eq]
+
+@[simp, norm_cast] theorem intCast_sub (a b : Int) :
+    ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
+  rw [sub_def]
+  ext <;> simp [normalize_eq]
+
+@[simp, norm_cast] theorem intCast_mul (a b : Int) :
+    ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
+  rw [mul_def]
+  ext <;> simp [normalize_eq]

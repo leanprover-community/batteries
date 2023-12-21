@@ -110,7 +110,7 @@ where
   go (xs ys : Array α) :=
     let xsSize := xs.size
     ys.foldl (init := xs) fun xs y =>
-      if xs[:xsSize].contains y then xs else xs.push y
+      if xs.any (· == y) (stop := xsSize) then xs else xs.push y
 
 /--
 Replace each run `[x₁, ⋯, xₙ]` of equal elements in `xs` with

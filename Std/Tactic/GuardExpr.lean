@@ -143,7 +143,8 @@ def evalGuardTarget : Tactic :=
     let t ← getTgt >>= instantiateMVars
     let r ← elabTerm r (← inferType t)
     let some mk := equal.toMatchKind eq | throwUnsupportedSyntax
-    unless ← mk.isEq r t do throwError "target of main goal is {t}, not {r}"
+    unless ← mk.isEq r t do
+      throwError "target of main goal is{indentExpr t}\nnot{indentExpr r}"
   fun
   | `(tactic| guard_target $eq $r) => go eq r getMainTarget
   | `(conv| guard_target $eq $r) => go eq r Conv.getLhs
@@ -172,7 +173,6 @@ syntax (name := guardHyp)
 def evalGuardHyp : Tactic := fun
   | `(tactic| guard_hyp $h $[$c $ty]? $[$eq $val]?)
   | `(conv| guard_hyp $h $[$c $ty]? $[$eq $val]?) => withMainContext do
-    if c.isNone && eq.isNone then throwUnsupportedSyntax
     let fvarid ← getFVarId h
     let lDecl ←
       match (← getLCtx).find? fvarid with
@@ -182,7 +182,8 @@ def evalGuardHyp : Tactic := fun
       let some mk := colon.toMatchKind c | throwUnsupportedSyntax
       let e ← elabTerm p none
       let hty ← instantiateMVars lDecl.type
-      unless ← mk.isEq e hty do throwError m!"hypothesis {h} has type {hty}, not {e}"
+      unless ← mk.isEq e hty do
+        throwError m!"hypothesis {h} has type{indentExpr hty}\nnot{indentExpr e}"
     match lDecl.value?, val with
     | none, some _        => throwError m!"{h} is not a let binding"
     | some _, none        => throwError m!"{h} is a let binding"
@@ -190,7 +191,8 @@ def evalGuardHyp : Tactic := fun
       let some mk := eq.bind colonEq.toMatchKind | throwUnsupportedSyntax
       let e ← elabTerm val lDecl.type
       let hval ← instantiateMVars hval
-      unless ← mk.isEq e hval do throwError m!"hypothesis {h} has value {hval}, not {e}"
+      unless ← mk.isEq e hval do
+        throwError m!"hypothesis {h} has value{indentExpr hval}\nnot{indentExpr e}"
     | none, none          => pure ()
   | _ => throwUnsupportedSyntax
 
@@ -232,10 +234,12 @@ expression equals `true`. -/
 elab "#guard " e:term : command =>
   Lean.Elab.Command.liftTermElabM do
     let e ← Term.elabTermEnsuringType e (mkConst ``Bool)
-    Term.synthesizeSyntheticMVarsUsingDefault
+    Term.synthesizeSyntheticMVarsNoPostponing
     let e ← instantiateMVars e
-    if e.hasMVar then
-      throwError "expression{indentExpr e}\nhas metavariables"
-    let v ← unsafe (evalExpr Bool (mkConst ``Bool) e)
-    unless v do
-      throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    let mvars ← getMVars e
+    if mvars.isEmpty then
+      let v ← unsafe evalExpr Bool (mkConst ``Bool) e
+      unless v do
+        throwError "expression{indentExpr e}\ndid not evaluate to `true`"
+    else
+      _ ← Term.logUnassignedUsingErrorInfos mvars

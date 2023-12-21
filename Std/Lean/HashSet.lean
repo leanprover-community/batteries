@@ -5,10 +5,14 @@ Authors: Jannis Limperg
 -/
 
 import Lean.Data.HashSet
+import Std.Classes.SetNotation
 
 namespace Lean.HashSet
 
 variable [BEq α] [Hashable α]
+
+instance : Singleton α (HashSet α) := ⟨fun x => HashSet.empty.insert x⟩
+instance : Insert α (HashSet α) := ⟨fun a s => s.insert a⟩
 
 /--
 `O(n)`. Returns `true` if `f` returns `true` for any element of the set.
@@ -49,7 +53,7 @@ instance : BEq (HashSet α) where
 
 /--
 `O(1)` amortized. Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a ↦ b`.
+existing entry has been replaced with `a => b`.
 -/
 @[inline]
 def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=

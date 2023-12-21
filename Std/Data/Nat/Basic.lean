@@ -11,8 +11,8 @@ namespace Nat
   Recursor identical to `Nat.rec` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
 -/
 @[elab_as_elim]
-protected def recAux {motive : Nat → Sort _} (zero : motive 0) (succ : ∀ n, motive n → motive (n+1)) :
-    (t : Nat) → motive t
+protected def recAux {motive : Nat → Sort _}
+    (zero : motive 0) (succ : ∀ n, motive n → motive (n+1)) : (t : Nat) → motive t
   | 0 => zero
   | _+1 => succ _ (Nat.recAux zero succ _)
 
@@ -126,3 +126,12 @@ where
     else
       guess
 termination_by iter guess => guess
+
+/-!
+### testBit
+We define an operation for testing individual bits in the binary representation
+of a number.
+-/
+
+/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
+def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0

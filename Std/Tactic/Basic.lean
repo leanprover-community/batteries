@@ -13,6 +13,7 @@ import Std.Tactic.SimpTrace
 import Lean.Elab.Tactic.ElabTerm
 import Std.Lean.Meta.Basic
 import Std.Lean.Tactic
+import Std.Util.ProofWanted
 
 namespace Std.Tactic
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
@@ -105,10 +106,11 @@ elab "repeat' " tac:tacticSeq : tactic => do
   setGoals (← repeat' (evalTacticAtRaw tac) (← getGoals))
 
 /--
-`repeat1 tac` applies `tac` to main goal at least once. If the application succeeds,
+`repeat1' tac` applies `tac` to main goal at least once. If the application succeeds,
 the tactic is applied recursively to the generated subgoals until it eventually fails.
 -/
-macro "repeat1 " tac:tacticSeq : tactic => `(tactic| focus (($tac); repeat' $tac))
+elab "repeat1' " tac:tacticSeq : tactic => do
+  setGoals (← repeat1' (evalTacticAtRaw tac) (← getGoals))
 
 /-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
 elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
@@ -152,7 +154,7 @@ macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
 /-- The `conv` tactic `equals` claims that the currently focused subexpression is equal
  to the given expression, and proves this claim using the given tactic.
 ```
-example (P : (Nat → Nat) → Prop) : P (fun n ↦ n - n) := by
+example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) => equals 0 =>
     -- current goal: ⊢ n - n = 0
     apply Nat.sub_self

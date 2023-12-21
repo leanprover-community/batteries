@@ -6,9 +6,10 @@ Authors: Arthur Paulino, Gabriel Ebner, Mario Carneiro
 import Lean.Meta.Tactic.Assumption
 import Lean.Elab.Tactic.Simp
 import Lean.Linter.Util
-import Std.Lean.Meta.LCtx
+import Std.Lean.LocalContext
 import Std.Lean.Parser
 import Std.Tactic.OpenPrivate
+import Std.Tactic.TryThis
 
 /--
 Enables the 'unnecessary `simpa`' linter. This will report if a use of
@@ -71,9 +72,12 @@ private def mkSimpOnly (stx : Syntax) (usedSimps : UsedSimps) : MetaM Syntax.Tac
   let env ← getEnv
   for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
     match thm with
-    | .decl declName => -- global definitions in the environment
+    | .decl declName inv => -- global definitions in the environment
       if env.contains declName && !simpOnlyBuiltins.contains declName then
-        args := args.push (← `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
+        args := args.push (← if inv then
+          `(Parser.Tactic.simpLemma| ← $(mkIdent (← unresolveNameGlobal declName)):ident)
+        else
+          `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
     | .fvar fvarId => -- local hypotheses in the context
       if isSimpAll then
         continue
@@ -110,7 +114,7 @@ def getLinterUnnecessarySimpa (o : Options) : Bool :=
 deriving instance Repr for UseImplicitLambdaResult
 
 elab_rules : tactic
-| `(tactic| simpa $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
+| `(tactic| simpa%$tk $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
       $[[$args,*]]? $[using $usingArg]?) => Elab.Tactic.focus do
   let stx ← `(tactic| simp $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]?)
   let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
@@ -162,4 +166,4 @@ elab_rules : tactic
           else
             `(tactic| simpa $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]? $[using $usingArg]?)
         | _ => unreachable!
-      logInfoAt stx.raw[0] m!"Try this: {stx}"
+      TryThis.addSuggestion tk stx (origSpan? := ← getRef)

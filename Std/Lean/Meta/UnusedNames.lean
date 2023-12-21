@@ -5,7 +5,7 @@ Authors: Jannis Limperg
 -/
 
 import Lean.Meta
-import Std.Data.String
+import Std.Data.String.Basic
 
 open Lean Lean.Meta
 

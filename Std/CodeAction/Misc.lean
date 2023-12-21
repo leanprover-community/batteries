@@ -85,7 +85,7 @@ instance : Monad Id := {
         else
           str := str ++ indent ++ "}"
       pure { eager with
-        edit? := some <| .ofTextEdit params.textDocument.uri {
+        edit? := some <| .ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
@@ -131,7 +131,7 @@ def foo : Expr → Unit := fun
 ```
 
 -/
-@[hole_code_action] def eqnStub : HoleCodeAction := fun params snap ctx info => do
+@[hole_code_action] def eqnStub : HoleCodeAction := fun _ snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .forallE _ dom .. ← info.runMetaM ctx (whnf ty) | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf dom)).getAppFn | return #[]
@@ -156,7 +156,7 @@ def foo : Expr → Unit := fun
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
@@ -164,14 +164,14 @@ def foo : Expr → Unit := fun
   }]
 
 /-- Invoking hole code action "Start a tactic proof" will fill in a hole with `by done`. -/
-@[hole_code_action] def startTacticStub : HoleCodeAction := fun params _ _ info => do
+@[hole_code_action] def startTacticStub : HoleCodeAction := fun _ _ _ info => do
   let holePos := info.stx.getPos?.get!
   let doc ← readDoc
   let indent := (findIndentAndIsStart doc.meta.text.source holePos).1
   pure #[{
     eager.title := "Start a tactic proof."
     eager.kind? := "quickfix"
-    eager.edit? := some <|.ofTextEdit params.textDocument.uri {
+    eager.edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
       newText := "by\n".pushn ' ' (indent + 2) ++ "done"
     }
@@ -192,7 +192,7 @@ example : True := by
 ```
 -/
 @[tactic_code_action*]
-def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
+def removeAfterDoneAction : TacticCodeAction := fun _ _ _ stk node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
   unless info.goalsBefore.isEmpty do return #[]
   let _ :: (seq, i) :: _ := stk | return #[]
@@ -203,7 +203,7 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
     title := "Remove tactics after 'no goals'"
     kind? := "quickfix"
     isPreferred? := true
-    edit? := some <|.ofTextEdit params.textDocument.uri {
+    edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨prev, stop⟩
       newText := ""
     }
@@ -214,13 +214,14 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
 Similar to `getElabInfo`, but returns the names of binders instead of just the numbers;
 intended for code actions which need to name the binders.
 -/
-def getElimNames (declName : Name) : MetaM (Array (Name × Array Name)) := do
+def getElimNames (inductName declName : Name) : MetaM (Array (Name × Array Name)) := do
+  let inductVal ← getConstInfoInduct inductName
   let decl ← getConstInfo declName
   forallTelescopeReducing decl.type fun xs type => do
     let motive  := type.getAppFn
     let targets := type.getAppArgs
     let mut altsInfo := #[]
-    for i in [:xs.size] do
+    for i in [inductVal.numParams:xs.size] do
       let x := xs[i]!
       if x != motive && !targets.contains x then
         let xDecl ← x.fvarId!.getDecl
@@ -250,12 +251,15 @@ example (x : Nat) : x = x := by
 It also works for `cases`.
 -/
 @[tactic_code_action Parser.Tactic.cases Parser.Tactic.induction]
-def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
+def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
-  let (discr, induction) ← match info.stx with
-    | `(tactic| cases $[$_ :]? $e) => pure (e, false)
-    | `(tactic| induction $e $[generalizing $_*]?) => pure (e, true)
+  let (discr, induction, alts) ← match info.stx with
+    | `(tactic| cases $[$_ :]? $e $[$alts:inductionAlts]?) => pure (e, false, alts)
+    | `(tactic| induction $e $[generalizing $_*]? $[$alts:inductionAlts]?) => pure (e, true, alts)
     | _ => return #[]
+  if let some alts := alts then
+    -- this detects the incomplete syntax `cases e with`
+    unless alts.raw[2][0][0][0][0].isMissing do return #[]
   let some (.ofTermInfo discrInfo) := node.findInfo? fun i =>
     i.stx.getKind == discr.raw.getKind && i.stx.getRange? == discr.raw.getRange?
     | return #[]
@@ -272,27 +276,36 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
     lazy? := some do
       let tacPos := info.stx.getPos?.get!
       let endPos := doc.meta.text.utf8PosToLspPos info.stx.getTailPos?.get!
-      let mut str := " with"
-      let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+      let startPos := if alts.isSome then
+        let stx' := info.stx.setArg (if induction then 4 else 3) mkNullNode
+        doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!
+      else endPos
       let elimName := if induction then mkRecName name else mkCasesOnName name
-      for (name, args) in ← discrInfo.runMetaM ctx (getElimNames elimName) do
-        let mut ctor := toString name
-        if let some _ := (Parser.getTokenTable snap.env).find? ctor then
-          ctor := s!"{idBeginEscape}{ctor}{idEndEscape}"
-        str := str ++ indent ++ s!"| {ctor}"
-        -- replace n_ih with just ih if there is only one
-        let args := if induction &&
-          args.foldl (fun c n =>
-            if n.eraseMacroScopes.getString!.endsWith "_ih" then c+1 else c) 0 == 1
-        then
-          args.map (fun n => if !n.hasMacroScopes && n.getString!.endsWith "_ih" then `ih else n)
-        else args
-        for arg in args do
-          str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-        str := str ++ s!" => sorry"
+      let ctors ← discrInfo.runMetaM ctx (getElimNames name elimName)
+      let newText := if ctors.isEmpty then "" else Id.run do
+        let mut str := " with"
+        let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+        for (name, args) in ctors do
+          let mut ctor := toString name
+          if let some _ := (Parser.getTokenTable snap.env).find? ctor then
+            ctor := s!"{idBeginEscape}{ctor}{idEndEscape}"
+          str := str ++ indent ++ s!"| {ctor}"
+          -- replace n_ih with just ih if there is only one
+          let args := if induction &&
+            args.foldl (fun c n =>
+              if n.eraseMacroScopes.getString!.endsWith "_ih" then c+1 else c) 0 == 1
+          then
+            args.map (fun n => if !n.hasMacroScopes && n.getString!.endsWith "_ih" then `ih else n)
+          else args
+          for arg in args do
+            str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+          str := str ++ s!" => sorry"
+        str
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri
-          { range := ⟨endPos, endPos⟩, newText := str }
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
+          range := ⟨startPos, endPos⟩
+          newText
+        }
       }
   }]
 
@@ -346,7 +359,7 @@ def addSubgoalsActionCore (params : Lsp.CodeActionParams)
       for _ in goals.tail! do
         newText := newText ++ indent ++ "· done"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange range
           newText
         }
