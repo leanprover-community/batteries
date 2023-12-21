@@ -62,6 +62,15 @@ theorem ofNat_congr {a b : Nat} (h : a = b) : (a : Int) = (b : Int) := congrArg 
 theorem ofNat_sub_sub {a b c : Nat} : ((a - b - c : Nat) : Int) = ((a - (b + c) : Nat) : Int) :=
   congrArg _ (Nat.sub_sub _ _ _)
 
+theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.natAbs = -a := by
+  by_cases h : 0 ≤ a
+  · left
+    simp_all [Int.natAbs_of_nonneg]
+  · right
+    rw [Int.not_le] at h
+    rw [Int.ofNat_natAbs_of_nonpos (Int.le_of_lt h)]
+    simp_all
+
 theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
   conv =>
     lhs

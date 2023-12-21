@@ -303,7 +303,11 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM MetaProblem := do
       p.addFact (mkApp3 (.const ``Exists.choose_spec [← getLevel α]) α P h)
     | (``Subtype, #[α, P]) =>
       p.addFact (mkApp3 (.const ``Subtype.property [← getLevel α]) α P h)
-    | (``Or, #[_, _]) => return { p with disjunctions := p.disjunctions.insert h }
+    | (``Or, #[_, _]) =>
+      if (← cfg).splitDisjunctions then
+        return { p with disjunctions := p.disjunctions.insert h }
+      else
+        return p
     | _ => pure p
 
 /--
@@ -342,7 +346,8 @@ def cases₂ (mvarId : MVarId) (p : Expr) (hName : Name := `h) :
   return ((s₁.mvarId, f₁), (s₂.mvarId, f₂))
 
 /-- Implementation of the `omega` algorithm, and handling disjunctions. -/
-partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withContext do
+partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit :=
+  g.withContext do
   let m ← m.processFacts
   guard m.facts.isEmpty
   let p := m.problem
@@ -374,10 +379,10 @@ partial def omegaImpl (m : MetaProblem) (g : MVarId) : OmegaM Unit := g.withCont
 Given a collection of facts, try prove `False` using the omega algorithm,
 and close the goal using that.
 -/
-def omega (facts : List Expr) (g : MVarId) : MetaM Unit := OmegaM.run do
-  omegaImpl { facts } g
+def omega (facts : List Expr) (g : MVarId) (cfg : OmegaConfig := {}) : MetaM Unit :=
+  OmegaM.run (omegaImpl { facts } g) cfg
 
-open Lean Elab Tactic
+open Lean Elab Tactic Parser.Tactic
 
 /--
 The `omega` tactic, for resolving integer and natural linear arithmetic problems.
@@ -397,9 +402,14 @@ On the first pass, we do not perform case splits on natural subtraction.
 If `omega` fails, we recursively perform a case split on
 a natural subtraction appearing in a hypothesis, and try again.
 -/
-elab "omega" : tactic => liftMetaFinishingTactic fun g => do
-  let g ← falseOrByContra g
-  g.withContext do
-    let hyps := (← getLocalHyps).toList
-    trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
-    omega hyps g
+syntax (name := omegaSyntax) "omega" (config)? : tactic
+
+elab_rules : tactic |
+    `(tactic| omega $[$cfg]?) => do
+  let cfg ← elabOmegaConfig (mkOptionalNode cfg)
+  liftMetaFinishingTactic fun g => do
+    let g ← falseOrByContra g
+    g.withContext do
+      let hyps := (← getLocalHyps).toList
+      trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
+      omega hyps g cfg

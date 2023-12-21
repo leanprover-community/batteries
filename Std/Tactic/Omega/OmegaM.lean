@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.Omega.Int
 import Std.Tactic.Omega.LinearCombo
+import Std.Tactic.Omega.Config
 import Std.Lean.Expr
 import Std.Lean.HashSet
 
@@ -38,13 +39,18 @@ open Lean Meta
 
 namespace Std.Tactic.Omega
 
+/-- Context for the `OmegaM` monad, containing the user configurable options. -/
+structure Context where
+  /-- User configurable options for `omega`. -/
+  cfg : OmegaConfig
+
 /-- The internal state for the `OmegaM` monad, recording previously encountered atoms. -/
 structure State where
   /-- The atoms up-to-defeq encountered so far. -/
   atoms : Array Expr := #[]
 
 /-- An intermediate layer in the `OmegaM` monad. -/
-abbrev OmegaM' := StateRefT State MetaM
+abbrev OmegaM' := StateRefT State (ReaderT Context MetaM)
 
 /--
 Cache of expressions that have been visited, and their reflection as a linear combination.
@@ -59,7 +65,11 @@ The `OmegaM` monad maintains two pieces of state:
 abbrev OmegaM := StateRefT Cache OmegaM'
 
 /-- Run a computation in the `OmegaM` monad, starting with no recorded atoms. -/
-def OmegaM.run (m : OmegaM α) : MetaM α := m.run' HashMap.empty |>.run' {}
+def OmegaM.run (m : OmegaM α) (cfg : OmegaConfig) : MetaM α :=
+  m.run' HashMap.empty |>.run' {} { cfg }
+
+/-- Retrieve the user-specified configuration options. -/
+def cfg : OmegaM OmegaConfig := do pure (← read).cfg
 
 /-- Retrieve the list of atoms. -/
 def atoms : OmegaM (List Expr) := return (← getThe State).atoms.toList
@@ -98,17 +108,21 @@ def intCast? (n : Expr) : Option Int :=
 Analyzes a newly recorded atom,
 returning a collection of interesting facts about it that should be added to the context.
 -/
-def analyzeAtom (e : Expr) : MetaM (HashSet Expr) := do
+def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
   match e.getAppFnArgs with
   | (``Nat.cast, #[_, _, e']) =>
     -- Casts of natural numbers are non-negative.
-    let r := {Expr.app (.const ``Int.ofNat_nonneg []) e'}
-    return match e'.getAppFnArgs with
-    | (``HSub.hSub, #[_, _, _, _, a, b]) =>
-      -- `((a - b : Nat) : Int)` gives a dichotomy
-      r.insert (mkApp2 (.const ``Int.ofNat_sub_dichotomy []) a b)
-    | _ => r
-  | (`HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
+    let mut r := {Expr.app (.const ``Int.ofNat_nonneg []) e'}
+    match (← cfg).splitNatSub, (← cfg).splitNatAbs, e'.getAppFnArgs with
+      | true, _, (``HSub.hSub, #[_, _, _, _, a, b]) =>
+        -- `((a - b : Nat) : Int)` gives a dichotomy
+        r := r.insert (mkApp2 (.const ``Int.ofNat_sub_dichotomy []) a b)
+      | _, true, (``Int.natAbs, #[x]) =>
+        -- `((a - b : Nat) : Int)` gives a dichotomy
+        r := r.insert (mkApp (.const ``Int.natAbs_dichotomy []) x)
+      | _, _,_ => pure ()
+    return r
+  | (``HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
     | none
     | some 0 => pure ∅
     | some _ =>

@@ -43,7 +43,9 @@ example {x : Nat} (_ : x < 0) : False := by omega
 
 example {x y z : Int} (_ : x + y > z) (_ : x < 0) (_ : y < 0) (_ : z > 0) : False := by omega
 
-example {x y : Nat} (_ : x - y = 0) (_ : x > y) : False := by omega
+example {x y : Nat} (_ : x - y = 0) (_ : x > y) : False := by
+  fail_if_success omega (config := { splitNatSub := false })
+  omega
 
 example {x y z : Int} (_ : x - y - z = 0) (_ : x > y + z) : False := by omega
 
@@ -179,7 +181,13 @@ example (a b c d e : Int)
     (hb : a + 2 * b + c + d + e = 5)
     (hc : a + b + 2 * c + d + e = 6)
     (hd : a + b + c + 2 * d + e = 7)
-    (he : a + b + c + d + 2 * e = 8 ∨ e = 3) : e = 3 := by omega
+    (he : a + b + c + d + 2 * e = 8 ∨ e = 3) : e = 3 := by
+  fail_if_success omega (config := { splitDisjunctions := false })
+  omega
+
+example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
+  fail_if_success omega (config := { splitNatAbs := false })
+  omega
 
 example {a b : Int} (h : a < b) (w : b < a) : False := by omega
 

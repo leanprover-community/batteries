@@ -148,6 +148,7 @@ import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.Omega
 import Std.Tactic.Omega.Coeffs.IntList
+import Std.Tactic.Omega.Config
 import Std.Tactic.Omega.Constraint
 import Std.Tactic.Omega.Core
 import Std.Tactic.Omega.Frontend
