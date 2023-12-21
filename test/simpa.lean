@@ -17,10 +17,13 @@ def foo (n : α) := [n]
 
 section unnecessarySimpa
 
--- TODO: check that these lint in the test harness
+/-- warning: try 'simp' instead of 'simpa' [linter.unnecessarySimpa] -/
+#guard_msgs in
 example : foo n = [n] := by
   simpa only [foo]
 
+/-- warning: try 'simp at h' instead of 'simpa using h' [linter.unnecessarySimpa] -/
+#guard_msgs in
 example (h : foo n ≠ [n]) : False := by
   simpa [foo] using h
 
@@ -70,8 +73,10 @@ theorem implicit_lambda2 (h : a = 2) : ∀ {x : Nat}, a = 2 := by
 theorem no_implicit_lambda (h : ∀ {x : Nat}, a = x) : ∀ {x : Nat}, a = x := by
   simpa using @h
 
+#guard_msgs (drop warning) in
 theorem thm : (a : Int) ≤ b - c ↔ a + b ≤ c := sorry
 
+#guard_msgs (drop warning) in
 theorem thm2 : (b : Int) - c ≤ (a - b) - (a - c) := sorry
 
 example : (b - c : Int) + (a - b) + a ≤ c := by

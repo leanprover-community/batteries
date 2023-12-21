@@ -1,4 +1,5 @@
 import Std.Tactic.TryThis
+import Std.Tactic.GuardMsgs
 
 set_option linter.unusedVariables false
 set_option linter.missingDocs false
@@ -26,6 +27,7 @@ elab "test" : tactic => do
 
 end Std.Tactic.TryThis
 
+#guard_msgs (drop info, drop warning) in
 -- ideally we would have a #guard_widgets or #guard_infos too, but instead we can simply check by
 -- hand that the widget suggestion (not the message) fits into 100 columns
 theorem asda (a b : Nat) (h : a = b) : 2 * a = 2 * b := by
