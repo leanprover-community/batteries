@@ -90,8 +90,8 @@ import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
-import Std.Lean.InfoTree
 import Std.Lean.IO.Process
+import Std.Lean.InfoTree
 import Std.Lean.Json
 import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
