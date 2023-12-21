@@ -104,6 +104,10 @@ theorem add_nonnneg_iff_neg_le (a b : Int) : 0 ≤ a + b ↔ -b ≤ a := by
 theorem add_nonnneg_iff_neg_le' (a b : Int) : 0 ≤ a + b ↔ -a ≤ b := by
   rw [Int.add_comm, add_nonnneg_iff_neg_le]
 
+theorem ofNat_fst_mk {β} {x : Nat} {y : β} : (Prod.mk x y).fst = (x : Int) := rfl
+theorem ofNat_snd_mk {α} {x : α} {y : Nat} : (Prod.mk x y).snd = (y : Int) := rfl
+
+
 end Int
 
 namespace Nat
@@ -117,5 +121,8 @@ namespace Prod
 
 theorem of_lex (w : Prod.Lex r s p q) : r p.fst q.fst ∨ p.fst = q.fst ∧ s p.snd q.snd :=
   (Prod.lex_def r s).mp w
+
+theorem fst_mk : (Prod.mk x y).fst = x := rfl
+theorem snd_mk : (Prod.mk x y).snd = y := rfl
 
 end Prod

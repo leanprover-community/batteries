@@ -187,6 +187,22 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     | (``HMod.hMod, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_emod []) a b)
     | (``HSub.hSub, #[_, _, _, _, mkAppN (.const ``HSub.hSub _) #[_, _, _, _, a, b], c]) =>
       rewrite e (mkApp3 (.const ``Int.ofNat_sub_sub []) a b c)
+    | (``Prod.fst, #[_, β, p]) => match p with
+      | .app (.app (.app (.app (.const ``Prod.mk [0, v]) _) _) x) y =>
+        rewrite e (mkApp3 (.const ``Int.ofNat_fst_mk [v]) β x y)
+      | _ => mkAtomLinearCombo e
+    | (``Prod.snd, #[α, _, p]) => match p with
+      | .app (.app (.app (.app (.const ``Prod.mk [u, 0]) _) _) x) y =>
+        rewrite e (mkApp3 (.const ``Int.ofNat_snd_mk [u]) α x y)
+      | _ => mkAtomLinearCombo e
+    | _ => mkAtomLinearCombo e
+  | (``Prod.fst, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.fst_mk [u, v]) α x β y)
+    | _ => mkAtomLinearCombo e
+  | (``Prod.snd, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.snd_mk [u, v]) α x β y)
     | _ => mkAtomLinearCombo e
   | _ => mkAtomLinearCombo e
 where
@@ -204,7 +220,6 @@ where
     | none => panic! "Invalid rewrite rule in 'asLinearCombo'"
 
 end
-
 namespace MetaProblem
 
 /-- The trivial `MetaProblem`, with no facts to processs and a trivial `Problem`. -/
@@ -316,7 +331,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
         .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
         _, _]) =>
       p.addFact (← mkAppM ``Int.prodLex_ofNat_left #[h])
-    | (``Prod.Lex, #[.const ``Int [], .const ``Nat [],
+    | (``Prod.Lex, #[.const ``Int [], .const ``Int [],
         .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
         .lam _ (.const ``Int []) (.lam _ (.const ``Int []) (.app (.const ``LT.lt [.zero]) _) _) _,
         _, _]) =>
