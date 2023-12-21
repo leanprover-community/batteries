@@ -94,7 +94,8 @@ structure TryThisInfo : Type where
   Each suggestion may optionally come with an override for the code action title.
   -/
   suggestionTexts : Array (String × Option String)
-  /-- The prefix to display before the code action for a "Try this" suggestion. -/
+  /-- The prefix to display before the code action for a "Try this" suggestion if no custom code
+  action title is provided. If not provided, `"Try this: "` is used. -/
   codeActionPrefix? : Option String
   deriving TypeName
 
@@ -115,7 +116,7 @@ apply the replacement.
     let mut result := result
     for h : i in [:suggestionTexts.size] do
       let (newText, title?) := suggestionTexts[i]'h.2
-      let title := title?.getD (codeActionPrefix?.getD "Try this: ") ++ newText
+      let title := title?.getD <| (codeActionPrefix?.getD "Try this: ") ++ newText
       result := result.push {
         eager.title := title
         eager.kind? := "quickfix"
@@ -296,27 +297,25 @@ structure Suggestion where
   messageData? : Option MessageData := none
   /-- How to construct the text that appears in the lightbulb menu from the suggestion text. If
   `none`, we use `fun ppSuggestionText => "Try this: " ++ ppSuggestionText`. Only the pretty-printed
-  `suggestion : SuggestionText` is used here.
-  Note that (if not `none`) a prop `codeActionTitle : String` will be included in the Json, not
-  `toCodeActionTitle?` itself, as the application of `toCodeAction` to the pretty-printed
-  `suggestion : SuggestionText` must be performed before encoding. -/
+  `suggestion : SuggestionText` is used here. -/
   toCodeActionTitle? : Option (String → String) := none
   deriving Inhabited
 
 /-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
 
+This also returns a `String × Option String` consisting of the pretty-printed text and any custom
+code action title if `toCodeActionTitle?` is provided.
+
 If `w := none`, then `w := getInputWidth (← getOptions)` is used.
 -/
-def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
-    CoreM Json := do
+def Suggestion.toJsonAndInfoM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
+    CoreM (Json × String × Option String) := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
   if let some postInfo := s.postInfo? then json := ("postInfo", postInfo) :: json
   if let some style := s.style? then json := ("style", toJson style) :: json
-  if let some toCodeActionTitle := s.toCodeActionTitle? then
-    json := ("codeActionTitle", toCodeActionTitle text) :: json
-  return Json.mkObj json
+  return (Json.mkObj json, text, s.toCodeActionTitle?.map (· text))
 
 /- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
 the suggestion text. -/
@@ -344,10 +343,9 @@ private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     -- replacing `tac` in `by tac`, because the next line will only be 2 space indented
     -- (less than `tac` which starts at column 3)
     let (indent, column) := getIndentAndColumn map range
-    let suggestionTexts ←
-      suggestions.mapM fun s => do
-        pure (← s.suggestion.prettyExtra (indent := indent) (column := column), none)
-    let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
+    let suggestions ← suggestions.mapM (·.toJsonAndInfoM (indent := indent) (column := column))
+    let suggestionTexts := suggestions.map (·.2)
+    let suggestions := suggestions.map (·.1)
     let ref := Syntax.ofRange <| ref.getRange?.getD range
     let range := map.utf8RangeToLspRange range
     pushInfoLeaf <| .ofCustomInfo {
