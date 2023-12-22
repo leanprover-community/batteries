@@ -80,6 +80,7 @@ import Std.Data.String.Lemmas
 import Std.Data.Sum
 import Std.Data.Sum.Basic
 import Std.Data.Sum.Lemmas
+import Std.Data.UInt
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
