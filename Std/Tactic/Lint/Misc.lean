@@ -184,8 +184,8 @@ a higher universe level than `α`.
     occur by themselves. Solution: Find the type (or type bundled with data) that has this \
     universe argument and provide the universe level explicitly. If this happens in an implicit \
     argument of the declaration, a better solution is to move this argument to a `variables` \
-    command (then it's not necessary to provide the universe level).\
-    \n\nIt is possible that this linter gives a false positive on definitions where the value of the \
+    command (then it's not necessary to provide the universe level).\n\n\
+    It is possible that this linter gives a false positive on definitions where the value of the \
     definition has the universes occur separately, and the definition will usually be used with \
     explicit universe arguments. In this case, feel free to add `@[nolint checkUnivs]`."
   isFast := true
