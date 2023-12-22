@@ -3,8 +3,7 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.CoreM
-import Std.Lean.SMap
+--import Std.Lean.SMap
 
 namespace Lean.Name
 
@@ -35,36 +34,3 @@ def isInternalDetail : Name → Bool
       || p.isInternalOrNum
   | .num _ _     => true
   | p            => p.isInternalOrNum
-
-end Lean.Name
-
-open Lean Meta Elab
-
-/-!
-# Additional functions on `Lean.Name`.
--/
-
-/--
-Retrieve all names in the environment satisfying a predicate.
--/
-def allNames (p : Name → Bool) : CoreM (Array Name) := do
-  (← getEnv).constants.foldM (init := #[]) fun names n _ => do
-    if p n then
-      return names.push n
-    else
-      return names
-
-/--
-Retrieve all names in the environment satisfying a predicate,
-gathered together into a `HashMap` according to the module they are defined in.
--/
-def allNamesByModule (p : Name → Bool) : CoreM (HashMap Name (Array Name)) := do
-  (← getEnv).constants.foldM (init := HashMap.empty) fun names n _ => do
-    if p n then
-      let some m ← findModuleOf? n | return names
-      -- TODO use `Std.HashMap.modify` when we bump Std4 (or `alter` if that is written).
-      match names.find? m with
-      | some others => return names.insert m (others.push n)
-      | none => return names.insert m #[n]
-    else
-      return names
