@@ -19,7 +19,7 @@ then return `(exitCode, stdout, stdErr)` upon completion.
 -- TODO We could reduce some code duplication by centralising some functions like this,
 -- which are used here, in `cache`, and in https://github.com/leanprover-community/llm.
 def runCmdWithInput' (cmd : String) (args : Array String)
-    (input : String := "") (throwFailure := true) : IO (UInt32 × String × String) := do
+    (input : String := "") (throwFailure := true) : IO Output := do
   let child ← spawn
     { cmd := cmd, args := args, stdin := .piped, stdout := .piped, stderr := .piped }
   let (stdin, child) ← child.takeStdin
@@ -32,7 +32,7 @@ def runCmdWithInput' (cmd : String) (args : Array String)
     throw $ IO.userError err
   else
     let out ← IO.ofExcept stdout.get
-    return (exitCode, out, err)
+    return ⟨exitCode, out, err⟩
 
 /--
 Pipe `input` into stdin of the spawned process,
@@ -40,4 +40,4 @@ then return the entire content of stdout as a `String` upon completion.
 -/
 def runCmdWithInput (cmd : String) (args : Array String)
     (input : String := "") (throwFailure := true) : IO String := do
-  return (← runCmdWithInput' cmd args input throwFailure).2.1
+  return (← runCmdWithInput' cmd args input throwFailure).stdout
