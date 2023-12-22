@@ -1122,7 +1122,10 @@ theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
 
 theorem log2_self_le (h : n ≠ 0) : 2 ^ n.log2 ≤ n := (le_log2 h).1 (Nat.le_refl _)
 
-theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.le_refl _)
+theorem lt_log2_self : n < 2 ^ (n.log2 + 1) :=
+  match n with
+  | 0 => Nat.zero_lt_two
+  | n+1 => (log2_lt n.succ_ne_zero).1 (Nat.le_refl _)
 
 /-! ### dvd -/
 
