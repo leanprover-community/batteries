@@ -713,8 +713,8 @@ elab (name := obtain) tk:"obtain"
   let pat ← liftM $ pat.mapM RCasesPatt.parse
   if val.raw.isNone then
     if ty.raw.isNone then throwError
-        ("`obtain` requires either an expected type or a value.\n" ++
-        "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`")
+        "`obtain` requires either an expected type or a value.\n\
+         usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
     let pat := pat.getD (RCasesPatt.one tk `this)
     let g ← getMainGoal
     g.withContext do replaceMainGoal (← RCases.obtainNone pat ty.raw[1] g)
