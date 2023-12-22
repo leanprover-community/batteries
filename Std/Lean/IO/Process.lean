@@ -8,20 +8,19 @@ Authors: Scott Morrison
 # Running external commands.
 -/
 
-namespace ImportGraph
-open ImportGraph
+namespace IO.Process
+
+open System (FilePath)
 
 /--
 Pipe `input` into stdin of the spawned process,
 then return `(exitCode, stdout, stdErr)` upon completion.
-
-Note: duplicated from `Mathlib.Lean.IO.Process`.
 -/
 -- TODO We could reduce some code duplication by centralising some functions like this,
 -- which are used here, in `cache`, and in https://github.com/leanprover-community/llm.
 def runCmdWithInput' (cmd : String) (args : Array String)
     (input : String := "") (throwFailure := true) : IO (UInt32 × String × String) := do
-  let child ← IO.Process.spawn
+  let child ← spawn
     { cmd := cmd, args := args, stdin := .piped, stdout := .piped, stderr := .piped }
   let (stdin, child) ← child.takeStdin
   stdin.putStr input
@@ -38,8 +37,6 @@ def runCmdWithInput' (cmd : String) (args : Array String)
 /--
 Pipe `input` into stdin of the spawned process,
 then return the entire content of stdout as a `String` upon completion.
-
-Note: duplicated from `Mathlib.Lean.IO.Process`.
 -/
 def runCmdWithInput (cmd : String) (args : Array String)
     (input : String := "") (throwFailure := true) : IO String := do
