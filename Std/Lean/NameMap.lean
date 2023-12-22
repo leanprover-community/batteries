@@ -23,6 +23,7 @@ instance : ForIn m (NameMap β) (Name × β) :=
 def filter (f : Name → α → Bool) (m : NameMap α) : NameMap α :=
   m.fold process {}
 where
+  /-- see `Lean.NameMap.filter` -/
   process (r : NameMap α) (n : Name) (i : α) :=
     if f n i then r.insert n i else r
 
@@ -35,6 +36,7 @@ The resulting entries with non-`none` value are collected to form the output `Na
 def filterMap (f : Name → α → Option β) (m : NameMap α) : NameMap β :=
   m.fold process {}
 where
+  /-- see `Lean.NameMap.filterMap` -/
   process (r : NameMap β) (n : Name) (i : α) :=
     match f n i with
     | none => r
