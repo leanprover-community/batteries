@@ -11,6 +11,20 @@ import Std.Tactic.SolveByElim.Backtrack
 
 /-!
 # `solve_by_elim`, `apply_rules`, and `apply_assumption`.
+
+`solve_by_elim` takes a collection of facts from the local context or
+supplied as arguments by the user, and performs a backtracking
+depth-first search by attempting to `apply` these facts to the goal.
+
+It is a highly configurable tactic, with options to control the
+backtracking, to solve multiple goals simultaneously (with backtracking
+between goals), or to supply a discharging tactic for unprovable goals.
+
+`apply_rules` and `apply_assumption` are much simpler tactics which do
+not perform backtracking, but are currently implemented in terms of
+`solve_by_elim` with backtracking disabled, in order to be able to share
+the front-end customisation and parsing of user options. It would be
+reasonable to further separate these in future.
 -/
 
 open Lean Meta Elab Tactic
