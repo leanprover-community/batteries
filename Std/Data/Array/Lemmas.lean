@@ -404,8 +404,8 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
         ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
       simp only [List.get_cons_drop]
+    termination_by as.size - i
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
-termination_by loop i _ _ _ => as.size - i
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
