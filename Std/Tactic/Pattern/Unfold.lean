@@ -56,7 +56,7 @@ open Elab.Tactic Pattern.Location
 Note that we always reduce a projection after unfolding a constant,
 so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
  -/
-elab "unfold'" p:term locs:locs : tactic => withMainContext do
+elab "unfold'" p:term loc:loc : tactic => withMainContext do
   let pattern ← expandPattern p
-  let occurrences ← expandLocs locs
+  let occurrences ← expandLoc loc
   replaceOccurrencesDefEq occurrences pattern replaceByDef
