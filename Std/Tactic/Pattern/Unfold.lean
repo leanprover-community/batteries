@@ -11,7 +11,8 @@ open Lean Meta
 
 # Targeted unfolding
 
-An implementation of a tactic to unfold patterns at specified locations.
+A tactic for definitionally unfolding expressions.
+The targeted sub-expression is selected using a pattern.
 
 -/
 
@@ -35,6 +36,10 @@ def replaceByDef (e : Expr) : MetaM Expr := do
   /- projection reduction -/
   if let some e ← reduceProjection e then
     return e
+  /- unfolding a let-bound free variable -/
+  if let .fvar fvarId := e.getAppFn then
+    if let some value ← fvarId.getValue? then
+      return value.betaRev e.getAppRevArgs
   /- unfolding a constant -/
   if let some e ← withTransparency .all <| unfoldDefinition? e then
     match ← reduceProjection e with
@@ -47,11 +52,11 @@ open Elab.Tactic Pattern.Location
 
 /-- Unfold the selected expression in one of the following ways:
 
-- β-reduction: `(fun x₁ .. xₙ => t[x₁, .., xₙ]) a₁ .. aₙ` → `t[a₁, .., aₙ]`
-- η-reduction: `fun x₁ .. xₙ => f x₁ .. xₙ` → `f`
-- ζ-reduction: `let a := v; t[a]` → `t[v]`
-- projection reduction: `instAddNat.1 a b` → `Nat.add a b`
-- unfolding a constant: `Surjective f` → `∀ b, ∃ a, f a = b`
+- β-reduction: `(fun x₁ .. xₙ => t[x₁, .., xₙ]) a₁ .. aₙ` ↦ `t[a₁, .., aₙ]`
+- η-reduction: `fun x₁ .. xₙ => f x₁ .. xₙ` ↦ `f`
+- ζ-reduction: `let a := v; t[a]` ↦ `t[v]`
+- projection reduction: `instAddNat.1 a b` ↦ `Nat.add a b`
+- unfolding a constant or a let-bound free variable: `Surjective f` ↦ `∀ b, ∃ a, f a = b`
 
 Note that we always reduce a projection after unfolding a constant,
 so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
