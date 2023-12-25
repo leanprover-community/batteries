@@ -180,6 +180,9 @@ def Lean.MVarId.replaceLocalLetDecl (mvarId : MVarId) (fvarId : FVarId) (valNew 
       pure { result with mvarId := mvarIdNew })
     <|> pure result
 where
+  /-- The last free variable in the local context that occurs in the expression.
+
+      This is essentially the same as the private definition `replaceLocalDeclCore.findMaxFVar`. -/
   findMaxFVar (e : Expr) : StateRefT LocalDecl MetaM Unit :=
     e.forEach' fun e => do
       if e.isFVar then
