@@ -23,22 +23,17 @@ open Lean Meta Elab Tactic
 
 namespace Pattern.Location
 
-/-- A hypothesis location with occurrences optionally specified.
-    The location can either refer to the type of a local hypothesis or
-    the body of a `let` declaration. -/
-syntax hypLoc := ident <|> ("‹" ident ppSpace (Parser.Tactic.Conv.occs)? (ppSpace "in body")? "›")
+/-- A hypothesis location can be
+    - a wildcard, which refers to all hypotheses in the local context simultaneously
+    - a specific hypothesis in the local context -/
+syntax hypLoc := "at" ppSpace ("*" <|> ident)
 
-/-- The `|-` or `⊢` pattern representing the goal. -/
-syntax goalPattern := patternIgnore( atomic("|" noWs "-") <|> "⊢")
+/-- A value location refers to the body of a local `let` declaration. -/
+syntax valLoc := "in" ppSpace ident
 
-/-- The goal or target location with occurrences optionally specified. -/
-syntax goalLoc := goalPattern <|> ("⟨" goalPattern ppSpace Parser.Tactic.Conv.occs "⟩")
-
-/-- The wildcard location which refers to all valid locations. -/
-syntax wildcardLoc := "*"
-
-/-- A list of locations in the goal state with occurrences optionally specified. -/
-syntax locs := ppSpace withPosition("at" ppSpace (wildcardLoc <|> (hypLoc* (goalLoc)?)))
+open Parser.Tactic.Conv in
+/-- A location in the goal state with occurrences optionally specified. -/
+syntax loc := ppSpace withPosition((hypLoc <|> valLoc) (occs)?)
 
 /-- Occurrences at a goal location. This is similar to `SubExpr.GoalLocation`. -/
 inductive GoalOccurrences
@@ -60,9 +55,9 @@ def expandOccs : Option (TSyntax ``occs) → Occurrences
       | `(occs| (occs := $ids*)) => .pos <| ids.map TSyntax.getNat |>.toList
       | _ => panic! s!"Invalid syntax {occs} for occurrences."
 
-/-- Interpret `locs` syntax as an array of `GoalOccurrences`. -/
-def expandLocs : TSyntax ``locs → TacticM (Array GoalOccurrences)
-  | `(locs| at $_:wildcardLoc) => withMainContext do
+/-- Interpret `loc` syntax as an array of `GoalOccurrences`. -/
+def expandLoc : TSyntax ``loc → TacticM (Array GoalOccurrences)
+  | `(loc| at * $[$_occs]?) => withMainContext do
     -- TODO: Maybe reverse the list of declarations, following `Lean/Elab/Tactic/Location.lean`
     (← getLCtx).decls.foldlM (init := #[.target .all]) fun goalOccs decl? => do
       match decl? with
@@ -76,28 +71,11 @@ def expandLocs : TSyntax ``locs → TacticM (Array GoalOccurrences)
             else goalOccs
           return goalOccs.push <| .hypType decl.fvarId .all
       | none => return goalOccs
-  | `(locs| at $hyps* $[$goal?]?) => withMainContext do
-    let hypOccs ← hyps.mapM expandHypLoc
-    match goal? with
-    | some goal => return hypOccs.push (expandGoalLoc goal)
-    | none => return hypOccs
+  | `(loc| at $hyp:ident $[$occs]?) => withMainContext do
+    return #[.hypType (← getFVarId hyp) (expandOccs occs)]
+  | `(loc| in $hyp:ident $[$occs]?) => withMainContext do
+    return #[.hypValue (← getFVarId hyp) (expandOccs occs)]
   | _ => throwUnsupportedSyntax
-where
-  /-- Interpret `hypLoc` syntax as `GoalOccurrences`. -/
-  expandHypLoc : TSyntax ``hypLoc → TacticM GoalOccurrences
-  | `(hypLoc| $hyp:ident) => withMainContext do
-    return .hypType (← getFVarId hyp) .all
-  | `(hypLoc| ‹$hyp:ident $[$occs]?›) => withMainContext do
-    return .hypType (← getFVarId hyp) (expandOccs occs)
-  | `(hypLoc| ‹$hyp $[$occs]? in body›) => withMainContext do
-    return .hypValue (← getFVarId hyp) (expandOccs occs)
-  |     _ => throwUnsupportedSyntax
-
-  /-- Interpret `goalLoc` syntax as `GoalOccurrences`. -/
-  expandGoalLoc : TSyntax ``goalLoc → GoalOccurrences
-  | `(goalLoc| $_:goalPattern) => .target .all
-  | `(goalLoc| ⟨$_:goalPattern $occs⟩) => .target (expandOccs occs)
-  | stx => panic! s!"Invalid syntax {stx} for goal location."
 
 end Pattern.Location
 
