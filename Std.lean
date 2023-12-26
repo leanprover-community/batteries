@@ -143,6 +143,7 @@ import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
+import Std.Tactic.Pattern.Location
 import Std.Tactic.Pattern.Unfold
 import Std.Tactic.Pattern.Utils
 import Std.Tactic.PermuteGoals

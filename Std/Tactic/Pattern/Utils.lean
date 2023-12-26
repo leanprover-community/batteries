@@ -29,9 +29,8 @@ section Expand
 /-- Expand a term representing a pattern as an expression with meta-variables.
     This follows code from `Lean/Elab/Tactic/Conv/Pattern.lean`. -/
 def expandPattern (p : Term) : TermElabM AbstractMVarsResult :=
-  withTheReader Term.Context (fun ctx => { ctx with ignoreTCFailures := true }) <|
-    Term.withoutModifyingElabMetaStateWithInfo <| withRef p <|
-    Term.withoutErrToSorry do
+  withReader (fun ctx => { ctx with ignoreTCFailures := true, errToSorry := false }) <|
+    Term.withoutModifyingElabMetaStateWithInfo <| withRef p do
       abstractMVars (← Term.elabTerm p none)
 
 end Expand
