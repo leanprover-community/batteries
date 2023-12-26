@@ -33,7 +33,7 @@ syntax valLoc := "in" ppSpace ident
 
 open Parser.Tactic.Conv in
 /-- A location in the goal state with occurrences optionally specified. -/
-syntax loc := ppSpace withPosition((hypLoc <|> valLoc) (occs)?)
+syntax loc := ppSpace withPosition((hypLoc <|> valLoc)? (occs)?)
 
 /-- Occurrences at a goal location. This is similar to `SubExpr.GoalLocation`. -/
 inductive GoalOccurrences
@@ -57,25 +57,31 @@ def expandOccs : Option (TSyntax ``occs) → Occurrences
 
 /-- Interpret `loc` syntax as an array of `GoalOccurrences`. -/
 def expandLoc : TSyntax ``loc → TacticM (Array GoalOccurrences)
-  | `(loc| at * $[$_occs]?) => withMainContext do
-    -- TODO: Maybe reverse the list of declarations, following `Lean/Elab/Tactic/Location.lean`
-    (← getLCtx).decls.foldlM (init := #[.target .all]) fun goalOccs decl? => do
-      match decl? with
-      | some decl =>
-        if decl.isImplementationDetail then
-          return goalOccs
-        else
-          let goalOccs :=
-            if decl.isLet then
-              goalOccs.push <| .hypValue decl.fvarId .all
-            else goalOccs
-          return goalOccs.push <| .hypType decl.fvarId .all
-      | none => return goalOccs
-  | `(loc| at $hyp:ident $[$occs]?) => withMainContext do
-    return #[.hypType (← getFVarId hyp) (expandOccs occs)]
-  | `(loc| in $hyp:ident $[$occs]?) => withMainContext do
-    return #[.hypValue (← getFVarId hyp) (expandOccs occs)]
-  | _ => throwUnsupportedSyntax
+| `(loc| $[$loc?]? $[$occs?]?) =>
+  match loc? with
+  |   none   => return #[.target (expandOccs occs?)]
+  | some loc =>
+    match loc with
+    | `(hypLoc| at *)    => withMainContext do
+      -- TODO: Maybe reverse the list of declarations, following `Lean/Elab/Tactic/Location.lean`
+      (← getLCtx).decls.foldlM (init := #[.target .all]) fun goalOccs decl? => do
+        match decl? with
+        | some decl =>
+          if decl.isImplementationDetail then
+            return goalOccs
+          else
+            let goalOccs :=
+              if decl.isLet then
+                goalOccs.push <| .hypValue decl.fvarId .all
+              else goalOccs
+            return goalOccs.push <| .hypType decl.fvarId .all
+        | none => return goalOccs
+    | `(hypLoc| at $hyp) => withMainContext do
+      return #[.hypType (← getFVarId hyp) (expandOccs occs?)]
+    | `(valLoc| in $hyp) => withMainContext do
+      return #[.hypValue (← getFVarId hyp) (expandOccs occs?)]
+    |          _         => return #[.target .all]
+| _ => throwUnsupportedSyntax
 
 end Pattern.Location
 
