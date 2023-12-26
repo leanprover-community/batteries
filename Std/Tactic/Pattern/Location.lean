@@ -90,10 +90,10 @@ open Pattern.Location
 
 /-- Substitute occurrences of a pattern in an expression with the result of `replacement`. -/
 def substitute (e : Expr) (pattern : AbstractMVarsResult) (occs : Occurrences)
-    (replacement : Expr → MetaM Expr) : MetaM Expr := do
+    (replacement : Expr → MetaM Expr) (withoutErr : Bool := true) : MetaM Expr := do
   let (_, _, p) ← openAbstractMVarsResult pattern
   let eAbst ← kabstract e p occs
-  unless eAbst.hasLooseBVars do
+  unless eAbst.hasLooseBVars || withoutErr do
     throwError m!"Failed to find instance of pattern {indentExpr p} in {indentExpr e}."
   instantiateMVars <| Expr.instantiate1 eAbst (← replacement p)
 
