@@ -361,7 +361,8 @@ theorem forIn_eq_data_forIn [Monad m]
         rw [j_eq]; exact List.get_cons_drop _ ⟨_, this⟩
       simp [← this]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
-  simp [forIn, Array.forIn]; rw [loop (Nat.zero_add _)]; rfl
+  conv => lhs; simp [forIn, Array.forIn]
+  rw [loop (Nat.zero_add _)]; rfl
 
 /-! ### zipWith / zip -/
 
