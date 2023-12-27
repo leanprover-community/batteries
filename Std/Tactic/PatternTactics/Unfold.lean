@@ -71,8 +71,6 @@ open Elab Tactic Parser Tactic Conv
 Note that we always reduce a projection after unfolding a constant,
 so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
  -/
-elab "unfold'" occs:(occs)? "[" p:term "]" loc:(location)? : tactic => withMainContext do
-  let pattern ← expandPattern p
-  let occurrences := expandOccs occs
-  let location := (expandLocation <$> loc).getD (.targets #[] true)
-  replaceOccurrencesDefEq `unfold' location occurrences pattern replaceByDef
+elab "unfold'" loc:patternLocation : tactic => withMainContext do
+  let (occs, pattern, loc) ← expandPatternLocation loc
+  replaceOccurrencesDefEq `unfold' loc occs pattern replaceByDef

@@ -14,8 +14,7 @@ open Lean Meta Elab Tactic
 
 /-!
 
-Basic programming and meta-programming utilities for tactics that
-target goal locations through patterns and their occurrences.
+Basic utilities for tactics that target goal locations through patterns and their occurrences.
 
 The code here include:
 - Functions for expanding syntax for patterns and occurrences into their corresponding expressions
@@ -24,25 +23,48 @@ The code here include:
 The idea of referring to sub-expressions via patterns and occurrences is due to Yaël Dillies.
 
 -/
+open Parser.Tactic Conv
 
-section Expand
+/-- Refer to a set of subexpression by specifying a pattern.
 
-/-- Expand a term representing a pattern as an expression with meta-variables.
-    This follows code from `Lean/Elab/Tactic/Conv/Pattern.lean`. -/
-def expandPattern (p : Term) : TermElabM AbstractMVarsResult :=
+For example, if hypothesis `h` says that `1 + (2 + 3) = 1 + (2 + 3)`, then
+`(occs := 2 3) _ + _ at h` refers to the two expression `2 + 3`,
+because it first skips `1 + (2 + 3)`, and matches with `2 + 3`,
+which instantiates the pattern to be `2 + 3`, so the next match is the
+second instance of `2 + 3`. -/
+syntax patternLocation := optional(occs) term optional(location)
+
+/--
+Elaborate a pattern as an `AbstractMVarsResult`.
+This follows code from `Lean/Elab/Tactic/Conv/Pattern.lean`. -/
+def expandPattern (p : Syntax) : TermElabM AbstractMVarsResult :=
   withReader (fun ctx => { ctx with ignoreTCFailures := true, errToSorry := false }) <|
     Term.withoutModifyingElabMetaStateWithInfo <| withRef p do
       abstractMVars (← Term.elabTerm p none)
 
-open Parser Tactic Conv in
-/-- Interpret `occs` syntax as `Occurrences`. -/
-def expandOccs : Option (TSyntax ``occs) → Occurrences
-  | none => .all
-  | some occs =>
-    match occs with
-      | `(occs| (occs := *)) => .all
-      | `(occs| (occs := $ids*)) => .pos <| ids.map TSyntax.getNat |>.toList
-      | _ => panic! s!"Invalid syntax {occs} for occurrences."
+/-- Elaborate `occs` syntax as `Occurrences`. -/
+def expandOptOccs (stx : Syntax) : TermElabM Occurrences := do
+  if stx.isNone then
+    return .all
+  match stx[0] with
+  | `(occs| (occs := *)) => return .all
+  | `(occs| (occs := $ids*)) =>
+    return .pos <| Array.toList <| ← ids.mapM fun id =>
+      let n := id.toNat
+      if n == 0 then
+        throwErrorAt id "positive integer expected"
+      else return n
+  | _ => throwError m! "{stx}"
+
+/-- Elaborate the occurrences, pattern and location in a  `patternLocation`. -/
+def expandPatternLocation (stx : Syntax) : TermElabM (Occurrences × AbstractMVarsResult × Location) := do
+  let occs ← expandOptOccs stx[0]
+  let pattern ← expandPattern stx[1]
+  let loc := expandOptLocation stx[2]
+  return (occs, pattern, loc)
+section Expand
+
+
 
 end Expand
 
