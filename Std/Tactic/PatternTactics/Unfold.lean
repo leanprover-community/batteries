@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: J. W. Gerbscheid, Anand Rao Tadipatri
 -/
 import Std.Tactic.Pattern.Utils
+import Lean.Parser.Tactic
 
 open Lean Meta
 
@@ -57,7 +58,7 @@ def replaceByDef (e : Expr) : MetaM Expr :=
 
   throwError m! "Could not find a definition for {e}."
 
-open Elab.Tactic Pattern.Location
+open Elab Tactic Parser Tactic Conv
 
 /-- Unfold the selected expression in one of the following ways:
 
@@ -70,7 +71,8 @@ open Elab.Tactic Pattern.Location
 Note that we always reduce a projection after unfolding a constant,
 so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
  -/
-elab "unfold'" "[" p:term "]" loc:loc : tactic => withMainContext do
+elab "unfold'" occs:(occs)? "[" p:term "]" loc:(location)? : tactic => withMainContext do
   let pattern ← expandPattern p
-  let occurrences ← expandLoc loc
-  replaceOccurrencesDefEq occurrences pattern replaceByDef
+  let occurrences := expandOccs occs
+  let location := (expandLocation <$> loc).getD (.targets #[] true)
+  replaceOccurrencesDefEq `unfold' location occurrences pattern replaceByDef

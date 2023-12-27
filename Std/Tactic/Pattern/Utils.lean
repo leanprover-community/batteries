@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao Tadipatri
 -/
 import Lean.Elab.Term
+import Lean.Elab.Tactic
 import Lean.SubExpr
 import Lean.Meta.ExprLens
+import Lean.Meta.KAbstract
 import Lean.HeadIndex
-import Std.Tactic.Pattern.Location
 
 open Lean Meta Elab Tactic
 
@@ -32,6 +33,16 @@ def expandPattern (p : Term) : TermElabM AbstractMVarsResult :=
   withReader (fun ctx => { ctx with ignoreTCFailures := true, errToSorry := false }) <|
     Term.withoutModifyingElabMetaStateWithInfo <| withRef p do
       abstractMVars (← Term.elabTerm p none)
+
+open Parser Tactic Conv in
+/-- Interpret `occs` syntax as `Occurrences`. -/
+def expandOccs : Option (TSyntax ``occs) → Occurrences
+  | none => .all
+  | some occs =>
+    match occs with
+      | `(occs| (occs := *)) => .all
+      | `(occs| (occs := $ids*)) => .pos <| ids.map TSyntax.getNat |>.toList
+      | _ => panic! s!"Invalid syntax {occs} for occurrences."
 
 end Expand
 
@@ -101,3 +112,30 @@ def findOccurrence (position : SubExpr.Pos) (root : Expr) : MetaM Nat := do
   findMatchingOccurrence position root pattern
 
 end PatternsAndOccurrences
+
+/-- Substitute occurrences of a pattern in an expression with the result of `replacement`. -/
+def substitute (e : Expr) (pattern : AbstractMVarsResult) (occs : Occurrences)
+    (replacement : Expr → MetaM Expr) (withoutErr : Bool := true) : MetaM Expr := do
+  let (_, _, p) ← openAbstractMVarsResult pattern
+  let eAbst ← kabstract e p occs
+  unless eAbst.hasLooseBVars || withoutErr do
+    throwError m!"Failed to find instance of pattern {indentExpr p} in {indentExpr e}."
+  instantiateMVars <| Expr.instantiate1 eAbst (← replacement p)
+
+/-- Replace a pattern at the specified locations with the value of `replacement`,
+    which is assumed to be definitionally equal to the original pattern. -/
+def replaceOccurrencesDefEq (tacticName : Name) (location : Location) (occurrences : Occurrences)
+    (pattern : AbstractMVarsResult) (replacement : Expr → MetaM Expr) : TacticM Unit := do
+  let goal ← getMainGoal
+  goal.withContext do
+    withLocation location
+      (atLocal := fun fvarId => do
+        let hypType ← fvarId.getType
+        let newGoal ← goal.replaceLocalDeclDefEq fvarId <| ←
+          substitute hypType pattern occurrences replacement
+        replaceMainGoal [newGoal])
+      (atTarget := do
+        let newGoal ← goal.replaceTargetDefEq <| ←
+          substitute (← goal.getType) pattern occurrences replacement
+        replaceMainGoal [newGoal])
+      (failed := (throwTacticEx tacticName · m!"Failed to run tactic {tacticName}."))
