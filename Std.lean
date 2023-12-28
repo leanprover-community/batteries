@@ -30,6 +30,7 @@ import Std.Data.BitVec.Bitblast
 import Std.Data.BitVec.Folds
 import Std.Data.BitVec.Lemmas
 import Std.Data.Bool
+import Std.Data.ByteArray
 import Std.Data.Char
 import Std.Data.DList
 import Std.Data.Fin.Basic
