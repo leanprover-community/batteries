@@ -341,7 +341,8 @@ theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
 termination_by _ => (self.find x).1.rankMax - (self.find x).1.rank i
 decreasing_by exact this -- why is this needed? It is way slower without it
 
-private def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
+/-- Link a node to another, without sanity checks -/
+def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
   if x.1 = y then
     self
   else
@@ -390,7 +391,7 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
 @[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
   simp [linkAux]; split <;> [rfl; split] <;> [skip; split] <;> simp
 
-/-- Link a `UnionFind` node -/
+/-- Link a node to a root node -/
 def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by

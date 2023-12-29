@@ -273,6 +273,13 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
   rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
   apply size_modifyM
 
+theorem get_modify {arr : Array α} {x i} (h : i < arr.size) :
+    (arr.modify x f).get ⟨i, by simp [h]⟩ =
+    if x = i then f (arr.get ⟨i, h⟩) else arr.get ⟨i, h⟩ := by
+  simp [modify, modifyM, Id.run]; split
+  · simp [get_set _ _ _ h]; split <;> simp [*]
+  · rw [if_neg (mt (by rintro rfl; exact h) ‹_›)]
+
 @[simp] theorem reverse_data (a : Array α) : a.reverse.data = a.data.reverse := by
   let rec go (as : Array α) (i j hj)
       (h : i + j + 1 = a.size) (h₂ : as.size = a.size)
