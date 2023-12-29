@@ -48,37 +48,37 @@ theorem eq_true_iff : {b : Bool} → b = true ↔ b ≠ false := by decide
 
 /-! ### beq -/
 
-@[simp] theorem beq_false_left : ∀ (x : Bool), (false == x) = !x := by decide
+@[simp] theorem false_beq : ∀ (x : Bool), (false == x) = !x := by decide
 
-@[simp] theorem beq_false_right : ∀ (x : Bool), (x == false) = !x := by decide
+@[simp] theorem beq_false : ∀ (x : Bool), (x == false) = !x := by decide
 
-@[simp] theorem beq_true_left : ∀ (x : Bool), (true == x) = x := by decide
+@[simp] theorem true_beq : ∀ (x : Bool), (true == x) = x := by decide
 
-@[simp] theorem beq_true_right : ∀ (x : Bool), (x == true) = x := by decide
+@[simp] theorem beq_true : ∀ (x : Bool), (x == true) = x := by decide
 
-theorem beq_not_left : ∀ (x y : Bool), ((!x) == y) = !(x == y) := by decide
+theorem not_beq : ∀ (x y : Bool), ((!x) == y) = !(x == y) := by decide
 
-theorem beq_not_right : ∀ (x y : Bool), (x == (!y)) = !(x == y) := by decide
+theorem beq_not : ∀ (x y : Bool), (x == (!y)) = !(x == y) := by decide
 
-@[simp] theorem beq_not_not : ∀ (x y : Bool), ((!x) == (!y)) = (x == y) := by decide
+@[simp] theorem not_beq_not : ∀ (x y : Bool), ((!x) == (!y)) = (x == y) := by decide
 
 theorem beq_eq_not_xor : ∀ (x y : Bool), (x == y) = !xor x y := by decide
 
 /-! ### bne -/
 
-theorem bne_false_left : ∀ (x : Bool), (false != x) = x := by decide
+theorem false_bne : ∀ (x : Bool), (false != x) = x := by decide
 
-theorem bne_false_right : ∀ (x : Bool), (x != false) = x := by decide
+theorem bne_false : ∀ (x : Bool), (x != false) = x := by decide
 
-theorem bne_true_left : ∀ (x : Bool), (true != x) = !x := by decide
+theorem true_bne : ∀ (x : Bool), (true != x) = !x := by decide
 
-theorem bne_true_right : ∀ (x : Bool), (x != true) = !x := by decide
+theorem bne_true : ∀ (x : Bool), (x != true) = !x := by decide
 
-theorem bne_not_left : ∀ (x y : Bool), ((!x) != y) = (x == y) := by decide
+theorem not_bne : ∀ (x y : Bool), ((!x) != y) = (x == y) := by decide
 
-theorem bne_not_right : ∀ (x y : Bool), (x != (!y)) = (x == y) := by decide
+theorem bne_not : ∀ (x y : Bool), (x != (!y)) = (x == y) := by decide
 
-theorem bne_not_not : ∀ (x y : Bool), ((!x) != (!y)) = (x != y) := by decide
+theorem not_bne_not : ∀ (x y : Bool), ((!x) != (!y)) = (x != y) := by decide
 
 theorem bne_eq_xor : ∀ (x y : Bool), (x != y) = xor x y := by decide
 
