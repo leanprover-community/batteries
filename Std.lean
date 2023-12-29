@@ -82,6 +82,8 @@ import Std.Data.Sum
 import Std.Data.Sum.Basic
 import Std.Data.Sum.Lemmas
 import Std.Data.UInt
+import Std.Data.UnionFind.Basic
+import Std.Data.UnionFind.Lemmas
 import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
