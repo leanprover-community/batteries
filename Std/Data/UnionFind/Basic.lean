@@ -144,6 +144,7 @@ private def root' (self : UnionFind) (x : Fin self.size) : Fin self.size :=
     self.root' ⟨y, self.parent'_lt x⟩
 termination_by _ => self.rankMax - self.rank x
 
+@[nolint unusedHavesSuffices]
 theorem parent'_root' (self : UnionFind) (x : Fin self.size) :
     (self.arr.get (self.root' x)).parent = self.root' x := by
   rw [root']; split <;> [assumption; skip]
@@ -159,6 +160,7 @@ theorem parent_root (self : UnionFind) (x : Nat) :
     self.parent (self.root x) = self.root x := by
   rw [root]; split <;> [simp [parentD, parent'_root']; simp [parentD_of_not_lt, *]]
 
+@[nolint unusedHavesSuffices]
 theorem root_parent (self : UnionFind) (x : Nat) : self.root (self.parent x) = self.root x := by
   simp [root, parent_lt]; split <;> simp [parentD, parentD_of_not_lt, *]
   (conv => rhs; rw [root']); split
@@ -168,6 +170,7 @@ theorem root_parent (self : UnionFind) (x : Nat) : self.root (self.parent x) = s
 theorem root_lt {self : UnionFind} {x : Nat} : self.root x < self.size ↔ x < self.size := by
   simp [root]; split <;> simp [*]
 
+@[nolint unusedHavesSuffices]
 theorem root_eq_self {self : UnionFind} {x : Nat} : self.root x = x ↔ self.parent x = x := by
   refine ⟨fun h => by rw [← h, parent_root], fun h => ?_⟩
   rw [root]; split <;> [rw [root', dif_pos (by rwa [parent, parentD_eq' ‹_›] at h)]; rfl]
@@ -214,6 +217,7 @@ private def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.size :
     ⟨arr₁.modify x fun s => { s with parent := root }, root, by simp [H]⟩
 termination_by _ => self.rankMax - self.rank x
 
+@[nolint unusedHavesSuffices]
 theorem findAux_root {self : UnionFind} {x : Fin self.size} :
     (findAux self x).root = self.root' x := by
   rw [findAux, root']; simp; split <;> simp
@@ -221,6 +225,7 @@ theorem findAux_root {self : UnionFind} {x : Fin self.size} :
   exact findAux_root
 termination_by _ => self.rankMax - self.rank x
 
+@[nolint unusedHavesSuffices]
 theorem findAux_s {self : UnionFind} {x : Fin self.size} :
     (findAux self x).s = if (self.arr.get x).parent = x then self.arr else
       (self.findAux ⟨_, self.parent'_lt x⟩).s.modify x fun s =>
