@@ -7,20 +7,20 @@ import Std.Data.Array.Lemmas
 
 namespace Std
 
-/-- Union-Find node type -/
+/-- Union-find node type -/
 structure UFNode where
-  /-- Parent node -/
+  /-- Parent of node -/
   parent : Nat
-  /-- Rank -/
+  /-- Rank of node -/
   rank : Nat
 
 namespace UnionFind
 
-/-- Parent node, defaults to self when node is orphan -/
+/-- Parent of a union-find node, defaults to self when the node is a root -/
 def parentD (arr : Array UFNode) (i : Nat) : Nat :=
   if h : i < arr.size then (arr.get ⟨i, h⟩).parent else i
 
-/-- Rank of node, defaults to 0 when node is orphan -/
+/-- Rank of a union-find node, defaults to 0 when the node is a root -/
 def rankD (arr : Array UFNode) (i : Nat) : Nat :=
   if h : i < arr.size then (arr.get ⟨i, h⟩).rank else 0
 
@@ -52,21 +52,21 @@ end UnionFind
 
 open UnionFind
 
-/-- Data structure for union-find -/
+/-- Union-find data structure -/
 structure UnionFind where
   /-- Array of union-find nodes -/
   arr : Array UFNode
-  /-- Validity for parents -/
+  /-- Validity for parent nodes -/
   parentD_lt : ∀ {i}, i < arr.size → parentD arr i < arr.size
   /-- Validity for rank -/
   rankD_lt : ∀ {i}, parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i)
 
 namespace UnionFind
 
-/-- Size of `UnionFind` structure -/
+/-- Size of union-find structure -/
 @[inline] abbrev size (self : UnionFind) := self.arr.size
 
-/-- Empty `UnionFind` structure -/
+/-- Empty union-find structure -/
 def empty : UnionFind where
   arr := #[]
   parentD_lt := (fun.)
@@ -74,7 +74,7 @@ def empty : UnionFind where
 
 instance : EmptyCollection UnionFind := ⟨.empty⟩
 
-/-- Create an empty `UnionFind` structure with specific capacity -/
+/-- Create an empty union-find structure with specific capacity -/
 def mkEmpty (c : Nat) : UnionFind where
   arr := Array.mkEmpty c
   parentD_lt := (fun.)
@@ -100,7 +100,7 @@ theorem rank'_lt (self : UnionFind) (i : Fin self.size) : (self.arr.get i).paren
     self.rank i < self.rank (self.arr.get i).parent := by
   simpa only [← parentD_eq] using self.rankD_lt
 
-/-- Maximum rank of a `UnionFind` structure -/
+/-- Maximum rank of nodes in a union-find structure -/
 noncomputable def rankMax (self : UnionFind) := self.arr.foldr (max ·.rank) 0 + 1
 
 theorem rank'_lt_rankMax (self : UnionFind) (i : Fin self.size) :
@@ -127,7 +127,7 @@ theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩)
   · exact Nat.le_antisymm (Nat.ge_of_not_lt ‹_›) (Nat.le_of_lt_succ ‹_›)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
-/-- Add a fresh node into a `UnionFind` structure -/
+/-- Add a new root node to a union-find structure -/
 def push (self : UnionFind) : UnionFind where
   arr := self.arr.push ⟨self.arr.size, 0⟩
   parentD_lt {i} := by
@@ -135,7 +135,8 @@ def push (self : UnionFind) : UnionFind where
     split <;> [exact fun _ => Nat.lt_succ_of_lt (self.parent'_lt _); exact id]
   rankD_lt := by simp [push_parentD, push_rankD]; exact self.rank_lt
 
-private def root' (self : UnionFind) (x : Fin self.size) : Fin self.size :=
+/-- Root of a union-find node -/
+def root' (self : UnionFind) (x : Fin self.size) : Fin self.size :=
   let y := (self.arr.get x).parent
   if h : y = x then
     x
@@ -152,7 +153,7 @@ theorem parent'_root' (self : UnionFind) (x : Fin self.size) :
   apply parent'_root'
 termination_by _ => self.rankMax - self.rank x
 
-/-- Root of `UnionFind` node -/
+/-- Root of a union-find node -/
 def root (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root' ⟨x, h⟩ else x
 
@@ -203,12 +204,17 @@ theorem lt_rank_root {self : UnionFind} {x : Nat} :
   rw [← root_parent]
   exact Nat.lt_of_lt_of_le (self.rank_lt h) le_rank_root
 
-private structure FindAux (n : Nat) where
+/-- Auxiliary data structure for find operation -/
+structure FindAux (n : Nat) where
+  /-- Array of nodes -/
   s : Array UFNode
+  /-- Index of root node -/
   root : Fin n
+  /-- Size requirement -/
   size_eq : s.size = n
 
-private def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.size :=
+/-- Auxiliary function for find operation -/
+def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.size :=
   let y := (self.arr.get x).parent
   if h : y = x then
     ⟨self.arr, x, rfl⟩
@@ -307,7 +313,7 @@ theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
       apply lt_rankD_findAux h'
 termination_by _ => self.rankMax - self.rank x
 
-/-- Find root of `UnionFind` node -/
+/-- Find root of a union-find node with path compression -/
 def find (self : UnionFind) (x : Fin self.size) :
     (s : UnionFind) × {_root : Fin s.size // s.size = self.size} :=
   let r := self.findAux x
@@ -348,7 +354,7 @@ theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
 termination_by _ => (self.find x).1.rankMax - (self.find x).1.rank i
 decreasing_by exact this -- why is this needed? It is way slower without it
 
-/-- Link a node to another -/
+/-- Link two union-find nodes -/
 def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
   if x.1 = y then
     self
@@ -399,7 +405,7 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
 @[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
   simp [linkAux]; split <;> [rfl; split] <;> [skip; split] <;> simp
 
-/-- Link a node to a root node -/
+/-- Link a union-find node to a root node -/
 def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by
@@ -420,7 +426,7 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
       simp [rankD_set]; split <;> simp [*]; rintro rfl; simp [rankD_eq, *]
     · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) self.rankD_lt
 
-/-- Union of two `UnionFind` nodes -/
+/-- Union of two union-find nodes -/
 def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
   let ⟨self₁, rx, ex⟩ := self.find x
   have hy := by rw [ex]; exact y.2
