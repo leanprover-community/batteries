@@ -182,7 +182,7 @@ theorem eq_push_pop_back_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.
       cases heq; rw [get_push_eq, back, ←size_pop, get!_eq_getD, getD, dif_pos h]; rfl
 
 theorem eq_push_of_size_ne_zero {as : Array α} (h : as.size ≠ 0) :
-  ∃ (bs : Array α) (c : α), as = bs.push c :=
+    ∃ (bs : Array α) (c : α), as = bs.push c :=
   let _ : Inhabited α := ⟨as[0]'(Nat.zero_lt_of_ne_zero h)⟩
   ⟨as.pop, as.back, eq_push_pop_back_of_size_ne_zero h⟩
 
