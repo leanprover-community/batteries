@@ -169,7 +169,7 @@ theorem eq_empty_of_size_eq_zero {as : Array α} (h : as.size = 0) : as = #[] :=
   · simp [h]
   · intros; contradiction
 
-theorem eq_push_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.size ≠ 0) :
+theorem eq_push_pop_back_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.size ≠ 0) :
     as = as.pop.push as.back := by
   apply ext
   · simp [Nat.sub_add_cancel (Nat.zero_lt_of_ne_zero h)]
@@ -180,6 +180,11 @@ theorem eq_push_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.size ≠ 
       have heq : i = as.pop.size :=
         Nat.le_antisymm (size_pop .. ▸ Nat.le_pred_of_lt h) (Nat.le_of_not_gt hlt)
       cases heq; rw [get_push_eq, back, ←size_pop, get!_eq_getD, getD, dif_pos h]; rfl
+
+theorem eq_push_of_size_ne_zero {as : Array α} (h : as.size ≠ 0) :
+  ∃ (bs : Array α) (c : α), as = bs.push c :=
+  let _ : Inhabited α := ⟨as[0]'(Nat.zero_lt_of_ne_zero h)⟩
+  ⟨as.pop, as.back, eq_push_pop_back_of_size_ne_zero h⟩
 
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
