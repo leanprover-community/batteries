@@ -38,7 +38,6 @@ namespace Std.UnionFind
 
 @[simp] theorem arr_link : (link self x y yroot).arr = linkAux self.arr x y := rfl
 
-attribute [-simp] Array.get_eq_getElem
 theorem parentD_linkAux {self} {x y : Fin self.size} :
     parentD (linkAux self x y) i =
     if x.1 = y then
@@ -48,8 +47,8 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
         if y = i then x else parentD self i
       else
         if x = i then y else parentD self i := by
-  dsimp [linkAux]; split <;> [rfl; split] <;> [rw [parentD_set]; split] <;> rw [parentD_set]
-  simp; split <;> [(subst i; rwa [if_neg, parentD_eq]); rw [parentD_set]]
+  dsimp only [linkAux]; split <;> [rfl; split] <;> [rw [parentD_set]; split] <;> rw [parentD_set]
+  split <;> [(subst i; rwa [if_neg, parentD_eq]); rw [parentD_set]]
 
 theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
     (link self x y yroot).parent i =
