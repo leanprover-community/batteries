@@ -164,6 +164,23 @@ theorem swapAt!_def (a : Array α) (i : Nat) (v : α) (h : i < a.size) :
     a.pop[i] = a[i]'(Nat.lt_of_lt_of_le (a.size_pop ▸ hi) (Nat.sub_le _ _)) :=
   List.get_dropLast ..
 
+theorem eq_empty_of_size_eq_zero {as : Array α} (h : as.size = 0) : as = #[] := by
+  apply ext
+  · simp [h]
+  · intros; contradiction
+
+theorem eq_push_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.size ≠ 0) :
+    as = as.pop.push as.back := by
+  apply ext
+  · simp [Nat.sub_add_cancel (Nat.zero_lt_of_ne_zero h)]
+  · intros i h h'
+    if hlt : i < as.pop.size then
+      rw [get_push_lt (h:=hlt), getElem_pop]
+    else
+      have heq : i = as.pop.size :=
+        Nat.le_antisymm (size_pop .. ▸ Nat.le_pred_of_lt h) (Nat.le_of_not_gt hlt)
+      cases heq; rw [get_push_eq, back, ←size_pop, get!_eq_getD, getD, dif_pos h]; rfl
+
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
     {init : β} (h0 : motive as.size init) {f : α → β → m β}
