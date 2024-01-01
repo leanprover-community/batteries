@@ -1145,8 +1145,7 @@ protected theorem dvd_trans {a b c : Nat} (h₁ : a ∣ b) (h₂ : b ∣ c) : a 
 protected theorem eq_zero_of_zero_dvd {a : Nat} (h : 0 ∣ a) : a = 0 :=
   let ⟨c, H'⟩ := h; H'.trans c.zero_mul
 
-@[simp]
-protected theorem zero_dvd {n : Nat} : 0 ∣ n ↔ n = 0 :=
+@[simp] protected theorem zero_dvd {n : Nat} : 0 ∣ n ↔ n = 0 :=
   ⟨Nat.eq_zero_of_zero_dvd, fun h => h.symm ▸ Nat.dvd_zero 0⟩
 
 protected theorem dvd_add {a b c : Nat} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
@@ -1202,8 +1201,7 @@ theorem pos_of_dvd_of_pos {m n : Nat} (H1 : m ∣ n) (H2 : 0 < n) : 0 < m :=
 theorem eq_one_of_dvd_one {n : Nat} (H : n ∣ 1) : n = 1 :=
   Nat.dvd_antisymm H n.one_dvd
 
-@[simp]
-theorem dvd_one {n : Nat} : n ∣ 1 ↔ n = 1 :=
+@[simp] theorem dvd_one {n : Nat} : n ∣ 1 ↔ n = 1 :=
   ⟨eq_one_of_dvd_one, fun h => h.symm ▸ Nat.dvd_refl _⟩
 
 theorem dvd_of_mod_eq_zero {m n : Nat} (H : n % m = 0) : m ∣ n := by
