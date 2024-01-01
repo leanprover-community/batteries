@@ -387,6 +387,7 @@ partial def rcasesCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (e 
     | e => throwError "rcases tactic failed: {e} is not a fvar"
   withRef pat.ref <| g.withContext do match pat with
   | .one ref `rfl =>
+    Term.synthesizeSyntheticMVarsNoPostponing
     -- Note: the mdata prevents the span from getting highlighted like a variable
     Term.addTermInfo' ref (.mdata {} e)
     let (fs, g) ← subst' g (← asFVar (fs.apply e)) fs
