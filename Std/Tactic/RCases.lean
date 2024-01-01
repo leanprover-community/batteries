@@ -337,7 +337,7 @@ open Elab Tactic
 -- TODO(Mario): this belongs in core
 /-- Like `Lean.Meta.subst`, but preserves the `FVarSubst`. -/
 def subst' (goal : MVarId) (hFVarId : FVarId)
-  (fvarSubst : FVarSubst := {}) : MetaM (FVarSubst × MVarId) := do
+    (fvarSubst : FVarSubst := {}) : MetaM (FVarSubst × MVarId) := do
   let hLocalDecl ← hFVarId.getDecl
   let error {α} _ : MetaM α := throwTacticEx `subst goal
     m!"invalid equality proof, it is not of the form (x = t) or (t = x){indentExpr hLocalDecl.type}"
@@ -529,7 +529,7 @@ Given a list of targets of the form `e` or `h : e`, and a pattern, match all the
 against the pattern. Returns the list of produced subgoals.
 -/
 def rcases (tgts : Array (Option Name × Syntax))
-  (pat : RCasesPatt) (g : MVarId) : TermElabM (List MVarId) := do
+    (pat : RCasesPatt) (g : MVarId) : TermElabM (List MVarId) := Term.withSynthesize do
   let pats ← match tgts.size with
   | 0 => return [g]
   | 1 => pure [pat]
@@ -543,20 +543,20 @@ def rcases (tgts : Array (Option Name × Syntax))
     let expr ← Term.ensureHasType ty (← Term.elabTerm tgt ty)
     pure (pat, { expr, xName? := pat.name?, hName? : GeneralizeArg })
   let (vs, g) ← generalizeExceptFVar g args
-  let gs ← rcasesContinue g {} #[] #[] (pats.zip vs).toList finish
-  pure gs.toList
+  (·.toList) <$> rcasesContinue g {} #[] #[] (pats.zip vs).toList finish
 
 /--
 The `obtain` tactic in the no-target case. Given a type `T`, create a goal `|- T` and
 and pattern match `T` against the given pattern. Returns the list of goals, with the assumed goal
 first followed by the goals produced by the pattern match.
 -/
-def obtainNone (pat : RCasesPatt) (ty : Syntax) (g : MVarId) : TermElabM (List MVarId) := do
-  let ty ← Term.elabType ty
-  let g₁ ← mkFreshExprMVar (some ty)
-  let (v, g₂) ← (← g.assert (pat.name?.getD default) ty g₁).intro1
-  let gs ← rcasesCore g₂ {} #[] (.fvar v) #[] pat finish
-  pure (g₁.mvarId! :: gs.toList)
+def obtainNone (pat : RCasesPatt) (ty : Syntax) (g : MVarId) : TermElabM (List MVarId) :=
+  Term.withSynthesize do
+    let ty ← Term.elabType ty
+    let g₁ ← mkFreshExprMVar (some ty)
+    let (v, g₂) ← (← g.assert (pat.name?.getD default) ty g₁).intro1
+    let gs ← rcasesCore g₂ {} #[] (.fvar v) #[] pat finish
+    pure (g₁.mvarId! :: gs.toList)
 
 mutual
 variable [Monad m] [MonadQuotation m]
@@ -587,8 +587,8 @@ This introduces the pattern `pat`. It has the same arguments as `rcasesCore`, pl
 * `ty?`: the nearest enclosing type ascription on the current pattern
 -/
 partial def rintroCore (g : MVarId) (fs : FVarSubst) (clears : Array FVarId) (a : α)
-  (ref : Syntax) (pat : TSyntax `rintroPat) (ty? : Option Term)
-  (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) : TermElabM α := do
+    (ref : Syntax) (pat : TSyntax `rintroPat) (ty? : Option Term)
+    (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) : TermElabM α := do
   match pat with
   | `(rintroPat| $pat:rcasesPat) =>
     let pat := (← RCasesPatt.parse pat).typed? ref ty?
@@ -604,8 +604,8 @@ This introduces the list of patterns `pats`. It has the same arguments as `rcase
 * `ty?`: the nearest enclosing type ascription on the current pattern
 -/
 partial def rintroContinue (g : MVarId) (fs : FVarSubst) (clears : Array FVarId)
-  (ref : Syntax) (pats : TSyntaxArray `rintroPat) (ty? : Option Term) (a : α)
-  (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) : TermElabM α := do
+    (ref : Syntax) (pats : TSyntaxArray `rintroPat) (ty? : Option Term) (a : α)
+    (cont : MVarId → FVarSubst → Array FVarId → α → TermElabM α) : TermElabM α := do
   g.withContext (loop 0 g fs clears a)
 where
   /-- Runs `rintroContinue` on `pats[i:]` -/
@@ -621,7 +621,7 @@ The implementation of the `rintro` tactic. It takes a list of patterns `pats` an
 an optional type ascription `ty?` and introduces the patterns, resulting in zero or more goals.
 -/
 def rintro (pats : TSyntaxArray `rintroPat) (ty? : Option Term)
-  (g : MVarId) : TermElabM (List MVarId) :=
+    (g : MVarId) : TermElabM (List MVarId) := Term.withSynthesize do
   (·.toList) <$> rintroContinue g {} #[] .missing pats ty? #[] finish
 
 end RCases
