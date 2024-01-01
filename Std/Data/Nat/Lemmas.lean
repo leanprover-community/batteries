@@ -370,6 +370,16 @@ protected theorem add_le_add_iff_left {n : Nat} : n + m ≤ n + k ↔ m ≤ k :=
 protected theorem add_le_add_iff_right {n : Nat} : m + n ≤ k + n ↔ m ≤ k :=
   ⟨Nat.le_of_add_le_add_right, fun h => Nat.add_le_add_right h _⟩
 
+protected theorem add_left_le_self {n m : Nat} : n + m ≤ m ↔ n = 0 := by
+  conv => lhs; rhs; rw [← Nat.zero_add m]
+  rw [Nat.add_le_add_iff_right]
+  apply Nat.le_zero
+
+protected theorem add_right_le_self {n m : Nat} : n + m ≤ n ↔ m = 0 := by
+  conv => lhs; rhs; rw [← Nat.add_zero n]
+  rw [Nat.add_le_add_iff_left]
+  apply Nat.le_zero
+
 protected theorem lt_of_add_lt_add_right : ∀ {n : Nat}, k + n < m + n → k < m
   | 0, h => h
   | _+1, h => Nat.lt_of_add_lt_add_right (Nat.lt_of_succ_lt_succ h)
