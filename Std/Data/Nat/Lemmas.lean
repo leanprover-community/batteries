@@ -1147,7 +1147,7 @@ protected theorem eq_zero_of_zero_dvd {a : Nat} (h : 0 ∣ a) : a = 0 :=
 
 @[simp]
 protected theorem zero_dvd {n : Nat} : 0 ∣ n ↔ n = 0 :=
-  ⟨Nat.eq_zero_of_zero_dvd, fun h ↦ h.symm ▸ Nat.dvd_zero 0⟩
+  ⟨Nat.eq_zero_of_zero_dvd, fun h => h.symm ▸ Nat.dvd_zero 0⟩
 
 protected theorem dvd_add {a b c : Nat} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
   let ⟨d, hd⟩ := h₁; let ⟨e, he⟩ := h₂; ⟨d + e, by simp [Nat.left_distrib, hd, he]⟩
@@ -1204,7 +1204,7 @@ theorem eq_one_of_dvd_one {n : Nat} (H : n ∣ 1) : n = 1 :=
 
 @[simp]
 theorem dvd_one {n : Nat} : n ∣ 1 ↔ n = 1 :=
-  ⟨eq_one_of_dvd_one, fun h ↦ h.symm ▸ Nat.dvd_refl _⟩
+  ⟨eq_one_of_dvd_one, fun h => h.symm ▸ Nat.dvd_refl _⟩
 
 theorem dvd_of_mod_eq_zero {m n : Nat} (H : n % m = 0) : m ∣ n := by
   exists n / m
