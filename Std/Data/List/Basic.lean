@@ -219,6 +219,18 @@ theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++
 @[csimp] theorem dropLast_eq_dropLastTR : @dropLast = @dropLastTR := by
   funext α l; simp [dropLastTR]
 
+/-- Drop a sublist from the tail end of a list. -/
+def rdropSublist [BEq α] : List α → List α → List α
+  | l, [] => l
+  | [], _ => []
+  | a::as, b::bs =>
+    if a::as == b::bs then
+      []
+    else if as == b::bs then
+      [a]
+    else
+      a::rdropSublist as (b::bs)
+
 /-- Tail recursive version of `intersperse`. -/
 def intersperseTR (sep : α) : List α → List α
   | [] => []
@@ -520,6 +532,29 @@ Split a list at every occurrence of a separator element. The separators are not 
 ```
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
+
+/--
+Split a list at every occurrence of a separator sublist. The separators are not in the result.
+```
+[1, 1, 2, 3, 2, 4, 4].splitOnSublist [2, 3] = [[1, 1], [2, 4, 4]]
+```
+-/
+def splitOnSublist [BEq α] (l sep : List α) : List (List α) := go l sep sep [] where
+  /-- Auxiliary for `splitOnSublist`. The first explicit argument is a list we want to split, the
+  second a separator sublist (`sep`), the third a part of `sep` that we'll use to split the first
+  argument, and the last an accumulated list of elements of the first argument (`acc`). -/
+  go : List α → List α → List α → List α → List (List α)
+  | a::as, sep@(b::bs), [], acc =>
+    if a == b then
+      (acc.reverse.rdropSublist sep)::go as sep bs [a]
+    else
+      (acc.reverse.rdropSublist sep)::go as sep sep [a]
+  | a::as, sep@(_::_), c::cs, acc =>
+    if a == c then
+      go as sep cs (a::acc)
+    else
+      go as sep sep (a::acc)
+  | l, _, _, acc => [acc.reverse++l]
 
 /--
 Apply a function to the nth tail of `l`. Returns the input without
