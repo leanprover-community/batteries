@@ -95,13 +95,13 @@ elab_rules : tactic
     let stx := tac.raw
     let usedSimps ← match stx.getKind with
     | ``Parser.Tactic.simp => do
-      let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+      let { ctx, simprocs, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
       dischargeWrapper.with fun discharge? =>
-        simpLocation ctx discharge? (expandOptLocation stx[5])
+        simpLocation ctx simprocs discharge? (expandOptLocation stx[5])
     | ``Parser.Tactic.simpAll => do
-      let { ctx, .. } ← mkSimpContext stx
+      let { ctx, simprocs, .. } ← mkSimpContext stx
         (eraseLocal := true) (kind := .simpAll) (ignoreStarArg := true)
-      let (result?, usedSimps) ← simpAll (← getMainGoal) ctx
+      let (result?, usedSimps) ← simpAll (← getMainGoal) ctx simprocs
       match result? with
       | none => replaceMainGoal []
       | some mvarId => replaceMainGoal [mvarId]

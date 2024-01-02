@@ -36,44 +36,10 @@ syntax (name := simpTrace) "simp?" "!"? simpTraceArgsRest : tactic
 macro tk:"simp?!" rest:simpTraceArgsRest : tactic => `(tactic| simp?%$tk ! $rest)
 
 open TSyntax.Compat in
--- adapted from traceSimpCall
 /-- Constructs the syntax for a simp call, for use with `simp?`. -/
 def mkSimpCallStx (stx : Syntax) (usedSimps : UsedSimps) : MetaM (TSyntax `tactic) := do
-  let mut stx := stx.unsetTrailing
-  if stx[3].isNone then
-    stx := stx.setArg 3 (mkNullNode #[mkAtom "only"])
-  let mut args := #[]
-  let mut localsOrStar := some #[]
-  let lctx ← getLCtx
-  let env ← getEnv
-  for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
-    match thm with
-    | .decl declName inv => -- global definitions in the environment
-      if env.contains declName && !simpOnlyBuiltins.contains declName then
-        args := args.push (← if inv then
-          `(Parser.Tactic.simpLemma| ← $(mkIdent (← unresolveNameGlobal declName)):ident)
-        else
-          `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
-    | .fvar fvarId => -- local hypotheses in the context
-      if let some ldecl := lctx.find? fvarId then
-        localsOrStar := localsOrStar.bind fun locals =>
-          if !ldecl.userName.isInaccessibleUserName &&
-              (lctx.findFromUserName? ldecl.userName).get!.fvarId == ldecl.fvarId then
-            some (locals.push ldecl.userName)
-          else
-            none
-      -- Note: the `if let` can fail for `simp (config := {contextual := true})` when
-      -- rewriting with a variable that was introduced in a scope. In that case we just ignore.
-    | .stx _ thmStx => -- simp theorems provided in the local invocation
-      args := args.push thmStx
-    | .other _ => -- Ignore "special" simp lemmas such as constructed by `simp_all`.
-      pure ()     -- We can't display them anyway.
-  if let some locals := localsOrStar then
-    args := args ++ (← locals.mapM fun id => `(Parser.Tactic.simpLemma| $(mkIdent id):ident))
-  else
-    args := args.push (← `(Parser.Tactic.simpStar| *))
-  let argsStx := if args.isEmpty then #[] else #[mkAtom "[", (mkAtom ",").mkSep args, mkAtom "]"]
-  pure <| stx.setArg 4 (mkNullNode argsStx)
+  let stx := stx.unsetTrailing
+  mkSimpOnly stx usedSimps
 
 elab_rules : tactic
   | `(tactic|
@@ -82,9 +48,9 @@ elab_rules : tactic
       `(tactic| simp!%$tk $(config)? $(discharger)? $[only%$o]? $[[$args,*]]? $(loc)?)
     else
       `(tactic| simp%$tk $(config)? $(discharger)? $[only%$o]? $[[$args,*]]? $(loc)?)
-    let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+    let { ctx, simprocs, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
     let usedSimps ← dischargeWrapper.with fun discharge? =>
-      simpLocation ctx discharge? <| (loc.map expandLocation).getD (.targets #[] true)
+      simpLocation ctx (simprocs := simprocs) discharge? <| (loc.map expandLocation).getD (.targets #[] true)
     let stx ← mkSimpCallStx stx usedSimps
     TryThis.addSuggestion tk stx (origSpan? := ← getRef)
 

@@ -24,13 +24,12 @@ initialize registerTraceClass `Tactic.norm_cast
 /-- Prove `a = b` using the given simp set. -/
 def proveEqUsing (s : SimpTheorems) (a b : Expr) : MetaM (Option Simp.Result) := do
   let go : SimpM (Option Simp.Result) := do
-    let methods := Simp.DefaultMethods.methods
-    let a' ← Simp.simp a methods
-    let b' ← Simp.simp b methods
+    let a' ← Simp.simp a
+    let b' ← Simp.simp b
     unless ← isDefEq a'.expr b'.expr do return none
     mkEqTrans a' (← mkEqSymm b b')
   withReducible do
-    (go { simpTheorems := #[s], congrTheorems := ← Meta.getSimpCongrTheorems }).run' {}
+    (go (← Simp.mkDefaultMethods).toMethodsRef { simpTheorems := #[s], congrTheorems := ← Meta.getSimpCongrTheorems }).run' {}
 
 /-- Prove `a = b` by simplifying using move and squash lemmas. -/
 def proveEqUsingDown (a b : Expr) : MetaM (Option Simp.Result) := do
@@ -325,8 +324,8 @@ syntax (name := pushCast) "push_cast" (config)? (discharger)? (&" only")?
   (" [" (simpStar <|> simpErase <|> simpLemma),* "]")? (location)? : tactic
 
 @[inherit_doc pushCast, tactic pushCast] def evalPushCast : Tactic := fun stx => do
-  let { ctx, dischargeWrapper, .. } ← withMainContext do
+  let { ctx, simprocs, dischargeWrapper } ← withMainContext do
     mkSimpContext' (← pushCastExt.getTheorems) stx (eraseLocal := false)
   let ctx := { ctx with config := { ctx.config with failIfUnchanged := false } }
   dischargeWrapper.with fun discharge? =>
-    discard <| simpLocation ctx discharge? (expandOptLocation stx[5])
+    discard <| simpLocation ctx simprocs discharge? (expandOptLocation stx[5])
