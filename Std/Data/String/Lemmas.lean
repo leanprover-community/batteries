@@ -478,7 +478,81 @@ theorem splitAux_of_valid (p l m r acc) :
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []
 
--- TODO: splitOn
+/--
+NOTE: DELETE THIS LATER.
+
+A proposed alternative of `String.splitOnAux`.
+-/
+def splitOnAux' (s sep : String) (b : Pos) (i : Pos) (j : Pos) (r : List String) : List String :=
+  if sep == "" then
+    let r := (s.extract b s.endPos)::r
+    r.reverse
+  else if h : s.atEnd i then
+    let r := (s.extract b i)::r
+    r.reverse
+  else
+    have := Nat.sub_lt_sub_left (Nat.gt_of_not_le (mt decide_eq_true h)) (lt_next s _)
+    if sep.atEnd j then
+      if s.get i == sep.get 0 then
+        splitOnAux' s sep i (s.next i) (sep.next 0) (s.extract b (i - j)::r)
+      else
+        splitOnAux' s sep i (s.next i) 0 (s.extract b (i - j)::r)
+    else if s.get i == sep.get j then
+      splitOnAux' s sep b (s.next i) (sep.next j) r
+    else
+      splitOnAux' s sep b (s.next i) 0 r
+termination_by _ => s.endPos.1 - i.1
+
+/--
+NOTE: DELETE THIS LATER.
+
+A proposed alternative of `String.splitOn`.
+-/
+def splitOn' (s : String) (sep : String := " ") : List String :=
+  splitOnAux' s sep 0 0 0 []
+
+theorem splitOnAux_of_valid (sep₁ sep₂ l m r acc) :
+    splitOnAux' ⟨l++m++sep₁++r⟩ ⟨sep₁++sep₂⟩ ⟨utf8Len l⟩ ⟨utf8Len (l++m++sep₁)⟩ ⟨utf8Len sep₁⟩ acc =
+      acc.reverse++(List.splitOnSublist.go r (sep₁++sep₂) sep₂ (m++sep₁).reverse).map mk := by
+  unfold splitOnAux'
+  simp [ext_iff]
+  split
+  · next h => simp [h.1, h.2, by simpa using extract_of_valid l (m++r) [], List.splitOnSublist.go]
+  · simp [Nat.add_le_add_iff_left, Nat.add_right_le_self]
+    split
+    · subst r; simpa [List.splitOnSublist.go] using extract_of_valid l (m++sep₁) []
+    · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
+      simp [by simpa using (⟨get_of_valid (l++m++sep₁) (c::r), next_of_valid (l++m++sep₁) c r⟩ :
+        _∧_), next, Pos.addChar_eq, get_of_valid]
+      split
+      · subst sep₂
+        simp [← Nat.add_assoc, Pos.sub_eq, by simpa using extract_of_valid l m (sep₁++c::r)] at *
+        obtain ⟨c₁, sep₁, rfl⟩ := sep₁.exists_cons_of_ne_nil ‹_›
+        simp [get, utf8GetAux]
+        split
+        · subst c₁
+          simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, List.splitOnSublist.go] using
+            splitOnAux_of_valid [c] sep₁ (l++m++c::sep₁) [] r (⟨m⟩::acc)
+        · simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, List.splitOnSublist.go, *] using
+            splitOnAux_of_valid [] (c₁::sep₁) (l++m++c₁::sep₁) [c] r (⟨m⟩::acc)
+      · obtain ⟨c₂, sep₂, rfl⟩ := sep₂.exists_cons_of_ne_nil ‹_›
+        cases sep₁ <;> simp at *
+        · split
+          · subst c₂
+            simpa [Nat.add_comm, Nat.add_left_comm, List.splitOnSublist.go] using
+              splitOnAux_of_valid [c] sep₂ l m r acc
+          · simpa [Nat.add_comm, Nat.add_left_comm, List.splitOnSublist.go, *] using
+              splitOnAux_of_valid [] (c₂::sep₂) l (m++[c]) r acc
+        · next c₁ sep₁ _ _ _ =>
+          split
+          · subst c₂
+            simpa [Nat.add_comm, Nat.add_left_comm, List.splitOnSublist.go] using
+              splitOnAux_of_valid (c₁::sep₁++[c]) sep₂ l m r acc
+          · simpa [Nat.add_comm, Nat.add_left_comm, List.splitOnSublist.go, *] using
+              splitOnAux_of_valid [] (c₁::sep₁++c₂::sep₂) l (m++c₁::sep₁++[c]) r acc
+
+theorem splitOn_of_valid (s sep) : splitOn' s sep = (List.splitOnSublist s.1 sep.1).map mk := by
+  simpa [splitOn'] using splitOnAux_of_valid [] sep.1 [] [] s.1 []
 
 @[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
   extract_zero_endPos _
