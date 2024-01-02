@@ -732,6 +732,29 @@ are often used for theorems about `Array.pop`.  -/
   | _::_::_, ⟨0, _⟩ => rfl
   | _::_::_, ⟨i+1, _⟩ => get_dropLast _ ⟨i, _⟩
 
+/-! ### rdropSublist -/
+
+@[simp] theorem rdropSublist_self [BEq α] [LawfulBEq α] (l : List α) :
+    l.rdropSublist l = [] := by
+  cases l <;> simp [rdropSublist]
+
+@[simp] theorem rdropSublist_append [BEq α] [LawfulBEq α] (l m : List α) :
+    (l++m).rdropSublist m = l := by
+  match l, m with
+  | [], _ => simp [rdropSublist_self]
+  | a::as, [] => simp [rdropSublist]
+  | a::as, b::bs =>
+    simp [rdropSublist]
+    split
+    · next h =>
+      simp at h
+      rw [append_cons, append_left_eq_self] at h
+      simp at h
+    · split <;> rename_i h <;> simp at h ⊢
+      · simp [append_left_eq_self] at h
+        exact h.symm
+      · apply rdropSublist_append
+
 /-! ### nth element -/
 
 @[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
