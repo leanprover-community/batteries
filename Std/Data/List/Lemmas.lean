@@ -161,6 +161,18 @@ theorem append_eq_append_iff {a b c d : List α} :
   | nil => simp; exact (or_iff_left_of_imp fun ⟨_, ⟨e, rfl⟩, h⟩ => e ▸ h.symm).symm
   | cons a as ih => cases c <;> simp [eq_comm, and_assoc, ih, and_or_left]
 
+theorem append_left_eq_self (l m : List α) : l ++ m = m ↔ l = [] := by
+  constructor <;> intro h
+  · conv at h => rhs; rw [← nil_append m]
+    rwa [append_cancel_right_eq] at h
+  · rw [h, nil_append]
+
+theorem append_right_eq_self (l m : List α) : l ++ m = l ↔ m = [] := by
+  constructor <;> intro h
+  · conv at h => rhs; rw [← append_nil l]
+    rwa [append_cancel_left_eq] at h
+  · rw [h, append_nil]
+
 @[simp] theorem mem_append {a : α} {s t : List α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
   induction s <;> simp_all [or_assoc]
 
