@@ -640,12 +640,16 @@ theorem get_extract_loop_ge (as bs : Array α) (size start : Nat) (hge : i ≥ b
       rw [ih (bs.push as[start]) (start+1) ((size_push ..).symm ▸ hge)]
       congr 1; rw [size_push, Nat.add_right_comm, Nat.add_sub_add_right]
 
-theorem get_extract {as : Array α} {start stop : Nat} (h : i < (as.extract start stop).size)
-    (h' : start + i < as.size := Nat.add_lt_of_lt_sub' (Nat.lt_of_lt_of_le (size_extract .. ▸ h)
-      (Nat.sub_le_sub_right (Nat.min_le_right ..) _))) :
-    (as.extract start stop)[i] = as[start + i] :=
-  show (extract.loop as (min stop as.size - start) start #[])[i] = as[start + i] by
-  rw [get_extract_loop_ge]; rfl; exact Nat.zero_le _
+theorem get_extract_aux {as : Array α} {start stop : Nat} (h : i < (as.extract start stop).size) :
+    start + i < as.size := by
+  rw [size_extract] at h; apply Nat.add_lt_of_lt_sub'; apply Nat.lt_of_lt_of_le h
+  apply Nat.sub_le_sub_right; apply Nat.min_le_right
+
+@[simp] theorem get_extract {as : Array α} {start stop : Nat}
+    (h : i < (as.extract start stop).size) :
+    (as.extract start stop)[i] = as[start + i]'(get_extract_aux h) :=
+  show (extract.loop as (min stop as.size - start) start #[])[i]
+    = as[start + i]'(get_extract_aux h) by rw [get_extract_loop_ge]; rfl; exact Nat.zero_le _
 
 @[simp] theorem extract_all (as : Array α) : as.extract 0 as.size = as := by
   apply ext
