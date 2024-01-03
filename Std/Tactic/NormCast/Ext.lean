@@ -89,15 +89,15 @@ def classifyType (ty : Expr) : MetaM Label :=
     else if rhsHeadCoes < lhsHeadCoes then do
       return Label.squash
     else do
-      throwError
-          ("norm_cast: badly shaped shaped squash lemma, " ++
-        "rhs must have fewer head coes than lhs{indentExpr ty}")
+      throwError "\
+        norm_cast: badly shaped shaped squash lemma, \
+        rhs must have fewer head coes than lhs{indentExpr ty}"
 
 /-- The `push_cast` simp attribute. -/
 initialize pushCastExt : SimpExtension ←
-  registerSimpAttr `push_cast <|
-    "The `push_cast` simp attribute uses `norm_cast` lemmas " ++
-    "to move casts toward the leaf nodes of the expression."
+  registerSimpAttr `push_cast "\
+    The `push_cast` simp attribute uses `norm_cast` lemmas \
+    to move casts toward the leaf nodes of the expression."
 
 /--  The `norm_cast` attribute stores three simp sets. -/
 structure NormCastExtension where

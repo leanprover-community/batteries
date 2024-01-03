@@ -195,27 +195,6 @@ theorem natAbs_eq_natAbs_iff {a b : Int} : a.natAbs = b.natAbs ↔ a = b ∨ a =
 theorem natAbs_eq_iff {a : Int} {n : Nat} : a.natAbs = n ↔ a = n ∨ a = -↑n := by
   rw [← Int.natAbs_eq_natAbs_iff, Int.natAbs_ofNat]
 
-/- ## sign -/
-
-@[simp] theorem sign_zero : sign 0 = 0 := rfl
-@[simp] theorem sign_one : sign 1 = 1 := rfl
-theorem sign_neg_one : sign (-1) = -1 := rfl
-
-@[simp] theorem sign_of_add_one (x : Nat) : Int.sign (x + 1) = 1 := rfl
-@[simp] theorem sign_negSucc (x : Nat) : Int.sign (Int.negSucc x) = -1 := rfl
-
-theorem natAbs_sign (z : Int) : z.sign.natAbs = if z = 0 then 0 else 1 :=
-  match z with | 0 | succ _ | -[_+1] => rfl
-
-theorem natAbs_sign_of_nonzero {z : Int} (hz : z ≠ 0) : z.sign.natAbs = 1 := by
-  rw [Int.natAbs_sign, if_neg hz]
-
-theorem sign_ofNat_of_nonzero {n : Nat} (hn : n ≠ 0) : Int.sign n = 1 :=
-  match n, Nat.exists_eq_succ_of_ne_zero hn with
-  | _, ⟨n, rfl⟩ => Int.sign_of_add_one n
-
-@[simp] theorem sign_neg (z : Int) : Int.sign (-z) = -Int.sign z := by
-  match z with | 0 | succ _ | -[_+1] => rfl
 
 /- # ring properties -/
 
@@ -537,15 +516,6 @@ protected theorem neg_eq_neg_one_mul : ∀ a : Int, -a = -1 * a
   | succ n => show _ = -[1 * n +1] by rw [Nat.one_mul]; rfl
   | -[n+1] => show _ = ofNat _ by rw [Nat.one_mul]; rfl
 
-theorem sign_mul_natAbs : ∀ a : Int, sign a * natAbs a = a
-  | 0      => rfl
-  | succ _ => Int.one_mul _
-  | -[_+1] => (Int.neg_eq_neg_one_mul _).symm
-
-@[simp] theorem sign_mul : ∀ a b, sign (a * b) = sign a * sign b
-  | a, 0 | 0, b => by simp [Int.mul_zero, Int.zero_mul]
-  | succ _, succ _ | succ _, -[_+1] | -[_+1], succ _ | -[_+1], -[_+1] => rfl
-
 /-! ## Order properties of the integers -/
 
 theorem nonneg_def {a : Int} : NonNeg a ↔ ∃ n : Nat, a = n :=
@@ -677,6 +647,25 @@ protected theorem lt_trichotomy (a b : Int) : a < b ∨ a = b ∨ b < a :=
   if eq : a = b then .inr <| .inl eq else
   if le : a ≤ b then .inl <| Int.lt_iff_le_and_ne.2 ⟨le, eq⟩ else
   .inr <| .inr <| Int.not_le.1 le
+
+protected theorem ne_iff_lt_or_gt {a b : Int} : a ≠ b ↔ a < b ∨ b < a := by
+  constructor
+  · intro h
+    rcases Int.lt_trichotomy a b with lt | rfl | gt
+    · exact Or.inl lt
+    · simp_all
+    · exact Or.inr gt
+  · rintro (lt | gt)
+    · exact Int.ne_of_lt lt
+    · exact Int.ne_of_gt gt
+
+protected alias ⟨lt_or_gt_of_ne, _⟩ := Int.ne_iff_lt_or_gt
+
+protected theorem eq_iff_le_and_ge {x y : Int} : x = y ↔ x ≤ y ∧ y ≤ x := by
+  constructor
+  · simp_all
+  · rintro ⟨h₁, h₂⟩
+    exact Int.le_antisymm h₁ h₂
 
 protected theorem lt_of_le_of_lt {a b c : Int} (h₁ : a ≤ b) (h₂ : b < c) : a < c :=
   Int.not_le.1 fun h => Int.not_le.2 h₂ (Int.le_trans h h₁)
@@ -1216,6 +1205,11 @@ protected theorem mul_le_mul_of_nonpos_right {a b c : Int}
   have : b * -c ≤ a * -c := Int.mul_le_mul_of_nonneg_right h this
   Int.le_of_neg_le_neg <| by rwa [← Int.neg_mul_eq_mul_neg, ← Int.neg_mul_eq_mul_neg] at this
 
+protected theorem mul_le_mul_of_nonpos_left {a b c : Int}
+    (ha : a ≤ 0) (h : c ≤ b) : a * b ≤ a * c := by
+  rw [Int.mul_comm a b, Int.mul_comm a c]
+  apply Int.mul_le_mul_of_nonpos_right h ha
+
 protected theorem mul_nonneg_of_nonpos_of_nonpos {a b : Int}
   (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a * b := by
   have : 0 * b ≤ a * b := Int.mul_le_mul_of_nonpos_right ha hb
@@ -1274,34 +1268,6 @@ theorem le_sub_one_of_lt {a b : Int} (H : a < b) : a ≤ b - 1 := Int.le_sub_rig
 
 theorem lt_of_le_sub_one {a b : Int} (H : a ≤ b - 1) : a < b := Int.add_le_of_le_sub_right H
 
-theorem sign_eq_one_of_pos {a : Int} (h : 0 < a) : sign a = 1 :=
-  match a, eq_succ_of_zero_lt h with
-  | _, ⟨_, rfl⟩ => rfl
-
-theorem sign_eq_neg_one_of_neg {a : Int} (h : a < 0) : sign a = -1 :=
-  match a, eq_negSucc_of_lt_zero h with
-  | _, ⟨_, rfl⟩ => rfl
-
-theorem eq_zero_of_sign_eq_zero : ∀ {a : Int}, sign a = 0 → a = 0
-  | 0, _ => rfl
-
-theorem pos_of_sign_eq_one : ∀ {a : Int}, sign a = 1 → 0 < a
-  | (_ + 1 : Nat), _ => ofNat_lt.2 (Nat.succ_pos _)
-
-theorem neg_of_sign_eq_neg_one : ∀ {a : Int}, sign a = -1 → a < 0
-  | (_ + 1 : Nat), h => nomatch h
-  | 0, h => nomatch h
-  | -[_+1], _ => negSucc_lt_zero _
-
-theorem sign_eq_one_iff_pos (a : Int) : sign a = 1 ↔ 0 < a :=
-  ⟨pos_of_sign_eq_one, sign_eq_one_of_pos⟩
-
-theorem sign_eq_neg_one_iff_neg (a : Int) : sign a = -1 ↔ a < 0 :=
-  ⟨neg_of_sign_eq_neg_one, sign_eq_neg_one_of_neg⟩
-
-theorem sign_eq_zero_iff_zero (a : Int) : sign a = 0 ↔ a = 0 :=
-  ⟨eq_zero_of_sign_eq_zero, fun h => by rw [h, sign_zero]⟩
-
 protected theorem mul_eq_zero {a b : Int} : a * b = 0 ↔ a = 0 ∨ b = 0 := by
   refine ⟨fun h => ?_, fun h => h.elim (by simp [·, Int.zero_mul]) (by simp [·, Int.mul_zero])⟩
   exact match Int.lt_trichotomy a 0, Int.lt_trichotomy b 0 with
@@ -1337,11 +1303,83 @@ theorem eq_one_of_mul_eq_self_left {a b : Int} (Hpos : a ≠ 0) (H : b * a = a) 
 theorem eq_one_of_mul_eq_self_right {a b : Int} (Hpos : b ≠ 0) (H : b * a = b) : a = 1 :=
   Int.eq_of_mul_eq_mul_left Hpos <| by rw [Int.mul_one, H]
 
+/- ## sign -/
+
+@[simp] theorem sign_zero : sign 0 = 0 := rfl
+@[simp] theorem sign_one : sign 1 = 1 := rfl
+theorem sign_neg_one : sign (-1) = -1 := rfl
+
+@[simp] theorem sign_of_add_one (x : Nat) : Int.sign (x + 1) = 1 := rfl
+@[simp] theorem sign_negSucc (x : Nat) : Int.sign (Int.negSucc x) = -1 := rfl
+
+theorem natAbs_sign (z : Int) : z.sign.natAbs = if z = 0 then 0 else 1 :=
+  match z with | 0 | succ _ | -[_+1] => rfl
+
+theorem natAbs_sign_of_nonzero {z : Int} (hz : z ≠ 0) : z.sign.natAbs = 1 := by
+  rw [Int.natAbs_sign, if_neg hz]
+
+theorem sign_ofNat_of_nonzero {n : Nat} (hn : n ≠ 0) : Int.sign n = 1 :=
+  match n, Nat.exists_eq_succ_of_ne_zero hn with
+  | _, ⟨n, rfl⟩ => Int.sign_of_add_one n
+
+@[simp] theorem sign_neg (z : Int) : Int.sign (-z) = -Int.sign z := by
+  match z with | 0 | succ _ | -[_+1] => rfl
+
+theorem sign_mul_natAbs : ∀ a : Int, sign a * natAbs a = a
+  | 0      => rfl
+  | succ _ => Int.one_mul _
+  | -[_+1] => (Int.neg_eq_neg_one_mul _).symm
+
+@[simp] theorem sign_mul : ∀ a b, sign (a * b) = sign a * sign b
+  | a, 0 | 0, b => by simp [Int.mul_zero, Int.zero_mul]
+  | succ _, succ _ | succ _, -[_+1] | -[_+1], succ _ | -[_+1], -[_+1] => rfl
+
+theorem sign_eq_one_of_pos {a : Int} (h : 0 < a) : sign a = 1 :=
+  match a, eq_succ_of_zero_lt h with
+  | _, ⟨_, rfl⟩ => rfl
+
+theorem sign_eq_neg_one_of_neg {a : Int} (h : a < 0) : sign a = -1 :=
+  match a, eq_negSucc_of_lt_zero h with
+  | _, ⟨_, rfl⟩ => rfl
+
+theorem eq_zero_of_sign_eq_zero : ∀ {a : Int}, sign a = 0 → a = 0
+  | 0, _ => rfl
+
+theorem pos_of_sign_eq_one : ∀ {a : Int}, sign a = 1 → 0 < a
+  | (_ + 1 : Nat), _ => ofNat_lt.2 (Nat.succ_pos _)
+
+theorem neg_of_sign_eq_neg_one : ∀ {a : Int}, sign a = -1 → a < 0
+  | (_ + 1 : Nat), h => nomatch h
+  | 0, h => nomatch h
+  | -[_+1], _ => negSucc_lt_zero _
+
+theorem sign_eq_one_iff_pos (a : Int) : sign a = 1 ↔ 0 < a :=
+  ⟨pos_of_sign_eq_one, sign_eq_one_of_pos⟩
+
+theorem sign_eq_neg_one_iff_neg (a : Int) : sign a = -1 ↔ a < 0 :=
+  ⟨neg_of_sign_eq_neg_one, sign_eq_neg_one_of_neg⟩
+
+@[simp] theorem sign_eq_zero_iff_zero (a : Int) : sign a = 0 ↔ a = 0 :=
+  ⟨eq_zero_of_sign_eq_zero, fun h => by rw [h, sign_zero]⟩
+
+@[simp] theorem sign_sign : sign (sign x) = sign x := by
+  match x with
+  | 0 => rfl
+  | .ofNat (_ + 1) => rfl
+  | .negSucc _ => rfl
+
+@[simp] theorem sign_nonneg : 0 ≤ sign x ↔ 0 ≤ x := by
+  match x with
+  | 0 => rfl
+  | .ofNat (_ + 1) =>
+    simp (config := { decide := true }) only [sign, true_iff]
+    exact Int.le_add_one (ofNat_nonneg _)
+  | .negSucc _ => simp (config := { decide := true }) [sign]
+
+
 /-! ### nat abs -/
 
-theorem ofNat_natAbs_eq_of_nonneg : ∀ a : Int, 0 ≤ a → Int.natAbs a = a
-  | (_:Nat), _ => rfl
-  | -[n+1],  h => absurd (negSucc_lt_zero n) (Int.not_lt.2 h)
+@[deprecated] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
 
 theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
   rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]

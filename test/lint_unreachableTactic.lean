@@ -14,7 +14,10 @@ example : 1 = 1 := by
   stop
   rfl
 
+#guard_msgs (drop warning) in
 def t : Nat → Nat := sorry
+
+#guard_msgs (drop warning) in
 @[simp]
 theorem a : aa = 0 → t aa = 0 := sorry
 
