@@ -1,4 +1,15 @@
 import Std
+/-
+This test checks that all directories in Std/Data have corresponding
+Std.Data.dir modules imported by `Std` that import all of the submodules
+under that directory.
+
+It will also check that Std imports all the expected modules.
+
+It has a flag (`autofix` below) to automatically fix the errors found.  This
+command may need to be rerun to fix all errors; it tries to avoid overwriting
+existing files.
+-/
 
 /-- Monad to log errors to stderr while record error count. -/
 abbrev LogIO := StateRefT Nat IO
@@ -49,6 +60,17 @@ def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
   let contents := String.join lines.toList
   IO.FS.writeFile path contents
 
+/-- Check for imports and return true if warnings issued. -/
+def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Array Name) : LogIO Bool := do
+  let names : HashSet Name := HashSet.ofArray (modData.imports.map (·.module))
+  let mut warned := false
+  for req in reqImports do
+    if ! names.contains req then
+      warn s!"Missing import {req} in {modName}"
+      warned := true
+  pure warned
+
+
 /--
 Check directory entry in Std/Data
 -/
@@ -70,18 +92,14 @@ def checkStdDataDir
         return
   let hasDecls : Bool := module.constants.size > 0
   if hasDecls then
-    warn s!"Expected {moduleName} to not contain data."
-  let names : HashSet Name := HashSet.ofArray (module.imports.map (·.module))
-  let mut warned := false
-  for req in requiredImports do
-    if ! names.contains req then
-      warn s!"Missing import {req} in {moduleName}"
-      warned := true
+    warn s!"Expected {moduleName} to not contain additional declarations.\n\
+            Declarations should be moved into a submodule."
+  let warned ← checkMissingImports moduleName module requiredImports
   if autofix && warned && !hasDecls then
     writeImportModule (modulePath moduleName) requiredImports
 
--- Write standard imports if needed.
-def writeStdImports : IO Unit := do
+-- Compute imports expected by `Std.lean`
+def expectedStdImports : IO (Array Name) := do
   let mut needed := #[]
   for top in ←FilePath.readDir "Std"  do
     if top.fileName == "Data" then
@@ -94,14 +112,10 @@ def writeStdImports : IO Unit := do
         needed ← addModulesIn (recurse := true) needed (root := root) top.path
       else
         needed := needed.push root
-  writeImportModule "Std.lean" needed
+  pure needed
 
 /--
-This command checks that all directories in Std/Data have corresponding
-Std.Data.dir modules imported by `Std` that import all of the submodules
-in that diectory.
-
-It has a flag to auto-generate the files if needed.
+Checking command
 -/
 elab "#checkStdDataImports" : command => do
   -- N.B. Change to true to have the file automatically fix imports.
@@ -113,7 +127,11 @@ elab "#checkStdDataImports" : command => do
     for entry in ←FilePath.readDir ("Std" / "Data")  do
       if ←entry.path.isDir then
         checkStdDataDir (autofix := autofix) modMap entry
-    if autofix then
-      writeStdImports
+    let stdImports ← expectedStdImports
+    let .some stdMod := modMap.find? `Std
+        | warn "Missing Std module!"
+    let warned ← checkMissingImports `Std stdMod stdImports
+    if autofix && warned then
+      writeImportModule "Std.lean" stdImports
 
 #checkStdDataImports
