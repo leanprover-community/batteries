@@ -580,7 +580,7 @@ theorem size_extract_loop (as bs : Array α) (size start : Nat) :
       have h := Nat.le_of_not_gt h
       rw [extract_loop_of_ge (h:=h), Nat.sub_eq_zero_of_le h, Nat.min_zero, Nat.add_zero]
 
-theorem size_extract (as : Array α) (start stop : Nat) :
+@[simp] theorem size_extract (as : Array α) (start stop : Nat) :
     (as.extract start stop).size = min stop as.size - start := by
   simp [extract]; rw [size_extract_loop, size_empty, Nat.zero_add, Nat.sub_min_sub_right,
     Nat.min_assoc, Nat.min_self]
