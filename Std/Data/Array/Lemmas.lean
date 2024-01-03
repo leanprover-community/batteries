@@ -513,14 +513,14 @@ theorem push_eq_append_singleton (as : Array α) (x) : as.push x = as ++ #[x] :=
 theorem size_append (as bs : Array α) : (as ++ bs).size = as.size + bs.size := by
   simp only [size, append_data, List.length_append]
 
-theorem get_append_left (as bs : Array α) (i : Nat) {h : i < (as ++ bs).size} (hlt : i < as.size) :
+theorem get_append_left {as bs : Array α} {h : i < (as ++ bs).size} (hlt : i < as.size) :
     (as ++ bs)[i] = as[i] := by
   simp only [getElem_eq_data_get]
   have h' : i < (as.data ++ bs.data).length := by rwa [← data_length, append_data] at h
   conv => rhs; rw [← List.get_append_left (bs:=bs.data) (h':=h')]
   apply List.get_of_eq; rw [append_data]
 
-theorem get_append_right (as bs : Array α) (i : Nat) {h : i < (as ++ bs).size} (hle : as.size ≤ i)
+theorem get_append_right {as bs : Array α} {h : i < (as ++ bs).size} (hle : as.size ≤ i)
     (hlt : i - as.size < bs.size := Nat.sub_lt_left_of_lt_add hle (size_append .. ▸ h)) :
     (as ++ bs)[i] = bs[i - as.size] := by
   simp only [getElem_eq_data_get]
@@ -594,7 +594,7 @@ theorem get_extract_loop_lt_aux (as bs : Array α) (size start : Nat) (hlt : i <
 theorem get_extract_loop_lt (as bs : Array α) (size start : Nat) (hlt : i < bs.size)
     (h := get_extract_loop_lt_aux as bs size start hlt) :
     (extract.loop as size start bs)[i] = bs[i] := by
-  apply Eq.trans _ (get_append_left bs (extract.loop as size start #[]) i hlt)
+  apply Eq.trans _ (get_append_left (bs:=extract.loop as size start #[]) hlt)
   · rw [size_append]; exact Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)
   · congr; rw [extract_loop_eq_aux]
 
@@ -640,7 +640,7 @@ theorem get_extract_loop_ge (as bs : Array α) (size start : Nat) (hge : i ≥ b
       rw [ih (bs.push as[start]) (start+1) ((size_push ..).symm ▸ hge)]
       congr 1; rw [size_push, Nat.add_right_comm, Nat.add_sub_add_right]
 
-theorem get_extract (as : Array α) (start stop i : Nat) (h : i < (as.extract start stop).size)
+theorem get_extract {as : Array α} {start stop : Nat} (h : i < (as.extract start stop).size)
     (h' : start + i < as.size := Nat.add_lt_of_lt_sub' (Nat.lt_of_lt_of_le (size_extract .. ▸ h)
       (Nat.sub_le_sub_right (Nat.min_le_right ..) _))) :
     (as.extract start stop)[i] = as[start + i] :=
