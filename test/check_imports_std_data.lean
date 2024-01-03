@@ -17,7 +17,7 @@ open System
 /-- Monad to log errors to stderr while record error count. -/
 abbrev LogIO := StateRefT Nat IO
 
-def runLogIO (act : LogIO Unit) : Elab.Command.CommandElabM Unit := do
+def runLogIO (act : LogIO Unit) : MetaM Unit := do
   let ((), warnings) ← act.run 0
   if warnings > 0 then
     throwError m!"Detected {warnings} error(s)."
@@ -115,10 +115,7 @@ def expectedStdImports : IO (Array Name) := do
         needed := needed.push root
   pure needed
 
-/--
-Checking command
--/
-elab "#checkStdDataImports" : command => do
+def checkStdDataImports : MetaM Unit := do
   -- N.B. This can be used to automatically fix Std.lean as well as
   -- other import files.
   -- It uses an environment variable to do that.
@@ -137,4 +134,4 @@ elab "#checkStdDataImports" : command => do
     if autofix && warned then
       writeImportModule "Std.lean" stdImports
 
-#checkStdDataImports
+run_meta checkStdDataImports
