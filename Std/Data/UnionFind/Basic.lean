@@ -147,7 +147,7 @@ theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩)
   · exact Nat.le_antisymm (Nat.ge_of_not_lt ‹_›) (Nat.le_of_lt_succ ‹_›)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
-/-- Add a new root node to a union-find structure -/
+/-- Add a new node to a union-find structure, unlinked with any other nodes -/
 def push (self : UnionFind) : UnionFind where
   arr := self.arr.push ⟨self.arr.size, 0⟩
   parentD_lt {i} := by
@@ -333,7 +333,7 @@ theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
       apply lt_rankD_findAux h'
 termination_by _ => self.rankMax - self.rank x
 
-/-- Find root of a union-find node with path compression -/
+/-- Find root of a union-find node, updating the structure using path compression -/
 def find (self : UnionFind) (x : Fin self.size) :
     (s : UnionFind) × {_root : Fin s.size // s.size = self.size} :=
   let r := self.findAux x
@@ -446,7 +446,7 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
       simp [rankD_set]; split <;> simp [*]; rintro rfl; simp [rankD_eq, *]
     · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) self.rankD_lt
 
-/-- Union of two union-find nodes -/
+/-- Link two union-find nodes, uniting their respective classes -/
 def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
   let ⟨self₁, rx, ex⟩ := self.find x
   have hy := by rw [ex]; exact y.2
