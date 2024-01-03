@@ -52,7 +52,21 @@ end UnionFind
 
 open UnionFind
 
-/-- Union-find data structure -/
+/-- Union-find data structure
+
+The `UnionFind` structure is an implementation of disjoint-set data structure
+that uses path compression to make the primary operations run in amortized
+nearly linear time. The key operations for `UnionFind` are:
+
+* `empty`/`mkEmpty` are used to create a new empty structure.
+* `push` adds a new node to a structure, unlinked to any other node.
+* `union` links two nodes of the data structure, joining their equivalence
+  classes, and performs path compression.
+* `find` returns the canonical representative of a node and update the data
+  structure using path compression.
+* `root` returns the canonical representative of a node without altering the
+  data structure.
+-/
 structure UnionFind where
   /-- Array of union-find nodes -/
   arr : Array UFNode
