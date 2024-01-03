@@ -95,9 +95,6 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       this yroot xroot fun i => by simp [parent_link, h, hr]
 termination_by go => m.rankMax - m.rank i
 
-/-- Equivalence relation from a `UnionFind` structure -/
-def Equiv (self : UnionFind) (a b : Nat) : Prop := self.root a = self.root b
-
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
 theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
 theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans

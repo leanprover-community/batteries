@@ -76,6 +76,9 @@ The main operations for `UnionFind` are:
 
 Most use cases should use `find` instead of `root` to benefit from the speedup
 from path-compression.
+
+The noncomputable relation `UnionFind.Equiv` is provided to use the equivalence
+relation from a `UnionFind` structure.
 -/
 structure UnionFind where
   /-- Array of union-find nodes -/
@@ -457,3 +460,6 @@ def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
       have := find_root_1 self₁ ⟨y, hy⟩ (⟨y, hy⟩ : Fin _)
       rw [← find_root_2, eq] at this; simp at this
       rw [← this, parent_root]
+
+/-- Equivalence relation from a `UnionFind` structure -/
+def Equiv (self : UnionFind) (a b : Nat) : Prop := self.root a = self.root b
