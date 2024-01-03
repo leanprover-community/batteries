@@ -52,7 +52,7 @@ end UnionFind
 
 open UnionFind
 
-/-- Union-find data structure
+/-- ### Union-find data structure
 
 The `UnionFind` structure is an implementation of disjoint-set data structure
 that uses path compression to make the primary operations run in amortized
