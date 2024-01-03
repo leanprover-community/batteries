@@ -66,19 +66,16 @@ namespace UnionFind
 /-- Size of union-find structure -/
 @[inline] abbrev size (self : UnionFind) := self.arr.size
 
-/-- Empty union-find structure -/
-def empty : UnionFind where
-  arr := #[]
-  parentD_lt := (fun.)
-  rankD_lt := fun.
-
-instance : EmptyCollection UnionFind := ⟨.empty⟩
-
 /-- Create an empty union-find structure with specific capacity -/
 def mkEmpty (c : Nat) : UnionFind where
   arr := Array.mkEmpty c
   parentD_lt := (fun.)
   rankD_lt := fun.
+
+/-- Empty union-find structure -/
+def empty := mkEmpty 0
+
+instance : EmptyCollection UnionFind := ⟨.empty⟩
 
 /-- Parent of union-find node -/
 abbrev parent (self : UnionFind) (i : Nat) : Nat := parentD self.arr i
