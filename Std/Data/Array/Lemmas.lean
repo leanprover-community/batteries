@@ -652,6 +652,16 @@ theorem get_extract (as : Array α) (start stop i : Nat) (h : i < (as.extract st
   · rw [size_extract, Nat.min_self, Nat.sub_zero]
   · intros; rw [get_extract]; congr; rw [Nat.zero_add]
 
+theorem extract_empty_of_stop_le_start (as : Array α) {start stop : Nat} (h : stop ≤ start) :
+    as.extract start stop = #[] := by
+  simp [extract]; rw [←Nat.sub_min_sub_right, Nat.sub_eq_zero_of_le h, Nat.zero_min,
+    extract_loop_zero]
+
+theorem extract_empty_of_size_le_start (as : Array α) {start stop : Nat} (h : as.size ≤ start) :
+    as.extract start stop = #[] := by
+  simp [extract]; rw [←Nat.sub_min_sub_right, Nat.sub_eq_zero_of_le h, Nat.min_zero,
+    extract_loop_zero]
+
 /-! ### all -/
 
 theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
