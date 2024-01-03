@@ -65,6 +65,7 @@ using the `push` operation and equivalence classes can be updated using the
 The main operations for `UnionFind` are:
 
 * `empty`/`mkEmpty` are used to create a new empty structure.
+* `size` returns the size of the data structure.
 * `push` adds a new node to a structure, unlinked to any other node.
 * `union` links two nodes of the data structure, joining their equivalence
   classes, and performs path compression.
