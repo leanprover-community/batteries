@@ -152,7 +152,7 @@ private def run (goals : List MVarId) (n : Nat) (curr acc : List MVarId) : MetaM
 A wrapper around `run`, which works on "independent" goals separately first,
 to reduce backtracking.
 -/
-private partial def processIndependentGoals (origGoals : List MVarId) (goals remaining : List MVarId) :
+private partial def processIndependentGoals (orig : List MVarId) (goals remaining : List MVarId) :
     MetaM (List MVarId) := do
   -- Partition the remaining goals into "independent" goals
   -- (which should be solvable without affecting the solvability of other goals)
@@ -160,7 +160,7 @@ private partial def processIndependentGoals (origGoals : List MVarId) (goals rem
   let (igs, ogs) ← remaining.partitionM (MVarId.isIndependentOf goals)
   if igs.isEmpty then
     -- If there are no independent goals, we solve all the goals together via backtracking search.
-    return (← run cfg trace alternatives origGoals cfg.maxDepth remaining [])
+    return (← run cfg trace alternatives orig cfg.maxDepth remaining [])
   else
     withTraceNode trace
       (fun _ => return m!"independent goals {← ppMVarIds igs},"
@@ -169,7 +169,7 @@ private partial def processIndependentGoals (origGoals : List MVarId) (goals rem
     -- gathering the subgoals on which `run` fails,
     -- and the new subgoals generated from goals on which it is successful.
     let (failed, newSubgoals') ← tryAllM igs fun g =>
-      run cfg trace alternatives origGoals cfg.maxDepth [g] []
+      run cfg trace alternatives orig cfg.maxDepth [g] []
     let newSubgoals := newSubgoals'.join
     withTraceNode trace
       (fun _ => return m!"failed: {← ppMVarIds failed}, new: {← ppMVarIds newSubgoals}") do
@@ -178,7 +178,7 @@ private partial def processIndependentGoals (origGoals : List MVarId) (goals rem
     -- If `commitIndependentGoals` is `true`, we will return the new goals
     -- regardless of whether we can make further progress on the other goals.
     if cfg.commitIndependentGoals && !newSubgoals.isEmpty then
-      return newSubgoals ++ failed ++ (← (processIndependentGoals origGoals goals' ogs <|> pure ogs))
+      return newSubgoals ++ failed ++ (← (processIndependentGoals orig goals' ogs <|> pure ogs))
     else if !failed.isEmpty then
       -- If `commitIndependentGoals` is `false`, and we failed on any of the independent goals,
       -- then overall failure is inevitable so we can stop here.
@@ -186,7 +186,7 @@ private partial def processIndependentGoals (origGoals : List MVarId) (goals rem
     else
       -- Finally, having solved this batch of independent goals,
       -- recurse (potentially now finding new independent goals).
-      return newSubgoals ++ (← processIndependentGoals origGoals goals' ogs)
+      return newSubgoals ++ (← processIndependentGoals orig goals' ogs)
 
 end Backtrack
 
