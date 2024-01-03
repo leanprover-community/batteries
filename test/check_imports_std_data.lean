@@ -11,20 +11,21 @@ command may need to be rerun to fix all errors; it tries to avoid overwriting
 existing files.
 -/
 
+open Lean
+open System
+
 /-- Monad to log errors to stderr while record error count. -/
 abbrev LogIO := StateRefT Nat IO
 
-def runLogIO (act : LogIO Unit) : IO Unit := do
+def runLogIO (act : LogIO Unit) : Elab.Command.CommandElabM Unit := do
   let ((), warnings) ← act.run 0
   if warnings > 0 then
-    throw (IO.userError "Detected {warning} error(s).")
+    throwError m!"Detected {warnings} error(s)."
 
 def warn (msg : String) : LogIO Unit := do
   modify (· + 1)
   liftM (IO.eprintln msg)
 
-open Lean
-open System
 
 def createModuleHashmap (env : Environment) : HashMap Name ModuleData := Id.run do
   let mut nameMap := {}
@@ -118,12 +119,14 @@ def expectedStdImports : IO (Array Name) := do
 Checking command
 -/
 elab "#checkStdDataImports" : command => do
-  -- N.B. Change to true to have the file automatically fix imports.
-  -- This feature may overwrite files and should be disabled in commits.
-  let autofix := false
+  -- N.B. This can be used to automatically fix Std.lean as well as
+  -- other import files.
+  -- It uses an environment variable to do that.
+  -- The easiest way to use this is run `./scripts/updateStd.sh.`
+  let autofix := (← IO.getEnv "__LEAN_STD_AUTOFIX_IMPORTS").isSome
   let env ← getEnv
   let modMap := createModuleHashmap env
-  Lean.Elab.Command.liftIO $ runLogIO do
+  runLogIO do
     for entry in ←FilePath.readDir ("Std" / "Data")  do
       if ←entry.path.isDir then
         checkStdDataDir (autofix := autofix) modMap entry

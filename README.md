@@ -14,6 +14,8 @@ Work in progress standard library for Lean 4. This is a collection of data struc
   ```
   If this also fails, follow the instructions under `Regular install` [here](https://leanprover-community.github.io/get_started.html).
 * To build `std4` run `lake build`. To build and run all tests, run `make`.
+* If you added a new file, run the command `scripts/updateStd.sh` to update the
+  imports.
 
 # Documentation
 
