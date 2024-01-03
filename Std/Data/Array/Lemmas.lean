@@ -662,6 +662,9 @@ theorem extract_empty_of_size_le_start (as : Array α) {start stop : Nat} (h : a
   simp [extract]; rw [←Nat.sub_min_sub_right, Nat.sub_eq_zero_of_le h, Nat.min_zero,
     extract_loop_zero]
 
+@[simp] theorem extract_empty (start stop : Nat) : (#[] : Array α).extract start stop = #[] :=
+  extract_empty_of_size_le_start _ (Nat.zero_le _)
+
 /-! ### all -/
 
 theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
