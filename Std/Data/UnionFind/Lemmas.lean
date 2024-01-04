@@ -10,7 +10,7 @@ namespace Std.UnionFind
 @[simp] theorem arr_empty : empty.arr = #[] := rfl
 @[simp] theorem parent_empty : empty.parent a = a := rfl
 @[simp] theorem rank_empty : empty.rank a = 0 := rfl
-@[simp] theorem root_empty : empty.root a = a := rfl
+@[simp] theorem root_empty : empty.root! a = a := rfl
 
 @[simp] theorem arr_push {m : UnionFind} : m.push.arr = m.arr.push ⟨m.arr.size, 0⟩ := rfl
 
@@ -33,7 +33,7 @@ namespace Std.UnionFind
 
 @[simp] theorem rankMax_push {m : UnionFind} : m.push.rankMax = m.rankMax := by simp [rankMax]
 
-@[simp] theorem root_push {self : UnionFind} : self.push.root x = self.root x :=
+@[simp] theorem root_push {self : UnionFind} : self.push.root! x = self.root! x :=
   root_ext fun _ => parent_push
 
 @[simp] theorem arr_link : (link self x y yroot).arr = linkAux self.arr x y := rfl
@@ -64,8 +64,8 @@ theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
 theorem root_link {self : UnionFind} {x y : Fin self.size}
     (xroot : self.parent x = x) (yroot : self.parent y = y) :
     ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-      (link self x y yroot).root i =
-      if self.root i = x ∨ self.root i = y then r.1 else self.root i := by
+      (link self x y yroot).root! i =
+      if self.root! i = x ∨ self.root! i = y then r.1 else self.root! i := by
   if h : x.1 = y then
     refine ⟨x, .inl rfl, fun i => ?_⟩
     rw [root_ext (m2 := self) (fun _ => by rw [parent_link, if_pos h])]
@@ -75,8 +75,9 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       (xroot : self.parent x = x) (yroot : self.parent y = y) {m : UnionFind}
       (hm : ∀ i, m.parent i = if y = i then x.1 else self.parent i) :
       ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-        m.root i = if self.root i = x ∨ self.root i = y then r.1 else self.root i := by
-    let rec go (i) : m.root i = if self.root i = x ∨ self.root i = y then x.1 else self.root i := by
+        m.root! i = if self.root! i = x ∨ self.root! i = y then r.1 else self.root! i := by
+    let rec go (i) :
+        m.root! i = if self.root! i = x ∨ self.root! i = y then x.1 else self.root! i := by
       if h : m.parent i = i then
         rw [root_eq_self.2 h]; rw [hm i] at h; split at h
         · rw [if_pos, h]; simp [← h, root_eq_self, xroot]
@@ -103,10 +104,10 @@ theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .t
 
 @[simp] theorem equiv_push : Equiv self.push a b ↔ Equiv self a b := by simp [Equiv]
 
-@[simp] theorem equiv_root : Equiv self (self.root a) a := by simp [Equiv, root_root]
-@[simp] theorem equiv_root_l : Equiv self (self.root a) b ↔ Equiv self a b := by
+@[simp] theorem equiv_root : Equiv self (self.root! a) a := by simp [Equiv, root_root]
+@[simp] theorem equiv_root_l : Equiv self (self.root! a) b ↔ Equiv self a b := by
   simp [Equiv, root_root]
-@[simp] theorem equiv_root_r : Equiv self a (self.root b) ↔ Equiv self a b := by
+@[simp] theorem equiv_root_r : Equiv self a (self.root! b) ↔ Equiv self a b := by
   simp [Equiv, root_root]
 
 theorem equiv_find : Equiv (self.find x).1 a b ↔ Equiv self a b := by simp [Equiv, find_root_1]
@@ -116,16 +117,16 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
     Equiv (link self x y yroot) a b ↔
     Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
   have {m : UnionFind} {x y : Fin self.size}
-      (xroot : self.root x = x) (yroot : self.root y = y)
-      (hm : ∀ i, m.root i = if self.root i = x ∨ self.root i = y then x.1 else self.root i) :
+      (xroot : self.root! x = x) (yroot : self.root! y = y)
+      (hm : ∀ i, m.root! i = if self.root! i = x ∨ self.root! i = y then x.1 else self.root! i) :
       Equiv m a b ↔
       Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
     simp [Equiv, hm, xroot, yroot]
-    by_cases h1 : root self a = x <;> by_cases h2 : root self b = x <;>
+    by_cases h1 : root! self a = x <;> by_cases h2 : root! self b = x <;>
       simp [h1, h2, imp_false, Decidable.not_not]
-    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (root self b), *]
-    · by_cases h1 : root self a = y <;> by_cases h2 : root self b = y <;>
-        simp [h1, h2, @eq_comm _ _ (root self b), *]
+    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (root! self b), *]
+    · by_cases h1 : root! self a = y <;> by_cases h2 : root! self b = y <;>
+        simp [h1, h2, @eq_comm _ _ (root! self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr
   rw [← root_eq_self] at xroot yroot
   obtain rfl | rfl := ha
