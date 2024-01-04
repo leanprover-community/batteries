@@ -35,6 +35,9 @@ jobs:
         if: steps.build.outcome == 'success'
         run: make lint
 
+      - name: Check that all files are imported
+        run: lake env lean scripts/check_imports.lean
+
       - name: Check for forbidden character ↦
         if: always()
         run: |
