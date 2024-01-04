@@ -14,6 +14,7 @@ import Std.Control.ForInStep
 import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
 import Std.Control.Lemmas
+import Std.Control.Nondet.Basic
 import Std.Data.Array.Basic
 import Std.Data.Array.Init.Basic
 import Std.Data.Array.Init.Lemmas
@@ -173,6 +174,8 @@ import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Std.Tactic.Simpa
+import Std.Tactic.SolveByElim
+import Std.Tactic.SolveByElim.Backtrack
 import Std.Tactic.SqueezeScope
 import Std.Tactic.TryThis
 import Std.Tactic.Unreachable
