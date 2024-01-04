@@ -20,16 +20,19 @@ existing files.
 open Lean System
 
 /-- Monad to log errors to stderr while record error count. -/
-abbrev LogIO := StateRefT Nat IO
+abbrev LogIO := StateRefT (Bool × Bool) IO
 
 def runLogIO (act : LogIO Unit) : MetaM Unit := do
-  let ((), warnings) ← act.run 0
-  if warnings > 0 then
-    throwError m!"Detected {warnings} error(s)."
+  let ((), (warnings, _)) ← act.run (false, false)
+  if warnings then
+    throwError "Fatal error"
 
-def warn (msg : String) : LogIO Unit := do
-  modify (· + 1)
+def warn (fixable : Bool) (msg : String) : LogIO Unit := do
+  modify (fun (_, u) => (true, u || not fixable))
   liftM (IO.eprintln msg)
+
+-- | Predicate indicates if warnings are present and if they fixable.
+def getWarningInfo : LogIO (Bool × Bool) :=  get
 
 def createModuleHashmap (env : Environment) : HashMap Name ModuleData := Id.run do
   let mut nameMap := {}
@@ -61,6 +64,7 @@ def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
   let imports := imports.qsort (·.toString < ·.toString)
   let lines := imports.map (s!"import {·}\n")
   let contents := String.join lines.toList
+  IO.println s!"Generating {path}"
   IO.FS.writeFile path contents
 
 /-- Check for imports and return true if warnings issued. -/
@@ -70,7 +74,7 @@ def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Ar
   let mut warned := false
   for req in reqImports do
     if !names.contains req then
-      warn s!"Missing import {req} in {modName}"
+      warn true s!"Missing import {req} in {modName}"
       warned := true
   pure warned
 
@@ -81,20 +85,22 @@ def checkStdDataDir
   let moduleName := `Std.Data ++ entry.fileName
   let requiredImports ← addModulesIn (recurse := true) #[] (root := moduleName) entry.path
   let .some module := modMap.find? moduleName
-    | warn s!"Could not find {moduleName}"
+    | warn true s!"Could not find {moduleName}; Not imported into Std."
       let path := modulePath moduleName
       -- We refuse to generate imported modules whose path doesn't exist.
       -- The import failure will be fixed later and the file rerun
       if autofix then
         if ← path.pathExists then
-          warn s!"Skipping writing of {moduleName}: rerun after {moduleName} imported."
+          warn false s!"Skipping writing of {moduleName}: rerun after {moduleName} imported."
         else
-          writeImportModule (modulePath moduleName) requiredImports
+          writeImportModule path requiredImports
       return
   let hasDecls : Bool := module.constants.size > 0
   if hasDecls then
-    warn s!"Expected {moduleName} to not contain additional declarations.\n\
-            Declarations should be moved into a submodule."
+    warn false
+          s!"Expected {moduleName} to not contain additional declarations.\n\
+            Declarations should be moved out.\n\
+            This error cannot be automatically fixed."
   let warned ← checkMissingImports moduleName module requiredImports
   if autofix && warned && !hasDecls then
     writeImportModule (modulePath moduleName) requiredImports
@@ -129,9 +135,23 @@ def checkStdDataImports : MetaM Unit := do
         checkStdDataDir (autofix := autofix) modMap entry
     let stdImports ← expectedStdImports
     let .some stdMod := modMap.find? `Std
-        | warn "Missing Std module!"
+        | warn false "Missing Std module!; Run `lake build`."
     let warned ← checkMissingImports `Std stdMod stdImports
     if autofix && warned then
       writeImportModule "Std.lean" stdImports
+    match ← getWarningInfo with
+    | (false, _) =>
+      pure ()
+    | (_, true) =>
+      IO.eprintln s!"Found errors that cannot be automatically fixed.\n\
+                     Address unfixable issues and rerun lake build && ./scripts/updateStd.sh."
+    | _ =>
+      if autofix then
+        IO.eprintln s!"Found missing imports and attempted fixes.\n\
+                       Run lake build && ./scripts/updateStd.sh to verify.\n\
+                       Multiple runs may be needed."
+      else
+        IO.eprintln s!"Found missing imports.\n\
+                       Run lake build && ./scripts/updateStd.sh to attempt automatic fixes."
 
 run_meta checkStdDataImports
