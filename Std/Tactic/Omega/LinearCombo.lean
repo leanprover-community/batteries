@@ -155,3 +155,29 @@ instance : HMul Int LinearCombo LinearCombo := ⟨fun i lc => lc.smul i⟩
 theorem smul_eval_comm (lc : LinearCombo) (i : Int) (v : Coeffs) :
     (i * lc).eval v = lc.eval v * i := by
   simp [Int.mul_comm]
+
+/--
+Multiplication of two linear combinations.
+This is useful only if at least one of the linear combinations is constant,
+and otherwise should be considered as a junk value.
+-/
+def mul (l₁ l₂ : LinearCombo) : LinearCombo :=
+  l₂.const * l₁ + l₁.const * l₂ - { const := l₁.const * l₂.const }
+
+theorem mul_eval_of_const_left (l₁ l₂ : LinearCombo) (v : Coeffs) (w : l₁.coeffs.isZero) :
+    (mul l₁ l₂).eval v = l₁.eval v * l₂.eval v := by
+  have : Coeffs.dot l₁.coeffs v = 0 := IntList.dot_of_left_zero w
+  simp [mul, eval, this, Coeffs.sub_eq_add_neg, Coeffs.dot_distrib_left, Int.add_mul, Int.mul_add,
+    Int.mul_comm]
+
+theorem mul_eval_of_const_right (l₁ l₂ : LinearCombo) (v : Coeffs) (w : l₂.coeffs.isZero) :
+    (mul l₁ l₂).eval v = l₁.eval v * l₂.eval v := by
+  have : Coeffs.dot l₂.coeffs v = 0 := IntList.dot_of_left_zero w
+  simp [mul, eval, this, Coeffs.sub_eq_add_neg, Coeffs.dot_distrib_left, Int.add_mul, Int.mul_add,
+    Int.mul_comm]
+
+theorem mul_eval (l₁ l₂ : LinearCombo) (v : Coeffs) (w : l₁.coeffs.isZero ∨ l₂.coeffs.isZero) :
+    (mul l₁ l₂).eval v = l₁.eval v * l₂.eval v := by
+  rcases w with w | w
+  · rw [mul_eval_of_const_left _ _ _ w]
+  · rw [mul_eval_of_const_right _ _ _ w]
