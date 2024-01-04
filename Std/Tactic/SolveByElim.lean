@@ -32,11 +32,6 @@ open Std.Tactic
 
 namespace Lean.MVarId
 
-/-- Add the hypothesis `h : t`, given `v : t`, and return the new `FVarId`. -/
-def note (g : MVarId) (h : Name) (v : Expr) (t : Option Expr := .none) :
-    MetaM (FVarId × MVarId) := do
-  (← g.assert h (← t.getDM (inferType v)) v).intro1P
-
 /-- For every hypothesis `h : a ~ b` where a `@[symm]` lemma is available,
 add a hypothesis `h_symm : b ~ a`. -/
 def symmSaturate (g : MVarId) : MetaM MVarId := g.withContext do
