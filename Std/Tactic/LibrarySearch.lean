@@ -431,6 +431,11 @@ instance : Ord SubgoalRankType :=
   have : Ord (Nat × Int) := lexOrd
   lexOrd
 
+/-- Count how many local hypotheses appear in an expression. -/
+def countLocalHypsUsed [Monad m] [MonadLCtx m] [MonadMCtx m] (e : Expr) : m Nat := do
+  let e' ← instantiateMVars e
+  return (← getLocalHyps).foldr (init := 0) fun h n => if h.occurs e' then n + 1 else n
+
 /-- Returns a tuple:
 * are there no remaining goals?
 * how many local hypotheses were used?

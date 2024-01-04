@@ -458,11 +458,6 @@ def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
     if !d.isImplementationDetail then hs := hs.push d.toExpr
   return hs
 
-/-- Count how many local hypotheses appear in an expression. -/
-def countLocalHypsUsed [Monad m] [MonadLCtx m] [MonadMCtx m] (e : Expr) : m Nat := do
-  let e' ← instantiateMVars e
-  return (← getLocalHyps).foldr (init := 0) fun h n => if h.occurs e' then n + 1 else n
-
 /--
 Given a monadic function `F` that takes a type and a term of that type and produces a new term,
 lifts this to the monadic function that opens a `∀` telescope, applies `F` to the body,
