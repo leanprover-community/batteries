@@ -65,8 +65,6 @@ initialize registerTraceClass `Meta.Tactic.solveByElim
 
 namespace SolveByElim
 
-private def emoji (e:Except ε α) := if e.toBool then checkEmoji else crossEmoji
-
 /--
 `applyTactics lemmas goal` will return a list of tactics,
 corresponding to applying each one of the lemmas to the goal `goal`.
@@ -80,7 +78,7 @@ calls to `apply` succeeded or failed.
 def applyTactics (cfg : ApplyConfig := {}) (transparency : TransparencyMode := .default)
     (lemmas : List Expr) (g : MVarId) : Nondet MetaM (List MVarId) :=
   (Nondet.ofList lemmas).filterMapM fun e => observing? do
-    withTraceNode `Meta.Tactic.solveByElim (return m!"{emoji ·} trying to apply: {e}") do
+    withTraceNode `Meta.Tactic.solveByElim (return m!"{Except.emoji ·} trying to apply: {e}") do
       let goals ← withTransparency transparency (g.apply e cfg)
       -- When we call `apply` interactively, `Lean.Elab.Tactic.evalApplyLikeTactic`
       -- deals with closing new typeclass goals by calling
