@@ -328,6 +328,11 @@ where
       else
         return e.hasFVar
 
+/-- Add the hypothesis `h : t`, given `v : t`, and return the new `FVarId`. -/
+def note (g : MVarId) (h : Name) (v : Expr) (t? : Option Expr := .none) :
+    MetaM (FVarId × MVarId) := do
+  (← g.assert h (← match t? with | some t => pure t | none => inferType v) v).intro1P
+
 /-- Get the type the given metavariable after instantiating metavariables and cleaning up
 annotations. -/
 def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
