@@ -246,13 +246,16 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
 
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
-def pushNot (h P : Expr) : Option Expr := do
+def pushNot (h P : Expr) : MetaM (Option Expr) := do
   match P with
   | .forallE _ t b _ =>
-    some (mkApp4 (.const ``Decidable.and_not_of_not_imp []) t b
+    if (← isProp t) && (← isProp b) then
+     return some (mkApp4 (.const ``Decidable.and_not_of_not_imp []) t b
       (.app (.const ``Classical.propDecidable []) t) h)
+    else
+      return none
   | .app _ _ =>
-    match P.getAppFnArgs with
+    return match P.getAppFnArgs with
     | (``LT.lt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
     | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
     | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
@@ -278,7 +281,7 @@ def pushNot (h P : Expr) : Option Expr := do
         (.app (.const ``Classical.propDecidable []) P₁)
         (.app (.const ``Classical.propDecidable []) P₂) h)
     | _ => none
-  | _ => none
+  | _ => return none
 
 /--
 Parse an `Expr` and extract facts, also returning the number of new facts found.
@@ -307,7 +310,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Nat.lt_of_gt []) x y h)
     | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
-    | (``Not, #[P]) => match pushNot h P with
+    | (``Not, #[P]) => match ← pushNot h P with
       | none => return (p, 0)
       | some h' => p.addFact h'
     | (``Eq, #[.const ``Nat [], x, y]) =>
