@@ -546,6 +546,9 @@ protected theorem sub_lt_of_pos_le (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :
   Nat.sub_lt (Nat.lt_of_lt_of_le h₀ h₁) h₀
 protected alias sub_lt_self := Nat.sub_lt_of_pos_le
 
+theorem add_lt_of_lt_sub' {a b c : Nat} : b < c - a → a + b < c := by
+  rw [Nat.add_comm]; exact Nat.add_lt_of_lt_sub
+
 protected theorem sub_add_lt_sub (h₁ : m + k ≤ n) (h₂ : 0 < k) : n - (m + k) < n - m := by
   rw [← Nat.sub_sub]; exact Nat.sub_lt_of_pos_le h₂ (Nat.le_sub_of_add_le' h₁)
 
