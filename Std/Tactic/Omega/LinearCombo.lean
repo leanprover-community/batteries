@@ -151,3 +151,7 @@ instance : HMul Int LinearCombo LinearCombo := ⟨fun i lc => lc.smul i⟩
     (i * lc).eval v = i * lc.eval v := by
   rcases lc with ⟨a, coeffs⟩
   simp [eval, Int.mul_add]
+
+theorem smul_eval_comm (lc : LinearCombo) (i : Int) (v : Coeffs) :
+    (i * lc).eval v = lc.eval v * i := by
+  simp [Int.mul_comm]

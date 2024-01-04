@@ -34,6 +34,9 @@ protected alias ⟨_, le_lt_asymm⟩ := Int.not_lt
 theorem add_congr {a b c d : Int} (h₁ : a = b) (h₂ : c = d) : a + c = b + d := by
   subst h₁; subst h₂; rfl
 
+theorem mul_congr_left {a b : Int} (h₁ : a = b)  (c : Int) : a * c = b * c := by
+  subst h₁; rfl
+
 theorem mul_congr_right (a : Int) {c d : Int} (h₂ : c = d) : a * c = a * d := by
   subst h₂; rfl
 

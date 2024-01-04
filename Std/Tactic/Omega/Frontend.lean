@@ -157,17 +157,30 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
         (← mkAppM ``Int.neg_congr #[← prf])
         (← mkEqSymm neg_eval)
     pure (-l, prf', facts)
-  | (``HMul.hMul, #[_, _, _, _, n, e']) =>
-    match intCast? n with
-    | some n' =>
-      let (l, prf, facts) ← asLinearCombo e'
+  | (``HMul.hMul, #[_, _, _, _, x, y]) =>
+    -- Check if the first factor is an integer literal
+    match intCast? x with
+    | some x' =>
+      let (l, prf, facts) ← asLinearCombo y
       let prf' : OmegaM Expr := do
-        let smul_eval := mkApp3 (.const ``LinearCombo.smul_eval []) (toExpr l) n (← atomsCoeffs)
+        let smul_eval := mkApp3 (.const ``LinearCombo.smul_eval []) (toExpr l) x (← atomsCoeffs)
         mkEqTrans
-          (← mkAppM ``Int.mul_congr_right #[n, ← prf])
+          (← mkAppM ``Int.mul_congr_right #[x, ← prf])
           (← mkEqSymm smul_eval)
-      pure (l.smul n', prf', facts)
-    | none => mkAtomLinearCombo e
+      pure (l.smul x', prf', facts)
+    | none =>
+      -- Check if the second factor is an integer literal
+      match intCast? y with
+      | some y' =>
+        let (l, prf, facts) ← asLinearCombo x
+        let prf' : OmegaM Expr := do
+          let smul_eval :=
+            mkApp3 (.const ``LinearCombo.smul_eval_comm []) (toExpr l) y (← atomsCoeffs)
+          mkEqTrans
+            (← mkAppM ``Int.mul_congr_left #[← prf, y])
+            (← mkEqSymm smul_eval)
+        pure (l.smul y', prf', facts)
+      | none => mkAtomLinearCombo e
   | (``HMod.hMod, #[_, _, _, _, n, k]) => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
   | (``HDiv.hDiv, #[_, _, _, _, x, z]) =>
     match intCast? z with
