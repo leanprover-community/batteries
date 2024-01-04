@@ -93,6 +93,7 @@ import Std.Lean.Float
 import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
+import Std.Lean.IO.Process
 import Std.Lean.InfoTree
 import Std.Lean.Json
 import Std.Lean.LocalContext
@@ -108,11 +109,13 @@ import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
 import Std.Lean.MonadBacktrack
 import Std.Lean.Name
+import Std.Lean.NameMap
 import Std.Lean.NameMapAttribute
 import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
+import Std.Lean.SMap
 import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
