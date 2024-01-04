@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Control.Nondet.Basic
 import Std.Data.List.Basic
+import Std.Lean.Except
 
 /-!
 # `backtrack`
@@ -75,11 +76,6 @@ Pretty print a list of goals.
 -/
 private def ppMVarIds (gs : List MVarId) : MetaM (List Format) := gs.mapM ppMVarId
 
-/-- Visualize an `Except` using a checkmark or a cross. -/
-private def emoji : Except ε α → String
-  | .error _ => crossEmoji
-  | .ok _ => checkEmoji
-
 /-- Run a monadic function on every element of a list,
 returning the list of elements on which the function fails, and the list of successful results. -/
 def tryAllM [Monad m] [Alternative m] (L : List α) (f : α → m β) : m (List α × List β) := do
@@ -108,25 +104,25 @@ private def run (goals : List MVarId) (n : Nat) (curr acc : List MVarId) : MetaM
     cfg.proc goals curr
   catch e =>
     withTraceNode trace
-      (return m!"{emoji ·} BacktrackConfig.proc failed: {e.toMessageData}") do
+      (return m!"{Except.emoji ·} BacktrackConfig.proc failed: {e.toMessageData}") do
     throw e
   match procResult? with
   | some curr' => run goals n curr' acc
   | none =>
   match curr with
   -- If there are no active goals, return the accumulated goals.
-  | [] => withTraceNode trace (return m!"{emoji ·} success!") do
+  | [] => withTraceNode trace (return m!"{Except.emoji ·} success!") do
       return acc.reverse
   | g :: gs =>
   -- Discard any goals which have already been assigned.
   if ← g.isAssigned then
-    withTraceNode trace (return m!"{emoji ·} discarding already assigned goal {g}") do
+    withTraceNode trace (return m!"{Except.emoji ·} discarding already assigned goal {g}") do
       run goals (n+1) gs acc
   else
   withTraceNode trace
     -- Note: the `addMessageContextFull` ensures we show the goal using the mvar context before
     -- the `do` block below runs, potentially unifying mvars in the goal.
-    (return m!"{emoji ·} working on: {← addMessageContextFull g}")
+    (return m!"{Except.emoji ·} working on: {← addMessageContextFull g}")
     do
       -- Check if we should suspend the search here:
       if (← cfg.suspend g) then
