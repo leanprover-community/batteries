@@ -18,7 +18,7 @@ example (h : False) : ¬ P := by
   guard_target = False
   simp_all
 
-example (h : False) : P := by
+example {P  : Prop} (h : False) : P := by
   false_or_by_contra <;> rename_i h
   guard_hyp h : ¬ P
   guard_target = False
