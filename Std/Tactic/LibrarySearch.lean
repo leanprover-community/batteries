@@ -388,7 +388,8 @@ def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure
 Interleave x y interleaves the elements of x and y until one is empty and then returns
 final elements in other list.
 -/
-def interleaveWith {α β γ} (f : α → γ) (x : Array α) (g : β → γ) (y : Array β) : Array γ  := Id.run do
+def interleaveWith {α β γ} (f : α → γ) (x : Array α) (g : β → γ) (y : Array β) : Array γ :=
+    Id.run do
   let mut res := Array.mkEmpty (x.size + y.size)
   let n := min x.size y.size
   for h : i in [0:n] do
