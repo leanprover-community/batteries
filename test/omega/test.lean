@@ -287,3 +287,12 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
   omega
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
+
+-- Verify that we can handle `iff` statements in hypotheses:
+example (a b : Int) (h : a < 0 ↔ b < 0) (w : b > 3) : a ≥ 0 := by omega
+
+-- Verify that we can prove `iff` goals:
+example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
+
+-- Verify that we can prove implications:
+example (a : Int) : a > 0 → a > -1 := by omega
