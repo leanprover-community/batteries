@@ -88,6 +88,7 @@ import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Elab.Tactic
+import Std.Lean.Except
 import Std.Lean.Expr
 import Std.Lean.Float
 import Std.Lean.Format
