@@ -162,7 +162,9 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     let (yl, yprf, yfacts) ← asLinearCombo y
     if xl.coeffs.isZero ∨ yl.coeffs.isZero then
       let prf : OmegaM Expr := do
-        let h ← mkDecideProof (mkApp2 (.const ``Or []) (.app (.const ``Coeffs.isZero []) (toExpr xl.coeffs)) (.app (.const ``Coeffs.isZero []) (toExpr yl.coeffs)))
+        let h ← mkDecideProof (mkApp2 (.const ``Or [])
+          (.app (.const ``Coeffs.isZero []) (toExpr xl.coeffs))
+          (.app (.const ``Coeffs.isZero []) (toExpr yl.coeffs)))
         let mul_eval :=
           mkApp4 (.const ``LinearCombo.mul_eval []) (toExpr xl) (toExpr yl) (← atomsCoeffs) h
         mkEqTrans
