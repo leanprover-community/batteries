@@ -47,6 +47,10 @@ example {x y : Int} (_ : 6 * x + 7 * y = 5) : True := by (fail_if_success omega)
 example {x y : Nat} (_ : 6 * x + 7 * y = 5) : False := by omega
 
 example {x y : Nat} (_ : x * 6 + y * 7 = 5) : False := by omega
+example {x y : Nat} (_ : 2 * (3 * x) + y * 7 = 5) : False := by omega
+example {x y : Nat} (_ : 2 * x * 3 + y * 7 = 5) : False := by omega
+-- Currently fails:
+-- example {x y : Nat} (_ : 2 * 3 * x + y * 7 = 5) : False := by omega
 
 example {x : Nat} (_ : x < 0) : False := by omega
 
