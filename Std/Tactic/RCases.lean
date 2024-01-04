@@ -534,7 +534,7 @@ Given a list of targets of the form `e` or `h : e`, and a pattern, match all the
 against the pattern. Returns the list of produced subgoals.
 -/
 def rcases (tgts : Array (Option Ident × Syntax))
-  (pat : RCasesPatt) (g : MVarId) : TermElabM (List MVarId) := do
+  (pat : RCasesPatt) (g : MVarId) : TermElabM (List MVarId) := Term.withSynthesize do
   let pats ← match tgts.size with
   | 0 => return [g]
   | 1 => pure [pat]
