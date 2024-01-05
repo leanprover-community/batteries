@@ -74,16 +74,24 @@ The main operations for `UnionFind` are:
 * `push` adds a new node to a structure, unlinked to any other node.
 * `union` links two nodes of the data structure, joining their equivalence
   classes, and performs path compression.
-* `find` returns the canonical representative of a node and update the data
+* `find` returns the canonical representative of a node and updates the data
   structure using path compression.
 * `root` returns the canonical representative of a node without altering the
   data structure.
+* `checkEquiv` checks whether two nodes have the same canonical representative
+  and updates the structure using path compression.
 
-Most use cases should use `find` instead of `root` to benefit from the speedup
-from path-compression.
+Most use cases should prefer `find` over `root` to benefit from the speedup from path-compression.
 
-The noncomputable relation `UnionFind.Equiv` is provided to use the equivalence
-relation from a `UnionFind` structure.
+The main operations use `Fin s.size` to represent nodes of the union-find structure.
+Some alternatives are provided:
+
+* `unionN`, `findN`, `rootN`, `checkEquivN` use `Fin n` with a proof that `n = s.size`.
+* `union!`, `find!`, `root!`, `checkEquiv!` use `Nat` and panic when the indices are out of bounds.
+* `findD`, `rootD`, `checkEquivD` use `Nat` and treat out of bound indices as isolated nodes.
+
+The noncomputable relation `UnionFind.Equiv` is provided to use the equivalence relation from a
+`UnionFind` structure in the context of proofs.
 -/
 structure UnionFind where
   /-- Array of union-find nodes -/
@@ -95,7 +103,7 @@ structure UnionFind where
 
 namespace UnionFind
 
-/-- Size of union-find structure -/
+/-- Size of union-find structure. -/
 @[inline] abbrev size (self : UnionFind) := self.arr.size
 
 /-- Create an empty union-find structure with specific capacity -/
@@ -164,7 +172,7 @@ def push (self : UnionFind) : UnionFind where
     split <;> [exact fun _ => Nat.lt_succ_of_lt (self.parent'_lt _); exact id]
   rankD_lt := by simp [push_parentD, push_rankD]; exact self.rank_lt
 
-/-- Root of a union-find node -/
+/-- Root of a union-find node. -/
 def root (self : UnionFind) (x : Fin self.size) : Fin self.size :=
   let y := (self.arr.get x).parent
   if h : y = x then
@@ -350,7 +358,7 @@ theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
       apply lt_rankD_findAux h'
 termination_by _ => self.rankMax - self.rank x
 
-/-- Find root of a union-find node, updating the structure using path compression -/
+/-- Find root of a union-find node, updating the structure using path compression. -/
 def find (self : UnionFind) (x : Fin self.size) :
     (s : UnionFind) × {_root : Fin s.size // s.size = self.size} :=
   let r := self.findAux x
@@ -374,7 +382,7 @@ def find! (self : UnionFind) (x : Nat) : UnionFind × Nat :=
     panicWith (self, x) "index out of bounds"
 
 /-- Find root of a union-find node, updating the structure using path compression.
-  Returns inputs when index is out of bounds. -/
+  Returns inputs unchanged when index is out of bounds. -/
 def findD (self : UnionFind) (x : Nat) : UnionFind × Nat :=
   if h : x < self.size then
     match self.find ⟨x, h⟩ with | ⟨s, r, _⟩ => (s, r)
@@ -462,7 +470,7 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
 @[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
   simp [linkAux]; split <;> [rfl; split] <;> [skip; split] <;> simp
 
-/-- Link a union-find node to a root node -/
+/-- Link a union-find node to a root node. -/
 def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by
@@ -494,7 +502,7 @@ def link! (self : UnionFind) (x y : Nat) (yroot : self.parent y = y) : UnionFind
   else
     panicWith self "index out of bounds"
 
-/-- Link two union-find nodes, uniting their respective classes -/
+/-- Link two union-find nodes, uniting their respective classes. -/
 def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
   let ⟨self₁, rx, ex⟩ := self.find x
   have hy := by rw [ex]; exact y.2
@@ -535,8 +543,8 @@ def checkEquiv! (self : UnionFind) (x y : Nat) : UnionFind × Bool :=
   else
     panicWith (self, false) "index out of bounds"
 
-/-- Check whether two union-find nodes are equivalent with path compression, returns `x == y` if
-either index is out of bounds -/
+/-- Check whether two union-find nodes are equivalent with path compression,
+returns `x == y` if either index is out of bounds -/
 def checkEquivD (self : UnionFind) (x y : Nat) : UnionFind × Bool :=
   let (s, x) := self.findD x
   let (s, y) := s.findD y
