@@ -29,7 +29,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### push -/
 
-theorem push_data (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
+@[simp] theorem push_data (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
 
 @[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
   Array.size_push ..
@@ -43,7 +43,7 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 /-! ### set -/
 
-theorem set_data (a : ByteArray) (i : Fin a.size) (v : UInt8) :
+@[simp] theorem set_data (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).data = a.data.set i v := rfl
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
@@ -63,7 +63,7 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### copySlice -/
 
-theorem copySlice_data (a i b j len exact) :
+@[simp] theorem copySlice_data (a i b j len exact) :
   (copySlice a i b j len exact).data = b.data.extract 0 j ++ a.data.extract i (i + len)
     ++ b.data.extract (j + min len (a.data.size - i)) b.data.size := rfl
 
@@ -71,8 +71,8 @@ theorem copySlice_data (a i b j len exact) :
 
 @[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
 
-theorem append_data (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
-  rw [←append_eq]; simp [ByteArray.append, copySlice_data, size]
+@[simp] theorem append_data (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
+  rw [←append_eq]; simp [ByteArray.append, size]
   rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_nil]
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
@@ -81,25 +81,25 @@ theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
-  simp only [getElem_eq_data_getElem, append_data]; exact Array.get_append_left hlt
+  simp [getElem_eq_data_getElem]; exact Array.get_append_left hlt
 
 theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b).size)
     (h' : i - a.size < b.size := Nat.sub_lt_left_of_lt_add hle (size_append .. ▸ h)) :
     (a ++ b)[i] = b[i - a.size] := by
-  simp only [getElem_eq_data_getElem, append_data]; exact Array.get_append_right hle
+  simp [getElem_eq_data_getElem]; exact Array.get_append_right hle
 
 /-! ### extract -/
 
-theorem extract_data (a : ByteArray) (start stop) :
+@[simp] theorem extract_data (a : ByteArray) (start stop) :
     (a.extract start stop).data = a.data.extract start stop := by
-  simp [extract, copySlice]
+  simp [extract]
   match Nat.le_total start stop with
   | .inl h => simp [h, Nat.add_sub_cancel']
   | .inr h => simp [h, Nat.sub_eq_zero_of_le, Array.extract_empty_of_stop_le_start]
 
 @[simp] theorem size_extract (a : ByteArray) (start stop) :
     (a.extract start stop).size = min stop a.size - start := by
-  simp [size, extract_data]
+  simp [size]
 
 theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     start + i < a.size := by
@@ -108,4 +108,4 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 @[simp] theorem get_extract {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     (a.extract start stop)[i] = a[start+i]'(get_extract_aux h) := by
-  simp only [getElem_eq_data_getElem, extract_data]; exact Array.get_extract ..
+  simp [getElem_eq_data_getElem]
