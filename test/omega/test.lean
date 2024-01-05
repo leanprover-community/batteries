@@ -91,9 +91,10 @@ example {x : Nat} : (x + 4) / 2 ≤ x + 2 := by omega
 example {x : Int} {m : Nat} (_ : 0 < m) (_ : ¬x % ↑m < (↑m + 1) / 2) : -↑m / 2 ≤ x % ↑m - ↑m := by
   omega
 
-example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by
-  rw [Prod.lex_def]
-  omega
+example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by omega
+
+example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
+    Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
 
 example (h : (7 : Int) = 0) : False := by omega
 

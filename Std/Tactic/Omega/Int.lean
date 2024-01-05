@@ -32,18 +32,6 @@ protected alias ⟨le_of_not_gt, not_lt_of_ge⟩ := Int.not_lt
 protected alias ⟨le_of_not_lt, not_lt_of_le⟩ := Int.not_lt
 protected alias ⟨_, le_lt_asymm⟩ := Int.not_lt
 
-theorem prodLex_ofNat_right {a c : Nat} {b d : Nat} (w : Prod.Lex (· < ·) (· < ·) (a, b) (c, d)) :
-    Prod.Lex (· < ·) (· < ·) (a, (b : Int)) (c, (d : Int)) := by
-  cases w
-  · exact .left _ _ ‹_›
-  · exact .right _ (ofNat_lt_of_lt ‹_›)
-
-theorem prodLex_ofNat_left {a c : Nat} {b d : Int} (w : Prod.Lex (· < ·) (· < ·) (a, b) (c, d)) :
-    Prod.Lex (· < ·) (· < ·) ((a : Int), b) ((c : Int), d) := by
-  cases w
-  · exact .left _ _ (ofNat_lt_of_lt ‹_›)
-  · exact .right _ ‹_›
-
 theorem add_congr {a b c d : Int} (h₁ : a = b) (h₂ : c = d) : a + c = b + d := by
   subst h₁; subst h₂; rfl
 
@@ -121,6 +109,12 @@ namespace Prod
 
 theorem of_lex (w : Prod.Lex r s p q) : r p.fst q.fst ∨ p.fst = q.fst ∧ s p.snd q.snd :=
   (Prod.lex_def r s).mp w
+
+theorem of_not_lex {α} {r : α → α → Prop} [DecidableEq α] {β} {s : β → β → Prop}
+    {p q : α × β} (w : ¬ Prod.Lex r s p q) :
+    ¬ r p.fst q.fst ∧ (p.fst ≠ q.fst ∨ ¬ s p.snd q.snd) := by
+  rw [Prod.lex_def, not_or, Decidable.not_and] at w
+  exact w
 
 theorem fst_mk : (Prod.mk x y).fst = x := rfl
 theorem snd_mk : (Prod.mk x y).snd = y := rfl
