@@ -408,7 +408,7 @@ theorem or_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ||| y
 /-! ### xor -/
 
 theorem testBit_xor (x y i : Nat) : (x ^^^ y).testBit i = Bool.xor (x.testBit i) (y.testBit i) := by
-  simp [HXor.hXor, Xor.xor, xor, testBit_bitwise ]
+  simp [HXor.hXor, Xor.xor, Nat.xor, testBit_bitwise, Bool.xor_eq_bne]
 
 theorem xor_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ^^^ y < 2^n :=
   bitwise_lt_two_pow left right

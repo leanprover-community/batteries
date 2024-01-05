@@ -7,15 +7,15 @@ Authors: F. G. Dorais
 import Std.Tactic.Alias
 
 /-- Boolean exclusive or -/
-abbrev xor : Bool → Bool → Bool := bne
+def xor : Bool → Bool → Bool := bne
 
 namespace Bool
 
 /- Namespaced versions that can be used instead of prefixing `_root_` -/
-@[inherit_doc not] protected abbrev not := not
-@[inherit_doc or]  protected abbrev or  := or
-@[inherit_doc and] protected abbrev and := and
-@[inherit_doc xor] protected abbrev xor := xor
+@[simp, inherit_doc not] protected abbrev not := not
+@[simp, inherit_doc or]  protected abbrev or  := or
+@[simp, inherit_doc and] protected abbrev and := and
+@[simp, inherit_doc xor] protected abbrev xor := xor
 
 instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∀ x, p x) :=
   match inst true, inst false with
@@ -123,11 +123,13 @@ theorem xor_right_comm : ∀ (x y z : Bool), xor (xor x y) z = xor (xor x z) y :
 
 theorem xor_assoc : ∀ (x y z : Bool), xor (xor x y) z = xor x (xor y z) := by decide
 
-@[simp]
-theorem xor_left_inj : ∀ (x y z : Bool), xor x y = xor x z ↔ y = z := by decide
+@[simp] theorem xor_left_inj : ∀ (x y z : Bool), xor x y = xor x z ↔ y = z := by decide
 
-@[simp]
-theorem xor_right_inj : ∀ (x y z : Bool), xor x z = xor y z ↔ x = y := by decide
+@[simp] theorem xor_right_inj : ∀ (x y z : Bool), xor x z = xor y z ↔ x = y := by decide
+
+@[simp] theorem xor_eq_true : ∀ (x y : Bool), (xor x y = true) = ¬(x = true ↔ y = true) := by decide
+
+theorem xor_eq_bne (x y) : xor x y = (x != y) := rfl
 
 /-! ### le/lt -/
 
