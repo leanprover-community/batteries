@@ -297,6 +297,8 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Nat.lt_of_gt []) x y h)
     | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
+    | (``Ne, #[.const ``Nat [], x, y]) =>
+      p.addFact (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
     | (``Not, #[P]) => match pushNot h P with
       | none => return (p, 0)
       | some h' => p.addFact h'
@@ -306,6 +308,8 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Int.ofNat_lt_of_lt []) x y h)
     | (``LE.le, #[.const ``Nat [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Int.ofNat_le_of_le []) x y h)
+    | (``Ne, #[.const ``Int [], x, y]) =>
+      p.addFact (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
     | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
       p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
