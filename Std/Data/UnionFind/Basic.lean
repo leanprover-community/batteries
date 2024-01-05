@@ -175,10 +175,14 @@ def root (self : UnionFind) (x : Fin self.size) : Fin self.size :=
 termination_by _ => self.rankMax - self.rank x
 
 @[inherit_doc root]
+def rootN (self : UnionFind) (x : Fin n) (h : n = self.size) : Fin n :=
+  match n, h with | _, rfl => self.root x
+
+/-- Root of a union-find node. Panics if index is out of bounds. -/
 def root! (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else panicWith x "index out of bounds"
 
-@[inherit_doc root]
+/-- Root of a union-find node. Returns input if index is out of bounds. -/
 def rootD (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else x
 
@@ -357,6 +361,10 @@ def find (self : UnionFind) (x : Fin self.size) :
     2.1.isLt := show _ < r.s.size by rw [r.size_eq]; exact r.root.2
     2.2 := by simp [size, r.size_eq] }
 
+@[inherit_doc find]
+def findN (self : UnionFind) (x : Fin n) (h : n = self.size) : UnionFind × Fin n :=
+  match n, h with | _, rfl => match self.find x with | ⟨s, r, h⟩ => (s, Fin.cast h r)
+
 /-- Find root of a union-find node, updating the structure using path compression.
   Panics if index is out of bounds. -/
 def find! (self : UnionFind) (x : Nat) : UnionFind × Nat :=
@@ -475,6 +483,10 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
       simp [rankD_set]; split <;> simp [*]; rintro rfl; simp [rankD_eq, *]
     · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) self.rankD_lt
 
+@[inherit_doc link]
+def linkN (self : UnionFind) (x y : Fin n) (yroot : self.parent y = y) (h : n = self.size) :
+    UnionFind := match n, h with | _, rfl => self.link x y yroot
+
 /-- Link a union-find node to a root node. Panics if either index is out of bounds. -/
 def link! (self : UnionFind) (x y : Nat) (yroot : self.parent y = y) : UnionFind :=
   if h : x < self.size ∧ y < self.size then
@@ -493,6 +505,10 @@ def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
       rw [← find_root_2, eq] at this; simp at this
       rw [← this, parent_rootD]
 
+@[inherit_doc union]
+def unionN (self : UnionFind) (x y : Fin n) (h : n = self.size) : UnionFind :=
+  match n, h with | _, rfl => self.union x y
+
 /-- Link two union-find nodes, uniting their respective classes.
 Panics if either index is out of bounds. -/
 def union! (self : UnionFind) (x y : Nat) : UnionFind :=
@@ -506,6 +522,10 @@ def checkEquiv (self : UnionFind) (x y : Fin self.size) : UnionFind × Bool :=
   let ⟨s, ⟨r₁, _⟩, h⟩ := self.find x
   let ⟨s, ⟨r₂, _⟩, _⟩ := s.find (h ▸ y)
   (s, r₁ == r₂)
+
+@[inherit_doc checkEquiv]
+def checkEquivN (self : UnionFind) (x y : Fin n) (h : n = self.size) : UnionFind × Bool :=
+  match n, h with | _, rfl => self.checkEquiv x y
 
 /-- Check whether two union-find nodes are equivalent, updating structure using path compression.
 Panics if either index is out of bounds. -/
