@@ -91,6 +91,8 @@ example {x : Nat} : (x + 4) / 2 ≤ x + 2 := by omega
 example {x : Int} {m : Nat} (_ : 0 < m) (_ : ¬x % ↑m < (↑m + 1) / 2) : -↑m / 2 ≤ x % ↑m - ↑m := by
   omega
 
+-- This example comes from the termination proof
+-- for `permutationsAux.rec` in `Mathlib.Data.List.Defs`.
 example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by omega
 
 example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
