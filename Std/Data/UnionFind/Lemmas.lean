@@ -10,7 +10,7 @@ namespace Std.UnionFind
 @[simp] theorem arr_empty : empty.arr = #[] := rfl
 @[simp] theorem parent_empty : empty.parent a = a := rfl
 @[simp] theorem rank_empty : empty.rank a = 0 := rfl
-@[simp] theorem root_empty : empty.root! a = a := rfl
+@[simp] theorem rootD_empty : empty.rootD a = a := rfl
 
 @[simp] theorem arr_push {m : UnionFind} : m.push.arr = m.arr.push ⟨m.arr.size, 0⟩ := rfl
 
@@ -33,8 +33,8 @@ namespace Std.UnionFind
 
 @[simp] theorem rankMax_push {m : UnionFind} : m.push.rankMax = m.rankMax := by simp [rankMax]
 
-@[simp] theorem root_push {self : UnionFind} : self.push.root! x = self.root! x :=
-  root_ext fun _ => parent_push
+@[simp] theorem root_push {self : UnionFind} : self.push.rootD x = self.rootD x :=
+  rootD_ext fun _ => parent_push
 
 @[simp] theorem arr_link : (link self x y yroot).arr = linkAux self.arr x y := rfl
 
@@ -64,30 +64,30 @@ theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
 theorem root_link {self : UnionFind} {x y : Fin self.size}
     (xroot : self.parent x = x) (yroot : self.parent y = y) :
     ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-      (link self x y yroot).root! i =
-      if self.root! i = x ∨ self.root! i = y then r.1 else self.root! i := by
+      (link self x y yroot).rootD i =
+      if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
   if h : x.1 = y then
     refine ⟨x, .inl rfl, fun i => ?_⟩
-    rw [root_ext (m2 := self) (fun _ => by rw [parent_link, if_pos h])]
+    rw [rootD_ext (m2 := self) (fun _ => by rw [parent_link, if_pos h])]
     split <;> [obtain _ | _ := ‹_› <;> simp [*]; rfl]
   else
   have {x y : Fin self.size}
       (xroot : self.parent x = x) (yroot : self.parent y = y) {m : UnionFind}
       (hm : ∀ i, m.parent i = if y = i then x.1 else self.parent i) :
       ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-        m.root! i = if self.root! i = x ∨ self.root! i = y then r.1 else self.root! i := by
+        m.rootD i = if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
     let rec go (i) :
-        m.root! i = if self.root! i = x ∨ self.root! i = y then x.1 else self.root! i := by
+        m.rootD i = if self.rootD i = x ∨ self.rootD i = y then x.1 else self.rootD i := by
       if h : m.parent i = i then
-        rw [root_eq_self.2 h]; rw [hm i] at h; split at h
-        · rw [if_pos, h]; simp [← h, root_eq_self, xroot]
-        · rw [root_eq_self.2 ‹_›]; split <;> [skip; rfl]
+        rw [rootD_eq_self.2 h]; rw [hm i] at h; split at h
+        · rw [if_pos, h]; simp [← h, rootD_eq_self, xroot]
+        · rw [rootD_eq_self.2 ‹_›]; split <;> [skip; rfl]
           next h' => exact h'.resolve_right (Ne.symm ‹_›)
       else
         have _ := Nat.sub_lt_sub_left (m.lt_rankMax i) (m.rank_lt h)
-        rw [← root_parent, go (m.parent i)]
-        rw [hm i]; split <;> [subst i; rw [root_parent]]
-        simp [root_eq_self.2 xroot, root_eq_self.2 yroot]
+        rw [← rootD_parent, go (m.parent i)]
+        rw [hm i]; split <;> [subst i; rw [rootD_parent]]
+        simp [rootD_eq_self.2 xroot, rootD_eq_self.2 yroot]
     exact ⟨x, .inl rfl, go⟩
   if hr : self.rank y < self.rank x then
     exact this xroot yroot fun i => by simp [parent_link, h, hr]
@@ -104,11 +104,11 @@ theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .t
 
 @[simp] theorem equiv_push : Equiv self.push a b ↔ Equiv self a b := by simp [Equiv]
 
-@[simp] theorem equiv_root : Equiv self (self.root! a) a := by simp [Equiv, root_root]
-@[simp] theorem equiv_root_l : Equiv self (self.root! a) b ↔ Equiv self a b := by
-  simp [Equiv, root_root]
-@[simp] theorem equiv_root_r : Equiv self a (self.root! b) ↔ Equiv self a b := by
-  simp [Equiv, root_root]
+@[simp] theorem equiv_rootD : Equiv self (self.rootD a) a := by simp [Equiv, rootD_rootD]
+@[simp] theorem equiv_rootD_l : Equiv self (self.rootD a) b ↔ Equiv self a b := by
+  simp [Equiv, rootD_rootD]
+@[simp] theorem equiv_rootD_r : Equiv self a (self.rootD b) ↔ Equiv self a b := by
+  simp [Equiv, rootD_rootD]
 
 theorem equiv_find : Equiv (self.find x).1 a b ↔ Equiv self a b := by simp [Equiv, find_root_1]
 
@@ -117,18 +117,18 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
     Equiv (link self x y yroot) a b ↔
     Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
   have {m : UnionFind} {x y : Fin self.size}
-      (xroot : self.root! x = x) (yroot : self.root! y = y)
-      (hm : ∀ i, m.root! i = if self.root! i = x ∨ self.root! i = y then x.1 else self.root! i) :
+      (xroot : self.rootD x = x) (yroot : self.rootD y = y)
+      (hm : ∀ i, m.rootD i = if self.rootD i = x ∨ self.rootD i = y then x.1 else self.rootD i) :
       Equiv m a b ↔
       Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
     simp [Equiv, hm, xroot, yroot]
-    by_cases h1 : root! self a = x <;> by_cases h2 : root! self b = x <;>
+    by_cases h1 : rootD self a = x <;> by_cases h2 : rootD self b = x <;>
       simp [h1, h2, imp_false, Decidable.not_not]
-    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (root! self b), *]
-    · by_cases h1 : root! self a = y <;> by_cases h2 : root! self b = y <;>
-        simp [h1, h2, @eq_comm _ _ (root! self b), *]
+    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (rootD self b), *]
+    · by_cases h1 : rootD self a = y <;> by_cases h2 : rootD self b = y <;>
+        simp [h1, h2, @eq_comm _ _ (rootD self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr
-  rw [← root_eq_self] at xroot yroot
+  rw [← rootD_eq_self] at xroot yroot
   obtain rfl | rfl := ha
   · exact this xroot yroot
   · simpa [or_comm, and_comm] using this yroot xroot
@@ -136,4 +136,4 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
 theorem equiv_union {self : UnionFind} {x y : Fin self.size} :
     Equiv (union self x y) a b ↔
     Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
-  simp [union]; rw [equiv_link (by simp [← root_eq_self, root_root])]; simp [equiv_find]
+  simp [union]; rw [equiv_link (by simp [← rootD_eq_self, rootD_rootD])]; simp [equiv_find]
