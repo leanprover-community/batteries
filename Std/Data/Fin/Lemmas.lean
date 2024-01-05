@@ -14,7 +14,8 @@ namespace Fin
 /-- If you actually have an element of `Fin n`, then the `n` is always positive -/
 theorem size_pos (i : Fin n) : 0 < n := Nat.lt_of_le_of_lt (Nat.zero_le _) i.2
 
-theorem mod_def (a m : Fin n) : a % m = Fin.mk ((a % m) % n) (Nat.mod_lt _ a.size_pos) := rfl
+theorem mod_def (a m : Fin n) : a % m = Fin.mk (a % m) (Nat.lt_of_le_of_lt (Nat.mod_le _ _) a.2) :=
+  rfl
 
 theorem mul_def (a b : Fin n) : a * b = Fin.mk ((a * b) % n) (Nat.mod_lt _ a.size_pos) := rfl
 
@@ -29,7 +30,7 @@ theorem pos_iff_nonempty {n : Nat} : 0 < n ↔ Nonempty (Fin n) :=
 
 /-! ### coercions and constructions -/
 
-@[simp] protected theorem eta (a : Fin n) (h : a < n) : (⟨a, h⟩ : Fin n) = a := by cases a; rfl
+@[simp] protected theorem eta (a : Fin n) (h : a < n) : (⟨a, h⟩ : Fin n) = a := rfl
 
 @[ext] theorem ext {a b : Fin n} (h : (a : Nat) = b) : a = b := eq_of_val_eq h
 
@@ -58,13 +59,13 @@ theorem mk_val (i : Fin n) : (⟨i, i.isLt⟩ : Fin n) = i := Fin.eta ..
 @[simp] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
 
 @[simp] theorem mod_val (a b : Fin n) : (a % b).val = a.val % b.val :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le ..) a.2)
+  rfl
 
 @[simp] theorem div_val (a b : Fin n) : (a / b).val = a.val / b.val :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self ..) a.2)
+  rfl
 
 @[simp] theorem modn_val (a : Fin n) (b : Nat) : (a.modn b).val = a.val % b :=
-  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le ..) a.2)
+  rfl
 
 theorem ite_val {n : Nat} {c : Prop} [Decidable c] {x : c → Fin n} (y : ¬c → Fin n) :
     (if h : c then x h else y h).val = if h : c then (x h).val else (y h).val := by
@@ -155,6 +156,11 @@ theorem eq_last_of_not_lt {i : Fin (n + 1)} (h : ¬(i : Nat) < n) : i = last n :
 theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
   Decidable.not_imp_comm.1 eq_last_of_not_lt
 
+@[simp] theorem rev_last (n : Nat) : rev (last n) = 0 := ext <| by simp
+
+@[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
+  rw [← rev_rev (last _), rev_last]
+
 /-! ### addition, numerals, and coercion from Nat -/
 
 @[simp] theorem val_one (n : Nat) : (1 : Fin (n + 2)).val = 1 := rfl
@@ -198,7 +204,7 @@ theorem add_one_pos (i : Fin (n + 1)) (h : i < Fin.last n) : (0 : Fin (n + 1)) <
   match n with
   | 0 => cases h
   | n+1 =>
-    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right 1] at h
+    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right] at h
     rw [Fin.lt_def, val_add, val_zero, val_one, Nat.mod_eq_of_lt h]
     exact Nat.zero_lt_succ _
 
@@ -208,7 +214,7 @@ theorem zero_ne_one : (0 : Fin (n + 2)) ≠ 1 := Fin.ne_of_lt one_pos
 
 /-! ### succ and casts into larger Fin types -/
 
-@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := by cases j; simp [Fin.succ]
+@[simp] theorem val_succ (j : Fin n) : (j.succ : Nat) = j + 1 := rfl
 
 @[simp] theorem succ_pos (a : Fin n) : (0 : Fin (n + 1)) < a.succ := by
   simp [Fin.lt_def, Nat.succ_pos]
@@ -312,7 +318,7 @@ theorem castLE_of_eq {m n : Nat} (h : m = n) {h' : m ≤ n} : castLE h' = Fin.ca
 theorem castAdd_lt {m : Nat} (n : Nat) (i : Fin m) : (castAdd n i : Nat) < m := by simp
 
 @[simp] theorem castAdd_mk (m : Nat) (i : Nat) (h : i < n) :
-    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right i n m h⟩ := rfl
+    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right m h⟩ := rfl
 
 @[simp] theorem castAdd_castLT (m : Nat) (i : Fin (n + m)) (hi : i.val < n) :
     castAdd m (castLT i hi) = i := rfl
@@ -477,6 +483,16 @@ theorem cast_addNat {n : Nat} (m : Nat) (i : Fin n) :
 
 theorem natAdd_castSucc {m n : Nat} {i : Fin m} : natAdd n (castSucc i) = castSucc (natAdd n i) :=
   rfl
+
+theorem rev_castAdd (k : Fin n) (m : Nat) : rev (castAdd m k) = addNat (rev k) m := ext <| by
+  rw [val_rev, coe_castAdd, coe_addNat, val_rev, Nat.sub_add_comm (Nat.succ_le_of_lt k.is_lt)]
+
+theorem rev_addNat (k : Fin n) (m : Nat) : rev (addNat k m) = castAdd m (rev k) := by
+  rw [← rev_rev (castAdd ..), rev_castAdd, rev_rev]
+
+theorem rev_castSucc (k : Fin n) : rev (castSucc k) = succ (rev k) := k.rev_castAdd 1
+
+theorem rev_succ (k : Fin n) : rev (succ k) = castSucc (rev k) := k.rev_addNat 1
 
 /-! ### pred -/
 
@@ -644,7 +660,7 @@ theorem exists_fin_two {p : Fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
   exists_fin_succ.trans <| or_congr_right exists_fin_one
 
 theorem fin_two_eq_of_eq_zero_iff : ∀ {a b : Fin 2}, (a = 0 ↔ b = 0) → a = b := by
-  simp [forall_fin_two]
+  simp only [forall_fin_two]; decide
 
 /--
 Define `motive i` by reverse induction on `i : Fin (n + 1)` via induction on the underlying `Nat`

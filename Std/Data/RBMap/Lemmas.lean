@@ -389,7 +389,8 @@ theorem forIn_visit_eq_bindList [Monad m] [LawfulMonad m] {t : RBNode α} :
 
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     forIn (m := m) t init f = forIn t.toList init f := by
-  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+  conv => lhs; simp only [forIn, RBNode.forIn]
+  rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
 
 end fold
 
@@ -407,14 +408,15 @@ theorem foldr_cons (t : RBNode.Stream α) (l) : t.foldr (·::·) l = t.toList ++
   rw [toList, toList, foldr, RBNode.foldr_cons]; rfl
 
 theorem foldr_eq_foldr_toList {s : RBNode.Stream α} : s.foldr f init = s.toList.foldr f init := by
-  induction s <;> simp [-List.foldr] <;> simp [*, RBNode.foldr_eq_foldr_toList]
+  induction s <;> simp [*, RBNode.foldr_eq_foldr_toList]
 
 theorem foldl_eq_foldl_toList {t : RBNode.Stream α} : t.foldl f init = t.toList.foldl f init := by
-  induction t generalizing init <;> simp [-List.foldl] <;> simp [*, RBNode.foldl_eq_foldl_toList]
+  induction t generalizing init <;> simp [*, RBNode.foldl_eq_foldl_toList]
 
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     forIn (m := m) t init f = forIn t.toList init f := by
-  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+  conv => lhs; simp only [forIn, RBNode.forIn]
+  rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
 
 end Stream
 

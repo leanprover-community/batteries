@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Basic
+import Std.Data.Array.Init.Basic
 
 namespace Std.Tactic.Lint
 open Lean Meta
@@ -32,3 +32,15 @@ another instance-implicit argument or the return type."
       return some m!"argument {i+1} {arg} : {← inferType arg}"
     if impossibleArgs.isEmpty then return none
     addMessageContextFull <| .joinSep impossibleArgs.toList ", "
+
+/--
+A linter for checking if any declaration whose type is not a class is marked as an instance.
+-/
+@[std_linter] def nonClassInstance : Linter where
+  noErrorsFound := "No instances of non-classes"
+  errorsFound := "INSTANCES OF NON-CLASSES"
+  test declName := do
+    if !(← isInstance declName) then return none
+    let info ← getConstInfo declName
+    if !(← isClass? info.type).isSome then return "should not be an instance"
+    return none

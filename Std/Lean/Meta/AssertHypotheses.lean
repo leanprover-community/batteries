@@ -26,7 +26,7 @@ Add the given hypotheses to the local context. This is a generalisation of
 def _root_.Lean.MVarId.assertHypotheses' (mvarId : MVarId)
     (hs : Array Hypothesis') : MetaM (Array FVarId × MVarId) := do
   let (fvarIds, mvarId) ← mvarId.assertHypotheses $ hs.map (·.toHypothesis)
-  mvarId.modifyLCtx λ lctx => Id.run do
+  mvarId.modifyLCtx fun lctx => Id.run do
     let mut lctx := lctx
     for h : i in [:hs.size] do
       let h := hs[i]'h.2

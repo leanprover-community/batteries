@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Classes.Dvd
+import Lean.ToExpr
 
 open Nat
 
@@ -126,3 +127,48 @@ Divisibility of integers. `a ∣ b` (typed as `\|`) says that
 there is some `c` such that `b = a * c`.
 -/
 instance : Dvd Int := ⟨fun a b => ∃ c, b = a * c⟩
+
+/-! ## bit operations -/
+
+/--
+Bitwise not
+
+Interprets the integer as an infinite sequence of bits in two's complement
+and complements each bit.
+```
+~~~(0:Int) = -1
+~~~(1:Int) = -2
+~~~(-1:Int) = 0
+```
+-/
+protected def not : Int -> Int
+  | Int.ofNat n => Int.negSucc n
+  | Int.negSucc n => Int.ofNat n
+
+instance : Complement Int := ⟨.not⟩
+
+/--
+Bitwise shift right.
+
+Conceptually, this treats the integer as an infinite sequence of bits in two's
+complement and shifts the value to the right.
+
+```lean
+( 0b0111:Int) >>> 1 =  0b0011
+( 0b1000:Int) >>> 1 =  0b0100
+(-0b1000:Int) >>> 1 = -0b0100
+(-0b0111:Int) >>> 1 = -0b0100
+```
+-/
+protected def shiftRight : Int → Nat → Int
+  | Int.ofNat n, s => Int.ofNat (n >>> s)
+  | Int.negSucc n, s => Int.negSucc (n >>> s)
+
+instance : HShiftRight Int Nat Int := ⟨.shiftRight⟩
+
+open Lean in
+instance : ToExpr Int where
+  toTypeExpr := .const ``Int []
+  toExpr i := match i with
+    | .ofNat n => mkApp (.const ``Int.ofNat []) (toExpr n)
+    | .negSucc n => mkApp (.const ``Int.negSucc []) (toExpr n)

@@ -48,3 +48,16 @@ Note that documentation for the latest nightly of `std4` is available as part of
 documentation][mathlib4 docs].
 
 [mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Std.html
+
+# Contributing
+
+Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
+or `WIP` (in progress).
+To change the status label of a pull request, add a comment containing one of these options and
+_nothing else_.
+This will remove the previous label and replace it by the requested status label.
+
+One of the easiest ways to contribute is to find a missing proof and complete it. The
+[`proof_wanted`](https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean)
+declaration documents statements that have been identified as being useful, but that have not yet
+been proven.

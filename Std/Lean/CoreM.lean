@@ -14,8 +14,8 @@ open Lean
 /--
 Count the number of heartbeats used during a monadic function.
 
-Remember that user facing heartbeats (e.g. as used in `set_option maxHeartbeats`) 
-differ from the internally tracked heartbeats by a factor of 1000, 
+Remember that user facing heartbeats (e.g. as used in `set_option maxHeartbeats`)
+differ from the internally tracked heartbeats by a factor of 1000,
 so you need to divide the results here by 1000 before comparing with user facing numbers.
 -/
 -- See also `Lean.withSeconds`
@@ -45,5 +45,6 @@ def heartbeatsPercent : CoreM Nat := do
 /-- Log a message if it looks like we ran out of time. -/
 def reportOutOfHeartbeats (tac : Name) (stx : Syntax) (threshold : Nat := 90) : CoreM Unit := do
   if (← heartbeatsPercent) ≥ threshold then
-    logInfoAt stx (s!"`{tac}` stopped because it was running out of time.\n" ++
-      "You may get better results using `set_option maxHeartbeats 0`.")
+    logInfoAt stx s!"\
+      `{tac}` stopped because it was running out of time.\n\
+      You may get better results using `set_option maxHeartbeats 0`."

@@ -3,6 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
+import Std.Data.List.Init.Attach
 import Std.Data.Array.Init.Basic
 import Std.Data.Ord
 
@@ -15,21 +16,9 @@ proofs about these definitions, those are contained in other files in `Std.Data.
 
 namespace Array
 
-/-- The array `#[0, 1, ..., n - 1]`. -/
-def range (n : Nat) : Array Nat :=
-  n.fold (flip Array.push) #[]
-
 /-- Drop `none`s from a Array, and replace each remaining `some a` with `a`. -/
 def reduceOption (l : Array (Option α)) : Array α :=
   l.filterMap id
-
-/-- Turns `#[#[a₁, a₂, ⋯], #[b₁, b₂, ⋯], ⋯]` into `#[a₁, a₂, ⋯, b₁, b₂, ⋯]` -/
-def flatten (arr : Array (Array α)) : Array α :=
-  arr.foldl (init := #[]) fun acc a => acc.append a
-
-/-- Turns `#[a, b]` into `#[(a, 0), (b, 1)]`. -/
-def zipWithIndex (arr : Array α) : Array (α × Nat) :=
-  arr.mapIdx fun i a => (a, i)
 
 /--
 Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
@@ -45,7 +34,7 @@ set_option linter.unusedVariables.funArgs false in
 Sort an array using `compare` to compare elements.
 -/
 def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort λ x y => compare x y |>.isLT
+  xs.qsort fun x y => compare x y |>.isLT
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -56,7 +45,7 @@ considered.
 @[inline]
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.foldl (init := d) (start := start) (stop := stop) λ min x =>
+  xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
 set_option linter.unusedVariables.funArgs false in
@@ -116,6 +105,23 @@ considered.
 protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
+
+/--
+Unsafe implementation of `attach`, taking advantage of the fact that the representation of
+`Array {x // x ∈ xs}` is the same as the input `Array α`.
+-/
+@[inline] private unsafe def attachImpl (xs : Array α) : Array {x // x ∈ xs} := unsafeCast xs
+
+/-- "Attach" the proof that the elements of `xs` are in `xs` to produce a new list
+  with the same elements but in the type `{x // x ∈ xs}`. -/
+@[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
+  ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
+
+/--
+`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
+* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
+-/
+@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
 
 end Array
 
