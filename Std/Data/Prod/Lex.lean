@@ -11,7 +11,7 @@ namespace Prod
 
 theorem lex_def (r : α → α → Prop) (s : β → β → Prop) {p q : α × β} :
     Prod.Lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
-  ⟨fun h ↦ by cases h <;> simp [*], fun h ↦
+  ⟨fun h => by cases h <;> simp [*], fun h =>
     match p, q, h with
     | (a, b), (c, d), Or.inl h => Lex.left _ _ h
     | (a, b), (c, d), Or.inr ⟨e, h⟩ => by subst e; exact Lex.right _ h⟩
