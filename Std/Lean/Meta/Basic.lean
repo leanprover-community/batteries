@@ -293,6 +293,11 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext
   -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
   L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
 
+/-- Solve a goal by synthesizing an instance. -/
+-- FIXME: probably can just be `g.inferInstance` once leanprover/lean4#2054 is fixed
+def synthInstance (g : MVarId) : MetaM Unit := do
+  g.assign (← Lean.Meta.synthInstance (← g.getType))
+
 /--
 Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
 The new hypothesis is given the same user name as the original,
@@ -322,6 +327,11 @@ where
         return false
       else
         return e.hasFVar
+
+/-- Add the hypothesis `h : t`, given `v : t`, and return the new `FVarId`. -/
+def note (g : MVarId) (h : Name) (v : Expr) (t? : Option Expr := .none) :
+    MetaM (FVarId × MVarId) := do
+  (← g.assert h (← match t? with | some t => pure t | none => inferType v) v).intro1P
 
 /-- Get the type the given metavariable after instantiating metavariables and cleaning up
 annotations. -/
