@@ -95,6 +95,14 @@ example {x : Int} {m : Nat} (_ : 0 < m) (_ : ¬x % ↑m < (↑m + 1) / 2) : -↑
 -- for `permutationsAux.rec` in `Mathlib.Data.List.Defs`.
 example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by omega
 
+def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is, C [] is)
+    (H1 : ∀ t ts is, C ts (t :: is) → C is [] → C (t :: ts) is) : ∀ l₁ l₂, C l₁ l₂
+  | [], is => H0 is
+  | t :: ts, is =>
+      H1 t ts is (permutationsAux.rec' H0 H1 ts (t :: is)) (permutationsAux.rec' H0 H1 is [])
+  termination_by _ ts is => (length ts + length is, length ts)
+  decreasing_by simp_wf; omega
+
 example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
     Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
 
