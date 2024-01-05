@@ -116,8 +116,8 @@ import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
-import Std.Lean.Syntax
 import Std.Lean.SMap
+import Std.Lean.Syntax
 import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
