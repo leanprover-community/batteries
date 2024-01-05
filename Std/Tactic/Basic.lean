@@ -13,6 +13,7 @@ import Std.Tactic.SimpTrace
 import Lean.Elab.Tactic.ElabTerm
 import Std.Lean.Meta.Basic
 import Std.Lean.Tactic
+import Std.Util.ProofWanted
 
 namespace Std.Tactic
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta

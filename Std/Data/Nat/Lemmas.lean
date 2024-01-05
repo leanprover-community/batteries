@@ -546,6 +546,9 @@ protected theorem sub_lt_of_pos_le (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :
   Nat.sub_lt (Nat.lt_of_lt_of_le h₀ h₁) h₀
 protected alias sub_lt_self := Nat.sub_lt_of_pos_le
 
+theorem add_lt_of_lt_sub' {a b c : Nat} : b < c - a → a + b < c := by
+  rw [Nat.add_comm]; exact Nat.add_lt_of_lt_sub
+
 protected theorem sub_add_lt_sub (h₁ : m + k ≤ n) (h₂ : 0 < k) : n - (m + k) < n - m := by
   rw [← Nat.sub_sub]; exact Nat.sub_lt_of_pos_le h₂ (Nat.le_sub_of_add_le' h₁)
 
@@ -1122,7 +1125,10 @@ theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
 
 theorem log2_self_le (h : n ≠ 0) : 2 ^ n.log2 ≤ n := (le_log2 h).1 (Nat.le_refl _)
 
-theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.le_refl _)
+theorem lt_log2_self : n < 2 ^ (n.log2 + 1) :=
+  match n with
+  | 0 => Nat.zero_lt_two
+  | n+1 => (log2_lt n.succ_ne_zero).1 (Nat.le_refl _)
 
 /-! ### dvd -/
 
@@ -1141,6 +1147,9 @@ protected theorem dvd_trans {a b c : Nat} (h₁ : a ∣ b) (h₂ : b ∣ c) : a 
 
 protected theorem eq_zero_of_zero_dvd {a : Nat} (h : 0 ∣ a) : a = 0 :=
   let ⟨c, H'⟩ := h; H'.trans c.zero_mul
+
+@[simp] protected theorem zero_dvd {n : Nat} : 0 ∣ n ↔ n = 0 :=
+  ⟨Nat.eq_zero_of_zero_dvd, fun h => h.symm ▸ Nat.dvd_zero 0⟩
 
 protected theorem dvd_add {a b c : Nat} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
   let ⟨d, hd⟩ := h₁; let ⟨e, he⟩ := h₂; ⟨d + e, by simp [Nat.left_distrib, hd, he]⟩
@@ -1190,8 +1199,13 @@ protected theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
 theorem pos_of_dvd_of_pos {m n : Nat} (H1 : m ∣ n) (H2 : 0 < n) : 0 < m :=
   Nat.pos_of_ne_zero fun m0 => Nat.ne_of_gt H2 <| Nat.eq_zero_of_zero_dvd (m0 ▸ H1)
 
+@[simp] protected theorem one_dvd (n : Nat) : 1 ∣ n := ⟨n, n.one_mul.symm⟩
+
 theorem eq_one_of_dvd_one {n : Nat} (H : n ∣ 1) : n = 1 :=
-  Nat.le_antisymm (le_of_dvd (by decide) H) (pos_of_dvd_of_pos H (by decide))
+  Nat.dvd_antisymm H n.one_dvd
+
+@[simp] theorem dvd_one {n : Nat} : n ∣ 1 ↔ n = 1 :=
+  ⟨eq_one_of_dvd_one, fun h => h.symm ▸ Nat.dvd_refl _⟩
 
 theorem dvd_of_mod_eq_zero {m n : Nat} (H : n % m = 0) : m ∣ n := by
   exists n / m

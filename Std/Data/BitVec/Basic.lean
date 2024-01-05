@@ -44,11 +44,7 @@ namespace BitVec
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  toFin :=
-    let p : i &&& 2^n-1 < 2^n := by
-        apply Nat.and_lt_two_pow
-        exact Nat.sub_lt (Nat.pow_two_pos n) (Nat.le_refl 1)
-    ⟨i &&& 2^n-1, p⟩
+  toFin := Fin.ofNat' i (Nat.pow_two_pos n)
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/

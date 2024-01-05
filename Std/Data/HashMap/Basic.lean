@@ -338,7 +338,7 @@ instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
 @[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
   -- Implementing this function directly, rather than via `mergeWithM`, gives
   -- us less constrained universes.
-  other.fold (init := self) λ map k v₂ =>
+  other.fold (init := self) fun map k v₂ =>
     match map.find? k with
     | none => map.insert k v₂
     | some v₁ => map.insert k $ f k v₁ v₂
