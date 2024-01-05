@@ -289,3 +289,8 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
   omega
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
+
+-- Test that we consume expression metadata when necessary.
+example : 0 = 0 := by
+  have : 0 = 0 := by omega
+  omega -- This used to fail.

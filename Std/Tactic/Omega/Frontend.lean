@@ -247,7 +247,7 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
 def pushNot (h P : Expr) : Option Expr := do
-  match P.getAppFnArgs with
+  match P.consumeMData.getAppFnArgs with
   | (``LT.lt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
   | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
   | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
