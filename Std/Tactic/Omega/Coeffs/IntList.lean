@@ -32,6 +32,8 @@ namespace Coeffs
 abbrev toList (xs : Coeffs) : List Int := xs
 /-- Identity, turning `List Int` into `Coeffs`. -/
 abbrev ofList (xs : List Int) : Coeffs := xs
+/-- Are the coefficients all zero? -/
+abbrev isZero (xs : Coeffs) : Prop := ∀ x, x ∈ xs → x = 0
 /-- Shim for `IntList.set`. -/
 abbrev set (xs : Coeffs) (i : Nat) (y : Int) : Coeffs := IntList.set xs i y
 /-- Shim for `IntList.get`. -/
