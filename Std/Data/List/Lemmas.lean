@@ -102,6 +102,29 @@ theorem not_mem_cons_of_ne_of_not_mem {a y : α} {l : List α} : a ≠ y → a �
 theorem ne_and_not_mem_of_not_mem_cons {a y : α} {l : List α} : a ∉ y::l → a ≠ y ∧ a ∉ l :=
   fun p => ⟨ne_of_not_mem_cons p, not_mem_of_not_mem_cons p⟩
 
+/-! ### drop -/
+
+@[simp]
+theorem drop_one : ∀ l : List α, drop 1 l = tail l
+  | [] | _ :: _ => rfl
+
+theorem drop_add : ∀ (m n) (l : List α), drop (m + n) l = drop m (drop n l)
+  | _, 0, _ => rfl
+  | _, _ + 1, [] => drop_nil.symm
+  | m, n + 1, _ :: _ => drop_add m n _
+
+@[simp]
+theorem drop_left : ∀ l₁ l₂ : List α, drop (length l₁) (l₁ ++ l₂) = l₂
+  | [], _ => rfl
+  | _ :: l₁, l₂ => drop_left l₁ l₂
+
+theorem drop_left' {l₁ l₂ : List α} {n} (h : length l₁ = n) : drop n (l₁ ++ l₂) = l₂ := by
+  rw [← h]; apply drop_left
+
+theorem drop_eq_get_cons : ∀ {n} {l : List α} (h), drop n l = get l ⟨n, h⟩ :: drop (n + 1) l
+  | 0, _ :: _, _ => rfl
+  | n + 1, _ :: _, _ => drop_eq_get_cons (n := n) _
+
 /-! ### isEmpty -/
 
 @[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
@@ -214,6 +237,56 @@ theorem zipWith_get? {f : α → β → γ} :
     | nil => simp
     | cons b bs => cases i <;> simp_all
 
+@[simp]
+theorem zipWith_eq_nil_iff {f : α → β → γ} {l l'} : zipWith f l l' = [] ↔ l = [] ∨ l' = [] := by
+  cases l <;> cases l' <;> simp
+
+theorem map_zipWith {δ : Type _} (f : α → β) (g : γ → δ → α) (l : List γ) (l' : List δ) :
+    map f (zipWith g l l') = zipWith (fun x y => f (g x y)) l l' := by
+  induction l generalizing l' with
+  | nil => simp
+  | cons hd tl hl =>
+    · cases l'
+      · simp
+      · simp [hl]
+
+theorem zipWith_distrib_take : (zipWith f l l').take n = zipWith f (l.take n) (l'.take n) := by
+  induction l generalizing l' n with
+  | nil => simp
+  | cons hd tl hl =>
+    cases l'
+    · simp
+    · cases n
+      · simp
+      · simp [hl]
+
+theorem zipWith_distrib_drop : (zipWith f l l').drop n = zipWith f (l.drop n) (l'.drop n) := by
+  induction l generalizing l' n with
+  | nil => simp
+  | cons hd tl hl =>
+    · cases l'
+      · simp
+      · cases n
+        · simp
+        · simp [hl]
+
+theorem zipWith_distrib_tail : (zipWith f l l').tail = zipWith f l.tail l'.tail := by
+  rw [← drop_one]; simp [zipWith_distrib_drop]
+
+theorem zipWith_append (f : α → β → γ) (l la : List α) (l' lb : List β)
+    (h : l.length = l'.length) :
+    zipWith f (l ++ la) (l' ++ lb) = zipWith f l l' ++ zipWith f la lb := by
+  induction l generalizing l' with
+  | nil =>
+    have : l' = [] := eq_nil_of_length_eq_zero (by simpa using h.symm)
+    simp [this]
+  | cons hl tl ih =>
+    cases l' with
+    | nil => simp at h
+    | cons head tail =>
+      simp only [length_cons, Nat.succ.injEq] at h
+      simp [ih _ h]
+
 /-! ### zipWithAll -/
 
 theorem zipWithAll_get? {f : Option α → Option β → γ} :
@@ -247,6 +320,47 @@ theorem zip_map_left (f : α → γ) (l₁ : List α) (l₂ : List β) :
 
 theorem zip_map_right (f : β → γ) (l₁ : List α) (l₂ : List β) :
     zip l₁ (l₂.map f) = (zip l₁ l₂).map (Prod.map id f) := by rw [← zip_map, map_id]
+
+theorem zip_append :
+    ∀ {l₁ r₁ : List α} {l₂ r₂ : List β} (_h : length l₁ = length l₂),
+      zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
+  | [], r₁, l₂, r₂, h => by simp only [eq_nil_of_length_eq_zero h.symm]; rfl
+  | l₁, r₁, [], r₂, h => by simp only [eq_nil_of_length_eq_zero h]; rfl
+  | a :: l₁, r₁, b :: l₂, r₂, h => by
+    simp only [cons_append, zip_cons_cons, zip_append (Nat.succ.inj h)]
+
+theorem zip_map' (f : α → β) (g : α → γ) :
+    ∀ l : List α, zip (l.map f) (l.map g) = l.map fun a => (f a, g a)
+  | [] => rfl
+  | a :: l => by simp only [map, zip_cons_cons, zip_map']
+
+theorem of_mem_zip {a b} : ∀ {l₁ : List α} {l₂ : List β}, (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
+  | _ :: l₁, _ :: l₂, h => by
+    cases h
+    case head => simp
+    case tail h =>
+    · have := of_mem_zip h
+      exact ⟨Mem.tail _ this.1, Mem.tail _ this.2⟩
+
+theorem map_fst_zip :
+    ∀ (l₁ : List α) (l₂ : List β), l₁.length ≤ l₂.length → map Prod.fst (zip l₁ l₂) = l₁
+  | [], bs, _ => rfl
+  | _ :: as, _ :: bs, h => by
+    simp [Nat.succ_le_succ_iff] at h
+    show _ :: map Prod.fst (zip as bs) = _ :: as
+    rw [map_fst_zip as bs h]
+  | a :: as, [], h => by simp at h
+
+theorem map_snd_zip :
+    ∀ (l₁ : List α) (l₂ : List β), l₂.length ≤ l₁.length → map Prod.snd (zip l₁ l₂) = l₂
+  | _, [], _ => by
+    rw [zip_nil_right]
+    rfl
+  | [], b :: bs, h => by simp at h
+  | a :: as, b :: bs, h => by
+    simp [Nat.succ_le_succ_iff] at h
+    show _ :: map Prod.snd (zip as bs) = _ :: bs
+    rw [map_snd_zip as bs h]
 
 /-! ### join -/
 
@@ -1069,10 +1183,10 @@ section insert
 variable [DecidableEq α]
 
 @[simp] theorem insert_of_mem {l : List α} (h : a ∈ l) : l.insert a = l := by
-  simp only [List.insert, if_pos h]
+  simp only [List.insert, elem_iff, if_pos h]
 
 @[simp] theorem insert_of_not_mem {l : List α} (h : a ∉ l) : l.insert a = a :: l := by
-  simp only [List.insert, if_neg h]
+  simp only [List.insert,  elem_iff, if_neg h]
 
 @[simp] theorem mem_insert_iff {l : List α} : a ∈ l.insert b ↔ a = b ∨ a ∈ l := by
   if h : b ∈ l then
@@ -2334,3 +2448,116 @@ theorem minimum?_eq_some_iff' {xs : List Nat} :
     (le_refl := Nat.le_refl)
     (min_eq_or := fun _ _ => Nat.min_def .. ▸ by split <;> simp)
     (le_min_iff := fun _ _ _ => Nat.le_min)
+
+/-! ### maximum? -/
+
+@[simp] theorem maximum?_nil [Max α] : ([] : List α).maximum? = none := rfl
+
+-- We don't put `@[simp]` on `minimum?_cons`,
+-- because the definition in terms of `foldl` is not useful for proofs.
+theorem maximum?_cons [Max α] {xs : List α} : (x :: xs).maximum? = foldl max x xs := rfl
+
+@[simp] theorem maximum?_eq_none_iff {xs : List α} [Max α] : xs.maximum? = none ↔ xs = [] := by
+  cases xs <;> simp [maximum?]
+
+theorem maximum?_mem [Max α] (min_eq_or : ∀ a b : α, max a b = a ∨ max a b = b) :
+    {xs : List α} → xs.maximum? = some a → a ∈ xs
+  | nil => by simp
+  | cons x xs => by
+    rw [maximum?]; rintro ⟨⟩
+    induction xs generalizing x with simp at *
+    | cons y xs ih =>
+      rcases ih (max x y) with h | h <;> simp [h]
+      simp [← or_assoc, min_eq_or x y]
+
+theorem maximum?_le_iff [Max α] [LE α]
+    (max_le_iff : ∀ a b c : α, max b c ≤ a ↔ b ≤ a ∧ c ≤ a) :
+    {xs : List α} → xs.maximum? = some a → ∀ x, a ≤ x ↔ ∀ b ∈ xs, b ≤ x
+  | nil => by simp
+  | cons x xs => by
+    rw [maximum?]; rintro ⟨⟩ y
+    induction xs generalizing x with
+    | nil => simp
+    | cons y xs ih => simp [ih, max_le_iff, and_assoc]
+
+-- This could be refactored by designing appropriate typeclasses to replace `le_refl`, `max_eq_or`,
+-- and `le_min_iff`.
+theorem maximum?_eq_some_iff [Max α] [LE α] [anti : Antisymm ((· : α) ≤ ·)]
+    (le_refl : ∀ a : α, a ≤ a)
+    (max_eq_or : ∀ a b : α, max a b = a ∨ max a b = b)
+    (max_le_iff : ∀ a b c : α, max b c ≤ a ↔ b ≤ a ∧ c ≤ a) {xs : List α} :
+    xs.maximum? = some a ↔ a ∈ xs ∧ ∀ b ∈ xs, b ≤ a := by
+  refine ⟨fun h => ⟨maximum?_mem max_eq_or h, (maximum?_le_iff max_le_iff h _).1 (le_refl _)⟩, ?_⟩
+  intro ⟨h₁, h₂⟩
+  cases xs with
+  | nil => simp at h₁
+  | cons x xs =>
+    exact congrArg some <| anti.1
+      (h₂ _ (maximum?_mem max_eq_or (xs := x::xs) rfl))
+      ((maximum?_le_iff max_le_iff (xs := x::xs) rfl _).1 (le_refl _) _ h₁)
+
+-- A specialization of `maximum?_eq_some_iff` to Nat.
+theorem maximum?_eq_some_iff' {xs : List Nat} :
+    xs.maximum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, b ≤ a) :=
+  maximum?_eq_some_iff
+    (le_refl := Nat.le_refl)
+    (max_eq_or := fun _ _ => Nat.max_def .. ▸ by split <;> simp)
+    (max_le_iff := fun _ _ _ => Nat.max_le)
+
+/-! ### indexOf and indexesOf -/
+
+theorem foldrIdx_start :
+    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
+  induction xs generalizing f i s with
+  | nil => rfl
+  | cons h t ih =>
+    dsimp [foldrIdx]
+    simp only [@ih f]
+    simp only [@ih (fun i => f (i + s))]
+    simp [Nat.add_assoc, Nat.add_comm 1 s]
+
+@[simp] theorem foldrIdx_cons :
+    (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
+
+theorem findIdxs_cons_aux (p : α → Bool) :
+    foldrIdx (fun i a is => if p a = true then (i + 1) :: is else is) [] xs s =
+      map (· + 1) (foldrIdx (fun i a is => if p a = true then i :: is else is) [] xs s) := by
+  induction xs generalizing s with
+  | nil => rfl
+  | cons x xs ih =>
+    simp only [foldrIdx]
+    split <;> simp [ih]
+
+theorem findIdxs_cons :
+    (x :: xs : List α).findIdxs p =
+      bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
+  dsimp [findIdxs]
+  rw [cond_eq_if]
+  split <;>
+  · simp only [Nat.zero_add, foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+    apply findIdxs_cons_aux
+
+@[simp] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
+    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
+  simp [indexesOf, findIdxs_cons]
+
+@[simp] theorem indexOf_nil [BEq α] : ([] : List α).indexOf x = 0 := rfl
+theorem indexOf_cons [BEq α] :
+    (x :: xs : List α).indexOf y = bif x == y then 0 else xs.indexOf y + 1 := by
+  dsimp [indexOf]
+  simp [findIdx_cons]
+
+theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.indexOf x ∈ xs.indexesOf x := by
+  induction xs with
+  | nil => simp_all
+  | cons h t ih =>
+    simp [indexOf_cons, indexesOf_cons, cond_eq_if]
+    split <;> rename_i w
+    · apply mem_cons_self
+    · cases m
+      case _ => simp_all
+      case tail m =>
+        specialize ih m
+        simpa

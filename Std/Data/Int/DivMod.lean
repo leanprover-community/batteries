@@ -445,6 +445,9 @@ theorem ediv_add_emod' (m k : Int) : m / k * k + m % k = m := by
 @[simp] theorem add_emod_self_left {a b : Int} : (a + b) % a = b % a := by
   rw [Int.add_comm, Int.add_emod_self]
 
+theorem neg_emod {a b : Int} : -a % b = (b - a) % b := by
+  rw [← add_emod_self_left]; rfl
+
 @[simp] theorem emod_add_emod (m n k : Int) : (m % n + k) % n = (m + k) % n := by
   have := (add_mul_emod_self_left (m % n + k) n (m / n)).symm
   rwa [Int.add_right_comm, emod_add_ediv] at this
@@ -718,6 +721,11 @@ theorem dvd_iff_mod_eq_zero (a b : Int) : a ∣ b ↔ mod b a = 0 :=
 
 theorem dvd_iff_emod_eq_zero (a b : Int) : a ∣ b ↔ b % a = 0 :=
   ⟨emod_eq_zero_of_dvd, dvd_of_emod_eq_zero⟩
+
+theorem emod_pos_of_not_dvd {a b : Int} (h : ¬ a ∣ b) : a = 0 ∨ 0 < b % a := by
+  rw [dvd_iff_emod_eq_zero] at h
+  if w : a = 0 then simp_all
+  else exact Or.inr (Int.lt_iff_le_and_ne.mpr ⟨emod_nonneg b w, Ne.symm h⟩)
 
 instance decidableDvd : DecidableRel (α := Int) (· ∣ ·) := fun _ _ =>
   decidable_of_decidable_of_iff (dvd_iff_mod_eq_zero ..).symm

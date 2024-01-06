@@ -14,11 +14,8 @@ Work in progress standard library for Lean 4. This is a collection of data struc
   ```
   If this also fails, follow the instructions under `Regular install` [here](https://leanprover-community.github.io/get_started.html).
 * To build `std4` run `lake build`. To build and run all tests, run `make`.
-* If you added a new file, run the following command to update `Std.lean`:
-  ```
-  find Std -name "*.lean" | env LC_ALL=C sort | sed 's/\.lean//;s,/,.,g;s/^/import /' > Std.lean
-  ```
-  (or use `scripts/updateStd.sh` which contains this command).
+* If you added a new file, run the command `scripts/updateStd.sh` to update the
+  imports.
 
 # Documentation
 
@@ -51,6 +48,13 @@ documentation][mathlib4 docs].
 
 # Contributing
 
-The easiest way to contribute is to find a missing proof and complete it. The `proof_wanted`
+Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
+or `WIP` (in progress).
+To change the status label of a pull request, add a comment containing one of these options and
+_nothing else_.
+This will remove the previous label and replace it by the requested status label.
+
+One of the easiest ways to contribute is to find a missing proof and complete it. The
+[`proof_wanted`](https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
