@@ -1198,15 +1198,17 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 
 /--
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
+Use `List.getLastD` instead.
 -/
-@[simp] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
 /--
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
+Use `List.getLast?` instead
 -/
-@[simp] def last' {α} : List α → Option α
+@[simp, deprecated getLast?] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l

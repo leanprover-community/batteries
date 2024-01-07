@@ -697,9 +697,20 @@ theorem getLast!_cons [Inhabited α] : @getLast! α _ (a::l) = getLastD l a := b
 theorem getLast?_cons : @getLast? α (a::l) = getLastD l a := by
   simp [getLast?, getLast_eq_getLastD]
 
+@[simp] theorem getLast?_singleton (a : α) : getLast? [a] = a := rfl
+
 theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
   | [], h => nomatch h rfl
   | _::_, _ => rfl
+
+theorem getLast_mem : ∀ {l : List α} (h : l ≠ []), getLast l h ∈ l
+  | [], h => absurd rfl h
+  | [_], _ => .head ..
+  | _::a::l, _ => .tail _ <| getLast_mem (cons_ne_nil a l)
+
+theorem getLastD_mem_cons : ∀ (l : List α) (a : α), getLastD l a ∈ a::l
+  | [], _ => .head ..
+  | _::_, _ => .tail _ <| getLast_mem _
 
 /-! ### dropLast -/
 
