@@ -48,9 +48,11 @@ elab_rules : tactic
       `(tactic| simp!%$tk $(config)? $(discharger)? $[only%$o]? $[[$args,*]]? $(loc)?)
     else
       `(tactic| simp%$tk $(config)? $(discharger)? $[only%$o]? $[[$args,*]]? $(loc)?)
-    let { ctx, simprocs, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+    let { ctx, simprocs, dischargeWrapper } ←
+      withMainContext <| mkSimpContext stx (eraseLocal := false)
     let usedSimps ← dischargeWrapper.with fun discharge? =>
-      simpLocation ctx (simprocs := simprocs) discharge? <| (loc.map expandLocation).getD (.targets #[] true)
+      simpLocation ctx (simprocs := simprocs) discharge? <|
+        (loc.map expandLocation).getD (.targets #[] true)
     let stx ← mkSimpCallStx stx usedSimps
     TryThis.addSuggestion tk stx (origSpan? := ← getRef)
 

@@ -64,13 +64,14 @@ elab_rules : tactic
 | `(tactic| simpa%$tk $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
       $[[$args,*]]? $[using $usingArg]?) => Elab.Tactic.focus do
   let stx ← `(tactic| simp $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]?)
-  let { ctx, simprocs, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+  let { ctx, simprocs, dischargeWrapper } ←
+    withMainContext <| mkSimpContext stx (eraseLocal := false)
   let ctx := if unfold.isSome then { ctx with config.autoUnfold := true } else ctx
   -- TODO: have `simpa` fail if it doesn't use `simp`.
   let ctx := { ctx with config := { ctx.config with failIfUnchanged := false } }
   dischargeWrapper.with fun discharge? => do
-    let (some (_, g), usedSimps) ←
-        simpGoal (← getMainGoal) ctx (simprocs := simprocs) (simplifyTarget := true) (discharge? := discharge?)
+    let (some (_, g), usedSimps) ← simpGoal (← getMainGoal) ctx (simprocs := simprocs)
+        (simplifyTarget := true) (discharge? := discharge?)
       | if getLinterUnnecessarySimpa (← getOptions) then
           logLint linter.unnecessarySimpa (← getRef) "try 'simp' instead of 'simpa'"
     g.withContext do
@@ -98,8 +99,9 @@ elab_rules : tactic
               m!"try 'simp at {Expr.fvar h}' instead of 'simpa using {Expr.fvar h}'"
       pure usedSimps
     else if let some ldecl := (← getLCtx).findFromUserName? `this then
-      if let (some (_, g), usedSimps) ← simpGoal g ctx (simprocs := simprocs) (fvarIdsToSimp := #[ldecl.fvarId])
-          (simplifyTarget := false) (usedSimps := usedSimps) (discharge? := discharge?) then
+      if let (some (_, g), usedSimps) ← simpGoal g ctx (simprocs := simprocs)
+          (fvarIdsToSimp := #[ldecl.fvarId]) (simplifyTarget := false) (usedSimps := usedSimps)
+          (discharge? := discharge?) then
         g.assumption; pure usedSimps
       else
         pure usedSimps

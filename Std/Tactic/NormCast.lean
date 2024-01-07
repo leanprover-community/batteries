@@ -29,7 +29,8 @@ def proveEqUsing (s : SimpTheorems) (a b : Expr) : MetaM (Option Simp.Result) :=
     unless ← isDefEq a'.expr b'.expr do return none
     mkEqTrans a' (← mkEqSymm b b')
   withReducible do
-    (go (← Simp.mkDefaultMethods).toMethodsRef { simpTheorems := #[s], congrTheorems := ← Meta.getSimpCongrTheorems }).run' {}
+    (go (← Simp.mkDefaultMethods).toMethodsRef
+      { simpTheorems := #[s], congrTheorems := ← Meta.getSimpCongrTheorems }).run' {}
 
 /-- Prove `a = b` by simplifying using move and squash lemmas. -/
 def proveEqUsingDown (a b : Expr) : MetaM (Option Simp.Result) := do
