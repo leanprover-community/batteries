@@ -50,24 +50,21 @@ open Std.Tactic
 
 namespace Lean.Expr
 
-/-- Return the symmetry lemmas that mattch the target type. -/
+/-- Return the symmetry lemmas that match the target type. -/
 def getSymmLems (tgt : Expr) : MetaM (Array Name) := do
   let .app (.app rel _) _ := tgt
     | throwError "symmetry lemmas only apply to binary relations, not{indentExpr tgt}"
   (symmExt.getState (← getEnv)).getMatch rel symmExt.config
 
-/-- FIXME -/
-def unpackSymLem (lem : Name) : MetaM (Expr × Array Expr × Expr) := do
-  let lem ← mkConstWithFreshMVarLevels lem
-  let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)
-  return (lem, args, body)
-
 /-- Given a term `e : a ~ b`, construct a term in `b ~ a` using `@[symm]` lemmas. -/
 def applySymm (e : Expr) : MetaM Expr := do
   let tgt <- instantiateMVars (← inferType e)
   let lems ← getSymmLems tgt
+  let s ← saveState
   let act lem := do
-        let (lem, args, body) ← unpackSymLem lem
+        restoreState s
+        let lem ← mkConstWithFreshMVarLevels lem
+        let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)
         let .true ← isDefEq args.back e | failure
         mkExpectedTypeHint (mkAppN lem args) (← instantiateMVars body)
   lems.toList.firstM act
@@ -87,7 +84,8 @@ def applySymm (g : MVarId) : MetaM MVarId := do
   let tgt <- g.getTypeCleanup
   let lems ← Expr.getSymmLems tgt
   let act lem : MetaM MVarId := do
-        let (lem, args, body) ← Expr.unpackSymLem lem
+        let lem ← mkConstWithFreshMVarLevels lem
+        let (args, _, body) ← withReducible <| forallMetaTelescopeReducing (← inferType lem)
         let .true ← isDefEq (← g.getType) body | failure
         g.assign (mkAppN lem args)
         let g' := args.back.mvarId!
