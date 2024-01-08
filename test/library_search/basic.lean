@@ -22,7 +22,7 @@ example : 0 ≠ 1 + 1 := Nat.ne_of_lt (by exact Fin.size_pos')
 #guard_msgs in
 example (x y : Nat) : x + y = y + x := by std_apply?
 
-/-- info: Try this: exact fun a ↦ Nat.add_le_add_right a k -/
+/-- info: Try this: exact fun a => Nat.add_le_add_right a k -/
 #guard_msgs in
 example (n m k : Nat) : n ≤ m → n + k ≤ m + k := by std_apply?
 
@@ -48,7 +48,7 @@ example (P : Prop) (p : P) (np : ¬P) : false := by std_apply?
 #guard_msgs in
 example (X : Type) (P : Prop) (x : X) (h : ∀ x : X, x = x → P) : P := by std_apply?
 
--- Could be any number of results (`fun x ↦ x`, `id`, etc)
+-- Could be any number of results (`fun x => x`, `id`, etc)
 #guard_msgs (drop info) in
 example (α : Prop) : α → α := by std_apply?
 
@@ -139,7 +139,7 @@ example (a b : Nat) (h1 : a < b) (h2 : P a) : False := by std_apply?
 
 end synonym
 
-/-- info: Try this: exact fun P ↦ iff_not_self -/
+/-- info: Try this: exact fun P => iff_not_self -/
 #guard_msgs in
 example : ∀ P : Prop, ¬(P ↔ ¬P) := by std_apply?
 
