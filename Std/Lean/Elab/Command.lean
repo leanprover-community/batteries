@@ -12,17 +12,33 @@ import Lean.Elab.Command
 namespace Lean.Elab.Command
 
 /--
+If the option `optName` exists, set it to `val`.
+Will still fail if the set value does not match the option's proper type
+(e.g., setting a string value to a boolean option).
+
+Thus, ``trySetOption `myOttr  true`` is essentially equivalent to
+the command `set_option myOpt true`, except it will not error if the
+option name does not exist.
+-/
+def trySetOption (optName : Name) (val : DataValue) : CommandElabM PUnit := do
+  let some decl := (← getOptionDecls).find? optName | return
+  unless decl.defValue.sameCtor val do
+    throwError "type mismatch for '{optName}'"
+  modifyScope (fun s => {s with opts := s.opts.insert optName val})
+
+/--
 For each named option which exists, set its value.
 Will still fail if the set value does not match the option's proper type
 (e.g., setting a string value to a boolean option).
 -/
 def trySetOptions (settings : Array (Name × DataValue)) : CommandElabM PUnit := do
   let opts ← getOptions
-  let ⟨_, opts⟩ ← StateT.run (s := opts) <| settings.forM fun ⟨optName, val⟩ => do
-    if let .ok decl ← getOptionDecl optName |>.toBaseIO then
-      unless decl.defValue.sameCtor val do
-        throwError "type mismatch for '{optName}'"
-      modify (·.insert optName val)
+  let decls ← getOptionDecls
+  let opts ← settings.foldlM (init := opts) fun opts (optName, val) => do
+    let some decl := decls.find? optName | return opts
+    unless decl.defValue.sameCtor val do
+      throwError "type mismatch for '{optName}'"
+    return opts.insert optName val
   modifyScope ({· with opts})
 
 /--
@@ -36,14 +52,14 @@ attribute or declaration names do not exist.
 -/
 def tryEraseAttr (attrName : Name) (declNames : Array Name) : CoreM PUnit := do
   let attrState := attributeExtension.getState (← getEnv)
-  if let some attr := attrState.map.find? attrName then
-    declNames.forM fun declName =>
-      try
-        attr.erase declName
-      catch _ =>
-        -- This consumes all types of errors, rather than just existence ones,
-        -- but there does not appear to be a better general way to achieve this
-        pure ()
+  let some attr := attrState.map.find? attrName | return
+  declNames.forM fun declName =>
+    try
+      attr.erase declName
+    catch _ =>
+      -- This consumes all types of errors, rather than just existence ones,
+      -- but there does not appear to be a better general way to achieve this.
+      pure ()
 
 /--
 for each named attribute which exists,

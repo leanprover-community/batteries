@@ -10,11 +10,13 @@ open Lean Elab Command
 #guard_msgs in run_cmd trySetOptions #[⟨`maxHeartbeats, true⟩]
 
 /-
-Verify that `trySetOptions` and `tryEraseAttrs` properly
-set options, erase attributes, and skip nonexistent ones
+Verify that `trySetOption`, `trySetOptions`, and `tryEraseAttrs`
+properly set options, erase attributes, and skip nonexistent ones
 -/
 
 run_cmd do
+  trySetOption `foo true
+  trySetOption `pp.unicode.fun true
   trySetOptions #[
     ⟨`push_neg.use_distrib, true⟩,
     ⟨`warningAsError, true⟩
@@ -28,6 +30,10 @@ run_cmd do
     ]⟩,
     ⟨`norm_num, #[`Mathlib.Meta.NormNum.evalNatDvd]⟩
   ]
+
+/-- info: true -/
+#guard_msgs(info) in run_cmd
+  logInfo <| repr <| (← getOptions).get `pp.unicode.fun false
 
 /-- info: true -/
 #guard_msgs(info) in run_cmd
