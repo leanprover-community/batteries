@@ -319,6 +319,16 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
       p.addFact (mkApp3 (.const ``Int.mod_eq_zero_of_dvd []) k x h)
+    | (``Eq, #[.app (.const ``Fin []) n, x, y]) =>
+      p.addFact (mkApp4 (.const ``Fin.val_congr []) n x y h)
+    | (``LE.le, #[.app (.const ``Fin []) n, _, x, y]) =>
+      p.addFact (mkApp4 (.const ``Fin.val_le_of_le []) n x y h)
+    | (``LT.lt, #[.app (.const ``Fin []) n, _, x, y]) =>
+      p.addFact (mkApp4 (.const ``Fin.val_add_one_le_of_lt []) n x y h)
+    | (``GE.ge, #[.app (.const ``Fin []) n, _, x, y]) =>
+      p.addFact (mkApp4 (.const ``Fin.val_le_of_ge []) n x y h)
+    | (``GT.gt, #[.app (.const ``Fin []) n, _, x, y]) =>
+      p.addFact (mkApp4 (.const ``Fin.val_add_one_le_of_gt []) n x y h)
     | (``And, #[t₁, t₂]) => do
         let (p₁, n₁) ← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)
         let (p₂, n₂) ← p₁.addFact (mkApp3 (.const ``And.right []) t₁ t₂ h)

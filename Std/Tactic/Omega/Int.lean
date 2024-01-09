@@ -8,7 +8,7 @@ import Std.Data.Int.Lemmas
 import Std.Tactic.LeftRight
 
 /-!
-# Lemmas about `Nat` and `Int` needed internally by `omega`.
+# Lemmas about `Nat`, `Int` and `Fin` needed internally by `omega`.
 
 These statements are useful for constructing proof expressions,
 but unlikely to be widely useful, so are inside the `Std.Tactic.Omega` namespace.
@@ -102,3 +102,11 @@ theorem lt_of_gt {x y : Nat} (h : x > y) : y < x := gt_iff_lt.mp h
 theorem le_of_ge {x y : Nat} (h : x ≥ y) : y ≤ x := ge_iff_le.mp h
 
 end Nat
+
+namespace Fin
+
+theorem ofNat_val_add_one_le {n : Nat} (i : Fin n) : (i : Int) + 1 ≤ n := by
+  rw [Int.add_one_le_iff, Int.ofNat_lt]
+  exact i.isLt
+
+end Fin

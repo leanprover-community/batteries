@@ -294,3 +294,24 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
   omega
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
+
+-- Tests about `Fin`
+
+-- Test `<`
+example (n : Nat) (i j : Fin n) (h : i < j) : (i : Nat) < n - 1 := by omega
+
+-- Test `≤`
+example (n : Nat) (i j : Fin n) (h : i < j) : (i : Nat) ≤ n - 2 := by omega
+
+-- Test `>`
+example (n : Nat) (i j : Fin n) (h : i < j) : n - 1 > i := by omega
+
+-- Test `≥`
+example (n : Nat) (i : Fin n) : n - 1 ≥ i := by omega
+
+-- Test `=`
+example (n : Nat) (i j : Fin n) (h : i = j) : (i : Int) = j := by omega
+
+-- Test more complex parameter to `Fin`
+example (n m i : Nat) (j : Fin (n - m)) (h : i < j) (h2 : m ≥ 4) :
+    (i : Int) < n - 5 := by omega

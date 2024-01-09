@@ -161,6 +161,17 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 @[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
   rw [← rev_rev (last _), rev_last]
 
+theorem val_congr {n : Nat} {a b : Fin n} (h : a = b) : (a : Nat) = (b : Nat) :=
+  Fin.val_inj.mpr h
+
+theorem val_le_of_le {n : Nat} {a b : Fin n} (h : a ≤ b) : (a : Nat) ≤ (b : Nat) := h
+
+theorem val_le_of_ge {n : Nat} {a b : Fin n} (h : a ≥ b) : (b : Nat) ≤ (a : Nat) := h
+
+theorem val_add_one_le_of_lt {n : Nat} {a b : Fin n} (h : a < b) : (a : Nat) + 1 ≤ (b : Nat) := h
+
+theorem val_add_one_le_of_gt {n : Nat} {a b : Fin n} (h : a > b) : (b : Nat) + 1 ≤ (a : Nat) := h
+
 /-! ### addition, numerals, and coercion from Nat -/
 
 @[simp] theorem val_one (n : Nat) : (1 : Fin (n + 2)).val = 1 := rfl

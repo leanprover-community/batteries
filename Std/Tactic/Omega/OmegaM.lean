@@ -120,6 +120,8 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
       | _, true, (``Int.natAbs, #[x]) =>
         -- `(a.natAbs : Int)` gives a dichotomy
         r := r.insert (mkApp (.const ``Int.natAbs_dichotomy []) x)
+      | _, _, (``Fin.val, #[n, a]) =>
+        r := r.insert (mkApp2 (.const ``Fin.ofNat_val_add_one_le []) n a)
       | _, _,_ => pure ()
     return r
   | (``HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
