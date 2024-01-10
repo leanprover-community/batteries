@@ -312,6 +312,9 @@ example (n : Nat) (i : Fin n) : n - 1 ≥ i := by omega
 -- Test `=`
 example (n : Nat) (i j : Fin n) (h : i = j) : (i : Int) = j := by omega
 
+-- Minimal test for goals involving `Fin`.
+example (i j : Fin n) (w : i < j) : i < j := by omega
+
 -- Test more complex parameter to `Fin`
 example (n m i : Nat) (j : Fin (n - m)) (h : i < j) (h2 : m ≥ 4) :
     (i : Int) < n - 5 := by omega

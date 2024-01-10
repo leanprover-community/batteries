@@ -109,4 +109,18 @@ theorem ofNat_val_add_one_le {n : Nat} (i : Fin n) : (i : Int) + 1 ≤ n := by
   rw [Int.add_one_le_iff, Int.ofNat_lt]
   exact i.isLt
 
+theorem ne_iff_lt_or_gt {i j : Fin n} : i ≠ j ↔ i < j ∨ i > j := by
+  cases i; cases j; simp only [ne_eq, Fin.mk.injEq, Nat.ne_iff_lt_or_gt, gt_iff_lt]; rfl
+
+protected alias ⟨lt_or_gt_of_ne, _⟩ := Fin.ne_iff_lt_or_gt
+
+theorem not_le {i j : Fin n} : ¬ i ≤ j ↔ j < i := by
+  cases i; cases j; exact Nat.not_le
+
+theorem not_lt {i j : Fin n} : ¬ i < j ↔ j ≤ i := by
+  cases i; cases j; exact Nat.not_lt
+
+protected alias ⟨lt_of_not_le, _⟩ := Fin.not_le
+protected alias ⟨le_of_not_lt, _⟩ := Fin.not_lt
+
 end Fin

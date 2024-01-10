@@ -257,12 +257,21 @@ def pushNot (h P : Expr) : Option Expr := do
   | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
   | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
   | (``LE.le, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
+  | (``LT.lt, #[.app (.const ``Fin []) n, _, x, y]) =>
+    some (mkApp4 (.const ``Fin.le_of_not_lt []) n x y h)
+  | (``LE.le, #[.app (.const ``Fin []) n, _, x, y]) =>
+    some (mkApp4 (.const ``Fin.lt_of_not_le []) n x y h)
   | (``GT.gt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) y x h)
   | (``GE.ge, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) y x h)
   | (``GT.gt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) y x h)
   | (``GE.ge, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) y x h)
+  | (``GT.gt, #[.app (.const ``Fin []) n, _, x, y]) =>
+    some (mkApp4 (.const ``Fin.le_of_not_lt []) n y x h)
+  | (``GE.ge, #[.app (.const ``Fin []) n, _, x, y]) =>
+    some (mkApp4 (.const ``Fin.lt_of_not_le []) n y x h)
   | (``Eq, #[.const ``Nat [], x, y]) => some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
   | (``Eq, #[.const ``Int [], x, y]) => some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+  | (``Eq, #[.const ``Fin [], x, y]) => some (mkApp3 (.const ``Fin.lt_or_gt_of_ne []) x y h)
   | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
     some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
   | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
