@@ -96,7 +96,6 @@ example {x : Nat} : (x + 4) / 2 ≤ x + 2 := by omega
 example {x : Int} {m : Nat} (_ : 0 < m) (_ : ¬x % ↑m < (↑m + 1) / 2) : -↑m / 2 ≤ x % ↑m - ↑m := by
   omega
 
-
 example (h : (7 : Int) = 0) : False := by omega
 
 example (h : (7 : Int) ≤ 0) : False := by omega
@@ -294,6 +293,29 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
   omega
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
+
+-- Test that we consume expression metadata when necessary.
+example : 0 = 0 := by
+  have : 0 = 0 := by omega
+  omega -- This used to fail.
+
+/-! ### `Prod.Lex` -/
+
+-- This example comes from the termination proof
+-- for `permutationsAux.rec` in `Mathlib.Data.List.Defs`.
+example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by omega
+
+-- We test the termination proof in-situ:
+def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is, C [] is)
+    (H1 : ∀ t ts is, C ts (t :: is) → C is [] → C (t :: ts) is) : ∀ l₁ l₂, C l₁ l₂
+  | [], is => H0 is
+  | t :: ts, is =>
+      H1 t ts is (permutationsAux.rec' H0 H1 ts (t :: is)) (permutationsAux.rec' H0 H1 is [])
+  termination_by _ ts is => (length ts + length is, length ts)
+  decreasing_by simp_wf; omega
+
+example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
+    Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
 
 -- Verify that we can handle `iff` statements in hypotheses:
 example (a b : Int) (h : a < 0 ↔ b < 0) (w : b > 3) : a ≥ 0 := by omega
