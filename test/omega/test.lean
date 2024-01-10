@@ -303,3 +303,15 @@ example (i n : Nat) (hi : i ≤ n := by omega) : i < n + 1 := by
 example : 0 = 0 := by
   have : 0 = 0 := by omega
   omega -- This used to fail.
+
+-- Verify that we can handle `iff` statements in hypotheses:
+example (a b : Int) (h : a < 0 ↔ b < 0) (w : b > 3) : a ≥ 0 := by omega
+
+-- Verify that we can prove `iff` goals:
+example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
+
+-- Verify that we can prove implications:
+example (a : Int) : a > 0 → a > -1 := by omega
+
+-- Verify that we don't treat function goals as implications.
+example (a : Nat) (h : a < 0) : Nat → Nat := by omega

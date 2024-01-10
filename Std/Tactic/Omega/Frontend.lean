@@ -36,8 +36,6 @@ and progressively process the facts.
 As we process the facts, we may generate additional facts
 (e.g. about coercions and integer divisions).
 To avoid duplicates, we maintain a `HashSet` of previously processed facts.
-
-TODO: we may want to solve equalities as we find them.
 -/
 structure MetaProblem where
   /-- An integer linear arithmetic problem. -/
@@ -252,29 +250,37 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
 def pushNot (h P : Expr) : MetaM (Option Expr) := do
-  match (← whnfR P).getAppFnArgs with
-  | (``LT.lt, #[.const ``Int [], _, x, y]) =>
-    return some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
-  | (``LE.le, #[.const ``Int [], _, x, y]) =>
-    return some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
-  | (``LT.lt, #[.const ``Nat [], _, x, y]) =>
-    return some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
-  | (``LE.le, #[.const ``Nat [], _, x, y]) =>
-    return some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
-  | (``Eq, #[.const ``Nat [], x, y]) =>
-    return some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-  | (``Eq, #[.const ``Int [], x, y]) =>
-    return some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
-  | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
-    return some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
-  | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
-    -- This introduces a disjunction that could be avoided by checking `k ≠ 0`.
-    return some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
-  | (``Or, #[P₁, P₂]) => return some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
-  | (``And, #[P₁, P₂]) =>
-    return some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
-      (.app (.const ``Classical.propDecidable []) P₁)
-      (.app (.const ``Classical.propDecidable []) P₂) h)
+  let P ← whnfR P
+  match P with
+  | .forallE _ t b _ =>
+    if (← isProp t) && (← isProp b) then
+     return some (mkApp4 (.const ``Decidable.and_not_of_not_imp []) t b
+      (.app (.const ``Classical.propDecidable []) t) h)
+    else
+      return none
+  | .app _ _ =>
+    return match P.getAppFnArgs with
+    | (``LT.lt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
+    | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
+    | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
+    | (``LE.le, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
+    | (``Eq, #[.const ``Nat [], x, y]) => some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
+    | (``Eq, #[.const ``Int [], x, y]) => some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+    | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
+      some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
+    | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
+      -- This introduces a disjunction that could be avoided by checking `k ≠ 0`.
+      some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
+    | (``Or, #[P₁, P₂]) => some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
+    | (``And, #[P₁, P₂]) =>
+      some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
+        (.app (.const ``Classical.propDecidable []) P₁)
+        (.app (.const ``Classical.propDecidable []) P₂) h)
+    | (``Iff, #[P₁, P₂]) =>
+      some (mkApp5 (.const ``Decidable.and_not_or_not_and_of_not_iff []) P₁ P₂
+        (.app (.const ``Classical.propDecidable []) P₁)
+        (.app (.const ``Classical.propDecidable []) P₂) h)
+    | _ => none
   | _ => return none
 
 /--
@@ -321,6 +327,9 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Exists.choose_spec [← getLevel α]) α P h)
     | (``Subtype, #[α, P]) =>
       p.addFact (mkApp3 (.const ``Subtype.property [← getLevel α]) α P h)
+    | (``Iff, #[P₁, P₂]) =>
+      p.addFact (mkApp4 (.const ``Decidable.and_or_not_and_not_of_iff [])
+        P₁ P₂ (.app (.const ``Classical.propDecidable []) P₂) h)
     | (``Or, #[_, _]) =>
       if (← cfg).splitDisjunctions then
         return ({ p with disjunctions := p.disjunctions.insert h }, 1)
