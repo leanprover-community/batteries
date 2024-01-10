@@ -52,7 +52,7 @@ def falseOrByContra (g : MVarId) (useClassical : Option Bool := none) : MetaM MV
     else
       pure none
     if let some gs := gs then
-      let [g] := gs | panic! "expected one sugoal"
+      let [g] := gs | panic! "expected one subgoal"
       pure (← g.intro1).2
     else
       let [g] ← g.applyConst ``False.elim | panic! "expected one sugoal"
