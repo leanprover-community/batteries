@@ -251,25 +251,31 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
       (some do mkAppM ``le_of_le_of_eq #[h, (← prf)])) |>.solveEqualities }
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
-def pushNot (h P : Expr) : Option Expr := do
-  match P.getAppFnArgs with
-  | (``LT.lt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
-  | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
-  | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
-  | (``LE.le, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
-  | (``Eq, #[.const ``Nat [], x, y]) => some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-  | (``Eq, #[.const ``Int [], x, y]) => some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+def pushNot (h P : Expr) : MetaM (Option Expr) := do
+  match (← whnfR P).getAppFnArgs with
+  | (``LT.lt, #[.const ``Int [], _, x, y]) =>
+    return some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
+  | (``LE.le, #[.const ``Int [], _, x, y]) =>
+    return some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
+  | (``LT.lt, #[.const ``Nat [], _, x, y]) =>
+    return some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
+  | (``LE.le, #[.const ``Nat [], _, x, y]) =>
+    return some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
+  | (``Eq, #[.const ``Nat [], x, y]) =>
+    return some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
+  | (``Eq, #[.const ``Int [], x, y]) =>
+    return some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
   | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
-    some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
+    return some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
   | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
     -- This introduces a disjunction that could be avoided by checking `k ≠ 0`.
-    some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
-  | (``Or, #[P₁, P₂]) => some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
+    return some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
+  | (``Or, #[P₁, P₂]) => return some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
   | (``And, #[P₁, P₂]) =>
-    some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
+    return some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
       (.app (.const ``Classical.propDecidable []) P₁)
       (.app (.const ``Classical.propDecidable []) P₂) h)
-  | _ => none
+  | _ => return none
 
 /--
 Parse an `Expr` and extract facts, also returning the number of new facts found.
@@ -292,7 +298,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Int.add_one_le_of_lt []) x y h)
     | (``Ne, #[.const ``Nat [], x, y]) =>
       p.addFact (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-    | (``Not, #[P]) => match pushNot h P with
+    | (``Not, #[P]) => match ← pushNot h P with
       | none => return (p, 0)
       | some h' => p.addFact h'
     | (``Eq, #[.const ``Nat [], x, y]) =>
