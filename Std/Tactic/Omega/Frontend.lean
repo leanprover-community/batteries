@@ -482,6 +482,7 @@ elab_rules : tactic |
   let cfg ← elabOmegaConfig (mkOptionalNode cfg)
   liftMetaFinishingTactic fun g => do
     let g ← falseOrByContra g
+      (useClassical := false) -- because all the hypotheses we can make use of are decidable
     g.withContext do
       let hyps := (← getLocalHyps).toList
       trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
