@@ -283,8 +283,10 @@ def pushNot (h P : Expr) : MetaM (Option Expr) := do
       return some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
     | (``LE.le, #[.const ``Nat [], _, x, y]) =>
       return some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
-    | (``Eq, #[.const ``Nat [], x, y]) => return some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-    | (``Eq, #[.const ``Int [], x, y]) => return some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+    | (``Eq, #[.const ``Nat [], x, y]) =>
+      return some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
+    | (``Eq, #[.const ``Int [], x, y]) =>
+      return some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
     | (``Prod.Lex, _) => return some (← mkAppM ``Prod.of_not_lex #[h])
     | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
       return some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
