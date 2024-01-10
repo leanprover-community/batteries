@@ -243,8 +243,6 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
     problem := ← (p.problem.addInequality lc.const lc.coeffs
       (some do mkAppM ``le_of_le_of_eq #[h, (← prf)])) |>.solveEqualities }
 
-
-
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
 def pushNot (h P : Expr) : MetaM (Option Expr) := do
   match P with
