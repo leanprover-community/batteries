@@ -48,6 +48,11 @@ example {x y : Int} (_ : 6 * x + 7 * y = 5) : True := by (fail_if_success omega)
 
 example {x y : Nat} (_ : 6 * x + 7 * y = 5) : False := by omega
 
+example {x y : Nat} (_ : x * 6 + y * 7 = 5) : False := by omega
+example {x y : Nat} (_ : 2 * (3 * x) + y * 7 = 5) : False := by omega
+example {x y : Nat} (_ : 2 * x * 3 + y * 7 = 5) : False := by omega
+example {x y : Nat} (_ : 2 * 3 * x + y * 7 = 5) : False := by omega
+
 example {x : Nat} (_ : x < 0) : False := by omega
 
 example {x y z : Int} (_ : x + y > z) (_ : x < 0) (_ : y < 0) (_ : z > 0) : False := by omega
@@ -311,3 +316,15 @@ def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is,
 
 example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
     Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
+
+-- Verify that we can handle `iff` statements in hypotheses:
+example (a b : Int) (h : a < 0 ↔ b < 0) (w : b > 3) : a ≥ 0 := by omega
+
+-- Verify that we can prove `iff` goals:
+example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
+
+-- Verify that we can prove implications:
+example (a : Int) : a > 0 → a > -1 := by omega
+
+-- Verify that we don't treat function goals as implications.
+example (a : Nat) (h : a < 0) : Nat → Nat := by omega

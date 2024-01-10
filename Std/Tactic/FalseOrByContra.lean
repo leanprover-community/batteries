@@ -25,7 +25,8 @@ Changes the goal to `False`, retaining as much information as possible:
 If the goal is `False`, do nothing.
 If the goal is `¬ P`, introduce `P`.
 If the goal is `x ≠ y`, introduce `x = y`.
-Otherwise, for a goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
+Otherwise, for a propositional goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
+For a non-propositional goal use `False.elim`.
 -/
 syntax (name := false_or_by_contra) "false_or_by_contra" : tactic
 
@@ -33,13 +34,19 @@ open Meta Elab Tactic
 
 @[inherit_doc false_or_by_contra]
 def falseOrByContra (g : MVarId) : MetaM MVarId := do
-  match ← whnfR (← g.getType) with
+  let ty ← whnfR (← g.getType)
+  match ty with
   | .const ``False _ => pure g
   | .app (.const ``Not _) _
   | .app (.const ``Ne _) _ => pure (← g.intro1).2
   | _ =>
-    let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
-    pure (← g.intro1).2
+    if ← isProp ty then
+      let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
+      pure (← g.intro1).2
+    else
+      let [g] ← g.applyConst ``False.elim | panic! "expected one sugoal"
+      pure g
+
 
 @[inherit_doc falseOrByContra]
 elab "false_or_by_contra" : tactic => liftMetaTactic1 (falseOrByContra ·)
