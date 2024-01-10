@@ -53,15 +53,18 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     simpOnlyBuiltins.foldlM (·.addConst ·) {}
   else
     pure simpTheorems
+  let simprocs ← if simpOnly then pure {} else Simp.getSimprocs
   let congrTheorems ← Meta.getSimpCongrTheorems
   let r ← elabSimpArgs stx[4] (eraseLocal := eraseLocal) (kind := kind) {
     config       := (← elabSimpConfig stx[1] (kind := kind))
     simpTheorems := #[simpTheorems], congrTheorems
-  }
+  } simprocs
   if !r.starArg || ignoreStarArg then
     return { r with dischargeWrapper }
   else
-    let mut simpTheorems := r.ctx.simpTheorems
+    let ctx := r.ctx
+    let mut simpTheorems := ctx.simpTheorems
+    let simprocs := r.simprocs
     /-
     When using `zeta := false`, we do not expand let-declarations when using `[*]`.
     Users must explicitly include it in the list.
@@ -70,7 +73,9 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     for h in hs do
       unless simpTheorems.isErased (.fvar h) do
         simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
-    return { ctx := { r.ctx with simpTheorems }, dischargeWrapper }
+    let ctx := { ctx with simpTheorems }
+    return { ctx, simprocs, dischargeWrapper }
+
 
 end Simp
 
