@@ -1,12 +1,40 @@
 import Lean.Meta.DiscrTree
 import Std.Data.Nat.Init.Lemmas
 
-namespace Lean.Meta
+namespace Lean.Meta.LazyDiscrTree
 
-namespace LazyDiscrTree
-
+-- This namespace contains definitions copied from Lean.Meta.DiscrTree.
 namespace MatchClone
-open DiscrTree
+
+/--
+Discrimination tree key.
+-/
+private inductive Key where
+    /-- Constant -/
+  | const : Name → Nat → Key
+  | fvar  : FVarId → Nat → Key
+  | lit   : Literal → Key
+  | star  : Key
+  | other : Key
+  | arrow : Key
+  | proj  : Name → Nat → Nat → Key
+  deriving Inhabited, BEq, Repr
+
+namespace Key
+
+/-- Hash function -/
+protected def hash : Key → UInt64
+  | .const n a   => mixHash 5237 $ mixHash n.hash (hash a)
+  | .fvar n a    => mixHash 3541 $ mixHash (hash n) (hash a)
+  | .lit v       => mixHash 1879 $ hash v
+  | .star        => 7883
+  | .other       => 2411
+  | .arrow       => 17
+  | .proj s i a  =>  mixHash (hash a) $ mixHash (hash s) (hash i)
+
+instance : Hashable Key := ⟨Key.hash⟩
+
+end Key
 
 private def tmpMVarId : MVarId := { name := `_discr_tree_tmp }
 private def tmpStar := mkMVar tmpMVarId
@@ -169,7 +197,7 @@ private def elimLooseBVarsByBeta (e : Expr) : CoreM Expr :=
 
 private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig) :
     MetaM (Key × Array Expr) := do
-  let e ← reduceDT e root config
+  let e ← DiscrTree.reduceDT e root config
   unless root do
     -- See pushArgs
     if let some v := toNatLit? e then
@@ -257,24 +285,18 @@ private abbrev getMatchKeyArgs (e : Expr) (root : Bool) (config : WhnfCoreConfig
 
 end MatchClone
 
-export DiscrTree (Key)
-
-/--
-Stack of subexpressions to process to generate key.
--/
-@[reducible] def ExprRest := Array Expr
-  deriving Inhabited
+export MatchClone (Key Key.const)
 
 /--
 An unprocessed entry in the lazy discriminator tree.
 -/
-abbrev LazyEntry α := ExprRest × ((LocalContext × LocalInstances) × α)
+private abbrev LazyEntry α := Array Expr × ((LocalContext × LocalInstances) × α)
 
 /--
 Index identifying trie in a discriminator tree.
 -/
 @[reducible]
-def TrieIndex := Nat
+private def TrieIndex := Nat
 
 /--
 Discrimination tree trie. See `LazyDiscrTree`.
@@ -332,14 +354,14 @@ open Lean.Meta.DiscrTree (mkNoindexAnnotation hasNoindexAnnotation reduceDT)
 /--
 Specialization of Lean.Meta.DiscrTree.pushArgs
 -/
-private def pushArgs (root : Bool) (todo : ExprRest) (e : Expr) (config : WhnfCoreConfig) :
-    MetaM (Key × ExprRest) := do
+private def pushArgs (root : Bool) (todo : Array Expr) (e : Expr) (config : WhnfCoreConfig) :
+    MetaM (Key × Array Expr) := do
   if hasNoindexAnnotation e then
     return (.star, todo)
   else
     let e ← reduceDT e root config
     let fn := e.getAppFn
-    let push (k : Key) (nargs : Nat) (todo : ExprRest) : MetaM (Key × ExprRest) := do
+    let push (k : Key) (nargs : Nat) (todo : Array Expr) : MetaM (Key × Array Expr) := do
       let info ← getFunInfoNArgs fn nargs
       let todo ← MatchClone.pushArgsAux info.paramInfo (nargs-1) e todo
       return (k, todo)
