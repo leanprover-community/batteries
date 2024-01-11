@@ -310,7 +310,7 @@ def processConstructor (ref : Syntax) (info : Array ParamInfo)
       | [p] => ([p.name?.getD `_], [p])
       | ps  => ([`_], [(bif explicit then .explicit ref else id) (.tuple ref ps)])
   else ([], [])
-termination_by _ => info.size - idx
+termination_by info.size - idx
 
 /--
 Takes a list of constructor names, and an (alternation) list of patterns, and matches each
