@@ -71,7 +71,7 @@ open System (FilePath)
 
 /--
 Once we reach Mathlib, and have `cache` available,
-it will be essential that we load a precomputed cache for `exact?` from a `.olean` file.
+we may still want to load a precomputed cache for `exact?` from a `.olean` file.
 
 This makes no sense here in Std, where there is no caching mechanism.
 -/
