@@ -298,6 +298,9 @@ def pushNot (h P : Expr) : MetaM (Option Expr) := do
       return some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
         (.app (.const ``Classical.propDecidable []) P₂) h)
+    | (``Not, #[P']) =>
+      return some (mkApp3 (.const ``Decidable.of_not_not []) P'
+        (.app (.const ``Classical.propDecidable []) P') h)
     | (``Iff, #[P₁, P₂]) =>
       return some (mkApp5 (.const ``Decidable.and_not_or_not_and_of_not_iff []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
@@ -313,6 +316,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
     return (p, 0)
   else
     let t ← instantiateMVars (← inferType h)
+    trace[omega] "adding fact: {t}"
     match t.getAppFnArgs with
     | (``Eq, #[.const ``Int [], x, y]) =>
       match y.int? with

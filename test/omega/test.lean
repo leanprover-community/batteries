@@ -326,5 +326,8 @@ example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
 -- Verify that we can prove implications:
 example (a : Int) : a > 0 → a > -1 := by omega
 
+-- Verify that we can handle double negation:
+example (x y : Int) : x + 1 ≤ y → ¬ y + 1 ≤ x := by omega
+
 -- Verify that we don't treat function goals as implications.
 example (a : Nat) (h : a < 0) : Nat → Nat := by omega
