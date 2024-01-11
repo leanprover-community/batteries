@@ -334,3 +334,8 @@ example (x y : Int) (_ : x < y) (_ : ¬ ¬ y < x) : False := by omega
 
 -- Verify that we don't treat function goals as implications.
 example (a : Nat) (h : a < 0) : Nat → Nat := by omega
+
+-- Example from Cedar:
+example {a₁ a₂ p₁ p₂ : Nat}
+  (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
+  (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
