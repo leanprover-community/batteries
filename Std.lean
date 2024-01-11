@@ -120,7 +120,7 @@ import Std.Tactic.Omega.Frontend
 import Std.Tactic.Omega.Int
 import Std.Tactic.Omega.IntList
 import Std.Tactic.Omega.LinearCombo
-import Std.Tactic.Omega.Logic.Basic
+import Std.Tactic.Omega.Logic
 import Std.Tactic.Omega.MinNatAbs
 import Std.Tactic.Omega.OmegaM
 import Std.Tactic.OpenPrivate
