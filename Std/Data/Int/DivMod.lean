@@ -445,6 +445,9 @@ theorem ediv_add_emod' (m k : Int) : m / k * k + m % k = m := by
 @[simp] theorem add_emod_self_left {a b : Int} : (a + b) % a = b % a := by
   rw [Int.add_comm, Int.add_emod_self]
 
+theorem neg_emod {a b : Int} : -a % b = (b - a) % b := by
+  rw [← add_emod_self_left]; rfl
+
 @[simp] theorem emod_add_emod (m n k : Int) : (m % n + k) % n = (m + k) % n := by
   have := (add_mul_emod_self_left (m % n + k) n (m / n)).symm
   rwa [Int.add_right_comm, emod_add_ediv] at this

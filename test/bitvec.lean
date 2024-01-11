@@ -1,5 +1,5 @@
 import Std.Tactic.GuardExpr
-import Std.Data.BitVec.Basic
+import Std.Data.BitVec
 
 open Std.BitVec
 
@@ -93,6 +93,20 @@ open Std.BitVec
 #guard extractLsb 3 0 0x1234#16 = 4
 #guard extractLsb 7 4 0x1234#16 = 3
 #guard extractLsb' 0 4 0x1234#16 = 0x4#4
+
+open Std
+
+/--
+This tests the match compiler with bitvector literals to ensure
+it can successfully generate a pattern for a bitvector literals.
+
+This fixes a regression introduced in PR #366.
+-/
+def testMatch8 (i : BitVec 32) :=
+  let op1 := i.extractLsb 28 25
+  match op1 with
+  | 0b1000#4 => some 0
+  | _ => none
 
 -- Pretty-printing
 

@@ -23,10 +23,22 @@ and then call the cancellation hook to request cancellation of later unwanted ta
 (Similarly also for `CoreM`, `TermElabM`, and `TacticM`.)
 
 ## Implementation notes:
+We have not thoroughly tested this approach to parallelization,
+and remain concerned that in some applications tasks may get stuck waiting for each other.
+This is currently used to implement parallelization for the `hint` tactic.
+We recommend using this elsewhere only with caution,
+and particular caution combining it with other code that manipulates tasks!
+
 Calling `IO.cancel` on `t.map f` does not cancel `t`,
 so we have to be careful throughout this file
 to construct cancellation hooks connected to the underlying task,
 rather than the various maps of it that we construct to pass state.
+
+In several places below we use `prio := .max` to set the priority of tasks higher.
+This is only used on `map` tasks which run after the main workload has finished.
+This helps avoid the situation where the main workload has finished,
+but the value is not returned to the consumer because
+other long-running tasks are scheduled before the `map`.
 
 Thomas Murrills has a suggestion to significantly refactor this code,
 reducing duplication using `MonadControl`, but it will require a core change.

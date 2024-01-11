@@ -196,3 +196,13 @@ inductive BaseTypeHom : BaseType → BaseType → Type where
   | id (X : BaseType) : BaseTypeHom X X
 
 example : BaseTypeHom one one → Unit := by rintro ⟨_⟩ <;> constructor
+
+axiom test_sorry {α} : α
+example (b c : Nat) : True := by
+  obtain rfl : b = c ^ 2 := test_sorry
+  trivial
+
+example (b c : Nat) : True := by
+  obtain h : b = c ^ 2 := test_sorry
+  subst h
+  trivial
