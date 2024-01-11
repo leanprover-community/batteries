@@ -276,8 +276,8 @@ theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
       have := reverse.termination h
       simp [(go · (i+1) ⟨j-1, ·⟩), h]
     else simp [h]
+    termination_by j - i
   simp only [reverse]; split <;> simp [go]
-termination_by _ => j - i
 
 @[simp] theorem size_range {n : Nat} : (range n).size = n := by
   unfold range
@@ -323,6 +323,7 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
         cases Nat.le_antisymm h₂.1 h₂.2
         exact (List.get?_reverse' _ _ h).symm
       · rfl
+    termination_by j - i
   simp only [reverse]; split
   · match a with | ⟨[]⟩ | ⟨[_]⟩ => rfl
   · have := Nat.sub_add_cancel (Nat.le_of_not_le ‹_›)
@@ -330,7 +331,6 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
     split; {rfl}; rename_i h
     simp [← show k < _ + 1 ↔ _ from Nat.lt_succ (n := a.size - 1), this] at h
     rw [List.get?_eq_none.2 ‹_›, List.get?_eq_none.2 (a.data.length_reverse ▸ ‹_›)]
-termination_by _ => j - i
 
 @[simp] theorem size_ofFn_go {n} (f : Fin n → α) (i acc) :
     (ofFn.go f i acc).size = acc.size + (n - i) := by
@@ -343,7 +343,7 @@ termination_by _ => j - i
     have : n - i = 0 := Nat.sub_eq_zero_of_le (Nat.le_of_not_lt hin)
     unfold ofFn.go
     simp [hin, this]
-termination_by _ => n - i
+termination_by n - i
 
 @[simp] theorem size_ofFn (f : Fin n → α) : (ofFn f).size = n := by simp [ofFn]
 
@@ -363,7 +363,7 @@ theorem getElem_ofFn_go (f : Fin n → α) (i) {acc k}
     | inr hj => simp [get_push, *]
   else
     simp [hin, hacc k (Nat.lt_of_lt_of_le hki (Nat.le_of_not_lt (hi ▸ hin)))]
-termination_by _ => n - i
+termination_by n - i
 
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
@@ -427,8 +427,8 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
         ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
       simp only [List.get_cons_drop]
+    termination_by as.size - i
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
-termination_by loop i _ _ _ => as.size - i
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
