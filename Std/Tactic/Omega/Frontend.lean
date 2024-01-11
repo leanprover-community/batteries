@@ -190,6 +190,22 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     | (``HMod.hMod, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_emod []) a b)
     | (``HSub.hSub, #[_, _, _, _, mkAppN (.const ``HSub.hSub _) #[_, _, _, _, a, b], c]) =>
       rewrite e (mkApp3 (.const ``Int.ofNat_sub_sub []) a b c)
+    | (``Prod.fst, #[_, β, p]) => match p with
+      | .app (.app (.app (.app (.const ``Prod.mk [0, v]) _) _) x) y =>
+        rewrite e (mkApp3 (.const ``Int.ofNat_fst_mk [v]) β x y)
+      | _ => mkAtomLinearCombo e
+    | (``Prod.snd, #[α, _, p]) => match p with
+      | .app (.app (.app (.app (.const ``Prod.mk [u, 0]) _) _) x) y =>
+        rewrite e (mkApp3 (.const ``Int.ofNat_snd_mk [u]) α x y)
+      | _ => mkAtomLinearCombo e
+    | _ => mkAtomLinearCombo e
+  | (``Prod.fst, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.fst_mk [u, v]) α x β y)
+    | _ => mkAtomLinearCombo e
+  | (``Prod.snd, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.snd_mk [u, v]) α x β y)
     | _ => mkAtomLinearCombo e
   | _ => mkAtomLinearCombo e
 where
@@ -207,7 +223,6 @@ where
     | none => panic! "Invalid rewrite rule in 'asLinearCombo'"
 
 end
-
 namespace MetaProblem
 
 /-- The trivial `MetaProblem`, with no facts to processs and a trivial `Problem`. -/
@@ -250,6 +265,7 @@ def addIntInequality (p : MetaProblem) (h y : Expr) : OmegaM MetaProblem := do
 
 /-- Given a fact `h` with type `¬ P`, return a more useful fact obtained by pushing the negation. -/
 def pushNot (h P : Expr) : MetaM (Option Expr) := do
+  let P ← whnfR P
   match P with
   | .forallE _ t b _ =>
     if (← isProp t) && (← isProp b) then
@@ -258,32 +274,35 @@ def pushNot (h P : Expr) : MetaM (Option Expr) := do
     else
       return none
   | .app _ _ =>
-    return match P.getAppFnArgs with
-    | (``LT.lt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
-    | (``LE.le, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
-    | (``LT.lt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
-    | (``LE.le, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
-    | (``GT.gt, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.le_of_not_lt []) y x h)
-    | (``GE.ge, #[.const ``Int [], _, x, y]) => some (mkApp3 (.const ``Int.lt_of_not_le []) y x h)
-    | (``GT.gt, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.le_of_not_lt []) y x h)
-    | (``GE.ge, #[.const ``Nat [], _, x, y]) => some (mkApp3 (.const ``Nat.lt_of_not_le []) y x h)
-    | (``Eq, #[.const ``Nat [], x, y]) => some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-    | (``Eq, #[.const ``Int [], x, y]) => some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+    match P.getAppFnArgs with
+    | (``LT.lt, #[.const ``Int [], _, x, y]) =>
+      return some (mkApp3 (.const ``Int.le_of_not_lt []) x y h)
+    | (``LE.le, #[.const ``Int [], _, x, y]) =>
+      return some (mkApp3 (.const ``Int.lt_of_not_le []) x y h)
+    | (``LT.lt, #[.const ``Nat [], _, x, y]) =>
+      return some (mkApp3 (.const ``Nat.le_of_not_lt []) x y h)
+    | (``LE.le, #[.const ``Nat [], _, x, y]) =>
+      return some (mkApp3 (.const ``Nat.lt_of_not_le []) x y h)
+    | (``Eq, #[.const ``Nat [], x, y]) =>
+      return some (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
+    | (``Eq, #[.const ``Int [], x, y]) =>
+      return some (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+    | (``Prod.Lex, _) => return some (← mkAppM ``Prod.of_not_lex #[h])
     | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
-      some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
+      return some (mkApp3 (.const ``Nat.emod_pos_of_not_dvd []) k x h)
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
       -- This introduces a disjunction that could be avoided by checking `k ≠ 0`.
-      some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
-    | (``Or, #[P₁, P₂]) => some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
+      return some (mkApp3 (.const ``Int.emod_pos_of_not_dvd []) k x h)
+    | (``Or, #[P₁, P₂]) => return some (mkApp3 (.const ``and_not_not_of_not_or []) P₁ P₂ h)
     | (``And, #[P₁, P₂]) =>
-      some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
+      return some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
         (.app (.const ``Classical.propDecidable []) P₂) h)
     | (``Iff, #[P₁, P₂]) =>
-      some (mkApp5 (.const ``Decidable.and_not_or_not_and_of_not_iff []) P₁ P₂
+      return some (mkApp5 (.const ``Decidable.and_not_or_not_and_of_not_iff []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
         (.app (.const ``Classical.propDecidable []) P₂) h)
-    | _ => none
+    | _ => return none
   | _ => return none
 
 /--
@@ -326,6 +345,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       p.addFact (mkApp3 (.const ``Int.ofNat_le_of_le []) x y h)
     | (``Ne, #[.const ``Int [], x, y]) =>
       p.addFact (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+    | (``Prod.Lex, _) => p.addFact (← mkAppM ``Prod.of_lex #[h])
     | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
       p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
     | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
@@ -446,6 +466,21 @@ def omega (facts : List Expr) (g : MVarId) (cfg : OmegaConfig := {}) : MetaM Uni
 
 open Lean Elab Tactic Parser.Tactic
 
+/-- The `omega` tactic, for resolving integer and natural linear arithmetic problems. -/
+def omegaTactic (cfg : OmegaConfig) : TacticM Unit := do
+  liftMetaFinishingTactic fun g => do
+    let g ← falseOrByContra g
+      (useClassical := false) -- because all the hypotheses we can make use of are decidable
+    g.withContext do
+      let hyps := (← getLocalHyps).toList
+      trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
+      omega hyps g cfg
+
+/-- The `omega` tactic, for resolving integer and natural linear arithmetic problems. This
+`TacticM Unit` frontend with default configuration can be used as an Aesop rule, for example via
+the tactic call `aesop (add 50% tactic Std.Tactic.Omega.omegaDefault)`. -/
+def omegaDefault : TacticM Unit := omegaTactic {}
+
 /--
 The `omega` tactic, for resolving integer and natural linear arithmetic problems.
 
@@ -480,10 +515,4 @@ syntax (name := omegaSyntax) "omega" (config)? : tactic
 elab_rules : tactic |
     `(tactic| omega $[$cfg]?) => do
   let cfg ← elabOmegaConfig (mkOptionalNode cfg)
-  liftMetaFinishingTactic fun g => do
-    let g ← falseOrByContra g
-      (useClassical := false) -- because all the hypotheses we can make use of are decidable
-    g.withContext do
-      let hyps := (← getLocalHyps).toList
-      trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
-      omega hyps g cfg
+  omegaTactic cfg
