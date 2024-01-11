@@ -262,7 +262,7 @@ export DiscrTree (Key)
 /--
 Stack of subexpressions to process to generate key.
 -/
-def ExprRest := Array Expr
+@[reducible] def ExprRest := Array Expr
   deriving Inhabited
 
 /--
@@ -279,7 +279,7 @@ def TrieIndex := Nat
 /--
 Discrimination tree trie. See `LazyDiscrTree`.
 -/
-structure Trie (α : Type) where
+private structure Trie (α : Type) where
   node ::
     /-- Values for matches ending at this trie. -/
     values : Array α
@@ -393,7 +393,7 @@ private def initCapacity := 8
 /--
 Get the root key and rest of terms of an expression using the specified config.
 -/
-def rootKey (cfg: WhnfCoreConfig) (e : Expr) : MetaM (Key × Array Expr) :=
+private def rootKey (cfg: WhnfCoreConfig) (e : Expr) : MetaM (Key × Array Expr) :=
   pushArgs true (Array.mkEmpty initCapacity) e cfg
 
 private partial def mkPathAux (root : Bool) (todo : Array Expr) (keys : Array Key)
@@ -412,7 +412,7 @@ Create a path from an expression.
 This differs from Lean.Meta.DiscrTree.mkPath in that the expression
 should uses free variables rather than meta-variables for holes.
 -/
-def mkPath (e : Expr) (config : WhnfCoreConfig) : MetaM (Array Key) := do
+private def mkPath (e : Expr) (config : WhnfCoreConfig) : MetaM (Array Key) := do
   let todo : Array Expr := .mkEmpty initCapacity
   let keys : Array Key := .mkEmpty initCapacity
   mkPathAux (root := true) (todo.push e) keys config
@@ -491,7 +491,7 @@ Return the information about the trie at the given idnex.
 
 Used for internal debugging purposes.
 -/
-def getTrie (d : LazyDiscrTree α) (idx : TrieIndex) :
+private def getTrie (d : LazyDiscrTree α) (idx : TrieIndex) :
     MetaM ((Array α × TrieIndex × HashMap Key TrieIndex) × LazyDiscrTree α) :=
   runMatch (evalNode idx) d
 
@@ -563,7 +563,7 @@ private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Arra
 /--
   Find values that match `e` in `d`.
 -/
-def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (MatchResult α) :=
+private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (MatchResult α) :=
   withReducible do
     let result ← getStarResult root
     let (k, args) ← MatchClone.getMatchKeyArgs e (root := true) (←read)
@@ -585,7 +585,7 @@ def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTre
 Structure for quickly initializing a lazy discrimination tree with a large number
 of elements using concurrent functions for generating entries.
 -/
-structure PreDiscrTree (α : Type) where
+private structure PreDiscrTree (α : Type) where
   /-- Maps keys to index in tries array. -/
   roots : HashMap Key Nat := {}
   /-- Lazy entries for root of treie-/
@@ -605,11 +605,11 @@ private def modifyAt (d : PreDiscrTree α) (k : Key)
     { roots, tries := tries.modify i f }
 
 /-- Add an entries to the pre-discrimination tree.-/
-def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
+private def push (d : PreDiscrTree α) (k : Key) (e : LazyEntry α) : PreDiscrTree α :=
   d.modifyAt k (·.push e)
 
 /-- Convert a pre-discrimination tree to a lazy discrimination tree. -/
-def toLazy (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
+private def toLazy (d : PreDiscrTree α) (config : WhnfCoreConfig := {}) : LazyDiscrTree α :=
   let { roots, tries } := d
   { config, roots, tries := tries.map (.node {} 0 {}) }
 
@@ -627,3 +627,192 @@ instance : Append (PreDiscrTree α) where
   append := PreDiscrTree.append
 
 end PreDiscrTree
+
+/-- Initial entry in lazy discrimination tree -/
+@[reducible]
+structure InitEntry (α : Type) where
+  /-- Return root key for an entry. -/
+  key : Key
+  /-- Returns rest of entry for later insertion. -/
+  entry : LazyEntry α
+
+namespace InitEntry
+
+/--
+Constructs an initial entry from an expression and value.
+-/
+def fromExpr (expr : Expr) (value : α) (config : WhnfCoreConfig := {}) : MetaM (InitEntry α) := do
+  let lctx ← getLCtx
+  let linst ← getLocalInstances
+  let lctx := (lctx, linst)
+  let (key, todo) ← LazyDiscrTree.rootKey config expr
+  pure <| { key, entry := (todo, lctx, value) }
+
+/--
+Creates an entry for a subterm of an initial entry.
+
+This is slightly more efficient than using `fromExpr` on subterms since it avoids a redundant call
+to `whnf`.
+-/
+def mkSubEntry (e : InitEntry α) (idx : Nat) (value : α) (config : WhnfCoreConfig := {}) : MetaM (InitEntry α) := do
+  let (todo, lctx, _) := e.entry
+  let (key, todo) ← LazyDiscrTree.rootKey config todo[idx]!
+  pure <| { key, entry := (todo, lctx, value) }
+
+end InitEntry
+
+/-- Information about a failed import. -/
+private structure ImportFailure where
+  /-- Module with constant that import failed on. -/
+  module  : Name
+  /-- Constant that import failed on. -/
+  const   : Name
+  /-- Exception that triggers error. -/
+  exception : Exception
+
+/-- Information generation from imported modules. -/
+private structure ImportData where
+  cache : IO.Ref (Lean.Meta.Cache)
+  errors : IO.Ref (Array ImportFailure)
+
+private def ImportData.new : BaseIO ImportData := do
+  let cache ← IO.mkRef {}
+  let errors ← IO.mkRef #[]
+  pure { cache, errors }
+
+/--
+An even wider class of "internal" names than reported by `Name.isInternalDetail`.
+-/
+-- from Lean.Server.Completion
+def isBlackListed (env : Environment) (declName : Name) : Bool :=
+  declName == ``sorryAx
+  || declName.isInternalDetail
+  || declName matches .str _ "inj"
+  || declName matches .str _ "noConfusionType"
+  || isAuxRecursor env declName
+  || isNoConfusion env declName
+  || isRecCore env declName
+  || isMatcherCore env declName
+
+
+private def addConstImportData
+    (env : Environment)
+    (modName : Name)
+    (d : ImportData)
+    (tree : PreDiscrTree α)
+    (act : Name → ConstantInfo → MetaM (Array (InitEntry α)))
+    (name : Name) (constInfo : ConstantInfo) : BaseIO (PreDiscrTree α) := do
+  if constInfo.isUnsafe then return tree
+  if isBlackListed env name then return tree
+  let mstate : Meta.State := { cache := ←d.cache.get }
+  d.cache.set {}
+  let ctx : Meta.Context := { config := { transparency := .reducible } }
+  let cm := (act name constInfo).run ctx mstate
+  let cctx : Core.Context := {
+    fileName := default,
+    fileMap := default
+  }
+  let cstate : Core.State := {env}
+  match ←(cm.run cctx cstate).toBaseIO with
+  | .ok ((a, ms), _) =>
+    d.cache.set ms.cache
+    pure <| a.foldl (fun t e => t.push e.key e.entry) tree
+  | .error e =>
+    let i : ImportFailure := {
+      module := modName,
+      const := name,
+      exception := e
+    }
+    d.errors.modify (·.push i)
+    pure tree
+
+
+/--
+Contains the pre discrimination tree and any errors occuring during initialization of
+the library search tree.
+-/
+private structure InitResults (α : Type) where
+  tree  : PreDiscrTree α := {}
+  errors : Array ImportFailure := #[]
+
+instance : Inhabited (InitResults α) where
+  default := {}
+
+namespace InitResults
+
+/-- Combine two initial results. -/
+protected def append (x y : InitResults α) : InitResults α :=
+  let { tree := xv, errors := xe } := x
+  let { tree := yv, errors := ye } := y
+  { tree := xv ++ yv, errors := xe ++ ye }
+
+instance : Append (InitResults α) where
+  append := InitResults.append
+
+end InitResults
+
+private def toFlat (d : ImportData) (tree : PreDiscrTree α) :
+    BaseIO (InitResults α) := do
+  let de ← d.errors.swap #[]
+  pure ⟨tree, de⟩
+
+private partial def loadImportedModule (env : Environment)
+    (act : Name → ConstantInfo → MetaM (Array (InitEntry α)))
+    (d : ImportData)
+    (tree : PreDiscrTree α)
+    (mname : Name)
+    (mdata : ModuleData)
+    (i : Nat := 0) : BaseIO (PreDiscrTree α) := do
+  if h : i < mdata.constNames.size then
+    let name := mdata.constNames[i]
+    let constInfo  := mdata.constants[i]!
+    let tree ← addConstImportData env mname d tree act name constInfo
+    loadImportedModule env act d tree mname mdata (i+1)
+  else
+    pure tree
+
+
+private def createImportedEnvironmentSeq (env : Environment)
+    (act : Name → ConstantInfo → MetaM (Array (InitEntry α)))
+    (start stop : Nat) : BaseIO (InitResults α) :=
+      do go (← ImportData.new) {} start stop
+    where go d (tree : PreDiscrTree α) (start stop : Nat) : BaseIO _ := do
+            if start < stop then
+              let mname := env.header.moduleNames[start]!
+              let mdata := env.header.moduleData[start]!
+              let tree ← loadImportedModule env act d tree mname mdata
+              go d tree (start+1) stop
+            else
+              toFlat d tree
+  termination_by go _ idx stop => stop - idx
+
+/-- Get the rests of each task and merge using combining function -/
+private def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
+  tasks.foldl (fun x t => x ++ t.get) (init := z)
+
+/-- Create an imported environment for tree. -/
+def createImportedEnvironment (env : Environment)
+    (act : Name → ConstantInfo → MetaM (Array (InitEntry α)))
+    (constantsPerTask : Nat := 1000) :
+    EIO Exception (LazyDiscrTree α) := do
+  let n := env.header.moduleData.size
+  let rec go tasks start cnt idx := do
+        if h : idx < env.header.moduleData.size then
+          let mdata := env.header.moduleData[idx]
+          let cnt := cnt + mdata.constants.size
+          if cnt > constantsPerTask then
+            let t ← createImportedEnvironmentSeq env act start (idx+1) |>.asTask
+            go (tasks.push t) (idx+1) 0 (idx+1)
+          else
+            go tasks start cnt (idx+1)
+        else
+          if start < n then
+            tasks.push <$> (createImportedEnvironmentSeq env act start n).asTask
+          else
+            pure tasks
+  let tasks ← go #[] 0 0 0
+  let r := combineGet default tasks
+  if p : r.errors.size > 0 then
+    throw r.errors[0].exception
+  pure <| r.tree.toLazy
+  termination_by go _ idx => env.header.moduleData.size - idx

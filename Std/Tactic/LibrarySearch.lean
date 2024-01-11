@@ -59,23 +59,12 @@ to find candidate lemmas.
 @[reducible]
 def CandidateFinder := Expr → MetaM (Array (Name × DeclMod))
 
+open LazyDiscrTree (InitEntry isBlackListed createImportedEnvironment)
+
 namespace DiscrTreeFinder
 
 open System (FilePath)
 
-/--
-An even wider class of "internal" names than reported by `Name.isInternalDetail`.
--/
--- from Lean.Server.Completion
-private def isBlackListed (env : Environment) (declName : Name) : Bool :=
-  declName == ``sorryAx
-  || declName.isInternalDetail
-  || declName matches .str _ "inj"
-  || declName matches .str _ "noConfusionType"
-  || isAuxRecursor env declName
-  || isNoConfusion env declName
-  || isRecCore env declName
-  || isMatcherCore env declName
 
 /--
 Once we reach Mathlib, and have `cache` available,
@@ -150,130 +139,6 @@ end DiscrTreeFinder
 
 namespace IncDiscrTreeFinder
 
-open DiscrTreeFinder (isBlackListed)
-
-open LazyDiscrTree (Key LazyEntry PreDiscrTree)
-
-private def libSearchContext : Meta.Context := {
-    config := { transparency := .reducible }
-  }
-
-private def pushEntry (r : IO.Ref (PreDiscrTree α)) (lctx : LocalContext × LocalInstances)
-    (type : Expr) (v : α) : MetaM Unit := do
-  let (k, todo) ← LazyDiscrTree.rootKey {} type
-  r.modify (·.push k (todo, lctx, v))
-
-/-- Information about a failed import. -/
-private structure ImportFailure where
-  /-- Module with constant that import failed on. -/
-  module  : Name
-  /-- Constant that import failed on. -/
-  const   : Name
-  /-- Exception that triggers error. -/
-  exception : Exception
-
-/--
-Contains the pre discrimination tree and any errors occuring during initialization of
-the library search tree.
--/
-private structure InitResults (α : Type) where
-  tree  : PreDiscrTree α := {}
-  errors : Array ImportFailure := #[]
-
-instance : Inhabited (InitResults α) where
-  default := {}
-
-namespace InitResults
-
-/-- Combine two error collections. -/
-protected def append (x y : InitResults α) : InitResults α :=
-  let { tree := xv, errors := xe } := x
-  let { tree := yv, errors := ye } := y
-  { tree := xv ++ yv, errors := xe ++ ye }
-
-instance : Append (InitResults α) where
-  append := InitResults.append
-
-end InitResults
-
-/-- Information generation from imported modules. -/
-private structure ImportData where
-  cache : IO.Ref (Lean.Meta.Cache)
-  data : IO.Ref (PreDiscrTree (Name × DeclMod))
-  errors : IO.Ref (Array ImportFailure)
-
-private def ImportData.new : BaseIO ImportData := do
-  let cache ← IO.mkRef {}
-  let data ← IO.mkRef {}
-  let errors ← IO.mkRef #[]
-  pure { cache, data, errors }
-
-private def addConstImportData (env : Environment) (modName : Name) (d : ImportData)
-    (name : Name) (constInfo : ConstantInfo) : BaseIO Unit := do
-  if constInfo.isUnsafe then return ()
-  if isBlackListed env name then return ()
-  let mstate : Meta.State := { cache := ←d.cache.get }
-  d.cache.set {}
-  let mm : MetaM Unit :=
-        forallTelescope constInfo.type fun _ type => do
-          let lctx ← getLCtx
-          let linst ← Lean.Meta.getLocalInstances
-          let lctx := (lctx, linst)
-          let (k, todo) ← LazyDiscrTree.rootKey {} type
-          d.data.modify (·.push k (todo, lctx, (name, DeclMod.none)))
-          let biff := k == DiscrTree.Key.const ``Iff 2
-          if biff then
-            pushEntry d.data lctx todo[0]! (name, DeclMod.mp)
-            pushEntry d.data lctx todo[1]! (name, DeclMod.mpr)
-          else
-            pure ()
-  let cm : CoreM (Unit × _) := mm.run libSearchContext mstate
-  let cctx : Core.Context := {
-    fileName := default,
-    fileMap := default
-  }
-  let cstate : Core.State := {env}
-  match ←(cm.run cctx cstate).toBaseIO with
-  | .ok (((), ms), _) =>
-    d.cache.set ms.cache
-  | .error e =>
-    let i : ImportFailure := {
-      module := modName,
-      const := name,
-      exception := e
-    }
-    d.errors.modify (·.push i)
-
-private partial def loadImportedModule (env : Environment)
-    (d : ImportData)
-    (mname : Name)
-    (mdata : ModuleData) (i : Nat := 0) : BaseIO Unit := do
-  if h : i < mdata.constNames.size then
-    let nm := mdata.constNames[i]
-    let c  := mdata.constants[i]!
-    addConstImportData env mname d nm c
-    loadImportedModule env d mname mdata (i+1)
-  else
-    pure ()
-
-private def ImportData.toFlat (d : ImportData) :
-    BaseIO (InitResults (Name × DeclMod)) := do
-  let dm ← d.data.swap {}
-  let de ← d.errors.swap #[]
-  pure ⟨dm, de⟩
-
-private def createImportedEnvironmentSeq (env : Environment) (start stop : Nat) :
-    BaseIO (InitResults (Name × DeclMod)) :=
-      do go (← ImportData.new) start stop
-    where go d (start stop : Nat) : BaseIO _ := do
-            if start < stop then
-              let mname := env.header.moduleNames[start]!
-              let mdata := env.header.moduleData[start]!
-              loadImportedModule env d mname mdata
-              go d (start+1) stop
-            else
-              d.toFlat
-  termination_by go _ idx stop => stop - idx
 
 /--
 The maximum number of constants an individual task performed.
@@ -284,30 +149,17 @@ numbers (<10k) seemed to degrade initialization performance.
 -/
 private def constantsPerTask : Nat := 6500
 
-/-- Get the rests of each task and merge using combining function -/
-private def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
-  tasks.foldl (fun x t => x ++ t.get) (init := z)
-
-private def createImportedEnvironment (opts : Options) (env : Environment) :
-    BaseIO (LazyDiscrTree (Name × DeclMod)) := profileitIO "librarySearch launch" opts $ do
-  let n := env.header.moduleData.size
-  let rec go tasks start cnt idx := do
-        if h : idx < env.header.moduleData.size then
-          let mdata := env.header.moduleData[idx]
-          let cnt := cnt + mdata.constants.size
-          if cnt > constantsPerTask then
-            let t ← createImportedEnvironmentSeq env start (idx+1) |>.asTask
-            go (tasks.push t) (idx+1) 0 (idx+1)
-          else
-            go tasks start cnt (idx+1)
-        else
-          if start < n then
-            tasks.push <$> (createImportedEnvironmentSeq env start n).asTask
-          else
-            pure tasks
-  let tasks ← go #[] 0 0 0
-  pure <| (combineGet default tasks).tree.toLazy
-  termination_by go _ idx => env.header.moduleData.size - idx
+private def addImport (name : Name) (constInfo : ConstantInfo) : MetaM (Array (InitEntry (Name × DeclMod))) :=
+  forallTelescope constInfo.type fun _ type => do
+    let e ← InitEntry.fromExpr type (name, DeclMod.none)
+    let a := #[e]
+    let biff := e.key == DiscrTree.Key.const ``Iff 2
+    if biff then
+      let a := a.push (←e.mkSubEntry 0 (name, DeclMod.mp))
+      let a := a.push (←e.mkSubEntry 1 (name, DeclMod.mpr))
+      pure a
+    else
+      pure a
 
 /--
 Candidate finding function that uses strict discrimination tree for resolution.
@@ -316,7 +168,8 @@ def mkImportFinder : IO CandidateFinder := do
   let ref ← IO.mkRef none
   pure fun ty => do
     let importTree ← (←ref.get).getDM $ do
-      createImportedEnvironment (←getOptions) (←getEnv)
+      profileitM Exception  "librarySearch launch" (←getOptions) $
+        createImportedEnvironment (←getEnv) (constantsPerTask := constantsPerTask) addImport
     let (imports, importTree) ← importTree.getMatch ty
     ref.set importTree
     pure imports
@@ -602,7 +455,7 @@ open Lean.Parser.Tactic
 
 -- TODO: implement the additional options for `library_search` from Lean 3,
 -- in particular including additional lemmas
--- with `exact? [X, Y, Z]` or `exact? with attr`.
+-- with `std_exact? [X, Y, Z]` or `std_exact? with attr`.
 
 -- For now we only implement the basic functionality.
 -- The full syntax is recognized, but will produce a "Tactic has not been implemented" error.
@@ -631,7 +484,7 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
         pure (fun g => solveByElim required g (maxDepth := 6))
       | some t =>
         let _ <- mkInitialTacticInfo t
-        throwError "Do not yet support custom exact?/apply? tactics."
+        throwError "Do not yet support custom std_exact?/std_apply? tactics."
     match ← librarySearch goal tactic (allowFailure := required.isEmpty) with
     -- Found goal that closed problem
     | none =>
@@ -639,12 +492,12 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
     -- Found suggestions
     | some suggestions =>
       if requireClose then
-        throwError "`exact?` could not close the goal. Try `apply?` to see partial suggestions."
+        throwError "`std_exact?` could not close the goal. Try `std_apply?` to see partial suggestions."
       reportOutOfHeartbeats `library_search tk
       for (_, suggestionMCtx) in suggestions do
         withMCtx suggestionMCtx do
           addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta (addSubgoalsMsg := true)
-      if suggestions.isEmpty then logError "apply? didn't find any relevant lemmas"
+      if suggestions.isEmpty then logError "std_apply? didn't find any relevant lemmas"
       admitGoal goal
 
 elab_rules : tactic
@@ -662,7 +515,7 @@ elab_rules : tactic | `(tactic| std_apply? $[using $[$required],*]?) => do
 
 open Elab Term in
 /-- Term elaborator using the `exact?` tactic. -/
-elab tk:"exact?%" : term <= expectedType => do
+elab tk:"std_exact?%" : term <= expectedType => do
   let goal ← mkFreshExprMVar expectedType
   let (_, introdGoal) ← goal.mvarId!.intros
   introdGoal.withContext do
@@ -672,7 +525,7 @@ elab tk:"exact?%" : term <= expectedType => do
       for suggestion in suggestions do
         withMCtx suggestion.2 do
           addTermSuggestion tk (← instantiateMVars goal).headBeta
-      if suggestions.isEmpty then logError "exact? didn't find any relevant lemmas"
+      if suggestions.isEmpty then logError "std_exact? didn't find any relevant lemmas"
       mkSorry expectedType (synthetic := true)
     else
       addTermSuggestion tk (← instantiateMVars goal).headBeta
