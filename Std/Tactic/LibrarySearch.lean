@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Gabriel Ebner. All rights reserved.
+Copyright (c) 202 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner, Scott Morrison
+Authors: Gabriel Ebner, Joe Hendrix, Scott Morrison
 -/
 import Std.Lean.CoreM
 import Std.Lean.Expr
