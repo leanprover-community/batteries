@@ -466,6 +466,20 @@ def omega (facts : List Expr) (g : MVarId) (cfg : OmegaConfig := {}) : MetaM Uni
 
 open Lean Elab Tactic Parser.Tactic
 
+/-- The `omega` tactic, for resolving integer and natural linear arithmetic problems. -/
+def omegaTactic (cfg : OmegaConfig) : TacticM Unit := do
+  liftMetaFinishingTactic fun g => do
+    let g ← falseOrByContra g
+    g.withContext do
+      let hyps := (← getLocalHyps).toList
+      trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
+      omega hyps g cfg
+
+/-- The `omega` tactic, for resolving integer and natural linear arithmetic problems. This
+`TacticM Unit` frontend with default configuration can be used as an Aesop rule, for example via
+the tactic call `aesop (add 50% tactic Std.Tactic.Omega.omegaDefault)`. -/
+def omegaDefault : TacticM Unit := omegaTactic {}
+
 /--
 The `omega` tactic, for resolving integer and natural linear arithmetic problems.
 
@@ -500,9 +514,4 @@ syntax (name := omegaSyntax) "omega" (config)? : tactic
 elab_rules : tactic |
     `(tactic| omega $[$cfg]?) => do
   let cfg ← elabOmegaConfig (mkOptionalNode cfg)
-  liftMetaFinishingTactic fun g => do
-    let g ← falseOrByContra g
-    g.withContext do
-      let hyps := (← getLocalHyps).toList
-      trace[omega] "analyzing {hyps.length} hypotheses:\n{← hyps.mapM inferType}"
-      omega hyps g cfg
+  omegaTactic cfg
