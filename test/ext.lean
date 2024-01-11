@@ -1,5 +1,5 @@
 import Std.Tactic.Ext
-import Std.Logic
+import Std.Logic.Basic
 import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false

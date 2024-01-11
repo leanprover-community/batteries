@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Data.Fin.Init.Lemmas
 import Std.Classes.SetNotation
-import Std.Logic
+import Std.Logic.Basic
 
 namespace List
 

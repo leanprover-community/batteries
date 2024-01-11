@@ -82,7 +82,8 @@ import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
-import Std.Logic
+import Std.Logic.Basic
+import Std.Logic.Function
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
@@ -119,7 +120,7 @@ import Std.Tactic.Omega.Frontend
 import Std.Tactic.Omega.Int
 import Std.Tactic.Omega.IntList
 import Std.Tactic.Omega.LinearCombo
-import Std.Tactic.Omega.Logic
+import Std.Tactic.Omega.Logic.Basic
 import Std.Tactic.Omega.MinNatAbs
 import Std.Tactic.Omega.OmegaM
 import Std.Tactic.OpenPrivate
