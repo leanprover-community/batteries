@@ -1133,6 +1133,24 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
 
+protected theorem pow_lt_pow_of_lt_left {a b : Nat} : a < b → {n : Nat} → 0 < n → a ^ n < b ^ n
+  | h, n+1, _ => by
+    have hpos : 0 < b ^ n := Nat.pos_pow_of_pos n (Nat.zero_lt_of_lt h)
+    simp [Nat.pow_succ]
+    apply Nat.mul_lt_mul_of_le_of_lt _ h hpos
+    exact Nat.pow_le_pow_of_le_left (Nat.le_of_lt h) n
+
+protected theorem pow_lt_pow_of_lt_right {a : Nat} : 1 < a → m < n → a ^ m < a ^ n := by
+  intro ha h; induction m, n using Nat.recDiag with try contradiction
+  | zero_succ n =>
+    have hpos := Nat.pos_pow_of_pos n (Nat.le_of_lt ha)
+    apply Nat.lt_of_le_of_lt hpos
+    have : a ^ n * 1 < a ^ n * a := Nat.mul_lt_mul_of_pos_left ha hpos
+    rwa [Nat.mul_one] at this
+  | succ_succ m n ih =>
+    apply Nat.mul_lt_mul_of_pos_right _ (Nat.le_of_lt ha)
+    exact ih (Nat.lt_of_succ_lt_succ h)
+
 /-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
