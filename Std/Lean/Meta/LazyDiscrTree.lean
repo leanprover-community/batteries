@@ -589,7 +589,7 @@ of elements using concurrent functions for generating entries.
 private structure PreDiscrTree (α : Type) where
   /-- Maps keys to index in tries array. -/
   roots : HashMap Key Nat := {}
-  /-- Lazy entries for root of treie-/
+  /-- Lazy entries for root of trie. -/
   tries : Array (Array (LazyEntry α)) := #[]
   deriving Inhabited
 
