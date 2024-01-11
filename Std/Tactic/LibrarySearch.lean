@@ -149,7 +149,8 @@ numbers (<10k) seemed to degrade initialization performance.
 -/
 private def constantsPerTask : Nat := 6500
 
-private def addImport (name : Name) (constInfo : ConstantInfo) : MetaM (Array (InitEntry (Name × DeclMod))) :=
+private def addImport (name : Name) (constInfo : ConstantInfo) :
+    MetaM (Array (InitEntry (Name × DeclMod))) :=
   forallTelescope constInfo.type fun _ type => do
     let e ← InitEntry.fromExpr type (name, DeclMod.none)
     let a := #[e]
@@ -491,8 +492,8 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
       addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta
     -- Found suggestions
     | some suggestions =>
-      if requireClose then
-        throwError "`std_exact?` could not close the goal. Try `std_apply?` to see partial suggestions."
+      if requireClose then throwError
+        "`std_exact?` could not close the goal. Try `std_apply?` to see partial suggestions."
       reportOutOfHeartbeats `library_search tk
       for (_, suggestionMCtx) in suggestions do
         withMCtx suggestionMCtx do

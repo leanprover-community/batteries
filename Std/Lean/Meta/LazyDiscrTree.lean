@@ -563,7 +563,8 @@ private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Arra
 /--
   Find values that match `e` in `d`.
 -/
-private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) : MatchM α (MatchResult α) :=
+private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) :
+    MatchM α (MatchResult α) :=
   withReducible do
     let result ← getStarResult root
     let (k, args) ← MatchClone.getMatchKeyArgs e (root := true) (←read)
@@ -654,7 +655,8 @@ Creates an entry for a subterm of an initial entry.
 This is slightly more efficient than using `fromExpr` on subterms since it avoids a redundant call
 to `whnf`.
 -/
-def mkSubEntry (e : InitEntry α) (idx : Nat) (value : α) (config : WhnfCoreConfig := {}) : MetaM (InitEntry α) := do
+def mkSubEntry (e : InitEntry α) (idx : Nat) (value : α) (config : WhnfCoreConfig := {}) :
+    MetaM (InitEntry α) := do
   let (todo, lctx, _) := e.entry
   let (key, todo) ← LazyDiscrTree.rootKey config todo[idx]!
   pure <| { key, entry := (todo, lctx, value) }
@@ -796,20 +798,22 @@ def createImportedEnvironment (env : Environment)
     (constantsPerTask : Nat := 1000) :
     EIO Exception (LazyDiscrTree α) := do
   let n := env.header.moduleData.size
-  let rec go tasks start cnt idx := do
-        if h : idx < env.header.moduleData.size then
-          let mdata := env.header.moduleData[idx]
-          let cnt := cnt + mdata.constants.size
-          if cnt > constantsPerTask then
-            let t ← createImportedEnvironmentSeq env act start (idx+1) |>.asTask
-            go (tasks.push t) (idx+1) 0 (idx+1)
-          else
-            go tasks start cnt (idx+1)
+  let rec
+    /-- Allocate constants to tasks according to `constantsPerTask`. -/
+    go tasks start cnt idx := do
+      if h : idx < env.header.moduleData.size then
+        let mdata := env.header.moduleData[idx]
+        let cnt := cnt + mdata.constants.size
+        if cnt > constantsPerTask then
+          let t ← createImportedEnvironmentSeq env act start (idx+1) |>.asTask
+          go (tasks.push t) (idx+1) 0 (idx+1)
         else
-          if start < n then
-            tasks.push <$> (createImportedEnvironmentSeq env act start n).asTask
-          else
-            pure tasks
+          go tasks start cnt (idx+1)
+      else
+        if start < n then
+          tasks.push <$> (createImportedEnvironmentSeq env act start n).asTask
+        else
+          pure tasks
   let tasks ← go #[] 0 0 0
   let r := combineGet default tasks
   if p : r.errors.size > 0 then
