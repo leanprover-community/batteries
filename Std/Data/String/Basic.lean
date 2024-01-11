@@ -93,7 +93,7 @@ where
         spos
     else
       spos
-termination_by loop => s.stopPos.byteIdx - spos.byteIdx
+  termination_by s.stopPos.byteIdx - spos.byteIdx
 
 /--
 Returns the longest common suffix of two substrings.
@@ -114,7 +114,7 @@ where
         spos
     else
       spos
-termination_by loop => spos.byteIdx
+  termination_by spos.byteIdx
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.

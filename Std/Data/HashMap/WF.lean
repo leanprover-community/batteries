@@ -108,7 +108,7 @@ where
       simp
       have := (hs j (Nat.lt_of_lt_of_le h₂ (Nat.not_lt.1 H))).symm
       rwa [List.getD_eq_get?, List.get?_eq_get, Option.getD_some] at this
-termination_by go i source _ _ => source.size - i
+  termination_by source.size - i
 
 theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α × β)} {i : Nat}
     (hl₁ : ∀ [PartialEquivBEq α] [LawfulHashable α], l.Pairwise fun a b => ¬(a.1 == b.1))
@@ -170,7 +170,7 @@ where
           refine ⟨Nat.le_of_lt this, fun _ h h' => Nat.ne_of_lt this ?_⟩
           exact LawfulHashable.hash_eq h' ▸ hs₂ _ H _ h
     · exact ht.1
-termination_by go i source _ _ _ _ => source.size - i
+  termination_by source.size - i
 
 theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.size = m.buckets.size) :
