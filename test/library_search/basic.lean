@@ -36,7 +36,7 @@ example : Int := by std_apply?
 
 /-- info: Try this: Nat.lt.base x -/
 #guard_msgs in
-example : x < x + 1 := exact?%
+example : x < x + 1 := std_exact?%
 
 /-- info: Try this: exact p -/
 #guard_msgs in
