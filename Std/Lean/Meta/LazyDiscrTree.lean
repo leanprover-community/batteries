@@ -788,7 +788,7 @@ private def createImportedEnvironmentSeq (env : Environment)
               toFlat d tree
   termination_by go _ idx stop => stop - idx
 
-/-- Get the rests of each task and merge using combining function -/
+/-- Get the results of each task and merge using combining function -/
 private def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
   tasks.foldl (fun x t => x ++ t.get) (init := z)
 
