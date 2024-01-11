@@ -612,7 +612,8 @@ theorem Decidable.not_iff [Decidable b] : ¬(a ↔ b) ↔ (¬a ↔ b) := by
 theorem Decidable.iff_not_comm [Decidable a] [Decidable b] : (a ↔ ¬b) ↔ (b ↔ ¬a) := by
   rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
-theorem Decidable.iff_iff_and_or_not_and_not [Decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
+theorem Decidable.iff_iff_and_or_not_and_not {a b : Prop} [Decidable b] :
+    (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
   ⟨fun e => if h : b then .inl ⟨e.2 h, h⟩ else .inr ⟨mt e.1 h, h⟩,
    Or.rec (And.rec iff_of_true) (And.rec iff_of_false)⟩
 
