@@ -34,6 +34,12 @@ so we have to be careful throughout this file
 to construct cancellation hooks connected to the underlying task,
 rather than the various maps of it that we construct to pass state.
 
+In several places below we use `prio := .max` to set the priority of tasks higher.
+This is only used on `map` tasks which run after the main workload has finished.
+This helps avoid the situation where the main workload has finished,
+but the value is not returned to the consumer because
+other long-running tasks are scheduled before the `map`.
+
 Thomas Murrills has a suggestion to significantly refactor this code,
 reducing duplication using `MonadControl`, but it will require a core change.
 See https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/.60StateRefT'.60.20.60MonadControl.60.20instance.3F
