@@ -33,15 +33,26 @@ syntax (name := false_or_by_contra) "false_or_by_contra" : tactic
 open Meta Elab Tactic
 
 @[inherit_doc false_or_by_contra]
-partial def falseOrByContra (g : MVarId) : MetaM MVarId := do
+partial def falseOrByContra (g : MVarId) (useClassical : Option Bool := none) : MetaM MVarId := do
   let ty ← whnfR (← g.getType)
   match ty with
   | .const ``False _ => pure g
   | .forallE _ _ _ _
   | .app (.const ``Not _) _ => falseOrByContra (← g.intro1).2
   | _ =>
-    if ← isProp ty then
-      let [g] ← g.applyConst ``Classical.byContradiction | panic! "expected one sugoal"
+    let gs ← if ← isProp ty then
+      match useClassical with
+      | some true => some <$> g.applyConst ``Classical.byContradiction
+      | some false =>
+        try some <$> g.applyConst ``Decidable.byContradiction
+        catch _ => pure none
+      | none =>
+        try some <$> g.applyConst ``Decidable.byContradiction
+        catch _ => some <$> g.applyConst ``Classical.byContradiction
+    else
+      pure none
+    if let some gs := gs then
+      let [g] := gs | panic! "expected one subgoal"
       pure (← g.intro1).2
     else
       let [g] ← g.applyConst ``False.elim | panic! "expected one sugoal"
