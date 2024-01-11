@@ -13,17 +13,20 @@ import Std.Util.Pickle
 /-!
 # Library search
 
-This file defines tactics `exact?` and `apply?`,
+This file defines tactics `std_exact?` and `std_apply?`,
 (formerly known as `library_search`)
-and a term elaborator `exact?%`
+and a term elaborator `std_exact?%`
 that tries to find a lemma
 solving the current goal
 (subgoals are solved using `solveByElim`).
 
 ```
-example : x < x + 1 := exact?%
-example : Nat := by exact?
+example : x < x + 1 := std_exact?%
+example : Nat := by std_exact?
 ```
+
+These functions will likely lose their `std_` prefix once
+we are ready to replace the corresponding implementations in Mathlib.
 -/
 
 namespace Std.Tactic.LibrarySearch
