@@ -317,7 +317,7 @@ structure LazyDiscrTree (α : Type) where
   config : Lean.Meta.WhnfCoreConfig := {}
   /-- Backing array of trie entries.  Should be owned by this trie. -/
   tries : Array (LazyDiscrTree.Trie α) := #[default]
-  /-- Map from disriminator trie roots to the index. -/
+  /-- Map from discriminator trie roots to the index. -/
   roots : Lean.HashMap LazyDiscrTree.Key LazyDiscrTree.TrieIndex := {}
 
 namespace LazyDiscrTree
