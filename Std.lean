@@ -82,6 +82,7 @@ import Std.Lean.Util.Path
 import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
+import Std.Logic
 import Std.Logic.Basic
 import Std.Logic.Function
 import Std.Tactic.Alias
