@@ -186,7 +186,7 @@ private unsafe def mkImportFinder : IO CandidateFinder := do
 
 
 /--
-Retrieve the current current of lemmas.
+The preferred candidate finding function.
 -/
 initialize defaultCandidateFinder : IO.Ref CandidateFinder ← unsafe do
   IO.mkRef (←mkImportFinder)
