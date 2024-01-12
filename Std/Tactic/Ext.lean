@@ -169,10 +169,17 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
     (withExtN g pats (fun g qs => modify (·.push (g, qs)) *> pure 0) depth failIfUnchanged)
 
 /--
-* `ext pat*`: Apply extensionality lemmas as much as possible,
-  using `pat*` to introduce the variables in extensionality lemmas like `funext`.
-* `ext`: introduce anonymous variables whenever needed.
-* `ext pat* : n`: apply ext lemmas only up to depth `n`.
+* `ext pat*` applies extensionality lemmas as much as possible,
+  using `pat*` to introduce the variables in extensionality lemmas using `rintro`.
+  For example, this names the variables introduced by lemmas such as `funext`.
+* `ext` applies extensionality lemmas as much as possible
+  but introduces anonymous variables whenever needed.
+* `ext pat* : n` applies ext lemmas only up to depth `n`.
+
+The `ext1 pat*` tactic is like `ext pat*` except that it only applies a single extensionality lemma.
+
+The `ext?` tactic (note: unimplemented) has the same syntax as the `ext` tactic,
+and it gives a suggestion of an equivalent expression to use in place of `ext`.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
@@ -187,8 +194,14 @@ elab_rules : tactic
     replaceMainGoal <| gs.map (·.1) |>.toList
 
 /--
-`ext1 pat*` is like `ext pat*` except it only applies one extensionality lemma instead
-of recursing as much as possible.
+`ext1 pat*` is like `ext pat*` except that it only applies a single extensionality lemma rather
+than recursively applying as many extensionality lemmas as possible.
+
+The `pat*` patterns are processed using the `rintro` tactic.
+If no patterns are supplied, then variables are introduced using the `intros` tactic.
+
+The `ext1?` tactic (note: unimplemented) has the same syntax as the `ext1?` tactic,
+and it gives a suggestion of an equivalent expression to use in place of `ext1`.
 -/
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
   if xs.isEmpty then `(tactic| apply_ext_lemma <;> intros)
