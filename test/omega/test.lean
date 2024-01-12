@@ -294,6 +294,10 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
 
+-- Check that `autoParam` wrappers do not get in the way of using hypotheses.
+example (i n : Nat) (hi : i ≤ n := by omega) : i < n + 1 := by
+  omega
+
 -- Test that we consume expression metadata when necessary.
 example : 0 = 0 := by
   have : 0 = 0 := by omega

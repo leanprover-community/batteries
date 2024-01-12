@@ -312,7 +312,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
   if ! p.problem.possible then
     return (p, 0)
   else
-    let t ← instantiateMVars (← inferType h)
+    let t ← instantiateMVars (← whnfR (← inferType h))
     match t.getAppFnArgs with
     | (``Eq, #[.const ``Int [], x, y]) =>
       match y.int? with
@@ -324,14 +324,6 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       | _ => p.addFact (mkApp3 (.const ``Int.sub_nonneg_of_le []) y x h)
     | (``LT.lt, #[.const ``Int [], _, x, y]) =>
       p.addFact (mkApp3 (.const ``Int.add_one_le_of_lt []) x y h)
-    | (``GT.gt, #[.const ``Int [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.lt_of_gt []) x y h)
-    | (``GE.ge, #[.const ``Int [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.le_of_ge []) x y h)
-    | (``GT.gt, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Nat.lt_of_gt []) x y h)
-    | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
     | (``Ne, #[.const ``Nat [], x, y]) =>
       p.addFact (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
     | (``Not, #[P]) => match ← pushNot h P with
