@@ -111,11 +111,6 @@ Constructs an discriminator tree from the current environment.
 def buildImportCache (config : WhnfCoreConfig) : MetaM (DiscrTree (Name × DeclMod)) := do
   let profilingName := "apply?: init cache"
   -- Sort so lemmas with longest names come first.
-  -- This is counter-intuitive, but the way that `DiscrTree.getMatch` returns results
-  -- means that the results come in "batches", with more specific matches *later*.
-  -- Thus we're going to call reverse on the result of `DiscrTree.getMatch`,
-  -- so if we want to try lemmas with shorter names first,
-  -- we need to put them into the `DiscrTree` backwards.
   let post (A : Array (Name × DeclMod)) :=
         A.map (fun (n, m) => (n.toString.length, n, m)) |>.qsort (fun p q => p.1 > q.1) |>.map (·.2)
   profileitM Exception profilingName (← getOptions) do
