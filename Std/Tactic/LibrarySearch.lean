@@ -335,7 +335,7 @@ If this list is empty, then no variables remain to be solved, and `tryOnEach` re
 `none` with the environment set so each goal is resolved.
 
 If the action throws an internal exception with the `abortSpeculationId` id then
-further computation is stoped and intermediate results returned. If any other
+further computation is stopped and intermediate results returned. If any other
 exception is thrown, then it is silently discarded.
 -/
 def tryOnEach
