@@ -12,7 +12,7 @@ In this file we define the following predicates on functions `f : α → β`:
 
 - `Function.Injective`: `f x = f y` implies `x = y`;
 - `Function.Surjective`: each `y` is equal to `f x` for some `x`;
-- `Function.Bijective`: a function is both injective and bijective;
+- `Function.Bijective`: a function is both injective and surjective;
 - `Function.Involutive`: `f (f x) = x` for all `x`.
 
 We also prove some theorems about these definitions and functions in general.
