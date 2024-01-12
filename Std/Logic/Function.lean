@@ -18,8 +18,6 @@ In this file we define the following predicates on functions `f : α → β`:
 We also prove some theorems about these definitions and functions in general.
 -/
 
-set_option autoImplicit false
-
 universe u v w x
 
 namespace Function
