@@ -315,7 +315,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
   if ! p.problem.possible then
     return (p, 0)
   else
-    let t ← instantiateMVars (← inferType h)
+    let t ← instantiateMVars (← whnfR (← inferType h))
     trace[omega] "adding fact: {t}"
     match t with
     | .forallE _ x y _ =>
