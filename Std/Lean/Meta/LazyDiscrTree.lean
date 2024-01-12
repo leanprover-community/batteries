@@ -7,6 +7,22 @@ Authors: Joe Hendrix, Scott Morrison
 import Lean.Meta.DiscrTree
 import Std.Data.Nat.Init.Lemmas
 
+/-!
+# Lazy Discrimination Tree
+
+This file defines a new type of discrimination tree optimized for
+rapidly population of imported modules for use in tactics.  It uses a
+lazy initialization strategy.
+
+The discrimination tree can be created through
+`createImportedEnvironment`. This creates a discrimination tree from all
+imported modules in an environment using a callback that proviees the
+entries as `InitEntry` values.
+
+The function `getMatch` can be used to get the values that match the
+expression as well as an updated lazy discrimination tree that has
+elaborated additional parts of the tree.
+-/
 namespace Lean.Meta.LazyDiscrTree
 
 -- This namespace contains definitions copied from Lean.Meta.DiscrTree.
