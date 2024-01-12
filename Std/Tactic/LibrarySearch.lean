@@ -152,8 +152,7 @@ private def addImport (name : Name) (constInfo : ConstantInfo) :
   forallTelescope constInfo.type fun _ type => do
     let e ← InitEntry.fromExpr type (name, DeclMod.none)
     let a := #[e]
-    let biff := e.key == .const ``Iff 2
-    if biff then
+    if e.key == .const ``Iff 2 then
       let a := a.push (←e.mkSubEntry 0 (name, DeclMod.mp))
       let a := a.push (←e.mkSubEntry 1 (name, DeclMod.mpr))
       pure a
