@@ -482,7 +482,7 @@ private def addLazyEntryToTrie (i:TrieIndex) (e : LazyEntry α) : MatchM α Unit
   modify (·.modify i (·.pushPending e))
 
 /--
-This evaluates all lazy entries in a trie and adds updates values starIdx and children
+This evaluates all lazy entries in a trie and updates `values`, `starIdx`, and `children`
 accordingly.
 -/
 private partial def evalLazyEntries (config : WhnfCoreConfig)
