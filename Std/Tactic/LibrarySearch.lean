@@ -184,7 +184,6 @@ private unsafe def mkImportFinder : IO CandidateFinder := do
   else do
     IncDiscrTreeFinder.mkImportFinder
 
-
 /--
 The preferred candidate finding function.
 -/
@@ -220,13 +219,13 @@ then try to close subsequent goals using `solveByElim`.
 If `solveByElim` succeeds, we return `[]` as the list of new subgoals,
 otherwise the full list of subgoals.
 -/
-def librarySearchLemma (act : List MVarId → MetaM (List MVarId)) (allowFailure : Bool)
-    (cand : Candidate) : MetaM (List MVarId) := do
+private def librarySearchLemma (cfg : ApplyConfig) (act : List MVarId → MetaM (List MVarId))
+    (allowFailure : Bool) (cand : Candidate)  : MetaM (List MVarId) := do
   let ((goal, mctx), (name, mod)) := cand
   withTraceNode `Tactic.stdLibrarySearch (return m!"{emoji ·} trying {name} with {mod} ") do
     setMCtx mctx
     let lem ← mkLibrarySearchLemma name mod
-    let newGoals ← goal.apply lem { allowSynthFailures := true }
+    let newGoals ← goal.apply lem cfg
     try
       act newGoals
     catch _ =>
@@ -297,17 +296,6 @@ are better.
 -/
 def subgoalRanking (goal : MVarId) (subgoals : List MVarId) : MetaM SubgoalRankType := do
   return (subgoals.isEmpty, ← countLocalHypsUsed (.mvar goal), - subgoals.length)
-
-/-- Sort the incomplete results from `librarySearchSymm` according to
-* the number of local hypotheses used (the more the better) and
-* the number of remaining subgoals (the fewer the better).
--/
-def sortResults (goal : MVarId) (R : Array (List MVarId × MetavarContext)) :
-    MetaM (Array (List MVarId × MetavarContext)) := do
-  let R' ← R.mapM fun (gs, ctx) => do
-    return (← withMCtx ctx (subgoalRanking goal gs), gs, ctx)
-  let R'' := R'.qsort fun a b => compare a.1 b.1 = Ordering.gt
-  return R''.map (·.2)
 
 /--
 An exception Id that indicates further speculation on candidate lemmas should stop
@@ -399,6 +387,35 @@ private def librarySearchEmoji : Except ε (Option α) → String
 | .ok (some _) => crossEmoji
 | .ok none => checkEmoji
 
+private def librarySearch' (goal : MVarId)
+    (tactic : List MVarId → MetaM (List MVarId))
+    (allowFailure : Bool)
+    (leavePercentHeartbeats : Nat) :
+    MetaM (Option (Array (List MVarId × MetavarContext))) := do
+  withTraceNode `Tactic.stdLibrarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
+  profileitM Exception "librarySearch" (← getOptions) do
+  let importFinder ← do
+        let r := ext.getState (←getEnv)
+        match ←r.get with
+        | .some f => pure f
+        | .none =>
+          let f ← defaultCandidateFinder.get
+          r.set (.some f)
+          pure f
+  let searchFn (ty : Expr) := do
+      let localMap ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree {})
+      let locals := (← localMap.getMatch  ty {}).reverse
+      pure <| locals ++ (← importFinder ty)
+  -- Create predicate that returns true when running low on heartbeats.
+  let shouldAbort ← mkHeartbeatCheck leavePercentHeartbeats
+  let candidates ← librarySearchSymm searchFn goal
+  let cfg : ApplyConfig := { allowSynthFailures := true }
+  let act := fun cand => do
+      if ←shouldAbort then
+        abortSpeculation
+      librarySearchLemma cfg tactic allowFailure cand
+  tryOnEach act candidates
+
 /--
 Try to solve the goal either by:
 * calling `solveByElim`
@@ -420,34 +437,8 @@ def librarySearch (goal : MVarId)
     (allowFailure : Bool := true)
     (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
-  let importFinder ← do
-        let r := ext.getState (←getEnv)
-        match ←r.get with
-        | .some f => pure f
-        | .none =>
-          let f ← defaultCandidateFinder.get
-          r.set (.some f)
-          pure f
-  let searchFn (ty : Expr) := do
-      let localMap ← (← getEnv).constants.map₂.foldlM (init := {}) (DiscrTreeFinder.updateTree {})
-      let locals := (← localMap.getMatch  ty {}).reverse
-      pure <| locals ++ (← importFinder ty)
-  withTraceNode `Tactic.stdLibrarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
-  profileitM Exception "librarySearch" (← getOptions) do
-  (do
-    _ ← tactic true [goal]
-    return none)  <|>
-  (do
-    -- Create predicate that returns true when running low on heartbeats.
-    let shouldAbort ← mkHeartbeatCheck leavePercentHeartbeats
-    let candidates ← librarySearchSymm searchFn goal
-    let act := fun cand => do
-        if ←shouldAbort then
-          abortSpeculation
-        librarySearchLemma (tactic false) allowFailure cand
-    match ← tryOnEach act candidates with
-    | none => pure none
-    | some a => pure (some (← sortResults goal a)))
+  (tactic true [goal] *> pure none) <|>
+  librarySearch' goal (tactic false) allowFailure leavePercentHeartbeats
 
 open Lean.Parser.Tactic
 
@@ -479,7 +470,7 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
     let tactic ←
       match solver with
       | none =>
-        pure (fun g => solveByElim required g (maxDepth := 6))
+        pure (fun exfalso => solveByElim required (exfalso := exfalso) (maxDepth := 6))
       | some t =>
         let _ <- mkInitialTacticInfo t
         throwError "Do not yet support custom std_exact?/std_apply? tactics."
