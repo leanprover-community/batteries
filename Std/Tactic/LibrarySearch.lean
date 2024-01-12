@@ -411,7 +411,7 @@ Try to solve the goal either by:
 * or applying a library lemma then calling `solveByElim` on the resulting goals.
 
 If it successfully closes the goal, returns `none`.
-Otherwise, it returns `some a`, where `a : Array (MetavarContext × List MVarId)`,
+Otherwise, it returns `some a`, where `a : Array (List MVarId × MetavarContext)`,
 with an entry for each library lemma which was successfully applied,
 containing the metavariable context after the application, and a list of the subsidiary goals.
 
