@@ -413,7 +413,7 @@ Try to solve the goal either by:
 If it successfully closes the goal, returns `none`.
 Otherwise, it returns `some a`, where `a : Array (List MVarId × MetavarContext)`,
 with an entry for each library lemma which was successfully applied,
-containing the metavariable context after the application, and a list of the subsidiary goals.
+containing a list of the subsidiary goals, and the metavariable context after the application.
 
 (Always succeeds, and the metavariable context stored in the monad is reverted,
 unless the goal was completely solved.)
