@@ -198,7 +198,7 @@ elab_rules : tactic
 than recursively applying as many extensionality lemmas as possible.
 
 The `pat*` patterns are processed using the `rintro` tactic.
-If no patterns are supplied, then variables are introduced using the `intros` tactic.
+If no patterns are supplied, then variables are introduced anonymously using the `intros` tactic.
 
 The `ext1?` tactic (note: unimplemented) has the same syntax as the `ext1?` tactic,
 and it gives a suggestion of an equivalent expression to use in place of `ext1`.
