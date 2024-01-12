@@ -105,6 +105,12 @@ and returns
 * a cancellation hook and
 * the monadic lazy list which returns the values in the order they complete.
 
+The monadic list carries the monadic state resulting from each task, so e.g.
+```
+example (jobs : List (CoreM α)) : MLList CoreM (α × Core.State) :=
+  .squash fun _ => return (← CoreM.runGreedily jobs).2.mapM fun a => return (a, ← get)
+```
+
 See the doc-string for `IO.runGreedily` for details about the cancellation hook behaviour.
 -/
 def runGreedily (jobs : List (CoreM α)) : CoreM (BaseIO Unit × MLList CoreM α) := do
@@ -143,6 +149,12 @@ Given a list of monadic values in `MetaM`, runs them all as tasks,
 and returns
 * a cancellation hook and
 * the monadic lazy list which returns the values in the order they complete.
+
+The monadic list carries the monadic state resulting from each task, so e.g.
+```
+example (jobs : List (MetaM α)) : MLList MetaM (α × Meta.State) :=
+  .squash fun _ => return (← MetaM.runGreedily jobs).2.mapM fun a => return (a, ← get)
+```
 
 See the doc-string for `IO.runGreedily` for details about the cancellation hook behaviour.
 -/
@@ -184,6 +196,12 @@ and returns
 * a cancellation hook and
 * the monadic lazy list which returns the values in the order they complete.
 
+The monadic list carries the monadic state resulting from each task, so e.g.
+```
+example (jobs : List (TermElabM α)) : MLList TermElabM (α × Elab.Term.State) :=
+  .squash fun _ => return (← TermElabM.runGreedily jobs).2.mapM fun a => return (a, ← get)
+```
+
 See the doc-string for `IO.runGreedily` for details about the cancellation hook behaviour.
 -/
 def runGreedily (jobs : List (TermElabM α)) : TermElabM (BaseIO Unit × MLList TermElabM α) := do
@@ -222,6 +240,12 @@ Given a list of monadic values in `TacticM`, runs them all as tasks,
 and returns
 * a cancellation hook and
 * the monadic lazy list which returns the values in the order they complete.
+
+The monadic list carries the monadic state resulting from each task, so e.g.
+```
+example (jobs : List (TacticM α)) : MLList TacticM (α × Elab.Tactic.State) :=
+  .squash fun _ => return (← TacticM.runGreedily jobs).2.mapM fun a => return (a, ← get)
+```
 
 See the doc-string for `IO.runGreedily` for details about the cancellation hook behaviour.
 -/
