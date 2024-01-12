@@ -179,7 +179,7 @@ def extCore (g : MVarId) (pats : List (TSyntax `rcasesPat))
 The `ext1 pat*` tactic is like `ext pat*` except that it only applies a single extensionality lemma.
 
 The `ext?` tactic (note: unimplemented) has the same syntax as the `ext` tactic,
-and it gives a suggestion of an equivalent expression to use in place of `ext`.
+and it gives a suggestion of an equivalent tactic to use in place of `ext`.
 -/
 syntax "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 elab_rules : tactic
@@ -201,7 +201,7 @@ The `pat*` patterns are processed using the `rintro` tactic.
 If no patterns are supplied, then variables are introduced anonymously using the `intros` tactic.
 
 The `ext1?` tactic (note: unimplemented) has the same syntax as the `ext1?` tactic,
-and it gives a suggestion of an equivalent expression to use in place of `ext1`.
+and it gives a suggestion of an equivalent tactic to use in place of `ext1`.
 -/
 macro "ext1" xs:(colGt ppSpace rintroPat)* : tactic =>
   if xs.isEmpty then `(tactic| apply_ext_lemma <;> intros)
