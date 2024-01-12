@@ -315,7 +315,7 @@ An unprocessed entry in the lazy discriminator tree.
 private abbrev LazyEntry α := Array Expr × ((LocalContext × LocalInstances) × α)
 
 /--
-Index identifying trie in a discriminator tree.
+Index identifying trie in a discrimination tree.
 -/
 @[reducible]
 private def TrieIndex := Nat
