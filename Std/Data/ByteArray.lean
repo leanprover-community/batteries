@@ -109,3 +109,21 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 @[simp] theorem get_extract {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     (a.extract start stop)[i] = a[start+i]'(get_extract_aux h) := by
   simp [getElem_eq_data_getElem]
+
+/-! ### ofFn -/
+
+/--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
+def ofFn (f : Fin n → UInt8) : ByteArray where
+  data := .ofFn f
+
+@[simp] theorem ofFn_data (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := rfl
+
+@[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
+  simp [size]
+
+@[simp] theorem get_ofFn (f : Fin n → UInt8) (i : Fin (ofFn f).size) :
+    (ofFn f).get i = f (i.cast (size_ofFn f)) := by
+  simp [get, Fin.cast]
+
+@[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size):
+    (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn ..
