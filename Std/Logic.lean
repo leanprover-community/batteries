@@ -934,5 +934,5 @@ theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> sim
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
-theorem congr_ndrec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
-  f x' (Eq.ndrec y h) = f x y := by cases h; rfl
+theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
+  f x' (Eq.rec y h) = f x y := by cases h; rfl
