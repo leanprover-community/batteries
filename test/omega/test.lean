@@ -294,6 +294,10 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
 
+-- Check that `autoParam` wrappers do not get in the way of using hypotheses.
+example (i n : Nat) (hi : i ≤ n := by omega) : i < n + 1 := by
+  omega
+
 -- Test that we consume expression metadata when necessary.
 example : 0 = 0 := by
   have : 0 = 0 := by omega
@@ -326,5 +330,16 @@ example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
 -- Verify that we can prove implications:
 example (a : Int) : a > 0 → a > -1 := by omega
 
+-- Verify that we can introduce multiple arguments:
+example (x y : Int) : x + 1 ≤ y → ¬ y + 1 ≤ x := by omega
+
+-- Verify that we can handle double negation:
+example (x y : Int) (_ : x < y) (_ : ¬ ¬ y < x) : False := by omega
+
 -- Verify that we don't treat function goals as implications.
 example (a : Nat) (h : a < 0) : Nat → Nat := by omega
+
+-- Example from Cedar:
+example {a₁ a₂ p₁ p₂ : Nat}
+  (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
+  (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
