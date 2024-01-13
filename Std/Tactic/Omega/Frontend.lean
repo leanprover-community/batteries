@@ -298,6 +298,9 @@ def pushNot (h P : Expr) : MetaM (Option Expr) := do
       return some (mkApp5 (.const ``Decidable.or_not_not_of_not_and []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
         (.app (.const ``Classical.propDecidable []) P₂) h)
+    | (``Not, #[P']) =>
+      return some (mkApp3 (.const ``Decidable.of_not_not []) P'
+        (.app (.const ``Classical.propDecidable []) P') h)
     | (``Iff, #[P₁, P₂]) =>
       return some (mkApp5 (.const ``Decidable.and_not_or_not_and_of_not_iff []) P₁ P₂
         (.app (.const ``Classical.propDecidable []) P₁)
@@ -312,60 +315,70 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
   if ! p.problem.possible then
     return (p, 0)
   else
-    let t ← instantiateMVars (← inferType h)
-    match t.getAppFnArgs with
-    | (``Eq, #[.const ``Int [], x, y]) =>
-      match y.int? with
-      | some 0 => pure (← p.addIntEquality h x, 1)
-      | _ => p.addFact (mkApp3 (.const ``Int.sub_eq_zero_of_eq []) x y h)
-    | (``LE.le, #[.const ``Int [], _, x, y]) =>
-      match x.int? with
-      | some 0 => pure (← p.addIntInequality h y, 1)
-      | _ => p.addFact (mkApp3 (.const ``Int.sub_nonneg_of_le []) y x h)
-    | (``LT.lt, #[.const ``Int [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.add_one_le_of_lt []) x y h)
-    | (``GT.gt, #[.const ``Int [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.lt_of_gt []) x y h)
-    | (``GE.ge, #[.const ``Int [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.le_of_ge []) x y h)
-    | (``GT.gt, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Nat.lt_of_gt []) x y h)
-    | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
-    | (``Ne, #[.const ``Nat [], x, y]) =>
-      p.addFact (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
-    | (``Not, #[P]) => match ← pushNot h P with
-      | none => return (p, 0)
-      | some h' => p.addFact h'
-    | (``Eq, #[.const ``Nat [], x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.ofNat_congr []) x y h)
-    | (``LT.lt, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.ofNat_lt_of_lt []) x y h)
-    | (``LE.le, #[.const ``Nat [], _, x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.ofNat_le_of_le []) x y h)
-    | (``Ne, #[.const ``Int [], x, y]) =>
-      p.addFact (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
-    | (``Prod.Lex, _) => p.addFact (← mkAppM ``Prod.of_lex #[h])
-    | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
-      p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
-    | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
-      p.addFact (mkApp3 (.const ``Int.mod_eq_zero_of_dvd []) k x h)
-    | (``And, #[t₁, t₂]) => do
-        let (p₁, n₁) ← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)
-        let (p₂, n₂) ← p₁.addFact (mkApp3 (.const ``And.right []) t₁ t₂ h)
-        return (p₂, n₁ + n₂)
-    | (``Exists, #[α, P]) =>
-      p.addFact (mkApp3 (.const ``Exists.choose_spec [← getLevel α]) α P h)
-    | (``Subtype, #[α, P]) =>
-      p.addFact (mkApp3 (.const ``Subtype.property [← getLevel α]) α P h)
-    | (``Iff, #[P₁, P₂]) =>
-      p.addFact (mkApp4 (.const ``Decidable.and_or_not_and_not_of_iff [])
-        P₁ P₂ (.app (.const ``Classical.propDecidable []) P₂) h)
-    | (``Or, #[_, _]) =>
-      if (← cfg).splitDisjunctions then
-        return ({ p with disjunctions := p.disjunctions.insert h }, 1)
+    let t ← instantiateMVars (← whnfR (← inferType h))
+    trace[omega] "adding fact: {t}"
+    match t with
+    | .forallE _ x y _ =>
+      if (← isProp x) && (← isProp y) then
+        p.addFact (mkApp4 (.const ``Decidable.not_or_of_imp []) x y
+          (.app (.const ``Classical.propDecidable []) x) h)
       else
         return (p, 0)
+    | .app _ _ =>
+      match t.getAppFnArgs with
+      | (``Eq, #[.const ``Int [], x, y]) =>
+        match y.int? with
+        | some 0 => pure (← p.addIntEquality h x, 1)
+        | _ => p.addFact (mkApp3 (.const ``Int.sub_eq_zero_of_eq []) x y h)
+      | (``LE.le, #[.const ``Int [], _, x, y]) =>
+        match x.int? with
+        | some 0 => pure (← p.addIntInequality h y, 1)
+        | _ => p.addFact (mkApp3 (.const ``Int.sub_nonneg_of_le []) y x h)
+      | (``LT.lt, #[.const ``Int [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.add_one_le_of_lt []) x y h)
+      | (``GT.gt, #[.const ``Int [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.lt_of_gt []) x y h)
+      | (``GE.ge, #[.const ``Int [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.le_of_ge []) x y h)
+      | (``GT.gt, #[.const ``Nat [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Nat.lt_of_gt []) x y h)
+      | (``GE.ge, #[.const ``Nat [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Nat.le_of_ge []) x y h)
+      | (``Ne, #[.const ``Nat [], x, y]) =>
+        p.addFact (mkApp3 (.const ``Nat.lt_or_gt_of_ne []) x y h)
+      | (``Not, #[P]) => match ← pushNot h P with
+        | none => return (p, 0)
+        | some h' => p.addFact h'
+      | (``Eq, #[.const ``Nat [], x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.ofNat_congr []) x y h)
+      | (``LT.lt, #[.const ``Nat [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.ofNat_lt_of_lt []) x y h)
+      | (``LE.le, #[.const ``Nat [], _, x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.ofNat_le_of_le []) x y h)
+      | (``Ne, #[.const ``Int [], x, y]) =>
+        p.addFact (mkApp3 (.const ``Int.lt_or_gt_of_ne []) x y h)
+      | (``Prod.Lex, _) => p.addFact (← mkAppM ``Prod.of_lex #[h])
+      | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
+        p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
+      | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
+        p.addFact (mkApp3 (.const ``Int.mod_eq_zero_of_dvd []) k x h)
+      | (``And, #[t₁, t₂]) => do
+          let (p₁, n₁) ← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)
+          let (p₂, n₂) ← p₁.addFact (mkApp3 (.const ``And.right []) t₁ t₂ h)
+          return (p₂, n₁ + n₂)
+      | (``Exists, #[α, P]) =>
+        p.addFact (mkApp3 (.const ``Exists.choose_spec [← getLevel α]) α P h)
+      | (``Subtype, #[α, P]) =>
+        p.addFact (mkApp3 (.const ``Subtype.property [← getLevel α]) α P h)
+      | (``Iff, #[P₁, P₂]) =>
+        p.addFact (mkApp4 (.const ``Decidable.and_or_not_and_not_of_iff [])
+          P₁ P₂ (.app (.const ``Classical.propDecidable []) P₂) h)
+      | (``Or, #[_, _]) =>
+        if (← cfg).splitDisjunctions then
+          return ({ p with disjunctions := p.disjunctions.insert h }, 1)
+        else
+          return (p, 0)
+      | _ => pure (p, 0)
     | _ => pure (p, 0)
 
 /--
