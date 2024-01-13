@@ -35,7 +35,7 @@ def getIntroducedExprMVars (preState postState : SavedState) :
     MetaM (Array MVarId) := do
   let unassignedPost ← postState.runMetaM' getUnassignedExprMVars
   preState.runMetaM' do
-    unassignedPost.filterM λ mvarId => return ! (← mvarId.isDeclared)
+    unassignedPost.filterM fun mvarId => return ! (← mvarId.isDeclared)
 
 /--
 Returns the mvars that are declared but unassigned in `preState`, and

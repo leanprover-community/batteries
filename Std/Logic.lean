@@ -612,7 +612,8 @@ theorem Decidable.not_iff [Decidable b] : ¬(a ↔ b) ↔ (¬a ↔ b) := by
 theorem Decidable.iff_not_comm [Decidable a] [Decidable b] : (a ↔ ¬b) ↔ (b ↔ ¬a) := by
   rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
-theorem Decidable.iff_iff_and_or_not_and_not [Decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
+theorem Decidable.iff_iff_and_or_not_and_not {a b : Prop} [Decidable b] :
+    (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
   ⟨fun e => if h : b then .inl ⟨e.2 h, h⟩ else .inr ⟨mt e.1 h, h⟩,
    Or.rec (And.rec iff_of_true) (And.rec iff_of_false)⟩
 
@@ -696,8 +697,7 @@ The left-to-right direction, double negation elimination (DNE),
 is classically true but not constructively. -/
 @[scoped simp] theorem not_not : ¬¬a ↔ a := Decidable.not_not
 
-@[simp]
-theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
+@[simp] theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
   Decidable.not_forall
 
 alias ⟨exists_not_of_not_forall, _⟩ := not_forall
@@ -732,6 +732,79 @@ theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
 
 theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
+
+theorem congrFun₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : f = g) (a : α) (b : β a) :
+    f a b = g a b :=
+  congrFun (congrFun h _) _
+
+theorem congrFun₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+      {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+    f a b c = g a b c :=
+  congrFun₂ (congrFun h _) _ _
+
+theorem funext₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+  funext fun _ => funext <| h _
+
+theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+    {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+  funext fun _ => funext₂ <| h _
+
+theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
+  mt <| congrArg _
+
+protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
+  subst h₁; subst h₂; rfl
+
+theorem Eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+
+theorem Eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
+
+alias congr_arg := congrArg
+alias congr_arg₂ := congrArg₂
+alias congr_fun := congrFun
+alias congr_fun₂ := congrFun₂
+alias congr_fun₃ := congrFun₃
+
+theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
+  rfl
+
+theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
+  rfl
+
+@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
+    cast hb (cast ha a) = cast (ha.trans hb) a
+  | rfl, rfl, _ => rfl
+
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+  | rfl, rfl => .rfl
+
+theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+  ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
+
+theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
+  subst e; rfl
+
+--Porting note: new theorem. More general version of `eqRec_heq`
+theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    HEq (@Eq.rec α a motive x a' e) x := by
+  subst e; rfl
+
+@[simp]
+theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+  subst e; rfl
+
+@[simp]
+theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+  subst e; rfl
 
 /-! ## membership -/
 
@@ -784,6 +857,18 @@ theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
 
 @[simp] theorem ite_eq_right_iff {P : Prop} [Decidable P] : ite P a b = b ↔ P → a = b :=
   dite_eq_right_iff
+
+/-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
+@[simp] theorem dite_eq_ite [Decidable P] : (dite P (fun _ => a) fun _ => b) = ite P a b := rfl
+
+-- We don't mark this as `simp` as it is already handled by `ite_eq_right_iff`.
+theorem ite_some_none_eq_none [Decidable P] :
+    (if P then some x else none) = none ↔ ¬ P := by
+  simp only [ite_eq_right_iff]
+
+@[simp] theorem ite_some_none_eq_some [Decidable P] :
+    (if P then some x else none) = some y ↔ P ∧ x = y := by
+  split <;> simp_all
 
 /-! ## miscellaneous -/
 

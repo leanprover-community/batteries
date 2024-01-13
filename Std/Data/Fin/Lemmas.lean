@@ -156,6 +156,11 @@ theorem eq_last_of_not_lt {i : Fin (n + 1)} (h : ¬(i : Nat) < n) : i = last n :
 theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
   Decidable.not_imp_comm.1 eq_last_of_not_lt
 
+@[simp] theorem rev_last (n : Nat) : rev (last n) = 0 := ext <| by simp
+
+@[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
+  rw [← rev_rev (last _), rev_last]
+
 /-! ### addition, numerals, and coercion from Nat -/
 
 @[simp] theorem val_one (n : Nat) : (1 : Fin (n + 2)).val = 1 := rfl
@@ -199,7 +204,7 @@ theorem add_one_pos (i : Fin (n + 1)) (h : i < Fin.last n) : (0 : Fin (n + 1)) <
   match n with
   | 0 => cases h
   | n+1 =>
-    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right 1] at h
+    rw [Fin.lt_def, val_last, ← Nat.add_lt_add_iff_right] at h
     rw [Fin.lt_def, val_add, val_zero, val_one, Nat.mod_eq_of_lt h]
     exact Nat.zero_lt_succ _
 
@@ -313,7 +318,7 @@ theorem castLE_of_eq {m n : Nat} (h : m = n) {h' : m ≤ n} : castLE h' = Fin.ca
 theorem castAdd_lt {m : Nat} (n : Nat) (i : Fin m) : (castAdd n i : Nat) < m := by simp
 
 @[simp] theorem castAdd_mk (m : Nat) (i : Nat) (h : i < n) :
-    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right i n m h⟩ := rfl
+    castAdd m ⟨i, h⟩ = ⟨i, Nat.lt_add_right m h⟩ := rfl
 
 @[simp] theorem castAdd_castLT (m : Nat) (i : Fin (n + m)) (hi : i.val < n) :
     castAdd m (castLT i hi) = i := rfl
@@ -478,6 +483,16 @@ theorem cast_addNat {n : Nat} (m : Nat) (i : Fin n) :
 
 theorem natAdd_castSucc {m n : Nat} {i : Fin m} : natAdd n (castSucc i) = castSucc (natAdd n i) :=
   rfl
+
+theorem rev_castAdd (k : Fin n) (m : Nat) : rev (castAdd m k) = addNat (rev k) m := ext <| by
+  rw [val_rev, coe_castAdd, coe_addNat, val_rev, Nat.sub_add_comm (Nat.succ_le_of_lt k.is_lt)]
+
+theorem rev_addNat (k : Fin n) (m : Nat) : rev (addNat k m) = castAdd m (rev k) := by
+  rw [← rev_rev (castAdd ..), rev_castAdd, rev_rev]
+
+theorem rev_castSucc (k : Fin n) : rev (castSucc k) = succ (rev k) := k.rev_castAdd 1
+
+theorem rev_succ (k : Fin n) : rev (succ k) = castSucc (rev k) := k.rev_addNat 1
 
 /-! ### pred -/
 

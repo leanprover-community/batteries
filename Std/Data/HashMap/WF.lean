@@ -123,7 +123,7 @@ theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α
   induction l generalizing target with
   | nil => exact ⟨ht₁, fun _ h₁ _ h₂ => (ht₂ _ h₁ _ h₂).1⟩
   | cons _ _ ih =>
-    simp at hl₁ hl₂ ht₂
+    simp only [List.pairwise_cons, List.mem_cons, forall_eq_or_imp] at hl₁ hl₂ ht₂
     refine ih hl₁.2 hl₂.2
       (reinsertAux_WF ht₁ fun _ h => (ht₂ _ (Array.getElem_mem_data ..) _ h).2.1)
       (fun _ h => ?_)
@@ -163,7 +163,8 @@ where
         · exact hs₂ _ (by simp_all)
       · let rank (k : α) := ((hash k).toUSize % source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
-        · simp; exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩
+        · simp only [Array.get_eq_getElem, AssocList.foldl_eq, Array.size_set]
+          exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩
         · exact hs₁ _ (Array.getElem_mem_data ..)
         · have := ht.2 _ h₁ _ h₂
           refine ⟨Nat.le_of_lt this, fun _ h h' => Nat.ne_of_lt this ?_⟩
@@ -299,7 +300,7 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   simp [Imp.mapVal, Buckets.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
   · simp [Buckets.size]; congr; funext l; simp
   · simp only [Array.map_data, List.forall_mem_map_iff]
-    simp [List.pairwise_map]
+    simp only [AssocList.toList_mapVal, List.pairwise_map]
     exact fun _ => h₂.1 _
   · simp [AssocList.All] at h ⊢
     intro a m
@@ -337,7 +338,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
-  · simp only [List.forall_mem_map_iff, List.toAssocList_toList]
+  · simp only [List.forall_mem_map_iff, List.toList_toAssocList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢

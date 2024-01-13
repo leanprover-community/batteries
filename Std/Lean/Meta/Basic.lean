@@ -4,44 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jannis Limperg
 -/
 import Lean.Meta
+import Std.Lean.LocalContext
 
 open Lean Lean.Meta
 
 namespace Lean
-
-/--
-Set the kind of a `LocalDecl`.
--/
-def LocalDecl.setKind : LocalDecl → LocalDeclKind → LocalDecl
-  | cdecl index fvarId userName type bi _, kind =>
-      cdecl index fvarId userName type bi kind
-  | ldecl index fvarId userName type value nonDep _, kind =>
-      ldecl index fvarId userName type value nonDep kind
-
-
-namespace LocalContext
-
-/--
-Set the kind of the given fvar.
--/
-def setKind (lctx : LocalContext) (fvarId : FVarId)
-    (kind : LocalDeclKind) : LocalContext :=
-  lctx.modifyLocalDecl fvarId (·.setKind kind)
-
-/--
-Sort the given `FVarId`s by the order in which they appear in `lctx`. If any of
-the `FVarId`s do not appear in `lctx`, the result is unspecified.
--/
-def sortFVarsByContextOrder (lctx : LocalContext) (hyps : Array FVarId) :
-    Array FVarId :=
-  let hyps := hyps.map λ fvarId =>
-    match lctx.fvarIdToDecl.find? fvarId with
-    | none => (0, fvarId)
-    | some ldecl => (ldecl.index, fvarId)
-  hyps.qsort (λ h i => h.fst < i.fst) |>.map (·.snd)
-
-end LocalContext
-
 
 /--
 Sort the given `FVarId`s by the order in which they appear in the current local
@@ -131,7 +98,7 @@ only be replaced with defeq expressions.
 -/
 def modifyExprMVarLCtx (mctx : MetavarContext) (mvarId : MVarId)
     (f : LocalContext → LocalContext) : MetavarContext :=
-  mctx.modifyExprMVarDecl mvarId λ mdecl => { mdecl with lctx := f mdecl.lctx }
+  mctx.modifyExprMVarDecl mvarId fun mdecl => { mdecl with lctx := f mdecl.lctx }
 
 /--
 Set the kind of an fvar. If the given metavariable is not declared or the
@@ -326,6 +293,11 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext
   -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
   L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
 
+/-- Solve a goal by synthesizing an instance. -/
+-- FIXME: probably can just be `g.inferInstance` once leanprover/lean4#2054 is fixed
+def synthInstance (g : MVarId) : MetaM Unit := do
+  g.assign (← Lean.Meta.synthInstance (← g.getType))
+
 /--
 Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
 The new hypothesis is given the same user name as the original,
@@ -356,10 +328,19 @@ where
       else
         return e.hasFVar
 
+/-- Add the hypothesis `h : t`, given `v : t`, and return the new `FVarId`. -/
+def note (g : MVarId) (h : Name) (v : Expr) (t? : Option Expr := .none) :
+    MetaM (FVarId × MVarId) := do
+  (← g.assert h (← match t? with | some t => pure t | none => inferType v) v).intro1P
+
 /-- Get the type the given metavariable after instantiating metavariables and cleaning up
 annotations. -/
 def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
   return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
+
+/-- Short-hand for applying a constant to the goal. -/
+def applyConst (mvar : MVarId) (c : Name) (cfg : ApplyConfig := {}) : MetaM (List MVarId) := do
+  mvar.apply (← mkConstWithFreshMVarLevels c) cfg
 
 end MVarId
 
@@ -467,5 +448,12 @@ where
   go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
     withIncRecDepth do
       match ← tac goal with
-      | none => acc.modify λ s => s.push goal
+      | none => acc.modify fun s => s.push goal
       | some goals => goals.forM (go acc)
+
+/-- Return local hypotheses which are not "implementation detail", as `Expr`s. -/
+def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
+  let mut hs := #[]
+  for d in ← getLCtx do
+    if !d.isImplementationDetail then hs := hs.push d.toExpr
+  return hs

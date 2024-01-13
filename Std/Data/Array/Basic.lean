@@ -34,7 +34,7 @@ set_option linter.unusedVariables.funArgs false in
 Sort an array using `compare` to compare elements.
 -/
 def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort λ x y => compare x y |>.isLT
+  xs.qsort fun x y => compare x y |>.isLT
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -45,7 +45,7 @@ considered.
 @[inline]
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.foldl (init := d) (start := start) (stop := stop) λ min x =>
+  xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
 set_option linter.unusedVariables.funArgs false in
@@ -116,6 +116,12 @@ Unsafe implementation of `attach`, taking advantage of the fact that the represe
   with the same elements but in the type `{x // x ∈ xs}`. -/
 @[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
   ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
+
+/--
+`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
+* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
+-/
+@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
 
 end Array
 

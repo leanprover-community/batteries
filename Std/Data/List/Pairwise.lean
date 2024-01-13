@@ -10,7 +10,7 @@ import Std.Data.Fin.Lemmas
 # Pairwise relations on a list
 
 This file provides basic results about `List.Pairwise` and `List.pwFilter` (definitions are in
-`Std.Data.List.Defs`).
+`Std.Data.List.Basic`).
 `Pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,
 `Pairwise (≠) l` means that all elements of `l` are distinct, and `Pairwise (<) l` means that `l`
 is strictly increasing.
