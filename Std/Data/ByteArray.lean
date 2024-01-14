@@ -135,10 +135,10 @@ private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
     if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
 termination_by _ => n - i
 
-private theorem ofFnAux_data (f : Fin n → UInt8) :
-    (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
-  rw [ofFnAux.go, Array.ofFn.go]; split; rw [ofFnAux_data, push_data]; rfl
-termination_by _ => n - i
-
 @[csimp] theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext; simp [ofFnAux, ofFnAux_data, Array.ofFn]
+  funext n f; ext; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
+where
+  ofFnAux_data {n} (f : Fin n → UInt8) (i) {acc} :
+      (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
+    rw [ofFnAux.go, Array.ofFn.go]; split; rw [ofFnAux_data f (i+1), push_data]; rfl
+  termination_by _ => n - i
