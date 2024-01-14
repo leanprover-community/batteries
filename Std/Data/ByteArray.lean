@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 import Std.Data.Array.Lemmas
+import Std.Data.Fin.Basic
 import Std.Tactic.Ext.Attr
 
 namespace ByteArray
@@ -127,3 +128,18 @@ def ofFn (f : Fin n → UInt8) : ByteArray where
 
 @[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size):
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn ..
+
+/-- More efficient implementation of `ByteArray.ofFn` -/
+def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
+  /-- Auxiliary for `ofFnAux` -/
+  go (i : Nat) (acc : ByteArray) : ByteArray :=
+    if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
+termination_by _ => n - i
+
+@[simp] theorem ofFnAux_data (f : Fin n → UInt8) :
+    (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
+  rw [ofFnAux.go, Array.ofFn.go]; split; rw [ofFnAux_data, push_data]; rfl
+termination_by _ => n - i
+
+@[csimp] theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
+  funext n f; ext; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
