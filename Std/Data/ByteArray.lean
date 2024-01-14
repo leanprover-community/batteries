@@ -127,7 +127,7 @@ def ofFn (f : Fin n → UInt8) : ByteArray where
     (ofFn f).get i = f (i.cast (size_ofFn f)) := by
   simp [get, Fin.cast]
 
-@[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size):
+@[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn ..
 
 private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
