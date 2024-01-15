@@ -312,7 +312,7 @@ end MatchClone
 export MatchClone (Key Key.const)
 
 /--
-An unprocessed entry in the lazy discriminator tree.
+An unprocessed entry in the lazy discrimination tree.
 -/
 private abbrev LazyEntry α := Array Expr × ((LocalContext × LocalInstances) × α)
 
