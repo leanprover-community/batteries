@@ -139,6 +139,8 @@ theorem drop_eq_get_cons : ∀ {n} {l : List α} (h), drop n l = get l ⟨n, h�
 @[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
 @[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
 
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
+
 /-! ### append -/
 
 theorem append_eq_append : List.append l₁ l₂ = l₁ ++ l₂ := rfl
