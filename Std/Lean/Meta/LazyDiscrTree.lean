@@ -570,8 +570,8 @@ private partial def MatchResult.toArray (mr : MatchResult α) : Array α :=
           else
             loop (a.back.foldl (init := r) (fun r a => r ++ a)) a.pop
 
-private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieIndex) (result : MatchResult α) :
-    MatchM α (MatchResult α) := do
+private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieIndex)
+    (result : MatchResult α) : MatchM α (MatchResult α) := do
   let (vs, star, cs) ← evalNode c
   if todo.isEmpty then
     return result.push score vs
