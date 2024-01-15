@@ -247,7 +247,7 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
         -/
         Meta.throwIsDefEqStuck
       else if let some matcherInfo := isMatcherAppCore? (← getEnv) e then
-        -- A matcher application is stuck is one of the discriminants has a metavariable
+        -- A matcher application is stuck if one of the discriminants has a metavariable
         let args := e.getAppArgs
         let start := matcherInfo.getFirstDiscrPos
         for arg in args[ start : start + matcherInfo.numDiscrs ] do
@@ -297,10 +297,12 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
       return (.other, #[])
     else
       return (.arrow, #[d, b])
-  | _ =>
+  | .bvar _ | .letE _ _ _ _ _ | .lam _ _ _ _ | .mdata _ _ | .app _ _ | .sort _ =>
     return (.other, #[])
 
-/- Copy of Lean.Meta.DiscrTree.getMatchKeyArgs -/
+/-
+Given an expression we are looking for patterns that match, return the key and sub-expressions.
+-/
 private abbrev getMatchKeyArgs (e : Expr) (root : Bool) (config : WhnfCoreConfig) :
     MetaM (Key × Array Expr) :=
   getKeyArgs e (isMatch := true) (root := root) (config := config)
@@ -465,7 +467,7 @@ private def mkPath (e : Expr) (config : WhnfCoreConfig) : MetaM (Array Key) := d
 @[reducible]
 private def MatchM α := ReaderT WhnfCoreConfig (StateRefT (Array (Trie α)) MetaM)
 
-private def runMatch (m : MatchM α β) (d : LazyDiscrTree α) : MetaM (β × LazyDiscrTree α) := do
+private def runMatch (d : LazyDiscrTree α) (m : MatchM α β)  : MetaM (β × LazyDiscrTree α) := do
   let { config := c, tries := a, roots := r } := d
   let (result, a) ← withReducible $ (m.run c).run a
   pure (result, { config := c, tries := a, roots := r})
@@ -537,28 +539,42 @@ Used for internal debugging purposes.
 -/
 private def getTrie (d : LazyDiscrTree α) (idx : TrieIndex) :
     MetaM ((Array α × TrieIndex × HashMap Key TrieIndex) × LazyDiscrTree α) :=
-  runMatch (evalNode idx) d
+  runMatch d (evalNode idx)
 
+/--
+A match result repres
+-/
 private structure MatchResult (α : Type) where
-  elts : Array (Array α) := #[]
+  elts : Array (Array (Array α)) := #[]
 
-private def MatchResult.push (r : MatchResult α) (a : Array α) : MatchResult α :=
-  if a.isEmpty then r else ⟨r.elts.push a⟩
+private def MatchResult.push (r : MatchResult α) (score : Nat) (e : Array α) : MatchResult α :=
+  if e.isEmpty then
+    r
+  else if score < r.elts.size then
+    { elts := r.elts.modify score (·.push e) }
+  else
+    let rec loop (a : Array (Array (Array α))) :=
+        if a.size < score then
+          loop (a.push #[])
+        else
+          { elts := a.push #[e] }
+    loop r.elts
+  termination_by loop _ => score - a.size
 
-private partial def MatchResult.toArrayRev (mr : MatchResult α) : Array α :=
+private partial def MatchResult.toArray (mr : MatchResult α) : Array α :=
     loop (Array.mkEmpty n) mr.elts
-  where n := mr.elts.foldl (fun n a => n + a.size) 0
-        loop (r : Array α) a :=
+  where n := mr.elts.foldl (fun i a => a.foldl (fun n a => n + a.size) i) 0
+        loop (r : Array α) (a : Array (Array (Array α))) :=
           if a.isEmpty then
             r
           else
-            loop (r ++ a.back) a.pop
+            loop (a.back.foldl (init := r) (fun r a => r ++ a)) a.pop
 
-private partial def getMatchLoop (todo : Array Expr) (c : TrieIndex) (result : MatchResult α) :
+private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieIndex) (result : MatchResult α) :
     MatchM α (MatchResult α) := do
   let (vs, star, cs) ← evalNode c
   if todo.isEmpty then
-    return result.push vs
+    return result.push score vs
   else if star == 0 && cs.isEmpty then
     return result
   else
@@ -569,13 +585,13 @@ private partial def getMatchLoop (todo : Array Expr) (c : TrieIndex) (result : M
         and there is an edge for `k` and `k != Key.star`. -/
     let visitStar (result : MatchResult α) : MatchM α (MatchResult α) :=
       if star != 0 then
-        getMatchLoop todo star result
+        getMatchLoop todo score star result
       else
         return result
     let visitNonStar (k : Key) (args : Array Expr) (result : MatchResult α) :=
       match cs.find? k with
       | none   => return result
-      | some c => getMatchLoop (todo ++ args) c result
+      | some c => getMatchLoop (todo ++ args) (score + 1) c result
     let result ← visitStar result
     let (k, args) ← MatchClone.getMatchKeyArgs e (root := false) (←read)
     match k with
@@ -596,35 +612,37 @@ private def getStarResult (root : Lean.HashMap Key TrieIndex) : MatchM α (Match
     pure <| {}
   | some idx => do
     let (vs, _) ← evalNode idx
-    pure <| ({} : MatchResult α).push vs
+    pure <| ({} : MatchResult α).push 0 vs
 
 private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Array Expr)
     (result : MatchResult α) : MatchM α (MatchResult α) :=
   match r.find? k with
   | none => pure result
-  | some c => getMatchLoop args c result
+  | some c => getMatchLoop args 1 c result
 
 /--
-  Find values that match `e` in `d`.
+  Find values that match `e` in `root`.
 -/
 private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) :
-    MatchM α (MatchResult α) :=
-  withReducible do
-    let result ← getStarResult root
-    let (k, args) ← MatchClone.getMatchKeyArgs e (root := true) (←read)
-    match k with
-    | .star  => return result
-    /- See note about "dep-arrow vs arrow" at `getMatchLoop` -/
-    | .arrow =>
-      getMatchRoot root k args (←getMatchRoot root .other #[] result)
-    | _ =>
-      getMatchRoot root k args result
+    MatchM α (MatchResult α) := do
+  let result ← getStarResult root
+  let (k, args) ← MatchClone.getMatchKeyArgs e (root := true) (←read)
+  match k with
+  | .star  => return result
+  /- See note about "dep-arrow vs arrow" at `getMatchLoop` -/
+  | .arrow =>
+    getMatchRoot root k args (←getMatchRoot root .other #[] result)
+  | _ =>
+    getMatchRoot root k args result
 
 /--
   Find values that match `e` in `d`.
+
+  The results are ordered so that the longest matches in terms of number of
+  non-star keys are first with ties going to earlier operators first.
 -/
 def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
-  (fun (r, d) => (r.toArrayRev, d)) <$> runMatch (getMatchCore d.roots e) d
+  withReducible <| runMatch d <| (·.toArray) <$> getMatchCore d.roots e
 
 /--
 Structure for quickly initializing a lazy discrimination tree with a large number
@@ -740,7 +758,6 @@ def isBlackListed (env : Environment) (declName : Name) : Bool :=
   || isRecCore env declName
   || isMatcherCore env declName
 
-
 private def addConstImportData
     (env : Environment)
     (modName : Name)
@@ -771,7 +788,6 @@ private def addConstImportData
     }
     d.errors.modify (·.push i)
     pure tree
-
 
 /--
 Contains the pre discrimination tree and any errors occuring during initialization of
@@ -816,7 +832,6 @@ private partial def loadImportedModule (env : Environment)
     loadImportedModule env act d tree mname mdata (i+1)
   else
     pure tree
-
 
 private def createImportedEnvironmentSeq (env : Environment)
     (act : Name → ConstantInfo → MetaM (Array (InitEntry α)))
