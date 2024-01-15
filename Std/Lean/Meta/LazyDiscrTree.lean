@@ -16,7 +16,7 @@ lazy initialization strategy.
 
 The discrimination tree can be created through
 `createImportedEnvironment`. This creates a discrimination tree from all
-imported modules in an environment using a callback that proviees the
+imported modules in an environment using a callback that provides the
 entries as `InitEntry` values.
 
 The function `getMatch` can be used to get the values that match the
