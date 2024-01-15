@@ -418,8 +418,11 @@ private def librarySearch' (goal : MVarId)
 
 /--
 Try to solve the goal either by:
-* calling `solveByElim`
-* or applying a library lemma then calling `solveByElim` on the resulting goals.
+* calling `tactic true`
+* or applying a library lemma then calling `tactic false` on the resulting goals.
+
+Typically here `tactic` is `solveByElim`,
+with the `Bool` flag indicating whether it may retry with `exfalso`.
 
 If it successfully closes the goal, returns `none`.
 Otherwise, it returns `some a`, where `a : Array (List MVarId × MetavarContext)`,
