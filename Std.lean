@@ -83,6 +83,8 @@ import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
 import Std.Logic
+import Std.Logic.Basic
+import Std.Logic.Function
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases

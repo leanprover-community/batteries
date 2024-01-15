@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
-import Std.Logic
+import Std.Logic.Basic
 import Std.Tactic.HaveI
 
 /-!

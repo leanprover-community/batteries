@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
-import Std.Logic
+import Std.Logic.Basic
 
 /-!
 # Disjoint union of types
