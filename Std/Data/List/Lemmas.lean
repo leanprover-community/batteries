@@ -2108,6 +2108,22 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
       exact disjoint_take_drop h₁ (Nat.le_of_succ_le_succ h)
 
+/-! ### isPrefixOf and isSuffixOf -/
+
+theorem length_le_of_isPrefixOf [BEq α] {l₁ l₂ : List α} (h : l₁.isPrefixOf l₂) :
+    l₁.length ≤ l₂.length := by
+  match l₁, l₂ with
+  | [],    _     => simp
+  | _::_,  []    => simp [isPrefixOf] at h
+  | a::as, b::bs =>
+    simp [isPrefixOf] at h
+    simp [Nat.succ_le_succ_iff]
+    exact length_le_of_isPrefixOf h.2
+
+theorem length_le_of_isSuffixOf [BEq α] {l₁ l₂ : List α} (h : l₁.isSuffixOf l₂) :
+    l₁.length ≤ l₂.length := by
+  simpa [length_reverse] using length_le_of_isPrefixOf h
+
 /-! ### takeWhile and dropWhile -/
 
 @[simp] theorem takeWhile_append_dropWhile (p : α → Bool) :
