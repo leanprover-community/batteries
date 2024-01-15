@@ -862,7 +862,8 @@ theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : m < n) :
     foldr.loop n f ⟨m+1, h⟩ x = foldr.loop n f ⟨m, Nat.le_of_lt h⟩ (f ⟨m, h⟩ x) := rfl
 
 theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
-    foldr.loop (n+1) f ⟨m+1, h⟩ x = f 0 (foldr.loop n (fun i => f i.succ) ⟨m, Nat.le_of_succ_le_succ h⟩ x) := by
+    foldr.loop (n+1) f ⟨m+1, h⟩ x =
+      f 0 (foldr.loop n (fun i => f i.succ) ⟨m, Nat.le_of_succ_le_succ h⟩ x) := by
   induction m using Nat.recAux generalizing x with
   | zero => simp [foldr_loop_zero, foldr_loop_succ]
   | succ m ih => rw [foldr_loop_succ, ih]; rfl
