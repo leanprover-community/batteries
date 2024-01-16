@@ -2116,9 +2116,8 @@ theorem length_le_of_isPrefixOf [BEq α] {l₁ l₂ : List α} (h : l₁.isPrefi
   | [],    _     => simp
   | _::_,  []    => simp [isPrefixOf] at h
   | a::as, b::bs =>
-    simp [isPrefixOf] at h
-    simp [Nat.succ_le_succ_iff]
-    exact length_le_of_isPrefixOf h.2
+    simp only [isPrefixOf, Bool.and_eq_true] at h
+    simpa [Nat.succ_le_succ_iff] using length_le_of_isPrefixOf h.2
 
 theorem length_le_of_isSuffixOf [BEq α] {l₁ l₂ : List α} (h : l₁.isSuffixOf l₂) :
     l₁.length ≤ l₂.length := by

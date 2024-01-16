@@ -21,11 +21,10 @@ theorem eq_append_of_splitOnceP (P : List α → Bool) (l : List α) :
   induction l with
   | nil => simp [splitOnceP]
   | cons a l ih =>
-    simp [splitOnceP]
     if h : P (a :: l) then
-      simp [h]
+      simp [splitOnceP, h]
     else
-      simp [h]
+      simp only [splitOnceP, h, ite_false]
       match e : splitOnceP P l with
       | none => simp
       | some (lf, rt) => simp; apply ih; assumption
@@ -35,11 +34,10 @@ theorem P_of_splitOnceP (P : List α → Bool) (l : List α) :
   induction l with
   | nil => simp [splitOnceP]
   | cons a l ih =>
-    simp [splitOnceP]
     if h : P (a :: l) then
-      simp [h]
+      simp [splitOnceP, h]
     else
-      simp [h]
+      simp only [splitOnceP, h, ite_false]
       match e : splitOnceP P l with
       | none => simp
       | some (lf, rt) => simp; apply ih; assumption
