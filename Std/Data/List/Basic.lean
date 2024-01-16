@@ -7,7 +7,6 @@ import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
-import Std.Data.List.Init.Attach
 
 namespace List
 

@@ -7,6 +7,7 @@ import Std.Tactic.Relation.Rfl
 import Std.Data.List.Lemmas
 import Std.Data.List.Count
 import Std.Data.List.Pairwise
+import Std.Data.List.Init.Attach
 
 /-!
 # List Permutations

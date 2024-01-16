@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.Omega.OmegaM
 import Std.Tactic.Omega.Constraint
+import Std.Tactic.Omega.MinNatAbs
 import Std.Data.HashMap.Basic
 
 open Lean (HashSet)
