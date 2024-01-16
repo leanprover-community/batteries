@@ -5,6 +5,18 @@ Authors: Bulhwi Cha, Mario Carneiro
 -/
 import Std.Data.List.Lemmas
 
+/-!
+# `List.splitOnList`
+
+This file introduces the `List.splitOnList` function, which is a specification for `String.splitOn`.
+We need it to prove `String.splitOn_of_valid` in `Std.Data.String.Lemmas`.
+```
+[1, 1, 2, 3, 2, 4, 4].splitOnList []     = [[1, 1, 2, 3, 2, 4, 4]]
+[1, 1, 2, 3, 2, 4, 4].splitOnList [5, 6] = [[1, 1, 2, 3, 2, 4, 4]]
+[1, 1, 2, 3, 2, 4, 4].splitOnList [2, 3] = [[1, 1], [2, 4, 4]]
+```
+-/
+
 namespace List
 
 /-- Returns `(l₁, l₂)` for the first split `l = l₁ ++ l₂` such that `P l₂` returns true. -/
