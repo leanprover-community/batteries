@@ -502,6 +502,7 @@ variable {α : Type u} {le : α → α → Bool}
 /-- `O(1)`. Make a new empty binomial heap. -/
 @[inline] def empty : BinomialHeap α le := mkBinomialHeap α le
 
+instance : EmptyCollection (BinomialHeap α le) := ⟨.empty⟩
 instance : Inhabited (BinomialHeap α le) := ⟨.empty⟩
 
 /-- `O(1)`. Is the heap empty? -/
