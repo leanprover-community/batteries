@@ -58,10 +58,9 @@ def splitOnList [BEq α] (l sep : List α) : List (List α) :=
       have : length l₂ - sep.length < length l := by
         rw [eq_append_of_splitOnceRightP (sep.isPrefixOf) l l₁ l₂ e, length_append]
         calc
-          length l₂ - length sep < length l₂ := by
-            apply Nat.sub_lt_self
-            · apply length_pos.mpr; simp [← isEmpty_iff_eq_nil, h]
-            · apply length_le_of_isPrefixOf (P_of_splitOnceRightP sep.isPrefixOf l l₁ l₂ e)
+          length l₂ - length sep < length l₂ :=
+            Nat.sub_lt_self (by simp [length_pos, ← isEmpty_iff_eq_nil, h])
+             (length_le_of_isPrefixOf (P_of_splitOnceRightP sep.isPrefixOf l l₁ l₂ e))
           _ ≤ length l₁ + length l₂ := Nat.le_add_left ..
       l₁ :: splitOnList (l₂.drop sep.length) sep
 termination_by _ => l.length
