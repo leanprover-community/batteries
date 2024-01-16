@@ -63,7 +63,7 @@ def splitOnList [BEq α] (l sep : List α) : List (List α) :=
             · apply length_pos.mpr; simp [← isEmpty_iff_eq_nil, h]
             · apply length_le_of_isPrefixOf (P_of_splitOnceRightP sep.isPrefixOf l l₁ l₂ e)
           _ ≤ length l₁ + length l₂ := Nat.le_add_left ..
-      splitOnList (l₂.drop sep.length) sep
+      l₁ :: splitOnList (l₂.drop sep.length) sep
 termination_by _ => l.length
 
 end List
