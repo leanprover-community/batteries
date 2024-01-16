@@ -9,6 +9,7 @@ import Std.Tactic.RCases
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Init.Dvd
 import Std.Data.Nat.Basic
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Ord
 
 /-! # Basic lemmas about natural numbers
@@ -140,6 +141,26 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
     (zero_succ : ∀ n, motive 0 (n+1)) (succ_zero : ∀ m, motive (m+1) 0)
     (succ_succ : ∀ m n, motive (m+1) (n+1)) (m n) :
     Nat.casesDiagOn (m+1) (n+1) zero_zero zero_succ succ_zero succ_succ = succ_succ m n := rfl
+
+/-! ### Associative and commutative instance. -/
+
+instance : Std.Associative (α := Nat) (· + ·) where
+  assoc := Nat.add_assoc
+
+instance : Std.Commutative (α := Nat) (· + ·) where
+  comm := Nat.add_comm
+
+instance : Std.LawfulCommIdentity (α := Nat) (· + ·) 0 where
+  right_id := Nat.add_zero
+
+instance : Std.Associative (α := Nat) (· * ·) where
+  assoc := Nat.mul_assoc
+
+instance : Std.Commutative (α := Nat) (· * ·) where
+  comm := Nat.mul_comm
+
+instance : Std.LawfulCommIdentity (α := Nat) (· * ·) 1 where
+  right_id := Nat.mul_one
 
 /-! ### le/lt -/
 
