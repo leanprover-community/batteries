@@ -26,7 +26,7 @@ theorem gcd_dvd_right {a b : Int} : (gcd a b : Int) ∣ b := by
 @[simp] theorem one_gcd {a : Int} : gcd 1 a = 1 := by simp [gcd]
 @[simp] theorem gcd_one {a : Int} : gcd a 1 = 1 := by simp [gcd]
 
-@[simp] theorem neg_gcd {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
+@[simp] theorem neg_gcd {a b : Int} : gcd (-a) b = gcd a b := by simp [gcd]
 @[simp] theorem gcd_neg {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
 
 /-- Computes the least common multiple of two integers, as a `Nat`. -/
