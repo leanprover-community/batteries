@@ -1,76 +1,11 @@
 import Std.Data.Int.DivMod
-import Std.Data.Nat.Gcd
+import Std.Data.Int.Gcd
 import Std.Tactic.PermuteGoals
 import Std.Tactic.Replace
 import Std.Tactic.Simpa
 import Std.Tactic.LibrarySearch
 
 namespace Int
-
-theorem one_dvd {a : Int} : 1 ∣ a := ⟨a, (Int.one_mul a).symm⟩
-
-theorem natAbs_dvd_self {a : Int} : (a.natAbs : Int) ∣ a := by
-  rw [Int.natAbs_dvd]
-  exact Int.dvd_refl a
-theorem dvd_natAbs_self {a : Int} : a ∣ (a.natAbs : Int) := by
-  rw [Int.dvd_natAbs]
-  exact Int.dvd_refl a
-
-/-!
-## Int.gcd
--/
-
-theorem gcd_dvd_left {a b : Int} : (gcd a b : Int) ∣ a := by
-  have := Nat.gcd_dvd_left a.natAbs b.natAbs
-  rw [← Int.ofNat_dvd] at this
-  exact Int.dvd_trans this natAbs_dvd_self
-theorem gcd_dvd_right {a b : Int} : (gcd a b : Int) ∣ b := by
-  have := Nat.gcd_dvd_right a.natAbs b.natAbs
-  rw [← Int.ofNat_dvd] at this
-  exact Int.dvd_trans this natAbs_dvd_self
-
-@[simp] theorem gcd_one_left {a : Int} : gcd 1 a = 1 := by simp [gcd]
-@[simp] theorem gcd_one_right {a : Int} : gcd a 1 = 1 := by simp [gcd]
-
-@[simp] theorem gcd_neg_left {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
-@[simp] theorem gcd_neg_right {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
-
-/--
-Given a solution `x` to a divisibility constraint `a ∣ b * x + c`,
-then `x % d` is another solution as long as `(a / gcd a b) | d`.
--/
-theorem dvd_mul_emod_add_of_dvd_mul_add {a b c d x : Int}
-    (w : a ∣ b * x + c) (h : (a / gcd a b) ∣ d) :
-    a ∣ b * (x % d) + c := by
-  obtain ⟨p, w⟩ := w
-  obtain ⟨q, rfl⟩ := h
-  rw [Int.emod_def, Int.mul_sub, Int.sub_eq_add_neg, Int.add_right_comm, w,
-    Int.dvd_add_right (Int.dvd_mul_right _ _), ← Int.mul_assoc, ← Int.mul_assoc, Int.dvd_neg,
-    ← Int.mul_ediv_assoc b gcd_dvd_left, Int.mul_comm b a, Int.mul_ediv_assoc a gcd_dvd_right,
-    Int.mul_assoc, Int.mul_assoc]
-  apply Int.dvd_mul_right
-
-theorem dvd_emod_add_of_dvd_add {a c d x : Int} (w : a ∣ x + c) (h : a ∣ d) : a ∣ (x % d) + c := by
-  rw [← Int.one_mul x] at w
-  rw [← Int.one_mul (x % d)]
-  apply dvd_mul_emod_add_of_dvd_mul_add w (by simpa)
-
-/-! ## lcm -/
-
-/-- Computes the least common multiple of two integers, as a `Nat`. -/
-def lcm (m n : Int) : Nat := m.natAbs.lcm n.natAbs
-
-theorem lcm_ne_zero (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 := by
-  simp only [lcm]
-  apply Nat.lcm_ne_zero <;> simpa
-
-theorem dvd_lcm_left {a b : Int} : a ∣ lcm a b :=
-  Int.dvd_trans dvd_natAbs_self (Int.ofNat_dvd.mpr (Nat.dvd_lcm_left a.natAbs b.natAbs))
-
-theorem dvd_lcm_right {a b : Int} : b ∣ lcm a b :=
-  Int.dvd_trans dvd_natAbs_self (Int.ofNat_dvd.mpr (Nat.dvd_lcm_right a.natAbs b.natAbs))
-
-@[simp] theorem lcm_self {a : Int} : lcm a a = a.natAbs := Nat.lcm_self _
 
 theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
   ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
@@ -107,8 +42,36 @@ theorem le_of_mul_le {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c :
   rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
   exact Int.le_of_sub_nonneg w
 
+/--
+Given a solution `x` to a divisibility constraint `a ∣ b * x + c`,
+then `x % d` is another solution as long as `(a / gcd a b) | d`.
+
+See `dvd_emod_add_of_dvd_add` for the specialization with `b = 1`.
+-/
+theorem dvd_mul_emod_add_of_dvd_mul_add {a b c d x : Int}
+    (w : a ∣ b * x + c) (h : (a / gcd a b) ∣ d) :
+    a ∣ b * (x % d) + c := by
+  obtain ⟨p, w⟩ := w
+  obtain ⟨q, rfl⟩ := h
+  rw [Int.emod_def, Int.mul_sub, Int.sub_eq_add_neg, Int.add_right_comm, w,
+    Int.dvd_add_right (Int.dvd_mul_right _ _), ← Int.mul_assoc, ← Int.mul_assoc, Int.dvd_neg,
+    ← Int.mul_ediv_assoc b gcd_dvd_left, Int.mul_comm b a, Int.mul_ediv_assoc a gcd_dvd_right,
+    Int.mul_assoc, Int.mul_assoc]
+  apply Int.dvd_mul_right
+
+/--
+Given a solution `x` to a divisibility constraint `a ∣ x + c`,
+then `x % d` is another solution as long as `a | d`.
+
+See `dvd_mul_emod_add_of_dvd_mul_add` for a more general version allowing a coefficient with `x`.
+-/
+theorem dvd_emod_add_of_dvd_add {a c d x : Int} (w : a ∣ x + c) (h : a ∣ d) : a ∣ (x % d) + c := by
+  rw [← Int.one_mul x] at w
+  rw [← Int.one_mul (x % d)]
+  apply dvd_mul_emod_add_of_dvd_mul_add w (by simpa)
+
 /-!
-## Cooper resolution: small solutions to bounded and divisibility constraints.
+## Cooper resolution: small solutions to boundedness and divisibility constraints.
 -/
 
 /--
