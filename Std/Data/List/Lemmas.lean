@@ -5,8 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Control.ForInStep.Lemmas
 import Std.Data.Bool
-import Std.Data.Fin.Lemmas
-import Std.Data.Nat.Lemmas
+import Std.Data.Fin.Basic
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
 import Std.Classes.BEq

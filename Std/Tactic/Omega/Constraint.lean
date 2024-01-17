@@ -3,9 +3,10 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import Std.Classes.Order
 import Std.Tactic.RCases
 import Std.Tactic.NormCast
-import Std.Tactic.Omega.OmegaM
+import Std.Tactic.Omega.Coeffs.IntList
 
 /-!
 A `Constraint` consists of an optional lower and upper bound (inclusive),

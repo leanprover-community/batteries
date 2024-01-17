@@ -3,7 +3,7 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: E.W.Ayers, Wojciech Nawrocki
 -/
-import Std.Lean.Json
+import Lean.Data.Json.FromToJson
 import Lean.Syntax
 
 /-!
