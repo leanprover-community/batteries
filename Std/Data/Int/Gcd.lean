@@ -23,11 +23,11 @@ theorem gcd_dvd_right {a b : Int} : (gcd a b : Int) ∣ b := by
   rw [← Int.ofNat_dvd] at this
   exact Int.dvd_trans this natAbs_dvd_self
 
-@[simp] theorem gcd_one_left {a : Int} : gcd 1 a = 1 := by simp [gcd]
-@[simp] theorem gcd_one_right {a : Int} : gcd a 1 = 1 := by simp [gcd]
+@[simp] theorem one_gcd {a : Int} : gcd 1 a = 1 := by simp [gcd]
+@[simp] theorem gcd_one {a : Int} : gcd a 1 = 1 := by simp [gcd]
 
-@[simp] theorem gcd_neg_left {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
-@[simp] theorem gcd_neg_right {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
+@[simp] theorem neg_gcd {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
+@[simp] theorem gcd_neg {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
 
 /-- Computes the least common multiple of two integers, as a `Nat`. -/
 def lcm (m n : Int) : Nat := m.natAbs.lcm n.natAbs
