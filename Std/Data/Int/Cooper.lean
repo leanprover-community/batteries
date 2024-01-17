@@ -32,12 +32,16 @@ theorem dvd_of_mul_dvd {a b c : Int} (w : a * b ∣ a * c) (h : 0 < a) : b ∣ c
   rwa [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h), Int.mul_assoc,
     Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
 
-theorem le_of_mul_le {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
+theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
   replace w := Int.sub_nonneg_of_le w
   rw [← Int.mul_sub] at w
   replace w := Int.ediv_nonneg w (Int.le_of_lt h)
   rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
   exact Int.le_of_sub_nonneg w
+
+theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact le_of_mul_le_mul_left w h
 
 /--
 Given a solution `x` to a divisibility constraint `a ∣ b * x + c`,
@@ -96,6 +100,7 @@ as formulated in
 DOI 10.1007/s10817-013-9281-x
 
 See `cooper_resolution_left` for a simpler version without the divisibility constraint.
+
 This formulation is "biased" towards the lower bound, so it is called "left Cooper resolution".
 See `cooper_resolution_dvd_right` for the version biased towards the upper bound.
 -/
@@ -140,7 +145,7 @@ theorem cooper_resolution_dvd_left
     refine ⟨(k + p) / a, ?_, ?_, ?_⟩
     · rw [Int.mul_ediv_cancel' a_dvd]
       apply Int.le_add_of_nonneg_left nonneg
-    · suffices h : a * (b * ((k + p) / a)) ≤ a * q from le_of_mul_le h a_pos
+    · suffices h : a * (b * ((k + p) / a)) ≤ a * q from le_of_mul_le_mul_left h a_pos
       rw [Int.mul_left_comm a b, Int.mul_ediv_cancel' a_dvd, Int.mul_add]
       exact le
     · suffices h : a * d ∣ a * ((c * ((k + p) / a)) + s) from dvd_of_mul_dvd h a_pos
