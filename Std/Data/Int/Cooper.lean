@@ -11,9 +11,6 @@ theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
   ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
     Int.add_comm, Int.add_sub_cancel]⟩
 
-instance : Trans (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) :=
-  ⟨Int.le_trans⟩
-
 theorem ediv_pos_of_dvd {a b : Int} (ha : 0 < a) (hb : 0 ≤ b) (w : b ∣ a) : 0 < a / b := by
   -- Surely this doesn't need to be so difficult?
   rcases w with ⟨z, rfl⟩
