@@ -1034,7 +1034,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 /--
 `ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
 ```
-ofFn f = [f 0, f 1, ... , f(n - 1)]
+ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
 def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
