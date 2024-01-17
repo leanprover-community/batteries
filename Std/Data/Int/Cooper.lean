@@ -180,7 +180,7 @@ theorem cooper_resolution_dvd_right
       a * k + a * (-q) ≤ b * (-p) ∧
       b ∣ k + (-q) ∧
       b * d ∣ (- c) * k + (-c) * (-q) + b * s) by
-    simp only [gcd_neg_right, Int.neg_mul_neg] at h
+    simp only [gcd_neg, Int.neg_mul_neg] at h
     simp only [Int.mul_neg, this] at h
     exact h
   constructor
@@ -208,7 +208,7 @@ theorem cooper_resolution_left
     (∃ k : Int, 0 ≤ k ∧ k < a ∧ b * k + b * p ≤ a * q ∧ a ∣ k + p) := by
   have h := cooper_resolution_dvd_left
     a_pos b_pos Int.zero_lt_one (c := 1) (s := 0) (p := p) (q := q)
-  simp only [Int.mul_one, Int.one_mul, Int.mul_zero, Int.add_zero, gcd_one_right, Int.ofNat_one,
+  simp only [Int.mul_one, Int.one_mul, Int.mul_zero, Int.add_zero, gcd_one, Int.ofNat_one,
     Int.ediv_one, lcm_self, Int.natAbs_of_nonneg (Int.le_of_lt a_pos), Int.one_dvd, and_true,
     and_self] at h
   exact h
@@ -227,7 +227,7 @@ theorem cooper_resolution_right
   have : ∀ k : Int, (b ∣ -k + q) ↔ (b ∣ k - q) := by
     intro k
     rw [← Int.dvd_neg, Int.neg_add, Int.neg_neg, Int.sub_eq_add_neg]
-  simp only [Int.mul_one, Int.one_mul, Int.mul_zero, Int.add_zero, gcd_one_right, Int.ofNat_one,
+  simp only [Int.mul_one, Int.one_mul, Int.mul_zero, Int.add_zero, gcd_one, Int.ofNat_one,
     Int.ediv_one, lcm_self, Int.natAbs_of_nonneg (Int.le_of_lt b_pos), Int.one_dvd, and_true,
     and_self, ← Int.neg_eq_neg_one_mul, this] at h
   exact h
