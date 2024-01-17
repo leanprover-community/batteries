@@ -2,24 +2,38 @@ import Std.Data.Int.DivMod
 import Std.Data.Nat.Gcd
 import Std.Tactic.PermuteGoals
 import Std.Tactic.Replace
+import Std.Tactic.Simpa
+import Std.Tactic.LibrarySearch
 
 namespace Int
 
-theorem one_dvd {a : Int} : 1 ∣ a := sorry
+theorem one_dvd {a : Int} : 1 ∣ a := ⟨a, (Int.one_mul a).symm⟩
+
+theorem natAbs_dvd_self {a : Int} : (a.natAbs : Int) ∣ a := by
+  rw [Int.natAbs_dvd]
+  exact Int.dvd_refl a
+theorem dvd_natAbs_self {a : Int} : a ∣ (a.natAbs : Int) := by
+  rw [Int.dvd_natAbs]
+  exact Int.dvd_refl a
 
 /-!
 ## Int.gcd
 -/
 
-theorem gcd_dvd_left {a b : Int} : (gcd a b : Int) ∣ a := sorry
-theorem gcd_dvd_right {a b : Int} : (gcd a b : Int) ∣ b := sorry
+theorem gcd_dvd_left {a b : Int} : (gcd a b : Int) ∣ a := by
+  have := Nat.gcd_dvd_left a.natAbs b.natAbs
+  rw [← Int.ofNat_dvd] at this
+  exact Int.dvd_trans this natAbs_dvd_self
+theorem gcd_dvd_right {a b : Int} : (gcd a b : Int) ∣ b := by
+  have := Nat.gcd_dvd_right a.natAbs b.natAbs
+  rw [← Int.ofNat_dvd] at this
+  exact Int.dvd_trans this natAbs_dvd_self
 
-@[simp] theorem gcd_one_right {a : Int} : gcd a 1 = 1 := sorry
-@[simp] theorem gcd_neg_right {a b : Int} : gcd a (-b) = gcd a b := sorry
+@[simp] theorem gcd_one_left {a : Int} : gcd 1 a = 1 := by simp [gcd]
+@[simp] theorem gcd_one_right {a : Int} : gcd a 1 = 1 := by simp [gcd]
 
-/-!
-## Small solutions to divisibility constraints.
--/
+@[simp] theorem gcd_neg_left {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
+@[simp] theorem gcd_neg_right {a b : Int} : gcd a (-b) = gcd a b := by simp [gcd]
 
 /--
 Given a solution `x` to a divisibility constraint `a ∣ b * x + c`,
@@ -36,28 +50,47 @@ theorem dvd_mul_emod_add_of_dvd_mul_add {a b c d x : Int}
     Int.mul_assoc, Int.mul_assoc]
   apply Int.dvd_mul_right
 
-theorem dvd_emod_add_of_dvd_add {a c d x : Int} (w : a ∣ x + c) : a ∣ (x % d) + c := by
+theorem dvd_emod_add_of_dvd_add {a c d x : Int} (w : a ∣ x + c) (h : a ∣ d) : a ∣ (x % d) + c := by
   rw [← Int.one_mul x] at w
   rw [← Int.one_mul (x % d)]
-  apply dvd_mul_emod_add_of_dvd_mul_add w
-  sorry
+  apply dvd_mul_emod_add_of_dvd_mul_add w (by simpa)
 
 /-! ## lcm -/
 
 /-- Computes the least common multiple of two integers, as a `Nat`. -/
 def lcm (m n : Int) : Nat := m.natAbs.lcm n.natAbs
 
-theorem lcm_pos (hm : 0 < m) (hn : 0 < n) : 0 < lcm m n := sorry
+theorem lcm_ne_zero (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 := by
+  simp only [lcm]
+  apply Nat.lcm_ne_zero <;> simpa
 
-theorem dvd_lcm_right {a b : Int} : b ∣ lcm a b := sorry
+theorem dvd_lcm_left {a b : Int} : a ∣ lcm a b :=
+  Int.dvd_trans dvd_natAbs_self (Int.ofNat_dvd.mpr (Nat.dvd_lcm_left a.natAbs b.natAbs))
 
-@[simp] theorem lcm_self {a : Int} : lcm a a = a.natAbs := sorry
+theorem dvd_lcm_right {a b : Int} : b ∣ lcm a b :=
+  Int.dvd_trans dvd_natAbs_self (Int.ofNat_dvd.mpr (Nat.dvd_lcm_right a.natAbs b.natAbs))
 
-theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c := sorry
+@[simp] theorem lcm_self {a : Int} : lcm a a = a.natAbs := Nat.lcm_self _
 
-instance : Trans (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) := ⟨Int.le_trans⟩
+theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
+  ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
+    Int.add_comm, Int.add_sub_cancel]⟩
 
-theorem ediv_pos_of_dvd {a b : Int} (ha : 0 < a) (hb : 0 ≤ b) (w : b ∣ a) : 0 < a / b := sorry
+instance : Trans (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) (fun x y : Int => x ≤ y) :=
+  ⟨Int.le_trans⟩
+
+theorem ediv_pos_of_dvd {a b : Int} (ha : 0 < a) (hb : 0 ≤ b) (w : b ∣ a) : 0 < a / b := by
+  -- Surely this doesn't need to be so difficult?
+  rcases w with ⟨z, rfl⟩
+  rw [Int.mul_ediv_cancel_left]
+  · rcases Int.lt_trichotomy z 0 with (lt | rfl | gt)
+    · exfalso
+      have : b * z ≤ 0 := Int.mul_nonpos_of_nonneg_of_nonpos hb (Int.le_of_lt lt)
+      exact Int.lt_irrefl _ (Int.lt_of_le_of_lt this ha)
+    · simp_all
+    · assumption
+  · rintro rfl
+    exact Int.lt_irrefl _ (by simpa using ha)
 
 theorem dvd_of_mul_dvd {a b c : Int} (w : a * b ∣ a * c) (h : 0 < a) : b ∣ c := by
   obtain ⟨z, w⟩ := w
@@ -73,6 +106,10 @@ theorem le_of_mul_le {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c :
   replace w := Int.ediv_nonneg w (Int.le_of_lt h)
   rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
   exact Int.le_of_sub_nonneg w
+
+/-!
+## Cooper resolution: small solutions to bounded and divisibility constraints.
+-/
 
 /--
 There is an integer solution for `x` to the system
@@ -93,11 +130,21 @@ a * d | c * k + c * p + a * s
 Note in the new system that `k` has explicit lower and upper bounds
 (i.e. without a coefficient for `k`, and in terms of `a`, `c`, and `d` only).
 
-This is a statement of "Cooper resolution" with a divisibility constraint.
+This is a statement of "Cooper resolution" with a divisibility constraint,
+as formulated in
+"Cutting to the Chase: Solving Linear Integer Arithmetic" by Dejan Jovanović and Leonardo de Moura,
+DOI 10.1007/s10817-013-9281-x
+
 See `cooper_resolution_left` for a simpler version without the divisibility constraint.
 This formulation is "biased" towards the lower bound, so it is called "left Cooper resolution".
 See `cooper_resolution_dvd_right` for the version biased towards the upper bound.
 -/
+-- We could make this more explicit by specifying the change of variables in the statement.
+-- We have `k = (a * x - p) % (lcm a (a * d / gcd (a * d) c))` and
+-- `x = (k + p) / a`.
+-- Note that going back and forth through this change, i.e.
+-- `x' = ((a * x - p) % (lcm a (a * d / gcd (a * d) c)) + p) / a`
+-- is not useful, as there may be other facts about `x` in our context which will not be preserved.
 theorem cooper_resolution_dvd_left
     {a b c d s p q : Int} (a_pos : 0 < a) (b_pos : 0 < b) (d_pos : 0 < d) :
     (∃ x, p ≤ a * x ∧ b * x ≤ q ∧ d ∣ c * x + s) ↔
@@ -110,8 +157,9 @@ theorem cooper_resolution_dvd_left
     obtain ⟨k', w⟩ := exists_add_of_le lower
     refine ⟨k' % (lcm a (a * d / gcd (a * d) c)), Int.ofNat_nonneg _, ?_, ?_, ?_, ?_⟩
     · rw [← Int.ofNat_emod, Int.ofNat_lt]
-      exact Nat.mod_lt _ (lcm_pos a_pos (Int.ediv_pos_of_dvd (Int.mul_pos a_pos d_pos)
-        (Int.ofNat_nonneg _) gcd_dvd_left))
+      exact Nat.mod_lt _ (Nat.pos_of_ne_zero (lcm_ne_zero (Int.ne_of_gt a_pos)
+        (Int.ne_of_gt (Int.ediv_pos_of_dvd (Int.mul_pos a_pos d_pos) (Int.ofNat_nonneg _)
+          gcd_dvd_left))))
     · replace upper : a * b * x ≤ a * q :=
         Int.mul_assoc _ _ _ ▸ Int.mul_le_mul_of_nonneg_left upper (Int.le_of_lt a_pos)
       rw [Int.mul_right_comm, w, Int.add_mul, Int.mul_comm p b, Int.mul_comm _ b] at upper
@@ -120,7 +168,7 @@ theorem cooper_resolution_dvd_left
         _ ≤ _ := Int.add_le_add_left
           (Int.mul_le_mul_of_nonneg_left (Int.ofNat_le.mpr <| Nat.mod_le _ _) (Int.le_of_lt b_pos)) _
         _ ≤ _ := upper
-    · exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩
+    · exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
     · rw [Int.add_assoc]
       apply dvd_mul_emod_add_of_dvd_mul_add
       · obtain ⟨z, r⟩ := dvd
