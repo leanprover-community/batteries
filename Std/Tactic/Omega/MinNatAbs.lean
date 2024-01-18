@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Data.List.Lemmas
-import Std.Data.Int.Lemmas
+import Std.Data.Int.Order
 import Std.Tactic.LeftRight
 
 /-!
