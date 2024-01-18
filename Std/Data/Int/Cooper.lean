@@ -1,6 +1,5 @@
 import Std.Data.Int.Gcd
 import Std.Tactic.Replace
-import Std.Tactic.LibrarySearch
 
 /-!
 ## Cooper resolution: small solutions to boundedness and divisibility constraints.
