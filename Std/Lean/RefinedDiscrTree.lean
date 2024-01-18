@@ -28,15 +28,12 @@ I document here what is not in the original.
   which is indexed by `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`
 
 - We keep track of the matching score of a unification.
-  This score represent the number of keys that had to be the same for the unification to succeed.
-  For example, matching `(1 + 2) + 3` with `add_comm` gives a score of 3,
+  This score represents the number of keys that had to be the same for the unification to succeed.
+  For example, matching `(1 + 2) + 3` with `add_comm` gives a score of 2,
   since the pattern of commutativity is [⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3],
   so matching `⟨Hadd.hadd, 6⟩` gives 1 point,
-  and matching `*0` two times after its first appearence gives another 2 points.
-  Similarly, matching it with `add_assoc` gives a score of 7.
-
-  TODO?: the third type parameter of `Hadd.hadd` is an outparam,
-  so its matching should not be counted in the score.
+  and matching `*0` after its first appearence gives another point, but the third argument is an
+  outParam, so this gets ignored. Similarly, matching it with `add_assoc` gives a score of 5.
 
 - Patterns that have the potential to be η-reduced are put into the `RefinedDiscrTree` under all
   possible reduced key sequences. This is for terms of the form `fun x => f (?m x₁ .. xₙ)`, where
@@ -57,14 +54,14 @@ TODO:
   representations, that should really be represented in the same way. e.g.
   - `fun x => x` and `id`.
   - `(f ∘ g) x` and `f (g x)`.
-  - `fun x => f x + g x` and `f + g`. Similarly all of
+  - `fun x => f x + g x` and `f + g`. Similar to `+`, all of
     `1`, `0`, `*`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, and `/` are defined point-wise on Pi-types.
   - Any combination of `Nat.zero`, `Nat.succ` and `+` that reduces to an explicit numeral. This
     one is already implemented.
 
   This can either be programmed on a case by case basis,
   or it can be designed to be extended dynamically.
-  And the normalization can happen on either the `Expr` or `DTExpr` level.
+  And the normalization could happen on either the `Expr` or `DTExpr` level.
 
   Note that for each of these equivalences, they should not apply at the root, so that
   for example `Nat.add_one : ∀ n, n + 1 = Nat.succ n` can still be used for rewriting between
@@ -241,7 +238,7 @@ It is intermediate step in converting from `Expr` to `Array Key`. -/
 inductive DTExpr where
   /-- A metavariable. -/
   | star : Option MVarId → DTExpr
-  /-- An opaque variable. -/
+  /-- An opaque variable or a let-expression in the case `WhnfCoreConfig.zeta := false`. -/
   | opaque : DTExpr
   /-- A constant. -/
   | const : Name → Array DTExpr → DTExpr
@@ -492,6 +489,7 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
   | .forallE _ d b _ => return .forall (← mkDTExprAux false d) (← mkDTExprBinder d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
+  | .letE ..    => return .opaque
   | _           => unreachable!
 
 where
@@ -576,6 +574,7 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
   | .forallE _ d b _ => return .forall (← mkDTExprsAux false d) (← mkDTExprsBinder d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
+  | .letE ..    => return .opaque
   | _           => unreachable!
 
 where
@@ -592,13 +591,13 @@ end MkDTExpr
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
 in the context when the `RefinedDiscrTree` is being used for lookup.
 It should return true only if the `RefinedDiscrTree` is build and used locally. -/
-def mkDTExpr (e : Expr) (config : WhnfCoreConfig := {})
+def mkDTExpr (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM DTExpr :=
   withReducible do (MkDTExpr.mkDTExprAux true e |>.run {config, fvarInContext})
 
 /-- Similar to `mkDTExpr`.
-Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account. -/
-def mkDTExprs (e : Expr) (config : WhnfCoreConfig := {})
+Return all encodings of `e` as a `DTExpr`, taking potential further η-reductions into account. -/
+def mkDTExprs (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (List DTExpr) :=
   withReducible do (MkDTExpr.mkDTExprsAux true e |>.run {config, fvarInContext}).run' {}
 
@@ -659,14 +658,17 @@ def insertInRefinedDiscrTree [BEq α] (d : RefinedDiscrTree α) (keys : Array Ke
     let c := insertInTrie keys v 1 c
     { root := d.root.insert k c }
 
-/-- Insert the value `v` at index `e : DTExpr` in a `RefinedDiscrTree`. -/
+/-- Insert the value `v` at index `e : DTExpr` in a `RefinedDiscrTree`.
+
+Warning: to accound for η-reduction, an entry may need to be added at multiple indexes,
+so it is recommended to use `RefinedDiscrTree.insert` for insertion. -/
 def insertDTExpr [BEq α] (d : RefinedDiscrTree α) (e : DTExpr) (v : α) : RefinedDiscrTree α :=
   insertInRefinedDiscrTree d e.flatten v
 
 /-- Insert the value `v` at index `e : Expr` in a `RefinedDiscrTree`.
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
 in the context when the `RefinedDiscrTree` is being used for lookup.
-It should return true only if the RefinedDiscrTree is build and used locally. -/
+It should return true only if the RefinedDiscrTree is built and used locally. -/
 def insert [BEq α] (d : RefinedDiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
   (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (RefinedDiscrTree α) := do
   let keys ← mkDTExprs e config fvarInContext
@@ -810,7 +812,7 @@ If `allowRootStar := false`, then we don't allow `e` or the matched key in `d`
 to be a star pattern. -/
 partial def getMatchWithScore (d : RefinedDiscrTree α) (e : Expr) (unify : Bool)
     (config : WhnfCoreConfig) (allowRootStar : Bool := false) : MetaM (Array (Array α × Nat)) := do
-  let e ← mkDTExpr e
+  let e ← mkDTExpr e config
   return (·.qsort (·.2 > ·.2)) <| (do
     match ← GetUnify.exactMatch e d.root.find? with
     | .inr _ =>
