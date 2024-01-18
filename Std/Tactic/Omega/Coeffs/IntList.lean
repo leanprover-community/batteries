@@ -1,5 +1,4 @@
 import Std.Tactic.Omega.IntList
-import Std.Tactic.Omega.MinNatAbs
 
 /-!
 # `Coeffs` as a wrapper for `IntList`
