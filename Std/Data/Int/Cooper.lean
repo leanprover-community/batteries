@@ -1,28 +1,16 @@
-import Std.Data.Int.DivMod
 import Std.Data.Int.Gcd
-import Std.Tactic.PermuteGoals
 import Std.Tactic.Replace
-import Std.Tactic.Simpa
 import Std.Tactic.LibrarySearch
+
+/-!
+## Cooper resolution: small solutions to boundedness and divisibility constraints.
+-/
 
 namespace Int
 
 theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
   ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
     Int.add_comm, Int.add_sub_cancel]⟩
-
-theorem ediv_pos_of_dvd {a b : Int} (ha : 0 < a) (hb : 0 ≤ b) (w : b ∣ a) : 0 < a / b := by
-  -- Surely this doesn't need to be so difficult?
-  rcases w with ⟨z, rfl⟩
-  rw [Int.mul_ediv_cancel_left]
-  · rcases Int.lt_trichotomy z 0 with (lt | rfl | gt)
-    · exfalso
-      have : b * z ≤ 0 := Int.mul_nonpos_of_nonneg_of_nonpos hb (Int.le_of_lt lt)
-      exact Int.lt_irrefl _ (Int.lt_of_le_of_lt this ha)
-    · simp_all
-    · assumption
-  · rintro rfl
-    exact Int.lt_irrefl _ (by simpa using ha)
 
 theorem dvd_of_mul_dvd {a b c : Int} (w : a * b ∣ a * c) (h : 0 < a) : b ∣ c := by
   obtain ⟨z, w⟩ := w
@@ -31,17 +19,6 @@ theorem dvd_of_mul_dvd {a b c : Int} (w : a * b ∣ a * c) (h : 0 < a) : b ∣ c
   dsimp at w
   rwa [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h), Int.mul_assoc,
     Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
-
-theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
-  replace w := Int.sub_nonneg_of_le w
-  rw [← Int.mul_sub] at w
-  replace w := Int.ediv_nonneg w (Int.le_of_lt h)
-  rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
-  exact Int.le_of_sub_nonneg w
-
-theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
-  rw [Int.mul_comm b, Int.mul_comm c] at w
-  exact le_of_mul_le_mul_left w h
 
 /--
 Given a solution `x` to a divisibility constraint `a ∣ b * x + c`,
@@ -70,10 +47,6 @@ theorem dvd_emod_add_of_dvd_add {a c d x : Int} (w : a ∣ x + c) (h : a ∣ d) 
   rw [← Int.one_mul x] at w
   rw [← Int.one_mul (x % d)]
   apply dvd_mul_emod_add_of_dvd_mul_add w (by simpa)
-
-/-!
-## Cooper resolution: small solutions to boundedness and divisibility constraints.
--/
 
 /--
 There is an integer solution for `x` to the system
@@ -123,7 +96,7 @@ theorem cooper_resolution_dvd_left
     refine ⟨k' % (lcm a (a * d / gcd (a * d) c)), Int.ofNat_nonneg _, ?_, ?_, ?_, ?_⟩
     · rw [← Int.ofNat_emod, Int.ofNat_lt]
       exact Nat.mod_lt _ (Nat.pos_of_ne_zero (lcm_ne_zero (Int.ne_of_gt a_pos)
-        (Int.ne_of_gt (Int.ediv_pos_of_dvd (Int.mul_pos a_pos d_pos) (Int.ofNat_nonneg _)
+        (Int.ne_of_gt (Int.ediv_pos_of_pos_of_dvd (Int.mul_pos a_pos d_pos) (Int.ofNat_nonneg _)
           gcd_dvd_left))))
     · replace upper : a * b * x ≤ a * q :=
         Int.mul_assoc _ _ _ ▸ Int.mul_le_mul_of_nonneg_left upper (Int.le_of_lt a_pos)
