@@ -429,23 +429,30 @@ private structure Context where
   config : WhnfCoreConfig
   fvarInContext : FVarId → Bool
 
-/-- Return `true` for each argument of `fn` that should be ignored in the `RefinedDiscrTree`. -/
-private def mapArgsIgnore [Monad m] [MonadControlT MetaM m] [MonadLiftT MetaM m]
-    (fn : Expr) (args : Array Expr) (f : Expr → Bool → m α) : m (Array α) := do
-  forallBoundedTelescope (← inferType fn) args.size fun fvars _ =>
-    args.mapIdxM fun i arg => do
-      let ignore ← match fvars.get? i with
-        | none => isProof arg
-        | some fvar => (do
-          let decl ← fvar.fvarId!.getDecl
-          if decl.type.isOutParam then
-            return true
-          else
-            match decl.binderInfo with
-            | .instImplicit => return true
-            | .default => isProof arg
-            | _ => return !(← isType arg))
-      f arg ignore
+/-- Return whether the argument should be ignored in the `RefinedDiscrTree`,
+based on the type/domain and the `BinderInfo`, as produced by `getIgnores`. -/
+def isIgnoredArg (arg domain : Expr) (binderInfo : BinderInfo) : MetaM Bool := do
+  if domain.isOutParam then
+    return true
+  match binderInfo with
+  | .instImplicit => return true
+  | .implicit
+  | .strictImplicit => return !(← isType arg)
+  | .default => isProof arg
+
+/-- Return for each argument whether it should be ignored. -/
+def getIgnores (fn : Expr) (args : Array Expr) : MetaM (Array Bool) := do
+  let mut fnType ← inferType fn
+  let mut result := Array.mkEmpty args.size
+  let mut j := 0
+  for i in [:args.size] do
+    unless fnType matches .forallE .. do
+      fnType ← whnfD (fnType.instantiateRevRange j i args)
+      j := i
+    let .forallE _ d b bi := fnType | throwError m! "expected function type {indentExpr fnType}"
+    fnType := b
+    result := result.push (← isIgnoredArg args[i]! d bi)
+  return result
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
@@ -456,8 +463,10 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
   let argDTExpr (arg : Expr) (ignore : Bool) : ReaderT Context MetaM DTExpr :=
     if ignore then pure (.star none) else mkDTExprAux false arg
 
-  let argDTExprs : ReaderT Context MetaM (Array DTExpr) :=
-    mapArgsIgnore fn args argDTExpr
+  let argDTExprs : ReaderT Context MetaM (Array DTExpr) := do
+    let ignores ← getIgnores fn args
+    args.mapIdxM fun i arg =>
+      argDTExpr arg ignores[i]!
 
   match fn with
   | .const c _ =>
@@ -536,8 +545,10 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
   let argDTExpr (arg : Expr) (ignore : Bool) : M DTExpr :=
     if ignore then pure (.star none) else mkDTExprsAux false arg
 
-  let argDTExprs : M (Array DTExpr) :=
-    mapArgsIgnore fn args argDTExpr
+  let argDTExprs : M (Array DTExpr) := do
+    let ignores ← getIgnores fn args
+    args.mapIdxM fun i arg =>
+      argDTExpr arg ignores[i]!
 
   match fn with
   | .const c _ =>
