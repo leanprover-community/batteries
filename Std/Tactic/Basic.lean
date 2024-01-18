@@ -13,12 +13,13 @@ import Std.Tactic.SimpTrace
 import Lean.Elab.Tactic.ElabTerm
 import Std.Lean.Meta.Basic
 import Std.Lean.Tactic
+import Std.Util.ProofWanted
 
 namespace Std.Tactic
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
 
 /-- `exfalso` converts a goal `⊢ tgt` into `⊢ False` by applying `False.elim`. -/
-macro "exfalso" : tactic => `(tactic| apply False.elim)
+macro "exfalso" : tactic => `(tactic| refine False.elim ?_)
 
 /--
 `_` in tactic position acts like the `done` tactic: it fails and gives the list

@@ -546,6 +546,9 @@ protected theorem sub_lt_of_pos_le (h₀ : 0 < a) (h₁ : a ≤ b) : b - a < b :
   Nat.sub_lt (Nat.lt_of_lt_of_le h₀ h₁) h₀
 protected alias sub_lt_self := Nat.sub_lt_of_pos_le
 
+theorem add_lt_of_lt_sub' {a b c : Nat} : b < c - a → a + b < c := by
+  rw [Nat.add_comm]; exact Nat.add_lt_of_lt_sub
+
 protected theorem sub_add_lt_sub (h₁ : m + k ≤ n) (h₂ : 0 < k) : n - (m + k) < n - m := by
   rw [← Nat.sub_sub]; exact Nat.sub_lt_of_pos_le h₂ (Nat.le_sub_of_add_le' h₁)
 
@@ -735,26 +738,35 @@ protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min
 
 /-! ## mul -/
 
+@[deprecated Nat.mul_le_mul_left]
+protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
+  Nat.mul_le_mul_left c
+
+@[deprecated Nat.mul_le_mul_right]
+protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
+  Nat.mul_le_mul_right c
+
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
 
 protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
   rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
-protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
+protected theorem mul_two (n) : n * 2 = n + n := by rw [Nat.mul_succ, Nat.mul_one]
 
-protected theorem two_mul (n : Nat) : 2 * n = n + n := by simp [Nat.succ_mul]
+protected theorem two_mul (n) : 2 * n = n + n := by rw [Nat.succ_mul, Nat.one_mul]
 
-theorem mul_eq_zero {n m : Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 :=
-  ⟨fun h => match n, m, h with
-    | 0,   m, _ => .inl rfl
-    | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
-   fun | .inl h | .inr h => by simp [h]⟩
+theorem mul_eq_zero : ∀ {m n}, n * m = 0 ↔ n = 0 ∨ m = 0
+  | 0, _ => ⟨fun _ => .inr rfl, fun _ => rfl⟩
+  | _, 0 => ⟨fun _ => .inl rfl, fun _ => Nat.zero_mul ..⟩
+  | _+1, _+1 => ⟨fun., fun.⟩
 
-protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by simp [mul_eq_zero, not_or]
+protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by rw [ne_eq, mul_eq_zero, not_or]
 
-protected theorem mul_ne_zero (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0 :=
-  Nat.mul_ne_zero_iff.2 ⟨n0, m0⟩
+protected theorem mul_ne_zero : n ≠ 0 → m ≠ 0 → n * m ≠ 0 := (Nat.mul_ne_zero_iff.2 ⟨·,·⟩)
+
+protected theorem ne_zero_of_mul_ne_zero_left (h : n * m ≠ 0) : n ≠ 0 :=
+  (Nat.mul_ne_zero_iff.1 h).1
 
 protected theorem mul_left_cancel {n m k : Nat} (np : 0 < n) (h : n * m = n * k) : m = k := by
   match Nat.lt_trichotomy m k with
@@ -776,22 +788,41 @@ protected theorem mul_left_cancel_iff {n: Nat} (p : 0 < n) (m k : Nat) : n * m =
 protected theorem mul_right_cancel_iff {m : Nat} (p : 0 < m) (n k : Nat) : n * m = k * m ↔ n = k :=
   ⟨Nat.mul_right_cancel p, fun | rfl => rfl⟩
 
-protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} (h₁ : a ≤ b) : c * a ≤ c * b := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.zero_mul] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_left (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem ne_zero_of_mul_ne_zero_right (h : n * m ≠ 0) : m ≠ 0 :=
+  (Nat.mul_ne_zero_iff.1 h).2
 
-protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} (h₁ : a ≤ b) : a * c ≤ b * c := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.mul_zero] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_right (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem le_mul_of_pos_left (m) (h : 0 < n) : m ≤ n * m :=
+  Nat.le_trans (Nat.le_of_eq (Nat.one_mul _).symm) (Nat.mul_le_mul_right _ h)
 
-protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a * b < c * d :=
-  Nat.lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right hac pos_b) (Nat.mul_le_mul_of_nonneg_left hbd)
+protected theorem le_mul_of_pos_right (n) (h : 0 < m) : n ≤ n * m :=
+  Nat.le_trans (Nat.le_of_eq (Nat.mul_one _).symm) (Nat.mul_le_mul_left _ h)
 
-protected theorem mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 < c) : a * b < c * d :=
-  Nat.lt_of_le_of_lt (Nat.mul_le_mul_of_nonneg_right h1) (Nat.mul_lt_mul_of_pos_left h2 h3)
+protected theorem mul_lt_mul_of_lt_of_le (hac : a < c) (hbd : b ≤ d) (hd : 0 < d) :
+    a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_left _ hbd) (Nat.mul_lt_mul_of_pos_right hac hd)
 
+protected theorem mul_lt_mul_of_lt_of_le' (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_lt_of_le hac hbd (Nat.lt_of_lt_of_le hb hbd)
+
+@[deprecated] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
+
+protected theorem mul_lt_mul_of_le_of_lt (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) :
+    a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_right _ hac) (Nat.mul_lt_mul_of_pos_left hbd hc)
+
+protected theorem mul_lt_mul_of_le_of_lt' (hac : a ≤ c) (hbd : b < d) (ha : 0 < a) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt hac hbd (Nat.lt_of_lt_of_le ha hac)
+
+@[deprecated] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
+
+protected theorem mul_lt_mul_of_lt_of_lt {a b c d : Nat} (hac : a < c) (hbd : b < d) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt (Nat.le_of_lt hac) hbd (Nat.zero_lt_of_lt hac)
+
+theorem succ_mul_succ (a b) : succ a * succ b = a * b + a + b + 1 := by
+  rw [succ_mul, mul_succ]; rfl
 theorem mul_le_add_right (m k n : Nat) : k * m ≤ m + n ↔ (k-1) * m ≤ n := by
   match k with
   | 0 =>
@@ -803,8 +834,8 @@ theorem succ_mul_succ_eq (a b : Nat) : succ a * succ b = a * b + a + b + 1 := by
   rw [mul_succ, succ_mul, Nat.add_right_comm _ a]; rfl
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
-  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib,
-      Nat.mul_comm b a, Nat.add_comm (a*a) (a*b), Nat.add_sub_add_left]
+  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
+    Nat.sub_add_eq, Nat.add_sub_cancel]
 
 /-! ## div/mod -/
 
@@ -1122,7 +1153,10 @@ theorem log2_lt (h : n ≠ 0) : n.log2 < k ↔ n < 2 ^ k := by
 
 theorem log2_self_le (h : n ≠ 0) : 2 ^ n.log2 ≤ n := (le_log2 h).1 (Nat.le_refl _)
 
-theorem lt_log2_self (h : n ≠ 0) : n < 2 ^ (n.log2 + 1) := (log2_lt h).1 (Nat.le_refl _)
+theorem lt_log2_self : n < 2 ^ (n.log2 + 1) :=
+  match n with
+  | 0 => Nat.zero_lt_two
+  | n+1 => (log2_lt n.succ_ne_zero).1 (Nat.le_refl _)
 
 /-! ### dvd -/
 
@@ -1141,6 +1175,9 @@ protected theorem dvd_trans {a b c : Nat} (h₁ : a ∣ b) (h₂ : b ∣ c) : a 
 
 protected theorem eq_zero_of_zero_dvd {a : Nat} (h : 0 ∣ a) : a = 0 :=
   let ⟨c, H'⟩ := h; H'.trans c.zero_mul
+
+@[simp] protected theorem zero_dvd {n : Nat} : 0 ∣ n ↔ n = 0 :=
+  ⟨Nat.eq_zero_of_zero_dvd, fun h => h.symm ▸ Nat.dvd_zero 0⟩
 
 protected theorem dvd_add {a b c : Nat} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
   let ⟨d, hd⟩ := h₁; let ⟨e, he⟩ := h₂; ⟨d + e, by simp [Nat.left_distrib, hd, he]⟩
@@ -1190,8 +1227,13 @@ protected theorem dvd_antisymm : ∀ {m n : Nat}, m ∣ n → n ∣ m → m = n
 theorem pos_of_dvd_of_pos {m n : Nat} (H1 : m ∣ n) (H2 : 0 < n) : 0 < m :=
   Nat.pos_of_ne_zero fun m0 => Nat.ne_of_gt H2 <| Nat.eq_zero_of_zero_dvd (m0 ▸ H1)
 
+@[simp] protected theorem one_dvd (n : Nat) : 1 ∣ n := ⟨n, n.one_mul.symm⟩
+
 theorem eq_one_of_dvd_one {n : Nat} (H : n ∣ 1) : n = 1 :=
-  Nat.le_antisymm (le_of_dvd (by decide) H) (pos_of_dvd_of_pos H (by decide))
+  Nat.dvd_antisymm H n.one_dvd
+
+@[simp] theorem dvd_one {n : Nat} : n ∣ 1 ↔ n = 1 :=
+  ⟨eq_one_of_dvd_one, fun h => h.symm ▸ Nat.dvd_refl _⟩
 
 theorem dvd_of_mod_eq_zero {m n : Nat} (H : n % m = 0) : m ∣ n := by
   exists n / m
@@ -1203,6 +1245,10 @@ theorem mod_eq_zero_of_dvd {m n : Nat} (H : m ∣ n) : n % m = 0 := by
 
 theorem dvd_iff_mod_eq_zero (m n : Nat) : m ∣ n ↔ n % m = 0 :=
   ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
+
+theorem emod_pos_of_not_dvd {a b : Nat} (h : ¬ a ∣ b) : 0 < b % a := by
+  rw [dvd_iff_mod_eq_zero] at h
+  exact Nat.pos_of_ne_zero h
 
 instance decidable_dvd : @DecidableRel Nat (·∣·) :=
   fun _ _ => decidable_of_decidable_of_iff (dvd_iff_mod_eq_zero _ _).symm

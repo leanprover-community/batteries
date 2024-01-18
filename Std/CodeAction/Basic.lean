@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
-import Std.Lean.Name
 import Std.Lean.InfoTree
 import Std.CodeAction.Attr
 

@@ -72,7 +72,7 @@ example (a b : Nat) (h2 : ((a + b + 0 : Nat) : Int) = 10) :
   push_cast [Int.add_zero] at h2
   exact h2
 
-theorem b (h g : true) : true ∧ true := by
+theorem b (_h g : true) : true ∧ true := by
   constructor
   assumption_mod_cast
   assumption_mod_cast

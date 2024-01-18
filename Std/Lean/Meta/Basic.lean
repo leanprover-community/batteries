@@ -3,7 +3,9 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jannis Limperg
 -/
-import Lean.Meta
+import Lean.Elab.Term
+import Lean.Meta.Tactic.Apply
+import Lean.Meta.Tactic.Replace
 import Std.Lean.LocalContext
 
 open Lean Lean.Meta
@@ -98,7 +100,7 @@ only be replaced with defeq expressions.
 -/
 def modifyExprMVarLCtx (mctx : MetavarContext) (mvarId : MVarId)
     (f : LocalContext → LocalContext) : MetavarContext :=
-  mctx.modifyExprMVarDecl mvarId λ mdecl => { mdecl with lctx := f mdecl.lctx }
+  mctx.modifyExprMVarDecl mvarId fun mdecl => { mdecl with lctx := f mdecl.lctx }
 
 /--
 Set the kind of an fvar. If the given metavariable is not declared or the
@@ -291,7 +293,12 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext
     -- If the goal is a subsingleton, it is independent of any other goals.
     return true
   -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
-  L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
+  L.allM fun g' => do pure !((← getMVarDependencies g').contains g)
+
+/-- Solve a goal by synthesizing an instance. -/
+-- FIXME: probably can just be `g.inferInstance` once leanprover/lean4#2054 is fixed
+def synthInstance (g : MVarId) : MetaM Unit := do
+  g.assign (← Lean.Meta.synthInstance (← g.getType))
 
 /--
 Replace hypothesis `hyp` in goal `g` with `proof : typeNew`.
@@ -323,10 +330,19 @@ where
       else
         return e.hasFVar
 
+/-- Add the hypothesis `h : t`, given `v : t`, and return the new `FVarId`. -/
+def note (g : MVarId) (h : Name) (v : Expr) (t? : Option Expr := .none) :
+    MetaM (FVarId × MVarId) := do
+  (← g.assert h (← match t? with | some t => pure t | none => inferType v) v).intro1P
+
 /-- Get the type the given metavariable after instantiating metavariables and cleaning up
 annotations. -/
 def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
   return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
+
+/-- Short-hand for applying a constant to the goal. -/
+def applyConst (mvar : MVarId) (c : Name) (cfg : ApplyConfig := {}) : MetaM (List MVarId) := do
+  mvar.apply (← mkConstWithFreshMVarLevels c) cfg
 
 end MVarId
 
@@ -434,5 +450,29 @@ where
   go (acc : IO.Ref (Array MVarId)) (goal : MVarId) : m Unit :=
     withIncRecDepth do
       match ← tac goal with
-      | none => acc.modify λ s => s.push goal
+      | none => acc.modify fun s => s.push goal
       | some goals => goals.forM (go acc)
+
+/-- Return local hypotheses which are not "implementation detail", as `Expr`s. -/
+def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
+  let mut hs := #[]
+  for d in ← getLCtx do
+    if !d.isImplementationDetail then hs := hs.push d.toExpr
+  return hs
+
+/--
+Given a monadic function `F` that takes a type and a term of that type and produces a new term,
+lifts this to the monadic function that opens a `∀` telescope, applies `F` to the body,
+and then builds the lambda telescope term for the new term.
+-/
+def mapForallTelescope' (F : Expr → Expr → MetaM Expr) (forallTerm : Expr) : MetaM Expr := do
+  forallTelescope (← Meta.inferType forallTerm) fun xs ty => do
+    Meta.mkLambdaFVars xs (← F ty (mkAppN forallTerm xs))
+
+/--
+Given a monadic function `F` that takes a term and produces a new term,
+lifts this to the monadic function that opens a `∀` telescope, applies `F` to the body,
+and then builds the lambda telescope term for the new term.
+-/
+def mapForallTelescope (F : Expr → MetaM Expr) (forallTerm : Expr) : MetaM Expr := do
+  mapForallTelescope' (fun _ e => F e) forallTerm

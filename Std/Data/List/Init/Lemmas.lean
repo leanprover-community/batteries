@@ -3,7 +3,6 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import Std.Data.Fin.Init.Lemmas
 import Std.Classes.SetNotation
 import Std.Logic
 
@@ -102,6 +101,8 @@ theorem append_left_inj {s₁ s₂ : List α} (t) : s₁ ++ t = s₂ ++ t ↔ s�
   intro l₁; induction l₁ <;> intros <;> simp_all
 
 @[simp] theorem map_id (l : List α) : map id l = l := by induction l <;> simp_all
+
+@[simp] theorem map_id' (l : List α) : map (fun a => a) l = l := by induction l <;> simp_all
 
 @[simp] theorem map_map (g : β → γ) (f : α → β) (l : List α) :
   map g (map f l) = map (g ∘ f) l := by induction l <;> simp_all

@@ -57,7 +57,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
 theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
-  simp [BitVec.toNat, BitVec.ofNat]
+  simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
 
 @[simp] theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
 
@@ -71,7 +71,7 @@ private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) :
   if h : n ≤ m then
     unfold zeroExtend'
     have lt_m : x < 2 ^ m := lt_two_pow_of_le lt_n h
-    simp [h, lt_m, Nat.mod_eq_of_lt, BitVec.toNat, BitVec.ofNat]
+    simp [h, lt_m, Nat.mod_eq_of_lt, BitVec.toNat, BitVec.ofNat, Fin.ofNat']
   else
     simp [h]
 

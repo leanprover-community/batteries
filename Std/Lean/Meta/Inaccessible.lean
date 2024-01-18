@@ -1,4 +1,9 @@
-import Lean.Meta
+/-
+Copyright (c) 2022 Jannis Limperg. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jannis Limperg
+-/
+import Lean.Meta.InferType
 
 open Lean Lean.Meta
 
@@ -12,7 +17,7 @@ def Lean.LocalContext.inaccessibleFVars (lctx : LocalContext) :
   let (result, _) :=
     lctx.foldr (β := Array LocalDecl × HashSet Name)
       (init := (Array.mkEmpty lctx.numIndices, {}))
-      λ ldecl (result, seen) =>
+      fun ldecl (result, seen) =>
         if ldecl.isImplementationDetail then
           (result, seen)
         else
