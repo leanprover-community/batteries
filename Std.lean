@@ -84,7 +84,6 @@ import Std.Lean.AttributeExtra
 import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
-import Std.Lean.DiscrTree
 import Std.Lean.Elab.Tactic
 import Std.Lean.Expr
 import Std.Lean.Float
@@ -111,6 +110,7 @@ import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
+import Std.Lean.RefinedDiscrTree
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Lean.Util.EnvSearch

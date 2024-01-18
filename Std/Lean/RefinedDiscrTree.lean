@@ -183,7 +183,7 @@ instance : Inhabited (Trie α) := ⟨.node #[]⟩
 def Trie.mkPath (keys : Array Key) (child : Trie α) :=
   if keys.isEmpty then child else Trie.path keys child
 
-/-- `Trie` constructor for a single value. -/
+/-- `Trie` constructor for a single value, taking the keys starting at index `i`. -/
 def Trie.singleton (keys : Array Key) (value : α) (i : Nat) : Trie α :=
   mkPath keys[i:] (values #[value])
 
@@ -657,7 +657,10 @@ partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie �
         return .mkPath shared (.mkNode2 k1 (.singleton keys v (i+n+1)) k2 (.mkPath rest c))
     return .path ks (insertInTrie keys v (i + ks.size) c)
 
-/-- Insert the value `v` at index `keys : Array Key` in a `RefinedDiscrTree`. -/
+/-- Insert the value `v` at index `keys : Array Key` in a `RefinedDiscrTree`.
+
+Warning: to accound for η-reduction, an entry may need to be added at multiple indexes,
+so it is recommended to use `RefinedDiscrTree.insert` for insertion. -/
 def insertInRefinedDiscrTree [BEq α] (d : RefinedDiscrTree α) (keys : Array Key) (v : α)
   : RefinedDiscrTree α :=
   let k := keys[0]!
