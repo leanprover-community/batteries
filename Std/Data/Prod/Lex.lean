@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 import Std.Tactic.LeftRight
 import Std.Tactic.RCases
-import Std.Logic
 
 namespace Prod
 

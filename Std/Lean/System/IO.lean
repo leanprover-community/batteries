@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Data.List.Lemmas
-import Std.Data.MLList.Basic
 
 /-!
 # Functions for manipulating a list of tasks

@@ -5,7 +5,6 @@ Authors: David Thrane Christiansen
 -/
 import Lean.Elab.Exception
 import Lean.Elab.Command
-import Lean.Parser
 
 
 open Lean Parser Elab Command
