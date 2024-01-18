@@ -3,9 +3,11 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Lean.Elab.BuiltinTerm
+import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
 import Std.Lean.Position
-import Std.CodeAction.Basic
+import Std.CodeAction.Attr
 
 /-!
 # Miscellaneous code actions

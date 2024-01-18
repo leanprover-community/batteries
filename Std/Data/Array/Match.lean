@@ -3,8 +3,8 @@ Copyright (c) 2023 F. G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
-import Std.Data.Array.Basic
-import Std.Data.Array.Lemmas
+import Std.Data.Nat.Lemmas
+import Std.Data.Array.Init.Lemmas
 
 namespace Array
 

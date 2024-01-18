@@ -676,6 +676,14 @@ protected theorem lt_of_lt_of_le {a b c : Int} (h₁ : a < b) (h₂ : b ≤ c) :
 protected theorem lt_trans {a b c : Int} (h₁ : a < b) (h₂ : b < c) : a < c :=
   Int.lt_of_le_of_lt (Int.le_of_lt h₁) h₂
 
+instance : Trans (α := Int) (· ≤ ·) (· ≤ ·) (· ≤ ·) := ⟨Int.le_trans⟩
+
+instance : Trans (α := Int) (· < ·) (· ≤ ·) (· < ·) := ⟨Int.lt_of_lt_of_le⟩
+
+instance : Trans (α := Int) (· ≤ ·) (· < ·) (· < ·) := ⟨Int.lt_of_le_of_lt⟩
+
+instance : Trans (α := Int) (· < ·) (· < ·) (· < ·) := ⟨Int.lt_trans⟩
+
 protected theorem le_of_not_le {a b : Int} : ¬ a ≤ b → b ≤ a := (Int.le_total a b).resolve_left
 
 protected theorem min_def (n m : Int) : min n m = if n ≤ m then n else m := rfl
