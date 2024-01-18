@@ -107,8 +107,8 @@ theorem cooper_resolution_dvd_left
       rw [Int.mul_right_comm, w, Int.add_mul, Int.mul_comm p b, Int.mul_comm _ b] at upper
       rw [Int.add_comm]
       calc
-        _ ≤ _ := Int.add_le_add_left
-          (Int.mul_le_mul_of_nonneg_left (Int.ofNat_le.mpr <| Nat.mod_le _ _) (Int.le_of_lt b_pos)) _
+        _ ≤ _ := Int.add_le_add_left (Int.mul_le_mul_of_nonneg_left
+                   (Int.ofNat_le.mpr <| Nat.mod_le _ _) (Int.le_of_lt b_pos)) _
         _ ≤ _ := upper
     · exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
     · rw [Int.add_assoc]
