@@ -131,6 +131,8 @@ protected theorem not_le {a b : Int} : ¬a ≤ b ↔ b < a :=
   ⟨fun h => Int.lt_iff_le_not_le.2 ⟨(Int.le_total ..).resolve_right h, h⟩,
    fun h => (Int.lt_iff_le_not_le.1 h).2⟩
 
+protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
+
 protected theorem not_lt {a b : Int} : ¬a < b ↔ b ≤ a :=
   by rw [← Int.not_le, Decidable.not_not]
 
