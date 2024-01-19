@@ -101,6 +101,7 @@ import Std.Tactic.HaveI
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
+import Std.Tactic.LetProjs
 import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
