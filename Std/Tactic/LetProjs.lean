@@ -45,7 +45,8 @@ def allProjs (e : Expr) : MetaM (Array (Name × Expr)) := do
 Add to the local context all projections of an expression,
 naming them all with a prefix `h` followed by the projection name.
 -/
-def letAllProjs (e : Expr) (h : Name) (g : MVarId) : MetaM (MVarId × Array FVarId) := g.withContext do
+def letAllProjs (e : Expr) (h : Name) (g : MVarId) :
+    MetaM (MVarId × Array FVarId) := g.withContext do
   let mut r := #[]
   let mut g := g
   for ⟨n, p⟩ in ← allProjs e do
