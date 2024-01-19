@@ -6,6 +6,7 @@ Authors: Scott Morrison, David Renshaw
 import Std.Data.Sum.Basic
 import Std.Tactic.LabelAttr
 import Std.Tactic.Relation.Symm
+import Std.Tactic.LetProjs
 import Std.Tactic.SolveByElim.Backtrack
 
 /-!
@@ -97,6 +98,8 @@ structure ApplyRulesConfig extends BacktrackConfig, ApplyConfig where
   transparency : TransparencyMode := .default
   /-- Also use symmetric versions (via `@[symm]`) of local hypotheses. -/
   symm : Bool := true
+  /-- Include all projections of local hypotheses. -/
+  letProjs : Bool := true
   /-- Try proving the goal via `exfalso` if `solve_by_elim` otherwise fails.
   This is only used when operating on a single goal. -/
   exfalso : Bool := true
@@ -228,6 +231,7 @@ def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM
   -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
   -- This has better performance that the mathlib3 approach.
   let g ← if cfg.symm then g.symmSaturate else pure g
+  let g ← if cfg.letProjs then g.letProjsAll else pure g
   let es ← elabContextLemmas g lemmas ctx
   return applyTactics cfg.toApplyConfig cfg.transparency es g
 
@@ -237,6 +241,7 @@ def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermE
 -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
 -- This has better performance that the mathlib3 approach.
 let g ← if cfg.symm then g.symmSaturate else pure g
+let g ← if cfg.letProjs then g.letProjsAll else pure g
 let es ← elabContextLemmas g lemmas ctx
 applyFirst cfg.toApplyConfig cfg.transparency es g
 

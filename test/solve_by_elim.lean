@@ -183,3 +183,7 @@ example : 5 ≤ 7 := by
   exact mySorry
 
 end issue1581
+
+example (x : Nat × Nat) : Nat := by
+  fail_if_success solve_by_elim (config := {letProjs := false})
+  solve_by_elim
