@@ -7,7 +7,6 @@ import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
-import Std.Data.List.Init.Attach
 
 namespace List
 
@@ -1034,7 +1033,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 /--
 `ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
 ```
-ofFn f = [f 0, f 1, ... , f(n - 1)]
+ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
 def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
@@ -1198,15 +1197,17 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 
 /--
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
+Use `List.getLastD` instead.
 -/
-@[simp] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
 /--
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
+Use `List.getLast?` instead
 -/
-@[simp] def last' {α} : List α → Option α
+@[simp, deprecated getLast?] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l

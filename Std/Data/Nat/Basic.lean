@@ -107,6 +107,9 @@ there is some `c` such that `b = a * c`.
 -/
 instance : Dvd Nat := ⟨fun a b => ∃ c, b = a * c⟩
 
+/-- The least common multiple of `m` and `n`, defined using `gcd`. -/
+def lcm (m n : Nat) : Nat := m * n / gcd m n
+
 /-- Sum of a list of natural numbers. -/
 protected def sum (l : List Nat) : Nat := l.foldr (·+·) 0
 

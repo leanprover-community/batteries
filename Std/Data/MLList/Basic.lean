@@ -113,6 +113,14 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
 instance [Monad m] [MonadLiftT m n] : ForIn n (MLList m α) α where
   forIn := MLList.forIn
 
+/-- Construct a singleton monadic lazy list from a single monadic value. -/
+def singletonM [Monad m] (x : m α) : MLList m α :=
+  .squash fun _ => do return .cons (← x) .nil
+
+/-- Construct a singleton monadic lazy list from a single value. -/
+def singleton [Monad m] (x : α) : MLList m α :=
+  .singletonM (pure x)
+
 /-- Construct a `MLList` recursively. Failures from `f` will result in `uncons` failing.  -/
 partial def fix [Monad m] (f : α → m α) (x : α) : MLList m α :=
   cons x <| squash fun _ => fix f <$> f x

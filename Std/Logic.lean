@@ -612,7 +612,8 @@ theorem Decidable.not_iff [Decidable b] : ¬(a ↔ b) ↔ (¬a ↔ b) := by
 theorem Decidable.iff_not_comm [Decidable a] [Decidable b] : (a ↔ ¬b) ↔ (b ↔ ¬a) := by
   rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
-theorem Decidable.iff_iff_and_or_not_and_not [Decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
+theorem Decidable.iff_iff_and_or_not_and_not {a b : Prop} [Decidable b] :
+    (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
   ⟨fun e => if h : b then .inl ⟨e.2 h, h⟩ else .inr ⟨mt e.1 h, h⟩,
    Or.rec (And.rec iff_of_true) (And.rec iff_of_false)⟩
 
@@ -738,42 +739,26 @@ theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} (h : f x ≠ 
 theorem congr_arg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
 
-@[simp] theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
-  rfl
+theorem congrFun₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : f = g) (a : α) (b : β a) :
+    f a b = g a b :=
+  congrFun (congrFun h _) _
 
-@[simp] theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
-  rfl
+theorem congrFun₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+      {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+    f a b c = g a b c :=
+  congrFun₂ (congrFun h _) _ _
 
-@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
-    cast hb (cast ha a) = cast (ha.trans hb) a
-  | rfl, rfl, _ => rfl
+theorem funext₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+  funext fun _ => funext <| h _
 
-theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
-  | rfl, h => Eq.recOn h (HEq.refl _)
+theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+    {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+  funext fun _ => funext₂ <| h _
 
-theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
-  ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
-
-section EqRec
-variable {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-  (x : motive a (rfl : a = a)) {a' : α} (e : a = a')
-
-theorem Eq.rec_eq_cast : @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
-  subst e; rfl
-
---Porting note: new theorem. More general version of `eqRec_heq`
-theorem eqRec_heq' : HEq (@Eq.rec α a motive x a' e) x := by
-  subst e; rfl
-
-@[simp]
-theorem rec_heq_iff_heq {β : Sort _} (y : β) : HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
-  subst e; rfl
-
-@[simp]
-theorem heq_rec_iff_heq {β : Sort _} (y : β) : HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
-  subst e; rfl
-
-end EqRec
+theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
+  mt <| congrArg _
 
 protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
   subst h₁; subst h₂; rfl
@@ -782,22 +767,50 @@ theorem Eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 
 theorem Eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-variable {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+alias congr_arg := congrArg
+alias congr_arg₂ := congrArg₂
+alias congr_fun := congrFun
+alias congr_fun₂ := congrFun₂
+alias congr_fun₃ := congrFun₃
 
-theorem congr_fun₂ {f g : ∀ a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
-  congr_fun (congr_fun h _) _
+theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
+  rfl
 
-theorem congr_fun₃ {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
-    f a b c = g a b c :=
-  congr_fun₂ (congr_fun h _) _ _
+theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
+  rfl
 
-theorem funext₂ {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
-  funext fun _ => funext <| h _
+@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
+    cast hb (cast ha a) = cast (ha.trans hb) a
+  | rfl, rfl, _ => rfl
 
-theorem funext₃ {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
-  funext fun _ => funext₂ <| h _
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+  | rfl, rfl => .rfl
 
-end Equality
+theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+  ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
+
+theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
+  subst e; rfl
+
+--Porting note: new theorem. More general version of `eqRec_heq`
+theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    HEq (@Eq.rec α a motive x a' e) x := by
+  subst e; rfl
+
+@[simp]
+theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+  subst e; rfl
+
+@[simp]
+theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+  subst e; rfl
 
 /-! ## membership -/
 
@@ -919,3 +932,6 @@ theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
 theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
+
+theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
+  f x' (Eq.rec y h) = f x y := by cases h; rfl

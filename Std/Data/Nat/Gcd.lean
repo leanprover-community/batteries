@@ -26,9 +26,6 @@ theorem gcd_rec (m n : Nat) : gcd m n = gcd (n % m) m :=
     | _+1, IH => fun _ => H1 _ _ (succ_pos _) (IH _ (mod_lt _ (succ_pos _)) _) )
     n
 
-/-- The least common multiple of `m` and `n`, defined using `gcd`. -/
-def lcm (m n : Nat) : Nat := m * n / gcd m n
-
 /-- `m` and `n` are coprime, or relatively prime, if their `gcd` is 1. -/
 @[reducible] def Coprime (m n : Nat) : Prop := gcd m n = 1
 
