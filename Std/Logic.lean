@@ -720,8 +720,6 @@ end Classical
 
 /-! ## equality -/
 
-section Equality
-
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
@@ -730,13 +728,7 @@ theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
 
-alias congr_fun := congrFun
-alias congr_arg := congrArg
-
-theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
-  fun w : x = y => h (congr_arg f w)
-
-theorem congr_arg₂ (f : α → β → γ) {x x' : α} {y y' : β}
+theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
 
 theorem congrFun₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
