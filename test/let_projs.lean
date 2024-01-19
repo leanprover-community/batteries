@@ -20,3 +20,11 @@ example (s : S) (x : Nat × Nat) : Nat := by
 example (s : S) (x : Nat × Nat) : Nat := by
   let_projs
   exact s_z_den + x_snd
+
+class Foo
+class Bar extends Foo
+
+example [Bar] : True := by
+  let_projs
+  have : Foo := ‹_›
+  trivial
