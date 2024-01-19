@@ -28,6 +28,8 @@ def Lean.getStructureFields! (env : Environment) (structName : Name) : Array Nam
   else
     #[]
 
+namespace Std.Tactic.LetProjs
+
 /--
 Builds all the projections of an expression,
 returning an array of pairs consisting of the projection name
@@ -71,11 +73,17 @@ partial def letAllProjsRec (e : Expr) (g : MVarId) : MetaM MVarId := g.withConte
 open Elab Tactic
 
 /--
-`let_projs` adds let bindings for all projections of the specified hypotheses.
+`letProjs` adds let bindings for all projections of the specified hypotheses.
 -/
-def let_projs (hs : Array FVarId) : TacticM Unit := do
-  for e in hs.map .fvar do
-    liftMetaTactic (fun g => return [← letAllProjsRec e g])
+def _root_.Lean.MVarId.letProjs (g : MVarId) (hs : Array FVarId) : MetaM MVarId := do
+  hs.foldlM (init := g) fun g h => letAllProjsRec (.fvar h) g
+
+/--
+`letProjsAll` adds let bindings for all projections of all hypotheses.
+-/
+def _root_.Lean.MVarId.letProjsAll (g : MVarId) : MetaM MVarId := g.withContext do
+  g.letProjs ((← getLocalHyps).map Expr.fvarId!)
+
 
 /--
 `let_projs` adds let bindings for all projections of local hypotheses, recursively.
@@ -101,5 +109,7 @@ syntax (name := let_projs_syntax) "let_projs" (ppSpace colGt ident)* : tactic
 @[inherit_doc let_projs_syntax]
 elab_rules : tactic | `(tactic| let_projs $hs:ident*) => do
   let hs ← getFVarIds hs
-  let hs := if hs.isEmpty then (← getLocalHyps).map Expr.fvarId! else hs
-  let_projs hs
+  if hs.isEmpty then
+    liftMetaTactic fun g => return [← g.letProjsAll]
+  else
+    liftMetaTactic fun g => return [← g.letProjs hs]
