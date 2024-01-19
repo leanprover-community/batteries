@@ -252,18 +252,18 @@ Custom wrappers (e.g. `apply_assumption` and `apply_rules`) may modify this beha
 -/
 def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (goals : List MVarId) : MetaM (List MVarId) := do
+  -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
+  -- This has better performance that the mathlib3 approach.
+  let preprocessedGoals ← if cfg.symm then
+    goals.mapM fun g => g.symmSaturate
+  else
+    pure goals
   try
-    -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
-    -- This has better performance that the mathlib3 approach.
-    let preprocessedGoals ← if cfg.symm then
-      goals.mapM fun g => g.symmSaturate
-    else
-      pure goals
     run preprocessedGoals
   catch e => do
     -- Implementation note: as with `cfg.symm`, this is different from the mathlib3 approach,
     -- for (not as severe) performance reasons.
-    match goals, cfg.exfalso with
+    match preprocessedGoals, cfg.exfalso with
     | [g], true =>
       withTraceNode `Meta.Tactic.solveByElim
           (fun _ => return m!"⏮️ starting over using `exfalso`") do
