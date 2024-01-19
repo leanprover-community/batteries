@@ -38,10 +38,8 @@ and the projection applied to the original expression.
 def allProjs (e : Expr) : MetaM (Array (Name × Expr)) := do
   let (c, _) := (← inferType e).getAppFnArgs
   let env ← getEnv
-  unless isStructure env c do
-    return #[]
-  (getStructureFields! env c).filterMapM fun f =>
-    (getProjFnForField? env c f).mapM fun p => return (f, ← mkAppM p #[e])
+  unless isStructure env c do return #[]
+  (getStructureFields! env c).filterMapM fun f => return (f, ← mkProjection e f)
 
 /--
 Add to the local context all projections of an expression,
