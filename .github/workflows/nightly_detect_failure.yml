@@ -44,7 +44,7 @@ jobs:
         toolchain=$(<lean-toolchain)
         if [[ $toolchain =~ leanprover/lean4:nightly-([a-zA-Z0-9_-]+) ]]; then
           version=${BASH_REMATCH[1]}
-          if git ls-remote --tags origin refs/tags/nightly-testing-$version | grep -q 'refs/tags/nightly-testing-$version'; then
+          if git ls-remote --tags --exit-code origin "refs/tags/nightly-testing-$version" >/dev/null; then
               echo "Tag nightly-testing-$version already exists on the remote."
           else
               # If the tag does not exist, create and push the tag to remote
