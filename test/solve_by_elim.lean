@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.RCases
 import Std.Tactic.SolveByElim
+import Std.Tactic.PermuteGoals
 import Std.Test.Internal.DummyLabelAttr
 
 set_option autoImplicit true
@@ -118,15 +119,13 @@ example : 6 = 6 ∧ [7] = [7] := by
   fconstructor
   solve_by_elim* only [@rfl _]
 
--- TODO: restore this test after #241 is merged
--- -- Test that `solve_by_elim*`, which works on multiple goals,
--- -- successfully uses the relevant local hypotheses for each goal.
--- example (f g : Nat → Prop) : (∃ k : Nat, f k) ∨ (∃ k : Nat, g k) ↔ ∃ k : Nat, f k ∨ g k := by
---   fconstructor
---   rintro (⟨n, fn⟩ | ⟨n, gn⟩)
---   pick_goal 3
---   rintro ⟨n, hf | hg⟩
---   solve_by_elim* (config := {maxDepth := 13}) [Or.inl, Or.inr, Exists.intro]
+-- Test that `solve_by_elim*`, which works on multiple goals,
+-- successfully uses the relevant local hypotheses for each goal.
+example (f g : Nat → Prop) : (∃ k : Nat, f k) ∨ (∃ k : Nat, g k) ↔ ∃ k : Nat, f k ∨ g k := by
+  fconstructor
+  rintro (⟨n, fn⟩ | ⟨n, gn⟩)
+  on_goal 3 => rintro ⟨n, hf | hg⟩
+  solve_by_elim* (config := {maxDepth := 13}) [Or.inl, Or.inr, Exists.intro]
 
 -- Test that `Config.intros` causes `solve_by_elim` to call `intro` on intermediate goals.
 example (P : Prop) : P → P := by
