@@ -85,7 +85,7 @@ theorem ne_zero_implies_bit_true {x : Nat} (xnz : x ≠ 0) : ∃ i, testBit x i 
 theorem ne_implies_bit_diff {x y : Nat} (p : x ≠ y) : ∃ i, testBit x i ≠ testBit y i := by
   induction y using binaryRec' generalizing x with
   | z =>
-    simp only [zero_testBit, ← Bool.eq_true_iff]
+    simp only [zero_testBit, Bool.ne_false_iff]
     exact ne_zero_implies_bit_true p
   | f yb y h hyp =>
     rw [← x.bit_decomp] at *
