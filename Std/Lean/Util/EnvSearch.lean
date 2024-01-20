@@ -3,7 +3,6 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-import Lean.Modifiers
 import Std.Tactic.Lint.Misc
 
 namespace Lean
