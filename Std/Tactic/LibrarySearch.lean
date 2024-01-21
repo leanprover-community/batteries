@@ -88,7 +88,7 @@ def cachePath : IO FilePath := do
 private def addPath [BEq α] (config : WhnfCoreConfig) (tree : DiscrTree α) (tp : Expr) (v : α) :
     MetaM (DiscrTree α) := do
   let k ← DiscrTree.mkPath tp config
-  pure <| tree.insertCore k v
+  pure <| tree.insertIfSpecific k v config
 
 /-- Adds a constant with given name to tree. -/
 private def updateTree (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
