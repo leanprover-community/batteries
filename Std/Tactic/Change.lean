@@ -75,10 +75,44 @@ def changeLocalDecl' (mvarId : MVarId) (fvarId : FVarId) (typeNew : Expr)
 
 end Lean.MVarId
 
+namespace Std.Tactic
+
 open Lean Elab Tactic Meta
 
-/-- `change` can be used to replace the main goal or its local
-variables with definitionally equal ones.
+/--
+`elabTermEnsuringDefEq stx e` elaborates the term `stx` to be defeq to `e`.
+Ensures that the type of the elaborated term has the same type as `e`.
+Handles issues such as assigning to synthetic opaque metavariables.
+
+Returns the elaborated term along with a list of pending goals.
+-/
+def elabTermEnsuringDefEq (stx : Term) (e : Expr) : TacticM (Expr × List MVarId) :=
+  withCollectingNewGoalsFrom (tagSuffix := `change) do
+    let t ← Term.withSynthesize do
+      let t ← Tactic.elabTermEnsuringType stx (← inferType e) (mayPostpone := true)
+      -- Use ignoreStuckTC because we want to solve for as many synthetic mvars as possible,
+      -- and for the rest we hope they will be solved for by unification in the `isDefEq` step.
+      -- Note that `withCollectingNewGoalsFrom` will see un-unified
+      -- metavariables from ignoreStuckTC as being new goals -- perhaps it would be better
+      -- if they became natural metavariables so it could guard against this?
+      -- (However, so long as `stx` doesn't have anything irrelevant to the isDefEq check,
+      -- like an unused let binding, users should not see these metavariables as new goals.)
+      Term.synthesizeSyntheticMVarsNoPostponing (ignoreStuckTC := true)
+      -- Now that there are no synthetic metavariables, we are done elaborating
+      -- and we can assign synthetic opaque metavariables if needed.
+      unless ← withAssignableSyntheticOpaque <| isDefEq t e do
+        throwError m!"\
+          type{indentD t}\n\
+          is not definitionally equal to{indentD e}"
+      return t
+    instantiateMVars t
+
+/--
+- `change ty` changes the type of the main goal to `ty`, if it is definitionally equal.
+- `change ty at h` changes the type of the hypothesis `h` to `ty`, if it is definitionally equal.
+- `change ty at ...` with multiple locations applies `change` repeatedly,
+  re-elaborating `ty` from scratch in each case.
+  This allows placeholders in `ty` to mean different things at each location.
 
 For example, if `n : ℕ` and the current goal is `⊢ n + 2 = 2`, then
 ```lean
@@ -100,13 +134,13 @@ elab_rules : tactic
   | `(tactic| change $newType:term $[$loc:location]?) => do
     withLocation (expandOptLocation (Lean.mkOptionalNode loc))
       (atLocal := fun h => do
-        let hTy ← h.getType
-        -- This is a hack to get the new type to elaborate in the same sort of way that
-        -- it would for a `show` expression for the goal.
-        let mvar ← mkFreshExprMVar none
-        let (_, mvars) ← elabTermWithHoles
-                          (← `(term | show $newType from $(← Term.exprToSyntax mvar))) hTy `change
+        let (ty, mvars) ← elabTermEnsuringDefEq newType (← h.getType)
         liftMetaTactic fun mvarId => do
-          return (← mvarId.changeLocalDecl' h (← inferType mvar)) :: mvars)
-      (atTarget := evalTactic <| ← `(tactic| refine_lift show $newType from ?_))
+          return (← mvarId.changeLocalDecl' h ty) :: mvars)
+      (atTarget := do
+        let goal ← getMainGoal
+        let (ty, mvars) ← elabTermEnsuringDefEq newType (← goal.getType)
+        let goal' ← mkFreshExprSyntheticOpaqueMVar ty
+        goal.assign goal'
+        replaceMainGoal (goal'.mvarId! :: mvars))
       (failed := fun _ => throwError "change tactic failed")

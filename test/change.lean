@@ -1,5 +1,6 @@
 import Std.Tactic.Change
 import Std.Tactic.GuardExpr
+import Std.Tactic.GuardMsgs
 
 private axiom test_sorry : ∀ {α}, α
 
@@ -22,6 +23,16 @@ example : n + 2 = m := by
   fail_if_success change _ * _ = _
   change (_ : Nat) + _ = _
   exact test_sorry
+
+/--
+error: type
+  Int
+is not definitionally equal to
+  Nat
+-/
+#guard_msgs in
+example : Nat := by
+  change Int
 
 -- `change ... at ...` allows placeholders to mean different things at different hypotheses
 example (h : n + 3 = m) (h' : n + 2 = m) : False := by
@@ -80,3 +91,19 @@ example : let x := 22; let y : Nat := x; let z : Fin (y + 1) := 0; z.1 < y + 1 :
   intro x y z -- `z` was previously erroneously marked as unused
   change _ at y
   exact z.2
+
+/-!
+Using `change` with synthetic opaque metavariables
+-/
+
+example (a b c d e : Nat) (h : a + b + c + d + e = 0) : True := by
+  let foo : Nat := ?_
+  change foo + e = _ at h
+  guard_hyp foo : Nat :=ₛ a + b + c + d
+  trivial
+
+example (a b c d e : Nat) (h : a + b + c + d + e = 0) : True := by
+  change ?x + e = _ at h
+  let foo := ?x
+  guard_hyp foo : Nat :=ₛ a + b + c + d
+  trivial
