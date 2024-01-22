@@ -102,7 +102,7 @@ def elabTermEnsuringDefEq (stx : Term) (e : Expr) : TacticM (Expr × List MVarId
       -- and we can assign synthetic opaque metavariables if needed.
       unless ← withAssignableSyntheticOpaque <| isDefEq t e do
         throwError m!"\
-          type{indentD t}\n\
+          term{indentD t}\n\
           is not definitionally equal to{indentD e}"
       return t
     instantiateMVars t

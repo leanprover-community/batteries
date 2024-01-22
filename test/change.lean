@@ -25,7 +25,7 @@ example : n + 2 = m := by
   exact test_sorry
 
 /--
-error: type
+error: term
   Int
 is not definitionally equal to
   Nat
