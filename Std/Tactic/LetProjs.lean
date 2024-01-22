@@ -69,8 +69,6 @@ partial def letAllProjsRec (e : Expr) (g : MVarId) : MetaM MVarId := g.withConte
   else
     pure g
 
-open Elab Tactic
-
 /--
 `letProjs` adds let bindings for all projections of the specified hypotheses.
 -/
@@ -82,33 +80,3 @@ def _root_.Lean.MVarId.letProjs (g : MVarId) (hs : Array FVarId) : MetaM MVarId 
 -/
 def _root_.Lean.MVarId.letProjsAll (g : MVarId) : MetaM MVarId := g.withContext do
   g.letProjs ((← getLocalHyps).map Expr.fvarId!)
-
-
-/--
-`let_projs` adds let bindings for all projections of local hypotheses, recursively.
-
-For example in
-```
-example (x : Nat × Nat × Nat) : True := by
-  let_projs
-  trivial
-```
-we have
-```
-x_fst: ℕ := x.1
-x_snd: ℕ × ℕ := x.2
-x_snd_fst: ℕ := x_snd.1
-x_snd_snd: ℕ := x_snd.2
-```
-
-`let_projs h₁ h₂` only adds let bindings for projections of the specified hypotheses.
--/
-syntax (name := let_projs_syntax) "let_projs" (ppSpace colGt ident)* : tactic
-
-@[inherit_doc let_projs_syntax]
-elab_rules : tactic | `(tactic| let_projs $hs:ident*) => do
-  let hs ← getFVarIds hs
-  if hs.isEmpty then
-    liftMetaTactic fun g => return [← g.letProjsAll]
-  else
-    liftMetaTactic fun g => return [← g.letProjs hs]
