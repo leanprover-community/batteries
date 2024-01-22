@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Harun Khan, Abdalrhman M Mohamed, Joe Hendrix
 -/
 import Std.Data.BitVec.Folds
+import Std.Data.Fin.Lemmas
 
 /-!
 # Bitblasting of bitvectors
@@ -157,3 +158,98 @@ theorem adc_correct (x y : BitVec w) (c : Bool) :
 
 theorem add_as_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_correct]
+
+/-! ### Negation -/
+
+def bit_not (x : BitVec w) : BitVec w :=
+  ((iunfoldr fun (i : Fin w) c => (c, !(x.getLsb i))) ()).snd
+
+def bit_neg (x : BitVec w) : BitVec w := (adc (bit_not x) (BitVec.ofNat w 1) false).snd
+
+
+
+@[simp]
+theorem add_cast {x y : BitVec w} :  (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+@[simp]
+theorem sub_cast {x y : BitVec w} : (x - y).toNat = (x.toNat + (2^w - y.toNat)) % 2^w := rfl
+
+theorem neg_cast {x : BitVec w} : (-x).toNat = (2^w- x.toNat) % 2^w := by
+  rw [← Nat.zero_add (2^w - x.toNat)]; rfl
+
+theorem not_testBit {x : BitVec w} :(2^w- 1- x.toNat).testBit j = !(x.toNat.testBit j) := by
+  sorry
+
+
+theorem adc_value_step' {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
+    getLsb (x + y + zeroExtend w (ofBool c)) i =
+      Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
+  let ⟨x, x_lt⟩ := x
+  let ⟨y, y_lt⟩ := y
+  simp only [getLsb, toNat_add, toNat_zeroExtend, i_lt, toNat_ofFin, toNat_ofBool,
+    Nat.mod_add_mod, Nat.add_mod_mod]
+  apply Eq.trans
+  rw [← Nat.div_add_mod x (2^i), ← Nat.div_add_mod y (2^i)]
+  simp only
+    [ Nat.testBit_mod_two_pow,
+      Nat.testBit_mul_two_pow_add_eq,
+      i_lt,
+      decide_True,
+      Bool.true_and,
+      Nat.add_assoc,
+      Nat.add_left_comm (_%_) (_ * _) _,
+      testBit_limit (adc_overflow_limit x y i c)
+    ]
+  simp [testBit_to_div_mod, carry, Nat.add_assoc]
+
+
+#check and_one_is_mod
+
+theorem la (x : Nat) (h : i < w) : testBit (2^w -x -1) i = !x.testBit i := by
+  simp only [testBit, shiftRight_eq_div_pow, and_one_is_mod]
+  congr
+  sorry
+
+theorem bit_not_testBit (x : BitVec w) (i : Nat) : getLsb (bit_not x) i = !(getLsb x i) := by
+  sorry
+
+theorem neg_one_testBit (i : Fin w) : getLsb (-1#w) i = true := sorry
+
+
+theorem bit_not_eq_not' (x : BitVec w) : bit_not x + x  = -1:= by
+  simp only [bit_not, add_as_adc]
+  apply iunfoldr_replace_snd (fun i => false) (-1) false rfl
+  intro i
+  simp only [Prod.mk.injEq, _root_.true_and, getLsb, BitVec.not, adcb]
+  · rw [iunfoldr_replace_snd (fun _ => ()) (bit_not x) () rfl]
+    <;> simp [bit_not_testBit, neg_one_testBit, testBit_toNat]
+
+
+theorem bit_not_eq_not (x : BitVec w) : bit_not x = ~~~ x := sorry
+
+
+
+theorem bit_neg_eq_neg (x : BitVec w) : bit_neg x = -x := by
+  simp only [bit_neg, bit_not, ← add_as_adc]
+  rw [iunfoldr_replace_snd
+        ((fun i => ()))
+        (~~~x)
+        ()]
+  · sorry
+  · rfl
+  · simp [(bit_not_eq_not x) ▸ (bit_not_testBit x _)]
+
+
+-- f(x) = f(y) -> x = y
+-- theorem bit_not_add_eq_neg_one (x : BitVec w) : (bit_not x) + x = allOnes w := by
+--   rw [add_as_adc]
+--   simp only [adc, bit_not]
+--   apply iunfoldr_replace_snd
+--         (fun i => false)
+--         (allOnes w)
+--         false
+--   · rfl
+--   · intro i
+--     rw [iunfoldr_replace_snd (fun i => false) (bit_not x) _ rfl]
+
+  -- case zero => simp [allOnes, adc]; sorry
+  -- case succ w hw =>

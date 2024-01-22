@@ -1,6 +1,7 @@
 import Std.Data.BitVec.Lemmas
 import Std.Data.Fin.Iterate
 import Std.Data.Nat.Lemmas
+import Std.Data.Fin.Lemmas
 
 namespace Std.BitVec
 
@@ -42,6 +43,46 @@ private theorem iunfoldr.eq_test
     intro i
     simp_all [truncate_succ]
 
+theorem iunfoldr_getLsb {f : Fin w → α → α × Bool} (state : Nat → α)
+    (ind : ∀(i : Fin w), (f i (state i.val)).fst = state (i.val+1)) :
+  (∀ i : Fin w, getLsb (iunfoldr f (state 0)).snd i.val = (f i (state i.val)).snd)
+  ∧ (iunfoldr f (state 0)).fst = state w := by
+  unfold iunfoldr
+  simp
+  apply Fin.hIterate_elim
+        (fun j (p : α × BitVec j) => (hj : j ≤ w) →
+         (∀ i : Fin j,  getLsb p.snd i.val = (f ⟨i.val, Nat.lt_of_lt_of_le i.isLt hj⟩ (state i.val)).snd)
+          ∧ p.fst = state j)
+  case hj => simp
+  case init =>
+    intro
+    apply And.intro
+    · intro i
+      have := Fin.size_pos i
+      contradiction
+    · rfl
+  case step =>
+    intro j ⟨s, v⟩ ih hj
+    apply And.intro
+    case left =>
+      intro i
+      simp
+      rw [getLsb_cons]
+      have hj2 : j.val ≤ w := by simp
+      cases (Nat.lt_or_eq_of_le (Nat.lt_succ.mp i.isLt)) with
+      | inl h3 => simp [if_neg, (Nat.ne_of_lt h3)]
+                  exact (ih hj2).1 ⟨i.val, h3⟩
+      | inr h3 => simp [h3, if_pos]
+                  cases (Nat.eq_zero_or_pos j.val) with
+                  | inl hj3 => congr
+                               rw [← (ih hj2).2]
+                  | inr hj3 => congr
+                               exact (ih hj2).2
+    case right =>
+      simp
+      have hj2 : j.val ≤ w := by simp
+      rw [← ind j, ← (ih hj2).2]
+
 /--
 Correctness theorem for `iunfoldr`.
 -/
@@ -50,4 +91,11 @@ theorem iunfoldr_replace
     (init : state 0 = a)
     (step : ∀(i : Fin w), f i (state i.val) = (state (i.val+1), value.getLsb i.val)) :
     iunfoldr f a = (state w, value) := by
+  simp [iunfoldr.eq_test state value a init step]
+
+theorem iunfoldr_replace_snd
+  {f : Fin w → α → α × Bool} (state : Nat → α) (value : BitVec w) (a : α)
+    (init : state 0 = a)
+    (step : ∀(i : Fin w), f i (state i.val) = (state (i.val+1), value.getLsb i.val)) :
+    (iunfoldr f a).snd = value := by
   simp [iunfoldr.eq_test state value a init step]
