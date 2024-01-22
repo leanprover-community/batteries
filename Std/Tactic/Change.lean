@@ -135,11 +135,8 @@ elab_rules : tactic
     withLocation (expandOptLocation (Lean.mkOptionalNode loc))
       (atLocal := fun h => do
         let (ty, mvars) ← elabTermEnsuringDefEq newType (← h.getType)
-        liftMetaTactic fun mvarId => do
-          return (← mvarId.changeLocalDecl' h ty) :: mvars)
+        liftMetaTactic fun mvarId => return (← mvarId.changeLocalDecl' h ty) :: mvars)
       (atTarget := do
         let (ty, mvars) ← elabTermEnsuringDefEq newType (← getMainTarget)
-        liftMetaTactic fun mvarId => do
-          let mvarId ← mvarId.change ty
-          return mvarId :: mvars)
+        liftMetaTactic fun mvarId => return (← mvarId.change ty) :: mvars)
       (failed := fun _ => throwError "change tactic failed")
