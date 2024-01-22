@@ -50,7 +50,7 @@ def letAllProjs (e : Expr) (h : Name) (g : MVarId) :
   let mut r := #[]
   let mut g := g
   for ⟨n, p⟩ in ← allProjs e do
-    let n' := match h with | .str a b => .str a (b ++ "_" ++ n.toString) | _ => h
+    let n' := h.appendAfter ("_" ++ n.toString)
     let ⟨h', g'⟩ ← g.«let» n' p
     g := g'
     r := r.push h'
