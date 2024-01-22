@@ -138,9 +138,8 @@ elab_rules : tactic
         liftMetaTactic fun mvarId => do
           return (← mvarId.changeLocalDecl' h ty) :: mvars)
       (atTarget := do
-        let goal ← getMainGoal
-        let (ty, mvars) ← elabTermEnsuringDefEq newType (← goal.getType)
-        let goal' ← mkFreshExprSyntheticOpaqueMVar ty
-        goal.assign goal'
-        replaceMainGoal (goal'.mvarId! :: mvars))
+        let (ty, mvars) ← elabTermEnsuringDefEq newType (← getMainTarget)
+        liftMetaTactic fun mvarId => do
+          let mvarId ← mvarId.change ty
+          return mvarId :: mvars)
       (failed := fun _ => throwError "change tactic failed")
