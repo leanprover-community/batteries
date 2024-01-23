@@ -32,6 +32,7 @@ import Std.Data.MLList
 import Std.Data.Nat
 import Std.Data.Option
 import Std.Data.Ord
+import Std.Data.OrderedAssocList
 import Std.Data.PairingHeap
 import Std.Data.Prod
 import Std.Data.RBMap
