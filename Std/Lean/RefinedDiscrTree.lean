@@ -69,7 +69,8 @@ TODO:
 
 - More thought could be put into the matching algorithm for non-trivial unifications.
   For example, when looking up the expression `?a + ?a`, there will only be results like
-  `n + n = 2 * n`, but not like `n + 1 = n.succ`, even though this would still unify.
+  `n + n = 2 * n` or `a + b = b + a`, but not like `n + 1 = n.succ`,
+  even though this would still unify.
 
 - Only reducible constants are reduced, so there are some terms with multiple
   representations, that should really be represented in the same way. e.g.
@@ -451,17 +452,6 @@ private structure Context where
   config : WhnfCoreConfig
   fvarInContext : FVarId → Bool
 
-/-- Return whether the argument should be ignored in the `RefinedDiscrTree`,
-based on the type/domain and the `BinderInfo`, as produced by `getIgnores`. -/
-def isIgnoredArg (arg domain : Expr) (binderInfo : BinderInfo) : MetaM Bool := do
-  if domain.isOutParam then
-    return true
-  match binderInfo with
-  | .instImplicit => return true
-  | .implicit
-  | .strictImplicit => return !(← isType arg)
-  | .default => isProof arg
-
 /-- Return for each argument whether it should be ignored. -/
 def getIgnores (fn : Expr) (args : Array Expr) : MetaM (Array Bool) := do
   let mut fnType ← inferType fn
@@ -475,6 +465,17 @@ def getIgnores (fn : Expr) (args : Array Expr) : MetaM (Array Bool) := do
     fnType := b
     result := result.push (← isIgnoredArg args[i]! d bi)
   return result
+where
+  /-- Return whether the argument should be ignored. -/
+  isIgnoredArg (arg domain : Expr) (binderInfo : BinderInfo) : MetaM Bool := do
+    if domain.isOutParam then
+      return true
+    match binderInfo with
+    | .instImplicit => return true
+    | .implicit
+    | .strictImplicit => return !(← isType arg)
+    | .default => isProof arg
+
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
@@ -518,13 +519,13 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
   | .lam _ d b _ =>
     unless args.isEmpty do
       return .opaque
-    let b ← mkDTExprBinder d b
-    if (b matches .bvar 0 _) && !root then
+    let b ← mkBinderDTExpr d b
+    if b == .bvar 0 #[] && !root then
       return .const ``id #[← mkDTExprAux false d]
     else
       return .lam b
 
-  | .forallE _ d b _ => return .forall (← mkDTExprAux false d) (← mkDTExprBinder d b)
+  | .forallE _ d b _ => return .forall (← mkDTExprAux false d) (← mkBinderDTExpr d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
   | .letE ..    => return .opaque
@@ -533,7 +534,7 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
 where
   /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return all encodings of `e` as a `DTExpr` -/
-  mkDTExprBinder (domain e : Expr) : ReaderT Context MetaM DTExpr := do
+  mkBinderDTExpr (domain e : Expr) : ReaderT Context MetaM DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
         mkDTExprAux false (e.instantiate1 fvar)
@@ -607,8 +608,8 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
   | .lam _ d b _ => checkCache fn fun _ => do
     unless args.isEmpty do
       return .opaque
-    let b' ← mkDTExprsBinder d b
-    if (b' matches .bvar 0 _) && !root then
+    let b' ← mkBinderDTExprs d b
+    if b' == .bvar 0 #[] && !root then
       return .const ``id #[← mkDTExprsAux false d]
     pure (.lam b')
     <|>
@@ -617,7 +618,7 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
         introEtaBVars fn b (mkDTExprsAux false)
       | none => failure
 
-  | .forallE _ d b _ => return .forall (← mkDTExprsAux false d) (← mkDTExprsBinder d b)
+  | .forallE _ d b _ => return .forall (← mkDTExprsAux false d) (← mkBinderDTExprs d b)
   | .lit v      => return .lit v
   | .sort _     => return .sort
   | .letE ..    => return .opaque
@@ -626,7 +627,7 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
 where
   /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return all encodings of `e` as a `DTExpr` -/
-  mkDTExprsBinder (domain e : Expr) : M DTExpr := do
+  mkBinderDTExprs (domain e : Expr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
         mkDTExprsAux false (e.instantiate1 fvar)
@@ -782,7 +783,7 @@ partial def skipEntries (t : Trie α) (skipped : Array Key) : Nat → M (Array K
     t.children!.foldr (init := failure) fun (k, c) x =>
       (skipEntries c (skipped.push k) (skip + k.arity)) <|> x
 /-- Return the possible `Trie α` that match with anything.
-We add 1 to the matching score when the key equals `.opaque`,
+We add 1 to the matching score when the key is `.opaque`,
 since this pattern is "harder" to match with. -/
 def matchTargetStar (mvarId? : Option MVarId) (t : Trie α) : M (Trie α) := do
   let (keys, t) ← t.children!.foldr (init := failure) fun (k, c) x => (do
