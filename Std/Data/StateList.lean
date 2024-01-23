@@ -89,10 +89,13 @@ section
 private def pure (a : α) : StateListT σ m α :=
   fun s => return StateList.nil.cons a s
 
+/-- Separately handling lists of length 1 is important to avoid a stack overflow. -/
 @[always_inline, inline]
 private def bind (x : StateListT σ m α) (f : α → StateListT σ m β) : StateListT σ m β :=
-  fun s => do
-    (← x s).foldrM (fun a s bs => return (← f a s) ++ bs) .nil
+  fun s => do match ← x s with
+    | .nil => return .nil
+    | .cons a s .nil => f a s
+    | x => x.foldrM (fun a s bs => return (← f a s) ++ bs) .nil
 
 @[always_inline, inline]
 private def map (f : α → β) (x : StateListT σ m α) : StateListT σ m β :=
