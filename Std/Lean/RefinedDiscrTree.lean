@@ -11,28 +11,37 @@ import Lean.Meta
 We define discrimination trees for the purpose of unifying local expressions with library results.
 
 This implementation is based on the `DiscrTree` in Lean.
-I document here what features are not in the original.
+I document here what features are not in the original:
 
-- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to
-  allow for matching under lambda and forall binders. For example, this allows for more specific
-  matching with the left hand side of `∑ i in range n, i = n * (n - 1) / 2`, which is indexed by
+- The keys `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for
+  matching under lambda and forall binders. `Key.lam` has arity 1 and indexes the body.
+  `Key.forall` has arity 2 and indexes the domain and the body. The reason for not indexing the
+  domain of a lambda expression is that it is usually already determined, for example in
+  `∃ a : α, p`, which is `@Exists α fun a : α => p`, we don't want to index the domain `α` twice.
+  In a forall expression it is necessary to index the domain, because in an implication `p → q`
+  we need to index both `p` and `q`. `Key.bvar` works the same as `Key.fvar`, but stores the
+  De Bruijn index to identify it.
+
+  For example, this allows for more specific matching with the left hand side of
+  `∑ i in range n, i = n * (n - 1) / 2`, which is indexed by
   `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`.
 
-- The constructor `Key.star` now takes a `Nat` identifier as an argument.
-  For example, the library pattern `a+a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
+- The key `Key.star` now takes a `Nat` identifier as an argument. For example,
+  the library pattern `?a + ?a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
   `*0` corresponds to the type of `a`, `*1` to the `Hadd` instance, and `*2` to `a`.
-  This means that it will only match an expression `x+y` if `x` is definitionally equal to `y`.
+  This means that it will only match an expression `x + y` if `x` is definitionally equal to `y`.
   The matching algorithm requires that the same stars from the discrimination tree match with
   the same patterns in the lookup expression, and similarly requires that the same metavariables
   form the lookup expression match with the same pattern in the discrimination tree.
 
-- The constructor `Key.opaque` has been introduced in order to index existential variables
+- The key `Key.opaque` has been introduced in order to index existential variables
   in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
   where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, ◾]`. (◾ represents `Key.opaque`)
+  When matching, `Key.opaque` can only be matched by `Key.star`.
 
-  Using the `WhnfCoreConfig` argument, it is possible to disable β-reduction or ζ-reduction.
-  As a result, there may be lambda expressions that are applied to an argument, or there may be
-  let expressions. Since there is no support for these, they will be indexed by `Key.opaque`.
+  Using the `WhnfCoreConfig` argument, it is possible to disable β-reduction and ζ-reduction.
+  As a result, we may get a lambda expression applied to an argument or a let-expression.
+  Since there is no support for indexing these, they will be indexed by `Key.opaque`.
 
 - We keep track of the matching score of a unification.
   This score represents the number of keys that had to be the same for the unification to succeed.
@@ -53,7 +62,7 @@ I document here what features are not in the original.
   both `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]`
   and  `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
 
-I have also made some changes in the implementation
+I have also made some changes in the implementation:
 
 - Instead of directly converting from `Expr` to `Array Key` during insertion, and directly
   looking up from an `Expr` during lookup, I defined the intermediate structure `DTExpr`,
@@ -87,6 +96,17 @@ TODO:
   Note that for each of these equivalences, they should not apply at the root, so that
   for example `Function.id_def : id = fun x => x` can still be used as a rewriting lemma.
 
+- The reason why implicit arguments are not ignored by the discrimination tree is that they provide
+  important type information. Because of this it seems more natural to index the types of
+  expressions instead of indexing the implicit type arguments. Then each key would additionally
+  index the type of that expression. So instead of indexing `?a + ?b` as
+  `[⟨HAdd.hAdd, 6⟩, *0, *0, *0, *1, *2, *3]`, it would be indexed by something like
+  `[(*0, ⟨HAdd.hAdd, 6⟩), _, _, _, _, (*0, *1), (*0, *2)]`.
+  The advantage of this would be that there will be less duplicate indexing of types,
+  because many functions index the types of their arguments and their return type
+  with implicit arguments, meaning that types unnecessarily get indexed multiple times.
+  This modification can be explored, but it could very well not be an improvement.
+
 -/
 
 open Lean Meta
@@ -116,7 +136,7 @@ inductive Key where
   | lam : Key
   /-- A dependent arrow. -/
   | forall : Key
-  /-- A projection. It stores the constructor name, the projection index and the arity. -/
+  /-- A projection. It stores the structure name, the projection index and the arity. -/
   | proj : Name → Nat → Nat → Key
   deriving Inhabited, BEq, Repr
 
@@ -275,7 +295,7 @@ inductive DTExpr where
   | lam : DTExpr → DTExpr
   /-- A dependent arrow. It stores the domain and body. -/
   | forall : DTExpr → DTExpr → DTExpr
-  /-- A projection. It stores the constructor name, projection index, struct body and arguments. -/
+  /-- A projection. It stores the structure name, projection index, struct body and arguments. -/
   | proj : Name → Nat → DTExpr → Array DTExpr → DTExpr
 deriving Inhabited, BEq
 
@@ -636,7 +656,7 @@ end MkDTExpr
 /-- Return the encoding of `e` as a `DTExpr`.
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
 in the context when the `RefinedDiscrTree` is being used for lookup.
-It should return true only if the `RefinedDiscrTree` is build and used locally. -/
+It should return true only if the `RefinedDiscrTree` is built and used locally. -/
 def mkDTExpr (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM DTExpr :=
   withReducible do (MkDTExpr.mkDTExprAux true e |>.run {config, fvarInContext})
@@ -717,7 +737,7 @@ def insertDTExpr [BEq α] (d : RefinedDiscrTree α) (e : DTExpr) (v : α) : Refi
 /-- Insert the value `v` at index `e : Expr` in a `RefinedDiscrTree`.
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
 in the context when the `RefinedDiscrTree` is being used for lookup.
-It should return true only if the RefinedDiscrTree is built and used locally. -/
+It should return true only if the `RefinedDiscrTree` is built and used locally. -/
 def insert [BEq α] (d : RefinedDiscrTree α) (e : Expr) (v : α) (config : WhnfCoreConfig := {})
   (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (RefinedDiscrTree α) := do
   let keys ← mkDTExprs e config fvarInContext
@@ -725,9 +745,8 @@ def insert [BEq α] (d : RefinedDiscrTree α) (e : Expr) (v : α) (config : Whnf
 
 
 
-/-! ## Matching with a RefinedDiscrTree -/
+/-! ## Matching with a RefinedDiscrTree
 
-/-
 We use a very simple unification algorithm. For all star/metavariable patterns in the
 `RefinedDiscrTree` and in the target, we store the assignment, and when it is assigned again,
 we check that it is the same assignment.
