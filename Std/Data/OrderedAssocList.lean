@@ -111,7 +111,8 @@ theorem ltHeadKey?_of_le [TransCmp cmp] (h : cmp x a ≠ .gt) (w : ltHeadKey? cm
 The head key of the first list is at most the head key of the second list,
 or the second list is empty.
 -/
-abbrev headKey?_le_headKey? (cmp : α → α → Ordering) (s : AssocList α β) (t : AssocList α γ) : Prop :=
+abbrev headKey?_le_headKey?
+    (cmp : α → α → Ordering) (s : AssocList α β) (t : AssocList α γ) : Prop :=
   match s.headKey?, t.headKey? with
   | some a₁, some a₂ => cmp a₁ a₂ ≠ .gt
   | none, some _ => False
@@ -456,7 +457,7 @@ theorem find?_eq_none_of_ltHeadKey? (l : OrderedAssocList cmp β) (w : ltHeadKey
     | .eq => simp_all [ltHeadKey?]
     | .gt => simp_all [ltHeadKey?]
 
-theorem find?_mk_cons [OrientedCmp cmp] [TransCmp cmp]
+theorem find?_mk_cons [TransCmp cmp]
     {h : (AssocList.cons a b t).keysOrdered cmp} :
     find? ⟨.cons a b t, h⟩ x = if cmp x a = .eq then some b else find? ⟨t, h.tail⟩ x := by
   simp only [find?]
@@ -692,7 +693,8 @@ termination_by _ l => l.length
 theorem filterMapVal_filterMapVal [AntisymmCmp cmp] [TransCmp cmp]
     {f : α → γ → Option δ} {g : α → β → Option γ}
     {l : OrderedAssocList cmp β} :
-    filterMapVal f (filterMapVal g l) = filterMapVal (fun a b => (g a b).bind (fun c => f a c)) l := by
+    filterMapVal f (filterMapVal g l) =
+      filterMapVal (fun a b => (g a b).bind (fun c => f a c)) l := by
   ext a d
   simp only [find?_filterMapVal, Option.mem_def, Option.bind_eq_some]
   constructor
@@ -845,6 +847,7 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
           exact OrientedCmp.cmp_eq_gt.mp h₁
         · rw [find?_merge hf, find?_mk_cons (a := x'), if_neg h₃]
 
+@[nolint unusedArguments] -- falsely reports that `hf` is not used.
 theorem merge_comm
     (f : α → Option β → Option γ → Option δ) (g : α → Option γ → Option β → Option δ)
     (hf : ∀ a, f a none none = none) (hg : ∀ a, g a none none = none)
@@ -871,11 +874,13 @@ Add two `OrderedAssocList`s, taking the value from one list if the other value i
 def add [Add β] (l₁ : OrderedAssocList cmp β) (l₂ : OrderedAssocList cmp β) :
     OrderedAssocList cmp β :=
   merge (fun _ => addOption) l₁ l₂
-where addOption : Option β → Option β → Option β
-  | some x, some y => some (x + y)
-  | some x, none => some x
-  | none, some y => some y
-  | none, none => none
+where
+    /-- Add two values, treating missing values as `0`. -/
+  addOption : Option β → Option β → Option β
+    | some x, some y => some (x + y)
+    | some x, none => some x
+    | none, some y => some y
+    | none, none => none
 
 -- This statement will look better on the version of `OrderedAssocList` with default values,
 -- where we can just write `(add l₁ l₂).find a = l₁.find a + l₂.find a`.
@@ -898,11 +903,13 @@ dropping any values where the corresponding value in the other list is missing.
 def mul [Mul β] (l₁ : OrderedAssocList cmp β) (l₂ : OrderedAssocList cmp β) :
     OrderedAssocList cmp β :=
   merge (fun _ => mulOption) l₁ l₂
-where mulOption : Option β → Option β → Option β
-  | some x, some y => some (x * y)
-  | some _, none => none
-  | none, some _ => none
-  | none, none => none
+where
+  /-- Multiply two values, treating missing values as `0`. -/
+  mulOption : Option β → Option β → Option β
+    | some x, some y => some (x * y)
+    | some _, none => none
+    | none, some _ => none
+    | none, none => none
 
 @[simp] theorem find?_mul [Mul β] {l₁ : OrderedAssocList cmp β} :
     (mul l₁ l₂).find? a =
