@@ -79,6 +79,8 @@ TODO:
   This can either be programmed on a case by case basis,
   or it can be designed to be extended dynamically.
   And the normalization could happen on either the `Expr` or `DTExpr` level.
+  I have now made it so that the pattern `[λ, ⟨#0, 0⟩]` is always replaced by `[⟨id, 1⟩, ..]`,
+  where the implicit argument of `id` is also indexed.
 
   Note that for each of these equivalences, they should not apply at the root, so that
   for example `Function.id_def : id = fun x => x` can still be used as a rewriting lemma.
@@ -511,7 +513,11 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
       return .star (some mvarId)
 
   | .lam _ d b _ =>
-    .lam <$> mkDTExprBinder d b
+    let b ← mkDTExprBinder d b
+    if (b matches .bvar 0 _) && !root then
+      return .const ``id #[← mkDTExprAux false d]
+    else
+      return .lam b
 
   | .forallE _ d b _ => return .forall (← mkDTExprAux false d) (← mkDTExprBinder d b)
   | .lit v      => return .lit v
@@ -592,8 +598,12 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
     else
       return .star (some mvarId)
 
-  | .lam _ d b _ => checkCache fn fun _ =>
-    .lam <$> mkDTExprsBinder d b
+  | .lam _ d b _ => checkCache fn fun _ => (do
+    let b ← mkDTExprsBinder d b
+    if (b matches .bvar 0 _) && !root then
+      return .const ``id #[← mkDTExprsAux false d]
+    else
+      return .lam b)
     <|>
     match starEtaExpanded b 1 with
       | some b => do
