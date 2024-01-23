@@ -3,7 +3,7 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.List.Basic
+import Std.Data.List.Lemmas
 
 namespace Std
 
@@ -112,6 +112,37 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 
 @[simp] theorem length_mapVal : (mapVal f l).length = l.length := by
   induction l <;> simp_all
+
+
+/-- `O(n)`. Map a function `f` over the values of the list, dropping `none`. -/
+def filterMapVal (f : α → β → Option δ) : AssocList α β → AssocList α δ
+  | nil        => nil
+  | cons k v t => match f k v with
+    | none => filterMapVal f t
+    | some d => cons k d (filterMapVal f t)
+
+@[simp] theorem filterMapVal_nil : filterMapVal f nil = nil := rfl
+
+@[simp] theorem toList_filterMapVal (f : α → β → Option δ) (l : AssocList α β) :
+    (filterMapVal f l).toList =
+      l.toList.filterMap (fun (a, b) => (f a b).map fun v => (a, v)) := by
+  induction l with
+  | nil => simp
+  | cons k v t ih =>
+    revert ih
+    simp only [filterMapVal, toList, List.filterMap_cons]
+    match f k v with
+    | none
+    | some d => simp
+
+theorem length_filterMapVal : (filterMapVal f l).length ≤ l.length := by
+  induction l with
+  | nil => simp
+  | cons k v t ih =>
+    simp_all only [filterMapVal, length_cons]
+    match f k v with
+    | none => exact Nat.le_trans ih (Nat.le_succ _)
+    | some _ => exact Nat.succ_le_succ ih
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
 @[specialize] def findEntryP? (p : α → β → Bool) : AssocList α β → Option (α × β)

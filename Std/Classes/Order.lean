@@ -20,6 +20,11 @@ class TotalBLE (le : α → α → Bool) : Prop where
   /-- `le` is total: either `le a b` or `le b a`. -/
   total : le a b ∨ le b a
 
+/-- `AntisymmCmp cmp` asserts that `cmp x y = .eq` only if `x = y`. -/
+class AntisymmCmp (cmp : α → α → Ordering) : Prop where
+  /-- If two terms compare as `.eq`, then they are equal. -/
+  eq_of_cmp_eq : cmp x y = .eq → x = y
+
 /-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
 class OrientedCmp (cmp : α → α → Ordering) : Prop where
   /-- The comparator operation is symmetric, in the sense that if `cmp x y` equals `.lt` then

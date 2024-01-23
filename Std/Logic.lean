@@ -870,6 +870,14 @@ theorem ite_some_none_eq_none [Decidable P] :
     (if P then some x else none) = some y ↔ P ∧ x = y := by
   split <;> simp_all
 
+@[simp] theorem ite_self_left [Decidable P] :
+    (if P then if P then x else y else z) = if P then x else z := by
+  by_cases h : P <;> simp_all
+
+@[simp] theorem ite_self_right [Decidable P] :
+    (if P then x else if P then y else z) = if P then x else z := by
+  by_cases h : P <;> simp_all
+
 /-! ## miscellaneous -/
 
 attribute [simp] inline
