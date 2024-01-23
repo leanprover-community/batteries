@@ -11,21 +11,26 @@ import Lean.Meta
 We define discrimination trees for the purpose of unifying local expressions with library results.
 
 This implementation is based on the `DiscrTree` in Lean.
-I document here what is not in the original.
+I document here what features are not in the original.
+
+- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to
+  allow for matching under lambda and forall binders. For example, this allows for more specific
+  matching with the left hand side of `∑ i in range n, i = n * (n - 1) / 2`, which is indexed by
+  `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`.
 
 - The constructor `Key.star` now takes a `Nat` identifier as an argument.
   For example, the library pattern `a+a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
   `*0` corresponds to the type of `a`, `*1` to the `Hadd` instance, and `*2` to `a`.
   This means that it will only match an expression `x+y` if `x` is definitionally equal to `y`.
+  The matching algorithm requires that the same stars from the discrimination tree match with
+  the same patterns in the lookup expression, and similarly requires that the same metavariables
+  form the lookup expression match with the same pattern in the discrimination tree.
 
 - The constructor `Key.opaque` has been introduced in order to index existential variables
   in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
   where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, ◾]`. (◾ represents `Key.opaque`)
-
-- The constructors `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to
-  allow for patterns under binders. For example, this allows for more specific matching with
-  the left hand side of `Finset.sum_range_id (n : ℕ) : ∑ i in range n, i = n * (n - 1) / 2`,
-  which is indexed by `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`
+  Additionally, this key is used to represent let-expressions, when `WhnfCoreConfig.zeta := false`
+  in the configuration.
 
 - We keep track of the matching score of a unification.
   This score represents the number of keys that had to be the same for the unification to succeed.
@@ -37,35 +42,46 @@ I document here what is not in the original.
 
 - Patterns that have the potential to be η-reduced are put into the `RefinedDiscrTree` under all
   possible reduced key sequences. This is for terms of the form `fun x => f (?m x₁ .. xₙ)`, where
-  `?m` is a metavariable, and for some `i`, `xᵢ = x`.
-  For example, the pattern `Continuous fun y => Real.exp (f y)])`
-  is indexed by
-  `[⟨Continuous, 5⟩, *0, ⟨Real, 0⟩, *1, *2, λ, ⟨Real.exp⟩, *3]` and by
-  `[⟨Continuous, 5⟩, *0, ⟨Real, 0⟩, *1, *2, ⟨Real.exp⟩]`
+  `?m` is a metavariable, and one of `x₁, .., xₙ` in `x`.
+  For example, the pattern `Continuous fun y => Real.exp (f y)])` is indexed by
+  both `[⟨Continuous, 5⟩, *0, ⟨Real, 0⟩, *1, *2, λ, ⟨Real.exp⟩, *3]`
+  and  `[⟨Continuous, 5⟩, *0, ⟨Real, 0⟩, *1, *2, ⟨Real.exp⟩]`
   so that it also comes up if you search with `Continuous Real.exp`.
-  Similarly, `Continuous fun x => f x + g x`
-  is indexed by
-  `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]` and by
-  `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
+  Similarly, `Continuous fun x => f x + g x` is indexed by
+  both `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]`
+  and  `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
+
+I have also made some changes in the implementation
+
+- Instead of directly converting from `Expr` to `Array Key` during insertion, and directly
+  looking up from an `Expr` during lookup, I defined the intermediate structure `DTExpr`,
+  which is a form of `Expr` that only contains information relevant for the discrimination tree.
+  Each `Expr` is transformed into a `DTExpr` before insertion or lookup. For insertion there
+  could be multiple `DTExpr` representations due to potential η-reductions as mentioned above.
 
 TODO:
+
+- The η-reduction case handling currently indexes `fun x y => f x y` only as either `[f]` or
+  `[λ, λ, ⟨f, 2⟩, ⟨#1, 0⟩, ⟨#0, 0⟩]`, forgetting about the intermediate case `[λ, ⟨f, 1⟩, ⟨#0, 0⟩]`.
+  This is a bug.
+
+- More thought could be put into the matching algorithm for non-trivial unifications.
+  For example, when looking up the expression `?a + ?a`, there will only be results like
+  `n + n = 2 * n`, but not like `n + 1 = n.succ`, even though this would still unify.
 
 - Only reducible constants are reduced, so there are some terms with multiple
   representations, that should really be represented in the same way. e.g.
   - `fun x => x` and `id`.
-  - `(f ∘ g) x` and `f (g x)`.
+  - `fun x => f (g x)` and `f ∘ g`.
   - `fun x => f x + g x` and `f + g`. Similar to `+`, all of
     `1`, `0`, `*`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, and `/` are defined point-wise on Pi-types.
-  - Any combination of `Nat.zero`, `Nat.succ` and `+` that reduces to an explicit numeral. This
-    one is already implemented.
 
   This can either be programmed on a case by case basis,
   or it can be designed to be extended dynamically.
   And the normalization could happen on either the `Expr` or `DTExpr` level.
 
   Note that for each of these equivalences, they should not apply at the root, so that
-  for example `Nat.add_one : ∀ n, n + 1 = Nat.succ n` can still be used for rewriting between
-  `1 + 1` and `Nat.succ 1`.
+  for example `Function.id_def : id = fun x => x` can still be used as a rewriting lemma.
 
 -/
 
@@ -73,7 +89,7 @@ open Lean Meta
 
 namespace Std.RefinedDiscrTree
 
--- ## Definitions
+/-! ## Definitions -/
 
 /-- Discrimination tree key. -/
 inductive Key where
@@ -81,11 +97,12 @@ inductive Key where
   | star : Nat → Key
   /-- An opaque variable. This key only matches with itself or `Key.star`. -/
   | opaque : Key
-  /-- A constant. It stores a `Name` and an arity. -/
+  /-- A constant. It stores the name and the arity. -/
   | const : Name → Nat → Key
-  /-- A free variable. It stores a `FVarId` and an arity. -/
+  /-- A free variable. It stores the `FVarId` and the arity. -/
   | fvar : FVarId → Nat → Key
-  /-- A bound variable, from either a `.lam` or a `.forall`. It stores an index and an arity. -/
+  /-- A bound variable, from a lambda or forall binder.
+  It stores the De Bruijn index and the arity. -/
   | bvar : Nat → Nat → Key
   /-- A literal. -/
   | lit : Literal → Key
@@ -95,7 +112,7 @@ inductive Key where
   | lam : Key
   /-- A dependent arrow. -/
   | forall : Key
-  /-- A projection. It takes the constructor name, the projection index and the arity. -/
+  /-- A projection. It stores the constructor name, the projection index and the arity. -/
   | proj : Name → Nat → Nat → Key
   deriving Inhabited, BEq, Repr
 
@@ -113,7 +130,7 @@ private nonrec def Key.hash : Key → UInt64
 
 instance : Hashable Key := ⟨Key.hash⟩
 
-/-- Constructor index as a help for ordering `Key`.
+/-- Constructor index used for ordering `Key`.
 Note that the index of the star pattern is 0, so that when looking up in a `Trie`,
 we can look at the start of the sorted array for all `.star` patterns. -/
 def Key.ctorIdx : Key → Nat
@@ -128,7 +145,7 @@ def Key.ctorIdx : Key → Nat
   | .forall    => 8
   | .proj ..   => 9
 
-/-- The (arbitrary) order on `Key` used in the `RefinedDiscrTree`. -/
+/-- The order on `Key` used in the `RefinedDiscrTree`. -/
 private def Key.lt : Key → Key → Bool
   | .star i₁,       .star i₂       => i₁ < i₂
   | .const n₁ a₁,   .const n₂ a₂   => Name.quickLt n₁ n₂ || (n₁ == n₂ && a₁ < a₂)
@@ -152,12 +169,12 @@ private def Key.format : Key → Format
   | .sort                   => "sort"
   | .bvar i a               => "⟨" ++ "#" ++ Std.format i ++ ", " ++ Std.format a ++ "⟩"
   | .lam                    => "λ"
-  | .forall                 => "→"
+  | .forall                 => "∀"
   | .proj s i a             => "⟨" ++ Std.format s ++"."++ Std.format i ++", "++ Std.format a ++ "⟩"
 
 instance : ToFormat Key := ⟨Key.format⟩
 
-/-- Return the number of argumets that the `Key` takes. -/
+/-- Return the number of arguments that the `Key` takes. -/
 def Key.arity : Key → Nat
   | .const _ a  => a
   | .fvar _ a   => a
@@ -221,7 +238,7 @@ structure _root_.Std.RefinedDiscrTree (α : Type) where
   /-- The underlying `PersistentHashMap` of a `RefinedDiscrTree`. -/
   root : PersistentHashMap Key (Trie α) := {}
 
-private partial def RefinedDiscrTree.format [ToFormat α] (d : RefinedDiscrTree α) : Format :=
+private partial def format [ToFormat α] (d : RefinedDiscrTree α) : Format :=
   let (_, r) := d.root.foldl
     (fun (p : Bool × Format) k c =>
       (false,
@@ -230,31 +247,31 @@ private partial def RefinedDiscrTree.format [ToFormat α] (d : RefinedDiscrTree 
     (true, Format.nil)
   Format.group r
 
-instance [ToFormat α] : ToFormat (RefinedDiscrTree α) := ⟨RefinedDiscrTree.format⟩
+instance [ToFormat α] : ToFormat (RefinedDiscrTree α) := ⟨format⟩
 
 
 /-- `DTExpr` is a simplified form of `Expr`.
-It is intermediate step in converting from `Expr` to `Array Key`. -/
+It is the intermediate step for converting from `Expr` to `Array Key`. -/
 inductive DTExpr where
-  /-- A metavariable. -/
+  /-- A metavariable. I optionally stores an `MVarId`. -/
   | star : Option MVarId → DTExpr
   /-- An opaque variable or a let-expression in the case `WhnfCoreConfig.zeta := false`. -/
   | opaque : DTExpr
-  /-- A constant. -/
+  /-- A constant. It stores the name and the arguments. -/
   | const : Name → Array DTExpr → DTExpr
-  /-- A free variable. -/
+  /-- A free variable. It stores the `FVarId` and the argumenst -/
   | fvar : FVarId → Array DTExpr → DTExpr
-  /-- A bound variable. -/
+  /-- A bound variable. It stores the De Bruijn index and the arguments -/
   | bvar : Nat → Array DTExpr → DTExpr
   /-- A literal. -/
   | lit : Literal → DTExpr
   /-- A sort. -/
   | sort : DTExpr
-  /-- A lambda function. -/
+  /-- A lambda function. It stores the body. -/
   | lam : DTExpr → DTExpr
-  /-- A dependent arrow. -/
+  /-- A dependent arrow. It stores the domain and body. -/
   | forall : DTExpr → DTExpr → DTExpr
-  /-- A projection. -/
+  /-- A projection. It stores the constructor name, projection index, struct body and arguments. -/
   | proj : Name → Nat → DTExpr → Array DTExpr → DTExpr
 deriving Inhabited, BEq
 
@@ -285,13 +302,13 @@ The score is not incremented at a lambda, which is so that the expressions
 partial def DTExpr.size : DTExpr → Nat
 | .const _ args
 | .fvar _ args
-| .bvar _ args => args.foldl (init := 1) (fun total a => total + a.size)
+| .bvar _ args => args.foldl (init := 1) (· + ·.size)
 | .lam b => b.size
 | .forall d b => 1 + d.size + b.size
 | _ => 1
 
 
--- ## Encoding an Expr
+/-! ## Encoding an Expr -/
 
 /-- This state is used to turn the indexing by `MVarId` and `FVarId` in `DTExpr` into
 indexing by `Nat` in `Key`. -/
@@ -398,6 +415,7 @@ private def starEtaExpandedBody : Expr → Nat → Nat → Option Expr
 /-- If `e` is of the form `(fun x₀ ... xₙ => b y₀ ... yₙ)`,
 where each `yᵢ` has a metavariable head with `xᵢ` as an argument,
 then return `some b`. Otherwise, return `none`.
+The `Nat` argument represents the number of already unfolded lambdas.
 -/
 def starEtaExpanded : Expr → Nat → Option Expr
   | .lam _ _ b _, n => starEtaExpanded b (n+1)
@@ -490,7 +508,7 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
     if (e matches .app ..) then
       return .star none
     else
-      return .star mvarId
+      return .star (some mvarId)
 
   | .lam _ d b _ =>
     .lam <$> mkDTExprBinder d b
@@ -572,7 +590,7 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
     if (e matches .app ..) then
       return .star none
     else
-      return .star mvarId
+      return .star (some mvarId)
 
   | .lam _ d b _ => checkCache fn fun _ =>
     .lam <$> mkDTExprsBinder d b
@@ -613,7 +631,7 @@ def mkDTExprs (e : Expr) (config : WhnfCoreConfig)
   withReducible do (MkDTExpr.mkDTExprsAux true e |>.run {config, fvarInContext}).run' {}
 
 
--- ## Inserting intro a RefinedDiscrTree
+/-! ## Inserting intro a RefinedDiscrTree -/
 
 variable {α : Type}
 
@@ -690,7 +708,7 @@ def insert [BEq α] (d : RefinedDiscrTree α) (e : Expr) (v : α) (config : Whnf
 
 
 
--- ## Matching with a RefinedDiscrTree
+/-! ## Matching with a RefinedDiscrTree -/
 
 /-
 We use a very simple unification algorithm. For all star/metavariable patterns in the
@@ -779,8 +797,8 @@ mutual
   /-- Return the possible `Trie α` that match with `e`. -/
   partial def matchExpr (e : DTExpr) (t : Trie α) : M (Trie α) := do
     match ← exactMatch e (findKey t.children!) with
-      | .inr mvarId => matchTargetStar mvarId t
-      | .inl result => matchTreeStars e t <|> result
+      | .inr mvarId? => matchTargetStar mvarId? t
+      | .inl result  => matchTreeStars e t <|> result
 
   /-- If the head of `e` is not a metavariable,
   return the possible `Trie α` that exactly match with `e`. -/
@@ -798,7 +816,7 @@ mutual
       args.foldlM (fun t e => matchExpr e t)
 
     match e with
-    | .star mvarId      => return if (← read).unify then .inr mvarId else .inl failure
+    | .star mvarId?     => return if (← read).unify then .inr mvarId? else .inl failure
     | .opaque           => findKey .opaque
     | .const c args     => findKey (.const c args.size) (matchArgs args)
     | .fvar fvarId args => findKey (.fvar fvarId args.size) (matchArgs args)
