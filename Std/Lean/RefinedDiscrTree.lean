@@ -29,8 +29,10 @@ I document here what features are not in the original.
 - The constructor `Key.opaque` has been introduced in order to index existential variables
   in lemmas like `Nat.exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, Prime p ∧ p ∣ n`,
   where the part `Prime p` gets the pattern `[⟨Nat.Prime, 1⟩, ◾]`. (◾ represents `Key.opaque`)
-  Additionally, this key is used to represent let-expressions, when `WhnfCoreConfig.zeta := false`
-  in the configuration.
+
+  Using the `WhnfCoreConfig` argument, it is possible to disable β-reduction or ζ-reduction.
+  As a result, there may be lambda expressions that are applied to an argument, or there may be
+  let expressions. Since there is no support for these, they will be indexed by `Key.opaque`.
 
 - We keep track of the matching score of a unification.
   This score represents the number of keys that had to be the same for the unification to succeed.
@@ -498,11 +500,12 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
     let a ← argDTExpr a (isClass (← getEnv) s)
     return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
-    if let some idx := (← read).bvars.findIdx? (· == fvarId) then
+    let c ← read
+    if let some idx := c.bvars.findIdx? (· == fvarId) then
       return .bvar idx (← argDTExprs)
-    if (← read).unbvars.contains fvarId then
+    if c.unbvars.contains fvarId then
       failure
-    if (← read).fvarInContext fvarId then
+    if c.fvarInContext fvarId then
       return .fvar fvarId (← argDTExprs)
     else
       return .opaque
@@ -513,6 +516,8 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
       return .star (some mvarId)
 
   | .lam _ d b _ =>
+    unless args.isEmpty do
+      return .opaque
     let b ← mkDTExprBinder d b
     if (b matches .bvar 0 _) && !root then
       return .const ``id #[← mkDTExprAux false d]
@@ -584,11 +589,12 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
     let a ← argDTExpr a (isClass (← getEnv) s)
     return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
-    if let some idx := (← read).bvars.findIdx? (· == fvarId) then
+    let c ← read
+    if let some idx := c.bvars.findIdx? (· == fvarId) then
       return .bvar idx (← argDTExprs)
-    if (← read).unbvars.contains fvarId then
+    if c.unbvars.contains fvarId then
       failure
-    if (← read).fvarInContext fvarId then
+    if c.fvarInContext fvarId then
       return .fvar fvarId (← argDTExprs)
     else
       return .opaque
@@ -598,12 +604,13 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
     else
       return .star (some mvarId)
 
-  | .lam _ d b _ => checkCache fn fun _ => (do
-    let b ← mkDTExprsBinder d b
-    if (b matches .bvar 0 _) && !root then
+  | .lam _ d b _ => checkCache fn fun _ => do
+    unless args.isEmpty do
+      return .opaque
+    let b' ← mkDTExprsBinder d b
+    if (b' matches .bvar 0 _) && !root then
       return .const ``id #[← mkDTExprsAux false d]
-    else
-      return .lam b)
+    pure (.lam b')
     <|>
     match starEtaExpanded b 1 with
       | some b => do
