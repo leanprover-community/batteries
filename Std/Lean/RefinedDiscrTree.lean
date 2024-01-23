@@ -63,9 +63,8 @@ I have also made some changes in the implementation
 
 TODO:
 
-- The η-reduction case handling currently indexes `fun x y => f x y` only as either `[f]` or
-  `[λ, λ, ⟨f, 2⟩, ⟨#1, 0⟩, ⟨#0, 0⟩]`, forgetting about the intermediate case `[λ, ⟨f, 1⟩, ⟨#0, 0⟩]`.
-  This is a bug.
+- The η-reduction case handling is a bit awkward and the implementation should probably be
+  reworked, but it works like this.
 
 - More thought could be put into the matching algorithm for non-trivial unifications.
   For example, when looking up the expression `?a + ?a`, there will only be results like
