@@ -430,6 +430,9 @@ performing at most `maxDepth` (defaults to 6) recursive steps.
 
 By default, the assumptions passed to `apply` are the local context, `rfl`, `trivial`,
 `congrFun` and `congrArg`.
+Further, by default `solve_by_elim` includes `@[symm]` lemmas applied to hypotheses,
+as well as projections of structure hypotheses.
+These can be configured use the `symm` and `letProjs` configuration options described below.
 
 The assumptions can be modified with similar syntax as for `simp`:
 * `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the given expressions.
@@ -446,6 +449,7 @@ makes other goals impossible.
 Optional arguments passed via a configuration argument as `solve_by_elim (config := { ... })`
 - `maxDepth`: number of attempts at discharging generated subgoals
 - `symm`: adds all hypotheses derived by `symm` (defaults to `true`).
+- `letProjs`: adds projections of all hypotheses (defaults to `true`).
 - `exfalso`: allow calling `exfalso` and trying again if `solve_by_elim` fails
   (defaults to `true`).
 - `transparency`: change the transparency mode when calling `apply`. Defaults to `.default`,
@@ -500,6 +504,11 @@ will have two goals, `P` and `Q`.
 
 You can pass a further configuration via the syntax `apply_rules (config := {...}) lemmas`.
 The options supported are the same as for `solve_by_elim` (and include all the options for `apply`).
+
+By default `apply_assumption` will not use projections of hypothesis,
+although this can be enabled using `apply_rules (config := {letProjs := true})`.
+This is an implementation detail: with `letProjs := true` we add many new facts to the context,
+and as `apply_assumption` is a non-terminal tactic these would pollute the user visible goal.
 -/
 syntax (name := applyAssumptionSyntax)
   "apply_assumption" (config)? (&" only")? (args)? (using_)? : tactic
@@ -532,6 +541,10 @@ The options supported are the same as for `solve_by_elim` (and include all the o
 
 `apply_rules` will try calling `symm` on hypotheses and `exfalso` on the goal as needed.
 This can be disabled with `apply_rules (config := {symm := false, exfalso := false})`.
+By default `apply_rules` will not use projections of hypothesis,
+although this can be enabled using `apply_rules (config := {letProjs := true})`
+This is an implementation detail: with `letProjs := true` we add many new facts to the context,
+and as `apply_assumption` is a non-terminal tactic these would pollute the user visible goal.
 
 You can bound the iteration depth using the syntax `apply_rules (config := {maxDepth := n})`.
 
