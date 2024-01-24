@@ -221,7 +221,7 @@ If `solveByElim` succeeds, we return `[]` as the list of new subgoals,
 otherwise the full list of subgoals.
 -/
 private def librarySearchLemma (cfg : ApplyConfig) (act : List MVarId → MetaM (List MVarId))
-    (allowFailure : Bool) (cand : Candidate)  : MetaM (List MVarId) := do
+    (allowFailure : MVarId → MetaM Bool) (cand : Candidate)  : MetaM (List MVarId) := do
   let ((goal, mctx), (name, mod)) := cand
   withTraceNode `Tactic.stdLibrarySearch (return m!"{emoji ·} trying {name} with {mod} ") do
     setMCtx mctx
@@ -230,7 +230,7 @@ private def librarySearchLemma (cfg : ApplyConfig) (act : List MVarId → MetaM 
     try
       act newGoals
     catch _ =>
-      if allowFailure then
+      if ← allowFailure goal then
         pure newGoals
       else
         failure
@@ -390,7 +390,7 @@ private def librarySearchEmoji : Except ε (Option α) → String
 
 private def librarySearch' (goal : MVarId)
     (tactic : List MVarId → MetaM (List MVarId))
-    (allowFailure : Bool)
+    (allowFailure : MVarId → MetaM Bool)
     (leavePercentHeartbeats : Nat) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   withTraceNode `Tactic.stdLibrarySearch (return m!"{librarySearchEmoji ·} {← goal.getType}") do
@@ -438,7 +438,7 @@ this is not currently tracked.)
 -/
 def librarySearch (goal : MVarId)
     (tactic : Bool → List MVarId → MetaM (List MVarId))
-    (allowFailure : Bool := true)
+    (allowFailure : MVarId → MetaM Bool := fun _ => pure true)
     (leavePercentHeartbeats : Nat := 10) :
     MetaM (Option (Array (List MVarId × MetavarContext))) := do
   (tactic true [goal] *> pure none) <|>
@@ -478,7 +478,10 @@ def exact? (tk : Syntax) (required : Option (Array (TSyntax `term)))
       | some t =>
         let _ <- mkInitialTacticInfo t
         throwError "Do not yet support custom std_exact?/std_apply? tactics."
-    match ← librarySearch goal tactic (allowFailure := required.isEmpty) with
+    let allowFailure := fun g => do
+      let g ← g.withContext (instantiateMVars (.mvar g))
+      return required.all fun e => e.occurs g
+    match ← librarySearch goal tactic allowFailure with
     -- Found goal that closed problem
     | none =>
       addExactSuggestion tk (← instantiateMVars (mkMVar mvar)).headBeta
