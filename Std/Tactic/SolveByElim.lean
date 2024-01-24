@@ -511,6 +511,7 @@ elab_rules : tactic |
   let cfg ← elabConfig (mkOptionalNode cfg)
   let cfg := { cfg with
     backtracking := false
+    letProjs := false
     maxDepth := 1 }
   replaceMainGoal (← solveByElim.processSyntax cfg o.isSome star add remove use [← getMainGoal])
 
@@ -545,5 +546,5 @@ elab_rules : tactic |
   let (star, add, remove) := parseArgs t
   let use := parseUsing use
   let cfg ← elabApplyRulesConfig (mkOptionalNode cfg)
-  let cfg := { cfg with backtracking := false }
+  let cfg := { cfg with backtracking := false, letProjs := false }
   liftMetaTactic fun g => solveByElim.processSyntax cfg o.isSome star add remove use [g]
