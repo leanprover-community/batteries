@@ -2,6 +2,7 @@ import Std.Data.Bool
 import Std.Data.BitVec.Basic
 import Std.Data.Nat.Lemmas
 
+import Std.Tactic.Ext
 import Std.Tactic.Simpa
 
 namespace Std.BitVec
@@ -21,7 +22,9 @@ theorem testBit_toNat (x : BitVec w) : x.toNat.testBit i = x.getLsb i := rfl
   apply Nat.lt_of_lt_of_le x_lt
   apply Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) ge
 
-theorem eq_of_getLsb_eq {x y : BitVec w}
+-- We choose `eq_of_getLsb_eq` as the `@[ext]` theorem for `BitVec`
+-- somewhat arbitrarily over `eq_of_getMsg_eq`.
+@[ext] theorem eq_of_getLsb_eq {x y : BitVec w}
     (pred : ∀(i : Fin w), x.getLsb i.val = y.getLsb i.val) : x = y := by
   apply eq_of_toNat_eq
   apply Nat.eq_of_testBit_eq
@@ -132,15 +135,15 @@ theorem toNat_zeroExtend (i : Nat) (x : BitVec n) :
 @[simp] theorem toNat_truncate (x : BitVec n) : (truncate i x).toNat = x.toNat % 2^i :=
   toNat_zeroExtend i x
 
-theorem getLsb_zeroExtend' (ge : m ≥ n) (x : BitVec n) (i : Nat) :
+@[simp] theorem getLsb_zeroExtend' (ge : m ≥ n) (x : BitVec n) (i : Nat) :
     getLsb (zeroExtend' ge x) i = getLsb x i := by
   simp [getLsb, toNat_zeroExtend']
 
-theorem getLsb_zeroExtend (m : Nat) (x : BitVec n) (i : Nat) :
+@[simp] theorem getLsb_zeroExtend (m : Nat) (x : BitVec n) (i : Nat) :
     getLsb (zeroExtend m x) i = (decide (i < m) && getLsb x i) := by
   simp [getLsb, toNat_zeroExtend, Nat.testBit_mod_two_pow]
 
-theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat) :
+@[simp] theorem getLsb_truncate (m : Nat) (x : BitVec n) (i : Nat) :
     getLsb (truncate m x) i = (decide (i < m) && getLsb x i) :=
   getLsb_zeroExtend m x i
 
@@ -165,3 +168,45 @@ theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w :
 @[simp] theorem add_zero (x : BitVec n) : x + (0#n) = x := by
   apply eq_of_toNat_eq
   simp [toNat_add, isLt, Nat.mod_eq_of_lt]
+
+/-! ### or -/
+
+@[simp] theorem getLsb_or {x y : BitVec v} : (x ||| y).getLsb i = (x.getLsb i || y.getLsb i) :=
+  sorry
+
+/-! ### shiftLeft -/
+
+@[simp] theorem getLsb_shiftLeft (x : BitVec m) (n) :
+    getLsb (x <<< n) i = (!decide (i < n) && getLsb x (i - n)) := sorry
+
+theorem shiftLeftZeroExtend_eq {x : BitVec w} :
+    shiftLeftZeroExtend x n = zeroExtend (w+n) x <<< n :=
+  sorry
+
+@[simp] theorem getLsb_shiftLeftZeroExtend (x : BitVec m) (n : Nat) :
+    getLsb (shiftLeftZeroExtend x n) i = ((! decide (i < n)) && getLsb x (i - n)) := by
+  rw [shiftLeftZeroExtend_eq]
+  simp
+  -- Still some annoying arithmetic here.
+  -- Have to think how to hook it up to `omega`?
+  -- The `decide _ &&` formulation is a bit annoying relative to good old `if`!
+  sorry
+
+
+/-! ### append -/
+
+theorem append_def (x : BitVec v) (y : BitVec w) :
+    x ++ y = (shiftLeftZeroExtend x w ||| zeroExtend' (Nat.le_add_left w v) y) := rfl
+
+@[simp] theorem getLsb_append {v : BitVec n} {w : BitVec m} :
+    getLsb (v ++ w) i = bif i < m then getLsb w i else getLsb v (i - m) := by
+  simp [append_def]
+  by_cases h : i < m
+  · simp [h]
+  · simp [h]; simp_all
+
+/-! ### cast -/
+
+@[simp] theorem getLsb_cast : (BitVec.cast h v).getLsb i = v.getLsb i := by
+  cases h
+  simp
