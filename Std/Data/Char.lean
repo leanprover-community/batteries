@@ -3,8 +3,11 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
-
+import Std.Tactic.Ext.Attr
 import Std.Tactic.RCases
+
+@[ext] theorem Char.ext : {a b : Char} → a.val = b.val → a = b
+  | ⟨_,_⟩, ⟨_,_⟩, rfl => rfl
 
 namespace String
 
