@@ -4,6 +4,7 @@ import Std.Data.Nat.Lemmas
 
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
+import Std.Tactic.Omega
 
 namespace Std.BitVec
 
@@ -13,6 +14,8 @@ theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
 
 theorem toNat_eq (x y : BitVec n) : x = y ↔ x.toNat = y.toNat :=
   Iff.intro (congrArg BitVec.toNat) eq_of_toNat_eq
+
+theorem toNat_lt (x : BitVec n) : x.toNat < 2^n := x.toFin.2
 
 theorem testBit_toNat (x : BitVec w) : x.toNat.testBit i = x.getLsb i := rfl
 
@@ -171,27 +174,45 @@ theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w :
 
 /-! ### or -/
 
-@[simp] theorem getLsb_or {x y : BitVec v} : (x ||| y).getLsb i = (x.getLsb i || y.getLsb i) :=
-  sorry
+@[simp] theorem toNat_or {x y : BitVec v} :
+    BitVec.toNat (x ||| y) = BitVec.toNat x ||| BitVec.toNat y := rfl
+
+@[simp] theorem getLsb_or {x y : BitVec v} : (x ||| y).getLsb i = (x.getLsb i || y.getLsb i) := by
+  rw [← testBit_toNat, getLsb, getLsb]
+  simp
 
 /-! ### shiftLeft -/
 
+@[simp] theorem toNat_shiftLeft {x : BitVec v} :
+    BitVec.toNat (x <<< n) = BitVec.toNat x <<< n % 2^v :=
+  BitVec.toNat_ofNat _ _
+
 @[simp] theorem getLsb_shiftLeft (x : BitVec m) (n) :
-    getLsb (x <<< n) i = (!decide (i < n) && getLsb x (i - n)) := sorry
+    getLsb (x <<< n) i = (decide (i < m) && !decide (i < n) && getLsb x (i - n)) := by
+  rw [← testBit_toNat, getLsb]
+  simp only [toNat_shiftLeft, Nat.testBit_mod_two_pow, Nat.testBit_shiftLeft, ge_iff_le]
+  -- This step could be a case bashing tactic.
+  cases h₁ : decide (i < m) <;> cases h₂ : decide (n ≤ i) <;> cases h₃ : decide (i < n)
+  all_goals { simp_all <;> omega }
 
 theorem shiftLeftZeroExtend_eq {x : BitVec w} :
-    shiftLeftZeroExtend x n = zeroExtend (w+n) x <<< n :=
-  sorry
+    shiftLeftZeroExtend x n = zeroExtend (w+n) x <<< n := by
+  apply eq_of_toNat_eq
+  rw [shiftLeftZeroExtend, zeroExtend]
+  split
+  · simp
+    rw [Nat.mod_eq_of_lt]
+    rw [Nat.shiftLeft_eq, Nat.pow_add]
+    exact Nat.mul_lt_mul_of_pos_right (BitVec.toNat_lt x) (Nat.pow_two_pos _)
+  · omega
 
 @[simp] theorem getLsb_shiftLeftZeroExtend (x : BitVec m) (n : Nat) :
     getLsb (shiftLeftZeroExtend x n) i = ((! decide (i < n)) && getLsb x (i - n)) := by
   rw [shiftLeftZeroExtend_eq]
-  simp
-  -- Still some annoying arithmetic here.
-  -- Have to think how to hook it up to `omega`?
-  -- The `decide _ &&` formulation is a bit annoying relative to good old `if`!
-  sorry
-
+  simp only [getLsb_shiftLeft, getLsb_zeroExtend]
+  cases h₁ : decide (i < n) <;> cases h₂ : decide (i - n < m + n) <;> cases h₃ : decide (i < m + n)
+    <;> simp_all
+    <;> (rw [getLsb_ge]; omega)
 
 /-! ### append -/
 

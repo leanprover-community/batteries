@@ -231,7 +231,7 @@ theorem testBit_two_pow_add_gt {i j : Nat} (j_lt_i : j < i) (x : Nat) :
   | d+1 =>
     simp [pow_succ, Nat.mul_comm _ 2,  Nat.mul_add_mod]
 
-theorem testBit_mod_two_pow (x j i : Nat) :
+@[simp] theorem testBit_mod_two_pow (x j i : Nat) :
     testBit (x % 2^j) i = (decide (i < j) && testBit x i) := by
   induction x using Nat.strongInductionOn generalizing j i with
   | ind x hyp =>
@@ -399,7 +399,7 @@ theorem and_pow_two_identity {x : Nat} (lt : x < 2^n) : x &&& 2^n-1 = x := by
   unfold bitwise
   simp [@eq_comm _ 0]
 
-theorem testBit_or (x y i : Nat) : (x ||| y).testBit i = (x.testBit i || y.testBit i) := by
+@[simp] theorem testBit_or (x y i : Nat) : (x ||| y).testBit i = (x.testBit i || y.testBit i) := by
   simp [HOr.hOr, OrOp.or, lor, testBit_bitwise ]
 
 theorem or_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ||| y < 2^n :=
@@ -471,9 +471,9 @@ theorem mul_add_lt_is_or {b : Nat} (b_lt : b < 2^i) (a : Nat) : 2^i * a + b = 2^
 
 /-! ### shiftLeft and shiftRight -/
 
-theorem testBit_shiftLeft (x : Nat) : testBit (x <<< i) j =
+@[simp] theorem testBit_shiftLeft (x : Nat) : testBit (x <<< i) j =
     (decide (j ≥ i) && testBit x (j-i)) := by
   simp [shiftLeft_eq, Nat.mul_comm _ (2^_), testBit_mul_pow_two]
 
-theorem testBit_shiftRight (x : Nat) : testBit (x >>> i) j = testBit x (i+j) := by
+@[simp] theorem testBit_shiftRight (x : Nat) : testBit (x >>> i) j = testBit x (i+j) := by
   simp [testBit, ←shiftRight_add]
