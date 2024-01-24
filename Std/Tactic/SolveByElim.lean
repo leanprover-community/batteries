@@ -225,12 +225,18 @@ def elabContextLemmas (g : MVarId) (lemmas : List (TermElabM Expr)) (ctx : TermE
 /-- Returns the list of tactics corresponding to applying the available lemmas to the goal. -/
 def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId) : Nondet MetaM (List MVarId) := Nondet.squash fun _ => do
+  -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
+  -- This has better performance that the mathlib3 approach.
+  let g ← if cfg.symm then g.symmSaturate else pure g
   let es ← elabContextLemmas g lemmas ctx
   return applyTactics cfg.toApplyConfig cfg.transparency es g
 
 /-- Applies the first possible lemma to the goal. -/
 def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId) : MetaM (List MVarId) := do
+-- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
+-- This has better performance that the mathlib3 approach.
+let g ← if cfg.symm then g.symmSaturate else pure g
 let es ← elabContextLemmas g lemmas ctx
 applyFirst cfg.toApplyConfig cfg.transparency es g
 
@@ -252,18 +258,12 @@ Custom wrappers (e.g. `apply_assumption` and `apply_rules`) may modify this beha
 -/
 def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (goals : List MVarId) : MetaM (List MVarId) := do
-  -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
-  -- This has better performance that the mathlib3 approach.
-  let preprocessedGoals ← if cfg.symm then
-    goals.mapM fun g => g.symmSaturate
-  else
-    pure goals
   try
-    run preprocessedGoals
+    run goals
   catch e => do
     -- Implementation note: as with `cfg.symm`, this is different from the mathlib3 approach,
     -- for (not as severe) performance reasons.
-    match preprocessedGoals, cfg.exfalso with
+    match goals, cfg.exfalso with
     | [g], true =>
       withTraceNode `Meta.Tactic.solveByElim
           (fun _ => return m!"⏮️ starting over using `exfalso`") do
