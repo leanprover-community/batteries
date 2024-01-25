@@ -698,8 +698,8 @@ theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
   have := SatisfiesM_anyM_iff_exists (m := Id) (fun a => ! p a) as start stop (! p as[·]) (by simp)
   rw [SatisfiesM_Id_eq] at this
   dsimp [all, allM, Id.run]
-  rw [Bool.not_eq_true', Bool.eq_false_iff, Ne]
-  simp [this]
+  rw [Bool.not_eq_true', (Bool.not_eq_true _).symm, this]
+  simp
 
 theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
   simp [all_iff_forall, Fin.isLt]

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Classes.SetNotation
+import Std.Data.Bool
 import Std.Logic
 
 namespace List
@@ -380,9 +381,19 @@ theorem lookup_cons [BEq α] {k : α} :
 
 /-! ### all / any -/
 
-@[simp] theorem all_eq_true {l : List α} : l.all p ↔ ∀ x ∈ l, p x := by induction l <;> simp [*]
+@[simp] theorem all_eq_true (l : List α) (p : α → Bool) : l.all p ↔ ∀ x ∈ l, p x := by
+  induction l <;> simp [*]
 
-@[simp] theorem any_eq_true {l : List α} : l.any p ↔ ∃ x ∈ l, p x := by induction l <;> simp [*]
+@[simp] theorem all_eq_false (l : List α) (p : α → Bool) :
+    l.all p = false ↔ ∃ x ∈ l, p x = false := by
+  induction l <;> simp [*]
+
+@[simp] theorem any_eq_true (l : List α) (p : α → Bool) : l.any p ↔ ∃ x ∈ l, p x := by
+  induction l <;> simp [*]
+
+@[simp] theorem any_eq_false (l : List α) (p : α → Bool) :
+    l.any p = false ↔ ∀ x ∈ l, p x = false := by
+  induction l <;> simp [*]
 
 /-! ### enumFrom -/
 

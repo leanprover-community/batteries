@@ -42,9 +42,13 @@ theorem false_ne_true : false ≠ true := Bool.noConfusion
 
 theorem eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false := by decide
 
-theorem eq_false_iff : {b : Bool} → b = false ↔ b ≠ true := by decide
+-- N.B. The replacement lemma is symmetric to the original so it is
+-- not a direct replacement.
+@[deprecated Bool.not_eq_true]
+theorem eq_false_iff {b : Bool} : b = false ↔ b ≠ true := Iff.of_eq (Bool.not_eq_true b).symm
 
-theorem ne_false_iff : {b : Bool} → b ≠ false ↔ b = true := by decide
+@[deprecated Bool.not_eq_false]
+theorem ne_false_iff {b : Bool} : b ≠ false ↔ b = true := Iff.of_eq (Bool.not_eq_false b)
 
 /-! ### and -/
 
@@ -72,8 +76,13 @@ theorem and_xor_distrib_right : ∀ (x y z : Bool), (xor x y && z) = xor (x && z
 /-- De Morgan's law for boolean and -/
 theorem not_and : ∀ (x y : Bool), (!(x && y)) = (!x || !y) := by decide
 
+@[deprecated and_eq_true]
 theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y = true := by decide
 
+@[simp] theorem and_eq_false (a b : Bool) : ((a && b) = false) = (a = false ∨ b = false) := by
+  cases a <;> cases b <;> decide
+
+@[deprecated and_eq_false]
 theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by decide
 
 /-! ### or -/
@@ -97,8 +106,13 @@ theorem or_and_distrib_right : ∀ (x y z : Bool), ((x && y) || z) = ((x || z) &
 /-- De Morgan's law for boolean or -/
 theorem not_or : ∀ (x y : Bool), (!(x || y)) = (!x && !y) := by decide
 
+@[simp] theorem or_eq_false (a b : Bool) : ((a || b) = false) = (a = false ∧ b = false) := by
+  cases a <;> cases b <;> decide
+
+@[deprecated or_eq_true]
 theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = true := by decide
 
+@[deprecated or_eq_false]
 theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y = false := by decide
 
 /-! ### xor -/

@@ -108,11 +108,10 @@ theorem ne_implies_bit_diff {x y : Nat} (p : x ≠ y) : ∃ i, testBit x i ≠ t
   | ind y hyp =>
     cases Nat.eq_zero_or_pos y with
     | inl yz =>
-      simp only [yz, Nat.zero_testBit, Bool.eq_false_iff]
       simp only [yz] at p
       have ⟨i,ip⟩  := ne_zero_implies_bit_true p
       apply Exists.intro i
-      simp [ip]
+      simp [yz, Nat.zero_testBit, ip]
     | inr ypos =>
       if lsb_diff : x % 2 = y % 2 then
         rw [←Nat.div_add_mod x 2, ←Nat.div_add_mod y 2] at p
