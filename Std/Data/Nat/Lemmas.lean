@@ -333,6 +333,8 @@ theorem lt_of_le_pred (h : 0 < m) : n ≤ pred m → n < m := (le_pred_iff_lt h)
 
 theorem le_pred_of_lt (h : n < m) : n ≤ pred m := (le_pred_iff_lt (Nat.zero_lt_of_lt h)).2 h
 
+theorem pred_eq_sub_one (_ : 0 < m) : pred m = m - 1 := rfl
+
 /-! ## add -/
 
 protected theorem add_add_add_comm (a b c d : Nat) : (a + b) + (c + d) = (a + c) + (b + d) := by
@@ -1108,6 +1110,13 @@ protected theorem zero_pow {n : Nat} (H : 0 < n) : 0 ^ n = 0 := by
   rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
 
 protected theorem pow_two (a : Nat) : a ^ 2 = a * a := by rw [Nat.pow_succ, Nat.pow_one]
+
+theorem two_pow_succ (n : Nat) : 2^(succ n) = 2^n + 2^n := by simp [Nat.pow_succ, Nat.mul_two]
+
+theorem one_lt_two_pow_succ (n : Nat) : 1 < 2^(succ n) := by
+  apply succ_le.mp
+  rw [two_pow_succ, succ_eq_one_add]
+  simp [succ_le_of_lt (Nat.pow_two_pos n), add_le_add]
 
 protected theorem pow_add (a m n : Nat) : a ^ (m + n) = a ^ m * a ^ n := by
   induction n with

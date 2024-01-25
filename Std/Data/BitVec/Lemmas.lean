@@ -56,6 +56,8 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
+@[simp] theorem toFin_toNat (x : BitVec w) : (toFin x).val = x.toNat := rfl
+
 theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
 
@@ -154,6 +156,41 @@ theorem truncate_succ (x : BitVec w) :
   else
     have j_lt : j.val < i := Nat.lt_of_le_of_ne (Nat.le_of_succ_le_succ j.isLt) j_eq
     simp [j_eq, j_lt]
+
+/-! ### cast -/
+
+@[simp]
+theorem add_cast {x y : BitVec w} :  (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+@[simp]
+theorem sub_cast {x y : BitVec w} : (x - y).toNat = (x.toNat + (2^w - y.toNat)) % 2^w := rfl
+
+@[simp]
+theorem neg_cast {x : BitVec w} : (-x).toNat = (2^w- x.toNat) % 2^w := by
+  rw [← Nat.zero_add (2^w - x.toNat)]; rfl
+
+@[simp]
+theorem xor_cast {x y: BitVec w} : (x ^^^ y).toNat = x.toNat ^^^ y.toNat:= rfl
+
+/-! ### ring properties -/
+
+theorem eq_sub_of_add_eq {a b c : BitVec w} (h : a + b = c) : a = c - b := by
+  rw [← h]
+  apply BitVec.eq_of_toNat_eq
+  simp only [sub_cast, add_cast, Nat.mod_add_mod]
+  rw [Nat.add_assoc, Nat.add_mod, ← Nat.add_sub_assoc (Nat.le_of_lt b.isLt)]
+  simp [Nat.add_sub_self_left, Nat.mod_eq_of_lt a.isLt]
+
+theorem add_comm {a b : BitVec w} : a + b = b + a := by
+  apply BitVec.eq_of_toNat_eq; simp [Nat.add_comm]
+
+theorem add_sub_assoc {x y z : BitVec w} : x + y - z = x + (y - z) := by
+  apply BitVec.eq_of_toNat_eq; simp [Nat.add_sub_assoc, Nat.add_assoc]
+
+theorem add_right_neg {x : BitVec w} : x + -x = 0 := by
+  apply BitVec.eq_of_toNat_eq
+  simp [← Nat.add_sub_assoc (Nat.le_of_lt x.isLt), Nat.add_sub_self_left]
+
+theorem zero_sub {x : BitVec w} : 0#w - x = -x := rfl
 
 /-! ### add -/
 
