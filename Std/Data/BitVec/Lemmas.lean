@@ -186,7 +186,7 @@ theorem add_comm (a b : BitVec w) : a + b = b + a := by
 theorem add_sub_assoc (x y z : BitVec w) : x + y - z = x + (y - z) := by
   apply BitVec.eq_of_toNat_eq; simp [Nat.add_sub_assoc, Nat.add_assoc]
 
-theorem add_right_neg {x : BitVec w} : x + -x = 0 := by
+theorem add_right_neg (x : BitVec w) : x + -x = 0 := by
   apply BitVec.eq_of_toNat_eq
   simp [← Nat.add_sub_assoc (Nat.le_of_lt x.isLt), Nat.add_sub_self_left]
 
