@@ -70,7 +70,7 @@ addressing some foundational issues with references in `ST` and `IO`.
 
 ### Primitive data types
 
-Leah has builtin support for a variety of primitive types including
+Lean has builtin support for a variety of primitive types including
 natural numbers, unsigned fixed-width integers (e.g., `UInt8`),
 double-precision floating point numbers, `String`, arrays (including
 scalar arrays), and other types.  This builtin support improves
