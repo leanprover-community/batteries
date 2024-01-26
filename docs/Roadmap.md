@@ -23,7 +23,7 @@ The scope of the standard library includes the following areas:
  * **Data structure libraries** for functional and
    concurrent programming.
  * Monadic transformers and **verification support**.
- * **Broadly useful typeclasses** including with and without lemmas.
+ * **Broadly useful typeclasses** with or without lemmas.
  * **IO operations** for concurrency, file system operations, launching
    new processes and networking.  The IO layer should support both
    synchronous and asynchronous operations.
