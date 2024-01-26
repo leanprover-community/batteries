@@ -180,7 +180,7 @@ theorem eq_sub_of_add_eq {a b c : BitVec w} (h : a + b = c) : a = c - b := by
   rw [Nat.add_assoc, Nat.add_mod, ← Nat.add_sub_assoc (Nat.le_of_lt b.isLt)]
   simp [Nat.add_sub_self_left, Nat.mod_eq_of_lt a.isLt]
 
-theorem add_comm {a b : BitVec w} : a + b = b + a := by
+theorem add_comm (a b : BitVec w) : a + b = b + a := by
   apply BitVec.eq_of_toNat_eq; simp [Nat.add_comm]
 
 theorem add_sub_assoc {x y z : BitVec w} : x + y - z = x + (y - z) := by
