@@ -79,8 +79,7 @@ theorem not_and : ∀ (x y : Bool), (!(x && y)) = (!x || !y) := by decide
 @[deprecated and_eq_true]
 theorem and_eq_true_iff : ∀ (x y : Bool), (x && y) = true ↔ x = true ∧ y = true := by decide
 
-@[simp] theorem and_eq_false (a b : Bool) : ((a && b) = false) = (a = false ∨ b = false) := by
-  cases a <;> cases b <;> decide
+@[simp] theorem and_eq_false : ∀ (x y : Bool) : ((x && y) = false) = (x = false ∨ y = false) := by decide
 
 @[deprecated and_eq_false]
 theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ y = false := by decide
