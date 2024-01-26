@@ -190,7 +190,7 @@ theorem add_right_neg (x : BitVec w) : x + -x = 0 := by
   apply BitVec.eq_of_toNat_eq
   simp [← Nat.add_sub_assoc (Nat.le_of_lt x.isLt), Nat.add_sub_self_left]
 
-theorem zero_sub {x : BitVec w} : 0#w - x = -x := rfl
+theorem zero_sub (x : BitVec w) : 0#w - x = -x := rfl
 
 /-! ### add -/
 
