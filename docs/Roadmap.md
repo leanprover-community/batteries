@@ -36,8 +36,7 @@ The scope of the standard library includes the following areas:
 Lean needs typeclasses for common properties such as associativity so
 that tactics that depend on common properties can be writen
 independently of the operations that satisfy those properties.  Mathlib
-provides many of the classes, but the classes may be more specialized
-than a standard library for non-mathematicians may want.  The standard
+provides many of the classes, but the classes tend to be specialized for mathematical purposes rather than programming and other development purposes.  The standard
 library will need to provide various type classes for algebraic
 properties.  As part of introducing the new classes, we will work with
 Mathlib maintainers to minimize disruption for Mathlib.
