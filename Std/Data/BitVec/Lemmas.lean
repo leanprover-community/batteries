@@ -56,7 +56,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
-@[simp] theorem toFin_toNat (x : BitVec w) : (toFin x).val = x.toNat := rfl
+@[simp] theorem val_toFin_eq_toNat (x : BitVec w) : (toFin x).val = x.toNat := rfl
 
 theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
