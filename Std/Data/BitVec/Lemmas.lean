@@ -160,7 +160,7 @@ theorem truncate_succ (x : BitVec w) :
 /-! ### cast -/
 
 @[simp]
-theorem add_cast {x y : BitVec w} :  (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+theorem toNat_add (x y : BitVec w) :  (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
 @[simp]
 theorem sub_cast {x y : BitVec w} : (x - y).toNat = (x.toNat + (2^w - y.toNat)) % 2^w := rfl
 
