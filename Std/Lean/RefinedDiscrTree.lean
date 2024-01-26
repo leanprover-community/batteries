@@ -261,6 +261,7 @@ instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 structure _root_.Std.RefinedDiscrTree (α : Type) where
   /-- The underlying `PersistentHashMap` of a `RefinedDiscrTree`. -/
   root : PersistentHashMap Key (Trie α) := {}
+instance : Inhabited (RefinedDiscrTree α) := ⟨{}⟩
 
 private partial def format [ToFormat α] (d : RefinedDiscrTree α) : Format :=
   let (_, r) := d.root.foldl
