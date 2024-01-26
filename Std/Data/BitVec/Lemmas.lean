@@ -173,7 +173,7 @@ theorem xor_cast {x y: BitVec w} : (x ^^^ y).toNat = x.toNat ^^^ y.toNat:= rfl
 
 /-! ### ring properties -/
 
-theorem eq_sub_of_add_eq {a b c : BitVec w} (h : a + b = c) : a = c - b := by
+theorem eq_sub_of_add_eq (a b c : BitVec w) (h : a + b = c) : a = c - b := by
   rw [← h]
   apply BitVec.eq_of_toNat_eq
   simp only [sub_cast, add_cast, Nat.mod_add_mod]
