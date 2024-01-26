@@ -181,7 +181,7 @@ theorem bit_not_testBit (x : BitVec w) (i : Fin w) :
   apply iunfoldr_getLsb (fun _ => ()) i (by simp)
 
 
-theorem bit_not_eq_not' (x : BitVec w) : bit_not x + x  = -1:= by
+theorem bit_not_add_self (x : BitVec w) : bit_not x + x  = -1 := by
   simp only [bit_not, add_as_adc]
   apply iunfoldr_replace_snd (fun _ => false) (-1) false rfl
   intro i; simp only [Prod.mk.injEq, _root_.true_and, getLsb, BitVec.not, adcb, testBit_toNat]
