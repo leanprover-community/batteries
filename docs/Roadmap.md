@@ -77,7 +77,7 @@ scalar arrays), and other types.  This builtin support improves
 efficiency over the generic object representation and can facilitate
 better interoperability between Lean and C code.
 
-The standard library and Lean should additional types to improve the
+The standard library and Lean should provide additional types to improve the
 interoperability of Lean with other languages.  In particular, Lean
 should support fixed precision *signed* integers including `Int8`,
 `Int16`, `Int32` and `Int64`.  We also aim to provide aliases from C
