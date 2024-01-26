@@ -79,7 +79,7 @@ better interoperability between Lean and C code.
 
 The standard library and Lean should provide additional types to improve the
 interoperability of Lean with other languages.  In particular, Lean
-should support fixed precision *signed* integers including `Int8`,
+should support fixed-width *signed* integers including `Int8`,
 `Int16`, `Int32` and `Int64`.  We also aim to provide aliases from C
 primitive types such as `int`, `long`, `ptrdiff_t` etc to facilitate
 Lean and C integration.
