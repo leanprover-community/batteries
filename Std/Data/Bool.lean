@@ -105,8 +105,7 @@ theorem or_and_distrib_right : ∀ (x y z : Bool), ((x && y) || z) = ((x || z) &
 /-- De Morgan's law for boolean or -/
 theorem not_or : ∀ (x y : Bool), (!(x || y)) = (!x && !y) := by decide
 
-@[simp] theorem or_eq_false (a b : Bool) : ((a || b) = false) = (a = false ∧ b = false) := by
-  cases a <;> cases b <;> decide
+@[simp] theorem or_eq_false : ∀ (x y : Bool). ((x || y) = false) = (x = false ∧ y = false) := by decide
 
 @[deprecated or_eq_true]
 theorem or_eq_true_iff : ∀ (x y : Bool), (x || y) = true ↔ x = true ∨ y = true := by decide
