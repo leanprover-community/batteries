@@ -11,6 +11,13 @@ import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
 
+/-! # Basic lemmas about natural numbers
+
+The primary purpose of the lemmas in this file is to assist with reasoning
+about sizes of objects, array indices and such. For a more thorough development
+of the theory of natural numbers, we recommend using Mathlib.
+-/
+
 namespace Nat
 
 /-! ### rec/cases -/
@@ -563,7 +570,7 @@ theorem sub_lt_succ (a b) : a - b < succ a := lt_succ_of_le (sub_le a b)
 theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   rw [Nat.sub_right_comm]; exact Nat.sub_one_lt_of_le (Nat.sub_pos_of_lt h) (Nat.sub_le ..)
 
-/-! ## min/max -/
+/-! ### min/max -/
 
 theorem succ_min_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
   cases Nat.le_total x y with
@@ -737,7 +744,7 @@ protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min
   repeat rw [Nat.mul_comm a]
   exact Nat.mul_min_mul_right ..
 
-/-! ## mul -/
+/-! ### mul -/
 
 @[deprecated Nat.mul_le_mul_left]
 protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
@@ -838,7 +845,7 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
     Nat.sub_add_eq, Nat.add_sub_cancel]
 
-/-! ## div/mod -/
+/-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
 
