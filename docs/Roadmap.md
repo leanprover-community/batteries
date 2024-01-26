@@ -92,7 +92,7 @@ sequences.  These need to be both performant and come with lemmas so
 they can be easily reasoned about in specifications.  Lean's runtime
 supports destructive updates when data structures are not shared, and
 the standard library needs to provide data structures suitable for both
-good shared and destructive use-cases.  Furthermore, Lean provides
+good shared and destructive use cases.  Furthermore, Lean provides
 concurrency primitives, and the standard library needs to design data
 structures for concurrent accesses and updates.
 
