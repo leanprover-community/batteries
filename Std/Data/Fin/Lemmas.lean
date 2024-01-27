@@ -728,6 +728,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
+/-! ### add -/
+
+@[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+@[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+/-! ### sub -/
+
+@[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+
+@[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+
 /-! ### mul -/
 
 theorem val_mul {n : Nat} : ∀ a b : Fin n, (a * b).val = a.val * b.val % n

@@ -6,32 +6,6 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.Omega
-import Std.Tactic.PrintPrefix
-
-namespace Fin
-
-@[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
-    Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
-  apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
-
-@[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
-    x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
-  apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
-
-@[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
-    Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
-  apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
-
-@[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
-    x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
-  apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
-
-end Fin
-
 
 namespace Std.BitVec
 
