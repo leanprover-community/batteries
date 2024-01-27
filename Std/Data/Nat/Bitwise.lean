@@ -365,7 +365,7 @@ theorem bitwise_lt_two_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x
 
 /-! ### and -/
 
-theorem testBit_and (x y i : Nat) : (x &&& y).testBit i = (x.testBit i && y.testBit i) := by
+@[simp] theorem testBit_and (x y i : Nat) : (x &&& y).testBit i = (x.testBit i && y.testBit i) := by
   simp [HAnd.hAnd, AndOp.and, land, testBit_bitwise ]
 
 theorem and_lt_two_pow (x : Nat) {y n : Nat} (right : y < 2^n) : (x &&& y) < 2^n := by
@@ -407,7 +407,7 @@ theorem or_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ||| y
 
 /-! ### xor -/
 
-theorem testBit_xor (x y i : Nat) : (x ^^^ y).testBit i = Bool.xor (x.testBit i) (y.testBit i) := by
+@[simp] theorem testBit_xor (x y i : Nat) : (x ^^^ y).testBit i = Bool.xor (x.testBit i) (y.testBit i) := by
   simp [HXor.hXor, Xor.xor, xor, testBit_bitwise ]
 
 theorem xor_lt_two_pow {x y n : Nat} (left : x < 2^n) (right : y < 2^n) : x ^^^ y < 2^n :=
