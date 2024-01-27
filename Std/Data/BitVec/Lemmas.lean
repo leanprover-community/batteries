@@ -6,6 +6,32 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.Omega
+import Std.Tactic.PrintPrefix
+
+namespace Fin
+
+@[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+@[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+@[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+
+@[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+
+end Fin
+
 
 namespace Std.BitVec
 
@@ -19,6 +45,8 @@ theorem zero_is_unique (x : BitVec 0) : x = 0#0 := by
   have q : i = 0 := by omega
   simp [q]
   rfl
+
+@[simp] theorem val_toFin (x : BitVec w) : x.toFin.val = x.toNat := rfl
 
 theorem toNat_eq (x y : BitVec n) : x = y ↔ x.toNat = y.toNat :=
   Iff.intro (congrArg BitVec.toNat) eq_of_toNat_eq
@@ -74,12 +102,12 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
-@[simp] theorem getLsb_ofNat (n : Nat) (x : Nat) (i : Nat) :
-  getLsb (BitVec.ofNat n x) i = (i < n && x.testBit i) := by
-  simp [getLsb, BitVec.ofNat, Fin.val_ofNat']
-
-@[simp] theorem toNat_ofNat (x w : Nat) : (BitVec.ofNat w x).toNat = x % 2^w := by
+@[simp] theorem toNat_ofNat (x w : Nat) : (x#w).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
+
+@[simp] theorem getLsb_ofNat (n : Nat) (x : Nat) (i : Nat) :
+  getLsb (x#n) i = (i < n && x.testBit i) := by
+  simp [getLsb, BitVec.ofNat, Fin.val_ofNat']
 
 @[deprecated toNat_ofNat] theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
 
@@ -89,7 +117,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) : x < 2 ^ n :=
   Nat.lt_of_lt_of_le lt (Nat.pow_le_pow_of_le_right (by trivial : 0 < 2) le)
 
-@[simp] theorem ofNat_toNat (m : Nat) (x : BitVec n) : (BitVec.ofNat m x.toNat) = truncate m x := by
+@[simp] theorem ofNat_toNat (m : Nat) (x : BitVec n) : x.toNat#m = truncate m x := by
   let ⟨x, lt_n⟩ := x
   unfold truncate
   unfold zeroExtend
@@ -159,7 +187,7 @@ protected theorem extractLsb_ofFin {n} (x : Fin (2^n)) (hi lo : Nat) :
 
 @[simp]
 protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
-  extractLsb hi lo (BitVec.ofNat n x) = .ofNat (hi - lo + 1) ((x % 2^n) >>> lo) := by
+  extractLsb hi lo x#n = .ofNat (hi - lo + 1) ((x % 2^n) >>> lo) := by
   apply eq_of_getLsb_eq
   intro ⟨i, _lt⟩
   simp [BitVec.ofNat]
@@ -277,45 +305,42 @@ theorem truncate_succ (x : BitVec w) :
 
 /-! ### add -/
 
+theorem add_def {n} (x y : BitVec n) : x + y = .ofNat n (x.toNat + y.toNat) := rfl
+
 /--
 Definition of bitvector addition as a nat.
 -/
-theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := by rfl
-
-theorem add_toNat {n} (x y : BitVec n) : (x + y).toNat = (x.toNat + y.toNat) % 2^n := rfl
-
-@[simp] theorem ofFin_add (x : Fin (2^n)) (y : BitVec n) : .ofFin x + y = .ofNat n (x.val + y.toNat) := by rfl
-@[simp] theorem add_ofFin (x : BitVec n) (y : Fin (2^n)) : x + .ofFin y = .ofNat n (x.toNat + y.val) := by rfl
-theorem ofNat_add {n} (x : Nat) (y : BitVec n) : .ofNat n x + y = .ofNat n (x + y.toNat) := by
-  apply eq_of_toNat_eq ; simp [BitVec.ofNat]
-theorem add_ofNat {n} (x : BitVec n) (y : Nat) : x + .ofNat n y = .ofNat n (x.toNat + y) := by
+@[simp] theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+@[simp] theorem ofFin_add (x : Fin (2^n)) (y : BitVec n) :
+  .ofFin x + y = .ofFin (x + y.toFin) := rfl
+@[simp] theorem add_ofFin (x : BitVec n) (y : Fin (2^n)) :
+  x + .ofFin y = .ofFin (x.toFin + y) := rfl
+@[simp] theorem ofNat_add_ofNat {n} (x y : Nat) : x#n + y#n = (x + y)#n := by
   apply eq_of_toNat_eq ; simp [BitVec.ofNat]
 
 protected theorem add_assoc (x y z : BitVec n) : x + y + z = x + (y + z) := by
-  apply eq_of_toNat_eq
-  simp [add_toNat, Nat.add_assoc]
+  apply eq_of_toNat_eq ; simp [Nat.add_assoc]
 
 protected theorem add_comm (x y : BitVec n) : x + y = y + x := by
-  apply eq_of_toNat_eq
-  simp [add_toNat, Nat.add_comm]
+  simp [add_def, Nat.add_comm]
 
-@[simp] protected theorem add_zero (x : BitVec n) : x + (0#n) = x := by
-  apply eq_of_toNat_eq
-  simp [toNat_add, isLt, Nat.mod_eq_of_lt]
+@[simp] protected theorem add_zero (x : BitVec n) : x + 0#n = x := by simp [add_def]
 
-@[simp] protected theorem zero_add (x : BitVec n) : (0#n) + x = x := by
-  simp [BitVec.add_comm, BitVec.add_zero]
+@[simp] protected theorem zero_add (x : BitVec n) : 0#n + x = x := by simp [add_def]
+
 
 /-! ### sub/neg -/
 
-@[simp] theorem sub_toNat {n} (x y : BitVec n) : (x - y).toNat = ((x.toNat + (2^n - y.toNat)) % 2^n) := rfl
+theorem sub_def {n} (x y : BitVec n) : x - y = .ofNat n (x.toNat + (2^n - y.toNat)) := by rfl
 
-@[simp] theorem ofFin_sub (x : Fin (2^n)) (y : BitVec n) : .ofFin x - y = .ofNat n (x.val + (2^n - y.toNat)) := rfl
-@[simp] theorem sub_ofFin (x : BitVec n) (y : Fin (2^n)) : x - .ofFin y = .ofNat n (x.toNat + (2^n - y.val)) := by rfl
+@[simp] theorem sub_toNat {n} (x y : BitVec n) :
+  (x - y).toNat = ((x.toNat + (2^n - y.toNat)) % 2^n) := rfl
 
-theorem ofNat_sub {n} (x : Nat) (y : BitVec n) : .ofNat n x - y = .ofNat n (x + (2^n - y.toNat)) := by
-  apply eq_of_toNat_eq ; simp [BitVec.ofNat]
-theorem sub_ofNat {n} (x : BitVec n) (y : Nat) : x - .ofNat n y = .ofNat n (x.toNat + (2^n - y % 2^n)) := by
+@[simp] theorem ofFin_sub (x : Fin (2^n)) (y : BitVec n) : .ofFin x - y = .ofFin (x - y.toFin) :=
+  rfl
+@[simp] theorem sub_ofFin (x : BitVec n) (y : Fin (2^n)) : x - .ofFin y = .ofFin (x.toFin - y) :=
+  rfl
+@[simp] theorem ofNat_sub_ofNat {n} (x y : Nat) : x#n - y#n = .ofNat n (x + (2^n - y % 2^n)) := by
   apply eq_of_toNat_eq ; simp [BitVec.ofNat]
 
 @[simp] protected theorem sub_zero (x : BitVec n) : x - (0#n) = x := by apply eq_of_toNat_eq ; simp
@@ -332,31 +357,31 @@ theorem sub_ofNat {n} (x : BitVec n) (y : Nat) : x - .ofNat n y = .ofNat n (x.to
 
 theorem sub_toAdd {n} (x y : BitVec n) : x - y = x + - y := by
   apply eq_of_toNat_eq
-  simp [add_toNat]
+  simp
 
 @[simp] theorem neg_zero (n:Nat) : -0#n = 0#n := by apply eq_of_toNat_eq ; simp
 
 /-! ### le and lt -/
 
-@[simp] theorem le_mk (x : BitVec n) (y : Fin (2^n)) :
-  x ≤ BitVec.ofFin y ↔ x.toNat ≤ y.val := Iff.rfl
-@[simp] theorem mk_le (x : Fin (2^n)) (y : BitVec n) :
-  BitVec.ofFin x ≤ y ↔ x.val ≤ y.toNat := Iff.rfl
+theorem le_def (x y : BitVec n) :
+  x ≤ y ↔ x.toNat ≤ y.toNat := Iff.rfl
 
-@[simp] theorem le_ofNat (x : BitVec n) (y : Nat) :
-  x ≤ BitVec.ofNat n y ↔ x.toNat ≤ y % 2^n := Iff.rfl
-@[simp] theorem ofNat_le (x : Nat) (y : BitVec n) :
-  BitVec.ofNat n x ≤ y ↔ x % 2^n ≤ y.toNat := Iff.rfl
+@[simp] theorem le_ofFin (x : BitVec n) (y : Fin (2^n)) :
+  x ≤ BitVec.ofFin y ↔ x.toFin ≤ y := Iff.rfl
+@[simp] theorem ofFin_le (x : Fin (2^n)) (y : BitVec n) :
+  BitVec.ofFin x ≤ y ↔ x ≤ y.toFin := Iff.rfl
+@[simp] theorem ofNat_le_ofNat {n} (x y : Nat) : (x#n) ≤ (y#n) ↔ x % 2^n ≤ y % 2^n := by
+  simp [le_def]
 
-@[simp] theorem lt_mk (x : BitVec n) (y : Fin (2^n)) :
-  x < BitVec.ofFin y ↔ x.toNat < y.val := Iff.rfl
-@[simp] theorem mk_lt (x : Fin (2^n)) (y : BitVec n) :
-  BitVec.ofFin x < y ↔ x.val < y.toNat := Iff.rfl
+theorem lt_def (x y : BitVec n) :
+  x < y ↔ x.toNat < y.toNat := Iff.rfl
 
-@[simp] theorem lt_ofNat (x : BitVec n) (y : Nat) :
-  x < BitVec.ofNat n y ↔ x.toNat < y % 2^n := Iff.rfl
-@[simp] theorem ofNat_lt (x : Nat) (y : BitVec n) :
-  BitVec.ofNat n x < y ↔ x % 2^n < y.toNat := Iff.rfl
+@[simp] theorem lt_ofFin (x : BitVec n) (y : Fin (2^n)) :
+  x < BitVec.ofFin y ↔ x.toFin < y := Iff.rfl
+@[simp] theorem ofFin_lt (x : Fin (2^n)) (y : BitVec n) :
+  BitVec.ofFin x < y ↔ x < y.toFin := Iff.rfl
+@[simp] theorem ofNat_lt_ofNat {n} (x y : Nat) : (x#n) < (y#n) ↔ x % 2^n < y % 2^n := by
+  simp [lt_def]
 
 protected theorem lt_of_le_ne (x y : BitVec n) (h1 : x <= y) (h2 : ¬ x = y) : x < y := by
   revert h1 h2
