@@ -4,37 +4,57 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dany Fabian
 -/
 
-set_option linter.missingDocs false
-
 namespace Std.Data.AC
 
+/-- AC expression type -/
 protected inductive Expr
+  /-- AC variable -/
   | var (x : Nat)
+  /-- AC operation -/
   | op (lhs rhs : AC.Expr)
   deriving Inhabited, Repr, BEq
 
+/-- AC variable data -/
 structure Variable {α : Sort u} (op : α → α → α) : Type u where
+  /-- Value of variable -/
   value : α
+  /-- Optional `LawfulIdentity` instance -/
   neutral : Option $ PLift (LawfulIdentity op value)
 
+/-- AC context data -/
 structure Context (α : Sort u) where
+  /-- Operation -/
   op : α → α → α
+  /-- `Associative` instance -/
   assoc : Associative op
+  /-- Optional `Commutative` instance -/
   comm : Option $ PLift $ Commutative op
+  /-- Optional `IdempotentOp` instance -/
   idem : Option $ PLift $ IdempotentOp op
+  /-- List of variables in context -/
   vars : List (Variable op)
+  /-- Arbitrary value -/
   arbitrary : α
 
+/-- Context info about some associative operation -/
 class ContextInformation (α : Sort u) where
+  /-- Determine whether a variable is a neutral element -/
   isNeutral : α → Nat → Bool
+  /-- Determine whether the operation is commutative -/
   isComm : α → Bool
+  /-- Determine whether the operation is idempotent -/
   isIdem : α → Bool
 
+/-- Evaluation info where `α` is some kind of context information and `β` is the target sort -/
 class EvalInformation (α : Sort u) (β : Sort v) where
+  /-- Evaluate the `arbitrary` element -/
   arbitrary : α → β
+  /-- Evaluate the operation -/
   evalOp : α → β → β → β
+  /-- Evaluate a variable -/
   evalVar : α → Nat → β
 
+/-- Get variable from index -/
 def Context.var (ctx : Context α) (idx : Nat) : Variable ctx.op :=
   ctx.vars.getD idx ⟨ctx.arbitrary, none⟩
 
@@ -48,31 +68,44 @@ instance : EvalInformation (Context α) α where
   evalOp ctx := ctx.op
   evalVar ctx idx := ctx.var idx |>.value
 
+/-- Evaluate an `AC.Expr` into type `β` -/
 def eval (β : Sort u) [EvalInformation α β] (ctx : α) : (ex : AC.Expr) → β
   | .var idx => EvalInformation.evalVar ctx idx
   | .op l r => EvalInformation.evalOp ctx (eval β ctx l) (eval β ctx r)
 
+/-- Evaluate an `AC.Expr` as a list -/
 def Expr.toList : AC.Expr → List Nat
   | .var idx => [idx]
   | .op l r => l.toList.append r.toList
 
+/-- Fold a list of variables into type `β` -/
 def evalList (β : Sort u) [EvalInformation α β] (ctx : α) : List Nat → β
   | [] => EvalInformation.arbitrary ctx
   | [x] => EvalInformation.evalVar ctx x
   | x :: xs => EvalInformation.evalOp ctx (EvalInformation.evalVar ctx x) (evalList β ctx xs)
 
+/-- Insert into a sorted list -/
 def insert (x : Nat) : List Nat → List Nat
   | [] => [x]
   | a :: as => if x < a then x :: a :: as else a :: insert x as
 
+/-- Sort a list (Commutativity) -/
 def sort (xs : List Nat) : List Nat :=
-  let rec loop : List Nat → List Nat → List Nat
+  loop [] xs
+where
+  /-- Inner loop for `AC.sort` -/
+  loop : List Nat → List Nat → List Nat
     | acc, [] => acc
     | acc, x :: xs => loop (insert x acc) xs
-  loop [] xs
 
+/-- Merge adjacent identical elements in a list (Idempotent) -/
 def mergeIdem (xs : List Nat) : List Nat :=
-  let rec loop : Nat → List Nat → List Nat
+  match xs with
+  | [] => []
+  | x :: xs => loop x xs
+where
+  /-- Inner loop for `AC.mergeIdem` -/
+  loop : Nat → List Nat → List Nat
     | curr, next :: rest =>
       if curr = next then
         loop curr rest
@@ -80,36 +113,32 @@ def mergeIdem (xs : List Nat) : List Nat :=
         curr :: loop next rest
     | curr, [] => [curr]
 
-  match xs with
-  | [] => []
-  | x :: xs => loop x xs
-
+/-- Remove neutral elements from a list (Identity) -/
 def removeNeutrals [info : ContextInformation α] (ctx : α) : List Nat → List Nat
   | x :: xs =>
     match loop (x :: xs) with
     | [] => [x]
     | ys => ys
   | [] => []
-  where loop : List Nat → List Nat
+where
+  /-- Inner loop for `AC.removeNeutrals` -/
+  loop : List Nat → List Nat
     | x :: xs =>
       match info.isNeutral ctx x with
       | true => loop xs
       | false => x :: loop xs
     | [] => []
 
+/-- Normalize an `AC.Expr` as a list -/
 def norm [info : ContextInformation α] (ctx : α) (e : AC.Expr) : List Nat :=
   let xs := e.toList
   let xs := removeNeutrals ctx xs
   let xs := if info.isComm ctx then sort xs else xs
   if info.isIdem ctx then mergeIdem xs else xs
 
-theorem List.two_step_induction
-  {motive : List Nat → Prop}
-  (l : List Nat)
-  (empty : motive [])
-  (single : ∀ a, motive [a])
-  (step : ∀ a b l, motive (b :: l) → motive (a :: b :: l))
-  : motive l := by
+theorem List.two_step_induction {motive : List Nat → Prop} (l : List Nat) (empty : motive [])
+    (single : ∀ a, motive [a]) (step : ∀ a b l, motive (b :: l) → motive (a :: b :: l)) :
+    motive l := by
   induction l with
   | nil => assumption
   | cons a l => cases l; apply single; apply step; assumption
@@ -175,12 +204,8 @@ theorem Context.sort_loop_nonEmpty (xs : List Nat) (h : xs ≠ []) : sort.loop x
   | nil => simp [sort.loop]; assumption
   | cons y _  ih => simp [sort.loop]; apply ih; apply insert_nonEmpty
 
-theorem Context.evalList_insert
-  (ctx : Context α)
-  (h : Commutative ctx.op)
-  (x : Nat)
-  (xs : List Nat)
-  : evalList α ctx (insert x xs) = evalList α ctx (x::xs) := by
+theorem Context.evalList_insert (ctx : Context α) (h : Commutative ctx.op) (x xs) :
+    evalList α ctx (insert x xs) = evalList α ctx (x::xs) := by
   induction xs using List.two_step_induction with
   | empty => rfl
   | single =>
@@ -196,13 +221,9 @@ theorem Context.evalList_insert
       · simp [evalList, EvalInformation.evalOp]; rw [h.1, ctx.assoc.1, h.1 (evalList _ _ _)]
       · simp_all [evalList, EvalInformation.evalOp]; rw [h.1, ctx.assoc.1, h.1 (evalList _ _ _)]
 
-theorem Context.evalList_sort_congr
-  (ctx : Context α)
-  (h : Commutative ctx.op)
-  (h₂ : evalList α ctx a = evalList α ctx b)
-  (h₃ : a ≠ [])
-  (h₄ : b ≠ [])
-  : evalList α ctx (sort.loop a c) = evalList α ctx (sort.loop b c) := by
+theorem Context.evalList_sort_congr (ctx : Context α) (h : Commutative ctx.op)
+    (h₂ : evalList α ctx a = evalList α ctx b) (h₃ : a ≠ []) (h₄ : b ≠ []) :
+    evalList α ctx (sort.loop a c) = evalList α ctx (sort.loop b c) := by
   induction c generalizing a b with
   | nil => simp [sort.loop, h₂]
   | cons c _  ih =>
@@ -215,11 +236,8 @@ theorem Context.evalList_sort_congr
       | cons b bs => simp [evalList, h₂]
     all_goals apply insert_nonEmpty
 
-theorem Context.evalList_sort_loop_swap
-  (ctx : Context α)
-  (h : Commutative ctx.op)
-  (xs ys : List Nat)
-  : evalList α ctx (sort.loop xs (y::ys)) = evalList α ctx (sort.loop (y::xs) ys) := by
+theorem Context.evalList_sort_loop_swap (ctx : Context α) (h : Commutative ctx.op) (xs ys) :
+    evalList α ctx (sort.loop xs (y::ys)) = evalList α ctx (sort.loop (y::xs) ys) := by
   induction ys generalizing y xs with
   | nil => simp [sort.loop, evalList_insert ctx h]
   | cons z zs _  =>
@@ -230,12 +248,8 @@ theorem Context.evalList_sort_loop_swap
     . simp [evalList, ←h₂, evalList_insert ctx h]
     all_goals simp [insert_nonEmpty]
 
-theorem Context.evalList_sort_cons
-  (ctx : Context α)
-  (h : Commutative ctx.op)
-  (x : Nat)
-  (xs : List Nat)
-  : evalList α ctx (sort (x :: xs)) = evalList α ctx (x :: sort xs) := by
+theorem Context.evalList_sort_cons (ctx : Context α) (h : Commutative ctx.op) (x xs) :
+    evalList α ctx (sort (x :: xs)) = evalList α ctx (x :: sort xs) := by
   simp [sort, sort.loop]
   generalize [] = ys
   induction xs generalizing x ys with

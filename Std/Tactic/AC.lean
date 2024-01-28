@@ -8,13 +8,11 @@ import Std.Lean.Tactic
 import Lean.Meta.Tactic.Refl
 import Lean.Meta.Tactic.Simp.Main
 
-set_option linter.missingDocs false
-
 namespace Std.Tactic.AC
 open Lean Meta Elab Tactic
 open Data AC
 
-structure PreContext where
+private structure PreContext where
   id : Nat
   op : Expr
   assoc : Expr
@@ -32,7 +30,7 @@ instance : EvalInformation PreContext AC.Expr where
   evalOp _ := Data.AC.Expr.op
   evalVar _ x := Data.AC.Expr.var x
 
-def getInstance (cls : Name) (exprs : Array Expr) : MetaM (Option Expr) := do
+private def getInstance (cls : Name) (exprs : Array Expr) : MetaM (Option Expr) := do
   try
     let app ← mkAppM cls exprs
     trace[Tactic.AC] "trying: {indentExpr app}"
@@ -42,7 +40,7 @@ def getInstance (cls : Name) (exprs : Array Expr) : MetaM (Option Expr) := do
   catch
   | _ => return none
 
-def preContext (expr : Expr) : MetaM (Option PreContext) := do
+private def preContext (expr : Expr) : MetaM (Option PreContext) := do
   if let some assoc := ←getInstance ``Associative #[expr] then
     return some
       { assoc,
@@ -53,14 +51,14 @@ def preContext (expr : Expr) : MetaM (Option PreContext) := do
 
   return none
 
-inductive PreExpr
-| op (lhs rhs : PreExpr)
-| var (e : Expr)
+private inductive PreExpr
+  | op (lhs rhs : PreExpr)
+  | var (e : Expr)
 
-@[match_pattern] def bin (op l r : Expr) :=
+@[match_pattern] private def bin (op l r : Expr) :=
   Expr.app (Expr.app op l) r
 
-def toACExpr (op l r : Expr) : MetaM (Array Expr × AC.Expr) := do
+private def toACExpr (op l r : Expr) : MetaM (Array Expr × AC.Expr) := do
   let (preExpr, vars) ←
     toPreExpr (mkApp2 op l r)
     |>.run HashSet.empty
@@ -83,7 +81,8 @@ def toACExpr (op l r : Expr) : MetaM (Array Expr × AC.Expr) := do
     | PreExpr.op l r => Data.AC.Expr.op (go varMap l) (go varMap r)
     | PreExpr.var x => Data.AC.Expr.var (varMap x)
 
-def buildNormProof (preContext : PreContext) (l r : Expr) : MetaM (Lean.Expr × Lean.Expr) := do
+private def buildNormProof (preContext : PreContext) (l r : Expr) :
+    MetaM (Lean.Expr × Lean.Expr) := do
   let (vars, ACExpr) ← toACExpr preContext.op l r
 
   let α ← inferType vars[0]!
@@ -141,7 +140,7 @@ where
     | .op l r => mkApp2 preContext.op (convertTarget vars l) (convertTarget vars r)
     | .var x => vars[x]!
 
-def rewriteUnnormalized (mvarId : MVarId) : MetaM Unit := do
+private def rewriteUnnormalized (mvarId : MVarId) : MetaM Unit := do
   let simpCtx :=
     {
       simpTheorems  := {}
