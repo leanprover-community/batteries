@@ -15,6 +15,7 @@ import Std.Control.ForInStep.Basic
 import Std.Control.ForInStep.Lemmas
 import Std.Control.Lemmas
 import Std.Control.Nondet.Basic
+import Std.Data.AC
 import Std.Data.Array
 import Std.Data.AssocList
 import Std.Data.BinomialHeap
@@ -85,6 +86,7 @@ import Std.Linter
 import Std.Linter.UnnecessarySeqFocus
 import Std.Linter.UnreachableTactic
 import Std.Logic
+import Std.Tactic.AC
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
