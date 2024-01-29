@@ -168,18 +168,10 @@ def bit_not (x : BitVec w) : BitVec w :=
 /-- Bitwise 2's complement implemented via `iunfoldr`. -/
 def bit_neg (x : BitVec w) : BitVec w := (adc (bit_not x) (BitVec.ofNat w 1) false).snd
 
--- @[simp]
--- theorem not_cast {x : BitVec w} : (~~~x).toNat = (2^w - 1 -x.toNat)%(2^w) := by
---   simp only [Complement.complement, BitVec.not]
---   simp only [xor_cast, toNat_ofFin]
---   rw [Nat.shiftLeft_eq, Nat.one_mul]
---   sorry
-
 theorem bit_not_testBit (x : BitVec w) (i : Fin w) :
   getLsb (bit_not x) i.val = !(getLsb x i.val) := by
   simp only [bit_not]
   apply iunfoldr_getLsb (fun _ => ()) i (by simp)
-
 
 theorem bit_not_add_self (x : BitVec w) : bit_not x + x  = -1 := by
   simp only [bit_not, add_as_adc]
@@ -187,7 +179,7 @@ theorem bit_not_add_self (x : BitVec w) : bit_not x + x  = -1 := by
   intro i; simp only [Prod.mk.injEq, _root_.true_and, getLsb, BitVec.not, adcb, testBit_toNat]
   rw [iunfoldr_replace_snd (fun _ => ()) (bit_not x) () rfl (by simp [bit_not_testBit])]
   simp [bit_not_testBit]
-  simp [neg_cast, toNat_ofNat, ← testBit_toNat]
+  simp [toNat_neg, toNat_ofNat, ← testBit_toNat]
   cases w
   case zero => have := Fin.size_pos i; simp at this
   case succ w =>
@@ -200,16 +192,15 @@ theorem bit_not_eq_not (x : BitVec w) : bit_not x = ~~~ x := by
   apply iunfoldr_replace_snd (fun _ => ()) (~~~x) _ rfl
   intro i; simp only [Prod.mk.injEq, _root_.true_and]
   simp only [Complement.complement, BitVec.not]
-  simp only [← testBit_toNat, xor_cast, toNat_ofFin, testBit_xor]
+  simp only [← testBit_toNat, toNat_xor, toNat_ofFin, testBit_xor]
   rw [Nat.shiftLeft_eq, Nat.one_mul, Nat.pred_eq_sub_one (Nat.pow_two_pos w)]
   simp [testBit_two_pow_sub_one]
-
 
 theorem bit_neg_eq_neg (x : BitVec w) : bit_neg x = -x := by
   simp only [bit_neg, bit_not, ← add_as_adc]
   rw [iunfoldr_replace_snd
         ((fun _ => ()))
         (bit_not x) _ rfl]
-  · rw [eq_sub_of_add_eq (bit_not_eq_not' x), add_comm, ← add_sub_assoc]
+  · rw [eq_sub_of_add_eq (bit_not_add_self x), add_comm, ← add_sub_assoc]
     simp [add_right_neg, zero_sub]
   · simp [bit_not_testBit x _]

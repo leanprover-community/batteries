@@ -162,43 +162,38 @@ theorem truncate_succ (x : BitVec w) :
 @[simp]
 theorem toNat_add (x y : BitVec w) :  (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
 @[simp]
-theorem sub_cast {x y : BitVec w} : (x - y).toNat = (x.toNat + (2^w - y.toNat)) % 2^w := rfl
+theorem toNat_sub {x y : BitVec w} : (x - y).toNat = (x.toNat + (2^w - y.toNat)) % 2^w := rfl
 
 @[simp]
-theorem neg_cast {x : BitVec w} : (-x).toNat = (2^w- x.toNat) % 2^w := by
+theorem toNat_neg {x : BitVec w} : (-x).toNat = (2^w- x.toNat) % 2^w := by
   rw [← Nat.zero_add (2^w - x.toNat)]; rfl
 
 @[simp]
-theorem xor_cast {x y: BitVec w} : (x ^^^ y).toNat = x.toNat ^^^ y.toNat:= rfl
+theorem toNat_xor {x y: BitVec w} : (x ^^^ y).toNat = x.toNat ^^^ y.toNat:= rfl
 
-/-! ### ring properties -/
+/-! ### add -/
 
-theorem eq_sub_of_add_eq (a b c : BitVec w) (h : a + b = c) : a = c - b := by
-  rw [← h]
-  apply BitVec.eq_of_toNat_eq
-  simp only [sub_cast, add_cast, Nat.mod_add_mod]
-  rw [Nat.add_assoc, Nat.add_mod, ← Nat.add_sub_assoc (Nat.le_of_lt b.isLt)]
-  simp [Nat.add_sub_self_left, Nat.mod_eq_of_lt a.isLt]
-
-theorem add_comm (a b : BitVec w) : a + b = b + a := by
+theorem add_comm (x y : BitVec w) : x + y = y + x := by
   apply BitVec.eq_of_toNat_eq; simp [Nat.add_comm]
 
-theorem add_sub_assoc (x y z : BitVec w) : x + y - z = x + (y - z) := by
-  apply BitVec.eq_of_toNat_eq; simp [Nat.add_sub_assoc, Nat.add_assoc]
+@[simp] theorem add_zero (x : BitVec n) : x + (0#n) = x := by
+  apply eq_of_toNat_eq
+  simp [toNat_add, isLt, Nat.mod_eq_of_lt]
 
 theorem add_right_neg (x : BitVec w) : x + -x = 0 := by
   apply BitVec.eq_of_toNat_eq
   simp [← Nat.add_sub_assoc (Nat.le_of_lt x.isLt), Nat.add_sub_self_left]
 
+/-! ### sub -/
+
+theorem eq_sub_of_add_eq {x y z : BitVec w} (h : x + y = z) : x = z - y := by
+  rw [← h]
+  apply BitVec.eq_of_toNat_eq
+  simp only [toNat_sub, toNat_add, Nat.mod_add_mod]
+  rw [Nat.add_assoc, Nat.add_mod, ← Nat.add_sub_assoc (Nat.le_of_lt y.isLt)]
+  simp [Nat.add_sub_self_left, Nat.mod_eq_of_lt x.isLt]
+
+theorem add_sub_assoc (x y z : BitVec w) : x + y - z = x + (y - z) := by
+  apply BitVec.eq_of_toNat_eq; simp [Nat.add_sub_assoc, Nat.add_assoc]
+
 theorem zero_sub (x : BitVec w) : 0#w - x = -x := rfl
-
-/-! ### add -/
-
-/--
-Definition of bitvector addition as a nat.
--/
-theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := by rfl
-
-@[simp] theorem add_zero (x : BitVec n) : x + (0#n) = x := by
-  apply eq_of_toNat_eq
-  simp [toNat_add, isLt, Nat.mod_eq_of_lt]
