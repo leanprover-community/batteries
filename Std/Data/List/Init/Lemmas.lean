@@ -122,7 +122,6 @@ theorem append_left_inj {s₁ s₂ : List α} (t) : s₁ ++ t = s₂ ++ t ↔ s�
 
 theorem mem_map_of_mem (f : α → β) (h : a ∈ l) : f a ∈ map f l := mem_map.2 ⟨_, h, rfl⟩
 
-
 @[simp] theorem map_map (g : β → γ) (f : α → β) (l : List α) :
   map g (map f l) = map (g ∘ f) l := by induction l <;> simp_all
 
