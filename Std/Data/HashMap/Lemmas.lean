@@ -13,9 +13,9 @@ namespace Imp
 
 @[simp] theorem empty_buckets : (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
 
-end Imp
+@[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
 
-@[simp] theorem empty_imp [BEq α] [Hashable α] : (∅ : HashMap α β).1 = Imp.empty := rfl
+end Imp
 
 @[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
     (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?, Imp.mkIdx, USize.modn_lt]
