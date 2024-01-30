@@ -875,7 +875,7 @@ def add [Add β] (l₁ : OrderedAssocList cmp β) (l₂ : OrderedAssocList cmp �
     OrderedAssocList cmp β :=
   merge (fun _ => addOption) l₁ l₂
 where
-    /-- Add two values, treating missing values as `0`. -/
+  /-- Add two values, treating missing values as `0`. -/
   addOption : Option β → Option β → Option β
     | some x, some y => some (x + y)
     | some x, none => some x
