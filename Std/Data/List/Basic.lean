@@ -1678,7 +1678,7 @@ def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l
 
 /--
 `O(|l|)`. Inserts `a` in `l` right before the first element such that `p` is true, or at the end of
-the list if `p` always true on `l`.
+the list if `p` always false on `l`.
 -/
 def insertP (p : α → Bool) (a : α) (l : List α) : List α :=
   loop l []
