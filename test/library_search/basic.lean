@@ -222,3 +222,12 @@ theorem Bool_eq_iff2 {A B : Bool} : (A = B) = (A ↔ B) := by
 --   first
 --   | exact? says exact le_antisymm hxy hyx
 --   | exact? says exact ge_antisymm hyx hxy
+
+/--
+info: Try this: refine Int.mul_ne_zero ?a0 h
+---
+warning: declaration uses 'sorry'
+-/
+#guard_msgs in
+example {x : Int} (h : x ≠ 0) : 2 * x ≠ 0 := by
+  std_apply? using h
