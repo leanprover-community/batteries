@@ -713,11 +713,11 @@ theorem Perm.eraseP (f : α → Bool) {l₁ l₂ : List α}
 
 theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
   induction l with simp [insertP, insertP.loop]
-  | cons l₀ l ih =>
+  | cons _ _ ih =>
     split
+    · exact Perm.refl ..
     · rw [insertP_loop, reverseAux, reverseAux]
       exact Perm.trans (Perm.cons _ ih) (Perm.swap ..)
-    · exact Perm.refl ..
 
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
