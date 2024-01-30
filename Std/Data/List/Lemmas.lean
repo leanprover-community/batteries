@@ -2571,3 +2571,28 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+/-! ### insertP -/
+
+theorem insertP_loop (a : α) (l r : List α) :
+    insertP.loop p a l r = reverseAux r (insertP p a l) := by
+  induction l generalizing r with simp [insertP, insertP.loop]
+  | cons h l ih => rw [ih (h :: r), ih [h]]; split <;> rfl
+
+@[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
+
+@[simp] theorem insertP_cons_pos (p : α → Bool) (a l₀ l) (h : p l₀) :
+    insertP p a (l₀ :: l) = l₀ :: insertP p a l := by
+  simp only [insertP, insertP.loop]; rw [if_pos h, insertP_loop]; rfl
+
+@[simp] theorem insertP_cons_neg (p : α → Bool) (a l₀ l) (h : ¬ p l₀) :
+    insertP p a (l₀ :: l) = a :: l₀ :: l := by
+  simp only [insertP, insertP.loop]; rw [if_neg h]; rfl
+
+@[simp] theorem length_insertP (p : α → Bool) (a l) : (insertP p a l).length = l.length + 1 := by
+  induction l with simp [insertP, insertP.loop]
+  | cons l₀ l ih => split <;> simp [insertP_loop, ih]
+
+@[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
+  induction l with simp [insertP, insertP.loop]
+  | cons l₀ l ih => split <;> simp [insertP_loop, ih]

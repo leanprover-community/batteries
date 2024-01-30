@@ -710,3 +710,14 @@ theorem Perm.eraseP (f : α → Bool) {l₁ l₂ : List α}
   | trans p₁ _ IH₁ IH₂ =>
     refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff ?_).1 H))
     exact fun h h₁ h₂ => h h₂ h₁
+
+theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
+  induction l with simp [insertP, insertP.loop]
+  | cons l₀ l ih =>
+    split
+    · rw [insertP_loop, reverseAux, reverseAux]
+      exact Perm.trans (Perm.cons _ ih) (Perm.swap ..)
+    · exact Perm.refl ..
+
+theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
+  Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)

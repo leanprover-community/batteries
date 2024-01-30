@@ -1676,4 +1676,14 @@ See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 -/
 def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
-end List
+/--
+`O(|l|)`. Inserts `a` in `l` right before the first element such that `p` fails, or at the end of
+the list if `p` never fails on `l`.
+-/
+def insertP (p : α → Bool) (a : α) (l : List α) : List α :=
+  loop l []
+where
+  /-- Inner loop for `insertP`. Tail recursive. -/
+  loop : List α → List α → List α
+  | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
+  | l₀ :: l, r => if p l₀ then loop l (l₀ :: r) else reverseAux (a :: r) (l₀ :: l)
