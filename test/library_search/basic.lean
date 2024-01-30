@@ -231,3 +231,10 @@ warning: declaration uses 'sorry'
 #guard_msgs in
 example {x : Int} (h : x ≠ 0) : 2 * x ≠ 0 := by
   std_apply? using h
+
+-- Check that adding `with_reducible` prevents expensive kernel reductions.
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/.60exact.3F.60.20failure.3A.20.22maximum.20recursion.20depth.20has.20been.20reached.22/near/417649319
+/-- info: Try this: exact Nat.add_comm n m -/
+#guard_msgs in
+example (_h : List.range 10000 = List.range 10000) (n m : Nat) : n + m = m + n := by
+  with_reducible std_exact?
