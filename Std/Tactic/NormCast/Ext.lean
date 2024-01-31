@@ -105,7 +105,7 @@ open Lean.Meta.Simp in
 A dummy `push_cast` simpproc extension,
 so `simp` doesn't complain when a user calls `simp [push_cast]`.
 -/
-initialize pushCastSimproc : SimprocExtension ← registerSimprocAttr `push_cast "\
+initialize pushCastSimproc : SimprocExtension ← registerSimprocAttr `push_cast_proc "\
   A dummy `push_cast` simpproc extension, \
   so `simp` doesn't complain when a user calls `simp [push_cast]`." none
 
