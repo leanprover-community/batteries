@@ -27,7 +27,7 @@ def proveEqUsing (s : SimpTheorems) (a b : Expr) : MetaM (Option Simp.Result) :=
     let a' ← Simp.simp a
     let b' ← Simp.simp b
     unless ← isDefEq a'.expr b'.expr do return none
-    mkEqTrans a' (← mkEqSymm b b')
+    a'.mkEqTrans (← mkEqSymm b b')
   withReducible do
     (go (← Simp.mkDefaultMethods).toMethodsRef
       { simpTheorems := #[s], congrTheorems := ← Meta.getSimpCongrTheorems }).run' {}
@@ -136,9 +136,9 @@ It tries to rewrite an expression using the elim and move lemmas.
 On failure, it calls the splitting procedure heuristic.
 -/
 partial def upwardAndElim (up : SimpTheorems) (e : Expr) : SimpM Simp.Step := do
-  let r ← Simp.rewrite? e up.post up.erased prove (tag := "squash") (rflOnly := false)
+  let r ← withDischarger prove do Simp.rewrite? e up.post up.erased (tag := "squash") (rflOnly := false)
   let r := r.getD { expr := e }
-  let r ← mkEqTrans r <|← splittingProcedure r.expr
+  let r ← r.mkEqTrans (← splittingProcedure r.expr)
   if r.expr == e then return Simp.Step.done {expr := e}
   return Simp.Step.visit r
 
@@ -169,7 +169,7 @@ def derive (e : Expr) : MetaM Simp.Result := do
   }
   let congrTheorems ← Meta.getSimpCongrTheorems
 
-  let r := {expr := e}
+  let r : Simp.Result := { expr := e }
 
   let withTrace phase := withTraceNode `Tactic.norm_cast fun
     | .ok r => return m!"{r.expr} (after {phase})"
@@ -178,17 +178,17 @@ def derive (e : Expr) : MetaM Simp.Result := do
   -- step 1: pre-processing of numerals
   let r ← withTrace "pre-processing numerals" do
     let post e := return Simp.Step.done (← try numeralToCoe e catch _ => pure {expr := e})
-    Simp.mkEqTrans r (← Simp.main r.expr { config, congrTheorems } (methods := { post })).1
+    r.mkEqTrans (← Simp.main r.expr { config, congrTheorems } (methods := { post })).1
 
   -- step 2: casts are moved upwards and eliminated
   let r ← withTrace "moving upward, splitting and eliminating" do
     let post := upwardAndElim (← normCastExt.up.getTheorems)
-    Simp.mkEqTrans r (← Simp.main r.expr { config, congrTheorems } (methods := { post })).1
+    r.mkEqTrans (← Simp.main r.expr { config, congrTheorems } (methods := { post })).1
 
   -- step 3: casts are squashed
   let r ← withTrace "squashing" do
     let simpTheorems := #[← normCastExt.squash.getTheorems]
-    mkEqTrans r (← simp r.expr { simpTheorems, config, congrTheorems }).1
+    r.mkEqTrans (← simp r.expr { simpTheorems, config, congrTheorems }).1
 
   return r
 
@@ -204,7 +204,7 @@ elab "mod_cast " e:term : term <= expectedType => do
   let eTy' ← derive eTy
   unless ← isDefEq eTy'.expr expectedType'.expr do
     throwTypeMismatchError "mod_cast" expectedType'.expr eTy'.expr e
-  let eTy_eq_expectedType ← mkEqTrans eTy' (← mkEqSymm expectedType expectedType')
+  let eTy_eq_expectedType ← eTy'.mkEqTrans (← mkEqSymm expectedType expectedType')
   mkCast eTy_eq_expectedType e
 
 open Tactic Parser.Tactic Elab.Tactic
