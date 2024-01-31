@@ -366,7 +366,8 @@ def solveByElim (required : List Expr) (exfalso : Bool) (goals : List MVarId) (m
   -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
   -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
   let cfg : SolveByElim.Config :=
-    { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
+    { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true,
+      transparency := ← getTransparency }
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
   let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
   SolveByElim.solveByElim cfg lemmas ctx goals
