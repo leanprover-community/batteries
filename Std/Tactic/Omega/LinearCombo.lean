@@ -6,6 +6,7 @@ Authors: Scott Morrison
 
 -- replace `IntList` with `IntDict` here to use sparse representations
 import Std.Tactic.Omega.Coeffs.IntList
+import Std.Tactic.Ext
 
 /-!
 # Linear combinations
@@ -23,7 +24,7 @@ structure LinearCombo where
   /-- Constant term. -/
   const : Int := 0
   /-- Coefficients of the atoms. -/
-  coeffs : Coeffs := {}
+  coeffs : Coeffs := []
 deriving DecidableEq, Repr
 
 namespace LinearCombo

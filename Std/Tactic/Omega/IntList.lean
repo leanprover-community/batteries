@@ -3,10 +3,12 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Data.List.Lemmas
+import Std.Data.List.Init.Lemmas
 import Std.Data.Nat.Gcd
 import Std.Data.Int.DivMod
+import Std.Data.Option.Lemmas
 import Std.Tactic.Replace
+import Std.Tactic.Simpa
 
 /--
 A type synonym for `List Int`, used by `omega` for dense representation of coefficients.
