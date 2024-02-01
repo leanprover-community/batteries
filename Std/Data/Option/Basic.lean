@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Classes.SetNotation
+import Std.Logic
 import Std.Tactic.NoMatch
 
 namespace Option
@@ -24,6 +25,15 @@ theorem isNone_iff_eq_none {o : Option α} : o.isNone ↔ o = none :=
   ⟨Option.eq_none_of_isNone, fun e => e.symm ▸ rfl⟩
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
+
+-- We don't mark this as `simp` as it is already handled by `ite_eq_right_iff`.
+theorem ite_some_none_eq_none [Decidable P] :
+    (if P then some x else none) = none ↔ ¬ P := by
+  simp only [ite_eq_right_iff]
+
+@[simp] theorem ite_some_none_eq_some [Decidable P] :
+    (if P then some x else none) = some y ↔ P ∧ x = y := by
+  split <;> simp_all
 
 /--
 `o = none` is decidable even if the wrapped type does not have decidable equality.

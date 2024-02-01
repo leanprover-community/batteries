@@ -291,7 +291,7 @@ theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
         exact h.2.imp fun ⟨j, h₁, h₂, hq⟩ => ⟨j, h₁, Nat.lt_min.2 ⟨h₂, j.2⟩, hq⟩
   | inr hstart =>
     rw [anyM_stop_le_start (h := hstart)]
-    refine .pure ?_; simp; intro j h₁ h₂
+    refine .pure ?_; simp [not_and]; intro j h₁ h₂
     cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
 
 theorem any_iff_exists (p : α → Bool) (as : Array α) (start stop) :

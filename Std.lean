@@ -1,3 +1,5 @@
+import Std.Base.Bool
+import Std.Base.Logic
 import Std.Classes.BEq
 import Std.Classes.Cast
 import Std.Classes.Dvd

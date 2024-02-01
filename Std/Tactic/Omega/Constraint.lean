@@ -117,7 +117,7 @@ def isExact : Constraint → Bool
   | _ => false
 
 theorem not_sat_of_isImpossible (h : isImpossible c) {t} : ¬ c.sat t := by
-  rcases c with ⟨_ | l, _ | u⟩ <;> simp [isImpossible, sat] at h ⊢
+  rcases c with ⟨_ | l, _ | u⟩ <;> simp [isImpossible, sat, not_and] at h ⊢
   intro w
   rw [Int.not_le]
   exact Int.lt_of_lt_of_le h w

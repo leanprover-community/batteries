@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
 
+import Std.Base.Bool
 import Std.Tactic.Alias
 
 /-- Boolean exclusive or -/
@@ -16,18 +17,6 @@ namespace Bool
 @[inherit_doc or]  protected abbrev or  := or
 @[inherit_doc and] protected abbrev and := and
 @[inherit_doc xor] protected abbrev xor := xor
-
-instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∀ x, p x) :=
-  match inst true, inst false with
-  | isFalse ht, _ => isFalse fun h => absurd (h _) ht
-  | _, isFalse hf => isFalse fun h => absurd (h _) hf
-  | isTrue ht, isTrue hf => isTrue fun | true => ht | false => hf
-
-instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :=
-  match inst true, inst false with
-  | isTrue ht, _ => isTrue ⟨_, ht⟩
-  | _, isTrue hf => isTrue ⟨_, hf⟩
-  | isFalse ht, isFalse hf => isFalse fun | ⟨true, h⟩ => absurd h ht | ⟨false, h⟩ => absurd h hf
 
 instance : LE Bool := ⟨(. → .)⟩
 instance : LT Bool := ⟨(!. && .)⟩
@@ -47,10 +36,6 @@ theorem eq_false_iff : {b : Bool} → b = false ↔ b ≠ true := by decide
 theorem ne_false_iff : {b : Bool} → b ≠ false ↔ b = true := by decide
 
 /-! ### and -/
-
-@[simp] theorem not_and_self : ∀ (x : Bool), (!x && x) = false := by decide
-
-@[simp] theorem and_not_self : ∀ (x : Bool), (x && !x) = false := by decide
 
 theorem and_comm : ∀ (x y : Bool), (x && y) = (y && x) := by decide
 
@@ -78,10 +63,6 @@ theorem and_eq_false_iff : ∀ (x y : Bool), (x && y) = false ↔ x = false ∨ 
 
 /-! ### or -/
 
-@[simp] theorem not_or_self : ∀ (x : Bool), (!x || x) = true := by decide
-
-@[simp] theorem or_not_self : ∀ (x : Bool), (x || !x) = true := by decide
-
 theorem or_comm : ∀ (x y : Bool), (x || y) = (y || x) := by decide
 
 theorem or_left_comm : ∀ (x y z : Bool), (x || (y || z)) = (y || (x || z)) := by decide
@@ -103,23 +84,27 @@ theorem or_eq_false_iff : ∀ (x y : Bool), (x || y) = false ↔ x = false ∧ y
 
 /-! ### xor -/
 
-@[simp] theorem false_xor : ∀ (x : Bool), xor false x = x := by decide
+@[deprecated false_bne]
+theorem false_xor : ∀ (x : Bool), xor false x = x := by decide
 
-@[simp] theorem xor_false : ∀ (x : Bool), xor x false = x := by decide
+@[deprecated bne_false]
+theorem xor_false : ∀ (x : Bool), xor x false = x := by decide
 
-@[simp] theorem true_xor : ∀ (x : Bool), xor true x = !x := by decide
+@[deprecated true_bne]
+theorem true_xor : ∀ (x : Bool), xor true x = !x := by decide
 
-@[simp] theorem xor_true : ∀ (x : Bool), xor x true = !x := by decide
+@[deprecated bne_true]
+theorem xor_true : ∀ (x : Bool), xor x true = !x := by decide
 
-@[simp] theorem not_xor_self : ∀ (x : Bool), xor (!x) x = true := by decide
+theorem not_xor_self : ∀ (x : Bool), xor (!x) x = true := by decide
 
-@[simp] theorem xor_not_self : ∀ (x : Bool), xor x (!x) = true := by decide
+theorem xor_not_self : ∀ (x : Bool), xor x (!x) = true := by decide
 
 theorem not_xor : ∀ (x y : Bool), xor (!x) y = !(xor x y) := by decide
 
 theorem xor_not : ∀ (x y : Bool), xor x (!y) = !(xor x y) := by decide
 
-@[simp] theorem not_xor_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by decide
+theorem not_xor_not : ∀ (x y : Bool), xor (!x) (!y) = (xor x y) := by decide
 
 theorem xor_self : ∀ (x : Bool), xor x x = false := by decide
 
@@ -230,3 +215,9 @@ theorem cond_eq_if : (bif b then x else y) = (if b then x else y) := by
 
 @[simp] theorem true_eq_decide_iff {p : Prop} [h : Decidable p] : true = decide p ↔ p := by
   cases h with | _ q => simp [q]
+
+-- These arise because `¬b` rewrites to `decide(b = false)`.
+@[simp] theorem decide_eq_false_and (b : Bool) : (decide (b = false) && b) = false := by
+  cases b <;> simp
+@[simp] theorem and_decide_eq_false (b : Bool) : (b && decide (b = false)) = false := by
+  cases b <;> simp
