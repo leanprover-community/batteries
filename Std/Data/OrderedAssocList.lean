@@ -436,6 +436,8 @@ theorem ext_orderedKeys
     | .lt =>
       exfalso
       have w₂ : l₂.find? a₁ = none := by
+        simp only [find?_eq, Option.map_eq_none']
+        rw [find?_eq_none_of_ltHeadKey?]
         simp [find?_eq_none_of_ltHeadKey?, w₂, ltHeadKey?, h]
       specialize w a₁
       simp_all
@@ -461,7 +463,7 @@ theorem ext_orderedKeys
         simp [find?_eq_none_of_ltHeadKey?, h₁, ltHeadKey?, h, ← OrientedCmp.cmp_eq_gt]
       specialize w a₂
       simp_all
-
+#exit
 end AssocList
 
 /--
