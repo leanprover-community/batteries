@@ -171,7 +171,7 @@ theorem find?_eq_findEntry? [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.findEntry? a).map (·.2) := by
   induction l <;> simp [find?, List.find?_cons]; split <;> simp [*]
 
-@[simp] theorem find?_eq [BEq α] (a : α) (l : AssocList α β) :
+theorem find?_eq [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.toList.find? (·.1 == a)).map (·.2) := by simp [find?_eq_findEntry?]
 
 /-- `O(n)`. Returns true if any entry in the list satisfies `p`. -/

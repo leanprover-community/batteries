@@ -399,25 +399,32 @@ theorem orderedFind?_eq_none_of_ltHeadKey? (l : AssocList α β) (w : ltHeadKey?
     | .gt => simp_all [ltHeadKey?]
 
 theorem orderedFind?_cons [TransCmp cmp]
-    {h : (AssocList.cons a b t).keysOrdered cmp} :
+    (h : (AssocList.cons a b t).keysOrdered cmp) :
     orderedFind? cmp (.cons a b t) x = if cmp x a = .eq then some b else orderedFind? cmp t x := by
   simp only [find?, AssocList.orderedFind?]
   split <;> rename_i w <;> simp only [w, ite_true, ite_false]
   rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
-  -- have p := headKey?_tail h
-  -- revert p
   simp only [ltHeadKey?, headKey?]
-  split
+  split <;> rename_i h'
   · trivial
   · apply TransCmp.lt_trans w
-    sorry
+    revert h'
+    split
+    · simp
+    · simp only [Option.some.injEq]
+      rintro rfl
+      exact h.1
 
 @[simp] theorem orderedFind?_cons_self [OrientedCmp cmp] :
     orderedFind? cmp (.cons a b t) a = some b := by
   simp [find?, AssocList.orderedFind?, OrientedCmp.cmp_refl]
 
+/--
+If two `AssocList`s have ordered keys
+ we can check if they are equal by checking if their `find?` functions are equal.
+-/
 theorem ext_orderedKeys
-    {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
+    (cmp : α → α → Ordering) [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
     {l₁ l₂ : AssocList α β} (h₁ : l₁.keysOrdered cmp) (h₂ : l₂.keysOrdered cmp)
     (w : ∀ a, l₁.find? a = l₂.find? a) : l₁ = l₂ := by
   simp only [← orderedFind?_eq_find? _ h₁, ← orderedFind?_eq_find? _ h₂] at w
@@ -436,34 +443,36 @@ theorem ext_orderedKeys
     | .lt =>
       exfalso
       have w₂ : l₂.find? a₁ = none := by
-        simp only [find?_eq, Option.map_eq_none']
-        rw [find?_eq_none_of_ltHeadKey?]
-        simp [find?_eq_none_of_ltHeadKey?, w₂, ltHeadKey?, h]
+        rwa [w₂, find?_eq_none_of_ltHeadKey? _ h₂]
       specialize w a₁
-      simp_all
+      simp [orderedFind?_cons_self] at w
+      simp_all [orderedFind?_eq_find?]
     | .eq =>
       rcases AntisymmCmp.eq_of_cmp_eq h
       have w' := w a₁
-      simp only [find?_mk_cons_self, Option.some.injEq] at w'
+      simp only [orderedFind?_cons_self, Option.some.injEq] at w'
       congr
-      suffices (⟨t₁, p₁.tail⟩ : OrderedAssocList cmp β) = ⟨t₂, p₂.tail⟩ by injections
-      apply ext
+      apply ext_orderedKeys cmp h₁.tail h₂.tail
       intro a
       specialize w a
-      simp only [find?_mk_cons] at w
+      rw [← orderedFind?_eq_find? _ h₁.tail, ← orderedFind?_eq_find? _ h₂.tail]
+      rw [orderedFind?_cons h₁, orderedFind?_cons h₂] at w
       split at w <;> rename_i h
       · rcases AntisymmCmp.eq_of_cmp_eq h
-        rw [find?_eq_none_of_ltHeadKey?, find?_eq_none_of_ltHeadKey?]
-        apply headKey?_tail p₂
-        apply headKey?_tail p₁
+        rw [orderedFind?_eq_none_of_ltHeadKey?, orderedFind?_eq_none_of_ltHeadKey?]
+        apply ltHeadKey?_of_keysOrdered_cons h₂
+        apply ltHeadKey?_of_keysOrdered_cons h₁
       · exact w
     | .gt =>
       exfalso
       have w₁ : l₁.find? a₂ = none := by
-        simp [find?_eq_none_of_ltHeadKey?, h₁, ltHeadKey?, h, ← OrientedCmp.cmp_eq_gt]
+        rw [w₁]
+        rw [find?_eq_none_of_ltHeadKey? _ h₁]
+        simp_all [OrientedCmp.cmp_eq_gt]
       specialize w a₂
-      simp_all
-#exit
+      simp [orderedFind?_cons_self] at w
+      simp_all [orderedFind?_eq_find?]
+
 end AssocList
 
 /--
