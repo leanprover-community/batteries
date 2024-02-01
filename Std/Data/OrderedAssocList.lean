@@ -354,6 +354,47 @@ theorem orderedMerge_keysOrdered [AntisymmCmp cmp] [TransCmp cmp]
         · exact orderedMerge_keysOrdered h₁ h₂.tail
       | none => exact orderedMerge_keysOrdered h₁ h₂.tail
 
+/--
+Find the value associated to a key by traversing left to right,
+short-circuiting once we are considering larger keys.
+-/
+def orderedFind? (cmp : α → α → Ordering) (l : AssocList α β) (x : α) : Option β :=
+  match l with
+  | .nil => none
+  | .cons a b t => match cmp x a with
+    | .lt => none
+    | .eq => some b
+    | .gt => orderedFind? cmp t x
+
+theorem orderedFind?_eq_find?
+    {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
+    (l : AssocList α β) (h : l.keysOrdered cmp) (x : α) : l.orderedFind? cmp x = l.find? x := by
+  match l with
+  | .nil => rfl
+  | .cons a b t =>
+    rw [find?, AssocList.orderedFind?]
+    split
+    · split
+      · simp_all [OrientedCmp.cmp_refl]
+      · rw [AssocList.find?_eq_none_of_ltHeadKey? (cmp := cmp)]
+        · exact AssocList.ltHeadKey?_of_le (by simp_all)
+            (AssocList.ltHeadKey?_of_keysOrdered_cons h)
+        · exact h.tail
+    · simp_all [AntisymmCmp.eq_of_cmp_eq ‹_›]
+    · split
+      · simp_all [OrientedCmp.cmp_refl]
+      · apply orderedFind?_eq_find? _ h.tail
+
+theorem orderedFind?_eq_none_of_ltHeadKey? (l : AssocList α β) (w : ltHeadKey? cmp x l) :
+    orderedFind? cmp l x = none := by
+  match l with
+  | .nil => rfl
+  | .cons a b t =>
+    match p : cmp x a with
+    | .lt => simp [orderedFind?, p]
+    | .eq => simp_all [ltHeadKey?]
+    | .gt => simp_all [ltHeadKey?]
+
 end AssocList
 
 /--
@@ -402,30 +443,11 @@ Find the value associated to a key by traversing left to right,
 short-circuiting once we are considering larger keys.
 -/
 def find? (l : OrderedAssocList cmp β) (x : α) : Option β :=
-  match l with
-  | ⟨.nil, _⟩ => none
-  | ⟨.cons a b t, h⟩ => match cmp x a with
-    | .lt => none
-    | .eq => some b
-    | .gt => find? ⟨t, h.tail⟩ x
+  l.list.orderedFind? cmp x
 
-theorem find?_eq_find?_list [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
-    {l : OrderedAssocList cmp β} : l.find? x = l.list.find? x := by
-  match l with
-  | ⟨.nil, _⟩ => rfl
-  | ⟨.cons a b t, h⟩ =>
-    rw [find?, AssocList.find?]
-    split
-    · split
-      · simp_all [OrientedCmp.cmp_refl]
-      · rw [AssocList.find?_eq_none_of_ltHeadKey? (cmp := cmp)]
-        · exact AssocList.ltHeadKey?_of_le (by simp_all)
-            (AssocList.ltHeadKey?_of_keysOrdered_cons h)
-        · exact h.tail
-    · simp_all [AntisymmCmp.eq_of_cmp_eq ‹_›]
-    · split
-      · simp_all [OrientedCmp.cmp_refl]
-      · apply find?_eq_find?_list
+theorem find?_eq_find?_list {α : Type u} {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
+    {l : OrderedAssocList cmp β} {x : α} : l.find? x = l.list.find? x :=
+  AssocList.orderedFind?_eq_find? l.list l.keysOrdered x
 
 @[simp] theorem find?_nil : find? (nil : OrderedAssocList cmp β) x = none := rfl
 @[simp] theorem find?_mk_nil : find? ⟨.nil, h⟩ x = none := rfl
@@ -448,21 +470,15 @@ theorem headKey?_tail (h : AssocList.keysOrdered cmp (.cons a b t)) :
   | .cons _ _ _ => exact h.1
 
 theorem find?_eq_none_of_ltHeadKey? (l : OrderedAssocList cmp β) (w : ltHeadKey? x l) :
-    find? l x = none := by
-  match l with
-  | ⟨.nil, _⟩ => rfl
-  | ⟨.cons a b t, h⟩ =>
-    match p : cmp x a with
-    | .lt => simp [find?, p]
-    | .eq => simp_all [ltHeadKey?]
-    | .gt => simp_all [ltHeadKey?]
+    find? l x = none :=
+  AssocList.orderedFind?_eq_none_of_ltHeadKey? _ w
 
 theorem find?_mk_cons [TransCmp cmp]
     {h : (AssocList.cons a b t).keysOrdered cmp} :
     find? ⟨.cons a b t, h⟩ x = if cmp x a = .eq then some b else find? ⟨t, h.tail⟩ x := by
-  simp only [find?]
+  simp only [find?, AssocList.orderedFind?]
   split <;> rename_i w <;> simp only [w, ite_true, ite_false]
-  rw [find?_eq_none_of_ltHeadKey?]
+  rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
   have p := headKey?_tail h
   revert p
   simp only [ltHeadKey?, AssocList.ltHeadKey?]
@@ -472,7 +488,7 @@ theorem find?_mk_cons [TransCmp cmp]
 
 @[simp] theorem find?_mk_cons_self [OrientedCmp cmp] {h : (AssocList.cons a b t).keysOrdered cmp} :
     find? ⟨.cons a b t, h⟩ a = some b := by
-  simp [find?, OrientedCmp.cmp_refl]
+  simp [find?, AssocList.orderedFind?, OrientedCmp.cmp_refl]
 
 theorem ext_list {l₁ l₂ : OrderedAssocList cmp β} (w : l₁.list = l₂.list) : l₁ = l₂ := by
   cases l₁; cases l₂; congr
