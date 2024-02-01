@@ -678,7 +678,7 @@ and `cast` defines the inductive step using `motive i.succ`, inducting downwards
   else
     let j : Fin n := ⟨i, Nat.lt_of_le_of_ne (Nat.le_of_lt_succ i.2) fun h => hi (Fin.ext h)⟩
     cast _ (reverseInduction last cast j.succ)
-termination_by _ => n + 1 - i
+termination_by n + 1 - i
 decreasing_by decreasing_with
   -- FIXME: we put the proof down here to avoid getting a dummy `have` in the definition
   exact Nat.add_sub_add_right .. ▸ Nat.sub_lt_sub_left i.2 (Nat.lt_succ_self i)
@@ -733,24 +733,24 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 @[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
   apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+  simp [Fin.ofNat', Fin.add_def]
 
 @[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
     x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
   apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+  simp [Fin.ofNat', Fin.add_def]
 
 /-! ### sub -/
 
 @[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
   apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+  simp [Fin.ofNat', Fin.sub_def]
 
 @[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
     x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
   apply Fin.eq_of_val_eq
-  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+  simp [Fin.ofNat', Fin.sub_def]
 
 /-! ### mul -/
 

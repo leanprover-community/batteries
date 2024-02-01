@@ -153,7 +153,6 @@ Return its index, and, if it is new, a collection of interesting facts about the
 def lookup (e : Expr) : OmegaM (Nat × Option (HashSet Expr)) := do
   let c ← getThe State
   for h : i in [:c.atoms.size] do
-    have : i < c.atoms.size := h.2
     if ← isDefEq e c.atoms[i] then
       return (i, none)
   trace[omega] "New atom: {e}"

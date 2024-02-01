@@ -558,8 +558,8 @@ private def MatchResult.push (r : MatchResult α) (score : Nat) (e : Array α) :
           loop (a.push #[])
         else
           { elts := a.push #[e] }
+    termination_by score - a.size
     loop r.elts
-  termination_by loop _ => score - a.size
 
 private partial def MatchResult.toArray (mr : MatchResult α) : Array α :=
     loop (Array.mkEmpty n) mr.elts
@@ -845,7 +845,7 @@ private def createImportedEnvironmentSeq (env : Environment)
               go d tree (start+1) stop
             else
               toFlat d tree
-  termination_by go _ idx stop => stop - idx
+    termination_by stop - start
 
 /-- Get the results of each task and merge using combining function -/
 private def combineGet [Append α] (z : α) (tasks : Array (Task α)) : α :=
@@ -873,9 +873,9 @@ def createImportedEnvironment (env : Environment)
           tasks.push <$> (createImportedEnvironmentSeq env act start n).asTask
         else
           pure tasks
+    termination_by env.header.moduleData.size - idx
   let tasks ← go #[] 0 0 0
   let r := combineGet default tasks
   if p : r.errors.size > 0 then
     throw r.errors[0].exception
   pure <| r.tree.toLazy
-  termination_by go _ idx => env.header.moduleData.size - idx

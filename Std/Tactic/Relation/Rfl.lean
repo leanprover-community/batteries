@@ -24,7 +24,7 @@ def reflExt.config : WhnfCoreConfig := {}
 initialize reflExt :
     SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n reflExt.config
+    addEntry := fun dt (n, ks) => dt.insertCore ks n
     initial := {}
   }
 
