@@ -3,7 +3,7 @@ Copyright (c) 2023 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import Lean.Elab.Tactic
+import Lean.Elab.Tactic.Conv.Pattern
 
 /-!
 # Extensions to the `case` tactic
@@ -126,9 +126,9 @@ def findGoalOfPatt (gs : List MVarId)
       else
         let g ← renameInaccessibles g renameI
         return (g, [], gs)
-    throwError "No goals with tag {tag} unify with the term {patt?.getD (← `(_))}, {
-                ""}or too many names provided for renaming {
-                ""}inaccessible variables."
+    throwError "\
+      No goals with tag {tag} unify with the term {patt?.getD (← `(_))}, \
+      or too many names provided for renaming inaccessible variables."
 
 /-- Given a `casePattBody`, either give a synthetic hole or a tactic sequence
 (along with the syntax for the `=>`).
@@ -162,8 +162,9 @@ def evalCase (close : Bool) (stx : Syntax)
       let gs' ← run g <| withRef hole do
         let (val, gs') ← elabTermWithHoles hole (← getMainTarget) `case
         unless ← occursCheck g val do
-          throwError "'case' tactic failed, value{indentExpr val}\n{
-            ""}depends on the main goal metavariable '{Expr.mvar g}'"
+          throwError "\
+            'case' tactic failed, value{indentExpr val}\n\
+            depends on the main goal metavariable '{Expr.mvar g}'"
         g.assign val
         setGoals gs'
       acc := acc ++ gs'

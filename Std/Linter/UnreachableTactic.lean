@@ -94,8 +94,11 @@ def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   if (← get).messages.hasErrors then
     return
   let cats := (Parser.parserExtension.getState (← getEnv)).categories
-  let tactics := cats.find! `tactic |>.kinds
-  let convs := cats.find! `conv |>.kinds
+  -- These lookups may fail when the linter is run in a fresh, empty environment
+  let some tactics := Parser.ParserCategory.kinds <$> cats.find? `tactic
+    | return
+  let some convs := Parser.ParserCategory.kinds <$> cats.find? `conv
+    | return
   let trees ← getInfoTrees
   let go : M Unit := do
     getTactics (← ignoreTacticKindsRef.get) (fun k => tactics.contains k || convs.contains k) stx

@@ -1,5 +1,6 @@
 import Std.Tactic.ByCases
 import Std.Data.List.Lemmas
+import Std.Data.List.Init.Attach
 
 namespace Std.Range
 

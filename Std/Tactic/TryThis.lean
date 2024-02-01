@@ -9,6 +9,7 @@ import Std.Lean.Name
 import Std.Lean.Format
 import Std.Lean.Position
 import Std.Data.Json
+import Std.Lean.Syntax
 
 /-!
 # "Try this" support
@@ -21,7 +22,7 @@ namespace Std.Tactic.TryThis
 
 open Lean Elab PrettyPrinter Meta Server RequestM
 
-/-! # Raw widgets and code actions -/
+/-! # Raw widget -/
 
 /--
 This is a widget which is placed by `TryThis.addSuggestion` and `TryThis.addSuggestions`.
@@ -40,8 +41,7 @@ Try these:
 
 where `<replacement*>` is a link which will perform the replacement.
 -/
-@[widget] def tryThisWidget : Widget.UserWidgetDefinition where
-  name := "Suggestion"
+@[widget_module] def tryThisWidget : Widget.Module where
   javascript := "
 import * as React from 'react';
 import { EditorContext } from '@leanprover/infoview';
@@ -68,16 +68,37 @@ export default function ({ pos, suggestions, range, header, isInline, style }) {
   }
 
   // Choose between an inline 'Try this'-like display and a list-based 'Try these'-like display.
+  let inner = null
   if (isInline) {
-    return e('div', { className: 'ml1' },
+    inner = e('div', { className: 'ml1' },
       e('pre', { className: 'font-code pre-wrap' }, header, makeSuggestion(suggestions[0])))
   } else {
-    return e('div', { className: 'ml1' },
+    inner = e('div', { className: 'ml1' },
       e('pre', { className: 'font-code pre-wrap' }, header),
       e('ul', { style: { paddingInlineStart: '20px' } }, suggestions.map(s =>
         e('li', { className: 'font-code pre-wrap' }, makeSuggestion(s)))))
   }
+  return e('details', { open: true },
+    e('summary', { className: 'mv2 pointer' }, 'Suggestions'),
+    inner)
 }"
+
+/-! # Code action -/
+
+/-- A packet of information about a "Try this" suggestion
+that we store in the infotree for the associated code action to retrieve. -/
+structure TryThisInfo : Type where
+  /-- The textual range to be replaced by one of the suggestions. -/
+  range : Lsp.Range
+  /--
+  A list of suggestions for the user to choose from.
+  Each suggestion may optionally come with an override for the code action title.
+  -/
+  suggestionTexts : Array (String × Option String)
+  /-- The prefix to display before the code action for a "Try this" suggestion if no custom code
+  action title is provided. If not provided, `"Try this: "` is used. -/
+  codeActionPrefix? : Option String
+  deriving TypeName
 
 /--
 This is a code action provider that looks for `TryThisInfo` nodes and supplies a code action to
@@ -86,24 +107,19 @@ apply the replacement.
 @[code_action_provider] def tryThisProvider : CodeActionProvider := fun params snap => do
   let doc ← readDoc
   pure <| snap.infoTree.foldInfo (init := #[]) fun _ctx info result => Id.run do
-    let .ofUserWidgetInfo { stx, widgetId := ``tryThisWidget, props } := info | result
+    let .ofCustomInfo { stx, value } := info | result
+    let some { range, suggestionTexts, codeActionPrefix? } :=
+      value.get? TryThisInfo | result
     let some stxRange := stx.getRange? | result
     let stxRange := doc.meta.text.utf8RangeToLspRange stxRange
     unless stxRange.start.line ≤ params.range.end.line do return result
     unless params.range.start.line ≤ stxRange.end.line do return result
-    let .ok range := props.getObjValAs? Lsp.Range "range" | panic! "bad type"
-    let .ok suggestions := props.getObjVal? "suggestions" | panic! "bad type"
-    let .ok suggestions := suggestions.getArr? | panic! "bad type"
-    let codeActionPrefix :=
-      (props.getObjValAs? String "codeActionPrefix").toOption.getD "Try this: "
     let mut result := result
-    for h : i in [:suggestions.size] do
-      let suggestion := suggestions[i]'h.2
-      let .ok newText := suggestion.getObjValAs? String "suggestion" | panic! "bad type"
-      let codeActionTitle := (suggestion.getObjValAs? String "codeActionTitle").toOption.getD <|
-        codeActionPrefix ++ newText
+    for h : i in [:suggestionTexts.size] do
+      let (newText, title?) := suggestionTexts[i]'h.2
+      let title := title?.getD <| (codeActionPrefix?.getD "Try this: ") ++ newText
       result := result.push {
-        eager.title := codeActionTitle
+        eager.title := title
         eager.kind? := "quickfix"
         -- Only make the first option preferred
         eager.isPreferred? := if i = 0 then true else none
@@ -282,28 +298,25 @@ structure Suggestion where
   messageData? : Option MessageData := none
   /-- How to construct the text that appears in the lightbulb menu from the suggestion text. If
   `none`, we use `fun ppSuggestionText => "Try this: " ++ ppSuggestionText`. Only the pretty-printed
-  `suggestion : SuggestionText` is used here.
-
-  Note that (if not `none`) a prop `codeActionTitle : String` will be included in the Json, not
-  `toCodeActionTitle?` itself, as the application of `toCodeAction` to the pretty-printed
-  `suggestion : SuggestionText` must be performed before encoding. -/
+  `suggestion : SuggestionText` is used here. -/
   toCodeActionTitle? : Option (String → String) := none
   deriving Inhabited
 
 /-- Converts a `Suggestion` to `Json` in `CoreM`. We need `CoreM` in order to pretty-print syntax.
 
+This also returns a `String × Option String` consisting of the pretty-printed text and any custom
+code action title if `toCodeActionTitle?` is provided.
+
 If `w := none`, then `w := getInputWidth (← getOptions)` is used.
 -/
-def Suggestion.toJsonM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
-    CoreM Json := do
+def Suggestion.toJsonAndInfoM (s : Suggestion) (w : Option Nat := none) (indent column : Nat := 0) :
+    CoreM (Json × String × Option String) := do
   let text ← s.suggestion.prettyExtra w indent column
   let mut json := [("suggestion", (text : Json))]
   if let some preInfo := s.preInfo? then json := ("preInfo", preInfo) :: json
   if let some postInfo := s.postInfo? then json := ("postInfo", postInfo) :: json
   if let some style := s.style? then json := ("style", toJson style) :: json
-  if let some tocodeActionTitle := s.toCodeActionTitle? then
-    json := ("codeActionTitle", tocodeActionTitle text) :: json
-  return Json.mkObj json
+  return (Json.mkObj json, text, s.toCodeActionTitle?.map (· text))
 
 /- If `messageData?` is specified, we use that; otherwise (by default), we use `toMessageData` of
 the suggestion text. -/
@@ -323,28 +336,32 @@ def delabToRefinableSuggestion (e : Expr) : MetaM Suggestion :=
 element or a list display is controlled by `isInline`. -/
 private def addSuggestionCore (ref : Syntax) (suggestions : Array Suggestion)
     (header : String) (isInline : Bool) (origSpan? : Option Syntax := none)
-    (style? : Option SuggestionStyle := none) (codeActionPrefix? : Option String := none) :
-    CoreM Unit := do
+    (style? : Option SuggestionStyle := none)
+    (codeActionPrefix? : Option String := none) : CoreM Unit := do
   if let some range := (origSpan?.getD ref).getRange? then
     let map ← getFileMap
     -- FIXME: this produces incorrect results when `by` is at the beginning of the line, i.e.
     -- replacing `tac` in `by tac`, because the next line will only be 2 space indented
     -- (less than `tac` which starts at column 3)
     let (indent, column) := getIndentAndColumn map range
-    let suggestions ← suggestions.mapM (·.toJsonM (indent := indent) (column := column))
-    let stxRange := ref.getRange?.getD range
-    let stxRange :=
-      { start := map.lineStart (map.toPosition stxRange.start).line
-        stop := map.lineStart ((map.toPosition stxRange.stop).line + 1) }
-    Widget.saveWidgetInfo ``tryThisWidget (.ofRange stxRange) (props := json% {
-      suggestions: $suggestions,
-      range: $(map.utf8RangeToLspRange range),
-      header: $header,
-      isInline: $isInline,
-      style: $style?,
-      codeActionPrefix: $codeActionPrefix?
-    })
-
+    let suggestions ← suggestions.mapM (·.toJsonAndInfoM (indent := indent) (column := column))
+    let suggestionTexts := suggestions.map (·.2)
+    let suggestions := suggestions.map (·.1)
+    let ref := Syntax.ofRange <| ref.getRange?.getD range
+    let range := map.utf8RangeToLspRange range
+    pushInfoLeaf <| .ofCustomInfo {
+      stx := ref
+      value := Dynamic.mk
+        { range, suggestionTexts, codeActionPrefix? : TryThisInfo }
+    }
+    Widget.savePanelWidgetInfo (hash tryThisWidget.javascript) ref
+      (props := return json% {
+        suggestions: $suggestions,
+        range: $range,
+        header: $header,
+        isInline: $isInline,
+        style: $style?
+      })
 
 /-- Add a "try this" suggestion. This has three effects:
 
@@ -372,11 +389,14 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that begins the display. By default, it is `"Try this: "`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addSuggestion (ref : Syntax) (s : Suggestion) (origSpan? : Option Syntax := none)
-    (header : String := "Try this: ") : MetaM Unit := do
+    (header : String := "Try this: ") (codeActionPrefix? : Option String := none) : MetaM Unit := do
   logInfoAt ref m!"{header}{s}"
   addSuggestionCore ref #[s] header (isInline := true) origSpan?
+    (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add a list of "try this" suggestions as a single "try these" suggestion. This has three effects:
 
@@ -400,20 +420,19 @@ The parameters are:
     `suggestion` instead.
   * `toCodeActionTitle?`: an optional function `String → String` describing how to transform the
     pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
-    If `none`, we simply prepend `codeActionPrefix?` to the suggestion text if provided (see
-    below), or else prepend `"Try this: "`.
+    If `none`, we simply prepend `"Try This: "` to the suggestion text.
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string that precedes the list. By default, it is `"Try these:"`.
 * `style?`: a default style for all suggestions which do not have a custom `style?` set.
-* `codeActionPrefix?`: a default prefix string for code action messages in the lightbulb menu. This
-  is used for all suggestions which do not have a custom `toCodeActionTitle?`. (When `none`, the
-  default prefix is `"Try this: "`.)
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addSuggestions (ref : Syntax) (suggestions : Array Suggestion)
     (origSpan? : Option Syntax := none) (header : String := "Try these:")
-    (style? : Option SuggestionStyle := none) (codeActionPrefix? : Option String := none) :
-    MetaM Unit := do
+    (style? : Option SuggestionStyle := none)
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   if suggestions.isEmpty then throwErrorAt ref "no suggestions available"
   let msgs := suggestions.map toMessageData
   let msgs := msgs.foldl (init := MessageData.nil) (fun msg m => msg ++ m!"\n• " ++ m)
@@ -443,11 +462,14 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
   `Remaining subgoals:`
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addExactSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false)
+    (codeActionPrefix? : Option String := none): MetaM Unit := do
   addSuggestion ref (← addExactSuggestionCore addSubgoalsMsg e)
-    (origSpan? := origSpan?)
+    (origSpan? := origSpan?) (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add `exact e` or `refine e` suggestions.
 
@@ -458,11 +480,15 @@ The parameters are:
   If not provided it defaults to `ref`.
 * `addSubgoalsMsg`: if true (default false), any remaining subgoals will be shown after
   `Remaining subgoals:`
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addExactSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false) : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (addSubgoalsMsg := false)
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   let suggestions ← es.mapM <| addExactSuggestionCore addSubgoalsMsg
-  addSuggestions ref suggestions (origSpan? := origSpan?)
+  addSuggestions ref suggestions (origSpan? := origSpan?) (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add a term suggestion.
 
@@ -472,10 +498,14 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string which precedes the suggestion. By default, it's `"Try this: "`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text if the
+  suggestion does not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is used.
 -/
 def addTermSuggestion (ref : Syntax) (e : Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try this: ") : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try this: ")
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   addSuggestion ref (← delabToRefinableSuggestion e) (origSpan? := origSpan?) (header := header)
+    (codeActionPrefix? := codeActionPrefix?)
 
 /-- Add term suggestions.
 
@@ -485,8 +515,70 @@ The parameters are:
 * `origSpan?`: a syntax object whose span is the actual text to be replaced by `suggestion`.
   If not provided it defaults to `ref`.
 * `header`: a string which precedes the list of suggestions. By default, it's `"Try these:"`.
+* `codeActionPrefix?`: an optional string to be used as the prefix of the replacement text for all
+  suggestions which do not have a custom `toCodeActionTitle?`. If not provided, `"Try this: "` is
+  used.
 -/
 def addTermSuggestions (ref : Syntax) (es : Array Expr)
-    (origSpan? : Option Syntax := none) (header : String := "Try these:") : MetaM Unit := do
+    (origSpan? : Option Syntax := none) (header : String := "Try these:")
+    (codeActionPrefix? : Option String := none) : MetaM Unit := do
   addSuggestions ref (← es.mapM delabToRefinableSuggestion)
-    (origSpan? := origSpan?) (header := header)
+    (origSpan? := origSpan?) (header := header) (codeActionPrefix? := codeActionPrefix?)
+
+open Lean Elab Elab.Tactic PrettyPrinter Meta Std.Tactic.TryThis
+
+/-- Add a suggestion for `have h : t := e`. -/
+def addHaveSuggestion (ref : Syntax) (h? : Option Name) (t? : Option Expr) (e : Expr)
+    (origSpan? : Option Syntax := none) : TermElabM Unit := do
+  let estx ← delabToRefinableSyntax e
+  let prop ← isProp (← inferType e)
+  let tac ← if let some t := t? then
+    let tstx ← delabToRefinableSyntax t
+    if prop then
+      match h? with
+      | some h => `(tactic| have $(mkIdent h) : $tstx := $estx)
+      | none => `(tactic| have : $tstx := $estx)
+    else
+      `(tactic| let $(mkIdent (h?.getD `_)) : $tstx := $estx)
+  else
+    if prop then
+      match h? with
+      | some h => `(tactic| have $(mkIdent h) := $estx)
+      | none => `(tactic| have := $estx)
+    else
+      `(tactic| let $(mkIdent (h?.getD `_)) := $estx)
+  addSuggestion ref tac origSpan?
+
+open Lean.Parser.Tactic
+open Lean.Syntax
+
+/-- Add a suggestion for `rw [h₁, ← h₂] at loc`. -/
+def addRewriteSuggestion (ref : Syntax) (rules : List (Expr × Bool))
+  (type? : Option Expr := none) (loc? : Option Expr := none)
+  (origSpan? : Option Syntax := none) :
+    TermElabM Unit := do
+  let rules_stx := TSepArray.ofElems <| ← rules.toArray.mapM fun ⟨e, symm⟩ => do
+    let t ← delabToRefinableSyntax e
+    if symm then `(rwRule| ← $t:term) else `(rwRule| $t:term)
+  let tac ← do
+    let loc ← loc?.mapM fun loc => do `(location| at $(← delab loc):term)
+    `(tactic| rw [$rules_stx,*] $(loc)?)
+
+  -- We don't simply write `let mut tacMsg := m!"{tac}"` here
+  -- but instead rebuild it, so that there are embedded `Expr`s in the message,
+  -- thus giving more information in the hovers.
+  -- Perhaps in future we will have a better way to attach elaboration information to
+  -- `Syntax` embedded in a `MessageData`.
+  let mut tacMsg :=
+    let rulesMsg := MessageData.sbracket <| MessageData.joinSep
+      (rules.map fun ⟨e, symm⟩ => (if symm then "← " else "") ++ m!"{e}") ", "
+    if let some loc := loc? then
+      m!"rw {rulesMsg} at {loc}"
+    else
+      m!"rw {rulesMsg}"
+  let mut extraMsg := ""
+  if let some type := type? then
+    tacMsg := tacMsg ++ m!"\n-- {type}"
+    extraMsg := extraMsg ++ s!"\n-- {← PrettyPrinter.ppExpr type}"
+  addSuggestion ref (s := { suggestion := tac, postInfo? := extraMsg, messageData? := tacMsg })
+    origSpan?
