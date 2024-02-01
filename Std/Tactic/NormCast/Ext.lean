@@ -5,6 +5,7 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 -/
 import Lean.Meta.CongrTheorems
 import Lean.Meta.Tactic.Simp.SimpTheorems
+import Lean.Meta.Tactic.Simp.Simproc
 import Std.Tactic.CoeExt
 
 open Lean Meta
@@ -98,6 +99,15 @@ initialize pushCastExt : SimpExtension ←
   registerSimpAttr `push_cast "\
     The `push_cast` simp attribute uses `norm_cast` lemmas \
     to move casts toward the leaf nodes of the expression."
+
+open Lean.Meta.Simp in
+/--
+A dummy `push_cast` simpproc extension,
+so `simp` doesn't complain when a user calls `simp [push_cast]`.
+-/
+initialize pushCastSimproc : SimprocExtension ← registerSimprocAttr `push_cast_proc "\
+  A dummy `push_cast` simpproc extension, \
+  so `simp` doesn't complain when a user calls `simp [push_cast]`." none
 
 /--  The `norm_cast` attribute stores three simp sets. -/
 structure NormCastExtension where
