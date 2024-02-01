@@ -55,10 +55,10 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     pure simpTheorems
   let simprocs ← if simpOnly then pure {} else Simp.getSimprocs
   let congrTheorems ← Meta.getSimpCongrTheorems
-  let r ← elabSimpArgs stx[4] (eraseLocal := eraseLocal) (kind := kind) {
+  let r ← elabSimpArgs stx[4] (eraseLocal := eraseLocal) (kind := kind) (simprocs := #[simprocs]) {
     config       := (← elabSimpConfig stx[1] (kind := kind))
     simpTheorems := #[simpTheorems], congrTheorems
-  } simprocs
+  }
   if !r.starArg || ignoreStarArg then
     return { r with dischargeWrapper }
   else
