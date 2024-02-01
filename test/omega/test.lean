@@ -343,3 +343,7 @@ example (a : Nat) (h : a < 0) : Nat → Nat := by omega
 example {a₁ a₂ p₁ p₂ : Nat}
   (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
   (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
+
+-- From https://github.com/leanprover/std4/issues/562
+example {i : Nat} (h1 : i < 330) (_h2 : 7 ∣ (660 + i) * (1319 - i)) : 1319 - i < 1979 := by
+  omega

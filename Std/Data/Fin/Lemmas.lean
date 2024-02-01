@@ -56,7 +56,10 @@ theorem eq_mk_iff_val_eq {a : Fin n} {k : Nat} {hk : k < n} :
 
 theorem mk_val (i : Fin n) : (⟨i, i.isLt⟩ : Fin n) = i := Fin.eta ..
 
-@[simp] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
+@[simp] theorem val_ofNat' (a : Nat) (is_pos : n > 0) :
+  (Fin.ofNat' a is_pos).val = a % n := rfl
+
+@[deprecated ofNat'_zero_val] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
 
 @[simp] theorem mod_val (a b : Fin n) : (a % b).val = a.val % b.val :=
   rfl
@@ -80,6 +83,8 @@ theorem dite_val {n : Nat} {c : Prop} [Decidable c] {x y : Fin n} :
 theorem le_def {a b : Fin n} : a ≤ b ↔ a.1 ≤ b.1 := .rfl
 
 theorem lt_def {a b : Fin n} : a < b ↔ a.1 < b.1 := .rfl
+
+theorem lt_iff_val_lt_val {a b : Fin n} : a < b ↔ a.val < b.val := Iff.rfl
 
 @[simp] protected theorem not_le {a b : Fin n} : ¬ a ≤ b ↔ b < a := Nat.not_le
 
@@ -722,6 +727,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
+
+/-! ### add -/
+
+@[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+@[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HAdd.hAdd, Add.add, Fin.add]
+
+/-! ### sub -/
+
+@[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
+
+@[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', HSub.hSub, Sub.sub, Fin.sub]
 
 /-! ### mul -/
 
