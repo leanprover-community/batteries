@@ -5,7 +5,6 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 -/
 import Lean.Meta.CongrTheorems
 import Lean.Meta.Tactic.Simp.SimpTheorems
-import Lean.Meta.Tactic.Simp.Simproc
 import Std.Tactic.CoeExt
 
 open Lean Meta
