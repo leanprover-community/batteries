@@ -66,6 +66,21 @@ theorem ofNat_congr {a b : Nat} (h : a = b) : (a : Int) = (b : Int) := congrArg 
 theorem ofNat_sub_sub {a b c : Nat} : ((a - b - c : Nat) : Int) = ((a - (b + c) : Nat) : Int) :=
   congrArg _ (Nat.sub_sub _ _ _)
 
+theorem ofNat_min (a b : Nat) : ((min a b : Nat) : Int) = min (a : Int) (b : Int) := by
+  simp only [Nat.min_def, Int.min_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_max (a b : Nat) : ((max a b : Nat) : Int) = max (a : Int) (b : Int) := by
+  simp only [Nat.max_def, Int.max_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_natAbs (a : Int) : (a.natAbs : Int) = if 0 ≤ a then a else -a := by
+  rw [Int.natAbs]
+  split <;> rename_i n
+  · simp only [Int.ofNat_eq_coe]
+    rw [if_pos (Int.ofNat_nonneg n)]
+  · simp; rfl
+
 theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.natAbs = -a := by
   by_cases h : 0 ≤ a
   · left

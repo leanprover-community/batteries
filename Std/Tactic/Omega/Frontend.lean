@@ -181,6 +181,8 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       else
         mkAtomLinearCombo e
     | _ => mkAtomLinearCombo e
+  | (``Min.min, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.min_def []) a b)
+  | (``Max.max, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.max_def []) a b)
   | (``Nat.cast, #[_, _, n]) => match n.getAppFnArgs with
     | (``Nat.succ, #[n]) => rewrite e (.app (.const ``Int.ofNat_succ []) n)
     | (``HAdd.hAdd, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_add []) a b)
@@ -198,6 +200,9 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       | .app (.app (.app (.app (.const ``Prod.mk [u, 0]) _) _) x) y =>
         rewrite e (mkApp3 (.const ``Int.ofNat_snd_mk [u]) α x y)
       | _ => mkAtomLinearCombo e
+    | (``Min.min, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_min []) a b)
+    | (``Max.max, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_max []) a b)
+    | (``Int.natAbs, #[n]) => rewrite e (mkApp (.const ``Int.ofNat_natAbs []) n)
     | _ => mkAtomLinearCombo e
   | (``Prod.fst, #[α, β, p]) => match p with
     | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>

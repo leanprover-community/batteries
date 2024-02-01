@@ -343,3 +343,11 @@ example (a : Nat) (h : a < 0) : Nat → Nat := by omega
 example {a₁ a₂ p₁ p₂ : Nat}
   (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
   (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
+
+example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
+example {a : Int} (_ : a < min a b) : False := by omega
+example {a : Int} (_ : max a b < b) : False := by omega
+example {a : Nat} (_ : a < min a b) : False := by omega
+example {a : Nat} (_ : max a b < b) : False := by omega
+example {a : Int} : (a.natAbs : Int) ≥ -a := by omega
+example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega
