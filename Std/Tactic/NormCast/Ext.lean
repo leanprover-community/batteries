@@ -100,15 +100,6 @@ initialize pushCastExt : SimpExtension ←
     The `push_cast` simp attribute uses `norm_cast` lemmas \
     to move casts toward the leaf nodes of the expression."
 
-open Lean.Meta.Simp in
-/--
-A dummy `push_cast` simpproc extension,
-so `simp` doesn't complain when a user calls `simp [push_cast]`.
--/
-initialize pushCastSimproc : SimprocExtension ← registerSimprocAttr `push_cast_proc "\
-  A dummy `push_cast` simpproc extension, \
-  so `simp` doesn't complain when a user calls `simp [push_cast]`." none
-
 /--  The `norm_cast` attribute stores three simp sets. -/
 structure NormCastExtension where
   /-- A simp set which lifts coercion arrows to the top level. -/
