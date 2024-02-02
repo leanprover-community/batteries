@@ -115,7 +115,7 @@ broader Lean community.  Our priorities in 2024 are:
 * Fast and efficient arithmetic constraint solving that can be
   used independently and integrated into other decision procedures.
 
-* Support for an Isabelle Hammer-type tactic that can call a portfolio
+* Support for a tactic similar to Isabelle's Sledgehammer that can call a portfolio
   of external solvers.
 
 * Additional simplification procedures for efficient evaluation of
