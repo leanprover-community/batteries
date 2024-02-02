@@ -90,6 +90,9 @@ theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.na
     rw [Int.ofNat_natAbs_of_nonpos (Int.le_of_lt h)]
     simp_all
 
+theorem neg_le_natAbs {a : Int} : -a ≤ a.natAbs := by
+  simpa using Int.le_natAbs (a := -a)
+
 theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
   conv =>
     lhs
