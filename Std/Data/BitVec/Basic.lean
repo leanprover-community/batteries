@@ -334,7 +334,13 @@ As a numeric operation, this is equivalent to `a / 2^s`, rounding down.
 
 SMT-Lib name: `bvlshr` except this operator uses a `Nat` shift value.
 -/
-def ushiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat >>> s)
+def ushiftRight (a : BitVec n) (s : Nat) : BitVec n :=
+  ⟨a.toNat >>> s, by
+  let ⟨a, lt⟩ := a
+  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.pow_two_pos s)]
+  rw [←Nat.mul_one a]
+  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.pow_two_pos s) (Nat.le_refl 1)⟩
+
 instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.ushiftRight⟩
 
 /--

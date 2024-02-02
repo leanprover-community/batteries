@@ -82,16 +82,21 @@ def atomsList : OmegaM Expr := do mkListLit (.const ``Int []) (← atoms)
 def atomsCoeffs : OmegaM Expr := do
   return .app (.const ``Coeffs.ofList []) (← atomsList)
 
+/-- Run an `OmegaM` computation, restoring the state afterwards depending on the result. -/
+def commitWhen (t : OmegaM (α × Bool)) : OmegaM α := do
+  let state ← getThe State
+  let cache ← getThe Cache
+  let (a, r) ← t
+  if !r then do
+    modifyThe State fun _ => state
+    modifyThe Cache fun _ => cache
+  pure a
+
 /--
 Run an `OmegaM` computation, restoring the state afterwards.
 -/
-def savingState (t : OmegaM α) : OmegaM α := do
-  let state ← getThe State
-  let cache ← getThe Cache
-  let r ← t
-  modifyThe State fun _ => state
-  modifyThe Cache fun _ => cache
-  pure r
+def withoutModifyingState (t : OmegaM α) : OmegaM α :=
+  commitWhen (do pure (← t, false))
 
 /-- Wrapper around `Expr.nat?` that also allows `Nat.cast`. -/
 def natCast? (n : Expr) : Option Nat :=
@@ -158,7 +163,6 @@ Return its index, and, if it is new, a collection of interesting facts about the
 def lookup (e : Expr) : OmegaM (Nat × Option (HashSet Expr)) := do
   let c ← getThe State
   for h : i in [:c.atoms.size] do
-    have : i < c.atoms.size := h.2
     if ← isDefEq e c.atoms[i] then
       return (i, none)
   trace[omega] "New atom: {e}"

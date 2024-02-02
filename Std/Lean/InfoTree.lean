@@ -14,7 +14,7 @@ partial def InfoTree.foldInfo' (init : α) (f : ContextInfo → InfoTree → α 
 where
   /-- `foldInfo'.go` is like `foldInfo'` but with an additional outer context parameter `ctx?`. -/
   go ctx? a
-  | context ctx t => go ctx a t
+  | context ctx t => go (ctx.mergeIntoOuter? ctx?) a t
   | t@(node i ts) =>
     let a := match ctx? with
       | none => a

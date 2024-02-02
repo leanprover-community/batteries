@@ -45,7 +45,7 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
         ⟨k+1, Nat.succ_lt_succ hsz⟩
       else cont ()
     else cont ()
-termination_by _ k => k.val
+termination_by k => k.val
 
 /-- Extend a prefix table by one element
 
