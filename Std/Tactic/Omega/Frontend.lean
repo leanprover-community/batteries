@@ -188,6 +188,16 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       else
         mkAtomLinearCombo e
     | _ => mkAtomLinearCombo e
+  | (``Min.min, #[_, _, a, b]) =>
+    if (← cfg).splitMinMax then
+      rewrite e (mkApp2 (.const ``Int.min_def []) a b)
+    else
+      mkAtomLinearCombo e
+  | (``Max.max, #[_, _, a, b]) =>
+    if (← cfg).splitMinMax then
+      rewrite e (mkApp2 (.const ``Int.max_def []) a b)
+    else
+      mkAtomLinearCombo e
   | (``Nat.cast, #[_, _, n]) => match n.getAppFnArgs with
     | (``Nat.succ, #[n]) => rewrite e (.app (.const ``Int.ofNat_succ []) n)
     | (``HAdd.hAdd, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_add []) a b)
@@ -205,6 +215,13 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       | .app (.app (.app (.app (.const ``Prod.mk [u, 0]) _) _) x) y =>
         rewrite e (mkApp3 (.const ``Int.ofNat_snd_mk [u]) α x y)
       | _ => mkAtomLinearCombo e
+    | (``Min.min, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_min []) a b)
+    | (``Max.max, #[_, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_max []) a b)
+    | (``Int.natAbs, #[n]) =>
+      if (← cfg).splitNatAbs then
+        rewrite e (mkApp (.const ``Int.ofNat_natAbs []) n)
+      else
+        mkAtomLinearCombo e
     | _ => mkAtomLinearCombo e
   | (``Prod.fst, #[α, β, p]) => match p with
     | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
@@ -521,13 +538,15 @@ a natural subtraction appearing in a hypothesis, and try again.
 
 The options
 ```
-omega (config := { splitDisjunctions := true, splitNatSub := true, splitNatAbs := true})
+omega (config :=
+  { splitDisjunctions := true, splitNatSub := true, splitNatAbs := true, splitMinMax := true })
 ```
 can be used to:
 * `splitDisjunctions`: split any disjunctions found in the context,
   if the problem is not otherwise solvable.
 * `splitNatSub`: for each appearance of `((a - b : Nat) : Int)`, split on `a ≤ b` if necessary.
 * `splitNatAbs`: for each appearance of `Int.natAbs a`, split on `0 ≤ a` if necessary.
+* `splitMinMax`: for each occurrence of `min a b`, split on `min a b = a ∨ min a b = b`
 Currently, all of these are on by default.
 -/
 syntax (name := omegaSyntax) "omega" (config)? : tactic

@@ -198,8 +198,12 @@ example (a b c d e : Int)
   fail_if_success omega (config := { splitDisjunctions := false })
   omega
 
-example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
+example {x : Int} (h : x = 7) : x.natAbs = 7 := by
   fail_if_success omega (config := { splitNatAbs := false })
+  fail_if_success omega (config := { splitDisjunctions := false })
+  omega
+
+example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
   omega
 
 example {a b : Int} (h : a < b) (w : b < a) : False := by omega
@@ -315,8 +319,8 @@ def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is,
   | [], is => H0 is
   | t :: ts, is =>
       H1 t ts is (permutationsAux.rec' H0 H1 ts (t :: is)) (permutationsAux.rec' H0 H1 is [])
-  termination_by _ ts is => (length ts + length is, length ts)
-  decreasing_by simp_wf; omega
+  termination_by ts is => (length ts + length is, length ts)
+  decreasing_by all_goals simp_wf; omega
 
 example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
     Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
@@ -347,3 +351,19 @@ example {a₁ a₂ p₁ p₂ : Nat}
 -- From https://github.com/leanprover/std4/issues/562
 example {i : Nat} (h1 : i < 330) (_h2 : 7 ∣ (660 + i) * (1319 - i)) : 1319 - i < 1979 := by
   omega
+
+example {a : Int} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
+example {a : Int} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
+example {a : Nat} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
+example {a : Nat} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
+
+example {a b : Nat} (_ : a = 7) (_ : b = 3) : min a b = 3 := by
+  fail_if_success omega (config := { splitMinMax := false })
+  omega
+
+example {a b : Nat} (_ : a + b = 9) : (min a b) % 2 + (max a b) % 2 = 1 := by
+  fail_if_success omega (config := { splitMinMax := false })
+  omega
+
+example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
+example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega

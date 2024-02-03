@@ -32,6 +32,11 @@ structure OmegaConfig where
   `0 ≤ a ∧ Int.natAbs a = a ∨ a < 0 ∧ Int.natAbs a = - a` for later splitting.
   -/
   splitNatAbs : Bool := true
+  /--
+  Whenever `min a b` or `max a b` is found, rewrite in terms of the definition
+  `if a ≤ b ...`, for later case splitting.
+  -/
+  splitMinMax : Bool := true
 
 /--
 Allow elaboration of `OmegaConfig` arguments to tactics.
