@@ -712,7 +712,7 @@ theorem Perm.eraseP (f : α → Bool) {l₁ l₂ : List α}
     exact fun h h₁ h₂ => h h₂ h₁
 
 theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
-  induction l with simp [insertP, insertP.loop]
+  induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih =>
     split
     · exact Perm.refl ..

@@ -1686,4 +1686,4 @@ where
   /-- Inner loop for `insertP`. Tail recursive. -/
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
-  | b :: l, r => if p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
+  | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
