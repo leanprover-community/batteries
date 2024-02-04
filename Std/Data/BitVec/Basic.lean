@@ -232,7 +232,7 @@ SMT-Lib name: `bvult`.
 protected def ult (x y : BitVec n) : Bool := x.toFin < y.toFin
 instance : LT (BitVec n) where lt x y := x.toFin < y.toFin
 instance (x y : BitVec n) : Decidable (x < y) :=
-  inferInstanceAs (Decidable (x.toFin < y.toFin)) 
+  inferInstanceAs (Decidable (x.toFin < y.toFin))
 
 /--
 Unsigned less-than-or-equal-to for bit vectors.
