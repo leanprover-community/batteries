@@ -293,7 +293,7 @@ def isIndependentOf (L : List MVarId) (g : MVarId) : MetaM Bool := g.withContext
     -- If the goal is a subsingleton, it is independent of any other goals.
     return true
   -- Finally, we check if the goal `g` appears in the type of any of the goals `L`.
-  L.allM fun g' => do pure !((← getMVarDependencies g').contains g)
+  L.allM fun g' => do pure !((← getMVars (← g'.getType)).contains g)
 
 /-- Solve a goal by synthesizing an instance. -/
 -- FIXME: probably can just be `g.inferInstance` once leanprover/lean4#2054 is fixed
