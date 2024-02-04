@@ -2398,3 +2398,94 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
+    merge.loop s [] r t = reverseAux t r := by
+  rw [merge.loop]
+
+theorem merge_loop_nil_right (s : α → α → Bool) (l t) :
+    merge.loop s l [] t = reverseAux t l := by
+  cases l <;> rw [merge.loop]; intro; contradiction
+
+theorem merge_loop (s : α → α → Bool) (l r t) :
+    merge.loop s l r t = reverseAux t (merge s l r) := by
+  rw [merge]; generalize hn : l.length + r.length = n
+  induction n using Nat.recAux generalizing l r t with
+  | zero =>
+    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_left hn)]
+    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_right hn)]
+    rfl
+  | succ n ih =>
+    match l, r with
+    | [], r => simp only [merge_loop_nil_left]; rfl
+    | l, [] => simp only [merge_loop_nil_right]; rfl
+    | a::l, b::r =>
+      simp only [merge.loop, cond]
+      split
+      · have hn : l.length + (b :: r).length = n := by
+          apply Nat.add_right_cancel (m:=1)
+          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
+        rw [ih _ _ (a::t) hn, ih _ _ [] hn, ih _ _ [a] hn]; rfl
+      · have hn : (a::l).length + r.length = n := by
+          apply Nat.add_right_cancel (m:=1)
+          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
+        rw [ih _ _ (b::t) hn, ih _ _ [] hn, ih _ _ [b] hn]; rfl
+
+@[simp] theorem merge_nil (s : α → α → Bool) (l) : merge s l [] = l := merge_loop_nil_right ..
+
+@[simp] theorem nil_merge (s : α → α → Bool) (r) : merge s [] r = r := merge_loop_nil_left ..
+
+theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
+  merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
+  simp only [merge, merge.loop, cond]; split <;> (next hs => rw [hs, merge_loop]; rfl)
+
+@[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
+    merge s (a::l) (b::r) = a :: merge s l (b::r) := by
+  rw [cons_merge_cons, if_pos h]
+
+@[simp] theorem cons_merge_cons_neg (s : α → α → Bool) (l r) (h : ¬ s a b) :
+    merge s (a::l) (b::r) = b :: merge s (a::l) r := by
+  rw [cons_merge_cons, if_neg h]
+
+@[simp] theorem length_merge (s : α → α → Bool) (l r) :
+    (merge s l r).length = l.length + r.length := by
+  match l, r with
+  | [], r => simp
+  | l, [] => simp
+  | a::l, b::r =>
+    rw [cons_merge_cons]
+    split
+    · simp_arith [length_merge s l (b::r)]
+    · simp_arith [length_merge s (a::l) r]
+
+theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r := by
+  match l, r with
+  | l, [] => simp [h]
+  | a::l, b::r =>
+    match mem_cons.1 h with
+    | .inl rfl =>
+      rw [cons_merge_cons]
+      split
+      · exact mem_cons_self ..
+      · apply mem_cons_of_mem; exact mem_merge_left s h
+    | .inr h' =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_left s h'
+      · apply mem_cons_of_mem; exact mem_merge_left s h
+
+theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r := by
+  match l, r with
+  | [], r => simp [h]
+  | a::l, b::r =>
+    match mem_cons.1 h with
+    | .inl rfl =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_right s h
+      · exact mem_cons_self ..
+    | .inr h' =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_right s h
+      · apply mem_cons_of_mem; exact mem_merge_right s h'
