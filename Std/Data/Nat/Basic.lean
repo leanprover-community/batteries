@@ -128,7 +128,7 @@ where
       iter n next
     else
       guess
-termination_by iter guess => guess
+  termination_by guess
 
 /-!
 ### testBit

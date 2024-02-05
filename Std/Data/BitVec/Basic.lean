@@ -231,6 +231,8 @@ SMT-Lib name: `bvult`.
 -/
 protected def ult (x y : BitVec n) : Bool := x.toFin < y.toFin
 instance : LT (BitVec n) where lt x y := x.toFin < y.toFin
+instance (x y : BitVec n) : Decidable (x < y) :=
+  inferInstanceAs (Decidable (x.toFin < y.toFin))
 
 /--
 Unsigned less-than-or-equal-to for bit vectors.
@@ -240,6 +242,8 @@ SMT-Lib name: `bvule`.
 protected def ule (x y : BitVec n) : Bool := x.toFin ≤ y.toFin
 
 instance : LE (BitVec n) where le x y := x.toFin ≤ y.toFin
+instance (x y : BitVec n) : Decidable (x ≤ y) :=
+  inferInstanceAs (Decidable (x.toFin ≤ y.toFin))
 
 /--
 Signed less-than for bit vectors.
@@ -334,7 +338,13 @@ As a numeric operation, this is equivalent to `a / 2^s`, rounding down.
 
 SMT-Lib name: `bvlshr` except this operator uses a `Nat` shift value.
 -/
-def ushiftRight (a : BitVec n) (s : Nat) : BitVec n := .ofNat n (a.toNat >>> s)
+def ushiftRight (a : BitVec n) (s : Nat) : BitVec n :=
+  ⟨a.toNat >>> s, by
+  let ⟨a, lt⟩ := a
+  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.pow_two_pos s)]
+  rw [←Nat.mul_one a]
+  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.pow_two_pos s) (Nat.le_refl 1)⟩
+
 instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.ushiftRight⟩
 
 /--

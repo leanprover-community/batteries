@@ -308,7 +308,7 @@ protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p 
     have := hb.append hc; split <;> simp_all [All.balLeft]
   · simp_all [hl.append hr.2.1]
   · simp_all [hl.2.2.append hr]
-termination_by _ => l.size + r.size
+termination_by l.size + r.size
 
 /-- The `append` function preserves the ordering invariants. -/
 protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
@@ -341,7 +341,7 @@ protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
     exact ⟨(vx.trans_r lv).append bx, yc, hl.append lv vb hb, hc⟩
   · have ⟨xv, _, bv⟩ := lv; have ⟨ax, xb, ha, hb⟩ := hl
     exact ⟨ax, xb.append (xv.trans_l vr), ha, hb.append bv vr hr⟩
-termination_by _ => l.size + r.size
+termination_by l.size + r.size
 
 /-- The balance properties of the `append` function. -/
 protected theorem Balanced.append {l r : RBNode α}
@@ -380,7 +380,7 @@ protected theorem Balanced.append {l r : RBNode α}
   · have .red ha hb := hl; have IH := hb.append hr
     have .black hc hd := hr; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
     exact .redred (fun.) ha IH
-termination_by _ => l.size + r.size
+termination_by l.size + r.size
 
 /-! ## erase -/
 

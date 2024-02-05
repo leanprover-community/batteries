@@ -188,6 +188,11 @@ example (h : a ≤ 2 ∨ 2 < a) : True := by
   · guard_hyp ha1 : a ≤ 2; trivial
   · guard_hyp ha2 : 3 ≤ a; trivial
 
+example (a : Nat) : True := by
+  rcases h : a with _ | n
+  · guard_hyp h : a = 0; trivial
+  · guard_hyp h : a = n + 1; trivial
+
 inductive BaseType : Type where
   | one
 
