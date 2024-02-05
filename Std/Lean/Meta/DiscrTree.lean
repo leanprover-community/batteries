@@ -164,8 +164,7 @@ def mergePreservingDuplicates (t u : DiscrTree α) : DiscrTree α :=
 Inserts a new key into a discrimination tree,
 but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
 -/
-def insertIfSpecific [BEq α] (d : DiscrTree α)
-    (keys : Array DiscrTree.Key) (v : α) : DiscrTree α :=
+def insertIfSpecific [BEq α] (d : DiscrTree α) (keys : Array DiscrTree.Key) (v : α) : DiscrTree α :=
   if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
     d
   else

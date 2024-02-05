@@ -69,7 +69,6 @@ namespace DiscrTreeFinder
 
 open System (FilePath)
 
-
 /--
 Once we reach Mathlib, and have `cache` available,
 we may still want to load a precomputed cache for `exact?` from a `.olean` file.
@@ -88,7 +87,7 @@ def cachePath : IO FilePath := do
 private def addPath [BEq α] (config : WhnfCoreConfig) (tree : DiscrTree α) (tp : Expr) (v : α) :
     MetaM (DiscrTree α) := do
   let k ← DiscrTree.mkPath tp config
-  pure <| tree.insertIfSpecific k v config
+  pure <| tree.insertIfSpecific k v
 
 /-- Adds a constant with given name to tree. -/
 private def updateTree (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
@@ -137,7 +136,6 @@ def mkImportFinder (config : WhnfCoreConfig) (importTree : DiscrTree (Name × De
 end DiscrTreeFinder
 
 namespace IncDiscrTreeFinder
-
 
 /--
 The maximum number of constants an individual task performed.
