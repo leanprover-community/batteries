@@ -47,17 +47,19 @@ Implementation of `check_tactic_goal`
 -/
 @[tactic check_tactic_goal] private def evalCheckTacticGoal : Tactic := fun stx =>
   match stx with
-  | `(tactic| check_tactic_goal $exp) => closeMainGoalUsing (checkUnassigned := false) fun goalType => do
-    let u ← mkFreshLevelMVar
-    let type ← mkFreshExprMVar (.some (.sort u))
-    let val  ← mkFreshExprMVar (.some type)
-    let extType := mkAppN (.const ``CheckGoalType [u]) #[type, val]
-    if !(← isDefEq goalType extType) then
-      throwErrorAt stx "Goal{indentExpr goalType}\nis expected to match {indentExpr extType}"
-    let expTerm ← elabTermEnsuringType exp type
-    if !(← Meta.withReducible <| isDefEq val expTerm) then
-      throwErrorAt stx m!"Term reduces to{indentExpr val}\nbut is expected to reduce to {indentExpr expTerm}"
-    return mkAppN (.const ``CheckGoalType.intro [u]) #[type, val]
+  | `(tactic| check_tactic_goal $exp) =>
+    closeMainGoalUsing (checkUnassigned := false) fun goalType => do
+      let u ← mkFreshLevelMVar
+      let type ← mkFreshExprMVar (.some (.sort u))
+      let val  ← mkFreshExprMVar (.some type)
+      let extType := mkAppN (.const ``CheckGoalType [u]) #[type, val]
+      if !(← isDefEq goalType extType) then
+        throwErrorAt stx "Goal{indentExpr goalType}\nis expected to match {indentExpr extType}"
+      let expTerm ← elabTermEnsuringType exp type
+      if !(← Meta.withReducible <| isDefEq val expTerm) then
+        throwErrorAt stx
+          m!"Term reduces to{indentExpr val}\nbut is expected to reduce to {indentExpr expTerm}"
+      return mkAppN (.const ``CheckGoalType.intro [u]) #[type, val]
   | _ => throwErrorAt stx "check_goal syntax error"
 
 /--
