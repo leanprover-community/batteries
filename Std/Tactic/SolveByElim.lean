@@ -112,6 +112,10 @@ structure Config extends ApplyRulesConfig where
   /-- Enable backtracking search. -/
   backtracking : Bool := true
   maxDepth := 6
+  /-- Trying calling `intro` if no lemmas apply. -/
+  intro : Bool := true
+  /-- Try calling `constructor` if no lemmas apply. -/
+  constructor : Bool := true
 
 instance : Coe Config BacktrackConfig := ⟨(·.toApplyRulesConfig.toBacktrackConfig)⟩
 
@@ -178,6 +182,10 @@ def withDischarge (cfg : Config := {}) (discharge : MVarId → MetaM (Option (Li
 def introsAfter (cfg : Config := {}) : Config :=
   cfg.withDischarge fun g => do pure [(← g.intro1P).2]
 
+/-- Call `constructor` when no lemmas apply. -/
+def constructorAfter (cfg : Config := {}) : Config :=
+  cfg.withDischarge fun g => g.constructor {newGoals := .all}
+
 /-- Create or modify a `Config` which
 calls `synthInstance` on any goal for which no lemma applies. -/
 def synthInstanceAfter (cfg : Config := {}) : Config :=
@@ -212,6 +220,14 @@ def requireUsingAll (cfg : Config := {}) (use : List Expr) : Config :=
   cfg.testSolutions fun sols => do
     pure <| use.all fun e => sols.any fun s => e.occurs s
 
+/--
+Process the `intro` and `constructor` options by implementing the `discharger` tactic.
+-/
+def processOptions (cfg : Config) : Config :=
+  let cfg := if cfg.intro then introsAfter { cfg with intro := false } else cfg
+  let cfg := if cfg.constructor then constructorAfter { cfg with constructor := false } else cfg
+  cfg
+
 end Config
 
 /--
@@ -225,18 +241,12 @@ def elabContextLemmas (g : MVarId) (lemmas : List (TermElabM Expr)) (ctx : TermE
 /-- Returns the list of tactics corresponding to applying the available lemmas to the goal. -/
 def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId) : Nondet MetaM (List MVarId) := Nondet.squash fun _ => do
-  -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
-  -- This has better performance that the mathlib3 approach.
-  let g ← if cfg.symm then g.symmSaturate else pure g
   let es ← elabContextLemmas g lemmas ctx
   return applyTactics cfg.toApplyConfig cfg.transparency es g
 
 /-- Applies the first possible lemma to the goal. -/
 def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId) : MetaM (List MVarId) := do
--- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
--- This has better performance that the mathlib3 approach.
-let g ← if cfg.symm then g.symmSaturate else pure g
 let es ← elabContextLemmas g lemmas ctx
 applyFirst cfg.toApplyConfig cfg.transparency es g
 
@@ -258,20 +268,27 @@ Custom wrappers (e.g. `apply_assumption` and `apply_rules`) may modify this beha
 -/
 def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (goals : List MVarId) : MetaM (List MVarId) := do
+  let cfg := cfg.processOptions
+  -- We handle `cfg.symm` by saturating hypotheses of all goals using `symm`.
+  -- This has better performance that the mathlib3 approach.
+  let preprocessedGoals ← if cfg.symm then
+    goals.mapM fun g => g.symmSaturate
+  else
+    pure goals
   try
-    run goals
+    run cfg preprocessedGoals
   catch e => do
     -- Implementation note: as with `cfg.symm`, this is different from the mathlib3 approach,
     -- for (not as severe) performance reasons.
-    match goals, cfg.exfalso with
+    match preprocessedGoals, cfg.exfalso with
     | [g], true =>
       withTraceNode `Meta.Tactic.solveByElim
           (fun _ => return m!"⏮️ starting over using `exfalso`") do
-        run [← g.exfalso]
+        run cfg [← g.exfalso]
     | _, _ => throw e
 where
   /-- Run either backtracking search, or repeated application, on the list of goals. -/
-  run : List MVarId → MetaM (List MVarId) :=
+  run (cfg : Config) : List MVarId → MetaM (List MVarId) :=
     if cfg.backtracking then
       backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
     else

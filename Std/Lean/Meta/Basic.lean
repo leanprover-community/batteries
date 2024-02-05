@@ -407,7 +407,7 @@ where
         match ← observing? (f g) with
         | some gs' => go n true gs' (gs::stk) acc
         | none => go n p gs stk (acc.push g)
-termination_by _ n p gs stk _ => (n, stk, gs)
+termination_by n p gs stk _ => (n, stk, gs)
 
 /--
 `repeat' f` runs `f` on all of the goals to produce a new list of goals,

@@ -39,7 +39,7 @@ initialize extExtension :
     SimpleScopedEnvExtension ExtTheorem ExtTheorems ←
   registerSimpleScopedEnvExtension {
     addEntry := fun { tree, erased } thm =>
-      { tree := tree.insertCore thm.keys thm extExt.config, erased := erased.erase thm.declName }
+      { tree := tree.insertCore thm.keys thm, erased := erased.erase thm.declName }
     initial := {}
   }
 

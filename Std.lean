@@ -76,6 +76,7 @@ import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.SMap
+import Std.Lean.Syntax
 import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
@@ -90,6 +91,7 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
 import Std.Tactic.Change
+import Std.Tactic.Classical
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
