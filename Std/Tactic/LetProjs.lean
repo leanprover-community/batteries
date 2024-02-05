@@ -41,7 +41,7 @@ def letAllProjs (e : Expr) (h : Name) (g : MVarId) :
   let mut g := g
   for ⟨n, p⟩ in ← allProjs e do
     let n' := h.appendAfter ("_" ++ n.toString)
-    let ⟨h', g'⟩ ← g.«let» n' p
+    let ⟨h', g'⟩ ← g.note n' p
     g := g'
     r := r.push h'
   return (g, r)
