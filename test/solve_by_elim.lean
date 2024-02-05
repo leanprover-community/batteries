@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.RCases
 import Std.Tactic.SolveByElim
+import Std.Tactic.PermuteGoals
 import Std.Test.Internal.DummyLabelAttr
 
 set_option autoImplicit true
@@ -41,6 +42,7 @@ example {α β γ : Type} (_f : α → β) (g : β → γ) (b : β) : γ := by s
 example {α : Nat → Type} (f : (n : Nat) → α n → α (n+1)) (a : α 0) : α 4 := by
   solve_by_elim only [f, a]
 
+set_option linter.unusedVariables false in
 example (h₁ h₂ : False) : True := by
   -- 'It doesn't make sense to remove local hypotheses when using `only` without `*`.'
   fail_if_success solve_by_elim only [-h₁]
@@ -54,7 +56,7 @@ example (P₁ P₂ : α → Prop) (f : ∀ (a : α), P₁ a → P₂ a → β)
   solve_by_elim
 
 example {X : Type} (x : X) : x = x := by
-  fail_if_success solve_by_elim only -- needs the `rfl` lemma
+  fail_if_success solve_by_elim (config := {constructor := false}) only -- needs the `rfl` lemma
   solve_by_elim
 
 -- Needs to apply `rfl` twice, with different implicit arguments each time.
@@ -62,7 +64,7 @@ example {X : Type} (x : X) : x = x := by
 example {X : Type} (x y : X) (p : Prop) (h : x = x → y = y → p) : p := by solve_by_elim
 
 example : True := by
-  fail_if_success solve_by_elim only -- needs the `trivial` lemma
+  fail_if_success solve_by_elim (config := {constructor := false}) only -- needs the `trivial` lemma
   solve_by_elim
 
 -- Requires backtracking.
@@ -118,20 +120,18 @@ example : 6 = 6 ∧ [7] = [7] := by
   fconstructor
   solve_by_elim* only [@rfl _]
 
--- TODO: restore this test after #241 is merged
--- -- Test that `solve_by_elim*`, which works on multiple goals,
--- -- successfully uses the relevant local hypotheses for each goal.
--- example (f g : Nat → Prop) : (∃ k : Nat, f k) ∨ (∃ k : Nat, g k) ↔ ∃ k : Nat, f k ∨ g k := by
---   fconstructor
---   rintro (⟨n, fn⟩ | ⟨n, gn⟩)
---   pick_goal 3
---   rintro ⟨n, hf | hg⟩
---   solve_by_elim* (config := {maxDepth := 13}) [Or.inl, Or.inr, Exists.intro]
+-- Test that `solve_by_elim*`, which works on multiple goals,
+-- successfully uses the relevant local hypotheses for each goal.
+example (f g : Nat → Prop) : (∃ k : Nat, f k) ∨ (∃ k : Nat, g k) ↔ ∃ k : Nat, f k ∨ g k := by
+  fconstructor
+  rintro (⟨n, fn⟩ | ⟨n, gn⟩)
+  on_goal 3 => rintro ⟨n, hf | hg⟩
+  solve_by_elim* (config := {maxDepth := 13}) [Or.inl, Or.inr, Exists.intro]
 
 -- Test that `Config.intros` causes `solve_by_elim` to call `intro` on intermediate goals.
 example (P : Prop) : P → P := by
-  fail_if_success solve_by_elim
-  solve_by_elim (config := .intros)
+  fail_if_success solve_by_elim (config := {intros := false})
+  solve_by_elim
 
 -- This worked in mathlib3 without the `@`, but now goes into a loop.
 -- If someone wants to diagnose this, please do!
@@ -184,9 +184,15 @@ example : 5 ≤ 7 := by
 
 end issue1581
 
-example (x : Nat × Nat) : Nat := by
+example (x : P ∧ Q) : P := by
   fail_if_success solve_by_elim (config := {letProjs := false})
   solve_by_elim
 
-example (x : P ∧ Q) : P := by
+example (x : Nat × Nat) : Nat := by
+  fail_if_success solve_by_elim (config := {constructor := false, letProjs := false})
+  solve_by_elim (config := {constructor := false})
+
+example (x : (α × (β × γ))) : (α × β) × γ := by
+  rcases x with ⟨a, b, c⟩
+  fail_if_success solve_by_elim (config := {constructor := false})
   solve_by_elim

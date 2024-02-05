@@ -151,7 +151,7 @@ where
       let target := es.foldl reinsertAux target
       go (i+1) source target
     else target
-termination_by _ i source _ => source.size - i
+  termination_by source.size - i
 
 /--
 Inserts key-value pair `a, b` into the map.

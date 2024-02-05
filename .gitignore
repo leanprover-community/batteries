@@ -5,8 +5,3 @@
 /lakefile.olean
 # After v4.3.0-rc2 lake stores its files here:
 /.lake/
-# Note: because std has no dependencies, the lake-manifest contains no information
-# that is not regenerated automatically by lake, so this avoids conflicts when
-# lake decides to upgrade its manifest version.
-# We may revisit this if lake decides to store more useful information in the manifest.
-lake-manifest.json
