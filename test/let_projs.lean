@@ -61,5 +61,5 @@ class Bar extends Foo
 
 example [Bar] : True := by
   let_projs
-  have : Foo := ‹_›
+  fail_if_success have : Foo := ‹_›
   trivial
