@@ -1,19 +1,19 @@
-import Std.Tactic.LetProjs
+import Std.Tactic.HaveProjs
 import Std.Data.Rat.Basic
 
 open Lean.Elab.Tactic
 
--- We define a syntactic frontend for `Lean.MVarId.letProjs`, just for testing.
+-- We define a syntactic frontend for `Lean.MVarId.haveProjs`, just for testing.
 -- The tactic is only intended for use by other tactics,
 -- so we don't want a public syntactic frontend.
 
 /--
-`let_projs` adds let bindings for all projections of local hypotheses, recursively.
+`have_projs` adds let bindings for all projections of local hypotheses, recursively.
 
 For example in
 ```
 example (x : Nat × Nat × Nat) : True := by
-  let_projs
+  have_projs
   trivial
 ```
 we have
@@ -24,17 +24,17 @@ x_snd_fst: ℕ := x_snd.1
 x_snd_snd: ℕ := x_snd.2
 ```
 
-`let_projs h₁ h₂` only adds let bindings for projections of the specified hypotheses.
+`have_projs h₁ h₂` only adds let bindings for projections of the specified hypotheses.
 -/
-syntax (name := let_projs_syntax) "let_projs" (ppSpace colGt ident)* : tactic
+syntax (name := have_projs_syntax) "have_projs" (ppSpace colGt ident)* : tactic
 
-@[inherit_doc let_projs_syntax]
-elab_rules : tactic | `(tactic| let_projs $hs:ident*) => do
+@[inherit_doc have_projs_syntax]
+elab_rules : tactic | `(tactic| have_projs $hs:ident*) => do
   let hs ← getFVarIds hs
   if hs.isEmpty then
-    liftMetaTactic fun g => return [← g.letProjsAll]
+    liftMetaTactic fun g => return [← g.haveProjsAll]
   else
-    liftMetaTactic fun g => return [← g.letProjs hs]
+    liftMetaTactic fun g => return [← g.haveProjs hs]
 
 structure R where
   x : Nat
@@ -44,22 +44,24 @@ structure S extends R where
   z : Rat
 
 example (x : Nat × Nat × Nat) : True := by
-  let_projs
+  have_projs
   trivial
 
 example (s : S) (x : Nat × Nat) : Nat := by
-  let_projs x
+  have_projs x
   clear s -- check that we didn't create let bindings mentioning `s`
   exact x_fst
 
 example (s : S) (x : Nat × Nat) : Nat := by
-  let_projs
+  have_projs
   exact s_z_den + x_snd
+
+-- Check we don't add projections of instances.
 
 class Foo
 class Bar extends Foo
 
 example [Bar] : True := by
-  let_projs
+  have_projs
   fail_if_success have : Foo := ‹_›
   trivial
