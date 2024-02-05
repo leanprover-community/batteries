@@ -12,6 +12,8 @@ import Lean.Elab.Tactic.ElabTerm
 
 `let_projs` adds let bindings for all projections of local hypotheses, recursively.
 
+Does not
+
 It should not be used interactively,
 but may be useful as a preprocessing step for tactics such as `solve_by_elim`.
 -/
@@ -52,21 +54,33 @@ and then all projections of these results, and so on.
 
 (If `e` is not of the form `.fvar h`, does nothing.)
 -/
-partial def letAllProjsRec (e : Expr) (g : MVarId) : MetaM MVarId := g.withContext do
-  if let .fvar h := e then
-    let (g', new) ← letAllProjs e (← h.getDecl).userName g
-    new.foldlM (init := g') fun g h => letAllProjsRec (.fvar h) g
-  else
-    pure g
+partial def letAllProjsRec (e : Expr) (g : MVarId) : MetaM MVarId :=
+  g.withContext do
+    if let .fvar h := e then
+      let (g', new) ← letAllProjs e (← h.getDecl).userName g
+      new.foldlM (init := g') fun g h => letAllProjsRec (.fvar h) g
+    else
+      pure g
+
+end Std.Tactic.LetProjs
+
+open Std.Tactic.LetProjs
 
 /--
 `letProjs` adds let bindings for all projections of the specified hypotheses.
 -/
-def _root_.Lean.MVarId.letProjs (g : MVarId) (hs : Array FVarId) : MetaM MVarId := do
+def Lean.MVarId.letProjs (g : MVarId) (hs : Array FVarId) : MetaM MVarId := do
   hs.foldlM (init := g) fun g h => letAllProjsRec (.fvar h) g
 
 /--
 `letProjsAll` adds let bindings for all projections of all hypotheses.
+
+By default does not add projections for instances.
 -/
-def _root_.Lean.MVarId.letProjsAll (g : MVarId) : MetaM MVarId := g.withContext do
-  g.letProjs ((← getLocalHyps).map Expr.fvarId!)
+def Lean.MVarId.letProjsAll (g : MVarId) (instances := false) : MetaM MVarId := g.withContext do
+  let hyps := ((← getLocalHyps).map Expr.fvarId!)
+  let filtered ← if instances then
+    pure hyps
+  else
+    hyps.filterM fun h => do pure (← isClass? (← h.getType)).isNone
+  g.letProjs filtered
