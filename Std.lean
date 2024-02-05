@@ -100,10 +100,10 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.HaveProjs
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
-import Std.Tactic.LetProjs
 import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
