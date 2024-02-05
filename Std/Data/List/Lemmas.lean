@@ -360,20 +360,20 @@ theorem map_snd_zip :
 
 /-! ### folds, sum and prod -/
 
+open Std
+
 -- Allow moving an associative operation outside the left-fold.
-theorem foldl_assoc (op : α → α → α) [h : Std.Associative op] (a b : α) (l : List α) :
+theorem foldl_assoc (op : α → α → α) [h : Associative op] (a b : α) (l : List α) :
     foldl op (op a b) l = op a (foldl op b l) := by
   induction l generalizing a b with
   | nil => simp
   | cons c l ind => simp [ind, h.assoc]
 
-theorem foldr_assoc (op : α → α → α) [h : Std.Associative op] (a b : α) (l : List α) :
+theorem foldr_assoc (op : α → α → α) [h : Associative op] (a b : α) (l : List α) :
     foldr op (op a b) l = op (foldr op a l) b := by
   induction l generalizing a b with
   | nil => simp
   | cons c l ind => simp [ind, h.assoc]
-
-open Std
 
 @[simp]
 theorem fold_nil (op : α → α → α) [LeftIdentity op o] : fold op (@nil α) = o := rfl
@@ -416,7 +416,7 @@ theorem sum_nil [Add α] [OfNat α 0] : sum (@nil α) = 0 := rfl
 
 @[simp]
 theorem sum_cons [Add α] [h : OfNat α 0]
-    [ha : Associative (α := α) (· + ·)] [hl : Std.LawfulIdentity (α := α) (· + ·) 0]
+    [ha : Associative (α := α) (· + ·)] [hl : LawfulIdentity (α := α) (· + ·) 0]
     (a : α) (l : List α) : sum (a :: l) = a + sum l := by
   unfold sum
   simp [foldl_cons]
@@ -445,7 +445,7 @@ theorem prod_nil [Mul α] [OfNat α 1] : prod (@nil α) = 1 := rfl
 
 @[simp]
 theorem prod_cons [Mul α] [h : OfNat α 1]
-    [ha : Associative (α := α) (· * ·)] [hl : Std.LawfulIdentity (α := α) (· * ·) 1]
+    [ha : Associative (α := α) (· * ·)] [hl : LawfulIdentity (α := α) (· * ·) 1]
     (a : α) (l : List α) : prod (a :: l) = a * prod l := by
   unfold prod
   simp [foldl_cons]
