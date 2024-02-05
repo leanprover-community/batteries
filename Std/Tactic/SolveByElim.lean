@@ -6,7 +6,7 @@ Authors: Scott Morrison, David Renshaw
 import Std.Data.Sum.Basic
 import Std.Tactic.LabelAttr
 import Std.Tactic.Relation.Symm
-import Std.Tactic.LetProjs
+import Std.Tactic.HaveProjs
 import Std.Tactic.SolveByElim.Backtrack
 
 /-!
@@ -104,7 +104,7 @@ structure ApplyRulesConfig extends BacktrackConfig, ApplyConfig where
   as it is potentially expensive if there are a large number of hypotheses.
   However we turn it on in interactive user tactics.
   -/
-  letProjs : Bool := false
+  projs : Bool := false
   /-- Try proving the goal via `exfalso` if `solve_by_elim` otherwise fails.
   This is only used when operating on a single goal. -/
   exfalso : Bool := true
@@ -125,9 +125,9 @@ structure Config extends ApplyRulesConfig where
   /-- Try calling `constructor` if no lemmas apply. -/
   constructor : Bool := true
 
-/-- Version of `Config` with the default for `letProjs` set to `true`, for interactive use. -/
+/-- Version of `Config` with the default for `haveProjs` set to `true`, for interactive use. -/
 structure InteractiveConfig extends Config where
-  letProjs := true
+  projs := true
 
 instance : Coe Config BacktrackConfig := ⟨(·.toApplyRulesConfig.toBacktrackConfig)⟩
 
@@ -287,8 +287,8 @@ def solveByElim (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM
     goals.mapM fun g => g.symmSaturate
   else
     pure goals
-  let preprocessedGoals ← if cfg.letProjs then
-    symmGoals.mapM fun g => g.letProjsAll
+  let preprocessedGoals ← if cfg.projs then
+    symmGoals.mapM fun g => g.haveProjsAll
   else
     pure symmGoals
   try
@@ -458,7 +458,7 @@ By default, the assumptions passed to `apply` are the local context, `rfl`, `tri
 `congrFun` and `congrArg`.
 Further, by default `solve_by_elim` includes `@[symm]` lemmas applied to hypotheses,
 as well as projections of structure hypotheses.
-These can be configured use the `symm` and `letProjs` configuration options described below.
+These can be configured use the `symm` and `haveProjs` configuration options described below.
 
 The assumptions can be modified with similar syntax as for `simp`:
 * `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the given expressions.
@@ -475,7 +475,7 @@ makes other goals impossible.
 Optional arguments passed via a configuration argument as `solve_by_elim (config := { ... })`
 - `maxDepth`: number of attempts at discharging generated subgoals
 - `symm`: adds all hypotheses derived by `symm` (defaults to `true`).
-- `letProjs`: adds projections of all hypotheses (defaults to `true`).
+- `projs`: adds projections of all hypotheses (defaults to `true`).
 - `exfalso`: allow calling `exfalso` and trying again if `solve_by_elim` fails
   (defaults to `true`).
 - `transparency`: change the transparency mode when calling `apply`. Defaults to `.default`,
@@ -532,8 +532,8 @@ You can pass a further configuration via the syntax `apply_rules (config := {...
 The options supported are the same as for `solve_by_elim` (and include all the options for `apply`).
 
 By default `apply_assumption` will not use projections of hypothesis,
-although this can be enabled using `apply_rules (config := {letProjs := true})`.
-This is an implementation detail: with `letProjs := true` we add many new facts to the context,
+although this can be enabled using `apply_rules (config := {projs := true})`.
+This is an implementation detail: with `projs := true` we add many new facts to the context,
 and as `apply_assumption` is a non-terminal tactic these would pollute the user visible goal.
 -/
 syntax (name := applyAssumptionSyntax)
@@ -546,7 +546,6 @@ elab_rules : tactic |
   let cfg ← elabConfig (mkOptionalNode cfg)
   let cfg := { cfg with
     backtracking := false
-    letProjs := false
     maxDepth := 1 }
   replaceMainGoal (← solveByElim.processSyntax cfg o.isSome star add remove use [← getMainGoal])
 
@@ -568,8 +567,8 @@ The options supported are the same as for `solve_by_elim` (and include all the o
 `apply_rules` will try calling `symm` on hypotheses and `exfalso` on the goal as needed.
 This can be disabled with `apply_rules (config := {symm := false, exfalso := false})`.
 By default `apply_rules` will not use projections of hypothesis,
-although this can be enabled using `apply_rules (config := {letProjs := true})`
-This is an implementation detail: with `letProjs := true` we add many new facts to the context,
+although this can be enabled using `apply_rules (config := {projs := true})`
+This is an implementation detail: with `projs := true` we add many new facts to the context,
 and as `apply_assumption` is a non-terminal tactic these would pollute the user visible goal.
 
 You can bound the iteration depth using the syntax `apply_rules (config := {maxDepth := n})`.
@@ -585,5 +584,5 @@ elab_rules : tactic |
   let (star, add, remove) := parseArgs t
   let use := parseUsing use
   let cfg ← elabApplyRulesConfig (mkOptionalNode cfg)
-  let cfg := { cfg with backtracking := false, letProjs := false }
+  let cfg := { cfg with backtracking := false }
   liftMetaTactic fun g => solveByElim.processSyntax cfg o.isSome star add remove use [g]
