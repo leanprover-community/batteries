@@ -123,6 +123,12 @@ def filterMapVal (f : α → β → Option δ) : AssocList α β → AssocList �
 
 @[simp] theorem filterMapVal_nil : filterMapVal f nil = nil := rfl
 
+theorem filterMapVal_cons (f : α → β → Option γ) (k) (v) (t) :
+    filterMapVal f (.cons k v t) =
+      match f k v with
+      | none => filterMapVal f t
+      | some d => .cons k d (filterMapVal f t) := rfl
+
 @[simp] theorem toList_filterMapVal (f : α → β → Option δ) (l : AssocList α β) :
     (filterMapVal f l).toList =
       l.toList.filterMap (fun (a, b) => (f a b).map fun v => (a, v)) := by
