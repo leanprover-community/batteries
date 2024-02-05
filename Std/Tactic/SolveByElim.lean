@@ -98,8 +98,13 @@ structure ApplyRulesConfig extends BacktrackConfig, ApplyConfig where
   transparency : TransparencyMode := .default
   /-- Also use symmetric versions (via `@[symm]`) of local hypotheses. -/
   symm : Bool := true
-  /-- Include all projections of local hypotheses. -/
-  letProjs : Bool := true
+  /--
+  Include all projections of local hypotheses.
+  By default this is turned off,
+  as it is potentially expensive if there are a large number of hypotheses.
+  However we turn it on in interactive user tactics.
+  -/
+  letProjs : Bool := false
   /-- Try proving the goal via `exfalso` if `solve_by_elim` otherwise fails.
   This is only used when operating on a single goal. -/
   exfalso : Bool := true
@@ -120,12 +125,16 @@ structure Config extends ApplyRulesConfig where
   /-- Try calling `constructor` if no lemmas apply. -/
   constructor : Bool := true
 
+/-- Version of `Config` with the default for `letProjs` set to `true`, for interactive use. -/
+structure InteractiveConfig extends Config where
+  letProjs := true
+
 instance : Coe Config BacktrackConfig := ⟨(·.toApplyRulesConfig.toBacktrackConfig)⟩
 
 /--
-Allow elaboration of `Config` arguments to tactics.
+Allow elaboration of `InteractiveConfig` arguments to tactics.
 -/
-declare_config_elab elabConfig Config
+declare_config_elab elabConfig InteractiveConfig
 
 /--
 Allow elaboration of `ApplyRulesConfig` arguments to tactics.
@@ -498,7 +507,7 @@ elab_rules : tactic |
   else
     pure [← getMainGoal]
   let cfg ← elabConfig (mkOptionalNode cfg)
-  let [] ← solveByElim.processSyntax cfg o.isSome star add remove use goals |
+  let [] ← solveByElim.processSyntax cfg.toConfig o.isSome star add remove use goals |
     throwError "solve_by_elim unexpectedly returned subgoals"
   pure ()
 
