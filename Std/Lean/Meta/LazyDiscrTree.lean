@@ -749,13 +749,10 @@ private def getMatchCore (root : Lean.HashMap Key TrieIndex) (includeStar : Bool
   /- See note about "dep-arrow vs arrow" at `getMatchLoop` -/
   | .arrow f a =>
     getMatchRoot root .arrow #[f, a] (←getMatchRoot root .other #[] result)
-  | .const `Eq #[.star, .star, .star] =>
-    if includeStar then
-      let (k, args) := t.key #[]
-      getMatchRoot root k args result
-    else
-      pure result
   | _ =>
+    if not includeStar then
+      if let .const `Eq #[.star, .star, .star] := t then
+        return result
     let (k, args) := t.key #[]
     getMatchRoot root k args result
 
