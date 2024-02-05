@@ -25,6 +25,22 @@ elaborated additional parts of the tree.
 -/
 namespace Lean.Meta.LazyDiscrTree
 
+/--
+Term after being processed for looking for matches
+in discrimination tree.
+-/
+private inductive FlatTerm where
+  | const : Name → Array FlatTerm → FlatTerm
+  | fvar  : FVarId → Array FlatTerm → FlatTerm
+  | lit   : Literal → FlatTerm
+  | star  : FlatTerm
+  | other : FlatTerm
+  | arrow : FlatTerm → FlatTerm → FlatTerm
+  | proj  : Name → Nat → FlatTerm → Array FlatTerm → FlatTerm
+
+instance : Inhabited FlatTerm where
+  default := .star
+
 -- This namespace contains definitions copied from Lean.Meta.DiscrTree.
 namespace MatchClone
 
@@ -43,6 +59,16 @@ private inductive Key where
   deriving Inhabited, BEq, Repr
 
 namespace Key
+
+/-- Return number of arguments expressed -/
+private def argCount : Key → Nat
+| .const _ n => n
+| .fvar _ n => n
+| .lit _ => 0
+| .star => 0
+| .other => 0
+| .arrow => 2
+| .proj _ _ n => n + 1
 
 /-- Hash function -/
 protected def hash : Key → UInt64
@@ -217,6 +243,76 @@ private def elimLooseBVarsByBeta (e : Expr) : CoreM Expr :=
       else
         return .continue)
 
+private partial def getFlatTerm (config : WhnfCoreConfig) (isMatch root : Bool) (e : Expr) : MetaM FlatTerm := do
+  let e ← DiscrTree.reduceDT e root config
+  unless root do
+    if let .some v := toNatLit? e then
+      return (.lit v)
+  match e.getAppFn with
+  | .lit v         =>
+    return (.lit v)
+  | .const c _     =>
+    if (← getConfig).isDefEqStuckEx && e.hasExprMVar then
+      if (← isReducible c) then
+        /- `e` is a term `c ...` s.t. `c` is reducible and `e` has metavariables, but it was not
+            unfolded.  This can happen if the metavariables in `e` are "blocking" smart unfolding.
+           If `isDefEqStuckEx` is enabled, then we must throw the `isDefEqStuck` exception to
+           postpone TC resolution.
+           Here is an example. Suppose we have
+           ```
+            inductive Ty where
+              | bool | fn (a ty : Ty)
+
+
+            @[reducible] def Ty.interp : Ty → Type
+              | bool   => Bool
+              | fn a b => a.interp → b.interp
+           ```
+           and we are trying to synthesize `BEq (Ty.interp ?m)`
+        -/
+        Meta.throwIsDefEqStuck
+      else if let some matcherInfo := isMatcherAppCore? (← getEnv) e then
+        -- A matcher application is stuck if one of the discriminants has a metavariable
+        let args := e.getAppArgs
+        let start := matcherInfo.getFirstDiscrPos
+        for arg in args[ start : start + matcherInfo.numDiscrs ] do
+          if arg.hasExprMVar then
+            Meta.throwIsDefEqStuck
+      else if (← isRec c) then
+        /- Similar to the previous case, but for `match` and recursor applications. It may be stuck
+           (i.e., did not reduce) because of metavariables. -/
+        Meta.throwIsDefEqStuck
+    .const c <$> e.getAppRevArgs.mapM (getFlatTerm config isMatch false)
+  | .fvar fvarId   =>
+    let args := e.getAppRevArgs
+    .fvar fvarId <$> args.mapM (getFlatTerm config isMatch false)
+  | .mvar mvarId   =>
+    if isMatch then
+      return .other
+    else do
+      let ctx ← read
+      if ctx.config.isDefEqStuckEx then
+        return .star
+      else if (← mvarId.isReadOnlyOrSyntheticOpaque) then
+        return .other
+      else
+        return .star
+  | .proj s i a .. =>
+    let args := e.getAppRevArgs
+    .proj s i
+      <$> getFlatTerm config isMatch false a
+      <*> args.mapM (getFlatTerm config isMatch false)
+  | .forallE _ d b _ =>
+    -- See comment at elimLooseBVarsByBeta
+    let b ← if b.hasLooseBVars then elimLooseBVarsByBeta b else pure b
+    if b.hasLooseBVars then
+      pure .other
+    else
+      .arrow <$> getFlatTerm config isMatch false d
+             <*> getFlatTerm config isMatch false d
+  | .bvar _ | .letE _ _ _ _ _ | .lam _ _ _ _ | .mdata _ _ | .app _ _ | .sort _ =>
+    pure .other
+
 private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig) :
     MetaM (Key × Array Expr) := do
   let e ← DiscrTree.reduceDT e root config
@@ -257,11 +353,11 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
         /- Similar to the previous case, but for `match` and recursor applications. It may be stuck
            (i.e., did not reduce) because of metavariables. -/
         Meta.throwIsDefEqStuck
-    let nargs := e.getAppNumArgs
-    return (.const c nargs, e.getAppRevArgs)
+    let args := e.getAppRevArgs
+    return (.const c args.size, args)
   | .fvar fvarId   =>
-    let nargs := e.getAppNumArgs
-    return (.fvar fvarId nargs, e.getAppRevArgs)
+    let args := e.getAppRevArgs
+    return (.fvar fvarId args.size, args)
   | .mvar mvarId   =>
     if isMatch then
       return (.other, #[])
@@ -288,8 +384,8 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) (config : WhnfCoreConfig
       else
         return (.star, #[])
   | .proj s i a .. =>
-    let nargs := e.getAppNumArgs
-    return (.proj s i nargs, #[a] ++ e.getAppRevArgs)
+    let args := e.getAppRevArgs
+    return (.proj s i args.size, #[a] ++ args)
   | .forallE _ d b _ =>
     -- See comment at elimLooseBVarsByBeta
     let b ← if b.hasLooseBVars then elimLooseBVarsByBeta b else pure b
@@ -310,6 +406,19 @@ private abbrev getMatchKeyArgs (e : Expr) (root : Bool) (config : WhnfCoreConfig
 end MatchClone
 
 export MatchClone (Key Key.const)
+
+namespace FlatTerm
+
+private def key (todo: Array FlatTerm) : FlatTerm → Key × Array FlatTerm
+| .const nm a => (.const nm a.size, todo ++ a)
+| .fvar f a => (.fvar f a.size, todo ++ a)
+| .lit l => (.lit l, todo)
+| .star => (.star, todo)
+| .other => (.other, todo)
+| .arrow f a => (.arrow, todo |>.push f |>.push a)
+| .proj s i e a => (.proj s i a.size, (todo.push e) ++ a)
+
+end FlatTerm
 
 /--
 An unprocessed entry in the lazy discrimination tree.
@@ -468,9 +577,9 @@ private def mkPath (e : Expr) (config : WhnfCoreConfig) : MetaM (Array Key) := d
 private def MatchM α := ReaderT WhnfCoreConfig (StateRefT (Array (Trie α)) MetaM)
 
 private def runMatch (d : LazyDiscrTree α) (m : MatchM α β)  : MetaM (β × LazyDiscrTree α) := do
-  let { config := c, tries := a, roots := r } := d
-  let (result, a) ← withReducible $ (m.run c).run a
-  pure (result, { config := c, tries := a, roots := r})
+  let { config, tries, roots } := d
+  let (result, tries) ← withReducible $ (m.run config).run tries
+  pure (result, { config, tries, roots })
 
 private def setTrie (i : TrieIndex) (v : Trie α) : MatchM α Unit :=
   modify (·.set! i v)
@@ -570,7 +679,7 @@ private partial def MatchResult.toArray (mr : MatchResult α) : Array α :=
           else
             loop (a.back.foldl (init := r) (fun r a => r ++ a)) a.pop
 
-private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieIndex)
+private partial def getMatchLoop (todo : Array FlatTerm) (score : Nat) (c : TrieIndex)
     (result : MatchResult α) : MatchM α (MatchResult α) := do
   let (vs, star, cs) ← evalNode c
   if todo.isEmpty then
@@ -583,18 +692,17 @@ private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieInde
     /- We must always visit `Key.star` edges since they are wildcards.
         Thus, `todo` is not used linearly when there is `Key.star` edge
         and there is an edge for `k` and `k != Key.star`. -/
-    let visitStar (result : MatchResult α) : MatchM α (MatchResult α) :=
+    let visitStar (todo : Array FlatTerm) (result : MatchResult α) : MatchM α (MatchResult α) :=
       if star != 0 then
         getMatchLoop todo score star result
       else
         return result
-    let visitNonStar (k : Key) (args : Array Expr) (result : MatchResult α) :=
+    let visitNonStar (k : Key) (todo : Array FlatTerm) (result : MatchResult α) :=
       match cs.find? k with
       | none   => return result
-      | some c => getMatchLoop (todo ++ args) (score + 1) c result
-    let result ← visitStar result
-    let (k, args) ← MatchClone.getMatchKeyArgs e (root := false) (←read)
-    match k with
+      | some c => getMatchLoop todo (score + 1) c result
+    let result ← visitStar todo result
+    match e with
     | .star  => return result
     /-
       Note: dep-arrow vs arrow
@@ -603,18 +711,22 @@ private partial def getMatchLoop (todo : Array Expr) (score : Nat) (c : TrieInde
       A non-dependent arrow may be an instance of a dependent arrow (stored at `DiscrTree`).
       Thus, we also visit the `Key.other` child.
     -/
-    | .arrow => visitNonStar .other #[] (← visitNonStar k args result)
-    | _      => visitNonStar k args result
+    | .arrow f a =>
+      let todo' := todo |>.push f |>.push a
+      visitNonStar .other todo (← visitNonStar .arrow todo' result)
+    | _      =>
+      let (k, todo) := FlatTerm.key todo e
+      visitNonStar k todo result
 
-private def getStarResult (root : Lean.HashMap Key TrieIndex) : MatchM α (MatchResult α) :=
+private def addStarResult (root : Lean.HashMap Key TrieIndex) (result : MatchResult α) : MatchM α (MatchResult α) :=
   match root.find? .star with
   | none =>
-    pure <| {}
+    pure <| result
   | some idx => do
     let (vs, _) ← evalNode idx
-    pure <| ({} : MatchResult α).push 0 vs
+    pure <| result.push 0 vs
 
-private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Array Expr)
+private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Array FlatTerm)
     (result : MatchResult α) : MatchM α (MatchResult α) :=
   match r.find? k with
   | none => pure result
@@ -623,16 +735,28 @@ private def getMatchRoot (r : Lean.HashMap Key TrieIndex) (k : Key) (args : Arra
 /--
   Find values that match `e` in `root`.
 -/
-private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) :
+private def getMatchCore (root : Lean.HashMap Key TrieIndex) (includeStar : Bool) (e : Expr) :
     MatchM α (MatchResult α) := do
-  let result ← getStarResult root
-  let (k, args) ← MatchClone.getMatchKeyArgs e (root := true) (←read)
-  match k with
-  | .star  => return result
+  let result ←
+    if includeStar then
+      addStarResult root {}
+    else
+      pure {}
+  let t ← MatchClone.getFlatTerm (←read) (isMatch := true) (root := true) e
+  match t with
+  | .star  =>
+    pure result
   /- See note about "dep-arrow vs arrow" at `getMatchLoop` -/
-  | .arrow =>
-    getMatchRoot root k args (←getMatchRoot root .other #[] result)
+  | .arrow f a =>
+    getMatchRoot root .arrow #[f, a] (←getMatchRoot root .other #[] result)
+  | .const `Eq #[.star, .star, .star] =>
+    if includeStar then
+      let (k, args) := t.key #[]
+      getMatchRoot root k args result
+    else
+      pure result
   | _ =>
+    let (k, args) := t.key #[]
     getMatchRoot root k args result
 
 /--
@@ -641,8 +765,8 @@ private def getMatchCore (root : Lean.HashMap Key TrieIndex) (e : Expr) :
   The results are ordered so that the longest matches in terms of number of
   non-star keys are first with ties going to earlier operators first.
 -/
-def getMatch (d : LazyDiscrTree α) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
-  withReducible <| runMatch d <| (·.toArray) <$> getMatchCore d.roots e
+def getMatch (d : LazyDiscrTree α) (includeStar : Bool) (e : Expr) : MetaM (Array α × LazyDiscrTree α) :=
+  withReducible <| runMatch d <| (·.toArray) <$> getMatchCore d.roots includeStar e
 
 /--
 Structure for quickly initializing a lazy discrimination tree with a large number

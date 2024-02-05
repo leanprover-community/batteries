@@ -167,7 +167,7 @@ def mkImportFinder : IO CandidateFinder := do
     let importTree ← (←ref.get).getDM $ do
       profileitM Exception  "librarySearch launch" (←getOptions) $
         createImportedEnvironment (←getEnv) (constantsPerTask := constantsPerTask) addImport
-    let (imports, importTree) ← importTree.getMatch ty
+    let (imports, importTree) ← importTree.getMatch (includeStar := false) ty
     ref.set importTree
     pure imports
 
