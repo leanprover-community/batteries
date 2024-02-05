@@ -22,7 +22,7 @@ open Lean Meta
 Analogue of `Lean.getStructureFields`,
 but return an empty array rather than panicking if `structName` does not refer to a structure.
 -/
-def Lean.getStructureFields! (env : Environment) (structName : Name) : Array Name :=
+def Lean.getStructureFieldsD (env : Environment) (structName : Name) : Array Name :=
   if let some info := getStructureInfo? env structName then
     info.fieldNames
   else
@@ -38,8 +38,7 @@ and the projection applied to the original expression.
 def allProjs (e : Expr) : MetaM (Array (Name × Expr)) := do
   let (c, _) := (← inferType e).getAppFnArgs
   let env ← getEnv
-  unless isStructure env c do return #[]
-  (getStructureFields! env c).filterMapM fun f => return (f, ← mkProjection e f)
+  (getStructureFieldsD env c).filterMapM fun f => return (f, ← mkProjection e f)
 
 /--
 Add to the local context all projections of an expression,
