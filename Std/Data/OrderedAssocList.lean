@@ -299,8 +299,8 @@ def orderedMerge (cmp : α → α → Ordering) (f : α → Option β → Option
     | .gt => match (f a₂ none (some g)) with
       | some d => .cons a₂ d (orderedMerge cmp f (.cons a₁ b t₁) t₂)
       | none => orderedMerge cmp f (.cons a₁ b t₁) t₂
-termination_by _ l₁ l₂ => l₁.length + l₂.length
-decreasing_by simp_wf; omega
+termination_by l₁ l₂ => l₁.length + l₂.length
+decreasing_by all_goals simp_wf; omega
 
 theorem ltHeadKey?_orderedMerge [TransCmp cmp]
     (h₁ : ltHeadKey? cmp a l₁) (h₂ : ltHeadKey? cmp a l₂)
@@ -455,7 +455,7 @@ theorem orderedFind?_orderedInsert {cmp : α → α → Ordering} [AntisymmCmp c
           simp_all [OrientedCmp.cmp_eq_gt]
         · rfl
       · exact orderedInsert_keysOrdered.aux h h₁
-termination_by _ => l.length
+termination_by l.length
 
 theorem orderedFind?_orderedInsert_self {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
     (l : AssocList α β) (h : keysOrdered cmp l)  (a : α) (b : β) :
@@ -546,7 +546,7 @@ theorem orderedFind?_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cm
           (ltHeadKey?_of_headKey?_le_headKey? (ltHeadKey?_of_keysOrdered_cons h)
             (headKey?_le_headKey?_filterMapVal h.tail))
           (filterMapVal_keysOrdered h.tail)
-termination_by _ l _ => l.length
+termination_by l.length
 
 theorem filterMapVal_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
     {f : α → γ → Option δ} {g : α → β → Option γ}
