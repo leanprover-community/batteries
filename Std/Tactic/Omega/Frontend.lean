@@ -49,10 +49,6 @@ structure MetaProblem where
   /-- Facts which have already been processed; we keep these to avoid duplicates. -/
   processedFacts : HashSet Expr := ∅
 
-/-- Construct the term with type hint `(Eq.refl a : a = b)`-/
-def mkEqReflWithExpectedType (a b : Expr) : MetaM Expr := do
-  mkExpectedTypeHint (← mkEqRefl a) (← mkEq a b)
-
 /-- Construct the `rfl` proof that `lc.eval atoms = e`. -/
 def mkEvalRflProof (e : Expr) (lc : LinearCombo) : OmegaM Expr := do
   mkEqReflWithExpectedType e (mkApp2 (.const ``LinearCombo.eval []) (toExpr lc) (← atomsCoeffs))
@@ -126,7 +122,13 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
   | some i =>
     let lc := {const := i}
     return ⟨lc, mkEvalRflProof e lc, ∅⟩
-  | none => match e.getAppFnArgs with
+  | none =>
+    if e.isFVar then
+      if let some v ← e.fvarId!.getValue? then
+        rewrite e (← mkEqReflWithExpectedType e v)
+      else
+        mkAtomLinearCombo e
+    else match e.getAppFnArgs with
   | (``HAdd.hAdd, #[_, _, _, _, e₁, e₂]) => do
     let (l₁, prf₁, facts₁) ← asLinearCombo e₁
     let (l₂, prf₂, facts₂) ← asLinearCombo e₂
@@ -198,7 +200,15 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       rewrite e (mkApp2 (.const ``Int.max_def []) a b)
     else
       mkAtomLinearCombo e
-  | (``Nat.cast, #[_, _, n]) => match n.getAppFnArgs with
+  | (``Nat.cast, #[.const ``Int [], i, n]) =>
+    match n with
+    | .fvar h =>
+      if let some v ← h.getValue? then
+        rewrite e (← mkEqReflWithExpectedType e
+          (mkApp3 (.const ``Nat.cast [0]) (.const ``Int []) i v))
+      else
+        mkAtomLinearCombo e
+    | _ => match n.getAppFnArgs with
     | (``Nat.succ, #[n]) => rewrite e (.app (.const ``Int.ofNat_succ []) n)
     | (``HAdd.hAdd, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_add []) a b)
     | (``HMul.hMul, #[_, _, _, _, a, b]) => rewrite e (mkApp2 (.const ``Int.ofNat_mul []) a b)
