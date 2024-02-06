@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Mario Carneiro
 -/
 import Lean.PrettyPrinter.Delaborator.Builtins
-import Std.Lean.Delaborator
 open Lean Elab.Term Meta Std
 
 /-!

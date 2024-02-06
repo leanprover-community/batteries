@@ -5,7 +5,7 @@ Authors: Joe Hendrix, Scott Morrison
 -/
 
 import Lean.Meta.DiscrTree
-import Std.Data.Nat.Init.Lemmas
+import Std.Lean.Name
 
 /-!
 # Lazy Discrimination Tree
