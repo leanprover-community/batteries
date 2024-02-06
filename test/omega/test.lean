@@ -379,3 +379,5 @@ example (i j : Nat) (p : i ≥ j) : True := by
   let k := l
   have _ : i ≥ k := by omega
   trivial
+
+example (i : Fin 7) : (i : Nat) < 8 := by omega
