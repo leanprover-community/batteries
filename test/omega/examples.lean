@@ -2,7 +2,7 @@ import Std.Tactic.Omega.Frontend
 
 -- Turn on `trace.omega` to get detailed information about the processing of hypotheses,
 -- and the justification of the contradiction found.
-set_option trace.omega true
+-- set_option trace.omega true
 
 -- Inequalities
 example {x y : Nat} (_ : x + y > 10) (_ : x < 5) (_ : y < 5) : False := by omega

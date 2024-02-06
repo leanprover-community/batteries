@@ -27,6 +27,8 @@ The main functions are:
     `k * a ≤ x < k * a + k`
   * for each new atom of the form `((a - b : Nat) : Int)`, the fact:
     `b ≤ a ∧ ((a - b : Nat) : Int) = a - b ∨ a < b ∧ ((a - b : Nat) : Int) = 0`
+  * for each new atom of the form `min a b`, the facts `min a b ≤ a` and `min a b ≤ b`
+    (and similarly for `max`)
   * for each new atom of the form `if P then a else b`, the disjunction:
     `(P ∧ (if P then a else b) = a) ∨ (¬ P ∧ (if P then a else b) = b)`
 The `OmegaM` monad also keeps an internal cache of visited expressions
@@ -114,13 +116,17 @@ theorem ite_disjunction {α : Type u} {P : Prop} [Decidable P] {a b : α} :
     (P ∧ (if P then a else b) = a) ∨ (¬ P ∧ (if P then a else b) = b) := by
   by_cases P <;> simp_all
 
+/-- Construct the term with type hint `(Eq.refl a : a = b)`-/
+def mkEqReflWithExpectedType (a b : Expr) : MetaM Expr := do
+  mkExpectedTypeHint (← mkEqRefl a) (← mkEq a b)
+
 /--
 Analyzes a newly recorded atom,
 returning a collection of interesting facts about it that should be added to the context.
 -/
 def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
   match e.getAppFnArgs with
-  | (``Nat.cast, #[_, _, e']) =>
+  | (``Nat.cast, #[.const ``Int [], _, e']) =>
     -- Casts of natural numbers are non-negative.
     let mut r := {Expr.app (.const ``Int.ofNat_nonneg []) e'}
     match (← cfg).splitNatSub, e'.getAppFnArgs with
@@ -130,6 +136,8 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
       | _, (``Int.natAbs, #[x]) =>
         r := r.insert (mkApp (.const ``Int.le_natAbs []) x)
         r := r.insert (mkApp (.const ``Int.neg_le_natAbs []) x)
+      | _, (``Fin.val, #[n, i]) =>
+        r := r.insert (mkApp2 (.const ``Fin.isLt []) n i)
       | _, _ => pure ()
     return r
   | (``HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
