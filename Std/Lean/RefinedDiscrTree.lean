@@ -841,7 +841,7 @@ mutual
 
     match e with
     | .star mvarId?     => return if (← read).unify then .inr mvarId? else .inl failure
-    | .opaque           => findKey .opaque
+    | .opaque           => return .inl failure
     | .const c args     => findKey (.const c args.size) (matchArgs args)
     | .fvar fvarId args => findKey (.fvar fvarId args.size) (matchArgs args)
     | .bvar i args      => findKey (.bvar i args.size) (matchArgs args)
