@@ -200,7 +200,8 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
 @[simp] theorem toNat_xor {x y : BitVec v} :
     BitVec.toNat (x ^^^ y) = BitVec.toNat x ^^^ BitVec.toNat y := rfl
 
-@[simp] theorem getLsb_xor {x y : BitVec v} : (x ^^^ y).getLsb i = (xor (x.getLsb i) (y.getLsb i)) := by
+@[simp] theorem getLsb_xor {x y : BitVec v} :
+    (x ^^^ y).getLsb i = (xor (x.getLsb i) (y.getLsb i)) := by
   rw [← testBit_toNat, getLsb, getLsb]
   simp
 
@@ -281,7 +282,6 @@ theorem getMsb_rev (x : BitVec w) (i : Fin w) :
   simp only [← getLsb_rev]
   simp only [Fin.rev]
   congr
-  have := i.2 -- `omega` should do this itself
   omega
 
 /-! ### cons -/
