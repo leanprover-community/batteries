@@ -41,9 +41,25 @@ attribute [simp] isEmpty uget
 
 @[simp] theorem data_length {l : Array α} : l.data.length = l.size := rfl
 
+/-- # mem -/
+
 theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
 theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+
+/-- # set -/
+
+@[simp] theorem set!_is_setD : @set! = @setD := rfl
+
+@[simp] theorem size_setD (a : Array α) (index : Nat) (val : α) :
+  (Array.setD a index val).size = a.size := by
+  if h : index < a.size  then
+    simp [setD, h]
+  else
+    simp [setD, h]
+
+
+/-- # get lemmas -/
 
 theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
   erw [Array.mem_def, getElem_eq_data_get]
@@ -130,6 +146,22 @@ theorem get?_set (a : Array α) (i : Fin a.size) (j : Nat) (v : α) :
 theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v : α) :
     (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
   if h : i.1 = j then subst j; simp [*] else simp [*]
+
+@[simp] theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
+  (setD a i v)[i]'h = v := by
+  simp at h
+  simp only [setD, h, dite_true, get_set, ite_true]
+
+/--
+This lemma simplifies a normal form from `get!`
+-/
+@[simp] theorem getD_get?_setD (a : Array α) (i : Nat) (v d : α) :
+  Option.getD (setD a i v)[i]? d = if i < a.size then v else d := by
+  if h : i < a.size then
+    simp [setD, h, getElem?, get_set]
+  else
+    have p : i ≥ a.size := Nat.le_of_not_gt h
+    simp [setD, h, get?_len_le, p]
 
 theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
     (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' := by simp [set, List.set_set]
