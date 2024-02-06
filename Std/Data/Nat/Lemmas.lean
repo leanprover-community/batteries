@@ -1369,14 +1369,14 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
 
 instance decidableBallLT :
   ∀ (n : Nat) (P : ∀ k, k < n → Prop) [∀ n h, Decidable (P n h)], Decidable (∀ n h, P n h)
-| 0, _, _ => isTrue fun _ ↦ (by cases ·)
+| 0, _, _ => isTrue fun _ => (by cases ·)
 | n + 1, P, H =>
   match decidableBallLT n (P · <| lt_succ_of_lt ·) with
-  | isFalse h => isFalse (h fun _ _ ↦ · _ _)
+  | isFalse h => isFalse (h fun _ _ => · _ _)
   | isTrue h =>
     match H n Nat.le.refl with
     | isFalse p => isFalse (p <| · _ _)
-    | isTrue p => isTrue fun _ h' ↦ (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn ↦ hn ▸ p
+    | isTrue p => isTrue fun _ h' => (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn => hn ▸ p
 
 -- Prior to leanprover/lean4#2552 there was a performance trap
 -- depending on the implementation details in `decidableBallLT`.
@@ -1385,19 +1385,19 @@ instance decidableBallLT :
 example : ∀ m, m < 25 → ∀ n, n < 25 → ∀ c, c < 25 → m ^ 2 + n ^ 2 + c ^ 2 ≠ 7 := by decide
 
 instance decidableForallFin (P : Fin n → Prop) [DecidablePred P] : Decidable (∀ i, P i) :=
-  decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ ↦ m k h, fun m k h ↦ m ⟨k, h⟩⟩
+  decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ => m k h, fun m k h => m ⟨k, h⟩⟩
 
 instance decidableBallLe (n : Nat) (P : ∀ k, k ≤ n → Prop) [∀ n h, Decidable (P n h)] :
     Decidable (∀ n h, P n h) :=
   decidable_of_iff (∀ (k) (h : k < succ n), P k (le_of_lt_succ h))
-    ⟨fun m k h ↦ m k (lt_succ_of_le h), fun m k _ ↦ m k _⟩
+    ⟨fun m k h => m k (lt_succ_of_le h), fun m k _ => m k _⟩
 
-instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n ↦ ∃ m : Nat, m < n ∧ p m
+instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m < n ∧ p m
   | 0 => isFalse (by simp only [not_lt_zero, false_and, exists_const, not_false_eq_true])
   | n + 1 =>
     @decidable_of_decidable_of_iff _ _ (@instDecidableOr _ _ (decidableExistsLT (p := p) n) (h n))
       (by simp only [Nat.lt_succ_iff_lt_or_eq, or_and_right, exists_or, exists_eq_left])
 
-instance decidableExistsLe [DecidablePred p] : DecidablePred fun n ↦ ∃ m : Nat, m ≤ n ∧ p m :=
-  fun n ↦ decidable_of_iff (∃ m, m < n + 1 ∧ p m)
-    (exists_congr fun _ ↦ and_congr_left' Nat.lt_succ_iff)
+instance decidableExistsLe [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
+  fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
+    (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)
