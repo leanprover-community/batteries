@@ -514,9 +514,9 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List Expr)
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root then
-        if let d :: lambdas := lambdas then
-          return mkLams lambdas $ .const ``id #[← mkDTExprAux d false []]
+      -- if idx == 0 && args.isEmpty && !root then
+      --   if let d :: lambdas := lambdas then
+      --     return mkLams lambdas $ .const ``id #[← mkDTExprAux d false []]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.fvarInContext fvarId then
       return mkLams lambdas $ .fvar fvarId (← argDTExprs)
@@ -601,9 +601,9 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List Expr) : M DTEx
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root then
-        if let d :: lambdas := lambdas then
-          return mkLams lambdas $ .const ``id #[← mkDTExprsAux d false []]
+      -- if idx == 0 && args.isEmpty && !root then
+      --   if let d :: lambdas := lambdas then
+      --     return mkLams lambdas $ .const ``id #[← mkDTExprsAux d false []]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.unbvars.contains fvarId then
       failure
