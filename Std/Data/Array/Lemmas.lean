@@ -161,7 +161,7 @@ This lemma simplifies a normal form from `get!`
   if h : i < a.size then
     simp [setD, h, getElem?, get_set]
   else
-    have p : i ≥ a.size := by omega
+    have p : i ≥ a.size := Nat.le_of_not_gt h
     simp [setD, h, get?_len_le, p]
 
 theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
