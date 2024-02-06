@@ -367,3 +367,5 @@ example {a b : Nat} (_ : a + b = 9) : (min a b) % 2 + (max a b) % 2 = 1 := by
 
 example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
 example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega
+
+example (i : Fin 7) : (i : Nat) < 8 := by omega

@@ -130,6 +130,8 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
       | _, (``Int.natAbs, #[x]) =>
         r := r.insert (mkApp (.const ``Int.le_natAbs []) x)
         r := r.insert (mkApp (.const ``Int.neg_le_natAbs []) x)
+      | _, (``Fin.val, #[n, i]) =>
+        r := r.insert (mkApp2 (.const ``Fin.isLt []) n i)
       | _, _ => pure ()
     return r
   | (``HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
