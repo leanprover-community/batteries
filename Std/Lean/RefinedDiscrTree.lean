@@ -524,8 +524,6 @@ partial def mkDTExprAux (root : Bool) (e : Expr) : ReaderT Context MetaM DTExpr 
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       return .bvar idx (← argDTExprs)
-    if c.unbvars.contains fvarId then
-      failure
     if c.fvarInContext fvarId then
       return .fvar fvarId (← argDTExprs)
     else
@@ -625,9 +623,10 @@ partial def mkDTExprsAux (root : Bool) (e : Expr) : M DTExpr := do
     else
       return .star (some mvarId)
 
-  | .lam _ d b _ => checkCache fn fun _ => do
+  | .lam _ d b _ => do
     unless args.isEmpty do
       return .opaque
+    checkCache fn fun _ => do
     let b' ← mkBinderDTExprs d b
     if b' == .bvar 0 #[] && !root then
       return .const ``id #[← mkDTExprsAux false d]
@@ -655,6 +654,9 @@ where
 end MkDTExpr
 
 /-- Return the encoding of `e` as a `DTExpr`.
+
+Warning: to account for potential η-reductions of `e`, use `mkDTExprs` instead.
+
 The argument `fvarInContext` allows you to specify which free variables in `e` will still be
 in the context when the `RefinedDiscrTree` is being used for lookup.
 It should return true only if the `RefinedDiscrTree` is built and used locally. -/
