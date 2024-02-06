@@ -14,12 +14,8 @@ This implementation is based on the `DiscrTree` in Lean.
 I document here what features are not in the original:
 
 - The keys `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for
-  matching under lambda and forall binders. `Key.lam` has arity 1 and indexes the body.
-  `Key.forall` has arity 2 and indexes the domain and the body. The reason for not indexing the
-  domain of a lambda expression is that it is usually already determined, for example in
-  `∃ a : α, p`, which is `@Exists α fun a : α => p`, we don't want to index the domain `α` twice.
-  In a forall expression it is necessary to index the domain, because in an implication `p → q`
-  we need to index both `p` and `q`. `Key.bvar` works the same as `Key.fvar`, but stores the
+  matching under lambda and forall binders. `Key.lam` and `Key.forall` have arity 2, indexing
+  the binder domain and binder body. `Key.bvar` works the same as `Key.fvar`, but stores the
   De Bruijn index to identify it.
 
   For example, this allows for more specific matching with the left hand side of
@@ -203,7 +199,7 @@ def Key.arity : Key → Nat
   | .const _ a  => a
   | .fvar _ a   => a
   | .bvar _ a   => a
-  | .lam        => 1
+  | .lam        => 2
   | .forall     => 2
   | .proj _ _ a => 1 + a
   | _           => 0
@@ -292,8 +288,8 @@ inductive DTExpr where
   | lit : Literal → DTExpr
   /-- A sort. -/
   | sort : DTExpr
-  /-- A lambda function. It stores the body. -/
-  | lam : DTExpr → DTExpr
+  /-- A lambda function. It stores the domain and body. -/
+  | lam : DTExpr → DTExpr → DTExpr
   /-- A dependent arrow. It stores the domain and body. -/
   | forall : DTExpr → DTExpr → DTExpr
   /-- A projection. It stores the structure name, projection index, struct body and arguments. -/
@@ -309,7 +305,7 @@ private partial def DTExpr.format : DTExpr → Format
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
   | .sort                   => "Sort"
-  | .lam b                  => "λ " ++ DTExpr.format b
+  | .lam d b                => "λ " ++ DTExpr.format d ++ " => " ++ DTExpr.format b
   | .forall d b             => DTExpr.format d ++ " → " ++ DTExpr.format b
   | .proj _ i a as          => DTExpr.format a ++ "." ++ Std.format i ++ formatArgs as
 where
@@ -321,15 +317,13 @@ where
 instance : ToFormat DTExpr := ⟨DTExpr.format⟩
 
 /-- Return the size of the `DTExpr`. This is used for calculating the matching score when two
-expressions are equal.
-The score is not incremented at a lambda, which is so that the expressions
-`∀ x, p[x]` and `∃ x, p[x]` get the same size. -/
+expressions are equal. -/
 partial def DTExpr.size : DTExpr → Nat
 | .const _ args
 | .fvar _ args
 | .bvar _ args => args.foldl (init := 1) (· + ·.size)
-| .lam b => b.size
-| .forall d b => 1 + d.size + b.size
+| .lam    d b => d.size + b.size
+| .forall d b => d.size + b.size + 1
 | _ => 1
 
 
@@ -356,7 +350,7 @@ private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Fla
   | .bvar  i as => as.foldlM flattenAux (todo.push (.bvar i as.size))
   | .lit l => return todo.push (.lit l)
   | .sort  => return todo.push .sort
-  | .lam b => flattenAux (todo.push .lam) b
+  | .lam      d b => do flattenAux (← flattenAux (todo.push .lam   ) d) b
   | .«forall» d b => do flattenAux (← flattenAux (todo.push .forall) d) b
   | .proj n i e as => do as.foldlM flattenAux (← flattenAux (todo.push (.proj n i as.size)) e)
 
@@ -433,12 +427,12 @@ def isStarWithArg (arg : Expr) : Expr → Bool
   | _ => false
 
 private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
-  | .const  _ as   => as.any (hasLooseBVarsAux i)
+  | .const  _ as
   | .fvar   _ as   => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
   | .proj _ _ a as => a.hasLooseBVarsAux i || as.any (hasLooseBVarsAux i)
-  | .forall d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
-  | .lam b         => b.hasLooseBVarsAux (i+1)
+  | .forall d b
+  | .lam    d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
   | _              => false
 
 /-- Return `true` if `e` contains a loose bound variable. -/
@@ -481,14 +475,14 @@ where
     | .strictImplicit => return !(← isType arg)
     | .default => isProof arg
 
-private def mkLams (lambdas : List Expr) (e : DTExpr) : DTExpr :=
+private def mkLams (lambdas : List DTExpr) (e : DTExpr) : DTExpr :=
   match lambdas with
   | [] => e
-  | _ :: lambdas => mkLams lambdas (.lam e)
+  | d :: lambdas => mkLams lambdas (.lam d e)
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List Expr)
+partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
     : ReaderT Context MetaM DTExpr := do
   let e ← reduce e (← read).config
   Expr.withApp e fun fn args => do
@@ -514,9 +508,9 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List Expr)
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      -- if idx == 0 && args.isEmpty && !root then
-      --   if let d :: lambdas := lambdas then
-      --     return mkLams lambdas $ .const ``id #[← mkDTExprAux d false []]
+      if idx == 0 && args.isEmpty && !root then
+        if let d :: lambdas := lambdas then
+          return mkLams lambdas $ .const ``id #[d]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.fvarInContext fvarId then
       return mkLams lambdas $ .fvar fvarId (← argDTExprs)
@@ -531,7 +525,7 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List Expr)
   | .lam _ d b _ =>
     unless args.isEmpty do
       return .opaque
-    mkBinderDTExpr d b root (d :: lambdas)
+    mkBinderDTExpr d b root ((← mkDTExprAux d false []) :: lambdas)
 
   | .forallE _ d b _ =>
     return mkLams lambdas $ .forall (← mkDTExprAux d false []) (← mkBinderDTExpr d b false [])
@@ -543,7 +537,7 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List Expr)
 where
   /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return all encodings of `e` as a `DTExpr` -/
-  mkBinderDTExpr (domain e : Expr) (root : Bool) (lambdas : List Expr)
+  mkBinderDTExpr (domain e : Expr) (root : Bool) (lambdas : List DTExpr)
       : ReaderT Context MetaM DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
@@ -568,7 +562,7 @@ instance : MonadCache Expr DTExpr M where
 
 /-- Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List Expr) : M DTExpr := do
+partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DTExpr := do
   let e ← reduce e (← read).config
   (do
   let _ :: lambdas := lambdas | failure
@@ -601,9 +595,9 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List Expr) : M DTEx
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      -- if idx == 0 && args.isEmpty && !root then
-      --   if let d :: lambdas := lambdas then
-      --     return mkLams lambdas $ .const ``id #[← mkDTExprsAux d false []]
+      if idx == 0 && args.isEmpty && !root then
+        if let d :: lambdas := lambdas then
+          return mkLams lambdas $ .const ``id #[d]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.unbvars.contains fvarId then
       failure
@@ -620,7 +614,7 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List Expr) : M DTEx
   | .lam _ d b _ => do
     unless args.isEmpty do
       return .opaque
-    checkCache fn fun _ => mkBinderDTExprs d b root (d :: lambdas)
+    checkCache fn fun _ => do mkBinderDTExprs d b root ((← mkDTExprsAux d false []) :: lambdas)
 
   | .forallE _ d b _ =>
     return mkLams lambdas $ .forall (← mkDTExprsAux d false []) (← mkBinderDTExprs d b false [])
@@ -632,7 +626,7 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List Expr) : M DTEx
 where
   /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
   and then return all encodings of `e` as a `DTExpr` -/
-  mkBinderDTExprs (domain e : Expr) (root : Bool) (lambdas : List Expr) : M DTExpr := do
+  mkBinderDTExprs (domain e : Expr) (root : Bool) (lambdas : List DTExpr) : M DTExpr := do
     withLocalDeclD `_a domain fun fvar =>
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
         mkDTExprsAux (e.instantiate1 fvar) root lambdas
@@ -848,7 +842,7 @@ mutual
     | .bvar i args      => findKey (.bvar i args.size) (matchArgs args)
     | .lit v            => findKey (.lit v)
     | .sort             => findKey .sort
-    | .lam b            => findKey .lam (matchExpr b) 0
+    | .lam d b          => findKey .lam    (matchExpr d >=> matchExpr b) 0
     | .forall d b       => findKey .forall (matchExpr d >=> matchExpr b)
     | .proj n i a args  => findKey (.proj n i args.size) (matchExpr a >=> matchArgs args)
 
