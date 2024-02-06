@@ -447,7 +447,7 @@ private structure Context where
   The list index gives the De Bruijn index. -/
   bvars : List FVarId := []
   /-- Variables that come from a lambda that has been removed via η-reduction. -/
-  unbvars : List FVarId := []
+  forbiddenVars : List FVarId := []
   config : WhnfCoreConfig
   fvarInContext : FVarId → Bool
 
@@ -495,6 +495,8 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
     args.mapIdxM fun i arg =>
       argDTExpr arg ignores[i]!
 
+  /- TODO: when returning an `.opaque` or `.star` key,
+  don't index the lambdas if `e` contains their bound variables. -/
   match fn with
   | .const c _ =>
     unless root do
@@ -515,23 +517,26 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
     if c.fvarInContext fvarId then
       return mkLams lambdas $ .fvar fvarId (← argDTExprs)
     else
-      return .opaque /- note that `[λ,◾]` is equivalent to `[◾]` -/
+      return mkLams lambdas $ .opaque
   | .mvar mvarId =>
-    if (e matches .app ..) then
-      return .star none /- note that `[λ,*]` is equivalent to `[*]` for non-repeating stars. -/
-    else
+    /- When the mvarId has arguments, index it with `[*]` instead of `[λ,*]`,
+    because it could depend on the bound variables. As a result,
+    something indexed `[λ,*]` has that the `*` cannot depend on the λ-bound variables -/
+    if args.isEmpty then
       return mkLams lambdas $ .star (some mvarId)
+    else
+      return .star none
 
   | .lam _ d b _ =>
     unless args.isEmpty do
-      return .opaque
+      return mkLams lambdas $ .opaque
     mkBinderDTExpr d b root ((← mkDTExprAux d false []) :: lambdas)
 
   | .forallE _ d b _ =>
     return mkLams lambdas $ .forall (← mkDTExprAux d false []) (← mkBinderDTExpr d b false [])
   | .lit v      => return mkLams lambdas $ .lit v
   | .sort _     => return mkLams lambdas $ .sort
-  | .letE ..    => return .opaque
+  | .letE ..    => return mkLams lambdas $ .opaque
   | _           => unreachable!
 
 where
@@ -569,7 +574,7 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DT
   let .app f a := e | failure
   let bvar :: bvars := (← read).bvars | failure
   guard (isStarWithArg (.fvar bvar) a)
-  withReader (fun c => {c with bvars, unbvars := bvar :: c.unbvars}) do
+  withReader (fun c => {c with bvars, forbiddenVars := bvar :: c.forbiddenVars}) do
     mkDTExprsAux f root lambdas
   ) <|>
   Expr.withApp e fun fn args => do
@@ -599,28 +604,28 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DT
         if let d :: lambdas := lambdas then
           return mkLams lambdas $ .const ``id #[d]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
-    if c.unbvars.contains fvarId then
+    if c.forbiddenVars.contains fvarId then
       failure
     if c.fvarInContext fvarId then
       return mkLams lambdas $ .fvar fvarId (← argDTExprs)
     else
-      return .opaque /- note that `[λ,◾]` is equivalent to `[◾]` -/
+      return mkLams lambdas $ .opaque
   | .mvar mvarId =>
-    if (e matches .app ..) then
-      return .star none /- note that `[λ,*]` is equivalent to `[*]` for non-repeating stars. -/
-    else
+    if args.isEmpty then
       return mkLams lambdas $ .star (some mvarId)
+    else
+      return .star none
 
   | .lam _ d b _ => do
     unless args.isEmpty do
-      return .opaque
+      return mkLams lambdas $ .opaque
     checkCache fn fun _ => do mkBinderDTExprs d b root ((← mkDTExprsAux d false []) :: lambdas)
 
   | .forallE _ d b _ =>
     return mkLams lambdas $ .forall (← mkDTExprsAux d false []) (← mkBinderDTExprs d b false [])
   | .lit v      => return mkLams lambdas $ .lit v
   | .sort _     => return mkLams lambdas .sort
-  | .letE ..    => return .opaque
+  | .letE ..    => return mkLams lambdas $ .opaque
   | _           => unreachable!
 
 where
