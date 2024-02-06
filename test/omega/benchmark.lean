@@ -14,6 +14,12 @@ with one test removed (in which a test-for-failure succeeds with today's `omega`
 The benchmark consists of `lake build && hyperfine "lake env lean test/omega/benchmark.lean"`
 run on a freshly rebooted machine!
 
+2024-02-06 feat: omega uses Lean.HashMap instead of Std.Data.HashMap (#588)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.530 s ±  0.008 s    [User: 2.249 s, System: 0.276 s]
+  Range (min … max):    2.513 s …  2.542 s    10 runs
+
 2024-02-03 feat: omega handles min, max, if (#575)
 kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
 Benchmark 1: lake env lean test/omega/benchmark.lean
