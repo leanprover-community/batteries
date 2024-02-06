@@ -27,7 +27,8 @@ The main functions are:
     `k * a ≤ x < k * a + k`
   * for each new atom of the form `((a - b : Nat) : Int)`, the fact:
     `b ≤ a ∧ ((a - b : Nat) : Int) = a - b ∨ a < b ∧ ((a - b : Nat) : Int) = 0`
-
+  * for each new atom of the form `if P then a else b`, the disjunction:
+    `(P ∧ (if P then a else b) = a) ∨ (¬ P ∧ (if P then a else b) = b)`
 The `OmegaM` monad also keeps an internal cache of visited expressions
 (not necessarily atoms, but arbitrary subexpressions of one side of a linear relation)
 to reduce duplication.
@@ -81,16 +82,21 @@ def atomsList : OmegaM Expr := do mkListLit (.const ``Int []) (← atoms)
 def atomsCoeffs : OmegaM Expr := do
   return .app (.const ``Coeffs.ofList []) (← atomsList)
 
+/-- Run an `OmegaM` computation, restoring the state afterwards depending on the result. -/
+def commitWhen (t : OmegaM (α × Bool)) : OmegaM α := do
+  let state ← getThe State
+  let cache ← getThe Cache
+  let (a, r) ← t
+  if !r then do
+    modifyThe State fun _ => state
+    modifyThe Cache fun _ => cache
+  pure a
+
 /--
 Run an `OmegaM` computation, restoring the state afterwards.
 -/
-def savingState (t : OmegaM α) : OmegaM α := do
-  let state ← getThe State
-  let cache ← getThe Cache
-  let r ← t
-  modifyThe State fun _ => state
-  modifyThe Cache fun _ => cache
-  pure r
+def withoutModifyingState (t : OmegaM α) : OmegaM α :=
+  commitWhen (do pure (← t, false))
 
 /-- Wrapper around `Expr.nat?` that also allows `Nat.cast`. -/
 def natCast? (n : Expr) : Option Nat :=
@@ -104,6 +110,10 @@ def intCast? (n : Expr) : Option Int :=
   | (``Nat.cast, #[_, _, n]) => n.nat?
   | _ => n.int?
 
+theorem ite_disjunction {α : Type u} {P : Prop} [Decidable P] {a b : α} :
+    (P ∧ (if P then a else b) = a) ∨ (¬ P ∧ (if P then a else b) = b) := by
+  by_cases P <;> simp_all
+
 /--
 Analyzes a newly recorded atom,
 returning a collection of interesting facts about it that should be added to the context.
@@ -113,14 +123,14 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
   | (``Nat.cast, #[_, _, e']) =>
     -- Casts of natural numbers are non-negative.
     let mut r := {Expr.app (.const ``Int.ofNat_nonneg []) e'}
-    match (← cfg).splitNatSub, (← cfg).splitNatAbs, e'.getAppFnArgs with
-      | true, _, (``HSub.hSub, #[_, _, _, _, a, b]) =>
+    match (← cfg).splitNatSub, e'.getAppFnArgs with
+      | true, (``HSub.hSub, #[_, _, _, _, a, b]) =>
         -- `((a - b : Nat) : Int)` gives a dichotomy
         r := r.insert (mkApp2 (.const ``Int.ofNat_sub_dichotomy []) a b)
-      | _, true, (``Int.natAbs, #[x]) =>
-        -- `(a.natAbs : Int)` gives a dichotomy
-        r := r.insert (mkApp (.const ``Int.natAbs_dichotomy []) x)
-      | _, _,_ => pure ()
+      | _, (``Int.natAbs, #[x]) =>
+        r := r.insert (mkApp (.const ``Int.le_natAbs []) x)
+        r := r.insert (mkApp (.const ``Int.neg_le_natAbs []) x)
+      | _, _ => pure ()
     return r
   | (``HDiv.hDiv, #[_, _, _, _, x, k]) => match natCast? k with
     | none
@@ -133,6 +143,15 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
       pure <|
       {mkApp3 (.const ``Int.mul_ediv_self_le []) x k (← mkDecideProof ne_zero),
         mkApp3 (.const ``Int.lt_mul_ediv_self_add []) x k (← mkDecideProof pos)}
+  | (``Min.min, #[_, _, x, y]) =>
+    pure <| {mkApp2 (.const ``Int.min_le_left []) x y, mkApp2 (.const ``Int.min_le_right []) x y}
+  | (``Max.max, #[_, _, x, y]) =>
+    pure <| {mkApp2 (.const ``Int.le_max_left []) x y, mkApp2 (.const ``Int.le_max_right []) x y}
+  | (``ite, #[α, i, dec, t, e]) =>
+      if α == (.const ``Int []) then
+        pure <| {mkApp5 (.const ``ite_disjunction [0]) α i dec t e}
+      else
+        pure {}
   | _ => pure ∅
 
 /--
