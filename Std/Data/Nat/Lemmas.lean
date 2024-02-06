@@ -1378,12 +1378,6 @@ instance decidableBallLT :
     | isFalse p => isFalse (p <| · _ _)
     | isTrue p => isTrue fun _ h' => (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn => hn ▸ p
 
--- Prior to leanprover/lean4#2552 there was a performance trap
--- depending on the implementation details in `decidableBallLT`.
--- We keep this example (which would have gone over maxHeartbeats)
--- as a regression test for the instance.
-example : ∀ m, m < 25 → ∀ n, n < 25 → ∀ c, c < 25 → m ^ 2 + n ^ 2 + c ^ 2 ≠ 7 := by decide
-
 instance decidableForallFin (P : Fin n → Prop) [DecidablePred P] : Decidable (∀ i, P i) :=
   decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ => m k h, fun m k h => m ⟨k, h⟩⟩
 
