@@ -266,8 +266,8 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
 
 theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
 
-@[simp] theorem size_swap! (a : Array α) (i j) (hi : i < a.size) (hj : j < a.size) :
-    (a.swap! i j).size = a.size := by simp [swap!, hi, hj]
+@[simp] theorem size_swap! (a : Array α) (i j) :
+    (a.swap! i j).size = a.size := by unfold swap!; split <;> (try split) <;> simp [size_swap]
 
 @[simp] theorem size_reverse (a : Array α) : a.reverse.size = a.size := by
   let rec go (as : Array α) (i j) : (reverse.loop as i j).size = as.size := by
