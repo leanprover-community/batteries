@@ -8,7 +8,6 @@ import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.HaveI
-import Std.Tactic.Omega
 import Std.Tactic.Simpa
 import Std.Util.ProofWanted
 
