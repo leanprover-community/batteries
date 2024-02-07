@@ -13,12 +13,9 @@ namespace Std.BitVec
 theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
   | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
 
-theorem zero_is_unique (x : BitVec 0) : x = 0#0 := by
-  let ⟨i, lt⟩ := x
-  have p : i < 1 := lt
-  have q : i = 0 := by omega
-  simp [q]
-  rfl
+@[deprecated eq_nil]
+theorem zero_is_unique (x : BitVec 0) : x = 0#0 :=
+  eq_nil _
 
 @[simp] theorem val_toFin (x : BitVec w) : x.toFin.val = x.toNat := rfl
 
