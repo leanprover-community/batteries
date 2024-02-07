@@ -11,6 +11,7 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.Omega
+import Std.Util.ProofWanted
 
 namespace Std.BitVec
 
