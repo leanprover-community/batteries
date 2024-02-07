@@ -188,7 +188,8 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
 /-! ### allOnes -/
 
 private theorem allOnes_def :
-    allOnes v = .ofFin (⟨0, Nat.pow_two_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.pow_two_pos v)⟩) := by rfl
+    allOnes v = .ofFin (⟨0, Nat.pow_two_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.pow_two_pos v)⟩) := by
+  rfl
 
 @[simp] theorem toNat_allOnes : (allOnes v).toNat = 2^v - 1 := by
   simp only [allOnes_def, toNat_ofFin, Fin.coe_sub, Nat.zero_add]
