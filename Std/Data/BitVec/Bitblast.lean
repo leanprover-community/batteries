@@ -18,11 +18,8 @@ The module is named for the bit-blasting operation in an SMT solver that convert
 expressions into expressions about individual bits in each vector.
 
 ## Main results
-* `x + y : BitVec w` is equivalent to `adc x y false`.
+* `x + y : BitVec w` is `(adc x y false).2`.
 
-## Future work
-All other operations are to be PR'ed later and are already proved in
-https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/BitVec.lean.
 -/
 
 open Nat Bool
@@ -78,7 +75,7 @@ private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Na
 /-! ### Addition -/
 
 /-- carry w x y c returns true if the `w` carry bit is true when computing `x + y + c`. -/
-def carry (w x y : Nat) (c : Bool) : Bool :=  decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
+def carry (w x y : Nat) (c : Bool) : Bool := decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
 
 @[simp] theorem carry_zero : carry 0 x y c = c := by
   cases c <;> simp [carry, mod_one]
@@ -104,7 +101,7 @@ theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
   generalize testBit x w = xh
   generalize testBit y w = yh
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
-          simp [Nat.mul_comm 2 _, ←Nat.pow_succ ]
+          simp only [← Nat.pow_succ']
           exact adc_overflow_limit x y w c
   simp only [Nat.pow_succ]
   cases xh <;> cases yh <;> cases Decidable.em (x%2^w + (y%2^w + toNat c) ≥ 2 ^ w) with | _ pred =>
@@ -112,7 +109,7 @@ theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
           Nat.not_le_of_lt, Nat.add_succ, Nat.succ_le_succ,
           mul_le_add_right, le_add_right, sum_bnd, pred]
 
-theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
+theorem getLsb_add_add_bool {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     getLsb (x + y + zeroExtend w (ofBool c)) i =
       Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
   let ⟨x, x_lt⟩ := x
@@ -133,7 +130,12 @@ theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     ]
   simp [testBit_to_div_mod, carry, Nat.add_assoc]
 
-theorem adc_correct (x y : BitVec w) (c : Bool) :
+theorem getLsb_add {i : Nat} (i_lt : i < w) (x y : BitVec w) :
+    getLsb (x + y) i =
+      Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat false)) := by
+  simpa using getLsb_add_add_bool i_lt x y false
+
+theorem adc_spec (x y : BitVec w) (c : Bool) :
     adc x y c = (carry w x.toNat y.toNat c, x + y + zeroExtend w (ofBool c)) := by
   simp only [adc]
   apply iunfoldr_replace
@@ -153,7 +155,7 @@ theorem adc_correct (x y : BitVec w) (c : Bool) :
       cases y.getLsb i <;>
       cases carry i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
     case right =>
-      simp [adc_value_step lt]
+      simp [getLsb_add_add_bool lt]
 
-theorem add_as_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
-  simp [adc_correct]
+theorem add_eq_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
+  simp [adc_spec]
