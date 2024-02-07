@@ -298,8 +298,7 @@ Product of elements in a list.
 
 `List.prod [a, b, c] = ((1 * a) * b) * c`
 -/
-def prod {α} [Mul α] [One α] : List α → α := foldl (· * ·) 1
-
+def prod {α} [Mul α] [OfNat α 1] : List α → α := foldl (· * ·) 1
 
 /--
 `prodMap f l` returns `prod (map f l)` without creating an intermediate list.
