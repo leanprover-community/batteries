@@ -89,6 +89,7 @@ import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
+import Std.Tactic.CasesM
 import Std.Tactic.Change
 import Std.Tactic.Classical
 import Std.Tactic.CoeExt
