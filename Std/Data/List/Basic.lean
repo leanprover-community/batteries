@@ -280,7 +280,9 @@ def foldMap {α : Type _} {β : Type _} (op : β → β → β) {o : β} [Std.Le
   l.foldl (init := o) (fun b a => op b (f a))
 
 /--
-Sum of elements in list.
+Sum of elements in a list.
+
+`List.sum [a, b, c] = ((0 + a) + b) + c`
 -/
 def sum [Add α] [OfNat α 0] (l : List α) : α :=
   l.foldl (init := 0) (· + ·)
@@ -292,10 +294,12 @@ def sumMap {α : Type u} {β : Type v} [Add β] [OfNat β 0] (f : α → β) (l 
   l.foldl (init := 0) (· + f ·)
 
 /--
-Product of elements in list.
+Product of elements in a list.
+
+`List.prod [a, b, c] = ((1 * a) * b) * c`
 -/
-def prod [Mul α] [OfNat α 1] (l : List α) : α :=
-  l.foldl (init := 1) (· * ·)
+def prod {α} [Mul α] [One α] : List α → α := foldl (· * ·) 1
+
 
 /--
 `prodMap f l` returns `prod (map f l)` without creating an intermediate list.

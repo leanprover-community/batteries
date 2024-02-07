@@ -375,26 +375,22 @@ theorem foldr_assoc (op : α → α → α) [h : Associative op] (a b : α) (l :
   | nil => simp
   | cons c l ind => simp [ind, h.assoc]
 
-@[simp]
-theorem fold_nil (op : α → α → α) [LeftIdentity op o] : fold op (@nil α) = o := rfl
+@[simp] theorem fold_nil (op : α → α → α) [LeftIdentity op o] : fold op (@nil α) = o := rfl
 
-@[simp]
-theorem fold_cons (op : α → α → α) [ha : Associative op] [hl : LawfulIdentity op o]
+@[simp] theorem fold_cons (op : α → α → α) [ha : Associative op] [hl : LawfulIdentity op o]
     (a : α) (l : List α) : fold op (a :: l) = op a (fold op l) := by
   unfold fold
   simp [foldl_cons]
   conv => lhs; rw [hl.left_id, ←hl.right_id a]
   simp [foldl_assoc, hl.left_id]
 
-@[simp]
-theorem fold_append (op : α → α → α) [ha : Associative op] [hl : LawfulIdentity op o]
+@[simp] theorem fold_append (op : α → α → α) [ha : Associative op] [hl : LawfulIdentity op o]
     (k l : List α) : fold op (k ++ l) = op (fold op k) (fold op l) := by
   induction k with
   | nil => simp [hl.left_id]
   | cons a k ind => simp [ind, ha.assoc]
 
-@[simp]
-theorem foldMap_is_fold_map (op : β → β → β) [LeftIdentity op o] (f : α → β) (l : List α) :
+@[simp] theorem foldMap_is_fold_map (op : β → β → β) [LeftIdentity op o] (f : α → β) (l : List α) :
     foldMap op f l = fold op (map f l) := by
   unfold foldMap fold
   generalize (o : β) = init
@@ -402,8 +398,7 @@ theorem foldMap_is_fold_map (op : β → β → β) [LeftIdentity op o] (f : α 
   | nil => rfl
   | cons a l ind => simp [ind]
 
-@[simp]
-theorem sumMap_is_sum_map [Add β] [OfNat β 0] (f : α → β) (l : List α) :
+@[simp] theorem sumMap_is_sum_map [Add β] [OfNat β 0] (f : α → β) (l : List α) :
     sumMap f l = sum (map f l) := by
   unfold sumMap sum
   generalize (0 : β) = init
@@ -411,11 +406,9 @@ theorem sumMap_is_sum_map [Add β] [OfNat β 0] (f : α → β) (l : List α) :
   | nil => rfl
   | cons a l ind => simp [ind]
 
-@[simp]
-theorem sum_nil [Add α] [OfNat α 0] : sum (@nil α) = 0 := rfl
+@[simp] theorem sum_nil [Add α] [OfNat α 0] : sum (@nil α) = 0 := rfl
 
-@[simp]
-theorem sum_cons [Add α] [h : OfNat α 0]
+@[simp] theorem sum_cons [Add α] [h : OfNat α 0]
     [ha : Associative (α := α) (· + ·)] [hl : LawfulIdentity (α := α) (· + ·) 0]
     (a : α) (l : List α) : sum (a :: l) = a + sum l := by
   unfold sum
@@ -423,16 +416,14 @@ theorem sum_cons [Add α] [h : OfNat α 0]
   conv => lhs; rw [hl.left_id, ←hl.right_id a]
   simp [foldl_assoc, hl.left_id]
 
-@[simp]
-theorem sum_append [Add α] [OfNat α 0]
-    [ha : Associative (α := α) (· + ·)]  [hl : LawfulIdentity (α := α) (· + ·) 0]
+@[simp] theorem sum_append [Add α] [OfNat α 0]
+    [ha : Associative (α := α) (· + ·)] [hl : LawfulIdentity (α := α) (· + ·) 0]
     (k l : List α) : sum (k ++ l) = sum k + sum l := by
   induction k with
   | nil => simp [hl.left_id]
   | cons a k ind => simp [ind, ha.assoc]
 
-@[simp]
-theorem prodMap_is_prod_map [Mul β] [OfNat β 1] (f : α → β) (l : List α) :
+@[simp] theorem prodMap_is_prod_map [Mul β] [OfNat β 1] (f : α → β) (l : List α) :
     prodMap f l = prod (map f l) := by
   unfold prodMap prod
   generalize (1 : β) = init
@@ -440,11 +431,9 @@ theorem prodMap_is_prod_map [Mul β] [OfNat β 1] (f : α → β) (l : List α) 
   | nil => rfl
   | cons a l ind => simp [ind]
 
-@[simp]
-theorem prod_nil [Mul α] [OfNat α 1] : prod (@nil α) = 1 := rfl
+@[simp] theorem prod_nil [Mul α] [OfNat α 1] : prod (@nil α) = 1 := rfl
 
-@[simp]
-theorem prod_cons [Mul α] [h : OfNat α 1]
+@[simp] theorem prod_cons [Mul α] [h : OfNat α 1]
     [ha : Associative (α := α) (· * ·)] [hl : LawfulIdentity (α := α) (· * ·) 1]
     (a : α) (l : List α) : prod (a :: l) = a * prod l := by
   unfold prod
@@ -452,8 +441,7 @@ theorem prod_cons [Mul α] [h : OfNat α 1]
   conv => lhs; rw [hl.left_id, ←hl.right_id a]
   simp [foldl_assoc, hl.left_id]
 
-@[simp]
-theorem prod_append [Mul α] [OfNat α 1]
+@[simp] theorem prod_append [Mul α] [OfNat α 1]
     [ha : Associative (α := α) (· * ·)]  [hl : LawfulIdentity (α := α) (· * ·) 1]
     (k l : List α) : prod (k ++ l) = prod k * prod l := by
   induction k with
@@ -462,8 +450,7 @@ theorem prod_append [Mul α] [OfNat α 1]
 
 /-! ### join -/
 
-@[simp]
-theorem length_join (l : List (List α)) : length (join l) = sum (map length l) := by
+@[simp] theorem length_join (l : List (List α)) : length (join l) = sum (map length l) := by
   induction l with
   | nil => simp
   | cons a l ind => simp [ind]
