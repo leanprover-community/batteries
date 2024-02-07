@@ -273,7 +273,8 @@ theorem testBit_two_pow_sub_succ (h₂ : x < 2 ^ n) (i : Nat) :
     testBit (2^n - (x + 1)) i = (decide (i < n) && ! testBit x i) := by
   induction i generalizing n x with
   | zero =>
-    simp only [testBit_zero_is_mod2, zero_eq, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true']
+    simp only [testBit_zero_is_mod2, zero_eq, Bool.and_eq_true, decide_eq_true_eq,
+      Bool.not_eq_true']
     match n with
     | 0 => simp
     | n+1 =>
