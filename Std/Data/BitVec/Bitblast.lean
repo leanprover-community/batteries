@@ -96,6 +96,7 @@ theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toN
   exact Nat.mod_lt _ (Nat.pow_two_pos i)
 
 theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
+    --
     decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry w x y c).toNat ≥ 2) := by
   simp only [carry, mod_two_pow_succ _ w, decide_eq_decide]
   generalize testBit x w = xh
