@@ -177,6 +177,40 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   unfold getLsb
   simp [Nat.lt_succ]
 
+/-! ### allOnes -/
+
+private theorem allOnes_def :
+    allOnes v = .ofFin (⟨0, Nat.pow_two_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.pow_two_pos v)⟩) := by rfl
+
+-- theorem testBit_two_pow_sub_one : ∀ {i v}, i < v → Nat.testBit (2 ^ v - 1) i = true
+--   | i, (v + 1), h => by
+--     rw [Nat.pow_succ', Nat.two_mul, Nat.add_sub_assoc Nat.one_le_two_pow]
+--     if h : i = v then
+--       subst h
+--       simp [Nat.testBit_two_pow_add_eq]
+--     else
+--       replace h : i < v := by omega
+--       rw [Nat.testBit_two_pow_add_gt h, testBit_two_pow_sub_one h]
+
+@[simp] theorem toNat_allOnes : (allOnes v).toNat = 2^v - 1 := by
+  simp only [allOnes_def, toNat_ofFin, Fin.coe_sub, Nat.zero_add]
+  by_cases h : v = 0
+  · subst h
+    rfl
+  · rw [Nat.mod_eq_of_lt (Nat.one_lt_two_pow h), Nat.mod_eq_of_lt]
+    exact Nat.pred_lt_self (Nat.pow_two_pos v)
+
+@[simp] theorem getLsb_allOnes : (allOnes v).getLsb i = decide (i < v) := by
+  simp only [allOnes_def, getLsb_ofFin, Fin.coe_sub, Nat.zero_add, Nat.testBit_mod_two_pow]
+  if h : i < v then
+    simp only [h, decide_True, Bool.true_and]
+    match i, v, h with
+    | i, (v + 1), h =>
+      rw [Nat.mod_eq_of_lt Nat.one_lt_two_pow_succ, Nat.testBit_two_pow_sub_one]
+      simp [h]
+  else
+    simp [h]
+
 /-! ### or -/
 
 @[simp] theorem toNat_or {x y : BitVec v} :
@@ -186,7 +220,7 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   rw [← testBit_toNat, getLsb, getLsb]
   simp
 
-/-! ### or -/
+/-! ### and -/
 
 @[simp] theorem toNat_and {x y : BitVec v} :
     BitVec.toNat (x &&& y) = BitVec.toNat x &&& BitVec.toNat y := rfl
@@ -205,7 +239,7 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   rw [← testBit_toNat, getLsb, getLsb]
   simp
 
-/-! ### not-/
+/-! ### not -/
 
 @[simp] proof_wanted toNat_not {x : BitVec v} : (~~~x).toNat = 2^v - x.toNat
 

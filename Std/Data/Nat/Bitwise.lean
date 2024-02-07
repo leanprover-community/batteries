@@ -13,19 +13,26 @@ It is primarily intended to support the bitvector library.
 import Std.Data.Bool
 import Std.Data.Nat.Lemmas
 import Std.Tactic.RCases
+import Std.Tactic.Omega
 
 namespace Nat
 
 @[local simp]
 private theorem one_div_two : 1/2 = 0 := by trivial
 
-private theorem two_pow_succ_sub_one_div : (2 ^ (n+1) - 1) / 2 = 2^n - 1 := by
+private theorem two_pow_succ_sub_one_div_two : (2 ^ (n+1) - 1) / 2 = 2^n - 1 := by
   apply fun x => (Nat.sub_eq_of_eq_add x).symm
   apply Eq.trans _
   apply Nat.add_mul_div_left _ _ Nat.zero_lt_two
   rw [Nat.mul_one, ←Nat.sub_add_comm (Nat.pow_two_pos _)]
   rw [ Nat.add_sub_assoc Nat.zero_lt_two ]
-  simp [Nat.pow_succ, Nat.mul_comm _ 2, Nat.mul_add_div]
+  simp [Nat.pow_succ', Nat.mul_add_div]
+
+private theorem two_pow_succ_sub_succ_div_two : (2 ^ (n+1) - (x + 1)) / 2 = 2^n - (x/2 + 1) := by
+  apply fun x => (Nat.sub_eq_of_eq_add x).symm
+  apply Eq.trans _
+  apply Nat.add_mul_div_left _ _ Nat.zero_lt_two
+  sorry
 
 private theorem two_mul_sub_one {n : Nat} (n_pos : n > 0) : (2*n - 1) % 2 = 1 := by
   match n with
@@ -262,19 +269,43 @@ private theorem testBit_one_zero : testBit 1 0 = true := by trivial
 @[simp] theorem testBit_two_pow_sub_one (n i : Nat) : testBit (2^n-1) i = decide (i < n) := by
   induction i generalizing n with
   | zero =>
-    simp [testBit_zero_is_mod2]
+    simp only [zero_eq, testBit_zero_is_mod2, decide_eq_decide]
     match n with
     | 0 =>
       simp
     | n+1 =>
-      simp [Nat.pow_succ, Nat.mul_comm _ 2, two_mul_sub_one, Nat.pow_two_pos]
+      simp [Nat.pow_succ', two_mul_sub_one, Nat.pow_two_pos]
   | succ i hyp =>
-    simp [testBit_succ_div2]
+    simp only [testBit_succ_div2]
     match n with
     | 0 =>
       simp [pow_zero]
     | n+1 =>
-      simp [two_pow_succ_sub_one_div, hyp, Nat.succ_lt_succ_iff]
+      simp [two_pow_succ_sub_one_div_two, hyp, Nat.succ_lt_succ_iff]
+
+theorem testBit_two_pow_sub_succ (n x i : Nat) (h₂ : x < 2 ^ n) :
+    testBit (2^n - (x + 1)) i = (decide (i < n) && ! testBit x i) := by
+  induction i generalizing n x with
+  | zero =>
+    simp only [testBit_zero_is_mod2, zero_eq, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true']
+    match n with
+    | 0 => simp
+    | n+1 =>
+      simp only [zero_lt_succ, decide_True, Bool.true_and]
+      rw [Nat.pow_succ']
+      sorry -- easy
+  | succ i ih =>
+    simp only [testBit_succ_div2]
+    match n with
+    | 0 =>
+      simp only [pow_zero, succ_sub_succ_eq_sub, Nat.zero_sub, Nat.zero_div, zero_testBit]
+      rw [decide_eq_false] <;> simp
+    | n+1 =>
+      rw [Nat.two_pow_succ_sub_succ_div_two, ih]
+      · simp [Nat.succ_lt_succ_iff]
+      · rw [Nat.pow_succ'] at h₂
+        omega
+
 
 theorem testBit_bool_to_nat (b : Bool) (i : Nat) :
     testBit (Bool.toNat b) i = (decide (i = 0) && b) := by

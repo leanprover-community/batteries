@@ -311,10 +311,7 @@ Bitwise NOT for bit vectors.
 SMT-Lib name: `bvnot`.
 -/
 protected def not (x : BitVec n) : BitVec n :=
-  let ones := .ofFin ⟨(1 <<< n).pred,
-    n.one_shiftLeft.symm ▸
-      (Nat.pred_lt <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ <| Nat.zero_lt_succ _)⟩;
-  ones ^^^ x
+  allOnes n ^^^ x
 instance : Complement (BitVec w) := ⟨.not⟩
 
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
