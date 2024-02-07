@@ -1,4 +1,5 @@
 import Std.Tactic.ByCases
+import Std.Tactic.SeqFocus
 import Std.Data.List.Lemmas
 import Std.Data.List.Init.Attach
 
