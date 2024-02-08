@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Logic
 import Std.Data.RBMap.Basic
+import Std.Tactic.SeqFocus
 
 /-!
 # Lemmas for Red-black trees

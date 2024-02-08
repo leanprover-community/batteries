@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Tactic.NoMatch
 import Std.Tactic.HaveI
+import Std.Tactic.ByCases
 import Std.Classes.LawfulMonad
 import Std.Data.Fin.Init.Lemmas
 import Std.Data.Nat.Init.Lemmas
