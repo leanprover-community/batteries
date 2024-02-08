@@ -420,15 +420,13 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
     | none   => return e
 
 /-- Reduction prodecure for the `RefinedDiscrTree` indexing that introduces lambda binders. -/
-@[specialize] partial def lambdaTelescopeReduce [Monad m] [MonadLiftT MetaM m] [MonadControlT MetaM m]
+partial def lambdaTelescopeReduce [Monad m] [MonadLiftT MetaM m] [MonadControlT MetaM m]
     [Inhabited (m α)] (e : Expr) (fvars : List FVarId) (config : WhnfCoreConfig)
-    (cache : Expr → (Unit → m α) → m α) (k : Expr → List FVarId → m α) : m α := do
-  let e ← reduce e config
-  match e with
+    (k : Expr → List FVarId → m α) : m α := do
+  match ← reduce e config with
   | .lam n d b bi =>
-    cache e fun _ =>
-      withLocalDecl n bi d fun fvar =>
-        lambdaTelescopeReduce b (fvar.fvarId! :: fvars) config cache k
+    withLocalDecl n bi d fun fvar =>
+      lambdaTelescopeReduce b (fvar.fvarId! :: fvars) config k
   | e => k e fvars
 
 
@@ -494,19 +492,17 @@ where
     | .strictImplicit => return !(← isType arg)
     | .default => isProof arg
 
-private def mkLams (lambdas : List α) (e : DTExpr) : DTExpr :=
-  match lambdas with
-  | [] => e
-  | _ :: lambdas => mkLams lambdas (.lam e)
+private def withLams [Monad m] [MonadWithReader Context m]
+    (lambdas : List FVarId) (k : m DTExpr) : m DTExpr := do
+    let e ← withReader (fun c => { c with bvars := lambdas ++ c.bvars }) k
+    return lambdas.foldl (fun _ => ·.lam) e
+
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
 partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr := do
-  lambdaTelescopeReduce e [] (← read).config (fun _ x => x ()) fun e lambdas =>
+  lambdaTelescopeReduce e [] (← read).config fun e lambdas =>
   e.withApp fun fn args => do
-  /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. Or if we can turn into `id`. -/
-
-  withReader (fun c => { c with bvars := lambdas ++ c.bvars }) do
 
   let argDTExpr (arg : Expr) (ignore : Bool) : ReaderT Context MetaM DTExpr :=
     if ignore then pure (.star none) else mkDTExprAux arg false
@@ -520,45 +516,47 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
   don't index the lambdas if `e` contains their bound variables. -/
   match fn with
   | .const n _ =>
-    unless root do
-      if let some v := toNatLit? e then
-        return mkLams lambdas $ .lit v
-    return mkLams lambdas $ .const n (← argDTExprs)
+    withLams lambdas do
+      unless root do
+        /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. -/
+        if let some v := toNatLit? e then
+          return .lit v
+      return .const n (← argDTExprs)
   | .proj s i a =>
-    let a ← argDTExpr a (isClass (← getEnv) s)
-    return mkLams lambdas $ .proj s i a (← argDTExprs)
+    withLams lambdas do
+      let a ← argDTExpr a (isClass (← getEnv) s)
+      return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
-    let c ← read
-    if let some idx := c.bvars.findIdx? (· == fvarId) then
-      /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root && !lambdas.isEmpty then
-        let α ← withReader (fun c => { c with bvars := c.bvars.tail! }) do
-          mkDTExprAux (← fvarId.getType) root
-        return mkLams lambdas $ .const ``id #[α]
-      return mkLams lambdas $ .bvar idx (← argDTExprs)
-    if c.fvarInContext fvarId then
-      return mkLams lambdas $ .fvar fvarId (← argDTExprs)
-    else
-      return mkLams lambdas $ .opaque
+    /- we index `fun x => x` as `id` when not at the root -/
+    if let fvarId' :: lambdas' := lambdas then
+      if fvarId' == fvarId && args.isEmpty && !root then
+        return ← withLams lambdas' do return .const ``id #[← mkDTExprAux (← fvarId.getType) false]
+    withLams lambdas do
+      if let some idx := (← read).bvars.findIdx? (· == fvarId) then
+        return .bvar idx (← argDTExprs)
+      if (← read).fvarInContext fvarId then
+        return .fvar fvarId (← argDTExprs)
+      else
+        return .opaque
   | .mvar mvarId =>
     /- When the mvarId has arguments, index it with `[*]` instead of `[λ,*]`,
     because it could depend on the bound variables. As a result,
     something indexed `[λ,*]` has that the `*` cannot depend on the λ-bound variables -/
     if args.isEmpty then
-      return mkLams lambdas $ .star (some mvarId)
+      withLams lambdas do return .star (some mvarId)
     else
       return .star none
 
   | .forallE n d b bi =>
-    let d' ← mkDTExprAux d false
-    let b' ← withLocalDecl n bi d fun fvar =>
-      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprAux b false
-    return mkLams lambdas $ .forall d' b'
-  | .lit v      => return mkLams lambdas $ .lit v
-  | .sort _     => return mkLams lambdas $ .sort
-  | .letE ..    => return mkLams lambdas $ .opaque
-  | .lam ..     => return mkLams lambdas $ .opaque
+    withLams lambdas do
+      let d' ← mkDTExprAux d false
+      let b' ← withLocalDecl n bi d fun fvar =>
+        withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do mkDTExprAux b false
+      return .forall d' b'
+  | .lit v      => withLams lambdas do return .lit v
+  | .sort _     => withLams lambdas do return .sort
+  | .letE ..    => withLams lambdas do return .opaque
+  | .lam ..     => withLams lambdas do return .opaque
   | _           => unreachable!
 
 
@@ -580,27 +578,37 @@ instance : MonadCache Expr DTExpr M where
       modify (·.insert e e')
 
 /-- Return all pairs of body, bound variables that could possibly appear due to η-reduction -/
-@[specialize] def etaPossibilities (e : Expr) (lambdas : List FVarId) (k : Expr → List FVarId → M α) : M α :=
+def etaPossibilities (e : Expr) (lambdas : List FVarId) (k : Expr → List FVarId → M α) : M α :=
   k e lambdas
   <|> do
   match e, lambdas with
   | .app f a, fvarId :: lambdas =>
     if isStarWithArg (.fvar fvarId) a then
-      withReader (fun c => {c with forbiddenVars := fvarId :: c.forbiddenVars }) do
+      withReader (fun c => { c with forbiddenVars := fvarId :: c.forbiddenVars }) do
         etaPossibilities f lambdas k
     else
       failure
   | _, _ => failure
 
+/-- run `etaPossibilities`, and cache the result if there are multiple possibilities. -/
+def cacheEtaPossibilities (e original : Expr) (lambdas : List FVarId)
+  (k : Expr → List FVarId → M DTExpr) : M DTExpr :=
+  match e, lambdas with
+  | .app _ a, fvarId :: _ =>
+    if isStarWithArg (.fvar fvarId) a then
+      checkCache original fun _ =>
+        etaPossibilities e lambdas k
+    else
+      k e lambdas
+  | _, _ => k e lambdas
+
+
 /-- Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprsAux (e : Expr) (root : Bool) : M DTExpr := do
-  lambdaTelescopeReduce e [] (← read).config checkCache fun e lambdas =>
-  etaPossibilities e lambdas fun e lambdas =>
+partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
+  lambdaTelescopeReduce original [] (← read).config fun e lambdas =>
+  cacheEtaPossibilities e original lambdas fun e lambdas =>
   e.withApp fun fn args => do
-  /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. Or if we can turn into `id`. -/
-
-  withReader (fun c => { c with bvars := lambdas ++ c.bvars }) do
 
   let argDTExpr (arg : Expr) (ignore : Bool) : M DTExpr :=
     if ignore then pure (.star none) else mkDTExprsAux arg false
@@ -612,45 +620,45 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) : M DTExpr := do
 
   match fn with
   | .const n _ =>
-    unless root do
-      if let some v := toNatLit? e then
-        return mkLams lambdas $ .lit v
-    return mkLams lambdas $ .const n (← argDTExprs)
+    withLams lambdas do
+      unless root do
+        if let some v := toNatLit? e then
+          return .lit v
+      return .const n (← argDTExprs)
   | .proj s i a =>
+    withLams lambdas do
     let a ← argDTExpr a (isClass (← getEnv) s)
-    return mkLams lambdas $ .proj s i a (← argDTExprs)
+    return .proj s i a (← argDTExprs)
   | .fvar fvarId =>
-    let c ← read
-    if let some idx := c.bvars.findIdx? (· == fvarId) then
-      /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root && !lambdas.isEmpty then
-        let α ← withReader (fun c => { c with bvars := c.bvars.tail! }) do
-          mkDTExprsAux (← fvarId.getType) root
-        return mkLams lambdas $ .const ``id #[α]
-
-      return mkLams lambdas $ .bvar idx (← argDTExprs)
-    if c.forbiddenVars.contains fvarId then
-      failure
-    if c.fvarInContext fvarId then
-      return mkLams lambdas $ .fvar fvarId (← argDTExprs)
-    else
-      return mkLams lambdas $ .opaque
+    /- we index `fun x => x` as `id` when not at the root -/
+    if let fvarId' :: lambdas' := lambdas then
+      if fvarId' == fvarId && args.isEmpty && !root then
+        return ← withLams lambdas' do return .const ``id #[← mkDTExprsAux (← fvarId.getType) false]
+    withLams lambdas do
+      let c ← read
+      if let some idx := c.bvars.findIdx? (· == fvarId) then
+        return .bvar idx (← argDTExprs)
+      guard !(c.forbiddenVars.contains fvarId)
+      if c.fvarInContext fvarId then
+        return .fvar fvarId (← argDTExprs)
+      else
+        return .opaque
   | .mvar mvarId =>
     if args.isEmpty then
-      return mkLams lambdas $ .star (some mvarId)
+      withLams lambdas do return .star (some mvarId)
     else
       return .star none
 
   | .forallE n d b bi =>
+    withLams lambdas do
     let d' ← mkDTExprsAux d false
     let b' ← withLocalDecl n bi d fun fvar =>
-      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprsAux b false
-    return mkLams lambdas $ .forall d' b'
-  | .lit v      => return mkLams lambdas $ .lit v
-  | .sort _     => return mkLams lambdas $ .sort
-  | .letE ..    => return mkLams lambdas $ .opaque
-  | .lam ..     => return mkLams lambdas $ .opaque
+      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do mkDTExprsAux b false
+    return .forall d' b'
+  | .lit v      => withLams lambdas do return .lit v
+  | .sort _     => withLams lambdas do return .sort
+  | .letE ..    => withLams lambdas do return .opaque
+  | .lam ..     => withLams lambdas do return .opaque
   | _           => unreachable!
 end MkDTExpr
 
