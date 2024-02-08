@@ -38,9 +38,17 @@ In the following:
 instance : Monad Id := _
 ```
 
-invoking the hole code action "Generate a skeleton for the structure under construction." produces:
+invoking the hole code action "Generate a (minimal) skeleton for the structure under construction."
+produces:
 ```lean
-instance : Monad Id := {
+instance : Monad Id where
+  pure := _
+  bind := _
+```
+
+and invoking "Generate a (maximal) skeleton for the structure under construction." produces:
+```lean
+instance : Monad Id where
   map := _
   mapConst := _
   pure := _
@@ -48,22 +56,24 @@ instance : Monad Id := {
   seqLeft := _
   seqRight := _
   bind := _
-}
 ```
 -/
-@[hole_code_action] partial def instanceStub : HoleCodeAction := fun params snap ctx info => do
+@[hole_code_action] partial def instanceStub : HoleCodeAction := fun _ snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
   unless isStructure snap.env name do return #[]
-  let eager := {
-    title := "Generate a skeleton for the structure under construction."
-    kind? := "quickfix"
-    isPreferred? := true
-  }
   let doc ← readDoc
-  pure #[{
-    eager
-    lazy? := some do
+  let fields := collectFields snap.env name #[] []
+  let only := !fields.any fun (_, auto) => auto
+  let mkAutofix minimal :=
+    let eager := {
+      title := s!"\
+        Generate a {if only then "" else if minimal then "(minimal) " else "(maximal) "}\
+        skeleton for the structure under construction."
+      kind? := "quickfix"
+      isPreferred? := minimal
+    }
+    let lazy? := some do
       let useWhere := do
         let _ :: (stx, _) :: _ ← findStack? snap.stx info.stx | none
         guard (stx.getKind == ``Parser.Command.declValSimple)
@@ -73,7 +83,8 @@ instance : Monad Id := {
       let indent := "\n".pushn ' ' indent
       let mut str := if useWhere.isSome then "where" else "{"
       let mut first := useWhere.isNone && isStart
-      for field in collectFields snap.env name #[] do
+      for (field, auto) in fields do
+        if minimal && auto then continue
         if first then
           str := str ++ " "
           first := false
@@ -92,14 +103,25 @@ instance : Monad Id := {
           newText := str
         }
       }
-  }]
+    { eager, lazy? }
+  pure <| if only then #[mkAutofix true] else #[mkAutofix true, mkAutofix false]
 where
+  /-- Returns true if this field is an autoParam or optParam, or if it is given an optional value
+  in a child struct. -/
+  isAutofillable (env : Environment) (fieldInfo : StructureFieldInfo) (stack : List Name) : Bool :=
+    fieldInfo.autoParam?.isSome || env.contains (mkDefaultFnOfProjFn fieldInfo.projFn)
+      || stack.any fun struct => env.contains (mkDefaultFnOfProjFn (struct ++ fieldInfo.fieldName))
+
   /-- Returns the fields of a structure, unfolding parent structures. -/
-  collectFields (env : Environment) (structName : Name) (fields : Array Name) : Array Name :=
+  collectFields (env : Environment) (structName : Name)
+      (fields : Array (Name × Bool)) (stack : List Name) : Array (Name × Bool) :=
     (getStructureFields env structName).foldl (init := fields) fun fields field =>
-      match isSubobjectField? env structName field with
-      | some substructName => collectFields env substructName fields
-      | none => fields.push field
+      if let some fieldInfo := getFieldInfo? env structName field then
+        if let some substructName := fieldInfo.subobject? then
+          collectFields env substructName fields (structName :: stack)
+        else
+          fields.push (field, isAutofillable env fieldInfo stack)
+      else fields
 
 /-- Returns the explicit arguments given a type. -/
 def getExplicitArgs : Expr → Array Name → Array Name

@@ -10,10 +10,13 @@ all: build test
 build:
 	lake build
 
-test: $(addsuffix .run, $(TESTS))
+# Find all .lean files in test and subdirectories, replace .lean with .run
+TESTS := $(shell find test -type f -name '*.lean' | sed 's/\.lean$$/.run/')
 
-test/%.run: build
-	lake env lean test/$*
+test: $(TESTS)
+
+%.run: build
+	lake env lean $(@:.run=.lean)
 
 lint: build
 	./.lake/build/bin/runLinter
