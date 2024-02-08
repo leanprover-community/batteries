@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Classes.Order
-import Std.Data.Int.Lemmas
+import Std.Data.Int.Order
 import Std.Data.Prod.Lex
 import Std.Tactic.LeftRight
+import Std.Data.Fin.Lemmas
 
 /-!
 # Lemmas about `Nat`, `Int` and `Fin` needed internally by `omega`.
@@ -66,6 +67,21 @@ theorem ofNat_congr {a b : Nat} (h : a = b) : (a : Int) = (b : Int) := congrArg 
 theorem ofNat_sub_sub {a b c : Nat} : ((a - b - c : Nat) : Int) = ((a - (b + c) : Nat) : Int) :=
   congrArg _ (Nat.sub_sub _ _ _)
 
+theorem ofNat_min (a b : Nat) : ((min a b : Nat) : Int) = min (a : Int) (b : Int) := by
+  simp only [Nat.min_def, Int.min_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_max (a b : Nat) : ((max a b : Nat) : Int) = max (a : Int) (b : Int) := by
+  simp only [Nat.max_def, Int.max_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_natAbs (a : Int) : (a.natAbs : Int) = if 0 ≤ a then a else -a := by
+  rw [Int.natAbs]
+  split <;> rename_i n
+  · simp only [Int.ofNat_eq_coe]
+    rw [if_pos (Int.ofNat_nonneg n)]
+  · simp; rfl
+
 theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.natAbs = -a := by
   by_cases h : 0 ≤ a
   · left
@@ -74,6 +90,9 @@ theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.na
     rw [Int.not_le] at h
     rw [Int.ofNat_natAbs_of_nonpos (Int.le_of_lt h)]
     simp_all
+
+theorem neg_le_natAbs {a : Int} : -a ≤ a.natAbs := by
+  simpa using Int.le_natAbs (a := -a)
 
 theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
   conv =>
@@ -110,10 +129,6 @@ end Nat
 
 namespace Fin
 
-theorem ofNat_val_add_one_le {n : Nat} (i : Fin n) : (i : Int) + 1 ≤ n := by
-  rw [Int.add_one_le_iff, Int.ofNat_lt]
-  exact i.isLt
-
 theorem ne_iff_lt_or_gt {i j : Fin n} : i ≠ j ↔ i < j ∨ i > j := by
   cases i; cases j; simp only [ne_eq, Fin.mk.injEq, Nat.ne_iff_lt_or_gt, gt_iff_lt]; rfl
 
@@ -127,6 +142,20 @@ theorem not_lt {i j : Fin n} : ¬ i < j ↔ j ≤ i := by
 
 protected alias ⟨lt_of_not_le, _⟩ := Fin.not_le
 protected alias ⟨le_of_not_lt, _⟩ := Fin.not_lt
+
+theorem ofNat_val_add {x y : Fin n} :
+    Int.ofNat ((x + y : Fin n)) = (Int.ofNat x + Int.ofNat y) % n := rfl
+
+theorem ofNat_val_sub {x y : Fin n} :
+    Int.ofNat ((x - y : Fin n)) = (Int.ofNat x + Int.ofNat (n - y)) % n := rfl
+
+theorem ofNat_val_mul {x y : Fin n} :
+    Int.ofNat ((x * y : Fin n)) = (Int.ofNat x * Int.ofNat y) % n := rfl
+
+theorem ofNat_val_natCast {n x y : Nat} (h : y = x % (n + 1)):
+    @Nat.cast Int instNatCastInt (@Fin.val (n + 1) (OfNat.ofNat x)) = OfNat.ofNat y := by
+  rw [h]
+  rfl
 
 end Fin
 

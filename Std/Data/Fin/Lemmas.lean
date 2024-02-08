@@ -3,6 +3,7 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Std.Data.Fin.Init.Lemmas
 import Std.Data.Fin.Basic
 import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
@@ -34,8 +35,6 @@ theorem pos_iff_nonempty {n : Nat} : 0 < n ↔ Nonempty (Fin n) :=
 
 @[ext] theorem ext {a b : Fin n} (h : (a : Nat) = b) : a = b := eq_of_val_eq h
 
-theorem val_inj {a b : Fin n} : a.1 = b.1 ↔ a = b := ⟨Fin.eq_of_val_eq, Fin.val_eq_of_eq⟩
-
 theorem ext_iff {a b : Fin n} : a = b ↔ a.1 = b.1 := val_inj.symm
 
 theorem val_ne_iff {a b : Fin n} : a.1 ≠ b.1 ↔ a ≠ b := not_congr val_inj
@@ -56,7 +55,10 @@ theorem eq_mk_iff_val_eq {a : Fin n} {k : Nat} {hk : k < n} :
 
 theorem mk_val (i : Fin n) : (⟨i, i.isLt⟩ : Fin n) = i := Fin.eta ..
 
-@[simp] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
+@[simp] theorem val_ofNat' (a : Nat) (is_pos : n > 0) :
+  (Fin.ofNat' a is_pos).val = a % n := rfl
+
+@[deprecated ofNat'_zero_val] theorem ofNat'_zero_val : (Fin.ofNat' 0 h).val = 0 := Nat.zero_mod _
 
 @[simp] theorem mod_val (a b : Fin n) : (a % b).val = a.val % b.val :=
   rfl
@@ -80,6 +82,8 @@ theorem dite_val {n : Nat} {c : Prop} [Decidable c] {x y : Fin n} :
 theorem le_def {a b : Fin n} : a ≤ b ↔ a.1 ≤ b.1 := .rfl
 
 theorem lt_def {a b : Fin n} : a < b ↔ a.1 < b.1 := .rfl
+
+theorem lt_iff_val_lt_val {a b : Fin n} : a < b ↔ a.val < b.val := Iff.rfl
 
 @[simp] protected theorem not_le {a b : Fin n} : ¬ a ≤ b ↔ b < a := Nat.not_le
 
@@ -160,17 +164,6 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 
 @[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
   rw [← rev_rev (last _), rev_last]
-
-theorem val_congr {n : Nat} {a b : Fin n} (h : a = b) : (a : Nat) = (b : Nat) :=
-  Fin.val_inj.mpr h
-
-theorem val_le_of_le {n : Nat} {a b : Fin n} (h : a ≤ b) : (a : Nat) ≤ (b : Nat) := h
-
-theorem val_le_of_ge {n : Nat} {a b : Fin n} (h : a ≥ b) : (b : Nat) ≤ (a : Nat) := h
-
-theorem val_add_one_le_of_lt {n : Nat} {a b : Fin n} (h : a < b) : (a : Nat) + 1 ≤ (b : Nat) := h
-
-theorem val_add_one_le_of_gt {n : Nat} {a b : Fin n} (h : a > b) : (b : Nat) + 1 ≤ (a : Nat) := h
 
 /-! ### addition, numerals, and coercion from Nat -/
 
@@ -684,7 +677,7 @@ and `cast` defines the inductive step using `motive i.succ`, inducting downwards
   else
     let j : Fin n := ⟨i, Nat.lt_of_le_of_ne (Nat.le_of_lt_succ i.2) fun h => hi (Fin.ext h)⟩
     cast _ (reverseInduction last cast j.succ)
-termination_by _ => n + 1 - i
+termination_by n + 1 - i
 decreasing_by decreasing_with
   -- FIXME: we put the proof down here to avoid getting a dummy `have` in the definition
   exact Nat.add_sub_add_right .. ▸ Nat.sub_lt_sub_left i.2 (Nat.lt_succ_self i)
@@ -733,6 +726,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
+
+/-! ### add -/
+
+@[simp] theorem ofNat'_add (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt + y = Fin.ofNat' (x + y.val) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', Fin.add_def]
+
+@[simp] theorem add_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x + Fin.ofNat' y lt = Fin.ofNat' (x.val + y) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', Fin.add_def]
+
+/-! ### sub -/
+
+@[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
+    Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', Fin.sub_def]
+
+@[simp] theorem sub_ofNat' (x : Fin n) (y : Nat) (lt : 0 < n) :
+    x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
+  apply Fin.eq_of_val_eq
+  simp [Fin.ofNat', Fin.sub_def]
 
 /-! ### mul -/
 

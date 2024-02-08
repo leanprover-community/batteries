@@ -198,8 +198,12 @@ example (a b c d e : Int)
   fail_if_success omega (config := { splitDisjunctions := false })
   omega
 
-example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
+example {x : Int} (h : x = 7) : x.natAbs = 7 := by
   fail_if_success omega (config := { splitNatAbs := false })
+  fail_if_success omega (config := { splitDisjunctions := false })
+  omega
+
+example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
   omega
 
 example {a b : Int} (h : a < b) (w : b < a) : False := by omega
@@ -318,6 +322,13 @@ example (i j : Fin n) (w : i < j) : i < j := by omega
 example (n m i : Nat) (j : Fin (n - m)) (h : i < j) (h2 : m ≥ 4) :
     (i : Int) < n - 5 := by omega
 
+example (x y : Fin 8) (_ : 2 ≤ x) (_ : x ≤ 3) (_ : 2 ≤ y) (_ : x ≤ y) : 4 ≤ x + y ∧ x + y ≤ 6 := by
+  omega
+
+-- Check that `autoParam` wrappers do not get in the way of using hypotheses.
+example (i n : Nat) (hi : i ≤ n := by omega) : i < n + 1 := by
+  omega
+
 -- Test that we consume expression metadata when necessary.
 example : 0 = 0 := by
   have : 0 = 0 := by omega
@@ -335,8 +346,8 @@ def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is,
   | [], is => H0 is
   | t :: ts, is =>
       H1 t ts is (permutationsAux.rec' H0 H1 ts (t :: is)) (permutationsAux.rec' H0 H1 is [])
-  termination_by _ ts is => (length ts + length is, length ts)
-  decreasing_by simp_wf; omega
+  termination_by ts is => (length ts + length is, length ts)
+  decreasing_by all_goals simp_wf; omega
 
 example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
     Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
@@ -350,5 +361,60 @@ example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
 -- Verify that we can prove implications:
 example (a : Int) : a > 0 → a > -1 := by omega
 
+-- Verify that we can introduce multiple arguments:
+example (x y : Int) : x + 1 ≤ y → ¬ y + 1 ≤ x := by omega
+
+-- Verify that we can handle double negation:
+example (x y : Int) (_ : x < y) (_ : ¬ ¬ y < x) : False := by omega
+
 -- Verify that we don't treat function goals as implications.
 example (a : Nat) (h : a < 0) : Nat → Nat := by omega
+
+-- Example from Cedar:
+example {a₁ a₂ p₁ p₂ : Nat}
+  (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
+  (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
+
+-- From https://github.com/leanprover/std4/issues/562
+example {i : Nat} (h1 : i < 330) (_h2 : 7 ∣ (660 + i) * (1319 - i)) : 1319 - i < 1979 := by
+  omega
+
+example {a : Int} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
+example {a : Int} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
+example {a : Nat} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
+example {a : Nat} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
+
+example {a b : Nat} (_ : a = 7) (_ : b = 3) : min a b = 3 := by
+  fail_if_success omega (config := { splitMinMax := false })
+  omega
+
+example {a b : Nat} (_ : a + b = 9) : (min a b) % 2 + (max a b) % 2 = 1 := by
+  fail_if_success omega (config := { splitMinMax := false })
+  omega
+
+example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
+example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega
+
+-- Check that we use local values.
+example (i j : Int) (p : i ≥ j) : True := by
+  let l := j - 1
+  have _ : i > l := by omega
+  trivial
+
+example (i j : Nat) (p : i ≥ j) : True := by
+  let l := j - 1
+  have _ : i ≥ l := by omega
+  trivial
+
+example (i j : Nat) (p : i ≥ j) : True := by
+  let l := j - 1
+  let k := l
+  have _ : i ≥ k := by omega
+  trivial
+
+example (i : Fin 7) : (i : Nat) < 8 := by omega
+
+example (i j : Fin 7) (p : i ≥ j) : True := by
+  let l := j -- TODO change back to j - 1 in a moment!
+  have _ : i ≥ l := by omega
+  trivial

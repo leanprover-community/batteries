@@ -10,6 +10,13 @@ import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
 
+/-! # Basic lemmas about natural numbers
+
+The primary purpose of the lemmas in this file is to assist with reasoning
+about sizes of objects, array indices and such. For a more thorough development
+of the theory of natural numbers, we recommend using Mathlib.
+-/
+
 namespace Nat
 
 /-! ### rec/cases -/
@@ -191,6 +198,11 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
 
 protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
   ⟨Nat.lt_or_eq_of_le, fun | .inl h => Nat.le_of_lt h | .inr rfl => Nat.le_refl _⟩
+
+protected theorem lt_succ_iff : m < succ n ↔ m ≤ n := ⟨le_of_lt_succ, lt_succ_of_le⟩
+
+protected theorem lt_succ_iff_lt_or_eq : m < succ n ↔ m < n ∨ m = n :=
+  Nat.lt_succ_iff.trans Nat.le_iff_lt_or_eq
 
 /-! ## compare -/
 
@@ -562,7 +574,7 @@ theorem sub_lt_succ (a b) : a - b < succ a := lt_succ_of_le (sub_le a b)
 theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   rw [Nat.sub_right_comm]; exact Nat.sub_one_lt_of_le (Nat.sub_pos_of_lt h) (Nat.sub_le ..)
 
-/-! ## min/max -/
+/-! ### min/max -/
 
 theorem succ_min_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
   cases Nat.le_total x y with
@@ -736,7 +748,15 @@ protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min
   repeat rw [Nat.mul_comm a]
   exact Nat.mul_min_mul_right ..
 
-/-! ## mul -/
+/-! ### mul -/
+
+@[deprecated Nat.mul_le_mul_left]
+protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
+  Nat.mul_le_mul_left c
+
+@[deprecated Nat.mul_le_mul_right]
+protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} : a ≤ b → a * c ≤ b * c :=
+  Nat.mul_le_mul_right c
 
 protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
   rw [Nat.mul_assoc, Nat.mul_comm m, ← Nat.mul_assoc]
@@ -744,20 +764,21 @@ protected theorem mul_right_comm (n m k : Nat) : n * m * k = n * k * m := by
 protected theorem mul_mul_mul_comm (a b c d : Nat) : (a * b) * (c * d) = (a * c) * (b * d) := by
   rw [Nat.mul_assoc, Nat.mul_assoc, Nat.mul_left_comm b]
 
-protected theorem mul_two (n : Nat) : n * 2 = n + n := by simp [Nat.mul_succ]
+protected theorem mul_two (n) : n * 2 = n + n := by rw [Nat.mul_succ, Nat.mul_one]
 
-protected theorem two_mul (n : Nat) : 2 * n = n + n := by simp [Nat.succ_mul]
+protected theorem two_mul (n) : 2 * n = n + n := by rw [Nat.succ_mul, Nat.one_mul]
 
-theorem mul_eq_zero {n m : Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 :=
-  ⟨fun h => match n, m, h with
-    | 0,   m, _ => .inl rfl
-    | n+1, m, h => by rw [succ_mul] at h; exact .inr (Nat.eq_zero_of_add_eq_zero_left h),
-   fun | .inl h | .inr h => by simp [h]⟩
+theorem mul_eq_zero : ∀ {m n}, n * m = 0 ↔ n = 0 ∨ m = 0
+  | 0, _ => ⟨fun _ => .inr rfl, fun _ => rfl⟩
+  | _, 0 => ⟨fun _ => .inl rfl, fun _ => Nat.zero_mul ..⟩
+  | _+1, _+1 => ⟨fun., fun.⟩
 
-protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by simp [mul_eq_zero, not_or]
+protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by rw [ne_eq, mul_eq_zero, not_or]
 
-protected theorem mul_ne_zero (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0 :=
-  Nat.mul_ne_zero_iff.2 ⟨n0, m0⟩
+protected theorem mul_ne_zero : n ≠ 0 → m ≠ 0 → n * m ≠ 0 := (Nat.mul_ne_zero_iff.2 ⟨·,·⟩)
+
+protected theorem ne_zero_of_mul_ne_zero_left (h : n * m ≠ 0) : n ≠ 0 :=
+  (Nat.mul_ne_zero_iff.1 h).1
 
 protected theorem mul_left_cancel {n m k : Nat} (np : 0 < n) (h : n * m = n * k) : m = k := by
   match Nat.lt_trichotomy m k with
@@ -779,22 +800,41 @@ protected theorem mul_left_cancel_iff {n: Nat} (p : 0 < n) (m k : Nat) : n * m =
 protected theorem mul_right_cancel_iff {m : Nat} (p : 0 < m) (n k : Nat) : n * m = k * m ↔ n = k :=
   ⟨Nat.mul_right_cancel p, fun | rfl => rfl⟩
 
-protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} (h₁ : a ≤ b) : c * a ≤ c * b := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.zero_mul] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_left (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem ne_zero_of_mul_ne_zero_right (h : n * m ≠ 0) : m ≠ 0 :=
+  (Nat.mul_ne_zero_iff.1 h).2
 
-protected theorem mul_le_mul_of_nonneg_right {a b c : Nat} (h₁ : a ≤ b) : a * c ≤ b * c := by
-  if hba : b ≤ a then simp [Nat.le_antisymm hba h₁] else
-  if hc0 : c ≤ 0 then simp [Nat.le_antisymm hc0 (zero_le c), Nat.mul_zero] else
-  exact Nat.le_of_lt (Nat.mul_lt_mul_of_pos_right (Nat.not_le.1 hba) (Nat.not_le.1 hc0))
+protected theorem le_mul_of_pos_left (m) (h : 0 < n) : m ≤ n * m :=
+  Nat.le_trans (Nat.le_of_eq (Nat.one_mul _).symm) (Nat.mul_le_mul_right _ h)
 
-protected theorem mul_lt_mul (hac : a < c) (hbd : b ≤ d) (pos_b : 0 < b) : a * b < c * d :=
-  Nat.lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right hac pos_b) (Nat.mul_le_mul_of_nonneg_left hbd)
+protected theorem le_mul_of_pos_right (n) (h : 0 < m) : n ≤ n * m :=
+  Nat.le_trans (Nat.le_of_eq (Nat.mul_one _).symm) (Nat.mul_le_mul_left _ h)
 
-protected theorem mul_lt_mul' (h1 : a ≤ c) (h2 : b < d) (h3 : 0 < c) : a * b < c * d :=
-  Nat.lt_of_le_of_lt (Nat.mul_le_mul_of_nonneg_right h1) (Nat.mul_lt_mul_of_pos_left h2 h3)
+protected theorem mul_lt_mul_of_lt_of_le (hac : a < c) (hbd : b ≤ d) (hd : 0 < d) :
+    a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_left _ hbd) (Nat.mul_lt_mul_of_pos_right hac hd)
 
+protected theorem mul_lt_mul_of_lt_of_le' (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_lt_of_le hac hbd (Nat.lt_of_lt_of_le hb hbd)
+
+@[deprecated] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
+
+protected theorem mul_lt_mul_of_le_of_lt (hac : a ≤ c) (hbd : b < d) (hc : 0 < c) :
+    a * b < c * d :=
+  Nat.lt_of_le_of_lt (Nat.mul_le_mul_right _ hac) (Nat.mul_lt_mul_of_pos_left hbd hc)
+
+protected theorem mul_lt_mul_of_le_of_lt' (hac : a ≤ c) (hbd : b < d) (ha : 0 < a) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt hac hbd (Nat.lt_of_lt_of_le ha hac)
+
+@[deprecated] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
+
+protected theorem mul_lt_mul_of_lt_of_lt {a b c d : Nat} (hac : a < c) (hbd : b < d) :
+    a * b < c * d :=
+  Nat.mul_lt_mul_of_le_of_lt (Nat.le_of_lt hac) hbd (Nat.zero_lt_of_lt hac)
+
+theorem succ_mul_succ (a b) : succ a * succ b = a * b + a + b + 1 := by
+  rw [succ_mul, mul_succ]; rfl
 theorem mul_le_add_right (m k n : Nat) : k * m ≤ m + n ↔ (k-1) * m ≤ n := by
   match k with
   | 0 =>
@@ -806,10 +846,10 @@ theorem succ_mul_succ_eq (a b : Nat) : succ a * succ b = a * b + a + b + 1 := by
   rw [mul_succ, succ_mul, Nat.add_right_comm _ a]; rfl
 
 protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b) * (a - b) := by
-  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib,
-      Nat.mul_comm b a, Nat.add_comm (a*a) (a*b), Nat.add_sub_add_left]
+  rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
+    Nat.sub_add_eq, Nat.add_sub_cancel]
 
-/-! ## div/mod -/
+/-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
 
@@ -1324,3 +1364,34 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
   cases n
   · exact (m % 0).div_zero
   · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)
+
+/-! ### Decidability of predicates -/
+
+instance decidableBallLT :
+  ∀ (n : Nat) (P : ∀ k, k < n → Prop) [∀ n h, Decidable (P n h)], Decidable (∀ n h, P n h)
+| 0, _, _ => isTrue fun _ => (by cases ·)
+| n + 1, P, H =>
+  match decidableBallLT n (P · <| lt_succ_of_lt ·) with
+  | isFalse h => isFalse (h fun _ _ => · _ _)
+  | isTrue h =>
+    match H n Nat.le.refl with
+    | isFalse p => isFalse (p <| · _ _)
+    | isTrue p => isTrue fun _ h' => (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn => hn ▸ p
+
+instance decidableForallFin (P : Fin n → Prop) [DecidablePred P] : Decidable (∀ i, P i) :=
+  decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ => m k h, fun m k h => m ⟨k, h⟩⟩
+
+instance decidableBallLE (n : Nat) (P : ∀ k, k ≤ n → Prop) [∀ n h, Decidable (P n h)] :
+    Decidable (∀ n h, P n h) :=
+  decidable_of_iff (∀ (k) (h : k < succ n), P k (le_of_lt_succ h))
+    ⟨fun m k h => m k (lt_succ_of_le h), fun m k _ => m k _⟩
+
+instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m < n ∧ p m
+  | 0 => isFalse (by simp only [not_lt_zero, false_and, exists_const, not_false_eq_true])
+  | n + 1 =>
+    @decidable_of_decidable_of_iff _ _ (@instDecidableOr _ _ (decidableExistsLT (p := p) n) (h n))
+      (by simp only [Nat.lt_succ_iff_lt_or_eq, or_and_right, exists_or, exists_eq_left])
+
+instance decidableExistsLE [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
+  fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
+    (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)

@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import Std.Data.Int.Lemmas
+import Std.Data.Int.Order
 import Std.Tactic.Change
 
 /-!
@@ -625,6 +625,8 @@ protected theorem dvd_zero (n : Int) : n ∣ 0 := ⟨0, (Int.mul_zero _).symm⟩
 
 protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
 
+protected theorem one_dvd (n : Int) : 1 ∣ n := ⟨n, (Int.one_mul n).symm⟩
+
 protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
   | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
 
@@ -688,6 +690,14 @@ theorem dvd_natAbs {a b : Int} : a ∣ b.natAbs ↔ a ∣ b :=
   match natAbs_eq b with
   | .inl e => by rw [← e]
   | .inr e => by rw [← Int.dvd_neg, ← e]
+
+theorem natAbs_dvd_self {a : Int} : (a.natAbs : Int) ∣ a := by
+  rw [Int.natAbs_dvd]
+  exact Int.dvd_refl a
+
+theorem dvd_natAbs_self {a : Int} : a ∣ (a.natAbs : Int) := by
+  rw [Int.dvd_natAbs]
+  exact Int.dvd_refl a
 
 theorem ofNat_dvd_left {n : Nat} {z : Int} : (↑n : Int) ∣ z ↔ n ∣ z.natAbs := by
   rw [← natAbs_dvd_natAbs, natAbs_ofNat]

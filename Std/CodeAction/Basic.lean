@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
-import Std.Lean.Name
 import Std.Lean.InfoTree
 import Std.CodeAction.Attr
 
@@ -148,7 +147,7 @@ partial def findInfoTree? (kind : SyntaxNodeKind) (tgtRange : String.Range)
   (f : ContextInfo → Info → Bool) (canonicalOnly := false) :
     Option (ContextInfo × InfoTree) :=
   match t with
-  | .context ctx t => findInfoTree? kind tgtRange ctx t f canonicalOnly
+  | .context ctx t => findInfoTree? kind tgtRange (ctx.mergeIntoOuter? ctx?) t f canonicalOnly
   | node@(.node i ts) => do
     if let some ctx := ctx? then
       if let some range := i.stx.getRange? canonicalOnly then

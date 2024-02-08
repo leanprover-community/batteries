@@ -29,7 +29,7 @@ def ofFn {n} (f : Fin n → α) : Array α := go 0 (mkEmpty n) where
   /-- Auxiliary for `ofFn`. `ofFn.go f i acc = acc ++ #[f i, ..., f(n - 1)]` -/
   go (i : Nat) (acc : Array α) : Array α :=
     if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
-termination_by _ => n - i
+termination_by n - i
 
 /-- The array `#[0, 1, ..., n - 1]`. -/
 def range (n : Nat) : Array Nat :=

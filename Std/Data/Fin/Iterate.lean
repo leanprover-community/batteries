@@ -21,7 +21,7 @@ def hIterateFrom (P : Nat → Sort _) {n} (f : ∀(i : Fin n), P i.val → P (i.
   else
     have p : i = n := (or_iff_left g).mp (Nat.eq_or_lt_of_le ubnd)
     cast (congrArg P p) a
-  termination_by hIterateFrom i _ _ => n - i
+  termination_by n - i
 
 /--
 `hIterate` is a heterogenous iterative operation that applies a
