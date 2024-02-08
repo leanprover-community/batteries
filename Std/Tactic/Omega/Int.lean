@@ -144,13 +144,13 @@ protected alias ⟨lt_of_not_le, _⟩ := Fin.not_le
 protected alias ⟨le_of_not_lt, _⟩ := Fin.not_lt
 
 theorem ofNat_val_add {x y : Fin n} :
-    Int.ofNat ((x + y : Fin n)) = (Int.ofNat x + Int.ofNat y) % n := rfl
+    (((x + y : Fin n)) : Int) = ((x : Int) + (y : Int)) % n := rfl
 
 theorem ofNat_val_sub {x y : Fin n} :
-    Int.ofNat ((x - y : Fin n)) = (Int.ofNat x + Int.ofNat (n - y)) % n := rfl
+    (((x - y : Fin n)) : Int) = ((x : Int) + ((n - y : Nat) : Int)) % n := rfl
 
 theorem ofNat_val_mul {x y : Fin n} :
-    Int.ofNat ((x * y : Fin n)) = (Int.ofNat x * Int.ofNat y) % n := rfl
+    (((x * y : Fin n)) : Int) = ((x : Int) * (y : Int)) % n := rfl
 
 theorem ofNat_val_natCast {n x y : Nat} (h : y = x % (n + 1)):
     @Nat.cast Int instNatCastInt (@Fin.val (n + 1) (OfNat.ofNat x)) = OfNat.ofNat y := by

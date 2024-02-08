@@ -202,6 +202,30 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     else
       mkAtomLinearCombo e
   | (``Nat.cast, #[.const ``Int [], i, n]) =>
+    handleNatCast e i n
+  | (``Prod.fst, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.fst_mk [u, v]) α x β y)
+    | _ => mkAtomLinearCombo e
+  | (``Prod.snd, #[α, β, p]) => match p with
+    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
+      rewrite e (mkApp4 (.const ``Prod.snd_mk [u, v]) α x β y)
+    | _ => mkAtomLinearCombo e
+  | _ => mkAtomLinearCombo e
+where
+  /--
+  Apply a rewrite rule to an expression, and interpret the result as a `LinearCombo`.
+  (We're not rewriting any subexpressions here, just the top level, for efficiency.)
+  -/
+  rewrite (lhs rw : Expr) : OmegaM (LinearCombo × OmegaM Expr × HashSet Expr) := do
+    trace[omega] "rewriting {lhs} via {rw} : {← inferType rw}"
+    match (← inferType rw).eq? with
+    | some (_, _lhs', rhs) =>
+      let (lc, prf, facts) ← asLinearCombo rhs
+      let prf' : OmegaM Expr := do mkEqTrans rw (← prf)
+      pure (lc, prf', facts)
+    | none => panic! "Invalid rewrite rule in 'asLinearCombo'"
+  handleNatCast (e i n : Expr) : OmegaM (LinearCombo × OmegaM Expr × HashSet Expr) := do
     match n with
     | .fvar h =>
       if let some v ← h.getValue? then
@@ -234,57 +258,38 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
       else
         mkAtomLinearCombo e
     | (``Fin.val, #[n, x]) =>
-      match x with
-      | .fvar h =>
-        if let some v ← h.getValue? then
-          rewrite e (← mkEqReflWithExpectedType e
-            (mkApp3 (.const ``Nat.cast [0]) (.const ``Int []) i (mkApp2 (.const ``Fin.val []) n v)))
-        else
+      handleFinVal e i n x
+    | _ => mkAtomLinearCombo e
+  handleFinVal (e i n x : Expr) : OmegaM (LinearCombo × OmegaM Expr × HashSet Expr) := do
+    match x with
+    | .fvar h =>
+      if let some v ← h.getValue? then
+        rewrite e (← mkEqReflWithExpectedType e
+          (mkApp3 (.const ``Nat.cast [0]) (.const ``Int []) i (mkApp2 (.const ``Fin.val []) n v)))
+      else
+        mkAtomLinearCombo e
+    | _ => match x.getAppFnArgs, n.nat? with
+      | (``HAdd.hAdd, #[_, _, _, _, a, b]), _ =>
+        rewrite e (mkApp3 (.const ``Fin.ofNat_val_add []) n a b)
+      | (``HMul.hMul, #[_, _, _, _, a, b]), _ =>
+        rewrite e (mkApp3 (.const ``Fin.ofNat_val_mul []) n a b)
+      | (``HSub.hSub, #[_, _, _, _, a, b]), some _ =>
+        -- Only do this rewrite if `n` is a numeral.
+        rewrite e (mkApp3 (.const ``Fin.ofNat_val_sub []) n a b)
+      | (``OfNat.ofNat, #[_, y, _]), some m =>
+        -- Only do this rewrite if `n` is a nonzero numeral.
+        if m = 0 then
           mkAtomLinearCombo e
-      | _ => match x.getAppFnArgs, n.int? with
-        | (``HAdd.hAdd, #[_, _, _, _, a, b]), _ =>
-          rewrite e (mkApp3 (.const ``Fin.ofNat_val_add []) n a b)
-        | (``HMul.hMul, #[_, _, _, _, a, b]), _ =>
-          rewrite e (mkApp3 (.const ``Fin.ofNat_val_mul []) n a b)
-        | (``HSub.hSub, #[_, _, _, _, a, b]), some _ =>
-          -- Only do this rewrite if `n` is a numeral.
-          rewrite e (mkApp3 (.const ``Fin.ofNat_val_sub []) n a b)
-        | (``OfNat.ofNat, #[_, y, _]), some m =>
-          -- Only do this rewrite if `n` is a nonzero numeral.
-          if m = 0 then
-             mkAtomLinearCombo e
-          else
-            match y.nat? with
-            | none =>
-              -- This shouldn't happen, we obtained `y` from `OfNat.ofNat`
-              mkAtomLinearCombo e
-            | some y =>
-              rewrite e (mkApp4 (.const ``Fin.ofNat_val_natCast [])
-                (toExpr (m - 1)) (toExpr y) (toExpr (y % m)) (← mkEqRefl (toExpr (y % m))))
-        | _, _ => mkAtomLinearCombo e
-    | _ => mkAtomLinearCombo e
-  | (``Prod.fst, #[α, β, p]) => match p with
-    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
-      rewrite e (mkApp4 (.const ``Prod.fst_mk [u, v]) α x β y)
-    | _ => mkAtomLinearCombo e
-  | (``Prod.snd, #[α, β, p]) => match p with
-    | .app (.app (.app (.app (.const ``Prod.mk [u, v]) _) _) x) y =>
-      rewrite e (mkApp4 (.const ``Prod.snd_mk [u, v]) α x β y)
-    | _ => mkAtomLinearCombo e
-  | _ => mkAtomLinearCombo e
-where
-  /--
-  Apply a rewrite rule to an expression, and interpret the result as a `LinearCombo`.
-  (We're not rewriting any subexpressions here, just the top level, for efficiency.)
-  -/
-  rewrite (lhs rw : Expr) : OmegaM (LinearCombo × OmegaM Expr × HashSet Expr) := do
-    trace[omega] "rewriting {lhs} via {rw} : {← inferType rw}"
-    match (← inferType rw).eq? with
-    | some (_, _lhs', rhs) =>
-      let (lc, prf, facts) ← asLinearCombo rhs
-      let prf' : OmegaM Expr := do mkEqTrans rw (← prf)
-      pure (lc, prf', facts)
-    | none => panic! "Invalid rewrite rule in 'asLinearCombo'"
+        else
+          match y with
+          | .lit (.natVal y) =>
+            rewrite e (mkApp4 (.const ``Fin.ofNat_val_natCast [])
+              (toExpr (m - 1)) (toExpr y) (.lit (.natVal (y % m))) (← mkEqRefl (toExpr (y % m))))
+          | _ =>
+            -- This shouldn't happen, we obtained `y` from `OfNat.ofNat`
+            mkAtomLinearCombo e
+      | _, _ => mkAtomLinearCombo e
+
 
 end
 namespace MetaProblem

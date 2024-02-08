@@ -322,7 +322,13 @@ example (i j : Fin n) (w : i < j) : i < j := by omega
 example (n m i : Nat) (j : Fin (n - m)) (h : i < j) (h2 : m ≥ 4) :
     (i : Int) < n - 5 := by omega
 
-example (x y : Fin 8) (_ : 2 ≤ x) (_ : x ≤ 3) (_ : 2 ≤ y) (_ : x ≤ y) : 4 ≤ x + y ∧ x + y ≤ 6 := by
+set_option trace.omega true in
+example (x y : Nat) (_ : 2 ≤ x) (_ : x ≤ 3) (_ : 2 ≤ y) (_ : y ≤ 3) :
+    4 ≤ (x + y) % 8 ∧ (x + y) % 8 ≤ 6 := by
+  omega
+
+set_option trace.omega true in
+example (x y : Fin 8) (_ : 2 ≤ x) (_ : x ≤ 3) (_ : 2 ≤ y) (_ : y ≤ 3) : 4 ≤ x + y ∧ x + y ≤ 6 := by
   omega
 
 -- Check that `autoParam` wrappers do not get in the way of using hypotheses.
@@ -414,7 +420,8 @@ example (i j : Nat) (p : i ≥ j) : True := by
 
 example (i : Fin 7) : (i : Nat) < 8 := by omega
 
-example (i j : Fin 7) (p : i ≥ j) : True := by
-  let l := j -- TODO change back to j - 1 in a moment!
+set_option trace.omega true in
+example (i j : Fin 7) (p : i ≥ j) (_ : j > 0) : True := by
+  let l := j - 1 -- TODO change back to j - 1 in a moment!
   have _ : i ≥ l := by omega
   trivial
