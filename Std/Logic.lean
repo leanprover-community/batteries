@@ -3,9 +3,11 @@ Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
-import Std.Tactic.Basic
+import Std.Tactic.Init
+import Std.Tactic.NoMatch
 import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
+import Std.Tactic.ByCases
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)

@@ -5,6 +5,7 @@ Authors: Joe Hendrix, Scott Morrison
 -/
 
 import Lean.Meta.DiscrTree
+import Std.Lean.Name
 import Std.Data.Nat.Init.Lemmas
 
 /-!
