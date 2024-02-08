@@ -14,8 +14,12 @@ This implementation is based on the `DiscrTree` in Lean.
 I document here what features are not in the original:
 
 - The keys `Key.lam`, `Key.forall` and `Key.bvar` have been introduced in order to allow for
-  matching under lambda and forall binders. `Key.lam` and `Key.forall` have arity 2, indexing
-  the binder domain and binder body. `Key.bvar` works the same as `Key.fvar`, but stores the
+  matching under lambda and forall binders. `Key.lam` has arity 1 and indexes the body.
+  `Key.forall` has arity 2 and indexes the domain and the body. The reason for not indexing the
+  domain of a lambda expression is that it is usually already determined, for example in
+  `∃ a : α, p`, which is `@Exists α fun a : α => p`, we don't want to index the domain `α` twice.
+  In a forall expression it is necessary to index the domain, because in an implication `p → q`
+  we need to index both `p` and `q`. `Key.bvar` works the same as `Key.fvar`, but stores the
   De Bruijn index to identify it.
 
   For example, this allows for more specific matching with the left hand side of
@@ -199,7 +203,7 @@ def Key.arity : Key → Nat
   | .const _ a  => a
   | .fvar _ a   => a
   | .bvar _ a   => a
-  | .lam        => 2
+  | .lam        => 1
   | .forall     => 2
   | .proj _ _ a => 1 + a
   | _           => 0
@@ -288,8 +292,8 @@ inductive DTExpr where
   | lit : Literal → DTExpr
   /-- A sort. -/
   | sort : DTExpr
-  /-- A lambda function. It stores the domain and body. -/
-  | lam : DTExpr → DTExpr → DTExpr
+  /-- A lambda function. It stores the body. -/
+  | lam : DTExpr → DTExpr
   /-- A dependent arrow. It stores the domain and body. -/
   | forall : DTExpr → DTExpr → DTExpr
   /-- A projection. It stores the structure name, projection index, struct body and arguments. -/
@@ -305,7 +309,7 @@ private partial def DTExpr.format : DTExpr → Format
   | .lit (Literal.natVal v) => Std.format v
   | .lit (Literal.strVal v) => repr v
   | .sort                   => "Sort"
-  | .lam d b                => "λ " ++ DTExpr.format d ++ " => " ++ DTExpr.format b
+  | .lam b                  => "λ " ++ DTExpr.format b
   | .forall d b             => DTExpr.format d ++ " → " ++ DTExpr.format b
   | .proj _ i a as          => DTExpr.format a ++ "." ++ Std.format i ++ formatArgs as
 where
@@ -317,13 +321,15 @@ where
 instance : ToFormat DTExpr := ⟨DTExpr.format⟩
 
 /-- Return the size of the `DTExpr`. This is used for calculating the matching score when two
-expressions are equal. -/
+expressions are equal.
+The score is not incremented at a lambda, which is so that the expressions
+`∀ x, p[x]` and `∃ x, p[x]` get the same size. -/
 partial def DTExpr.size : DTExpr → Nat
 | .const _ args
 | .fvar _ args
 | .bvar _ args => args.foldl (init := 1) (· + ·.size)
-| .lam    d b => d.size + b.size
-| .forall d b => d.size + b.size + 1
+| .lam b => b.size
+| .forall d b => 1 + d.size + b.size
 | _ => 1
 
 
@@ -350,7 +356,7 @@ private partial def DTExpr.flattenAux (todo : Array Key) : DTExpr → StateM Fla
   | .bvar  i as => as.foldlM flattenAux (todo.push (.bvar i as.size))
   | .lit l => return todo.push (.lit l)
   | .sort  => return todo.push .sort
-  | .lam      d b => do flattenAux (← flattenAux (todo.push .lam   ) d) b
+  | .lam b => flattenAux (todo.push .lam) b
   | .«forall» d b => do flattenAux (← flattenAux (todo.push .forall) d) b
   | .proj n i e as => do as.foldlM flattenAux (← flattenAux (todo.push (.proj n i as.size)) e)
 
@@ -413,6 +419,19 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
     | some e => reduce e config
     | none   => return e
 
+/-- Reduction prodecure for the `RefinedDiscrTree` indexing that introduces lambda binders. -/
+@[specialize] partial def lambdaTelescopeReduce [Monad m] [MonadLiftT MetaM m] [MonadControlT MetaM m]
+    [Inhabited (m α)] (e : Expr) (fvars : List FVarId) (config : WhnfCoreConfig)
+    (cache : Expr → (Unit → m α) → m α) (k : Expr → List FVarId → m α) : m α := do
+  let e ← reduce e config
+  match e with
+  | .lam n d b bi =>
+    cache e fun _ =>
+      withLocalDecl n bi d fun fvar =>
+        lambdaTelescopeReduce b (fvar.fvarId! :: fvars) config cache k
+  | e => k e fvars
+
+
 
 
 /-- Check whether the expression is represented by `Key.star`. -/
@@ -427,12 +446,12 @@ def isStarWithArg (arg : Expr) : Expr → Bool
   | _ => false
 
 private partial def DTExpr.hasLooseBVarsAux (i : Nat) : DTExpr → Bool
-  | .const  _ as
+  | .const  _ as   => as.any (hasLooseBVarsAux i)
   | .fvar   _ as   => as.any (hasLooseBVarsAux i)
   | .bvar j as     => j ≥ i || as.any (hasLooseBVarsAux i)
   | .proj _ _ a as => a.hasLooseBVarsAux i || as.any (hasLooseBVarsAux i)
-  | .forall d b
-  | .lam    d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
+  | .forall d b    => d.hasLooseBVarsAux i || b.hasLooseBVarsAux (i+1)
+  | .lam b         => b.hasLooseBVarsAux (i+1)
   | _              => false
 
 /-- Return `true` if `e` contains a loose bound variable. -/
@@ -475,20 +494,22 @@ where
     | .strictImplicit => return !(← isType arg)
     | .default => isProof arg
 
-private def mkLams (lambdas : List DTExpr) (e : DTExpr) : DTExpr :=
+private def mkLams (lambdas : List α) (e : DTExpr) : DTExpr :=
   match lambdas with
   | [] => e
-  | d :: lambdas => mkLams lambdas (.lam d e)
+  | _ :: lambdas => mkLams lambdas (.lam e)
 
 /-- Return the encoding of `e` as a `DTExpr`.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
-    : ReaderT Context MetaM DTExpr := do
-  let e ← reduce e (← read).config
-  Expr.withApp e fun fn args => do
+partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr := do
+  lambdaTelescopeReduce e [] (← read).config (fun _ x => x ()) fun e lambdas =>
+  e.withApp fun fn args => do
+  /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. Or if we can turn into `id`. -/
+
+  withReader (fun c => { c with bvars := lambdas ++ c.bvars }) do
 
   let argDTExpr (arg : Expr) (ignore : Bool) : ReaderT Context MetaM DTExpr :=
-    if ignore then pure (.star none) else mkDTExprAux arg false []
+    if ignore then pure (.star none) else mkDTExprAux arg false
 
   let argDTExprs : ReaderT Context MetaM (Array DTExpr) := do
     let ignores ← getIgnores fn args
@@ -498,11 +519,11 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
   /- TODO: when returning an `.opaque` or `.star` key,
   don't index the lambdas if `e` contains their bound variables. -/
   match fn with
-  | .const c _ =>
+  | .const n _ =>
     unless root do
       if let some v := toNatLit? e then
         return mkLams lambdas $ .lit v
-    return mkLams lambdas $ .const c (← argDTExprs)
+    return mkLams lambdas $ .const n (← argDTExprs)
   | .proj s i a =>
     let a ← argDTExpr a (isClass (← getEnv) s)
     return mkLams lambdas $ .proj s i a (← argDTExprs)
@@ -510,9 +531,10 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root then
-        if let d :: lambdas := lambdas then
-          return mkLams lambdas $ .const ``id #[d]
+      if idx == 0 && args.isEmpty && !root && !lambdas.isEmpty then
+        let α ← withReader (fun c => { c with bvars := c.bvars.tail! }) do
+          mkDTExprAux (← fvarId.getType) root
+        return mkLams lambdas $ .const ``id #[α]
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.fvarInContext fvarId then
       return mkLams lambdas $ .fvar fvarId (← argDTExprs)
@@ -527,26 +549,18 @@ partial def mkDTExprAux (e : Expr) (root : Bool) (lambdas : List DTExpr)
     else
       return .star none
 
-  | .lam _ d b _ =>
-    unless args.isEmpty do
-      return mkLams lambdas $ .opaque
-    mkBinderDTExpr d b root ((← mkDTExprAux d false []) :: lambdas)
-
-  | .forallE _ d b _ =>
-    return mkLams lambdas $ .forall (← mkDTExprAux d false []) (← mkBinderDTExpr d b false [])
+  | .forallE n d b bi =>
+    let d' ← mkDTExprAux d false
+    let b' ← withLocalDecl n bi d fun fvar =>
+      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
+        mkDTExprAux b false
+    return mkLams lambdas $ .forall d' b'
   | .lit v      => return mkLams lambdas $ .lit v
   | .sort _     => return mkLams lambdas $ .sort
   | .letE ..    => return mkLams lambdas $ .opaque
+  | .lam ..     => return mkLams lambdas $ .opaque
   | _           => unreachable!
 
-where
-  /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
-  and then return all encodings of `e` as a `DTExpr` -/
-  mkBinderDTExpr (domain e : Expr) (root : Bool) (lambdas : List DTExpr)
-      : ReaderT Context MetaM DTExpr := do
-    withLocalDeclD `_a domain fun fvar =>
-      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprAux (e.instantiate1 fvar) root lambdas
 
 private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
 
@@ -557,30 +571,39 @@ In practice, getting a `.bvar` in a `DTExpr` is very rare, so we exclude such va
 -/
 instance : MonadCache Expr DTExpr M where
   findCached? e := do
-    let c ← get
-    return c.find? e
+    let s ← get
+    return s.find? e
   cache e e' :=
     if e'.hasLooseBVars then
       return
     else
       modify (·.insert e e')
 
+/-- Return all pairs of body, bound variables that could possibly appear due to η-reduction -/
+@[specialize] def etaPossibilities (e : Expr) (lambdas : List FVarId) (k : Expr → List FVarId → M α) : M α :=
+  k e lambdas
+  <|> do
+  match e, lambdas with
+  | .app f a, fvarId :: lambdas =>
+    if isStarWithArg (.fvar fvarId) a then
+      withReader (fun c => {c with forbiddenVars := fvarId :: c.forbiddenVars }) do
+        etaPossibilities f lambdas k
+    else
+      failure
+  | _, _ => failure
+
 /-- Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
-partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DTExpr := do
-  let e ← reduce e (← read).config
-  (do
-  let _ :: lambdas := lambdas | failure
-  let .app f a := e | failure
-  let bvar :: bvars := (← read).bvars | failure
-  guard (isStarWithArg (.fvar bvar) a)
-  withReader (fun c => {c with bvars, forbiddenVars := bvar :: c.forbiddenVars}) do
-    mkDTExprsAux f root lambdas
-  ) <|>
-  Expr.withApp e fun fn args => do
+partial def mkDTExprsAux (e : Expr) (root : Bool) : M DTExpr := do
+  lambdaTelescopeReduce e [] (← read).config checkCache fun e lambdas =>
+  etaPossibilities e lambdas fun e lambdas =>
+  e.withApp fun fn args => do
+  /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. Or if we can turn into `id`. -/
+
+  withReader (fun c => { c with bvars := lambdas ++ c.bvars }) do
 
   let argDTExpr (arg : Expr) (ignore : Bool) : M DTExpr :=
-    if ignore then pure (.star none) else mkDTExprsAux arg false []
+    if ignore then pure (.star none) else mkDTExprsAux arg false
 
   let argDTExprs : M (Array DTExpr) := do
     let ignores ← getIgnores fn args
@@ -588,11 +611,11 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DT
       argDTExpr arg ignores[i]!
 
   match fn with
-  | .const c _ =>
+  | .const n _ =>
     unless root do
       if let some v := toNatLit? e then
         return mkLams lambdas $ .lit v
-    return mkLams lambdas $ .const c (← argDTExprs)
+    return mkLams lambdas $ .const n (← argDTExprs)
   | .proj s i a =>
     let a ← argDTExpr a (isClass (← getEnv) s)
     return mkLams lambdas $ .proj s i a (← argDTExprs)
@@ -600,9 +623,11 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DT
     let c ← read
     if let some idx := c.bvars.findIdx? (· == fvarId) then
       /- we index `fun x => x` as `id` when not at the root -/
-      if idx == 0 && args.isEmpty && !root then
-        if let d :: lambdas := lambdas then
-          return mkLams lambdas $ .const ``id #[d]
+      if idx == 0 && args.isEmpty && !root && !lambdas.isEmpty then
+        let α ← withReader (fun c => { c with bvars := c.bvars.tail! }) do
+          mkDTExprsAux (← fvarId.getType) root
+        return mkLams lambdas $ .const ``id #[α]
+
       return mkLams lambdas $ .bvar idx (← argDTExprs)
     if c.forbiddenVars.contains fvarId then
       failure
@@ -616,26 +641,17 @@ partial def mkDTExprsAux (e : Expr) (root : Bool) (lambdas : List DTExpr) : M DT
     else
       return .star none
 
-  | .lam _ d b _ => do
-    unless args.isEmpty do
-      return mkLams lambdas $ .opaque
-    checkCache fn fun _ => do mkBinderDTExprs d b root ((← mkDTExprsAux d false []) :: lambdas)
-
-  | .forallE _ d b _ =>
-    return mkLams lambdas $ .forall (← mkDTExprsAux d false []) (← mkBinderDTExprs d b false [])
-  | .lit v      => return mkLams lambdas $ .lit v
-  | .sort _     => return mkLams lambdas .sort
-  | .letE ..    => return mkLams lambdas $ .opaque
-  | _           => unreachable!
-
-where
-  /-- Introduce a bound variable of type `domain` to the context, instantiate it in `e`,
-  and then return all encodings of `e` as a `DTExpr` -/
-  mkBinderDTExprs (domain e : Expr) (root : Bool) (lambdas : List DTExpr) : M DTExpr := do
-    withLocalDeclD `_a domain fun fvar =>
+  | .forallE n d b bi =>
+    let d' ← mkDTExprsAux d false
+    let b' ← withLocalDecl n bi d fun fvar =>
       withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
-        mkDTExprsAux (e.instantiate1 fvar) root lambdas
-
+        mkDTExprsAux b false
+    return mkLams lambdas $ .forall d' b'
+  | .lit v      => return mkLams lambdas $ .lit v
+  | .sort _     => return mkLams lambdas $ .sort
+  | .letE ..    => return mkLams lambdas $ .opaque
+  | .lam ..     => return mkLams lambdas $ .opaque
+  | _           => unreachable!
 end MkDTExpr
 
 /-- Return the encoding of `e` as a `DTExpr`.
@@ -647,13 +663,13 @@ in the context when the `RefinedDiscrTree` is being used for lookup.
 It should return true only if the `RefinedDiscrTree` is built and used locally. -/
 def mkDTExpr (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM DTExpr :=
-  withReducible do (MkDTExpr.mkDTExprAux e true [] |>.run {config, fvarInContext})
+  withReducible do (MkDTExpr.mkDTExprAux e true |>.run {config, fvarInContext})
 
 /-- Similar to `mkDTExpr`.
 Return all encodings of `e` as a `DTExpr`, taking potential further η-reductions into account. -/
 def mkDTExprs (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (List DTExpr) :=
-  withReducible do (MkDTExpr.mkDTExprsAux e true [] |>.run {config, fvarInContext}).run' {}
+  withReducible do (MkDTExpr.mkDTExprsAux e true |>.run {config, fvarInContext}).run' {}
 
 
 /-! ## Inserting intro a RefinedDiscrTree -/
@@ -820,17 +836,20 @@ def matchTreeStars (e : DTExpr) (t : Trie α) : M (Trie α) := do
 mutual
   /-- Return the possible `Trie α` that match with `e`. -/
   partial def matchExpr (e : DTExpr) (t : Trie α) : M (Trie α) := do
-    match ← exactMatch e (findKey t.children!) with
-      | .inr mvarId? => matchTargetStar mvarId? t
-      | .inl result  => matchTreeStars e t <|> result
+    if let .star mvarId? := e then
+      if (← read).unify then
+        matchTargetStar mvarId? t
+      else
+        matchTreeStars e t
+    else
+      matchTreeStars e t <|> exactMatch e (findKey t.children!)
 
   /-- If the head of `e` is not a metavariable,
   return the possible `Trie α` that exactly match with `e`. -/
-  partial def exactMatch (e : DTExpr) (find? : Key → Option (Trie α))
-    : M (M (Trie α) ⊕ Option MVarId) := do
+  partial def exactMatch (e : DTExpr) (find? : Key → Option (Trie α)) : M (Trie α) := do
 
     let findKey (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) :=
-      pure $ .inl $ match find? k with
+      match find? k with
         | none => failure
         | some trie => do
           incrementScore score
@@ -840,16 +859,16 @@ mutual
       args.foldlM (fun t e => matchExpr e t)
 
     match e with
-    | .star mvarId?     => return if (← read).unify then .inr mvarId? else .inl failure
-    | .opaque           => return .inl failure
+    | .opaque           => failure
     | .const c args     => findKey (.const c args.size) (matchArgs args)
     | .fvar fvarId args => findKey (.fvar fvarId args.size) (matchArgs args)
     | .bvar i args      => findKey (.bvar i args.size) (matchArgs args)
     | .lit v            => findKey (.lit v)
     | .sort             => findKey .sort
-    | .lam d b          => findKey .lam    (matchExpr d >=> matchExpr b) 0
+    | .lam b            => findKey .lam (matchExpr b) 0
     | .forall d b       => findKey .forall (matchExpr d >=> matchExpr b)
     | .proj n i a args  => findKey (.proj n i args.size) (matchExpr a >=> matchArgs args)
+    | _                 => unreachable!
 
 end
 
@@ -869,26 +888,19 @@ to be a star pattern. -/
 partial def getMatchWithScore (d : RefinedDiscrTree α) (e : Expr) (unify : Bool)
     (config : WhnfCoreConfig) (allowRootStar : Bool := false) : MetaM (Array (Array α × Nat)) := do
   let e ← mkDTExpr e config
-  return (·.qsort (·.2 > ·.2)) <| (do
-    match ← GetUnify.exactMatch e d.root.find? with
-    | .inr _ =>
-      if allowRootStar then
-        d.root.foldl (init := failure) fun x k c => (do
-              if k == Key.opaque then
-                GetUnify.incrementScore 1
-              Prod.snd <$> GetUnify.skipEntries c #[k] k.arity) <|> x
-      else
-        failure
-    | .inl result =>
-      (if allowRootStar then
-        if let some c := d.root.find? (.star 0) then
-          pure c
-        else
-          failure
-      else
-        failure)
-      <|> result
-    ).run unify config
+  return (·.run unify config |>.qsort (·.2 > ·.2)) do
+    if e matches .star _ then
+      guard allowRootStar
+      d.root.foldl (init := failure) fun x k c => (do
+        if k == Key.opaque then
+          GetUnify.incrementScore 1
+        Prod.snd <$> GetUnify.skipEntries c #[k] k.arity) <|> x
+    else
+      GetUnify.exactMatch e d.root.find?
+      <|> do
+      guard allowRootStar
+      let some c := d.root.find? (.star 0) | failure
+      return c
 
 
 variable {m : Type → Type} [Monad m]
