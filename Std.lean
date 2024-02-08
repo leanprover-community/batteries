@@ -99,6 +99,7 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
