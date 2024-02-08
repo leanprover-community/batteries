@@ -8,8 +8,4 @@ import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
 import Std.Util.ProofWanted
 
-/-!
-# Common tactics used throughout Std.
-
-This is an import only file.
--/
+-- This is an import only file for common tactics used throughout Std
