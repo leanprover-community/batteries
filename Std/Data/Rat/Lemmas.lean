@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Int.Lemmas
 import Std.Data.Rat.Basic
+import Std.Tactic.SeqFocus
 
 /-! # Additional lemmas about the Rational Numbers -/
 
