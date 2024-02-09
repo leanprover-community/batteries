@@ -718,6 +718,15 @@ theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
   Decidable.or_iff_not_imp_right
 
+theorem not_imp : ¬(a → b) ↔ a ∧ ¬b :=
+  Decidable.not_imp
+
+theorem not_and : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+  Decidable.not_and
+
+theorem not_iff : ¬(a ↔ b) ↔ (¬a ↔ b) :=
+  Decidable.not_iff
+
 end Classical
 
 /-! ## equality -/
