@@ -234,7 +234,7 @@ theorem shiftLeftZeroExtend_eq {x : BitVec w} :
   · simp
     rw [Nat.mod_eq_of_lt]
     rw [Nat.shiftLeft_eq, Nat.pow_add]
-    exact Nat.mul_lt_mul_of_pos_right (BitVec.toNat_lt x) (Nat.pow_two_pos _)
+    exact Nat.mul_lt_mul_of_pos_right (BitVec.toNat_lt x) (Nat.two_pow_pos _)
   · omega
 
 @[simp] theorem getLsb_shiftLeftZeroExtend (x : BitVec m) (n : Nat) :
