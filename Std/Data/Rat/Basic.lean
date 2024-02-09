@@ -13,7 +13,7 @@ import Std.Tactic.Ext
 Rational numbers, implemented as a pair of integers `num / den` such that the
 denominator is positive and the numerator and denominator are coprime.
 -/
-@[ext] structure Rat where
+structure Rat where
   /-- Constructs a rational number from components.
   We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
   mk' ::

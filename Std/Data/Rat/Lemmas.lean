@@ -16,6 +16,8 @@ namespace Rat
 @[simp] theorem one_num : (1 : Rat).num = 1 := rfl
 @[simp] theorem one_den : (1 : Rat).den = 1 := rfl
 
+@[simp] theorem mk'_one {r : Int} : mk' r 1 Nat.one_ne_zero (Nat.coprime_one_right _) = r := rfl
+
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
     { num := num.div g, den := den / g, den_nz, reduced } := by
@@ -218,7 +220,7 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
 @[simp] theorem neg_den (a : Rat) : (-a).den = a.den := rfl
 
 theorem neg_normalize (n d z) : -normalize n d z = normalize (-n) d z := by
-  simp [normalize, maybeNormalize_eq]; ext <;> simp [Int.neg_div]
+  simp [normalize]; rfl
 
 theorem neg_mkRat (n d) : -mkRat n d = mkRat (-n) d := by
   if z : d = 0 then simp [z]; rfl else simp [← normalize_eq_mkRat z, neg_normalize]
@@ -344,17 +346,16 @@ theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
 @[simp, norm_cast] theorem intCast_add (a b : Int) :
     ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
   rw [add_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]
 
-@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
-  ext <;> simp [normalize_eq]
+@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := rfl
 
 @[simp, norm_cast] theorem intCast_sub (a b : Int) :
     ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
   rw [sub_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]
 
 @[simp, norm_cast] theorem intCast_mul (a b : Int) :
     ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
   rw [mul_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]
