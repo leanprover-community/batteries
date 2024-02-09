@@ -329,7 +329,7 @@ theorem le_succ_of_pred_le : pred n ≤ m → n ≤ succ m := pred_le_iff_le_suc
 theorem pred_le_of_le_succ : n ≤ succ m → pred n ≤ m := pred_le_iff_le_succ.2
 
 theorem lt_pred_iff_succ_lt : ∀ {n m}, n < pred m ↔ succ n < m
-  | _, 0 => ⟨fun ., fun .⟩
+  | _, 0 => ⟨nofun, nofun⟩
   | _, _+1 => Nat.succ_lt_succ_iff.symm
 
 theorem succ_lt_of_lt_pred : n < pred m → succ n < m := lt_pred_iff_succ_lt.1
@@ -770,7 +770,7 @@ protected theorem two_mul (n) : 2 * n = n + n := by rw [Nat.succ_mul, Nat.one_mu
 theorem mul_eq_zero : ∀ {m n}, n * m = 0 ↔ n = 0 ∨ m = 0
   | 0, _ => ⟨fun _ => .inr rfl, fun _ => rfl⟩
   | _, 0 => ⟨fun _ => .inl rfl, fun _ => Nat.zero_mul ..⟩
-  | _+1, _+1 => ⟨fun., fun.⟩
+  | _+1, _+1 => ⟨nofun, nofun⟩
 
 protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by rw [ne_eq, mul_eq_zero, not_or]
 

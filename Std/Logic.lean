@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
 import Std.Tactic.Init
-import Std.Tactic.NoMatch
 import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
 
@@ -874,14 +873,14 @@ theorem ite_some_none_eq_none [Decidable P] :
 attribute [simp] inline
 
 /-- Ex falso, the nondependent eliminator for the `Empty` type. -/
-def Empty.elim : Empty → C := fun.
+def Empty.elim : Empty → C := nofun
 
 instance : Subsingleton Empty := ⟨fun a => a.elim⟩
 
 instance : DecidableEq Empty := fun a => a.elim
 
 /-- Ex falso, the nondependent eliminator for the `PEmpty` type. -/
-def PEmpty.elim : PEmpty → C := fun.
+def PEmpty.elim : PEmpty → C := nofun
 
 instance : Subsingleton PEmpty := ⟨fun a => a.elim⟩
 

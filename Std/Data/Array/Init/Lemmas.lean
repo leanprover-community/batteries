@@ -3,7 +3,6 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Tactic.NoMatch
 import Std.Tactic.HaveI
 import Std.Classes.LawfulMonad
 import Std.Data.Fin.Init.Lemmas
@@ -164,7 +163,7 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
   refine SatisfiesM_foldlM (m := m) (β := Array β)
     (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
     |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
-  · case z => exact ⟨h0, rfl, fun.⟩
+  · case z => exact ⟨h0, rfl, nofun⟩
   · case s =>
     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
     refine (hs _ ih₁).map fun ⟨h₁, h₂⟩ => ⟨h₂, by simp [eq], fun j hj => ?_⟩

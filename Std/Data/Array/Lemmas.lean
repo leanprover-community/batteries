@@ -46,7 +46,7 @@ attribute [simp] isEmpty uget
 
 theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
-theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := nofun
 
 /-- # set -/
 
@@ -271,7 +271,7 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       simp at hi'; simp [get_push]; split
       · next h => exact h₂ _ _ h
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
-  simp [mapIdxM]; exact go rfl (fun.) h0
+  simp [mapIdxM]; exact go rfl (nofun) h0
 
 theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
     (motive : Nat → Prop) (h0 : motive 0)
@@ -401,7 +401,7 @@ termination_by n - i
 
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
-  getElem_ofFn_go _ _ _ (by simp) (by simp) fun.
+  getElem_ofFn_go _ _ _ (by simp) (by simp) nofun
 
 theorem forIn_eq_data_forIn [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :

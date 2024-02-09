@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import Std.Classes.SetNotation
-import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
 
@@ -265,7 +264,7 @@ instance : HasSubset (List α) := ⟨List.Subset⟩
 
 instance decidableBEx (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse fun.
+  | [] => isFalse nofun
   | x :: xs =>
     if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
       match decidableBEx p xs with
@@ -276,7 +275,7 @@ instance decidableBEx (p : α → Prop) [DecidablePred p] :
 
 instance decidableBAll (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue fun.
+  | [] => isTrue nofun
   | x :: xs =>
     if h₁ : p x then
       match decidableBAll p xs with
