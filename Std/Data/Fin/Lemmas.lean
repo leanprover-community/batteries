@@ -744,8 +744,6 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 
 /-! ### sub -/
 
-theorem sub_def {x y : Fin n} : x - y = ⟨(x : Nat) + (n - (y : Nat)) % n, (x - y).isLt⟩ := rfl
-
 @[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
   apply Fin.eq_of_val_eq
