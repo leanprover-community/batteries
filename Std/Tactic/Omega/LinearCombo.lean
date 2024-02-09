@@ -6,7 +6,6 @@ Authors: Scott Morrison
 
 -- replace `IntList` with `IntDict` here to use sparse representations
 import Std.Tactic.Omega.Coeffs.IntList
-import Std.Tactic.Ext
 
 /-!
 # Linear combinations
@@ -41,7 +40,7 @@ instance : ToExpr LinearCombo where
 
 instance : Inhabited LinearCombo := ⟨{const := 1}⟩
 
-@[ext] theorem ext {a b : LinearCombo} (w₁ : a.const = b.const) (w₂ : a.coeffs = b.coeffs) :
+theorem ext {a b : LinearCombo} (w₁ : a.const = b.const) (w₂ : a.coeffs = b.coeffs) :
     a = b := by
   cases a; cases b
   subst w₁; subst w₂
@@ -119,7 +118,7 @@ instance : Neg LinearCombo := ⟨neg⟩
 
 theorem sub_eq_add_neg (l₁ l₂ : LinearCombo) : l₁ - l₂ = l₁ + -l₂ := by
   rcases l₁ with ⟨a₁, c₁⟩; rcases l₂ with ⟨a₂, c₂⟩
-  ext1
+  apply ext
   · simp [Int.sub_eq_add_neg]
   · simp [Coeffs.sub_eq_add_neg]
 
