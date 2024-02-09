@@ -756,7 +756,7 @@ theorem sub_def {x y : Fin n} : x - y = ⟨(x : Nat) + (n - (y : Nat)) % n, (x -
   apply Fin.eq_of_val_eq
   simp [Fin.ofNat', Fin.sub_def]
 
-theorem _root_.Nat.mod_eq_sub_of_lt_two_mul {x n} (h₁ : n ≤ x) (h₂ : x < 2 * n) :
+private theorem _root_.Nat.mod_eq_sub_of_lt_two_mul {x n} (h₁ : n ≤ x) (h₂ : x < 2 * n) :
     x % n = x - n := by
   rw [Nat.mod_eq, if_pos (by omega), Nat.mod_eq_of_lt (by omega)]
 
