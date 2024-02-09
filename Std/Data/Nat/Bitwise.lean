@@ -14,6 +14,7 @@ import Std.Data.Bool
 import Std.Data.Nat.Lemmas
 import Std.Tactic.RCases
 import Std.Tactic.Omega
+import Std.Tactic.Basic
 
 namespace Nat
 

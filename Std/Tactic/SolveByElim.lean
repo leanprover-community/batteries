@@ -3,6 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, David Renshaw
 -/
+import Lean.Elab.Tactic.Config
 import Std.Data.Sum.Basic
 import Std.Tactic.LabelAttr
 import Std.Tactic.Relation.Symm

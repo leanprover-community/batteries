@@ -1,5 +1,6 @@
 import Std.Tactic.GuardExpr
 import Std.Tactic.PermuteGoals
+import Std.Tactic.Unreachable
 
 example (p q r : Prop) : p → q → r → p ∧ q ∧ r := by
   intros
