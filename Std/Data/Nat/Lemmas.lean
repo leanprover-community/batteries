@@ -1151,14 +1151,14 @@ protected theorem one_lt_two_pow (h : n ≠ 0) : 1 < 2 ^ n :=
     rw [Nat.pow_succ', ← Nat.one_mul 1]
     exact Nat.mul_lt_mul_of_lt_of_le' (by decide) (Nat.pow_two_pos n) (by decide)
 
+@[simp] protected theorem one_lt_two_pow_iff : 1 < 2 ^ n ↔ n ≠ 0 :=
+  ⟨(by intro h p; subst p; simp at h), Nat.one_lt_two_pow⟩
+
 protected theorem one_le_two_pow : 1 ≤ 2 ^ n := by
   if h : n = 0 then
     subst h; simp
   else
     exact Nat.le_of_lt (Nat.one_lt_two_pow h)
-
-protected theorem one_lt_two_pow_succ : 1 < 2 ^ (n + 1) :=
-  Nat.one_lt_two_pow (Nat.succ_ne_zero _)
 
 /-! ### log2 -/
 

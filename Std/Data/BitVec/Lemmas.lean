@@ -205,7 +205,7 @@ private theorem allOnes_def :
     simp only [h, decide_True, Bool.true_and]
     match i, v, h with
     | i, (v + 1), h =>
-      rw [Nat.mod_eq_of_lt Nat.one_lt_two_pow_succ, Nat.testBit_two_pow_sub_one]
+      rw [Nat.mod_eq_of_lt (by simp), Nat.testBit_two_pow_sub_one]
       simp [h]
   else
     simp [h]
@@ -242,8 +242,8 @@ private theorem allOnes_def :
 
 theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
 
-@[simp] theorem toNat_not {x : BitVec v} : (~~~x).toNat = 2^v - (x.toNat + 1) := by
-  rw [not_def, toNat_xor]
+@[simp] theorem toNat_not {x : BitVec v} : (~~~x).toNat = 2^v - 1 - x.toNat := by
+  rw [Nat.sub_sub, Nat.add_comm, not_def, toNat_xor]
   apply Nat.eq_of_testBit_eq
   intro i
   simp only [toNat_allOnes, Nat.testBit_xor, Nat.testBit_two_pow_sub_one]
