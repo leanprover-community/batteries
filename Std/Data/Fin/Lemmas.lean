@@ -8,6 +8,8 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega
+import Std.Tactic.SimpTrace
 
 namespace Fin
 
@@ -742,6 +744,8 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 
 /-! ### sub -/
 
+theorem sub_def {x y : Fin n} : x - y = ⟨(x : Nat) + (n - (y : Nat)) % n, (x - y).isLt⟩ := rfl
+
 @[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
   apply Fin.eq_of_val_eq
@@ -751,6 +755,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
     x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
   apply Fin.eq_of_val_eq
   simp [Fin.ofNat', Fin.sub_def]
+
+theorem _root_.Nat.mod_eq_sub_of_lt_two_mul {x n} (h₁ : n ≤ x) (h₂ : x < 2 * n) :
+    x % n = x - n := by
+  rw [Nat.mod_eq, if_pos (by omega), Nat.mod_eq_of_lt (by omega)]
+
+theorem coe_sub_iff_le {a b : Fin n} : (↑(a - b) : Nat) = a - b ↔ b ≤ a := by
+  rw [sub_def, le_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
+
+theorem coe_sub_iff_lt {a b : Fin n} : (↑(a - b) : Nat) = n + a - b ↔ a < b := by
+  rw [sub_def, lt_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
 
 /-! ### mul -/
 
