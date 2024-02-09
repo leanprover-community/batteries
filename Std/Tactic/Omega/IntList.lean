@@ -64,7 +64,8 @@ def set (xs : IntList) (i : Nat) (y : Int) : IntList :=
 --     | succ i => cases j <;> simp_all [set]
 
 -- @[simp] theorem set_get_self : get (set xs i y) i = y := by simp [set_get_eq]
--- @[simp] theorem set_get_of_ne (h : i ≠ j) : get (set xs i y) j = xs.get j := by simp [set_get_eq, h]
+-- @[simp] theorem set_get_of_ne (h : i ≠ j) : get (set xs i y) j = xs.get j := by
+--   simp [set_get_eq, h]
 
 /-- Returns the leading coefficient, i.e. the first non-zero entry. -/
 def leading (xs : IntList) : Int := xs.find? (! · == 0) |>.getD 0
