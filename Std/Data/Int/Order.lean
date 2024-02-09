@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 import Std.Data.Int.Lemmas
 import Std.Data.Option.Basic
 import Std.Tactic.RCases
-import Std.Tactic.ByCases
 
 /-!
 # Results about the order properties of the integers, and the integers as an ordered ring.

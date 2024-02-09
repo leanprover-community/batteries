@@ -1,6 +1,5 @@
 import Lean.Elab.Tactic.ElabTerm
 import Std.Linter
-import Std.Tactic.ByCases
 import Std.Tactic.Init
 import Std.Tactic.NoMatch
 import Std.Tactic.SeqFocus

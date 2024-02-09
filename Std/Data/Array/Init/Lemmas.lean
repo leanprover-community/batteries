@@ -5,12 +5,10 @@ Authors: Mario Carneiro
 -/
 import Std.Tactic.NoMatch
 import Std.Tactic.HaveI
-import Std.Tactic.ByCases
 import Std.Classes.LawfulMonad
 import Std.Data.Fin.Init.Lemmas
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.List.Init.Lemmas
-import Std.Data.Array.Init.Basic
 
 /-!
 ## Bootstrapping theorems about arrays

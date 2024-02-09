@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Init.Basic
 
 namespace Std.Tactic.Lint
 open Lean Meta

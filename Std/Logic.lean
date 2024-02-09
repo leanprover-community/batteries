@@ -7,7 +7,6 @@ import Std.Tactic.Init
 import Std.Tactic.NoMatch
 import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
-import Std.Tactic.ByCases
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)

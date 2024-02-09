@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Jannis Limperg
 import Lean.Elab.Term
 import Lean.Meta.Tactic.Apply
 import Lean.Meta.Tactic.Replace
-import Std.Lean.LocalContext
 
 open Lean Lean.Meta
 
@@ -78,49 +77,6 @@ def eraseExprMVarAssignment (mctx : MetavarContext) (mvarId : MVarId) :
     dAssignment := mctx.dAssignment.erase mvarId }
 
 /--
-Modify the declaration of a metavariable. If the metavariable is not declared,
-the `MetavarContext` is returned unchanged.
-
-You must ensure that the modification is legal. In particular, expressions may
-only be replaced with defeq expressions.
--/
-def modifyExprMVarDecl (mctx : MetavarContext) (mvarId : MVarId)
-    (f : MetavarDecl → MetavarDecl) : MetavarContext :=
-  if let some mdecl := mctx.decls.find? mvarId then
-    { mctx with decls := mctx.decls.insert mvarId (f mdecl) }
-  else
-    mctx
-
-/--
-Modify the local context of a metavariable. If the metavariable is not declared,
-the `MetavarContext` is returned unchanged.
-
-You must ensure that the modification is legal. In particular, expressions may
-only be replaced with defeq expressions.
--/
-def modifyExprMVarLCtx (mctx : MetavarContext) (mvarId : MVarId)
-    (f : LocalContext → LocalContext) : MetavarContext :=
-  mctx.modifyExprMVarDecl mvarId fun mdecl => { mdecl with lctx := f mdecl.lctx }
-
-/--
-Set the kind of an fvar. If the given metavariable is not declared or the
-given fvar doesn't exist in its context, the `MetavarContext` is returned
-unchanged.
--/
-def setFVarKind (mctx : MetavarContext) (mvarId : MVarId) (fvarId : FVarId)
-    (kind : LocalDeclKind) : MetavarContext :=
-  mctx.modifyExprMVarLCtx mvarId (·.setKind fvarId kind)
-
-/--
-Set the `BinderInfo` of an fvar. If the given metavariable is not declared or
-the given fvar doesn't exist in its context, the `MetavarContext` is returned
-unchanged.
--/
-def setFVarBinderInfo (mctx : MetavarContext) (mvarId : MVarId)
-    (fvarId : FVarId) (bi : BinderInfo) : MetavarContext :=
-  mctx.modifyExprMVarLCtx mvarId (·.setBinderInfo fvarId bi)
-
-/--
 Obtain all unassigned metavariables from the given `MetavarContext`. If
 `includeDelayed` is `true`, delayed-assigned metavariables are considered
 unassigned.
@@ -138,17 +94,6 @@ end MetavarContext
 
 
 namespace MVarId
-
-/--
-Check whether a metavariable is assigned or delayed-assigned. A
-delayed-assigned metavariable is already 'solved' but the solution cannot be
-substituted yet because we have to wait for some other metavariables to be
-assigned first. So in most situations you want to treat a delayed-assigned
-metavariable as assigned.
--/
-def isAssignedOrDelayedAssigned [Monad m] [MonadMCtx m] (mvarId : MVarId) :
-    m Bool :=
-  return (← getMCtx).isExprMVarAssignedOrDelayedAssigned mvarId
 
 /--
 Check whether a metavariable is declared.
@@ -169,44 +114,6 @@ Erase any assignment or delayed assignment of the given metavariable.
 -/
 def eraseAssignment [MonadMCtx m] (mvarId : MVarId) : m Unit :=
   modifyMCtx (·.eraseExprMVarAssignment mvarId)
-
-/--
-Modify the declaration of a metavariable. If the metavariable is not declared,
-nothing happens.
-
-You must ensure that the modification is legal. In particular, expressions may
-only be replaced with defeq expressions.
--/
-def modifyDecl [MonadMCtx m] (mvarId : MVarId)
-    (f : MetavarDecl → MetavarDecl) : m Unit :=
-  modifyMCtx (·.modifyExprMVarDecl mvarId f)
-
-/--
-Modify the local context of a metavariable. If the metavariable is not declared,
-nothing happens.
-
-You must ensure that the modification is legal. In particular, expressions may
-only be replaced with defeq expressions.
--/
-def modifyLCtx [MonadMCtx m] (mvarId : MVarId)
-    (f : LocalContext → LocalContext) : m Unit :=
-  modifyMCtx (·.modifyExprMVarLCtx mvarId f)
-
-/--
-Set the kind of an fvar. If the given metavariable is not declared or the
-given fvar doesn't exist in its context, nothing happens.
--/
-def setFVarKind [MonadMCtx m] (mvarId : MVarId) (fvarId : FVarId)
-    (kind : LocalDeclKind) : m Unit :=
-  modifyMCtx (·.setFVarKind mvarId fvarId kind)
-
-/--
-Set the `BinderInfo` of an fvar. If the given metavariable is not declared or
-the given fvar doesn't exist in its context, nothing happens.
--/
-def setFVarBinderInfo [MonadMCtx m] (mvarId : MVarId) (fvarId : FVarId)
-    (bi : BinderInfo) : m Unit :=
-  modifyMCtx (·.setFVarBinderInfo mvarId fvarId bi)
 
 /--
 Collect the metavariables which `mvarId` depends on. These are the metavariables

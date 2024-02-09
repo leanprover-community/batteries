@@ -6,7 +6,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 import Lean.Util.CollectLevelParams
 import Lean.Meta.ForEachExpr
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Init.Basic
 
 open Lean Meta
 
