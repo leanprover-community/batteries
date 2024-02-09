@@ -27,6 +27,10 @@ structure Rat where
   reduced : num.natAbs.Coprime den := by decide
   deriving DecidableEq
 
+-- `Rat` is not tagged with the `ext` attribute, since this is more often than not undesirable
+theorem Rat.ext {p q : Rat} (hn : p.num = q.num) (hd : p.den = q.den) : p = q := by
+  cases p; cases q; subst hn hd; rfl
+
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
 
 instance : ToString Rat where

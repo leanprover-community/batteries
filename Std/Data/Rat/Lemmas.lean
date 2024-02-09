@@ -10,13 +10,14 @@ import Std.Tactic.SeqFocus
 /-! # Additional lemmas about the Rational Numbers -/
 
 namespace Rat
-attribute [ext] Rat
+
 @[simp] theorem zero_num : (0 : Rat).num = 0 := rfl
 @[simp] theorem zero_den : (0 : Rat).den = 1 := rfl
 @[simp] theorem one_num : (1 : Rat).num = 1 := rfl
 @[simp] theorem one_den : (1 : Rat).den = 1 := rfl
 
-@[simp] theorem mk'_one {r : Int} : mk' r 1 Nat.one_ne_zero (Nat.coprime_one_right _) = r := rfl
+@[simp] theorem mk_den_one {r : Int} :
+    (⟨r, 1, Nat.one_ne_zero, Nat.coprime_one_right _⟩ : Rat) = r := rfl
 
 @[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
     maybeNormalize num den g den_nz reduced =
