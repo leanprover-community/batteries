@@ -26,7 +26,6 @@ import Std.Data.DList
 import Std.Data.Fin
 import Std.Data.HashMap
 import Std.Data.Int
-import Std.Data.Json
 import Std.Data.List
 import Std.Data.MLList
 import Std.Data.Nat
@@ -48,7 +47,6 @@ import Std.Lean.Elab.Tactic
 import Std.Lean.Except
 import Std.Lean.Expr
 import Std.Lean.Float
-import Std.Lean.Format
 import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.IO.Process

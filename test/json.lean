@@ -1,7 +1,5 @@
 import Std.Tactic.GuardMsgs
-import Std.Data.Json
-
-open scoped Std.Json
+import Lean.Data.Json.Elab
 
 /-- info: {"lookACalc": 131,
  "lemonCount": 100000000000000000000000000000000,
