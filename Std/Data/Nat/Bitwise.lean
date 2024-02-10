@@ -12,7 +12,6 @@ It is primarily intended to support the bitvector library.
 -/
 import Std.Data.Bool
 import Std.Data.Nat.Lemmas
-import Std.Tactic.RCases
 import Std.Tactic.Simpa
 
 namespace Nat

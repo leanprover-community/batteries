@@ -122,7 +122,6 @@ import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
-import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
@@ -144,5 +143,4 @@ import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
 import Std.Util.ProofWanted
-import Std.Util.TermUnsafe
 import Std.WF

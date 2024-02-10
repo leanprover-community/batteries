@@ -1,5 +1,4 @@
 import Std.Tactic.Relation.Symm
-import Std.Tactic.RCases
 
 set_option autoImplicit true
 set_option linter.missingDocs false

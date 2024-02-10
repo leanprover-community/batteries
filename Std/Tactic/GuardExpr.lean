@@ -7,7 +7,6 @@ import Lean.Elab.Command
 import Lean.Elab.Tactic.Conv.Basic
 import Lean.Meta.Basic
 import Lean.Meta.Eval
-import Std.Util.TermUnsafe
 
 namespace Std.Tactic.GuardExpr
 open Lean Meta Elab Tactic
