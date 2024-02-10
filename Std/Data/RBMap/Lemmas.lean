@@ -302,7 +302,7 @@ theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
     (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
     t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   induction t generalizing lb with
-  | nil => intro.
+  | nil => nofun
   | node _ _ _ _ ihl ihr =>
     simp [lowerBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
     · exact hv
@@ -598,7 +598,7 @@ theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht�
       simp [← mem_toList, h₂] at h; rw [← or_assoc, or_right_comm] at h
       refine h.imp_left fun h => ?_
       simp [← mem_toList, h₁, h]
-      rw [find?_eq_zoom, e]; intro.
+      rw [find?_eq_zoom, e]; nofun
     | (node .., p) =>
       let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_node ht e
       simp [← mem_toList, h₂] at h; simp [← mem_toList, h₁]; rw [or_left_comm] at h ⊢

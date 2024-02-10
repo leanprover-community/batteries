@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
+import Lean.Util.ForEachExpr
 import Lean.Meta.ForEachExpr
 import Lean.Meta.GlobalInstances
 import Lean.Meta.Check
