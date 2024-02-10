@@ -70,3 +70,5 @@ declaration documents statements that have been identified as being useful, but 
 been proven.
 
 In contrast to mathlib, `std` uses pull requests from forks of this repository. Hence, no special permissions on this repository are required for new contributors.
+
+You can change the labels on PRs by commenting one of `awaiting-review`, `awaiting-author`, or `WIP`. This is helpful for triage.
