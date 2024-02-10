@@ -5,7 +5,10 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
 import Lean.Meta.ForEachExpr
+import Lean.Meta.GlobalInstances
+import Lean.Meta.Check
 import Lean.Util.Recognizers
+import Lean.DocString
 import Std.Tactic.Lint.Basic
 
 open Lean Meta
