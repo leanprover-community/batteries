@@ -58,7 +58,7 @@ private theorem mod_two_pow_succ (x i : Nat) :
   apply Nat.eq_of_testBit_eq
   intro j
   simp only [Nat.mul_add_lt_is_or, testBit_or, testBit_mod_two_pow, testBit_shiftLeft,
-    Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.pow_two_pos,
+    Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.two_pow_pos,
     testBit_mul_pow_two]
   rcases Nat.lt_trichotomy i j with i_lt_j | i_eq_j | j_lt_i
   · have i_le_j : i ≤ j := Nat.le_of_lt i_lt_j
@@ -73,7 +73,7 @@ private theorem mod_two_pow_succ (x i : Nat) :
     have not_j_ge_i : ¬(j ≥ i) := Nat.not_le_of_lt j_lt_i
     simp [j_lt_i, j_le_i, not_j_ge_i, j_le_i_succ]
 
-private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.pow_two_pos _)
+private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.two_pow_pos _)
 
 /-! ### Addition -/
 
@@ -96,7 +96,7 @@ theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toN
   apply Nat.add_le_add (mod_two_pow_lt _ _)
   apply Nat.le_trans
   exact (Nat.add_le_add_left (Bool.toNat_le_one c) _)
-  exact Nat.mod_lt _ (Nat.pow_two_pos i)
+  exact Nat.mod_lt _ (Nat.two_pow_pos i)
 
 theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
     decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry w x y c).toNat ≥ 2) := by
