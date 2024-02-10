@@ -62,6 +62,14 @@ I document here what features are not in the original:
   both `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]`
   and  `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
 
+- For sub-expressions not at the root of the original expression, We have some simplifications:
+  - Any combination of `ofNat`, `Nat.zero`, `Nat.succ` and number literals
+    is stored as just the number.
+  - The expression `fun a : α => a` is stored as `@id α`.
+  - Any expressions involving (homogenious) `+`, `*`, `-` or `/` is normalized to not have a
+    lambda in front and to always have the same amount of arguments. For example
+    `(f + g) a` is stored as `f a + g a` and `fun x => f x + g x` is stored as `f + g`.
+
 I have also made some changes in the implementation:
 
 - Instead of directly converting from `Expr` to `Array Key` during insertion, and directly
@@ -72,26 +80,15 @@ I have also made some changes in the implementation:
 
 TODO:
 
-- The η-reduction case handling is a bit awkward and the implementation should probably be
-  reworked, but it works like this.
-
 - More thought could be put into the matching algorithm for non-trivial unifications.
   For example, when looking up the expression `?a + ?a`, there will only be results like
   `n + n = 2 * n` or `a + b = b + a`, but not like `n + 1 = n.succ`,
   even though this would still unify.
 
-- Only reducible constants are reduced, so there are some terms with multiple
-  representations, that should really be represented in the same way. e.g.
-  - `fun x => x` and `id`.
+- More work could be put into making different expressions match in the discrTree, e.g.
   - `fun x => f (g x)` and `f ∘ g`.
-  - `fun x => f x + g x` and `f + g`. Similar to `+`, all of
-    `1`, `0`, `*`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, and `/` are defined point-wise on Pi-types.
-
-  This can either be programmed on a case by case basis,
-  or it can be designed to be extended dynamically.
-  And the normalization could happen on either the `Expr` or `DTExpr` level.
-  I have now made it so that the pattern `[λ, ⟨#0, 0⟩]` is always replaced by `[⟨id, 1⟩, ..]`,
-  where the implicit argument of `id` is also indexed.
+  - `fun x => (f x)⁻¹` and `f⁻¹`. This has been done for `+`, `*`, `-` and `/`.
+    Additionally, `1`, `0`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, are defined point-wise on Pi-types.
 
   Note that for each of these equivalences, they should not apply at the root, so that
   for example `Function.id_def : id = fun x => x` can still be used as a rewriting lemma.
@@ -249,11 +246,15 @@ def Trie.children! : Trie α → Array (Key × Trie α)
 
 private partial def Trie.format [ToFormat α] : Trie α → Format
   | .node cs => Format.group $ Format.paren $
-    "node" ++ Format.join (cs.toList.map fun (k, c) =>
-      Format.line ++ Format.paren (Std.format k ++ " => " ++ format c))
-  | .values vs => "values" ++ if vs.isEmpty then Format.nil else " " ++ Std.format vs
-  | .path ks c => "path" ++ Std.format ks ++ Format.line ++ format c
-
+    "node " ++ Format.join (cs.toList.map fun (k, c) =>
+      Format.line ++ Format.paren (format (prepend k c)))
+  | .values vs => if vs.isEmpty then Format.nil else Std.format vs
+  | .path ks c => Format.sbracket (Format.joinSep ks.toList (", "))
+      ++ " => " ++ Format.line ++ format c
+where
+  prepend (k : Key) (t : Trie α) : Trie α := match t with
+    | .path ks c => .path (#[k] ++ ks) c
+    | t => .path #[k] t
 instance [ToFormat α] : ToFormat (Trie α) := ⟨Trie.format⟩
 
 
@@ -278,7 +279,7 @@ instance [ToFormat α] : ToFormat (RefinedDiscrTree α) := ⟨format⟩
 /-- `DTExpr` is a simplified form of `Expr`.
 It is the intermediate step for converting from `Expr` to `Array Key`. -/
 inductive DTExpr where
-  /-- A metavariable. I optionally stores an `MVarId`. -/
+  /-- A metavariable. It optionally stores an `MVarId`. -/
   | star : Option MVarId → DTExpr
   /-- An opaque variable or a let-expression in the case `WhnfCoreConfig.zeta := false`. -/
   | opaque : DTExpr
@@ -495,96 +496,56 @@ where
 
 
 
--- def rewrite (name : Name) (e : Expr) (symm : Bool) : OptionT MetaM Expr := do
---   let proof ← mkConstWithFreshMVarLevels name
---   let type ← inferType proof
---   let (_, _, type) ← forallMetaTelescopeReducing type
---   let .app (.app _ lhs) rhs := type | failure
---   let (lhs, rhs) := if symm then (rhs, lhs) else (lhs, rhs)
---   let numExtraArgs := e.getAppNumArgs - lhs.getAppNumArgs
---   let mut extraArgs := Array.mkEmpty numExtraArgs
---   let mut e := e
---   for _ in [:numExtraArgs] do
---     extraArgs := extraArgs.push e.appArg!
---     e := e.appFn!
---   let result ← isDefEq lhs e
---   guard result
---   extraArgs := extraArgs.reverse
---   let rhs ← instantiateMVars rhs
---   return mkAppN rhs extraArgs
-
--- /-- Introduce new lambdas by η-expansion. -/
--- @[specialize]
--- partial def etaExpand (e : Expr) (lambdas : List FVarId) (goalArity : Nat)
---     (k : Expr → List FVarId → MetaM α) : MetaM α  := do
---   if e.getAppNumArgs < goalArity then
---     let fnType ← inferType e
---     let .forallE n d _ bi ← whnfD fnType | throwError m! "expected function type {indentExpr fnType}"
---     withLocalDecl n bi d fun fvar =>
---       etaExpand (.app e fvar) (fvar.fvarId! :: lambdas) goalArity k
---   else
---     k e lambdas
-
 /-- Introduce new lambdas by η-expansion. -/
 @[specialize]
-partial def etaExpand (args : Array Expr) (type : Expr) (lambdas : List FVarId) (goalArity : Nat)
+def etaExpand (args : Array Expr) (type : Expr) (lambdas : List FVarId) (goalArity : Nat)
     (k : Array Expr → List FVarId → MetaM α) : MetaM α  := do
   if args.size < goalArity then
     withLocalDeclD `_η type fun fvar =>
       etaExpand (args.push fvar) type (fvar.fvarId! :: lambdas) goalArity k
   else
     k args lambdas
+termination_by etaExpand => goalArity - args.size
 
--- /-- Reduce the arity by rewriting -/
--- partial def reduceArity (args : Array Expr) (type : Expr) (goalArity : Nat)
---     : OptionT MetaM (Expr × Expr × Expr) := do
---   let mut lhs := args[4]!
---   let mut rhs := args[5]!
---   let mut type := type
---   for h : i in [goalArity:args.size] do
---     let arg := args[i]'h.2
---     let argType ← inferType arg
---     type := .forallE `_a argType type .default
---     lhs := .app lhs arg
---     rhs := .app rhs arg
---   return (type, lhs, rhs)
-
--- partial def consumeLambdas (e : Expr) (lambdas : List FVarId) : OptionT MetaM Expr :=
---   match lambdas with
---   | [] => return e
---   | fvarId :: lambdas => do
---     let e ← mkLambdaFVars #[.fvar fvarId] e
---     let e ← rewrite ``Pi.add_def e true
---     consumeLambdas e lambdas
-
-def reduceAdd (args : Array Expr) (lambdas : List FVarId) (goalArity : Nat) : MetaM (Option (Expr × Expr × Expr)) := OptionT.run do
-  unless (args.size ≥ 4) do
-    throwError m! "{args}"
-  let .app (.app (.const ``instHAdd _) type) _ := args[3]! | failure
-  etaExpand args type lambdas goalArity fun args lambdas => OptionT.run do
+/-- Normalize an application of a heterogenous binary operator like `HAdd.hAdd`. -/
+def reduceHBinOpAux (args : Array Expr) (lambdas : List FVarId) (inst : Name)
+    : MetaM (Option (Expr × Expr × Expr)) := OptionT.run do
+  let some (Expr.app (.app (.const inst' _) type) _) := args[3]? | failure
+  guard (inst == inst')
+  etaExpand args type lambdas 6 fun args lambdas => OptionT.run do
     let mut lhs := args[4]!
     let mut rhs := args[5]!
     let mut type := type
-    for h : i in [goalArity:args.size] do
+    for h : i in [6:args.size] do
       let arg := args[i]'h.2
-      let .forallE _ _ b _ := ← whnfD type | failure
+      let .forallE _ _ b _ ← whnfD type | throwError m! "expected function type {indentExpr type}"
       type := b.instantiate1 arg
       lhs := .app lhs arg
       rhs := .app rhs arg
 
     for fvarId in lambdas do
       let decl ← fvarId.getDecl
-      type := .forallE decl.userName decl.type (type.abstract #[.fvar fvarId]) decl.binderInfo
-      lhs := .lam decl.userName decl.type (lhs.abstract #[.fvar fvarId]) decl.binderInfo
-      rhs := .lam decl.userName decl.type (rhs.abstract #[.fvar fvarId]) decl.binderInfo
+      let n := decl.userName
+      let t := decl.type
+      let bi := decl.binderInfo
+      type := .forallE n t (type.abstract #[.fvar fvarId]) bi
+      lhs  := .lam     n t (lhs.abstract  #[.fvar fvarId]) bi
+      rhs  := .lam     n t (rhs.abstract  #[.fvar fvarId]) bi
 
     return (type, lhs, rhs)
-    -- consumeLambdas e lambdas
 
-
-
-
+/-- Normalize an application if the head is  `+`, `*`, `-` or `/`. -/
 @[inline]
+def reduceHBinOp (n : Name) (args : Array Expr) (lambdas : List FVarId)
+    : MetaM (Option (Expr × Expr × Expr)) :=
+  match n with
+  | ``HAdd.hAdd => reduceHBinOpAux args lambdas ``instHAdd
+  | ``HMul.hMul => reduceHBinOpAux args lambdas ``instHMul
+  | ``HSub.hSub => reduceHBinOpAux args lambdas ``instHSub
+  | ``HDiv.hDiv => reduceHBinOpAux args lambdas ``instHDiv
+  | _ => return none
+
+@[specialize]
 private def withLams [Monad m] [MonadWithReader Context m]
     (lambdas : List FVarId) (k : m DTExpr) : m DTExpr :=
   if lambdas.isEmpty then
@@ -612,9 +573,15 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
   don't index the lambdas if `e` contains their bound variables. -/
   match fn with
   | .const n _ =>
+    if !root then
+      if let some (type, lhs, rhs) ← reduceHBinOp n args lambdas then
+        let type ← mkDTExprAux type false
+        let lhs ← mkDTExprAux lhs false
+        let rhs ← mkDTExprAux rhs false
+        return .const n #[type, type, .star none, .star none, lhs, rhs]
+
     withLams lambdas do
       unless root do
-        /- here do some special behaviour if `fn.isConstOf ``HAdd.hAdd`. -/
         if let some v := toNatLit? e then
           return .lit v
       return .const n (← argDTExprs)
@@ -705,7 +672,16 @@ def cacheEtaPossibilities (e original : Expr) (lambdas : List FVarId)
 /-- Return all encodings of `e` as a `DTExpr`, taking possible η-reductions into account.
 If `root = false`, then `e` is a strict sub expression of the original expression. -/
 partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
-  lambdaTelescopeReduce original [] (← read).config fun e lambdas =>
+  lambdaTelescopeReduce original [] (← read).config fun e lambdas => do
+
+  if !root then
+    if let .const n _ := e.getAppFn then
+      if let some (type, lhs, rhs) ← reduceHBinOp n e.getAppArgs lambdas then
+        let type ← mkDTExprsAux type false
+        let lhs ← mkDTExprsAux lhs false
+        let rhs ← mkDTExprsAux rhs false
+        return .const n #[type, type, .star none, .star none, lhs, rhs]
+
   cacheEtaPossibilities e original lambdas fun e lambdas =>
   e.withApp fun fn args => do
 
@@ -721,10 +697,6 @@ partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
   | .const n _ =>
     withLams lambdas do
       unless root do
-        if n == ``HAdd.hAdd then
-          if let some (type, lhs, rhs) ← reduceAdd args lambdas 6 then
-            let type ← mkDTExprsAux type false
-            return .const n #[type, type, .star none, .star none, ← mkDTExprsAux lhs false, ← mkDTExprsAux rhs false]
         if let some v := toNatLit? e then
           return .lit v
       return .const n (← argDTExprs)
