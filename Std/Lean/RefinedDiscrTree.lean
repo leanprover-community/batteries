@@ -394,7 +394,7 @@ private partial def toNatLit? (e : Expr) : Option Literal :=
   else
     none
 where
-  loop (e : Expr) : OptionT Id Nat := do
+  loop (e : Expr) : Option Nat := do
     let f := e.getAppFn
     match f with
     | .lit (.natVal n) => return n
@@ -419,14 +419,15 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
     | some e => reduce e config
     | none   => return e
 
-/-- Reduction prodecure for the `RefinedDiscrTree` indexing that introduces lambda binders. -/
+/-- Repeatedly apply reduce while stripping lambda binders and introducing their variables -/
+@[specialize]
 partial def lambdaTelescopeReduce [Monad m] [MonadLiftT MetaM m] [MonadControlT MetaM m]
     [Inhabited (m α)] (e : Expr) (fvars : List FVarId) (config : WhnfCoreConfig)
     (k : Expr → List FVarId → m α) : m α := do
   match ← reduce e config with
   | .lam n d b bi =>
     withLocalDecl n bi d fun fvar =>
-      lambdaTelescopeReduce b (fvar.fvarId! :: fvars) config k
+      lambdaTelescopeReduce (b.instantiate1 fvar) (fvar.fvarId! :: fvars) config k
   | e => k e fvars
 
 
@@ -492,8 +493,103 @@ where
     | .strictImplicit => return !(← isType arg)
     | .default => isProof arg
 
+
+
+-- def rewrite (name : Name) (e : Expr) (symm : Bool) : OptionT MetaM Expr := do
+--   let proof ← mkConstWithFreshMVarLevels name
+--   let type ← inferType proof
+--   let (_, _, type) ← forallMetaTelescopeReducing type
+--   let .app (.app _ lhs) rhs := type | failure
+--   let (lhs, rhs) := if symm then (rhs, lhs) else (lhs, rhs)
+--   let numExtraArgs := e.getAppNumArgs - lhs.getAppNumArgs
+--   let mut extraArgs := Array.mkEmpty numExtraArgs
+--   let mut e := e
+--   for _ in [:numExtraArgs] do
+--     extraArgs := extraArgs.push e.appArg!
+--     e := e.appFn!
+--   let result ← isDefEq lhs e
+--   guard result
+--   extraArgs := extraArgs.reverse
+--   let rhs ← instantiateMVars rhs
+--   return mkAppN rhs extraArgs
+
+-- /-- Introduce new lambdas by η-expansion. -/
+-- @[specialize]
+-- partial def etaExpand (e : Expr) (lambdas : List FVarId) (goalArity : Nat)
+--     (k : Expr → List FVarId → MetaM α) : MetaM α  := do
+--   if e.getAppNumArgs < goalArity then
+--     let fnType ← inferType e
+--     let .forallE n d _ bi ← whnfD fnType | throwError m! "expected function type {indentExpr fnType}"
+--     withLocalDecl n bi d fun fvar =>
+--       etaExpand (.app e fvar) (fvar.fvarId! :: lambdas) goalArity k
+--   else
+--     k e lambdas
+
+/-- Introduce new lambdas by η-expansion. -/
+@[specialize]
+partial def etaExpand (args : Array Expr) (type : Expr) (lambdas : List FVarId) (goalArity : Nat)
+    (k : Array Expr → List FVarId → MetaM α) : MetaM α  := do
+  if args.size < goalArity then
+    withLocalDeclD `_η type fun fvar =>
+      etaExpand (args.push fvar) type (fvar.fvarId! :: lambdas) goalArity k
+  else
+    k args lambdas
+
+-- /-- Reduce the arity by rewriting -/
+-- partial def reduceArity (args : Array Expr) (type : Expr) (goalArity : Nat)
+--     : OptionT MetaM (Expr × Expr × Expr) := do
+--   let mut lhs := args[4]!
+--   let mut rhs := args[5]!
+--   let mut type := type
+--   for h : i in [goalArity:args.size] do
+--     let arg := args[i]'h.2
+--     let argType ← inferType arg
+--     type := .forallE `_a argType type .default
+--     lhs := .app lhs arg
+--     rhs := .app rhs arg
+--   return (type, lhs, rhs)
+
+-- partial def consumeLambdas (e : Expr) (lambdas : List FVarId) : OptionT MetaM Expr :=
+--   match lambdas with
+--   | [] => return e
+--   | fvarId :: lambdas => do
+--     let e ← mkLambdaFVars #[.fvar fvarId] e
+--     let e ← rewrite ``Pi.add_def e true
+--     consumeLambdas e lambdas
+
+def reduceAdd (args : Array Expr) (lambdas : List FVarId) (goalArity : Nat) : MetaM (Option (Expr × Expr × Expr)) := OptionT.run do
+  unless (args.size ≥ 4) do
+    throwError m! "{args}"
+  let .app (.app (.const ``instHAdd _) type) _ := args[3]! | failure
+  etaExpand args type lambdas goalArity fun args lambdas => OptionT.run do
+    let mut lhs := args[4]!
+    let mut rhs := args[5]!
+    let mut type := type
+    for h : i in [goalArity:args.size] do
+      let arg := args[i]'h.2
+      let .forallE _ _ b _ := ← whnfD type | failure
+      type := b.instantiate1 arg
+      lhs := .app lhs arg
+      rhs := .app rhs arg
+
+    for fvarId in lambdas do
+      let decl ← fvarId.getDecl
+      type := .forallE decl.userName decl.type (type.abstract #[.fvar fvarId]) decl.binderInfo
+      lhs := .lam decl.userName decl.type (lhs.abstract #[.fvar fvarId]) decl.binderInfo
+      rhs := .lam decl.userName decl.type (rhs.abstract #[.fvar fvarId]) decl.binderInfo
+
+    return (type, lhs, rhs)
+    -- consumeLambdas e lambdas
+
+
+
+
+@[inline]
 private def withLams [Monad m] [MonadWithReader Context m]
-    (lambdas : List FVarId) (k : m DTExpr) : m DTExpr := do
+    (lambdas : List FVarId) (k : m DTExpr) : m DTExpr :=
+  if lambdas.isEmpty then
+    k
+  else do
     let e ← withReader (fun c => { c with bvars := lambdas ++ c.bvars }) k
     return lambdas.foldl (fun _ => ·.lam) e
 
@@ -551,7 +647,8 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
     withLams lambdas do
       let d' ← mkDTExprAux d false
       let b' ← withLocalDecl n bi d fun fvar =>
-        withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do mkDTExprAux b false
+        withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
+          mkDTExprAux (b.instantiate1 fvar) false
       return .forall d' b'
   | .lit v      => withLams lambdas do return .lit v
   | .sort _     => withLams lambdas do return .sort
@@ -560,7 +657,7 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
   | _           => unreachable!
 
 
-private abbrev M := ReaderT Context $ StateListT (AssocList Expr DTExpr) MetaM
+private abbrev M := StateListT (AssocList Expr DTExpr) $ ReaderT Context MetaM
 
 /-
 Caching values is a bit dangerous, because when two expressions are be equal and they live under
@@ -578,6 +675,7 @@ instance : MonadCache Expr DTExpr M where
       modify (·.insert e e')
 
 /-- Return all pairs of body, bound variables that could possibly appear due to η-reduction -/
+@[specialize]
 def etaPossibilities (e : Expr) (lambdas : List FVarId) (k : Expr → List FVarId → M α) : M α :=
   k e lambdas
   <|> do
@@ -591,6 +689,7 @@ def etaPossibilities (e : Expr) (lambdas : List FVarId) (k : Expr → List FVarI
   | _, _ => failure
 
 /-- run `etaPossibilities`, and cache the result if there are multiple possibilities. -/
+@[specialize]
 def cacheEtaPossibilities (e original : Expr) (lambdas : List FVarId)
   (k : Expr → List FVarId → M DTExpr) : M DTExpr :=
   match e, lambdas with
@@ -622,6 +721,10 @@ partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
   | .const n _ =>
     withLams lambdas do
       unless root do
+        if n == ``HAdd.hAdd then
+          if let some (type, lhs, rhs) ← reduceAdd args lambdas 6 then
+            let type ← mkDTExprsAux type false
+            return .const n #[type, type, .star none, .star none, ← mkDTExprsAux lhs false, ← mkDTExprsAux rhs false]
         if let some v := toNatLit? e then
           return .lit v
       return .const n (← argDTExprs)
@@ -653,13 +756,15 @@ partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
     withLams lambdas do
     let d' ← mkDTExprsAux d false
     let b' ← withLocalDecl n bi d fun fvar =>
-      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do mkDTExprsAux b false
+      withReader (fun c => { c with bvars := fvar.fvarId! :: c.bvars }) do
+        mkDTExprsAux (b.instantiate1 fvar) false
     return .forall d' b'
   | .lit v      => withLams lambdas do return .lit v
   | .sort _     => withLams lambdas do return .sort
   | .letE ..    => withLams lambdas do return .opaque
   | .lam ..     => withLams lambdas do return .opaque
   | _           => unreachable!
+
 end MkDTExpr
 
 /-- Return the encoding of `e` as a `DTExpr`.
@@ -677,7 +782,7 @@ def mkDTExpr (e : Expr) (config : WhnfCoreConfig)
 Return all encodings of `e` as a `DTExpr`, taking potential further η-reductions into account. -/
 def mkDTExprs (e : Expr) (config : WhnfCoreConfig)
     (fvarInContext : FVarId → Bool := fun _ => false) : MetaM (List DTExpr) :=
-  withReducible do (MkDTExpr.mkDTExprsAux e true |>.run {config, fvarInContext}).run' {}
+  withReducible do (MkDTExpr.mkDTExprsAux e true).run' {} |>.run {config, fvarInContext}
 
 
 /-! ## Inserting intro a RefinedDiscrTree -/
