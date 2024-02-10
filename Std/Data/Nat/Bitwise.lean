@@ -83,10 +83,10 @@ noncomputable def div2Induction {motive : Nat → Sort u}
 @[simp] theorem zero_testBit (i : Nat) : testBit 0 i = false := by
   simp only [testBit, zero_shiftRight, zero_and, bne_self_eq_false]
 
-theorem testBit_zero_is_mod2 (x : Nat) : testBit x 0 = decide (x % 2 = 1) := by
+@[simp] theorem testBit_zero (x : Nat) : testBit x 0 = decide (x % 2 = 1) := by
   cases mod_two_eq_zero_or_one x with | _ p => simp [testBit, p]
 
-theorem testBit_succ_div2 (x i : Nat) : testBit x (succ i) = testBit (x/2) i := by
+@[simp] theorem testBit_succ (x i : Nat) : testBit x (succ i) = testBit (x/2) i := by
   unfold testBit
   simp [shiftRight_succ_inside]
 
@@ -96,8 +96,7 @@ theorem testBit_to_div_mod {x : Nat} : testBit x i = decide (x / 2^i % 2 = 1) :=
     unfold testBit
     cases mod_two_eq_zero_or_one x with | _ xz => simp [xz]
   | succ i hyp =>
-    simp [testBit_succ_div2, hyp,
-          Nat.div_div_eq_div_mul, Nat.pow_succ, Nat.mul_comm 2]
+    simp [hyp, Nat.div_div_eq_div_mul, Nat.pow_succ']
 
 theorem ne_zero_implies_bit_true {x : Nat} (xnz : x ≠ 0) : ∃ i, testBit x i := by
   induction x using div2Induction with
@@ -109,10 +108,10 @@ theorem ne_zero_implies_bit_true {x : Nat} (xnz : x ≠ 0) : ∃ i, testBit x i 
       simp only [mod2_eq, ne_eq, Nat.mul_eq_zero, Nat.add_zero, false_or] at xnz
       have ⟨d, dif⟩   := hyp x_pos xnz
       apply Exists.intro (d+1)
-      simp [testBit_succ_div2, dif]
+      simp_all
     | Or.inr mod2_eq =>
       apply Exists.intro 0
-      simp [testBit_zero_is_mod2, mod2_eq]
+      simp_all
 
 theorem ne_implies_bit_diff {x y : Nat} (p : x ≠ y) : ∃ i, testBit x i ≠ testBit y i := by
   induction y using Nat.div2Induction generalizing x with
@@ -131,11 +130,10 @@ theorem ne_implies_bit_diff {x y : Nat} (p : x ≠ y) : ∃ i, testBit x i ≠ t
           Nat.zero_lt_succ, Nat.mul_left_cancel_iff] at p
         have ⟨i, ieq⟩  := hyp ypos p
         apply Exists.intro (i+1)
-        simp [testBit_succ_div2]
-        exact ieq
+        simpa
       else
         apply Exists.intro 0
-        simp only [testBit_zero_is_mod2]
+        simp only [testBit_zero]
         revert lsb_diff
         cases mod_two_eq_zero_or_one x with | _ p =>
           cases mod_two_eq_zero_or_one y with | _ q =>
@@ -156,7 +154,7 @@ theorem eq_of_testBit_eq {x y : Nat} (pred : ∀i, testBit x i = testBit y i) : 
 theorem ge_two_pow_implies_high_bit_true {x : Nat} (p : x ≥ 2^n) : ∃ i, i ≥ n ∧ testBit x i := by
   induction x using div2Induction generalizing n with
   | ind x hyp =>
-    have x_pos : x > 0 := Nat.lt_of_lt_of_le (Nat.pow_two_pos n) p
+    have x_pos : x > 0 := Nat.lt_of_lt_of_le (Nat.two_pow_pos n) p
     have x_ne_zero : x ≠ 0 := Nat.ne_of_gt x_pos
     match n with
     | zero =>
@@ -164,16 +162,14 @@ theorem ge_two_pow_implies_high_bit_true {x : Nat} (p : x ≥ 2^n) : ∃ i, i �
       exact Exists.intro j (And.intro (Nat.zero_le _) jp)
     | succ n =>
       have x_ge_n : x / 2 ≥ 2 ^ n := by
-          simp [le_div_iff_mul_le, ← Nat.pow_succ']
-          exact p
+          simpa [le_div_iff_mul_le, ← Nat.pow_succ'] using p
       have ⟨j, jp⟩ := @hyp x_pos n x_ge_n
       apply Exists.intro (j+1)
       apply And.intro
       case left =>
         exact (Nat.succ_le_succ jp.left)
       case right =>
-        simp [testBit_succ_div2 _ j]
-        exact jp.right
+        simpa using jp.right
 
 theorem testBit_implies_ge {x : Nat} (p : testBit x i = true) : x ≥ 2^i := by
   simp only [testBit_to_div_mod] at p
@@ -212,7 +208,7 @@ private theorem testBit_succ_zero : testBit (x + 1) 0 = not (testBit x 0) := by
     simp [p]
 
 theorem testBit_two_pow_add_eq (x i : Nat) : testBit (2^i + x) i = not (testBit x i) := by
-  simp [testBit_to_div_mod, add_div_left, Nat.pow_two_pos, succ_mod_two]
+  simp [testBit_to_div_mod, add_div_left, Nat.two_pow_pos, succ_mod_two]
   cases mod_two_eq_zero_or_one (x / 2 ^ i) with
   | _ p => simp [p]
 
@@ -233,7 +229,7 @@ theorem testBit_two_pow_add_gt {i j : Nat} (j_lt_i : j < i) (x : Nat) :
   have i_def : i = j + (i-j) := (Nat.add_sub_cancel' (Nat.le_of_lt j_lt_i)).symm
   rw [i_def]
   simp only [testBit_to_div_mod, Nat.pow_add,
-        Nat.add_comm x, Nat.mul_add_div (Nat.pow_two_pos _)]
+        Nat.add_comm x, Nat.mul_add_div (Nat.two_pow_pos _)]
   match i_sub_j_eq : i - j with
   | 0 =>
     exfalso
@@ -258,10 +254,10 @@ theorem testBit_two_pow_add_gt {i j : Nat} (j_lt_i : j < i) (x : Nat) :
         simp [Nat.testBit_lt_two_pow x_lt]
     · generalize y_eq : x - 2^j = y
       have x_eq : x = y + 2^j := Nat.eq_add_of_sub_eq x_ge_j y_eq
-      simp only [Nat.pow_two_pos, x_eq, Nat.le_add_left, true_and, ite_true]
+      simp only [Nat.two_pow_pos, x_eq, Nat.le_add_left, true_and, ite_true]
       have y_lt_x : y < x := by
             simp [x_eq]
-            exact Nat.lt_add_of_pos_right (Nat.pow_two_pos j)
+            exact Nat.lt_add_of_pos_right (Nat.two_pow_pos j)
       simp only [hyp y y_lt_x]
       if i_lt_j : i < j then
         rw [ Nat.add_comm _ (2^_), testBit_two_pow_add_gt i_lt_j]
@@ -274,7 +270,7 @@ theorem testBit_two_pow_sub_succ (h₂ : x < 2 ^ n) (i : Nat) :
     testBit (2^n - (x + 1)) i = (decide (i < n) && ! testBit x i) := by
   induction i generalizing n x with
   | zero =>
-    simp only [testBit_zero_is_mod2, zero_eq, Bool.and_eq_true, decide_eq_true_eq,
+    simp only [testBit_zero, zero_eq, Bool.and_eq_true, decide_eq_true_eq,
       Bool.not_eq_true']
     match n with
     | 0 => simp
@@ -285,7 +281,7 @@ theorem testBit_two_pow_sub_succ (h₂ : x < 2 ^ n) (i : Nat) :
       rw [Nat.pow_succ'] at h₂
       omega
   | succ i ih =>
-    simp only [testBit_succ_div2]
+    simp only [testBit_succ]
     match n with
     | 0 =>
       simp only [pow_zero, succ_sub_succ_eq_sub, Nat.zero_sub, Nat.zero_div, zero_testBit]
@@ -299,7 +295,7 @@ theorem testBit_two_pow_sub_succ (h₂ : x < 2 ^ n) (i : Nat) :
 @[simp] theorem testBit_two_pow_sub_one (n i : Nat) : testBit (2^n-1) i = decide (i < n) := by
   rw [testBit_two_pow_sub_succ]
   · simp
-  · exact Nat.pow_two_pos _
+  · exact Nat.two_pow_pos _
 
 theorem testBit_bool_to_nat (b : Bool) (i : Nat) :
     testBit (Bool.toNat b) i = (decide (i = 0) && b) := by
@@ -330,11 +326,11 @@ theorem testBit_bitwise
       cases i with
       | zero =>
         cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) <;>
-          simp [p, testBit_zero_is_mod2, Nat.mul_add_mod, mod_eq_of_lt]
+          simp [p, Nat.mul_add_mod, mod_eq_of_lt]
       | succ i =>
         have hyp_i := hyp i (Nat.le_refl (i+1))
         cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) <;>
-          simp [p, testBit_succ_div2, one_div_two, hyp_i, Nat.mul_add_div]
+          simp [p, one_div_two, hyp_i, Nat.mul_add_div]
 
 /-! ### bitwise -/
 
@@ -458,7 +454,7 @@ theorem testBit_mul_pow_two_add (a : Nat) {b i : Nat} (b_lt : b < 2^i) (j : Nat)
                  rw [← congrArg (j+·) (Nat.succ_pred i_sub_j_nez)]
     rw [i_def]
     simp only [testBit_to_div_mod, Nat.pow_add, Nat.mul_assoc]
-    simp only [Nat.mul_add_div (Nat.pow_two_pos _), Nat.mul_add_mod]
+    simp only [Nat.mul_add_div (Nat.two_pow_pos _), Nat.mul_add_mod]
     simp [Nat.pow_succ, Nat.mul_comm _ 2, Nat.mul_assoc, Nat.mul_add_mod]
   | inr j_ge =>
     have j_def : j = i + (j-i) := (Nat.add_sub_cancel' j_ge).symm
@@ -471,11 +467,11 @@ theorem testBit_mul_pow_two_add (a : Nat) {b i : Nat} (b_lt : b < 2^i) (j : Nat)
           ←Nat.div_div_eq_div_mul,
           Nat.mul_add_div,
           Nat.div_eq_of_lt b_lt,
-          Nat.pow_two_pos i]
+          Nat.two_pow_pos i]
 
 theorem testBit_mul_pow_two :
     testBit (2 ^ i * a) j = (decide (j ≥ i) && testBit a (j-i)) := by
-  have gen := testBit_mul_pow_two_add a (Nat.pow_two_pos i) j
+  have gen := testBit_mul_pow_two_add a (Nat.two_pow_pos i) j
   simp at gen
   rw [gen]
   cases Nat.lt_or_ge j i with

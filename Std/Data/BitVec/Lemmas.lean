@@ -11,6 +11,7 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.Omega
+import Std.Util.ProofWanted
 
 namespace Std.BitVec
 
@@ -291,7 +292,7 @@ theorem shiftLeftZeroExtend_eq {x : BitVec w} :
   · simp
     rw [Nat.mod_eq_of_lt]
     rw [Nat.shiftLeft_eq, Nat.pow_add]
-    exact Nat.mul_lt_mul_of_pos_right (BitVec.toNat_lt x) (Nat.pow_two_pos _)
+    exact Nat.mul_lt_mul_of_pos_right (BitVec.toNat_lt x) (Nat.two_pow_pos _)
   · omega
 
 @[simp] theorem getLsb_shiftLeftZeroExtend (x : BitVec m) (n : Nat) :

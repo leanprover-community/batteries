@@ -44,7 +44,7 @@ namespace BitVec
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  toFin := Fin.ofNat' i (Nat.pow_two_pos n)
+  toFin := Fin.ofNat' i (Nat.two_pow_pos n)
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
@@ -67,7 +67,7 @@ protected def toInt (a : BitVec n) : Int :=
   if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
 
 /-- Return a bitvector `0` of size `n`. This is the bitvector with all zero bits. -/
-protected def zero (n : Nat) : BitVec n := ⟨0, Nat.pow_two_pos n⟩
+protected def zero (n : Nat) : BitVec n := ⟨0, Nat.two_pow_pos n⟩
 
 instance : Inhabited (BitVec n) where default := .zero n
 
@@ -338,9 +338,9 @@ SMT-Lib name: `bvlshr` except this operator uses a `Nat` shift value.
 def ushiftRight (a : BitVec n) (s : Nat) : BitVec n :=
   ⟨a.toNat >>> s, by
   let ⟨a, lt⟩ := a
-  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.pow_two_pos s)]
+  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.two_pow_pos s)]
   rw [←Nat.mul_one a]
-  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.pow_two_pos s) (Nat.le_refl 1)⟩
+  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.two_pow_pos s) (Nat.le_refl 1)⟩
 
 instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.ushiftRight⟩
 
@@ -394,7 +394,7 @@ def shiftLeftZeroExtend (msbs : BitVec w) (m : Nat) : BitVec (w+m) :=
   let shiftLeftLt {x : Nat} (p : x < 2^w) (m : Nat) : x <<< m < 2^(w+m) := by
         simp [Nat.shiftLeft_eq, Nat.pow_add]
         apply Nat.mul_lt_mul_of_pos_right p
-        exact (Nat.pow_two_pos m)
+        exact (Nat.two_pow_pos m)
   ⟨msbs.toNat <<< m, shiftLeftLt msbs.isLt m⟩
 
 /--
