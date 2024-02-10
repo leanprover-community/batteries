@@ -190,7 +190,7 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
 /-! ### allOnes -/
 
 private theorem allOnes_def :
-    allOnes v = .ofFin (⟨0, Nat.pow_two_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.pow_two_pos v)⟩) := by
+    allOnes v = .ofFin (⟨0, Nat.two_pow_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.two_pow_pos v)⟩) := by
   rfl
 
 @[simp] theorem toNat_allOnes : (allOnes v).toNat = 2^v - 1 := by
@@ -199,7 +199,7 @@ private theorem allOnes_def :
   · subst h
     rfl
   · rw [Nat.mod_eq_of_lt (Nat.one_lt_two_pow h), Nat.mod_eq_of_lt]
-    exact Nat.pred_lt_self (Nat.pow_two_pos v)
+    exact Nat.pred_lt_self (Nat.two_pow_pos v)
 
 @[simp] theorem getLsb_allOnes : (allOnes v).getLsb i = decide (i < v) := by
   simp only [allOnes_def, getLsb_ofFin, Fin.coe_sub, Nat.zero_add, Nat.testBit_mod_two_pow]
