@@ -314,10 +314,9 @@ theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
 
 @[simp] theorem size_range {n : Nat} : (range n).size = n := by
   unfold range
-  sorry
-  -- induction n with
-  -- | zero      => simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
-  -- | succ k ih => simp only [Nat.fold, flip, size_push, ih]
+  induction n with
+  | zero      => simp [Nat.fold]
+  | succ k ih => rw [Nat.fold, flip]; simpa
 
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = a.size) (a.modifyM i f) := by
