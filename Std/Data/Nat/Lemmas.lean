@@ -171,7 +171,7 @@ protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
-  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and, and_comm]
+  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and_iff_or_not_not, and_comm]
   exact mt Nat.le_antisymm_iff.2
 protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
 @[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
