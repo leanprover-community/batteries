@@ -594,7 +594,7 @@ theorem Decidable.imp_or' [Decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a �
   if h : b then by simp [h] else by
     rw [eq_false h, false_or]; exact (or_iff_right_of_imp fun hx x => (hx x).elim).symm
 
-theorem Decidable.not_imp [Decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
+theorem Decidable.not_imp_iff_and_not [Decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
   ⟨fun h => ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
 theorem Decidable.peirce (a b : Prop) [Decidable a] : ((a → b) → a) → a :=
@@ -626,17 +626,17 @@ theorem Decidable.iff_iff_not_or_and_or_not [Decidable a] [Decidable b] :
 theorem Decidable.not_and_not_right [Decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
   ⟨fun h ha => not_imp_symm (And.intro ha) h, fun h ⟨ha, hb⟩ => hb <| h ha⟩
 
-theorem Decidable.not_and [Decidable a] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+theorem Decidable.not_and_iff_or_not_not [Decidable a] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
   ⟨fun h => if ha : a then .inr (h ⟨ha, ·⟩) else .inl ha, not_and_of_not_or_not⟩
 
-theorem Decidable.not_and' [Decidable b] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+theorem Decidable.not_and_iff_or_not_not' [Decidable b] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
   ⟨fun h => if hb : b then .inl (h ⟨·, hb⟩) else .inr hb, not_and_of_not_or_not⟩
 
 theorem Decidable.or_iff_not_and_not [Decidable a] [Decidable b] : a ∨ b ↔ ¬(¬a ∧ ¬b) := by
   rw [← not_or, not_not]
 
 theorem Decidable.and_iff_not_or_not [Decidable a] [Decidable b] : a ∧ b ↔ ¬(¬a ∨ ¬b) := by
-  rw [← not_and, not_not]
+  rw [← not_and_iff_or_not_not, not_not]
 
 theorem Decidable.imp_iff_right_iff [Decidable a] : (a → b ↔ b) ↔ a ∨ b :=
   ⟨fun H => (Decidable.em a).imp_right fun ha' => H.1 fun ha => (ha' ha).elim,
@@ -718,11 +718,11 @@ theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
   Decidable.or_iff_not_imp_right
 
-theorem not_imp : ¬(a → b) ↔ a ∧ ¬b :=
-  Decidable.not_imp
+theorem not_imp_iff_and_not : ¬(a → b) ↔ a ∧ ¬b :=
+  Decidable.not_imp_iff_and_not
 
-theorem not_and : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
-  Decidable.not_and
+theorem not_and_iff_or_not_not : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+  Decidable.not_and_iff_or_not_not
 
 theorem not_iff : ¬(a ↔ b) ↔ (¬a ↔ b) :=
   Decidable.not_iff

@@ -29,4 +29,4 @@ theorem Decidable.not_iff_iff_and_not_or_not_and [Decidable a] [Decidable b] :
 
 alias ⟨Decidable.and_not_or_not_and_of_not_iff, _⟩ := Decidable.not_iff_iff_and_not_or_not_and
 
-alias ⟨Decidable.and_not_of_not_imp, _⟩ := Decidable.not_imp
+alias ⟨Decidable.and_not_of_not_imp, _⟩ := Decidable.not_imp_iff_and_not
