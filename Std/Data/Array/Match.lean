@@ -18,7 +18,7 @@ structure PrefixTable (α : Type _) extends Array (α × Nat) where
   valid : (h : i < toArray.size) → toArray[i].2 ≤ i
 
 instance : Inhabited (PrefixTable α) where
-  default := ⟨#[], fun.⟩
+  default := ⟨#[], nofun⟩
 
 /-- Returns the size of the prefix table -/
 abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size

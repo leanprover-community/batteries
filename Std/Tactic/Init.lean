@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Tactic.GuardExpr
 import Std.Lean.Meta.Basic
-import Std.Lean.Tactic
 
 /-!
 # Simple tactics that are used throughout Std.

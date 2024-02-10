@@ -86,7 +86,7 @@ instance : Decidable (Heap.NoSibling s) :=
   match s with
   | .nil => isTrue .nil
   | .node a c .nil => isTrue (.node a c)
-  | .node _ _ (.node _ _ _) => isFalse fun.
+  | .node _ _ (.node _ _ _) => isFalse nofun
 
 theorem Heap.noSibling_merge (le) (s₁ s₂ : Heap α) :
     (s₁.merge le s₂).NoSibling := by
