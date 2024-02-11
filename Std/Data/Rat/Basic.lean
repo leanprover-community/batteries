@@ -13,6 +13,7 @@ import Std.Tactic.Ext
 Rational numbers, implemented as a pair of integers `num / den` such that the
 denominator is positive and the numerator and denominator are coprime.
 -/
+-- `Rat` is not tagged with the `ext` attribute, since this is more often than not undesirable
 structure Rat where
   /-- Constructs a rational number from components.
   We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
@@ -26,10 +27,6 @@ structure Rat where
   /-- The numerator and denominator are coprime: it is in "reduced form". -/
   reduced : num.natAbs.Coprime den := by decide
   deriving DecidableEq
-
--- `Rat` is not tagged with the `ext` attribute, since this is more often than not undesirable
-theorem Rat.ext {p q : Rat} (hn : p.num = q.num) (hd : p.den = q.den) : p = q := by
-  cases p; cases q; subst hn hd; rfl
 
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
 
