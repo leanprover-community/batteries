@@ -26,9 +26,9 @@ I document here what features are not in the original:
   `∑ i in range n, i = n * (n - 1) / 2`, which is indexed by
   `[⟨Finset.sum, 5⟩, ⟨Nat, 0⟩, ⟨Nat, 0⟩, *0, ⟨Finset.Range, 1⟩, *1, λ, ⟨#0, 0⟩]`.
 
-- The key `Key.star` now takes a `Nat` identifier as an argument. For example,
-  the library pattern `?a + ?a` is encoded as `[⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *2]`.
-  `*0` corresponds to the type of `a`, `*1` to the `Hadd` instance, and `*2` to `a`.
+- The key `Key.star` takes a `Nat` identifier as an argument. For example,
+  the library pattern `?a + ?a` is encoded as `[⟨HAdd.hAdd, 6⟩, *0, *0, *0, *1, *2, *2]`.
+  `*0` corresponds to the type of `a`, `*1` to the `HAdd` instance, and `*2` to `a`.
   This means that it will only match an expression `x + y` if `x` is definitionally equal to `y`.
   The matching algorithm requires that the same stars from the discrimination tree match with
   the same patterns in the lookup expression, and similarly requires that the same metavariables
@@ -46,8 +46,8 @@ I document here what features are not in the original:
 - We keep track of the matching score of a unification.
   This score represents the number of keys that had to be the same for the unification to succeed.
   For example, matching `(1 + 2) + 3` with `add_comm` gives a score of 2,
-  since the pattern of commutativity is [⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3],
-  so matching `⟨Hadd.hadd, 6⟩` gives 1 point,
+  since the pattern of commutativity is [⟨HAdd.hAdd, 6⟩, *0, *0, *0, *1, *2, *3],
+  so matching `⟨HAdd.hAdd, 6⟩` gives 1 point,
   and matching `*0` after its first appearence gives another point, but the third argument is an
   outParam, so this gets ignored. Similarly, matching it with `add_assoc` gives a score of 5.
 
@@ -59,8 +59,8 @@ I document here what features are not in the original:
   and  `[⟨Continuous, 5⟩, *0, ⟨Real, 0⟩, *1, *2, ⟨Real.exp⟩]`
   so that it also comes up if you search with `Continuous Real.exp`.
   Similarly, `Continuous fun x => f x + g x` is indexed by
-  both `[⟨Continuous, 1⟩, λ, ⟨Hadd.hadd, 6⟩, *0, *0, *0, *1, *2, *3]`
-  and  `[⟨Continuous, 1⟩, ⟨Hadd.hadd, 5⟩, *0, *0, *0, *1, *2]`.
+  both `[⟨Continuous, 1⟩, λ, ⟨HAdd.hAdd, 6⟩, *0, *0, *0, *1, *2, *3]`
+  and  `[⟨Continuous, 1⟩, ⟨HAdd.hAdd, 5⟩, *0, *0, *0, *1, *2]`.
 
 - For sub-expressions not at the root of the original expression, We have some simplifications:
   - Any combination of `ofNat`, `Nat.zero`, `Nat.succ` and number literals
@@ -423,7 +423,7 @@ partial def reduce (e : Expr) (config : WhnfCoreConfig) : MetaM Expr := do
 /-- Repeatedly apply reduce while stripping lambda binders and introducing their variables -/
 @[specialize]
 partial def lambdaTelescopeReduce [Monad m] [MonadLiftT MetaM m] [MonadControlT MetaM m]
-    [Inhabited (m α)] (e : Expr) (fvars : List FVarId) (config : WhnfCoreConfig)
+    [Inhabited α] (e : Expr) (fvars : List FVarId) (config : WhnfCoreConfig)
     (k : Expr → List FVarId → m α) : m α := do
   match ← reduce e config with
   | .lam n d b bi =>
@@ -512,7 +512,7 @@ def reduceHBinOpAux (args : Array Expr) (lambdas : List FVarId) (inst : Name)
     : MetaM (Option (Expr × Expr × Expr)) := OptionT.run do
   let some (Expr.app (.app (.const inst' _) type) _) := args[3]? | failure
   guard (inst == inst')
-  etaExpand args type lambdas 6 fun args lambdas => OptionT.run do
+  etaExpand args type lambdas 6 fun args lambdas => do
     let mut lhs := args[4]!
     let mut rhs := args[5]!
     let mut type := type
@@ -569,8 +569,6 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
     args.mapIdxM fun i arg =>
       argDTExpr arg ignores[i]!
 
-  /- TODO: when returning an `.opaque` or `.star` key,
-  don't index the lambdas if `e` contains their bound variables. -/
   match fn with
   | .const n _ =>
     if !root then
@@ -593,7 +591,9 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
     /- we index `fun x => x` as `id` when not at the root -/
     if let fvarId' :: lambdas' := lambdas then
       if fvarId' == fvarId && args.isEmpty && !root then
-        return ← withLams lambdas' do return .const ``id #[← mkDTExprAux (← fvarId.getType) false]
+        return ← withLams lambdas' do
+          let type ← mkDTExprAux (← fvarId.getType) false
+          return .const ``id #[type]
     withLams lambdas do
       if let some idx := (← read).bvars.findIdx? (· == fvarId) then
         return .bvar idx (← argDTExprs)
@@ -603,7 +603,7 @@ partial def mkDTExprAux (e : Expr) (root : Bool) : ReaderT Context MetaM DTExpr 
         return .opaque
   | .mvar mvarId =>
     /- When the mvarId has arguments, index it with `[*]` instead of `[λ,*]`,
-    because it could depend on the bound variables. As a result,
+    because the star could depend on the bound variables. As a result,
     something indexed `[λ,*]` has that the `*` cannot depend on the λ-bound variables -/
     if args.isEmpty then
       withLams lambdas do return .star (some mvarId)
@@ -708,7 +708,9 @@ partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
     /- we index `fun x => x` as `id` when not at the root -/
     if let fvarId' :: lambdas' := lambdas then
       if fvarId' == fvarId && args.isEmpty && !root then
-        return ← withLams lambdas' do return .const ``id #[← mkDTExprsAux (← fvarId.getType) false]
+        return ← withLams lambdas' do
+          let type ← mkDTExprAux (← fvarId.getType) false
+          return .const ``id #[type]
     withLams lambdas do
       let c ← read
       if let some idx := c.bvars.findIdx? (· == fvarId) then
@@ -719,6 +721,9 @@ partial def mkDTExprsAux (original : Expr) (root : Bool) : M DTExpr := do
       else
         return .opaque
   | .mvar mvarId =>
+    /- When the mvarId has arguments, index it with `[*]` instead of `[λ,*]`,
+    because the star could depend on the bound variables. As a result,
+    something indexed `[λ,*]` has that the `*` cannot depend on the λ-bound variables -/
     if args.isEmpty then
       withLams lambdas do return .star (some mvarId)
     else
@@ -929,11 +934,11 @@ mutual
     else
       matchTreeStars e t <|> exactMatch e (findKey t.children!)
 
-  /-- If the head of `e` is not a metavariable,
-  return the possible `Trie α` that exactly match with `e`. -/
+  /-- If `e` is not a metavariable, return the possible `Trie α` that exactly match with `e`. -/
+  @[specialize]
   partial def exactMatch (e : DTExpr) (find? : Key → Option (Trie α)) : M (Trie α) := do
 
-    let findKey (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) :=
+    let findKey (k : Key) (x : Trie α → M (Trie α) := pure) (score := 1) : M (Trie α) :=
       match find? k with
         | none => failure
         | some trie => do
@@ -966,7 +971,7 @@ together with their matching scores, in decreasing order of score.
 Each entry of type `Array α × Nat` corresponds to one pattern.
 
 If `unify := false`, then metavariables in `e` are treated as opaque variables.
-This is for when you don't want the matched keys to instantiate metavariables in `e`.
+This is for when you don't want to instantiate metavariables in `e`.
 
 If `allowRootStar := false`, then we don't allow `e` or the matched key in `d`
 to be a star pattern. -/
@@ -979,7 +984,8 @@ partial def getMatchWithScore (d : RefinedDiscrTree α) (e : Expr) (unify : Bool
       d.root.foldl (init := failure) fun x k c => (do
         if k == Key.opaque then
           GetUnify.incrementScore 1
-        Prod.snd <$> GetUnify.skipEntries c #[k] k.arity) <|> x
+        let (_, t) ← GetUnify.skipEntries c #[k] k.arity
+        return t) <|> x
     else
       GetUnify.exactMatch e d.root.find?
       <|> do
