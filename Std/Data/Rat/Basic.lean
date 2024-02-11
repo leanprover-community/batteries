@@ -97,7 +97,7 @@ instance : OfNat Rat n := ⟨n⟩
 /-- Form the quotient `n / d` where `n d : Int`. -/
 def divInt : Int → Int → Rat
   | n, .ofNat d => inline (mkRat n d)
-  | n, .negSucc d => normalize (-n) d.succ (nofun)
+  | n, .negSucc d => normalize (-n) d.succ nofun
 
 @[inherit_doc] scoped infixl:70 " /. " => Rat.divInt
 

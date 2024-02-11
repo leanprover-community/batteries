@@ -258,7 +258,7 @@ theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
 theorem lowerBound?_le {t : RBNode α} : t.lowerBound? cut none = some x → cut x ≠ .lt :=
-  lowerBound?_le' (nofun)
+  lowerBound?_le' nofun
 
 theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb → p x) :
     t.lowerBound? cut lb = some x → p x := by
@@ -271,14 +271,14 @@ theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb
     · exact fun | rfl => hp.1
 
 theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : t.lowerBound? cut none = some x → p x :=
-  hp.lowerBound?_lb (nofun)
+  hp.lowerBound?_lb nofun
 
 theorem lowerBound?_mem_lb {t : RBNode α}
     (h : t.lowerBound? cut lb = some x) : x ∈ t ∨ x ∈ lb :=
   All.lowerBound?_lb (p := fun x => x ∈ t ∨ x ∈ lb) (All_def.2 fun _ => .inl) Or.inr h
 
 theorem lowerBound?_mem {t : RBNode α} (h : t.lowerBound? cut none = some x) : x ∈ t :=
-  (lowerBound?_mem_lb h).resolve_right (nofun)
+  (lowerBound?_mem_lb h).resolve_right nofun
 
 theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
   induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
