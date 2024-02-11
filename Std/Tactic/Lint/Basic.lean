@@ -35,7 +35,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
   if let Name.str n s := decl then
-    if s.startsWith "proof_" || s.startsWith "match_" then return true
+    if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
     if (← getEnv).isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
