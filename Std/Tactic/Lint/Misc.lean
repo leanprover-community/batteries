@@ -68,7 +68,8 @@ We skip all declarations that contain `sorry` in their value. -/
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none -- FIXME: scoped/local instances should also not be linted
     if let .str _ s := declName then
-      if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
+      if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" ||
+        s.startsWith "unsafe_" then
       return none
     let kind ← match ← getConstInfo declName with
       | .axiomInfo .. => pure "axiom"
