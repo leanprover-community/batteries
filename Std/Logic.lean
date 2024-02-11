@@ -126,7 +126,7 @@ theorem true_imp_iff (α : Prop) : (True → α) ↔ α := ⟨fun h => h trivial
 
 @[simp] theorem imp_self : (a → a) ↔ True := iff_true_intro id
 
-theorem imp_false : (a → False) ↔ ¬a := Iff.rfl
+@[simp] theorem imp_false : (a → False) ↔ ¬a := Iff.rfl
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) := ⟨flip, flip⟩
 

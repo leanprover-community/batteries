@@ -506,28 +506,7 @@ def trim (xs : IntList) : IntList := xs.trim?.getD xs
 
 theorem trim?_eq_some {xs : IntList} (w : xs.trim? = some t) : xs.trim = t := by simp [trim, w]
 
-theorem trim_spec {xs : IntList} : xs.trim = (xs.reverse.dropWhile (· == 0)).reverse := by
-  dsimp [trim, trim?]
-  split <;> rename_i h h'
-  · simp_all
-  · simp_all [List.dropWhile_cons]
-  · simp_all [List.dropWhile_cons]
-    rw [if_neg h, ← h', List.reverse_reverse]
-
 @[simp] theorem trim_nil : trim [] = [] := rfl
-
-@[simp] theorem trim_append_zero {xs : IntList} : (xs ++ [0]).trim = xs.trim := by
-  simp [trim_spec, List.dropWhile]
-
-@[simp] theorem trim_neg {xs : IntList} : (-xs).trim = -xs.trim := by
-  simp only [trim_spec, neg_def, List.reverse_map]
-  generalize xs.reverse = xs'
-  induction xs' with
-  | nil => simp
-  | cons x xs' ih =>
-    simp only [List.map_cons, List.dropWhile_cons, Int.neg_eq_zero, beq_iff_eq]
-    split <;>
-    simp_all [List.reverse_map]
 
 /-- Apply "balanced mod" to each entry in an `IntList`. -/
 abbrev bmod (x : IntList) (m : Nat) : IntList := x.map (Int.bmod · m)
