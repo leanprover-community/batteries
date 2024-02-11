@@ -41,13 +41,11 @@ theorem testBit_toNat (x : BitVec w) : x.toNat.testBit i = x.getLsb i := rfl
   have p : 2^w ≤ 2^i := Nat.pow_le_pow_of_le_right (by omega) ge
   omega
 
-theorem getLsb_eq_decide_and_getLsb {x : BitVec w} {i : Nat} :
-    getLsb x i = (decide (i < w) && getLsb x i) := by
+theorem lt_of_getLsb (x : BitVec w) (i : Nat) : getLsb x i = true → i < w := by
   if h : i < w then
     simp [h]
   else
-    have h' := Nat.ge_of_not_lt h
-    simp [decide_False, h, h']
+    simp [Nat.ge_of_not_lt h]
 
 -- We choose `eq_of_getLsb_eq` as the `@[ext]` theorem for `BitVec`
 -- somewhat arbitrarily over `eq_of_getMsg_eq`.
@@ -264,11 +262,7 @@ theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
       · simp
 
 @[simp] theorem getLsb_not {x : BitVec v} : (~~~x).getLsb i = (decide (i < v) && ! x.getLsb i) := by
-  simp only [not_def, getLsb_xor, getLsb_allOnes]
-  rw [getLsb_eq_decide_and_getLsb]
-  -- case bash!
-  cases decide (i < v) <;> simp
-
+  by_cases h' : i < v <;> simp_all [not_def]
 
 /-! ### shiftLeft -/
 
