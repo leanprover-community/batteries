@@ -348,7 +348,8 @@ theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
   rw [add_def]
   ext <;> simp [normalize_eq]
 
-@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := rfl
+@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
+  ext <;> simp [normalize_eq]
 
 @[simp, norm_cast] theorem intCast_sub (a b : Int) :
     ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
