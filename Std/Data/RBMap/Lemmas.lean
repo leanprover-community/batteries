@@ -328,7 +328,7 @@ strictly greater than the cut (so there is no exact match, and nothing closer to
 theorem Ordered.lowerBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
     (H : t.lowerBound? cut none = some x) (hy : y ∈ t)
     (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
-  ht.lowerBound?_least_lb (by exact nofun) H hy hx xy
+  ht.lowerBound?_least_lb (by nofun) H hy hx xy
 
 theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
     t.MemP cut ↔ ∃ x, t.lowerBound? cut none = some x ∧ cut x = .eq := by
