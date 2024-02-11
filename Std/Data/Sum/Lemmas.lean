@@ -68,13 +68,13 @@ theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = 
 @[simp] theorem getRight?_eq_some_iff : x.getRight? = some b ↔ x = inr b := by
   cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq]
 
-@[simp] theorem bnot_isLeft (x : α ⊕ β) : !x.isLeft = x.isRight := by cases x <;> rfl
+@[simp] theorem bnot_isLeft (x : α ⊕ β) : x.isLeft != x.isRight := by cases x <;> rfl
 
 @[simp] theorem isLeft_eq_false {x : α ⊕ β} : x.isLeft = false ↔ x.isRight := by cases x <;> simp
 
 theorem not_isLeft {x : α ⊕ β} : ¬x.isLeft ↔ x.isRight := by simp
 
-@[simp] theorem bnot_isRight (x : α ⊕ β) : !x.isRight = x.isLeft := by cases x <;> rfl
+@[simp] theorem bnot_isRight (x : α ⊕ β) : x.isRight != x.isLeft := by cases x <;> rfl
 
 @[simp] theorem isRight_eq_false {x : α ⊕ β} : x.isRight = false ↔ x.isLeft := by cases x <;> simp
 

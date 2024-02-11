@@ -215,9 +215,3 @@ theorem cond_eq_if : (bif b then x else y) = (if b then x else y) := by
 
 @[simp] theorem true_eq_decide_iff {p : Prop} [h : Decidable p] : true = decide p ↔ p := by
   cases h with | _ q => simp [q]
-
--- These arise because `¬b` rewrites to `decide(b = false)`.
-@[simp] theorem decide_eq_false_and (b : Bool) : (decide (b = false) && b) = false := by
-  cases b <;> simp
-@[simp] theorem and_decide_eq_false (b : Bool) : (b && decide (b = false)) = false := by
-  cases b <;> simp

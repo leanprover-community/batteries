@@ -236,8 +236,6 @@ theorem not_not_em (a : Prop) : ¬¬(a ∨ ¬a) := fun h => h (.inr (h ∘ .inl)
 -- TODO: rename or_self to or_self_eq
 theorem or_self_iff : a ∨ a ↔ a := or_self _ ▸ .rfl
 
-theorem Or.symm : a ∨ b → b ∨ a := .rec .inr .inl
-
 theorem Or.imp (f : a → c) (g : b → d) (h : a ∨ b) : c ∨ d := h.elim (inl ∘ f) (inr ∘ g)
 
 theorem Or.imp_left (f : a → b) : a ∨ c → b ∨ c := .imp f id

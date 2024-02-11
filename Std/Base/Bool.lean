@@ -30,14 +30,14 @@ instance (p : Bool → Prop) [inst : DecidablePred p] : Decidable (∃ x, p x) :
 @[simp] theorem or_self_left (a b : Bool) : (a || (a || b)) = (a || b) := by revert a b ; decide
 @[simp] theorem or_self_right (a b : Bool) : ((a || b) || b) = (a || b) := by revert a b ; decide
 
-@[simp] theorem not_beq_self : ∀ (x : Bool), (!x == x) = false := by decide
-@[simp] theorem beq_not_self : ∀ (x : Bool), (x == !x) = false := by decide
+@[simp] theorem not_beq_self : ∀ (x : Bool), ((!x) == x) = false := by decide
+@[simp] theorem beq_not_self : ∀ (x : Bool), (x == (!x)) = false := by decide
 
 @[simp] theorem beq_self_left (a b : Bool) : (a == (a == b)) = b := by revert a b ; decide
 @[simp] theorem beq_self_right (a b : Bool) : ((a == b) == b) = a := by revert a b ; decide
 
-@[simp] theorem not_bne_self : ∀ (x : Bool), (!x != x) = true := by decide
-@[simp] theorem bne_not_self : ∀ (x : Bool), (x != !x) = true := by decide
+@[simp] theorem not_bne_self : ∀ (x : Bool), ((!x) != x) = true := by decide
+@[simp] theorem bne_not_self : ∀ (x : Bool), (x != (!x)) = true := by decide
 
 @[simp] theorem bne_self_left (a b : Bool) : (a != (a != b)) = b := by revert a b ; decide
 @[simp] theorem bne_self_right (a b : Bool) : ((a != b) != b) = a := by revert a b ; decide
@@ -59,7 +59,8 @@ in false_eq and true_eq.
   cases b <;> simp
 
 /- ## Simp lemmas for Bool to Prop normal forms: `b = true`, `b = false`-/
--- From mathlib: coe_iff_coe
+-- From mathlib: Bool.coe_iff_coe
+-- Mathlib calls the prop version iff_eq_eq
 @[simp]
 theorem coe_true_iff_true : ∀(a b : Bool), (a ↔ b) ↔ a = b := by decide
 
@@ -123,10 +124,6 @@ theorem coe_false_iff_false : ∀(a b : Bool), (a = false ↔ b = false) ↔ (!a
   cases b <;> cases c <;> simp
 
 @[simp] theorem not_bne (b c : Bool) : (!(b != c)) = (b == c) := by
-  cases b <;> cases c <;> simp
-
-@[simp] theorem iff_eq_eq (b c : Bool) :
-    ((b = true) ↔ (c = true)) = (b = c) := by
   cases b <;> cases c <;> simp
 
 @[simp]
@@ -210,12 +207,4 @@ theorem cond_false_same (c b : Bool) : cond c b c = (c && b) := by cases c <;> s
 
 -- !b : Prop reduces to `b = false`, so this normalized that.
 @[simp] theorem and_eq_false_iff_not_and (b c : Bool) : (b && c) = false ↔ ¬(b ∧ c) := by
-  cases b <;> simp
-
-@[simp]
-protected theorem decide_eq_true (b : Bool) : decide (b = true) = b := by
-  cases b <;> simp
-
-@[simp]
-protected theorem decide_eq_false (b : Bool) : decide (b = false) = !b := by
   cases b <;> simp

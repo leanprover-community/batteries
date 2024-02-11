@@ -27,6 +27,8 @@ theorem iff_true_intro (h : a) : a ↔ True := iff_of_true h ⟨⟩
 
 /-# or -/
 
+theorem Or.symm : a ∨ b → b ∨ a := .rec .inr .inl
+
 @[simp] theorem or_self_left : a ∨ (a ∨ b) ↔ a ∨ b := ⟨.rec .inl id, .rec .inl (.inr ∘ .inr)⟩
 
 @[simp] theorem or_self_right : (a ∨ b) ∨ b ↔ a ∨ b := ⟨.rec id .inr, .rec (.inl ∘ .inl) .inr⟩
@@ -83,10 +85,9 @@ theorem decide_eq_true_iff (p : Prop) [Decidable p] : (decide p = true) ↔ p :=
 namespace Decidable
 
 /-- Simplify p ∨ ¬p -/
-@[simp] abbrev or_not_self := em
+@[simp] theorem or_not_self (p : Prop) [Decidable p] : p ∨ ¬p := em p
 
-@[simp] theorem not_or_self (p : Prop) [Decidable p] : ¬p ∨ p := by
-  by_cases h : p <;> simp [h]
+@[simp] theorem not_or_self (p : Prop) [Decidable p] : ¬p ∨ p := (em p).symm
 
 @[simp]
 theorem decide_not (p : Prop) [h : Decidable (p → False)] [g : Decidable p] :
