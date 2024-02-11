@@ -264,7 +264,7 @@ theorem testBit_two_pow_add_gt {i j : Nat} (j_lt_i : j < i) (x : Nat) :
       else
         simp [i_lt_j]
 
-@[simp] theorem testBit_one_zero : testBit 1 0 = true := by trivial
+theorem testBit_one_zero : testBit 1 0 = true := by trivial
 
 theorem testBit_two_pow_sub_succ (h₂ : x < 2 ^ n) (i : Nat) :
     testBit (2^n - (x + 1)) i = (decide (i < n) && ! testBit x i) := by
