@@ -34,7 +34,7 @@ end Key
 namespace Trie
 
 -- `Inhabited` instance to allow `partial` definitions.
-private instance [Monad m] : Inhabited (σ → β → m σ) := ⟨fun s _ => pure s⟩
+private local instance [Monad m] : Inhabited (σ → β → m σ) := ⟨fun s _ => pure s⟩
 
 /--
 Monadically fold the keys and values stored in a `Trie`.
