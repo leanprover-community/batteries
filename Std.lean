@@ -89,7 +89,6 @@ import Std.Tactic.Exact
 import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.FalseOrByContra
-import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
 import Std.Tactic.Init
@@ -103,7 +102,6 @@ import Std.Tactic.Lint.Frontend
 import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
 import Std.Tactic.Lint.TypeClass
-import Std.Tactic.NoMatch
 import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas

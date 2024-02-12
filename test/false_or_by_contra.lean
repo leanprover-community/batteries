@@ -1,5 +1,4 @@
 import Std.Tactic.FalseOrByContra
-import Std.Tactic.GuardExpr
 
 example (w : False) : False := by
   false_or_by_contra
