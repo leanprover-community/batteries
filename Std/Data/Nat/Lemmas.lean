@@ -171,7 +171,7 @@ protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
-  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and, and_comm]
+  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and_iff_or_not_not, and_comm]
   exact mt Nat.le_antisymm_iff.2
 protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
 @[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
@@ -1143,6 +1143,21 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
+
+protected theorem one_lt_two_pow (h : n ≠ 0) : 1 < 2 ^ n :=
+  match n, h with
+  | n+1, _ => by
+    rw [Nat.pow_succ', ← Nat.one_mul 1]
+    exact Nat.mul_lt_mul_of_lt_of_le' (by decide) (Nat.two_pow_pos n) (by decide)
+
+@[simp] protected theorem one_lt_two_pow_iff : 1 < 2 ^ n ↔ n ≠ 0 :=
+  ⟨(by intro h p; subst p; simp at h), Nat.one_lt_two_pow⟩
+
+protected theorem one_le_two_pow : 1 ≤ 2 ^ n := by
+  if h : n = 0 then
+    subst h; simp
+  else
+    exact Nat.le_of_lt (Nat.one_lt_two_pow h)
 
 /-! ### log2 -/
 
