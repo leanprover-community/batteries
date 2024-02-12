@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import Std.Data.Int.Init.Order
 import Std.Tactic.Change
-import Std.Tactic.RCases
 
 /-!
 # Lemmas about integer division needed to bootstrap `omega`.
