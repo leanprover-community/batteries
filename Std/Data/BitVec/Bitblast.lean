@@ -112,11 +112,7 @@ theorem carry_succ (w x y : Nat) (c : Bool) :
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
           simp only [← Nat.pow_succ']
           exact adc_overflow_limit x y w c
-  cases xh <;> cases yh <;>
-  · generalize x % 2 ^ w = xm at *
-    generalize y % 2 ^ w = ym at *
-    simp
-    omega
+  cases xh <;> cases yh <;> (simp; omega)
 
 theorem getLsb_add_add_bool {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     getLsb (x + y + zeroExtend w (ofBool c)) i =
