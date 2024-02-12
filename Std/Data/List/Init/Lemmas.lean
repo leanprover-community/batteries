@@ -6,7 +6,8 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import Std.Classes.SetNotation
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.List.Init.Basic
-import Std.Logic
+import Std.Base.Logic
+import Std.Tactic.NoMatch
 
 namespace List
 

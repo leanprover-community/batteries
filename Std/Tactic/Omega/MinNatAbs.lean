@@ -82,11 +82,13 @@ theorem nonzeroMinimum_eq_of_nonzero {xs : List Nat} (h : xs.nonzeroMinimum ≠ 
     ∃ x ∈ xs, xs.nonzeroMinimum = x :=
   ⟨xs.nonzeroMinimum, ((nonzeroMinimum_eq_nonzero_iff h).mp rfl).1, rfl⟩
 
+section
+open Classical
 theorem nonzeroMinimum_le_iff {xs : List Nat} {y : Nat} :
     xs.nonzeroMinimum ≤ y ↔ xs.nonzeroMinimum = 0 ∨ ∃ x ∈ xs, x ≤ y ∧ x ≠ 0 := by
   refine ⟨fun h => ?_, fun h => ?_⟩
-  · rw [Classical.or_iff_not_imp_right]
-    simp only [ne_eq, not_exists, not_and, Classical.not_not, nonzeroMinimum_eq_zero_iff]
+  · rw [Decidable.or_iff_not_imp_right]
+    simp only [ne_eq, not_exists, not_and, Decidable.not_not, nonzeroMinimum_eq_zero_iff]
     intro w
     apply nonzeroMinimum_eq_zero_iff.mp
     if p : xs.nonzeroMinimum = 0 then
@@ -96,6 +98,7 @@ theorem nonzeroMinimum_le_iff {xs : List Nat} {y : Nat} :
   · match h with
     | .inl h => simp [h]
     | .inr ⟨x, m, le, ne⟩ => exact Nat.le_trans (nonzeroMinimum_le m ne) le
+end
 
 theorem nonzeroMininum_map_le_nonzeroMinimum (f : α → β) (p : α → Nat) (q : β → Nat) (xs : List α)
     (h : ∀ a, a ∈ xs → (p a = 0 ↔ q (f a) = 0))

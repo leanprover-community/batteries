@@ -5,8 +5,14 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
-import Std.Logic
+import Std.Base.Logic
 import Std.Tactic.HaveI
+
+import Std.Tactic.Init
+import Std.Tactic.NoMatch
+import Std.Tactic.Alias
+import Std.Tactic.Lint.Misc
+import Std.Tactic.ByCases
 
 /-!
 # Red-black trees

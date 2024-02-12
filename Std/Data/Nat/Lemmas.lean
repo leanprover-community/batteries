@@ -3,11 +3,11 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Std.Logic
-import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
+import Std.Tactic.Alias
+import Std.Tactic.NoMatch
 
 /-! # Basic lemmas about natural numbers
 
@@ -1393,4 +1393,4 @@ instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m 
 
 instance decidableExistsLE [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
   fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
-    (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)
+    (exists_congr fun _ => by simp [Nat.lt_succ_iff])

@@ -11,6 +11,13 @@ import Std.Data.Option.Lemmas
 import Std.Classes.BEq
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
+import Std.Base.Logic
+import Std.Tactic.Init
+import Std.Tactic.NoMatch
+import Std.Tactic.Alias
+import Std.Tactic.Lint.Misc
+import Std.Tactic.ByCases
+import Std.Tactic.Omega
 
 namespace List
 
@@ -917,8 +924,7 @@ theorem get?_modifyNth (f : α → α) :
   | 0, _ :: l, m+1 => by cases l.get? m <;> rfl
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
-      cases l.get? m <;> by_cases h : n = m <;>
-        simp only [h, if_pos, if_true, if_false, Option.map, mt Nat.succ.inj, not_false_iff]
+      cases l.get? m <;> by_cases h : n = m <;> simp
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
@@ -945,7 +951,7 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
 
 @[simp] theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
     (modifyNth f m l).get? n = l.get? n := by
-  simp only [get?_modifyNth, if_neg h, id_map']
+  simp [get?_modifyNth, if_neg h, id_map']
 
 theorem exists_of_modifyNth (f : α → α) {n} {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modifyNth f n l = l₁ ++ f a :: l₂ :=
@@ -1761,8 +1767,7 @@ theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filt
 /-- List.prod satisfies a specification of cartesian product on lists. -/
 theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
-  simp only [product, and_imp, exists_prop, mem_map, Prod.mk.injEq,
-    exists_eq_right_right, mem_bind, iff_self]
+  simp [product, mem_bind, ←and_assoc, exists_eq_right]
 
 /-! ### leftpad -/
 
@@ -2137,9 +2142,23 @@ protected theorem Pairwise.chain (p : Pairwise R (a :: l)) : Chain R a l := by
 theorem mem_range' : ∀{n}, m ∈ range' s n step ↔ ∃ i < n, m = s + step * i
   | 0 => by simp [range', Nat.not_lt_zero]
   | n + 1 => by
-    have h (i) : i ≤ n ↔ i = 0 ∨ ∃ j, i = succ j ∧ j < n := by cases i <;> simp [Nat.succ_le]
-    simp [range', mem_range', Nat.lt_succ, h]; simp only [← exists_and_right, and_assoc]
-    rw [exists_comm]; simp [Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
+    simp [range', @mem_range' _ _ _ n]
+    apply Iff.intro
+    · intro h
+      match h with
+      | Or.inl p => apply Exists.intro 0 ; simp [p]
+      | Or.inr ⟨j, ⟨j_lt, p⟩⟩ =>
+        apply Exists.intro (j+1)
+        simp [p, Nat.mul_succ]
+        omega
+    · intro ⟨j, q⟩
+      match j with
+      | 0 =>
+        simp_all
+      | j+1 =>
+        apply Or.inr (Exists.intro j _)
+        simp only [Nat.mul_succ] at q
+        omega
 
 @[simp] theorem mem_range'_1 : m ∈ range' s n ↔ s ≤ m ∧ m < s + n := by
   simp [mem_range']; exact ⟨

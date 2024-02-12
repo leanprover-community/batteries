@@ -7,6 +7,7 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 import Std.Data.Sum.Basic
 import Std.Tactic.Ext
 
+
 /-!
 # Disjoint union of types
 
@@ -45,10 +46,10 @@ section get
   | inr _, _ => rfl
 
 @[simp] theorem getLeft?_eq_none_iff {x : α ⊕ β} : x.getLeft? = none ↔ x.isRight := by
-  cases x <;> simp only [getLeft?, isRight, eq_self_iff_true]
+  cases x <;> simp only [getLeft?, isRight]
 
 @[simp] theorem getRight?_eq_none_iff {x : α ⊕ β} : x.getRight? = none ↔ x.isLeft := by
-  cases x <;> simp only [getRight?, isLeft, eq_self_iff_true]
+  cases x <;> simp only [getRight?, isLeft]
 
 theorem eq_left_getLeft_of_isLeft : ∀ {x : α ⊕ β} (h : x.isLeft), x = inl (x.getLeft h)
   | inl _, _ => rfl

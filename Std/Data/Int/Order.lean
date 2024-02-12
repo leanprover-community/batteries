@@ -3,6 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
+import Std.Base.Logic
 import Std.Data.Int.Lemmas
 import Std.Data.Option.Basic
 import Std.Tactic.RCases
@@ -115,7 +116,7 @@ protected theorem le_of_lt {a b : Int} (h : a < b) : a ≤ b :=
 protected theorem lt_iff_le_and_ne {a b : Int} : a < b ↔ a ≤ b ∧ a ≠ b := by
   refine ⟨fun h => ⟨Int.le_of_lt h, Int.ne_of_lt h⟩, fun ⟨aleb, aneb⟩ => ?_⟩
   let ⟨n, hn⟩ := le.dest aleb
-  have : n ≠ 0 := aneb.imp fun eq => by rw [← hn, eq, ofNat_zero, Int.add_zero]
+  have : n ≠ 0 := by intro eq ; simp [eq] at hn; contradiction
   apply lt.intro; rwa [← Nat.succ_pred_eq_of_pos (Nat.pos_of_ne_zero this)] at hn
 
 theorem lt_succ (a : Int) : a < a + 1 := Int.le_refl _

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Std.Classes.Order
-import Std.Logic
+import Std.Base.Logic
+import Std.Tactic.NoMatch
+
 
 namespace Std.PairingHeapImp
 

@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Basic
 import Std.Tactic.Ext.Attr
-import Std.Logic
+import Std.Base.Logic
 
 namespace Option
 
@@ -137,12 +137,13 @@ theorem map_none : f <$> none = none := rfl
 
 theorem map_some : f <$> some a = some (f a) := rfl
 
-@[simp] theorem map_eq_some' : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b := by cases x <;> simp
+@[simp] theorem map_eq_some' : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b := by
+  cases x <;> simp
 
 theorem map_eq_some : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b := map_eq_some'
 
 @[simp] theorem map_eq_none' : x.map f = none ↔ x = none := by
-  cases x <;> simp only [map_none', map_some', eq_self_iff_true]
+  cases x <;> simp only [map_none', map_some']
 
 theorem map_eq_none : f <$> x = none ↔ x = none := map_eq_none'
 

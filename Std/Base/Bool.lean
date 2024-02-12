@@ -208,3 +208,17 @@ theorem cond_false_same (c b : Bool) : cond c b c = (c && b) := by cases c <;> s
 -- !b : Prop reduces to `b = false`, so this normalized that.
 @[simp] theorem and_eq_false_iff_not_and (b c : Bool) : (b && c) = false ↔ ¬(b ∧ c) := by
   cases b <;> simp
+
+/- Flatten conjunctions and disjunctions. -/
+
+@[simp]
+theorem and_not_or_dist : ∀ (x y z : Bool), (x && !(y || z)) = (x && (!y && !z)) := by decide
+
+@[simp]
+theorem not_or_and_dist : ∀ (x y z : Bool), (!(x || y) && z) = ((!x && !y) && z) := by decide
+
+@[simp]
+theorem or_not_and_dist : ∀ (x y z : Bool), (x || !(y && z)) = (x || (!y || !z)) := by decide
+
+@[simp]
+theorem not_and_or_dist : ∀ (x y z : Bool), (!(x && y) || z) = ((!x || !y) || z) := by decide

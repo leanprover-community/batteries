@@ -8,6 +8,7 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega
 
 namespace Fin
 
@@ -158,8 +159,10 @@ theorem last_pos : (0 : Fin (n + 2)) < last (n + 1) := Nat.succ_pos _
 theorem eq_last_of_not_lt {i : Fin (n + 1)} (h : ¬(i : Nat) < n) : i = last n :=
   ext <| Nat.le_antisymm (le_last i) (Nat.not_lt.1 h)
 
-theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
-  Decidable.not_imp_comm.1 eq_last_of_not_lt
+theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n := by
+  let ⟨j, jlt⟩ := i
+  simp [last]
+  omega
 
 @[simp] theorem rev_last (n : Nat) : rev (last n) = 0 := ext <| by simp
 
@@ -264,13 +267,19 @@ theorem one_lt_succ_succ (a : Fin n) : (1 : Fin (n + 2)) < a.succ.succ := by
     intro (k : Fin 1)
     exact iff_of_true (Subsingleton.elim (α := Fin 1) (k+1) _ ▸ Nat.le_refl _) (fin_one_eq_zero ..)
   | n + 1 =>
-    intro (k : Fin (n+2))
-    rw [← add_one_lt_iff, lt_def, le_def, Nat.lt_iff_le_and_ne, and_iff_left]
-    rw [val_add_one]
-    split <;> simp [*, (Nat.succ_ne_zero _).symm, Nat.ne_of_gt (Nat.lt_succ_self _)]
+    intro (⟨k, lt⟩ : Fin (n+2))
+    simp [Fin.le_def, add_def, last]
+    if p : k = n + 1 then
+      simp [p]
+    else
+      have q : k+1 < n +2 := by omega
+      simp [Nat.mod_eq_of_lt q]
+      omega
 
 @[simp] theorem last_le_iff {n : Nat} {k : Fin (n + 1)} : last n ≤ k ↔ k = last n := by
-  rw [ext_iff, Nat.le_antisymm_iff, le_def, and_iff_right (by apply le_last)]
+  let ⟨j, lt⟩ := k
+  simp [last]
+  omega
 
 @[simp] theorem lt_add_one_iff {n : Nat} {k : Fin (n + 1)} : k < k + 1 ↔ k < last n := by
   rw [← Decidable.not_iff_not]; simp
@@ -504,7 +513,7 @@ theorem rev_succ (k : Fin n) : rev (succ k) = castSucc (rev k) := k.rev_addNat 1
 @[simp] theorem coe_pred (j : Fin (n + 1)) (h : j ≠ 0) : (j.pred h : Nat) = j - 1 := rfl
 
 @[simp] theorem succ_pred : ∀ (i : Fin (n + 1)) (h : i ≠ 0), (i.pred h).succ = i
-  | ⟨0, h⟩, hi => by simp only [mk_zero, ne_eq, not_true] at hi
+  | ⟨0, h⟩, hi => by simp only [mk_zero, ne_eq, not_true_eq_false] at hi
   | ⟨n + 1, h⟩, hi => rfl
 
 @[simp]
@@ -537,8 +546,8 @@ theorem pred_mk {n : Nat} (i : Nat) (h : i < n + 1) (w) : Fin.pred ⟨i, h⟩ w 
 
 @[simp] theorem pred_inj :
     ∀ {a b : Fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
-  | ⟨0, _⟩, _, ha, _ => by simp only [mk_zero, ne_eq, not_true] at ha
-  | ⟨i + 1, _⟩, ⟨0, _⟩, _, hb => by simp only [mk_zero, ne_eq, not_true] at hb
+  | ⟨0, _⟩, _, ha, _ => by simp only [mk_zero, ne_eq, not_true_eq_false] at ha
+  | ⟨i + 1, _⟩, ⟨0, _⟩, _, hb => by simp only [mk_zero, ne_eq, not_true_eq_false] at hb
   | ⟨i + 1, hi⟩, ⟨j + 1, hj⟩, ha, hb => by simp [ext_iff]
 
 @[simp] theorem pred_one {n : Nat} :

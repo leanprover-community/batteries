@@ -5,6 +5,7 @@ Authors: Mario Carneiro, James Gallicchio
 -/
 import Std.Data.List.Count
 import Std.Data.Fin.Lemmas
+import Std.Logic
 
 /-!
 # Pairwise relations on a list

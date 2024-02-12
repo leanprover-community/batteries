@@ -28,7 +28,7 @@ theorem numElems_step_1 (start stop) : numElems ⟨start, stop, 1⟩ = stop - st
   simp [numElems]
 
 private theorem numElems_le_iff {start stop step i} (hstep : 0 < step) :
-    (stop - start + step - 1) / step ≤ i ↔ stop ≤ start + step * i :=
+    (stop - start + step - 1) / step ≤ i ↔ stop ≤ start + step * i := by
   calc (stop - start + step - 1) / step ≤ i
     _ ↔ stop - start + step - 1 < step * i + step := by
       rw [← Nat.lt_succ (n := i), Nat.div_lt_iff_lt_mul hstep, Nat.mul_comm, ← Nat.mul_succ]

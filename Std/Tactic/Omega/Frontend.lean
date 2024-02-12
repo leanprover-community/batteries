@@ -10,6 +10,7 @@ import Std.Tactic.Omega.Int
 import Std.Tactic.FalseOrByContra
 import Std.Lean.Meta.Basic
 import Std.Lean.Elab.Tactic
+import Std.Base.Logic
 
 /-!
 # Frontend to the `omega` tactic.

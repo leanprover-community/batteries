@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import Std.Data.AssocList
 import Std.Data.Nat.Basic
 import Std.Classes.BEq
+import Std.Tactic.Omega
 
 namespace Std.HashMap
 
@@ -198,20 +199,26 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 -/
 @[specialize] def filterMap {α : Type u} {β : Type v} {γ : Type w}
     (f : α → β → Option γ) (m : Imp α β) : Imp α γ :=
-  let m' := m.buckets.1.mapM (m := StateT (ULift Nat) Id) (go .nil) |>.run ⟨0⟩ |>.run
-  have : m'.1.size > 0 := by
-    have := Array.size_mapM (m := StateT (ULift Nat) Id) (go .nil) m.buckets.1
-    simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
-    simp [this, Id.run, StateT.run, m.2.2]
-  ⟨m'.2.1, m'.1, this⟩
+  let ma := m.buckets.1
+  let rec iter (ma : Array (AssocList α β)) (ma_size : ma.size > 0)
+            (r : Array (AssocList α γ)) (sz : Nat) : Imp α γ :=
+        if p : r.size < ma.size then
+          let b := ma[r.size]'p
+          let (e, sz) := go .nil b sz
+          iter ma ma_size (r.push e) sz
+        else
+          have h : r.size > 0 := by omega
+          ⟨sz, r, h⟩
+    termination_by ma.size - r.size
+  iter ma m.buckets.2 (Array.mkEmpty ma.size) 0
 where
   /-- Inner loop of `filterMap`. Note that this reverses the bucket lists,
   but this is fine since bucket lists are unordered. -/
-  @[specialize] go (acc : AssocList α γ) : AssocList α β → ULift Nat → AssocList α γ × ULift Nat
+  @[specialize] go (acc : AssocList α γ) : AssocList α β → Nat → AssocList α γ × Nat
   | .nil, n => (acc, n)
   | .cons a b l, n => match f a b with
     | none => go acc l n
-    | some c => go (.cons a c acc) l ⟨n.1 + 1⟩
+    | some c => go (.cons a c acc) l (n + 1)
 
 /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
 @[inline] def filter (f : α → β → Bool) (m : Imp α β) : Imp α β :=

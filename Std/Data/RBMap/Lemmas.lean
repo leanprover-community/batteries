@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Std.Data.RBMap.Alter
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Logic
 
 /-!
 # Additional lemmas for Red-black trees
@@ -179,6 +180,7 @@ class IsStrictCut (cmp : α → α → Ordering) (cut : α → Ordering) extends
 instance (cmp) (a : α) : IsStrictCut cmp (cmp a) where
   le_lt_trans h₁ h₂ := TransCmp.lt_le_trans h₂ h₁
   le_gt_trans h₁ := Decidable.not_imp_not.1 (TransCmp.le_trans · h₁)
+
   exact h := (TransCmp.cmp_congr_left h).symm
 
 section find?

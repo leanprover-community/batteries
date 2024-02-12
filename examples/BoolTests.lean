@@ -4,9 +4,9 @@ import Std.Util.CheckTactic
 import Lean.Data.HashSet
 import Lean.Elab.Command
 import Std
+import Std.Base.LogicExtra
 
 open Lean Lean.Meta Lean.Elab Lean.Elab.Term Lean.Elab.Command
-
 
 -- This file runs many tests on simp and other operations on
 -- Boolean/Prop values.
@@ -309,6 +309,10 @@ partial def simp (v : BoolVal) : BoolVal :=
   | .and (.falseVal tp) _ _ => .falseVal tp
   | .and x (.trueVal   _) _ => x
   | .and _ (.falseVal tp) _ => .falseVal tp
+  | .and (.not (.or x y _) _) z tp =>
+    .and (.and (.not x tp) (.not y tp) tp) z tp
+  | .and x (.not (.or y z _) _) tp =>
+    .and x (.and (.not y tp) (.not z tp) tp) tp
   | .and x y tp => Id.run do
       if let .and _xl xr _ := x then
         if xr == y then return x
@@ -324,6 +328,10 @@ partial def simp (v : BoolVal) : BoolVal :=
   | .or (.trueVal tp) _ _ => .trueVal tp
   | .or x (.falseVal   _) _ => x
   | .or _ (.trueVal tp) _ => .trueVal tp
+  | .or (.not (.and x y _) _) z tp =>
+    .or (.or (.not x tp) (.not y tp) tp) z tp
+  | .or x (.not (.and y z _) _) tp =>
+    .or x (.or (.not y tp) (.not z tp) tp) tp
   | .or x y tp => Id.run do
       if let .or _xl xr _ := x then
         if xr == y then return x
@@ -741,7 +749,7 @@ def elabGenTest : CommandElab := fun stx => do
   ]
   let iteOps := [
     iteOp .iteProp, iteOp .iteBool,
-    --iteOp .diteProp,  iteOp .diteBool,
+    iteOp .diteProp,  iteOp .diteBool,
     iteOp .condBool
   ]
   let ops := ops ++ eqOps ++ neOps ++ iteOps
@@ -759,6 +767,9 @@ def elabGenTest : CommandElab := fun stx => do
 
 -- # Direct simplification tests
 
+set_option trace.Meta.Tactic.simp.rewrite true
+set_option trace.Meta.Tactic.simp.rewrite false
+
 -- ## Specific unit tests
 
 section simp
@@ -767,10 +778,10 @@ variable (b c d : Bool)
 variable (u v w : Prop) [Decidable u] [Decidable v] [Decidable w]
 
 set_option trace.Meta.Tactic.simp.rewrite true
-#check_simp if ¬u then v else w ~> if u then w else v
 set_option trace.Meta.Tactic.simp.rewrite false
 
 -- Specific regressions
+#check_simp b && !(c || d) ~> b && (!c && !d)
 #check_simp (true ≠ if u then b else c) ~> (if u then b = false else c = false)
 #check_simp (u ∧ v → False) ~> u → v → False
 #check_simp (u = (v ≠ w)) ~> (u ↔ ¬(v ↔ w))
