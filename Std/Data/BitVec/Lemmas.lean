@@ -87,7 +87,9 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 @[simp] theorem toNat_ofNat (x w : Nat) : (x#w).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
 
-@[simp] theorem getLsb_ofNat (n : Nat) (x : Nat) (i : Nat) :
+-- Remark: we don't use `[simp]` here because simproc` subsumes it for literals.
+-- If `x` and `n` are not literals, applying this theorem eagerly may not be a good idea.
+theorem getLsb_ofNat (n : Nat) (x : Nat) (i : Nat) :
   getLsb (x#n) i = (i < n && x.testBit i) := by
   simp [getLsb, BitVec.ofNat, Fin.val_ofNat']
 
@@ -410,7 +412,9 @@ theorem sub_def {n} (x y : BitVec n) : x - y = .ofNat n (x.toNat + (2^n - y.toNa
   rfl
 @[simp] theorem sub_ofFin (x : BitVec n) (y : Fin (2^n)) : x - .ofFin y = .ofFin (x.toFin - y) :=
   rfl
-@[simp] theorem ofNat_sub_ofNat {n} (x y : Nat) : x#n - y#n = .ofNat n (x + (2^n - y % 2^n)) := by
+-- Remark: we don't use `[simp]` here because simproc` subsumes it for literals.
+-- If `x` and `n` are not literals, applying this theorem eagerly may not be a good idea.
+theorem ofNat_sub_ofNat {n} (x y : Nat) : x#n - y#n = .ofNat n (x + (2^n - y % 2^n)) := by
   apply eq_of_toNat_eq ; simp [BitVec.ofNat]
 
 @[simp] protected theorem sub_zero (x : BitVec n) : x - (0#n) = x := by apply eq_of_toNat_eq ; simp
