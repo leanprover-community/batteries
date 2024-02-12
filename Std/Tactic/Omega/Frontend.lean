@@ -180,7 +180,15 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     match r? with
     | some r => pure r
     | none => mkAtomLinearCombo e
-  | (``HMod.hMod, #[_, _, _, _, n, k]) => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
+  | (``HMod.hMod, #[_, _, _, _, n, k]) =>
+    match k.nat? with
+    | some _ => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
+    | none => match k.getAppFnArgs with
+      | (``Nat.cast, #[.const ``Int [], _, k']) =>
+        match k'.nat? with
+        | some _ => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
+        | none => mkAtomLinearCombo e
+      | _ => mkAtomLinearCombo e
   | (``HDiv.hDiv, #[_, _, _, _, x, z]) =>
     match intCast? z with
     | some 0 => rewrite e (mkApp (.const ``Int.ediv_zero []) x)
