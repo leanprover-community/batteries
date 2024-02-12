@@ -303,10 +303,9 @@ theorem getMsb_rev (x : BitVec w) (i : Fin w) :
     simp [p1, p2]
   · simp [i_eq_n, testBit_toNat]
     cases b <;> trivial
-  · have p1 : n ≤ i := by omega
-    have p2 : i ≠ n := by omega
-    have p3 : i - n ≠ 0 := by omega
-    simp [p1, p2, p3, Nat.testBit_bool_to_nat]
+  · have p1 : i ≠ n := by omega
+    have p2 : ¬ i ≤ n := by omega
+    simp [p1, p2, Nat.testBit_bool_to_nat]
 
 theorem truncate_succ (x : BitVec w) :
     truncate (i+1) x = cons (getLsb x i) (truncate i x) := by

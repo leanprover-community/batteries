@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
 import Std.Tactic.Alias
+import Std.Tactic.RCases
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
@@ -202,6 +203,12 @@ protected theorem lt_succ_iff : m < succ n ↔ m ≤ n := ⟨le_of_lt_succ, lt_s
 
 protected theorem lt_succ_iff_lt_or_eq : m < succ n ↔ m < n ∨ m = n :=
   Nat.lt_succ_iff.trans Nat.le_iff_lt_or_eq
+
+protected theorem eq_of_lt_succ_of_not_lt (hmn : m < n + 1) (h : ¬ m < n) : m = n :=
+  (Nat.lt_succ_iff_lt_or_eq.1 hmn).resolve_left h
+
+protected theorem eq_of_le_of_lt_succ (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+  Nat.le_antisymm (le_of_succ_le_succ h₂) h₁
 
 /-! ## compare -/
 
@@ -453,7 +460,7 @@ protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
 
 protected theorem add_sub_cancel_right (n m : Nat) : (n + m) - m = n := Nat.add_sub_cancel ..
 
-protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
+@[simp] protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
 
 theorem succ_sub_one (n) : succ n - 1 = n := rfl
@@ -479,7 +486,7 @@ protected theorem le_of_sub_eq_zero : ∀ {n m}, n - m = 0 → n ≤ m
   | 0, _, _ => Nat.zero_le ..
   | _+1, _+1, h => Nat.succ_le_succ <| Nat.le_of_sub_eq_zero (Nat.succ_sub_succ .. ▸ h)
 
-protected theorem sub_eq_zero_iff_le : n - m = 0 ↔ n ≤ m :=
+@[simp] protected theorem sub_eq_zero_iff_le : n - m = 0 ↔ n ≤ m :=
   ⟨Nat.le_of_sub_eq_zero, Nat.sub_eq_zero_of_le⟩
 
 protected theorem lt_of_sub_ne_zero (h : n - m ≠ 0) : m < n :=
@@ -1054,6 +1061,13 @@ theorem mul_mod_mul_left (z x y : Nat) : (z * x) % (z * y) = z * (x % y) :=
 theorem mul_mod_mul_right (z x y : Nat) : (x * z) % (y * z) = (x % y) * z := by
   rw [Nat.mul_comm x z, Nat.mul_comm y z, Nat.mul_comm (x % y) z]; apply mul_mod_mul_left
 
+@[simp] theorem mod_mod_of_dvd (a : Nat) (h : c ∣ b) : a % b % c = a % c := by
+  conv =>
+    rhs
+    rw [← mod_add_div a b]
+  obtain ⟨x, rfl⟩ := h
+  rw [Nat.mul_assoc, add_mul_mod_self_left]
+
 -- TODO cont_to_bool_mod_two
 
 theorem sub_mul_mod {x k n : Nat} (h₁ : n*k ≤ x) : (x - n*k) % n = x % n := by
@@ -1143,6 +1157,9 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
+
+protected alias pow_le_pow_left := pow_le_pow_of_le_left
+protected alias pow_le_pow_right := pow_le_pow_of_le_right
 
 /-! ### log2 -/
 
