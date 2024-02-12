@@ -162,7 +162,7 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
         let pow_pos := mkApp3 (.const ``Int.pos_pow_of_pos []) b exp (← mkDecideProof b_pos)
         pure <|
           {mkApp3 (.const ``Int.emod_nonneg []) x k
-              (mkApp3 (.const ``Int.ne_of_lt []) (toExpr (0 : Int)) k pow_pos),
+              (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) pow_pos),
             mkApp3 (.const ``Int.emod_lt_of_pos []) x k pow_pos}
     | (``Nat.cast, #[.const ``Int [], _, k']) =>
       match k'.getAppFnArgs with
@@ -176,7 +176,7 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
           let cast_pos := mkApp2 (.const ``Int.ofNat_pos_of_pos []) k' pow_pos
           pure <|
             {mkApp3 (.const ``Int.emod_nonneg []) x k
-                (mkApp3 (.const ``Int.ne_of_lt []) (toExpr (0 : Int)) k cast_pos),
+                (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) cast_pos),
               mkApp3 (.const ``Int.emod_lt_of_pos []) x k cast_pos}
       | _ => pure ∅
     | _ => pure ∅
