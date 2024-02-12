@@ -6,13 +6,25 @@ set_option autoImplicit true
 -- And this option to trace all candidate lemmas before application.
 -- set_option trace.Tactic.stdLibrarySearch.lemmas true
 
+-- Many of the tests here are quite volatile,
+-- and when changes are made to `solve_by_elim` or `exact?`,
+-- or the library itself, the printed messages change.
+-- Hence many of the tests here use `#guard_msgs (drop info)`,
+-- and do not actually verify the particular output, just that `exact?` succeeds.
+-- We keep the most recent output as a comment
+-- (not a doc-comment: so `#guard_msgs` doesn't check it)
+-- for reference.
+-- If you find further tests failing please:
+-- 1. update the comment using the code action on `#guard_msgs`
+-- 2. (optional) add `(drop info)` after `#guard_msgs` and change the doc-comment to a comment
+
 noncomputable section
 
-/-- info: Try this: exact Nat.lt.base x -/
+/-- info: Try this: exact Nat.le.refl -/
 #guard_msgs in
 example (x : Nat) : x ≠ x.succ := Nat.ne_of_lt (by std_apply?)
 
-/-- info: Try this: exact Nat.zero_lt_succ 1 -/
+/-- info: Try this: exact Nat.le.step Nat.le.refl -/
 #guard_msgs in
 example : 0 ≠ 1 + 1 := Nat.ne_of_lt (by std_apply?)
 
@@ -22,7 +34,7 @@ example : 0 ≠ 1 + 1 := Nat.ne_of_lt (by exact Fin.size_pos')
 #guard_msgs in
 example (x y : Nat) : x + y = y + x := by std_apply?
 
-/-- info: Try this: exact fun a => Nat.add_le_add_right a k -/
+/-- info: Try this: exact fun a => Nat.add_le_add a Nat.le.refl -/
 #guard_msgs in
 example (n m k : Nat) : n ≤ m → n + k ≤ m + k := by std_apply?
 
@@ -34,7 +46,7 @@ example (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c := by std_apply?
 #guard_msgs (drop info) in
 example : Int := by std_apply?
 
-/-- info: Try this: Nat.lt.base x -/
+/-- info: Try this: Nat.le.refl -/
 #guard_msgs in
 example : x < x + 1 := std_exact?%
 
@@ -144,7 +156,7 @@ end synonym
 example : ∀ P : Prop, ¬(P ↔ ¬P) := by std_apply?
 
 -- We even find `iff` results:
-/-- info: Try this: exact Iff.mpr (Nat.dvd_add_iff_left h₁) h₂ -/
+/-- info: Try this: exact (Nat.dvd_add_iff_left h₁).mpr h₂ -/
 #guard_msgs in
 example {a b c : Nat} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b := by std_apply?
 
@@ -156,11 +168,11 @@ example {a b c : Nat} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b := by std_
 opaque f : Nat → Nat
 axiom F (a b : Nat) : f a ≤ f b ↔ a ≤ b
 
-/-- info: Try this: exact Iff.mpr (F a b) h -/
+/-- info: Try this: exact (F a b).mpr h -/
 #guard_msgs in
 example (a b : Nat) (h : a ≤ b) : f a ≤ f b := by std_apply?
 
-/-- info: Try this: exact List.join L -/
+/-- info: Try this: exact List.findIdxs (fun a => false) L -/
 #guard_msgs in
 example (L : List (List Nat)) : List Nat := by std_apply? using L
 
@@ -222,3 +234,19 @@ theorem Bool_eq_iff2 {A B : Bool} : (A = B) = (A ↔ B) := by
 --   first
 --   | exact? says exact le_antisymm hxy hyx
 --   | exact? says exact ge_antisymm hyx hxy
+
+/--
+info: Try this: refine Int.mul_ne_zero ?a0 h
+---
+warning: declaration uses 'sorry'
+-/
+#guard_msgs in
+example {x : Int} (h : x ≠ 0) : 2 * x ≠ 0 := by
+  std_apply? using h
+
+-- Check that adding `with_reducible` prevents expensive kernel reductions.
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/.60exact.3F.60.20failure.3A.20.22maximum.20recursion.20depth.20has.20been.20reached.22/near/417649319
+/-- info: Try this: exact Nat.add_comm n m -/
+#guard_msgs in
+example (_h : List.range 10000 = List.range 10000) (n m : Nat) : n + m = m + n := by
+  with_reducible std_exact?

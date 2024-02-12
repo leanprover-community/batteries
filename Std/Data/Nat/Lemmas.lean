@@ -4,11 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
-import Std.Tactic.Basic
 import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
+
+/-! # Basic lemmas about natural numbers
+
+The primary purpose of the lemmas in this file is to assist with reasoning
+about sizes of objects, array indices and such. For a more thorough development
+of the theory of natural numbers, we recommend using Mathlib.
+-/
 
 namespace Nat
 
@@ -165,7 +171,7 @@ protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
-  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and, and_comm]
+  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and_iff_or_not_not, and_comm]
   exact mt Nat.le_antisymm_iff.2
 protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
 @[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
@@ -191,6 +197,11 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
 
 protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
   ⟨Nat.lt_or_eq_of_le, fun | .inl h => Nat.le_of_lt h | .inr rfl => Nat.le_refl _⟩
+
+protected theorem lt_succ_iff : m < succ n ↔ m ≤ n := ⟨le_of_lt_succ, lt_succ_of_le⟩
+
+protected theorem lt_succ_iff_lt_or_eq : m < succ n ↔ m < n ∨ m = n :=
+  Nat.lt_succ_iff.trans Nat.le_iff_lt_or_eq
 
 /-! ## compare -/
 
@@ -562,7 +573,7 @@ theorem sub_lt_succ (a b) : a - b < succ a := lt_succ_of_le (sub_le a b)
 theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   rw [Nat.sub_right_comm]; exact Nat.sub_one_lt_of_le (Nat.sub_pos_of_lt h) (Nat.sub_le ..)
 
-/-! ## min/max -/
+/-! ### min/max -/
 
 theorem succ_min_succ (x y) : min (succ x) (succ y) = succ (min x y) := by
   cases Nat.le_total x y with
@@ -736,7 +747,7 @@ protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min
   repeat rw [Nat.mul_comm a]
   exact Nat.mul_min_mul_right ..
 
-/-! ## mul -/
+/-! ### mul -/
 
 @[deprecated Nat.mul_le_mul_left]
 protected theorem mul_le_mul_of_nonneg_left {a b c : Nat} : a ≤ b → c * a ≤ c * b :=
@@ -837,7 +848,7 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
     Nat.sub_add_eq, Nat.add_sub_cancel]
 
-/-! ## div/mod -/
+/-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
 
@@ -1352,3 +1363,34 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
   cases n
   · exact (m % 0).div_zero
   · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)
+
+/-! ### Decidability of predicates -/
+
+instance decidableBallLT :
+  ∀ (n : Nat) (P : ∀ k, k < n → Prop) [∀ n h, Decidable (P n h)], Decidable (∀ n h, P n h)
+| 0, _, _ => isTrue fun _ => (by cases ·)
+| n + 1, P, H =>
+  match decidableBallLT n (P · <| lt_succ_of_lt ·) with
+  | isFalse h => isFalse (h fun _ _ => · _ _)
+  | isTrue h =>
+    match H n Nat.le.refl with
+    | isFalse p => isFalse (p <| · _ _)
+    | isTrue p => isTrue fun _ h' => (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn => hn ▸ p
+
+instance decidableForallFin (P : Fin n → Prop) [DecidablePred P] : Decidable (∀ i, P i) :=
+  decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ => m k h, fun m k h => m ⟨k, h⟩⟩
+
+instance decidableBallLE (n : Nat) (P : ∀ k, k ≤ n → Prop) [∀ n h, Decidable (P n h)] :
+    Decidable (∀ n h, P n h) :=
+  decidable_of_iff (∀ (k) (h : k < succ n), P k (le_of_lt_succ h))
+    ⟨fun m k h => m k (lt_succ_of_le h), fun m k _ => m k _⟩
+
+instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m < n ∧ p m
+  | 0 => isFalse (by simp only [not_lt_zero, false_and, exists_const, not_false_eq_true])
+  | n + 1 =>
+    @decidable_of_decidable_of_iff _ _ (@instDecidableOr _ _ (decidableExistsLT (p := p) n) (h n))
+      (by simp only [Nat.lt_succ_iff_lt_or_eq, or_and_right, exists_or, exists_eq_left])
+
+instance decidableExistsLE [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
+  fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
+    (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)

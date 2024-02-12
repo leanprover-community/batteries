@@ -79,6 +79,7 @@ import Std.Lean.PersistentHashSet
 import Std.Lean.Position
 import Std.Lean.RefinedDiscrTree
 import Std.Lean.SMap
+import Std.Lean.Syntax
 import Std.Lean.System.IO
 import Std.Lean.Tactic
 import Std.Lean.TagAttribute
@@ -93,6 +94,7 @@ import Std.Tactic.Basic
 import Std.Tactic.ByCases
 import Std.Tactic.Case
 import Std.Tactic.Change
+import Std.Tactic.Classical
 import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
@@ -102,6 +104,7 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
@@ -149,6 +152,7 @@ import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
+import Std.Util.CheckTactic
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle

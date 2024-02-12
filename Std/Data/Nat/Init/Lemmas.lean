@@ -52,7 +52,8 @@ protected theorem le_max_left (a b : Nat) : a ≤ max a b := by rw [Nat.max_def]
 
 protected theorem le_max_right (a b : Nat) : b ≤ max a b := Nat.max_comm .. ▸ Nat.le_max_left ..
 
-protected theorem pow_two_pos (w : Nat) : 0 < 2^w := Nat.pos_pow_of_pos _ (by decide)
+protected theorem two_pow_pos (w : Nat) : 0 < 2^w := Nat.pos_pow_of_pos _ (by decide)
+@[deprecated] alias pow_two_pos := Nat.two_pow_pos -- deprecated 2024-02-09
 
 @[simp] protected theorem not_le {a b : Nat} : ¬ a ≤ b ↔ b < a :=
   ⟨Nat.gt_of_not_le, Nat.not_le_of_gt⟩

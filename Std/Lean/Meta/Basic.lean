@@ -61,14 +61,6 @@ def isExprMVarDeclared (mctx : MetavarContext) (mvarId : MVarId) : Bool :=
   mctx.decls.contains mvarId
 
 /--
-Add a delayed assignment for the given metavariable. You must make sure that
-the metavariable is not already assigned or delayed-assigned.
--/
-def delayedAssignExprMVar (mctx : MetavarContext) (mvarId : MVarId)
-    (ass : DelayedMetavarAssignment) : MetavarContext :=
-  { mctx with dAssignment := mctx.dAssignment.insert mvarId ass }
-
-/--
 Erase any assignment or delayed assignment of the given metavariable.
 -/
 def eraseExprMVarAssignment (mctx : MetavarContext) (mvarId : MVarId) :
@@ -155,14 +147,6 @@ Check whether a metavariable is declared.
 -/
 def isDeclared [Monad m] [MonadMCtx m] (mvarId : MVarId) : m Bool :=
   return (← getMCtx).isExprMVarDeclared mvarId
-
-/--
-Add a delayed assignment for the given metavariable. You must make sure that
-the metavariable is not already assigned or delayed-assigned.
--/
-def delayedAssign [MonadMCtx m] (mvarId : MVarId)
-    (ass : DelayedMetavarAssignment) : m Unit :=
-  modifyMCtx (·.delayedAssignExprMVar mvarId ass)
 
 /--
 Erase any assignment or delayed assignment of the given metavariable.
@@ -407,7 +391,7 @@ where
         match ← observing? (f g) with
         | some gs' => go n true gs' (gs::stk) acc
         | none => go n p gs stk (acc.push g)
-termination_by _ n p gs stk _ => (n, stk, gs)
+termination_by n p gs stk _ => (n, stk, gs)
 
 /--
 `repeat' f` runs `f` on all of the goals to produce a new list of goals,

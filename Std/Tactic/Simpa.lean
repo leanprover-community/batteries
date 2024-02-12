@@ -53,59 +53,6 @@ syntax (name := simpa) "simpa" "?"? "!"? simpaArgsRest : tactic
 
 open private useImplicitLambda from Lean.Elab.Term
 
--- FIXME: remove when lean4#1862 lands
-open TSyntax.Compat in
-/--
-If `stx` is the syntax of a `simp`, `simp_all` or `dsimp` tactic invocation, and
-`usedSimps` is the set of simp lemmas used by this invocation, then `mkSimpOnly`
-creates the syntax of an equivalent `simp only`, `simp_all only` or `dsimp only`
-invocation.
--/
-private def mkSimpOnly (stx : Syntax) (usedSimps : UsedSimps) : MetaM Syntax.Tactic := do
-  let isSimpAll := stx[0].getAtomVal == "simp_all"
-  let mut stx := stx
-  if stx[3].isNone then
-    stx := stx.setArg 3 (mkNullNode #[mkAtom "only"])
-  let mut args := #[]
-  let mut localsOrStar := some #[]
-  let lctx ← getLCtx
-  let env ← getEnv
-  for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
-    match thm with
-    | .decl declName inv => -- global definitions in the environment
-      if env.contains declName && !simpOnlyBuiltins.contains declName then
-        args := args.push (← if inv then
-          `(Parser.Tactic.simpLemma| ← $(mkIdent (← unresolveNameGlobal declName)):ident)
-        else
-          `(Parser.Tactic.simpLemma| $(mkIdent (← unresolveNameGlobal declName)):ident))
-    | .fvar fvarId => -- local hypotheses in the context
-      if isSimpAll then
-        continue
-        -- `simp_all` uses all hypotheses anyway, so we do not need to include
-        -- them in the arguments. In fact, it would be harmful to do so:
-        -- `simp_all only [h]`, where `h` is a hypothesis, simplifies `h` to
-        -- `True` and subsequenly removes it from the context, whereas
-        -- `simp_all` does not. So to get behavior equivalent to `simp_all`, we
-        -- must omit `h`.
-      if let some ldecl := lctx.find? fvarId then
-        localsOrStar := localsOrStar.bind fun locals =>
-          if !ldecl.userName.isInaccessibleUserName &&
-              (lctx.findFromUserName? ldecl.userName).get!.fvarId == ldecl.fvarId then
-            some (locals.push ldecl.userName)
-          else
-            none
-      -- Note: the `if let` can fail for `simp (config := {contextual := true})` when
-      -- rewriting with a variable that was introduced in a scope. In that case we just ignore.
-    | .stx _ thmStx => -- simp theorems provided in the local invocation
-      args := args.push thmStx
-    | .other _ => -- Ignore "special" simp lemmas such as constructed by `simp_all`.
-      pure ()     -- We can't display them anyway.
-  if let some locals := localsOrStar then
-    args := args ++ (← locals.mapM fun id => `(Parser.Tactic.simpLemma| $(mkIdent id):ident))
-  else
-    args := args.push (← `(Parser.Tactic.simpStar| *))
-  let argsStx := if args.isEmpty then #[] else #[mkAtom "[", (mkAtom ",").mkSep args, mkAtom "]"]
-  return stx.setArg 4 (mkNullNode argsStx)
 
 /-- Gets the value of the `linter.unnecessarySimpa` option. -/
 def getLinterUnnecessarySimpa (o : Options) : Bool :=
@@ -117,13 +64,14 @@ elab_rules : tactic
 | `(tactic| simpa%$tk $[?%$squeeze]? $[!%$unfold]? $(cfg)? $(disch)? $[only%$only]?
       $[[$args,*]]? $[using $usingArg]?) => Elab.Tactic.focus do
   let stx ← `(tactic| simp $(cfg)? $(disch)? $[only%$only]? $[[$args,*]]?)
-  let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+  let { ctx, simprocs, dischargeWrapper } ←
+    withMainContext <| mkSimpContext stx (eraseLocal := false)
   let ctx := if unfold.isSome then { ctx with config.autoUnfold := true } else ctx
   -- TODO: have `simpa` fail if it doesn't use `simp`.
   let ctx := { ctx with config := { ctx.config with failIfUnchanged := false } }
   dischargeWrapper.with fun discharge? => do
-    let (some (_, g), usedSimps) ←
-        simpGoal (← getMainGoal) ctx (simplifyTarget := true) (discharge? := discharge?)
+    let (some (_, g), usedSimps) ← simpGoal (← getMainGoal) ctx (simprocs := simprocs)
+        (simplifyTarget := true) (discharge? := discharge?)
       | if getLinterUnnecessarySimpa (← getOptions) then
           logLint linter.unnecessarySimpa (← getRef) "try 'simp' instead of 'simpa'"
     g.withContext do
@@ -135,7 +83,7 @@ elab_rules : tactic
         pure (h, g)
       else
         (← g.assert `h (← inferType e) e).intro1
-      let (result?, usedSimps) ← simpGoal g ctx (fvarIdsToSimp := #[h])
+      let (result?, usedSimps) ← simpGoal g ctx (simprocs := simprocs) (fvarIdsToSimp := #[h])
         (simplifyTarget := false) (usedSimps := usedSimps) (discharge? := discharge?)
       match result? with
       | some (xs, g) =>
@@ -151,8 +99,9 @@ elab_rules : tactic
               m!"try 'simp at {Expr.fvar h}' instead of 'simpa using {Expr.fvar h}'"
       pure usedSimps
     else if let some ldecl := (← getLCtx).findFromUserName? `this then
-      if let (some (_, g), usedSimps) ← simpGoal g ctx (fvarIdsToSimp := #[ldecl.fvarId])
-          (simplifyTarget := false) (usedSimps := usedSimps) (discharge? := discharge?) then
+      if let (some (_, g), usedSimps) ← simpGoal g ctx (simprocs := simprocs)
+          (fvarIdsToSimp := #[ldecl.fvarId]) (simplifyTarget := false) (usedSimps := usedSimps)
+          (discharge? := discharge?) then
         g.assumption; pure usedSimps
       else
         pure usedSimps

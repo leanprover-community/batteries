@@ -1,5 +1,63 @@
 import Std.Tactic.Omega.Frontend
 
+/-!
+# Benchmarking the `omega` tactic
+
+As it's important that `omega` is fast, particularly when it has nothing to do,
+this file maintains a benchmark suite for `omega`. It is particularly low-tech,
+and currently only reproducible on Scott Morrison's FRO machine;
+nevertheless it seems useful to keep the benchmark history in the repository.
+
+The benchmark file consists of the test suite from `omega`'s initial release,
+with one test removed (in which a test-for-failure succeeds with today's `omega`).
+
+The benchmark consists of `lake build && hyperfine "lake env lean test/omega/benchmark.lean"`
+run on a freshly rebooted machine!
+
+2024-02-06 feat: omega uses Lean.HashMap instead of Std.Data.HashMap (#588)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.530 s ±  0.008 s    [User: 2.249 s, System: 0.276 s]
+  Range (min … max):    2.513 s …  2.542 s    10 runs
+
+2024-02-03 feat: omega handles min, max, if (#575)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.526 s ±  0.009 s    [User: 2.250 s, System: 0.272 s]
+  Range (min … max):    2.513 s …  2.542 s    10 runs
+
+2024-02-02 fix: revert OmegaM state when not multiplying out (#570)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.569 s ±  0.004 s    [User: 2.291 s, System: 0.273 s]
+  Range (min … max):    2.563 s …  2.574 s    10 runs
+
+2024-01-12 feat: omega handles double negation and implication hypotheses (#522)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.575 s ±  0.004 s    [User: 2.302 s, System: 0.268 s]
+  Range (min … max):    2.570 s …  2.581 s    10 runs
+
+2024-01-10 feat: omega understands Prod.Lex (#511)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.567 s ±  0.006 s    [User: 2.295 s, System: 0.268 s]
+  Range (min … max):    2.559 s …  2.576 s    10 runs
+
+2024-01-10 feat: omega handles iff and implications (#503)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.348 s ±  0.007 s    [User: 2.060 s, System: 0.282 s]
+  Range (min … max):    2.335 s …  2.356 s    10 runs
+
+2023-12-21 feat: omega (#463)
+kim@carica std4 % lake build && hyperfine "lake env lean test/omega/benchmark.lean"
+Benchmark 1: lake env lean test/omega/benchmark.lean
+  Time (mean ± σ):      2.362 s ±  0.008 s    [User: 2.080 s, System: 0.277 s]
+  Range (min … max):    2.349 s …  2.372 s    10 runs
+
+-/
+
 open Std.Tactic.Omega
 
 example : True := by
@@ -26,10 +84,6 @@ example {x : Int} : x / 0 = 0 := by omega
 
 example {x : Int} : x / 2 + x / (-2) = 0 := by omega
 
-example {x : Nat} (_ : x ≠ 0) : 0 < x := by omega
-
-example {x y z : Nat} (_ : a ≤ c) (_ : b ≤ c) : a < Nat.succ c := by omega
-
 example (_ : 7 < 3) : False := by omega
 example (_ : 0 < 0) : False := by omega
 
@@ -47,11 +101,6 @@ example {x y : Nat} (_ : 2 * x + 4 * y = 5) : False := by omega
 example {x y : Int} (_ : 6 * x + 7 * y = 5) : True := by (fail_if_success omega); trivial
 
 example {x y : Nat} (_ : 6 * x + 7 * y = 5) : False := by omega
-
-example {x y : Nat} (_ : x * 6 + y * 7 = 5) : False := by omega
-example {x y : Nat} (_ : 2 * (3 * x) + y * 7 = 5) : False := by omega
-example {x y : Nat} (_ : 2 * x * 3 + y * 7 = 5) : False := by omega
-example {x y : Nat} (_ : 2 * 3 * x + y * 7 = 5) : False := by omega
 
 example {x : Nat} (_ : x < 0) : False := by omega
 
@@ -95,6 +144,7 @@ example {x : Nat} : (x + 4) / 2 ≤ x + 2 := by omega
 
 example {x : Int} {m : Nat} (_ : 0 < m) (_ : ¬x % ↑m < (↑m + 1) / 2) : -↑m / 2 ≤ x % ↑m - ↑m := by
   omega
+
 
 example (h : (7 : Int) = 0) : False := by omega
 
@@ -198,14 +248,6 @@ example (a b c d e : Int)
   fail_if_success omega (config := { splitDisjunctions := false })
   omega
 
-example {x : Int} (h : x = 7) : x.natAbs = 7 := by
-  fail_if_success omega (config := { splitNatAbs := false })
-  fail_if_success omega (config := { splitDisjunctions := false })
-  omega
-
-example {x y : Int} (_ : (x - y).natAbs < 3) (_ : x < 5) (_ : y > 15) : False := by
-  omega
-
 example {a b : Int} (h : a < b) (w : b < a) : False := by omega
 
 example (_e b c a v0 v1 : Int) (_h1 : v0 = 5 * a) (_h2 : v1 = 3 * b) (h3 : v0 + v1 + c = 10) :
@@ -297,87 +339,3 @@ example (p n p' n' : Nat) (h : p + n' = p' + n) : n + p' = n' + p := by
   omega
 
 example (a b c : Int) (h1 : 32 / a < b) (h2 : b < c) : 32 / a < c := by omega
-
--- Check that `autoParam` wrappers do not get in the way of using hypotheses.
-example (i n : Nat) (hi : i ≤ n := by omega) : i < n + 1 := by
-  omega
-
--- Test that we consume expression metadata when necessary.
-example : 0 = 0 := by
-  have : 0 = 0 := by omega
-  omega -- This used to fail.
-
-/-! ### `Prod.Lex` -/
-
--- This example comes from the termination proof
--- for `permutationsAux.rec` in `Mathlib.Data.List.Defs`.
-example {x y : Nat} : Prod.Lex (· < ·) (· < ·) (x, x) (Nat.succ y + x, Nat.succ y) := by omega
-
--- We test the termination proof in-situ:
-def List.permutationsAux.rec' {C : List α → List α → Sort v} (H0 : ∀ is, C [] is)
-    (H1 : ∀ t ts is, C ts (t :: is) → C is [] → C (t :: ts) is) : ∀ l₁ l₂, C l₁ l₂
-  | [], is => H0 is
-  | t :: ts, is =>
-      H1 t ts is (permutationsAux.rec' H0 H1 ts (t :: is)) (permutationsAux.rec' H0 H1 is [])
-  termination_by ts is => (length ts + length is, length ts)
-  decreasing_by all_goals simp_wf; omega
-
-example {x y w z : Nat} (h : Prod.Lex (· < ·) (· < ·) (x + 1, y + 1) (w, z)) :
-    Prod.Lex (· < ·) (· < ·) (x, y) (w, z) := by omega
-
--- Verify that we can handle `iff` statements in hypotheses:
-example (a b : Int) (h : a < 0 ↔ b < 0) (w : b > 3) : a ≥ 0 := by omega
-
--- Verify that we can prove `iff` goals:
-example (a b : Int) (h : a > 7) (w : b > 2) : a > 0 ↔ b > 0 := by omega
-
--- Verify that we can prove implications:
-example (a : Int) : a > 0 → a > -1 := by omega
-
--- Verify that we can introduce multiple arguments:
-example (x y : Int) : x + 1 ≤ y → ¬ y + 1 ≤ x := by omega
-
--- Verify that we can handle double negation:
-example (x y : Int) (_ : x < y) (_ : ¬ ¬ y < x) : False := by omega
-
--- Verify that we don't treat function goals as implications.
-example (a : Nat) (h : a < 0) : Nat → Nat := by omega
-
--- Example from Cedar:
-example {a₁ a₂ p₁ p₂ : Nat}
-  (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
-  (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁ := by omega
-
--- From https://github.com/leanprover/std4/issues/562
-example {i : Nat} (h1 : i < 330) (_h2 : 7 ∣ (660 + i) * (1319 - i)) : 1319 - i < 1979 := by
-  omega
-
-example {a : Int} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
-example {a : Int} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
-example {a : Nat} (_ : a < min a b) : False := by omega (config := { splitMinMax := false })
-example {a : Nat} (_ : max a b < b) : False := by omega (config := { splitMinMax := false })
-
-example {a b : Nat} (_ : a = 7) (_ : b = 3) : min a b = 3 := by
-  fail_if_success omega (config := { splitMinMax := false })
-  omega
-
-example {a b : Nat} (_ : a + b = 9) : (min a b) % 2 + (max a b) % 2 = 1 := by
-  fail_if_success omega (config := { splitMinMax := false })
-  omega
-
-example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
-example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega
-
--- Check that we use local values.
-example (i j : Nat) (p : i ≥ j) : True := by
-  let l := j - 1
-  have _ : i ≥ l := by omega
-  trivial
-
-example (i j : Nat) (p : i ≥ j) : True := by
-  let l := j - 1
-  let k := l
-  have _ : i ≥ k := by omega
-  trivial
-
-example (i : Fin 7) : (i : Nat) < 8 := by omega
