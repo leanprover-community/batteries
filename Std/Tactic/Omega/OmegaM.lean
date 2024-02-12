@@ -145,12 +145,41 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
     | some 0 => pure ∅
     | some _ =>
       -- `k * x/k ≤ x < k * x/k + k`
-      let ne_zero := mkApp3 (.const ``Ne [.succ .zero]) (.const ``Int []) k (toExpr (0 : Int))
-      let pos := mkApp4 (.const ``LT.lt [.zero]) (.const ``Int []) (.const ``Int.instLTInt [])
+      let ne_zero := mkApp3 (.const ``Ne [1]) (.const ``Int []) k (toExpr (0 : Int))
+      let pos := mkApp4 (.const ``LT.lt [0]) (.const ``Int []) (.const ``Int.instLTInt [])
         (toExpr (0 : Int)) k
       pure <|
       {mkApp3 (.const ``Int.mul_ediv_self_le []) x k (← mkDecideProof ne_zero),
         mkApp3 (.const ``Int.lt_mul_ediv_self_add []) x k (← mkDecideProof pos)}
+  | (``HMod.hMod, #[_, _, _, _, x, k]) =>
+    match k.getAppFnArgs with
+    | (``HPow.hPow, #[_, _, _, _, b, exp]) => match natCast? b with
+      | none
+      | some 0 => pure ∅
+      | some _ =>
+        let b_pos := mkApp4 (.const ``LT.lt [0]) (.const ``Int []) (.const ``Int.instLTInt [])
+          (toExpr (0 : Int)) b
+        let pow_pos := mkApp3 (.const ``Int.pos_pow_of_pos []) b exp (← mkDecideProof b_pos)
+        pure <|
+          {mkApp3 (.const ``Int.emod_nonneg []) x k
+              (mkApp3 (.const ``Int.ne_of_lt []) (toExpr (0 : Int)) k pow_pos),
+            mkApp3 (.const ``Int.emod_lt_of_pos []) x k pow_pos}
+    | (``Nat.cast, #[.const ``Int [], _, k']) =>
+      match k'.getAppFnArgs with
+      | (``HPow.hPow, #[_, _, _, _, b, exp]) => match natCast? b with
+        | none
+        | some 0 => pure ∅
+        | some _ =>
+          let b_pos := mkApp4 (.const ``LT.lt [0]) (.const ``Nat []) (.const ``instLTNat [])
+            (toExpr (0 : Nat)) b
+          let pow_pos := mkApp3 (.const ``Nat.pos_pow_of_pos []) b exp (← mkDecideProof b_pos)
+          let cast_pos := mkApp2 (.const ``Int.ofNat_pos_of_pos []) k' pow_pos
+          pure <|
+            {mkApp3 (.const ``Int.emod_nonneg []) x k
+                (mkApp3 (.const ``Int.ne_of_lt []) (toExpr (0 : Int)) k cast_pos),
+              mkApp3 (.const ``Int.emod_lt_of_pos []) x k cast_pos}
+      | _ => pure ∅
+    | _ => pure ∅
   | (``Min.min, #[_, _, x, y]) =>
     pure <| {mkApp2 (.const ``Int.min_le_left []) x y, mkApp2 (.const ``Int.min_le_right []) x y}
   | (``Max.max, #[_, _, x, y]) =>

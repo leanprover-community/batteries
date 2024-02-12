@@ -7,8 +7,10 @@ import Std.Lean.CoreM
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
+import Std.Lean.Parser
 import Std.Data.Option.Basic
 import Std.Tactic.SolveByElim
+import Std.Tactic.TryThis
 import Std.Util.Pickle
 
 /-!
