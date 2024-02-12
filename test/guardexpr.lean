@@ -1,4 +1,3 @@
-import Std.Tactic.GuardExpr
 import Std.Tactic.Basic
 
 example (n : Nat) : Nat := by
