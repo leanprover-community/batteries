@@ -7,6 +7,7 @@ import Std.Control.ForInStep.Lemmas
 import Std.Data.List.Basic
 import Std.Tactic.Init
 import Std.Tactic.Alias
+import Std.Tactic.Lint.Simp
 
 namespace List
 
@@ -137,6 +138,11 @@ theorem drop_left' {l₁ l₂ : List α} {n} (h : length l₁ = n) : drop n (l�
 
 @[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
 @[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
+
+-- Mathlib porting note: this does not work as desired
+-- attribute [simp] List.isEmpty
+
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
 
 /-! ### append -/
 
@@ -1155,6 +1161,17 @@ theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = 
 
 theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
   mt drop_eq_nil_of_eq_nil h
+
+/-! ### modify head -/
+
+-- Mathlib porting note: List.modifyHead has @[simp], and Lean 4 treats this as
+-- an invitation to unfold modifyHead in any context,
+-- not just use the equational lemmas.
+
+-- @[simp]
+@[simp 1100, nolint simpNF]
+theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp
 
 /-! ### modify nth -/
 
@@ -2351,6 +2368,15 @@ theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
+
+theorem cons_prefix_iff : a :: l₁ <+: b :: l₂ ↔ a = b ∧ l₁ <+: l₂ := by
+  constructor
+  · rintro ⟨L, hL⟩
+    simp only [cons_append] at hL
+    injection hL with hLLeft hLRight
+    exact ⟨hLLeft, ⟨L, hLRight⟩⟩
+  · rintro ⟨rfl, h⟩
+    rwa [prefix_cons_inj]
 
 /-! ### drop -/
 
