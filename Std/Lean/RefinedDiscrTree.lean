@@ -505,12 +505,12 @@ def etaExpand (args : Array Expr) (type : Expr) (lambdas : List FVarId) (goalAri
       etaExpand (args.push fvar) type (fvar.fvarId! :: lambdas) goalArity k
   else
     k args lambdas
-termination_by etaExpand => goalArity - args.size
+termination_by goalArity - args.size
 
 /-- Normalize an application of a heterogenous binary operator like `HAdd.hAdd`. -/
 def reduceHBinOpAux (args : Array Expr) (lambdas : List FVarId) (inst : Name)
     : MetaM (Option (Expr × Expr × Expr)) := OptionT.run do
-  let some (Expr.app (.app (.const inst' _) type) _) := args[3]? | failure
+  let some (mkApp2 (.const inst' _) type _) := args[3]? | failure
   guard (inst == inst')
   etaExpand args type lambdas 6 fun args lambdas => do
     let mut lhs := args[4]!
@@ -782,7 +782,7 @@ where
         loop (i+1)
     else
       vs.push v
-termination_by loop i => vs.size - i
+termination_by vs.size - i
 
 /-- Insert the value `v` at index `keys : Array Key` in a `Trie`. -/
 partial def insertInTrie [BEq α] (keys : Array Key) (v : α) (i : Nat) : Trie α → Trie α
