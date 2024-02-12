@@ -71,7 +71,7 @@ protected def zero (n : Nat) : BitVec n := ⟨0, Nat.two_pow_pos n⟩
 
 instance : Inhabited (BitVec n) where default := .zero n
 
-instance : OfNat (BitVec n) i where ofNat := .ofNat n i
+instance instOfNat : OfNat (BitVec n) i where ofNat := .ofNat n i
 
 /-- Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`. -/
 scoped syntax:max term:max noWs "#" noWs term:max : term

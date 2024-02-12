@@ -116,7 +116,7 @@ theorem mk_le_of_le_val {b : Fin n} {a : Nat} (h : a ≤ b) :
 
 theorem zero_lt_one : (0 : Fin (n + 2)) < 1 := Nat.zero_lt_one
 
-@[simp] theorem not_lt_zero (a : Fin (n + 1)) : ¬a < 0 := fun.
+@[simp] theorem not_lt_zero (a : Fin (n + 1)) : ¬a < 0 := nofun
 
 theorem pos_iff_ne_zero {a : Fin (n + 1)} : 0 < a ↔ a ≠ 0 := by
   rw [lt_def, val_zero, Nat.pos_iff_ne_zero, ← val_ne_iff]; rfl
@@ -174,7 +174,7 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 
 theorem subsingleton_iff_le_one : Subsingleton (Fin n) ↔ n ≤ 1 := by
   (match n with | 0 | 1 | n+2 => ?_) <;> try simp
-  · exact ⟨fun.⟩
+  · exact ⟨nofun⟩
   · exact ⟨fun ⟨0, _⟩ ⟨0, _⟩ => rfl⟩
   · exact iff_of_false (fun h => Fin.ne_of_lt zero_lt_one (h.elim ..)) (of_decide_eq_false rfl)
 

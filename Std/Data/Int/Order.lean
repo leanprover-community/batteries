@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Data.Int.Init.Order
 import Std.Data.Option.Basic
-import Std.Tactic.RCases
-import Std.Tactic.ByCases
 import Std.Tactic.Omega
 
 /-!
@@ -586,7 +584,7 @@ theorem toNat_add_nat {a : Int} (ha : 0 ≤ a) (n : Nat) : (a + n).toNat = a.toN
 
 theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
   | (m : Nat), n => Option.some_inj.trans ofNat_inj.symm
-  | -[m+1], n => by constructor <;> intro.
+  | -[m+1], n => by constructor <;> nofun
 
 @[simp] theorem toNat_neg_nat : ∀ n : Nat, (-(n : Int)).toNat = 0
   | 0 => rfl

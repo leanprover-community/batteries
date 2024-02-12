@@ -6,7 +6,6 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 import Lean.Elab.Tactic.Conv.Simp
 import Std.Lean.Meta.Simp
 import Std.Tactic.NormCast.Ext
-import Std.Tactic.CoeExt
 import Std.Classes.Cast
 
 /-!
@@ -15,7 +14,6 @@ import Std.Classes.Cast
 
 open Lean Meta Simp
 open Std.Tactic.NormCast
-open Std.Tactic.Coe
 
 namespace Std.Tactic.NormCast
 

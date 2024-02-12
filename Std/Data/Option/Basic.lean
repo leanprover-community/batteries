@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Classes.SetNotation
-import Std.Tactic.NoMatch
 
 namespace Option
 
@@ -40,7 +39,7 @@ instance {p : α → Prop} [DecidablePred p] : ∀ o : Option α, Decidable (∀
   else isFalse <| mt (· _ rfl) h
 
 instance {p : α → Prop} [DecidablePred p] : ∀ o : Option α, Decidable (∃ a ∈ o, p a)
-| none => isFalse fun.
+| none => isFalse nofun
 | some a => if h : p a then isTrue ⟨_, rfl, h⟩ else isFalse fun ⟨_, ⟨rfl, hn⟩⟩ => h hn
 
 /-- Extracts the value `a` from an option that is known to be `some a` for some `a`. -/

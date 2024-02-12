@@ -1,5 +1,4 @@
 import Std.Tactic.Change
-import Std.Tactic.GuardExpr
 
 private axiom test_sorry : ∀ {α}, α
 

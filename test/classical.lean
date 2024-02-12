@@ -1,6 +1,5 @@
 import Std.Tactic.Classical
 import Std.Tactic.PermuteGoals
-import Std.Tactic.GuardExpr
 
 noncomputable example : Bool := by
   fail_if_success have := ∀ p, decide p -- no classical in scope

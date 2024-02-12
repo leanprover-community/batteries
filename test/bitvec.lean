@@ -1,4 +1,3 @@
-import Std.Tactic.GuardExpr
 import Std.Data.BitVec
 
 open Std.BitVec
