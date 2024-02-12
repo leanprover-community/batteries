@@ -20,6 +20,11 @@ expressions into expressions about individual bits in each vector.
 ## Main results
 * `x + y : BitVec w` is `(adc x y false).2`.
 
+
+## Future work
+All other operations are to be PR'ed later and are already proved in
+https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/Bitwise.lean.
+
 -/
 
 open Nat Bool
