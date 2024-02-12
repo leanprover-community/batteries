@@ -137,6 +137,8 @@ theorem drop_left' {l₁ l₂ : List α} {n} (h : length l₁ = n) : drop n (l�
 @[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
 @[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
 
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
+
 /-! ### append -/
 
 theorem append_eq_append : List.append l₁ l₂ = l₁ ++ l₂ := rfl
@@ -1162,6 +1164,18 @@ theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = 
 
 theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
   mt drop_eq_nil_of_eq_nil h
+
+/-! ### modify head -/
+
+-- Porting note: List.modifyHead has @[simp], and Lean 4 treats this as
+-- an invitation to unfold modifyHead in any context,
+-- not just use the equational lemmas.
+
+-- @[simp]
+-- @[simp 1100, nolint simpNF]
+@[simp 1100]
+theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp
 
 /-! ### modify nth -/
 
