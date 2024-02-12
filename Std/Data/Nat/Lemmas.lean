@@ -153,6 +153,24 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 @[deprecated] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
 
+protected theorem add_left_eq_self {n m : Nat} : n + m = m ↔ n = 0 := by
+  conv => lhs; rhs; rw [← Nat.zero_add m]
+  rw [Nat.add_right_cancel_iff]
+
+protected theorem add_right_eq_self {n m : Nat} : n + m = n ↔ m = 0 := by
+  conv => lhs; rhs; rw [← Nat.add_zero n]
+  rw [Nat.add_left_cancel_iff]
+
+protected theorem add_left_le_self {n m : Nat} : n + m ≤ m ↔ n = 0 := by
+  conv => lhs; rhs; rw [← Nat.zero_add m]
+  rw [Nat.add_le_add_iff_right]
+  apply Nat.le_zero
+
+protected theorem add_right_le_self {n m : Nat} : n + m ≤ n ↔ m = 0 := by
+  conv => lhs; rhs; rw [← Nat.add_zero n]
+  rw [Nat.add_le_add_iff_left]
+  apply Nat.le_zero
+
 /-! ## sub -/
 
 @[deprecated] protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Control.ForInStep.Lemmas
+import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Tactic.Init
 import Std.Tactic.Alias
