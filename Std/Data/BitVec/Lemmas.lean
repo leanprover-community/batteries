@@ -37,9 +37,15 @@ theorem testBit_toNat (x : BitVec w) : x.toNat.testBit i = x.getLsb i := rfl
 @[simp] theorem getLsb_ge (x : BitVec w) (i : Nat) (ge : i ≥ w) : getLsb x i = false := by
   let ⟨x, x_lt⟩ := x
   simp
-  apply Nat.testBit_lt_two
+  apply Nat.testBit_lt_two_pow
   have p : 2^w ≤ 2^i := Nat.pow_le_pow_of_le_right (by omega) ge
   omega
+
+theorem lt_of_getLsb (x : BitVec w) (i : Nat) : getLsb x i = true → i < w := by
+  if h : i < w then
+    simp [h]
+  else
+    simp [Nat.ge_of_not_lt h]
 
 -- We choose `eq_of_getLsb_eq` as the `@[ext]` theorem for `BitVec`
 -- somewhat arbitrarily over `eq_of_getMsg_eq`.
@@ -179,6 +185,31 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   unfold getLsb
   simp [Nat.lt_succ]
 
+/-! ### allOnes -/
+
+private theorem allOnes_def :
+    allOnes v = .ofFin (⟨0, Nat.two_pow_pos v⟩ - ⟨1 % 2^v, Nat.mod_lt _ (Nat.two_pow_pos v)⟩) := by
+  rfl
+
+@[simp] theorem toNat_allOnes : (allOnes v).toNat = 2^v - 1 := by
+  simp only [allOnes_def, toNat_ofFin, Fin.coe_sub, Nat.zero_add]
+  by_cases h : v = 0
+  · subst h
+    rfl
+  · rw [Nat.mod_eq_of_lt (Nat.one_lt_two_pow h), Nat.mod_eq_of_lt]
+    exact Nat.pred_lt_self (Nat.two_pow_pos v)
+
+@[simp] theorem getLsb_allOnes : (allOnes v).getLsb i = decide (i < v) := by
+  simp only [allOnes_def, getLsb_ofFin, Fin.coe_sub, Nat.zero_add, Nat.testBit_mod_two_pow]
+  if h : i < v then
+    simp only [h, decide_True, Bool.true_and]
+    match i, v, h with
+    | i, (v + 1), h =>
+      rw [Nat.mod_eq_of_lt (by simp), Nat.testBit_two_pow_sub_one]
+      simp [h]
+  else
+    simp [h]
+
 /-! ### or -/
 
 @[simp] theorem toNat_or {x y : BitVec v} :
@@ -188,7 +219,7 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   rw [← testBit_toNat, getLsb, getLsb]
   simp
 
-/-! ### or -/
+/-! ### and -/
 
 @[simp] theorem toNat_and {x y : BitVec v} :
     BitVec.toNat (x &&& y) = BitVec.toNat x &&& BitVec.toNat y := rfl
@@ -207,11 +238,31 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
   rw [← testBit_toNat, getLsb, getLsb]
   simp
 
-/-! ### not-/
+/-! ### not -/
 
-@[simp] proof_wanted toNat_not {x : BitVec v} : (~~~x).toNat = 2^v - x.toNat
+theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
 
-@[simp] proof_wanted getLsb_not {x : BitVec v} : (~~~x).getLsb i = ! x.getLsb i
+@[simp] theorem toNat_not {x : BitVec v} : (~~~x).toNat = 2^v - 1 - x.toNat := by
+  rw [Nat.sub_sub, Nat.add_comm, not_def, toNat_xor]
+  apply Nat.eq_of_testBit_eq
+  intro i
+  simp only [toNat_allOnes, Nat.testBit_xor, Nat.testBit_two_pow_sub_one]
+  match h : BitVec.toNat x with
+  | 0 => simp
+  | y+1 =>
+    rw [Nat.succ_eq_add_one] at h
+    rw [← h]
+    rw [Nat.testBit_two_pow_sub_succ (toNat_lt _)]
+    · cases w : decide (i < v)
+      · simp at w
+        simp [w]
+        rw [Nat.testBit_lt_two_pow]
+        calc BitVec.toNat x < 2 ^ v := toNat_lt _
+          _ ≤ 2 ^ i := Nat.pow_le_pow_of_le_right Nat.zero_lt_two w
+      · simp
+
+@[simp] theorem getLsb_not {x : BitVec v} : (~~~x).getLsb i = (decide (i < v) && ! x.getLsb i) := by
+  by_cases h' : i < v <;> simp_all [not_def]
 
 /-! ### shiftLeft -/
 
