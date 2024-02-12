@@ -1161,6 +1161,21 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
 protected alias pow_le_pow_left := pow_le_pow_of_le_left
 protected alias pow_le_pow_right := pow_le_pow_of_le_right
 
+protected theorem one_lt_two_pow (h : n ≠ 0) : 1 < 2 ^ n :=
+  match n, h with
+  | n+1, _ => by
+    rw [Nat.pow_succ', ← Nat.one_mul 1]
+    exact Nat.mul_lt_mul_of_lt_of_le' (by decide) (Nat.two_pow_pos n) (by decide)
+
+@[simp] protected theorem one_lt_two_pow_iff : 1 < 2 ^ n ↔ n ≠ 0 :=
+  ⟨(by intro h p; subst p; simp at h), Nat.one_lt_two_pow⟩
+
+protected theorem one_le_two_pow : 1 ≤ 2 ^ n := by
+  if h : n = 0 then
+    subst h; simp
+  else
+    exact Nat.le_of_lt (Nat.one_lt_two_pow h)
+
 /-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
