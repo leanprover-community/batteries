@@ -18,7 +18,7 @@ open Nat
 
 /-! # Basic properties of Lists -/
 
-theorem cons_ne_nil (a : α) (l : List α) : a :: l ≠ [] := fun.
+theorem cons_ne_nil (a : α) (l : List α) : a :: l ≠ [] := nofun
 
 theorem cons_ne_self (a : α) (l : List α) : a :: l ≠ l := mt (congrArg length) (Nat.succ_ne_self _)
 
@@ -75,7 +75,7 @@ theorem mem_of_mem_cons_of_mem : ∀ {a b : α} {l : List α}, a ∈ b :: l → 
 theorem eq_or_ne_mem_of_mem {a b : α} {l : List α} (h' : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
   (Classical.em _).imp_right fun h => ⟨h, (mem_cons.1 h').resolve_left h⟩
 
-theorem ne_nil_of_mem {a : α} {l : List α} (h : a ∈ l) : l ≠ [] := by cases h <;> intro.
+theorem ne_nil_of_mem {a : α} {l : List α} (h : a ∈ l) : l ≠ [] := by cases h <;> nofun
 
 theorem append_of_mem {a : α} {l : List α} : a ∈ l → ∃ s t : List α, l = s ++ a :: t
   | .head l => ⟨[], l, rfl⟩
@@ -355,9 +355,9 @@ theorem bind_map (f : β → γ) (g : α → List β) :
 
 /-! ### bounded quantifiers over Lists -/
 
-theorem exists_mem_nil (p : α → Prop) : ¬∃ x ∈ @nil α, p x := fun.
+theorem exists_mem_nil (p : α → Prop) : ¬∃ x ∈ @nil α, p x := nofun
 
-theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x := fun.
+theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x := nofun
 
 theorem exists_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x := by simp
@@ -373,7 +373,7 @@ theorem forall_mem_append {p : α → Prop} {l₁ l₂ : List α} :
 
 theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈ l₁ → a ∈ l₂ := .rfl
 
-@[simp] theorem nil_subset (l : List α) : [] ⊆ l := fun.
+@[simp] theorem nil_subset (l : List α) : [] ⊆ l := nofun
 
 @[simp] theorem Subset.refl (l : List α) : l ⊆ l := fun _ i => i
 
@@ -414,7 +414,7 @@ fun s => Subset.trans s <| subset_append_right _ _
     l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l := by simp [subset_def, or_imp, forall_and]
 
 theorem subset_nil {l : List α} : l ⊆ [] ↔ l = [] :=
-  ⟨fun h => match l with | [] => rfl | _::_ => nomatch h (.head ..), fun | rfl => Subset.refl _⟩
+  ⟨fun h => match l with | [] => rfl | _::_ => (nomatch h (.head ..)), fun | rfl => Subset.refl _⟩
 
 theorem map_subset {l₁ l₂ : List α} (f : α → β) (H : l₁ ⊆ l₂) : map f l₁ ⊆ map f l₂ :=
   fun x => by simp only [mem_map]; exact .imp fun a => .imp_left (@H _)

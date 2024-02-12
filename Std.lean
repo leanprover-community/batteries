@@ -1,6 +1,5 @@
 import Std.Classes.BEq
 import Std.Classes.Cast
-import Std.Classes.Dvd
 import Std.Classes.LawfulMonad
 import Std.Classes.Order
 import Std.Classes.RatCast
@@ -51,7 +50,6 @@ import Std.Lean.HashMap
 import Std.Lean.HashSet
 import Std.Lean.IO.Process
 import Std.Lean.Json
-import Std.Lean.LocalContext
 import Std.Lean.Meta.AssertHypotheses
 import Std.Lean.Meta.Basic
 import Std.Lean.Meta.Clear
@@ -74,7 +72,6 @@ import Std.Lean.Position
 import Std.Lean.SMap
 import Std.Lean.Syntax
 import Std.Lean.System.IO
-import Std.Lean.Tactic
 import Std.Lean.TagAttribute
 import Std.Lean.Util.EnvSearch
 import Std.Lean.Util.Path
@@ -84,11 +81,9 @@ import Std.Linter.UnreachableTactic
 import Std.Logic
 import Std.Tactic.Alias
 import Std.Tactic.Basic
-import Std.Tactic.ByCases
 import Std.Tactic.Case
 import Std.Tactic.Change
 import Std.Tactic.Classical
-import Std.Tactic.CoeExt
 import Std.Tactic.Congr
 import Std.Tactic.Exact
 import Std.Tactic.Ext
@@ -128,7 +123,6 @@ import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
-import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
 import Std.Tactic.Replace
@@ -150,5 +144,4 @@ import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
 import Std.Util.ProofWanted
-import Std.Util.TermUnsafe
 import Std.WF

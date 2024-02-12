@@ -1,4 +1,3 @@
-import Std.Tactic.CoeExt
 import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
@@ -17,10 +16,10 @@ structure WrappedType where
 attribute [coe] WrappedNat.val
 instance : Coe WrappedNat Nat where coe := WrappedNat.val
 
-#eval Std.Tactic.Coe.registerCoercion ``WrappedFun.fn (some ⟨2, 1, .coeFun⟩)
+#eval Lean.Meta.registerCoercion ``WrappedFun.fn (some ⟨2, 1, .coeFun⟩)
 instance : CoeFun (WrappedFun α) (fun _ => Nat → α) where coe := WrappedFun.fn
 
-#eval Std.Tactic.Coe.registerCoercion ``WrappedType.typ (some ⟨1, 0, .coeSort⟩)
+#eval Lean.Meta.registerCoercion ``WrappedType.typ (some ⟨1, 0, .coeSort⟩)
 instance : CoeSort WrappedType Type where coe := WrappedType.typ
 
 section coe
