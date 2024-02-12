@@ -11,8 +11,6 @@ import Std.Tactic.SeqFocus
 
 namespace Rat
 
-attribute [local ext] Rat
-
 @[simp] theorem mk_den_one {r : Int} :
     ⟨r, 1, Nat.one_ne_zero, (Nat.coprime_one_right _)⟩ = (r : Rat) := rfl
 
