@@ -1206,6 +1206,14 @@ protected theorem pow_lt_pow_of_lt {a n m : Nat} (h : 1 < a) (w : n < m) : a ^ n
   have t : 0 < a ^ k := Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h)
   exact Nat.mul_lt_mul_of_lt_of_le (Nat.pow_lt_pow_succ h) t t
 
+protected theorem pow_le_pow_of_le {a n m : Nat} (h : 1 < a) (w : n ≤ m) : a ^ n ≤ a ^ m := by
+  cases Nat.lt_or_eq_of_le w
+  case inl lt =>
+    exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
+  case inr eq =>
+    subst eq
+    exact Nat.le_refl _
+
 protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
     a ^ n ≤ a ^ m ↔ n ≤ m := by
   constructor
@@ -1217,6 +1225,16 @@ protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
     cases Nat.eq_or_lt_of_le w
     case inl eq => subst eq; apply Nat.le_refl
     case inr lt => exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
+
+protected theorem pow_lt_pow_iff_right {a n m : Nat} (h : 1 < a) :
+    a ^ n < a ^ m ↔ n < m := by
+  constructor
+  · by_contra w
+    simp at w
+    apply Nat.lt_irrefl (a ^ n)
+    exact Nat.lt_of_lt_of_le w.1 (Nat.pow_le_pow_of_le h w.2)
+  · intro w
+    exact Nat.pow_lt_pow_of_lt h w
 
 /-! ### log2 -/
 
