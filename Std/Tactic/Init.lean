@@ -113,7 +113,7 @@ elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
 
 /-- `split_ands` applies `And.intro` until it does not make progress. -/
 syntax "split_ands" : tactic
-macro_rules | `(tactic| split_ands) => `(tactic| repeat' refine And.intro ?_ ?_)
+macro_rules | `(tactic| split_ands) => `(tactic| repeat refine And.intro ?_ ?_)
 
 /--
 `fapply e` is like `apply e` but it adds goals in the order they appear,
