@@ -119,11 +119,11 @@ def nth : LazyList α → Nat → Option α
 /-- The infinite lazy list `[x, f x, f (f x), ...]` of iterates of a function.
 This definition is meta because it creates an infinite list.
 -/
-unsafe def iterates (f : α → α) : α → LazyList α
+partial def iterates (f : α → α) : α → LazyList α
   | x => cons x (iterates f (f x))
 
 /-- The infinite lazy list `[i, i+1, i+2, ...]` -/
-unsafe def iota (i : Nat) : LazyList Nat :=
+partial def iota (i : Nat) : LazyList Nat :=
   iterates Nat.succ i
 
 end LazyList
