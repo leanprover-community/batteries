@@ -96,12 +96,9 @@ def adc (x y : BitVec w) : Bool → Bool × BitVec w :=
   iunfoldr fun (i : Fin w) c => adcb (x.getLsb i) (y.getLsb i) c
 
 theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toNat) < 2^(i+1) := by
-  apply Nat.lt_of_succ_le
-  simp only [←Nat.succ_add, Nat.pow_succ, Nat.mul_two]
-  apply Nat.add_le_add (mod_two_pow_lt _ _)
-  apply Nat.le_trans
-  exact (Nat.add_le_add_left (Bool.toNat_le_one c) _)
-  exact Nat.mod_lt _ (Nat.two_pow_pos i)
+  have : c.toNat ≤ 1 := Bool.toNat_le_one c
+  rw [Nat.pow_succ]
+  omega
 
 theorem carry_succ (w x y : Nat) (c : Bool) :
     carry (succ w) x y c = atLeastTwo (x.testBit w) (y.testBit w) (carry w x y c) := by
@@ -112,11 +109,7 @@ theorem carry_succ (w x y : Nat) (c : Bool) :
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
           simp only [← Nat.pow_succ']
           exact adc_overflow_limit x y w c
-  cases xh <;> cases yh <;>
-  · generalize x % 2 ^ w = xm at *
-    generalize y % 2 ^ w = ym at *
-    simp
-    omega
+  cases xh <;> cases yh <;> (simp; omega)
 
 theorem getLsb_add_add_bool {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     getLsb (x + y + zeroExtend w (ofBool c)) i =
