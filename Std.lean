@@ -39,7 +39,6 @@ import Std.Data.String
 import Std.Data.Sum
 import Std.Data.UInt
 import Std.Lean.AttributeExtra
-import Std.Lean.Command
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Elab.Tactic
@@ -82,7 +81,6 @@ import Std.Logic
 import Std.Tactic.Alias
 import Std.Tactic.Basic
 import Std.Tactic.Case
-import Std.Tactic.Change
 import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact

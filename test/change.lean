@@ -1,4 +1,3 @@
-import Std.Tactic.Change
 
 private axiom test_sorry : ∀ {α}, α
 
