@@ -158,3 +158,11 @@ theorem adc_spec (x y : BitVec w) (c : Bool) :
 
 theorem add_eq_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_spec]
+
+/-! ### add -/
+
+/-- Adding a bitvector to its own complement yields the all ones bitpattern -/
+@[simp] theorem add_not_self (x : BitVec w) : x + ~~~x = allOnes w := by
+  rw [add_eq_adc, adc, iunfoldr_replace (fun _ => false) (allOnes w)]
+  · rfl
+  · simp [adcb, atLeastTwo]
