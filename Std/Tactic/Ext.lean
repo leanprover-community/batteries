@@ -85,7 +85,7 @@ macro_rules | `(declare_ext_theorems_for $[(flat := $f)]? $struct:ident $(prio)?
     protected theorem $extIffName:ident : ext_iff_type% $flat $struct:ident :=
       fun {..} {..} =>
         ⟨fun h => by cases h; split_ands <;> rfl,
-         fun _ => by (repeat' cases ‹_ ∧ _›); subst_eqs; rfl⟩)
+         fun _ => by repeat' cases ‹_ ∧ _›; subst_eqs; rfl⟩)
 
 /-- Apply a single extensionality lemma to `goal`. -/
 def applyExtLemma (goal : MVarId) : MetaM (List MVarId) := goal.withContext do
