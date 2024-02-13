@@ -63,7 +63,7 @@ def tail : LazyList α → LazyList α
 /-- Appends two lazy lists.  -/
 def append : LazyList α → Thunk (LazyList α) → LazyList α
   | nil, l => l.get
-  | cons h t, l => cons h (@append (t.get) l)
+  | cons h t, l => cons h (append (t.get) l)
 
 /-- Maps a function over a lazy list. -/
 def map (f : α → β) : LazyList α → LazyList β
