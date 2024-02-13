@@ -1383,6 +1383,32 @@ theorem pow_dvd_pow_iff_le_right {x k l : Nat} (w : 1 < x) : x ^ k ∣ x ^ l ↔
 theorem pow_dvd_pow_iff_le_right' {b k l : Nat} : (b + 2) ^ k ∣ (b + 2) ^ l ↔ k ≤ l :=
   pow_dvd_pow_iff_le_right (Nat.lt_of_sub_eq_succ rfl)
 
+protected theorem eq_mul_of_div_eq_right {a b c : Nat} (H1 : b ∣ a) (H2 : a / b = c) :
+    a = b * c := by
+  rw [← H2, Nat.mul_div_cancel' H1]
+
+protected theorem div_eq_iff_eq_mul_right {a b c : Nat} (H : 0 < b) (H' : b ∣ a) :
+    a / b = c ↔ a = b * c :=
+  ⟨Nat.eq_mul_of_div_eq_right H', Nat.div_eq_of_eq_mul_right H⟩
+
+protected theorem div_eq_iff_eq_mul_left {a b c : Nat} (H : 0 < b) (H' : b ∣ a) :
+    a / b = c ↔ a = c * b := by
+  rw [Nat.mul_comm]; exact Nat.div_eq_iff_eq_mul_right H H'
+
+protected theorem pow_dvd_pow {m n : Nat} (a : Nat) (h : m ≤ n) : a ^ m ∣ a ^ n := by
+  cases Nat.exists_eq_add_of_le h
+  case intro k p =>
+    subst p
+    rw [Nat.pow_add]
+    apply Nat.dvd_mul_right
+
+protected theorem pow_sub_mul_pow (a : Nat) {m n : Nat} (h : m ≤ n) :
+    a ^ (n - m) * a ^ m = a ^ n := by
+  rw [← Nat.pow_add, Nat.sub_add_cancel h]
+
+protected theorem pow_div {x m n : Nat} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) := by
+  rw [Nat.div_eq_iff_eq_mul_left (Nat.pow_pos hx) (Nat.pow_dvd_pow _ h), Nat.pow_sub_mul_pow _ h]
+
 /-! ### sum -/
 
 @[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
