@@ -97,10 +97,10 @@ def «for» (l : LazyList α) (f : α → β) : LazyList β :=
   map f l
 
 /-- The list containing the first `n` elements of a lazy list.  -/
-def approx : Nat → LazyList α → List α
+def take : Nat → LazyList α → List α
   | 0, _ => []
   | _, nil => []
-  | a + 1, cons h t => h :: approx a (t.get)
+  | a + 1, cons h t => h :: take a (t.get)
 
 /-- The lazy list of all elements satisfying the predicate.
 If the lazy list is infinite and none of the elements satisfy the predicate,
