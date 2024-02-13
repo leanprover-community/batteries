@@ -22,40 +22,7 @@ protected alias ⟨Decidable.exists_not_of_not_forall, _⟩ := Decidable.not_for
 
 namespace Classical
 
-/-- The Double Negation Theorem: `¬¬P` is equivalent to `P`.
-The left-to-right direction, double negation elimination (DNE),
-is classically true but not constructively. -/
-@[scoped simp] theorem not_not : ¬¬a ↔ a := Decidable.not_not
-
-@[simp] theorem not_forall {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
-  Decidable.not_forall
-
 alias ⟨exists_not_of_not_forall, _⟩ := not_forall
-
-theorem not_forall_not {p : α → Prop} : (¬∀ x, ¬p x) ↔ ∃ x, p x := Decidable.not_forall_not
-
-theorem not_exists_not {p : α → Prop} : (¬∃ x, ¬p x) ↔ ∀ x, p x := Decidable.not_exists_not
-
-theorem forall_or_exists_not (P : α → Prop) : (∀ a, P a) ∨ ∃ a, ¬ P a := by
-  rw [← not_forall]; exact em _
-
-theorem exists_or_forall_not (P : α → Prop) : (∃ a, P a) ∨ ∀ a, ¬ P a := by
-  rw [← not_exists]; exact em _
-
-theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
-  Decidable.or_iff_not_imp_left
-
-theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
-  Decidable.or_iff_not_imp_right
-
-theorem not_imp_iff_and_not : ¬(a → b) ↔ a ∧ ¬b :=
-  Decidable.not_imp_iff_and_not
-
-theorem not_and_iff_or_not_not : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
-  Decidable.not_and_iff_or_not_not
-
-theorem not_iff : ¬(a ↔ b) ↔ (¬a ↔ b) :=
-  Decidable.not_iff
 
 end Classical
 

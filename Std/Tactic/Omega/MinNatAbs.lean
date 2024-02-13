@@ -7,7 +7,6 @@ import Std.Data.List.Init.Lemmas
 import Std.Data.Int.Init.Order
 import Std.Data.Option.Lemmas
 import Std.Tactic.LeftRight
-import Std.Logic
 
 /-!
 # `List.nonzeroMinimum`, `List.minNatAbs`, `List.maxNatAbs`

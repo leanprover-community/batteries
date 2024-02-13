@@ -13,6 +13,7 @@ It is primarily intended to support the bitvector library.
 import Std.Data.Bool
 import Std.Data.Nat.Lemmas
 import Std.Tactic.Omega
+import Std.Logic
 
 namespace Nat
 
@@ -365,13 +366,13 @@ theorem bitwise_lt_two_pow (left : x < 2^n) (right : y < 2^n) : (Nat.bitwise f x
   | succ n hyp =>
     unfold bitwise
     if x_zero : x = 0 then
-      simp only [x_zero, if_true]
+      simp only [x_zero, if_pos]
       by_cases p : f false true = true <;> simp [p, right]
     else if y_zero : y = 0 then
-      simp only [x_zero, y_zero, if_false, if_true]
+      simp only [x_zero, y_zero, if_neg, if_pos]
       by_cases p : f true false = true <;> simp [p, left]
     else
-      simp only [x_zero, y_zero, if_false]
+      simp only [x_zero, y_zero, if_neg]
       have hyp1 := hyp (div_two_le_of_lt_two left) (div_two_le_of_lt_two right)
       by_cases p : f (decide (x % 2 = 1)) (decide (y % 2 = 1)) = true <;>
         simp [p, pow_succ, mul_succ, Nat.add_assoc]
