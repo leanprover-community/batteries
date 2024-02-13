@@ -347,9 +347,7 @@ private theorem eq_0_of_lt (x : Nat) : x < 2^ 0 ↔ x = 0 := eq_0_of_lt_one x
 private theorem zero_lt_pow (n : Nat) : 0 < 2^n := by
   induction n
   case zero => simp [eq_0_of_lt]
-  case succ n hyp =>
-    simp [pow_succ]
-    exact (Nat.mul_lt_mul_of_pos_right hyp Nat.zero_lt_two : 0 < 2 ^ n * 2)
+  case succ n hyp => simpa [pow_succ]
 
 private theorem div_two_le_of_lt_two {m n : Nat} (p : m < 2 ^ succ n) : m / 2 < 2^n := by
   simp [div_lt_iff_lt_mul Nat.zero_lt_two]
