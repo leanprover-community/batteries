@@ -486,7 +486,7 @@ protected theorem le_of_sub_eq_zero : ∀ {n m}, n - m = 0 → n ≤ m
   | 0, _, _ => Nat.zero_le ..
   | _+1, _+1, h => Nat.succ_le_succ <| Nat.le_of_sub_eq_zero (Nat.succ_sub_succ .. ▸ h)
 
-@[simp] protected theorem sub_eq_zero_iff_le : n - m = 0 ↔ n ≤ m :=
+protected theorem sub_eq_zero_iff_le : n - m = 0 ↔ n ≤ m :=
   ⟨Nat.le_of_sub_eq_zero, Nat.sub_eq_zero_of_le⟩
 
 protected theorem lt_of_sub_ne_zero (h : n - m ≠ 0) : m < n :=
