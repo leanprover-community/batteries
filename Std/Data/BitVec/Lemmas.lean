@@ -79,6 +79,10 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
     have q := pred ⟨w - 1 - i, q_lt⟩
     simpa [q_lt, Nat.sub_sub_self, r] using q
 
+theorem eq_of_toFin_eq {x y : BitVec w} (w : x.toFin = y.toFin) : x = y := by
+  ext
+  simp only [← testBit_toNat, ← val_toFin, w]
+
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
 
@@ -356,10 +360,9 @@ theorem getMsb_rev (x : BitVec w) (i : Fin w) :
     simp [p1, p2]
   · simp [i_eq_n, testBit_toNat]
     cases b <;> trivial
-  · have p1 : n ≤ i := by omega
-    have p2 : i ≠ n := by omega
-    have p3 : i - n ≠ 0 := by omega
-    simp [p1, p2, p3, Nat.testBit_bool_to_nat]
+  · have p1 : i ≠ n := by omega
+    have p2 : i - n ≠ 0 := by omega
+    simp [p1, p2, Nat.testBit_bool_to_nat]
 
 theorem truncate_succ (x : BitVec w) :
     truncate (i+1) x = cons (getLsb x i) (truncate i x) := by
