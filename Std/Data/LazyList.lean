@@ -15,7 +15,6 @@ logically we can prove that `LazyList α` is isomorphic to `List α`.)
 -/
 
 
-universe u v w
 
 
 /-- Lazy list.
