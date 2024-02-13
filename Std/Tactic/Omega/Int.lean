@@ -19,6 +19,20 @@ If you do find a use for them, please move them into the appropriate file and na
 
 namespace Std.Tactic.Omega.Int
 
+theorem ofNat_pow (a b : Nat) : ((a ^ b : Nat) : Int) = (a : Int) ^ b := by
+  induction b with
+  | zero => rfl
+  | succ b ih => rw [Nat.pow_succ, Int.ofNat_mul, ih]; rfl
+
+theorem pos_pow_of_pos (a : Int) (b : Nat) (h : 0 < a) : 0 < a ^ b := by
+  rw [Int.eq_natAbs_of_zero_le (Int.le_of_lt h), ← Int.ofNat_zero, ← Int.ofNat_pow, Int.ofNat_lt]
+  exact Nat.pos_pow_of_pos _ (Int.natAbs_pos.mpr (Int.ne_of_gt h))
+
+theorem ofNat_pos {a : Nat} : 0 < (a : Int) ↔ 0 < a := by
+  rw [← Int.ofNat_zero, Int.ofNat_lt]
+
+alias ⟨_, ofNat_pos_of_pos⟩ := Int.ofNat_pos
+
 theorem natCast_ofNat {x : Nat} :
     @Nat.cast Int instNatCastInt (no_index (OfNat.ofNat x)) = OfNat.ofNat x := rfl
 
