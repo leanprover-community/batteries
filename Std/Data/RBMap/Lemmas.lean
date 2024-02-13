@@ -491,7 +491,7 @@ abbrev withList (p : Path α) (l : List α) : List α := p.listL ++ l ++ p.listR
 theorem rootOrdered_iff {p : Path α} (hp : p.Ordered cmp) :
     p.RootOrdered cmp v ↔ (∀ a ∈ p.listL, cmpLT cmp a v) ∧ (∀ a ∈ p.listR, cmpLT cmp v a) := by
   induction p with
-    (simp [All_def] at hp; simp [*, and_assoc, and_left_comm, and_comm, or_imp, forall_and])
+    (simp [All_def] at hp; simp [*, and_assoc, and_left_comm, and_comm, or_imp, forall_and, and_imp])
   | left _ _ x _ ih => exact fun vx _ _ _ ha => vx.trans (hp.2.1 _ ha)
   | right _ _ x _ ih => exact fun xv _ _ _ ha => (hp.2.1 _ ha).trans xv
 

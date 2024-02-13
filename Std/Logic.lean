@@ -321,7 +321,7 @@ theorem not_imp_of_and_not : a ∧ ¬b → ¬(a → b)
 theorem imp_and {α} : (α → b ∧ c) ↔ (α → b) ∧ (α → c) :=
   ⟨fun h => ⟨fun ha => (h ha).1, fun ha => (h ha).2⟩, fun h ha => ⟨h.1 ha, h.2 ha⟩⟩
 
-@[simp] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
+theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
   ⟨fun h ha hb => h ⟨ha, hb⟩, fun h ⟨ha, hb⟩ => h ha hb⟩
 
 @[simp] theorem not_and : ¬(a ∧ b) ↔ (a → ¬b) := and_imp

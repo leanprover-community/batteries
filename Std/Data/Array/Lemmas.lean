@@ -732,7 +732,7 @@ theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
   rw [SatisfiesM_Id_eq] at this
   dsimp [all, allM, Id.run]
   rw [Bool.not_eq_true', Bool.eq_false_iff, Ne]
-  simp [this]
+  simp [this, and_imp]
 
 theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
   simp [all_iff_forall, Fin.isLt]

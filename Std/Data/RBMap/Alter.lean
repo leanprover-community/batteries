@@ -57,7 +57,7 @@ theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill
 theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
     t.zoom (cmp v) path = (t', path') →
     path.ins (t.ins cmp v) = path'.ins (t'.setRoot v) := by
-  unfold RBNode.ins; split <;> simp [zoom]
+  unfold RBNode.ins; split <;> simp [zoom, and_imp]
   · intro | rfl, rfl => rfl
   all_goals
   · split
@@ -73,7 +73,7 @@ theorem zoom_del {t : RBNode α} :
     t.zoom cut path = (t', path') →
     path.del (t.del cut) (match t with | node c .. => c | _ => red) =
     path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
-  unfold RBNode.del; split <;> simp [zoom]
+  unfold RBNode.del; split <;> simp [zoom, and_imp]
   · intro | rfl, rfl => rfl
   · next c a y b =>
     split

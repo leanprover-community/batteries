@@ -138,7 +138,7 @@ theorem pairwise_filterMap (f : β → Option α) {l : List β} :
     simp only [e, false_implies, implies_true, true_and, IH]
   | some b =>
     rw [filterMap_cons_some _ _ _ e]
-    simpa [IH, e] using fun _ =>
+    simpa [IH, e, and_imp] using fun _ =>
       ⟨fun h a ha b hab => h _ _ ha hab, fun h a b ha hab => h _ ha _ hab⟩
 
 theorem Pairwise.filter_map {S : β → β → Prop} (f : α → Option β)
@@ -148,7 +148,7 @@ theorem Pairwise.filter_map {S : β → β → Prop} (f : α → Option β)
 
 theorem pairwise_filter (p : α → Prop) [DecidablePred p] {l : List α} :
     Pairwise R (filter p l) ↔ Pairwise (fun x y => p x → p y → R x y) l := by
-  simp [← filterMap_eq_filter, pairwise_filterMap]
+  simp [← filterMap_eq_filter, pairwise_filterMap, and_imp]
 
 theorem Pairwise.filter (p : α → Bool) : Pairwise R l → Pairwise R (filter p l) :=
   Pairwise.sublist (filter_sublist _)
@@ -167,7 +167,7 @@ theorem pairwise_join {L : List (List α)} :
 theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β} :
     List.Pairwise R (l.bind f) ↔
       (∀ a ∈ l, Pairwise R (f a)) ∧ Pairwise (fun a₁ a₂ => ∀ x ∈ f a₁, ∀ y ∈ f a₂, R x y) l := by
-  simp [List.bind, pairwise_join, pairwise_map]
+  simp [List.bind, pairwise_join, pairwise_map, and_imp]
 
 theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
   induction l with
@@ -231,7 +231,7 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
   | cons₂ _ _ IH =>
     rcases IH with ⟨is,IH⟩
     refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
-    simp [comp_def, pairwise_map, IH]
+    simp [comp_def, pairwise_map, IH, and_imp]
 
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_forall_sublist]
@@ -249,7 +249,7 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
 theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
     ∀ n : Nat, Pairwise r (List.replicate n x)
   | 0 => by simp
-  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n]
+  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n, and_imp]
 
 /-! ### Pairwise filtering -/
 
@@ -317,7 +317,7 @@ theorem forall_mem_pwFilter [DecidableRel (α := α) R]
   | cons x l IH =>
     simp only [forall_mem_cons]
     if h : ∀ y ∈ pwFilter R l, R x y then
-      simpa [pwFilter_cons_of_pos h] using fun r H => ⟨r, IH H⟩
+      simpa [pwFilter_cons_of_pos h, and_imp] using fun r H => ⟨r, IH H⟩
     else
       refine pwFilter_cons_of_neg h ▸ fun H => ⟨?_, IH H⟩
       match e : find? (fun y => ¬R x y) (pwFilter R l) with

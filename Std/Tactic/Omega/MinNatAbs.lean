@@ -104,7 +104,7 @@ theorem nonzeroMininum_map_le_nonzeroMinimum (f : α → β) (p : α → Nat) (q
   rw [nonzeroMinimum_le_iff]
   if z : (xs.map p).nonzeroMinimum = 0 then
     rw [nonzeroMinimum_eq_zero_iff]
-    simp_all
+    simp_all [and_imp]
   else
     have := nonzeroMinimum_eq_of_nonzero z
     simp only [mem_map] at this
@@ -123,11 +123,11 @@ We completely characterize the function via
 def minNatAbs (xs : List Int) : Nat := xs.map Int.natAbs |>.nonzeroMinimum
 
 @[simp] theorem minNatAbs_eq_zero_iff {xs : List Int} : xs.minNatAbs = 0 ↔ ∀ y ∈ xs, y = 0 := by
-  simp [minNatAbs]
+  simp [minNatAbs, and_imp]
 
 theorem minNatAbs_eq_nonzero_iff (xs : List Int) (w : z ≠ 0) :
     xs.minNatAbs = z ↔ (∃ y ∈ xs, y.natAbs = z) ∧ (∀ y ∈ xs, z ≤ y.natAbs ∨ y = 0) := by
-  simp [minNatAbs, nonzeroMinimum_eq_nonzero_iff w]
+  simp [minNatAbs, nonzeroMinimum_eq_nonzero_iff w, and_imp]
 
 @[simp] theorem minNatAbs_nil : ([] : List Int).minNatAbs = 0 := rfl
 

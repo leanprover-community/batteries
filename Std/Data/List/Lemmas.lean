@@ -213,7 +213,7 @@ theorem exists_of_mem_map (h : b ∈ map f l) : ∃ a, a ∈ l ∧ f a = b := me
 
 theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
     (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) := by
-  simp
+  simp [and_imp]
 
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
@@ -459,7 +459,7 @@ theorem replicate_succ (a : α) (n) : replicate (n+1) a = a :: replicate n a := 
 
 theorem mem_replicate {a b : α} : ∀ {n}, b ∈ replicate n a ↔ n ≠ 0 ∧ b = a
   | 0 => by simp
-  | n+1 => by simp [mem_replicate, Nat.succ_ne_zero]
+  | n+1 => by simp [mem_replicate, Nat.succ_ne_zero, and_imp]
 
 theorem eq_of_mem_replicate {a b : α} {n} (h : b ∈ replicate n a) : b = a := (mem_replicate.1 h).2
 
@@ -1547,7 +1547,7 @@ theorem findIdx_lt_length_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
     · simp_all only [forall_exists_index, and_imp, mem_cons, exists_eq_or_imp, true_or,
         findIdx_cons, cond_true, length_cons]
       apply Nat.succ_pos
-    · simp_all [findIdx_cons]
+    · simp_all [findIdx_cons, and_imp]
       refine Nat.succ_lt_succ ?_
       obtain ⟨x', m', h'⟩ := h
       exact ih x' m' h'
