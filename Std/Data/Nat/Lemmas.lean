@@ -864,6 +864,20 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
     Nat.sub_add_eq, Nat.add_sub_cancel]
 
+protected theorem pos_of_mul_pos_left {a b : Nat} (h : 0 < a * b) : 0 < b := by
+  by_contra w; simp_all
+
+protected theorem pos_of_mul_pos_right {a b : Nat} (h : 0 < a * b) : 0 < a := by
+  by_contra w; simp_all
+
+@[simp] protected theorem mul_pos_iff_of_pos_left {a b : Nat} (h : 0 < a) :
+    0 < a * b ↔ 0 < b :=
+  ⟨Nat.pos_of_mul_pos_left, Nat.mul_pos h⟩
+
+@[simp] protected theorem mul_pos_iff_of_pos_right {a b : Nat} (h : 0 < b) :
+    0 < a * b ↔ 0 < a :=
+  ⟨Nat.pos_of_mul_pos_right, fun w => Nat.mul_pos w h⟩
+
 /-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
@@ -1206,6 +1220,14 @@ protected theorem pow_lt_pow_of_lt {a n m : Nat} (h : 1 < a) (w : n < m) : a ^ n
   have t : 0 < a ^ k := Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h)
   exact Nat.mul_lt_mul_of_lt_of_le (Nat.pow_lt_pow_succ h) t t
 
+protected theorem pow_le_pow_of_le {a n m : Nat} (h : 1 < a) (w : n ≤ m) : a ^ n ≤ a ^ m := by
+  cases Nat.lt_or_eq_of_le w
+  case inl lt =>
+    exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
+  case inr eq =>
+    subst eq
+    exact Nat.le_refl _
+
 protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
     a ^ n ≤ a ^ m ↔ n ≤ m := by
   constructor
@@ -1217,6 +1239,16 @@ protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
     cases Nat.eq_or_lt_of_le w
     case inl eq => subst eq; apply Nat.le_refl
     case inr lt => exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
+
+protected theorem pow_lt_pow_iff_right {a n m : Nat} (h : 1 < a) :
+    a ^ n < a ^ m ↔ n < m := by
+  constructor
+  · by_contra w
+    simp at w
+    apply Nat.lt_irrefl (a ^ n)
+    exact Nat.lt_of_lt_of_le w.1 (Nat.pow_le_pow_of_le h w.2)
+  · intro w
+    exact Nat.pow_lt_pow_of_lt h w
 
 /-! ### log2 -/
 
@@ -1382,6 +1414,38 @@ theorem pow_dvd_pow_iff_le_right {x k l : Nat} (w : 1 < x) : x ^ k ∣ x ^ l ↔
 
 theorem pow_dvd_pow_iff_le_right' {b k l : Nat} : (b + 2) ^ k ∣ (b + 2) ^ l ↔ k ≤ l :=
   pow_dvd_pow_iff_le_right (Nat.lt_of_sub_eq_succ rfl)
+
+protected theorem eq_mul_of_div_eq_right {a b c : Nat} (H1 : b ∣ a) (H2 : a / b = c) :
+    a = b * c := by
+  rw [← H2, Nat.mul_div_cancel' H1]
+
+protected theorem div_eq_iff_eq_mul_right {a b c : Nat} (H : 0 < b) (H' : b ∣ a) :
+    a / b = c ↔ a = b * c :=
+  ⟨Nat.eq_mul_of_div_eq_right H', Nat.div_eq_of_eq_mul_right H⟩
+
+protected theorem div_eq_iff_eq_mul_left {a b c : Nat} (H : 0 < b) (H' : b ∣ a) :
+    a / b = c ↔ a = c * b := by
+  rw [Nat.mul_comm]; exact Nat.div_eq_iff_eq_mul_right H H'
+
+protected theorem pow_dvd_pow {m n : Nat} (a : Nat) (h : m ≤ n) : a ^ m ∣ a ^ n := by
+  cases Nat.exists_eq_add_of_le h
+  case intro k p =>
+    subst p
+    rw [Nat.pow_add]
+    apply Nat.dvd_mul_right
+
+protected theorem pow_sub_mul_pow (a : Nat) {m n : Nat} (h : m ≤ n) :
+    a ^ (n - m) * a ^ m = a ^ n := by
+  rw [← Nat.pow_add, Nat.sub_add_cancel h]
+
+theorem pow_dvd_of_le_of_pow_dvd {p m n k : Nat} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
+  Nat.dvd_trans (Nat.pow_dvd_pow _ hmn) hdiv
+
+theorem dvd_of_pow_dvd {p k m : Nat} (hk : 1 ≤ k) (hpk : p ^ k ∣ m) : p ∣ m := by
+  rw [← Nat.pow_one p]; exact pow_dvd_of_le_of_pow_dvd hk hpk
+
+protected theorem pow_div {x m n : Nat} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) := by
+  rw [Nat.div_eq_iff_eq_mul_left (Nat.pow_pos hx) (Nat.pow_dvd_pow _ h), Nat.pow_sub_mul_pow _ h]
 
 /-! ### sum -/
 
