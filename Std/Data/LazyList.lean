@@ -90,12 +90,6 @@ def join : LazyList (LazyList α) → LazyList α
   | nil => nil
   | cons h t => append h (join (t.get))
 
-/-- Maps a function over a lazy list.
-Same as `LazyList.map`, but with swapped arguments.
--/
-def «for» (l : LazyList α) (f : α → β) : LazyList β :=
-  map f l
-
 /-- The list containing the first `n` elements of a lazy list.  -/
 def take : Nat → LazyList α → List α
   | 0, _ => []
