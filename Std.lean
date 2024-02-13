@@ -27,6 +27,7 @@ import Std.Data.Fin
 import Std.Data.HashMap
 import Std.Data.Int
 import Std.Data.Json
+import Std.Data.LazyList
 import Std.Data.List
 import Std.Data.MLList
 import Std.Data.Nat
