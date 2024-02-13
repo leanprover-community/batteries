@@ -14,9 +14,6 @@ where all elements after the first are computed on-demand.
 logically we can prove that `LazyList α` is isomorphic to `List α`.)
 -/
 
-
-
-
 /-- Lazy list.
 All elements (except the first) are computed lazily.
 -/
