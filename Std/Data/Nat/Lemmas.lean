@@ -1406,6 +1406,12 @@ protected theorem pow_sub_mul_pow (a : Nat) {m n : Nat} (h : m ≤ n) :
     a ^ (n - m) * a ^ m = a ^ n := by
   rw [← Nat.pow_add, Nat.sub_add_cancel h]
 
+theorem pow_dvd_of_le_of_pow_dvd {p m n k : Nat} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
+  Nat.dvd_trans (Nat.pow_dvd_pow _ hmn) hdiv
+
+theorem dvd_of_pow_dvd {p k m : Nat} (hk : 1 ≤ k) (hpk : p ^ k ∣ m) : p ∣ m := by
+  rw [← Nat.pow_one p]; exact pow_dvd_of_le_of_pow_dvd hk hpk
+
 protected theorem pow_div {x m n : Nat} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) := by
   rw [Nat.div_eq_iff_eq_mul_left (Nat.pow_pos hx) (Nat.pow_dvd_pow _ h), Nat.pow_sub_mul_pow _ h]
 
