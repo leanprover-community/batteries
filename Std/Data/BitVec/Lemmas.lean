@@ -82,7 +82,7 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
 
-theorem ofNat_eq_ofBool_mod (n : Nat) : BitVec.ofNat 1 n = BitVec.ofBool (n % 2 = 1) :=  by
+theorem ofNat_one (n : Nat) : BitVec.ofNat 1 n = BitVec.ofBool (n % 2 = 1) :=  by
   rcases (Nat.mod_two_eq_zero_or_one n) with h | h <;> simp [h, BitVec.ofNat, Fin.ofNat']
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
