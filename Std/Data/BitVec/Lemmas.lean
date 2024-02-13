@@ -219,10 +219,10 @@ private theorem allOnes_def :
 
 /-! ### or -/
 
-@[simp] theorem toNat_or {x y : BitVec v} :
+@[simp] theorem toNat_or (x y : BitVec v) :
     BitVec.toNat (x ||| y) = BitVec.toNat x ||| BitVec.toNat y := rfl
 
-@[simp] theorem toFin_or {x y : BitVec v} :
+@[simp] theorem toFin_or (x y : BitVec v) :
     BitVec.toFin (x ||| y) = BitVec.toFin x ||| BitVec.toFin y := by
   simp only [HOr.hOr, OrOp.or, BitVec.or, Fin.lor, val_toFin, Fin.mk.injEq]
   exact (Nat.mod_eq_of_lt <| Nat.or_lt_two_pow x.isLt y.isLt).symm
@@ -234,10 +234,10 @@ private theorem allOnes_def :
 
 /-! ### and -/
 
-@[simp] theorem toNat_and {x y : BitVec v} :
+@[simp] theorem toNat_and (x y : BitVec v) :
     BitVec.toNat (x &&& y) = BitVec.toNat x &&& BitVec.toNat y := rfl
 
-@[simp] theorem toFin_and {x y : BitVec v} :
+@[simp] theorem toFin_and (x y : BitVec v) :
     BitVec.toFin (x &&& y) = BitVec.toFin x &&& BitVec.toFin y := by
   simp only [HAnd.hAnd, AndOp.and, BitVec.and, Fin.land, val_toFin, Fin.mk.injEq]
   exact (Nat.mod_eq_of_lt <| Nat.and_lt_two_pow _ y.isLt).symm
@@ -248,10 +248,10 @@ private theorem allOnes_def :
 
 /-! ### xor -/
 
-@[simp] theorem toNat_xor {x y : BitVec v} :
+@[simp] theorem toNat_xor (x y : BitVec v) :
     BitVec.toNat (x ^^^ y) = BitVec.toNat x ^^^ BitVec.toNat y := rfl
 
-@[simp] theorem toFin_xor {x y : BitVec v} :
+@[simp] theorem toFin_xor (x y : BitVec v) :
     BitVec.toFin (x ^^^ y) = BitVec.toFin x ^^^ BitVec.toFin y := by
   simp only [HXor.hXor, Xor.xor, BitVec.xor, Fin.xor, val_toFin, Fin.mk.injEq]
   exact (Nat.mod_eq_of_lt <| Nat.xor_lt_two_pow x.isLt y.isLt).symm
@@ -425,7 +425,7 @@ theorem sub_def {n} (x y : BitVec n) : x - y = .ofNat n (x.toNat + (2^n - y.toNa
 
 @[simp] theorem toNat_sub {n} (x y : BitVec n) :
   (x - y).toNat = ((x.toNat + (2^n - y.toNat)) % 2^n) := rfl
-@[simp] theorem toFin_sub (x y : BitVec w) : (x - y).toFin = toFin x - toFin y := rfl
+@[simp] theorem toFin_sub (x y : BitVec n) : (x - y).toFin = toFin x - toFin y := rfl
 
 /-- Replaced 2024-02-06. -/
 @[deprecated] alias sub_toNat := toNat_sub
@@ -468,8 +468,8 @@ theorem add_sub_cancel (x y : BitVec w) : x + y - y = x := by
 
 theorem mul_def {n} {x y : BitVec n} : x * y = (ofFin <| x.toFin * y.toFin) := by rfl
 
-theorem toNat_mul {x y : BitVec w} : (x * y).toNat = (x.toNat * y.toNat) % 2 ^ w := rfl
-@[simp] theorem toFin_mul {x y : BitVec w} : (x * y).toFin = (x.toFin * y.toFin) := rfl
+theorem toNat_mul (x y : BitVec n) : (x * y).toNat = (x.toNat * y.toNat) % 2 ^ n := rfl
+@[simp] theorem toFin_mul (x y : BitVec n) : (x * y).toFin = (x.toFin * y.toFin) := rfl
 
 /-! ### le and lt -/
 
