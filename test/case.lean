@@ -1,6 +1,7 @@
 import Std.Tactic.Case
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
+import Std.Tactic.Init
 
 set_option linter.missingDocs false
 
@@ -141,7 +142,7 @@ example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y :=
 
 example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by
   rw [cancel_injective, cancel_injective] at h
-  repeat case _ : Injective _ => assumption
+  repeat' case _ : Injective _ => assumption
   exact h
 
 example (hf : Injective f) (hg : Injective g) (h : g (f x) = g (f y)) : x = y := by

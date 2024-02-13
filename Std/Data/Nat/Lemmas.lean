@@ -673,12 +673,12 @@ protected theorem min_max_distrib_left : ∀ (a b c : Nat), min a (max b c) = ma
 
 protected theorem max_min_distrib_right (a b c : Nat) :
     max (min a b) c = min (max a c) (max b c) := by
-  repeat rw [Nat.max_comm _ c]
+  repeat' rw [Nat.max_comm _ c]
   exact Nat.max_min_distrib_left ..
 
 protected theorem min_max_distrib_right (a b c : Nat) :
     min (max a b) c = max (min a c) (min b c) := by
-  repeat rw [Nat.min_comm _ c]
+  repeat' rw [Nat.min_comm _ c]
   exact Nat.min_max_distrib_left ..
 
 protected theorem add_max_add_right : ∀ (a b c : Nat), max (a + c) (b + c) = max a b + c
@@ -690,11 +690,11 @@ protected theorem add_min_add_right : ∀ (a b c : Nat), min (a + c) (b + c) = m
   | _, _, _+1 => Eq.trans (Nat.succ_min_succ ..) <| congrArg _ (Nat.add_min_add_right ..)
 
 protected theorem add_max_add_left (a b c : Nat) : max (a + b) (a + c) = a + max b c := by
-  repeat rw [Nat.add_comm a]
+  repeat' rw [Nat.add_comm a]
   exact Nat.add_max_add_right ..
 
 protected theorem add_min_add_left (a b c : Nat) : min (a + b) (a + c) = a + min b c := by
-  repeat rw [Nat.add_comm a]
+  repeat' rw [Nat.add_comm a]
   exact Nat.add_min_add_right ..
 
 protected theorem pred_min_pred : ∀ (x y), min (pred x) (pred y) = pred (min x y)
@@ -740,11 +740,11 @@ protected theorem mul_min_mul_right (a b c : Nat) : min (a * c) (b * c) = min a 
   | succ_succ _ _ ih => simp only [Nat.succ_mul, Nat.add_min_add_right, ih]
 
 protected theorem mul_max_mul_left (a b c : Nat) : max (a * b) (a * c) = a * max b c := by
-  repeat rw [Nat.mul_comm a]
+  repeat' rw [Nat.mul_comm a]
   exact Nat.mul_max_mul_right ..
 
 protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min b c := by
-  repeat rw [Nat.mul_comm a]
+  repeat' rw [Nat.mul_comm a]
   exact Nat.mul_min_mul_right ..
 
 /-! ### mul -/

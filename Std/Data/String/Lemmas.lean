@@ -127,7 +127,7 @@ theorem zero_addChar_eq (c : Char) : (0 : Pos) + c = ⟨csize c⟩ := by rw [←
 
 theorem addChar_right_comm (p : Pos) (c₁ c₂ : Char) : p + c₁ + c₂ = p + c₂ + c₁ := by
   apply ext
-  repeat rw [pos_add_char]
+  repeat' rw [pos_add_char]
   apply Nat.add_right_comm
 
 theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (csize_pos _)

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.ShowTerm
 import Std.Tactic.GuardMsgs
+import Std.Tactic.Init
 
 /-- info: Try this: exact (n, 37) -/
 #guard_msgs in example (n : Nat) : Nat × Nat := by
@@ -16,7 +17,7 @@ import Std.Tactic.GuardMsgs
 /-- info: Try this: refine (?fst, ?snd) -/
 #guard_msgs in example : Nat × Nat := by
   show_term constructor
-  repeat exact 42
+  repeat' exact 42
 
 /-- info: Try this: fun {X} => X -/
 #guard_msgs in example : {_a : Nat} → Nat :=
