@@ -46,6 +46,8 @@ this is truncation of the high bits when downcasting and zero-extension when upc
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin := Fin.ofNat' i (Nat.two_pow_pos n)
 
+instance : NatCast (BitVec w) := ⟨BitVec.ofNat w⟩
+
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
 protected def toNat (a : BitVec n) : Nat := a.toFin.val
@@ -319,6 +321,8 @@ protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   match i with
   | Int.ofNat a => .ofNat n a
   | Int.negSucc a => ~~~.ofNat n a
+
+instance : IntCast (BitVec w) := ⟨BitVec.ofInt w⟩
 
 /--
 Left shift for bit vectors. The low bits are filled with zeros. As a numeric operation, this is
