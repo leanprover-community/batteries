@@ -219,6 +219,12 @@ private theorem allOnes_def :
 @[simp] theorem toNat_or {x y : BitVec v} :
     BitVec.toNat (x ||| y) = BitVec.toNat x ||| BitVec.toNat y := rfl
 
+@[simp] theorem toFin_or {x y : BitVec v} :
+    BitVec.toFin (x ||| y) = BitVec.toFin x ||| BitVec.toFin y := by
+  simp only [HOr.hOr, OrOp.or, BitVec.or, Fin.lor, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.or_lt_two_pow x.isLt y.isLt).symm
+
+
 @[simp] theorem getLsb_or {x y : BitVec v} : (x ||| y).getLsb i = (x.getLsb i || y.getLsb i) := by
   rw [← testBit_toNat, getLsb, getLsb]
   simp
@@ -228,6 +234,11 @@ private theorem allOnes_def :
 @[simp] theorem toNat_and {x y : BitVec v} :
     BitVec.toNat (x &&& y) = BitVec.toNat x &&& BitVec.toNat y := rfl
 
+@[simp] theorem toFin_and {x y : BitVec v} :
+    BitVec.toFin (x &&& y) = BitVec.toFin x &&& BitVec.toFin y := by
+  simp only [HAnd.hAnd, AndOp.and, BitVec.and, Fin.land, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.and_lt_two_pow _ y.isLt).symm
+
 @[simp] theorem getLsb_and {x y : BitVec v} : (x &&& y).getLsb i = (x.getLsb i && y.getLsb i) := by
   rw [← testBit_toNat, getLsb, getLsb]
   simp
@@ -236,6 +247,11 @@ private theorem allOnes_def :
 
 @[simp] theorem toNat_xor {x y : BitVec v} :
     BitVec.toNat (x ^^^ y) = BitVec.toNat x ^^^ BitVec.toNat y := rfl
+
+@[simp] theorem toFin_xor {x y : BitVec v} :
+    BitVec.toFin (x ^^^ y) = BitVec.toFin x ^^^ BitVec.toFin y := by
+  simp only [HXor.hXor, Xor.xor, BitVec.xor, Fin.xor, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.xor_lt_two_pow x.isLt y.isLt).symm
 
 @[simp] theorem getLsb_xor {x y : BitVec v} :
     (x ^^^ y).getLsb i = (xor (x.getLsb i) (y.getLsb i)) := by
