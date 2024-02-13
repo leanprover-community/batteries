@@ -80,7 +80,7 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} :
     (expand sz buckets).buckets.size = buckets.size := by
   rw [expand, go]
   · rw [Buckets.mk_size]; simp [Buckets.size]
-  · intro.
+  · nofun
 where
   go (i source) (target : Buckets α β) (hs : ∀ j < i, source.data.getD j .nil = .nil) :
       (expand.go i source target).size =
@@ -159,7 +159,7 @@ where
         | .inl hl => exact hs₁ _ hl
         | .inr e => exact e ▸ .nil
       · simp [Array.getElem_eq_data_get, List.get_set]; split
-        · intro.
+        · nofun
         · exact hs₂ _ (by simp_all)
       · let rank (k : α) := ((hash k).toUSize % source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)

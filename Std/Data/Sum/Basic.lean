@@ -128,9 +128,9 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : α ⊕ β 
 @[simp] theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
   ⟨fun h => by cases h; assumption, LiftRel.inl⟩
 
-@[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := fun.
+@[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := nofun
 
-@[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := fun.
+@[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := nofun
 
 @[simp] theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
   ⟨fun h => by cases h; assumption, LiftRel.inr⟩
@@ -165,7 +165,7 @@ attribute [simp] Lex.sep
 @[simp] theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
   ⟨fun h => by cases h; assumption, Lex.inr⟩
 
-@[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) := fun.
+@[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) := nofun
 
 instance instDecidableRelSumLex [DecidableRel r] [DecidableRel s] : DecidableRel (Lex r s)
   | inl _, inl _ => decidable_of_iff' _ lex_inl_inl

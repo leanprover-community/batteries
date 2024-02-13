@@ -367,3 +367,19 @@ example {a b : Nat} (_ : a + b = 9) : (min a b) % 2 + (max a b) % 2 = 1 := by
 
 example {a : Int} (_ : a < if a ≤ b then a else b) : False := by omega
 example {a b : Int} : (if a < b then a else b - 1) ≤ b := by omega
+
+-- Check that we use local values.
+example (i j : Nat) (p : i ≥ j) : True := by
+  let l := j - 1
+  have _ : i ≥ l := by omega
+  trivial
+
+example (i j : Nat) (p : i ≥ j) : True := by
+  let l := j - 1
+  let k := l
+  have _ : i ≥ k := by omega
+  trivial
+
+example (i : Fin 7) : (i : Nat) < 8 := by omega
+
+example (x y z i : Nat) (hz : z ≤ 1) : x % 2 ^ i + y % 2 ^ i + z < 2 * 2^ i := by omega

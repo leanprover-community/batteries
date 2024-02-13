@@ -12,7 +12,7 @@ namespace Option
 
 theorem mem_iff {a : α} {b : Option α} : a ∈ b ↔ b = a := .rfl
 
-theorem some_ne_none (x : α) : some x ≠ none := fun.
+theorem some_ne_none (x : α) : some x ≠ none := nofun
 
 protected theorem «forall» {p : Option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
   ⟨fun h => ⟨h _, fun _ => h _⟩, fun h x => Option.casesOn x h.1 h.2⟩
@@ -27,7 +27,7 @@ theorem get_mem : ∀ {o : Option α} (h : isSome o), o.get h ∈ o
 theorem get_of_mem : ∀ {o : Option α} (h : isSome o), a ∈ o → o.get h = a
   | _, _, rfl => rfl
 
-theorem not_mem_none (a : α) : a ∉ (none : Option α) := fun.
+theorem not_mem_none (a : α) : a ∉ (none : Option α) := nofun
 
 @[simp] theorem some_get : ∀ {x : Option α} (h : isSome x), some (x.get h) = x
 | some _, _ => rfl
@@ -65,7 +65,7 @@ theorem isSome_iff_exists : isSome x ↔ ∃ a, x = some a := by cases x <;> sim
   cases a <;> simp
 
 theorem eq_some_iff_get_eq : o = some a ↔ ∃ h : o.isSome, o.get h = a := by
-  cases o <;> simp; intro.
+  cases o <;> simp; nofun
 
 theorem eq_some_of_isSome : ∀ {o : Option α} (h : o.isSome), o = some (o.get h)
   | some _, _ => rfl

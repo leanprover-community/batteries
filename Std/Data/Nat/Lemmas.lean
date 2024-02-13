@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Logic
-import Std.Tactic.Basic
 import Std.Tactic.Alias
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
@@ -172,7 +171,7 @@ protected theorem le_antisymm_iff {a b : Nat} : a = b ↔ a ≤ b ∧ b ≤ a :=
 protected alias eq_iff_le_and_ge := Nat.le_antisymm_iff
 
 protected theorem lt_or_gt_of_ne {a b : Nat} : a ≠ b → a < b ∨ b < a := by
-  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and, and_comm]
+  rw [← Nat.not_le, ← Nat.not_le, ← Decidable.not_and_iff_or_not_not, and_comm]
   exact mt Nat.le_antisymm_iff.2
 protected alias lt_or_lt_of_ne := Nat.lt_or_gt_of_ne
 @[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
@@ -198,6 +197,17 @@ protected theorem lt_or_eq_of_le {n m : Nat} (h : n ≤ m) : n < m ∨ n = m :=
 
 protected theorem le_iff_lt_or_eq {n m : Nat} : n ≤ m ↔ n < m ∨ n = m :=
   ⟨Nat.lt_or_eq_of_le, fun | .inl h => Nat.le_of_lt h | .inr rfl => Nat.le_refl _⟩
+
+protected theorem lt_succ_iff : m < succ n ↔ m ≤ n := ⟨le_of_lt_succ, lt_succ_of_le⟩
+
+protected theorem lt_succ_iff_lt_or_eq : m < succ n ↔ m < n ∨ m = n :=
+  Nat.lt_succ_iff.trans Nat.le_iff_lt_or_eq
+
+protected theorem eq_of_lt_succ_of_not_lt (hmn : m < n + 1) (h : ¬ m < n) : m = n :=
+  (Nat.lt_succ_iff_lt_or_eq.1 hmn).resolve_left h
+
+protected theorem eq_of_le_of_lt_succ (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+  Nat.le_antisymm (le_of_succ_le_succ h₂) h₁
 
 /-! ## compare -/
 
@@ -325,7 +335,7 @@ theorem le_succ_of_pred_le : pred n ≤ m → n ≤ succ m := pred_le_iff_le_suc
 theorem pred_le_of_le_succ : n ≤ succ m → pred n ≤ m := pred_le_iff_le_succ.2
 
 theorem lt_pred_iff_succ_lt : ∀ {n m}, n < pred m ↔ succ n < m
-  | _, 0 => ⟨fun ., fun .⟩
+  | _, 0 => ⟨nofun, nofun⟩
   | _, _+1 => Nat.succ_lt_succ_iff.symm
 
 theorem succ_lt_of_lt_pred : n < pred m → succ n < m := lt_pred_iff_succ_lt.1
@@ -449,7 +459,7 @@ protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
 
 protected theorem add_sub_cancel_right (n m : Nat) : (n + m) - m = n := Nat.add_sub_cancel ..
 
-protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
+@[simp] protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
 
 theorem succ_sub_one (n) : succ n - 1 = n := rfl
@@ -568,6 +578,15 @@ theorem sub_lt_succ (a b) : a - b < succ a := lt_succ_of_le (sub_le a b)
 
 theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   rw [Nat.sub_right_comm]; exact Nat.sub_one_lt_of_le (Nat.sub_pos_of_lt h) (Nat.sub_le ..)
+
+protected theorem exists_eq_add_of_le (h : m ≤ n) : ∃ k : Nat, n = m + k :=
+  ⟨n - m, (add_sub_of_le h).symm⟩
+
+protected theorem exists_eq_add_of_le' (h : m ≤ n) : ∃ k : Nat, n = k + m :=
+  ⟨n - m, (Nat.sub_add_cancel h).symm⟩
+
+protected theorem exists_eq_add_of_lt (h : m < n) : ∃ k : Nat, n = m + k + 1 :=
+  ⟨n - (m + 1), by rw [Nat.add_right_comm, add_sub_of_le h]⟩
 
 /-! ### min/max -/
 
@@ -766,7 +785,7 @@ protected theorem two_mul (n) : 2 * n = n + n := by rw [Nat.succ_mul, Nat.one_mu
 theorem mul_eq_zero : ∀ {m n}, n * m = 0 ↔ n = 0 ∨ m = 0
   | 0, _ => ⟨fun _ => .inr rfl, fun _ => rfl⟩
   | _, 0 => ⟨fun _ => .inl rfl, fun _ => Nat.zero_mul ..⟩
-  | _+1, _+1 => ⟨fun., fun.⟩
+  | _+1, _+1 => ⟨nofun, nofun⟩
 
 protected theorem mul_ne_zero_iff : n * m ≠ 0 ↔ n ≠ 0 ∧ m ≠ 0 := by rw [ne_eq, mul_eq_zero, not_or]
 
@@ -1050,6 +1069,13 @@ theorem mul_mod_mul_left (z x y : Nat) : (z * x) % (z * y) = z * (x % y) :=
 theorem mul_mod_mul_right (z x y : Nat) : (x * z) % (y * z) = (x % y) * z := by
   rw [Nat.mul_comm x z, Nat.mul_comm y z, Nat.mul_comm (x % y) z]; apply mul_mod_mul_left
 
+@[simp] theorem mod_mod_of_dvd (a : Nat) (h : c ∣ b) : a % b % c = a % c := by
+  conv =>
+    rhs
+    rw [← mod_add_div a b]
+  obtain ⟨x, rfl⟩ := h
+  rw [Nat.mul_assoc, add_mul_mod_self_left]
+
 -- TODO cont_to_bool_mod_two
 
 theorem sub_mul_mod {x k n : Nat} (h₁ : n*k ≤ x) : (x - n*k) % n = x % n := by
@@ -1139,6 +1165,57 @@ protected theorem mul_pow (a b n : Nat) : (a * b) ^ n = a ^ n * b ^ n := by
   induction n with
   | zero => rw [Nat.pow_zero, Nat.pow_zero, Nat.pow_zero, Nat.mul_one]
   | succ _ ih => rw [Nat.pow_succ, Nat.pow_succ, Nat.pow_succ, Nat.mul_mul_mul_comm, ih]
+
+protected alias pow_le_pow_left := pow_le_pow_of_le_left
+protected alias pow_le_pow_right := pow_le_pow_of_le_right
+
+protected theorem one_lt_two_pow (h : n ≠ 0) : 1 < 2 ^ n :=
+  match n, h with
+  | n+1, _ => by
+    rw [Nat.pow_succ', ← Nat.one_mul 1]
+    exact Nat.mul_lt_mul_of_lt_of_le' (by decide) (Nat.two_pow_pos n) (by decide)
+
+@[simp] protected theorem one_lt_two_pow_iff : 1 < 2 ^ n ↔ n ≠ 0 :=
+  ⟨(by intro h p; subst p; simp at h), Nat.one_lt_two_pow⟩
+
+protected theorem one_le_two_pow : 1 ≤ 2 ^ n := by
+  if h : n = 0 then
+    subst h; simp
+  else
+    exact Nat.le_of_lt (Nat.one_lt_two_pow h)
+
+protected theorem pow_pos (h : 0 < a) : 0 < a^n :=
+  match n with
+  | 0 => Nat.zero_lt_one
+  | _ + 1 => Nat.mul_pos (Nat.pow_pos h) h
+
+protected theorem pow_lt_pow_succ (h : 1 < a) : a ^ n < a ^ (n + 1) := by
+  rw [Nat.pow_succ]
+  conv => lhs; rw [← Nat.mul_one (a^n)]
+  exact Nat.mul_lt_mul_of_le_of_lt (Nat.le_refl _) h (Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h))
+
+protected theorem pow_lt_pow_of_lt {a n m : Nat} (h : 1 < a) (w : n < m) : a ^ n < a ^ m := by
+  have := Nat.exists_eq_add_of_lt w
+  cases this
+  case intro k p =>
+  rw [Nat.add_right_comm] at p
+  subst p
+  rw [Nat.pow_add]
+  conv => lhs; rw [← Nat.mul_one (a^n)]
+  have t : 0 < a ^ k := Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h)
+  exact Nat.mul_lt_mul_of_lt_of_le (Nat.pow_lt_pow_succ h) t t
+
+protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
+    a ^ n ≤ a ^ m ↔ n ≤ m := by
+  constructor
+  · by_contra w
+    simp at w
+    apply Nat.lt_irrefl (a ^ n)
+    exact Nat.lt_of_le_of_lt w.1 (Nat.pow_lt_pow_of_lt h w.2)
+  · intro w
+    cases Nat.eq_or_lt_of_le w
+    case inl eq => subst eq; apply Nat.le_refl
+    case inr lt => exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
 
 /-! ### log2 -/
 
@@ -1283,6 +1360,28 @@ protected theorem dvd_of_mul_dvd_mul_left
 protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) : m ∣ n := by
   rw [Nat.mul_comm m k, Nat.mul_comm n k] at H; exact Nat.dvd_of_mul_dvd_mul_left kpos H
 
+theorem pow_dvd_pow_iff_pow_le_pow {k l : Nat} :
+    ∀ {x : Nat}, 0 < x → (x ^ k ∣ x ^ l ↔ x ^ k ≤ x ^ l)
+  | x + 1, w => by
+    constructor
+    · intro a
+      exact le_of_dvd (Nat.pow_pos (succ_pos x)) a
+    · intro a
+      cases x
+      case zero => simp
+      case succ x =>
+        have le :=
+          (Nat.pow_le_pow_iff_right (Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le _)))).mp a
+        refine ⟨(x + 2) ^ (l - k), ?_⟩
+        rw [← Nat.pow_add, Nat.add_comm k, Nat.sub_add_cancel le]
+
+/-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
+theorem pow_dvd_pow_iff_le_right {x k l : Nat} (w : 1 < x) : x ^ k ∣ x ^ l ↔ k ≤ l := by
+  rw [pow_dvd_pow_iff_pow_le_pow (lt_of_succ_lt w), Nat.pow_le_pow_iff_right w]
+
+theorem pow_dvd_pow_iff_le_right' {b k l : Nat} : (b + 2) ^ k ∣ (b + 2) ^ l ↔ k ≤ l :=
+  pow_dvd_pow_iff_le_right (Nat.lt_of_sub_eq_succ rfl)
+
 /-! ### sum -/
 
 @[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
@@ -1359,3 +1458,34 @@ theorem mul_add_mod (m x y : Nat) : (m * x + y) % m = y % m := by
   cases n
   · exact (m % 0).div_zero
   · case succ n => exact Nat.div_eq_of_lt (m.mod_lt n.succ_pos)
+
+/-! ### Decidability of predicates -/
+
+instance decidableBallLT :
+  ∀ (n : Nat) (P : ∀ k, k < n → Prop) [∀ n h, Decidable (P n h)], Decidable (∀ n h, P n h)
+| 0, _, _ => isTrue fun _ => (by cases ·)
+| n + 1, P, H =>
+  match decidableBallLT n (P · <| lt_succ_of_lt ·) with
+  | isFalse h => isFalse (h fun _ _ => · _ _)
+  | isTrue h =>
+    match H n Nat.le.refl with
+    | isFalse p => isFalse (p <| · _ _)
+    | isTrue p => isTrue fun _ h' => (Nat.lt_succ_iff_lt_or_eq.1 h').elim (h _) fun hn => hn ▸ p
+
+instance decidableForallFin (P : Fin n → Prop) [DecidablePred P] : Decidable (∀ i, P i) :=
+  decidable_of_iff (∀ k h, P ⟨k, h⟩) ⟨fun m ⟨k, h⟩ => m k h, fun m k h => m ⟨k, h⟩⟩
+
+instance decidableBallLE (n : Nat) (P : ∀ k, k ≤ n → Prop) [∀ n h, Decidable (P n h)] :
+    Decidable (∀ n h, P n h) :=
+  decidable_of_iff (∀ (k) (h : k < succ n), P k (le_of_lt_succ h))
+    ⟨fun m k h => m k (lt_succ_of_le h), fun m k _ => m k _⟩
+
+instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m < n ∧ p m
+  | 0 => isFalse (by simp only [not_lt_zero, false_and, exists_const, not_false_eq_true])
+  | n + 1 =>
+    @decidable_of_decidable_of_iff _ _ (@instDecidableOr _ _ (decidableExistsLT (p := p) n) (h n))
+      (by simp only [Nat.lt_succ_iff_lt_or_eq, or_and_right, exists_or, exists_eq_left])
+
+instance decidableExistsLE [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
+  fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
+    (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)

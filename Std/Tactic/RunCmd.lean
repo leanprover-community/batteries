@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich, Mario Carneiro
 -/
 import Lean.Elab.Eval
-import Std.Util.TermUnsafe
+import Lean.Elab.Command
 
 /-!
 Defines commands to compile and execute a command / term / tactic on the spot:

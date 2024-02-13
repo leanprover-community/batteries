@@ -1,6 +1,4 @@
 import Std.Tactic.Basic
-import Std.Tactic.GuardExpr
-import Std.Tactic.RCases
 
 set_option linter.missingDocs false
 

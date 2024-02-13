@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
-import Std.Lean.InfoTree
+import Lean.Server.InfoUtils
 import Std.CodeAction.Attr
 
 /-!
@@ -213,7 +213,7 @@ A code action which calls all `@[command_code_action]` code actions on each comm
   let doc ← readDoc
   let startPos := doc.meta.text.lspPosToUtf8Pos params.range.start
   let endPos := doc.meta.text.lspPosToUtf8Pos params.range.end
-  have cmds := snap.infoTree.foldInfo' (init := #[]) fun ctx node result => Id.run do
+  have cmds := snap.infoTree.foldInfoTree (init := #[]) fun ctx node result => Id.run do
     let .node (.ofCommandInfo info) _ := node | result
     let (some head, some tail) := (info.stx.getPos? true, info.stx.getTailPos? true) | result
     unless head ≤ endPos && startPos ≤ tail do return result

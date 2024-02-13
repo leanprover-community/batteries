@@ -6,9 +6,7 @@ Authors: Gabriel Ebner, Mario Carneiro, Thomas Murrills
 import Lean.Server.CodeActions
 import Lean.Widget.UserWidget
 import Std.Lean.Name
-import Std.Lean.Format
 import Std.Lean.Position
-import Std.Data.Json
 import Std.Lean.Syntax
 
 /-!
@@ -207,7 +205,7 @@ def prettyExtra (s : SuggestionText) (w : Option Nat := none)
   match s with
   | .tsyntax (kind := kind) stx => do
     let w ← match w with | none => do pure <| getInputWidth (← getOptions) | some n => pure n
-    return (← ppCategory kind stx).prettyExtra w indent column
+    return (← ppCategory kind stx).pretty w indent column
   | .string text => return text
 
 end SuggestionText

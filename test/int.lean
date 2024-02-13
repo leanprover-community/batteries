@@ -1,5 +1,4 @@
 import Std.Data.Int.Basic
-import Std.Tactic.GuardExpr
 
 -- complement
 #guard ~~~(-1:Int) = 0
