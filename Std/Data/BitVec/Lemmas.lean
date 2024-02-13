@@ -90,7 +90,9 @@ theorem ofNat_one (n : Nat) : BitVec.ofNat 1 n = BitVec.ofBool (n % 2 = 1) :=  b
   rcases (Nat.mod_two_eq_zero_or_one n) with h | h <;> simp [h, BitVec.ofNat, Fin.ofNat']
 
 theorem ofBool_eq_iff_eq (b b' : Bool) : BitVec.ofBool b = BitVec.ofBool b' ↔ b = b' := by
-  constructor <;> intros h <;> cases b <;> cases b' <;> simp at h ⊢ <;> try contradiction
+  cases b <;> cases b'
+    <;> simp only [ofBool_false, ofNat_eq_ofNat, ofBool_true, iff_false]
+    <;> (intro; contradiction)
 
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
