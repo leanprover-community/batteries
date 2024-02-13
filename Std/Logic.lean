@@ -125,13 +125,8 @@ end Mem
 
 /-! ## miscellaneous -/
 
-instance : DecidableEq PEmpty := fun a => a.elim
-
 @[simp] theorem not_nonempty_empty  : ¬Nonempty Empty := fun ⟨h⟩ => h.elim
 @[simp] theorem not_nonempty_pempty : ¬Nonempty PEmpty := fun ⟨h⟩ => h.elim
-
-instance [Subsingleton α] [Subsingleton β] : Subsingleton (α × β) :=
-  ⟨fun {..} {..} => by congr <;> apply Subsingleton.elim⟩
 
 -- TODO(Mario): profile first, this is a dangerous instance
 -- instance (priority := 10) {α} [Subsingleton α] : DecidableEq α
@@ -147,13 +142,6 @@ theorem subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : Subsingleton α 
 
 theorem subsingleton_iff_forall_eq (x : α) : Subsingleton α ↔ ∀ y, y = x :=
   ⟨fun _ y => Subsingleton.elim y x, subsingleton_of_forall_eq x⟩
-
-example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
-  ⟨fun ⟨x, _⟩ ⟨y, _⟩ => by congr; exact Subsingleton.elim x y⟩
-
-theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
-
-theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
 theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
   f x' (Eq.rec y h) = f x y := by cases h; rfl
