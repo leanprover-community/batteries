@@ -111,10 +111,10 @@ def filter (p : α → Prop) [DecidablePred p] : LazyList α → LazyList α
   | cons h t => if p h then cons h (filter p t.get) else filter p (t.get)
 
 /-- The nth element of a lazy list as an option (like `List.get?`). -/
-def nth : LazyList α → Nat → Option α
+def get? : LazyList α → Nat → Option α
   | nil, _ => none
   | cons a _, 0 => some a
-  | cons _ l, n + 1 => nth (l.get) n
+  | cons _ l, n + 1 => get? (l.get) n
 
 /-- The infinite lazy list `[x, f x, f (f x), ...]` of iterates of a function.
 This definition is meta because it creates an infinite list.
