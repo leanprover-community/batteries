@@ -864,6 +864,20 @@ protected theorem mul_self_sub_mul_self_eq (a b : Nat) : a * a - b * b = (a + b)
   rw [Nat.mul_sub_left_distrib, Nat.right_distrib, Nat.right_distrib, Nat.mul_comm b a,
     Nat.sub_add_eq, Nat.add_sub_cancel]
 
+protected theorem pos_of_mul_pos_left {a b : Nat} (h : 0 < a * b) : 0 < b := by
+  by_contra w; simp_all
+
+protected theorem pos_of_mul_pos_right {a b : Nat} (h : 0 < a * b) : 0 < a := by
+  by_contra w; simp_all
+
+@[simp] protected theorem mul_pos_iff_of_pos_left {a b : Nat} (h : 0 < a) :
+    0 < a * b ↔ 0 < b :=
+  ⟨Nat.pos_of_mul_pos_left, Nat.mul_pos h⟩
+
+@[simp] protected theorem mul_pos_iff_of_pos_right {a b : Nat} (h : 0 < b) :
+    0 < a * b ↔ 0 < a :=
+  ⟨Nat.pos_of_mul_pos_right, fun w => Nat.mul_pos w h⟩
+
 /-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
