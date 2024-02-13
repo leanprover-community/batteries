@@ -1,3 +1,4 @@
+import Std.Lean.Meta.Basic
 import Std.Tactic.PermuteGoals
 import Std.Tactic.GuardMsgs
 

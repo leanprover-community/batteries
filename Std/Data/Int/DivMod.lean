@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import Std.Data.Int.Order
 import Std.Data.Int.Init.DivMod
-import Std.Logic
 
 /-!
 # Lemmas about integer division

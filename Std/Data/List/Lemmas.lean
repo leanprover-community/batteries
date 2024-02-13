@@ -12,7 +12,6 @@ import Std.Data.Option.Lemmas
 import Std.Classes.BEq
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
-import Std.Logic
 
 namespace List
 
