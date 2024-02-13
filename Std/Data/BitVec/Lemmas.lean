@@ -386,6 +386,7 @@ theorem add_def {n} (x y : BitVec n) : x + y = .ofNat n (x.toNat + y.toNat) := r
 Definition of bitvector addition as a nat.
 -/
 @[simp] theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+@[simp] theorem toFin_add (x y : BitVec w) : (x + y).toFin = toFin x + toFin y := rfl
 @[simp] theorem ofFin_add (x : Fin (2^n)) (y : BitVec n) :
   .ofFin x + y = .ofFin (x + y.toFin) := rfl
 @[simp] theorem add_ofFin (x : BitVec n) (y : Fin (2^n)) :
@@ -410,6 +411,7 @@ theorem sub_def {n} (x y : BitVec n) : x - y = .ofNat n (x.toNat + (2^n - y.toNa
 
 @[simp] theorem toNat_sub {n} (x y : BitVec n) :
   (x - y).toNat = ((x.toNat + (2^n - y.toNat)) % 2^n) := rfl
+@[simp] theorem toFin_sub (x y : BitVec w) : (x - y).toFin = toFin x - toFin y := rfl
 
 /-- Replaced 2024-02-06. -/
 @[deprecated] alias sub_toNat := toNat_sub
@@ -449,6 +451,7 @@ theorem sub_toAdd {n} (x y : BitVec n) : x - y = x + - y := by
 theorem mul_def {n} {x y : BitVec n} : x * y = (ofFin <| x.toFin * y.toFin) := by rfl
 
 theorem toNat_mul {x y : BitVec w} : (x * y).toNat = (x.toNat * y.toNat) % 2 ^ w := rfl
+@[simp] theorem toFin_mul {x y : BitVec w} : (x * y).toFin = (x.toFin * y.toFin) := rfl
 
 /-! ### le and lt -/
 
