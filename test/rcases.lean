@@ -1,5 +1,4 @@
 import Std.Tactic.Basic
-import Std.Tactic.GuardExpr
 
 set_option linter.missingDocs false
 
