@@ -108,7 +108,7 @@ def get? : LazyList α → Nat → Option α
   | cons _ l, n + 1 => get? (l.get) n
 
 /-- The infinite lazy list `[x, f x, f (f x), ...]` of iterates of a function.
-This definition is meta because it creates an infinite list.
+This definition is partial because it creates an infinite list.
 -/
 partial def iterates (f : α → α) : α → LazyList α
   | x => cons x (iterates f (f x))
