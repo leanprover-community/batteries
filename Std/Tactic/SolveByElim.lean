@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, David Renshaw
 -/
 import Lean.Elab.Tactic.Config
+import Lean.Meta.Tactic.Repeat
 import Std.Data.Sum.Basic
 import Std.Tactic.LabelAttr
 import Std.Tactic.Relation.Symm
@@ -293,7 +294,7 @@ where
     if cfg.backtracking then
       backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
     else
-      repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
+      Lean.Meta.repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
 
 /--
 A `MetaM` analogue of the `apply_rules` user tactic.

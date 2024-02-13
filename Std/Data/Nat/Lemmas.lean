@@ -3,8 +3,8 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Std.Logic
 import Std.Tactic.Alias
+import Std.Tactic.Init
 import Std.Data.Nat.Init.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.Ord
@@ -1209,7 +1209,7 @@ protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
     a ^ n ≤ a ^ m ↔ n ≤ m := by
   constructor
   · by_contra w
-    simp at w
+    simp [Decidable.not_imp_iff_and_not] at w
     apply Nat.lt_irrefl (a ^ n)
     exact Nat.lt_of_le_of_lt w.1 (Nat.pow_lt_pow_of_lt h w.2)
   · intro w

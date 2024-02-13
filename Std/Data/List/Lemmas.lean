@@ -12,6 +12,7 @@ import Std.Data.Option.Lemmas
 import Std.Classes.BEq
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
+import Std.Logic
 
 namespace List
 
@@ -953,7 +954,7 @@ theorem get?_modifyNth (f : α → α) :
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
       cases l.get? m <;> by_cases h : n = m <;>
-        simp only [h, if_pos, if_true, if_false, Option.map, mt Nat.succ.inj, not_false_iff]
+        simp only [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff]
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
