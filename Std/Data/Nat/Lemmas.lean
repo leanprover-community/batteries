@@ -453,7 +453,7 @@ protected theorem sub_right_comm (m n k : Nat) : m - n - k = m - k - n := by
 
 protected theorem add_sub_cancel_right (n m : Nat) : (n + m) - m = n := Nat.add_sub_cancel ..
 
-protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
+@[simp] protected theorem add_sub_cancel' {n m : Nat} (h : m ≤ n) : m + (n - m) = n := by
   rw [Nat.add_comm, Nat.sub_add_cancel h]
 
 theorem succ_sub_one (n) : succ n - 1 = n := rfl
@@ -572,6 +572,15 @@ theorem sub_lt_succ (a b) : a - b < succ a := lt_succ_of_le (sub_le a b)
 
 theorem sub_one_sub_lt (h : i < n) : n - 1 - i < n := by
   rw [Nat.sub_right_comm]; exact Nat.sub_one_lt_of_le (Nat.sub_pos_of_lt h) (Nat.sub_le ..)
+
+protected theorem exists_eq_add_of_le (h : m ≤ n) : ∃ k : Nat, n = m + k :=
+  ⟨n - m, (add_sub_of_le h).symm⟩
+
+protected theorem exists_eq_add_of_le' (h : m ≤ n) : ∃ k : Nat, n = k + m :=
+  ⟨n - m, (Nat.sub_add_cancel h).symm⟩
+
+protected theorem exists_eq_add_of_lt (h : m < n) : ∃ k : Nat, n = m + k + 1 :=
+  ⟨n - (m + 1), by rw [Nat.add_right_comm, add_sub_of_le h]⟩
 
 /-! ### min/max -/
 
@@ -1159,6 +1168,39 @@ protected theorem one_le_two_pow : 1 ≤ 2 ^ n := by
   else
     exact Nat.le_of_lt (Nat.one_lt_two_pow h)
 
+protected theorem pow_pos (h : 0 < a) : 0 < a^n :=
+  match n with
+  | 0 => Nat.zero_lt_one
+  | _ + 1 => Nat.mul_pos (Nat.pow_pos h) h
+
+protected theorem pow_lt_pow_succ (h : 1 < a) : a ^ n < a ^ (n + 1) := by
+  rw [Nat.pow_succ]
+  conv => lhs; rw [← Nat.mul_one (a^n)]
+  exact Nat.mul_lt_mul_of_le_of_lt (Nat.le_refl _) h (Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h))
+
+protected theorem pow_lt_pow_of_lt {a n m : Nat} (h : 1 < a) (w : n < m) : a ^ n < a ^ m := by
+  have := Nat.exists_eq_add_of_lt w
+  cases this
+  case intro k p =>
+  rw [Nat.add_right_comm] at p
+  subst p
+  rw [Nat.pow_add]
+  conv => lhs; rw [← Nat.mul_one (a^n)]
+  have t : 0 < a ^ k := Nat.pow_pos (Nat.lt_trans Nat.zero_lt_one h)
+  exact Nat.mul_lt_mul_of_lt_of_le (Nat.pow_lt_pow_succ h) t t
+
+protected theorem pow_le_pow_iff_right {a n m : Nat} (h : 1 < a) :
+    a ^ n ≤ a ^ m ↔ n ≤ m := by
+  constructor
+  · by_contra w
+    simp at w
+    apply Nat.lt_irrefl (a ^ n)
+    exact Nat.lt_of_le_of_lt w.1 (Nat.pow_lt_pow_of_lt h w.2)
+  · intro w
+    cases Nat.eq_or_lt_of_le w
+    case inl eq => subst eq; apply Nat.le_refl
+    case inr lt => exact Nat.le_of_lt (Nat.pow_lt_pow_of_lt h lt)
+
 /-! ### log2 -/
 
 theorem le_log2 (h : n ≠ 0) : k ≤ n.log2 ↔ 2 ^ k ≤ n := by
@@ -1301,6 +1343,28 @@ protected theorem dvd_of_mul_dvd_mul_left
 
 protected theorem dvd_of_mul_dvd_mul_right (kpos : 0 < k) (H : m * k ∣ n * k) : m ∣ n := by
   rw [Nat.mul_comm m k, Nat.mul_comm n k] at H; exact Nat.dvd_of_mul_dvd_mul_left kpos H
+
+theorem pow_dvd_pow_iff_pow_le_pow {k l : Nat} :
+    ∀ {x : Nat}, 0 < x → (x ^ k ∣ x ^ l ↔ x ^ k ≤ x ^ l)
+  | x + 1, w => by
+    constructor
+    · intro a
+      exact le_of_dvd (Nat.pow_pos (succ_pos x)) a
+    · intro a
+      cases x
+      case zero => simp
+      case succ x =>
+        have le :=
+          (Nat.pow_le_pow_iff_right (Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le _)))).mp a
+        refine ⟨(x + 2) ^ (l - k), ?_⟩
+        rw [← Nat.pow_add, Nat.add_comm k, Nat.sub_add_cancel le]
+
+/-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
+theorem pow_dvd_pow_iff_le_right {x k l : Nat} (w : 1 < x) : x ^ k ∣ x ^ l ↔ k ≤ l := by
+  rw [pow_dvd_pow_iff_pow_le_pow (lt_of_succ_lt w), Nat.pow_le_pow_iff_right w]
+
+theorem pow_dvd_pow_iff_le_right' {b k l : Nat} : (b + 2) ^ k ∣ (b + 2) ^ l ↔ k ≤ l :=
+  pow_dvd_pow_iff_le_right (Nat.lt_of_sub_eq_succ rfl)
 
 /-! ### sum -/
 
