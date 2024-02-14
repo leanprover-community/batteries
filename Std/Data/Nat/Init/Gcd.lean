@@ -1,4 +1,3 @@
-import Std.Data.Nat.Init.Basic
 import Std.Data.Nat.Init.Dvd
 
 namespace Nat

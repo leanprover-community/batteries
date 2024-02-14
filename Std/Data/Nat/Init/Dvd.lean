@@ -1,6 +1,3 @@
-import Std.Data.Nat.Init.Basic
-import Std.Data.Nat.Init.Lemmas
-
 namespace Nat
 
 protected theorem dvd_refl (a : Nat) : a ∣ a := ⟨1, by simp⟩

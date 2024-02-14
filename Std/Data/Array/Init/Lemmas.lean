@@ -7,7 +7,6 @@ import Std.Tactic.HaveI
 import Std.Data.Bool
 import Std.Classes.LawfulMonad
 import Std.Data.Fin.Init.Lemmas
-import Std.Data.Nat.Init.Lemmas
 import Std.Data.List.Init.Lemmas
 
 /-!
