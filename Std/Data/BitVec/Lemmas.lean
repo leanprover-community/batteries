@@ -96,6 +96,8 @@ theorem ofBool_eq_iff_eq : ∀(b b' : Bool), BitVec.ofBool b = BitVec.ofBool b' 
 @[simp] theorem toNat_ofNat (x w : Nat) : (x#w).toNat = x % 2^w := by
   simp [BitVec.toNat, BitVec.ofNat, Fin.ofNat']
 
+@[simp] theorem toFin_ofNat (w x : Nat) : (x#w).toFin = Fin.ofNat' x (Nat.two_pow_pos _) := rfl
+
 @[simp] theorem getLsb_ofNat (n : Nat) (x : Nat) (i : Nat) :
   getLsb (x#n) i = (i < n && x.testBit i) := by
   simp [getLsb, BitVec.ofNat, Fin.val_ofNat']
