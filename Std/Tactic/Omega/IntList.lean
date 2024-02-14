@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Data.List.Init.Lemmas
-import Std.Data.Nat.Gcd
+import Std.Data.Nat.Init.Gcd
 import Std.Data.Int.Init.DivMod
 import Std.Data.Option.Lemmas
 import Std.Tactic.Simpa

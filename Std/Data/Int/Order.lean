@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 import Std.Data.Int.Init.Order
 import Std.Data.Option.Basic
 import Std.Tactic.Omega
+import Std.Data.Nat.Lemmas
 
 /-!
 # Results about the order properties of the integers, and the integers as an ordered ring.
