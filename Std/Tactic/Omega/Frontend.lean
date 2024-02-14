@@ -180,7 +180,10 @@ partial def asLinearComboImpl (e : Expr) : OmegaM (LinearCombo × OmegaM Expr ×
     match r? with
     | some r => pure r
     | none => mkAtomLinearCombo e
-  | (``HMod.hMod, #[_, _, _, _, n, k]) => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
+  | (``HMod.hMod, #[_, _, _, _, n, k]) =>
+    match natCast? k with
+    | some _ => rewrite e (mkApp2 (.const ``Int.emod_def []) n k)
+    | none => mkAtomLinearCombo e
   | (``HDiv.hDiv, #[_, _, _, _, x, z]) =>
     match intCast? z with
     | some 0 => rewrite e (mkApp (.const ``Int.ediv_zero []) x)
@@ -395,7 +398,7 @@ partial def addFact (p : MetaProblem) (h : Expr) : OmegaM (MetaProblem × Nat) :
       | (``Dvd.dvd, #[.const ``Nat [], _, k, x]) =>
         p.addFact (mkApp3 (.const ``Nat.mod_eq_zero_of_dvd []) k x h)
       | (``Dvd.dvd, #[.const ``Int [], _, k, x]) =>
-        p.addFact (mkApp3 (.const ``Int.mod_eq_zero_of_dvd []) k x h)
+        p.addFact (mkApp3 (.const ``Int.emod_eq_zero_of_dvd []) k x h)
       | (``And, #[t₁, t₂]) => do
           let (p₁, n₁) ← p.addFact (mkApp3 (.const ``And.left []) t₁ t₂ h)
           let (p₂, n₂) ← p₁.addFact (mkApp3 (.const ``And.right []) t₁ t₂ h)

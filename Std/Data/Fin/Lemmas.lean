@@ -8,6 +8,8 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega
+import Std.Tactic.SimpTrace
 
 namespace Fin
 
@@ -93,6 +95,8 @@ theorem lt_iff_val_lt_val {a b : Fin n} : a < b ↔ a.val < b.val := Iff.rfl
 protected theorem ne_of_lt {a b : Fin n} (h : a < b) : a ≠ b := Fin.ne_of_val_ne (Nat.ne_of_lt h)
 
 protected theorem ne_of_gt {a b : Fin n} (h : a < b) : b ≠ a := Fin.ne_of_val_ne (Nat.ne_of_gt h)
+
+protected theorem le_of_lt {a b : Fin n} (h : a < b) : a ≤ b := Nat.le_of_lt h
 
 theorem is_le (i : Fin (n + 1)) : i ≤ n := Nat.le_of_lt_succ i.is_lt
 
@@ -742,6 +746,9 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 
 /-! ### sub -/
 
+protected theorem coe_sub (a b : Fin n) : ((a - b : Fin n) : Nat) = (a + (n - b)) % n := by
+  cases a; cases b; rfl
+
 @[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
   apply Fin.eq_of_val_eq
@@ -751,6 +758,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
     x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
   apply Fin.eq_of_val_eq
   simp [Fin.ofNat', Fin.sub_def]
+
+private theorem _root_.Nat.mod_eq_sub_of_lt_two_mul {x n} (h₁ : n ≤ x) (h₂ : x < 2 * n) :
+    x % n = x - n := by
+  rw [Nat.mod_eq, if_pos (by omega), Nat.mod_eq_of_lt (by omega)]
+
+theorem coe_sub_iff_le {a b : Fin n} : (↑(a - b) : Nat) = a - b ↔ b ≤ a := by
+  rw [sub_def, le_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
+
+theorem coe_sub_iff_lt {a b : Fin n} : (↑(a - b) : Nat) = n + a - b ↔ a < b := by
+  rw [sub_def, lt_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
 
 /-! ### mul -/
 
