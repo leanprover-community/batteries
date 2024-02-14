@@ -4,7 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Syntax
+import Lean.Meta.Tactic.TryThis
 import Lean.Data.Lsp.Utf16
+
+/-- Gets the LSP range of syntax `stx`. -/
+def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
+  text.utf8RangeToLspRange <$> stx.getRange?
 
 /-- Return the beginning of the line contatining character `pos`. -/
 def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
