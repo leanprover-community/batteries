@@ -7,7 +7,6 @@ import Std.Data.List.Init.Lemmas
 import Std.Data.Nat.Gcd
 import Std.Data.Int.Init.DivMod
 import Std.Data.Option.Lemmas
-import Std.Tactic.Replace
 import Std.Tactic.Simpa
 
 /--

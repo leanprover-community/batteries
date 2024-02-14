@@ -1,4 +1,4 @@
-import Std.Tactic.TryThis
+import Lean.Meta.Tactic.TryThis
 import Std.Tactic.GuardMsgs
 
 set_option linter.unusedVariables false
@@ -14,7 +14,7 @@ def longdef (a b : Nat) (h h h h h h h h h h h h h h h h h
     h h h h h h h h h h h h h h h h h h h h h : a = b) :
   2 * a = 2 * b := by rw [h]
 
-namespace Std.Tactic.TryThis
+namespace Lean.Meta.Tactic.TryThis
 open Lean Elab Tactic
 
 set_option hygiene false in
@@ -25,7 +25,7 @@ elab "test" : tactic => do
       h h h h h h h h h h h h h h h h h h h h h h
       h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h h))
 
-end Std.Tactic.TryThis
+end Lean.Meta.Tactic.TryThis
 
 #guard_msgs (drop info, drop warning) in
 -- ideally we would have a #guard_widgets or #guard_infos too, but instead we can simply check by

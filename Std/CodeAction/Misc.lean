@@ -8,6 +8,7 @@ import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
 import Std.Lean.Position
 import Std.CodeAction.Attr
+import Lean.Meta.Tactic.TryThis
 
 /-!
 # Miscellaneous code actions
