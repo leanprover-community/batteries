@@ -3,10 +3,12 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Data.List.Lemmas
+import Std.Data.List.Init.Lemmas
 import Std.Data.Nat.Gcd
-import Std.Data.Int.DivMod
+import Std.Data.Int.Init.DivMod
+import Std.Data.Option.Lemmas
 import Std.Tactic.Replace
+import Std.Tactic.Simpa
 
 /--
 A type synonym for `List Int`, used by `omega` for dense representation of coefficients.
@@ -33,9 +35,9 @@ theorem get_of_length_le {xs : IntList} (h : xs.length ≤ i) : xs.get i = 0 := 
   rw [get, List.get?_eq_none.mpr h]
   rfl
 
-theorem lt_length_of_get_nonzero {xs : IntList} (h : xs.get i ≠ 0) : i < xs.length := by
-  revert h
-  simpa using mt get_of_length_le
+-- theorem lt_length_of_get_nonzero {xs : IntList} (h : xs.get i ≠ 0) : i < xs.length := by
+--   revert h
+--   simpa using mt get_of_length_le
 
 /-- Like `List.set`, but right-pad with zeroes as necessary first. -/
 def set (xs : IntList) (i : Nat) (y : Int) : IntList :=
@@ -49,20 +51,6 @@ def set (xs : IntList) (i : Nat) (y : Int) : IntList :=
 @[simp] theorem set_nil_succ : set [] (i+1) y = 0 :: set [] i y := rfl
 @[simp] theorem set_cons_zero : set (x :: xs) 0 y = y :: xs := rfl
 @[simp] theorem set_cons_succ : set (x :: xs) (i+1) y = x :: set xs i y := rfl
-
-theorem set_get_eq : get (set xs i y) j = if i = j then y else xs.get j := by
-  induction xs generalizing i j with
-  | nil =>
-    induction i generalizing j with
-    | zero => cases j <;> simp [set]
-    | succ i => cases j <;> simp_all [set]
-  | cons x xs ih =>
-    induction i with
-    | zero => cases j <;> simp [set]
-    | succ i => cases j <;> simp_all [set]
-
-@[simp] theorem set_get_self : get (set xs i y) i = y := by simp [set_get_eq]
-@[simp] theorem set_get_of_ne (h : i ≠ j) : get (set xs i y) j = xs.get j := by simp [set_get_eq, h]
 
 /-- Returns the leading coefficient, i.e. the first non-zero entry. -/
 def leading (xs : IntList) : Int := xs.find? (! · == 0) |>.getD 0
@@ -146,15 +134,6 @@ theorem smul_def (xs : IntList) (i : Int) : i * xs = xs.map fun x => i * x := rf
 def combo (a : Int) (xs : IntList) (b : Int) (ys : IntList) : IntList :=
   List.zipWithAll (fun x y => a * x.getD 0 + b * y.getD 0) xs ys
 
-theorem combo_def (xs ys : IntList) :
-    combo a xs b ys = List.zipWithAll (fun x y => a * x.getD 0 + b * y.getD 0) xs ys :=
-  rfl
-
-@[simp] theorem combo_get (xs ys : IntList) (i : Nat) :
-    (combo a xs b ys).get i = a * xs.get i + b * ys.get i := by
-  simp only [combo_def, get, List.zipWithAll_get?, List.get?_eq_none]
-  cases xs.get? i <;> cases ys.get? i <;> simp
-
 theorem combo_eq_smul_add_smul (a : Int) (xs : IntList) (b : Int) (ys : IntList) :
     combo a xs b ys = a * xs + b * ys := by
   dsimp [combo]
@@ -164,14 +143,6 @@ theorem combo_eq_smul_add_smul (a : Int) (xs : IntList) (b : Int) (ys : IntList)
     cases ys with
     | nil => simp; rfl
     | cons y ys => simp_all
-
-theorem mul_comm (xs ys : IntList) : xs * ys = ys * xs := by
-  induction xs generalizing ys with
-  | nil => simp
-  | cons x xs ih => cases ys <;> simp_all [Int.mul_comm]
-
-@[simp] theorem neg_neg {xs : IntList} : - - xs = xs := by
-  induction xs <;> simp_all
 
 attribute [local simp] add_def mul_def in
 theorem mul_distrib_left (xs ys zs : IntList) : (xs + ys) * zs = xs * zs + ys * zs := by
@@ -207,9 +178,6 @@ theorem sub_eq_add_neg (xs ys : IntList) : xs - ys = xs + (-ys) := by
     cases ys with
     | nil => simp
     | cons y ys => simp_all [Int.sub_eq_add_neg]
-
-@[simp] theorem sub_get (xs ys : IntList) (i : Nat) : (xs - ys).get i = xs.get i - ys.get i := by
-  rw [sub_eq_add_neg, add_get, neg_get, ← Int.sub_eq_add_neg]
 
 @[simp] theorem mul_smul_left {i : Int} {xs ys : IntList} : (i * xs) * ys = i * (xs * ys) := by
   induction xs generalizing ys with
@@ -256,8 +224,8 @@ example : IntList.dot [a, b, c] [x, y, z] = IntList.dot [a, b, c] [x, y, z, w] :
 @[simp] theorem dot_nil_right : dot xs ([] : IntList) = 0 := by simp [dot]
 @[simp] theorem dot_cons₂ : dot (x::xs) (y::ys) = x * y + dot xs ys := rfl
 
-theorem dot_comm (xs ys : IntList) : dot xs ys = dot ys xs := by
-  rw [dot, dot, mul_comm]
+-- theorem dot_comm (xs ys : IntList) : dot xs ys = dot ys xs := by
+--   rw [dot, dot, mul_comm]
 
 @[simp] theorem dot_set_left (xs ys : IntList) (i : Nat) (z : Int) :
     dot (xs.set i z) ys = dot xs ys + (z - xs.get i) * ys.get i := by
@@ -279,10 +247,6 @@ theorem dot_comm (xs ys : IntList) : dot xs ys = dot ys xs := by
       | nil => simp
       | cons y ys => simp_all [Int.add_assoc]
 
-@[simp] theorem dot_set_right (xs ys : IntList) (i : Nat) (z : Int) :
-    dot xs (ys.set i z) = dot xs ys + xs.get i * (z - ys.get i) := by
-  rw [dot_comm, dot_set_left, dot_comm, Int.mul_comm]
-
 theorem dot_distrib_left (xs ys zs : IntList) : (xs + ys).dot zs = xs.dot zs + ys.dot zs := by
   simp [dot, mul_distrib_left, sum_add]
 
@@ -291,9 +255,6 @@ theorem dot_distrib_left (xs ys zs : IntList) : (xs + ys).dot zs = xs.dot zs + y
 
 @[simp] theorem dot_smul_left (xs ys : IntList) (i : Int) : (i * xs).dot ys = i * xs.dot ys := by
   simp [dot]
-
-theorem dot_sub_left (xs ys zs : IntList) : (xs - ys).dot zs = xs.dot zs - ys.dot zs := by
-  rw [sub_eq_add_neg, dot_distrib_left, dot_neg_left, ← Int.sub_eq_add_neg]
 
 theorem dot_of_left_zero (w : ∀ x, x ∈ xs → x = 0) : dot xs ys = 0 := by
   induction xs generalizing ys with
@@ -308,37 +269,11 @@ theorem dot_of_left_zero (w : ∀ x, x ∈ xs → x = 0) : dot xs ys = 0 := by
         apply w
         exact List.mem_cons_of_mem _ m
 
-theorem dvd_dot_of_dvd_left (w : ∀ x, x ∈ xs → m ∣ x) : m ∣ dot xs ys := by
-  induction xs generalizing ys with
-  | nil => exact Int.dvd_zero m
-  | cons x xs ih =>
-    cases ys with
-    | nil => exact Int.dvd_zero m
-    | cons y ys =>
-      rw [dot_cons₂]
-      apply Int.dvd_add
-      · apply Int.dvd_trans
-        rotate_left
-        · apply Int.dvd_mul_right
-        · apply w
-          apply List.mem_cons_self
-      · apply ih
-        intro x m
-        apply w x
-        apply List.mem_cons_of_mem _ m
-
 /-- Division of an `IntList` by a integer. -/
 def sdiv (xs : IntList) (g : Int) : IntList := xs.map fun x => x / g
 
 @[simp] theorem sdiv_nil : sdiv [] g = [] := rfl
 @[simp] theorem sdiv_cons : sdiv (x::xs) g = (x / g) :: sdiv xs g := rfl
-
-@[simp] theorem sdiv_get {xs : IntList} {g : Int} {i} : (xs.sdiv g).get i = xs.get i / g := by
-  simp only [sdiv, get, List.get?_map]
-  cases xs.get? i <;> simp
-
-theorem mem_sdiv {xs : IntList} (h : x ∈ xs) : x / g ∈ xs.sdiv g := by
-  apply List.mem_map_of_mem _ h
 
 /-- The gcd of the absolute values of the entries of an `IntList`. -/
 def gcd (xs : IntList) : Nat := xs.foldr (fun x g => Nat.gcd x.natAbs g) 0
@@ -428,10 +363,6 @@ theorem dot_eq_zero_of_left_eq_zero {xs ys : IntList} (h : ∀ x ∈ xs, x = 0) 
       rw [dot_cons₂, h x (List.mem_cons_self _ _), ih (fun x m => h x (List.mem_cons_of_mem _ m)),
         Int.zero_mul, Int.add_zero]
 
-theorem dot_eq_zero_of_gcd_left_eq_zero {xs ys : IntList} (h : xs.gcd = 0) : dot xs ys = 0 := by
-  simp at h
-  simp_all
-
 theorem dot_sdiv_left (xs ys : IntList) {d : Int} (h : d ∣ xs.gcd) :
     dot (xs.sdiv d) ys = (dot xs ys) / d := by
   induction xs generalizing ys with
@@ -444,88 +375,6 @@ theorem dot_sdiv_left (xs ys : IntList) {d : Int} (h : d ∣ xs.gcd) :
       have wxy : d ∣ x * y := Int.dvd_trans wx (Int.dvd_mul_right x y)
       have w : d ∣ (IntList.gcd xs : Int) := Int.dvd_trans h (gcd_cons_div_right')
       simp_all [Int.add_ediv_of_dvd_left, Int.mul_ediv_assoc']
-
-@[simp] theorem dot_sdiv_gcd_left (xs ys : IntList) :
-    dot (xs.sdiv xs.gcd) ys = (dot xs ys) / xs.gcd :=
-  dot_sdiv_left xs ys (by exact Int.dvd_refl _)
-
-/-- The leading sign in an `IntList`. -/
-def leadingSign (xs : IntList) : Int :=
-  match xs with
-  | [] => 0
-  | 0 :: xs => leadingSign xs
-  | x :: _ => x.sign
-
-@[simp] theorem leadingSign_nil : leadingSign [] = 0 := rfl
-@[simp] theorem leadingSign_cons_zero : leadingSign (0 :: xs) = leadingSign xs := rfl
-theorem leadingSign_cons : leadingSign (x :: xs) = if x = 0 then leadingSign xs else x.sign := by
-  split <;> rename_i h
-  · subst h
-    rfl
-  · rw [leadingSign]
-    intro w
-    exact h w
-
-theorem leadingSign_neg {xs : IntList} : (-xs).leadingSign = - xs.leadingSign := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih =>
-    by_cases h : x = 0
-    · subst h
-      simp_all
-    · simp_all [leadingSign_cons]
-
-/--
-Trim trailing zeroes from a `List Int`, returning `none` if none were removed.
--/
--- We could implement this without any `List.reverse`s, but at the expense of either:
--- * an `Array.toList` and scanning for zeroes from the left, or
--- * a `List.toArray` and an `Array.toList`.
--- It's unclear either would be appreciably faster.
-def trim? (xs : IntList) : Option IntList :=
-  match xs.reverse with
-  | [] => none
-  | 0 :: xs => (xs.dropWhile (· == 0)).reverse
-  | _ :: _ => none
-
-theorem trim?_isSome {xs : IntList} : xs.trim?.isSome = (xs.getLast? = some 0) := by
-  dsimp [trim?]
-  split <;> rename_i h h'
-  · simp_all
-  · replace h' := congrArg List.reverse h'
-    simp at h'
-    simp [h']
-  · replace h' := congrArg List.reverse h'
-    simp at h'
-    simpa [h'] using h
-
-/-- Trailing trailing zeroes from a `List Int`. -/
-def trim (xs : IntList) : IntList := xs.trim?.getD xs
-
-theorem trim?_eq_some {xs : IntList} (w : xs.trim? = some t) : xs.trim = t := by simp [trim, w]
-
-theorem trim_spec {xs : IntList} : xs.trim = (xs.reverse.dropWhile (· == 0)).reverse := by
-  dsimp [trim, trim?]
-  split <;> rename_i h h'
-  · simp_all
-  · simp_all [List.dropWhile_cons]
-  · simp_all [List.dropWhile_cons]
-    rw [if_neg h, ← h', List.reverse_reverse]
-
-@[simp] theorem trim_nil : trim [] = [] := rfl
-
-@[simp] theorem trim_append_zero {xs : IntList} : (xs ++ [0]).trim = xs.trim := by
-  simp [trim_spec, List.dropWhile]
-
-@[simp] theorem trim_neg {xs : IntList} : (-xs).trim = -xs.trim := by
-  simp only [trim_spec, neg_def, List.reverse_map]
-  generalize xs.reverse = xs'
-  induction xs' with
-  | nil => simp
-  | cons x xs' ih =>
-    simp only [List.map_cons, List.dropWhile_cons, Int.neg_eq_zero, beq_iff_eq]
-    split <;>
-    simp_all [List.reverse_map]
 
 /-- Apply "balanced mod" to each entry in an `IntList`. -/
 abbrev bmod (x : IntList) (m : Nat) : IntList := x.map (Int.bmod · m)

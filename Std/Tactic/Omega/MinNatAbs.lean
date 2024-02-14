@@ -3,8 +3,9 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Data.List.Lemmas
-import Std.Data.Int.Lemmas
+import Std.Data.List.Init.Lemmas
+import Std.Data.Int.Init.Order
+import Std.Data.Option.Lemmas
 import Std.Tactic.LeftRight
 
 /-!
@@ -17,7 +18,6 @@ so we keep it in the `Std/Tactic/Omega` directory
 
 -/
 
-open Classical
 
 namespace List
 
@@ -29,6 +29,7 @@ We completely characterize the function via
 -/
 def nonzeroMinimum (xs : List Nat) : Nat := xs.filter (· ≠ 0) |>.minimum? |>.getD 0
 
+open Classical in
 @[simp] theorem nonzeroMinimum_eq_zero_iff {xs : List Nat} :
     xs.nonzeroMinimum = 0 ↔ ∀ x ∈ xs, x = 0 := by
   simp [nonzeroMinimum, Option.getD_eq_iff, minimum?_eq_none_iff, minimum?_eq_some_iff',
@@ -84,13 +85,14 @@ theorem nonzeroMinimum_eq_of_nonzero {xs : List Nat} (h : xs.nonzeroMinimum ≠ 
 theorem nonzeroMinimum_le_iff {xs : List Nat} {y : Nat} :
     xs.nonzeroMinimum ≤ y ↔ xs.nonzeroMinimum = 0 ∨ ∃ x ∈ xs, x ≤ y ∧ x ≠ 0 := by
   refine ⟨fun h => ?_, fun h => ?_⟩
-  · rw [Decidable.or_iff_not_imp_right]
-    simp only [ne_eq, not_exists, not_and, not_not, nonzeroMinimum_eq_zero_iff]
+  · rw [Classical.or_iff_not_imp_right]
+    simp only [ne_eq, not_exists, not_and, Classical.not_not, nonzeroMinimum_eq_zero_iff]
     intro w
     apply nonzeroMinimum_eq_zero_iff.mp
-    by_cases p : xs.nonzeroMinimum = 0
-    · exact p
-    · exact w _ (nonzeroMinimum_mem p) h
+    if p : xs.nonzeroMinimum = 0 then
+      exact p
+    else
+      exact w _ (nonzeroMinimum_mem p) h
   · match h with
     | .inl h => simp [h]
     | .inr ⟨x, m, le, ne⟩ => exact Nat.le_trans (nonzeroMinimum_le m ne) le

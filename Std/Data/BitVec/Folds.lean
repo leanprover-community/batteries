@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Joe Hendrix
+-/
 import Std.Data.BitVec.Lemmas
 import Std.Data.Fin.Iterate
 import Std.Data.Nat.Lemmas

@@ -19,11 +19,13 @@ The module is named for the bit-blasting operation in an SMT solver that convert
 expressions into expressions about individual bits in each vector.
 
 ## Main results
-* `x + y : BitVec w` is equivalent to `adc x y false`.
+* `x + y : BitVec w` is `(adc x y false).2`.
+
 
 ## Future work
 All other operations are to be PR'ed later and are already proved in
-https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/BitVec.lean.
+https://github.com/mhk119/lean-smt/blob/bitvec/Smt/Data/Bitwise.lean.
+
 -/
 
 open Nat Bool
@@ -59,7 +61,7 @@ private theorem mod_two_pow_succ (x i : Nat) :
   apply Nat.eq_of_testBit_eq
   intro j
   simp only [Nat.mul_add_lt_is_or, testBit_or, testBit_mod_two_pow, testBit_shiftLeft,
-    Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.pow_two_pos,
+    Nat.testBit_bool_to_nat, Nat.sub_eq_zero_iff_le, Nat.mod_lt, Nat.two_pow_pos,
     testBit_mul_pow_two]
   rcases Nat.lt_trichotomy i j with i_lt_j | i_eq_j | j_lt_i
   · have i_le_j : i ≤ j := Nat.le_of_lt i_lt_j
@@ -74,46 +76,43 @@ private theorem mod_two_pow_succ (x i : Nat) :
     have not_j_ge_i : ¬(j ≥ i) := Nat.not_le_of_lt j_lt_i
     simp [j_lt_i, j_le_i, not_j_ge_i, j_le_i_succ]
 
-private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.pow_two_pos _)
+private theorem mod_two_pow_lt (x i : Nat) : x % 2 ^ i < 2^i := Nat.mod_lt _ (Nat.two_pow_pos _)
 
 /-! ### Addition -/
 
 /-- carry w x y c returns true if the `w` carry bit is true when computing `x + y + c`. -/
-def carry (w x y : Nat) (c : Bool) : Bool :=  decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
+def carry (w x y : Nat) (c : Bool) : Bool := decide (x % 2^w + y % 2^w + c.toNat ≥ 2^w)
 
 @[simp] theorem carry_zero : carry 0 x y c = c := by
   cases c <;> simp [carry, mod_one]
 
+/-- At least two out of three booleans are true. -/
+abbrev atLeastTwo (a b c : Bool) : Bool := a && b || a && c || b && c
+
 /-- Carry function for bitwise addition. -/
-def adcb (x y c : Bool) : Bool × Bool := (x && y || x && c || y && c, Bool.xor x (Bool.xor y c))
+def adcb (x y c : Bool) : Bool × Bool := (atLeastTwo x y c, Bool.xor x (Bool.xor y c))
 
 /-- Bitwise addition implemented via a ripple carry adder. -/
 def adc (x y : BitVec w) : Bool → Bool × BitVec w :=
   iunfoldr fun (i : Fin w) c => adcb (x.getLsb i) (y.getLsb i) c
 
 theorem adc_overflow_limit (x y i : Nat) (c : Bool) : x % 2^i + (y % 2^i + c.toNat) < 2^(i+1) := by
-  apply Nat.lt_of_succ_le
-  simp only [←Nat.succ_add, Nat.pow_succ, Nat.mul_two]
-  apply Nat.add_le_add (mod_two_pow_lt _ _)
-  apply Nat.le_trans
-  exact (Nat.add_le_add_left (Bool.toNat_le_one c) _)
-  exact Nat.mod_lt _ (Nat.pow_two_pos i)
+  have : c.toNat ≤ 1 := Bool.toNat_le_one c
+  rw [Nat.pow_succ]
+  omega
 
-theorem carry_succ (w x y : Nat) (c : Bool) : carry (succ w) x y c =
-    decide ((x.testBit w).toNat + (y.testBit w).toNat + (carry w x y c).toNat ≥ 2) := by
-  simp only [carry, mod_two_pow_succ _ w, decide_eq_decide]
+theorem carry_succ (w x y : Nat) (c : Bool) :
+    carry (succ w) x y c = atLeastTwo (x.testBit w) (y.testBit w) (carry w x y c) := by
+  simp only [carry, mod_two_pow_succ, atLeastTwo]
+  simp only [Nat.pow_succ']
   generalize testBit x w = xh
   generalize testBit y w = yh
   have sum_bnd : x%2^w + (y%2^w + c.toNat) < 2*2^w := by
-          simp [Nat.mul_comm 2 _, ←Nat.pow_succ ]
+          simp only [← Nat.pow_succ']
           exact adc_overflow_limit x y w c
-  simp only [Nat.pow_succ]
-  cases xh <;> cases yh <;> cases Decidable.em (x%2^w + (y%2^w + toNat c) ≥ 2 ^ w) with | _ pred =>
-    simp [Nat.one_shiftLeft, Nat.add_assoc, Nat.add_left_comm _ (2^_) _, Nat.mul_comm (2^_) _,
-          Nat.not_le_of_lt, Nat.add_succ, Nat.succ_le_succ,
-          mul_le_add_right, le_add_right, sum_bnd, pred]
+  cases xh <;> cases yh <;> (simp; omega)
 
-theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
+theorem getLsb_add_add_bool {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     getLsb (x + y + zeroExtend w (ofBool c)) i =
       Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat c)) := by
   let ⟨x, x_lt⟩ := x
@@ -134,7 +133,12 @@ theorem adc_value_step {i : Nat} (i_lt : i < w) (x y : BitVec w) (c : Bool) :
     ]
   simp [testBit_to_div_mod, carry, Nat.add_assoc]
 
-theorem adc_correct (x y : BitVec w) (c : Bool) :
+theorem getLsb_add {i : Nat} (i_lt : i < w) (x y : BitVec w) :
+    getLsb (x + y) i =
+      Bool.xor (getLsb x i) (Bool.xor (getLsb y i) (carry i x.toNat y.toNat false)) := by
+  simpa using getLsb_add_add_bool i_lt x y false
+
+theorem adc_spec (x y : BitVec w) (c : Bool) :
     adc x y c = (carry w x.toNat y.toNat c, x + y + zeroExtend w (ofBool c)) := by
   simp only [adc]
   apply iunfoldr_replace
@@ -150,14 +154,26 @@ theorem adc_correct (x y : BitVec w) (c : Bool) :
     apply And.intro
     case left =>
       rw [testBit_toNat, testBit_toNat]
-      cases x.getLsb i <;>
-      cases y.getLsb i <;>
-      cases carry i x.toNat y.toNat c <;> simp [Nat.succ_le_succ_iff]
     case right =>
-      simp [adc_value_step lt]
+      simp [getLsb_add_add_bool lt]
+
+theorem add_eq_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
+  simp [adc_spec]
+
+/-! ### add -/
 
 theorem add_as_adc (w : Nat) (x y : BitVec w) : x + y = (adc x y false).snd := by
   simp [adc_correct]
+  
+ /-- Adding a bitvector to its own complement yields the all ones bitpattern -/
+@[simp] theorem add_not_self (x : BitVec w) : x + ~~~x = allOnes w := by
+  rw [add_eq_adc, adc, iunfoldr_replace (fun _ => false) (allOnes w)]
+  · rfl
+  · simp [adcb, atLeastTwo]
+  
+/-- Subtracting `x` from the all ones bitvector is equivalent to taking its complement -/
+theorem allOnes_sub_eq_not (x : BitVec w) : allOnes w - x = ~~~x := by
+  rw [← add_not_self x, BitVec.add_comm, add_sub_cancel]
 
 /-! ### Negation -/
 
@@ -204,3 +220,4 @@ theorem bit_neg_eq_neg (x : BitVec w) : bit_neg x = -x := by
   · rw [eq_sub_of_add_eq (bit_not_add_self x), add_comm, ← add_sub_assoc]
     simp [add_right_neg, zero_sub]
   · simp [bit_not_testBit x _]
+ 

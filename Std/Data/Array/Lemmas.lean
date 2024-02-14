@@ -7,6 +7,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Array.Basic
+import Std.Tactic.SeqFocus
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
 import Std.Util.ProofWanted
@@ -41,9 +42,25 @@ attribute [simp] isEmpty uget
 
 @[simp] theorem data_length {l : Array α} : l.data.length = l.size := rfl
 
+/-- # mem -/
+
 theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
 theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
+
+/-- # set -/
+
+@[simp] theorem set!_is_setD : @set! = @setD := rfl
+
+@[simp] theorem size_setD (a : Array α) (index : Nat) (val : α) :
+  (Array.setD a index val).size = a.size := by
+  if h : index < a.size  then
+    simp [setD, h]
+  else
+    simp [setD, h]
+
+
+/-- # get lemmas -/
 
 theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
   erw [Array.mem_def, getElem_eq_data_get]
@@ -130,6 +147,22 @@ theorem get?_set (a : Array α) (i : Fin a.size) (j : Nat) (v : α) :
 theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v : α) :
     (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
   if h : i.1 = j then subst j; simp [*] else simp [*]
+
+@[simp] theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
+  (setD a i v)[i]'h = v := by
+  simp at h
+  simp only [setD, h, dite_true, get_set, ite_true]
+
+/--
+This lemma simplifies a normal form from `get!`
+-/
+@[simp] theorem getD_get?_setD (a : Array α) (i : Nat) (v d : α) :
+  Option.getD (setD a i v)[i]? d = if i < a.size then v else d := by
+  if h : i < a.size then
+    simp [setD, h, getElem?, get_set]
+  else
+    have p : i ≥ a.size := Nat.le_of_not_gt h
+    simp [setD, h, get?_len_le, p]
 
 theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
     (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' := by simp [set, List.set_set]
@@ -266,8 +299,8 @@ theorem mapIdx_induction' (as : Array α) (f : Fin as.size → α → β)
 
 theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
 
-@[simp] theorem size_swap! (a : Array α) (i j) (hi : i < a.size) (hj : j < a.size) :
-    (a.swap! i j).size = a.size := by simp [swap!, hi, hj]
+@[simp] theorem size_swap! (a : Array α) (i j) :
+    (a.swap! i j).size = a.size := by unfold swap!; split <;> (try split) <;> simp [size_swap]
 
 @[simp] theorem size_reverse (a : Array α) : a.reverse.size = a.size := by
   let rec go (as : Array α) (i j) : (reverse.loop as i j).size = as.size := by
@@ -276,8 +309,8 @@ theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
       have := reverse.termination h
       simp [(go · (i+1) ⟨j-1, ·⟩), h]
     else simp [h]
+    termination_by j - i
   simp only [reverse]; split <;> simp [go]
-termination_by _ => j - i
 
 @[simp] theorem size_range {n : Nat} : (range n).size = n := by
   unfold range
@@ -323,6 +356,7 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
         cases Nat.le_antisymm h₂.1 h₂.2
         exact (List.get?_reverse' _ _ h).symm
       · rfl
+    termination_by j - i
   simp only [reverse]; split
   · match a with | ⟨[]⟩ | ⟨[_]⟩ => rfl
   · have := Nat.sub_add_cancel (Nat.le_of_not_le ‹_›)
@@ -330,7 +364,6 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
     split; {rfl}; rename_i h
     simp [← show k < _ + 1 ↔ _ from Nat.lt_succ (n := a.size - 1), this] at h
     rw [List.get?_eq_none.2 ‹_›, List.get?_eq_none.2 (a.data.length_reverse ▸ ‹_›)]
-termination_by _ => j - i
 
 @[simp] theorem size_ofFn_go {n} (f : Fin n → α) (i acc) :
     (ofFn.go f i acc).size = acc.size + (n - i) := by
@@ -343,7 +376,7 @@ termination_by _ => j - i
     have : n - i = 0 := Nat.sub_eq_zero_of_le (Nat.le_of_not_lt hin)
     unfold ofFn.go
     simp [hin, this]
-termination_by _ => n - i
+termination_by n - i
 
 @[simp] theorem size_ofFn (f : Fin n → α) : (ofFn f).size = n := by simp [ofFn]
 
@@ -363,7 +396,7 @@ theorem getElem_ofFn_go (f : Fin n → α) (i) {acc k}
     | inr hj => simp [get_push, *]
   else
     simp [hin, hacc k (Nat.lt_of_lt_of_le hki (Nat.le_of_not_lt (hi ▸ hin)))]
-termination_by _ => n - i
+termination_by n - i
 
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
@@ -427,8 +460,8 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
         ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
       simp only [List.get_cons_drop]
+    termination_by as.size - i
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
-termination_by loop i _ _ _ => as.size - i
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by

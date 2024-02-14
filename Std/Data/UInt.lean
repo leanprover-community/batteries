@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 François G. Dorais. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: François G. Dorais
+-/
 import Std.Data.Nat.Init.Lemmas
 import Std.Tactic.Ext.Attr
 
@@ -75,7 +80,7 @@ theorem UInt64.toNat_lt (x : UInt64) : x.toNat < 2 ^ 64 := x.val.isLt
 @[simp] theorem USize.val_val_eq_toNat (x : USize) : x.val.val = x.toNat := rfl
 
 theorem USize.size_eq : USize.size = 2 ^ System.Platform.numBits := by
-  have : 1 ≤ 2 ^ System.Platform.numBits := Nat.succ_le_of_lt (Nat.pow_two_pos _)
+  have : 1 ≤ 2 ^ System.Platform.numBits := Nat.succ_le_of_lt (Nat.two_pow_pos _)
   rw [USize.size, Nat.succ_eq_add_one, Nat.sub_eq, Nat.sub_add_cancel this]
 
 theorem USize.le_size : 2 ^ 32 ≤ USize.size := by

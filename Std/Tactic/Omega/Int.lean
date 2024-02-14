@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Classes.Order
-import Std.Data.Int.Lemmas
+import Std.Data.Int.Init.Order
 import Std.Data.Prod.Lex
 import Std.Tactic.LeftRight
 
@@ -18,6 +18,20 @@ If you do find a use for them, please move them into the appropriate file and na
 -/
 
 namespace Std.Tactic.Omega.Int
+
+theorem ofNat_pow (a b : Nat) : ((a ^ b : Nat) : Int) = (a : Int) ^ b := by
+  induction b with
+  | zero => rfl
+  | succ b ih => rw [Nat.pow_succ, Int.ofNat_mul, ih]; rfl
+
+theorem pos_pow_of_pos (a : Int) (b : Nat) (h : 0 < a) : 0 < a ^ b := by
+  rw [Int.eq_natAbs_of_zero_le (Int.le_of_lt h), ← Int.ofNat_zero, ← Int.ofNat_pow, Int.ofNat_lt]
+  exact Nat.pos_pow_of_pos _ (Int.natAbs_pos.mpr (Int.ne_of_gt h))
+
+theorem ofNat_pos {a : Nat} : 0 < (a : Int) ↔ 0 < a := by
+  rw [← Int.ofNat_zero, Int.ofNat_lt]
+
+alias ⟨_, ofNat_pos_of_pos⟩ := Int.ofNat_pos
 
 theorem natCast_ofNat {x : Nat} :
     @Nat.cast Int instNatCastInt (no_index (OfNat.ofNat x)) = OfNat.ofNat x := rfl
@@ -66,6 +80,21 @@ theorem ofNat_congr {a b : Nat} (h : a = b) : (a : Int) = (b : Int) := congrArg 
 theorem ofNat_sub_sub {a b c : Nat} : ((a - b - c : Nat) : Int) = ((a - (b + c) : Nat) : Int) :=
   congrArg _ (Nat.sub_sub _ _ _)
 
+theorem ofNat_min (a b : Nat) : ((min a b : Nat) : Int) = min (a : Int) (b : Int) := by
+  simp only [Nat.min_def, Int.min_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_max (a b : Nat) : ((max a b : Nat) : Int) = max (a : Int) (b : Int) := by
+  simp only [Nat.max_def, Int.max_def, Int.ofNat_le]
+  split <;> rfl
+
+theorem ofNat_natAbs (a : Int) : (a.natAbs : Int) = if 0 ≤ a then a else -a := by
+  rw [Int.natAbs]
+  split <;> rename_i n
+  · simp only [Int.ofNat_eq_coe]
+    rw [if_pos (Int.ofNat_nonneg n)]
+  · simp; rfl
+
 theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.natAbs = -a := by
   by_cases h : 0 ≤ a
   · left
@@ -74,6 +103,9 @@ theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.na
     rw [Int.not_le] at h
     rw [Int.ofNat_natAbs_of_nonpos (Int.le_of_lt h)]
     simp_all
+
+theorem neg_le_natAbs {a : Int} : -a ≤ a.natAbs := by
+  simpa using Int.le_natAbs (a := -a)
 
 theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
   conv =>
@@ -116,7 +148,7 @@ theorem of_lex (w : Prod.Lex r s p q) : r p.fst q.fst ∨ p.fst = q.fst ∧ s p.
 theorem of_not_lex {α} {r : α → α → Prop} [DecidableEq α] {β} {s : β → β → Prop}
     {p q : α × β} (w : ¬ Prod.Lex r s p q) :
     ¬ r p.fst q.fst ∧ (p.fst ≠ q.fst ∨ ¬ s p.snd q.snd) := by
-  rw [Prod.lex_def, not_or, Decidable.not_and] at w
+  rw [Prod.lex_def, not_or, Decidable.not_and_iff_or_not_not] at w
   exact w
 
 theorem fst_mk : (Prod.mk x y).fst = x := rfl
