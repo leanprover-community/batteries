@@ -73,9 +73,6 @@ If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
 macro "absurd " h:term : tactic =>
   `(tactic| first | refine absurd ?_ $h | refine absurd $h ?_)
 
-/-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
-elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
-
 /-- `split_ands` applies `And.intro` until it does not make progress. -/
 syntax "split_ands" : tactic
 macro_rules | `(tactic| split_ands) => `(tactic| repeat' refine And.intro ?_ ?_)
