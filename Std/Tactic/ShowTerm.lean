@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro
 -/
 import Lean.Elab.ElabRules
-import Std.Tactic.TryThis
+import Lean.Meta.Tactic.TryThis
 
 namespace Std.Tactic
-open Lean Elab Tactic TryThis
+open Lean Elab Tactic Meta.Tactic.TryThis
 
 /--
 `show_term tac` runs `tac`, then prints the generated term in the form

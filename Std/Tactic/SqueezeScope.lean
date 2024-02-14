@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.Tactic.Simp
+import Lean.Meta.Tactic.TryThis
 import Std.Tactic.SimpTrace
 
 /-!
@@ -14,7 +15,7 @@ but in different branches of execution, such as in `cases x <;> simp`.
 The reported `simp` call covers all simp lemmas used by this syntax.
 -/
 namespace Std.Tactic
-open Lean Elab Parser Tactic
+open Lean Elab Parser Tactic Meta.Tactic
 
 /--
 `squeeze_scope a => tacs` is part of the implementation of `squeeze_scope`.

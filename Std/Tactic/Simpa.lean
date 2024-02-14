@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Gabriel Ebner, Mario Carneiro
 -/
 import Lean.Meta.Tactic.Assumption
+import Lean.Meta.Tactic.TryThis
 import Lean.Elab.Tactic.Simp
 import Lean.Linter.Util
 import Std.Lean.Parser
 import Std.Tactic.OpenPrivate
-import Std.Tactic.TryThis
 
 /--
 Enables the 'unnecessary `simpa`' linter. This will report if a use of

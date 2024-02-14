@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.ElabRules
 import Lean.Elab.Tactic.Simp
+import Lean.Meta.Tactic.TryThis
 import Std.Lean.Parser
-import Std.Tactic.TryThis
 
 /-!
 # `simp?` tactic
@@ -14,7 +14,7 @@ import Std.Tactic.TryThis
 The `simp?` tactic is a simple wrapper around the simp with trace behavior implemented in core.
 -/
 namespace Std.Tactic
-open Lean Elab Parser Tactic Meta Simp
+open Lean Elab Parser Tactic Meta Simp Meta.Tactic
 
 /-- The common arguments of `simp?` and `simp?!`. -/
 syntax simpTraceArgsRest := (config)? (discharger)? (&" only")? (simpArgs)? (ppSpace location)?
