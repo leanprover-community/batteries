@@ -86,6 +86,9 @@ theorem eq_of_toFin_eq {x y : BitVec w} (w : x.toFin = y.toFin) : x = y := by
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
 
+theorem ofNat_one (n : Nat) : BitVec.ofNat 1 n = BitVec.ofBool (n % 2 = 1) :=  by
+  rcases (Nat.mod_two_eq_zero_or_one n) with h | h <;> simp [h, BitVec.ofNat, Fin.ofNat']
+
 @[simp] theorem toNat_ofFin (x : Fin (2^n)) : (BitVec.ofFin x).toNat = x.val := rfl
 
 @[simp] theorem toNat_ofNat (x w : Nat) : (x#w).toNat = x % 2^w := by
@@ -218,8 +221,14 @@ private theorem allOnes_def :
 
 /-! ### or -/
 
-@[simp] theorem toNat_or {x y : BitVec v} :
+@[simp] theorem toNat_or (x y : BitVec v) :
     BitVec.toNat (x ||| y) = BitVec.toNat x ||| BitVec.toNat y := rfl
+
+@[simp] theorem toFin_or (x y : BitVec v) :
+    BitVec.toFin (x ||| y) = BitVec.toFin x ||| BitVec.toFin y := by
+  simp only [HOr.hOr, OrOp.or, BitVec.or, Fin.lor, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.or_lt_two_pow x.isLt y.isLt).symm
+
 
 @[simp] theorem getLsb_or {x y : BitVec v} : (x ||| y).getLsb i = (x.getLsb i || y.getLsb i) := by
   rw [← testBit_toNat, getLsb, getLsb]
@@ -227,8 +236,13 @@ private theorem allOnes_def :
 
 /-! ### and -/
 
-@[simp] theorem toNat_and {x y : BitVec v} :
+@[simp] theorem toNat_and (x y : BitVec v) :
     BitVec.toNat (x &&& y) = BitVec.toNat x &&& BitVec.toNat y := rfl
+
+@[simp] theorem toFin_and (x y : BitVec v) :
+    BitVec.toFin (x &&& y) = BitVec.toFin x &&& BitVec.toFin y := by
+  simp only [HAnd.hAnd, AndOp.and, BitVec.and, Fin.land, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.and_lt_two_pow _ y.isLt).symm
 
 @[simp] theorem getLsb_and {x y : BitVec v} : (x &&& y).getLsb i = (x.getLsb i && y.getLsb i) := by
   rw [← testBit_toNat, getLsb, getLsb]
@@ -236,8 +250,13 @@ private theorem allOnes_def :
 
 /-! ### xor -/
 
-@[simp] theorem toNat_xor {x y : BitVec v} :
+@[simp] theorem toNat_xor (x y : BitVec v) :
     BitVec.toNat (x ^^^ y) = BitVec.toNat x ^^^ BitVec.toNat y := rfl
+
+@[simp] theorem toFin_xor (x y : BitVec v) :
+    BitVec.toFin (x ^^^ y) = BitVec.toFin x ^^^ BitVec.toFin y := by
+  simp only [HXor.hXor, Xor.xor, BitVec.xor, Fin.xor, val_toFin, Fin.mk.injEq]
+  exact (Nat.mod_eq_of_lt <| Nat.xor_lt_two_pow x.isLt y.isLt).symm
 
 @[simp] theorem getLsb_xor {x y : BitVec v} :
     (x ^^^ y).getLsb i = (xor (x.getLsb i) (y.getLsb i)) := by
@@ -383,6 +402,7 @@ theorem add_def {n} (x y : BitVec n) : x + y = .ofNat n (x.toNat + y.toNat) := r
 Definition of bitvector addition as a nat.
 -/
 @[simp] theorem toNat_add (x y : BitVec w) : (x + y).toNat = (x.toNat + y.toNat) % 2^w := rfl
+@[simp] theorem toFin_add (x y : BitVec w) : (x + y).toFin = toFin x + toFin y := rfl
 @[simp] theorem ofFin_add (x : Fin (2^n)) (y : BitVec n) :
   .ofFin x + y = .ofFin (x + y.toFin) := rfl
 @[simp] theorem add_ofFin (x : BitVec n) (y : Fin (2^n)) :
@@ -407,6 +427,7 @@ theorem sub_def {n} (x y : BitVec n) : x - y = .ofNat n (x.toNat + (2^n - y.toNa
 
 @[simp] theorem toNat_sub {n} (x y : BitVec n) :
   (x - y).toNat = ((x.toNat + (2^n - y.toNat)) % 2^n) := rfl
+@[simp] theorem toFin_sub (x y : BitVec n) : (x - y).toFin = toFin x - toFin y := rfl
 
 /-- Replaced 2024-02-06. -/
 @[deprecated] alias sub_toNat := toNat_sub
@@ -441,11 +462,18 @@ theorem sub_toAdd {n} (x y : BitVec n) : x - y = x + - y := by
 
 @[simp] theorem neg_zero (n:Nat) : -0#n = 0#n := by apply eq_of_toNat_eq ; simp
 
+theorem add_sub_cancel (x y : BitVec w) : x + y - y = x := by
+  apply eq_of_toNat_eq
+  have y_toNat_le := Nat.le_of_lt y.toNat_lt
+  rw [toNat_sub, toNat_add, Nat.mod_add_mod, Nat.add_assoc, ← Nat.add_sub_assoc y_toNat_le,
+    Nat.add_sub_cancel_left, Nat.add_mod_right, toNat_mod_cancel]
+
 /-! ### mul -/
 
 theorem mul_def {n} {x y : BitVec n} : x * y = (ofFin <| x.toFin * y.toFin) := by rfl
 
-theorem toNat_mul {x y : BitVec w} : (x * y).toNat = (x.toNat * y.toNat) % 2 ^ w := rfl
+theorem toNat_mul (x y : BitVec n) : (x * y).toNat = (x.toNat * y.toNat) % 2 ^ n := rfl
+@[simp] theorem toFin_mul (x y : BitVec n) : (x * y).toFin = (x.toFin * y.toFin) := rfl
 
 /-! ### le and lt -/
 
