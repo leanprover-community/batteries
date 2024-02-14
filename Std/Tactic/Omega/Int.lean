@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import Std.Classes.Order
 import Std.Data.Int.Init.Order
 import Std.Data.Prod.Lex
-import Std.Tactic.LeftRight
 
 /-!
 # Lemmas about `Nat` and `Int` needed internally by `omega`.

@@ -5,10 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Syntax
 import Lean.Data.Lsp.Utf16
-
-/-- Gets the LSP range from a `String.Range`. -/
-def Lean.FileMap.utf8RangeToLspRange (text : FileMap) (range : String.Range) : Lsp.Range :=
-  { start := text.utf8PosToLspPos range.start, «end» := text.utf8PosToLspPos range.stop }
+import Lean.Meta.Tactic.TryThis
 
 /-- Gets the LSP range of syntax `stx`. -/
 def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
