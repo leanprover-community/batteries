@@ -1,5 +1,3 @@
-import Std.Data.Nat.Init.Dvd
-
 namespace Nat
 
 theorem gcd_rec (m n : Nat) : gcd m n = gcd (n % m) m :=

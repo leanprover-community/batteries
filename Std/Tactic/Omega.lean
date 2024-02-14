@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import Std.Tactic.Omega.Frontend
 
-
 /-!
 # `omega`
 
