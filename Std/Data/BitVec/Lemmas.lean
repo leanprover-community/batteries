@@ -284,6 +284,13 @@ theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
           _ ≤ 2 ^ i := Nat.pow_le_pow_of_le_right Nat.zero_lt_two w
       · simp
 
+@[simp] theorem toFin_not (x : BitVec w) :
+    (~~~x).toFin = ⟨2^w - 1, Nat.sub_lt (Nat.two_pow_pos _) (Nat.zero_lt_one)⟩ - x.toFin := by
+  apply Fin.val_inj.mp
+  rw [val_toFin, toNat_not, Fin.coe_sub, ← Nat.sub_add_comm (k:=1) (Nat.two_pow_pos _),
+    Nat.add_sub_assoc, Nat.add_mod_left, Nat.mod_eq_of_lt]
+  <;> omega
+
 @[simp] theorem getLsb_not {x : BitVec v} : (~~~x).getLsb i = (decide (i < v) && ! x.getLsb i) := by
   by_cases h' : i < v <;> simp_all [not_def]
 
