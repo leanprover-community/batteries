@@ -213,7 +213,7 @@ theorem exists_of_mem_map (h : b ∈ map f l) : ∃ a, a ∈ l ∧ f a = b := me
 
 theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
     (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) := by
-  simp
+  simp [forall_exists_index]
 
 @[simp] theorem map_eq_nil {f : α → β} {l : List α} : map f l = [] ↔ l = [] := by
   constructor <;> exact fun _ => match l with | [] => rfl
@@ -1547,7 +1547,7 @@ theorem findIdx_lt_length_of_exists {xs : List α} (h : ∃ x ∈ xs, p x) :
     · simp_all only [forall_exists_index, and_imp, mem_cons, exists_eq_or_imp, true_or,
         findIdx_cons, cond_true, length_cons]
       apply Nat.succ_pos
-    · simp_all [findIdx_cons]
+    · simp_all [findIdx_cons, forall_exists_index]
       refine Nat.succ_lt_succ ?_
       obtain ⟨x', m', h'⟩ := h
       exact ih x' m' h'

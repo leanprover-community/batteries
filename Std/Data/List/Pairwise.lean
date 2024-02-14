@@ -138,7 +138,7 @@ theorem pairwise_filterMap (f : β → Option α) {l : List β} :
     simp only [e, false_implies, implies_true, true_and, IH]
   | some b =>
     rw [filterMap_cons_some _ _ _ e]
-    simpa [IH, e] using fun _ =>
+    simpa [IH, e, forall_exists_index] using fun _ =>
       ⟨fun h a ha b hab => h _ _ ha hab, fun h a b ha hab => h _ ha _ hab⟩
 
 theorem Pairwise.filter_map {S : β → β → Prop} (f : α → Option β)
@@ -167,7 +167,7 @@ theorem pairwise_join {L : List (List α)} :
 theorem pairwise_bind {R : β → β → Prop} {l : List α} {f : α → List β} :
     List.Pairwise R (l.bind f) ↔
       (∀ a ∈ l, Pairwise R (f a)) ∧ Pairwise (fun a₁ a₂ => ∀ x ∈ f a₁, ∀ y ∈ f a₂, R x y) l := by
-  simp [List.bind, pairwise_join, pairwise_map]
+  simp [List.bind, pairwise_join, pairwise_map, forall_exists_index]
 
 theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l → R a b) := by
   induction l with
@@ -231,7 +231,7 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
   | cons₂ _ _ IH =>
     rcases IH with ⟨is,IH⟩
     refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
-    simp [comp_def, pairwise_map, IH]
+    simp [comp_def, pairwise_map, IH, forall_exists_index]
 
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_forall_sublist]

@@ -364,7 +364,7 @@ variable {p q : α → Prop} {b : Prop}
 theorem forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 fun h' a => h a (h' a)
 
-@[simp] theorem forall_exists_index {q : (∃ x, p x) → Prop} :
+theorem forall_exists_index {q : (∃ x, p x) → Prop} :
     (∀ h, q h) ↔ ∀ x (h : p x), q ⟨x, h⟩ :=
   ⟨fun h x hpx => h ⟨x, hpx⟩, fun h ⟨x, hpx⟩ => h x hpx⟩
 
