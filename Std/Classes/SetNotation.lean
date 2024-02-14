@@ -3,7 +3,6 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Util.ExtendedBinder
 
 /-- Notation type class for the subset relation `⊆`. -/
 class HasSubset (α : Type u) where
