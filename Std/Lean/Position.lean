@@ -5,6 +5,11 @@ Authors: Mario Carneiro
 -/
 import Lean.Syntax
 import Lean.Data.Lsp.Utf16
+import Lean.Meta.Tactic.TryThis
+
+/-- Gets the LSP range of syntax `stx`. -/
+def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
+  text.utf8RangeToLspRange <$> stx.getRange?
 
 /-- Return the beginning of the line contatining character `pos`. -/
 def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
