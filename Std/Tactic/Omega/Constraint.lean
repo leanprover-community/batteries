@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Classes.Order
-import Std.Data.Option.Lemmas
 import Std.Tactic.Omega.Coeffs.IntList
+import Std.Data.Option.Lemmas
 /-!
 A `Constraint` consists of an optional lower and upper bound (inclusive),
 constraining a value to a set of the form `∅`, `{x}`, `[x, y]`, `[x, ∞)`, `(-∞, y]`, or `(-∞, ∞)`.
