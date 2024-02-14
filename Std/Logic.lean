@@ -10,6 +10,8 @@ import Std.Tactic.Lint.Misc
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
+@[deprecated] alias proofIrrel := proof_irrel
+
 /-! ## exists and forall -/
 
 alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
