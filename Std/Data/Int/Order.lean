@@ -8,6 +8,7 @@ import Std.Data.Option.Basic
 import Std.Tactic.RCases
 import Std.Tactic.ByCases
 import Std.Tactic.Omega
+import Std.Data.Nat.Lemmas
 
 /-!
 # Results about the order properties of the integers, and the integers as an ordered ring.
