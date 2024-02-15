@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
 import Std.Tactic.Simpa
