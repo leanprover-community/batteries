@@ -20,11 +20,11 @@ set_option autoImplicit true
 
 noncomputable section
 
-/-- info: Try this: exact Nat.le.refl -/
+/-- info: Try this: exact Nat.lt.base x -/
 #guard_msgs in
 example (x : Nat) : x ≠ x.succ := Nat.ne_of_lt (by std_apply?)
 
-/-- info: Try this: exact Nat.le.step Nat.le.refl -/
+/-- info: Try this: exact Nat.zero_lt_succ 1 -/
 #guard_msgs in
 example : 0 ≠ 1 + 1 := Nat.ne_of_lt (by std_apply?)
 
@@ -34,7 +34,7 @@ example : 0 ≠ 1 + 1 := Nat.ne_of_lt (by exact Fin.size_pos')
 #guard_msgs in
 example (x y : Nat) : x + y = y + x := by std_apply?
 
-/-- info: Try this: exact fun a => Nat.add_le_add a Nat.le.refl -/
+/-- info: Try this: exact fun a => Nat.add_le_add_right a k -/
 #guard_msgs in
 example (n m k : Nat) : n ≤ m → n + k ≤ m + k := by std_apply?
 
@@ -46,7 +46,7 @@ example (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c := by std_apply?
 #guard_msgs (drop info) in
 example : Int := by std_apply?
 
-/-- info: Try this: Nat.le.refl -/
+/-- info: Try this: Nat.lt.base x -/
 #guard_msgs in
 example : x < x + 1 := std_exact?%
 
@@ -172,7 +172,7 @@ axiom F (a b : Nat) : f a ≤ f b ↔ a ≤ b
 #guard_msgs in
 example (a b : Nat) (h : a ≤ b) : f a ≤ f b := by std_apply?
 
-/-- info: Try this: exact List.findIdxs (fun a => false) L -/
+/-- info: Try this: exact List.join L -/
 #guard_msgs in
 example (L : List (List Nat)) : List Nat := by std_apply? using L
 
