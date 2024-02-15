@@ -122,11 +122,21 @@ private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) :
 
 /-! ### cast -/
 
-@[simp] theorem toNat_cast (e : m = n) (x : BitVec m) : (cast e x).toNat = x.toNat := rfl
+section
+variable (h : w = v) (x : BitVec w)
 
-@[simp] theorem getLsb_cast : (cast h v).getLsb i = v.getLsb i := by
-  cases h
-  simp
+@[simp] theorem toNat_cast : (cast h x).toNat = x.toNat := rfl
+@[simp] theorem toFin_cast : (cast h x).toFin = x.toFin.cast (by rw [h]) := rfl
+
+@[simp] theorem getLsb_cast : (cast h x).getLsb i = x.getLsb i := by
+  subst h ; simp
+
+@[simp] theorem getMsb_cast : (cast h x).getMsb i = x.getMsb i := by
+  subst h ; simp
+@[simp] theorem msb_cast : (cast h x).msb = x.msb := by
+  simp [BitVec.msb]
+
+end
 
 /-! ### zeroExtend and truncate -/
 
