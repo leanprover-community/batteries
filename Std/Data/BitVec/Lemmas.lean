@@ -79,9 +79,8 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
     have q := pred ⟨w - 1 - i, q_lt⟩
     simpa [q_lt, Nat.sub_sub_self, r] using q
 
-theorem eq_of_toFin_eq {x y : BitVec w} (w : x.toFin = y.toFin) : x = y := by
-  ext
-  simp only [← testBit_toNat, ← val_toFin, w]
+theorem eq_of_toFin_eq : ∀ {x y : BitVec w}, x.toFin = y.toFin → x = y
+  | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
 
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
