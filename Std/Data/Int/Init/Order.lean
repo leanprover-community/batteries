@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Data.Int.Init.Lemmas
+import Std.Tactic.Alias
 
 /-!
 # Results about the order properties of the integers, and the integers as an ordered ring.

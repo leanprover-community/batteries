@@ -5,8 +5,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Tactic.Alias
 import Std.Tactic.Init
-import Std.Data.Nat.Init.Lemmas
-import Std.Data.Nat.Init.Dvd
 import Std.Data.Nat.Basic
 import Std.Data.Ord
 
@@ -160,12 +158,6 @@ protected alias lt_or_gt := Nat.ne_iff_lt_or_gt
 protected alias le_or_ge := Nat.le_total
 protected alias le_or_le := Nat.le_total
 
-protected theorem lt_trichotomy (a b : Nat) : a < b ∨ a = b ∨ b < a :=
-  if h : a = b then .inr (.inl h) else
-    match Nat.lt_or_gt_of_ne h with
-    | .inl h => .inl h
-    | .inr h => .inr (.inr h)
-
 protected theorem eq_or_lt_of_not_lt {a b : Nat} (hnlt : ¬ a < b) : a = b ∨ b < a :=
   (Nat.lt_trichotomy ..).resolve_left hnlt
 
@@ -318,6 +310,9 @@ theorem le_pred_iff_lt : ∀ {n m}, 0 < m → (n ≤ pred m ↔ n < m)
 theorem lt_of_le_pred (h : 0 < m) : n ≤ pred m → n < m := (le_pred_iff_lt h).1
 
 theorem le_pred_of_lt (h : n < m) : n ≤ pred m := (le_pred_iff_lt (Nat.zero_lt_of_lt h)).2 h
+
+theorem exists_eq_succ_of_ne_zero : ∀ {n}, n ≠ 0 → ∃ k, n = succ k
+  | _+1, _ => ⟨_, rfl⟩
 
 /-! ## add -/
 
@@ -813,11 +808,6 @@ protected theorem div_le_of_le_mul {m n : Nat} : ∀ {k}, m ≤ k * n → m / k 
     rw [← h2] at h3
     exact Nat.le_trans h1 h3
 
-theorem div_eq_of_lt (h₀ : a < b) : a / b = 0 := by
-  rw [div_eq a, if_neg]
-  intro h₁
-  apply Nat.not_le_of_gt h₀ h₁.right
-
 @[simp] theorem mul_div_right (n : Nat) {m : Nat} (H : 0 < m) : m * n / m = n := by
   induction n <;> simp_all [mul_succ]
 
@@ -1266,3 +1256,6 @@ instance decidableExistsLT [h : DecidablePred p] : DecidablePred fun n => ∃ m 
 instance decidableExistsLE [DecidablePred p] : DecidablePred fun n => ∃ m : Nat, m ≤ n ∧ p m :=
   fun n => decidable_of_iff (∃ m, m < n + 1 ∧ p m)
     (exists_congr fun _ => and_congr_left' Nat.lt_succ_iff)
+
+@[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
+@[deprecated] alias pow_two_pos := Nat.two_pow_pos -- deprecated 2024-02-09

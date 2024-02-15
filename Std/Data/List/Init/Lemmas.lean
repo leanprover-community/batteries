@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Classes.SetNotation
-import Std.Data.Nat.Init.Lemmas
 
 namespace List
 

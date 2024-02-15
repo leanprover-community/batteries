@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Bool
-import Std.Data.Nat.Init.Lemmas
 import Std.Data.List.Init.Lemmas
 
 /-!

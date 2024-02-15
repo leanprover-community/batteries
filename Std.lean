@@ -133,7 +133,6 @@ import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
 import Std.Util.CheckTactic
-import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
 import Std.Util.ProofWanted
