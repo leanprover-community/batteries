@@ -28,6 +28,9 @@ structure Rat where
   reduced : num.natAbs.Coprime den := by decide
   deriving DecidableEq
 
+theorem Rat.ext : {p q : Rat} → p.num = q.num → p.den = q.den → p = q
+  | ⟨_,_,_,_⟩, ⟨_,_,_,_⟩, rfl, rfl => rfl
+
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
 
 instance : ToString Rat where
