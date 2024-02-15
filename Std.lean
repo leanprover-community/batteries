@@ -1,8 +1,8 @@
 import Std.Classes.BEq
 import Std.Classes.Cast
-import Std.Classes.SatisfiesM
 import Std.Classes.Order
 import Std.Classes.RatCast
+import Std.Classes.SatisfiesM
 import Std.Classes.SetNotation
 import Std.CodeAction
 import Std.CodeAction.Attr
@@ -120,7 +120,6 @@ import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
-import Std.Tactic.RunCmd
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
@@ -133,6 +132,7 @@ import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
 import Std.Util.CheckTactic
+import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
 import Std.Util.ProofWanted
