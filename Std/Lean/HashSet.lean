@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 
 import Lean.Data.HashSet
-import Std.Classes.SetNotation
 
 namespace Lean.HashSet
 
