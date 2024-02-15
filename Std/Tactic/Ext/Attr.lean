@@ -63,7 +63,7 @@ def ExtTheorems.eraseCore (d : ExtTheorems) (declName : Name) : ExtTheorems :=
 -/
 def ExtTheorems.erase [Monad m] [MonadError m] (d : ExtTheorems) (declName : Name) :
     m ExtTheorems := do
-  unless d.tree.values.any (·.declName == declName) && !d.erased.contains declName do
+  unless d.tree.containsValueP (·.declName == declName) && !d.erased.contains declName do
     throwError "'{declName}' does not have [ext] attribute"
   return d.eraseCore declName
 

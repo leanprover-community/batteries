@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Classes.Cast
-import Std.Data.Nat.Lemmas
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Int.Basic
 import Std.Tactic.NormCast.Lemmas
 
