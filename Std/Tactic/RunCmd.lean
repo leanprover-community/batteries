@@ -5,6 +5,7 @@ Authors: Sebastian Ullrich, Mario Carneiro
 -/
 import Lean.Elab.Eval
 import Lean.Elab.Command
+import Std.Tactic.Lint
 
 /-!
 Defines commands to compile and execute a command / term / tactic on the spot:
@@ -67,7 +68,7 @@ elab (name := runTac) "run_tac " e:doSeq : tactic => do
 syntax (name := byElab) "by_elab " doSeq : term
 
 /-- Elaborator for `by_elab`. -/
-@[term_elab byElab] def elabRunElab : TermElab := fun
+@[term_elab byElab, nolint unusedHavesSuffices] def elabRunElab : TermElab := fun
 | `(by_elab $cmds:doSeq), expectedType? => do
   if let `(Lean.Parser.Term.doSeq| $e:term) := cmds then
     if e matches `(Lean.Parser.Term.doSeq| fun $[$_args]* => $_) then
