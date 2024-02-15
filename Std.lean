@@ -32,7 +32,6 @@ import Std.Data.Nat
 import Std.Data.Option
 import Std.Data.Ord
 import Std.Data.PairingHeap
-import Std.Data.Prod
 import Std.Data.RBMap
 import Std.Data.Range
 import Std.Data.Rat
@@ -89,7 +88,6 @@ import Std.Tactic.Ext
 import Std.Tactic.Ext.Attr
 import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
-import Std.Tactic.HaveI
 import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
