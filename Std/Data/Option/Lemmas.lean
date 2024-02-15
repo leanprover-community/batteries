@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Option.Basic
-import Std.Tactic.Ext.Attr
 
 namespace Option
 
