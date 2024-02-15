@@ -78,7 +78,7 @@ elab_rules : tactic
     let usedSimps ← if let some stx := usingArg then
       setGoals [g]
       g.withContext do
-      let e ← Tactic.elabTerm stx none (mayPostpone := true)
+      let e ← withoutRecover do Tactic.elabTerm stx none (mayPostpone := true)
       let (h, g) ← if let .fvar h ← instantiateMVars e then
         pure (h, g)
       else
