@@ -92,6 +92,9 @@ theorem eq_of_toFin_eq {x y : BitVec w} (w : x.toFin = y.toFin) : x = y := by
 theorem ofNat_one (w : Nat) : BitVec.ofNat 1 w = BitVec.ofBool (w % 2 = 1) :=  by
   rcases (Nat.mod_two_eq_zero_or_one w) with h | h <;> simp [h, BitVec.ofNat, Fin.ofNat']
 
+theorem ofBool_eq_iff_eq : ∀(b b' : Bool), BitVec.ofBool b = BitVec.ofBool b' ↔ b = b' := by
+  decide
+
 @[simp] theorem toNat_ofFin (x : Fin (2^w)) : (BitVec.ofFin x).toNat = x.val := rfl
 
 @[simp] theorem toNat_ofNat (x w : Nat) : (x#w).toNat = x % 2^w := by
