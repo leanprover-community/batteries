@@ -294,7 +294,7 @@ where
     if cfg.backtracking then
       backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
     else
-      repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
+      Lean.Meta.repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
 
 /--
 A `MetaM` analogue of the `apply_rules` user tactic.

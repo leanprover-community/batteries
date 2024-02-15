@@ -42,4 +42,5 @@
  ["docBlame", "Std.BitVec.reduceUShiftRight"],
  ["docBlame", "Std.BitVec.reduceXOr"],
  ["docBlame", "Std.BitVec.reduceZeroExtend"],
- ["docBlame", "Std.BitVec.reduceZeroExtend'"]]
+ ["docBlame", "Std.BitVec.reduceZeroExtend'"],
+ ["unusedArguments", "imp_intro"]]
