@@ -86,6 +86,8 @@ namespace Rat
 /-- Embedding of `Int` in the rational numbers. -/
 def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
 
+instance : NatCast Rat where
+  natCast n := ofInt n
 instance : IntCast Rat := ⟨ofInt⟩
 
 instance : OfNat Rat n := ⟨n⟩

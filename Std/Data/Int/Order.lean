@@ -3,9 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
-import Std.Data.Nat.Lemmas
-import Std.Data.Int.Init.Order
-import Std.Data.Option.Basic
 import Std.Tactic.Omega
 import Std.Data.Nat.Lemmas
 

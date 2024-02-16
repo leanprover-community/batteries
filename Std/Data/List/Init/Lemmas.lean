@@ -15,9 +15,6 @@ These are theorems used in the definitions of `Std.Data.List.Basic` and tactics.
 New theorems should be added to `Std.Data.List.Lemmas` if they are not needed by the bootstrap.
 -/
 
-theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a, a ∈ l → ¬p a := by
-  simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]
-
 -- A specialization of `minimum?_eq_some_iff` to Nat.
 theorem minimum?_eq_some_iff' {xs : List Nat} :
     xs.minimum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, a ≤ b) :=

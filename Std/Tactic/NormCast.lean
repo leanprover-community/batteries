@@ -6,6 +6,8 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 import Lean.Elab.Tactic.Conv.Simp
 import Std.Lean.Meta.Simp
 import Std.Tactic.NormCast.Ext
+import Std.Tactic.NormCast.Lemmas
+import Std.Classes.Cast
 
 /-!
 # The `norm_cast` family of tactics.
@@ -13,6 +15,23 @@ import Std.Tactic.NormCast.Ext
 
 open Lean Meta Simp
 open Std.Tactic.NormCast
+
+namespace Int
+
+/- These will be attached to definitions once norm_cast is in core. -/
+attribute [norm_cast] Nat.cast_ofNat_Int
+attribute [norm_cast] ofNat_add
+attribute [norm_cast] ofNat_sub
+attribute [norm_cast] ofNat_mul
+attribute [norm_cast] ofNat_inj
+attribute [norm_cast] ofNat_ediv
+attribute [norm_cast] ofNat_emod
+attribute [norm_cast] ofNat_dvd
+attribute [norm_cast] ofNat_le
+attribute [norm_cast] ofNat_lt
+attribute [norm_cast] ofNat_pos
+
+end Int
 
 namespace Std.Tactic.NormCast
 
