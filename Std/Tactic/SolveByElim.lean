@@ -245,10 +245,10 @@ def elabContextLemmas (g : MVarId) (lemmas : List (TermElabM Expr)) (ctx : TermE
 /-- Returns the list of tactics corresponding to applying the available lemmas to the goal. -/
 def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId)
-    (f : List MVarId → MetaM (Option (List MVarId)))
-    : MetaM (List MVarId) := do
+    : MetaM (Iterator (List MVarId)) := do
   let es ← elabContextLemmas g lemmas ctx
-  (←applyTactics cfg.toApplyConfig cfg.transparency es g).firstM f
+  applyTactics cfg.toApplyConfig cfg.transparency es g
+
 
 /-- Applies the first possible lemma to the goal. -/
 def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
@@ -296,7 +296,7 @@ where
   /-- Run either backtracking search, or repeated application, on the list of goals. -/
   run (cfg : Config) : List MVarId → MetaM (List MVarId) :=
     if cfg.backtracking then
-      backtrack' cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
+      backtrack cfg `Meta.Tactic.solveByElim (applyLemmas cfg lemmas ctx)
     else
       repeat1' (maxIters := cfg.maxDepth) (applyFirstLemma cfg lemmas ctx)
 

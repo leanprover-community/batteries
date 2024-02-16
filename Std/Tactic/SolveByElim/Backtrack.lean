@@ -3,9 +3,9 @@ Copyright (c) 2023 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Control.Nondet.Basic
 import Std.Data.List.Basic
 import Std.Lean.Except
+import Std.Lean.Meta.Iterator
 
 /-!
 # `backtrack`
@@ -188,34 +188,17 @@ end Backtrack
 
 
 /--
-Attempts to solve the `goals`, by recursively calling `alternatives g` on each subgoal that appears.
-`alternatives` returns a nondeterministic list of new subgoals generated from a goal.
-
-`backtrack` performs a backtracking search, attempting to close all subgoals.
+Attempts to solve the `goals`, by recursively calling `next` on each
+subgoal that appears with a callback to reenter backtracking search.
 
 Further flow control options are available via the `Config` argument.
 
-Returns a list of subgoals which were "suspended" via the `suspend` or `discharge` hooks
-in `Config`. In the default configuration, `backtrack` will either return an empty list or fail.
--/
-def backtrack' (cfg : BacktrackConfig := {}) (trace : Name := .anonymous)
-    (next : MVarId → (List MVarId → MetaM (Option (List MVarId))) → MetaM (List MVarId))
-    (goals : List MVarId) : MetaM (List MVarId) := do
-  Backtrack.processIndependentGoals cfg trace next goals goals goals
-
-/--
-Attempts to solve the `goals`, by recursively calling `alternatives g` on each subgoal that appears.
-`alternatives` returns a nondeterministic list of new subgoals generated from a goal.
-
-`backtrack` performs a backtracking search, attempting to close all subgoals.
-
-Further flow control options are available via the `Config` argument.
-
-Returns a list of subgoals which were "suspended" via the `suspend` or `discharge` hooks
-in `Config`. In the default configuration, `backtrack` will either return an empty list or fail.
+Returns a list of subgoals which were "suspended" via the `suspend` or
+`discharge` hooks in `Config`. In the default configuration, `backtrack`
+will either return an empty list or fail.
 -/
 def backtrack (cfg : BacktrackConfig := {}) (trace : Name := .anonymous)
-    (alternatives : MVarId → Nondet MetaM (List MVarId))
+    (next : MVarId → MetaM (Iterator (List MVarId)))
     (goals : List MVarId) : MetaM (List MVarId) := do
-  let next g fn := alternatives g |>.firstM fn
-  backtrack' cfg trace next goals
+  let resolve g f := do (←next g).firstM f
+  Backtrack.processIndependentGoals cfg trace resolve goals goals goals
