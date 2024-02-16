@@ -31,6 +31,9 @@ theorem getElem?_neg [GetElem Cont Idx Elem Dom]
 
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
 
+@[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
+    (mkArray n v)[i]'h = v := by simp [Array.getElem_eq_data_get]
+
 namespace Array
 
 attribute [simp] isEmpty uget
