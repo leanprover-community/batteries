@@ -103,7 +103,9 @@ theorem natAbs_dichotomy {a : Int} : 0 ≤ a ∧ a.natAbs = a ∨ a < 0 ∧ a.na
     simp_all
 
 theorem neg_le_natAbs {a : Int} : -a ≤ a.natAbs := by
-  simpa using Int.le_natAbs (a := -a)
+  have t := Int.le_natAbs (a := -a)
+  simp at t
+  exact t
 
 theorem add_le_iff_le_sub (a b c : Int) : a + b ≤ c ↔ a ≤ c - b := by
   conv =>

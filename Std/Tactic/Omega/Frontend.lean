@@ -11,6 +11,7 @@ import Std.Tactic.FalseOrByContra
 import Std.Lean.Meta.Basic
 import Std.Lean.Elab.Tactic
 import Std.Lean.HashSet
+import Lean.Meta.Tactic.Cases
 
 /-!
 # Frontend to the `omega` tactic.

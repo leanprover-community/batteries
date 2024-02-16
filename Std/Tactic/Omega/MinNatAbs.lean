@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import Std.Data.List.Init.Lemmas
 import Std.Data.Int.Init.Order
 import Std.Data.Option.Lemmas
-import Std.Tactic.Init
 
 /-!
 # `List.nonzeroMinimum`, `List.minNatAbs`, `List.maxNatAbs`
@@ -76,7 +75,7 @@ theorem nonzeroMinimum_eq_nonzero_iff {xs : List Nat} {y : Nat} (h : y ≠ 0) :
       specialize w (nonzeroMinimum xs) (nonzeroMinimum_mem nz)
       cases w with
       | inl h => exact h
-      | inr h => exfalso; exact nz h
+      | inr h => exact False.elim (nz h)
 
 theorem nonzeroMinimum_eq_of_nonzero {xs : List Nat} (h : xs.nonzeroMinimum ≠ 0) :
     ∃ x ∈ xs, xs.nonzeroMinimum = x :=
