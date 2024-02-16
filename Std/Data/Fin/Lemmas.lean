@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Fin.Basic
 import Std.Data.Nat.Lemmas
-import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.Omega

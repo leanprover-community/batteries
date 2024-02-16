@@ -39,6 +39,12 @@ abbrev toList (xs : Coeffs) : List Int := xs
 abbrev ofList (xs : List Int) : Coeffs := xs
 /-- Are the coefficients all zero? -/
 abbrev isZero (xs : Coeffs) : Prop := ∀ x, x ∈ xs → x = 0
+
+def foo : DecidablePred isZero :=
+  inferInstanceAs <| DecidablePred (fun (xs : Coeffs) => ∀ x, x ∈ xs → x = 0)
+
+#check List.decidableBAll
+#synth DecidablePred isZero
 /-- Shim for `IntList.set`. -/
 abbrev set (xs : Coeffs) (i : Nat) (y : Int) : Coeffs := IntList.set xs i y
 /-- Shim for `IntList.get`. -/

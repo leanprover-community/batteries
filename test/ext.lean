@@ -1,4 +1,3 @@
-import Std.Tactic.Ext
 import Std.Logic
 import Std.Tactic.GuardMsgs
 

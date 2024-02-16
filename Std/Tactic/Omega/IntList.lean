@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import Std.Data.List.Init.Lemmas
 import Std.Data.Int.Init.DivMod
-import Std.Data.Option.Init.Lemmas
 import Std.Tactic.Simpa
 
 /--

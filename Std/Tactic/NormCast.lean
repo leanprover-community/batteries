@@ -6,7 +6,6 @@ Authors: Paul-Nicolas Madelaine, Robert Y. Lewis, Mario Carneiro, Gabriel Ebner
 import Lean.Elab.Tactic.Conv.Simp
 import Std.Lean.Meta.Simp
 import Std.Tactic.NormCast.Ext
-import Std.Classes.Cast
 
 /-!
 # The `norm_cast` family of tactics.

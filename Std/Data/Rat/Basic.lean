@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Nat.Gcd
 import Std.Data.Int.DivMod
-import Std.Tactic.Ext
 
 /-! # Basics for the Rational Numbers -/
 

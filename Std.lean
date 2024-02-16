@@ -1,5 +1,4 @@
 import Std.Classes.BEq
-import Std.Classes.Cast
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SatisfiesM
@@ -84,8 +83,6 @@ import Std.Tactic.Case
 import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact
-import Std.Tactic.Ext
-import Std.Tactic.Ext.Attr
 import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
