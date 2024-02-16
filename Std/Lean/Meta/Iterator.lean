@@ -33,7 +33,8 @@ Map and filter results of iterator and returning only those values returned
 by `f`.
 -/
 partial def filterMapM (f :  α → MetaM (Option β)) (L : Iterator α) : Iterator β :=
-  let rec next := do
+    { next := _next }
+  where _next := do
     match ← L.next with
     | none =>
       pure none
@@ -42,10 +43,9 @@ partial def filterMapM (f :  α → MetaM (Option β)) (L : Iterator α) : Itera
       let r ← f v
       match r with
       | none =>
-        next
+        _next
       | some r =>
         pure <| some (r, ←saveState)
-  { next }
 
 /--
 Find the first alternative in a nondeterministic value, as a monadic value.

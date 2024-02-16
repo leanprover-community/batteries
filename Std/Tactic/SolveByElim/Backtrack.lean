@@ -217,5 +217,5 @@ in `Config`. In the default configuration, `backtrack` will either return an emp
 def backtrack (cfg : BacktrackConfig := {}) (trace : Name := .anonymous)
     (alternatives : MVarId → Nondet MetaM (List MVarId))
     (goals : List MVarId) : MetaM (List MVarId) := do
-  let next (g : MVarId) (fn : List MVarId → MetaM (Option (List MVarId))) := alternatives g |>.firstM fn
+  let next g fn := alternatives g |>.firstM fn
   backtrack' cfg trace next goals
