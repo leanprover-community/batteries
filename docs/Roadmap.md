@@ -119,7 +119,7 @@ broader Lean community.  Our priorities in 2024 are:
   of external solvers.
 
 * Additional simplification procedures for efficient evaluation of
-  ground terms arrising from industrial verification problems.
+  ground terms arising from industrial verification problems.
 
 * Increased support for rewriting and simplification modulo
   associativity and commutativity.
