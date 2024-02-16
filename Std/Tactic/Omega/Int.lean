@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Classes.Order
-import Std.Data.Int.Init.Order
+import Std.Tactic.Alias
 
 /-!
 # Lemmas about `Nat` and `Int` needed internally by `omega`.
