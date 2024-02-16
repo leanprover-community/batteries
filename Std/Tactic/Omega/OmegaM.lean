@@ -8,7 +8,6 @@ import Std.Tactic.Omega.LinearCombo
 import Std.Tactic.Omega.Config
 import Std.Lean.Expr
 import Std.Lean.HashSet
-import Std.Classes.SetNotation
 
 /-!
 # The `OmegaM` state monad.
@@ -129,7 +128,7 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
   match e.getAppFnArgs with
   | (``Nat.cast, #[.const ``Int [], _, e']) =>
     -- Casts of natural numbers are non-negative.
-    let mut r := {Expr.app (.const ``Int.ofNat_nonneg []) e'}
+    let mut r := HashSet.empty.insert (Expr.app (.const ``Int.ofNat_nonneg []) e')
     match (← cfg).splitNatSub, e'.getAppFnArgs with
       | true, (``HSub.hSub, #[_, _, _, _, a, b]) =>
         -- `((a - b : Nat) : Int)` gives a dichotomy
@@ -149,9 +148,9 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
       let ne_zero := mkApp3 (.const ``Ne [1]) (.const ``Int []) k (toExpr (0 : Int))
       let pos := mkApp4 (.const ``LT.lt [0]) (.const ``Int []) (.const ``Int.instLTInt [])
         (toExpr (0 : Int)) k
-      pure <|
-      {mkApp3 (.const ``Int.mul_ediv_self_le []) x k (← mkDecideProof ne_zero),
-        mkApp3 (.const ``Int.lt_mul_ediv_self_add []) x k (← mkDecideProof pos)}
+      pure <| HashSet.empty.insert
+        (mkApp3 (.const ``Int.mul_ediv_self_le []) x k (← mkDecideProof ne_zero)) |>.insert
+          (mkApp3 (.const ``Int.lt_mul_ediv_self_add []) x k (← mkDecideProof pos))
   | (``HMod.hMod, #[_, _, _, _, x, k]) =>
     match k.getAppFnArgs with
     | (``HPow.hPow, #[_, _, _, _, b, exp]) => match natCast? b with
@@ -161,10 +160,10 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
         let b_pos := mkApp4 (.const ``LT.lt [0]) (.const ``Int []) (.const ``Int.instLTInt [])
           (toExpr (0 : Int)) b
         let pow_pos := mkApp3 (.const ``Int.pos_pow_of_pos []) b exp (← mkDecideProof b_pos)
-        pure <|
-          {mkApp3 (.const ``Int.emod_nonneg []) x k
-              (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) pow_pos),
-            mkApp3 (.const ``Int.emod_lt_of_pos []) x k pow_pos}
+        pure <| HashSet.empty.insert
+          (mkApp3 (.const ``Int.emod_nonneg []) x k
+              (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) pow_pos)) |>.insert
+            (mkApp3 (.const ``Int.emod_lt_of_pos []) x k pow_pos)
     | (``Nat.cast, #[.const ``Int [], _, k']) =>
       match k'.getAppFnArgs with
       | (``HPow.hPow, #[_, _, _, _, b, exp]) => match natCast? b with
@@ -175,19 +174,21 @@ def analyzeAtom (e : Expr) : OmegaM (HashSet Expr) := do
             (toExpr (0 : Nat)) b
           let pow_pos := mkApp3 (.const ``Nat.pos_pow_of_pos []) b exp (← mkDecideProof b_pos)
           let cast_pos := mkApp2 (.const ``Int.ofNat_pos_of_pos []) k' pow_pos
-          pure <|
-            {mkApp3 (.const ``Int.emod_nonneg []) x k
-                (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) cast_pos),
-              mkApp3 (.const ``Int.emod_lt_of_pos []) x k cast_pos}
+          pure <| HashSet.empty.insert
+            (mkApp3 (.const ``Int.emod_nonneg []) x k
+                (mkApp3 (.const ``Int.ne_of_gt []) k (toExpr (0 : Int)) cast_pos)) |>.insert
+              (mkApp3 (.const ``Int.emod_lt_of_pos []) x k cast_pos)
       | _ => pure ∅
     | _ => pure ∅
   | (``Min.min, #[_, _, x, y]) =>
-    pure <| {mkApp2 (.const ``Int.min_le_left []) x y, mkApp2 (.const ``Int.min_le_right []) x y}
+    pure <| HashSet.empty.insert (mkApp2 (.const ``Int.min_le_left []) x y) |>.insert
+      (mkApp2 (.const ``Int.min_le_right []) x y)
   | (``Max.max, #[_, _, x, y]) =>
-    pure <| {mkApp2 (.const ``Int.le_max_left []) x y, mkApp2 (.const ``Int.le_max_right []) x y}
+    pure <| HashSet.empty.insert (mkApp2 (.const ``Int.le_max_left []) x y) |>.insert
+      (mkApp2 (.const ``Int.le_max_right []) x y)
   | (``ite, #[α, i, dec, t, e]) =>
       if α == (.const ``Int []) then
-        pure <| {mkApp5 (.const ``ite_disjunction [0]) α i dec t e}
+        pure <| HashSet.empty.insert <| mkApp5 (.const ``ite_disjunction [0]) α i dec t e
       else
         pure {}
   | _ => pure ∅
