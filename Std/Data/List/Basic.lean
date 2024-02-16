@@ -258,7 +258,7 @@ where
 instance {α : Type _} : Std.Associative (α := List α) List.append where
   assoc := append_assoc
 
-instance {α : Type _} : Std.LawfulIdentity (α := List α) List.append nil where
+instance {α : Type _} : Std.LawfulIdentity (α := List α) (· ++ ·) [] where
   left_id := nil_append
   right_id := append_nil
 
