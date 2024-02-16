@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 
 import Std.Tactic.Alias
-import Std.Logic
 
 /-!
 # Specializations of basic logic lemmas
@@ -13,7 +12,7 @@ import Std.Logic
 These are useful for `omega` while constructing proofs, but not considered generally useful
 so are hidden in the `Std.Tactic.Omega` namespace.
 
-If you find yourself needing them elsewhere, please move them first to `Std.Logic`.
+If you find yourself needing them elsewhere, please move them first to another file.
 -/
 
 namespace Std.Tactic.Omega

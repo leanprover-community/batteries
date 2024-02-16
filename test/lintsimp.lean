@@ -1,6 +1,5 @@
 import Std.Tactic.Lint
 import Std.Tactic.GuardMsgs
-import Std.Tactic.RunCmd
 
 open Std.Tactic.Lint
 set_option linter.missingDocs false
@@ -13,8 +12,8 @@ def h : Nat := 0
 
 run_meta guard (← [``fg, ``fh].anyM fun n => return (← simpNF.test n).isSome)
 
-@[simp] theorem and_comm : a ∧ b ↔ b ∧ a := And.comm
-run_meta guard (← simpComm.test ``and_comm).isSome
+@[simp] theorem test_and_comm : a ∧ b ↔ b ∧ a := And.comm
+run_meta guard (← simpComm.test ``test_and_comm).isSome
 
 @[simp] theorem Prod.mk_fst : (a, b).1 = id a := rfl
 run_meta guard (← simpVarHead.test ``Prod.mk_fst).isSome

@@ -8,6 +8,7 @@ import Std.Tactic.Omega.LinearCombo
 import Std.Tactic.Omega.Config
 import Std.Lean.Expr
 import Std.Lean.HashSet
+import Std.Classes.SetNotation
 
 /-!
 # The `OmegaM` state monad.
