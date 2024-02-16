@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import Std.Tactic.Alias
 import Std.Tactic.Init
 import Std.Data.Nat.Basic
-import Std.Data.Ord
 
 /-! # Basic lemmas about natural numbers
 

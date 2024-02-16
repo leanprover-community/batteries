@@ -29,7 +29,6 @@ import Std.Data.List
 import Std.Data.MLList
 import Std.Data.Nat
 import Std.Data.Option
-import Std.Data.Ord
 import Std.Data.PairingHeap
 import Std.Data.RBMap
 import Std.Data.Range

@@ -1,6 +1,5 @@
 import Std.Tactic.Lint
 import Std.Tactic.GuardMsgs
-import Std.Tactic.RunCmd
 
 open Std.Tactic.Lint
 set_option linter.missingDocs false

@@ -1,7 +1,5 @@
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.GuardMsgs
-import Std.Tactic.RunCmd
-
 open Std.Tactic.Lint
 
 namespace A
