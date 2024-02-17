@@ -301,6 +301,12 @@ theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
           _ ≤ 2 ^ i := Nat.pow_le_pow_of_le_right Nat.zero_lt_two w
       · simp
 
+@[simp] theorem toFin_not (x : BitVec w) :
+    (~~~x).toFin = x.toFin.rev := by
+  apply Fin.val_inj.mp
+  simp only [val_toFin, toNat_not, Fin.val_rev]
+  omega
+
 @[simp] theorem getLsb_not {x : BitVec v} : (~~~x).getLsb i = (decide (i < v) && ! x.getLsb i) := by
   by_cases h' : i < v <;> simp_all [not_def]
 
