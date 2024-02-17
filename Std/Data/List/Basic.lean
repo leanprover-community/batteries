@@ -255,7 +255,7 @@ where
 
 /-! ## Algebraic instances -/
 
-instance {α : Type _} : Std.Associative (α := List α) List.append where
+instance {α : Type _} : Std.Associative (α := List α) (· ++ ·) where
   assoc := append_assoc
 
 instance {α : Type _} : Std.LawfulIdentity (α := List α) (· ++ ·) [] where
