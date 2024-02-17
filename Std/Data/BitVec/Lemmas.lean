@@ -316,6 +316,9 @@ theorem not_def {x : BitVec v} : ~~~x = allOnes v ^^^ x := rfl
     BitVec.toNat (x <<< n) = BitVec.toNat x <<< n % 2^v :=
   BitVec.toNat_ofNat _ _
 
+@[simp] theorem toFin_shiftLeft {n : Nat} (x : BitVec w) :
+    BitVec.toFin (x <<< n) = Fin.ofNat' (x.toNat <<< n) (Nat.two_pow_pos w) := rfl
+
 @[simp] theorem getLsb_shiftLeft (x : BitVec m) (n) :
     getLsb (x <<< n) i = (decide (i < m) && !decide (i < n) && getLsb x (i - n)) := by
   rw [← testBit_toNat, getLsb]
