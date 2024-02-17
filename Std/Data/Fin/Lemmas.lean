@@ -184,6 +184,22 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 
 @[simp] theorem rev_last (n : Nat) : rev (last n) = 0 := ext <| by simp
 
+@[simp, norm_cast] theorem val_powLast (n k : Nat) : (powLast n k) = (n + 1)^k - 1 := rfl
+
+theorem le_powLast (i : Fin ((n + 1)^k)) : i ≤ powLast n k := by
+  rw [Fin.le_def]
+  simp
+  omega
+
+theorem powLast_pos (h : 0 < k) : (0 : Fin ((n + 2)^k)) < powLast (n + 1) k := by
+  rw [Fin.lt_def]
+  simp only [val_zero', val_powLast]
+  have := Nat.one_lt_pow (m := n + 2) (Nat.ne_of_gt h)
+  omega
+
+@[simp] theorem rev_powLast (n : Nat) : rev (powLast n k) = 0 := ext <| by
+  simp [Nat.sub_add_cancel, Nat.one_le_pow (Nat.succ_pos _)]
+
 @[simp] theorem rev_zero (n : Nat) : rev 0 = last n := by
   rw [← rev_rev (last _), rev_last]
 

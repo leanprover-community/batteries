@@ -16,6 +16,10 @@ protected theorem pos (i : Fin n) : 0 < n :=
 /-- The greatest value of `Fin (n+1)`. -/
 @[inline] def last (n : Nat) : Fin (n + 1) := ⟨n, n.lt_succ_self⟩
 
+/-- The greatest value of `Fin ((n+1)^k)`. -/
+@[inline] def powLast (n k : Nat) : Fin ((n + 1)^k) :=
+  ⟨(n+1)^k - 1, Nat.pred_lt (Nat.ne_of_gt (Nat.pos_pow_of_pos k (Nat.succ_pos n)))⟩
+
 /-- `castLT i h` embeds `i` into a `Fin` where `h` proves it belongs into.  -/
 @[inline] def castLT (i : Fin m) (h : i.1 < n) : Fin n := ⟨i.1, h⟩
 
