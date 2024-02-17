@@ -18,26 +18,32 @@ namespace Std.Tactic.Lemma
 
 open Lean Elab.Command
 
+/-- Enables the use of `lemma` as a synonym for `theorem` -/
+register_option lang.lemmaCmd : Bool := {
+  defValue := false
+  descr := "enable the use of the `lemma` command as a synonym for `theorem`"
+}
+
+/-- Check whether `lang.lemmaCmd` option is enabled -/
+def checkLangLemmaCmd (o : Options) : Bool := o.get `lang.lemmaCmd lang.lemmaCmd.defValue
+
 /-- `lemma` is not supported, please use `theorem` instead -/
 syntax (name := lemmaCmd) declModifiers
   group("lemma " declId ppIndent(declSig) declVal) : command
 
-/-- Elaborator for the `lemma` command, with a boolean flag to control
-whether the command emits a warning and code action
-instructing the user to use `theorem` instead.-/
-def elabLemma' (allow : Bool) : CommandElab := fun stx => do
-  unless allow do
+/-- Elaborator for the `lemma` command, if the option `lang.lemmaCmd` is false the command
+emits a warning and code action instructing the user to use `theorem` instead.-/
+@[command_elab «lemmaCmd»] def elabLemma : CommandElab := fun stx => do
+  unless checkLangLemmaCmd (← getOptions) do
     let lemmaStx := stx[1][0]
     Elab.Command.liftTermElabM <|
       Std.Tactic.TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
     logErrorAt lemmaStx
-      s!"`lemma` is not supported, please use `theorem` instead.\n\
-      note: Mathlib defines a `lemma` command, did you mean to `import Mathlib.Tactic.Basic`?"
+      "`lemma` is not supported, please use `theorem` instead.\n\
+      Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command"
   let out ← Elab.liftMacroM <| do
     let stx := stx.modifyArg 1 fun stx =>
       let stx := stx.modifyArg 0 (mkAtomFrom · "theorem" (canonical := true))
       stx.setKind ``Parser.Command.theorem
     pure <| stx.setKind ``Parser.Command.declaration
   Elab.Command.elabCommand out
-
-@[inherit_doc lemmaCmd, command_elab «lemmaCmd»] def elabLemma : CommandElab := elabLemma' false
