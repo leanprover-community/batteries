@@ -1,5 +1,12 @@
+/-
+Copyright (c) 2022 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
+-/
 import Std.Tactic.ByCases
+import Std.Tactic.SeqFocus
 import Std.Data.List.Lemmas
+import Std.Data.List.Init.Attach
 
 namespace Std.Range
 

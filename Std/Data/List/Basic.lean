@@ -7,7 +7,6 @@ import Std.Classes.SetNotation
 import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
-import Std.Data.List.Init.Attach
 
 namespace List
 
@@ -205,7 +204,6 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
       simp [enumFrom]
-      rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
@@ -1034,7 +1032,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 /--
 `ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
 ```
-ofFn f = [f 0, f 1, ... , f(n - 1)]
+ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
 def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
@@ -1198,15 +1196,17 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 
 /--
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
+Use `List.getLastD` instead.
 -/
-@[simp] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
 /--
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
+Use `List.getLast?` instead
 -/
-@[simp] def last' {α} : List α → Option α
+@[simp, deprecated getLast?] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l
@@ -1436,27 +1436,6 @@ zipRight = zipWithRight prod.mk
 ```
 -/
 @[inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
-
-/--
-Version of `List.zipWith` that continues to the end of both lists, passing `none` to one argument
-once the shorter list has run out.
--/
--- TODO We should add a tail-recursive version as we do for other `zip` functions above.
-def zipWithAll (f : Option α → Option β → γ) : List α → List β → List γ
-  | [], bs => bs.map fun b => f none (some b)
-  | a :: as, [] => (a :: as).map fun a => f (some a) none
-  | a :: as, b :: bs => f a b :: zipWithAll f as bs
-
-@[simp] theorem zipWithAll_nil_right :
-    zipWithAll f as [] = as.map fun a => f (some a) none := by
-  cases as <;> rfl
-
-@[simp] theorem zipWithAll_nil_left :
-    zipWithAll f [] bs = bs.map fun b => f none (some b) := by
-  rw [zipWithAll]
-
-@[simp] theorem zipWithAll_cons_cons :
-    zipWithAll f (a :: as) (b :: bs) = f (some a) (some b) :: zipWithAll f as bs := rfl
 
 /--
 If all elements of `xs` are `some xᵢ`, `allSome xs` returns the `xᵢ`. Otherwise

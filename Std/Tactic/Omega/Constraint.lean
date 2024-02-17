@@ -3,10 +3,10 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import Std.Classes.Order
 import Std.Tactic.RCases
-import Std.Tactic.NormCast
-import Std.Tactic.Omega.OmegaM
-
+import Std.Data.Option.Lemmas
+import Std.Tactic.Omega.Coeffs.IntList
 /-!
 A `Constraint` consists of an optional lower and upper bound (inclusive),
 constraining a value to a set of the form `∅`, `{x}`, `[x, y]`, `[x, ∞)`, `(-∞, y]`, or `(-∞, ∞)`.
@@ -211,26 +211,26 @@ def div (c : Constraint) (k : Nat) : Constraint where
 
 theorem div_sat (c : Constraint) (t : Int) (k : Nat) (n : k ≠ 0) (h : (k : Int) ∣ t) (w : c.sat t) :
     (c.div k).sat (t / k) := by
-  replace n : k > 0 := Nat.pos_of_ne_zero n
+  replace n : (k : Int) > 0 := Int.ofNat_lt.mpr (Nat.pos_of_ne_zero n)
   rcases c with ⟨_ | l, _ | u⟩
   · simp_all [sat, div]
-  · simp_all [sat, div]
+  · simp [sat, div] at w ⊢
     apply Int.le_of_sub_nonneg
-    rw [← Int.sub_ediv_of_dvd _ h, ← ge_iff_le, Int.div_nonneg_iff_of_pos (mod_cast n)]
+    rw [← Int.sub_ediv_of_dvd _ h, ← ge_iff_le, Int.div_nonneg_iff_of_pos n]
     exact Int.sub_nonneg_of_le w
-  · simp_all [sat, div]
+  · simp [sat, div] at w ⊢
     apply Int.le_of_sub_nonneg
     rw [Int.sub_neg, ← Int.add_ediv_of_dvd_left h, ← ge_iff_le,
-      Int.div_nonneg_iff_of_pos (mod_cast n)]
+      Int.div_nonneg_iff_of_pos n]
     exact Int.sub_nonneg_of_le w
-  · simp_all [sat, div]
+  · simp [sat, div] at w ⊢
     constructor
     · apply Int.le_of_sub_nonneg
       rw [Int.sub_neg, ← Int.add_ediv_of_dvd_left h, ← ge_iff_le,
-        Int.div_nonneg_iff_of_pos (mod_cast n)]
+        Int.div_nonneg_iff_of_pos n]
       exact Int.sub_nonneg_of_le w.1
     · apply Int.le_of_sub_nonneg
-      rw [← Int.sub_ediv_of_dvd _ h, ← ge_iff_le, Int.div_nonneg_iff_of_pos (mod_cast n)]
+      rw [← Int.sub_ediv_of_dvd _ h, ← ge_iff_le, Int.div_nonneg_iff_of_pos n]
       exact Int.sub_nonneg_of_le w.2
 
 /--

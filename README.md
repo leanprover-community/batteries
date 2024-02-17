@@ -2,6 +2,16 @@
 
 Work in progress standard library for Lean 4. This is a collection of data structures and tactics intended for use by both computer-science applications and mathematics applications of Lean 4.
 
+# Using `std4`
+
+To use `std4` in your project, add the following to your `lakefile.lean`:
+
+```lean
+require std from git "https://github.com/leanprover/std4" @ "main"
+```
+
+Additionally, please make sure that you're using the version of Lean that the current version of `std4` expects. The easiest way to do this is to copy the [`lean-toolchain`](./lean-toolchain) file from this repository to your project. Once you've added the dependency declaration, the command `lake update` checks out the current version of `std4` and writes it the Lake manifest file. Don't run this command again unless you're prepared to potentially also update your Lean compiler version, as it will retrieve the latest version of dependencies and add them to the manifest.
+
 # Build instructions
 
 * Get the newest version of `elan`. If you already have installed a version of Lean, you can run
@@ -14,11 +24,8 @@ Work in progress standard library for Lean 4. This is a collection of data struc
   ```
   If this also fails, follow the instructions under `Regular install` [here](https://leanprover-community.github.io/get_started.html).
 * To build `std4` run `lake build`. To build and run all tests, run `make`.
-* If you added a new file, run the following command to update `Std.lean`:
-  ```
-  find Std -name "*.lean" | env LC_ALL=C sort | sed 's/\.lean//;s,/,.,g;s/^/import /' > Std.lean
-  ```
-  (or use `scripts/updateStd.sh` which contains this command).
+* If you added a new file, run the command `scripts/updateStd.sh` to update the
+  imports.
 
 # Documentation
 
@@ -61,3 +68,7 @@ One of the easiest ways to contribute is to find a missing proof and complete it
 [`proof_wanted`](https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
+
+In contrast to mathlib, `std` uses pull requests from forks of this repository. Hence, no special permissions on this repository are required for new contributors.
+
+You can change the labels on PRs by commenting one of `awaiting-review`, `awaiting-author`, or `WIP`. This is helpful for triage.

@@ -3,8 +3,6 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, James Gallicchio, F. G. Dorais
 -/
-
-import Std.Data.Char
 import Std.Data.Nat.Lemmas
 import Std.Data.Array.Match
 
@@ -93,7 +91,7 @@ where
         spos
     else
       spos
-termination_by loop => s.stopPos.byteIdx - spos.byteIdx
+  termination_by s.stopPos.byteIdx - spos.byteIdx
 
 /--
 Returns the longest common suffix of two substrings.
@@ -114,7 +112,7 @@ where
         spos
     else
       spos
-termination_by loop => spos.byteIdx
+  termination_by spos.byteIdx
 
 /--
 If `pre` is a prefix of `s`, i.e. `s = pre ++ t`, returns the remainder `t`.

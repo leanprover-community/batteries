@@ -40,6 +40,14 @@ instance (x y : Bool) : Decidable (x < y) := inferInstanceAs (Decidable (!x && y
 instance : Max Bool := ⟨or⟩
 instance : Min Bool := ⟨and⟩
 
+theorem false_ne_true : false ≠ true := Bool.noConfusion
+
+theorem eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false := by decide
+
+theorem eq_false_iff : {b : Bool} → b = false ↔ b ≠ true := by decide
+
+theorem ne_false_iff : {b : Bool} → b ≠ false ↔ b = true := by decide
+
 /-! ### and -/
 
 @[simp] theorem not_and_self : ∀ (x : Bool), (!x && x) = false := by decide

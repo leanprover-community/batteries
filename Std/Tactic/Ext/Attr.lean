@@ -39,7 +39,7 @@ initialize extExtension :
     SimpleScopedEnvExtension ExtTheorem ExtTheorems ←
   registerSimpleScopedEnvExtension {
     addEntry := fun { tree, erased } thm =>
-      { tree := tree.insertCore thm.keys thm extExt.config, erased := erased.erase thm.declName }
+      { tree := tree.insertCore thm.keys thm, erased := erased.erase thm.declName }
     initial := {}
   }
 
@@ -65,7 +65,7 @@ def ExtTheorems.eraseCore (d : ExtTheorems) (declName : Name) : ExtTheorems :=
 -/
 def ExtTheorems.erase [Monad m] [MonadError m] (d : ExtTheorems) (declName : Name) :
     m ExtTheorems := do
-  unless d.tree.values.any (·.declName == declName) && !d.erased.contains declName do
+  unless d.tree.containsValueP (·.declName == declName) && !d.erased.contains declName do
     throwError "'{declName}' does not have [ext] attribute"
   return d.eraseCore declName
 

@@ -1,5 +1,10 @@
+/-
+Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import Std.Tactic.Omega.IntList
-import Std.Tactic.Omega.MinNatAbs
+import Std.Data.List.Basic
 
 /-!
 # `Coeffs` as a wrapper for `IntList`
@@ -32,6 +37,8 @@ namespace Coeffs
 abbrev toList (xs : Coeffs) : List Int := xs
 /-- Identity, turning `List Int` into `Coeffs`. -/
 abbrev ofList (xs : List Int) : Coeffs := xs
+/-- Are the coefficients all zero? -/
+abbrev isZero (xs : Coeffs) : Prop := ∀ x, x ∈ xs → x = 0
 /-- Shim for `IntList.set`. -/
 abbrev set (xs : Coeffs) (i : Nat) (y : Int) : Coeffs := IntList.set xs i y
 /-- Shim for `IntList.get`. -/
@@ -58,6 +65,11 @@ abbrev length (xs : Coeffs) := List.length xs
 abbrev leading (xs : Coeffs) : Int := IntList.leading xs
 /-- Shim for `List.map`. -/
 abbrev map (f : Int → Int) (xs : Coeffs) : Coeffs := List.map f xs
+/-- Shim for `.enum.find?`. -/
+abbrev findIdx? (f : Int → Bool) (xs : Coeffs) : Option Nat :=
+  List.findIdx? f xs
+  -- We could avoid `Std.Data.List.Basic` by using the less efficient:
+  -- xs.enum.find? (f ·.2) |>.map (·.1)
 /-- Shim for `IntList.bmod`. -/
 abbrev bmod (x : Coeffs) (m : Nat) : Coeffs := IntList.bmod x m
 /-- Shim for `IntList.bmod_dot_sub_dot_bmod`. -/

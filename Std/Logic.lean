@@ -3,9 +3,11 @@ Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
-import Std.Tactic.Basic
+import Std.Tactic.Init
+import Std.Tactic.NoMatch
 import Std.Tactic.Alias
 import Std.Tactic.Lint.Misc
+import Std.Tactic.ByCases
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
@@ -592,7 +594,7 @@ theorem Decidable.imp_or' [Decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a �
   if h : b then by simp [h] else by
     rw [eq_false h, false_or]; exact (or_iff_right_of_imp fun hx x => (hx x).elim).symm
 
-theorem Decidable.not_imp [Decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
+theorem Decidable.not_imp_iff_and_not [Decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
   ⟨fun h => ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
 theorem Decidable.peirce (a b : Prop) [Decidable a] : ((a → b) → a) → a :=
@@ -612,7 +614,8 @@ theorem Decidable.not_iff [Decidable b] : ¬(a ↔ b) ↔ (¬a ↔ b) := by
 theorem Decidable.iff_not_comm [Decidable a] [Decidable b] : (a ↔ ¬b) ↔ (b ↔ ¬a) := by
   rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
 
-theorem Decidable.iff_iff_and_or_not_and_not [Decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
+theorem Decidable.iff_iff_and_or_not_and_not {a b : Prop} [Decidable b] :
+    (a ↔ b) ↔ (a ∧ b) ∨ (¬a ∧ ¬b) :=
   ⟨fun e => if h : b then .inl ⟨e.2 h, h⟩ else .inr ⟨mt e.1 h, h⟩,
    Or.rec (And.rec iff_of_true) (And.rec iff_of_false)⟩
 
@@ -623,17 +626,17 @@ theorem Decidable.iff_iff_not_or_and_or_not [Decidable a] [Decidable b] :
 theorem Decidable.not_and_not_right [Decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
   ⟨fun h ha => not_imp_symm (And.intro ha) h, fun h ⟨ha, hb⟩ => hb <| h ha⟩
 
-theorem Decidable.not_and [Decidable a] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+theorem Decidable.not_and_iff_or_not_not [Decidable a] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
   ⟨fun h => if ha : a then .inr (h ⟨ha, ·⟩) else .inl ha, not_and_of_not_or_not⟩
 
-theorem Decidable.not_and' [Decidable b] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+theorem Decidable.not_and_iff_or_not_not' [Decidable b] : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
   ⟨fun h => if hb : b then .inl (h ⟨·, hb⟩) else .inr hb, not_and_of_not_or_not⟩
 
 theorem Decidable.or_iff_not_and_not [Decidable a] [Decidable b] : a ∨ b ↔ ¬(¬a ∧ ¬b) := by
   rw [← not_or, not_not]
 
 theorem Decidable.and_iff_not_or_not [Decidable a] [Decidable b] : a ∧ b ↔ ¬(¬a ∨ ¬b) := by
-  rw [← not_and, not_not]
+  rw [← not_and_iff_or_not_not, not_not]
 
 theorem Decidable.imp_iff_right_iff [Decidable a] : (a → b ↔ b) ↔ a ∨ b :=
   ⟨fun H => (Decidable.em a).imp_right fun ha' => H.1 fun ha => (ha' ha).elim,
@@ -664,13 +667,11 @@ This is the same as `decidable_of_iff` but the iff is flipped. -/
 instance Decidable.predToBool (p : α → Prop) [DecidablePred p] :
     CoeDep (α → Prop) p (α → Bool) := ⟨fun b => decide <| p b⟩
 
-theorem Bool.false_ne_true : false ≠ true := fun.
-
 /-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
 (This is sometimes taken as an alternate definition of decidability.) -/
 def decidable_of_bool : ∀ (b : Bool), (b ↔ a) → Decidable a
   | true, h => isTrue (h.1 rfl)
-  | false, h => isFalse (mt h.2 Bool.false_ne_true)
+  | false, h => isFalse (mt h.2 Bool.noConfusion)
 
 protected theorem Decidable.not_forall {p : α → Prop} [Decidable (∃ x, ¬p x)]
     [∀ x, Decidable (p x)] : (¬∀ x, p x) ↔ ∃ x, ¬p x :=
@@ -717,6 +718,15 @@ theorem or_iff_not_imp_left : a ∨ b ↔ (¬a → b) :=
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬b → a) :=
   Decidable.or_iff_not_imp_right
 
+theorem not_imp_iff_and_not : ¬(a → b) ↔ a ∧ ¬b :=
+  Decidable.not_imp_iff_and_not
+
+theorem not_and_iff_or_not_not : ¬(a ∧ b) ↔ ¬a ∨ ¬b :=
+  Decidable.not_and_iff_or_not_not
+
+theorem not_iff : ¬(a ↔ b) ↔ (¬a ↔ b) :=
+  Decidable.not_iff
+
 end Classical
 
 /-! ## equality -/
@@ -731,6 +741,79 @@ theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
 
 theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
+
+theorem congrFun₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : f = g) (a : α) (b : β a) :
+    f a b = g a b :=
+  congrFun (congrFun h _) _
+
+theorem congrFun₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+      {f g : ∀ a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+    f a b c = g a b c :=
+  congrFun₂ (congrFun h _) _ _
+
+theorem funext₂ {β : α → Sort _} {γ : ∀ a, β a → Sort _}
+    {f g : ∀ a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
+  funext fun _ => funext <| h _
+
+theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a b, γ a b → Sort _}
+    {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+  funext fun _ => funext₂ <| h _
+
+theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
+  mt <| congrArg _
+
+protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
+  subst h₁; subst h₂; rfl
+
+theorem Eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
+
+theorem Eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
+
+alias congr_arg := congrArg
+alias congr_arg₂ := congrArg₂
+alias congr_fun := congrFun
+alias congr_fun₂ := congrFun₂
+alias congr_fun₃ := congrFun₃
+
+theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
+  rfl
+
+theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
+  rfl
+
+@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
+    cast hb (cast ha a) = cast (ha.trans hb) a
+  | rfl, rfl, _ => rfl
+
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+  | rfl, rfl => .rfl
+
+theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+  ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
+
+theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
+  subst e; rfl
+
+--Porting note: new theorem. More general version of `eqRec_heq`
+theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    HEq (@Eq.rec α a motive x a' e) x := by
+  subst e; rfl
+
+@[simp]
+theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+  subst e; rfl
+
+@[simp]
+theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
+    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+  subst e; rfl
 
 /-! ## membership -/
 
@@ -849,13 +932,9 @@ example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
 
 theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
 
-theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
-  | true => .inl rfl
-  | false => .inr rfl
-
-theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
-  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
-
 theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
+
+theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
+  f x' (Eq.rec y h) = f x y := by cases h; rfl

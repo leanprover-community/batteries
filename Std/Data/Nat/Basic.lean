@@ -101,11 +101,8 @@ protected def casesDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
   Nat.recDiag zero_zero (fun _ _ => zero_succ _) (fun _ _ => succ_zero _)
     (fun _ _ _ => succ_succ _ _) m n
 
-/--
-Divisibility of natural numbers. `a ∣ b` (typed as `\|`) says that
-there is some `c` such that `b = a * c`.
--/
-instance : Dvd Nat := ⟨fun a b => ∃ c, b = a * c⟩
+/-- The least common multiple of `m` and `n`, defined using `gcd`. -/
+def lcm (m n : Nat) : Nat := m * n / gcd m n
 
 /-- Sum of a list of natural numbers. -/
 protected def sum (l : List Nat) : Nat := l.foldr (·+·) 0
@@ -125,7 +122,7 @@ where
       iter n next
     else
       guess
-termination_by iter guess => guess
+  termination_by guess
 
 /-!
 ### testBit
