@@ -1,4 +1,5 @@
 import Std.Classes.BEq
+import Std.Classes.Cast
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SatisfiesM
