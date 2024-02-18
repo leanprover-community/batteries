@@ -136,11 +136,18 @@ theorem msb_eq_decide (x : BitVec (Nat.succ w)) : BitVec.msb x = decide (2 ^ w â
 
 /-! ### cast -/
 
-@[simp] theorem toNat_cast (e : m = n) (x : BitVec m) : (cast e x).toNat = x.toNat := rfl
+@[simp] theorem toNat_cast (h : w = v) (x : BitVec w) : (cast h x).toNat = x.toNat := rfl
+@[simp] theorem toFin_cast (h : w = v) (x : BitVec w) :
+    (cast h x).toFin = x.toFin.cast (by rw [h]) :=
+  rfl
 
-@[simp] theorem getLsb_cast : (cast h v).getLsb i = v.getLsb i := by
-  cases h
-  simp
+@[simp] theorem getLsb_cast (h : w = v) (x : BitVec w) : (cast h x).getLsb i = x.getLsb i := by
+  subst h; simp
+
+@[simp] theorem getMsb_cast (h : w = v) (x : BitVec w) : (cast h x).getMsb i = x.getMsb i := by
+  subst h; simp
+@[simp] theorem msb_cast (h : w = v) (x : BitVec w) : (cast h x).msb = x.msb := by
+  simp [BitVec.msb]
 
 /-! ### zeroExtend and truncate -/
 
