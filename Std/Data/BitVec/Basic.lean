@@ -134,8 +134,7 @@ instance : Neg (BitVec n) := ⟨.neg⟩
 
 /-- Bit vector of size `n` where all bits are `1`s -/
 def allOnes (n : Nat) : BitVec n :=
-  BitVec.ofNatLt (2^n - 1)
-    (Nat.le_of_eq (Nat.sub_add_cancel (Nat.two_pow_pos n)))
+  .ofNatLt (2^n - 1) (Nat.le_of_eq (Nat.sub_add_cancel (Nat.two_pow_pos n)))
 
 /--
 Return the absolute value of a signed bitvector.
@@ -292,7 +291,7 @@ Bitwise AND for bit vectors.
 SMT-Lib name: `bvand`.
 -/
 protected def and (x y : BitVec n) : BitVec n :=
-  BitVec.ofNatLt (x.toNat &&& y.toNat) (Nat.and_lt_two_pow x.toNat y.isLt)
+  .ofNatLt (x.toNat &&& y.toNat) (Nat.and_lt_two_pow x.toNat y.isLt)
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -305,7 +304,7 @@ Bitwise OR for bit vectors.
 SMT-Lib name: `bvor`.
 -/
 protected def or (x y : BitVec n) : BitVec n :=
-  BitVec.ofNatLt (x.toNat ||| y.toNat) (Nat.or_lt_two_pow x.isLt y.isLt)
+  .ofNatLt (x.toNat ||| y.toNat) (Nat.or_lt_two_pow x.isLt y.isLt)
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
