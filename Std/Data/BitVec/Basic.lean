@@ -46,6 +46,11 @@ this is truncation of the high bits when downcasting and zero-extension when upc
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin := Fin.ofNat' i (Nat.two_pow_pos n)
 
+/-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
+this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
+protected def ofNatLt {n : Nat} (i : Nat) (p : i < 2^n) : BitVec n where
+  toFin := ⟨i, p⟩
+
 instance : NatCast (BitVec w) := ⟨BitVec.ofNat w⟩
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
@@ -128,7 +133,9 @@ protected def neg (x : BitVec n) : BitVec n := .sub 0 x
 instance : Neg (BitVec n) := ⟨.neg⟩
 
 /-- Bit vector of size `n` where all bits are `1`s -/
-def allOnes (n : Nat) : BitVec n := -1
+def allOnes (n : Nat) : BitVec n :=
+  BitVec.ofNatLt (2^n - 1)
+    (Nat.le_of_eq (Nat.sub_add_cancel (Nat.two_pow_pos n)))
 
 /--
 Return the absolute value of a signed bitvector.
@@ -141,13 +148,13 @@ modulo `2^n`.
 
 SMT-Lib name: `bvmul`.
 -/
-protected def mul (x y : BitVec n) : BitVec n := ofFin <| x.toFin * y.toFin
+protected def mul (x y : BitVec n) : BitVec n := BitVec.ofNat n (x.toNat * y.toNat)
 instance : Mul (BitVec n) := ⟨.mul⟩
 
 /--
 Unsigned division for bit vectors using the Lean convention where division by zero returns zero.
 -/
-def udiv (x y : BitVec n) : BitVec n := ofFin <| x.toFin / y.toFin
+def udiv (x y : BitVec n) : BitVec n := BitVec.ofNat n (x.toNat / y.toNat)
 instance : Div (BitVec n) := ⟨.udiv⟩
 
 /--
@@ -155,7 +162,7 @@ Unsigned modulo for bit vectors.
 
 SMT-Lib name: `bvurem`.
 -/
-def umod (x y : BitVec n) : BitVec n := ofFin <| x.toFin % y.toFin
+def umod (x y : BitVec n) : BitVec n := BitVec.ofNat n (x.toNat % y.toNat)
 instance : Mod (BitVec n) := ⟨.umod⟩
 
 /--
@@ -232,17 +239,22 @@ Unsigned less-than for bit vectors.
 
 SMT-Lib name: `bvult`.
 -/
-protected def ult (x y : BitVec n) : Bool := x.toFin < y.toFin
-instance : LT (BitVec n) where lt x y := x.toFin < y.toFin
+protected def ult (x y : BitVec n) : Prop := x.toNat < y.toNat
+instance : DecidableRel (@BitVec.ult n) := fun x y =>
+  inferInstanceAs (Decidable (x.toNat < y.toNat))
+
+instance : LT (BitVec n) where lt := BitVec.ult
 instance (x y : BitVec n) : Decidable (x < y) :=
-  inferInstanceAs (Decidable (x.toFin < y.toFin))
+  inferInstanceAs (Decidable (x.toNat < y.toNat))
 
 /--
 Unsigned less-than-or-equal-to for bit vectors.
 
 SMT-Lib name: `bvule`.
 -/
-protected def ule (x y : BitVec n) : Bool := x.toFin ≤ y.toFin
+protected def ule (x y : BitVec n) : Prop := x.toFin ≤ y.toFin
+instance : DecidableRel (@BitVec.ule n) := fun x y =>
+  inferInstanceAs (Decidable (x.toNat ≤ y.toNat))
 
 instance : LE (BitVec n) where le x y := x.toFin ≤ y.toFin
 instance (x y : BitVec n) : Decidable (x ≤ y) :=
@@ -257,14 +269,18 @@ BitVec.slt 7#4 8 = false
 ```
 SMT-Lib name: `bvslt`.
 -/
-protected def slt (x y : BitVec n) : Bool := x.toInt < y.toInt
+protected def slt (x y : BitVec n) : Prop := x.toInt < y.toInt
+instance : DecidableRel (@BitVec.slt n) := fun x y =>
+  inferInstanceAs (Decidable (x.toInt < y.toInt))
 
 /--
 Signed less-than-or-equal-to for bit vectors.
 
 SMT-Lib name: `bvsle`.
 -/
-protected def sle (x y : BitVec n) : Bool := x.toInt ≤ y.toInt
+protected def sle (x y : BitVec n) : Prop := x.toInt ≤ y.toInt
+instance : DecidableRel (@BitVec.sle n) := fun x y =>
+  inferInstanceAs (Decidable (x.toInt ≤ y.toInt))
 
 /--
 Bitwise AND for bit vectors.
@@ -275,8 +291,8 @@ Bitwise AND for bit vectors.
 
 SMT-Lib name: `bvand`.
 -/
-protected def and (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat &&& y.toNat, Nat.and_lt_two_pow x.toNat y.isLt⟩
+protected def and (x y : BitVec n) : BitVec n :=
+  BitVec.ofNatLt (x.toNat &&& y.toNat) (Nat.and_lt_two_pow x.toNat y.isLt)
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -288,8 +304,8 @@ Bitwise OR for bit vectors.
 
 SMT-Lib name: `bvor`.
 -/
-protected def or (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat ||| y.toNat, Nat.or_lt_two_pow x.isLt y.isLt⟩
+protected def or (x y : BitVec n) : BitVec n :=
+  BitVec.ofNatLt (x.toNat ||| y.toNat) (Nat.or_lt_two_pow x.isLt y.isLt)
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
@@ -301,8 +317,8 @@ instance : OrOp (BitVec w) := ⟨.or⟩
 
 SMT-Lib name: `bvxor`.
 -/
-protected def xor (x y : BitVec n) : BitVec n where toFin :=
-   ⟨x.toNat ^^^ y.toNat, Nat.xor_lt_two_pow x.isLt y.isLt⟩
+protected def xor (x y : BitVec n) : BitVec n :=
+  .ofNatLt (x.toNat ^^^ y.toNat) (Nat.xor_lt_two_pow x.isLt y.isLt)
 instance : Xor (BitVec w) := ⟨.xor⟩
 
 /--
@@ -313,8 +329,7 @@ Bitwise NOT for bit vectors.
 ```
 SMT-Lib name: `bvnot`.
 -/
-protected def not (x : BitVec n) : BitVec n :=
-  allOnes n ^^^ x
+protected def not (x : BitVec n) : BitVec n := allOnes n ^^^ x
 instance : Complement (BitVec w) := ⟨.not⟩
 
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
@@ -387,9 +402,9 @@ def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 A version of `zeroExtend` that requires a proof, but is a noop.
 -/
 def zeroExtend' {n w : Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
-  ⟨x.toNat, by
+  .ofNatLt (x.toNat) (by
     apply Nat.lt_of_lt_of_le x.isLt
-    exact Nat.pow_le_pow_of_le_right (by trivial) le⟩
+    exact Nat.pow_le_pow_of_le_right (by trivial) le)
 
 /--
 `shiftLeftZeroExtend x n` returns `zeroExtend (w+n) x <<< n` without
@@ -479,6 +494,7 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
 @[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
+--TODO: ult/ult
 
 @[simp] theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
     cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
@@ -522,9 +538,7 @@ def cons {n} (msb : Bool) (lsbs : BitVec n) : BitVec (n+1) :=
 instance : Subsingleton (BitVec 0) where
   allEq := by intro ⟨0, _⟩ ⟨0, _⟩; rfl
 
-/-- Every bitvector of length 0 is equal to `nil`, i.e., there is only one empty bitvector -/
-theorem eq_nil : ∀ (x : BitVec 0), x = nil
-  | ofFin ⟨0, _⟩ => rfl
+theorem eq_nil (x : BitVec 0) : x = nil := Subsingleton.allEq ..
 
 theorem append_ofBool (msbs : BitVec w) (lsb : Bool) :
     msbs ++ ofBool lsb = concat msbs lsb :=
