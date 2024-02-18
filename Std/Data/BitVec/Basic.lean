@@ -92,6 +92,18 @@ attribute [match_pattern] BitVec.ofNat
   | `($(_) $n $i) => `($i#$n)
   | _ => throw ()
 
+/-- Extended notation for bit vector literals. `i#'lt` is a shorthand for `BitVec.ofNatLt i lt`. -/
+scoped syntax:max term:max noWs "#'" noWs term:max : term
+macro_rules | `($i#'$p) => `(BitVec.ofNatLt $i $p)
+
+/- Support for `i#n` notation in patterns.  -/
+attribute [match_pattern] BitVec.ofNatLt
+
+/-- Unexpander for bit vector literals. -/
+@[app_unexpander BitVec.ofNatLt] def unexpandBitVecOfNatLt : Lean.PrettyPrinter.Unexpander
+  | `($(_) $i $p) => `($i#'$p)
+  | _ => throw ()
+
 /-- Convert bitvector into a fixed-width hex number. -/
 protected def toHex {n : Nat} (x : BitVec n) : String :=
   let s := (Nat.toDigits 16 x.toNat).asString
@@ -134,7 +146,7 @@ instance : Neg (BitVec n) := ⟨.neg⟩
 
 /-- Bit vector of size `n` where all bits are `1`s -/
 def allOnes (n : Nat) : BitVec n :=
-  .ofNatLt (2^n - 1) (Nat.le_of_eq (Nat.sub_add_cancel (Nat.two_pow_pos n)))
+  (2^n - 1)#'(Nat.le_of_eq (Nat.sub_add_cancel (Nat.two_pow_pos n)))
 
 /--
 Return the absolute value of a signed bitvector.
@@ -291,7 +303,7 @@ Bitwise AND for bit vectors.
 SMT-Lib name: `bvand`.
 -/
 protected def and (x y : BitVec n) : BitVec n :=
-  .ofNatLt (x.toNat &&& y.toNat) (Nat.and_lt_two_pow x.toNat y.isLt)
+  (x.toNat &&& y.toNat)#'(Nat.and_lt_two_pow x.toNat y.isLt)
 instance : AndOp (BitVec w) := ⟨.and⟩
 
 /--
@@ -304,7 +316,7 @@ Bitwise OR for bit vectors.
 SMT-Lib name: `bvor`.
 -/
 protected def or (x y : BitVec n) : BitVec n :=
-  .ofNatLt (x.toNat ||| y.toNat) (Nat.or_lt_two_pow x.isLt y.isLt)
+  (x.toNat ||| y.toNat)#'(Nat.or_lt_two_pow x.isLt y.isLt)
 instance : OrOp (BitVec w) := ⟨.or⟩
 
 /--
@@ -317,7 +329,7 @@ instance : OrOp (BitVec w) := ⟨.or⟩
 SMT-Lib name: `bvxor`.
 -/
 protected def xor (x y : BitVec n) : BitVec n :=
-  .ofNatLt (x.toNat ^^^ y.toNat) (Nat.xor_lt_two_pow x.isLt y.isLt)
+  (x.toNat ^^^ y.toNat)#'(Nat.xor_lt_two_pow x.isLt y.isLt)
 instance : Xor (BitVec w) := ⟨.xor⟩
 
 /--
