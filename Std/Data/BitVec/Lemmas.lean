@@ -13,6 +13,12 @@ import Std.Util.ProofWanted
 
 namespace Std.BitVec
 
+/--
+This normalized a bitvec using `ofFin` to `ofNat`.
+-/
+theorem ofFin_eq_ofNat : @BitVec.ofFin w (Fin.mk x lt) = BitVec.ofNat w x := by
+  simp only [BitVec.ofNat, Fin.ofNat', lt, Nat.mod_eq_of_lt]
+
 /-- Prove equality of bitvectors in terms of nat operations. -/
 theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
   | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
