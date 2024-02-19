@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, James Gallicchio, F. G. Dorais
 -/
 import Std.Data.Nat.Lemmas
+import Std.Data.List.Basic
 import Std.Data.Array.Match
 
 instance : Coe String Substring := ⟨String.toSubstring⟩
@@ -12,6 +13,37 @@ namespace String
 
 protected theorem Pos.ne_zero_of_lt : {a b : Pos} → a < b → b ≠ 0
   | _, _, hlt, rfl => Nat.not_lt_zero _ hlt
+
+/-- Pad `s : String` with repeated occurrences of `c : Char` until it's of length `n`.
+  If `s` is initially larger than `n`, just return `s`. -/
+def leftpad (n : Nat) (c : Char) (s : String) : String :=
+  ⟨List.leftpad n c s.data⟩
+
+/-- Construct the string consisting of `n` copies of the character `c`. -/
+def replicate (n : Nat) (c : Char) : String :=
+  ⟨List.replicate n c⟩
+
+/-- `s.IsPrefix t` checks if the string `s` is a prefix of the string `t`. -/
+def IsPrefix : String → String → Prop
+  | ⟨d1⟩, ⟨d2⟩ => List.IsPrefix d1 d2
+
+/-- `s.IsSuffix t` checks if the string `s` is a suffix of the string `t`. -/
+def IsSuffix : String → String → Prop
+  | ⟨d1⟩, ⟨d2⟩ => List.IsSuffix d1 d2
+
+/-- `String.mapTokens c f s` tokenizes `s : string` on `c : char`, maps `f` over each token, and
+then reassembles the string by intercalating the separator token `c` over the mapped tokens. -/
+def mapTokens (c : Char) (f : String → String) : String → String :=
+  intercalate (singleton c) ∘ List.map f ∘ (·.split (· = c))
+
+/-- `getRest s t` returns `some r` if `s = t ++ r`.
+If `t` is not a prefix of `s`, it returns `none`. -/
+def getRest (s t : String) : Option String :=
+  List.asString <$> s.toList.getRest t.toList
+
+/-- Produce the head character from the string `s`, if `s` is not empty, otherwise `'A'`. -/
+def head (s : String) : Char :=
+  s.iter.curr
 
 /-- Knuth-Morris-Pratt matcher type
 
