@@ -231,9 +231,6 @@ protected theorem extractLsb_ofNat (x n : Nat) (hi lo : Nat) :
 @[simp] theorem getLsb_allOnes : (allOnes v).getLsb i = decide (i < v) := by
   simp [allOnes]
 
-@[simp] theorem negOne_eq_allOnes : -1#w = allOnes w :=
-  rfl
-
 /-! ### or -/
 
 @[simp] theorem toNat_or (x y : BitVec v) :
@@ -488,6 +485,15 @@ theorem add_sub_cancel (x y : BitVec w) : x + y - y = x := by
   have y_toNat_le := Nat.le_of_lt y.toNat_lt
   rw [toNat_sub, toNat_add, Nat.mod_add_mod, Nat.add_assoc, ← Nat.add_sub_assoc y_toNat_le,
     Nat.add_sub_cancel_left, Nat.add_mod_right, toNat_mod_cancel]
+
+@[simp] theorem negOne_eq_allOnes : -1#w = allOnes w := by
+  apply eq_of_toNat_eq
+  if g : w = 0 then
+    simp [g]
+  else
+    have q : 1 < 2^w := by simp [g]
+    have r : (2^w - 1) < 2^w := by omega
+    simp [Nat.mod_eq_of_lt q, Nat.mod_eq_of_lt r]
 
 /-! ### mul -/
 
