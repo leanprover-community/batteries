@@ -25,6 +25,9 @@ theorem ofFin_eq_ofNat : @BitVec.ofFin w (Fin.mk x lt) = BitVec.ofNat w x := by
 theorem eq_of_toNat_eq {n} : ∀ {i j : BitVec n}, i.toNat = j.toNat → i = j
   | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
 
+theorem toNat_inj {x y : BitVec w} : x.toNat = y.toNat ↔ x = y :=
+  ⟨eq_of_toNat_eq, by rintro rfl; rfl⟩
+
 /-- Replaced 2024-02-07. -/
 @[deprecated] alias zero_is_unique := eq_nil
 
@@ -87,6 +90,9 @@ theorem eq_of_getMsb_eq {x y : BitVec w}
 
 theorem eq_of_toFin_eq : ∀ {x y : BitVec w}, x.toFin = y.toFin → x = y
   | ⟨_, _⟩, ⟨_, _⟩, rfl => rfl
+
+theorem toFin_inj {x y : BitVec w} : x.toFin = y.toFin ↔ x = y :=
+  ⟨eq_of_toFin_eq, by rintro rfl; rfl⟩
 
 @[simp] theorem toNat_ofBool (b : Bool) : (ofBool b).toNat = b.toNat := by
   cases b <;> rfl
