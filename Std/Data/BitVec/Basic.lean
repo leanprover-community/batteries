@@ -125,14 +125,14 @@ modulo `2^n`.
 
 SMT-Lib name: `bvadd`.
 -/
-protected def add (x y : BitVec n) : BitVec n where toFin := x.toFin + y.toFin
+protected def add (x y : BitVec n) : BitVec n := .ofNat n (x.toNat + y.toNat)
 instance : Add (BitVec n) := ⟨BitVec.add⟩
 
 /--
 Subtraction for bit vectors. This can be interpreted as either signed or unsigned subtraction
 modulo `2^n`.
 -/
-protected def sub (x y : BitVec n) : BitVec n where toFin := x.toFin - y.toFin
+protected def sub (x y : BitVec n) : BitVec n := .ofNat n (x.toNat + (2^n - y.toNat))
 instance : Sub (BitVec n) := ⟨BitVec.sub⟩
 
 /--
@@ -141,7 +141,7 @@ modulo `2^n`.
 
 SMT-Lib name: `bvneg`.
 -/
-protected def neg (x : BitVec n) : BitVec n := .sub 0 x
+protected def neg (x : BitVec n) : BitVec n := .ofNat n (2^n - x.toNat)
 instance : Neg (BitVec n) := ⟨.neg⟩
 
 /-- Bit vector of size `n` where all bits are `1`s -/
@@ -256,20 +256,20 @@ instance : DecidableRel (@BitVec.ult n) := fun x y =>
 
 instance : LT (BitVec n) where lt := BitVec.ult
 instance (x y : BitVec n) : Decidable (x < y) :=
-  inferInstanceAs (Decidable (x.toNat < y.toNat))
+  inferInstanceAs (Decidable (BitVec.ult x y))
 
 /--
 Unsigned less-than-or-equal-to for bit vectors.
 
 SMT-Lib name: `bvule`.
 -/
-protected def ule (x y : BitVec n) : Prop := x.toFin ≤ y.toFin
+protected def ule (x y : BitVec n) : Prop := x.toNat ≤ y.toNat
 instance : DecidableRel (@BitVec.ule n) := fun x y =>
   inferInstanceAs (Decidable (x.toNat ≤ y.toNat))
 
-instance : LE (BitVec n) where le x y := x.toFin ≤ y.toFin
+instance : LE (BitVec n) where le := BitVec.ule
 instance (x y : BitVec n) : Decidable (x ≤ y) :=
-  inferInstanceAs (Decidable (x.toFin ≤ y.toFin))
+  inferInstanceAs (Decidable (BitVec.ule x y))
 
 /--
 Signed less-than for bit vectors.
@@ -505,7 +505,8 @@ def signExtend (v : Nat) (x : BitVec w) : BitVec v := .ofInt v x.toInt
 @[simp] theorem sub_eq (x y : BitVec w)                   : BitVec.sub x y = x - y            := rfl
 @[simp] theorem mul_eq (x y : BitVec w)                   : BitVec.mul x y = x * y            := rfl
 @[simp] theorem zero_eq                                   : BitVec.zero n = 0#n               := rfl
---TODO: ult/ult
+@[simp] theorem ule_eq (x y : BitVec w)                   : BitVec.ule x y = (x ≤ y)          := rfl
+@[simp] theorem ult_eq (x y : BitVec w)                   : BitVec.ult x y = (x < y)          := rfl
 
 @[simp] theorem cast_ofNat {n m : Nat} (h : n = m) (x : Nat) :
     cast h (BitVec.ofNat n x) = BitVec.ofNat m x := by
