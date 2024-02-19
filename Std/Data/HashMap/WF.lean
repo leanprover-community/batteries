@@ -346,7 +346,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   · simp only [Array.size_mk, List.length_map, Array.data_length, Array.getElem_eq_data_get,
       List.get_map] at h ⊢
     have := H.out.2.2 _ h
-    simp [AssocList.All] at this ⊢
+    simp [AssocList.All, g₁] at this ⊢
     rintro _ _ h' _ _ rfl
     exact this _ h'
 
