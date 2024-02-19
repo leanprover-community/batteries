@@ -165,7 +165,8 @@ instance : Mul (BitVec n) := ⟨.mul⟩
 /--
 Unsigned division for bit vectors using the Lean convention where division by zero returns zero.
 -/
-def udiv (x y : BitVec n) : BitVec n := BitVec.ofNat n (x.toNat / y.toNat)
+def udiv (x y : BitVec n) : BitVec n :=
+  (x.toNat / y.toNat)#'(Nat.lt_of_le_of_lt (Nat.div_le_self _ _) x.isLt)
 instance : Div (BitVec n) := ⟨.udiv⟩
 
 /--
@@ -173,7 +174,8 @@ Unsigned modulo for bit vectors.
 
 SMT-Lib name: `bvurem`.
 -/
-def umod (x y : BitVec n) : BitVec n := BitVec.ofNat n (x.toNat % y.toNat)
+def umod (x y : BitVec n) : BitVec n :=
+  (x.toNat % y.toNat)#'(Nat.lt_of_le_of_lt (Nat.mod_le _ _) x.isLt)
 instance : Mod (BitVec n) := ⟨.umod⟩
 
 /--
@@ -239,10 +241,10 @@ def smod (s t : BitVec m) : BitVec m :=
   | false, false => .umod s t
   | false, true =>
     let u := .umod s (.neg t)
-    (if u = BitVec.ofNat m 0 then u else .add u t)
+    (if u = .zero m then u else .add u t)
   | true, false =>
     let u := .umod (.neg s) t
-    (if u = BitVec.ofNat m 0 then u else .sub t u)
+    (if u = .zero m then u else .sub t u)
   | true, true => .neg (.umod (.neg s) (.neg t))
 
 /--
