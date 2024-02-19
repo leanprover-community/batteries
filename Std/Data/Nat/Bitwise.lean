@@ -10,9 +10,9 @@ This module defines properties of the bitwise operations on Natural numbers.
 
 It is primarily intended to support the bitvector library.
 -/
-import Std.Data.Bool
-import Std.Data.Nat.Lemmas
+import Std.Data.Nat.Basic
 import Std.Tactic.Simpa
+import Std.Tactic.Basic
 
 namespace Nat
 
