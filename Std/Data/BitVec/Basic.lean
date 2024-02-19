@@ -99,6 +99,7 @@ instance : ToString (BitVec n) where toString a := toString (repr a)
 /-- Theorem for normalizing the bit vector literal representation. -/
 -- TODO: This needs more usage data to assess which direction the simp should go.
 @[simp] theorem ofNat_eq_ofNat : @OfNat.ofNat (BitVec n) i _ = BitVec.ofNat n i := rfl
+@[simp] theorem natCast_eq_ofNat : Nat.cast x = x#w := rfl
 
 /--
 Addition for bit vectors. This can be interpreted as either signed or unsigned addition
