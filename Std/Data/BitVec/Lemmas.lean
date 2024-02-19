@@ -127,6 +127,17 @@ private theorem lt_two_pow_of_le {x m n : Nat} (lt : x < 2 ^ m) (le : m ≤ n) :
   else
     simp [h]
 
+/-! ### ult -/
+
+theorem ult_ofNat (w : Nat) (x y : Nat) :
+    BitVec.ult x#w y#w = decide (x % 2^w < y % 2^w) :=
+  rfl
+
+/-! ### ule -/
+
+theorem ule_ofNat (w : Nat) (x y : Nat) :
+    BitVec.ule x#w y#w = decide (x % 2^w ≤ y % 2^w) :=
+  rfl
 
 /-! ### msb -/
 
