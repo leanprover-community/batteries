@@ -3,10 +3,10 @@ import Lean.Meta.Basic
 namespace Lean.Meta
 
 /--
-Provides an iterface for iterating over values that are defined in a particular
-meta state.
+Provides an iterface for iterating over values that are bundled with the `Meta` state
+they are valid in.
 -/
-structure Iterator (α : Type) where
+protected structure Iterator (α : Type) where
   /-- Function for getting next value and state pair. -/
   next : MetaM (Option (α × Meta.SavedState))
 
@@ -15,7 +15,7 @@ namespace Iterator
 /--
 Convert a list into an iterator with the current state.
 -/
-def ofList (l : List α) : MetaM (Iterator α) := do
+def ofList (l : List α) : MetaM (Meta.Iterator α) := do
   let s ← saveState
   let ref ← IO.mkRef l
   let next := do
@@ -32,7 +32,7 @@ def ofList (l : List α) : MetaM (Iterator α) := do
 Map and filter results of iterator and returning only those values returned
 by `f`.
 -/
-partial def filterMapM (f : α → MetaM (Option β)) (L : Iterator α) : Iterator β :=
+partial def filterMapM (f : α → MetaM (Option β)) (L : Meta.Iterator α) : Meta.Iterator β :=
     { next := _next }
   where _next := do
     match ← L.next with
@@ -48,9 +48,10 @@ partial def filterMapM (f : α → MetaM (Option β)) (L : Iterator α) : Iterat
         pure <| some (r, ←saveState)
 
 /--
-Find the first alternative in a nondeterministic value, as a monadic value.
+Find the first value in the iterator while resetting state or call `failure`
+if empty.
 -/
-def head (L : Iterator α) : MetaM α := do
+def head (L : Meta.Iterator α) : MetaM α := do
   match ← L.next with
   | none =>
     failure
@@ -61,7 +62,7 @@ def head (L : Iterator α) : MetaM α := do
 /--
 Return the first value returned by the iterator that `f` succeeds on.
 -/
-def firstM (L : Iterator α) (f : α → MetaM (Option β)) : MetaM β := L.filterMapM f |>.head
+def firstM (L : Meta.Iterator α) (f : α → MetaM (Option β)) : MetaM β := L.filterMapM f |>.head
 
 end Iterator
 

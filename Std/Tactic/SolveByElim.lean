@@ -245,10 +245,9 @@ def elabContextLemmas (g : MVarId) (lemmas : List (TermElabM Expr)) (ctx : TermE
 /-- Returns the list of tactics corresponding to applying the available lemmas to the goal. -/
 def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
     (g : MVarId)
-    : MetaM (Iterator (List MVarId)) := do
+    : MetaM (Meta.Iterator (List MVarId)) := do
   let es ← elabContextLemmas g lemmas ctx
   applyTactics cfg.toApplyConfig cfg.transparency es g
-
 
 /-- Applies the first possible lemma to the goal. -/
 def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))

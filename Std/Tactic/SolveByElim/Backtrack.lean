@@ -198,7 +198,7 @@ Returns a list of subgoals which were "suspended" via the `suspend` or
 will either return an empty list or fail.
 -/
 def backtrack (cfg : BacktrackConfig := {}) (trace : Name := .anonymous)
-    (next : MVarId → MetaM (Iterator (List MVarId)))
+    (next : MVarId → MetaM (Meta.Iterator (List MVarId)))
     (goals : List MVarId) : MetaM (List MVarId) := do
   let resolve g f := do (←next g).firstM f
   Backtrack.processIndependentGoals cfg trace resolve goals goals goals
