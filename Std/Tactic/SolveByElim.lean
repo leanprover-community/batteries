@@ -62,8 +62,8 @@ initialize registerTraceClass `Meta.Tactic.solveByElim
 namespace SolveByElim
 
 /--
-`applyTactics lemmas goal` will return a list of tactics,
-corresponding to applying each one of the lemmas to the goal `goal`.
+`applyTactics lemmas goal` will return an iterator that applies the
+lemmas to the goal `goal` and returns ones that succeed.
 
 Providing this to the `backtracking` tactic,
 we can perform backtracking search based on applying a list of lemmas.
@@ -72,16 +72,18 @@ we can perform backtracking search based on applying a list of lemmas.
 calls to `apply` succeeded or failed.
 -/
 def applyTactics (cfg : ApplyConfig := {}) (transparency : TransparencyMode := .default)
-    (lemmas : List Expr) (g : MVarId) : Nondet MetaM (List MVarId) :=
-  (Nondet.ofList lemmas).filterMapM fun e => observing? do
-    withTraceNode `Meta.Tactic.solveByElim (return m!"{Except.emoji ·} trying to apply: {e}") do
-      let goals ← withTransparency transparency (g.apply e cfg)
-      -- When we call `apply` interactively, `Lean.Elab.Tactic.evalApplyLikeTactic`
-      -- deals with closing new typeclass goals by calling
-      -- `Lean.Elab.Term.synthesizeSyntheticMVarsNoPostponing`.
-      -- It seems we can't reuse that machinery down here in `MetaM`,
-      -- so we just settle for trying to close each subgoal using `inferInstance`.
-      goals.filterM fun g => try g.inferInstance; pure false catch _ => pure true
+    (lemmas : List Expr) (g : MVarId) : MetaM (Lean.Meta.Iterator (List Lean.MVarId)) := do
+  pure <|
+    (← Meta.Iterator.ofList lemmas).filterMapM (fun e => observing? do
+      withTraceNode `Meta.Tactic.solveByElim (return m!"{Except.emoji ·} trying to apply: {e}") do
+        let goals ← withTransparency transparency (g.apply e cfg)
+        -- When we call `apply` interactively, `Lean.Elab.Tactic.evalApplyLikeTactic`
+        -- deals with closing new typeclass goals by calling
+        -- `Lean.Elab.Term.synthesizeSyntheticMVarsNoPostponing`.
+        -- It seems we can't reuse that machinery down here in `MetaM`,
+        -- so we just settle for trying to close each subgoal using `inferInstance`.
+        goals.filterM fun g => try g.inferInstance; pure false catch _ => pure true)
+
 
 /--
 `applyFirst lemmas goal` applies the first of the `lemmas`
@@ -90,8 +92,8 @@ which can be successfully applied to `goal`, and fails if none apply.
 We use this in `apply_rules` and `apply_assumption` where backtracking is not needed.
 -/
 def applyFirst (cfg : ApplyConfig := {}) (transparency : TransparencyMode := .default)
-    (lemmas : List Expr) (g : MVarId) : MetaM (List MVarId) :=
-  (applyTactics cfg transparency lemmas g).head
+    (lemmas : List Expr) (g : MVarId) : MetaM (List MVarId) := do
+  (←applyTactics cfg transparency lemmas g).head
 
 /-- The default `maxDepth` for `apply_rules` is higher. -/
 structure ApplyRulesConfig extends BacktrackConfig, ApplyConfig where
@@ -242,9 +244,10 @@ def elabContextLemmas (g : MVarId) (lemmas : List (TermElabM Expr)) (ctx : TermE
 
 /-- Returns the list of tactics corresponding to applying the available lemmas to the goal. -/
 def applyLemmas (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
-    (g : MVarId) : Nondet MetaM (List MVarId) := Nondet.squash fun _ => do
+    (g : MVarId)
+    : MetaM (Meta.Iterator (List MVarId)) := do
   let es ← elabContextLemmas g lemmas ctx
-  return applyTactics cfg.toApplyConfig cfg.transparency es g
+  applyTactics cfg.toApplyConfig cfg.transparency es g
 
 /-- Applies the first possible lemma to the goal. -/
 def applyFirstLemma (cfg : Config) (lemmas : List (TermElabM Expr)) (ctx : TermElabM (List Expr))
