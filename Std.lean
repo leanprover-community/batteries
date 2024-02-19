@@ -63,6 +63,7 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
+import Std.Lean.Meta.Iterator
 import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
