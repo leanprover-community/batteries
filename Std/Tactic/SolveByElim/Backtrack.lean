@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import Std.Data.List.Basic
 import Std.Lean.Except
 import Std.Lean.Meta.Basic
+import Std.Lean.Meta.Iterator
 
 /-!
 # `backtrack`
