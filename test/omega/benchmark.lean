@@ -1,4 +1,3 @@
-import Std.Tactic.Omega.Frontend
 
 /-!
 # Benchmarking the `omega` tactic

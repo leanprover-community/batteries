@@ -258,29 +258,6 @@ protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a
 
 instance : HasSubset (List α) := ⟨List.Subset⟩
 
-instance decidableBEx (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse nofun
-  | x :: xs =>
-    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
-      match decidableBEx p xs with
-      | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
-      | isFalse h₂ => isFalse fun
-        | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
-        | ⟨_, .head .., hp⟩ => h₁ hp
-
-instance decidableBAll (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue nofun
-  | x :: xs =>
-    if h₁ : p x then
-      match decidableBAll p xs with
-      | isTrue h₂ => isTrue fun
-        | y, .tail _ h => h₂ y h
-        | _, .head .. => h₁
-      | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
-    else isFalse fun H => h₁ <| H x (.head ..)
-
 instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
   fun _ _ => decidableBAll _ _
 
@@ -407,10 +384,6 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
     simp [replaceFTR.go, replaceF]; cases p x <;> simp
     · rw [go _ xs]; simp
   exact (go #[] _).symm
-
-/-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [BEq α] (a : α) (l : List α) : List α :=
-  if l.elem a then l else a :: l
 
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.

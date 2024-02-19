@@ -7,7 +7,6 @@ import Std.Data.Fin.Basic
 import Std.Data.Nat.Lemmas
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
-import Std.Tactic.Omega
 import Std.Tactic.SimpTrace
 
 namespace Fin

@@ -1,6 +1,3 @@
-import Std.Tactic.Omega.Frontend
-
-open Std.Tactic.Omega
 
 example : True := by
   fail_if_success omega
