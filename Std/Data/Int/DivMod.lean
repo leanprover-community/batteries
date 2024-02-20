@@ -631,7 +631,7 @@ theorem lt_of_mul_lt_mul_left {a b c : Int} (w : a * b < a * c) (h : 0 ≤ a) : 
   · exact False.elim (Int.lt_irrefl _ w)
   · rcases Int.lt_trichotomy a 0 with a_lt | rfl | a_gt
     · exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le a_lt h))
-    · exact False.elim (Int.lt_irrefl _ (by simpa using w))
+    · exact False.elim (Int.lt_irrefl b (by simp at w))
     · have := le_of_mul_le_mul_left (Int.le_of_lt w) a_gt
       exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le gt this))
 
