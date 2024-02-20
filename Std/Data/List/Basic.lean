@@ -202,7 +202,8 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
       simp [enumFrom, f]
   -- Note: there was a regression here caused by leanprover/lean4#3388.
   -- Previously the `go` was in the `simp`, not the `rw`, but currently `simp` can't use it.
-  -- A fix is in the works.
+  -- A fix will land in nightly-2024-02-20
+  -- https://github.com/leanprover/lean4/pull/3406
   rw [Array.foldr_eq_foldr_data, go]
   simp
 
