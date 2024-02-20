@@ -251,7 +251,7 @@ private theorem allOnes_def :
   else
     simp [h]
 
-@[simp] theorem negOne_eq_allOnes : -1#w = allOnes w :=
+theorem negOne_eq_allOnes : -1#w = allOnes w :=
   rfl
 
 /-! ### or -/
