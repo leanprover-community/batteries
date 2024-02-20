@@ -203,7 +203,7 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
   have : m'.1.size > 0 := by
     have := Array.size_mapM (m := StateT (ULift Nat) Id) (go .nil) m.buckets.1
     simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
-    simp [this, Id.run, StateT.run, m.2.2]
+    simp [this, Id.run, StateT.run, m.2.2, m']
   ⟨m'.2.1, m'.1, this⟩
 where
   /-- Inner loop of `filterMap`. Note that this reverses the bucket lists,

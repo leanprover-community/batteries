@@ -5,7 +5,6 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Data.List.Basic
 import Std.Data.List.Lemmas
-import Std.Data.List.Init.Lemmas
 
 /-!
 # Counting in lists

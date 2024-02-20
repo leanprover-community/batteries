@@ -231,10 +231,6 @@ annotations. -/
 def getTypeCleanup (mvarId : MVarId) : MetaM Expr :=
   return (← instantiateMVars (← mvarId.getType)).cleanupAnnotations
 
-/-- Short-hand for applying a constant to the goal. -/
-def applyConst (mvar : MVarId) (c : Name) (cfg : ApplyConfig := {}) : MetaM (List MVarId) := do
-  mvar.apply (← mkConstWithFreshMVarLevels c) cfg
-
 end MVarId
 
 
@@ -288,13 +284,6 @@ where
       match ← tac goal with
       | none => acc.modify fun s => s.push goal
       | some goals => goals.forM (go acc)
-
-/-- Return local hypotheses which are not "implementation detail", as `Expr`s. -/
-def getLocalHyps [Monad m] [MonadLCtx m] : m (Array Expr) := do
-  let mut hs := #[]
-  for d in ← getLCtx do
-    if !d.isImplementationDetail then hs := hs.push d.toExpr
-  return hs
 
 /--
 Given a monadic function `F` that takes a type and a term of that type and produces a new term,

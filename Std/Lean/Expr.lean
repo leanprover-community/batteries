@@ -128,14 +128,6 @@ def isAppOf' (e : Expr) (n : Name) : Bool :=
   | const c .. => c == n
   | _ => false
 
-/-- If the expression is a constant, return that name. Otherwise return `Name.anonymous`. -/
-def constName (e : Expr) : Name :=
-  e.constName?.getD Name.anonymous
-
-/-- Return the function (name) and arguments of an application. -/
-def getAppFnArgs (e : Expr) : Name × Array Expr :=
-  withApp e λ e a => (e.constName, a)
-
 /-- Turns an expression that is a natural number literal into a natural number. -/
 def natLit! : Expr → Nat
   | lit (Literal.natVal v) => v
@@ -150,28 +142,3 @@ def intLit! (e : Expr) : Int :=
     .negOfNat e.appArg!.natLit!
   else
     panic! "not a raw integer literal"
-
-/--
-Checks if an expression is a "natural number in normal form",
-i.e. of the form `OfNat n`, where `n` matches `.lit (.natVal lit)` for some `lit`.
-and if so returns `lit`.
--/
--- Note that an `Expr.lit (.natVal n)` is not considered in normal form!
-def nat? (e : Expr) : Option Nat := do
-  guard <| e.isAppOfArity ``OfNat.ofNat 3
-  let lit (.natVal n) := e.appFn!.appArg! | none
-  n
-
-/--
-Checks if an expression is an "integer in normal form",
-i.e. either a natural number in normal form, or the negation of a positive natural number,
-and if so returns the integer.
--/
-def int? (e : Expr) : Option Int :=
-  if e.isAppOfArity ``Neg.neg 3 then
-    match e.appArg!.nat? with
-    | none => none
-    | some 0 => none
-    | some n => some (-n)
-  else
-    e.nat?

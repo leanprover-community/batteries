@@ -1,4 +1,3 @@
-import Std.Tactic.Omega.Frontend
 
 -- Turn on `trace.omega` to get detailed information about the processing of hypotheses,
 -- and the justification of the contradiction found.

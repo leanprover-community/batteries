@@ -377,7 +377,7 @@ protected theorem Balanced.alter {t : RBNode α}
       | .black ha hb => exact ⟨_, _, hp.fill (.black ha hb)⟩
 
 theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
-  simp [modify, alter]; split <;> simp [Option.map]
+  simp [modify, alter]
 
 /-- The `modify` function preserves the ordering invariants. -/
 protected theorem Ordered.modify {t : RBNode α}

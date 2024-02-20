@@ -7,7 +7,6 @@ import Std.Data.Char
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
-import Std.Tactic.Ext.Attr
 import Std.Tactic.Lint.Misc
 import Std.Tactic.SeqFocus
 import Std.Tactic.Simpa

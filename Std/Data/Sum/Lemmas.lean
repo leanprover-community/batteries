@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
 import Std.Data.Sum.Basic
-import Std.Tactic.Ext
 
 /-!
 # Disjoint union of types

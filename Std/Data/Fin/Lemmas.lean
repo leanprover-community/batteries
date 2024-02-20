@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Fin.Basic
-import Std.Data.Nat.Lemmas
-import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
-import Std.Tactic.Omega
 import Std.Tactic.SimpTrace
 
 namespace Fin

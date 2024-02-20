@@ -149,7 +149,7 @@ theorem Heap.size_tail (le) {s : Heap α} (h : s.NoSibling) : (s.tail le).size =
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => rfl
-  | some tl => simp [Heap.size_tail? h eq]; rfl
+  | some tl => simp [Heap.size_tail? h eq]
 
 theorem Heap.size_deleteMin_lt {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.size < s.size := by

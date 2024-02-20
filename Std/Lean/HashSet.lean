@@ -73,11 +73,3 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
 @[inline]
 protected def ofList [BEq α] [Hashable α] (as : List α) : HashSet α :=
   HashSet.empty.insertMany as
-
-/--
-`O(|t|)` amortized. Merge two `HashSet`s.
--/
-@[inline]
-def merge {α : Type u} [BEq α] [Hashable α] (s t : HashSet α) : HashSet α :=
-  t.fold (init := s) fun s a => s.insert a
-  -- We don't use `insertMany` here because it gives weird universes.
