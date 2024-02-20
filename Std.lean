@@ -3,7 +3,6 @@ import Std.Classes.Cast
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SatisfiesM
-import Std.Classes.SetNotation
 import Std.CodeAction
 import Std.CodeAction.Attr
 import Std.CodeAction.Basic
@@ -97,8 +96,6 @@ import Std.Tactic.Lint.Simp
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.NoMatch
 import Std.Tactic.NormCast
-import Std.Tactic.NormCast.Ext
-import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
@@ -108,7 +105,6 @@ import Std.Tactic.Relation.Symm
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
 import Std.Tactic.SimpTrace
-import Std.Tactic.Simpa
 import Std.Tactic.SolveByElim
 import Std.Tactic.SolveByElim.Backtrack
 import Std.Tactic.SqueezeScope

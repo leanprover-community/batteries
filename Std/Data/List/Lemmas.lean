@@ -10,7 +10,6 @@ import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
 import Std.Classes.BEq
-import Std.Tactic.Simpa
 
 namespace List
 
