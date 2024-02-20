@@ -33,22 +33,18 @@ end Key
 
 namespace Trie
 
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
-private unsafe def foldMUnsafe [Monad m] (initialKeys : Array Key)
-    (f : σ → Array Key → α → m σ) (init : σ) : Trie α → m σ
-  | Trie.node vs children => do
-    let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
-    children.foldlM (init := s) fun s (k, t) =>
-      t.foldMUnsafe (initialKeys.push k) f s
+-- `Inhabited` instance to allow `partial` definitions.
+private local instance [Monad m] : Inhabited (σ → β → m σ) := ⟨fun s _ => pure s⟩
 
 /--
 Monadically fold the keys and values stored in a `Trie`.
 -/
-@[implemented_by foldMUnsafe]
-opaque foldM [Monad m] (initalKeys : Array Key)
-    (f : σ → Array Key → α → m σ) (init : σ) (t : Trie α) : m σ :=
-  pure init
+partial def foldM [Monad m] (initialKeys : Array Key)
+    (f : σ → Array Key → α → m σ) : (init : σ) → Trie α → m σ
+  | init, Trie.node vs children => do
+    let s ← vs.foldlM (init := init) fun s v => f s initialKeys v
+    children.foldlM (init := s) fun s (k, t) =>
+      t.foldM (initialKeys.push k) f s
 
 /--
 Fold the keys and values stored in a `Trie`.
@@ -57,18 +53,13 @@ Fold the keys and values stored in a `Trie`.
 def fold (initialKeys : Array Key) (f : σ → Array Key → α → σ) (init : σ) (t : Trie α) : σ :=
   Id.run <| t.foldM initialKeys (init := init) fun s k a => return f s k a
 
--- This is just a partial function, but Lean doesn't realise that its type is
--- inhabited.
-private unsafe def foldValuesMUnsafe [Monad m] (f : σ → α → m σ) (init : σ) : Trie α → m σ
-  | node vs children => do
-    let s ← vs.foldlM (init := init) f
-    children.foldlM (init := s) fun s (_, c) => c.foldValuesMUnsafe (init := s) f
-
 /--
 Monadically fold the values stored in a `Trie`.
 -/
-@[implemented_by foldValuesMUnsafe]
-opaque foldValuesM [Monad m] (f : σ → α → m σ) (init : σ) (t : Trie α) : m σ := pure init
+partial def foldValuesM [Monad m] (f : σ → α → m σ) : (init : σ) → Trie α → m σ
+  | init, node vs children => do
+    let s ← vs.foldlM (init := init) f
+    children.foldlM (init := s) fun s (_, c) => c.foldValuesM (init := s) f
 
 /--
 Fold the values stored in a `Trie`.
@@ -132,6 +123,13 @@ def foldValues (f : σ → α → σ) (init : σ) (t : DiscrTree α) : σ :=
   Id.run <| t.foldValuesM (init := init) f
 
 /--
+Check for the presence of a value satisfying a predicate.
+-/
+@[inline]
+def containsValueP (t : DiscrTree α) (f : α → Bool) : Bool :=
+  t.foldValues (init := false) fun r a => r || f a
+
+/--
 Extract the values stored in a `DiscrTree`.
 -/
 @[inline]
@@ -165,11 +163,11 @@ Inserts a new key into a discrimination tree,
 but only if it is not of the form `#[*]` or `#[=, *, *, *]`.
 -/
 def insertIfSpecific [BEq α] (d : DiscrTree α)
-    (keys : Array DiscrTree.Key) (v : α) (config : WhnfCoreConfig) : DiscrTree α :=
+    (keys : Array DiscrTree.Key) (v : α) : DiscrTree α :=
   if keys == #[Key.star] || keys == #[Key.const `Eq 3, Key.star, Key.star, Key.star] then
     d
   else
-    d.insertCore keys v config
+    d.insertCore keys v
 
 variable {m : Type → Type} [Monad m]
 

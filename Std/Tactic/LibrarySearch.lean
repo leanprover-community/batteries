@@ -7,8 +7,10 @@ import Std.Lean.CoreM
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
+import Std.Lean.Parser
 import Std.Data.Option.Basic
 import Std.Tactic.SolveByElim
+import Std.Tactic.TryThis
 import Std.Util.Pickle
 
 /-!
@@ -88,7 +90,7 @@ def cachePath : IO FilePath := do
 private def addPath [BEq α] (config : WhnfCoreConfig) (tree : DiscrTree α) (tp : Expr) (v : α) :
     MetaM (DiscrTree α) := do
   let k ← DiscrTree.mkPath tp config
-  pure <| tree.insertCore k v config
+  pure <| tree.insertCore k v
 
 /-- Adds a constant with given name to tree. -/
 private def updateTree (config : WhnfCoreConfig) (tree : DiscrTree (Name × DeclMod))
@@ -366,7 +368,10 @@ def solveByElim (required : List Expr) (exfalso : Bool) (goals : List MVarId) (m
   -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
   -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
   let cfg : SolveByElim.Config :=
-    { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true }
+    { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true,
+      transparency := ← getTransparency,
+      -- `constructor` has been observed to significantly slow down `exact?` in Mathlib.
+      constructor := false }
   let ⟨lemmas, ctx⟩ ← SolveByElim.mkAssumptionSet false false [] [] #[]
   let cfg := if !required.isEmpty then cfg.requireUsingAll required else cfg
   SolveByElim.solveByElim cfg lemmas ctx goals
