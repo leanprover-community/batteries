@@ -46,8 +46,7 @@ this is truncation of the high bits when downcasting and zero-extension when upc
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin := Fin.ofNat' i (Nat.two_pow_pos n)
 
-/-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
-this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
+/-- The `BitVec` with value `i`, given a proof that `i < 2^n`. -/
 protected def ofNatLt {n : Nat} (i : Nat) (p : i < 2^n) : BitVec n where
   toFin := ⟨i, p⟩
 

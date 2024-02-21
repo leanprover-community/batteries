@@ -109,7 +109,7 @@ theorem ofBool_eq_iff_eq : ∀(b b' : Bool), BitVec.ofBool b = BitVec.ofBool b' 
   simp [getLsb, BitVec.ofNat, Fin.val_ofNat']
 
 @[simp] theorem getLsb_ofNatLt {n : Nat} (x : Nat) (lt : x < 2^n) (i : Nat) :
-  getLsb (.ofNatLt x lt) i = x.testBit i := by
+    getLsb (.ofNatLt x lt) i = x.testBit i := by
   simp [getLsb, BitVec.ofNatLt]
 
 @[deprecated toNat_ofNat] theorem toNat_zero (n : Nat) : (0#n).toNat = 0 := by trivial
