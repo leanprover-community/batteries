@@ -43,10 +43,12 @@ namespace BitVec
 
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
+@[match_pattern]
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
   toFin := Fin.ofNat' i (Nat.two_pow_pos n)
 
 /-- The `BitVec` with value `i`, given a proof that `i < 2^n`. -/
+@[match_pattern]
 protected def ofNatLt {n : Nat} (i : Nat) (p : i < 2^n) : BitVec n where
   toFin := ⟨i, p⟩
 
@@ -83,9 +85,6 @@ instance : OfNat (BitVec n) i where ofNat := .ofNat n i
 scoped syntax:max term:max noWs "#" noWs term:max : term
 macro_rules | `($i#$n) => `(BitVec.ofNat $n $i)
 
-/- Support for `i#n` notation in patterns.  -/
-attribute [match_pattern] BitVec.ofNat
-
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNat] def unexpandBitVecOfNat : Lean.PrettyPrinter.Unexpander
   | `($(_) $n $i) => `($i#$n)
@@ -95,8 +94,6 @@ attribute [match_pattern] BitVec.ofNat
 scoped syntax:max term:max noWs "#'" noWs term:max : term
 macro_rules | `($i#'$p) => `(BitVec.ofNatLt $i $p)
 
-/- Support for `i#n` notation in patterns.  -/
-attribute [match_pattern] BitVec.ofNatLt
 
 /-- Unexpander for bit vector literals. -/
 @[app_unexpander BitVec.ofNatLt] def unexpandBitVecOfNatLt : Lean.PrettyPrinter.Unexpander
@@ -414,7 +411,7 @@ def rotateRight (x : BitVec w) (n : Nat) : BitVec w := x >>> n ||| x <<< (w - n)
 A version of `zeroExtend` that requires a proof, but is a noop.
 -/
 def zeroExtend' {n w : Nat} (le : n ≤ w) (x : BitVec n)  : BitVec w :=
-  .ofNatLt (x.toNat) (by
+  (x.toNat)#'(by
     apply Nat.lt_of_lt_of_le x.isLt
     exact Nat.pow_le_pow_of_le_right (by trivial) le)
 
