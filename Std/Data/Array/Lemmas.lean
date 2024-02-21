@@ -7,6 +7,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.Array.Basic
+import Std.Tactic.SeqFocus
 import Std.Tactic.HaveI
 import Std.Tactic.Simpa
 import Std.Util.ProofWanted
@@ -29,6 +30,9 @@ theorem getElem?_neg [GetElem Cont Idx Elem Dom]
     (a : Cont) (i : Idx) (h : ¬Dom a i) [Decidable (Dom a i)] : a[i]? = none := dif_neg h
 
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
+
+@[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
+    (mkArray n v)[i]'h = v := by simp [Array.getElem_eq_data_get]
 
 namespace Array
 

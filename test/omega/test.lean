@@ -425,3 +425,5 @@ example (i j : Fin 7) (p : i ≥ j) (_ : j > 0) : True := by
   let l := j - 1 -- TODO change back to j - 1 in a moment!
   have _ : i ≥ l := by omega
   trivial
+
+example (x y z i : Nat) (hz : z ≤ 1) : x % 2 ^ i + y % 2 ^ i + z < 2 * 2^ i := by omega

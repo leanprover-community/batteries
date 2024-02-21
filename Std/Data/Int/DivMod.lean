@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import Std.Data.Int.Order
+import Std.Data.Int.Init.DivMod
 import Std.Tactic.Change
+import Std.Tactic.Simpa
 
 /-!
 # Lemmas about integer division
@@ -23,8 +25,6 @@ theorem ofNat_fdiv : ∀ m n : Nat, ↑(m / n) = fdiv ↑m ↑n
   | 0, _ => by simp [fdiv]
   | succ _, _ => rfl
 
-@[simp, norm_cast] theorem ofNat_ediv (m n : Nat) : (↑(m / n) : Int) = ↑m / ↑n := rfl
-
 theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 1) :=
   match b, eq_succ_of_zero_lt H with
   | _, ⟨_, rfl⟩ => rfl
@@ -33,17 +33,9 @@ theorem negSucc_ediv (m : Nat) {b : Int} (H : 0 < b) : -[m+1] / b = -(div m b + 
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => show -ofNat _ = _ by simp
 
-@[simp] theorem zero_ediv : ∀ b : Int, 0 / b = 0
-  | ofNat _ => show ofNat _ = _ by simp
-  | -[_+1] => show -ofNat _ = _ by simp
-
 @[simp] theorem zero_fdiv (b : Int) : fdiv 0 b = 0 := by cases b <;> rfl
 
 @[simp] protected theorem div_zero : ∀ a : Int, div a 0 = 0
-  | ofNat _ => show ofNat _ = _ by simp
-  | -[_+1] => rfl
-
-@[simp] protected theorem ediv_zero : ∀ a : Int, a / 0 = 0
   | ofNat _ => show ofNat _ = _ by simp
   | -[_+1] => rfl
 
@@ -67,13 +59,6 @@ theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = div a
   | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero]; rfl
   | ofNat m, -[n+1] | -[m+1], succ n => (Int.neg_neg _).symm
   | ofNat m, succ n | -[m+1], 0 | -[m+1], -[n+1] => rfl
-
-@[simp] protected theorem ediv_neg : ∀ a b : Int, a / (-b) = -(a / b)
-  | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero]; rfl
-  | ofNat m, -[n+1] => (Int.neg_neg _).symm
-  | ofNat m, succ n | -[m+1], 0 | -[m+1], succ n | -[m+1], -[n+1] => rfl
-
-protected theorem div_def (a b : Int) : a / b = Int.ediv a b := rfl
 
 -- Lean 4 core provides an instance for `Div Int` using `Int.div`.
 -- Even though we provide a higher priority instance in `Std.Data.Int.Basic`,
@@ -138,53 +123,9 @@ theorem ediv_eq_zero_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a / b = 0 :
   match a, b, eq_ofNat_of_zero_le H1, eq_succ_of_zero_lt (Int.lt_of_le_of_lt H1 H2) with
   | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg Nat.cast <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
 
-theorem add_mul_ediv_right (a b : Int) {c : Int} (H : c ≠ 0) : (a + b * c) / c = a / c + b :=
-  suffices ∀ {{a b c : Int}}, 0 < c → (a + b * c).ediv c = a.ediv c + b from
-    match Int.lt_trichotomy c 0 with
-    | Or.inl hlt => by
-      rw [← Int.neg_inj, ← Int.ediv_neg, Int.neg_add, ← Int.ediv_neg, ← Int.neg_mul_neg]
-      exact this (Int.neg_pos_of_neg hlt)
-    | Or.inr (Or.inl HEq) => absurd HEq H
-    | Or.inr (Or.inr hgt) => this hgt
-  suffices ∀ {k n : Nat} {a : Int}, (a + n * k.succ).ediv k.succ = a.ediv k.succ + n from
-    fun a b c H => match c, eq_succ_of_zero_lt H, b with
-      | _, ⟨_, rfl⟩, ofNat _ => this
-      | _, ⟨k, rfl⟩, -[n+1] => show (a - n.succ * k.succ).ediv k.succ = a.ediv k.succ - n.succ by
-        rw [← Int.add_sub_cancel (ediv ..), ← this, Int.sub_add_cancel]
-  fun {k n} => @fun
-  | ofNat m => congrArg ofNat <| Nat.add_mul_div_right _ _ k.succ_pos
-  | -[m+1] => by
-    show ((n * k.succ : Nat) - m.succ : Int).ediv k.succ = n - (m / k.succ + 1 : Nat)
-    if h : m < n * k.succ then
-      rw [← Int.ofNat_sub h, ← Int.ofNat_sub ((Nat.div_lt_iff_lt_mul k.succ_pos).2 h)]
-      apply congrArg ofNat
-      rw [Nat.mul_comm, Nat.mul_sub_div]; rwa [Nat.mul_comm]
-    else
-      have h := Nat.not_lt.1 h
-      have H {a b : Nat} (h : a ≤ b) : (a : Int) + -((b : Int) + 1) = -[b - a +1] := by
-        rw [negSucc_eq, Int.ofNat_sub h]
-        simp only [Int.sub_eq_add_neg, Int.neg_add, Int.neg_neg, Int.add_left_comm, Int.add_assoc]
-      show ediv (↑(n * succ k) + -((m : Int) + 1)) (succ k) = n + -(↑(m / succ k) + 1 : Int)
-      rw [H h, H ((Nat.le_div_iff_mul_le k.succ_pos).2 h)]
-      apply congrArg negSucc
-      rw [Nat.mul_comm, Nat.sub_mul_div]; rwa [Nat.mul_comm]
-
 theorem add_mul_ediv_left (a : Int) {b : Int}
     (c : Int) (H : b ≠ 0) : (a + b * c) / b = a / b + c :=
   Int.mul_comm .. ▸ Int.add_mul_ediv_right _ _ H
-
-theorem add_ediv_of_dvd_right {a b c : Int} (H : c ∣ b) : (a + b) / c = a / c + b / c :=
-  if h : c = 0 then by simp [h] else by
-    let ⟨k, hk⟩ := H
-    rw [hk, Int.mul_comm c k, Int.add_mul_ediv_right _ _ h,
-      ← Int.zero_add (k * c), Int.add_mul_ediv_right _ _ h, Int.zero_ediv, Int.zero_add]
-
-theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c + b / c := by
-  rw [Int.add_comm, Int.add_ediv_of_dvd_right H, Int.add_comm]
-
-@[simp] theorem mul_ediv_cancel (a : Int) {b : Int} (H : b ≠ 0) : (a * b) / b = a := by
-  have := Int.add_mul_ediv_right 0 a H
-  rwa [Int.zero_add, Int.zero_ediv, Int.zero_add] at this
 
 @[simp] theorem mul_fdiv_cancel (a : Int) {b : Int} (H : b ≠ 0) : fdiv (a * b) b = a :=
   if b0 : 0 ≤ b then by
@@ -216,9 +157,6 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 @[simp] theorem mul_fdiv_cancel_left (b : Int) (H : a ≠ 0) : fdiv (a * b) a = b :=
   Int.mul_comm .. ▸ Int.mul_fdiv_cancel _ H
 
-@[simp] theorem mul_ediv_cancel_left (b : Int) (H : a ≠ 0) : (a * b) / a = b :=
-  Int.mul_comm .. ▸ Int.mul_ediv_cancel _ H
-
 @[simp] protected theorem div_self {a : Int} (H : a ≠ 0) : a.div a = 1 := by
   have := Int.mul_div_cancel 1 H; rwa [Int.one_mul] at this
 
@@ -228,24 +166,9 @@ theorem add_ediv_of_dvd_left {a b c : Int} (H : c ∣ a) : (a + b) / c = a / c +
 @[simp] protected theorem ediv_self {a : Int} (H : a ≠ 0) : a / a = 1 := by
   have := Int.mul_ediv_cancel 1 H; rwa [Int.one_mul] at this
 
-theorem div_nonneg_iff_of_pos {a b : Int} (h : 0 < b) : a / b ≥ 0 ↔ a ≥ 0 := by
-  rw [Int.div_def]
-  match b, h with
-  | Int.ofNat (b+1), _ =>
-    rcases a with ⟨a⟩ <;> simp [Int.ediv]
-    exact decide_eq_decide.mp rfl
-
 /-! ### mod -/
 
-theorem mod_def' (m n : Int) : m % n = emod m n := rfl
-
-theorem ofNat_mod (m n : Nat) : (↑(m % n) : Int) = mod m n := rfl
-
-theorem ofNat_mod_ofNat (m n : Nat) : (m % n : Int) = ↑(m % n) := rfl
-
 theorem ofNat_fmod (m n : Nat) : ↑(m % n) = fmod m n := by cases m <;> simp [fmod]
-
-@[simp, norm_cast] theorem ofNat_emod (m n : Nat) : (↑(m % n) : Int) = m % n := rfl
 
 theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m % b := by
   rw [Int.sub_sub, Int.add_comm]
@@ -256,8 +179,6 @@ theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m
 
 @[simp] theorem zero_fmod (b : Int) : fmod 0 b = 0 := by cases b <;> rfl
 
-@[simp] theorem zero_emod (b : Int) : 0 % b = 0 := by simp [mod_def', emod]
-
 @[simp] theorem mod_zero : ∀ a : Int, mod a 0 = a
   | ofNat _ => congrArg ofNat <| Nat.mod_zero _
   | -[_+1] => rfl
@@ -265,10 +186,6 @@ theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m
 @[simp] theorem fmod_zero : ∀ a : Int, fmod a 0 = a
   | 0 => rfl
   | succ _ => congrArg ofNat <| Nat.mod_zero _
-  | -[_+1]  => congrArg negSucc <| Nat.mod_zero _
-
-@[simp] theorem emod_zero : ∀ a : Int, a % 0 = a
-  | ofNat _ => congrArg ofNat <| Nat.mod_zero _
   | -[_+1]  => congrArg negSucc <| Nat.mod_zero _
 
 theorem mod_add_div : ∀ a b : Int, mod a b + b * (a.div b) = a
@@ -303,37 +220,17 @@ theorem fmod_add_fdiv : ∀ a b : Int, a.fmod b + b * a.fdiv b = a
     show -(↑(succ m % succ n) : Int) + -↑(succ n * (succ m / succ n)) = -↑(succ m)
     rw [← Int.neg_add]; exact congrArg (-ofNat ·) <| Nat.mod_add_div ..
 
-theorem emod_add_ediv : ∀ a b : Int, a % b + b * (a / b) = a
-  | ofNat _, ofNat _ => congrArg ofNat <| Nat.mod_add_div ..
-  | ofNat m, -[n+1] => by
-    show (m % succ n + -↑(succ n) * -↑(m / succ n) : Int) = m
-    rw [Int.neg_mul_neg]; exact congrArg ofNat <| Nat.mod_add_div ..
-  | -[_+1], 0 => by rw [emod_zero]; rfl
-  | -[m+1], succ n => aux m n.succ
-  | -[m+1], -[n+1] => aux m n.succ
-where
-  aux (m n : Nat) : n - (m % n + 1) - (n * (m / n) + n) = -[m+1] := by
-    rw [← ofNat_emod, ← ofNat_ediv, ← Int.sub_sub, negSucc_eq, Int.sub_sub n,
-      ← Int.neg_neg (_-_), Int.neg_sub, Int.sub_sub_self, Int.add_right_comm]
-    exact congrArg (fun x => -(ofNat x + 1)) (Nat.mod_add_div ..)
-
 theorem div_add_mod (a b : Int) : b * a.div b + mod a b = a :=
   (Int.add_comm ..).trans (mod_add_div ..)
 
 theorem fdiv_add_fmod (a b : Int) : b * a.fdiv b + a.fmod b = a :=
   (Int.add_comm ..).trans (fmod_add_fdiv ..)
 
-theorem ediv_add_emod (a b : Int) : b * (a / b) + a % b = a :=
-  (Int.add_comm ..).trans (emod_add_ediv ..)
-
 theorem mod_def (a b : Int) : mod a b = a - b * a.div b := by
   rw [← Int.add_sub_cancel (mod a b), mod_add_div]
 
 theorem fmod_def (a b : Int) : a.fmod b = a - b * a.fdiv b := by
   rw [← Int.add_sub_cancel (a.fmod b), fmod_add_fdiv]
-
-theorem emod_def (a b : Int) : a % b = a - b * (a / b) := by
-  rw [← Int.add_sub_cancel (a % b), emod_add_ediv]
 
 theorem fmod_eq_emod (a : Int) {b : Int} (hb : 0 ≤ b) : fmod a b = a % b := by
   simp [fmod_def, emod_def, fdiv_eq_ediv _ hb]
@@ -376,10 +273,6 @@ theorem fmod_eq_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a.fmod b = a := 
 theorem mod_nonneg : ∀ {a : Int} (b : Int), 0 ≤ a → 0 ≤ mod a b
   | ofNat _, -[_+1], _ | ofNat _, ofNat _, _ => ofNat_nonneg _
 
-theorem emod_nonneg : ∀ (a : Int) {b : Int}, b ≠ 0 → 0 ≤ a % b
-  | ofNat _, _, _ => ofNat_zero_le _
-  | -[_+1], _, H => Int.sub_nonneg_of_le <| ofNat_le.2 <| Nat.mod_lt _ (natAbs_pos.2 H)
-
 theorem fmod_nonneg {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a.fmod b :=
   fmod_eq_mod ha hb ▸ mod_nonneg _ ha
 
@@ -392,23 +285,8 @@ theorem mod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : mod a b < b :=
   | -[_+1], _, ⟨n, rfl⟩ => Int.lt_of_le_of_lt
     (Int.neg_nonpos_of_nonneg <| Int.ofNat_nonneg _) (ofNat_pos.2 n.succ_pos)
 
-theorem emod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a % b < b :=
-  match a, b, eq_succ_of_zero_lt H with
-  | ofNat _, _, ⟨_, rfl⟩ => ofNat_lt.2 (Nat.mod_lt _ (Nat.succ_pos _))
-  | -[_+1], _, ⟨_, rfl⟩ => Int.sub_lt_self _ (ofNat_lt.2 <| Nat.succ_pos _)
-
 theorem fmod_lt_of_pos (a : Int) {b : Int} (H : 0 < b) : a.fmod b < b :=
   fmod_eq_emod _ (Int.le_of_lt H) ▸ emod_lt_of_pos a H
-
-theorem mul_ediv_self_le {x k : Int} (h : k ≠ 0) : k * (x / k) ≤ x :=
-  calc k * (x / k)
-    _ ≤ k * (x / k) + x % k := Int.le_add_of_nonneg_right (emod_nonneg x h)
-    _ = x                   := ediv_add_emod _ _
-
-theorem lt_mul_ediv_self_add {x k : Int} (h : 0 < k) : x < k * (x / k) + k :=
-  calc x
-    _ = k * (x / k) + x % k := (ediv_add_emod _ _).symm
-    _ < k * (x / k) + k     := Int.add_lt_add_left (emod_lt_of_pos x h) _
 
 theorem emod_two_eq (x : Int) : x % 2 = 0 ∨ x % 2 = 1 := by
   have h₁ : 0 ≤ x % 2 := Int.emod_nonneg x (by decide)
@@ -423,54 +301,12 @@ theorem mod_add_div' (m k : Int) : mod m k + m.div k * k = m := by
 theorem div_add_mod' (m k : Int) : m.div k * k + mod m k = m := by
   rw [Int.mul_comm]; apply div_add_mod
 
-theorem emod_add_ediv' (m k : Int) : m % k + m / k * k = m := by
-  rw [Int.mul_comm]; apply emod_add_ediv
-
 theorem ediv_add_emod' (m k : Int) : m / k * k + m % k = m := by
   rw [Int.mul_comm]; apply ediv_add_emod
-
-@[simp] theorem add_mul_emod_self {a b c : Int} : (a + b * c) % c = a % c :=
-  if cz : c = 0 then by
-    rw [cz, Int.mul_zero, Int.add_zero]
-  else by
-    rw [Int.emod_def, Int.emod_def, Int.add_mul_ediv_right _ _ cz, Int.add_comm _ b,
-      Int.mul_add, Int.mul_comm, ← Int.sub_sub, Int.add_sub_cancel]
-
-@[simp] theorem add_mul_emod_self_left (a b c : Int) : (a + b * c) % b = a % b := by
-  rw [Int.mul_comm, Int.add_mul_emod_self]
-
-@[simp] theorem add_emod_self {a b : Int} : (a + b) % b = a % b := by
-  have := add_mul_emod_self_left a b 1; rwa [Int.mul_one] at this
-
-@[simp] theorem add_emod_self_left {a b : Int} : (a + b) % a = b % a := by
-  rw [Int.add_comm, Int.add_emod_self]
-
-theorem neg_emod {a b : Int} : -a % b = (b - a) % b := by
-  rw [← add_emod_self_left]; rfl
-
-@[simp] theorem emod_add_emod (m n k : Int) : (m % n + k) % n = (m + k) % n := by
-  have := (add_mul_emod_self_left (m % n + k) n (m / n)).symm
-  rwa [Int.add_right_comm, emod_add_ediv] at this
-
-@[simp] theorem add_emod_emod (m n k : Int) : (m + n % k) % k = (m + n) % k := by
-  rw [Int.add_comm, emod_add_emod, Int.add_comm]
-
-theorem add_emod (a b n : Int) : (a + b) % n = (a % n + b % n) % n := by
-  rw [add_emod_emod, emod_add_emod]
-
-theorem add_emod_eq_add_emod_right {m n k : Int} (i : Int)
-    (H : m % n = k % n) : (m + i) % n = (k + i) % n := by
-  rw [← emod_add_emod, ← emod_add_emod k, H]
 
 theorem add_emod_eq_add_emod_left {m n k : Int} (i : Int)
     (H : m % n = k % n) : (i + m) % n = (i + k) % n := by
   rw [Int.add_comm, add_emod_eq_add_emod_right _ H, Int.add_comm]
-
-theorem emod_add_cancel_right {m n k : Int} (i) : (m + i) % n = (k + i) % n ↔ m % n = k % n :=
-  ⟨fun H => by
-    have := add_emod_eq_add_emod_right (-i) H
-    rwa [Int.add_neg_cancel_right, Int.add_neg_cancel_right] at this,
-  add_emod_eq_add_emod_right _⟩
 
 theorem emod_add_cancel_left {m n k i : Int} : (i + m) % n = (i + k) % n ↔ m % n = k % n := by
   rw [Int.add_comm, Int.add_comm i, emod_add_cancel_right]
@@ -489,45 +325,17 @@ theorem emod_eq_emod_iff_emod_sub_eq_zero {m n k : Int} : m % n = k % n ↔ (m -
   if h : b = 0 then by simp [h, Int.mul_zero] else by
     rw [Int.fmod_def, Int.mul_fdiv_cancel _ h, Int.mul_comm, Int.sub_self]
 
-@[simp] theorem mul_emod_left (a b : Int) : (a * b) % b = 0 := by
-  rw [← Int.zero_add (a * b), Int.add_mul_emod_self, Int.zero_emod]
-
 @[simp] theorem mul_mod_right (a b : Int) : (a * b).mod a = 0 := by
   rw [Int.mul_comm, mul_mod_left]
 
 @[simp] theorem mul_fmod_right (a b : Int) : (a * b).fmod a = 0 := by
   rw [Int.mul_comm, mul_fmod_left]
 
-@[simp] theorem mul_emod_right (a b : Int) : (a * b) % a = 0 := by
-  rw [Int.mul_comm, mul_emod_left]
-
-theorem mul_emod (a b n : Int) : (a * b) % n = (a % n) * (b % n) % n := by
-  conv => lhs; rw [
-    ← emod_add_ediv a n, ← emod_add_ediv' b n, Int.add_mul, Int.mul_add, Int.mul_add,
-    Int.mul_assoc, Int.mul_assoc, ← Int.mul_add n _ _, add_mul_emod_self_left,
-    ← Int.mul_assoc, add_mul_emod_self]
-
 @[simp] theorem mod_self {a : Int} : a.mod a = 0 := by
   have := mul_mod_left 1 a; rwa [Int.one_mul] at this
 
 @[simp] theorem fmod_self {a : Int} : a.fmod a = 0 := by
   have := mul_fmod_left 1 a; rwa [Int.one_mul] at this
-
-@[local simp] theorem emod_self {a : Int} : a % a = 0 := by
-  have := mul_emod_left 1 a; rwa [Int.one_mul] at this
-
-@[simp] theorem emod_emod_of_dvd (n : Int) {m k : Int}
-    (h : m ∣ k) : (n % k) % m = n % m := by
-  conv => rhs; rw [← emod_add_ediv n k]
-  match k, h with
-  | _, ⟨t, rfl⟩ => rw [Int.mul_assoc, add_mul_emod_self_left]
-
-@[simp] theorem emod_emod (a b : Int) : (a % b) % b = a % b := by
-  conv => rhs; rw [← emod_add_ediv a b, add_mul_emod_self_left]
-
-theorem sub_emod (a b n : Int) : (a - b) % n = (a % n - b % n) % n := by
-  apply (emod_add_cancel_right b).mp
-  rw [Int.sub_add_cancel, ← Int.add_emod_emod, Int.sub_add_cancel, emod_emod]
 
 protected theorem ediv_emod_unique {a b r q : Int} (h : 0 < b) :
   a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b := by
@@ -613,43 +421,7 @@ theorem mul_div_cancel_of_mod_eq_zero {a b : Int} (H : a.mod b = 0) : b * (a.div
 theorem div_mul_cancel_of_mod_eq_zero {a b : Int} (H : a.mod b = 0) : a.div b * b = a := by
   rw [Int.mul_comm, mul_div_cancel_of_mod_eq_zero H]
 
-theorem mul_ediv_cancel_of_emod_eq_zero {a b : Int} (H : a % b = 0) : b * (a / b) = a := by
-  have := emod_add_ediv a b; rwa [H, Int.zero_add] at this
-
-theorem ediv_mul_cancel_of_emod_eq_zero {a b : Int} (H : a % b = 0) : a / b * b = a := by
-  rw [Int.mul_comm, mul_ediv_cancel_of_emod_eq_zero H]
-
 /-! ### dvd -/
-
-protected theorem dvd_zero (n : Int) : n ∣ 0 := ⟨0, (Int.mul_zero _).symm⟩
-
-protected theorem dvd_refl (n : Int) : n ∣ n := ⟨1, (Int.mul_one _).symm⟩
-
-protected theorem one_dvd (n : Int) : 1 ∣ n := ⟨n, (Int.one_mul n).symm⟩
-
-protected theorem dvd_trans : ∀ {a b c : Int}, a ∣ b → b ∣ c → a ∣ c
-  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d * e, by rw [Int.mul_assoc]⟩
-
-@[simp] protected theorem zero_dvd {n : Int} : 0 ∣ n ↔ n = 0 :=
-  ⟨fun ⟨k, e⟩ => by rw [e, Int.zero_mul], fun h => h.symm ▸ Int.dvd_refl _⟩
-
-protected theorem neg_dvd {a b : Int} : -a ∣ b ↔ a ∣ b := by
-  constructor <;> exact fun ⟨k, e⟩ =>
-    ⟨-k, by simp [e, Int.neg_mul, Int.mul_neg, Int.neg_neg]⟩
-
-protected theorem dvd_neg {a b : Int} : a ∣ -b ↔ a ∣ b := by
-  constructor <;> exact fun ⟨k, e⟩ =>
-    ⟨-k, by simp [← e, Int.neg_mul, Int.mul_neg, Int.neg_neg]⟩
-
-protected theorem dvd_mul_right (a b : Int) : a ∣ a * b := ⟨_, rfl⟩
-
-protected theorem dvd_mul_left (a b : Int) : b ∣ a * b := ⟨_, Int.mul_comm ..⟩
-
-protected theorem dvd_add : ∀ {a b c : Int}, a ∣ b → a ∣ c → a ∣ b + c
-  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d + e, by rw [Int.mul_add]⟩
-
-protected theorem dvd_sub : ∀ {a b c : Int}, a ∣ b → a ∣ c → a ∣ b - c
-  | _, _, _, ⟨d, rfl⟩, ⟨e, rfl⟩ => ⟨d - e, by rw [Int.mul_sub]⟩
 
 protected theorem dvd_add_left {a b c : Int} (H : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
   ⟨fun h => by have := Int.dvd_sub h H; rwa [Int.add_sub_cancel] at this, (Int.dvd_add · H)⟩
@@ -663,23 +435,6 @@ protected theorem dvd_iff_dvd_of_dvd_sub {a b c : Int} (H : a ∣ b - c) : a ∣
 
 protected theorem dvd_iff_dvd_of_dvd_add {a b c : Int} (H : a ∣ b + c) : a ∣ b ↔ a ∣ c := by
   rw [← Int.sub_neg] at H; rw [Int.dvd_iff_dvd_of_dvd_sub H, Int.dvd_neg]
-
-@[norm_cast] theorem ofNat_dvd {m n : Nat} : (↑m : Int) ∣ ↑n ↔ m ∣ n := by
-  refine ⟨fun ⟨a, ae⟩ => ?_, fun ⟨k, e⟩ => ⟨k, by rw [e, Int.ofNat_mul]⟩⟩
-  match Int.le_total a 0 with
-  | .inl h =>
-    have := ae.symm ▸ Int.mul_nonpos_of_nonneg_of_nonpos (ofNat_zero_le _) h
-    rw [Nat.le_antisymm (ofNat_le.1 this) (Nat.zero_le _)]
-    apply Nat.dvd_zero
-  | .inr h => match a, eq_ofNat_of_zero_le h with
-    | _, ⟨k, rfl⟩ => exact ⟨k, Int.ofNat.inj ae⟩
-
-@[simp] theorem natAbs_dvd_natAbs {a b : Int} : natAbs a ∣ natAbs b ↔ a ∣ b := by
-  refine ⟨fun ⟨k, hk⟩ => ?_, fun ⟨k, hk⟩ => ⟨natAbs k, hk.symm ▸ natAbs_mul a k⟩⟩
-  rw [← natAbs_ofNat k, ← natAbs_mul, natAbs_eq_natAbs_iff] at hk
-  cases hk <;> subst b
-  · apply Int.dvd_mul_right
-  · rw [← Int.mul_neg]; apply Int.dvd_mul_right
 
 theorem natAbs_dvd {a b : Int} : (a.natAbs : Int) ∣ b ↔ a ∣ b :=
   match natAbs_eq a with
@@ -699,9 +454,6 @@ theorem dvd_natAbs_self {a : Int} : a ∣ (a.natAbs : Int) := by
   rw [Int.dvd_natAbs]
   exact Int.dvd_refl a
 
-theorem ofNat_dvd_left {n : Nat} {z : Int} : (↑n : Int) ∣ z ↔ n ∣ z.natAbs := by
-  rw [← natAbs_dvd_natAbs, natAbs_ofNat]
-
 theorem ofNat_dvd_right {n : Nat} {z : Int} : z ∣ (↑n : Int) ↔ z.natAbs ∣ n := by
   rw [← natAbs_dvd_natAbs, natAbs_ofNat]
 
@@ -713,32 +465,11 @@ theorem dvd_antisymm {a b : Int} (H1 : 0 ≤ a) (H2 : 0 ≤ b) : a ∣ b → b �
 theorem dvd_of_mod_eq_zero {a b : Int} (H : mod b a = 0) : a ∣ b :=
   ⟨b.div a, (mul_div_cancel_of_mod_eq_zero H).symm⟩
 
-theorem dvd_of_emod_eq_zero {a b : Int} (H : b % a = 0) : a ∣ b :=
-  ⟨b / a, (mul_ediv_cancel_of_emod_eq_zero H).symm⟩
-
-theorem dvd_emod_sub_self {x : Int} {m : Nat} : (m : Int) ∣ x % m - x := by
-  apply dvd_of_emod_eq_zero
-  simp [sub_emod]
-
 theorem mod_eq_zero_of_dvd : ∀ {a b : Int}, a ∣ b → mod b a = 0
   | _, _, ⟨_, rfl⟩ => mul_mod_right ..
 
-theorem emod_eq_zero_of_dvd : ∀ {a b : Int}, a ∣ b → b % a = 0
-  | _, _, ⟨_, rfl⟩ => mul_emod_right ..
-
 theorem dvd_iff_mod_eq_zero (a b : Int) : a ∣ b ↔ mod b a = 0 :=
   ⟨mod_eq_zero_of_dvd, dvd_of_mod_eq_zero⟩
-
-theorem dvd_iff_emod_eq_zero (a b : Int) : a ∣ b ↔ b % a = 0 :=
-  ⟨emod_eq_zero_of_dvd, dvd_of_emod_eq_zero⟩
-
-theorem emod_pos_of_not_dvd {a b : Int} (h : ¬ a ∣ b) : a = 0 ∨ 0 < b % a := by
-  rw [dvd_iff_emod_eq_zero] at h
-  if w : a = 0 then simp_all
-  else exact Or.inr (Int.lt_iff_le_and_ne.mpr ⟨emod_nonneg b w, Ne.symm h⟩)
-
-instance decidableDvd : DecidableRel (α := Int) (· ∣ ·) := fun _ _ =>
-  decidable_of_decidable_of_iff (dvd_iff_mod_eq_zero ..).symm
 
 /-- If `a % b = c` then `b` divides `a - c`. -/
 theorem dvd_sub_of_emod_eq {a b c : Int} (h : a % b = c) : b ∣ a - c := by
@@ -750,32 +481,17 @@ theorem dvd_sub_of_emod_eq {a b c : Int} (h : a % b = c) : b ∣ a - c := by
 protected theorem div_mul_cancel {a b : Int} (H : b ∣ a) : a.div b * b = a :=
   div_mul_cancel_of_mod_eq_zero (mod_eq_zero_of_dvd H)
 
-protected theorem ediv_mul_cancel {a b : Int} (H : b ∣ a) : a / b * b = a :=
-  ediv_mul_cancel_of_emod_eq_zero (emod_eq_zero_of_dvd H)
-
 protected theorem mul_div_cancel' {a b : Int} (H : a ∣ b) : a * b.div a = b := by
   rw [Int.mul_comm, Int.div_mul_cancel H]
-
-protected theorem mul_ediv_cancel' {a b : Int} (H : a ∣ b) : a * (b / a) = b := by
-  rw [Int.mul_comm, Int.ediv_mul_cancel H]
 
 protected theorem mul_div_assoc (a : Int) : ∀ {b c : Int}, c ∣ b → (a * b).div c = a * (b.div c)
   | _, c, ⟨d, rfl⟩ =>
     if cz : c = 0 then by simp [cz, Int.mul_zero] else by
       rw [Int.mul_left_comm, Int.mul_div_cancel_left _ cz, Int.mul_div_cancel_left _ cz]
 
-protected theorem mul_ediv_assoc (a : Int) : ∀ {b c : Int}, c ∣ b → (a * b) / c = a * (b / c)
-  | _, c, ⟨d, rfl⟩ =>
-    if cz : c = 0 then by simp [cz, Int.mul_zero] else by
-      rw [Int.mul_left_comm, Int.mul_ediv_cancel_left _ cz, Int.mul_ediv_cancel_left _ cz]
-
 protected theorem mul_div_assoc' (b : Int) {a c : Int} (h : c ∣ a) :
     (a * b).div c = a.div c * b := by
   rw [Int.mul_comm, Int.mul_div_assoc _ h, Int.mul_comm]
-
-protected theorem mul_ediv_assoc' (b : Int) {a c : Int}
-    (h : c ∣ a) : (a * b) / c = a / c * b := by
-  rw [Int.mul_comm, Int.mul_ediv_assoc _ h, Int.mul_comm]
 
 theorem div_dvd_div : ∀ {a b c : Int}, a ∣ b → b ∣ c → b.div a ∣ c.div a
   | a, _, _, ⟨b, rfl⟩, ⟨c, rfl⟩ => by
@@ -849,15 +565,6 @@ theorem fdiv_eq_ediv_of_dvd : ∀ {a b : Int}, b ∣ a → a.fdiv b = a / b
   | _, b, ⟨c, rfl⟩ => by if bz : b = 0 then simp [bz] else
     rw [mul_fdiv_cancel_left _ bz, mul_ediv_cancel_left _ bz]
 
-theorem neg_ediv_of_dvd : ∀ {a b : Int}, b ∣ a → (-a) / b = -(a / b)
-  | _, b, ⟨c, rfl⟩ => by if bz : b = 0 then simp [bz] else
-    rw [Int.neg_mul_eq_mul_neg, Int.mul_ediv_cancel_left _ bz, Int.mul_ediv_cancel_left _ bz]
-
-theorem sub_ediv_of_dvd (a : Int) {b c : Int}
-    (hcb : c ∣ b) : (a - b) / c = a / c - b / c := by
-  rw [Int.sub_eq_add_neg, Int.sub_eq_add_neg, Int.add_ediv_of_dvd_right (Int.dvd_neg.2 hcb)]
-  congr; exact Int.neg_ediv_of_dvd hcb
-
 theorem sub_ediv_of_dvd_sub {a b c : Int}
     (hcab : c ∣ a - b) : (a - b) / c = a / c - b / c := by
   rw [← Int.add_sub_cancel ((a-b) / c), ← Int.add_ediv_of_dvd_left hcab, Int.sub_add_cancel]
@@ -907,26 +614,35 @@ theorem eq_one_of_mul_eq_one_right {a b : Int} (H : 0 ≤ a) (H' : a * b = 1) : 
 theorem eq_one_of_mul_eq_one_left {a b : Int} (H : 0 ≤ b) (H' : a * b = 1) : b = 1 :=
   eq_one_of_mul_eq_one_right H <| by rw [Int.mul_comm, H']
 
+theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
+  have w := Int.sub_nonneg_of_le w
+  rw [← Int.mul_sub] at w
+  have w := Int.ediv_nonneg w (Int.le_of_lt h)
+  rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
+  exact Int.le_of_sub_nonneg w
+
+theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact le_of_mul_le_mul_left w h
+
+theorem lt_of_mul_lt_mul_left {a b c : Int} (w : a * b < a * c) (h : 0 ≤ a) : b < c := by
+  rcases Int.lt_trichotomy b c with lt | rfl | gt
+  · exact lt
+  · exact False.elim (Int.lt_irrefl _ w)
+  · rcases Int.lt_trichotomy a 0 with a_lt | rfl | a_gt
+    · exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le a_lt h))
+    · exact False.elim (Int.lt_irrefl b (by simp at w))
+    · have := le_of_mul_le_mul_left (Int.le_of_lt w) a_gt
+      exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le gt this))
+
+theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) : b < c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact lt_of_mul_lt_mul_left w h
+
 /-!
 # `bmod` ("balanced" mod)
 
-We use balanced mod in the omega algorithm,
-to make ±1 coefficients appear in equations without them.
 -/
-
-/--
-Balanced mod, taking values in the range [- m/2, (m - 1)/2].
--/
-def bmod (x : Int) (m : Nat) : Int :=
-  let r := x % m
-  if r < (m + 1) / 2 then
-    r
-  else
-    r - m
-
-@[simp] theorem bmod_emod : bmod x m % m = x % m := by
-  dsimp [bmod]
-  split <;> simp [Int.sub_emod]
 
 @[simp] theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
   simp [bmod]
@@ -1056,71 +772,71 @@ theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1
     · exact ofNat_nonneg x
     · exact succ_ofNat_pos (x + 1)
 
-/- TODO
-
-This section will need to be updated to reflect that `/` is now `Int.ediv`, rather than `Int.div`.
-
 /-! ### `/` and ordering -/
 
-protected theorem ediv_mul_le (a : Int) {b : Int} (H : b ≠ 0) : a.ediv b * b ≤ a :=
+protected theorem ediv_mul_le (a : Int) {b : Int} (H : b ≠ 0) : a / b * b ≤ a :=
   Int.le_of_sub_nonneg <| by rw [Int.mul_comm, ← emod_def]; apply emod_nonneg _ H
 
 protected theorem ediv_le_of_le_mul {a b c : Int} (H : 0 < c) (H' : a ≤ b * c) : a / c ≤ b :=
-  le_of_mul_le_mul_right (le_trans (Int.div_mul_le _ (ne_of_gt H)) H') H
+  le_of_mul_le_mul_right (Int.le_trans (Int.ediv_mul_le _ (Int.ne_of_gt H)) H') H
 
-protected theorem mul_lt_of_lt_div {a b c : Int} (H : 0 < c) (H3 : a < b / c) : a * c < b :=
-  lt_of_not_ge <| mt (Int.div_le_of_le_mul H) (not_le_of_gt H3)
+protected theorem mul_lt_of_lt_ediv {a b c : Int} (H : 0 < c) (H3 : a < b / c) : a * c < b :=
+  Int.lt_of_not_ge <| mt (Int.ediv_le_of_le_mul H) (Int.not_le_of_gt H3)
 
-protected theorem mul_le_of_le_div {a b c : Int} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-  le_trans (Decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (Int.div_mul_le _ (ne_of_gt H1))
+protected theorem mul_le_of_le_ediv {a b c : Int} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
+  Int.le_trans (Int.mul_le_mul_of_nonneg_right H2 (Int.le_of_lt H1))
+    (Int.ediv_mul_le _ (Int.ne_of_gt H1))
 
-protected theorem le_div_of_mul_le {a b c : Int} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
+protected theorem le_ediv_of_mul_le {a b c : Int} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
   le_of_lt_add_one <|
-    lt_of_mul_lt_mul_right (lt_of_le_of_lt H2 (lt_div_add_one_mul_self _ H1)) (le_of_lt H1)
+    lt_of_mul_lt_mul_right (Int.lt_of_le_of_lt H2 (lt_ediv_add_one_mul_self _ H1)) (Int.le_of_lt H1)
 
-protected theorem le_div_iff_mul_le {a b c : Int} (H : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
-  ⟨Int.mul_le_of_le_div H, Int.le_div_of_mul_le H⟩
+protected theorem le_ediv_iff_mul_le {a b c : Int} (H : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
+  ⟨Int.mul_le_of_le_ediv H, Int.le_ediv_of_mul_le H⟩
 
-protected theorem div_le_div {a b c : Int} (H : 0 < c) (H' : a ≤ b) : a / c ≤ b / c :=
-  Int.le_div_of_mul_le H (le_trans (Int.div_mul_le _ (ne_of_gt H)) H')
+protected theorem ediv_le_ediv {a b c : Int} (H : 0 < c) (H' : a ≤ b) : a / c ≤ b / c :=
+  Int.le_ediv_of_mul_le H (Int.le_trans (Int.ediv_mul_le _ (Int.ne_of_gt H)) H')
 
-protected theorem div_lt_of_lt_mul {a b c : Int} (H : 0 < c) (H' : a < b * c) : a / c < b :=
-  lt_of_not_ge <| mt (Int.mul_le_of_le_div H) (not_le_of_gt H')
+protected theorem ediv_lt_of_lt_mul {a b c : Int} (H : 0 < c) (H' : a < b * c) : a / c < b :=
+  Int.lt_of_not_ge <| mt (Int.mul_le_of_le_ediv H) (Int.not_le_of_gt H')
 
-protected theorem lt_mul_of_div_lt {a b c : Int} (H1 : 0 < c) (H2 : a / c < b) : a < b * c :=
-  lt_of_not_ge <| mt (Int.le_div_of_mul_le H1) (not_le_of_gt H2)
+protected theorem lt_mul_of_ediv_lt {a b c : Int} (H1 : 0 < c) (H2 : a / c < b) : a < b * c :=
+  Int.lt_of_not_ge <| mt (Int.le_ediv_of_mul_le H1) (Int.not_le_of_gt H2)
 
-protected theorem div_lt_iff_lt_mul {a b c : Int} (H : 0 < c) : a / c < b ↔ a < b * c :=
-  ⟨Int.lt_mul_of_div_lt H, Int.div_lt_of_lt_mul H⟩
+protected theorem ediv_lt_iff_lt_mul {a b c : Int} (H : 0 < c) : a / c < b ↔ a < b * c :=
+  ⟨Int.lt_mul_of_ediv_lt H, Int.ediv_lt_of_lt_mul H⟩
 
-protected theorem le_mul_of_div_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
+protected theorem le_mul_of_ediv_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
     a ≤ c * b := by
-  rw [← Int.div_mul_cancel H2] <;> exact Decidable.mul_le_mul_of_nonneg_right H3 H1
+  rw [← Int.ediv_mul_cancel H2]; exact Int.mul_le_mul_of_nonneg_right H3 H1
 
-protected theorem lt_div_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
+protected theorem lt_ediv_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
     a < c / b :=
-  lt_of_not_ge <| mt (Int.le_mul_of_div_le H1 H2) (not_le_of_gt H3)
+  Int.lt_of_not_ge <| mt (Int.le_mul_of_ediv_le H1 H2) (Int.not_le_of_gt H3)
 
-protected theorem lt_div_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) :
+protected theorem lt_ediv_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) :
     a < b / c ↔ a * c < b :=
-  ⟨Int.mul_lt_of_lt_div H, Int.lt_div_of_mul_lt (le_of_lt H) H'⟩
+  ⟨Int.mul_lt_of_lt_ediv H, Int.lt_ediv_of_mul_lt (Int.le_of_lt H) H'⟩
 
-theorem div_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b ∣ a) : 0 < a / b :=
-  Int.lt_div_of_mul_lt H2 H3
-    (by
-      rwa [zero_mul])
+theorem ediv_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b ∣ a) : 0 < a / b :=
+  Int.lt_ediv_of_mul_lt H2 H3 (by rwa [Int.zero_mul])
 
-theorem div_eq_div_of_mul_eq_mul {a b c d : Int}
+theorem ediv_eq_ediv_of_mul_eq_mul {a b c d : Int}
     (H2 : d ∣ c) (H3 : b ≠ 0) (H4 : d ≠ 0) (H5 : a * d = b * c) : a / b = c / d :=
-  Int.div_eq_of_eq_mul_right H3 <| by
-    rw [← Int.mul_div_assoc _ H2] <;> exact (Int.div_eq_of_eq_mul_left H4 H5.symm).symm
+  Int.ediv_eq_of_eq_mul_right H3 <| by
+    rw [← Int.mul_ediv_assoc _ H2]; exact (Int.ediv_eq_of_eq_mul_left H4 H5.symm).symm
 
-theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : Int}
+/-!
+### The following lemmas have been commented out here for a while, and need restoration.
+-/
+
+/-
+theorem eq_mul_ediv_of_mul_eq_mul_of_dvd_left {a b c d : Int}
     (hb : b ≠ 0) (hbc : b ∣ c) (h : b * a = c * d) : a = c / b * d := by
-  cases' hbc with k hk
+  rcases hbc with ⟨k, hk⟩
   subst hk
-  rw [Int.mul_div_cancel_left _ hb]
-  rw [mul_assoc] at h
+  rw [Int.mul_ediv_cancel_left _ hb]
+  rw [Int.mul_assoc] at h
   apply mul_left_cancel₀ hb h
 
 /-- If an integer with larger absolute value divides an integer, it is
@@ -1138,7 +854,7 @@ theorem eq_zero_of_dvd_of_nonneg_of_lt {a b : Int} (w₁ : 0 ≤ a) (w₂ : a < 
 they are equal. -/
 theorem eq_of_mod_eq_ofNatAbs_sub_lt_natAbs {a b c : Int}
     (h1 : a % b = c) (h2 : natAbs (a - c) < natAbs b) : a = c :=
-  eq_of_sub_eq_zero (eq_zero_of_dvd_ofNatAbs_lt_natAbs (dvd_sub_of_mod_eq h1) h2)
+  Int.eq_of_sub_eq_zero (eq_zero_of_dvd_ofNatAbs_lt_natAbs (dvd_sub_of_emod_eq h1) h2)
 
 theorem ofNat_add_negSucc_of_lt {m n : Nat} (h : m < n.succ) : ofNat m + -[n+1] = -[n+1 - m] := by
   change subNatNat _ _ = _
@@ -1167,7 +883,6 @@ theorem natAbs_eq_of_dvd_dvd {s t : Int} (hst : s ∣ t) (hts : t ∣ s) : natAb
 theorem div_dvd_of_dvd {s t : Int} (hst : s ∣ t) : t / s ∣ t := by
   rcases eq_or_ne s 0 with (rfl | hs)
   · simpa using hst
-
   rcases hst with ⟨c, hc⟩
   simp [hc, Int.mul_div_cancel_left _ hs]
 

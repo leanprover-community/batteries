@@ -44,7 +44,9 @@ namespace BitVec
 /-- The `BitVec` with value `i mod 2^n`. Treated as an operation on bitvectors,
 this is truncation of the high bits when downcasting and zero-extension when upcasting. -/
 protected def ofNat (n : Nat) (i : Nat) : BitVec n where
-  toFin := Fin.ofNat' i (Nat.pow_two_pos n)
+  toFin := Fin.ofNat' i (Nat.two_pow_pos n)
+
+instance : NatCast (BitVec w) := ⟨BitVec.ofNat w⟩
 
 /-- Given a bitvector `a`, return the underlying `Nat`. This is O(1) because `BitVec` is a
 (zero-cost) wrapper around a `Nat`. -/
@@ -67,7 +69,7 @@ protected def toInt (a : BitVec n) : Int :=
   if a.msb then Int.ofNat a.toNat - Int.ofNat (2^n) else a.toNat
 
 /-- Return a bitvector `0` of size `n`. This is the bitvector with all zero bits. -/
-protected def zero (n : Nat) : BitVec n := ⟨0, Nat.pow_two_pos n⟩
+protected def zero (n : Nat) : BitVec n := ⟨0, Nat.two_pow_pos n⟩
 
 instance : Inhabited (BitVec n) where default := .zero n
 
@@ -98,6 +100,7 @@ instance : ToString (BitVec n) where toString a := toString (repr a)
 /-- Theorem for normalizing the bit vector literal representation. -/
 -- TODO: This needs more usage data to assess which direction the simp should go.
 @[simp] theorem ofNat_eq_ofNat : @OfNat.ofNat (BitVec n) i _ = BitVec.ofNat n i := rfl
+@[simp] theorem natCast_eq_ofNat : Nat.cast x = x#w := rfl
 
 /--
 Addition for bit vectors. This can be interpreted as either signed or unsigned addition
@@ -311,10 +314,7 @@ Bitwise NOT for bit vectors.
 SMT-Lib name: `bvnot`.
 -/
 protected def not (x : BitVec n) : BitVec n :=
-  let ones := .ofFin ⟨(1 <<< n).pred,
-    n.one_shiftLeft.symm ▸
-      (Nat.pred_lt <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ <| Nat.zero_lt_succ _)⟩;
-  ones ^^^ x
+  allOnes n ^^^ x
 instance : Complement (BitVec w) := ⟨.not⟩
 
 /-- The `BitVec` with value `(2^n + (i mod 2^n)) mod 2^n`.  -/
@@ -322,6 +322,8 @@ protected def ofInt (n : Nat) (i : Int) : BitVec n :=
   match i with
   | Int.ofNat a => .ofNat n a
   | Int.negSucc a => ~~~.ofNat n a
+
+instance : IntCast (BitVec w) := ⟨BitVec.ofInt w⟩
 
 /--
 Left shift for bit vectors. The low bits are filled with zeros. As a numeric operation, this is
@@ -341,9 +343,9 @@ SMT-Lib name: `bvlshr` except this operator uses a `Nat` shift value.
 def ushiftRight (a : BitVec n) (s : Nat) : BitVec n :=
   ⟨a.toNat >>> s, by
   let ⟨a, lt⟩ := a
-  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.pow_two_pos s)]
+  simp only [BitVec.toNat, Nat.shiftRight_eq_div_pow, Nat.div_lt_iff_lt_mul (Nat.two_pow_pos s)]
   rw [←Nat.mul_one a]
-  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.pow_two_pos s) (Nat.le_refl 1)⟩
+  exact Nat.mul_lt_mul_of_lt_of_le' lt (Nat.two_pow_pos s) (Nat.le_refl 1)⟩
 
 instance : HShiftRight (BitVec w) Nat (BitVec w) := ⟨.ushiftRight⟩
 
@@ -397,7 +399,7 @@ def shiftLeftZeroExtend (msbs : BitVec w) (m : Nat) : BitVec (w+m) :=
   let shiftLeftLt {x : Nat} (p : x < 2^w) (m : Nat) : x <<< m < 2^(w+m) := by
         simp [Nat.shiftLeft_eq, Nat.pow_add]
         apply Nat.mul_lt_mul_of_pos_right p
-        exact (Nat.pow_two_pos m)
+        exact (Nat.two_pow_pos m)
   ⟨msbs.toNat <<< m, shiftLeftLt msbs.isLt m⟩
 
 /--
