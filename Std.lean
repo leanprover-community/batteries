@@ -86,7 +86,6 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
 import Std.Tactic.Instances
-import Std.Tactic.LabelAttr
 import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
@@ -101,12 +100,8 @@ import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.Relation.Rfl
-import Std.Tactic.Relation.Symm
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
-import Std.Tactic.SimpTrace
-import Std.Tactic.SolveByElim
-import Std.Tactic.SolveByElim.Backtrack
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where

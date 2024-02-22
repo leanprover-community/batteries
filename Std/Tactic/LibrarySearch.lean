@@ -9,7 +9,7 @@ import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Parser
-import Std.Tactic.SolveByElim
+import Lean.Elab.Tactic.SolveByElim
 import Std.Util.Pickle
 
 /-!
@@ -362,11 +362,13 @@ def mkHeartbeatCheck (leavePercent : Nat) : MetaM (MetaM Bool) := do
     else do
       return (← getRemainingHeartbeats) < hbThreshold
 
+open SolveByElim
+
 /-- Shortcut for calling `solveByElim`. -/
 def solveByElim (required : List Expr) (exfalso : Bool) (goals : List MVarId) (maxDepth : Nat) := do
   -- There is only a marginal decrease in performance for using the `symm` option for `solveByElim`.
   -- (measured via `lake build && time lake env lean test/librarySearch.lean`).
-  let cfg : SolveByElim.Config :=
+  let cfg : SolveByElimConfig :=
     { maxDepth, exfalso := exfalso, symm := true, commitIndependentGoals := true,
       transparency := ← getTransparency,
       -- `constructor` has been observed to significantly slow down `exact?` in Mathlib.

@@ -793,11 +793,6 @@ theorem get_of_eq {l l' : List α} (h : l = l') (i : Fin l.length) :
 theorem get_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.head?
   | _::_, _ => rfl
 
-theorem get_append : ∀ {l₁ l₂ : List α} (n : Nat) (h : n < l₁.length),
-    (l₁ ++ l₂).get ⟨n, length_append .. ▸ Nat.lt_add_right _ h⟩ = l₁.get ⟨n, h⟩
-| a :: l, _, 0, h => rfl
-| a :: l, _, n+1, h => by simp only [get, cons_append]; apply get_append
-
 theorem get?_append_right : ∀ {l₁ l₂ : List α} {n : Nat}, l₁.length ≤ n →
   (l₁ ++ l₂).get? n = l₂.get? (n - l₁.length)
 | [], _, n, _ => rfl
@@ -821,12 +816,6 @@ theorem get_of_append {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.lengt
 
 @[simp] theorem get_replicate (a : α) {n : Nat} (m : Fin _) : (replicate n a).get m = a :=
   eq_of_mem_replicate (get_mem _ _ _)
-
-theorem get?_append {l₁ l₂ : List α} {n : Nat} (hn : n < l₁.length) :
-  (l₁ ++ l₂).get? n = l₁.get? n := by
-  have hn' : n < (l₁ ++ l₂).length := Nat.lt_of_lt_of_le hn <|
-    length_append .. ▸ Nat.le_add_right ..
-  rw [get?_eq_get hn, get?_eq_get hn', get_append]
 
 @[simp] theorem getLastD_concat (a b l) : @getLastD α (l ++ [b]) a = b := by
   rw [getLastD_eq_getLast?, getLast?_concat]; rfl
