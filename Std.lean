@@ -103,6 +103,7 @@ import Std.Tactic.ShowTerm
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
+import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
 import Std.Util.CheckTactic
 import Std.Util.ExtendedBinder
