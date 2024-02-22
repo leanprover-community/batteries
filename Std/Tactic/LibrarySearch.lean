@@ -8,7 +8,6 @@ import Std.Lean.CoreM
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
-import Std.Lean.Parser
 import Lean.Elab.Tactic.SolveByElim
 import Std.Util.Pickle
 

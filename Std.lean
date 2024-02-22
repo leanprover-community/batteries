@@ -53,7 +53,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.Iterator
 import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
@@ -62,7 +61,6 @@ import Std.Lean.MonadBacktrack
 import Std.Lean.Name
 import Std.Lean.NameMap
 import Std.Lean.NameMapAttribute
-import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
@@ -105,7 +103,6 @@ import Std.Tactic.ShowTerm
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
-import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
 import Std.Util.CheckTactic
 import Std.Util.ExtendedBinder
