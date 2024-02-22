@@ -57,8 +57,6 @@ Benchmark 1: lake env lean test/omega/benchmark.lean
 
 -/
 
-open Std.Tactic.Omega
-
 example : True := by
   fail_if_success omega
   trivial
