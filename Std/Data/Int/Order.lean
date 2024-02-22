@@ -20,6 +20,8 @@ namespace Int
 
 /-! ## Order properties of the integers -/
 
+protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
+
 protected theorem le_of_not_le {a b : Int} : ¬ a ≤ b → b ≤ a := (Int.le_total a b).resolve_left
 
 protected theorem min_eq_left {a b : Int} (h : a ≤ b) : min a b = a := by simp [Int.min_def, h]

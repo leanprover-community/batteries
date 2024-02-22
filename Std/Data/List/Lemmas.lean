@@ -1271,23 +1271,22 @@ theorem eraseP_map (f : β → α) : ∀ (l : List β), (map f l).eraseP p = map
 /-! ### erase -/
 
 section erase
--- FIXME: this should use a `BEq` assumption
-variable [DecidableEq α]
+variable [BEq α] [LawfulBEq α]
 
 @[simp] theorem erase_nil (a : α) : [].erase a = [] := rfl
 
 theorem erase_cons (a b : α) (l : List α) :
-    (b :: l).erase a = if b = a then l else b :: l.erase a :=
-  if h : b = a then by simp [List.erase, h]
+    (b :: l).erase a = if b == a then l else b :: l.erase a :=
+  if h : b == a then by simp [List.erase, h]
   else by simp [List.erase, h, (beq_eq_false_iff_ne _ _).2 h]
 
 @[simp] theorem erase_cons_head (a : α) (l : List α) : (a :: l).erase a = l := by
   simp [erase_cons]
 
-@[simp] theorem erase_cons_tail {a b : α} (l : List α) (h : b ≠ a) :
+@[simp] theorem erase_cons_tail {a b : α} (l : List α) (h : ¬(b == a)) :
     (b :: l).erase a = b :: l.erase a := by simp only [erase_cons, if_neg h]
 
-theorem erase_eq_eraseP (a : α) : ∀ l : List α, l.erase a = l.eraseP (Eq a)
+theorem erase_eq_eraseP (a : α) : ∀ l : List α, l.erase a = l.eraseP (a == ·)
   | [] => rfl
   | b :: l => by
     if h : a = b then simp [h] else simp [h, Ne.symm h, erase_eq_eraseP a l]
@@ -1299,7 +1298,7 @@ theorem erase_of_not_mem {a : α} : ∀ {l : List α}, a ∉ l → l.erase a = l
   | [], _ => rfl
   | b :: l, h => by
     rw [mem_cons, not_or] at h
-    rw [erase_cons, if_neg (Ne.symm h.1), erase_of_not_mem h.2]
+    simp only [erase_cons, if_neg, erase_of_not_mem h.2, beq_iff_eq, Ne.symm h.1, not_false_eq_true]
 
 theorem exists_erase_eq {a : α} {l : List α} (h : a ∈ l) :
     ∃ l₁ l₂, a ∉ l₁ ∧ l = l₁ ++ a :: l₂ ∧ l.erase a = l₁ ++ l₂ := by
@@ -1308,16 +1307,16 @@ theorem exists_erase_eq {a : α} {l : List α} (h : a ∈ l) :
 
 @[simp] theorem length_erase_of_mem {a : α} {l : List α} (h : a ∈ l) :
     length (l.erase a) = Nat.pred (length l) := by
-  rw [erase_eq_eraseP]; exact length_eraseP_of_mem h (decide_eq_true rfl)
+  rw [erase_eq_eraseP]; exact length_eraseP_of_mem h (beq_self_eq_true a)
 
 theorem erase_append_left {l₁ : List α} (l₂) (h : a ∈ l₁) :
     (l₁ ++ l₂).erase a = l₁.erase a ++ l₂ := by
-  simp [erase_eq_eraseP]; exact eraseP_append_left (by exact decide_eq_true rfl) l₂ h
+  simp [erase_eq_eraseP]; exact eraseP_append_left (beq_self_eq_true a) l₂ h
 
 theorem erase_append_right {a : α} {l₁ : List α} (l₂ : List α) (h : a ∉ l₁) :
     (l₁ ++ l₂).erase a = (l₁ ++ l₂.erase a) := by
   rw [erase_eq_eraseP, erase_eq_eraseP, eraseP_append_right]
-  intros b h' h''; rw [of_decide_eq_true h''] at h; exact h h'
+  intros b h' h''; rw [eq_of_beq h''] at h; exact h h'
 
 theorem erase_sublist (a : α) (l : List α) : l.erase a <+ l :=
   erase_eq_eraseP a l ▸ eraseP_sublist l
@@ -1330,10 +1329,10 @@ theorem sublist.erase (a : α) {l₁ l₂ : List α} (h : l₁ <+ l₂) : l₁.e
 theorem mem_of_mem_erase {a b : α} {l : List α} (h : a ∈ l.erase b) : a ∈ l := erase_subset _ _ h
 
 @[simp] theorem mem_erase_of_ne {a b : α} {l : List α} (ab : a ≠ b) : a ∈ l.erase b ↔ a ∈ l :=
-  erase_eq_eraseP b l ▸ mem_eraseP_of_neg (mt of_decide_eq_true ab.symm)
+  erase_eq_eraseP b l ▸ mem_eraseP_of_neg (mt eq_of_beq ab.symm)
 
 theorem erase_comm (a b : α) (l : List α) : (l.erase a).erase b = (l.erase b).erase a := by
-  if ab : a = b then rw [ab] else ?_
+  if ab : a == b then rw [eq_of_beq ab] else ?_
   if ha : a ∈ l then ?_ else
     simp only [erase_of_not_mem ha, erase_of_not_mem (mt mem_of_mem_erase ha)]
   if hb : b ∈ l then ?_ else
@@ -1853,7 +1852,12 @@ theorem cons_diff (a : α) (l₁ l₂ : List α) :
     (a :: l₁).diff l₂ = if a ∈ l₂ then l₁.diff (l₂.erase a) else a :: l₁.diff l₂ := by
   induction l₂ generalizing l₁ with
   | nil => rfl
-  | cons b l₂ ih => by_cases h : a = b <;> simp [*, eq_comm]
+  | cons b l₂ ih =>
+    by_cases h : a = b
+    next => simp [*]
+    next =>
+      have := Ne.symm h
+      simp[*]
 
 theorem cons_diff_of_mem {a : α} {l₂ : List α} (h : a ∈ l₂) (l₁ : List α) :
     (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, if_pos h]

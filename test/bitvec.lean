@@ -114,3 +114,8 @@ def testMatch8 (i : BitVec 32) :=
 #guard toString 5#13 = "0x0005#13"
 #guard toString 5#12 = "0x005#12"
 #guard toString 5#13 = "0x0005#13"
+
+-- Simp
+
+example (n w : Nat) (p : n < 2^w) : { toFin := { val := n, isLt := p } : BitVec w} = .ofNat w n := by
+  simp only [ofFin_eq_ofNat]
