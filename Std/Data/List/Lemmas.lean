@@ -793,11 +793,6 @@ theorem get_of_eq {l l' : List α} (h : l = l') (i : Fin l.length) :
 theorem get_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.head?
   | _::_, _ => rfl
 
-theorem get?_append_right : ∀ {l₁ l₂ : List α} {n : Nat}, l₁.length ≤ n →
-  (l₁ ++ l₂).get? n = l₂.get? (n - l₁.length)
-| [], _, n, _ => rfl
-| a :: l, _, n+1, h₁ => by rw [cons_append]; simp [get?_append_right (Nat.lt_succ.1 h₁)]
-
 theorem get_append_right_aux {l₁ l₂ : List α} {n : Nat}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length := by
   rw [length_append] at h₂
@@ -841,29 +836,9 @@ theorem ext_get {l₁ l₂ : List α} (hl : length l₁ = length l₂)
       have h₁ := Nat.le_of_not_lt h₁
       rw [get?_len_le h₁, get?_len_le]; rwa [← hl]
 
-theorem get?_reverse' : ∀ {l : List α} (i j), i + j + 1 = length l →
-    get? l.reverse i = get? l j
-  | [], _, _, _ => rfl
-  | a::l, i, 0, h => by simp at h; simp [h, get?_append_right]
-  | a::l, i, j+1, h => by
-    have := Nat.succ.inj h; simp at this ⊢
-    rw [get?_append, get?_reverse' _ j this]
-    rw [length_reverse, ← this]; apply Nat.lt_add_of_pos_right (Nat.succ_pos _)
-
-theorem get?_reverse {l : List α} (i) (h : i < length l) :
-    get? l.reverse i = get? l (l.length - 1 - i) :=
-  get?_reverse' _ _ <| by
-    rw [Nat.add_sub_of_le (Nat.le_sub_one_of_lt h),
-      Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
-
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
   | _a::_, 0, rfl => rfl
   | _::l, _+1, e => get!_of_get? (l := l) e
-
-theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
-  | [], _, _ => rfl
-  | _a::_, 0, _ => rfl
-  | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
 @[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
   | [], _      => rfl
