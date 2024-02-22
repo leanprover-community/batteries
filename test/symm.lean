@@ -1,4 +1,4 @@
-import Std.Tactic.Relation.Symm
+import Init.Tactics
 
 set_option autoImplicit true
 set_option linter.missingDocs false

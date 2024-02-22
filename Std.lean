@@ -3,7 +3,6 @@ import Std.Classes.Cast
 import Std.Classes.Order
 import Std.Classes.RatCast
 import Std.Classes.SatisfiesM
-import Std.Classes.SetNotation
 import Std.CodeAction
 import Std.CodeAction.Attr
 import Std.CodeAction.Basic
@@ -54,7 +53,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.Iterator
 import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
@@ -63,7 +61,6 @@ import Std.Lean.MonadBacktrack
 import Std.Lean.Name
 import Std.Lean.NameMap
 import Std.Lean.NameMapAttribute
-import Std.Lean.Parser
 import Std.Lean.PersistentHashMap
 import Std.Lean.PersistentHashSet
 import Std.Lean.Position
@@ -87,7 +84,6 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
 import Std.Tactic.Instances
-import Std.Tactic.LabelAttr
 import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
@@ -96,21 +92,13 @@ import Std.Tactic.Lint.Misc
 import Std.Tactic.Lint.Simp
 import Std.Tactic.Lint.TypeClass
 import Std.Tactic.NoMatch
-import Std.Tactic.NormCast
-import Std.Tactic.NormCast.Ext
-import Std.Tactic.NormCast.Lemmas
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.Relation.Rfl
-import Std.Tactic.Relation.Symm
 import Std.Tactic.SeqFocus
 import Std.Tactic.ShowTerm
-import Std.Tactic.SimpTrace
-import Std.Tactic.Simpa
-import Std.Tactic.SolveByElim
-import Std.Tactic.SolveByElim.Backtrack
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where

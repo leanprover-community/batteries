@@ -9,7 +9,6 @@ import Std.Data.List.Lemmas
 import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
-import Std.Tactic.Simpa
 import Std.Util.ProofWanted
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
