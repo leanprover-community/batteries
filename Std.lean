@@ -30,7 +30,6 @@ import Std.Data.List
 import Std.Data.MLList
 import Std.Data.Nat
 import Std.Data.Option
-import Std.Data.Ord
 import Std.Data.PairingHeap
 import Std.Data.RBMap
 import Std.Data.Range
@@ -41,7 +40,6 @@ import Std.Data.UInt
 import Std.Lean.AttributeExtra
 import Std.Lean.CoreM
 import Std.Lean.Delaborator
-import Std.Lean.Elab.Tactic
 import Std.Lean.Except
 import Std.Lean.Expr
 import Std.Lean.Float
@@ -85,8 +83,6 @@ import Std.Tactic.Case
 import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact
-import Std.Tactic.Ext
-import Std.Tactic.Ext.Attr
 import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
@@ -103,18 +99,6 @@ import Std.Tactic.NoMatch
 import Std.Tactic.NormCast
 import Std.Tactic.NormCast.Ext
 import Std.Tactic.NormCast.Lemmas
-import Std.Tactic.Omega
-import Std.Tactic.Omega.Coeffs.IntList
-import Std.Tactic.Omega.Config
-import Std.Tactic.Omega.Constraint
-import Std.Tactic.Omega.Core
-import Std.Tactic.Omega.Frontend
-import Std.Tactic.Omega.Int
-import Std.Tactic.Omega.IntList
-import Std.Tactic.Omega.LinearCombo
-import Std.Tactic.Omega.Logic
-import Std.Tactic.Omega.MinNatAbs
-import Std.Tactic.Omega.OmegaM
 import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents

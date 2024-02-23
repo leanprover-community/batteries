@@ -1,4 +1,3 @@
-import Std.Tactic.Omega.Frontend
 
 /-!
 # Benchmarking the `omega` tactic
@@ -57,8 +56,6 @@ Benchmark 1: lake env lean test/omega/benchmark.lean
   Range (min … max):    2.349 s …  2.372 s    10 runs
 
 -/
-
-open Std.Tactic.Omega
 
 example : True := by
   fail_if_success omega

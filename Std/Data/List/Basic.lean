@@ -3,7 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Std.Data.Option.Init.Lemmas
 
 namespace List
 
@@ -200,8 +199,13 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | [], n => rfl
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
-      simp [enumFrom]
-  rw [Array.foldr_eq_foldr_data]; simp [go]
+      simp [enumFrom, f]
+  -- Note: there was a regression here caused by leanprover/lean4#3388.
+  -- Previously the `go` was in the `simp`, not the `rw`, but currently `simp` can't use it.
+  -- A fix will land in nightly-2024-02-20
+  -- https://github.com/leanprover/lean4/pull/3406
+  rw [Array.foldr_eq_foldr_data, go]
+  simp
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
@@ -258,29 +262,6 @@ where
 protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 instance : HasSubset (List α) := ⟨List.Subset⟩
-
-instance decidableBEx (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse nofun
-  | x :: xs =>
-    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
-      match decidableBEx p xs with
-      | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
-      | isFalse h₂ => isFalse fun
-        | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
-        | ⟨_, .head .., hp⟩ => h₁ hp
-
-instance decidableBAll (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue nofun
-  | x :: xs =>
-    if h₁ : p x then
-      match decidableBAll p xs with
-      | isTrue h₂ => isTrue fun
-        | y, .tail _ h => h₂ y h
-        | _, .head .. => h₁
-      | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
-    else isFalse fun H => h₁ <| H x (.head ..)
 
 instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
   fun _ _ => decidableBAll _ _
@@ -408,10 +389,6 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
     simp [replaceFTR.go, replaceF]; cases p x <;> simp
     · rw [go _ xs]; simp
   exact (go #[] _).symm
-
-/-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [BEq α] (a : α) (l : List α) : List α :=
-  if l.elem a then l else a :: l
 
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.

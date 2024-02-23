@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.Int.Order
-import Std.Data.Int.Init.DivMod
 
 /-!
 # Lemmas about integer division
@@ -58,12 +57,6 @@ theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = div a
   | ofNat m, 0 => show ofNat (m / 0) = -↑(m / 0) by rw [Nat.div_zero]; rfl
   | ofNat m, -[n+1] | -[m+1], succ n => (Int.neg_neg _).symm
   | ofNat m, succ n | -[m+1], 0 | -[m+1], -[n+1] => rfl
-
--- Lean 4 core provides an instance for `Div Int` using `Int.div`.
--- Even though we provide a higher priority instance in `Std.Data.Int.Basic`,
--- we provide a `simp` lemma here to unfold usages of that instance back to `Int.div`.
-@[simp] theorem div_def' (a b : Int) :
-    @HDiv.hDiv Int Int Int (@instHDiv Int Int.instDivInt) a b = Int.div a b := rfl
 
 @[simp] protected theorem neg_div : ∀ a b : Int, (-a).div b = -(a.div b)
   | 0, n => by simp [Int.neg_zero]

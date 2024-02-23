@@ -1,4 +1,3 @@
-import Std.Data.Int.Basic
 
 -- complement
 #guard ~~~(-1:Int) = 0

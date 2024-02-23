@@ -1,4 +1,3 @@
-import Std.Tactic.Ext
 import Std.Logic
 import Std.Tactic.GuardMsgs
 
@@ -36,7 +35,6 @@ example (a b : C' n) : a = b := by
   guard_target = a.toB = b.toB; exact mySorry
   guard_target = a.c = b.c; exact mySorry
 
-open Std.Tactic.Ext
 example (f g : Nat × Nat → Nat) : f = g := by
   ext ⟨x, y⟩
   guard_target = f (x, y) = g (x, y); exact mySorry
