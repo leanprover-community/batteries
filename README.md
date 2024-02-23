@@ -38,7 +38,7 @@ You can generate `std4`'s documentation with
 # actually generate the documentation
 > lake -R -Kdoc=on build Std:docs
 ...
-> ls build/doc/index.html
+> open build/doc/index.html
 build/doc/index.html
 ```
 
