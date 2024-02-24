@@ -133,6 +133,7 @@ import Std.Tactic.OpenPrivate
 import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
+import Std.Tactic.PrintStructure
 import Std.Tactic.RCases
 import Std.Tactic.Relation.Rfl
 import Std.Tactic.Relation.Symm
