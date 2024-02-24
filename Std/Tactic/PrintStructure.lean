@@ -27,7 +27,8 @@ private def fullConfig : PrintStructureConfig where
   flat := true
   includeSubobjectFields := true
 
-private def printStructureMsg (structName : Name) (cfg : PrintStructureConfig := {}) : MetaM String := do
+private def printStructureMsg (structName : Name) (cfg : PrintStructureConfig := {}) :
+    MetaM String := do
   let env ← getEnv
   if isStructure env structName then
     let indInfo ← getConstInfoInduct structName
