@@ -84,7 +84,6 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
 import Std.Tactic.Instances
-import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
