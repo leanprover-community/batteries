@@ -1,6 +1,6 @@
 import Std.Data.BitVec
 
-open Std.BitVec
+open BitVec
 
 -- Basic arithmetic
 #guard 1#12 + 2#12 = 3#12
@@ -92,8 +92,6 @@ open Std.BitVec
 #guard extractLsb 3 0 0x1234#16 = 4
 #guard extractLsb 7 4 0x1234#16 = 3
 #guard extractLsb' 0 4 0x1234#16 = 0x4#4
-
-open Std
 
 /--
 This tests the match compiler with bitvector literals to ensure
