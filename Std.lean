@@ -37,7 +37,6 @@ import Std.Data.String
 import Std.Data.Sum
 import Std.Data.UInt
 import Std.Lean.AttributeExtra
-import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Except
 import Std.Lean.Expr
