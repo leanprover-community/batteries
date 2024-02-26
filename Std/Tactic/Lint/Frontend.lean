@@ -6,6 +6,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 import Lean.Util.Paths
 import Lean.Elab.Command
 import Std.Tactic.Lint.Basic
+import Std.Tactic.OpenPrivate
 
 /-!
 # Linter frontend and commands
@@ -79,6 +80,9 @@ def getChecks (slow : Bool) (useOnly : Bool) : CoreM (Array NamedLinter) := do
           result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
+-- Note: we have to use the same context as `runTermElabM` here so that the `simpNF`
+-- linter works the same as the `simp` tactic itself. See #671
+open private mkMetaContext from Lean.Elab.Command in
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
@@ -94,7 +98,8 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           match ← withCurrHeartbeats (linter.test decl)
-              |>.run'.run' {options, fileName := "", fileMap := default} {env}
+              |>.run' mkMetaContext
+              |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
