@@ -50,7 +50,7 @@ def MyPred (_ : Nat → Nat) : Prop := True
 @[simp] theorem bad1 (f : Unit → Nat → Nat) : MyPred (f ()) ↔ True := by
   rw [MyPred]; exact Iff.rfl
 
-@[simp] theorem bad2 (f g : Nat → Nat) : MyPred (fun x ↦ f (g x)) ↔ True := by
+@[simp] theorem bad2 (f g : Nat → Nat) : MyPred (fun x => f (g x)) ↔ True := by
   rw [MyPred]; exact Iff.rfl
 
 -- Note, this is not a proper regression test because #671 depends on how the `MetaM` is
