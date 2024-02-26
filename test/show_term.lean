@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Tactic.ShowTerm
-import Std.Tactic.GuardMsgs
 
 /-- info: Try this: exact (n, 37) -/
 #guard_msgs in example (n : Nat) : Nat × Nat := by

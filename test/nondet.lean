@@ -1,5 +1,4 @@
 import Std.Control.Nondet.Basic
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 

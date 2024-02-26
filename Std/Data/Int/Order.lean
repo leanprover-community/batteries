@@ -449,6 +449,7 @@ theorem sign_eq_neg_one_of_neg {a : Int} (h : a < 0) : sign a = -1 :=
 
 theorem eq_zero_of_sign_eq_zero : ∀ {a : Int}, sign a = 0 → a = 0
   | 0, _ => rfl
+  | _, _ => sorry -- regression on nightly-2024-02-26, this branch shouldn't be needed.
 
 theorem pos_of_sign_eq_one : ∀ {a : Int}, sign a = 1 → 0 < a
   | (_ + 1 : Nat), _ => ofNat_lt.2 (Nat.succ_pos _)

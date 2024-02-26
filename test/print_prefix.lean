@@ -1,5 +1,4 @@
 import Std.Tactic.PrintPrefix
-import Std.Tactic.GuardMsgs
 
 inductive TEmpty : Type
 /--

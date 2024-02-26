@@ -1,5 +1,4 @@
 import Lean.Meta.Tactic.TryThis
-import Std.Tactic.GuardMsgs
 
 set_option linter.unusedVariables false
 set_option linter.missingDocs false
