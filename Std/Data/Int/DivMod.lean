@@ -49,7 +49,9 @@ theorem fdiv_eq_ediv : ∀ (a : Int) {b : Int}, 0 ≤ b → fdiv a b = a / b
 theorem div_eq_ediv : ∀ {a b : Int}, 0 ≤ a → 0 ≤ b → a.div b = a / b
   | 0, _, _, _ | _, 0, _, _ => by simp
   | succ _, succ _, _, _ => rfl
-  | _, _, _, _ => sorry -- FIXME regression on nightly-2024-02-26, shouldn't be needed
+  -- FIXME regression on nightly-2024-02-26, shouldn't be needed
+  -- Fixed in https://github.com/leanprover/lean4/pull/3504
+  | _, _, _, _ => sorry
 
 theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = div a b :=
   div_eq_ediv Ha Hb ▸ fdiv_eq_ediv _ Hb
