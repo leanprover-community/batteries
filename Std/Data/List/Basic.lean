@@ -200,12 +200,8 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
       simp [enumFrom, f]
-  -- Note: there was a regression here caused by leanprover/lean4#3388.
-  -- Previously the `go` was in the `simp`, not the `rw`, but currently `simp` can't use it.
-  -- A fix will land in nightly-2024-02-20
-  -- https://github.com/leanprover/lean4/pull/3406
-  rw [Array.foldr_eq_foldr_data, go]
-  simp
+  rw [Array.foldr_eq_foldr_data]
+  simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
@@ -659,21 +655,6 @@ partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2],
     match f x with
     | .inl a => go xs (acc₁.push a) acc₂
     | .inr b => go xs acc₁ (acc₂.push b)
-
-/-- Monadic generalization of `List.partition`. -/
-@[inline] def partitionM [Monad m] (p : α → m Bool) (l : List α) : m (List α × List α) :=
-  go l #[] #[]
-where
-  /-- Auxiliary for `partitionM`:
-  `partitionM.go p l acc₁ acc₂` returns `(acc₁.toList ++ left, acc₂.toList ++ right)`
-  if `partitionM p l` returns `(left, right)`. -/
-  @[specialize] go : List α → Array α → Array α → m (List α × List α)
-  | [], acc₁, acc₂ => pure (acc₁.toList, acc₂.toList)
-  | x :: xs, acc₁, acc₂ => do
-    if ← p x then
-      go xs (acc₁.push x) acc₂
-    else
-      go xs acc₁ (acc₂.push x)
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
