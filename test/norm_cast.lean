@@ -1,4 +1,3 @@
-import Std.Tactic.NormCast
 import Std.Data.Rat.Lemmas
 
 /-!

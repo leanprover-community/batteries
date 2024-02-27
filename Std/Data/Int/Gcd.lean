@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import Std.Data.Int.DivMod
 import Std.Data.Nat.Gcd
-import Std.Tactic.Simpa
 
 /-!
 # Results about `Int.gcd`.
