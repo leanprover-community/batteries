@@ -8,3 +8,7 @@ import Std.Data.Fin.Basic
 namespace Fin
 
 attribute [norm_cast] val_last
+
+/-! ### clamp -/
+
+@[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl

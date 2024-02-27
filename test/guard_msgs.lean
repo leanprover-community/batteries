@@ -1,4 +1,3 @@
-import Std.Tactic.GuardMsgs
 
 #guard_msgs in
 /-- error: unknown identifier 'x' -/

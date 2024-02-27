@@ -1,5 +1,4 @@
 import Std.Tactic.Lint
-import Std.Tactic.GuardMsgs
 
 open Std.Tactic.Lint
 set_option linter.missingDocs false
@@ -48,10 +47,10 @@ section
 def MyPred (_ : Nat → Nat) : Prop := True
 
 @[simp] theorem bad1 (f : Unit → Nat → Nat) : MyPred (f ()) ↔ True := by
-  rw [MyPred]; exact Iff.rfl
+  rw [MyPred]
 
 @[simp] theorem bad2 (f g : Nat → Nat) : MyPred (fun x => f (g x)) ↔ True := by
-  rw [MyPred]; exact Iff.rfl
+  rw [MyPred]
 
 -- Note, this is not a proper regression test because #671 depends on how the `MetaM` is
 -- executed, and `run_meta` sets the options appropriately. But setting the config
