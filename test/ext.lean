@@ -1,5 +1,4 @@
 import Std.Logic
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 axiom mySorry {α : Sort _} : α

@@ -1,5 +1,4 @@
 import Std.Tactic.SqueezeScope
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 

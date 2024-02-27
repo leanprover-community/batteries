@@ -1,5 +1,4 @@
 import Std.Tactic.Basic
-import Std.Tactic.GuardMsgs
 
 open Lean Elab Tactic Meta
 
