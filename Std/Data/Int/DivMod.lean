@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Mario Carneiro
 import Std.Data.Nat.Lemmas
 import Std.Data.Int.Order
 import Std.Data.Int.Init.DivMod
+import Std.Tactic.Simpa
 
 /-!
 # Lemmas about integer division
@@ -613,6 +614,31 @@ theorem eq_one_of_mul_eq_one_right {a b : Int} (H : 0 ≤ a) (H' : a * b = 1) : 
 theorem eq_one_of_mul_eq_one_left {a b : Int} (H : 0 ≤ b) (H' : a * b = 1) : b = 1 :=
   eq_one_of_mul_eq_one_right H <| by rw [Int.mul_comm, H']
 
+theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
+  have w := Int.sub_nonneg_of_le w
+  rw [← Int.mul_sub] at w
+  have w := Int.ediv_nonneg w (Int.le_of_lt h)
+  rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
+  exact Int.le_of_sub_nonneg w
+
+theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact le_of_mul_le_mul_left w h
+
+theorem lt_of_mul_lt_mul_left {a b c : Int} (w : a * b < a * c) (h : 0 ≤ a) : b < c := by
+  rcases Int.lt_trichotomy b c with lt | rfl | gt
+  · exact lt
+  · exact False.elim (Int.lt_irrefl _ w)
+  · rcases Int.lt_trichotomy a 0 with a_lt | rfl | a_gt
+    · exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le a_lt h))
+    · exact False.elim (Int.lt_irrefl b (by simp at w))
+    · have := le_of_mul_le_mul_left (Int.le_of_lt w) a_gt
+      exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le gt this))
+
+theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) : b < c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact lt_of_mul_lt_mul_left w h
+
 /-!
 # `bmod` ("balanced" mod)
 
@@ -746,71 +772,71 @@ theorem bmod_natAbs_plus_one (x : Int) (w : 1 < x.natAbs) : bmod x (x.natAbs + 1
     · exact ofNat_nonneg x
     · exact succ_ofNat_pos (x + 1)
 
-/- TODO
-
-This section will need to be updated to reflect that `/` is now `Int.ediv`, rather than `Int.div`.
-
 /-! ### `/` and ordering -/
 
-protected theorem ediv_mul_le (a : Int) {b : Int} (H : b ≠ 0) : a.ediv b * b ≤ a :=
+protected theorem ediv_mul_le (a : Int) {b : Int} (H : b ≠ 0) : a / b * b ≤ a :=
   Int.le_of_sub_nonneg <| by rw [Int.mul_comm, ← emod_def]; apply emod_nonneg _ H
 
 protected theorem ediv_le_of_le_mul {a b c : Int} (H : 0 < c) (H' : a ≤ b * c) : a / c ≤ b :=
-  le_of_mul_le_mul_right (le_trans (Int.div_mul_le _ (ne_of_gt H)) H') H
+  le_of_mul_le_mul_right (Int.le_trans (Int.ediv_mul_le _ (Int.ne_of_gt H)) H') H
 
-protected theorem mul_lt_of_lt_div {a b c : Int} (H : 0 < c) (H3 : a < b / c) : a * c < b :=
-  lt_of_not_ge <| mt (Int.div_le_of_le_mul H) (not_le_of_gt H3)
+protected theorem mul_lt_of_lt_ediv {a b c : Int} (H : 0 < c) (H3 : a < b / c) : a * c < b :=
+  Int.lt_of_not_ge <| mt (Int.ediv_le_of_le_mul H) (Int.not_le_of_gt H3)
 
-protected theorem mul_le_of_le_div {a b c : Int} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-  le_trans (Decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (Int.div_mul_le _ (ne_of_gt H1))
+protected theorem mul_le_of_le_ediv {a b c : Int} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
+  Int.le_trans (Int.mul_le_mul_of_nonneg_right H2 (Int.le_of_lt H1))
+    (Int.ediv_mul_le _ (Int.ne_of_gt H1))
 
-protected theorem le_div_of_mul_le {a b c : Int} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
+protected theorem le_ediv_of_mul_le {a b c : Int} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
   le_of_lt_add_one <|
-    lt_of_mul_lt_mul_right (lt_of_le_of_lt H2 (lt_div_add_one_mul_self _ H1)) (le_of_lt H1)
+    lt_of_mul_lt_mul_right (Int.lt_of_le_of_lt H2 (lt_ediv_add_one_mul_self _ H1)) (Int.le_of_lt H1)
 
-protected theorem le_div_iff_mul_le {a b c : Int} (H : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
-  ⟨Int.mul_le_of_le_div H, Int.le_div_of_mul_le H⟩
+protected theorem le_ediv_iff_mul_le {a b c : Int} (H : 0 < c) : a ≤ b / c ↔ a * c ≤ b :=
+  ⟨Int.mul_le_of_le_ediv H, Int.le_ediv_of_mul_le H⟩
 
-protected theorem div_le_div {a b c : Int} (H : 0 < c) (H' : a ≤ b) : a / c ≤ b / c :=
-  Int.le_div_of_mul_le H (le_trans (Int.div_mul_le _ (ne_of_gt H)) H')
+protected theorem ediv_le_ediv {a b c : Int} (H : 0 < c) (H' : a ≤ b) : a / c ≤ b / c :=
+  Int.le_ediv_of_mul_le H (Int.le_trans (Int.ediv_mul_le _ (Int.ne_of_gt H)) H')
 
-protected theorem div_lt_of_lt_mul {a b c : Int} (H : 0 < c) (H' : a < b * c) : a / c < b :=
-  lt_of_not_ge <| mt (Int.mul_le_of_le_div H) (not_le_of_gt H')
+protected theorem ediv_lt_of_lt_mul {a b c : Int} (H : 0 < c) (H' : a < b * c) : a / c < b :=
+  Int.lt_of_not_ge <| mt (Int.mul_le_of_le_ediv H) (Int.not_le_of_gt H')
 
-protected theorem lt_mul_of_div_lt {a b c : Int} (H1 : 0 < c) (H2 : a / c < b) : a < b * c :=
-  lt_of_not_ge <| mt (Int.le_div_of_mul_le H1) (not_le_of_gt H2)
+protected theorem lt_mul_of_ediv_lt {a b c : Int} (H1 : 0 < c) (H2 : a / c < b) : a < b * c :=
+  Int.lt_of_not_ge <| mt (Int.le_ediv_of_mul_le H1) (Int.not_le_of_gt H2)
 
-protected theorem div_lt_iff_lt_mul {a b c : Int} (H : 0 < c) : a / c < b ↔ a < b * c :=
-  ⟨Int.lt_mul_of_div_lt H, Int.div_lt_of_lt_mul H⟩
+protected theorem ediv_lt_iff_lt_mul {a b c : Int} (H : 0 < c) : a / c < b ↔ a < b * c :=
+  ⟨Int.lt_mul_of_ediv_lt H, Int.ediv_lt_of_lt_mul H⟩
 
-protected theorem le_mul_of_div_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
+protected theorem le_mul_of_ediv_le {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
     a ≤ c * b := by
-  rw [← Int.div_mul_cancel H2] <;> exact Decidable.mul_le_mul_of_nonneg_right H3 H1
+  rw [← Int.ediv_mul_cancel H2]; exact Int.mul_le_mul_of_nonneg_right H3 H1
 
-protected theorem lt_div_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
+protected theorem lt_ediv_of_mul_lt {a b c : Int} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
     a < c / b :=
-  lt_of_not_ge <| mt (Int.le_mul_of_div_le H1 H2) (not_le_of_gt H3)
+  Int.lt_of_not_ge <| mt (Int.le_mul_of_ediv_le H1 H2) (Int.not_le_of_gt H3)
 
-protected theorem lt_div_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) :
+protected theorem lt_ediv_iff_mul_lt {a b : Int} (c : Int) (H : 0 < c) (H' : c ∣ b) :
     a < b / c ↔ a * c < b :=
-  ⟨Int.mul_lt_of_lt_div H, Int.lt_div_of_mul_lt (le_of_lt H) H'⟩
+  ⟨Int.mul_lt_of_lt_ediv H, Int.lt_ediv_of_mul_lt (Int.le_of_lt H) H'⟩
 
-theorem div_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b ∣ a) : 0 < a / b :=
-  Int.lt_div_of_mul_lt H2 H3
-    (by
-      rwa [zero_mul])
+theorem ediv_pos_of_pos_of_dvd {a b : Int} (H1 : 0 < a) (H2 : 0 ≤ b) (H3 : b ∣ a) : 0 < a / b :=
+  Int.lt_ediv_of_mul_lt H2 H3 (by rwa [Int.zero_mul])
 
-theorem div_eq_div_of_mul_eq_mul {a b c d : Int}
+theorem ediv_eq_ediv_of_mul_eq_mul {a b c d : Int}
     (H2 : d ∣ c) (H3 : b ≠ 0) (H4 : d ≠ 0) (H5 : a * d = b * c) : a / b = c / d :=
-  Int.div_eq_of_eq_mul_right H3 <| by
-    rw [← Int.mul_div_assoc _ H2] <;> exact (Int.div_eq_of_eq_mul_left H4 H5.symm).symm
+  Int.ediv_eq_of_eq_mul_right H3 <| by
+    rw [← Int.mul_ediv_assoc _ H2]; exact (Int.ediv_eq_of_eq_mul_left H4 H5.symm).symm
 
-theorem eq_mul_div_of_mul_eq_mul_of_dvd_left {a b c d : Int}
+/-!
+### The following lemmas have been commented out here for a while, and need restoration.
+-/
+
+/-
+theorem eq_mul_ediv_of_mul_eq_mul_of_dvd_left {a b c d : Int}
     (hb : b ≠ 0) (hbc : b ∣ c) (h : b * a = c * d) : a = c / b * d := by
-  cases' hbc with k hk
+  rcases hbc with ⟨k, hk⟩
   subst hk
-  rw [Int.mul_div_cancel_left _ hb]
-  rw [mul_assoc] at h
+  rw [Int.mul_ediv_cancel_left _ hb]
+  rw [Int.mul_assoc] at h
   apply mul_left_cancel₀ hb h
 
 /-- If an integer with larger absolute value divides an integer, it is
@@ -828,7 +854,7 @@ theorem eq_zero_of_dvd_of_nonneg_of_lt {a b : Int} (w₁ : 0 ≤ a) (w₂ : a < 
 they are equal. -/
 theorem eq_of_mod_eq_ofNatAbs_sub_lt_natAbs {a b c : Int}
     (h1 : a % b = c) (h2 : natAbs (a - c) < natAbs b) : a = c :=
-  eq_of_sub_eq_zero (eq_zero_of_dvd_ofNatAbs_lt_natAbs (dvd_sub_of_mod_eq h1) h2)
+  Int.eq_of_sub_eq_zero (eq_zero_of_dvd_ofNatAbs_lt_natAbs (dvd_sub_of_emod_eq h1) h2)
 
 theorem ofNat_add_negSucc_of_lt {m n : Nat} (h : m < n.succ) : ofNat m + -[n+1] = -[n+1 - m] := by
   change subNatNat _ _ = _
@@ -857,7 +883,6 @@ theorem natAbs_eq_of_dvd_dvd {s t : Int} (hst : s ∣ t) (hts : t ∣ s) : natAb
 theorem div_dvd_of_dvd {s t : Int} (hst : s ∣ t) : t / s ∣ t := by
   rcases eq_or_ne s 0 with (rfl | hs)
   · simpa using hst
-
   rcases hst with ⟨c, hc⟩
   simp [hc, Int.mul_div_cancel_left _ hs]
 
