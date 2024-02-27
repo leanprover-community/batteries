@@ -1,5 +1,6 @@
 import Std.Tactic.Lint.TypeClass
 import Lean.Elab.Command
+
 open Std.Tactic.Lint
 
 namespace A

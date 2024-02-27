@@ -200,11 +200,8 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
       simp [enumFrom, f]
-  -- Note: there was a regression here caused by leanprover/lean4#3388.
-  -- Previously the `go` was in the `simp`, not the `rw`, but currently `simp` can't use it.
-  -- A fix is in the works.
-  rw [Array.foldr_eq_foldr_data, go]
-  simp
+  rw [Array.foldr_eq_foldr_data]
+  simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
