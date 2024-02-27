@@ -49,9 +49,6 @@ theorem fdiv_eq_ediv : ∀ (a : Int) {b : Int}, 0 ≤ b → fdiv a b = a / b
 theorem div_eq_ediv : ∀ {a b : Int}, 0 ≤ a → 0 ≤ b → a.div b = a / b
   | 0, _, _, _ | _, 0, _, _ => by simp
   | succ _, succ _, _, _ => rfl
-  -- FIXME regression on nightly-2024-02-26, shouldn't be needed
-  -- Fixed in https://github.com/leanprover/lean4/pull/3504
-  | _, _, _, _ => sorry
 
 theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = div a b :=
   div_eq_ediv Ha Hb ▸ fdiv_eq_ediv _ Hb
@@ -289,7 +286,6 @@ theorem emod_two_eq (x : Int) : x % 2 = 0 ∨ x % 2 = 1 := by
   match x % 2, h₁, h₂ with
   | 0, _, _ => simp
   | 1, _, _ => simp
-  | _, _, _ => sorry -- FIXME regression on nightly-2024-02-26, shouldn't be needed
 
 theorem mod_add_div' (m k : Int) : mod m k + m.div k * k = m := by
   rw [Int.mul_comm]; apply mod_add_div
