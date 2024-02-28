@@ -1,5 +1,4 @@
 import Std.Data.MLList.IO
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 

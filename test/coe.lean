@@ -1,4 +1,4 @@
-import Std.Tactic.GuardMsgs
+import Lean.Meta.CoeAttr
 
 set_option linter.missingDocs false
 

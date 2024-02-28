@@ -1,5 +1,4 @@
 import Std.Test.Internal.DummyLabelAttr
-import Std.Tactic.GuardMsgs
 import Lean.LabelAttribute
 
 set_option linter.missingDocs false

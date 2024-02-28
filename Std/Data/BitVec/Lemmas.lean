@@ -8,7 +8,7 @@ import Std.Data.Fin.Lemmas
 import Std.Data.Nat.Lemmas
 import Std.Util.ProofWanted
 
-namespace Std.BitVec
+namespace BitVec
 
 /-- Replaced 2024-02-07. -/
 @[deprecated] alias zero_is_unique := eq_nil

@@ -1,5 +1,5 @@
 import Lean.Elab.Tactic.ElabTerm
-import Std.Tactic.GuardMsgs
+import Lean.Elab.Command
 
 open Lean Elab Tactic
 

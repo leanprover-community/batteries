@@ -1,4 +1,3 @@
-import Std.Tactic.GuardMsgs
 
 /-- Construct a natural number using `left`. -/
 def zero : Nat := by

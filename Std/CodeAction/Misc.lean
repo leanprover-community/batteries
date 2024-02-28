@@ -9,6 +9,7 @@ import Std.Lean.Name
 import Std.Lean.Position
 import Std.CodeAction.Attr
 import Lean.Meta.Tactic.TryThis
+import Lean.Server.CodeActions.Provider
 
 /-!
 # Miscellaneous code actions
@@ -17,7 +18,7 @@ This declares some basic tactic code actions, using the `@[tactic_code_action]` 
 -/
 namespace Std.CodeAction
 
-open Lean Meta Elab Server RequestM
+open Lean Meta Elab Server RequestM CodeAction
 
 /-- Return the syntax stack leading to `target` from `root`, if one exists. -/
 def findStack? (root target : Syntax) : Option Syntax.Stack := do

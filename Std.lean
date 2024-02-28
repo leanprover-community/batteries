@@ -37,7 +37,6 @@ import Std.Data.String
 import Std.Data.Sum
 import Std.Data.UInt
 import Std.Lean.AttributeExtra
-import Std.Lean.CoreM
 import Std.Lean.Delaborator
 import Std.Lean.Except
 import Std.Lean.Expr
@@ -53,7 +52,6 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
-import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
 import Std.Lean.Meta.UnusedNames
@@ -81,10 +79,8 @@ import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact
 import Std.Tactic.FalseOrByContra
-import Std.Tactic.GuardMsgs
 import Std.Tactic.Init
 import Std.Tactic.Instances
-import Std.Tactic.LibrarySearch
 import Std.Tactic.Lint
 import Std.Tactic.Lint.Basic
 import Std.Tactic.Lint.Frontend
