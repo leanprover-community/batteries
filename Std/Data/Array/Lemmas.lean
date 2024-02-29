@@ -76,7 +76,7 @@ theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i :
 theorem get?_eq_data_get? (a : Array α) (i : Nat) : a.get? i = a.data.get? i :=
   getElem?_eq_data_get? ..
 
-@[simp] theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
+theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
   simp [get!_eq_getD]
 
 @[simp] theorem back_eq_back? [Inhabited α] (a : Array α) : a.back = a.back?.getD default := by
@@ -108,11 +108,11 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
-@[simp] theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1]'(by simp [i.2]) = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
 
-@[simp] theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1]? = v := by simp [getElem?_pos, i.2]
 
 @[simp] theorem get?_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α)
@@ -131,7 +131,7 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
     (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
   simp only [set, getElem_eq_data_get, List.get_set_ne _ h]
 
-@[simp] theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
+theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
   (setD a i v)[i]'h = v := by
   simp at h
   simp only [setD, h, dite_true, get_set, ite_true]
