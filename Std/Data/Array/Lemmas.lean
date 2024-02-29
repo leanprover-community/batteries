@@ -127,6 +127,10 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
     (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
   if h : i.1 = j then subst j; simp [*] else simp [*]
 
+@[simp] theorem get_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α) (hj : j < a.size)
+    (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
+  simp only [set, getElem_eq_data_get, List.get_set_ne _ h]
+
 @[simp] theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
   (setD a i v)[i]'h = v := by
   simp at h
