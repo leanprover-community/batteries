@@ -1035,7 +1035,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
+def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).data
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
