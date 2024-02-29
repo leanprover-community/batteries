@@ -50,26 +50,12 @@ theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def 
 
 theorem not_mem_nil (a : α) : ¬ a ∈ #[] := nofun
 
-/-- # set -/
-
-@[simp] theorem set!_is_setD : @set! = @setD := rfl
-
-@[simp] theorem size_setD (a : Array α) (index : Nat) (val : α) :
-  (Array.setD a index val).size = a.size := by
-  if h : index < a.size  then
-    simp [setD, h]
-  else
-    simp [setD, h]
-
-
 /-- # get lemmas -/
 
 theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
   erw [Array.mem_def, getElem_eq_data_get]
   apply List.get_mem
 
-@[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
-@[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
 
 @[simp] theorem ugetElem_eq_getElem (a : Array α) {i : USize} (h : i.toNat < a.size) :
@@ -89,11 +75,6 @@ theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i :
 
 theorem get?_eq_data_get? (a : Array α) (i : Nat) : a.get? i = a.data.get? i :=
   getElem?_eq_data_get? ..
-
-@[simp] theorem getD_eq_get? (a : Array α) (n d) : a.getD n d = (a.get? n).getD d := by
-  simp [get?, getD]; split <;> simp
-
-theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default := rfl
 
 @[simp] theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
   simp [get!_eq_getD]
@@ -131,10 +112,6 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
     (a.set i v)[i.1]'(by simp [i.2]) = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
 
-@[simp] theorem get_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α) (hj : j < a.size)
-    (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
-  simp only [set, getElem_eq_data_get, List.get_set_ne h]
-
 @[simp] theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1]? = v := by simp [getElem?_pos, i.2]
 
@@ -154,17 +131,6 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
   (setD a i v)[i]'h = v := by
   simp at h
   simp only [setD, h, dite_true, get_set, ite_true]
-
-/--
-This lemma simplifies a normal form from `get!`
--/
-@[simp] theorem getD_get?_setD (a : Array α) (i : Nat) (v d : α) :
-  Option.getD (setD a i v)[i]? d = if i < a.size then v else d := by
-  if h : i < a.size then
-    simp [setD, h, getElem?, get_set]
-  else
-    have p : i ≥ a.size := Nat.le_of_not_gt h
-    simp [setD, h, get?_len_le, p]
 
 theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
     (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' := by simp [set, List.set_set]
