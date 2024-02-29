@@ -33,10 +33,10 @@ You can generate `std4`'s documentation with
 
 ```text
 # if you're generating documentation for the first time
-> lake -Kdoc=on update
+> lake -R -Kdoc=on update
 ...
 # actually generate the documentation
-> lake -Kdoc=on build Std:docs
+> lake -R -Kdoc=on build Std:docs
 ...
 > ls build/doc/index.html
 build/doc/index.html
@@ -68,3 +68,7 @@ One of the easiest ways to contribute is to find a missing proof and complete it
 [`proof_wanted`](https://github.com/search?q=repo%3Aleanprover%2Fstd4+proof_wanted+language%3ALean&type=code&l=Lean)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
+
+In contrast to mathlib, `std` uses pull requests from forks of this repository. Hence, no special permissions on this repository are required for new contributors.
+
+You can change the labels on PRs by commenting one of `awaiting-review`, `awaiting-author`, or `WIP`. This is helpful for triage.

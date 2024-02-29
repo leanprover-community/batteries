@@ -3,9 +3,9 @@ Copyright (c) 2023 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Control.Nondet.Basic
 import Std.Data.List.Basic
 import Std.Lean.Except
+import Std.Lean.Meta.Iterator
 
 /-!
 # `backtrack`
@@ -85,7 +85,7 @@ def tryAllM [Monad m] [Alternative m] (L : List α) (f : α → m β) : m (List 
 
 variable (cfg : BacktrackConfig)
 variable (trace : Name := .anonymous)
-variable (alternatives : MVarId → Nondet MetaM (List MVarId))
+variable (next : MVarId → (List MVarId -> MetaM (Option (List MVarId))) -> MetaM (List MVarId))
 
 /--
 * `n : Nat` steps remaining.
@@ -133,7 +133,7 @@ private def run (goals : List MVarId) (n : Nat) (curr acc : List MVarId) : MetaM
         try
           -- We attempt to find an alternative,
           -- for which all resulting sub-goals can be discharged using `run n`.
-          (alternatives g).firstM fun r => observing? do run goals n (r ++ gs) acc
+          next g (fun r => observing? do run goals n (r ++ gs) acc)
         catch _ =>
           -- No lemmas could be applied:
           match (← cfg.discharge g) with
@@ -156,7 +156,7 @@ private partial def processIndependentGoals (orig : List MVarId) (goals remainin
   let (igs, ogs) ← remaining.partitionM (MVarId.isIndependentOf goals)
   if igs.isEmpty then
     -- If there are no independent goals, we solve all the goals together via backtracking search.
-    return (← run cfg trace alternatives orig cfg.maxDepth remaining [])
+    return (← run cfg trace next orig cfg.maxDepth remaining [])
   else
     withTraceNode trace
       (fun _ => return m!"independent goals {← ppMVarIds igs},"
@@ -165,7 +165,7 @@ private partial def processIndependentGoals (orig : List MVarId) (goals remainin
     -- gathering the subgoals on which `run` fails,
     -- and the new subgoals generated from goals on which it is successful.
     let (failed, newSubgoals') ← tryAllM igs fun g =>
-      run cfg trace alternatives orig cfg.maxDepth [g] []
+      run cfg trace next orig cfg.maxDepth [g] []
     let newSubgoals := newSubgoals'.join
     withTraceNode trace
       (fun _ => return m!"failed: {← ppMVarIds failed}, new: {← ppMVarIds newSubgoals}") do
@@ -186,18 +186,19 @@ private partial def processIndependentGoals (orig : List MVarId) (goals remainin
 
 end Backtrack
 
-/--
-Attempts to solve the `goals`, by recursively calling `alternatives g` on each subgoal that appears.
-`alternatives` returns a nondeterministic list of new subgoals generated from a goal.
 
-`backtrack` performs a backtracking search, attempting to close all subgoals.
+/--
+Attempts to solve the `goals`, by recursively calling `next` on each
+subgoal that appears with a callback to reenter backtracking search.
 
 Further flow control options are available via the `Config` argument.
 
-Returns a list of subgoals which were "suspended" via the `suspend` or `discharge` hooks
-in `Config`. In the default configuration, `backtrack` will either return an empty list or fail.
+Returns a list of subgoals which were "suspended" via the `suspend` or
+`discharge` hooks in `Config`. In the default configuration, `backtrack`
+will either return an empty list or fail.
 -/
 def backtrack (cfg : BacktrackConfig := {}) (trace : Name := .anonymous)
-    (alternatives : MVarId → Nondet MetaM (List MVarId))
+    (next : MVarId → MetaM (Meta.Iterator (List MVarId)))
     (goals : List MVarId) : MetaM (List MVarId) := do
-  Backtrack.processIndependentGoals cfg trace alternatives goals goals goals
+  let resolve g f := do (←next g).firstM f
+  Backtrack.processIndependentGoals cfg trace resolve goals goals goals

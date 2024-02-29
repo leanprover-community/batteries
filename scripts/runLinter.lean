@@ -3,6 +3,7 @@ import Std.Data.Array.Basic
 import Std.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
+open System (FilePath)
 
 /-- The list of `nolints` pulled from the `nolints.json` file -/
 abbrev NoLints := Array (Name × Name)
@@ -46,8 +47,11 @@ unsafe def main (args : List String) : IO Unit := do
       stdin := .null
     }
     _ ← child.wait
-  let nolintsFile := "scripts/nolints.json"
-  let nolints ← readJsonFile NoLints nolintsFile
+  let nolintsFile : FilePath := "scripts/nolints.json"
+  let nolints ← if ← nolintsFile.pathExists then
+    readJsonFile NoLints nolintsFile
+  else
+    pure #[]
   withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
     let ctx := { fileName := "", fileMap := default }
     let state := { env }

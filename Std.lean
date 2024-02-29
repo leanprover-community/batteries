@@ -27,6 +27,7 @@ import Std.Data.Fin
 import Std.Data.HashMap
 import Std.Data.Int
 import Std.Data.Json
+import Std.Data.LazyList
 import Std.Data.List
 import Std.Data.MLList
 import Std.Data.Nat
@@ -62,6 +63,7 @@ import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.Expr
 import Std.Lean.Meta.Inaccessible
 import Std.Lean.Meta.InstantiateMVars
+import Std.Lean.Meta.Iterator
 import Std.Lean.Meta.LazyDiscrTree
 import Std.Lean.Meta.SavedState
 import Std.Lean.Meta.Simp
@@ -100,6 +102,7 @@ import Std.Tactic.FalseOrByContra
 import Std.Tactic.GuardExpr
 import Std.Tactic.GuardMsgs
 import Std.Tactic.HaveI
+import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.LabelAttr
 import Std.Tactic.LeftRight
@@ -147,6 +150,7 @@ import Std.Tactic.Unreachable
 import Std.Tactic.Where
 import Std.Test.Internal.DummyLabelAttr
 import Std.Util.Cache
+import Std.Util.CheckTactic
 import Std.Util.ExtendedBinder
 import Std.Util.LibraryNote
 import Std.Util.Pickle
