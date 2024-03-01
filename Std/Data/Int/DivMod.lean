@@ -626,7 +626,7 @@ theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) :
 
 -/
 
-@[simp] theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
+theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
   simp [bmod]
 
 @[simp] theorem bmod_bmod : bmod (bmod x m) m = bmod x m := by
