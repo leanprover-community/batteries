@@ -521,3 +521,9 @@ theorem natAbs_lt_natAbs_of_nonneg_of_lt {a b : Int}
 
 theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
   rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]
+
+/-! ### toNat -/
+
+theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
+  | (m : Nat), n => Option.some_inj.trans ofNat_inj.symm
+  | -[m+1], n => by constructor <;> nofun
