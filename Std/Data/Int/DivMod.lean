@@ -103,10 +103,6 @@ theorem ediv_neg' {a b : Int} (Ha : a < 0) (Hb : 0 < b) : a / b < 0 :=
   | succ _ => congrArg Nat.cast (Nat.div_one _)
   | -[_+1] => congrArg negSucc (Nat.div_one _)
 
-@[simp] theorem ediv_one : ∀ a : Int, a / 1 = a
-  | (_:Nat) => congrArg Nat.cast (Nat.div_one _)
-  | -[_+1]  => congrArg negSucc (Nat.div_one _)
-
 theorem div_eq_zero_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a.div b = 0 :=
   match a, b, eq_ofNat_of_zero_le H1, eq_succ_of_zero_lt (Int.lt_of_le_of_lt H1 H2) with
   | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => congrArg Nat.cast <| Nat.div_eq_of_lt <| ofNat_lt.1 H2
@@ -154,9 +150,6 @@ theorem add_mul_ediv_left (a : Int) {b : Int}
 
 @[simp] protected theorem fdiv_self {a : Int} (H : a ≠ 0) : a.fdiv a = 1 := by
   have := Int.mul_fdiv_cancel 1 H; rwa [Int.one_mul] at this
-
-@[simp] protected theorem ediv_self {a : Int} (H : a ≠ 0) : a / a = 1 := by
-  have := Int.mul_ediv_cancel 1 H; rwa [Int.one_mul] at this
 
 /-! ### mod -/
 
@@ -241,9 +234,6 @@ theorem fmod_eq_mod {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fmod a b = mod a
 
 @[simp] theorem mod_one (a : Int) : mod a 1 = 0 := by
   simp [mod_def, Int.div_one, Int.one_mul, Int.sub_self]
-
-@[local simp] theorem emod_one (a : Int) : a % 1 = 0 := by
-  simp [emod_def, Int.one_mul, Int.sub_self]
 
 @[simp] theorem fmod_one (a : Int) : a.fmod 1 = 0 := by
   simp [fmod_def, Int.one_mul, Int.sub_self]
