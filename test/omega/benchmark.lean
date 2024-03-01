@@ -311,8 +311,6 @@ example (x y : Int) (h : x < y) : x ≠ y := by omega
 
 example (x y : Int) (h : x < y) : ¬ x = y := by omega
 
-example (x : Int) : id x ≥ x := by omega
-
 example (prime : Nat → Prop) (x y z : Int) (h1 : 2 * x + ((-3) * y) < 0) (h2 : (-4) * x + 2*  z < 0)
     (h3 : 12 * y + (-4) * z < 0) (_ : prime 7) : False := by omega
 

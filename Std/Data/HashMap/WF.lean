@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 import Std.Data.HashMap.Basic
 import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
-import Std.Tactic.ShowTerm
 
 namespace Std.HashMap
 namespace Imp
