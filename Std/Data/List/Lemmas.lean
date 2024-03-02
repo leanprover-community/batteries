@@ -718,12 +718,6 @@ are often used for theorems about `Array.pop`.  -/
 
 /-! ### nth element -/
 
-@[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
-  (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
-
-@[simp] theorem get_cons_succ' {as : List α} {i : Fin as.length} :
-  (a :: as).get i.succ = as.get i := rfl
-
 @[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
 theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
@@ -997,11 +991,6 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
   simp [get?_set]; split <;> subst_vars <;> simp [*, get?_eq_get h]
 
-@[simp] theorem set_nil (n : Nat) (a : α) : [].set n a = [] := rfl
-
-@[simp] theorem set_succ (x : α) (xs : List α) (n : Nat) (a : α) :
-  (x :: xs).set n.succ a = x :: xs.set n a := rfl
-
 theorem set_comm (a b : α) : ∀ {n m : Nat} (l : List α), n ≠ m →
     (l.set n a).set m b = (l.set m b).set n a
   | _, _, [], _ => by simp
@@ -1014,15 +1003,6 @@ theorem set_set (a b : α) : ∀ (l : List α) (n : Nat), (l.set n a).set n b = 
   | [], _ => by simp
   | _ :: _, 0 => by simp [set]
   | _ :: _, _+1 => by simp [set, set_set]
-
-@[simp] theorem get_set_eq (l : List α) (i : Nat) (a : α) (h : i < (l.set i a).length) :
-    (l.set i a).get ⟨i, h⟩ = a := by
-  rw [← Option.some_inj, ← get?_eq_get, get?_set_eq, get?_eq_get] <;> simp_all
-
-@[simp] theorem get_set_ne {l : List α} {i j : Nat} (h : i ≠ j) (a : α)
-    (hj : j < (l.set i a).length) :
-    (l.set i a).get ⟨j, hj⟩ = l.get ⟨j, by simp at hj; exact hj⟩ := by
-  rw [← Option.some_inj, ← get?_eq_get, get?_set_ne _ _ h, get?_eq_get]
 
 theorem get_set (a : α) {m n} (l : List α) (h) :
     (set l m a).get ⟨n, h⟩ = if m = n then a else l.get ⟨n, length_set .. ▸ h⟩ := by

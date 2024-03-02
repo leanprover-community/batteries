@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import Std.Tactic.ShowTerm
 
 /-- info: Try this: exact (n, 37) -/
 #guard_msgs in example (n : Nat) : Nat × Nat := by
