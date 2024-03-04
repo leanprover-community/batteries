@@ -905,11 +905,11 @@ theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
   | n, l, 0 => by cases l <;> cases n <;> rfl
   | n, [], _+1 => by cases n <;> rfl
-  | 0, _ :: l, m+1 => by cases l.get? m <;> rfl
+  | 0, _ :: l, m+1 => by cases h : l.get? m <;> simp [h, modifyNth, m.succ_ne_zero.symm]
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
-      cases l.get? m <;> by_cases h : n = m <;>
-        simp only [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff]
+      cases h' : l.get? m <;> by_cases h : n = m <;>
+        simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
@@ -956,7 +956,7 @@ theorem modifyNth_eq_set_get? (f : α → α) :
   | 0, l => by cases l <;> rfl
   | n+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases l.get? n <;> rfl
+    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l.get? n <;> simp [h]
 
 theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
