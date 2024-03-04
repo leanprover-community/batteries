@@ -3,9 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.Nat.Init.Gcd
 import Std.Data.Nat.Lemmas
-import Std.Tactic.RCases
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`

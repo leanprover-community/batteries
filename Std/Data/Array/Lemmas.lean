@@ -6,10 +6,9 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
+import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
-import Std.Tactic.HaveI
-import Std.Tactic.Simpa
 import Std.Util.ProofWanted
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
@@ -49,19 +48,7 @@ attribute [simp] isEmpty uget
 
 theorem mem_data {a : α} {l : Array α} : a ∈ l.data ↔ a ∈ l := (mem_def _ _).symm
 
-theorem not_mem_nil (a : α) : ¬ a ∈ #[] := fun.
-
-/-- # set -/
-
-@[simp] theorem set!_is_setD : @set! = @setD := rfl
-
-@[simp] theorem size_setD (a : Array α) (index : Nat) (val : α) :
-  (Array.setD a index val).size = a.size := by
-  if h : index < a.size  then
-    simp [setD, h]
-  else
-    simp [setD, h]
-
+theorem not_mem_nil (a : α) : ¬ a ∈ #[] := nofun
 
 /-- # get lemmas -/
 
@@ -69,8 +56,6 @@ theorem getElem?_mem {l : Array α} {i : Fin l.size} : l[i] ∈ l := by
   erw [Array.mem_def, getElem_eq_data_get]
   apply List.get_mem
 
-@[simp] theorem get_eq_getElem (a : Array α) (i : Fin _) : a.get i = a[i.1] := rfl
-@[simp] theorem get?_eq_getElem? (a : Array α) (i : Nat) : a.get? i = a[i]? := rfl
 theorem getElem_fin_eq_data_get (a : Array α) (i : Fin _) : a[i] = a.data.get i := rfl
 
 @[simp] theorem ugetElem_eq_getElem (a : Array α) {i : USize} (h : i.toNat < a.size) :
@@ -91,12 +76,7 @@ theorem getElem?_eq_data_get? (a : Array α) (i : Nat) : a[i]? = a.data.get? i :
 theorem get?_eq_data_get? (a : Array α) (i : Nat) : a.get? i = a.data.get? i :=
   getElem?_eq_data_get? ..
 
-@[simp] theorem getD_eq_get? (a : Array α) (n d) : a.getD n d = (a.get? n).getD d := by
-  simp [get?, getD]; split <;> simp
-
-theorem get!_eq_getD [Inhabited α] (a : Array α) : a.get! n = a.getD n default := rfl
-
-@[simp] theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
+theorem get!_eq_get? [Inhabited α] (a : Array α) : a.get! n = (a.get? n).getD default := by
   simp [get!_eq_getD]
 
 @[simp] theorem back_eq_back? [Inhabited α] (a : Array α) : a.back = a.back?.getD default := by
@@ -128,15 +108,11 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
-@[simp] theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1]'(by simp [i.2]) = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
 
-@[simp] theorem get_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α) (hj : j < a.size)
-    (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
-  simp only [set, getElem_eq_data_get, List.get_set_ne h]
-
-@[simp] theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
+theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1]? = v := by simp [getElem?_pos, i.2]
 
 @[simp] theorem get?_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α)
@@ -151,21 +127,14 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
     (a.set i v)[j]'(by simp [*]) = if i = j then v else a[j] := by
   if h : i.1 = j then subst j; simp [*] else simp [*]
 
-@[simp] theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
+@[simp] theorem get_set_ne (a : Array α) (i : Fin a.size) {j : Nat} (v : α) (hj : j < a.size)
+    (h : i.1 ≠ j) : (a.set i v)[j]'(by simp [*]) = a[j] := by
+  simp only [set, getElem_eq_data_get, List.get_set_ne _ h]
+
+theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
   (setD a i v)[i]'h = v := by
   simp at h
   simp only [setD, h, dite_true, get_set, ite_true]
-
-/--
-This lemma simplifies a normal form from `get!`
--/
-@[simp] theorem getD_get?_setD (a : Array α) (i : Nat) (v d : α) :
-  Option.getD (setD a i v)[i]? d = if i < a.size then v else d := by
-  if h : i < a.size then
-    simp [setD, h, getElem?, get_set]
-  else
-    have p : i ≥ a.size := Nat.le_of_not_gt h
-    simp [setD, h, get?_len_le, p]
 
 theorem set_set (a : Array α) (i : Fin a.size) (v v' : α) :
     (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' := by simp [set, List.set_set]
@@ -274,7 +243,7 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       simp at hi'; simp [get_push]; split
       · next h => exact h₂ _ _ h
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
-  simp [mapIdxM]; exact go rfl (fun.) h0
+  simp [mapIdxM]; exact go rfl nofun h0
 
 theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
     (motive : Nat → Prop) (h0 : motive 0)
@@ -318,8 +287,8 @@ theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
 @[simp] theorem size_range {n : Nat} : (range n).size = n := by
   unfold range
   induction n with
-  | zero      => simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
-  | succ k ih => simp only [Nat.fold, flip, size_push, ih]
+  | zero      => simp [Nat.fold]
+  | succ k ih => rw [Nat.fold, flip]; simpa
 
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = a.size) (a.modifyM i f) := by
@@ -403,7 +372,7 @@ termination_by n - i
 
 @[simp] theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ :=
-  getElem_ofFn_go _ _ _ (by simp) (by simp) fun.
+  getElem_ofFn_go _ _ _ (by simp) (by simp) nofun
 
 theorem forIn_eq_data_forIn [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :

@@ -3,7 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Std.Classes.Dvd
 
 namespace Nat
 
@@ -123,12 +122,3 @@ where
     else
       guess
   termination_by guess
-
-/-!
-### testBit
-We define an operation for testing individual bits in the binary representation
-of a number.
--/
-
-/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
-def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0

@@ -1,6 +1,4 @@
 import Std.Tactic.Lint
-import Std.Tactic.GuardMsgs
-import Std.Tactic.RunCmd
 
 open Std.Tactic.Lint
 set_option linter.missingDocs false
@@ -13,8 +11,8 @@ def h : Nat := 0
 
 run_meta guard (← [``fg, ``fh].anyM fun n => return (← simpNF.test n).isSome)
 
-@[simp] theorem and_comm : a ∧ b ↔ b ∧ a := And.comm
-run_meta guard (← simpComm.test ``and_comm).isSome
+@[simp] theorem test_and_comm : a ∧ b ↔ b ∧ a := And.comm
+run_meta guard (← simpComm.test ``test_and_comm).isSome
 
 @[simp] theorem Prod.mk_fst : (a, b).1 = id a := rfl
 run_meta guard (← simpVarHead.test ``Prod.mk_fst).isSome
@@ -49,10 +47,10 @@ section
 def MyPred (_ : Nat → Nat) : Prop := True
 
 @[simp] theorem bad1 (f : Unit → Nat → Nat) : MyPred (f ()) ↔ True := by
-  rw [MyPred]; exact Iff.rfl
+  rw [MyPred]
 
 @[simp] theorem bad2 (f g : Nat → Nat) : MyPred (fun x => f (g x)) ↔ True := by
-  rw [MyPred]; exact Iff.rfl
+  rw [MyPred]
 
 -- Note, this is not a proper regression test because #671 depends on how the `MetaM` is
 -- executed, and `run_meta` sets the options appropriately. But setting the config

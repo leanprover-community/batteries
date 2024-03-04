@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
 import Std.Data.Nat.Lemmas
-import Std.Data.Array.Init.Lemmas
 
 namespace Array
 
@@ -18,7 +17,7 @@ structure PrefixTable (α : Type _) extends Array (α × Nat) where
   valid : (h : i < toArray.size) → toArray[i].2 ≤ i
 
 instance : Inhabited (PrefixTable α) where
-  default := ⟨#[], fun.⟩
+  default := ⟨#[], nofun⟩
 
 /-- Returns the size of the prefix table -/
 abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size

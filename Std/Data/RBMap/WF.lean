@@ -3,7 +3,6 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Logic
 import Std.Data.RBMap.Basic
 import Std.Tactic.SeqFocus
 
@@ -178,12 +177,12 @@ protected theorem RedRed.balance2 {l : RBNode α} {v : α} {r : RBNode α}
 /-- The `balance1` function does nothing if the first argument is already balanced. -/
 theorem balance1_eq {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.Balanced c n) : balance1 l v r = node black l v r := by
-  unfold balance1; split <;> first | rfl | match hl with.
+  unfold balance1; split <;> first | rfl | nomatch hl
 
 /-- The `balance2` function does nothing if the second argument is already balanced. -/
 theorem balance2_eq {l : RBNode α} {v : α} {r : RBNode α}
     (hr : r.Balanced c n) : balance2 l v r = node black l v r := by
-  unfold balance2; split <;> first | rfl | match hr with.
+  unfold balance2; split <;> first | rfl | nomatch hr
 
 /-! ## insert -/
 
@@ -356,10 +355,10 @@ protected theorem Balanced.append {l r : RBNode α}
     have ⟨_, IH⟩ := (hb.append hc).of_false (· rfl rfl); split
     · next e =>
       have .red hb' hc' := e ▸ IH
-      exact .redred (fun.) (.red ha hb') (.red hc' hd)
+      exact .redred nofun (.red ha hb') (.red hc' hd)
     · next bcc _ H =>
       match bcc, append b c, IH, H with
-      | black, _, IH, _ => exact .redred (fun.) ha (.red IH hd)
+      | black, _, IH, _ => exact .redred nofun ha (.red IH hd)
       | red, _, .red .., H => cases H _ _ _ rfl
   · next b c _ _ =>
     have .black ha hb := hl; have .black hc hd := hr
@@ -377,10 +376,10 @@ protected theorem Balanced.append {l r : RBNode α}
       | _, .redred .., H => cases H _ _ _ rfl
   · have .red hc hd := hr; have IH := hl.append hc
     have .black ha hb := hl; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
-    exact .redred (fun.) IH hd
+    exact .redred nofun IH hd
   · have .red ha hb := hl; have IH := hb.append hr
     have .black hc hd := hr; have ⟨c, IH⟩ := IH.of_false (· rfl rfl)
-    exact .redred (fun.) ha IH
+    exact .redred nofun ha IH
 termination_by l.size + r.size
 
 /-! ## erase -/
@@ -448,10 +447,10 @@ protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
     unfold del; split
     · exact match a, n, iha with
       | .nil, _, _ => ⟨_, .red ha hb⟩
-      | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).of_false (fun.)
+      | .node black .., _, ⟨n, rfl, ha⟩ => (hb.balLeft ha).of_false nofun
     · exact match b, n, ihb with
       | .nil, _, _ => ⟨_, .red ha hb⟩
-      | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).of_false (fun.)
+      | .node black .., _, ⟨n, rfl, hb⟩ => (ha.balRight hb).of_false nofun
     · exact (ha.append hb).of_false (· rfl rfl)
 
 /-- The `erase` function preserves the ordering invariants. -/

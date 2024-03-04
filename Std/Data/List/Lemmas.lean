@@ -6,11 +6,10 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import Std.Control.ForInStep.Lemmas
 import Std.Data.Bool
 import Std.Data.Fin.Basic
+import Std.Data.Nat.Lemmas
 import Std.Data.List.Basic
 import Std.Data.Option.Lemmas
 import Std.Classes.BEq
-import Std.Tactic.Ext
-import Std.Tactic.Simpa
 
 namespace List
 
@@ -18,7 +17,7 @@ open Nat
 
 /-! # Basic properties of Lists -/
 
-theorem cons_ne_nil (a : α) (l : List α) : a :: l ≠ [] := fun.
+theorem cons_ne_nil (a : α) (l : List α) : a :: l ≠ [] := nofun
 
 theorem cons_ne_self (a : α) (l : List α) : a :: l ≠ l := mt (congrArg length) (Nat.succ_ne_self _)
 
@@ -89,7 +88,7 @@ theorem mem_of_mem_cons_of_mem : ∀ {a b : α} {l : List α}, a ∈ b :: l → 
 theorem eq_or_ne_mem_of_mem {a b : α} {l : List α} (h' : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
   (Classical.em _).imp_right fun h => ⟨h, (mem_cons.1 h').resolve_left h⟩
 
-theorem ne_nil_of_mem {a : α} {l : List α} (h : a ∈ l) : l ≠ [] := by cases h <;> intro.
+theorem ne_nil_of_mem {a : α} {l : List α} (h : a ∈ l) : l ≠ [] := by cases h <;> nofun
 
 theorem append_of_mem {a : α} {l : List α} : a ∈ l → ∃ s t : List α, l = s ++ a :: t
   | .head l => ⟨[], l, rfl⟩
@@ -389,9 +388,9 @@ theorem bind_map (f : β → γ) (g : α → List β) :
 
 /-! ### bounded quantifiers over Lists -/
 
-theorem exists_mem_nil (p : α → Prop) : ¬∃ x ∈ @nil α, p x := fun.
+theorem exists_mem_nil (p : α → Prop) : ¬∃ x ∈ @nil α, p x := nofun
 
-theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x := fun.
+theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x := nofun
 
 theorem exists_mem_cons {p : α → Prop} {a : α} {l : List α} :
     (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x := by simp
@@ -407,7 +406,7 @@ theorem forall_mem_append {p : α → Prop} {l₁ l₂ : List α} :
 
 theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈ l₁ → a ∈ l₂ := .rfl
 
-@[simp] theorem nil_subset (l : List α) : [] ⊆ l := fun.
+@[simp] theorem nil_subset (l : List α) : [] ⊆ l := nofun
 
 @[simp] theorem Subset.refl (l : List α) : l ⊆ l := fun _ i => i
 
@@ -448,7 +447,7 @@ fun s => Subset.trans s <| subset_append_right _ _
     l₁ ++ l₂ ⊆ l ↔ l₁ ⊆ l ∧ l₂ ⊆ l := by simp [subset_def, or_imp, forall_and]
 
 theorem subset_nil {l : List α} : l ⊆ [] ↔ l = [] :=
-  ⟨fun h => match l with | [] => rfl | _::_ => nomatch h (.head ..), fun | rfl => Subset.refl _⟩
+  ⟨fun h => match l with | [] => rfl | _::_ => (nomatch h (.head ..)), fun | rfl => Subset.refl _⟩
 
 theorem map_subset {l₁ l₂ : List α} (f : α → β) (H : l₁ ⊆ l₂) : map f l₁ ⊆ map f l₂ :=
   fun x => by simp only [mem_map]; exact .imp fun a => .imp_left (@H _)
@@ -719,12 +718,6 @@ are often used for theorems about `Array.pop`.  -/
 
 /-! ### nth element -/
 
-@[simp] theorem get_cons_succ {as : List α} {h : i + 1 < (a :: as).length} :
-  (a :: as).get ⟨i+1, h⟩ = as.get ⟨i, Nat.lt_of_succ_lt_succ h⟩ := rfl
-
-@[simp] theorem get_cons_succ' {as : List α} {i : Fin as.length} :
-  (a :: as).get i.succ = as.get i := rfl
-
 @[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
 theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
@@ -794,16 +787,6 @@ theorem get_of_eq {l l' : List α} (h : l = l') (i : Fin l.length) :
 theorem get_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.head?
   | _::_, _ => rfl
 
-theorem get_append : ∀ {l₁ l₂ : List α} (n : Nat) (h : n < l₁.length),
-    (l₁ ++ l₂).get ⟨n, length_append .. ▸ Nat.lt_add_right _ h⟩ = l₁.get ⟨n, h⟩
-| a :: l, _, 0, h => rfl
-| a :: l, _, n+1, h => by simp only [get, cons_append]; apply get_append
-
-theorem get?_append_right : ∀ {l₁ l₂ : List α} {n : Nat}, l₁.length ≤ n →
-  (l₁ ++ l₂).get? n = l₂.get? (n - l₁.length)
-| [], _, n, _ => rfl
-| a :: l, _, n+1, h₁ => by rw [cons_append]; simp [get?_append_right (Nat.lt_succ.1 h₁)]
-
 theorem get_append_right_aux {l₁ l₂ : List α} {n : Nat}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length := by
   rw [length_append] at h₂
@@ -822,12 +805,6 @@ theorem get_of_append {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.lengt
 
 @[simp] theorem get_replicate (a : α) {n : Nat} (m : Fin _) : (replicate n a).get m = a :=
   eq_of_mem_replicate (get_mem _ _ _)
-
-theorem get?_append {l₁ l₂ : List α} {n : Nat} (hn : n < l₁.length) :
-  (l₁ ++ l₂).get? n = l₁.get? n := by
-  have hn' : n < (l₁ ++ l₂).length := Nat.lt_of_lt_of_le hn <|
-    length_append .. ▸ Nat.le_add_right ..
-  rw [get?_eq_get hn, get?_eq_get hn', get_append]
 
 @[simp] theorem getLastD_concat (a b l) : @getLastD α (l ++ [b]) a = b := by
   rw [getLastD_eq_getLast?, getLast?_concat]; rfl
@@ -853,29 +830,9 @@ theorem ext_get {l₁ l₂ : List α} (hl : length l₁ = length l₂)
       have h₁ := Nat.le_of_not_lt h₁
       rw [get?_len_le h₁, get?_len_le]; rwa [← hl]
 
-theorem get?_reverse' : ∀ {l : List α} (i j), i + j + 1 = length l →
-    get? l.reverse i = get? l j
-  | [], _, _, _ => rfl
-  | a::l, i, 0, h => by simp at h; simp [h, get?_append_right]
-  | a::l, i, j+1, h => by
-    have := Nat.succ.inj h; simp at this ⊢
-    rw [get?_append, get?_reverse' _ j this]
-    rw [length_reverse, ← this]; apply Nat.lt_add_of_pos_right (Nat.succ_pos _)
-
-theorem get?_reverse {l : List α} (i) (h : i < length l) :
-    get? l.reverse i = get? l (l.length - 1 - i) :=
-  get?_reverse' _ _ <| by
-    rw [Nat.add_sub_of_le (Nat.le_sub_one_of_lt h),
-      Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]
-
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
   | _a::_, 0, rfl => rfl
   | _::l, _+1, e => get!_of_get? (l := l) e
-
-theorem getD_eq_get? : ∀ l n (a : α), getD l n a = (get? l n).getD a
-  | [], _, _ => rfl
-  | _a::_, 0, _ => rfl
-  | _::l, _+1, _ => getD_eq_get? (l := l) ..
 
 @[simp] theorem get!_eq_getD [Inhabited α] : ∀ (l : List α) n, l.get! n = l.getD n default
   | [], _      => rfl
@@ -948,11 +905,11 @@ theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
   | n, l, 0 => by cases l <;> cases n <;> rfl
   | n, [], _+1 => by cases n <;> rfl
-  | 0, _ :: l, m+1 => by cases l.get? m <;> rfl
+  | 0, _ :: l, m+1 => by cases h : l.get? m <;> simp [h, modifyNth, m.succ_ne_zero.symm]
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
-      cases l.get? m <;> by_cases h : n = m <;>
-        simp only [h, if_pos, if_true, if_false, Option.map, mt Nat.succ.inj, not_false_iff]
+      cases h' : l.get? m <;> by_cases h : n = m <;>
+        simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
@@ -999,7 +956,7 @@ theorem modifyNth_eq_set_get? (f : α → α) :
   | 0, l => by cases l <;> rfl
   | n+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases l.get? n <;> rfl
+    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l.get? n <;> simp [h]
 
 theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
@@ -1034,11 +991,6 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
   simp [get?_set]; split <;> subst_vars <;> simp [*, get?_eq_get h]
 
-@[simp] theorem set_nil (n : Nat) (a : α) : [].set n a = [] := rfl
-
-@[simp] theorem set_succ (x : α) (xs : List α) (n : Nat) (a : α) :
-  (x :: xs).set n.succ a = x :: xs.set n a := rfl
-
 theorem set_comm (a b : α) : ∀ {n m : Nat} (l : List α), n ≠ m →
     (l.set n a).set m b = (l.set m b).set n a
   | _, _, [], _ => by simp
@@ -1051,15 +1003,6 @@ theorem set_set (a b : α) : ∀ (l : List α) (n : Nat), (l.set n a).set n b = 
   | [], _ => by simp
   | _ :: _, 0 => by simp [set]
   | _ :: _, _+1 => by simp [set, set_set]
-
-@[simp] theorem get_set_eq (l : List α) (i : Nat) (a : α) (h : i < (l.set i a).length) :
-    (l.set i a).get ⟨i, h⟩ = a := by
-  rw [← Option.some_inj, ← get?_eq_get, get?_set_eq, get?_eq_get] <;> simp_all
-
-@[simp] theorem get_set_ne {l : List α} {i j : Nat} (h : i ≠ j) (a : α)
-    (hj : j < (l.set i a).length) :
-    (l.set i a).get ⟨j, hj⟩ = l.get ⟨j, by simp at hj; exact hj⟩ := by
-  rw [← Option.some_inj, ← get?_eq_get, get?_set_ne _ _ h, get?_eq_get]
 
 theorem get_set (a : α) {m n} (l : List α) (h) :
     (set l m a).get ⟨n, h⟩ = if m = n then a else l.get ⟨n, length_set .. ▸ h⟩ := by
