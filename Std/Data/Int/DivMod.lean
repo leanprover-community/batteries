@@ -96,7 +96,7 @@ theorem ediv_neg' {a b : Int} (Ha : a < 0) (Hb : 0 < b) : a / b < 0 :=
 
 @[simp] protected theorem div_one : ∀ a : Int, a.div 1 = a
   | (n:Nat) => congrArg ofNat (Nat.div_one _)
-  | -[n+1] => by simp [Int.div, neg_ofNat_succ]
+  | -[n+1] => by simp [Int.div, Nat.div_one]; rfl
 
 @[simp] theorem fdiv_one : ∀ a : Int, a.fdiv 1 = a
   | 0 => rfl

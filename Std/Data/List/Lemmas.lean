@@ -222,7 +222,7 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
-    simp_all [add_one, succ_min_succ, Nat.zero_min, Nat.min_zero]
+    simp_all [succ_min_succ, Nat.zero_min, Nat.min_zero]
 
 @[simp]
 theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
@@ -846,7 +846,7 @@ theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a �
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
-  | succ n, _ :: l => by simp [Nat.succ_min_succ, add_one, length_take]
+  | succ n, _ :: l => by simp [Nat.succ_min_succ, length_take]
 
 theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
 
