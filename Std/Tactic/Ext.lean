@@ -3,8 +3,9 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Mario Carneiro
 -/
-import Std.Tactic.Basic
-import Std.Tactic.RCases
+import Lean.Elab.Tactic.RCases
+import Lean.Linter.Util
+import Std.Tactic.Init
 import Std.Tactic.Ext.Attr
 
 namespace Std.Tactic.Ext

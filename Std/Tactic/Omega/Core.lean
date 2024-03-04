@@ -6,9 +6,8 @@ Authors: Scott Morrison
 import Std.Tactic.Omega.OmegaM
 import Std.Tactic.Omega.Constraint
 import Std.Tactic.Omega.MinNatAbs
-import Std.Data.HashMap.Basic
 
-open Lean (HashSet)
+open Lean (HashMap HashSet)
 
 namespace Std.Tactic.Omega
 

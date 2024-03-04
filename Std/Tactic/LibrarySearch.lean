@@ -3,10 +3,12 @@ Copyright (c) 2021-2023 Gabriel Ebner and Lean FRO. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner, Joe Hendrix, Scott Morrison
 -/
+import Lean.Meta.Tactic.TryThis
 import Std.Lean.CoreM
 import Std.Lean.Expr
 import Std.Lean.Meta.DiscrTree
 import Std.Lean.Meta.LazyDiscrTree
+import Std.Lean.Parser
 import Std.Data.Option.Basic
 import Std.Tactic.SolveByElim
 import Std.Util.Pickle
@@ -32,7 +34,7 @@ we are ready to replace the corresponding implementations in Mathlib.
 
 namespace Std.Tactic.LibrarySearch
 
-open Lean Meta Std.Tactic.TryThis
+open Lean Meta Tactic.TryThis
 
 initialize registerTraceClass `Tactic.stdLibrarySearch
 initialize registerTraceClass `Tactic.stdLibrarySearch.lemmas

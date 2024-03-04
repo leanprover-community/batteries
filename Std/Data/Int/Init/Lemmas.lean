@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
 import Std.Classes.Cast
-import Std.Data.Nat.Lemmas
+import Std.Data.Nat.Init.Lemmas
 import Std.Data.Int.Basic
 import Std.Tactic.NormCast.Lemmas
 
@@ -22,7 +22,7 @@ theorem ofNat_two : ((2 : Nat) : Int) = 2 := rfl
 
 @[simp] theorem default_eq_zero : default = (0 : Int) := rfl
 
-protected theorem zero_ne_one : (0 : Int) ≠ 1 := fun.
+protected theorem zero_ne_one : (0 : Int) ≠ 1 := nofun
 
 /- ## Definitions of basic functions -/
 
@@ -75,9 +75,9 @@ theorem negSucc_inj : negSucc m = negSucc n ↔ m = n := ⟨negSucc.inj, fun H =
 
 theorem negSucc_eq (n : Nat) : -[n+1] = -((n : Int) + 1) := rfl
 
-@[simp] theorem negSucc_ne_zero (n : Nat) : -[n+1] ≠ 0 := fun.
+@[simp] theorem negSucc_ne_zero (n : Nat) : -[n+1] ≠ 0 := nofun
 
-@[simp] theorem zero_ne_negSucc (n : Nat) : 0 ≠ -[n+1] := fun.
+@[simp] theorem zero_ne_negSucc (n : Nat) : 0 ≠ -[n+1] := nofun
 
 @[simp, norm_cast] theorem Nat.cast_ofNat_Int :
   (Nat.cast (no_index (OfNat.ofNat n)) : Int) = OfNat.ofNat n := rfl

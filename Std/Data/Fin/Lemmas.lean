@@ -8,6 +8,8 @@ import Std.Data.Nat.Lemmas
 import Std.Tactic.Ext
 import Std.Tactic.Simpa
 import Std.Tactic.NormCast.Lemmas
+import Std.Tactic.Omega
+import Std.Tactic.SimpTrace
 
 namespace Fin
 
@@ -94,6 +96,8 @@ protected theorem ne_of_lt {a b : Fin n} (h : a < b) : a ≠ b := Fin.ne_of_val_
 
 protected theorem ne_of_gt {a b : Fin n} (h : a < b) : b ≠ a := Fin.ne_of_val_ne (Nat.ne_of_gt h)
 
+protected theorem le_of_lt {a b : Fin n} (h : a < b) : a ≤ b := Nat.le_of_lt h
+
 theorem is_le (i : Fin (n + 1)) : i ≤ n := Nat.le_of_lt_succ i.is_lt
 
 @[simp] theorem is_le' {a : Fin n} : a ≤ n := Nat.le_of_lt a.is_lt
@@ -116,7 +120,7 @@ theorem mk_le_of_le_val {b : Fin n} {a : Nat} (h : a ≤ b) :
 
 theorem zero_lt_one : (0 : Fin (n + 2)) < 1 := Nat.zero_lt_one
 
-@[simp] theorem not_lt_zero (a : Fin (n + 1)) : ¬a < 0 := fun.
+@[simp] theorem not_lt_zero (a : Fin (n + 1)) : ¬a < 0 := nofun
 
 theorem pos_iff_ne_zero {a : Fin (n + 1)} : 0 < a ↔ a ≠ 0 := by
   rw [lt_def, val_zero, Nat.pos_iff_ne_zero, ← val_ne_iff]; rfl
@@ -174,7 +178,7 @@ theorem val_lt_last {i : Fin (n + 1)} : i ≠ last n → (i : Nat) < n :=
 
 theorem subsingleton_iff_le_one : Subsingleton (Fin n) ↔ n ≤ 1 := by
   (match n with | 0 | 1 | n+2 => ?_) <;> try simp
-  · exact ⟨fun.⟩
+  · exact ⟨nofun⟩
   · exact ⟨fun ⟨0, _⟩ ⟨0, _⟩ => rfl⟩
   · exact iff_of_false (fun h => Fin.ne_of_lt zero_lt_one (h.elim ..)) (of_decide_eq_false rfl)
 
@@ -742,6 +746,9 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
 
 /-! ### sub -/
 
+protected theorem coe_sub (a b : Fin n) : ((a - b : Fin n) : Nat) = (a + (n - b)) % n := by
+  cases a; cases b; rfl
+
 @[simp] theorem ofNat'_sub (x : Nat) (lt : 0 < n) (y : Fin n) :
     Fin.ofNat' x lt - y = Fin.ofNat' (x + (n - y.val)) lt := by
   apply Fin.eq_of_val_eq
@@ -751,6 +758,30 @@ theorem addCases_right {m n : Nat} {motive : Fin (m + n) → Sort _} {left right
     x - Fin.ofNat' y lt = Fin.ofNat' (x.val + (n - y % n)) lt := by
   apply Fin.eq_of_val_eq
   simp [Fin.ofNat', Fin.sub_def]
+
+private theorem _root_.Nat.mod_eq_sub_of_lt_two_mul {x n} (h₁ : n ≤ x) (h₂ : x < 2 * n) :
+    x % n = x - n := by
+  rw [Nat.mod_eq, if_pos (by omega), Nat.mod_eq_of_lt (by omega)]
+
+theorem coe_sub_iff_le {a b : Fin n} : (↑(a - b) : Nat) = a - b ↔ b ≤ a := by
+  rw [sub_def, le_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
+
+theorem coe_sub_iff_lt {a b : Fin n} : (↑(a - b) : Nat) = n + a - b ↔ a < b := by
+  rw [sub_def, lt_def]
+  dsimp only
+  if h : n ≤ a + (n - b) then
+    rw [Nat.mod_eq_sub_of_lt_two_mul h]
+    all_goals omega
+  else
+    rw [Nat.mod_eq_of_lt]
+    all_goals omega
 
 /-! ### mul -/
 

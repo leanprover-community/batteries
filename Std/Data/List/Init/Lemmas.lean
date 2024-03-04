@@ -55,7 +55,7 @@ theorem length_eq_zero : length l = 0 ↔ l = [] :=
 
 /-! ### mem -/
 
-@[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := fun.
+@[simp] theorem not_mem_nil (a : α) : ¬ a ∈ [] := nofun
 
 @[simp] theorem mem_cons : a ∈ (b :: l) ↔ a = b ∨ a ∈ l :=
   ⟨fun h => by cases h <;> simp [Membership.mem, *],
@@ -223,7 +223,7 @@ theorem getLast?_eq_getLast : ∀ l h, @getLast? α l = some (getLast l h)
 
 theorem getLast?_eq_get? : ∀ (l : List α), getLast? l = l.get? (l.length - 1)
   | [] => rfl
-  | a::l => by rw [getLast?_eq_getLast (a::l) fun., getLast_eq_get, get?_eq_get]
+  | a::l => by rw [getLast?_eq_getLast (a::l) nofun, getLast_eq_get, get?_eq_get]
 
 @[simp] theorem getLast?_concat (l : List α) : getLast? (l ++ [a]) = some a := by
   simp [getLast?_eq_get?, Nat.succ_sub_succ]

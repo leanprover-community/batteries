@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import Std.Classes.SetNotation
-import Std.Tactic.NoMatch
 import Std.Data.Option.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
 
@@ -204,7 +203,6 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
       simp [enumFrom]
-      rfl
   rw [Array.foldr_eq_foldr_data]; simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
@@ -265,7 +263,7 @@ instance : HasSubset (List α) := ⟨List.Subset⟩
 
 instance decidableBEx (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse fun.
+  | [] => isFalse nofun
   | x :: xs =>
     if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
       match decidableBEx p xs with
@@ -276,7 +274,7 @@ instance decidableBEx (p : α → Prop) [DecidablePred p] :
 
 instance decidableBAll (p : α → Prop) [DecidablePred p] :
     ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue fun.
+  | [] => isTrue nofun
   | x :: xs =>
     if h₁ : p x then
       match decidableBAll p xs with

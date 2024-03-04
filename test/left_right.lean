@@ -1,4 +1,3 @@
-import Std.Tactic.LeftRight
 import Std.Tactic.GuardMsgs
 
 /-- Construct a natural number using `left`. -/
@@ -17,7 +16,7 @@ example : two = 2 := rfl
 set_option linter.missingDocs false
 
 /--
-error: tactic 'constructor' failed,
+error: tactic 'left' failed,
 left tactic works for inductive types with exactly 2 constructors
 ⊢ Unit
 -/
@@ -29,7 +28,7 @@ inductive F
 | a | b | c
 
 /--
-error: tactic 'constructor' failed,
+error: tactic 'left' failed,
 left tactic works for inductive types with exactly 2 constructors
 ⊢ F
 -/
@@ -44,7 +43,7 @@ example : G := by
   left
 
 /--
-error: tactic 'constructor' failed, target is not an inductive datatype
+error: tactic 'left' failed, target is not an inductive datatype
 ⊢ Type
 -/
 #guard_msgs in

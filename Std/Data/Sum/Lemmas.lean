@@ -90,9 +90,9 @@ theorem inl.inj_iff : (inl a : α ⊕ β) = inl b ↔ a = b := ⟨inl.inj, congr
 
 theorem inr.inj_iff : (inr a : α ⊕ β) = inr b ↔ a = b := ⟨inr.inj, congrArg _⟩
 
-theorem inl_ne_inr : inl a ≠ inr b := fun.
+theorem inl_ne_inr : inl a ≠ inr b := nofun
 
-theorem inr_ne_inl : inr b ≠ inl a := fun.
+theorem inr_ne_inl : inr b ≠ inl a := nofun
 
 /-! ### `Sum.elim` -/
 
