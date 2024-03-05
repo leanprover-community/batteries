@@ -163,7 +163,7 @@ theorem cons_eq_append :
 theorem append_eq_append_iff {a b c d : List α} :
   a ++ b = c ++ d ↔ (∃ a', c = a ++ a' ∧ b = a' ++ d) ∨ ∃ c', a = c ++ c' ∧ d = c' ++ b := by
   induction a generalizing c with
-  | nil => simp; exact (or_iff_left_of_imp fun ⟨_, ⟨e, rfl⟩, h⟩ => e ▸ h.symm).symm
+  | nil => simp_all
   | cons a as ih => cases c <;> simp [eq_comm, and_assoc, ih, and_or_left]
 
 @[simp] theorem mem_append {a : α} {s t : List α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
