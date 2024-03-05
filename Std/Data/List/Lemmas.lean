@@ -1040,10 +1040,10 @@ theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.a
   induction l with simp | cons b l => cases a == b <;> simp [*]
 
 theorem not_all_eq_any_not (l : List α) (p : α → Bool) : (!l.all p) = l.any fun a => !p a := by
-  induction l with simp | cons _ _ ih => rw [Bool.not_and, ih]
+  induction l with simp | cons _ _ ih => rw [ih]
 
 theorem not_any_eq_all_not (l : List α) (p : α → Bool) : (!l.any p) = l.all fun a => !p a := by
-  induction l with simp | cons _ _ ih => rw [Bool.not_or, ih]
+  induction l with simp | cons _ _ ih => rw [ih]
 
 theorem or_all_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
     (q || l.all p) = l.all fun a => q || p a := by
