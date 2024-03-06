@@ -1590,4 +1590,14 @@ See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 -/
 def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
-end List
+/--
+`O(|l| + |r|)`. Merge two lists using `s` as a switch.
+-/
+def merge (s : α → α → Bool) (l r : List α) : List α :=
+  loop l r []
+where
+  /-- Inner loop for `List.merge`. Tail recursive. -/
+  loop : List α → List α → List α → List α
+  | [], r, t => reverseAux t r
+  | l, [], t => reverseAux t l
+  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
