@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 
 import Std.Data.Nat.Lemmas
-import Std.Data.Ord
 
 namespace Array
 

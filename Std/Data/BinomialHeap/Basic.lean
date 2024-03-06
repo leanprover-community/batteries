@@ -267,7 +267,7 @@ theorem Heap.realSize_tail (le) (s : Heap α) : (s.tail le).realSize = s.realSiz
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => rfl
-  | some tl => simp [Heap.realSize_tail? eq]; rfl
+  | some tl => simp [Heap.realSize_tail? eq]
 
 /--
 `O(n log n)`. Monadic fold over the elements of a heap in increasing order,

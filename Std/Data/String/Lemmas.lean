@@ -7,9 +7,8 @@ import Std.Data.Char
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
+import Std.Tactic.Lint.Misc
 import Std.Tactic.SeqFocus
-import Std.Tactic.Ext.Attr
-import Std.Tactic.Simpa
 
 @[simp] theorem Char.length_toString (c : Char) : c.toString.length = 1 := rfl
 

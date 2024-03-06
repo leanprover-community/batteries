@@ -3,13 +3,18 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Data.Int.Init.Lemmas
 import Std.Data.Rat.Basic
 import Std.Tactic.SeqFocus
 
 /-! # Additional lemmas about the Rational Numbers -/
 
 namespace Rat
+
+theorem ext : {p q : Rat} → p.num = q.num → p.den = q.den → p = q
+  | ⟨_,_,_,_⟩, ⟨_,_,_,_⟩, rfl, rfl => rfl
+
+@[simp] theorem mk_den_one {r : Int} :
+    ⟨r, 1, Nat.one_ne_zero, (Nat.coprime_one_right _)⟩ = (r : Rat) := rfl
 
 @[simp] theorem zero_num : (0 : Rat).num = 0 := rfl
 @[simp] theorem zero_den : (0 : Rat).den = 1 := rfl
@@ -218,7 +223,7 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
 @[simp] theorem neg_den (a : Rat) : (-a).den = a.den := rfl
 
 theorem neg_normalize (n d z) : -normalize n d z = normalize (-n) d z := by
-  simp [normalize, maybeNormalize_eq]; ext <;> simp [Int.neg_div]
+  simp [normalize]; rfl
 
 theorem neg_mkRat (n d) : -mkRat n d = mkRat (-n) d := by
   if z : d = 0 then simp [z]; rfl else simp [← normalize_eq_mkRat z, neg_normalize]
@@ -344,17 +349,16 @@ theorem intCast_one : ((1 : Int) : Rat) = (1 : Rat) := rfl
 @[simp, norm_cast] theorem intCast_add (a b : Int) :
     ((a + b : Int) : Rat) = (a : Rat) + (b : Rat) := by
   rw [add_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]
 
-@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := by
-  ext <;> simp [normalize_eq]
+@[simp, norm_cast] theorem intCast_neg (a : Int) : ((-a : Int) : Rat) = -(a : Rat) := rfl
 
 @[simp, norm_cast] theorem intCast_sub (a b : Int) :
     ((a - b : Int) : Rat) = (a : Rat) - (b : Rat) := by
   rw [sub_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]
 
 @[simp, norm_cast] theorem intCast_mul (a b : Int) :
     ((a * b : Int) : Rat) = (a : Rat) * (b : Rat) := by
   rw [mul_def]
-  ext <;> simp [normalize_eq]
+  simp [normalize_eq]

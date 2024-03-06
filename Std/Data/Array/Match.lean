@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
 import Std.Data.Nat.Lemmas
-import Std.Data.Array.Init.Lemmas
 
 namespace Array
 

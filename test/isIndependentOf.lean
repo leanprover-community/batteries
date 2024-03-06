@@ -1,5 +1,6 @@
+import Std.Lean.Meta.Basic
 import Std.Tactic.PermuteGoals
-import Std.Tactic.GuardMsgs
+import Lean.Meta.Tactic.IndependentOf
 
 open Lean Meta Elab.Tactic
 
