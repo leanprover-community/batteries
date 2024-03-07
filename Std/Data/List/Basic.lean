@@ -823,6 +823,35 @@ inductive Forall₂ (R : α → β → Prop) : List α → List β → Prop
 
 attribute [simp] Forall₂.nil
 
+@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+    Forall₂ R (a :: l₁) (b :: l₂) ↔ R a b ∧ Forall₂ R l₁ l₂ :=
+  ⟨fun | .cons h tail => ⟨h, tail⟩, fun ⟨head, tail⟩ => .cons head tail⟩
+
+/--
+Check if all elements in the first List are `R` related to the element at the same position in the
+second List.
+-/
+def all₂ (R : α → β → Prop) [∀ a b, Decidable (R a b)] : List α → List β → Bool
+  | [], [] => true
+  | a::as, b::bs =>
+    if R a b then
+      all₂ R as bs
+    else false
+  | _, _ => false
+
+@[simp] theorem all₂_eq_true {R : α → β → Prop} [∀ a b, Decidable (R a b)] :
+    ∀ l₁ l₂, all₂ R l₁ l₂ ↔ Forall₂ R l₁ l₂
+  | [], [] => by simp [all₂]
+  | a::as, b::bs => by
+    by_cases h : R a b
+      <;> simp [all₂, h, all₂_eq_true, forall₂_cons]
+  | _::_, [] | [], _::_ => by
+    simp [all₂]
+    exact nofun
+
+instance {R : α → β → Prop} [∀ a b, Decidable (R a b)] : ∀ l₁ l₂, Decidable (Forall₂ R l₁ l₂) :=
+  fun l₁ l₂ => decidable_of_decidable_of_iff (all₂_eq_true l₁ l₂)
+
 end Forall₂
 
 /--
