@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Tactic.Alias
-import Std.Tactic.Init
 import Std.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers

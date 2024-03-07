@@ -3,11 +3,10 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import Std.Tactic.Alias
 import Std.Tactic.Relation.Rfl
-import Std.Data.List.Lemmas
-import Std.Data.List.Count
-import Std.Data.List.Pairwise
 import Std.Data.List.Init.Attach
+import Std.Data.List.Pairwise
 
 /-!
 # List Permutations
