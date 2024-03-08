@@ -721,6 +721,87 @@ theorem all_def {p : α → Bool} (as : Array α) : as.all p = as.data.all p := 
 theorem all_eq_true_iff_forall_mem {l : Array α} : l.all p ↔ ∀ x, x ∈ l → p x := by
   simp only [all_def, List.all_eq_true, mem_def]
 
+/-! ### indexOf? -/
+
+@[simp] theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
+    (l.indexOf? a).map Fin.val = l.data.indexOf? a := by
+  have h := aux l 0
+  simp at h
+  assumption
+where
+  aux (l : Array α) (i : Nat) :
+      (indexOfAux l a i).map Fin.val = ((l.data.drop i).indexOf? a).map (·+i) := by
+    rw [indexOfAux]
+    if h : i < l.size then
+      rw [List.drop_eq_get_cons h, ←getElem_eq_data_get, List.indexOf?_cons]
+      if h' : l[i] == a then
+        simp [h, h']
+      else
+        simp [h, h', aux l (i+1), Function.comp_def, Nat.add_succ, Nat.succ_add]
+    else
+      have h' : l.size ≤ i := Nat.le_of_not_lt h
+      simp [h, List.drop_length_le h', List.indexOf?]
+  termination_by l.size - i
+
 /-! ### erase -/
 
-@[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+theorem eraseIdx_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
+    (l.swap ⟨i+1, lt⟩ ⟨i, Nat.lt_of_succ_lt lt⟩).data.eraseIdx (i+1) = l.data.eraseIdx i := by
+  induction i generalizing l with
+  | zero =>
+    let ⟨xs⟩ := l
+    let x₀::x₁::xs := xs
+    simp [swap, get]
+  | succ i ih =>
+    let ⟨xs⟩ := l
+    let x::xs := xs
+    have lt' := Nat.lt_of_succ_lt_succ lt
+    have : (swap ⟨x::xs⟩ ⟨i.succ + 1, lt⟩ ⟨i.succ, Nat.lt_of_succ_lt lt⟩).data
+        = x::(swap ⟨xs⟩ ⟨i + 1, lt'⟩ ⟨i, Nat.lt_of_succ_lt lt'⟩).data := by
+      simp [swap_def, List.set_succ, getElem_eq_data_get]
+    simp [this, ih]
+
+theorem eraseIdxAux_data {l : Array α} {i : Nat} (le : i+1 ≤ l.size) :
+    (eraseIdxAux (i+1) l).data = l.data.eraseIdx i := by
+  rw [eraseIdxAux];
+  if h : i+1 < size l then
+    rw [dif_pos h, eraseIdxAux_data (i := i+1)]
+    apply eraseIdx_swap
+    simpa
+  else
+    rw [dif_neg h]
+    rw [Nat.not_lt] at h
+    have last_idx : l.size = i + 1 := Nat.le_antisymm h le
+    let ⟨xs⟩ := l
+    rw [pop, ←List.dropLast_eq_eraseIdx]
+    simp at last_idx ⊢
+    exact last_idx.symm
+termination_by l.size - i
+
+@[simp] theorem erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a := by
+  let ⟨xs⟩ := l
+  match h : indexOf? ⟨xs⟩ a with
+  | none =>
+    simp [erase, h]
+    have h := congrArg (Option.map Fin.val) h
+    simp [indexOf?_data] at h
+    exact erase_none 0 h
+  | some i =>
+    simp [erase, h]
+    rw [feraseIdx, eraseIdxAux_data i.is_lt, ←List.eraseIdx_indexOf_eq_erase]
+    congr
+    rw [List.indexOf_eq_indexOf?, ←indexOf?_data]
+    simp [h]
+where
+  erase_none {xs : List α} (i : Nat) (h : List.indexOf? a xs = none) :
+      xs.drop i = (xs.drop i).erase a := by
+    if le : xs.length ≤ i then
+      rw [List.drop_length_le le]
+      rfl
+    else
+      have lt : i < xs.length := Nat.lt_of_not_le le
+      have h' := List.findIdx?_of_eq_none h i
+      simp [List.get?_eq_get lt] at h'
+      simp [List.drop_eq_get_cons lt, List.erase, h']
+      exact erase_none (i+1) h
+  termination_by xs.length - i

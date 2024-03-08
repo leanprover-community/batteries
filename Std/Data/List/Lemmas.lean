@@ -716,6 +716,20 @@ are often used for theorems about `Array.pop`.  -/
   | _::_::_, ⟨0, _⟩ => rfl
   | _::_::_, ⟨i+1, _⟩ => get_dropLast _ ⟨i, _⟩
 
+theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.length) :
+    xs.dropLast = List.eraseIdx xs i := by
+  induction i generalizing xs with
+  | zero =>
+    let [x] := xs
+    rfl
+  | succ n ih =>
+    let x::xs := xs
+    simp at last_idx
+    rw [dropLast, eraseIdx]
+    congr
+    exact ih last_idx
+    exact fun _ => nomatch xs
+
 /-! ### nth element -/
 
 @[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
@@ -1007,6 +1021,15 @@ theorem set_set (a b : α) : ∀ (l : List α) (n : Nat), (l.set n a).set n b = 
 theorem get_set (a : α) {m n} (l : List α) (h) :
     (set l m a).get ⟨n, h⟩ = if m = n then a else l.get ⟨n, length_set .. ▸ h⟩ := by
   if h : m = n then subst m; simp else simp [h]
+
+theorem set_get {l : List α} (i : Nat) (h : i < l.length) : set l i (l.get ⟨i, h⟩) = l := by
+  induction i generalizing l with
+  | zero =>
+    let x::xs := l
+    rfl
+  | succ n ih =>
+    let x::xs := l
+    rw [set, get, ih]
 
 theorem mem_or_eq_of_mem_set : ∀ {l : List α} {n : Nat} {a b : α}, a ∈ l.set n b → a ∈ l ∨ a = b
   | _ :: _, 0, _, _, h => ((mem_cons ..).1 h).symm.imp_left (.tail _)
@@ -1554,6 +1577,17 @@ theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
   | succ n ih =>
     simp only [replicate, findIdx?_cons, Nat.zero_add, findIdx?_succ, Nat.zero_lt_succ, true_and]
     split <;> simp_all
+
+theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
+    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [findIdx_cons, findIdx?_cons]
+    if h : p x then
+      simp [h]
+    else
+      cases h' : findIdx? p xs <;> (simp [h, h'] at *; assumption)
 
 /-! ### pairwise -/
 
@@ -2366,6 +2400,14 @@ theorem indexOf_cons [BEq α] :
   dsimp [indexOf]
   simp [findIdx_cons]
 
+@[simp] theorem eraseIdx_indexOf_eq_erase [BEq α] (a : α) (l : List α) :
+    l.eraseIdx (l.indexOf a) = l.erase a := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [List.erase, indexOf_cons]
+    cases x == a <;> simp [ih]
+
 theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.indexOf x ∈ xs.indexesOf x := by
   induction xs with
@@ -2379,6 +2421,15 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+@[simp] theorem indexOf?_nil [BEq α] : ([] : List α).indexOf? x = none := rfl
+theorem indexOf?_cons [BEq α] :
+    (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
+  simp [indexOf?]
+
+theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
+    l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
+  simp [indexOf, indexOf?, findIdx_eq_findIdx?]
 
 theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
     merge.loop s [] r t = reverseAux t r := by
