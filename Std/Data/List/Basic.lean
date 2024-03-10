@@ -828,29 +828,29 @@ attribute [simp] Forall₂.nil
   ⟨fun | .cons h tail => ⟨h, tail⟩, fun ⟨head, tail⟩ => .cons head tail⟩
 
 /--
-Check if all elements in the first List are `R` related to the element at the same position in the
-second List.
+Check for all elements `a`, `b`, where `a` and `b` are the nth element of the first and second
+List respectively, that `r a b = true`.
 -/
-def all₂ (R : α → β → Prop) [∀ a b, Decidable (R a b)] : List α → List β → Bool
+def all₂ (r : α → β → Bool) : List α → List β → Bool
   | [], [] => true
   | a::as, b::bs =>
-    if R a b then
-      all₂ R as bs
+    if r a b then
+      all₂ r as bs
     else false
   | _, _ => false
 
-@[simp] theorem all₂_eq_true {R : α → β → Prop} [∀ a b, Decidable (R a b)] :
-    ∀ l₁ l₂, all₂ R l₁ l₂ ↔ Forall₂ R l₁ l₂
+@[simp] theorem all₂_eq_true {r : α → β → Bool} :
+    ∀ l₁ l₂, all₂ r l₁ l₂ ↔ Forall₂ (r · ·) l₁ l₂
   | [], [] => by simp [all₂]
   | a::as, b::bs => by
-    by_cases h : R a b
+    by_cases h : r a b
       <;> simp [all₂, h, all₂_eq_true, forall₂_cons]
   | _::_, [] | [], _::_ => by
     simp [all₂]
     exact nofun
 
 instance {R : α → β → Prop} [∀ a b, Decidable (R a b)] : ∀ l₁ l₂, Decidable (Forall₂ R l₁ l₂) :=
-  fun l₁ l₂ => decidable_of_decidable_of_iff (all₂_eq_true l₁ l₂)
+  fun l₁ l₂ => decidable_of_iff (all₂ (R · ·) l₁ l₂) (by simp [all₂_eq_true])
 
 end Forall₂
 
