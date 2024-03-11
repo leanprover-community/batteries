@@ -152,7 +152,7 @@ theorem add_mul_ediv_left (a : Int) {b : Int}
 
 /-! ### mod -/
 
-theorem ofNat_fmod (m n : Nat) : ↑(m % n) = fmod m n := by cases m <;> simp [fmod]
+theorem ofNat_fmod (m n : Nat) : ↑(m % n) = fmod m n := by cases m <;> simp [fmod, succ_eq_add_one]
 
 theorem negSucc_emod (m : Nat) {b : Int} (bpos : 0 < b) : -[m+1] % b = b - 1 - m % b := by
   rw [Int.sub_sub, Int.add_comm]

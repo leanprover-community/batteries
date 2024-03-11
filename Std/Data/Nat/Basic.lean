@@ -6,14 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 namespace Nat
 
-/--
-  Recursor identical to `Nat.rec` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
--/
-@[elab_as_elim]
-protected def recAux {motive : Nat → Sort _}
-    (zero : motive 0) (succ : ∀ n, motive n → motive (n+1)) : (t : Nat) → motive t
-  | 0 => zero
-  | _+1 => succ _ (Nat.recAux zero succ _)
 
 /--
   Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
@@ -21,13 +13,6 @@ protected def recAux {motive : Nat → Sort _}
 @[elab_as_elim]
 protected def recAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
   (succ : ∀ n, motive n → motive (n+1)) : motive t := Nat.recAux zero succ t
-
-/--
-  Recursor identical to `Nat.casesOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
--/
-@[elab_as_elim]
-protected def casesAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
-  (succ : ∀ n, motive (n+1)) : motive t := Nat.recAux zero (fun n _ => succ n) t
 
 /--
   Strong recursor for `Nat`
