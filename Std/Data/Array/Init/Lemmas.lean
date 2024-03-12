@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Bool
-import Std.Data.Array.Init.Monad
+
 
 /-!
 ## Bootstrapping theorems about arrays
@@ -98,7 +98,7 @@ theorem map_eq_foldl (as : Array α) (f : α → β) :
     as.map f = as.foldl (fun r a => r.push (f a)) #[] :=
   mapM_map_eq_foldl _ _ _
 
-theorem map_spec (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
+theorem map_spec' (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop) (hs : ∀ i, motive i.1 → p i (f as[i]) ∧ motive (i+1)) :
     motive as.size ∧
       ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
@@ -125,7 +125,15 @@ theorem map_spec (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : m
         simp only [show j = i by omega]
         exact (hs _ m).1
 
-theorem map_spec' (as : Array α) (f : α → β) (p : Fin as.size → β → Prop)
+theorem map_spec (as : Array α) (f : α → β) (p : Fin as.size → β → Prop)
     (hs : ∀ i, p i (f as[i])) :
     ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
-  simpa using map_spec as f (fun _ => True) trivial p (by simp_all)
+  simpa using map_spec' as f (fun _ => True) trivial p (by simp_all)
+
+@[simp] theorem getElem_map (f : α → β) (as : Array α) (i : Nat) (h) :
+    ((as.map f)[i]'h) = f (as[i]'(size_map .. ▸ h)) := by
+  have := map_spec as f (fun i b => b = f (as[i]))
+  simp only [implies_true, true_implies] at this
+  obtain ⟨eq, w⟩ := this
+  apply w
+  simp_all

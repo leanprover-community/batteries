@@ -59,12 +59,6 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
   (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
 
-@[simp] theorem getElem_map (f : α → β) (arr : Array α) (i : Nat) (h) :
-    ((arr.map f)[i]'h) = f (arr[i]'(size_map .. ▸ h)) := by
-  have := SatisfiesM_mapM' (m := Id) arr f (fun i b => b = f (arr[i]))
-  simp [SatisfiesM_Id_eq] at this
-  exact this.2 i (size_map .. ▸ h)
-
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
     (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
