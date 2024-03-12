@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Bool
 
-
 /-!
 ## Bootstrapping theorems about arrays
 
