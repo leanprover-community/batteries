@@ -107,7 +107,8 @@ elab_rules : tactic
       | some mvarId => replaceMainGoal [mvarId]
       pure usedSimps
     | ``Parser.Tactic.dsimp => do
-      let { ctx, simprocs, .. } ← withMainContext <| mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
+      let { ctx, simprocs, .. } ← withMainContext <|
+        mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
       dsimpLocation' ctx simprocs (expandOptLocation stx[5])
     | _ => Elab.throwUnsupportedSyntax
     let a := a.getId; let x := x.getId
