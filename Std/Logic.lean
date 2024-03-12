@@ -75,16 +75,6 @@ alias congr_fun := congrFun
 alias congr_fun₂ := congrFun₂
 alias congr_fun₃ := congrFun₃
 
-theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
-  rfl
-
-theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
-  rfl
-
-@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
-    cast hb (cast ha a) = cast (ha.trans hb) a
-  | rfl, rfl, _ => rfl
-
 theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
   | rfl, rfl => .rfl
 

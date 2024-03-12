@@ -221,6 +221,6 @@ example (n : Nat) : 0 ≤ n := by
   case _ : 0 ≤ 0 | succ n ih
   · guard_target =ₛ 0 ≤ 0
     constructor
-  · guard_target =ₛ 0 ≤ Nat.succ n
+  · guard_target =ₛ 0 ≤ n + 1
     guard_hyp ih : 0 ≤ n
     simp
