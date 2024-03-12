@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
-import Std.Data.Nat.Lemmas
+import Std.Tactic.Alias
 
 /-!
 # Results about the order properties of the integers, and the integers as an ordered ring.
@@ -15,7 +15,8 @@ namespace Int
 
 /-! ## Order properties of the integers -/
 
-protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
+protected theorem lt_of_not_ge {a b : Int} : ¬a ≤ b → b < a := Int.not_le.mp
+protected theorem not_le_of_gt {a b : Int} : b < a → ¬a ≤ b := Int.not_le.mpr
 
 protected theorem le_of_not_le {a b : Int} : ¬ a ≤ b → b ≤ a := (Int.le_total a b).resolve_left
 
@@ -489,8 +490,6 @@ theorem natAbs_mul_natAbs_eq {a b : Int} {c : Nat}
 theorem natAbs_eq_iff {a : Int} {n : Nat} : a.natAbs = n ↔ a = n ∨ a = -↑n := by
   rw [← Int.natAbs_eq_natAbs_iff, Int.natAbs_ofNat]
 
-@[deprecated] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
-
 theorem natAbs_add_le (a b : Int) : natAbs (a + b) ≤ natAbs a + natAbs b := by
   suffices ∀ a b : Nat, natAbs (subNatNat a b.succ) ≤ (a + b).succ by
     match a, b with
@@ -527,3 +526,5 @@ theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
 theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
   | (m : Nat), n => Option.some_inj.trans ofNat_inj.symm
   | -[m+1], n => by constructor <;> nofun
+
+@[deprecated] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
