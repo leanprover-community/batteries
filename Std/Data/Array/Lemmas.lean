@@ -10,6 +10,7 @@ import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
 import Std.Util.ProofWanted
+import Std.Classes.SatisfiesM
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 
@@ -698,13 +699,18 @@ theorem extract_empty_of_size_le_start (as : Array α) {start stop : Nat} (h : a
 
 /-! ### all -/
 
+theorem all_eq_not_any_not (p : α → Bool) (as : Array α) (start stop) :
+    all as p start stop = !(any as (!p ·) start stop) := by
+  dsimp [all, allM]
+  rfl
+
 theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
     all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
-  have := SatisfiesM_anyM_iff_exists (m := Id) (fun a => ! p a) as start stop (! p as[·]) (by simp)
-  rw [SatisfiesM_Id_eq] at this
-  dsimp [all, allM, Id.run]
-  rw [Bool.not_eq_true', Bool.eq_false_iff, Ne]
-  simp [this]
+  rw [all_eq_not_any_not]
+  suffices ¬(any as (!p ·) start stop = true) ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] by
+    simp_all
+  rw [any_iff_exists]
+  simp
 
 theorem all_eq_true (p : α → Bool) (as : Array α) : all as p ↔ ∀ i : Fin as.size, p as[i] := by
   simp [all_iff_forall, Fin.isLt]
