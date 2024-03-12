@@ -78,15 +78,25 @@ theorem contains_def [DecidableEq α] {a : α} {as : Array α} : as.contains a �
 instance [DecidableEq α] (a : α) (as : Array α) : Decidable (a ∈ as) :=
   decidable_of_iff _ contains_def
 
-theorem map_eq_foldl (as : Array α) (f : α → β) :
-    as.map f = as.foldl (fun r a => r.push (f a)) #[] := by
-  dsimp [map, mapM, Id.run]
+theorem mapM_map_eq_foldl (as : Array α) (f : α → β) (i) :
+    mapM.map (m := Id) f as i b = as.foldl (start := i) (fun r a => r.push (f a)) b := by
   unfold mapM.map
-  split
-  · simp
-    sorry
-  · sorry
+  split <;> rename_i h
+  · simp only [Id.bind_eq]
+    dsimp [foldl, Id.run, foldlM]
+    rw [mapM_map_eq_foldl, dif_pos (by omega), foldlM.loop, dif_pos h]
+    -- Calling `split` here gives a bad goal.
+    have : size as - i = Nat.succ (size as - i - 1) := by omega
+    rw [this]
+    simp [foldl, foldlM, Id.run, Nat.sub_add_eq]
+  · dsimp [foldl, Id.run, foldlM]
+    rw [dif_pos (by omega), foldlM.loop, dif_neg h]
+    rfl
+termination_by as.size - i
 
+theorem map_eq_foldl (as : Array α) (f : α → β) :
+    as.map f = as.foldl (fun r a => r.push (f a)) #[] :=
+  mapM_map_eq_foldl _ _ _
 
 theorem map_spec (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop) (hs : ∀ i, motive i.1 → p i (f as[i]) ∧ motive (i+1)) :
@@ -119,29 +129,3 @@ theorem map_spec' (as : Array α) (f : α → β) (p : Fin as.size → β → Pr
     (hs : ∀ i, p i (f as[i])) :
     ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
   simpa using map_spec as f (fun _ => True) trivial p (by simp_all)
-
--- theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
---     (motive : Nat → Prop) (h0 : motive 0)
---     (p : Fin as.size → β → Prop)
---     (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f as[i])) :
---     SatisfiesM
---       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
---       (Array.mapM f as) := by
---   rw [mapM_eq_foldlM]
---   refine SatisfiesM_foldlM (m := m) (β := Array β)
---     (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
---     |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
---   · case z => exact ⟨h0, rfl, nofun⟩
---   · case s =>
---     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
---     refine (hs _ ih₁).map fun ⟨h₁, h₂⟩ => ⟨h₂, by simp [eq], fun j hj => ?_⟩
---     simp [get_push] at hj ⊢; split; {apply ih₂}
---     cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
-
--- theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
---     (p : Fin as.size → β → Prop)
---     (hs : ∀ i, SatisfiesM (p i) (f as[i])) :
---     SatisfiesM
---       (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)))
---       (Array.mapM f as) :=
---   (SatisfiesM_mapM _ _ (fun _ => True) trivial _ (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
