@@ -426,7 +426,7 @@ theorem map_eq_foldl (as : Array α) (f : α → β) :
     as.map f = as.foldl (fun r a => r.push (f a)) #[] :=
   mapM_map_eq_foldl _ _ _
 
-theorem map_spec' (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
+theorem map_induction (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop) (hs : ∀ i, motive i.1 → p i (f as[i]) ∧ motive (i+1)) :
     motive as.size ∧
       ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
@@ -456,7 +456,7 @@ theorem map_spec' (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : 
 theorem map_spec (as : Array α) (f : α → β) (p : Fin as.size → β → Prop)
     (hs : ∀ i, p i (f as[i])) :
     ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
-  simpa using map_spec' as f (fun _ => True) trivial p (by simp_all)
+  simpa using map_induction as f (fun _ => True) trivial p (by simp_all)
 
 @[simp] theorem getElem_map (f : α → β) (as : Array α) (i : Nat) (h) :
     ((as.map f)[i]'h) = f (as[i]'(size_map .. ▸ h)) := by
