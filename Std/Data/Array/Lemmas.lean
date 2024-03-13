@@ -190,16 +190,6 @@ theorem eq_push_of_size_ne_zero {as : Array α} (h : as.size ≠ 0) :
   let _ : Inhabited α := ⟨as[0]'(Nat.zero_lt_of_ne_zero h)⟩
   ⟨as.pop, as.back, eq_push_pop_back_of_size_ne_zero h⟩
 
-
-theorem mapM_eq_mapM_data [Monad m] [LawfulMonad m] (f : α → m β) (arr : Array α) :
-    arr.mapM f = return mk (← arr.data.mapM f) := by
-  rw [mapM_eq_foldlM, foldlM_eq_foldlM_data, ← List.foldrM_reverse]
-  conv => rhs; rw [← List.reverse_reverse arr.data]
-  induction arr.data.reverse with
-  | nil => simp; rfl
-  | cons a l ih => simp [ih]; simp [map_eq_pure_bind, push]
-
-
 theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
 
 @[simp] theorem size_swap! (a : Array α) (i j) :
@@ -330,6 +320,23 @@ theorem foldl_induction
     · next hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ H
   simpa [foldl, foldlM] using go (Nat.zero_le _) (Nat.le_refl _) h0
 
+-- This proof is the pure version of `Array.SatisfiesM_foldrM`,
+-- reproduced to avoid a dependency on `SatisfiesM`.
+theorem foldr_induction
+    {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive as.size init) {f : α → β → β}
+    (hf : ∀ i : Fin as.size, ∀ b, motive (i.1 + 1) b → motive i.1 (f as[i] b)) :
+    motive 0 (as.foldr f init) := by
+  let rec go {i b} (hi : i ≤ as.size) (H : motive i b) :
+    (motive 0) (foldrM.fold (m := Id) f as 0 i hi b) := by
+    unfold foldrM.fold; simp; split
+    · next hi => exact (hi ▸ H)
+    · next hi =>
+      split; {simp at hi}
+      · next i hi' =>
+        exact go _ (hf ⟨i, hi'⟩ b H)
+  simp [foldr, foldrM]; split; {exact go _ h0}
+  · next h => exact (Nat.eq_zero_of_not_pos h ▸ h0)
+
 /-! ### zipWith / zip -/
 
 theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Array β) :
@@ -391,6 +398,13 @@ theorem size_zip (as : Array α) (bs : Array β) :
 @[simp] theorem mem_map {f : α → β} {l : Array α} : b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b := by
   simp only [mem_def, map_data, List.mem_map]
 
+theorem mapM_eq_mapM_data [Monad m] [LawfulMonad m] (f : α → m β) (arr : Array α) :
+    arr.mapM f = return mk (← arr.data.mapM f) := by
+  rw [mapM_eq_foldlM, foldlM_eq_foldlM_data, ← List.foldrM_reverse]
+  conv => rhs; rw [← List.reverse_reverse arr.data]
+  induction arr.data.reverse with
+  | nil => simp; rfl
+  | cons a l ih => simp [ih]; simp [map_eq_pure_bind, push]
 
 theorem mapM_map_eq_foldl (as : Array α) (f : α → β) (i) :
     mapM.map (m := Id) f as i b = as.foldl (start := i) (fun r a => r.push (f a)) b := by
