@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
 import Std.Data.Char
-import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
 import Std.Tactic.Lint.Misc

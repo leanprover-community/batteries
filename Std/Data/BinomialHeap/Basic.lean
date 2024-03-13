@@ -5,7 +5,6 @@ Authors: Leonardo de Moura, Jannis Limperg, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
-import Std.Data.Nat.Lemmas
 
 namespace Std
 namespace BinomialHeap

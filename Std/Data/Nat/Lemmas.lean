@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Tactic.Alias
-import Std.Tactic.Init
 import Std.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
@@ -38,7 +37,7 @@ theorem recAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
     (succ : ∀ n, motive (n+1)) :
     Nat.casesAuxOn 0 zero succ = zero := rfl
 
-@[simp] theorem casesAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
+theorem casesAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
     (succ : ∀ n, motive (n+1)) (n) :
     Nat.casesAuxOn (n+1) zero succ = succ n := rfl
 
@@ -137,47 +136,7 @@ theorem recDiagOn_succ_succ {motive : Nat → Nat → Sort _} (zero_zero : motiv
     (succ_succ : ∀ m n, motive (m+1) (n+1)) (m n) :
     Nat.casesDiagOn (m+1) (n+1) zero_zero zero_succ succ_zero succ_succ = succ_succ m n := rfl
 
-/-! ## compare -/
-
-theorem compare_def_lt (a b : Nat) :
-    compare a b = if a < b then .lt else if b < a then .gt else .eq := by
-  simp only [compare, compareOfLessAndEq]
-  split
-  · rfl
-  · next h =>
-    match Nat.lt_or_eq_of_le (Nat.not_lt.1 h) with
-    | .inl h => simp [h, Nat.ne_of_gt h]
-    | .inr rfl => simp
-
-theorem compare_def_le (a b : Nat) :
-    compare a b = if a ≤ b then if b ≤ a then .eq else .lt else .gt := by
-  rw [compare_def_lt]
-  split
-  · next hlt => simp [Nat.le_of_lt hlt, Nat.not_le.2 hlt]
-  · next hge =>
-    split
-    · next hgt => simp [Nat.le_of_lt hgt, Nat.not_le.2 hgt]
-    · next hle => simp [Nat.not_lt.1 hge, Nat.not_lt.1 hle]
-
-protected theorem compare_swap (a b : Nat) : (compare a b).swap = compare b a := by
-  simp only [compare_def_le]; (repeat' split) <;> try rfl
-  next h1 h2 => cases h1 (Nat.le_of_not_le h2)
-
-protected theorem compare_eq_eq {a b : Nat} : compare a b = .eq ↔ a = b := by
-  rw [compare_def_lt]; (repeat' split) <;> simp [Nat.ne_of_lt, Nat.ne_of_gt, *]
-  next hlt hgt => exact Nat.le_antisymm (Nat.not_lt.1 hgt) (Nat.not_lt.1 hlt)
-
-protected theorem compare_eq_lt {a b : Nat} : compare a b = .lt ↔ a < b := by
-  rw [compare_def_lt]; (repeat' split) <;> simp [*]
-
-protected theorem compare_eq_gt {a b : Nat} : compare a b = .gt ↔ b < a := by
-  rw [compare_def_lt]; (repeat' split) <;> simp [Nat.le_of_lt, *]
-
-protected theorem compare_ne_gt {a b : Nat} : compare a b ≠ .gt ↔ a ≤ b := by
-  rw [compare_def_le]; (repeat' split) <;> simp [*]
-
-protected theorem compare_ne_lt {a b : Nat} : compare a b ≠ .lt ↔ b ≤ a := by
-  rw [compare_def_le]; (repeat' split) <;> simp [Nat.le_of_not_le, *]
+/-! ## strong case -/
 
 /-- Strong case analysis on `a < b ∨ b ≤ a` -/
 protected def lt_sum_ge (a b : Nat) : a < b ⊕' b ≤ a :=
@@ -199,40 +158,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 @[deprecated] protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
 
 @[deprecated] protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
-
-/-! ### min/max -/
-
-protected theorem sub_min_sub_left (a b c : Nat) : min (a - b) (a - c) = a - max b c := by
-  induction b, c using Nat.recDiagAux with
-  | zero_left => rw [Nat.sub_zero, Nat.zero_max]; exact Nat.min_eq_right (Nat.sub_le ..)
-  | zero_right => rw [Nat.sub_zero, Nat.max_zero]; exact Nat.min_eq_left (Nat.sub_le ..)
-  | succ_succ _ _ ih => simp only [Nat.sub_succ, Nat.succ_max_succ, Nat.pred_min_pred, ih]
-
-protected theorem sub_max_sub_left (a b c : Nat) : max (a - b) (a - c) = a - min b c := by
-  induction b, c using Nat.recDiagAux with
-  | zero_left => rw [Nat.sub_zero, Nat.zero_min]; exact Nat.max_eq_left (Nat.sub_le ..)
-  | zero_right => rw [Nat.sub_zero, Nat.min_zero]; exact Nat.max_eq_right (Nat.sub_le ..)
-  | succ_succ _ _ ih => simp only [Nat.sub_succ, Nat.succ_min_succ, Nat.pred_max_pred, ih]
-
-protected theorem mul_max_mul_right (a b c : Nat) : max (a * c) (b * c) = max a b * c := by
-  induction a, b using Nat.recDiagAux with
-  | zero_left => simp only [Nat.zero_mul, Nat.zero_max]
-  | zero_right => simp only [Nat.zero_mul, Nat.max_zero]
-  | succ_succ _ _ ih => simp only [Nat.succ_mul, Nat.add_max_add_right, ih]
-
-protected theorem mul_min_mul_right (a b c : Nat) : min (a * c) (b * c) = min a b * c := by
-  induction a, b using Nat.recDiagAux with
-  | zero_left => simp only [Nat.zero_mul, Nat.zero_min]
-  | zero_right => simp only [Nat.zero_mul, Nat.min_zero]
-  | succ_succ _ _ ih => simp only [Nat.succ_mul, Nat.add_min_add_right, ih]
-
-protected theorem mul_max_mul_left (a b c : Nat) : max (a * b) (a * c) = a * max b c := by
-  repeat rw [Nat.mul_comm a]
-  exact Nat.mul_max_mul_right ..
-
-protected theorem mul_min_mul_left (a b c : Nat) : min (a * b) (a * c) = a * min b c := by
-  repeat rw [Nat.mul_comm a]
-  exact Nat.mul_min_mul_right ..
 
 /-! ### mul -/
 

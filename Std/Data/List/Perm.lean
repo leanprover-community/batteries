@@ -3,11 +3,10 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import Std.Tactic.Alias
 import Std.Tactic.Relation.Rfl
-import Std.Data.List.Lemmas
-import Std.Data.List.Count
-import Std.Data.List.Pairwise
 import Std.Data.List.Init.Attach
+import Std.Data.List.Pairwise
 
 /-!
 # List Permutations
@@ -548,7 +547,7 @@ theorem perm_iff_count {l₁ l₂ : List α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     | nil => rfl
     | cons b l₂ =>
       specialize H b
-      simp at H; cases H
+      simp at H
   | cons a l₁ IH =>
     have : a ∈ l₂ := count_pos_iff_mem.mp (by rw [← H]; simp)
     refine ((IH fun b => ?_).cons a).trans (perm_cons_erase this).symm
@@ -711,3 +710,23 @@ theorem Perm.eraseP (f : α → Bool) {l₁ l₂ : List α}
   | trans p₁ _ IH₁ IH₂ =>
     refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff ?_).1 H))
     exact fun h h₁ h₂ => h h₂ h₁
+
+theorem perm_merge (s : α → α → Bool) (l r) : merge s l r ~ l ++ r := by
+  match l, r with
+  | [], r => simp
+  | l, [] => simp
+  | a::l, b::r =>
+    rw [cons_merge_cons]
+    split
+    · apply Perm.trans ((perm_cons a).mpr (perm_merge s l (b::r)))
+      simp [cons_append]
+    · apply Perm.trans ((perm_cons b).mpr (perm_merge s (a::l) r))
+      simp [cons_append]
+      apply Perm.trans (Perm.swap ..)
+      apply Perm.cons
+      apply perm_cons_append_cons
+      exact Perm.rfl
+
+theorem Perm.merge (s₁ s₂ : α → α → Bool) (hl : l₁ ~ l₂) (hr : r₁ ~ r₂) :
+    merge s₁ l₁ r₁ ~ merge s₂ l₂ r₂ :=
+  Perm.trans (perm_merge ..) <| Perm.trans (Perm.append hl hr) <| Perm.symm (perm_merge ..)

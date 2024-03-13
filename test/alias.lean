@@ -86,9 +86,9 @@ unsafe alias barbaz3 := id
 
 @[deprecated] alias ⟨mpId, mprId⟩ := Iff.rfl
 
-/-- info: A.mpId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
-/-- info: A.mprId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mprId {a : Prop} : a → a -/
 #guard_msgs in #check mprId
 
 /--
