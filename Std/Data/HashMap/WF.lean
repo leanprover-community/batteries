@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.HashMap.Basic
-import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
+import Std.Data.Nat.Lemmas
 
 namespace Std.HashMap
 namespace Imp
