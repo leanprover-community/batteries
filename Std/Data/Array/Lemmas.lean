@@ -466,6 +466,51 @@ theorem map_spec (as : Array α) (f : α → β) (p : Fin as.size → β → Pro
   apply w
   simp_all
 
+/-! ### mapIdx -/
+
+-- This could also be prove from `SatisfiesM_mapIdxM`.
+theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
+    (motive : Nat → Prop) (h0 : motive 0)
+    (p : Fin as.size → β → Prop)
+    (hs : ∀ i, motive i.1 → p i (f i as[i]) ∧ motive (i + 1)) :
+    motive as.size ∧ ∃ eq : (Array.mapIdx as f).size = as.size,
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) := by
+  let rec go {bs i j h} (h₁ : j = bs.size) (h₂ : ∀ i h h', p ⟨i, h⟩ bs[i]) (hm : motive j) :
+    let arr : Array β := Array.mapIdxM.map (m := Id) as f i j h bs
+    motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)) := by
+    induction i generalizing j bs with simp [mapIdxM.map]
+    | zero =>
+      have := (Nat.zero_add _).symm.trans h
+      exact ⟨this ▸ hm, h₁ ▸ this, fun _ _ => h₂ ..⟩
+    | succ i ih =>
+      apply @ih (bs.push (f ⟨j, by omega⟩ as[j])) (j + 1) (by omega) (by simpa using h₁)
+      · intro i i_lt h'
+        rw [get_push]
+        split
+        · apply h₂
+        · simp only [size_push] at h'
+          obtain rfl : i = j := by omega
+          apply (hs ⟨i, by omega⟩ hm).1
+      · exact (hs ⟨j, by omega⟩ hm).2
+  simp [mapIdx, mapIdxM]; exact go rfl nofun h0
+
+theorem mapIdx_spec (as : Array α) (f : Fin as.size → α → β)
+    (p : Fin as.size → β → Prop) (hs : ∀ i, p i (f i as[i])) :
+    ∃ eq : (Array.mapIdx as f).size = as.size,
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) :=
+  (mapIdx_induction _ _ (fun _ => True) trivial p fun _ _ => ⟨hs .., trivial⟩).2
+
+@[simp] theorem size_mapIdx (a : Array α) (f : Fin a.size → α → β) : (a.mapIdx f).size = a.size :=
+  (mapIdx_spec (p := fun _ _ => True) (hs := fun _ => trivial)).1
+
+@[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
+  Array.size_mapIdx _ _
+
+@[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat) (h) :
+    haveI : i < a.size := by simp_all
+    (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
+  (mapIdx_spec _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
+
 /-! ### filter -/
 
 @[simp] theorem filter_data (p : α → Bool) (l : Array α) :

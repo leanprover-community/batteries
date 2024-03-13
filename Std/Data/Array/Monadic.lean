@@ -101,33 +101,6 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapIdxM]; exact go rfl nofun h0
 
-theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
-    (motive : Nat → Prop) (h0 : motive 0)
-    (p : Fin as.size → β → Prop)
-    (hs : ∀ i, motive i.1 → p i (f i as[i]) ∧ motive (i + 1)) :
-    motive as.size ∧ ∃ eq : (Array.mapIdx as f).size = as.size,
-      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) := by
-  have := SatisfiesM_mapIdxM (m := Id) (as := as) (f := f) motive h0
-  simp [SatisfiesM_Id_eq] at this
-  exact this _ hs
-
-theorem mapIdx_spec (as : Array α) (f : Fin as.size → α → β)
-    (p : Fin as.size → β → Prop) (hs : ∀ i, p i (f i as[i])) :
-    ∃ eq : (Array.mapIdx as f).size = as.size,
-      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) :=
-  (mapIdx_induction _ _ (fun _ => True) trivial p fun _ _ => ⟨hs .., trivial⟩).2
-
-@[simp] theorem size_mapIdx (a : Array α) (f : Fin a.size → α → β) : (a.mapIdx f).size = a.size :=
-  (mapIdx_spec (p := fun _ _ => True) (hs := fun _ => trivial)).1
-
-@[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
-  Array.size_mapIdx _ _
-
-@[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat) (h) :
-    haveI : i < a.size := by simp_all
-    (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
-  (mapIdx_spec _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
-
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = a.size) (a.modifyM i f) := by
   unfold modifyM; split
