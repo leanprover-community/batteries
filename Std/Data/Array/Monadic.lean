@@ -4,12 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import Std.Data.Nat.Lemmas
-import Std.Data.List.Lemmas
-import Std.Data.Array.Init.Lemmas
-import Std.Data.Array.Basic
-import Std.Tactic.SeqFocus
-import Std.Util.ProofWanted
 import Std.Classes.SatisfiesM
 
 /-!
@@ -17,6 +11,57 @@ import Std.Classes.SatisfiesM
 -/
 
 namespace Array
+
+
+theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
+    (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
+    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
+      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
+    SatisfiesM
+      (fun res => bif res then tru else fal (min stop as.size))
+      (anyM p as start stop) := by
+  let rec go {stop j} (hj' : j ≤ stop) (hstop : stop ≤ as.size) (h0 : fal j)
+    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
+      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
+    SatisfiesM
+      (fun res => bif res then tru else fal stop)
+      (anyM.loop p as stop hstop j) := by
+    unfold anyM.loop; split
+    · next hj =>
+      exact (hp ⟨j, Nat.lt_of_lt_of_le hj hstop⟩ hj h0).bind fun
+        | true, h => .pure h
+        | false, h => go hj hstop h hp
+    · next hj => exact .pure <| Nat.le_antisymm hj' (Nat.ge_of_not_lt hj) ▸ h0
+    termination_by stop - j
+  simp only [Array.anyM_eq_anyM_loop]
+  exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
+
+theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
+    (p : α → m Bool) (as : Array α) (start stop) (q : Fin as.size → Prop)
+    (hp : ∀ i : Fin as.size, start ≤ i.1 → i.1 < stop → SatisfiesM (· = true ↔ q i) (p as[i])) :
+    SatisfiesM
+      (fun res => res = true ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i)
+      (anyM p as start stop) := by
+  cases Nat.le_total start (min stop as.size) with
+  | inl hstart =>
+    refine (SatisfiesM_anyM _ _ _ _ hstart
+      (fal := fun j => start ≤ j ∧ ¬ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < j ∧ q i)
+      (tru := ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i) ?_ ?_).imp ?_
+    · exact ⟨Nat.le_refl _, fun ⟨i, h₁, h₂, _⟩ => (Nat.not_le_of_gt h₂ h₁).elim⟩
+    · refine fun i h₂ ⟨h₁, h₃⟩ => (hp _ h₁ h₂).imp fun hq => ?_
+      unfold cond; split <;> simp at hq
+      · exact ⟨_, h₁, h₂, hq⟩
+      · refine ⟨Nat.le_succ_of_le h₁, h₃.imp fun ⟨j, h₃, h₄, h₅⟩ => ⟨j, h₃, ?_, h₅⟩⟩
+        refine Nat.lt_of_le_of_ne (Nat.le_of_lt_succ h₄) fun e => hq (Fin.eq_of_val_eq e ▸ h₅)
+    · intro
+      | true, h => simp only [true_iff]; exact h
+      | false, h =>
+        simp only [false_iff]
+        exact h.2.imp fun ⟨j, h₁, h₂, hq⟩ => ⟨j, h₁, Nat.lt_min.2 ⟨h₂, j.2⟩, hq⟩
+  | inr hstart =>
+    rw [anyM_stop_le_start (h := hstart)]
+    refine .pure ?_; simp; intro j h₁ h₂
+    cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
 
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} (motive : Nat → β → Prop)
@@ -41,7 +86,6 @@ theorem foldr_induction
   have := SatisfiesM_foldrM (m := Id) (as := as) (f := f) motive h0
   simp [SatisfiesM_Id_eq] at this
   exact this hf
-
 
 theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as.size → α → m β)
     (motive : Nat → Prop) (h0 : motive 0)
