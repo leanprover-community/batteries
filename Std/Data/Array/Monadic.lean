@@ -8,10 +8,12 @@ import Std.Classes.SatisfiesM
 
 /-!
 # Results about monadic operations on `Array`.
+
+The pure versions of these theorems are proved in `Std.Data.Array.Lemmas` directly,
+in order to minimize dependence on `SatisfiesM`.
 -/
 
 namespace Array
-
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
@@ -106,7 +108,3 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
   unfold modifyM; split
   · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
   · exact .pure rfl
-
-@[simp] theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
-  rw [← SatisfiesM_Id_eq (p := (·.size = a.size)) (x := a.modify i f)]
-  apply size_modifyM

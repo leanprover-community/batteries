@@ -511,6 +511,12 @@ theorem mapIdx_spec (as : Array α) (f : Fin as.size → α → β)
     (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
   (mapIdx_spec _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
 
+/-! ### modify -/
+
+@[simp] theorem size_modify (a : Array α) (i : Nat) (f : α → α) : (a.modify i f).size = a.size := by
+  unfold modify modifyM Id.run
+  split <;> simp
+
 /-! ### filter -/
 
 @[simp] theorem filter_data (p : α → Bool) (l : Array α) :
