@@ -812,7 +812,8 @@ theorem all_eq_not_any_not (p : α → Bool) (as : Array α) (start stop) :
 theorem all_iff_forall (p : α → Bool) (as : Array α) (start stop) :
     all as p start stop ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] := by
   rw [all_eq_not_any_not]
-  suffices ¬(any as (!p ·) start stop = true) ↔ ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] by
+  suffices ¬(any as (!p ·) start stop = true) ↔
+      ∀ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop → p as[i] by
     simp_all
   rw [any_iff_exists]
   simp
