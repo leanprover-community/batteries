@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.AssocList
 import Std.Data.Nat.Basic
-import Std.Data.Array.Init.Lemmas
+import Std.Data.Array.Monadic
 import Std.Classes.BEq
 
 namespace Std.HashMap
