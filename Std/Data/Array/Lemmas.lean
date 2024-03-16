@@ -12,21 +12,6 @@ import Std.Util.ProofWanted
 
 local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 
-@[simp] theorem getElem_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n) (h : Dom a i) :
-    a[i] = a[i.1] := rfl
-
-@[simp] theorem getElem?_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
-    [Decidable (Dom a i)] : a[i]? = a[i.1]? := rfl
-
-@[simp] theorem getElem!_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
-    [Decidable (Dom a i)] [Inhabited Elem] : a[i]! = a[i.1]! := rfl
-
-theorem getElem?_pos [GetElem Cont Idx Elem Dom]
-    (a : Cont) (i : Idx) (h : Dom a i) [Decidable (Dom a i)] : a[i]? = a[i] := dif_pos h
-
-theorem getElem?_neg [GetElem Cont Idx Elem Dom]
-    (a : Cont) (i : Idx) (h : ¬Dom a i) [Decidable (Dom a i)] : a[i]? = none := dif_neg h
-
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
 
 @[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
@@ -97,7 +82,7 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
   split
   . next heq => rw [heq, getElem?_pos, get_push_eq]
   · next hne =>
-    simp only [getElem?, size_push]
+    simp only [getElem?_def, size_push]
     split <;> split <;> try simp only [*, get_push_lt]
     · next p q => exact Or.elim (Nat.eq_or_lt_of_le (Nat.le_of_lt_succ p)) hne q
     · next p q => exact p (Nat.lt.step q)
