@@ -33,14 +33,16 @@ You can generate `std4`'s documentation with
 
 ```text
 # if you're generating documentation for the first time
-> lake -Kdoc=on update
+> lake -R -Kdoc=on update
 ...
 # actually generate the documentation
-> lake -Kdoc=on build Std:docs
+> lake -R -Kdoc=on build Std:docs
 ...
 > ls build/doc/index.html
 build/doc/index.html
 ```
+
+After generating the docs, run `lake build -R` to reset the configuration.
 
 The top-level HTML file will be located at `build/doc/Std.html`, though to actually expose the
 documentation as a server you need to

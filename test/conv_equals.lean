@@ -5,8 +5,6 @@ Authors: Joachim Breitner
 -/
 
 import Std.Tactic.Basic
-import Std.Tactic.GuardMsgs
-import Std.Tactic.GuardExpr
 
 -- The example from the doc string, for quick comparision
 -- and keeping the doc up-to-date

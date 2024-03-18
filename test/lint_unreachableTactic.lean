@@ -1,5 +1,4 @@
 import Std.Linter.UnreachableTactic
-import Std.Tactic.GuardMsgs
 
 /-- warning: this tactic is never executed [linter.unreachableTactic] -/
 #guard_msgs in

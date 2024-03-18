@@ -1,9 +1,9 @@
 import Std.Test.Internal.DummyLabelAttr
-import Std.Tactic.GuardMsgs
+import Lean.LabelAttribute
 
 set_option linter.missingDocs false
 
-open Std.Tactic.LabelAttr
+open Lean
 
 def f := 0
 

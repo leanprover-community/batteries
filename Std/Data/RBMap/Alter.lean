@@ -183,16 +183,16 @@ protected theorem Balanced.del {path : Path α}
     | red, ⟨_, h⟩ | black, ⟨_, _, h⟩ => exact h.setBlack
   | @redL _ n _ _ hb hp ih => match c', n, ht with
     | red, _, _ => cases hc rfl rfl
-    | black, _, ⟨_, rfl, ha⟩ => exact ih ((hb.balLeft ha).of_false (fun.)) (fun.)
+    | black, _, ⟨_, rfl, ha⟩ => exact ih ((hb.balLeft ha).of_false nofun) nofun
   | @redR _ n _ _ ha hp ih => match c', n, ht with
     | red, _, _ => cases hc rfl rfl
-    | black, _, ⟨_, rfl, hb⟩ => exact ih ((ha.balRight hb).of_false (fun.)) (fun.)
+    | black, _, ⟨_, rfl, hb⟩ => exact ih ((ha.balRight hb).of_false nofun) nofun
   | @blackL _ _ n _ _ _ hb hp ih => match c', n, ht with
-    | red, _, ⟨_, ha⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ (fun.)
-    | black, _, ⟨_, rfl, ha⟩ => exact ih ⟨_, rfl, (hb.balLeft ha).imp fun _ => ⟨⟩⟩ (fun.)
+    | red, _, ⟨_, ha⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ nofun
+    | black, _, ⟨_, rfl, ha⟩ => exact ih ⟨_, rfl, (hb.balLeft ha).imp fun _ => ⟨⟩⟩ nofun
   | @blackR _ _ n _ _ _ ha hp ih =>  match c', n, ht with
-    | red, _, ⟨_, hb⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ (fun.)
-    | black, _, ⟨_, rfl, hb⟩ => exact ih ⟨_, rfl, (ha.balRight hb).imp fun _ => ⟨⟩⟩ (fun.)
+    | red, _, ⟨_, hb⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ nofun
+    | black, _, ⟨_, rfl, hb⟩ => exact ih ⟨_, rfl, (ha.balRight hb).imp fun _ => ⟨⟩⟩ nofun
 
 /-- Asserts that `p` holds on all elements to the left of the hole. -/
 def AllL (p : α → Prop) : Path α → Prop
@@ -370,14 +370,14 @@ protected theorem Balanced.alter {t : RBNode α}
     have ⟨_, _, h, hp⟩ := h.zoom .root eq
     split
     · match h with
-      | .red ha hb => exact ⟨_, hp.del ((ha.append hb).of_false (· rfl rfl)) (fun.)⟩
-      | .black ha hb => exact ⟨_, hp.del ⟨_, rfl, (ha.append hb).imp fun _ => ⟨⟩⟩ (fun.)⟩
+      | .red ha hb => exact ⟨_, hp.del ((ha.append hb).of_false (· rfl rfl)) nofun⟩
+      | .black ha hb => exact ⟨_, hp.del ⟨_, rfl, (ha.append hb).imp fun _ => ⟨⟩⟩ nofun⟩
     · match h with
       | .red ha hb => exact ⟨_, _, hp.fill (.red ha hb)⟩
       | .black ha hb => exact ⟨_, _, hp.fill (.black ha hb)⟩
 
 theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
-  simp [modify, alter]; split <;> simp [Option.map]
+  simp [modify, alter]
 
 /-- The `modify` function preserves the ordering invariants. -/
 protected theorem Ordered.modify {t : RBNode α}

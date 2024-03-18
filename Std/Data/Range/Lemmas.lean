@@ -3,7 +3,6 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Tactic.ByCases
 import Std.Tactic.SeqFocus
 import Std.Data.List.Lemmas
 import Std.Data.List.Init.Attach
@@ -59,7 +58,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
   suffices ∀ H, forIn' [start:stop:step] init f = forIn (L.pmap Subtype.mk H) init f' from this _
   intro H; dsimp only [forIn', Range.forIn']
   if h : start < stop then
-    simp [numElems, Nat.not_le.2 h]; split
+    simp [numElems, Nat.not_le.2 h, L]; split
     · subst step
       suffices ∀ n H init,
           forIn'.loop start stop 0 f n start (Nat.le_refl _) init =
@@ -89,7 +88,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
           have := h2 0; simp at this
           rw [forIn'.loop]; simp [List.forIn, this, ih]; rfl
   else
-    simp [List.range', h, numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h)]
+    simp [List.range', h, numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h), L]
     cases stop <;> unfold forIn'.loop <;> simp [List.forIn', h]
 
 theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)

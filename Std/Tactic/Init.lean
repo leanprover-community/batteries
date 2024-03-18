@@ -3,9 +3,9 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Tactic.GuardExpr
 import Std.Lean.Meta.Basic
-import Std.Lean.Tactic
+import Lean.Elab.Command
+import Lean.Elab.Tactic.BuiltinTactic
 
 /-!
 # Simple tactics that are used throughout Std.
@@ -72,44 +72,6 @@ If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
 -/
 macro "absurd " h:term : tactic =>
   `(tactic| first | refine absurd ?_ $h | refine absurd $h ?_)
-
-/--
-`iterate n tac` runs `tac` exactly `n` times.
-`iterate tac` runs `tac` repeatedly until failure.
-
-To run multiple tactics, one can do `iterate (tac₁; tac₂; ⋯)` or
-```lean
-iterate
-  tac₁
-  tac₂
-  ⋯
-```
--/
-syntax "iterate" (ppSpace num)? ppSpace tacticSeq : tactic
-macro_rules
-  | `(tactic| iterate $seq:tacticSeq) =>
-    `(tactic| try ($seq:tacticSeq); iterate $seq:tacticSeq)
-  | `(tactic| iterate $n $seq:tacticSeq) =>
-    match n.1.toNat with
-    | 0 => `(tactic| skip)
-    | n+1 => `(tactic| ($seq:tacticSeq); iterate $(quote n) $seq:tacticSeq)
-
-/--
-`repeat' tac` runs `tac` on all of the goals to produce a new list of goals,
-then runs `tac` again on all of those goals, and repeats until `tac` fails on all remaining goals.
--/
-elab "repeat' " tac:tacticSeq : tactic => do
-  setGoals (← repeat' (evalTacticAtRaw tac) (← getGoals))
-
-/--
-`repeat1' tac` applies `tac` to main goal at least once. If the application succeeds,
-the tactic is applied recursively to the generated subgoals until it eventually fails.
--/
-elab "repeat1' " tac:tacticSeq : tactic => do
-  setGoals (← repeat1' (evalTacticAtRaw tac) (← getGoals))
-
-/-- `subst_eqs` applies `subst` to all equalities in the context as long as it makes progress. -/
-elab "subst_eqs" : tactic => Elab.Tactic.liftMetaTactic1 (·.substEqs)
 
 /-- `split_ands` applies `And.intro` until it does not make progress. -/
 syntax "split_ands" : tactic
