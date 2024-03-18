@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import Lean.Elab.Tactic.Basic
 import Std.Lean.Meta.Basic
+import Lean.Meta.Tactic.Util
 
 /-!
 # `false_or_by_contra` tactic
@@ -23,9 +24,11 @@ open Lean
 Changes the goal to `False`, retaining as much information as possible:
 
 If the goal is `False`, do nothing.
-If the goal is an implication or a function type, introduce the argument.
-(If the goal is `x ≠ y`, introduce `x = y`.)
-Otherwise, for a propositional goal `P`, replace it with `¬ ¬ P` and introduce `¬ P`.
+If the goal is an implication or a function type, introduce the argument and restart.
+(In particular, if the goal is `x ≠ y`, introduce `x = y`.)
+Otherwise, for a propositional goal `P`, replace it with `¬ ¬ P`
+(attempt to find a `Decidable` instance, but otherwise falling back to working classically)
+and introduce `¬ P`.
 For a non-propositional goal use `False.elim`.
 -/
 syntax (name := false_or_by_contra) "false_or_by_contra" : tactic
@@ -57,7 +60,6 @@ partial def falseOrByContra (g : MVarId) (useClassical : Option Bool := none) : 
     else
       let [g] ← g.applyConst ``False.elim | panic! "expected one sugoal"
       pure g
-
 
 @[inherit_doc falseOrByContra]
 elab "false_or_by_contra" : tactic => liftMetaTactic1 (falseOrByContra ·)

@@ -1,5 +1,4 @@
 import Std.Tactic.Where
-import Std.Tactic.GuardMsgs
 
 -- Return to pristine state
 set_option linter.missingDocs false

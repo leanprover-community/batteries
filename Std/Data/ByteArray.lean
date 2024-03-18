@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 import Std.Data.Array.Lemmas
-import Std.Tactic.Ext.Attr
 
 namespace ByteArray
 
@@ -133,7 +132,7 @@ def ofFn (f : Fin n → UInt8) : ByteArray where
 private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
   go (i : Nat) (acc : ByteArray) : ByteArray :=
     if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
-termination_by _ => n - i
+termination_by n - i
 
 @[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
   funext n f; ext; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
@@ -141,4 +140,4 @@ where
   ofFnAux_data {n} (f : Fin n → UInt8) (i) {acc} :
       (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
     rw [ofFnAux.go, Array.ofFn.go]; split; rw [ofFnAux_data f (i+1), push_data]; rfl
-  termination_by _ => n - i
+  termination_by n - i

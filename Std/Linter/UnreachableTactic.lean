@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Linter.Util
-import Std.Lean.Command
 import Std.Tactic.Unreachable
 
 namespace Std.Linter

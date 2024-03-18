@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
+import Lean.Util.ForEachExpr
 import Lean.Meta.ForEachExpr
+import Lean.Meta.GlobalInstances
+import Lean.Meta.Check
+import Lean.Util.Recognizers
+import Lean.DocString
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Init.Basic
 
 open Lean Meta
 
@@ -226,11 +230,13 @@ Return a list of unused `let_fun` terms in an expression.
 def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
-    let some (n, t, _v, b) := e.letFun? | return
-    if n.isInternal then return
-    if b.hasLooseBVars then return
-    let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
-    res.modify (·.push msg)
+    match e.letFun? with
+    | some (n, t, _, b) =>
+      if n.isInternal then return
+      if b.hasLooseBVars then return
+      let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
+      res.modify (·.push msg)
+    | _ => return
   res.get
 
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not

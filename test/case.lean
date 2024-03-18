@@ -1,6 +1,4 @@
 import Std.Tactic.Case
-import Std.Tactic.GuardExpr
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 

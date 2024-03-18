@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Std.Data.MLList.Basic
-import Std.Lean.CoreM
+import Lean.Util.Heartbeats
 
 /-!
 # Truncate a `MLList` when running out of available heartbeats.
 -/
 
+open Lean
 open Lean.Core (CoreM)
 
 /-- Take an initial segment of a monadic lazy list,

@@ -1,6 +1,5 @@
 import Std.Tactic.Lint.TypeClass
-import Std.Tactic.GuardMsgs
-import Std.Tactic.RunCmd
+import Lean.Elab.Command
 
 open Std.Tactic.Lint
 

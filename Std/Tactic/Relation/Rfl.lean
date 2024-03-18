@@ -3,8 +3,8 @@ Copyright (c) 2022 Newell Jensen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Newell Jensen, Thomas Murrills
 -/
-import Std.Lean.Elab.Tactic
 import Lean.Meta.Tactic.Apply
+import Lean.Elab.Tactic.Basic
 
 /-!
 # `rfl` tactic extension for reflexive relations
@@ -24,7 +24,7 @@ def reflExt.config : WhnfCoreConfig := {}
 initialize reflExt :
     SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n reflExt.config
+    addEntry := fun dt (n, ks) => dt.insertCore ks n
     initial := {}
   }
 

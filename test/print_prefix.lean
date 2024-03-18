@@ -1,14 +1,16 @@
 import Std.Tactic.PrintPrefix
-import Std.Tactic.GuardMsgs
 
+inductive TEmpty : Type
 /--
-info: Empty : Type
-Empty.casesOn : (motive : Empty → Sort u) → (t : Empty) → motive t
-Empty.rec : (motive : Empty → Sort u) → (t : Empty) → motive t
-Empty.recOn : (motive : Empty → Sort u) → (t : Empty) → motive t
+info: TEmpty : Type
+TEmpty.casesOn : (motive : TEmpty → Sort u) → (t : TEmpty) → motive t
+TEmpty.noConfusion : {P : Sort u} → {v1 v2 : TEmpty} → v1 = v2 → TEmpty.noConfusionType P v1 v2
+TEmpty.noConfusionType : Sort u → TEmpty → TEmpty → Sort u
+TEmpty.rec : (motive : TEmpty → Sort u) → (t : TEmpty) → motive t
+TEmpty.recOn : (motive : TEmpty → Sort u) → (t : TEmpty) → motive t
 -/
 #guard_msgs in
-#print prefix Empty -- Test type that probably won't change much.
+#print prefix TEmpty -- Test type that probably won't change much.
 
 /--
 -/

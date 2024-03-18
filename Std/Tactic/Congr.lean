@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Miyahara Kō
 -/
 import Lean.Meta.Tactic.Congr
-import Std.Tactic.RCases
-import Std.Tactic.Ext
+import Lean.Elab.Tactic.Config
+import Lean.Elab.Tactic.Ext
 
 /-! # `congr with` tactic, `rcongr` tactic -/
 

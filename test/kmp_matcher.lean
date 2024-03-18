@@ -1,4 +1,3 @@
-import Std.Tactic.GuardMsgs
 import Std.Data.String.Basic
 
 /-! Tests for Knuth-Morris-Pratt matching algorithm -/

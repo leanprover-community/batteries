@@ -521,7 +521,8 @@ theorem erase_cons_subperm_cons_erase (a b : α) (l : List α) :
   if h : a = b then
     rw [h, erase_cons_head]; apply subperm_cons_erase
   else
-    rw [erase_cons_tail _ h]
+    have : ¬(a == b) = true := by simp only [beq_false_of_ne h, not_false_eq_true]
+    rw [erase_cons_tail _ this]
 
 theorem subperm_cons_diff {a : α} {l₁ l₂ : List α} : (a :: l₁).diff l₂ <+~ a :: l₁.diff l₂ := by
   induction l₂ with
@@ -721,3 +722,23 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
+
+theorem perm_merge (s : α → α → Bool) (l r) : merge s l r ~ l ++ r := by
+  match l, r with
+  | [], r => simp
+  | l, [] => simp
+  | a::l, b::r =>
+    rw [cons_merge_cons]
+    split
+    · apply Perm.trans ((perm_cons a).mpr (perm_merge s l (b::r)))
+      simp [cons_append]
+    · apply Perm.trans ((perm_cons b).mpr (perm_merge s (a::l) r))
+      simp [cons_append]
+      apply Perm.trans (Perm.swap ..)
+      apply Perm.cons
+      apply perm_cons_append_cons
+      exact Perm.rfl
+
+theorem Perm.merge (s₁ s₂ : α → α → Bool) (hl : l₁ ~ l₂) (hr : r₁ ~ r₂) :
+    merge s₁ l₁ r₁ ~ merge s₂ l₂ r₂ :=
+  Perm.trans (perm_merge ..) <| Perm.trans (Perm.append hl hr) <| Perm.symm (perm_merge ..)

@@ -5,8 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
-import Std.Logic
-import Std.Tactic.HaveI
+import Std.Tactic.Lint.Misc
 
 /-!
 # Red-black trees
@@ -360,7 +359,7 @@ def append : RBNode α → RBNode α → RBNode α
     | bc               => balLeft a x (node black bc y d)
   | a@(node black ..), node red b x c => node red (append a b) x c
   | node red a x b, c@(node black ..) => node red a x (append b c)
-termination_by _ x y => x.size + y.size
+termination_by x y => x.size + y.size
 
 /-! ## erase -/
 
