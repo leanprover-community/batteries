@@ -79,7 +79,7 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
  -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
   Command.liftTermElabM do
-    let name ← resolveGlobalConstNoOverloadWithInfo name
+    let name ← realizeGlobalConstNoOverloadWithInfo name
     let cinfo ← getConstInfo name
     let declMods ← elabModifiers mods
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
@@ -164,7 +164,7 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
 elab (name := aliasLR) mods:declModifiers "alias "
     "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command =>
   Command.liftTermElabM do
-    let name ← resolveGlobalConstNoOverloadWithInfo name
+    let name ← realizeGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
     let .thmInfo thm ← getConstInfo name | throwError "Target must be a theorem"
