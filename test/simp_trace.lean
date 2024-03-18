@@ -5,7 +5,7 @@ set_option linter.missingDocs false
 /-- info: Try this: simp only [Nat.add_comm] -/
 #guard_msgs in
 example : x + 1 = 1 + x := by simp? [Nat.add_comm, Nat.mul_comm]
-/-- info: Try this: dsimp only -/
+/-- info: Try this: dsimp only [Nat.reduceAdd] -/
 #guard_msgs in
 example : 1 + 1 = 2 := by dsimp?
 

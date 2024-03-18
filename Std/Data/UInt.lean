@@ -79,7 +79,7 @@ theorem UInt64.toNat_lt (x : UInt64) : x.toNat < 2 ^ 64 := x.val.isLt
 
 theorem USize.size_eq : USize.size = 2 ^ System.Platform.numBits := by
   have : 1 ≤ 2 ^ System.Platform.numBits := Nat.succ_le_of_lt (Nat.two_pow_pos _)
-  rw [USize.size, Nat.succ_eq_add_one, Nat.sub_eq, Nat.sub_add_cancel this]
+  rw [USize.size, Nat.sub_add_cancel this]
 
 theorem USize.le_size : 2 ^ 32 ≤ USize.size := by
   rw [size_eq]
