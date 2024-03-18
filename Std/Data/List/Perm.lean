@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Std.Tactic.Alias
-import Std.Tactic.Relation.Rfl
 import Std.Data.List.Init.Attach
 import Std.Data.List.Pairwise
+-- Adaptation note: nightly-2024-03-18. We should be able to remove this after nightly-2024-03-19.
+import Lean.Elab.Tactic.Rfl
 
 /-!
 # List Permutations
