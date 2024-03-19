@@ -472,10 +472,10 @@ theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
     (p : Fin as.size → β → Prop)
     (hs : ∀ i, motive i.1 → p i (f i as[i]) ∧ motive (i + 1)) :
     motive as.size ∧ ∃ eq : (Array.mapIdx as f).size = as.size,
-      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) := by
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]) := by
   let rec go {bs i j h} (h₁ : j = bs.size) (h₂ : ∀ i h h', p ⟨i, h⟩ bs[i]) (hm : motive j) :
     let arr : Array β := Array.mapIdxM.map (m := Id) as f i j h bs
-    motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ (arr[i]'(eq ▸ h)) := by
+    motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i] := by
     induction i generalizing j bs with simp [mapIdxM.map]
     | zero =>
       have := (Nat.zero_add _).symm.trans h
@@ -495,7 +495,7 @@ theorem mapIdx_induction (as : Array α) (f : Fin as.size → α → β)
 theorem mapIdx_spec (as : Array α) (f : Fin as.size → α → β)
     (p : Fin as.size → β → Prop) (hs : ∀ i, p i (f i as[i])) :
     ∃ eq : (Array.mapIdx as f).size = as.size,
-      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]'(eq ▸ h)) :=
+      ∀ i h, p ⟨i, h⟩ ((Array.mapIdx as f)[i]) :=
   (mapIdx_induction _ _ (fun _ => True) trivial p fun _ _ => ⟨hs .., trivial⟩).2
 
 @[simp] theorem size_mapIdx (a : Array α) (f : Fin a.size → α → β) : (a.mapIdx f).size = a.size :=
@@ -504,9 +504,10 @@ theorem mapIdx_spec (as : Array α) (f : Fin as.size → α → β)
 @[simp] theorem size_zipWithIndex (as : Array α) : as.zipWithIndex.size = as.size :=
   Array.size_mapIdx _ _
 
-@[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat) (h) :
+@[simp] theorem getElem_mapIdx (a : Array α) (f : Fin a.size → α → β) (i : Nat)
+    (h : i < (mapIdx a f).size) :
     haveI : i < a.size := by simp_all
-    (a.mapIdx f)[i]'h = f ⟨i, this⟩ a[i] :=
+    (a.mapIdx f)[i] = f ⟨i, this⟩ a[i] :=
   (mapIdx_spec _ _ (fun i b => b = f i a[i]) fun _ => rfl).2 i _
 
 /-! ### modify -/
