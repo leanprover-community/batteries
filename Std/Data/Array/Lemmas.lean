@@ -10,8 +10,6 @@ import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
 import Std.Util.ProofWanted
 
-local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
-
 @[simp] theorem getElem_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n) (h : Dom a i) :
     a[i] = a[i.1] := rfl
 
@@ -30,7 +28,7 @@ theorem getElem?_neg [GetElem Cont Idx Elem Dom]
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
 
 @[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
-    (mkArray n v)[i]'h = v := by simp [Array.getElem_eq_data_get]
+    (mkArray n v)[i] = v := by simp [Array.getElem_eq_data_get]
 
 namespace Array
 
@@ -108,7 +106,7 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
 theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
-    (a.set i v)[i.1]'(by simp [i.2]) = v := by
+    (a.set i v)[i.1] = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
 
 theorem get?_set_eq (a : Array α) (i : Fin a.size) (v : α) :
@@ -131,7 +129,7 @@ theorem get_set (a : Array α) (i : Fin a.size) (j : Nat) (hj : j < a.size) (v :
   simp only [set, getElem_eq_data_get, List.get_set_ne _ h]
 
 theorem getElem_setD (a : Array α) (i : Nat) (v : α) (h : i < (setD a i v).size) :
-  (setD a i v)[i]'h = v := by
+  (setD a i v)[i] = v := by
   simp at h
   simp only [setD, h, dite_true, get_set, ite_true]
 
@@ -187,7 +185,7 @@ theorem eq_push_pop_back_of_size_ne_zero [Inhabited α] {as : Array α} (h : as.
 
 theorem eq_push_of_size_ne_zero {as : Array α} (h : as.size ≠ 0) :
     ∃ (bs : Array α) (c : α), as = bs.push c :=
-  let _ : Inhabited α := ⟨as[0]'(Nat.zero_lt_of_ne_zero h)⟩
+  let _ : Inhabited α := ⟨as[0]⟩
   ⟨as.pop, as.back, eq_push_pop_back_of_size_ne_zero h⟩
 
 theorem size_eq_length_data (as : Array α) : as.size = as.data.length := rfl
@@ -429,9 +427,9 @@ theorem map_eq_foldl (as : Array α) (f : α → β) :
 theorem map_induction (as : Array α) (f : α → β) (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop) (hs : ∀ i, motive i.1 → p i (f as[i]) ∧ motive (i+1)) :
     motive as.size ∧
-      ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
+      ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]) := by
   have t := foldl_induction (as := as) (β := Array β)
-    (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2))
+    (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i arr[i.1])
     (init := #[]) (f := fun r a => r.push (f a)) ?_ ?_
   obtain ⟨m, eq, w⟩ := t
   · refine ⟨m, by simpa [map_eq_foldl] using eq, ?_⟩
@@ -455,11 +453,11 @@ theorem map_induction (as : Array α) (f : α → β) (motive : Nat → Prop) (h
 
 theorem map_spec (as : Array α) (f : α → β) (p : Fin as.size → β → Prop)
     (hs : ∀ i, p i (f as[i])) :
-    ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]'(eq ▸ h)) := by
+    ∃ eq : (as.map f).size = as.size, ∀ i h, p ⟨i, h⟩ ((as.map f)[i]) := by
   simpa using map_induction as f (fun _ => True) trivial p (by simp_all)
 
 @[simp] theorem getElem_map (f : α → β) (as : Array α) (i : Nat) (h) :
-    ((as.map f)[i]'h) = f (as[i]'(size_map .. ▸ h)) := by
+    ((as.map f)[i]) = f (as[i]'(size_map .. ▸ h)) := by
   have := map_spec as f (fun i b => b = f (as[i]))
   simp only [implies_true, true_implies] at this
   obtain ⟨eq, w⟩ := this
