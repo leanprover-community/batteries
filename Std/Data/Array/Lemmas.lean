@@ -844,3 +844,59 @@ instance [DecidableEq α] (a : α) (as : Array α) : Decidable (a ∈ as) :=
 /-! ### erase -/
 
 @[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+
+/-! ### swap -/
+
+@[simp] theorem get_swap_right (a : Array α) {i j : Fin a.size} : (a.swap i j)[j.val] = a[i] :=
+  by simp only [swap, fin_cast_val, get_eq_getElem, getElem_set_eq, getElem_fin]
+
+@[simp] theorem get_swap_left (a : Array α) {i j : Fin a.size} : (a.swap i j)[i.val] = a[j] :=
+  if he : ((Array.size_set _ _ _).symm ▸ j).val = i.val then by
+    simp only [←he, fin_cast_val, get_swap_right, getElem_fin]
+  else by
+    apply Eq.trans
+    · apply Array.get_set_ne
+      · simp only [size_set, Fin.is_lt]
+      · assumption
+    · simp [get_set_ne]
+
+@[simp] theorem get_swap_of_ne (a : Array α) {i j : Fin a.size} (hp : p < a.size)
+    (hi : p ≠ i) (hj : p ≠ j) : (a.swap i j)[p]'(a.size_swap .. |>.symm ▸ hp) = a[p] := by
+  apply Eq.trans
+  · have : ((a.size_set i (a.get j)).symm ▸ j).val = j.val := by simp only [fin_cast_val]
+    apply Array.get_set_ne
+    · simp only [this]
+      apply Ne.symm
+      · assumption
+  · apply Array.get_set_ne
+    · apply Ne.symm
+      · assumption
+
+theorem get_swap (a : Array α) (i j : Fin a.size) (k : Nat) (hk: k < a.size) :
+    (a.swap i j)[k]'(by simp_all) = if k = i then a[j] else if k = j then a[i]  else a[k] := by
+  split
+  · simp_all only [get_swap_left]
+  · split <;> simp_all
+
+theorem get_swap' (a : Array α) (i j : Fin a.size) (k : Nat) (hk' : k < (a.swap i j).size) :
+    (a.swap i j)[k] = if k = i then a[j] else if k = j then a[i] else a[k]'(by simp_all) := by
+  apply get_swap
+
+@[simp] theorem swap_swap (a : Array α) {i j : Fin a.size} :
+    (a.swap i j).swap ⟨i.1, (a.size_swap ..).symm ▸i.2⟩ ⟨j.1, (a.size_swap ..).symm ▸j.2⟩ = a := by
+  apply ext
+  · simp only [size_swap]
+  · intros
+    simp only [get_swap']
+    split
+    · simp_all
+    · split <;> simp_all
+
+theorem swap_comm (a : Array α) {i j : Fin a.size} : a.swap i j = a.swap j i := by
+  apply ext
+  · simp only [size_swap]
+  · intros
+    simp only [get_swap']
+    split
+    · split <;> simp_all
+    · split <;> simp_all
