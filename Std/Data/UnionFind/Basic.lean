@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Array.Lemmas
+import Std.Tactic.Lint.Misc
 
 namespace Std
 
@@ -109,8 +110,8 @@ namespace UnionFind
 /-- Create an empty union-find structure with specific capacity -/
 def mkEmpty (c : Nat) : UnionFind where
   arr := Array.mkEmpty c
-  parentD_lt := (fun.)
-  rankD_lt := fun.
+  parentD_lt := nofun
+  rankD_lt := nofun
 
 /-- Empty union-find structure -/
 def empty := mkEmpty 0
@@ -180,7 +181,7 @@ def root (self : UnionFind) (x : Fin self.size) : Fin self.size :=
   else
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ h)
     self.root ⟨y, self.parent'_lt x⟩
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 @[inherit_doc root]
 def rootN (self : UnionFind) (x : Fin n) (h : n = self.size) : Fin n :=
@@ -200,7 +201,7 @@ theorem parent_root (self : UnionFind) (x : Fin self.size) :
   rw [root]; split <;> [assumption; skip]
   have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
   apply parent_root
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem parent_rootD (self : UnionFind) (x : Nat) :
     self.parent (self.rootD x) = self.rootD x := by
@@ -232,7 +233,7 @@ theorem rootD_ext {m1 m2 : UnionFind}
   else
     have := Nat.sub_lt_sub_left (m2.lt_rankMax x) (m2.rank_lt h)
     rw [← rootD_parent, H, rootD_ext H, rootD_parent]
-termination_by _ => m2.rankMax - m2.rank x
+termination_by m2.rankMax - m2.rank x
 
 theorem le_rank_root {self : UnionFind} {x : Nat} : self.rank x ≤ self.rank (self.rootD x) := by
   if h : self.parent x = x then
@@ -241,7 +242,7 @@ theorem le_rank_root {self : UnionFind} {x : Nat} : self.rank x ≤ self.rank (s
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank_lt h)
     rw [← rootD_parent]
     exact Nat.le_trans (Nat.le_of_lt (self.rank_lt h)) le_rank_root
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem lt_rank_root {self : UnionFind} {x : Nat} :
     self.rank x < self.rank (self.rootD x) ↔ self.parent x ≠ x := by
@@ -267,7 +268,7 @@ def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.size :=
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ h)
     let ⟨arr₁, root, H⟩ := self.findAux ⟨y, self.parent'_lt x⟩
     ⟨arr₁.modify x fun s => { s with parent := root }, root, by simp [H]⟩
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 @[nolint unusedHavesSuffices]
 theorem findAux_root {self : UnionFind} {x : Fin self.size} :
@@ -275,7 +276,7 @@ theorem findAux_root {self : UnionFind} {x : Fin self.size} :
   rw [findAux, root]; simp; split <;> simp
   have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
   exact findAux_root
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 @[nolint unusedHavesSuffices]
 theorem findAux_s {self : UnionFind} {x : Fin self.size} :
@@ -299,7 +300,7 @@ theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     split <;> simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt x⟩), -Array.get_eq_getElem]
   else
     simp [rank, rankD]; rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i =
@@ -322,7 +323,7 @@ theorem parentD_findAux_rootD {self : UnionFind} {x : Fin self.size} :
   have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
   rw [← rootD_parent, parent, parentD_eq]
   exact parentD_findAux_rootD (x := ⟨_, self.parent'_lt x⟩)
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem parentD_findAux_lt {self : UnionFind} {x : Fin self.size} (h : i < self.size) :
     parentD (findAux self x).s i < self.size := by
@@ -332,7 +333,7 @@ theorem parentD_findAux_lt {self : UnionFind} {x : Fin self.size} (h : i < self.
     rw [parentD_findAux]; split <;> [simp [rootD_lt]; skip]
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     apply parentD_findAux_lt h
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem parentD_findAux_or (self : UnionFind) (x : Fin self.size) (i) :
     parentD (findAux self x).s i = self.rootD i ∧ self.rootD i = self.rootD x ∨
@@ -344,7 +345,7 @@ theorem parentD_findAux_or (self : UnionFind) (x : Fin self.size) (i) :
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     exact (parentD_findAux_or self ⟨_, self.parent'_lt x⟩ i).imp_left <| .imp_right fun h => by
       simp only [h, ← parentD_eq, rootD_parent, Array.data_length]
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i ≠ i →
@@ -356,7 +357,7 @@ theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
     · subst i; rwa [lt_rank_root, Ne, ← rootD_eq_self]
     · have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
       apply lt_rankD_findAux h'
-termination_by _ => self.rankMax - self.rank x
+termination_by self.rankMax - self.rank x
 
 /-- Find root of a union-find node, updating the structure using path compression. -/
 def find (self : UnionFind) (x : Fin self.size) :
@@ -416,7 +417,7 @@ theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
     obtain ⟨h1, _⟩ | h1 := find_parent_or self x i
     · rw [h1, rootD_rootD]
     · rw [h1, rootD_parent]
-termination_by _ => (self.find x).1.rankMax - (self.find x).1.rank i
+termination_by  (self.find x).1.rankMax - (self.find x).1.rank i
 decreasing_by exact this -- why is this needed? It is way slower without it
 
 /-- Link two union-find nodes -/
@@ -431,7 +432,7 @@ def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
     else
       let arr₁ := self.set x {nx with parent := y}
       if nx.rank = ny.rank then
-        arr₁.set ⟨y, by simp⟩ {ny with rank := ny.rank + 1}
+        arr₁.set ⟨y, by simp [arr₁]⟩ {ny with rank := ny.rank + 1}
       else
         arr₁
 

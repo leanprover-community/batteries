@@ -88,13 +88,13 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
         rw [← rootD_parent, go (m.parent i)]
         rw [hm i]; split <;> [subst i; rw [rootD_parent]]
         simp [rootD_eq_self.2 xroot, rootD_eq_self.2 yroot]
+    termination_by m.rankMax - m.rank i
     exact ⟨x, .inl rfl, go⟩
   if hr : self.rank y < self.rank x then
     exact this xroot yroot fun i => by simp [parent_link, h, hr]
   else
     simpa (config := {singlePass := true}) [or_comm] using
       this yroot xroot fun i => by simp [parent_link, h, hr]
-termination_by go => m.rankMax - m.rank i
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
 theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
