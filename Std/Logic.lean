@@ -32,9 +32,6 @@ end Classical
 
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
-theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
-  cases propext (iff_of_true hp hq); rfl
-
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
 
