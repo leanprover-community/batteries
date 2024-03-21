@@ -935,9 +935,9 @@ theorem get?_take {l : List α} {n m : Nat} (h : m < n) : (l.take n).get? m = l.
     cases l with
     | nil => simp only [take_nil]
     | cons hd tl =>
-      · cases m
-        · simp only [get?, take]
-        · simpa only using hn (Nat.lt_of_succ_lt_succ h)
+      cases m
+      · simp only [get?, take]
+      · simpa only using hn (Nat.lt_of_succ_lt_succ h)
 
 @[simp]
 theorem nth_take_of_succ {l : List α} {n : Nat} : (l.take (n + 1)).get? n = l.get? n :=
