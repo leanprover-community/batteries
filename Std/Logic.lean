@@ -125,43 +125,7 @@ theorem ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt fun e =>
 
 end Mem
 
-/-! ## if-then-else -/
-
-@[simp] theorem if_true {h : Decidable True} (t e : α) : ite True t e = t := if_pos trivial
-
-@[simp] theorem if_false {h : Decidable False} (t e : α) : ite False t e = e := if_neg id
-
-theorem ite_id [Decidable c] {α} (t : α) : (if c then t else t) = t := by split <;> rfl
-
-/-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
-theorem apply_dite (f : α → β) (P : Prop) [Decidable P] (x : P → α) (y : ¬P → α) :
-    f (dite P x y) = dite P (fun h => f (x h)) (fun h => f (y h)) := by
-  by_cases h : P <;> simp [h]
-
-/-- A function applied to a `ite` is a `ite` of that function applied to each of the branches. -/
-theorem apply_ite (f : α → β) (P : Prop) [Decidable P] (x y : α) :
-    f (ite P x y) = ite P (f x) (f y) :=
-  apply_dite f P (fun _ => x) (fun _ => y)
-
-/-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
-@[simp] theorem dite_not (P : Prop) [Decidable P]  (x : ¬P → α) (y : ¬¬P → α) :
-    dite (¬P) x y = dite P (fun h => y (not_not_intro h)) x := by
-  by_cases h : P <;> simp [h]
-
-/-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-@[simp] theorem ite_not (P : Prop) [Decidable P] (x y : α) : ite (¬P) x y = ite P y x :=
-  dite_not P (fun _ => x) (fun _ => y)
-
 /-! ## Bool -/
-
-theorem Bool.eq_false_or_eq_true : (b : Bool) → b = true ∨ b = false
-  | true => .inl rfl
-  | false => .inr rfl
-
-theorem Bool.eq_false_iff {b : Bool} : b = false ↔ b ≠ true :=
-  ⟨ne_true_of_eq_false, eq_false_of_ne_true⟩
-
-theorem Bool.eq_iff_iff {a b : Bool} : a = b ↔ (a ↔ b) := by cases b <;> simp
 
 theorem Bool.beq_eq_false_iff [BEq α] {a a' : α} :
     (a == a') = false ↔ a != a' := by
@@ -196,10 +160,6 @@ theorem subsingleton_iff_forall_eq (x : α) : Subsingleton α ↔ ∀ y, y = x :
 
 example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
   ⟨fun ⟨x, _⟩ ⟨y, _⟩ => by congr; exact Subsingleton.elim x y⟩
-
-theorem false_ne_true : False ≠ True := fun h => h.symm ▸ trivial
-
-theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
 theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
   f x' (Eq.rec y h) = f x y := by cases h; rfl

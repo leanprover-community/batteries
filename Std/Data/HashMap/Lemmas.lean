@@ -88,7 +88,7 @@ theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i 
     have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
     have hJ' : j < bkts.val.size := by
       apply Nat.lt_trans hJ
-      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
+      simp [-Array.data_length, Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
     have : ab ∈ (bkts.val[j]).toList := by
       suffices bkt = bkts.val[j] by rwa [this] at hAb
       have := @List.get_append _ _ (bkts.val[i] :: bs₂) j hJ
@@ -124,7 +124,7 @@ theorem Pairwise_bne_toListModel (bkts : Buckets α β) (H : bkts.WF) :
       ∧ ∀ j, i ≤ j → (_ : j < bkts.val.size) →
         ∀ p ∈ acc, ∀ r ∈ bkts.val[j].toList, p.1 != r.1)
     ?h0 ?hf |>.left
-  case h0 => exact ⟨Pairwise.nil, fun.⟩
+  case h0 => exact ⟨Pairwise.nil, nofun⟩
   case hf =>
     intro i acc h
     refine ⟨pairwise_append.mpr ⟨h.left, ?bkt, ?accbkt⟩, ?accbkts⟩
@@ -214,7 +214,7 @@ where
     case inr hI =>
       have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
       simp [Perm.refl, drop_eq_nil_of_le this]
-    termination_by _ i src _ => src.size - i
+  termination_by src.size - i
 
 end Buckets
 
@@ -340,7 +340,7 @@ end Imp
 namespace Imp
 
 @[simp] theorem empty_buckets :
-    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
+    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp; exact ⟨3, rfl⟩⟩ := rfl
 
 @[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
 

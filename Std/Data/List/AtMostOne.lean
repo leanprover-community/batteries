@@ -33,19 +33,19 @@ theorem imp {l : List α} {p q : α → Prop} (H : ∀ a, p a → q a) :
 theorem find?_eq_of_perm {l₁ l₂ : List α} {p : α → Bool} :
     l₁.AtMostOne (p ·) → l₁ ~ l₂ → l₁.find? p = l₂.find? p := by
   intro hUniq h
-  induction h using perm_induction_on with
+  induction h using Perm.recOnSwap' with
   | nil => rfl
-  | cons x l₁ _ _ ih =>
+  | @cons x l₁ _ _ ih =>
     have := ih (hUniq.sublist (sublist_cons x l₁))
     simp [find?, this]
-  | swap x y l₁ l₂ _ ih =>
+  | @swap' x y l₁ l₂ _ ih =>
     dsimp [find?]
     split <;> split <;> try rfl
     next hY _ hX =>
       have : ¬p x := hUniq.of_cons hY x (mem_cons_self _ _)
       contradiction
     next => exact ih <| hUniq.sublist <| sublist_of_cons_sublist <| sublist_cons y (x :: l₁)
-  | trans l₁ l₂ l₃ h₁₂ _ h₁ h₂ =>
+  | trans h₁₂ _ h₁ h₂ =>
     simp [h₁ hUniq, h₂ (hUniq.perm h₁₂)]
 
 /-- If there is at most one element with the property `p`,
