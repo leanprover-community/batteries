@@ -716,7 +716,7 @@ theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b:
   | x::xs => by simp
 
 @[simp] theorem get_dropLast : ∀ (xs : List α) (i : Fin xs.dropLast.length),
-    xs.dropLast.get i = xs.get (i.castLE (xs.length_dropLast ▸ Nat.sub_le ..))
+    xs.dropLast.get i = xs.get ⟨i, Nat.lt_of_lt_of_le i.isLt (length_dropLast .. ▸ Nat.pred_le _)⟩
   | _::_::_, ⟨0, _⟩ => rfl
   | _::_::_, ⟨i+1, _⟩ => get_dropLast _ ⟨i, _⟩
 
