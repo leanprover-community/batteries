@@ -43,7 +43,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
         ].any (· == s) then
         return true
-      if let some _ := isSubobjectField? (← getEnv) n s then
+      if let some _ := isSubobjectField? (← getEnv) n (.mkSimple s) then
         return true
   pure false
 
