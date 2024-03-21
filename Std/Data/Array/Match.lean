@@ -3,8 +3,7 @@ Copyright (c) 2023 F. G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
-import Std.Data.Array.Basic
-import Std.Data.Array.Lemmas
+import Std.Data.Nat.Lemmas
 
 namespace Array
 
@@ -18,7 +17,7 @@ structure PrefixTable (α : Type _) extends Array (α × Nat) where
   valid : (h : i < toArray.size) → toArray[i].2 ≤ i
 
 instance : Inhabited (PrefixTable α) where
-  default := ⟨#[], fun.⟩
+  default := ⟨#[], nofun⟩
 
 /-- Returns the size of the prefix table -/
 abbrev PrefixTable.size (t : PrefixTable α) := t.toArray.size
@@ -45,7 +44,7 @@ def PrefixTable.step [BEq α] (t : PrefixTable α) (x : α) : Fin (t.size+1) →
         ⟨k+1, Nat.succ_lt_succ hsz⟩
       else cont ()
     else cont ()
-termination_by _ k => k.val
+termination_by k => k.val
 
 /-- Extend a prefix table by one element
 

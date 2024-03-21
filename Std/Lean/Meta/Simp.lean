@@ -3,8 +3,8 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Gabriel Ebner, Floris van Doorn
 -/
+import Lean.Elab.Tactic.Simp
 import Std.Tactic.OpenPrivate
-import Std.Lean.Meta.DiscrTree
 
 /-!
 # Helper functions for using the simplifier.
@@ -53,15 +53,18 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     simpOnlyBuiltins.foldlM (·.addConst ·) {}
   else
     pure simpTheorems
+  let simprocs ← if simpOnly then pure {} else Simp.getSimprocs
   let congrTheorems ← Meta.getSimpCongrTheorems
-  let r ← elabSimpArgs stx[4] (eraseLocal := eraseLocal) (kind := kind) {
+  let r ← elabSimpArgs stx[4] (eraseLocal := eraseLocal) (kind := kind) (simprocs := #[simprocs]) {
     config       := (← elabSimpConfig stx[1] (kind := kind))
     simpTheorems := #[simpTheorems], congrTheorems
   }
   if !r.starArg || ignoreStarArg then
     return { r with dischargeWrapper }
   else
-    let mut simpTheorems := r.ctx.simpTheorems
+    let ctx := r.ctx
+    let mut simpTheorems := ctx.simpTheorems
+    let simprocs := r.simprocs
     /-
     When using `zeta := false`, we do not expand let-declarations when using `[*]`.
     Users must explicitly include it in the list.
@@ -70,7 +73,9 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     for h in hs do
       unless simpTheorems.isErased (.fvar h) do
         simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
-    return { ctx := { r.ctx with simpTheorems }, dischargeWrapper }
+    let ctx := { ctx with simpTheorems }
+    return { ctx, simprocs, dischargeWrapper }
+
 
 end Simp
 

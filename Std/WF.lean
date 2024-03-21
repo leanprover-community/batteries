@@ -41,7 +41,7 @@ def log2p1 : Nat → Nat := -- works!
 
 namespace Acc
 
-private local instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val } where
+instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val } where
   rel := InvImage r (·.1)
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
@@ -51,7 +51,7 @@ private local instance wfRel {r : α → α → Prop} : WellFoundedRelation { va
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
   intro a (fun x h => t.inv h) (fun y hr => recC intro (t.inv hr))
-termination_by _ a h => Subtype.mk a h
+termination_by Subtype.mk a t
 
 private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
@@ -90,6 +90,19 @@ end Acc
 
 namespace WellFounded
 
+/-- Attaches to `x` the proof that `x` is accessible in the given well-founded relation.
+This can be used in recursive function definitions to explicitly use a differerent relation
+than the one inferred by default:
+
+```
+def otherWF : WellFounded Nat := …
+def foo (n : Nat) := …
+termination_by otherWF.wrap n
+```
+-/
+def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : {x : α // Acc r x} :=
+  ⟨_, h.apply x⟩
+
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
 @[inline] private def fixFC {α : Sort u} {r : α → α → Prop}
@@ -105,7 +118,7 @@ Workaround until Lean has native support for this. -/
 @[specialize] private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
     (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
   F x (fun y _ => fixC hwf F y)
-termination_by' ⟨r, hwf⟩
+termination_by hwf.wrap x
 
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
