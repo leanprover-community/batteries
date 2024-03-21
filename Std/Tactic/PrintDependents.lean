@@ -16,7 +16,7 @@ of all theorems directly referenced that are "to blame" for this dependency. Use
 unexpected dependencies.
 -/
 namespace Std.Tactic
-open Lean Elab
+open Lean Elab Command
 
 namespace CollectDependents
 
@@ -88,7 +88,7 @@ theorem bar' : 1 = 1 ∨ 1 ≠ 1 := foo
 -/
 elab tk:"#print" &"dependents" ids:(ppSpace colGt ident)* : command => do
   let env ← getEnv
-  let ids ← ids.mapM fun c => return (← resolveGlobalConstNoOverloadWithInfo c, true)
+  let ids ← ids.mapM fun c => return (← liftCoreM <| realizeGlobalConstNoOverloadWithInfo c, true)
   let init := CollectDependents.mkState ids false
   let mut state := init
   let mut out := #[]
