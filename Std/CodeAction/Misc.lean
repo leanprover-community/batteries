@@ -3,9 +3,13 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Lean.Elab.BuiltinTerm
+import Lean.Elab.BuiltinNotation
 import Std.Lean.Name
 import Std.Lean.Position
-import Std.CodeAction.Basic
+import Std.CodeAction.Attr
+import Lean.Meta.Tactic.TryThis
+import Lean.Server.CodeActions.Provider
 
 /-!
 # Miscellaneous code actions
@@ -14,7 +18,7 @@ This declares some basic tactic code actions, using the `@[tactic_code_action]` 
 -/
 namespace Std.CodeAction
 
-open Lean Meta Elab Server RequestM
+open Lean Meta Elab Server RequestM CodeAction
 
 /-- Return the syntax stack leading to `target` from `root`, if one exists. -/
 def findStack? (root target : Syntax) : Option Syntax.Stack := do
@@ -36,9 +40,17 @@ In the following:
 instance : Monad Id := _
 ```
 
-invoking the hole code action "Generate a skeleton for the structure under construction." produces:
+invoking the hole code action "Generate a (minimal) skeleton for the structure under construction."
+produces:
 ```lean
-instance : Monad Id := {
+instance : Monad Id where
+  pure := _
+  bind := _
+```
+
+and invoking "Generate a (maximal) skeleton for the structure under construction." produces:
+```lean
+instance : Monad Id where
   map := _
   mapConst := _
   pure := _
@@ -46,22 +58,24 @@ instance : Monad Id := {
   seqLeft := _
   seqRight := _
   bind := _
-}
 ```
 -/
-@[hole_code_action] partial def instanceStub : HoleCodeAction := fun params snap ctx info => do
+@[hole_code_action] partial def instanceStub : HoleCodeAction := fun _ snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
   unless isStructure snap.env name do return #[]
-  let eager := {
-    title := "Generate a skeleton for the structure under construction."
-    kind? := "quickfix"
-    isPreferred? := true
-  }
   let doc ← readDoc
-  pure #[{
-    eager
-    lazy? := some do
+  let fields := collectFields snap.env name #[] []
+  let only := !fields.any fun (_, auto) => auto
+  let mkAutofix minimal :=
+    let eager := {
+      title := s!"\
+        Generate a {if only then "" else if minimal then "(minimal) " else "(maximal) "}\
+        skeleton for the structure under construction."
+      kind? := "quickfix"
+      isPreferred? := minimal
+    }
+    let lazy? := some do
       let useWhere := do
         let _ :: (stx, _) :: _ ← findStack? snap.stx info.stx | none
         guard (stx.getKind == ``Parser.Command.declValSimple)
@@ -71,7 +85,8 @@ instance : Monad Id := {
       let indent := "\n".pushn ' ' indent
       let mut str := if useWhere.isSome then "where" else "{"
       let mut first := useWhere.isNone && isStart
-      for field in collectFields snap.env name #[] do
+      for (field, auto) in fields do
+        if minimal && auto then continue
         if first then
           str := str ++ " "
           first := false
@@ -85,19 +100,30 @@ instance : Monad Id := {
         else
           str := str ++ indent ++ "}"
       pure { eager with
-        edit? := some <| .ofTextEdit params.textDocument.uri {
+        edit? := some <| .ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
       }
-  }]
+    { eager, lazy? }
+  pure <| if only then #[mkAutofix true] else #[mkAutofix true, mkAutofix false]
 where
+  /-- Returns true if this field is an autoParam or optParam, or if it is given an optional value
+  in a child struct. -/
+  isAutofillable (env : Environment) (fieldInfo : StructureFieldInfo) (stack : List Name) : Bool :=
+    fieldInfo.autoParam?.isSome || env.contains (mkDefaultFnOfProjFn fieldInfo.projFn)
+      || stack.any fun struct => env.contains (mkDefaultFnOfProjFn (struct ++ fieldInfo.fieldName))
+
   /-- Returns the fields of a structure, unfolding parent structures. -/
-  collectFields (env : Environment) (structName : Name) (fields : Array Name) : Array Name :=
+  collectFields (env : Environment) (structName : Name)
+      (fields : Array (Name × Bool)) (stack : List Name) : Array (Name × Bool) :=
     (getStructureFields env structName).foldl (init := fields) fun fields field =>
-      match isSubobjectField? env structName field with
-      | some substructName => collectFields env substructName fields
-      | none => fields.push field
+      if let some fieldInfo := getFieldInfo? env structName field then
+        if let some substructName := fieldInfo.subobject? then
+          collectFields env substructName fields (structName :: stack)
+        else
+          fields.push (field, isAutofillable env fieldInfo stack)
+      else fields
 
 /-- Returns the explicit arguments given a type. -/
 def getExplicitArgs : Expr → Array Name → Array Name
@@ -131,7 +157,7 @@ def foo : Expr → Unit := fun
 ```
 
 -/
-@[hole_code_action] def eqnStub : HoleCodeAction := fun params snap ctx info => do
+@[hole_code_action] def eqnStub : HoleCodeAction := fun _ snap ctx info => do
   let some ty := info.expectedType? | return #[]
   let .forallE _ dom .. ← info.runMetaM ctx (whnf ty) | return #[]
   let .const name _ := (← info.runMetaM ctx (whnf dom)).getAppFn | return #[]
@@ -156,7 +182,7 @@ def foo : Expr → Unit := fun
           str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
           newText := str
         }
@@ -164,14 +190,14 @@ def foo : Expr → Unit := fun
   }]
 
 /-- Invoking hole code action "Start a tactic proof" will fill in a hole with `by done`. -/
-@[hole_code_action] def startTacticStub : HoleCodeAction := fun params _ _ info => do
+@[hole_code_action] def startTacticStub : HoleCodeAction := fun _ _ _ info => do
   let holePos := info.stx.getPos?.get!
   let doc ← readDoc
   let indent := (findIndentAndIsStart doc.meta.text.source holePos).1
   pure #[{
     eager.title := "Start a tactic proof."
     eager.kind? := "quickfix"
-    eager.edit? := some <|.ofTextEdit params.textDocument.uri {
+    eager.edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨holePos, info.stx.getTailPos?.get!⟩
       newText := "by\n".pushn ' ' (indent + 2) ++ "done"
     }
@@ -192,7 +218,7 @@ example : True := by
 ```
 -/
 @[tactic_code_action*]
-def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
+def removeAfterDoneAction : TacticCodeAction := fun _ _ _ stk node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
   unless info.goalsBefore.isEmpty do return #[]
   let _ :: (seq, i) :: _ := stk | return #[]
@@ -203,7 +229,7 @@ def removeAfterDoneAction : TacticCodeAction := fun params _ _ stk node => do
     title := "Remove tactics after 'no goals'"
     kind? := "quickfix"
     isPreferred? := true
-    edit? := some <|.ofTextEdit params.textDocument.uri {
+    edit? := some <|.ofTextEdit doc.versionedIdentifier {
       range := doc.meta.text.utf8RangeToLspRange ⟨prev, stop⟩
       newText := ""
     }
@@ -251,7 +277,7 @@ example (x : Nat) : x = x := by
 It also works for `cases`.
 -/
 @[tactic_code_action Parser.Tactic.cases Parser.Tactic.induction]
-def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
+def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
   let (discr, induction, alts) ← match info.stx with
     | `(tactic| cases $[$_ :]? $e $[$alts:inductionAlts]?) => pure (e, false, alts)
@@ -302,7 +328,10 @@ def casesExpand : TacticCodeAction := fun params snap ctx _ node => do
           str := str ++ s!" => sorry"
         str
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri { range := ⟨startPos, endPos⟩, newText }
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
+          range := ⟨startPos, endPos⟩
+          newText
+        }
       }
   }]
 
@@ -356,7 +385,7 @@ def addSubgoalsActionCore (params : Lsp.CodeActionParams)
       for _ in goals.tail! do
         newText := newText ++ indent ++ "· done"
       pure { eager with
-        edit? := some <|.ofTextEdit params.textDocument.uri {
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange range
           newText
         }

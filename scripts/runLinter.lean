@@ -3,6 +3,7 @@ import Std.Data.Array.Basic
 import Std.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
+open System (FilePath)
 
 /-- The list of `nolints` pulled from the `nolints.json` file -/
 abbrev NoLints := Array (Name × Name)
@@ -31,17 +32,31 @@ unsafe def main (args : List String) : IO Unit := do
   let some module :=
       match args with
       | [] => some `Std
-      | [mod] => Syntax.decodeNameLit s!"`{mod}"
+      | [mod] => match mod.toName with
+        | .anonymous => none
+        | name => some name
       | _ => none
     | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat.Basic]" *> IO.Process.exit 1
-  let nolintsFile := "scripts/nolints.json"
-  let nolints ← readJsonFile NoLints nolintsFile
   searchPathRef.set compile_time_search_path%
+  let mFile ← findOLean module
+  unless (← mFile.pathExists) do
+    -- run `lake build module` (and ignore result) if the file hasn't been built yet
+    let child ← IO.Process.spawn {
+      cmd := (← IO.getEnv "LAKE").getD "lake"
+      args := #["build", s!"+{module}"]
+      stdin := .null
+    }
+    _ ← child.wait
+  let nolintsFile : FilePath := "scripts/nolints.json"
+  let nolints ← if ← nolintsFile.pathExists then
+    readJsonFile NoLints nolintsFile
+  else
+    pure #[]
   withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
-    let ctx := {fileName := "", fileMap := default}
-    let state := {env}
+    let ctx := { fileName := "", fileMap := default }
+    let state := { env }
     Prod.fst <$> (CoreM.toIO · ctx state) do
-      let decls ← getDeclsInPackage `Std
+      let decls ← getDeclsInPackage module.getRoot
       let linters ← getChecks (slow := true) (useOnly := false)
       let results ← lintCore decls linters
       if update then
@@ -56,7 +71,7 @@ unsafe def main (args : List String) : IO Unit := do
       if failed then
         let fmtResults ←
           formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
-            "in Std" (runSlowLinters := true) .medium linters.size
+            s!"in {module}" (runSlowLinters := true) .medium linters.size
         IO.print (← fmtResults.toString)
         IO.Process.exit 1
       else

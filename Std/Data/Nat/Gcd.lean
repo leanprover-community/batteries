@@ -12,44 +12,10 @@ import Std.Data.Nat.Lemmas
 
 namespace Nat
 
-theorem gcd_rec (m n : Nat) : gcd m n = gcd (n % m) m :=
-  match m with
-  | 0 => by have := (mod_zero n).symm; rwa [gcd_zero_right]
-  | _ + 1 => by simp [gcd_succ]
-
-@[elab_as_elim] theorem gcd.induction {P : Nat → Nat → Prop} (m n : Nat)
-    (H0 : ∀n, P 0 n) (H1 : ∀ m n, 0 < m → P (n % m) m → P m n) : P m n :=
-  Nat.strongInductionOn (motive := fun m => ∀ n, P m n) m
-    (fun
-    | 0, _ => H0
-    | _+1, IH => fun _ => H1 _ _ (succ_pos _) (IH _ (mod_lt _ (succ_pos _)) _) )
-    n
-
-/-- The least common multiple of `m` and `n`, defined using `gcd`. -/
-def lcm (m n : Nat) : Nat := m * n / gcd m n
-
 /-- `m` and `n` are coprime, or relatively prime, if their `gcd` is 1. -/
 @[reducible] def Coprime (m n : Nat) : Prop := gcd m n = 1
 
 ---
-
-theorem gcd_dvd (m n : Nat) : (gcd m n ∣ m) ∧ (gcd m n ∣ n) := by
-  induction m, n using gcd.induction with
-  | H0 n => rw [gcd_zero_left]; exact ⟨Nat.dvd_zero n, Nat.dvd_refl n⟩
-  | H1 m n _ IH => rw [← gcd_rec] at IH; exact ⟨IH.2, (dvd_mod_iff IH.2).1 IH.1⟩
-
-theorem gcd_dvd_left (m n : Nat) : gcd m n ∣ m := (gcd_dvd m n).left
-
-theorem gcd_dvd_right (m n : Nat) : gcd m n ∣ n := (gcd_dvd m n).right
-
-theorem gcd_le_left (n) (h : 0 < m) : gcd m n ≤ m := le_of_dvd h <| gcd_dvd_left m n
-
-theorem gcd_le_right (n) (h : 0 < n) : gcd m n ≤ n := le_of_dvd h <| gcd_dvd_right m n
-
-theorem dvd_gcd : k ∣ m → k ∣ n → k ∣ gcd m n := by
-  induction m, n using gcd.induction with intro km kn
-  | H0 n => rw [gcd_zero_left]; exact kn
-  | H1 n m _ IH => rw [gcd_rec]; exact IH ((dvd_mod_iff km).2 kn) km
 
 theorem dvd_gcd_iff : k ∣ gcd m n ↔ k ∣ m ∧ k ∣ n :=
   ⟨fun h => let ⟨h₁, h₂⟩ := gcd_dvd m n; ⟨Nat.dvd_trans h h₁, Nat.dvd_trans h h₂⟩,
@@ -176,6 +142,19 @@ theorem gcd_add_mul_self (m n k : Nat) : gcd m (n + k * m) = gcd m n := by
 theorem gcd_eq_zero_iff {i j : Nat} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
   ⟨fun h => ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩,
    fun h => by simp [h]⟩
+
+/-- Characterization of the value of `Nat.gcd`. -/
+theorem gcd_eq_iff (a b : Nat) :
+    gcd a b = g ↔ g ∣ a ∧ g ∣ b ∧ (∀ c, c ∣ a → c ∣ b → c ∣ g) := by
+  constructor
+  · rintro rfl
+    exact ⟨gcd_dvd_left _ _, gcd_dvd_right _ _, fun _ => Nat.dvd_gcd⟩
+  · rintro ⟨ha, hb, hc⟩
+    apply Nat.dvd_antisymm
+    · apply hc
+      · exact gcd_dvd_left a b
+      · exact gcd_dvd_right a b
+    · exact Nat.dvd_gcd ha hb
 
 /-! ### `lcm` -/
 

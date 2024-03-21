@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022-2023 Wojciech Nawrocki. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Wojciech Nawrocki
+Authors: Wojciech Nawrocki, Scott Morrison
 -/
 
 import Std.Data.HashMap.Basic
@@ -335,4 +335,19 @@ theorem toListModel_erase' (m : Imp α β) (H : m.buckets.WF) (a : α) :
     (m.erase a).buckets.toListModel = m.buckets.toListModel.filter (·.1 != a) :=
   eraseP_toListModel m H a ▸ toListModel_erase m H a
 
-end Std.HashMap.Imp
+end Imp
+
+namespace Imp
+
+@[simp] theorem empty_buckets :
+    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
+
+@[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
+
+end Imp
+
+@[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
+    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?]
+
+proof_wanted insert_find? [BEq α] [Hashable α] (m : HashMap α β) (a a' : α) (b : β) :
+    (m.insert a b).find? a' = if a' == a then some b else m.find? a'

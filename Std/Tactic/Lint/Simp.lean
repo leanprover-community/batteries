@@ -78,7 +78,7 @@ def isSimpTheorem (declName : Name) : MetaM Bool := do
 
 open Lean.Meta.DiscrTree in
 /-- Returns the list of elements in the discrimination tree. -/
-partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α s) : Array α :=
+partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
   d.root.foldl (init := #[]) fun arr _ => trieElements arr
 where
   /-- Returns the list of elements in the trie. -/
@@ -112,10 +112,10 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
-      let (⟨lhs', prf1, _⟩, prf1Lems) ←
+      let ({ expr := lhs', proof? := prf1, .. }, prf1Lems) ←
         decorateError "simplify fails on left-hand side:" <| simp lhs ctx
       if prf1Lems.contains (.decl declName) then return none
-      let (⟨rhs', _, _⟩, used_lemmas) ←
+      let ({ expr := rhs', .. }, used_lemmas) ←
         decorateError "simplify fails on right-hand side:" <| simp rhs ctx (usedSimps := prf1Lems)
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
@@ -229,7 +229,8 @@ Some commutativity lemmas are simp lemmas:"
     unless ← isDefEq rhs lhs' do return none
     unless ← withNewMCtxDepth (isDefEq rhs lhs') do return none
     -- make sure that the discrimination tree will actually find this match (see #69)
-    if (← (← DiscrTree.empty.insert (s := true) rhs ()).getMatch lhs').isEmpty then return none
+    if (← (← DiscrTree.empty.insert rhs () simpDtConfig).getMatch lhs' simpDtConfig).isEmpty then
+      return none
     -- ensure that the second application makes progress:
     if ← isDefEq lhs' rhs' then return none
     pure m!"should not be marked simp"

@@ -3,9 +3,10 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import Lean.Structure
+import Lean.Elab.InfoTree.Main
+import Lean.Elab.Exception
 
-import Std.Util.TermUnsafe
-import Std.Lean.NameMapAttribute
 open Lean Meta
 
 namespace Std.Tactic.Lint
@@ -34,7 +35,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
   if let Name.str n s := decl then
-    if s.startsWith "proof_" || s.startsWith "match_" then return true
+    if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
     if (← getEnv).isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then

@@ -3,10 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Std.Classes.SetNotation
-import Std.Tactic.NoMatch
-import Std.Data.Option.Init.Lemmas
-import Std.Data.Array.Init.Lemmas
 
 namespace List
 
@@ -203,9 +199,9 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | [], n => rfl
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
-      simp [enumFrom]
-      rfl
-  rw [Array.foldr_eq_foldr_data]; simp [go]
+      simp [enumFrom, f]
+  rw [Array.foldr_eq_foldr_data]
+  simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
@@ -262,29 +258,6 @@ where
 protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 instance : HasSubset (List α) := ⟨List.Subset⟩
-
-instance decidableBEx (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse fun.
-  | x :: xs =>
-    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
-      match decidableBEx p xs with
-      | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
-      | isFalse h₂ => isFalse fun
-        | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
-        | ⟨_, .head .., hp⟩ => h₁ hp
-
-instance decidableBAll (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue fun.
-  | x :: xs =>
-    if h₁ : p x then
-      match decidableBAll p xs with
-      | isTrue h₂ => isTrue fun
-        | y, .tail _ h => h₂ y h
-        | _, .head .. => h₁
-      | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
-    else isFalse fun H => h₁ <| H x (.head ..)
 
 instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
   fun _ _ => decidableBAll _ _
@@ -360,7 +333,7 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
   | a :: l, n => bif p a then n else go l (n + 1)
 
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
-def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
+def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
 /-- Removes the `n`th element of `l`, or the original list if `n` is out of bounds. -/
 @[simp] def removeNth : List α → Nat → List α
@@ -412,10 +385,6 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (a == ·)
     simp [replaceFTR.go, replaceF]; cases p x <;> simp
     · rw [go _ xs]; simp
   exact (go #[] _).symm
-
-/-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [DecidableEq α] (a : α) (l : List α) : List α :=
-  if a ∈ l then l else a :: l
 
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.
@@ -656,7 +625,7 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
 @[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp [scanlTR, scanlTR_go_eq]
+  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -667,40 +636,6 @@ scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
   let (b', l') := l.foldr (fun a (b', l') => (f a b', b' :: l')) (b, [])
   b' :: l'
-
-/--
-Given a function `f : α → β ⊕ γ`, `partitionMap f l` maps the list by `f`
-whilst partitioning the result it into a pair of lists, `List β × List γ`,
-partitioning the `.inl _` into the left list, and the `.inr _` into the right List.
-```
-partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2], [1])
-```
--/
-@[inline] def partitionMap (f : α → β ⊕ γ) (l : List α) : List β × List γ := go l #[] #[] where
-  /-- Auxiliary for `partitionMap`:
-  `partitionMap.go f l acc₁ acc₂ = (acc₁.toList ++ left, acc₂.toList ++ right)`
-  if `partitionMap f l = (left, right)`. -/
-  @[specialize] go : List α → Array β → Array γ → List β × List γ
-  | [], acc₁, acc₂ => (acc₁.toList, acc₂.toList)
-  | x :: xs, acc₁, acc₂ =>
-    match f x with
-    | .inl a => go xs (acc₁.push a) acc₂
-    | .inr b => go xs acc₁ (acc₂.push b)
-
-/-- Monadic generalization of `List.partition`. -/
-@[inline] def partitionM [Monad m] (p : α → m Bool) (l : List α) : m (List α × List α) :=
-  go l #[] #[]
-where
-  /-- Auxiliary for `partitionM`:
-  `partitionM.go p l acc₁ acc₂` returns `(acc₁.toList ++ left, acc₂.toList ++ right)`
-  if `partitionM p l` returns `(left, right)`. -/
-  @[specialize] go : List α → Array α → Array α → m (List α × List α)
-  | [], acc₁, acc₂ => pure (acc₁.toList, acc₂.toList)
-  | x :: xs, acc₁, acc₂ => do
-    if ← p x then
-      go xs (acc₁.push x) acc₂
-    else
-      go xs acc₁ (acc₂.push x)
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
@@ -745,40 +680,7 @@ def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
 | a :: l, i => if p a then some i else findIdx? p l (i + 1)
 
 /-- Return the index of the first occurrence of `a` in the list. -/
-@[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (a == ·)
-
-/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
-  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
-  but is defined only when all members of `l` satisfy `p`, using the proof
-  to apply `f`. -/
-@[simp] def pmap {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : List α, (∀ a ∈ l, p a) → List β
-  | [], _ => []
-  | a :: l, H => f a (forall_mem_cons.1 H).1 :: pmap f l (forall_mem_cons.1 H).2
-
-/--
-Unsafe implementation of `attach`, taking advantage of the fact that the representation of
-`List {x // x ∈ l}` is the same as the input `List α`.
-(Someday, the compiler might do this optimization automatically, but until then...)
--/
-@[inline] private unsafe def attachImpl (l : List α) : List {x // x ∈ l} := unsafeCast l
-
-/-- "Attach" the proof that the elements of `l` are in `l` to produce a new list
-  with the same elements but in the type `{x // x ∈ l}`. -/
-@[implemented_by attachImpl] def attach (l : List α) : List {x // x ∈ l} :=
-  pmap Subtype.mk l fun _ => id
-
-/-- Implementation of `pmap` using the zero-copy version of `attach`. -/
-@[inline] private def pmapImpl {p : α → Prop} (f : ∀ a, p a → β) (l : List α) (h : ∀ a ∈ l, p a) :
-    List β := l.attach.map fun ⟨x, h'⟩ => f x (h _ h')
-
-@[csimp] private theorem pmap_eq_pmapImpl : @pmap = @pmapImpl := by
-  funext α β p f L h'
-  let rec go : ∀ L' (hL' : L' ⊆ L),
-      pmap f L' (fun _ h => h' _ <| hL' h) =
-      map (fun ⟨x, hx⟩ => f x (h' _ hx)) (pmap Subtype.mk L' hL')
-  | nil, hL' => rfl
-  | cons _ L', hL' => congrArg _ <| go L' fun _ hx => hL' (.tail _ hx)
-  exact go L fun _ hx => hx
+@[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (· == a)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -804,28 +706,28 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 @[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
-`isPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
+`IsPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,
 that is, `l₂` has the form `l₁ ++ t` for some `t`.
 -/
-def isPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
+def IsPrefix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, l₁ ++ t = l₂
 
 /--
-`isSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
+`IsSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,
 that is, `l₂` has the form `t ++ l₁` for some `t`.
 -/
-def isSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
+def IsSuffix (l₁ : List α) (l₂ : List α) : Prop := ∃ t, t ++ l₁ = l₂
 
 /--
-`isInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
+`IsInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous
 substring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, t`.
 -/
-def isInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
+def IsInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t = l₂
 
-@[inherit_doc] infixl:50 " <+: " => isPrefix
+@[inherit_doc] infixl:50 " <+: " => IsPrefix
 
-@[inherit_doc] infixl:50 " <:+ " => isSuffix
+@[inherit_doc] infixl:50 " <:+ " => IsSuffix
 
-@[inherit_doc] infixl:50 " <:+: " => isInfix
+@[inherit_doc] infixl:50 " <:+: " => IsInfix
 
 /--
 `inits l` is the list of initial segments of `l`.
@@ -866,7 +768,7 @@ def tailsTR (l : List α) : List (List α) := go l #[] where
   funext α
   have H (l : List α) : ∀ acc, tailsTR.go l acc = acc.toList ++ tails l := by
     induction l <;> simp [*, tailsTR.go]
-  simp [tailsTR, H]
+  simp (config := { unfoldPartialApp := true }) [tailsTR, H]
 
 /--
 `sublists' l` is the list of all (non-contiguous) sublists of `l`.
@@ -889,9 +791,19 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
+  l.foldr (fun a acc => acc.bind fun x => [x, a :: x]) [[]]
+
+/-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
+def sublistsFast (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := Array.mkEmpty (arr.size * 2))
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
+
+-- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
+-- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
+-- TODO(std4#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
+-- `Std/Data/List/Lemmas.lean`.
+attribute [implemented_by sublistsFast] sublists
 
 section Forall₂
 
@@ -1056,10 +968,10 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 /--
 `ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
 ```
-ofFn f = [f 0, f 1, ... , f(n - 1)]
+ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
+def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).data
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
@@ -1220,15 +1132,17 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 
 /--
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
+Use `List.getLastD` instead.
 -/
-@[simp] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
 /--
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
+Use `List.getLast?` instead
 -/
-@[simp] def last' {α} : List α → Option α
+@[simp, deprecated getLast?] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l
@@ -1629,4 +1543,61 @@ Example: if `f : Nat → list Nat → β`, `List.mapWithComplement f [1, 2, 3]` 
 def mapWithComplement {α β} (f : α → List α → β) : List α → List β :=
   mapWithPrefixSuffix fun pref a suff => f a (pref ++ suff)
 
-end List
+/--
+Map each element of a `List` to an action, evaluate these actions in order,
+and collect the results.
+-/
+protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
+  | [] => pure []
+  | x :: xs => List.cons <$> f x <*> List.traverse f xs
+
+/--
+`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
+of each other. This is defined by induction using pairwise swaps.
+-/
+inductive Perm : List α → List α → Prop
+  /-- `[] ~ []` -/
+  | nil : Perm [] []
+  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
+  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
+  /-- `x::y::l ~ y::x::l` -/
+  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
+  /-- `Perm` is transitive. -/
+  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
+
+@[inherit_doc] scoped infixl:50 " ~ " => Perm
+
+/--
+`O(|l₁| * |l₂|)`. Computes whether `l₁` is a permutation of `l₂`. See `isPerm_iff` for a
+characterization in terms of `List.Perm`.
+-/
+def isPerm [BEq α] : List α → List α → Bool
+  | [], l₂ => l₂.isEmpty
+  | a :: l₁, l₂ => l₂.contains a && l₁.isPerm (l₂.erase a)
+
+/--
+`Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
+a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
+multiplicities of elements, and is used for the `≤` relation on multisets.
+-/
+def Subperm (l₁ l₂ : List α) : Prop := ∃ l, l ~ l₁ ∧ l <+ l₂
+
+@[inherit_doc] scoped infixl:50 " <+~ " => Subperm
+
+/--
+`O(|l₁| * (|l₁| + |l₂|))`. Computes whether `l₁` is a sublist of a permutation of `l₂`.
+See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
+-/
+def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
+
+/--
+`O(|l| + |r|)`. Merge two lists using `s` as a switch.
+-/
+def merge (s : α → α → Bool) (l r : List α) : List α :=
+  loop l r []
+where
+  /-- Inner loop for `List.merge`. Tail recursive. -/
+  loop : List α → List α → List α → List α
+  | [], r, t => reverseAux t r
+  | l, [], t => reverseAux t l
+  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)

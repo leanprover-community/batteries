@@ -258,7 +258,7 @@ theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
 theorem lowerBound?_le {t : RBNode α} : t.lowerBound? cut none = some x → cut x ≠ .lt :=
-  lowerBound?_le' (fun.)
+  lowerBound?_le' nofun
 
 theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb → p x) :
     t.lowerBound? cut lb = some x → p x := by
@@ -271,14 +271,14 @@ theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb
     · exact fun | rfl => hp.1
 
 theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : t.lowerBound? cut none = some x → p x :=
-  hp.lowerBound?_lb (fun.)
+  hp.lowerBound?_lb nofun
 
 theorem lowerBound?_mem_lb {t : RBNode α}
     (h : t.lowerBound? cut lb = some x) : x ∈ t ∨ x ∈ lb :=
   All.lowerBound?_lb (p := fun x => x ∈ t ∨ x ∈ lb) (All_def.2 fun _ => .inl) Or.inr h
 
 theorem lowerBound?_mem {t : RBNode α} (h : t.lowerBound? cut none = some x) : x ∈ t :=
-  (lowerBound?_mem_lb h).resolve_right (fun.)
+  (lowerBound?_mem_lb h).resolve_right nofun
 
 theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
   induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
@@ -302,7 +302,7 @@ theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
     (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
     t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   induction t generalizing lb with
-  | nil => intro.
+  | nil => nofun
   | node _ _ _ _ ihl ihr =>
     simp [lowerBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
     · exact hv
@@ -328,7 +328,7 @@ strictly greater than the cut (so there is no exact match, and nothing closer to
 theorem Ordered.lowerBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
     (H : t.lowerBound? cut none = some x) (hy : y ∈ t)
     (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
-  ht.lowerBound?_least_lb (by exact fun.) H hy hx xy
+  ht.lowerBound?_least_lb (by nofun) H hy hx xy
 
 theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
     t.MemP cut ↔ ∃ x, t.lowerBound? cut none = some x ∧ cut x = .eq := by
@@ -389,7 +389,8 @@ theorem forIn_visit_eq_bindList [Monad m] [LawfulMonad m] {t : RBNode α} :
 
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     forIn (m := m) t init f = forIn t.toList init f := by
-  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+  conv => lhs; simp only [forIn, RBNode.forIn]
+  rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
 
 end fold
 
@@ -414,7 +415,8 @@ theorem foldl_eq_foldl_toList {t : RBNode.Stream α} : t.foldl f init = t.toList
 
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     forIn (m := m) t init f = forIn t.toList init f := by
-  simp [forIn, RBNode.forIn]; rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
+  conv => lhs; simp only [forIn, RBNode.forIn]
+  rw [List.forIn_eq_bindList, forIn_visit_eq_bindList]
 
 end Stream
 
@@ -596,7 +598,7 @@ theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht�
       simp [← mem_toList, h₂] at h; rw [← or_assoc, or_right_comm] at h
       refine h.imp_left fun h => ?_
       simp [← mem_toList, h₁, h]
-      rw [find?_eq_zoom, e]; intro.
+      rw [find?_eq_zoom, e]; nofun
     | (node .., p) =>
       let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_node ht e
       simp [← mem_toList, h₂] at h; simp [← mem_toList, h₁]; rw [or_left_comm] at h ⊢

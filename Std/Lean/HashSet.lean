@@ -10,6 +10,9 @@ namespace Lean.HashSet
 
 variable [BEq α] [Hashable α]
 
+instance : Singleton α (HashSet α) := ⟨fun x => HashSet.empty.insert x⟩
+instance : Insert α (HashSet α) := ⟨fun a s => s.insert a⟩
+
 /--
 `O(n)`. Returns `true` if `f` returns `true` for any element of the set.
 -/
@@ -70,11 +73,3 @@ protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
 @[inline]
 protected def ofList [BEq α] [Hashable α] (as : List α) : HashSet α :=
   HashSet.empty.insertMany as
-
-/--
-`O(|t|)` amortized. Merge two `HashSet`s.
--/
-@[inline]
-def merge {α : Type u} [BEq α] [Hashable α] (s t : HashSet α) : HashSet α :=
-  t.fold (init := s) fun s a => s.insert a
-  -- We don't use `insertMany` here because it gives weird universes.

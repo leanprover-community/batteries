@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Std.Classes.Order
-import Std.Logic
 
 namespace Std.PairingHeapImp
 
@@ -86,7 +85,7 @@ instance : Decidable (Heap.NoSibling s) :=
   match s with
   | .nil => isTrue .nil
   | .node a c .nil => isTrue (.node a c)
-  | .node _ _ (.node _ _ _) => isFalse fun.
+  | .node _ _ (.node _ _ _) => isFalse nofun
 
 theorem Heap.noSibling_merge (le) (s₁ s₂ : Heap α) :
     (s₁.merge le s₂).NoSibling := by
@@ -150,7 +149,7 @@ theorem Heap.size_tail (le) {s : Heap α} (h : s.NoSibling) : (s.tail le).size =
   simp only [Heap.tail]
   match eq : s.tail? le with
   | none => cases s with cases eq | nil => rfl
-  | some tl => simp [Heap.size_tail? h eq]; rfl
+  | some tl => simp [Heap.size_tail? h eq]
 
 theorem Heap.size_deleteMin_lt {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.size < s.size := by
@@ -173,7 +172,7 @@ by repeatedly pulling the minimum element out of the heap.
   | some (hd, tl) =>
     have : tl.size < s.size := by simp_arith [Heap.size_deleteMin_lt eq]
     do foldM le tl (← f init hd) f
-termination_by _ => s.size
+termination_by s.size
 
 /--
 `O(n log n)`. Fold over the elements of a heap in increasing order,

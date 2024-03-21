@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 
 import Std.Data.Nat.Lemmas
-import Std.Data.Ord
 
 namespace Array
 
@@ -40,7 +39,7 @@ where
         have : xs.size + ys.size - (i + j + 1) < xs.size + ys.size - (i + j) :=
           Nat.sub_succ_lt_self _ _ hij
         go (acc.push y) i (j + 1)
-termination_by go => xs.size + ys.size - (i + j)
+  termination_by xs.size + ys.size - (i + j)
 
 /--
 Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
@@ -83,7 +82,7 @@ where
           rw [show i + j + 2 = (i + 1) + (j + 1) by simp_arith]
           exact Nat.add_le_add hi hj
         go (acc.push (merge x y)) (i + 1) (j + 1)
-termination_by go => xs.size + ys.size - (i + j)
+    termination_by xs.size + ys.size - (i + j)
 
 /--
 Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
@@ -110,7 +109,7 @@ where
   go (xs ys : Array α) :=
     let xsSize := xs.size
     ys.foldl (init := xs) fun xs y =>
-      if xs[:xsSize].contains y then xs else xs.push y
+      if xs.any (· == y) (stop := xsSize) then xs else xs.push y
 
 /--
 Replace each run `[x₁, ⋯, xₙ]` of equal elements in `xs` with
@@ -130,7 +129,7 @@ where
         go (acc.push hd) (i + 1) x
     else
       acc.push hd
-termination_by _ i _ => xs.size - i
+  termination_by xs.size - i
 
 /--
 Deduplicate a sorted array. The array must be sorted with to an order which

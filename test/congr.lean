@@ -1,4 +1,3 @@
-import Std.Tactic.GuardExpr
 import Std.Tactic.Congr
 
 section congr
@@ -8,7 +7,7 @@ example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
   apply Iff.of_eq -- FIXME: not needed in lean 3
   congr
   · guard_target =ₐ x = x'
-    apply_ext_lemma
+    apply_ext_theorem
     assumption
   · guard_target =ₐ z = z'
     ext

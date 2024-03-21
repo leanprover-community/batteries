@@ -24,6 +24,7 @@ private structure Spec (m : Type u → Type u) where
   thunk : (Unit → listM α) → listM α
   squash : (Unit → m (listM α)) → listM α
   uncons : [Monad m] → listM α → m (Option (α × listM α))
+  uncons? : listM α → Option (Option (α × listM α))
 
 instance : Nonempty (Spec m) := .intro
   { listM := fun _ => PUnit
@@ -31,7 +32,8 @@ instance : Nonempty (Spec m) := .intro
     cons := fun _ _ => ⟨⟩
     thunk := fun _ => ⟨⟩
     squash := fun _ => ⟨⟩
-    uncons := fun _ => pure none }
+    uncons := fun _ => pure none
+    uncons? := fun _ => none }
 
 private unsafe inductive MLListImpl (m : Type u → Type u) (α : Type u) : Type u
   | nil : MLListImpl m α
@@ -46,6 +48,11 @@ private unsafe def unconsImpl {m : Type u → Type u} [Monad m] :
   | .squash t => t () >>= unconsImpl
   | .cons x xs => return (x, xs)
 
+private unsafe def uncons?Impl : MLListImpl m α → Option (Option (α × MLListImpl m α))
+  | .nil => pure none
+  | .cons x xs => pure (x, xs)
+  | _ => none
+
 @[inline] private unsafe def specImpl (m) : Spec m where
   listM := MLListImpl m
   nil := .nil
@@ -53,6 +60,7 @@ private unsafe def unconsImpl {m : Type u → Type u} [Monad m] :
   thunk f := .thunk (.mk f)
   squash := .squash
   uncons := unconsImpl
+  uncons? := uncons?Impl
 
 @[implemented_by specImpl]
 private opaque spec (m) : MLList.Spec m
@@ -83,6 +91,11 @@ representing the head and tail of the list. -/
 @[inline] def uncons [Monad m] : MLList.{u} m α → m (Option (α × MLList m α)) :=
   (MLList.spec m).uncons
 
+/-- Try to deconstruct a `MLList`, returning an optional pair `α × MLList m α`
+representing the head and tail of the list if it is already evaluated, and `none` otherwise. -/
+@[inline] def uncons? : MLList.{u} m α → Option (Option (α × MLList m α)) :=
+  (MLList.spec m).uncons?
+
 instance : EmptyCollection (MLList m α) := ⟨nil⟩
 instance : Inhabited (MLList m α) := ⟨nil⟩
 
@@ -91,7 +104,7 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
 /-- The implementation of `ForIn`, which enables `for a in L do ...` notation. -/
 @[specialize] protected partial def forIn [Monad m] [Monad n] [MonadLiftT m n]
     (as : MLList m α) (init : δ) (f : α → δ → n (ForInStep δ)) : n δ := do
-  match ← (as.uncons :) with
+  match ← as.uncons with
   | none => pure init
   | some (a, t) => match (← f a init) with
       | ForInStep.done d  => pure d
@@ -100,11 +113,35 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
 instance [Monad m] [MonadLiftT m n] : ForIn n (MLList m α) α where
   forIn := MLList.forIn
 
+/-- Construct a singleton monadic lazy list from a single monadic value. -/
+def singletonM [Monad m] (x : m α) : MLList m α :=
+  .squash fun _ => do return .cons (← x) .nil
+
+/-- Construct a singleton monadic lazy list from a single value. -/
+def singleton [Monad m] (x : α) : MLList m α :=
+  .singletonM (pure x)
+
 /-- Construct a `MLList` recursively. Failures from `f` will result in `uncons` failing.  -/
 partial def fix [Monad m] (f : α → m α) (x : α) : MLList m α :=
   cons x <| squash fun _ => fix f <$> f x
 
-/-- Construct a `MLList` recursively. If `f` returns `none` the list will terminate. -/
+/--
+Constructs an `MLList` recursively, with state in `α`, recording terms from `β`.
+If `f` returns `none` the list will terminate.
+
+Variant of `MLList.fix?` that allows returning values of a different type.
+-/
+partial def fix?' [Monad m] (f : α → m (Option (β × α))) (init : α) : MLList m β :=
+  squash fun _ => do
+    match ← f init with
+    | none => pure .nil
+    | some (b, a) => pure (.cons b (fix?' f a))
+
+/--
+Constructs an `MLList` recursively. If `f` returns `none` the list will terminate.
+
+Returns the initial value as the first element.
+-/
 partial def fix? [Monad m] (f : α → m (Option α)) (x : α) : MLList m α :=
   cons x <| squash fun _ => do
     match ← f x with
@@ -178,7 +215,10 @@ Performs a case distinction on a `MLList` when the motive is a `MLList` as well.
 @[specialize]
 def cases [Monad m] (xs : MLList m α)
     (hnil : Unit → MLList m β) (hcons : α → MLList m α → MLList m β) : MLList m β :=
-  xs.casesM (fun _ => return hnil ()) (fun x xs => return hcons x xs)
+  match xs.uncons? with
+  | none => xs.casesM (fun _ => return hnil ()) (fun x xs => return hcons x xs)
+  | some none => thunk hnil
+  | some (some (x, xs)) => thunk fun _ => hcons x xs
 
 /-- Gives the monadic lazy list consisting all of folds of a function on a given initial element.
 Thus `[a₀, a₁, ...].foldsM f b` will give `[b, ← f b a₀, ← f (← f b a₀) a₁, ...]`. -/
@@ -320,7 +360,10 @@ partial def zip [Monad m] (L : MLList m α) (M : MLList m β) : MLList.{u} m (α
 /-- Apply a function returning a monadic lazy list to each element of a monadic lazy list,
 joining the results. -/
 partial def bind [Monad m] (xs : MLList m α) (f : α → MLList m β) : MLList m β :=
-  xs.cases (fun _ => nil) fun x xs => append (f x) (fun _ => bind xs f)
+  xs.cases (fun _ => nil) fun x xs =>
+    match xs.uncons? with
+    | some none => f x
+    | _ => append (f x) (fun _ => bind xs f)
 
 /-- Convert any value in the monad to the singleton monadic lazy list. -/
 def monadLift [Monad m] (x : m α) : MLList m α :=
