@@ -36,6 +36,7 @@ import Std.Data.Rat
 import Std.Data.String
 import Std.Data.Sum
 import Std.Data.UInt
+import Std.Data.UnionFind
 import Std.Lean.AttributeExtra
 import Std.Lean.Delaborator
 import Std.Lean.Except
