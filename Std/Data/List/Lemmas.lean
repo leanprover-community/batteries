@@ -1115,7 +1115,7 @@ theorem drop_take : ∀ (m n : Nat) (l : List α), drop m (take (m + n) l) = tak
     have h : m + 1 + n = m + n + 1 := by rw [Nat.add_assoc, Nat.add_comm 1 n, ← Nat.add_assoc]
     simpa [take_cons_succ, h] using drop_take m n l
 
-theorem map_drop {α β : Type u} (f : α → β) :
+theorem map_drop (f : α → β) :
     ∀ (L : List α) (i : Nat), (L.drop i).map f = (L.map f).drop i
   | [], i => by simp
   | L, 0 => by simp
