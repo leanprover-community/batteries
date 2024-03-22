@@ -133,15 +133,13 @@ testMatchProof._unsafe_rec : (n : Nat) → Fin n → Unit
 testMatchProof.match_1 : (motive : (x : Nat) → Fin x → Sort u_1) →
   (x : Nat) →
     (x_1 : Fin x) →
-      ((n : Nat) → (isLt : 0 < n) → motive n { val := 0, isLt := isLt }) →
-        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) { val := Nat.succ i, isLt := h }) →
-          motive x x_1
+      ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
+        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) ⟨Nat.succ i, h⟩) → motive x x_1
 testMatchProof.match_1._cstage1 : (motive : (x : Nat) → Fin x → Sort u_1) →
   (x : Nat) →
     (x_1 : Fin x) →
-      ((n : Nat) → (isLt : 0 < n) → motive n { val := 0, isLt := isLt }) →
-        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) { val := Nat.succ i, isLt := h }) →
-          motive x x_1
+      ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
+        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) ⟨Nat.succ i, h⟩) → motive x x_1
 testMatchProof.proof_1 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
 testMatchProof.proof_2 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
 -/
