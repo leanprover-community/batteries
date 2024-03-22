@@ -73,7 +73,7 @@ jobs:
           'num_before': 1,
           'num_after': 0,
           'narrow': [{'operator': 'stream', 'operand': 'nightly-testing'}, {'operator': 'topic', 'operand': 'Std status updates'}],
-          'apply_markdown': True
+          'apply_markdown': False
         }
         response = client.get_messages(request)
         messages = response['messages']
