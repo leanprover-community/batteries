@@ -7,6 +7,7 @@ import Std.Control.ForInStep.Lemmas
 import Std.Data.Nat.Basic
 import Std.Data.List.Basic
 import Std.Tactic.Init
+import Std.Tactic.Alias
 
 namespace List
 
@@ -926,7 +927,6 @@ theorem get_take' (L : List α) {j i} :
 theorem get?_take {l : List α} {n m : Nat} (h : m < n) : (l.take n).get? m = l.get? m := by
   induction n generalizing l m with
   | zero =>
-    simp only [Nat.zero_eq] at h
     exact absurd h (Nat.not_lt_of_le m.zero_le)
   | succ _ hn =>
     cases l with
