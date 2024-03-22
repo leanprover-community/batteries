@@ -82,7 +82,7 @@ def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Ar
 def checkStdDataDir
     (modMap : HashMap Name ModuleData)
     (entry : IO.FS.DirEntry) (autofix : Bool := false) : LogIO Unit := do
-  let moduleName := `Std.Data ++ entry.fileName
+  let moduleName := `Std.Data ++ .mkSimple entry.fileName
   let requiredImports ← addModulesIn (recurse := true) #[] (root := moduleName) entry.path
   let .some module := modMap.find? moduleName
     | warn true s!"Could not find {moduleName}; Not imported into Std."
