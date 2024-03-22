@@ -888,7 +888,7 @@ theorem take_replicate (a : α) : ∀ n m : Nat, take n (replicate m a) = replic
   | 0, m => by simp [Nat.zero_min]
   | succ n, succ m => by simp [succ_min_succ, take_replicate]
 
-theorem map_take {α β : Type u} (f : α → β) :
+theorem map_take (f : α → β) :
     ∀ (L : List α) (i : Nat), (L.take i).map f = (L.map f).take i
   | [], i => by simp
   | _, 0 => by simp
