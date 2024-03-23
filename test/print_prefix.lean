@@ -134,14 +134,14 @@ testMatchProof.match_1 : (motive : (x : Nat) → Fin x → Sort u_1) →
   (x : Nat) →
     (x_1 : Fin x) →
       ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
-        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) ⟨Nat.succ i, h⟩) → motive x x_1
+        ((as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) → motive x x_1
 testMatchProof.match_1._cstage1 : (motive : (x : Nat) → Fin x → Sort u_1) →
   (x : Nat) →
     (x_1 : Fin x) →
       ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
-        ((as i : Nat) → (h : Nat.succ i < Nat.succ as) → motive (Nat.succ as) ⟨Nat.succ i, h⟩) → motive x x_1
-testMatchProof.proof_1 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
-testMatchProof.proof_2 : ∀ (as i : Nat), Nat.succ i < Nat.succ as → Nat.succ i ≤ as
+        ((as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) → motive x x_1
+testMatchProof.proof_1 : ∀ (as i : Nat), i.succ < as.succ → i.succ ≤ as
+testMatchProof.proof_2 : ∀ (as i : Nat), i.succ < as.succ → i.succ ≤ as
 -/
 #guard_msgs in
 #print prefix (config:={internals:=true}) testMatchProof
