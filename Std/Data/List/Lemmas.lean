@@ -848,8 +848,6 @@ theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a �
 
 /-! ### take -/
 
-attribute [simp] take_zero
-
 alias take_succ_cons := take_cons_succ
 
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
