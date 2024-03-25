@@ -29,12 +29,6 @@ example (n m : Nat) : f n + f m = f n + (m+1) := by
 
 -/
 
-/-- If the head of the expression is a projection, reduce the projection. -/
-def reduceHeadProjection (e : Expr) : MetaM (Option Expr) := do
-  let .proj _ i b := e.getAppFn | return none
-  let some f ← project? b i | return none
-  return f.betaRev e.getAppRevArgs
-
 /-- Reduction function for the `unfold'` tactic. -/
 def replaceByDef (e : Expr) : MetaM Expr :=
   withTransparency .all do
@@ -48,17 +42,20 @@ def replaceByDef (e : Expr) : MetaM Expr :=
   if let .letE _ _ v b _ := e then
     return b.instantiate1 v
   /- projection reduction -/
-  if let some e ← reduceHeadProjection e then
-    return e
+  if let some e ← reduceProj? e then
+    return e.headBeta
+  if let .const n _ := e.getAppFn then
+    if ← isProjectionFn n then
+      if let some e ← unfoldDefinition? e then
+        if let some r ← reduceProj? e.getAppFn then
+          return mkAppN r e.getAppArgs |>.headBeta
   /- unfolding a let-bound free variable -/
   if let .fvar fvarId := e.getAppFn then
     if let some value ← fvarId.getValue? then
       return value.betaRev e.getAppRevArgs
   /- unfolding a constant -/
   if let some e ← unfoldDefinition? e then
-    match ← reduceHeadProjection e with
-      | some e => return e
-      | none => return e
+    return e
 
   throwError m! "Could not find a definition for {e}."
 
