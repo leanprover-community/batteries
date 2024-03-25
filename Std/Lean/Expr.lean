@@ -40,12 +40,6 @@ def lambdaArity : Expr → Nat
   | lam _ _ b _ => 1 + lambdaArity b
   | _ => 0
 
-/-- Like `getAppFn` but ignores metadata. -/
-def getAppFn' : Expr → Expr
-  | mdata _ b => getAppFn' b
-  | app f _ => getAppFn' f
-  | e => e
-
 /-- Like `getAppNumArgs` but ignores metadata. -/
 def getAppNumArgs' (e : Expr) : Nat :=
   go e 0
@@ -104,23 +98,10 @@ def getRevArgD' : Expr → Nat → Expr → Expr
   | app f _  , i+1, v => getRevArgD' f i v
   | _        , _  , v => v
 
-/-- Like `getRevArg!` but ignores metadata. -/
-@[inline]
-def getRevArg!' : Expr → Nat → Expr
-  | mdata _ b, n   => getRevArg!' b n
-  | app _ a  , 0   => a
-  | app f _  , i+1 => getRevArg!' f i
-  | _        , _   => panic! "invalid index"
-
 /-- Like `getArgD` but ignores metadata. -/
 @[inline]
 def getArgD' (e : Expr) (i : Nat) (v₀ : Expr) (n := e.getAppNumArgs') : Expr :=
   getRevArgD' e (n - i - 1) v₀
-
-/-- Like `getArg!` but ignores metadata. -/
-@[inline]
-def getArg!' (e : Expr) (i : Nat) (n := e.getAppNumArgs') : Expr :=
-  getRevArg!' e (n - i - 1)
 
 /-- Like `isAppOf` but ignores metadata. -/
 def isAppOf' (e : Expr) (n : Name) : Bool :=
@@ -128,10 +109,17 @@ def isAppOf' (e : Expr) (n : Name) : Bool :=
   | const c .. => c == n
   | _ => false
 
-/-- If the expression is a constant, return that name. Otherwise return `Name.anonymous`. -/
-def constName (e : Expr) : Name :=
-  e.constName?.getD Name.anonymous
+/-- Turns an expression that is a natural number literal into a natural number. -/
+def natLit! : Expr → Nat
+  | lit (Literal.natVal v) => v
+  | _                      => panic! "nat literal expected"
 
-/-- Return the function (name) and arguments of an application. -/
-def getAppFnArgs (e : Expr) : Name × Array Expr :=
-  withApp e λ e a => (e.constName, a)
+/-- Turns an expression that is a constructor of `Int` applied to a natural number literal
+into an integer. -/
+def intLit! (e : Expr) : Int :=
+  if e.isAppOfArity ``Int.ofNat 1 then
+    e.appArg!.natLit!
+  else if e.isAppOfArity ``Int.negOfNat 1 then
+    .negOfNat e.appArg!.natLit!
+  else
+    panic! "not a raw integer literal"

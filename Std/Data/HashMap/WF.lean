@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 import Std.Data.HashMap.Basic
 import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
-import Std.Tactic.ShowTerm
 
 namespace Std.HashMap
 namespace Imp
@@ -80,7 +79,7 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} :
     (expand sz buckets).buckets.size = buckets.size := by
   rw [expand, go]
   · rw [Buckets.mk_size]; simp [Buckets.size]
-  · intro.
+  · nofun
 where
   go (i source) (target : Buckets α β) (hs : ∀ j < i, source.data.getD j .nil = .nil) :
       (expand.go i source target).size =
@@ -108,7 +107,7 @@ where
       simp
       have := (hs j (Nat.lt_of_lt_of_le h₂ (Nat.not_lt.1 H))).symm
       rwa [List.getD_eq_get?, List.get?_eq_get, Option.getD_some] at this
-termination_by go i source _ _ => source.size - i
+  termination_by source.size - i
 
 theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α × β)} {i : Nat}
     (hl₁ : ∀ [PartialEquivBEq α] [LawfulHashable α], l.Pairwise fun a b => ¬(a.1 == b.1))
@@ -159,7 +158,7 @@ where
         | .inl hl => exact hs₁ _ hl
         | .inr e => exact e ▸ .nil
       · simp [Array.getElem_eq_data_get, List.get_set]; split
-        · intro.
+        · nofun
         · exact hs₂ _ (by simp_all)
       · let rank (k : α) := ((hash k).toUSize % source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
@@ -170,7 +169,7 @@ where
           refine ⟨Nat.le_of_lt this, fun _ h h' => Nat.ne_of_lt this ?_⟩
           exact LawfulHashable.hash_eq h' ▸ hs₂ _ H _ h
     · exact ht.1
-termination_by go i source _ _ _ _ => source.size - i
+  termination_by source.size - i
 
 theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.size = m.buckets.size) :
@@ -300,7 +299,7 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   simp [Imp.mapVal, Buckets.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
   · simp [Buckets.size]; congr; funext l; simp
   · simp only [Array.map_data, List.forall_mem_map_iff]
-    simp only [AssocList.mapVal_toList, List.pairwise_map]
+    simp only [AssocList.toList_mapVal, List.pairwise_map]
     exact fun _ => h₂.1 _
   · simp [AssocList.All] at h ⊢
     intro a m
@@ -311,7 +310,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
   have H1 (l n acc) : filterMap.go f acc l n =
       (((g₁ l).reverse ++ acc.toList).toAssocList, ⟨n.1 + (g₁ l).length⟩) := by
-    induction l generalizing n acc with simp [filterMap.go, *]
+    induction l generalizing n acc with simp [filterMap.go, g₁, *]
     | cons a b l => match f a b with
       | none => rfl
       | some c => simp; rw [Nat.add_right_comm]; rfl
@@ -322,7 +321,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
       (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
     induction l generalizing n with
     | nil => rfl
-    | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc]; rfl
+    | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl
   have H3 (l : List _) :
     (l.filterMap (fun (a, b) => (f a b).map (a, ·))).map (fun a => a.fst)
      |>.Sublist (l.map (·.1)) := by
@@ -335,17 +334,20 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   suffices ∀ bk sz (h : 0 < bk.length),
     m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
     WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
-  simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2]
+  simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2, g]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
-  · simp only [List.forall_mem_map_iff, List.toAssocList_toList]
+  · simp only [List.forall_mem_map_iff, List.toList_toAssocList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp [Array.getElem_eq_data_get] at h ⊢
-    have := H.out.2.2 _ h; simp [AssocList.All] at this ⊢
-    rintro _ _ h' _ _ rfl; exact this _ h'
+  · simp only [Array.size_mk, List.length_map, Array.data_length, Array.getElem_eq_data_get,
+      List.get_map] at h ⊢
+    have := H.out.2.2 _ h
+    simp [AssocList.All, g₁] at this ⊢
+    rintro _ _ h' _ _ rfl
+    exact this _ h'
 
 end Imp
 

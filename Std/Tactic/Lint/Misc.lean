@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
+import Lean.Util.ForEachExpr
 import Lean.Meta.ForEachExpr
+import Lean.Meta.GlobalInstances
+import Lean.Meta.Check
+import Lean.Util.Recognizers
+import Lean.DocString
 import Std.Tactic.Lint.Basic
-import Std.Data.Array.Init.Basic
 
 open Lean Meta
 
@@ -179,15 +183,15 @@ a higher universe level than `α`.
 @[std_linter] def checkUnivs : Linter where
   noErrorsFound :=
     "All declarations have good universe levels."
-  errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
-"This usually means that there is a `max u v` in the type where neither `u` nor `v` " ++
-"occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
-"universe argument and provide the universe level explicitly. If this happens in an implicit " ++
-"argument of the declaration, a better solution is to move this argument to a `variables` " ++
-"command (then it's not necessary to provide the universe level).
-It is possible that this linter gives a false positive on definitions where the value of the " ++
-"definition has the universes occur separately, and the definition will usually be used with " ++
-"explicit universe arguments. In this case, feel free to add `@[nolint checkUnivs]`."
+  errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. \
+    This usually means that there is a `max u v` in the type where neither `u` nor `v` \
+    occur by themselves. Solution: Find the type (or type bundled with data) that has this \
+    universe argument and provide the universe level explicitly. If this happens in an implicit \
+    argument of the declaration, a better solution is to move this argument to a `variables` \
+    command (then it's not necessary to provide the universe level).\n\n\
+    It is possible that this linter gives a false positive on definitions where the value of the \
+    definition has the universes occur separately, and the definition will usually be used with \
+    explicit universe arguments. In this case, feel free to add `@[nolint checkUnivs]`."
   isFast := true
   test declName := do
     if ← isAutoDecl declName then return none
@@ -204,12 +208,12 @@ with rfl when elaboration results in a different term than the user intended. -/
 @[std_linter] def synTaut : Linter where
   noErrorsFound :=
     "No declarations are syntactic tautologies."
-  errorsFound := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
-"This usually means that they are of the form `∀ a b ... z, e₁ = e₂` where `e₁` and `e₂` are " ++
-"identical expressions. We call declarations of this form syntactic tautologies. " ++
-"Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving " ++
-"basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
-"You should check that the declaration really says what you think it does."
+  errorsFound := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. \
+    This usually means that they are of the form `∀ a b ... z, e₁ = e₂` where `e₁` and `e₂` are \
+    identical expressions. We call declarations of this form syntactic tautologies. \
+    Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving \
+    basic facts using `rfl`, when elaboration results in a different term than the user intended. \
+    You should check that the declaration really says what you think it does."
   isFast := true
   test declName := do
     if ← isAutoDecl declName then return none
@@ -221,18 +225,18 @@ with rfl when elaboration results in a different term than the user intended. -/
       return none
 
 /--
-Return a list of unused have/suffices/let_fun terms in an expression.
-This actually finds all beta-redexes.
+Return a list of unused `let_fun` terms in an expression.
 -/
 def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
-    let some e := letFunAnnotation? e | return
-    let Expr.app (Expr.lam n t b ..) _ .. := e | return
-    if n.isInternal then return
-    if b.hasLooseBVars then return
-    let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
-    res.modify (·.push msg)
+    match e.letFun? with
+    | some (n, t, _, b) =>
+      if n.isInternal then return
+      if b.hasLooseBVars then return
+      let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
+      res.modify (·.push msg)
+    | _ => return
   res.get
 
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
@@ -240,16 +244,16 @@ tag this as `@[std_linter]` so that it is not in the default linter set as it is
 uncommon problem. -/
 @[std_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
-  errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. " ++
-    "In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not " ++
-    "refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
-    "replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
-    "in proofs appear as if they are used. " ++
-    "For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo`" ++
-    " where `proof_of_goal` does not refer to `foo`. " ++
-    "Such statements have no effect on the generated proof, and can just be replaced by " ++
-    "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions " ++
-    "in proofs appear as if they are used. "
+  errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. \
+    In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not \
+    refer to `foo`. Such statements have no effect on the generated proof, and can just be \
+    replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions \
+    in proofs appear as if they are used. \
+    For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` \
+    where `proof_of_goal` does not refer to `foo`. \
+    Such statements have no effect on the generated proof, and can just be replaced by \
+    `proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions \
+    in proofs appear as if they are used."
   test declName := do
     if ← isAutoDecl declName then return none
     let info ← getConstInfo declName

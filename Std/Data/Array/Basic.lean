@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.List.Init.Attach
-import Std.Data.Array.Init.Basic
-import Std.Data.Ord
 
 /-!
 ## Definitions on Arrays
@@ -34,7 +32,19 @@ set_option linter.unusedVariables.funArgs false in
 Sort an array using `compare` to compare elements.
 -/
 def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort λ x y => compare x y |>.isLT
+  xs.qsort fun x y => compare x y |>.isLT
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Returns the first minimal element among `d` and elements of the array.
+If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered (in addition to `d`).
+-/
+@[inline]
+protected def minWith [ord : Ord α]
+    (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
+  xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
+    if compare x min |>.isLT then x else min
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -45,8 +55,10 @@ considered.
 @[inline]
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.foldl (init := d) (start := start) (stop := stop) λ min x =>
-    if compare x min |>.isLT then x else min
+  if h: start < xs.size ∧ start < stop then
+    xs.minWith (xs.get ⟨start, h.left⟩) (start + 1) stop
+  else
+    d
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -57,8 +69,8 @@ considered.
 @[inline]
 protected def min? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
-  if h : start < xs.size then
-    some $ xs.minD (xs.get ⟨start, h⟩) start stop
+  if h : start < xs.size ∧ start < stop then
+    some $ xs.minD (xs.get ⟨start, h.left⟩) start stop
   else
     none
 
@@ -72,6 +84,17 @@ considered.
 protected def minI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minD default start stop
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Returns the first maximal element among `d` and elements of the array.
+If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered (in addition to `d`).
+-/
+@[inline]
+protected def maxWith [ord : Ord α]
+    (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
+  xs.minWith (ord := ord.opposite) d start stop
 
 set_option linter.unusedVariables.funArgs false in
 /--

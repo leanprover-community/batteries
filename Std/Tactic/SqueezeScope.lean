@@ -3,8 +3,7 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.Simp
-import Std.Tactic.SimpTrace
+import Lean.Elab.Tactic.SimpTrace
 
 /-!
 # `squeeze_scope` tactic
@@ -14,7 +13,7 @@ but in different branches of execution, such as in `cases x <;> simp`.
 The reported `simp` call covers all simp lemmas used by this syntax.
 -/
 namespace Std.Tactic
-open Lean Elab Parser Tactic
+open Lean Elab Parser Tactic Meta.Tactic
 
 /--
 `squeeze_scope a => tacs` is part of the implementation of `squeeze_scope`.
@@ -95,13 +94,14 @@ elab_rules : tactic
     let stx := tac.raw
     let usedSimps ← match stx.getKind with
     | ``Parser.Tactic.simp => do
-      let { ctx, dischargeWrapper } ← withMainContext <| mkSimpContext stx (eraseLocal := false)
+      let { ctx, simprocs, dischargeWrapper } ←
+        withMainContext <| mkSimpContext stx (eraseLocal := false)
       dischargeWrapper.with fun discharge? =>
-        simpLocation ctx discharge? (expandOptLocation stx[5])
+        simpLocation ctx simprocs discharge? (expandOptLocation stx[5])
     | ``Parser.Tactic.simpAll => do
-      let { ctx, .. } ← mkSimpContext stx
+      let { ctx, simprocs, .. } ← mkSimpContext stx
         (eraseLocal := true) (kind := .simpAll) (ignoreStarArg := true)
-      let (result?, usedSimps) ← simpAll (← getMainGoal) ctx
+      let (result?, usedSimps) ← simpAll (← getMainGoal) ctx simprocs
       match result? with
       | none => replaceMainGoal []
       | some mvarId => replaceMainGoal [mvarId]

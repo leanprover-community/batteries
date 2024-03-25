@@ -5,8 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
-import Std.Logic
-import Std.Tactic.HaveI
+import Std.Tactic.Lint.Misc
 
 /-!
 # Red-black trees
@@ -360,7 +359,7 @@ def append : RBNode α → RBNode α → RBNode α
     | bc               => balLeft a x (node black bc y d)
   | a@(node black ..), node red b x c => node red (append a b) x c
   | node red a x b, c@(node black ..) => node red a x (append b c)
-termination_by _ x y => x.size + y.size
+termination_by x y => x.size + y.size
 
 /-! ## erase -/
 
@@ -833,6 +832,13 @@ def intersectWith (cmp : α → β → Ordering) (mergeFn : α → β → γ)
 /-- `O(n * log n)`. Constructs the set of all elements satisfying `p`. -/
 def filter (t : RBSet α cmp) (p : α → Bool) : RBSet α cmp :=
   t.foldl (init := ∅) fun acc a => bif p a then acc.insert a else acc
+
+/--
+`O(n * log n)`. Map a function on every value in the set.
+If the function is monotone, consider using the more efficient `RBSet.mapMonotone` instead.
+-/
+def map (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
+  t.foldl (init := ∅) fun acc a => acc.insert <| f a
 
 /--
 `O(n₁ * (log n₁ + log n₂))`. Constructs the set of all elements of `t₁` that are not in `t₂`.

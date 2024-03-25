@@ -1,4 +1,3 @@
-import Std.Tactic.GuardExpr
 import Std.Lean.Float
 
 #guard 0.0.toRatParts == some (0, -53)

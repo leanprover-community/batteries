@@ -10,7 +10,7 @@ import Std.Data.Fin.Lemmas
 # Pairwise relations on a list
 
 This file provides basic results about `List.Pairwise` and `List.pwFilter` (definitions are in
-`Std.Data.List.Defs`).
+`Std.Data.List.Basic`).
 `Pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,
 `Pairwise (≠) l` means that all elements of `l` are distinct, and `Pairwise (<) l` means that `l`
 is strictly increasing.
@@ -212,7 +212,7 @@ theorem map_get_sublist {l : List α} {is : List (Fin l.length)} (h : is.Pairwis
     simp; cases hl'
     have := IH h.of_cons (hd+1) _ rfl (pairwise_cons.mp h).1
     specialize his hd (.head _)
-    have := get_cons_drop .. ▸ this.cons₂ (get l hd)
+    have := (drop_eq_get_cons ..).symm ▸ this.cons₂ (get l hd)
     have := Sublist.append (nil_sublist (take hd l |>.drop n)) this
     rwa [nil_append, ← (drop_append_of_le_length ?_), take_append_drop] at this
     simp [Nat.min_eq_left (Nat.le_of_lt hd.isLt), his]

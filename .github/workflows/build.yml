@@ -21,15 +21,11 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-      - uses: actions/checkout@v2
-
-      - name: update Std.lean
-        run: |
-          find Std -name "*.lean" | LC_ALL=C sort | sed 's/\.lean//;s,/,.,g;s/^/import /' > Std.lean
+      - uses: actions/checkout@v4
 
       - name: build std
         id: build
-        run: lake build
+        run: lake build -Kwerror
 
       - name: test std
         if: steps.build.outcome == 'success'
@@ -39,9 +35,8 @@ jobs:
         if: steps.build.outcome == 'success'
         run: make lint
 
-      - name: check that all files are imported
-        if: always()
-        run: git diff --exit-code
+      - name: Check that all files are imported
+        run: lake env lean scripts/check_imports.lean
 
       - name: Check for forbidden character ↦
         if: always()
@@ -72,4 +67,4 @@ jobs:
       - name: Don't 'import Lean', use precise imports
         if: always()
         run: |
-          ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
+          ! (find . -name "*.lean" ! -path "./test/import_lean.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
