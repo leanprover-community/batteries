@@ -57,7 +57,7 @@ def expandOptOccs (stx : Option (TSyntax ``occs)) : TermElabM (Option (Array Nat
     some <$> ids.mapM fun id =>
       let n := id.toNat
       if n == 0 then
-        throwErrorAt id "positive integer expected"
+        throwErrorAt id "occs indices should be positive integers"
       else return n
   | _ => throwUnsupportedSyntax
 

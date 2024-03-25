@@ -15,18 +15,6 @@ open Lean Meta Elab.Tactic Pattern
 A tactic for definitionally unfolding expressions.
 The targeted sub-expression is selected using a pattern.
 
-example use cases:
-```
-@[irreducible] def f (n : Nat) := n + 1
-example (n : Nat) : n + 1 = f n := by
-  unfold' f n
-  rfl
-
-example (n m : Nat) : f n + f m = f n + (m+1) := by
-  unfold' (occs := 2) f _
-  rfl
-```
-
 -/
 
 /-- Reduction function for the `unfold'` tactic. -/
@@ -59,30 +47,32 @@ def replaceByDef (e : Expr) : MetaM Expr :=
 
   throwError m! "Could not find a definition for {e}."
 
+
 /-- Replace a pattern at the specified locations with the value of `replacement`,
     which is assumed to be definitionally equal to the original pattern. -/
 def replaceOccurrencesDefEq (tacticName : Name) (pattern : Pattern.PatternLocation)
     (replacement : Expr → MetaM Expr) : TacticM Unit := do
-  let goal ← getMainGoal
-  goal.withContext do
+  let mvarId ← getMainGoal
+  mvarId.withContext do
     withLocation pattern.loc
       (atLocal := fun fvarId => do
         let hypType ← fvarId.getType
-        let newGoal ← goal.replaceLocalDeclDefEq fvarId (← substitute hypType)
+        let newGoal ← mvarId.replaceLocalDeclDefEq fvarId (← substitute hypType mvarId)
         replaceMainGoal [newGoal])
       (atTarget := do
-        let newGoal ← goal.replaceTargetDefEq (← substitute (← goal.getType))
+        let newGoal ← mvarId.replaceTargetDefEq (← substitute (← mvarId.getType) mvarId)
         replaceMainGoal [newGoal])
       (failed := (throwTacticEx tacticName · ""))
 where
   /-- Substitute occurrences of a pattern in an expression with the result of `replacement`. -/
-  substitute (e : Expr) : MetaM Expr := do
+  substitute (e : Expr) (mvarId : MVarId) : MetaM Expr := do
     let (_, _, p) ← openAbstractMVarsResult pattern.pattern
     let eAbst ← kabstract e p pattern.occurrences
+    let p ← instantiateMVars p
     unless eAbst.hasLooseBVars do
-      throwError m! "did not find instance of pattern {p} in target {indentExpr e}"
-    return eAbst.instantiate1 (← replacement (← instantiateMVars p))
-
+      throwTacticEx tacticName mvarId
+        "did not find instance of the pattern in the target expression{indendExpr p}"
+    return eAbst.instantiate1 (← replacement p)
 
 /-- Unfold the selected expression in one of the following ways:
 
