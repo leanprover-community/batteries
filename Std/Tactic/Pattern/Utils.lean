@@ -1,163 +1,120 @@
 /-
 Copyright (c) 2023 Anand Rao Tadipatri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anand Rao Tadipatri
+Authors: Anand Rao Tadipatri, Jovan Gerbscheid
 -/
-import Lean.Elab.Term
-import Lean.Elab.Tactic
-import Lean.SubExpr
-import Lean.Meta.ExprLens
-import Lean.Meta.KAbstract
-import Lean.HeadIndex
+import Lean.Meta
+
+namespace Std.Tactic.Pattern
 
 open Lean Meta Elab Tactic
 
 /-!
 
-Basic utilities for tactics that target goal locations through patterns and their occurrences.
-
-The code here include:
-- Functions for expanding syntax for patterns and occurrences into their corresponding expressions
-- Code for generating and finding the occurrences of patterns in expressions
-
-The idea of referring to sub-expressions via patterns and occurrences is due to Yaël Dillies.
+We define the `patternLocation` syntax, which specifies one or more subexpressions
+in the goal, using a pattern and an optional `occs` argument.
 
 -/
 open Parser.Tactic Conv
 
-/-- Refer to a set of subexpression by specifying a pattern.
+/-- Refer to a set of subexpression by specifying a pattern and occurrences.
 
-For example, if hypothesis `h` says that `1 + (2 + 3) = 1 + (2 + 3)`, then
-`(occs := 2 3) _ + _ at h` refers to the two expression `2 + 3`,
-because it first skips `1 + (2 + 3)`, and matches with `2 + 3`,
-which instantiates the pattern to be `2 + 3`, so the next match is the
-second instance of `2 + 3`. -/
-syntax patternLocation := optional(occs) term optional(location)
+For example, if hypothesis `h` says that `a + (b + c) = a + (b + c)`, then
+`(occs := 2 3) _ + _ at h` refers to the two occurrences of `b + c`,
+because it first skips `a + (b + c)`, and then matches with `b + c`,
+which instantiates the pattern to be `b + c`, so the next match is the
+second occurrence of `b + c`. -/
+syntax patternLocation := (occs)? term (location)?
 
-/--
-Elaborate a pattern as an `AbstractMVarsResult`.
-This follows code from `Lean/Elab/Tactic/Conv/Pattern.lean`. -/
+
+/-- A structure containing the information provided by the `patternLocation` syntax. -/
+structure PatternLocation where
+  /-- The occurences of the pattern in the target. -/
+  occs : Option (Array Nat)
+  /-- The pattern itself. -/
+  pattern : AbstractMVarsResult
+  /-- The location in the goal. -/
+  loc : Location
+
+/-- Get the pattern occurrences as a `Occurrences`. -/
+def PatternLocation.occurrences (p : PatternLocation) : Occurrences :=
+  match p.occs with
+  | none => .all
+  | some arr => .pos arr.toList
+
+/-- Elaborate a pattern expression.
+See elaboration of `Lean.Parser.Tactic.Conv.pattern`. -/
 def expandPattern (p : Syntax) : TermElabM AbstractMVarsResult :=
   withReader (fun ctx => { ctx with ignoreTCFailures := true, errToSorry := false }) <|
     Term.withoutModifyingElabMetaStateWithInfo <| withRef p do
       abstractMVars (← Term.elabTerm p none)
 
-/-- Elaborate `occs` syntax as `Occurrences`. -/
-def expandOptOccs (stx : Syntax) : TermElabM Occurrences := do
-  if stx.isNone then
-    return .all
-  match stx[0] with
-  | `(occs| (occs := *)) => return .all
+/-- Elaborate `occs` syntax. -/
+def expandOptOccs (stx : Option (TSyntax ``occs)) : TermElabM (Option (Array Nat)) := do
+  let some stx := stx | return none
+  match stx with
+  | `(occs| (occs := *)) => return none
   | `(occs| (occs := $ids*)) =>
-    return .pos <| Array.toList <| ← ids.mapM fun id =>
+    some <$> ids.mapM fun id =>
       let n := id.toNat
       if n == 0 then
         throwErrorAt id "positive integer expected"
       else return n
-  | _ => throwError m! "{stx}"
+  | _ => throwUnsupportedSyntax
 
-/-- Elaborate the occurrences, pattern and location in a  `patternLocation`. -/
-def expandPatternLocation (stx : Syntax) : TermElabM (Occurrences × AbstractMVarsResult × Location) := do
-  let occs ← expandOptOccs stx[0]
-  let pattern ← expandPattern stx[1]
-  let loc := expandOptLocation stx[2]
-  return (occs, pattern, loc)
-section Expand
+/-- Elaborate `patternLocation` syntax. -/
+def expandPatternLocation (stx : Syntax) : TacticM PatternLocation :=
+  withMainContext do
+  match stx with
+  | `(patternLocation| $[$a]? $pat $[$loc]?) =>
+    let occs ← expandOptOccs a
+    let pattern ← expandPattern pat
+    let loc := match loc with
+      | some loc => expandLocation loc
+      | none => Location.targets #[] true
+    return { occs, pattern, loc }
+  | _ => throwUnsupportedSyntax
 
 
-
-end Expand
-
-section PatternsAndOccurrences
-
-/-- The pattern at a given position in an expression.
-    Variables under binders are turned into meta-variables in the pattern. -/
-def SubExpr.patternAt (p : SubExpr.Pos) (root : Expr) : MetaM Expr := do
-  let e ← Core.viewSubexpr p root
-  let binders ← Core.viewBinders p root
-  let mvars ← binders.mapM fun (name, type) =>
-    mkFreshExprMVar type (userName := name)
-  return e.instantiateRev mvars
-
-/-- Finds the occurrence number of the pattern in the expression
-    that matches the sub-expression at the specified position.
-    This follows the code of `kabstract` from Lean core. -/
-def findMatchingOccurrence (position : SubExpr.Pos) (root : Expr) (pattern : Expr) : MetaM Nat := do
-  let root ← instantiateMVars root
-  unless ← isDefEq pattern (← SubExpr.patternAt position root) do
-    throwError s!"The specified pattern does not match the pattern at position {position}."
-  let pattern ← instantiateMVars pattern
-  let pHeadIdx := pattern.toHeadIndex
-  let pNumArgs := pattern.headNumArgs
-  let rec
-  /-- The recursive step in the expression traversal to search for matching occurrences. -/
-  visit (e : Expr) (p : SubExpr.Pos) (offset : Nat) := do
-    let visitChildren : Unit → StateRefT Nat (OptionT MetaM) Unit := fun _ => do
+/-- return the subexpression positions that `kabstract` can abstract -/
+def kabstractPositions (p e : Expr) : MetaM (Array SubExpr.Pos) := do
+  let pHeadIdx := p.toHeadIndex
+  let pNumArgs := p.headNumArgs
+  let rec visit (e : Expr) (pos : SubExpr.Pos) (positions : Array SubExpr.Pos) :
+      MetaM (Array SubExpr.Pos) := do
+    let visitChildren : Array SubExpr.Pos → MetaM (Array SubExpr.Pos) :=
       match e with
-      | .app f a         => do
-        visit f p.pushAppFn offset <|>
-        visit a p.pushAppArg offset
-      | .mdata _ b       => visit b p offset
-      | .proj _ _ b      => visit b p.pushProj offset
-      | .letE _ t v b _  => do
-        visit t p.pushLetVarType offset <|>
-        visit v p.pushLetValue offset <|>
-        visit b p.pushLetBody (offset+1)
-      | .lam _ d b _     => do
-        visit d p.pushBindingDomain offset <|>
-        visit b p.pushBindingBody (offset+1)
-      | .forallE _ d b _ => do
-        visit d p.pushBindingDomain offset <|>
-        visit b p.pushBindingBody (offset+1)
-      | _                => failure
-    if e.hasLooseBVars then
-      visitChildren ()
-    else if e.toHeadIndex != pHeadIdx || e.headNumArgs != pNumArgs then
-      visitChildren ()
-    else if (← isDefEq e pattern) then
-      let i ← get
-      set (i+1)
-      if p = position then
-        return ()
-      else
-        visitChildren ()
+      | .app f a         => visit f pos.pushAppFn
+                        >=> visit a pos.pushAppArg
+      | .mdata _ b       => visit b pos
+      | .proj _ _ b      => visit b pos.pushProj
+      | .letE _ t v b _  => visit t pos.pushLetVarType
+                        >=> visit v pos.pushLetValue
+                        >=> visit b pos.pushLetBody
+      | .lam _ d b _     => visit d pos.pushBindingDomain
+                        >=> visit b pos.pushBindingBody
+      | .forallE _ d b _ => visit d pos.pushBindingDomain
+                        >=> visit b pos.pushBindingBody
+      | _                => pure
+    if e.hasLooseBVars || e.toHeadIndex != pHeadIdx || e.headNumArgs != pNumArgs then
+      visitChildren positions
     else
-      visitChildren ()
-  let .some (_, occ) ← visit root .root 0 |>.run 0 |
-    throwError s!"Could not find pattern at specified position {position}."
-  return occ
+      let mctx ← getMCtx
+      if (← isDefEq e p) then
+        setMCtx mctx
+        visitChildren (positions.push pos)
+      else
+        visitChildren positions
+  visit e .root #[]
 
-/-- Finds the occurrence number of the pattern at
-    the specified position in the whole expression. -/
-def findOccurrence (position : SubExpr.Pos) (root : Expr) : MetaM Nat := do
-  let pattern ← SubExpr.patternAt position root
-  findMatchingOccurrence position root pattern
-
-end PatternsAndOccurrences
-
-/-- Substitute occurrences of a pattern in an expression with the result of `replacement`. -/
-def substitute (e : Expr) (pattern : AbstractMVarsResult) (occs : Occurrences)
-    (replacement : Expr → MetaM Expr) (withoutErr : Bool := true) : MetaM Expr := do
-  let (_, _, p) ← openAbstractMVarsResult pattern
-  let eAbst ← kabstract e p occs
-  unless eAbst.hasLooseBVars || withoutErr do
-    throwError m!"Failed to find instance of pattern {indentExpr p} in {indentExpr e}."
-  instantiateMVars <| Expr.instantiate1 eAbst (← replacement p)
-
-/-- Replace a pattern at the specified locations with the value of `replacement`,
-    which is assumed to be definitionally equal to the original pattern. -/
-def replaceOccurrencesDefEq (tacticName : Name) (location : Location) (occurrences : Occurrences)
-    (pattern : AbstractMVarsResult) (replacement : Expr → MetaM Expr) : TacticM Unit := do
-  let goal ← getMainGoal
-  goal.withContext do
-    withLocation location
-      (atLocal := fun fvarId => do
-        let hypType ← fvarId.getType
-        let newGoal ← goal.replaceLocalDeclDefEq fvarId <| ←
-          substitute hypType pattern occurrences replacement
-        replaceMainGoal [newGoal])
-      (atTarget := do
-        let newGoal ← goal.replaceTargetDefEq <| ←
-          substitute (← goal.getType) pattern occurrences replacement
-        replaceMainGoal [newGoal])
-      (failed := (throwTacticEx tacticName · m!"Failed to run tactic {tacticName}."))
+/-- return the pattern and occurrences specifying position `pos` in target `e`. -/
+def patternAndIndex (pos : SubExpr.Pos) (e : Expr) : MetaM (Expr × Option Nat) := do
+  let e ← instantiateMVars e
+  let pattern ← Core.viewSubexpr pos e
+  if pattern.hasLooseBVars then
+    throwError "the subexpression contains loose bound variables"
+  let positions ← kabstractPositions pattern e
+  if positions.size == 1 then
+    return (pattern, none)
+  let some index := positions.findIdx? (· == pos) | unreachable!
+  return (pattern, some (index + 1))

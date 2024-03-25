@@ -1,28 +1,32 @@
 /-
-Copyright (c) 2023 J. W. Gerbscheid, Anand Rao Tadipatri. All rights reserved.
+Copyright (c) 2023 Jovan Gerbscheid, Anand Rao Tadipatri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: J. W. Gerbscheid, Anand Rao Tadipatri
+Authors: Jovan Gerbscheid, Anand Rao Tadipatri
 -/
 import Std.Tactic.Pattern.Utils
 import Lean.Parser.Tactic
 
-open Lean Meta
+namespace Std.Tactic.Unfold
+open Lean Meta Elab.Tactic Pattern
 
 /-!
-
 # Targeted unfolding
 
 A tactic for definitionally unfolding expressions.
 The targeted sub-expression is selected using a pattern.
 
-example use case:
+example use cases:
 ```
 @[irreducible] def f (n : Nat) := n + 1
-example : ∀ n : Nat, n + 1 = f n := by
-  unfold' f _ at ⊢ --∀ (n : Nat), n + 1 = n + 1
-  intro n
+example (n : Nat) : n + 1 = f n := by
+  unfold' f n
+  rfl
+
+example (n m : Nat) : f n + f m = f n + (m+1) := by
+  unfold' (occs := 2) f _
   rfl
 ```
+
 -/
 
 /-- If the head of the expression is a projection, reduce the projection. -/
@@ -58,7 +62,30 @@ def replaceByDef (e : Expr) : MetaM Expr :=
 
   throwError m! "Could not find a definition for {e}."
 
-open Elab Tactic Parser Tactic Conv
+/-- Replace a pattern at the specified locations with the value of `replacement`,
+    which is assumed to be definitionally equal to the original pattern. -/
+def replaceOccurrencesDefEq (tacticName : Name) (pattern : Pattern.PatternLocation)
+    (replacement : Expr → MetaM Expr) : TacticM Unit := do
+  let goal ← getMainGoal
+  goal.withContext do
+    withLocation pattern.loc
+      (atLocal := fun fvarId => do
+        let hypType ← fvarId.getType
+        let newGoal ← goal.replaceLocalDeclDefEq fvarId (← substitute hypType)
+        replaceMainGoal [newGoal])
+      (atTarget := do
+        let newGoal ← goal.replaceTargetDefEq (← substitute (← goal.getType))
+        replaceMainGoal [newGoal])
+      (failed := (throwTacticEx tacticName · ""))
+where
+  /-- Substitute occurrences of a pattern in an expression with the result of `replacement`. -/
+  substitute (e : Expr) : MetaM Expr := do
+    let (_, _, p) ← openAbstractMVarsResult pattern.pattern
+    let eAbst ← kabstract e p pattern.occurrences
+    unless eAbst.hasLooseBVars do
+      throwError m! "did not find instance of pattern {p} in target {indentExpr e}"
+    return eAbst.instantiate1 (← replacement (← instantiateMVars p))
+
 
 /-- Unfold the selected expression in one of the following ways:
 
@@ -72,5 +99,5 @@ Note that we always reduce a projection after unfolding a constant,
 so that `@Add.add ℕ instAddNat a b` gives `Nat.add a b` instead of `instAddNat.1 a b`.
  -/
 elab "unfold'" loc:patternLocation : tactic => withMainContext do
-  let (occs, pattern, loc) ← expandPatternLocation loc
-  replaceOccurrencesDefEq `unfold' loc occs pattern replaceByDef
+  let pattern ← expandPatternLocation loc
+  replaceOccurrencesDefEq `unfold' pattern replaceByDef
