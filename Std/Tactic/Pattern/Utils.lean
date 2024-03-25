@@ -6,16 +6,15 @@ Authors: Anand Rao Tadipatri, Jovan Gerbscheid
 import Lean.Meta
 
 namespace Std.Tactic.Pattern
-
-open Lean Meta Elab Tactic
+open Lean Meta Elab Tactic Parser.Tactic Conv
 
 /-!
-
 We define the `patternLocation` syntax, which specifies one or more subexpressions
 in the goal, using a pattern and an optional `occs` argument.
+- The syntax is elaborated by `expandPatternLocation`
+- The syntax can be created using `patternAndIndex`
 
 -/
-open Parser.Tactic Conv
 
 /-- Refer to a set of subexpression by specifying a pattern and occurrences.
 
@@ -76,11 +75,13 @@ def expandPatternLocation (stx : Syntax) : TacticM PatternLocation :=
   | _ => throwUnsupportedSyntax
 
 
-/-- return the subexpression positions that `kabstract` can abstract -/
+/-- Return the subexpression positions that `kabstract` can abstract, in order of traversal -/
 def kabstractPositions (p e : Expr) : MetaM (Array SubExpr.Pos) := do
   let pHeadIdx := p.toHeadIndex
   let pNumArgs := p.headNumArgs
-  let rec visit (e : Expr) (pos : SubExpr.Pos) (positions : Array SubExpr.Pos) :
+  let rec
+  /-- The recursive step in the expression traversal to search for matching occurrences. -/
+  visit (e : Expr) (pos : SubExpr.Pos) (positions : Array SubExpr.Pos) :
       MetaM (Array SubExpr.Pos) := do
     let visitChildren : Array SubExpr.Pos → MetaM (Array SubExpr.Pos) :=
       match e with
@@ -107,7 +108,7 @@ def kabstractPositions (p e : Expr) : MetaM (Array SubExpr.Pos) := do
         visitChildren positions
   visit e .root #[]
 
-/-- return the pattern and occurrences specifying position `pos` in target `e`. -/
+/-- Return the pattern and occurrences specifying position `pos` in target `e`. -/
 def patternAndIndex (pos : SubExpr.Pos) (e : Expr) : MetaM (Expr × Option Nat) := do
   let e ← instantiateMVars e
   let pattern ← Core.viewSubexpr pos e
