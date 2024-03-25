@@ -1,4 +1,5 @@
-import Std.Tactic.Relation.Rfl
+import Lean.Elab.Tactic.Rfl
+-- Adaptation note: we should be able to remove this import after nightly-2024-03-19
 
 set_option linter.missingDocs false
 
