@@ -92,6 +92,9 @@ example (h : ∀ x : Nat, x = x → True) : True := by
 elab "eapply " e:term : tactic =>
   evalApplyLikeTactic (·.apply (cfg := {newGoals := .nonDependentOnly})) e
 
+/-- Deprecated variant of `trivial`. -/
+elab (name := triv) "triv" : tactic => throwError "`triv` has been removed; use `trivial` instead"
+
 /-- `conv` tactic to close a goal using an equality theorem. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
 
