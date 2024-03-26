@@ -12,7 +12,7 @@ import Std.Data.Sum.Basic
 Theorems about the definitions introduced in `Std.Data.Sum.Basic`.
 -/
 
-theorem Function.funext_iff {β : α → _} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
+theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
   Iff.intro (fun hf _ => hf ▸ rfl) funext
 
 open Function
