@@ -21,10 +21,6 @@ such as `by _` to make it syntactically correct and show the current goal.
 -/
 macro "_" : tactic => `(tactic| {})
 
-/-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
-macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
-  `(tactic| (rw $rws:rwRuleSeq $[$loc:location]?; assumption))
-
 /--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
 -/
