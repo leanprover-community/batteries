@@ -28,8 +28,8 @@ macro (name := classical!) "classical!" : tactic =>
 `classical t` runs `t` in a scope where `Classical.propDecidable` is a low priority
 local instance.
 -/
-def classical [Monad m] [MonadEnv m] [MonadFinally m] [MonadLiftT MetaM m] (t : m Unit) :
-    m Unit := do
+def classical [Monad m] [MonadEnv m] [MonadFinally m] [MonadLiftT MetaM m] (t : m α) :
+    m α := do
   modifyEnv Meta.instanceExtension.pushScope
   Meta.addInstance ``Classical.propDecidable .local 10
   try
