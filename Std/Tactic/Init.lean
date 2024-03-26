@@ -14,24 +14,12 @@ import Lean.Elab.Tactic.BuiltinTactic
 namespace Std.Tactic
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
 
-/-- `exfalso` converts a goal `⊢ tgt` into `⊢ False` by applying `False.elim`. -/
-macro "exfalso" : tactic => `(tactic| refine False.elim ?_)
-
 /--
 `_` in tactic position acts like the `done` tactic: it fails and gives the list
 of goals if there are any. It is useful as a placeholder after starting a tactic block
 such as `by _` to make it syntactically correct and show the current goal.
 -/
 macro "_" : tactic => `(tactic| {})
-
-@[inherit_doc failIfSuccess]
-syntax (name := failIfSuccessConv) "fail_if_success " Conv.convSeq : conv
-
-attribute [tactic failIfSuccessConv] evalFailIfSuccess
-
-/-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
-macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
-  `(tactic| (rw $rws:rwRuleSeq $[$loc:location]?; assumption))
 
 /--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
