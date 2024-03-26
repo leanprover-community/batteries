@@ -1108,12 +1108,16 @@ theorem get?_drop (L : List α) (i j : Nat) : get? (L.drop i) j = get? L (i + j)
       _ = drop (n + m) l := drop_drop n m l
       _ = drop (n + (m + 1)) (a :: l) := rfl
 
-theorem drop_take : ∀ (m n : Nat) (l : List α), drop m (take (m + n) l) = take n (drop m l)
-  | 0, n, _ => by simp
-  | m + 1, n, nil => by simp
-  | m + 1, n, _ :: l => by
-    have h : m + 1 + n = m + n + 1 := by rw [Nat.add_assoc, Nat.add_comm 1 n, ← Nat.add_assoc]
-    simpa [take_cons_succ, h] using drop_take m n l
+theorem take_drop : ∀ (m n : Nat) (l : List α), take n (drop m l) = drop m (take (m + n) l)
+  | 0, _, _ => by simp
+  | _, _, [] => by simp
+  | _+1, _, _ :: _ => by simpa [Nat.succ_add, take_succ_cons, drop_succ_cons] using take_drop ..
+
+theorem drop_take : ∀ (m n : Nat) (l : List α), drop n (take m l) = take (m - n) (drop n l)
+  | 0, _, _ => by simp
+  | _, 0, _ => by simp
+  | _, _, [] => by simp
+  | _+1, _+1, _ :: _ => by simpa [take_succ_cons, drop_succ_cons] using drop_take ..
 
 theorem map_drop (f : α → β) :
     ∀ (L : List α) (i : Nat), (L.drop i).map f = (L.map f).drop i
