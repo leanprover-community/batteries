@@ -5,15 +5,13 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
 import Std.Data.Sum.Basic
+import Std.Logic
 
 /-!
 # Disjoint union of types
 
 Theorems about the definitions introduced in `Std.Data.Sum.Basic`.
 -/
-
-theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
-  Iff.intro (fun hf _ => hf ▸ rfl) funext
 
 open Function
 
