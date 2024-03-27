@@ -125,6 +125,19 @@ theorem ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt fun e =>
 
 end Mem
 
+/-! ## Bool -/
+
+theorem Bool.beq_eq_false_iff [BEq α] {a a' : α} :
+    (a == a') = false ↔ a != a' := by
+  simp only [bne, not_eq_true']
+
+@[simp] theorem Bool.bne_eq_false_iff [BEq α] {a a' : α} :
+    (a != a') = false ↔ a == a' := by
+  simp only [bne, not_eq_false']
+
+theorem Bool.bne_iff_not_beq [BEq α] {a a' : α} : a != a' ↔ ¬(a == a') := by
+  simp only [not_eq_true, beq_eq_false_iff]
+
 /-! ## miscellaneous -/
 
 @[simp] theorem not_nonempty_empty  : ¬Nonempty Empty := fun ⟨h⟩ => h.elim
@@ -144,6 +157,9 @@ theorem subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : Subsingleton α 
 
 theorem subsingleton_iff_forall_eq (x : α) : Subsingleton α ↔ ∀ y, y = x :=
   ⟨fun _ y => Subsingleton.elim y x, subsingleton_of_forall_eq x⟩
+
+example [Subsingleton α] (p : α → Prop) : Subsingleton (Subtype p) :=
+  ⟨fun ⟨x, _⟩ ⟨y, _⟩ => by congr; exact Subsingleton.elim x y⟩
 
 theorem congr_eqRec {β : α → Sort _} (f : (x : α) → β x → γ) (h : x = x') (y : β x) :
   f x' (Eq.rec y h) = f x y := by cases h; rfl

@@ -1127,6 +1127,13 @@ theorem map_drop (f : α → β) :
     dsimp
     rw [map_drop f t]
 
+theorem drop_ext (l₁ l₂ : List α) (j : Nat)
+    : (∀ i ≥ j, l₁.get? i = l₂.get? i) → l₁.drop j = l₂.drop j := by
+  intro H
+  apply ext fun k => ?_
+  rw [get?_drop, get?_drop]
+  apply H _ (Nat.le_add_right _ _)
+
 theorem reverse_take {α} {xs : List α} (n : Nat) (h : n ≤ xs.length) :
     xs.reverse.take n = (xs.drop (xs.length - n)).reverse := by
   induction xs generalizing n <;>
@@ -1997,6 +2004,14 @@ theorem foldl_hom (f : α₁ → α₂) (g₁ : α₁ → β → α₁) (g₂ : 
 theorem foldr_hom (f : β₁ → β₂) (g₁ : α → β₁ → β₁) (g₂ : α → β₂ → β₂) (l : List α) (init : β₁)
     (H : ∀ x y, g₂ x (f y) = f (g₁ x y)) : l.foldr g₂ (f init) = f (l.foldr g₁ init) := by
   induction l <;> simp [*, H]
+
+theorem foldl_cons_fn (l₁ l₂ : List α) :
+    l₁.foldl (init := l₂) (fun acc x => x :: acc) = l₁.reverse ++ l₂ := by
+  induction l₁ generalizing l₂ <;> simp [*]
+
+theorem foldl_append_fn (l₁ : List α) (l₂ : List β) (f : α → List β) :
+    l₁.foldl (init := l₂) (fun acc x => acc ++ f x) = l₂ ++ l₁.bind f := by
+  induction l₁ generalizing l₂ <;> simp [*]
 
 /-! ### union -/
 

@@ -448,6 +448,39 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
       exact (d.1 _ this rfl).elim
     | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
+protected theorem Nodup.subperm (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ := by
+  induction d with
+  | nil => exact ⟨nil, Perm.nil, nil_sublist _⟩
+  | cons h _ IH =>
+    have ⟨H₁, H₂⟩ := forall_mem_cons.1 H
+    have := fun contra => h _ contra rfl
+    exact cons_subperm_of_not_mem_of_mem this H₁ (IH H₂)
+
+theorem perm_ext {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : Nodup l₂) :
+    l₁ ~ l₂ ↔ ∀ a, a ∈ l₁ ↔ a ∈ l₂ :=
+  ⟨fun p _ => p.mem_iff, fun H =>
+    (d₁.subperm fun a => (H a).1).antisymm <| d₂.subperm fun a => (H a).2⟩
+
+theorem Nodup.sublist_ext {l₁ l₂ l : List α} (d : Nodup l) (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) :
+    l₁ ~ l₂ ↔ l₁ = l₂ := by
+  refine ⟨fun h => ?_, fun h => by rw [h]⟩
+  induction s₂ generalizing l₁ with
+  | slnil => exact h.eq_nil
+  | cons a s₂ IH =>
+    simp [Nodup] at d
+    cases s₁ with
+    | cons _ s₁ => exact IH d.2 s₁ h
+    | cons₂ l₁ s₁ =>
+      have := Subperm.subset ⟨_, h.symm, s₂⟩ (mem_cons_self _ _)
+      exact (d.1 _ this rfl).elim
+  | cons₂ a _ IH =>
+    simp [Nodup] at d
+    cases s₁ with
+    | cons _ s₁ =>
+      have := Subperm.subset ⟨_, h, s₁⟩ (mem_cons_self _ _)
+      exact (d.1 _ this rfl).elim
+    | cons₂ l₁ s₁ => rw [IH d.2 s₁ h.cons_inv]
+
 section DecidableEq
 
 variable [DecidableEq α]
