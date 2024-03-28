@@ -29,13 +29,6 @@ syntax (name := failIfSuccessConv) "fail_if_success " Conv.convSeq : conv
 
 attribute [tactic failIfSuccessConv] evalFailIfSuccess
 
-/-- We allow the `rfl` tactic to also use `Iff.rfl`. -/
--- `rfl` was defined earlier in Lean4, at src/Lean/Init/Tactics.lean
--- Later we want to allow `rfl` to use all relations marked with an attribute.
-macro_rules | `(tactic| rfl) => `(tactic| exact Iff.rfl)
-
-macro_rules | `(tactic| rfl) => `(tactic| exact HEq.rfl)
-
 /-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
 macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
   `(tactic| (rw $rws:rwRuleSeq $[$loc:location]?; assumption))
