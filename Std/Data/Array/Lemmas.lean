@@ -20,12 +20,6 @@ local macro_rules | `($x[$i]'$h) => `(getElem $x $i $h)
 @[simp] theorem getElem!_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
     [Decidable (Dom a i)] [Inhabited Elem] : a[i]! = a[i.1]! := rfl
 
-theorem getElem?_pos [GetElem Cont Idx Elem Dom]
-    (a : Cont) (i : Idx) (h : Dom a i) [Decidable (Dom a i)] : a[i]? = a[i] := dif_pos h
-
-theorem getElem?_neg [GetElem Cont Idx Elem Dom]
-    (a : Cont) (i : Idx) (h : ¬Dom a i) [Decidable (Dom a i)] : a[i]? = none := dif_neg h
-
 @[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
 
 @[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
@@ -93,13 +87,19 @@ theorem get?_push_eq (a : Array α) (x : α) : (a.push x)[a.size]? = some x := b
   rw [getElem?_pos, get_push_eq]
 
 theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x else a[i]? := by
-  split
-  . next heq => rw [heq, getElem?_pos, get_push_eq]
-  · next hne =>
+  match Nat.lt_trichotomy i a.size with
+  | Or.inl g =>
+    have h1 : i < a.size + 1 := by omega
+    have h2 : i ≠ a.size := by omega
+    simp [getElem?, size_push, g, h1, h2, get_push_lt]
+  | Or.inr (Or.inl heq) =>
+    simp [heq, getElem?_pos, get_push_eq]
+  | Or.inr (Or.inr g) =>
     simp only [getElem?, size_push]
-    split <;> split <;> try simp only [*, get_push_lt]
-    · next p q => exact Or.elim (Nat.eq_or_lt_of_le (Nat.le_of_lt_succ p)) hne q
-    · next p q => exact p (Nat.lt.step q)
+    have h1 : ¬ (i < a.size ) := by omega
+    have h2 : ¬ (i < a.size + 1) := by omega
+    have h3 : i ≠ a.size := by omega
+    simp [h1, h2, h3]
 
 @[simp] theorem get?_size {a : Array α} : a[a.size]? = none := by
   simp only [getElem?, Nat.lt_irrefl, dite_false]
