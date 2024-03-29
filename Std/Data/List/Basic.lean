@@ -579,6 +579,35 @@ inductive Forall₂ (R : α → β → Prop) : List α → List β → Prop
 
 attribute [simp] Forall₂.nil
 
+@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+    Forall₂ R (a :: l₁) (b :: l₂) ↔ R a b ∧ Forall₂ R l₁ l₂ :=
+  ⟨fun | .cons h tail => ⟨h, tail⟩, fun ⟨head, tail⟩ => .cons head tail⟩
+
+/--
+Check for all elements `a`, `b`, where `a` and `b` are the nth element of the first and second
+List respectively, that `r a b = true`.
+-/
+def all₂ (r : α → β → Bool) : List α → List β → Bool
+  | [], [] => true
+  | a::as, b::bs =>
+    if r a b then
+      all₂ r as bs
+    else false
+  | _, _ => false
+
+@[simp] theorem all₂_eq_true {r : α → β → Bool} :
+    ∀ l₁ l₂, all₂ r l₁ l₂ ↔ Forall₂ (r · ·) l₁ l₂
+  | [], [] => by simp [all₂]
+  | a::as, b::bs => by
+    by_cases h : r a b
+      <;> simp [all₂, h, all₂_eq_true, forall₂_cons]
+  | _::_, [] | [], _::_ => by
+    simp [all₂]
+    exact nofun
+
+instance {R : α → β → Prop} [∀ a b, Decidable (R a b)] : ∀ l₁ l₂, Decidable (Forall₂ R l₁ l₂) :=
+  fun l₁ l₂ => decidable_of_iff (all₂ (R · ·) l₁ l₂) (by simp [all₂_eq_true])
+
 end Forall₂
 
 /--
