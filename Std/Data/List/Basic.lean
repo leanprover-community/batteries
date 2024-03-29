@@ -391,17 +391,17 @@ Constructs the union of two lists, by inserting the elements of `l₁` in revers
 As a result, `l₂` will always be a suffix, but only the last occurrence of each element in `l₁`
 will be retained (but order will otherwise be preserved).
 -/
-@[inline] protected def union [DecidableEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
+@[inline] protected def union [BEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
 
-instance [DecidableEq α] : Union (List α) := ⟨List.union⟩
+instance [BEq α] : Union (List α) := ⟨List.union⟩
 
 /--
 Constructs the intersection of two lists, by filtering the elements of `l₁` that are in `l₂`.
 Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1, 1]`.
 -/
-@[inline] protected def inter [DecidableEq α] (l₁ l₂ : List α) : List α := filter (· ∈ l₂) l₁
+@[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
-instance [DecidableEq α] : Inter (List α) := ⟨List.inter⟩
+instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
 /-- `l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`. -/
 inductive Sublist {α} : List α → List α → Prop
@@ -415,11 +415,11 @@ inductive Sublist {α} : List α → List α → Prop
 @[inherit_doc] scoped infixl:50 " <+ " => Sublist
 
 /-- True if the first list is a potentially non-contiguous sub-sequence of the second list. -/
-def isSublist [DecidableEq α] : List α → List α → Bool
+def isSublist [BEq α] : List α → List α → Bool
   | [], _ => true
   | _, [] => false
   | l₁@(hd₁::tl₁), hd₂::tl₂ =>
-    if hd₁ = hd₂
+    if hd₁ == hd₂
     then tl₁.isSublist tl₂
     else l₁.isSublist tl₂
 
@@ -1100,7 +1100,7 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
 Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
+@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
