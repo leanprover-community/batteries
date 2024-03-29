@@ -1378,7 +1378,7 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!
 section insert
 variable [BEq α] [LawfulBEq α]
 
-@[simp] theorem insert_of_mem {l : List α}  (h : a ∈ l) : l.insert a = l := by
+@[simp] theorem insert_of_mem {l : List α} (h : a ∈ l) : l.insert a = l := by
   simp [List.insert, h]
 
 @[simp] theorem insert_of_not_mem {l : List α} (h : a ∉ l) : l.insert a = a :: l := by
@@ -2026,7 +2026,7 @@ end union
 
 theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem · l₂) l₁ := rfl
 
-@[simp] theorem mem_inter_iff [BEq α] [LawfulBEq α]  {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_inter_iff [BEq α] [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
   cases l₁ <;> simp [List.inter_def, mem_filter]
 
@@ -2079,7 +2079,6 @@ variable [LawfulBEq α]
 
 @[simp] theorem diff_cons (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ := by
   simp_all [List.diff, erase_of_not_mem]
-
 
 theorem diff_cons_right (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.diff l₂).erase a := by
   apply Eq.symm; induction l₂ generalizing l₁ <;> simp [erase_comm, *]
