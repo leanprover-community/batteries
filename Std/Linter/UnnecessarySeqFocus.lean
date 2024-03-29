@@ -106,7 +106,7 @@ def getPath : Info → PersistentArray InfoTree → List ((n : Nat) × Fin n) �
   | i, _, [] => some i
   | _, c, ⟨n, i, h⟩::ns =>
     if e : c.size = n then
-      if let .node i c' := c[i]'(e ▸ h) then getPath i c' ns else none
+      if let .node i c' := c[i] then getPath i c' ns else none
     else none
 
 mutual
