@@ -29,7 +29,7 @@ def _root_.Lean.MVarId.assertHypotheses' (mvarId : MVarId)
   mvarId.modifyLCtx fun lctx => Id.run do
     let mut lctx := lctx
     for h : i in [:hs.size] do
-      let h := hs[i]'h.2
+      let h := hs[i]
       if h.kind != .default then
         lctx := lctx.setKind fvarIds[i]! h.kind
       if h.binderInfo != .default then
