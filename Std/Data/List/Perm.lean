@@ -476,12 +476,13 @@ theorem Perm.diff_right {l₁ l₂ : List α} (t : List α) (h : l₁ ~ l₂) : 
   induction t generalizing l₁ l₂ h with simp only [List.diff]
   | nil => exact h
   | cons x t ih =>
+    simp only [elem_eq_mem, decide_eq_true_eq]
     split <;> rename_i hx
-    · simp [elem_eq_true_of_mem (h.subset (mem_of_elem_eq_true hx))]
+    · simp only [Perm.mem_iff h] at hx
+      simp [hx]
       exact ih (h.erase _)
-    · have : ¬elem x l₂ = true := fun contra =>
-        hx <| elem_eq_true_of_mem <| h.symm.subset <| mem_of_elem_eq_true contra
-      simp [this]
+    · simp only [Perm.mem_iff h] at hx
+      simp [hx]
       exact ih h
 
 theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l.diff t₁ = l.diff t₂ := by
@@ -504,9 +505,7 @@ theorem Subperm.diff_right {l₁ l₂ : List α} (h : l₁ <+~ l₂) (t : List �
   | nil => simp only [List.diff]; exact h
   | cons x t ih =>
     simp only [List.diff]; split <;> rename_i hx1
-    · have : elem x l₂ = true := by
-        apply elem_eq_true_of_mem
-        apply h.subset (mem_of_elem_eq_true hx1)
+    · have : x ∈ l₂ := h.subset (mem_of_elem_eq_true hx1)
       simp [this]
       apply ih
       apply h.erase
