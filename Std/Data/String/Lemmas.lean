@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
 import Std.Data.Char
-import Std.Data.Nat.Lemmas
-import Std.Data.List.Lemmas
+import Std.Data.List.SplitOnList
 import Std.Data.String.Basic
-import Std.Tactic.Lint.Misc
+import Std.Logic
 import Std.Tactic.SeqFocus
 
 @[simp] theorem Char.length_toString (c : Char) : c.toString.length = 1 := rfl
@@ -478,7 +477,229 @@ theorem splitAux_of_valid (p l m r acc) :
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []
 
--- TODO: splitOn
+end String
+
+namespace List
+open String
+
+/-- Auxiliary definition for proving `String.splitOnAux_of_valid`. -/
+private def splitOnListAux (sep₁ sep₂ l m : List Char) (h : sep₂ ≠ []) : List (List Char) :=
+  if hls : m = [] then
+    [l ++ sep₁]
+  else
+    have : utf8Len m.tail < utf8Len m := by
+      conv => rhs; rw [← head_cons_tail m hls, utf8Len_cons]
+      exact Nat.lt_add_of_pos_right (csize_pos (m.head hls))
+    if m.head hls = sep₂.head h then
+      if htl₂ : sep₂.tail = [] then
+        l :: splitOnListAux [] (sep₁ ++ [sep₂.head h]) [] m.tail (by simp [h])
+      else
+        splitOnListAux (sep₁ ++ [m.head hls]) sep₂.tail l m.tail htl₂
+    else
+      splitOnListAux [] (sep₁ ++ sep₂) (l ++ sep₁ ++ [m.head hls]) m.tail (by simp [h])
+termination_by utf8Len m
+
+private theorem modifyHead_append_splitOnListAux (sep₁ sep₂ l m r) (h : sep₂ ≠ []) :
+    modifyHead (l ++ ·) (splitOnListAux sep₁ sep₂ m r h) =
+      splitOnListAux sep₁ sep₂ (l ++ m) r h := by
+  unfold splitOnListAux
+  simp only [append_assoc]
+  split
+  · simp
+  · next hls =>
+    have : utf8Len r.tail < utf8Len r := by
+      conv => rhs; rw [← head_cons_tail r hls, utf8Len_cons]
+      exact Nat.lt_add_of_pos_right (csize_pos (r.head hls))
+    split
+    · split <;> [simp; apply modifyHead_append_splitOnListAux]
+    · apply modifyHead_append_splitOnListAux
+termination_by utf8Len r
+
+-- NOTE: make the following changes: `sep₂` ⇒ `sep₂ ++ sep₃`, `m` ⇒ `sep₂ ++ m`
+private theorem splitOnListAux_of_isPrefixOf (sep₁ sep₂ l m) (hsp₂ : sep₂ ≠ [])
+    (hpf : sep₂.isPrefixOf m) :
+    splitOnListAux sep₁ sep₂ l m hsp₂ = l :: splitOnListAux [] (sep₁ ++ sep₂) []
+      (m.drop sep₂.length) (by simp [hsp₂]) := by
+  obtain ⟨c₂, sep₂, rfl⟩ := sep₂.exists_cons_of_ne_nil hsp₂
+  let ⟨t, ht⟩ := IsPrefix.iff_isPrefixOf.mpr hpf
+  conv => lhs; unfold splitOnListAux
+  simp only [← ht, cons_append, ↓reduceDite, head_cons, ↓reduceIte, tail_cons, length_cons,
+    drop_succ_cons, drop_left]
+  split
+  · subst sep₂; simp
+  · next htl₂ =>
+    have : utf8Len sep₂ < utf8Len (c₂ :: sep₂) := Nat.lt_add_of_pos_right (csize_pos c₂)
+    simpa only [append_assoc, singleton_append, drop_left] using
+      splitOnListAux_of_isPrefixOf (sep₁++[c₂]) sep₂ l (sep₂++t) htl₂ (IsPrefix.iff_isPrefixOf.mp
+      <| prefix_append sep₂ t)
+termination_by utf8Len sep₂
+
+private theorem splitOnListAux_append_cons_append_cons_of_ne (c₃ cₘ) (sep₁ sep₂ sep₃ l m)
+    (hne : c₃ ≠ cₘ) :
+    splitOnListAux sep₁ (sep₂ ++ c₃ :: sep₃) l (sep₂ ++ cₘ :: m) (by simp) =
+      splitOnListAux [] (sep₁ ++ sep₂ ++ c₃ :: sep₃) (l ++ sep₁ ++ sep₂ ++ [cₘ]) m (by simp) := by
+  conv => lhs; unfold splitOnListAux
+  simp only [append_eq_nil, and_false, ↓reduceDite, append_assoc]
+  cases sep₂
+  · simp only [nil_append, head_cons, tail_cons, ite_eq_right_iff]
+    intro heq
+    exact absurd heq.symm hne
+  · next c₂ sep₂ =>
+    simp only [cons_append, head_cons, ↓reduceIte, tail_cons, append_eq_nil, and_false, ↓reduceDite]
+    simpa using (splitOnListAux_append_cons_append_cons_of_ne c₃ cₘ (sep₁++[c₂]) sep₂
+      sep₃ l m hne)
+
+private theorem splitOnListAux_nil_eq_modifyHead_append_splitOnList (sep l m) (h : sep ≠ []) :
+    splitOnListAux [] sep l m h = modifyHead (l ++ ·) (splitOnList m sep) := by
+  unfold splitOnListAux
+  simp only [append_nil, head_cons, tail_cons, nil_append]
+  split
+  · next hls => simp [hls, splitOnList_nil_left]
+  · next hls =>
+    obtain ⟨cₛ, sep, rfl⟩ := sep.exists_cons_of_ne_nil h
+    obtain ⟨cₘ, m, rfl⟩ := m.exists_cons_of_ne_nil hls
+    have : utf8Len m < utf8Len (cₘ :: m) := Nat.lt_add_of_pos_right (csize_pos cₘ)
+    simp only [List.headD_cons, List.head_cons, List.tail_cons, false_or]
+    split
+    · subst cₛ
+      split
+      · subst sep
+        simp only [modifyHead, by simpa using splitOnList_of_isPrefixOf h (show [cₘ].isPrefixOf
+          (cₘ :: m) by simp), append_nil, cons.injEq, true_and]
+        simpa only [nil_append, ← Function.id_def, modifyHead_id] using
+          splitOnListAux_nil_eq_modifyHead_append_splitOnList [cₘ] [] m (by simp)
+      · next hsp =>
+        match hpf : sep.isPrefixOf m with
+        | true =>
+          have : utf8Len (m.drop sep.length) < utf8Len (cₘ :: m) := by
+            let ⟨t, ht⟩ := IsPrefix.iff_isPrefixOf.mpr hpf
+            simp [← ht, Nat.add_comm (utf8Len sep), Nat.add_assoc]
+            exact Nat.lt_add_of_pos_right <| Nat.lt_of_lt_of_le (csize_pos cₘ)
+              (Nat.le_add_right (csize cₘ) (utf8Len sep))
+          have hpf' : (cₘ :: sep).isPrefixOf (cₘ :: m) := by
+            rwa [← IsPrefix.iff_isPrefixOf, prefix_cons_inj, IsPrefix.iff_isPrefixOf]
+          simp [splitOnListAux_of_isPrefixOf [cₘ] sep l m hsp hpf, by simpa using
+            (splitOnList_of_isPrefixOf (by simp) hpf')]
+          simpa only [nil_append, ← Function.id_def, modifyHead_id] using
+            splitOnListAux_nil_eq_modifyHead_append_splitOnList (cₘ::sep) [] (m.drop sep.length) (by
+              simp)
+        | false =>
+          cases Decidable.em (m = [])
+          · subst m
+            have hlt : [cₘ].length < (cₘ :: sep).length := by
+              conv => rhs; rw [← singleton_append, length_append]
+              exact Nat.lt_add_of_pos_right (length_pos.mpr hsp)
+            simp [splitOnListAux, splitOnList_eq_singleton_of_length_lt hlt]
+          · next htl =>
+            match hpf' : m.isPrefixOf sep with
+            | true =>
+              have hne : m ≠ sep := by
+                intro heq
+                rw [heq] at hpf hpf'
+                exact (ne_true_of_eq_false hpf) hpf'
+              have hlt : (cₘ :: m).length < (cₘ :: sep).length := IsPrefix.length_lt_of_ne
+                ((prefix_cons_inj cₘ).mpr <| IsPrefix.iff_isPrefixOf.mpr hpf') (by simp [hne])
+              simp [splitOnList_eq_singleton_of_length_lt hlt]
+              sorry
+            | false =>
+              let ⟨c₂', cₘ', pre, suf₂, sufₘ, hc, heq₂, heqₘ⟩ :=
+                not_prefix_and_not_prefix_symm_iff_exists.mp
+                ⟨mt IsPrefix.iff_isPrefixOf.mp (ne_true_of_eq_false hpf),
+                 mt IsPrefix.iff_isPrefixOf.mp (ne_true_of_eq_false hpf')⟩
+              have : utf8Len sufₘ < utf8Len m := by
+                rw [heqₘ, utf8Len_append, utf8Len_cons, ← Nat.add_assoc, Nat.add_comm _
+                  (utf8Len sufₘ), Nat.add_assoc]
+                exact Nat.lt_add_of_pos_right (Nat.add_pos_right _ (csize_pos cₘ'))
+              conv => lhs; rw [heqₘ]; arg 2; rw [heq₂]
+              rw [splitOnListAux_append_cons_append_cons_of_ne c₂' cₘ' [cₘ] pre suf₂ l sufₘ hc,
+                splitOnListAux_nil_eq_modifyHead_append_splitOnList ([cₘ]++pre++c₂'::suf₂)
+                (l++[cₘ]++pre++[cₘ']) sufₘ (by simp)]
+              rw [heqₘ, heq₂]
+              sorry
+    · next hhd =>
+      have hnpf : ¬(cₛ :: sep).isPrefixOf (cₘ :: m) := by
+        intro hpf
+        simp [isPrefixOf] at hpf
+        exact hhd hpf.1.symm
+      simp only [splitOnListAux_nil_eq_modifyHead_append_splitOnList (cₛ :: sep) (l ++ [cₘ]) m (by
+        simp), by simpa only [tail_cons, ne_eq, not_false_eq_true, head_cons] using
+        splitOnList_of_ne_nil_of_not_isPrefixOf (by simp) hnpf, head_cons, tail_cons,
+        modifyHead_modifyHead]
+      simp
+termination_by utf8Len m
+
+namespace Test
+set_option linter.missingDocs false
+
+def l := "ABC".1
+def cₘ := '<'
+def pre := "<".1
+def cₘ' := '<'
+def c₂' := '$'
+def sufₘ := "$>>DEF".1
+def suf₂ := ">>DEF".1
+
+#eval (modifyHead (fun x => l ++ [cₘ] ++ pre ++ [cₘ'] ++ x) (splitOnList sufₘ ([cₘ] ++ pre ++ c₂' ::
+  suf₂))).map String.mk
+#eval (modifyHead (fun x => l ++ x) (splitOnList (cₘ :: (pre ++ cₘ' :: sufₘ)) (cₘ :: (pre ++ c₂' :: suf₂)))).map
+  String.mk
+
+def m := cₘ :: (pre ++ cₘ' :: sufₘ)
+def sep := cₘ :: (pre ++ c₂' :: suf₂)
+theorem h : sep ≠ [] := by simp [sep]
+
+#eval String.mk m
+#eval String.mk sep
+
+#eval (splitOnListAux l sep [] m h).map String.mk
+#eval (modifyHead (l ++ ·) (splitOnList m sep)).map String.mk
+
+end Test
+end List
+
+namespace String
+
+theorem splitOnAux_of_valid (sep₁ sep₂ l m r acc) (h : sep₂ ≠ []) :
+    splitOnAux ⟨l ++ m ++ sep₁ ++ r⟩ ⟨sep₁ ++ sep₂⟩ ⟨utf8Len l⟩ ⟨utf8Len (l ++ m ++ sep₁)⟩
+      ⟨utf8Len sep₁⟩ acc = acc.reverse ++ (List.splitOnListAux sep₁ sep₂ m r h).map mk := by
+  obtain ⟨c₂, sep₂, rfl⟩ := sep₂.exists_cons_of_ne_nil h
+  rw [splitOnAux, List.splitOnListAux]
+  simp only [List.append_assoc, utf8Len_append, atEnd_iff, endPos_eq, Pos.mk_le_mk,
+    Nat.add_le_add_iff_left, Nat.add_right_le_self, utf8Len_eq_zero, by simpa only
+    [List.append_assoc, utf8Len_append] using (⟨get_of_valid (l++m++sep₁) r, next_of_valid
+    (l++m++sep₁) (r.headD default) r, extract_of_valid l (m++sep₁) r⟩ : _∧_∧_),  List.reverse_cons,
+    get_of_valid, List.headD_cons, beq_iff_eq, next, Pos.addChar_eq, utf8Len_cons,
+    Nat.add_left_le_self, Pos.sub_eq, dite_eq_ite]
+  split
+  · simp
+  · next hls =>
+    obtain ⟨cᵣ, r, rfl⟩ := r.exists_cons_of_ne_nil hls
+    simp only [List.headD_cons, List.head_cons, List.tail_cons, false_or]
+    split
+    · next hc =>
+      subst c₂
+      rw [← Nat.add_assoc, Nat.add_assoc, Nat.add_sub_cancel, Nat.add_assoc]
+      split
+      · subst sep₂
+        simpa [by simpa using extract_of_valid l m (sep₁++cᵣ::r)] using
+          splitOnAux_of_valid [] (sep₁++[cᵣ]) (l++m++sep₁++[cᵣ]) [] r (⟨m⟩::acc) (by simp)
+      · next hsp₂ =>
+        simpa using splitOnAux_of_valid (sep₁++[cᵣ]) sep₂ l m r acc hsp₂
+    · next hc =>
+      simpa [Nat.add_assoc] using splitOnAux_of_valid [] (sep₁++c₂::sep₂) l (m++sep₁++[cᵣ]) r acc
+        (by simp)
+
+theorem splitOn_of_valid (s sep) : splitOn s sep = (List.splitOnList s.1 sep.1).map mk := by
+  simp only [splitOn, beq_iff_eq]
+  split
+  · next hsp => simp [hsp, List.splitOnList]
+  · next hsp =>
+    have aux := by simpa using splitOnAux_of_valid [] sep.1 [] [] s.1 [] (hsp ∘ ext)
+    rw [aux]; clear aux
+    apply congrArg (List.map mk)
+    simpa only [List.nil_append, ← Function.id_def, List.modifyHead_id]
+      using List.splitOnListAux_nil_eq_modifyHead_append_splitOnList sep.1 [] s.1 (by rwa [ext_iff]
+        at hsp)
 
 @[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
   extract_zero_endPos _
