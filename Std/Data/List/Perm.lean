@@ -476,14 +476,10 @@ theorem Perm.diff_right {l₁ l₂ : List α} (t : List α) (h : l₁ ~ l₂) : 
   induction t generalizing l₁ l₂ h with simp only [List.diff]
   | nil => exact h
   | cons x t ih =>
-    simp only [elem_eq_mem, decide_eq_true_eq]
-    split <;> rename_i hx
-    · simp only [Perm.mem_iff h] at hx
-      simp [hx]
-      exact ih (h.erase _)
-    · simp only [Perm.mem_iff h] at hx
-      simp [hx]
-      exact ih h
+    simp only [elem_eq_mem, decide_eq_true_eq, Perm.mem_iff h]
+    split
+    · exact ih (h.erase _)
+    · exact ih h
 
 theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l.diff t₁ = l.diff t₂ := by
   induction h generalizing l with try simp [List.diff]
