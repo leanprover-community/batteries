@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: nightly-testing # checkout nightly-testing branch
         fetch-depth: 0 # checkout all branches so that we can push from `nightly-testing` to `nightly-testing-YYYY-MM-DD`
@@ -73,7 +73,7 @@ jobs:
           'num_before': 1,
           'num_after': 0,
           'narrow': [{'operator': 'stream', 'operand': 'nightly-testing'}, {'operator': 'topic', 'operand': 'Std status updates'}],
-          'apply_markdown': True
+          'apply_markdown': False
         }
         response = client.get_messages(request)
         messages = response['messages']
