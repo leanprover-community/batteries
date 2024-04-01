@@ -2350,6 +2350,15 @@ theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
 
+theorem cons_prefix_iff : a :: l₁ <+: b :: l₂ ↔ a = b ∧ l₁ <+: l₂ := by
+  constructor
+  · rintro ⟨L, hL⟩
+    simp only [cons_append] at hL
+    injection hL with hLLeft hLRight
+    exact ⟨hLLeft, ⟨L, hLRight⟩⟩
+  · rintro ⟨rfl, h⟩
+    rwa [prefix_cons_inj]
+
 /-! ### drop -/
 
 theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop_subset _ _ h
