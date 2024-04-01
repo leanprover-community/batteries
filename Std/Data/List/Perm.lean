@@ -497,19 +497,15 @@ theorem Perm.diff {l₁ l₂ t₁ t₂ : List α} (hl : l₁ ~ l₂) (ht : t₁ 
 
 theorem Subperm.diff_right {l₁ l₂ : List α} (h : l₁ <+~ l₂) (t : List α) :
     l₁.diff t <+~ l₂.diff t := by
-  induction t generalizing l₁ l₂ h with
-  | nil => simp only [List.diff]; exact h
+  induction t generalizing l₁ l₂ h with simp [List.diff, elem_eq_mem, *]
   | cons x t ih =>
-    simp only [List.diff]; split <;> rename_i hx1
-    · have : x ∈ l₂ := h.subset (mem_of_elem_eq_true hx1)
-      simp [this]
-      apply ih
-      apply h.erase
-    · split <;> rename_i hx2
-      · apply ih
-        have := h.erase x
-        simpa [erase_of_not_mem (hx1 ∘ elem_eq_true_of_mem)] using this
-      · apply ih h
+    split <;> rename_i hx1
+    · simp [h.subset hx1]
+      exact ih (h.erase _)
+    · split
+      · rw [← erase_of_not_mem hx1]
+        exact ih (h.erase _)
+      · exact ih h
 
 theorem erase_cons_subperm_cons_erase (a b : α) (l : List α) :
     (a :: l).erase b <+~ a :: l.erase b := by
