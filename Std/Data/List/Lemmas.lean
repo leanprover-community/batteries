@@ -98,9 +98,7 @@ theorem elem_iff [BEq α] [LawfulBEq α] {a : α} {as : List α} :
     elem a as = true ↔ a ∈ as := ⟨mem_of_elem_eq_true, elem_eq_true_of_mem⟩
 
 @[simp] theorem elem_eq_mem [BEq α] [LawfulBEq α] (a : α) (as : List α) :
-    elem a as = decide (a ∈ as) := by
-    apply Bool.eq_iff_iff.mpr
-    simp only [decide_eq_true_eq, elem_iff]
+    elem a as = decide (a ∈ as) := by rw [Bool.eq_iff_iff, elem_iff, decide_eq_true_iff]
 
 theorem mem_of_ne_of_mem {a y : α} {l : List α} (h₁ : a ≠ y) (h₂ : a ∈ y :: l) : a ∈ l :=
   Or.elim (mem_cons.mp h₂) (absurd · h₁) (·)
