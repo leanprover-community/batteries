@@ -644,7 +644,6 @@ theorem head!_of_head? [Inhabited α] : ∀ {l : List α}, head? l = some a → 
   | _a::_l, rfl => rfl
 
 theorem head?_eq_head : ∀ l h, @head? α l = some (head l h)
-  | [], h => nomatch h rfl
   | _::_, _ => rfl
 
 /-! ### tail -/
