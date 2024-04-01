@@ -753,7 +753,7 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
 @[simp] theorem getElem_eq_get (l : List α) (i : Nat) (h) : l[i]'h = l.get ⟨i, h⟩ := rfl
 
 @[simp] theorem getElem?_eq_get? (l : List α) (i : Nat) : l[i]? = l.get? i := by
-  unfold getElem?; split
+  simp only [getElem?]; split
   · exact (get?_eq_get ‹_›).symm
   · exact (get?_eq_none.2 <| Nat.not_lt.1 ‹_›).symm
 
