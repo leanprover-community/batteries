@@ -69,7 +69,7 @@ theorem reinsertAux_size [Hashable α] (data : Buckets α β) (a : α) (b : β) 
 theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b : β} (H : data.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
       haveI := mkIdx data.2 (hash a).toUSize
-      (data.val[this.1]'this.2).All fun x _ => ¬(a == x)) :
+      data.val[this.1].All fun x _ => ¬(a == x)) :
     (reinsertAux data a b).WF :=
   H.update (.cons h₁) fun
     | _, _, .head .. => rfl

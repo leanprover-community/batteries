@@ -14,31 +14,12 @@ import Lean.Elab.Tactic.BuiltinTactic
 namespace Std.Tactic
 open Lean Parser.Tactic Elab Command Elab.Tactic Meta
 
-/-- `exfalso` converts a goal `⊢ tgt` into `⊢ False` by applying `False.elim`. -/
-macro "exfalso" : tactic => `(tactic| refine False.elim ?_)
-
 /--
 `_` in tactic position acts like the `done` tactic: it fails and gives the list
 of goals if there are any. It is useful as a placeholder after starting a tactic block
 such as `by _` to make it syntactically correct and show the current goal.
 -/
 macro "_" : tactic => `(tactic| {})
-
-@[inherit_doc failIfSuccess]
-syntax (name := failIfSuccessConv) "fail_if_success " Conv.convSeq : conv
-
-attribute [tactic failIfSuccessConv] evalFailIfSuccess
-
-/-- We allow the `rfl` tactic to also use `Iff.rfl`. -/
--- `rfl` was defined earlier in Lean4, at src/Lean/Init/Tactics.lean
--- Later we want to allow `rfl` to use all relations marked with an attribute.
-macro_rules | `(tactic| rfl) => `(tactic| exact Iff.rfl)
-
-macro_rules | `(tactic| rfl) => `(tactic| exact HEq.rfl)
-
-/-- `rwa` calls `rw`, then closes any remaining goals using `assumption`. -/
-macro "rwa " rws:rwRuleSeq loc:(location)? : tactic =>
-  `(tactic| (rw $rws:rwRuleSeq $[$loc:location]?; assumption))
 
 /--
 Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
@@ -99,12 +80,8 @@ example (h : ∀ x : Nat, x = x → True) : True := by
 elab "eapply " e:term : tactic =>
   evalApplyLikeTactic (·.apply (cfg := {newGoals := .nonDependentOnly})) e
 
-/--
-Tries to solve the goal using a canonical proof of `True`, or the `rfl` tactic.
-Unlike `trivial` or `trivial'`, does not use the `contradiction` tactic.
--/
-macro (name := triv) "triv" : tactic =>
-  `(tactic| first | exact trivial | rfl | fail "triv tactic failed")
+/-- Deprecated variant of `trivial`. -/
+elab (name := triv) "triv" : tactic => throwError "`triv` has been removed; use `trivial` instead"
 
 /-- `conv` tactic to close a goal using an equality theorem. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)

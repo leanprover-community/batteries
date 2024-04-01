@@ -377,7 +377,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
-    simp [bne]; split <;> simp
+    simp; split <;> simp
     subst b
     rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + csize a⟩ by simp [hl₁, next_of_valid]]
     simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
