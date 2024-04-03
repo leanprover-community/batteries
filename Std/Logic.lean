@@ -60,7 +60,7 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
   funext fun _ => funext₂ <| h _
 
 theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
-  Iff.intro (fun hf _ => hf ▸ rfl) funext
+  ⟨congr_fun, funext⟩
 
 theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
   mt <| congrArg _
