@@ -1,5 +1,4 @@
 import Std.Tactic.Lint
-import Std.Tactic.GuardMsgs
 
 -- should be ignored as the proof contains sorry
 /-- warning: declaration uses 'sorry' -/

@@ -3,10 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Std.Classes.SetNotation
-import Std.Tactic.NoMatch
-import Std.Data.Option.Init.Lemmas
-import Std.Data.Array.Init.Lemmas
 
 namespace List
 
@@ -203,8 +199,9 @@ def enumFromTR (n : Nat) (l : List α) : List (Nat × α) :=
     | [], n => rfl
     | a::as, n => by
       rw [← show _ + as.length = n + (a::as).length from Nat.succ_add .., foldr, go as]
-      simp [enumFrom]
-  rw [Array.foldr_eq_foldr_data]; simp [go]
+      simp [enumFrom, f]
+  rw [Array.foldr_eq_foldr_data]
+  simp [go]
 
 theorem replicateTR_loop_eq : ∀ n, replicateTR.loop a n acc = replicate n a ++ acc
   | 0 => rfl
@@ -261,29 +258,6 @@ where
 protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
 
 instance : HasSubset (List α) := ⟨List.Subset⟩
-
-instance decidableBEx (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∃ x ∈ l, p x)
-  | [] => isFalse fun.
-  | x :: xs =>
-    if h₁ : p x then isTrue ⟨x, .head .., h₁⟩ else
-      match decidableBEx p xs with
-      | isTrue h₂ => isTrue <| let ⟨y, hm, hp⟩ := h₂; ⟨y, .tail _ hm, hp⟩
-      | isFalse h₂ => isFalse fun
-        | ⟨y, .tail _ h, hp⟩ => h₂ ⟨y, h, hp⟩
-        | ⟨_, .head .., hp⟩ => h₁ hp
-
-instance decidableBAll (p : α → Prop) [DecidablePred p] :
-    ∀ l : List α, Decidable (∀ x ∈ l, p x)
-  | [] => isTrue fun.
-  | x :: xs =>
-    if h₁ : p x then
-      match decidableBAll p xs with
-      | isTrue h₂ => isTrue fun
-        | y, .tail _ h => h₂ y h
-        | _, .head .. => h₁
-      | isFalse h₂ => isFalse fun H => h₂ fun y hm => H y (.tail _ hm)
-    else isFalse fun H => h₁ <| H x (.head ..)
 
 instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
   fun _ _ => decidableBAll _ _
@@ -412,26 +386,22 @@ def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
     · rw [go _ xs]; simp
   exact (go #[] _).symm
 
-/-- Inserts an element into a list without duplication. -/
-@[inline] protected def insert [BEq α] (a : α) (l : List α) : List α :=
-  if l.elem a then l else a :: l
-
 /--
 Constructs the union of two lists, by inserting the elements of `l₁` in reverse order to `l₂`.
 As a result, `l₂` will always be a suffix, but only the last occurrence of each element in `l₁`
 will be retained (but order will otherwise be preserved).
 -/
-@[inline] protected def union [DecidableEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
+@[inline] protected def union [BEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
 
-instance [DecidableEq α] : Union (List α) := ⟨List.union⟩
+instance [BEq α] : Union (List α) := ⟨List.union⟩
 
 /--
 Constructs the intersection of two lists, by filtering the elements of `l₁` that are in `l₂`.
 Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1, 1]`.
 -/
-@[inline] protected def inter [DecidableEq α] (l₁ l₂ : List α) : List α := filter (· ∈ l₂) l₁
+@[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
-instance [DecidableEq α] : Inter (List α) := ⟨List.inter⟩
+instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
 /-- `l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`. -/
 inductive Sublist {α} : List α → List α → Prop
@@ -445,11 +415,11 @@ inductive Sublist {α} : List α → List α → Prop
 @[inherit_doc] scoped infixl:50 " <+ " => Sublist
 
 /-- True if the first list is a potentially non-contiguous sub-sequence of the second list. -/
-def isSublist [DecidableEq α] : List α → List α → Bool
+def isSublist [BEq α] : List α → List α → Bool
   | [], _ => true
   | _, [] => false
   | l₁@(hd₁::tl₁), hd₂::tl₂ =>
-    if hd₁ = hd₂
+    if hd₁ == hd₂
     then tl₁.isSublist tl₂
     else l₁.isSublist tl₂
 
@@ -668,40 +638,6 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
   b' :: l'
 
 /--
-Given a function `f : α → β ⊕ γ`, `partitionMap f l` maps the list by `f`
-whilst partitioning the result it into a pair of lists, `List β × List γ`,
-partitioning the `.inl _` into the left list, and the `.inr _` into the right List.
-```
-partitionMap (id : Nat ⊕ Nat → Nat ⊕ Nat) [inl 0, inr 1, inl 2] = ([0, 2], [1])
-```
--/
-@[inline] def partitionMap (f : α → β ⊕ γ) (l : List α) : List β × List γ := go l #[] #[] where
-  /-- Auxiliary for `partitionMap`:
-  `partitionMap.go f l acc₁ acc₂ = (acc₁.toList ++ left, acc₂.toList ++ right)`
-  if `partitionMap f l = (left, right)`. -/
-  @[specialize] go : List α → Array β → Array γ → List β × List γ
-  | [], acc₁, acc₂ => (acc₁.toList, acc₂.toList)
-  | x :: xs, acc₁, acc₂ =>
-    match f x with
-    | .inl a => go xs (acc₁.push a) acc₂
-    | .inr b => go xs acc₁ (acc₂.push b)
-
-/-- Monadic generalization of `List.partition`. -/
-@[inline] def partitionM [Monad m] (p : α → m Bool) (l : List α) : m (List α × List α) :=
-  go l #[] #[]
-where
-  /-- Auxiliary for `partitionM`:
-  `partitionM.go p l acc₁ acc₂` returns `(acc₁.toList ++ left, acc₂.toList ++ right)`
-  if `partitionM p l` returns `(left, right)`. -/
-  @[specialize] go : List α → Array α → Array α → m (List α × List α)
-  | [], acc₁, acc₂ => pure (acc₁.toList, acc₂.toList)
-  | x :: xs, acc₁, acc₂ => do
-    if ← p x then
-      go xs (acc₁.push x) acc₂
-    else
-      go xs acc₁ (acc₂.push x)
-
-/--
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
 -/
@@ -887,6 +823,35 @@ inductive Forall₂ (R : α → β → Prop) : List α → List β → Prop
 
 attribute [simp] Forall₂.nil
 
+@[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
+    Forall₂ R (a :: l₁) (b :: l₂) ↔ R a b ∧ Forall₂ R l₁ l₂ :=
+  ⟨fun | .cons h tail => ⟨h, tail⟩, fun ⟨head, tail⟩ => .cons head tail⟩
+
+/--
+Check for all elements `a`, `b`, where `a` and `b` are the nth element of the first and second
+List respectively, that `r a b = true`.
+-/
+def all₂ (r : α → β → Bool) : List α → List β → Bool
+  | [], [] => true
+  | a::as, b::bs =>
+    if r a b then
+      all₂ r as bs
+    else false
+  | _, _ => false
+
+@[simp] theorem all₂_eq_true {r : α → β → Bool} :
+    ∀ l₁ l₂, all₂ r l₁ l₂ ↔ Forall₂ (r · ·) l₁ l₂
+  | [], [] => by simp [all₂]
+  | a::as, b::bs => by
+    by_cases h : r a b
+      <;> simp [all₂, h, all₂_eq_true, forall₂_cons]
+  | _::_, [] | [], _::_ => by
+    simp [all₂]
+    exact nofun
+
+instance {R : α → β → Prop} [∀ a b, Decidable (R a b)] : ∀ l₁ l₂, Decidable (Forall₂ R l₁ l₂) :=
+  fun l₁ l₂ => decidable_of_iff (all₂ (R · ·) l₁ l₂) (by simp [all₂_eq_true])
+
 end Forall₂
 
 /--
@@ -1035,7 +1000,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).toList
+def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).data
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
@@ -1164,7 +1129,7 @@ instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) 
 Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [DecidableEq α] : List α → List α := pwFilter (· ≠ ·)
+@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
@@ -1654,4 +1619,14 @@ See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 -/
 def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
-end List
+/--
+`O(|l| + |r|)`. Merge two lists using `s` as a switch.
+-/
+def merge (s : α → α → Bool) (l r : List α) : List α :=
+  loop l r []
+where
+  /-- Inner loop for `List.merge`. Tail recursive. -/
+  loop : List α → List α → List α → List α
+  | [], r, t => reverseAux t r
+  | l, [], t => reverseAux t l
+  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)

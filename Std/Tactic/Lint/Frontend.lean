@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
 import Lean.Util.Paths
+import Lean.Elab.Command
 import Std.Tactic.Lint.Basic
 import Std.Tactic.OpenPrivate
 

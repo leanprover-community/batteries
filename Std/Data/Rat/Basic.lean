@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Std.Data.Nat.Gcd
 import Std.Data.Int.DivMod
-import Std.Tactic.Ext
 
 /-! # Basics for the Rational Numbers -/
 
@@ -88,6 +87,8 @@ namespace Rat
 /-- Embedding of `Int` in the rational numbers. -/
 def ofInt (num : Int) : Rat := { num, reduced := Nat.coprime_one_right _ }
 
+instance : NatCast Rat where
+  natCast n := ofInt n
 instance : IntCast Rat := ⟨ofInt⟩
 
 instance : OfNat Rat n := ⟨n⟩
@@ -98,7 +99,7 @@ instance : OfNat Rat n := ⟨n⟩
 /-- Form the quotient `n / d` where `n d : Int`. -/
 def divInt : Int → Int → Rat
   | n, .ofNat d => inline (mkRat n d)
-  | n, .negSucc d => normalize (-n) d.succ (fun.)
+  | n, .negSucc d => normalize (-n) d.succ nofun
 
 @[inherit_doc] scoped infixl:70 " /. " => Rat.divInt
 

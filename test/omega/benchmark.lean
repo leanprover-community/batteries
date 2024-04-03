@@ -1,4 +1,3 @@
-import Std.Tactic.Omega.Frontend
 
 /-!
 # Benchmarking the `omega` tactic
@@ -57,8 +56,6 @@ Benchmark 1: lake env lean test/omega/benchmark.lean
   Range (min … max):    2.349 s …  2.372 s    10 runs
 
 -/
-
-open Std.Tactic.Omega
 
 example : True := by
   fail_if_success omega
@@ -313,8 +310,6 @@ example (a : Int) (ha : 0 ≤ a) : 0 * 0 ≤ 2 * a := by omega
 example (x y : Int) (h : x < y) : x ≠ y := by omega
 
 example (x y : Int) (h : x < y) : ¬ x = y := by omega
-
-example (x : Int) : id x ≥ x := by omega
 
 example (prime : Nat → Prop) (x y z : Int) (h1 : 2 * x + ((-3) * y) < 0) (h2 : (-4) * x + 2*  z < 0)
     (h3 : 12 * y + (-4) * z < 0) (_ : prime 7) : False := by omega

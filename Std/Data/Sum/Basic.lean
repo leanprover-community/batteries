@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
-import Std.Logic
-
 /-!
 # Disjoint union of types
 
@@ -65,16 +63,6 @@ def getLeft : (ab : α ⊕ β) → ab.isLeft → α
 def getRight : (ab : α ⊕ β) → ab.isRight → β
   | inr b, _ => b
 
-/-- Check if a sum is `inl` and if so, retrieve its contents. -/
-def getLeft? : α ⊕ β → Option α
-  | inl a => some a
-  | inr _ => none
-
-/-- Check if a sum is `inr` and if so, retrieve its contents. -/
-def getRight? : α ⊕ β → Option β
-  | inr b => some b
-  | inl _ => none
-
 @[simp] theorem isLeft_inl : (inl x : α ⊕ β).isLeft = true := rfl
 @[simp] theorem isLeft_inr : (inr x : α ⊕ β).isLeft = false := rfl
 @[simp] theorem isRight_inl : (inl x : α ⊕ β).isRight = false := rfl
@@ -128,9 +116,9 @@ inductive LiftRel (r : α → γ → Prop) (s : β → δ → Prop) : α ⊕ β 
 @[simp] theorem liftRel_inl_inl : LiftRel r s (inl a) (inl c) ↔ r a c :=
   ⟨fun h => by cases h; assumption, LiftRel.inl⟩
 
-@[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := fun.
+@[simp] theorem not_liftRel_inl_inr : ¬LiftRel r s (inl a) (inr d) := nofun
 
-@[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := fun.
+@[simp] theorem not_liftRel_inr_inl : ¬LiftRel r s (inr b) (inl c) := nofun
 
 @[simp] theorem liftRel_inr_inr : LiftRel r s (inr b) (inr d) ↔ s b d :=
   ⟨fun h => by cases h; assumption, LiftRel.inr⟩
@@ -165,7 +153,7 @@ attribute [simp] Lex.sep
 @[simp] theorem lex_inr_inr : Lex r s (inr b₁) (inr b₂) ↔ s b₁ b₂ :=
   ⟨fun h => by cases h; assumption, Lex.inr⟩
 
-@[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) := fun.
+@[simp] theorem lex_inr_inl : ¬Lex r s (inr b) (inl a) := nofun
 
 instance instDecidableRelSumLex [DecidableRel r] [DecidableRel s] : DecidableRel (Lex r s)
   | inl _, inl _ => decidable_of_iff' _ lex_inl_inl

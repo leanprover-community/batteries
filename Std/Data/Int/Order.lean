@@ -3,11 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Deniz Aydin, Floris van Doorn, Mario Carneiro
 -/
-import Std.Data.Int.Init.Order
-import Std.Data.Option.Basic
-import Std.Tactic.RCases
-import Std.Tactic.ByCases
-import Std.Tactic.Omega
 import Std.Data.Nat.Lemmas
 
 /-!
@@ -23,17 +18,6 @@ namespace Int
 protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
 
 protected theorem le_of_not_le {a b : Int} : ¬ a ≤ b → b ≤ a := (Int.le_total a b).resolve_left
-
-protected theorem min_eq_left {a b : Int} (h : a ≤ b) : min a b = a := by simp [Int.min_def, h]
-
-protected theorem min_eq_right {a b : Int} (h : b ≤ a) : min a b = b := by
-  rw [Int.min_comm a b]; exact Int.min_eq_left h
-
-protected theorem max_eq_right {a b : Int} (h : a ≤ b) : max a b = b := by
-  simp [Int.max_def, h, Int.not_lt.2 h]
-
-protected theorem max_eq_left {a b : Int} (h : b ≤ a) : max a b = a := by
-  rw [← Int.max_comm b a]; exact Int.max_eq_right h
 
 @[simp] theorem negSucc_not_pos (n : Nat) : 0 < -[n+1] ↔ False := by
   simp only [Int.not_lt, iff_false]; constructor
@@ -538,59 +522,8 @@ theorem natAbs_lt_natAbs_of_nonneg_of_lt {a b : Int}
 theorem eq_natAbs_iff_mul_eq_zero : natAbs a = n ↔ (a - n) * (a + n) = 0 := by
   rw [natAbs_eq_iff, Int.mul_eq_zero, ← Int.sub_neg, Int.sub_eq_zero, Int.sub_eq_zero]
 
-
-
 /-! ### toNat -/
-
-theorem toNat_eq_max : ∀ a : Int, (toNat a : Int) = max a 0
-  | (n : Nat) => (Int.max_eq_left (ofNat_zero_le n)).symm
-  | -[n+1] => (Int.max_eq_right (Int.le_of_lt (negSucc_lt_zero n))).symm
-
-@[simp] theorem toNat_zero : (0 : Int).toNat = 0 := rfl
-
-@[simp] theorem toNat_one : (1 : Int).toNat = 1 := rfl
-
-@[simp] theorem toNat_of_nonneg {a : Int} (h : 0 ≤ a) : (toNat a : Int) = a := by
-  rw [toNat_eq_max, Int.max_eq_left h]
-
-@[simp] theorem toNat_ofNat (n : Nat) : toNat ↑n = n := rfl
-
-@[simp] theorem toNat_ofNat_add_one {n : Nat} : ((n : Int) + 1).toNat = n + 1 := rfl
-
-theorem self_le_toNat (a : Int) : a ≤ toNat a := by rw [toNat_eq_max]; apply Int.le_max_left
-
-@[simp] theorem le_toNat {n : Nat} {z : Int} (h : 0 ≤ z) : n ≤ z.toNat ↔ (n : Int) ≤ z := by
-  rw [← Int.ofNat_le, Int.toNat_of_nonneg h]
-
-@[simp] theorem toNat_lt {n : Nat} {z : Int} (h : 0 ≤ z) : z.toNat < n ↔ z < (n : Int) := by
-  rw [← Int.not_le, ← Nat.not_le, Int.le_toNat h]
-
-theorem toNat_add {a b : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) : (a + b).toNat = a.toNat + b.toNat :=
-  match a, b, eq_ofNat_of_zero_le ha, eq_ofNat_of_zero_le hb with
-  | _, _, ⟨_, rfl⟩, ⟨_, rfl⟩ => rfl
-
-theorem toNat_add_nat {a : Int} (ha : 0 ≤ a) (n : Nat) : (a + n).toNat = a.toNat + n :=
-  match a, eq_ofNat_of_zero_le ha with | _, ⟨_, rfl⟩ => rfl
-
-@[simp] theorem pred_toNat : ∀ i : Int, (i - 1).toNat = i.toNat - 1
-  | 0 => rfl
-  | (n+1:Nat) => by simp [ofNat_add]
-  | -[n+1] => rfl
-
-@[simp] theorem toNat_sub_toNat_neg : ∀ n : Int, ↑n.toNat - ↑(-n).toNat = n
-  | 0 => rfl
-  | (_+1:Nat) => Int.sub_zero _
-  | -[_+1] => Int.zero_sub _
-
-@[simp] theorem toNat_add_toNat_neg_eq_natAbs : ∀ n : Int, n.toNat + (-n).toNat = n.natAbs
-  | 0 => rfl
-  | (_+1:Nat) => Nat.add_zero _
-  | -[_+1] => Nat.zero_add _
 
 theorem mem_toNat' : ∀ (a : Int) (n : Nat), toNat' a = some n ↔ a = n
   | (m : Nat), n => Option.some_inj.trans ofNat_inj.symm
-  | -[m+1], n => by constructor <;> intro.
-
-@[simp] theorem toNat_neg_nat : ∀ n : Nat, (-(n : Int)).toNat = 0
-  | 0 => rfl
-  | _+1 => rfl
+  | -[m+1], n => by constructor <;> nofun

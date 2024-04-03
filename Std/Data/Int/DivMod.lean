@@ -3,10 +3,8 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
+import Std.Data.Nat.Lemmas
 import Std.Data.Int.Order
-import Std.Data.Int.Init.DivMod
-import Std.Tactic.Change
-import Std.Tactic.Simpa
 
 /-!
 # Lemmas about integer division
@@ -60,12 +58,6 @@ theorem fdiv_eq_div {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fdiv a b = div a
   | ofNat m, -[n+1] | -[m+1], succ n => (Int.neg_neg _).symm
   | ofNat m, succ n | -[m+1], 0 | -[m+1], -[n+1] => rfl
 
--- Lean 4 core provides an instance for `Div Int` using `Int.div`.
--- Even though we provide a higher priority instance in `Std.Data.Int.Basic`,
--- we provide a `simp` lemma here to unfold usages of that instance back to `Int.div`.
-@[simp] theorem div_def' (a b : Int) :
-    @HDiv.hDiv Int Int Int (@instHDiv Int Int.instDivInt) a b = Int.div a b := rfl
-
 @[simp] protected theorem neg_div : ∀ a b : Int, (-a).div b = -(a.div b)
   | 0, n => by simp [Int.neg_zero]
   | succ m, (n:Nat) | -[m+1], 0 | -[m+1], -[n+1] => rfl
@@ -110,10 +102,6 @@ theorem ediv_neg' {a b : Int} (Ha : a < 0) (Hb : 0 < b) : a / b < 0 :=
   | 0 => rfl
   | succ _ => congrArg Nat.cast (Nat.div_one _)
   | -[_+1] => congrArg negSucc (Nat.div_one _)
-
-@[simp] theorem ediv_one : ∀ a : Int, a / 1 = a
-  | (_:Nat) => congrArg Nat.cast (Nat.div_one _)
-  | -[_+1]  => congrArg negSucc (Nat.div_one _)
 
 theorem div_eq_zero_of_lt {a b : Int} (H1 : 0 ≤ a) (H2 : a < b) : a.div b = 0 :=
   match a, b, eq_ofNat_of_zero_le H1, eq_succ_of_zero_lt (Int.lt_of_le_of_lt H1 H2) with
@@ -162,9 +150,6 @@ theorem add_mul_ediv_left (a : Int) {b : Int}
 
 @[simp] protected theorem fdiv_self {a : Int} (H : a ≠ 0) : a.fdiv a = 1 := by
   have := Int.mul_fdiv_cancel 1 H; rwa [Int.one_mul] at this
-
-@[simp] protected theorem ediv_self {a : Int} (H : a ≠ 0) : a / a = 1 := by
-  have := Int.mul_ediv_cancel 1 H; rwa [Int.one_mul] at this
 
 /-! ### mod -/
 
@@ -249,9 +234,6 @@ theorem fmod_eq_mod {a b : Int} (Ha : 0 ≤ a) (Hb : 0 ≤ b) : fmod a b = mod a
 
 @[simp] theorem mod_one (a : Int) : mod a 1 = 0 := by
   simp [mod_def, Int.div_one, Int.one_mul, Int.sub_self]
-
-@[local simp] theorem emod_one (a : Int) : a % 1 = 0 := by
-  simp [emod_def, Int.one_mul, Int.sub_self]
 
 @[simp] theorem fmod_one (a : Int) : a.fmod 1 = 0 := by
   simp [fmod_def, Int.one_mul, Int.sub_self]
@@ -644,7 +626,7 @@ theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) :
 
 -/
 
-@[simp] theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
+theorem emod_bmod {x : Int} {m : Nat} : bmod (x % m) m = bmod x m := by
   simp [bmod]
 
 @[simp] theorem bmod_bmod : bmod (bmod x m) m = bmod x m := by

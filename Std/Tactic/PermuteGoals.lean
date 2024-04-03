@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Mario Carneiro
 -/
 import Std.Data.List.Basic
+import Lean.Elab.Tactic.Basic
 
 /-!
 # The `on_goal`, `pick_goal`, and `swap` tactics.
