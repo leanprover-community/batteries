@@ -1286,7 +1286,7 @@ theorem set_comm (a b : α) : ∀ {n m : Nat} (l : List α), n ≠ m →
   | n+1, 0, _ :: _, _ => by simp [set]
   | 0, m+1, _ :: _, _ => by simp [set]
   | n+1, m+1, x :: t, h =>
-    congrArg _ <| set_comm a b t fun h' => h <| Nat.succ_inj'.mpr h'
+    congrArg _ <| set_comm a b t fun h' => h <| congrArg Nat.succ h'
 
 theorem set_set (a b : α) : ∀ (l : List α) (n : Nat), (l.set n a).set n b = l.set n b
   | [], _ => by simp
