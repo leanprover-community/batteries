@@ -80,12 +80,8 @@ example (h : ∀ x : Nat, x = x → True) : True := by
 elab "eapply " e:term : tactic =>
   evalApplyLikeTactic (·.apply (cfg := {newGoals := .nonDependentOnly})) e
 
-/--
-Tries to solve the goal using a canonical proof of `True`, or the `rfl` tactic.
-Unlike `trivial` or `trivial'`, does not use the `contradiction` tactic.
--/
-macro (name := triv) "triv" : tactic =>
-  `(tactic| first | exact trivial | rfl | fail "triv tactic failed")
+/-- Deprecated variant of `trivial`. -/
+elab (name := triv) "triv" : tactic => throwError "`triv` has been removed; use `trivial` instead"
 
 /-- `conv` tactic to close a goal using an equality theorem. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
