@@ -294,8 +294,8 @@ Inserts key-value pair `a, b` into the map.
 If an element equal to `a` is already in the map, it is replaced by `b`.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
-hashMap.insert "three" 3 = ofList [("one", 1), ("two", 2), ("three", 3)]
-hashMap.insert "two" 0 = ofList [("one", 1), ("two", 0)]
+hashMap.insert "three" 3 = {"one" ↦ 1, "two" ↦ 2, "three" ↦ 3}
+hashMap.insert "two" 0 = {"one" ↦ 1, "two" ↦ 0}
 ```
 -/
 def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := ⟨self.1.insert a b, self.2.insert⟩
@@ -319,8 +319,8 @@ def hashMap := ofList [("one", 1), ("two", 2)]
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
-hashMap.erase "one" = ofList [("two", 2)]
-hashMap.erase "three" = ofList [("one", 1), ("two", 2)]
+hashMap.erase "one" = {"two" ↦ 2}
+hashMap.erase "three" = {"one" ↦ 1, "two" ↦ 2}
 ```
 -/
 @[inline] def erase (self : HashMap α β) (a : α) : HashMap α β := ⟨self.1.erase a, self.2.erase⟩
@@ -329,7 +329,7 @@ hashMap.erase "three" = ofList [("one", 1), ("two", 2)]
 Performs an in-place edit of the value, ensuring that the value is used linearly.
 The function `f` is passed the original key of the entry, along with the value in the map.
 ```
-(ofList [("one", 1), ("two", 2)]).modify "one" (fun _ v => v + 1) = ofList [("one", 2), ("two", 2)]
+(ofList [("one", 1), ("two", 2)]).modify "one" (fun _ v => v + 1) = {"one" ↦ 2, "two" ↦ 2}
 ```
 -/
 def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
@@ -370,7 +370,6 @@ Looks up an element in the map with key `a`. Panics if the element is not found.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
 hashMap.find! "one" = 1
-TODO: Confirm this is the correct way to notate a panic
 hashMap.find! "three" => panic!
 ```
 -/
@@ -421,7 +420,7 @@ def mergeIfNoConflict? (_ : String) (v₁ v₂ : Nat) : Option Nat :=
   if v₁ != v₂ then none else some v₁
 
 
-mergeWithM mergeIfNoConflict? map1 map2 = some $ toList [("one", 1), ("two", 2), ("three", 3)]
+mergeWithM mergeIfNoConflict? map1 map2 = some {"one" ↦ 1, "two" ↦ 2, "three" ↦ 3}
 mergeWithM mergeIfNoConflict? map1 map3 = none
 ```
 -/
@@ -437,7 +436,7 @@ Combines two hashmaps using function `f` to combine two values at a key.
 ```
 mergeWith (fun _ v₁ v₂ => v₁ + v₂ )
   (ofList [("one", 1), ("two", 2)]) (ofList [("two", 2), ("three", 3)]) =
-    ofList [("one", 1), ("two", 4), ("three", 3)]
+    {"one" ↦ 1, "two" ↦ 4, "three" ↦ 3}
 ```
 -/
 @[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
@@ -463,9 +462,7 @@ forM checkEven (ofList [("two", 2), ("four", 4)]) = Except.ok ()
 /--
 Converts the map into a list of key-value pairs.
 ```
-TODO: confirm this acceptable
-def hashMap := ofList [("one", 1), ("two", 2)]
-hashMap.toList = [("one", 1), ("two", 2)] ∨ hashMap.toList = [("two", 2), ("one", 1)]
+(ofList [("one", 1), ("two", 2)]).toList ∈ List.permutations [("one", 1), ("two", 2)]
 ```
 -/
 def toList (self : HashMap α β) : List (α × β) := self.fold (init := []) fun r k v => (k, v)::r
@@ -473,8 +470,7 @@ def toList (self : HashMap α β) : List (α × β) := self.fold (init := []) fu
 /--
 Converts the map into an array of key-value pairs.
 ```
-def hashMap := ofList [("one", 1), ("two", 2)]
-hashMap.toArray = #[("one", 1), ("two", 2)] ∨ hashMap.toArray = #[("two", 2), ("one", 1)]
+(ofList [("one", 1), ("two", 2)]).toArray ∈ List.permutations #[("one", 1), ("two", 2)].data
 ```
 -/
 def toArray (self : HashMap α β) : Array (α × β) :=
@@ -487,7 +483,7 @@ def numBuckets (self : HashMap α β) : Nat := self.1.buckets.1.size
 Builds a `HashMap` from a list of key-value pairs.
 Values of duplicated keys are replaced by their respective last occurrences.
 ```
-ofList [("one", 1), ("one", 2)] = ofList [("one", 2)]
+ofList [("one", 1), ("one", 2)] = {"one" ↦ 2}
 ```
 -/
 def ofList [BEq α] [Hashable α] (l : List (α × β)) : HashMap α β :=
@@ -496,7 +492,7 @@ def ofList [BEq α] [Hashable α] (l : List (α × β)) : HashMap α β :=
 /--
 Variant of `ofList` which accepts a function that combines values of duplicated keys.
 ```
-ofListWith [("one", 1), ("one", 2)] (fun v₁ v₂ => v₁ + v₂) = ofList [("one", 3)]
+ofListWith [("one", 1), ("one", 2)] (fun v₁ v₂ => v₁ + v₂) = {"one" ↦ 3}
 ```
 -/
 def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → β) : HashMap α β :=
