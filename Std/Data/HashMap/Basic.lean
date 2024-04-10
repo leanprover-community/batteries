@@ -305,8 +305,8 @@ Similar to `insert`, but also returns a boolean flag indicating whether an exist
 replaced with `a => b`.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
-(hashMap.insert' "three" 3).snd = false
-(hashMap.insert' "two" 0).snd = true
+hashMap.insert' "three" 3 = ({"one" ↦ 1, "two" ↦ 2, "three" ↦ 3}, false)
+hashMap.insert' "two" 0 = ({"one" ↦ 1, "two" ↦ 0}, true)
 ```
 -/
 @[inline] def insert' (m : HashMap α β) (a : α) (b : β) : HashMap α β × Bool :=
@@ -330,6 +330,7 @@ Performs an in-place edit of the value, ensuring that the value is used linearly
 The function `f` is passed the original key of the entry, along with the value in the map.
 ```
 (ofList [("one", 1), ("two", 2)]).modify "one" (fun _ v => v + 1) = {"one" ↦ 2, "two" ↦ 2}
+(ofList [("one", 1), ("two", 2)]).modify "three" (fun _ v => v + 1) = {"one" ↦ 1, "two" ↦ 2}
 ```
 -/
 def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
