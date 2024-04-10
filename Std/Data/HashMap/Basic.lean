@@ -462,7 +462,8 @@ forM checkEven (ofList [("two", 2), ("four", 4)]) = Except.ok ()
 /--
 Converts the map into a list of key-value pairs.
 ```
-(ofList [("one", 1), ("two", 2)]).toList ∈ List.permutations [("one", 1), ("two", 2)]
+open List
+(ofList [("one", 1), ("two", 2)]).toList ~ [("one", 1), ("two", 2)]
 ```
 -/
 def toList (self : HashMap α β) : List (α × β) := self.fold (init := []) fun r k v => (k, v)::r
@@ -470,7 +471,8 @@ def toList (self : HashMap α β) : List (α × β) := self.fold (init := []) fu
 /--
 Converts the map into an array of key-value pairs.
 ```
-(ofList [("one", 1), ("two", 2)]).toArray ∈ List.permutations #[("one", 1), ("two", 2)].data
+open List
+(ofList [("one", 1), ("two", 2)]).toArray.data ~ #[("one", 1), ("two", 2)].data
 ```
 -/
 def toArray (self : HashMap α β) : Array (α × β) :=
