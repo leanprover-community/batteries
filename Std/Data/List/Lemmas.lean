@@ -2745,3 +2745,46 @@ theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l
       split
       · apply mem_cons_of_mem; exact mem_merge_right s h
       · apply mem_cons_of_mem; exact mem_merge_right s h'
+
+/-! ### lt -/
+
+theorem lt_irrefl' [LT α] (lt_irrefl : ∀ x : α, ¬x < x) (l : List α) : ¬l < l := by
+  induction l with
+  | nil => nofun
+  | cons a l ih => intro
+    | .head _ _ h => exact lt_irrefl _ h
+    | .tail _ _ h => exact ih h
+
+theorem lt_trans' [LT α] [DecidableRel (@LT.lt α _)]
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (le_trans : ∀ {x y z : α}, ¬x < y → ¬y < z → ¬x < z)
+    {l₁ l₂ l₃ : List α} (h₁ : l₁ < l₂) (h₂ : l₂ < l₃) : l₁ < l₃ := by
+  induction h₁ generalizing l₃ with
+  | nil => let _::_ := l₃; exact List.lt.nil ..
+  | @head a l₁ b l₂ ab =>
+    match h₂ with
+    | .head l₂ l₃ bc => exact List.lt.head _ _ (lt_trans ab bc)
+    | .tail _ cb ih =>
+      exact List.lt.head _ _ <| Decidable.by_contra (le_trans · cb ab)
+  | @tail a l₁ b l₂ ab ba h₁ ih2 =>
+    match h₂ with
+    | .head l₂ l₃ bc =>
+      exact List.lt.head _ _ <| Decidable.by_contra (le_trans ba · bc)
+    | .tail bc cb ih =>
+      exact List.lt.tail (le_trans ab bc) (le_trans cb ba) (ih2 ih)
+
+theorem lt_antisymm' [LT α]
+    (lt_antisymm : ∀ {x y : α}, ¬x < y → ¬y < x → x = y)
+    {l₁ l₂ : List α} (h₁ : ¬l₁ < l₂) (h₂ : ¬l₂ < l₁) : l₁ = l₂ := by
+  induction l₁ generalizing l₂ with
+  | nil =>
+    cases l₂ with
+    | nil => rfl
+    | cons b l₂ => cases h₁ (.nil ..)
+  | cons a l₁ ih =>
+    cases l₂ with
+    | nil => cases h₂ (.nil ..)
+    | cons b l₂ =>
+      have ab : ¬a < b := fun ab => h₁ (.head _ _ ab)
+      cases lt_antisymm ab (fun ba => h₂ (.head _ _ ba))
+      rw [ih (fun ll => h₁ (.tail ab ab ll)) (fun ll => h₂ (.tail ab ab ll))]

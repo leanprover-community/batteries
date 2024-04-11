@@ -3,9 +3,21 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+import Std.Data.UInt
 
 @[ext] theorem Char.ext : {a b : Char} → a.val = b.val → a = b
   | ⟨_,_⟩, ⟨_,_⟩, rfl => rfl
+
+theorem Char.ext_iff {x y : Char} : x = y ↔ x.val = y.val := ⟨congrArg _, Char.ext⟩
+
+theorem Char.le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=
+  Char.ext_iff.trans UInt32.le_antisymm_iff
+
+theorem Char.le_antisymm {x y : Char} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
+  Char.le_antisymm_iff.2 ⟨h1, h2⟩
+
+instance : Std.TransOrd Char := .compareOfLessAndEq_of_le
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt.1 Char.le_antisymm
 
 namespace String
 
