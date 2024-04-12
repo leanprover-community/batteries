@@ -155,11 +155,11 @@ namespace Subarray
 The empty subarray.
 -/
 protected def empty : Subarray α where
-  as := #[]
+  array := #[]
   start := 0
   stop := 0
-  h₁ := Nat.le_refl 0
-  h₂ := Nat.le_refl 0
+  start_le_stop := Nat.le_refl 0
+  stop_le_array_size := Nat.le_refl 0
 
 instance : EmptyCollection (Subarray α) :=
   ⟨Subarray.empty⟩
@@ -192,7 +192,7 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
       let tail :=
         { as with
           start := as.start + 1
-          h₁ := Nat.le_of_lt_succ $ Nat.succ_lt_succ h  }
+          start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h  }
       some (head, tail)
     else
       none
