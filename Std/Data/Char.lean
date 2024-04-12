@@ -16,8 +16,8 @@ theorem Char.le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=
 theorem Char.le_antisymm {x y : Char} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   Char.le_antisymm_iff.2 ⟨h1, h2⟩
 
-instance : Std.TransOrd Char := .compareOfLessAndEq_of_le
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt.1 Char.le_antisymm
+instance : Std.LawfulOrd Char := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
 
 namespace String
 

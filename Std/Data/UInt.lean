@@ -31,6 +31,9 @@ theorem UInt8.le_antisymm_iff {x y : UInt8} : x = y ↔ x ≤ y ∧ y ≤ x :=
 theorem UInt8.le_antisymm {x y : UInt8} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   UInt8.le_antisymm_iff.2 ⟨h1, h2⟩
 
+instance : Std.LawfulOrd UInt8 := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
+
 /-! ### UInt16 -/
 
 @[ext] theorem UInt16.ext : {x y : UInt16} → x.toNat = y.toNat → x = y
@@ -56,6 +59,9 @@ theorem UInt16.le_antisymm_iff {x y : UInt16} : x = y ↔ x ≤ y ∧ y ≤ x :=
 theorem UInt16.le_antisymm {x y : UInt16} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   UInt16.le_antisymm_iff.2 ⟨h1, h2⟩
 
+instance : Std.LawfulOrd UInt16 := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
+
 /-! ### UInt32 -/
 
 @[ext] theorem UInt32.ext : {x y : UInt32} → x.toNat = y.toNat → x = y
@@ -80,6 +86,9 @@ theorem UInt32.le_antisymm_iff {x y : UInt32} : x = y ↔ x ≤ y ∧ y ≤ x :=
 theorem UInt32.le_antisymm {x y : UInt32} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   UInt32.le_antisymm_iff.2 ⟨h1, h2⟩
 
+instance : Std.LawfulOrd UInt32 := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
+
 /-! ### UInt64 -/
 
 @[ext] theorem UInt64.ext : {x y : UInt64} → x.toNat = y.toNat → x = y
@@ -102,6 +111,9 @@ theorem UInt64.le_antisymm_iff {x y : UInt64} : x = y ↔ x ≤ y ∧ y ≤ x :=
 
 theorem UInt64.le_antisymm {x y : UInt64} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   UInt64.le_antisymm_iff.2 ⟨h1, h2⟩
+
+instance : Std.LawfulOrd UInt64 := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
 
 /-! ### USize -/
 
@@ -141,5 +153,5 @@ theorem USize.le_antisymm_iff {x y : USize} : x = y ↔ x ≤ y ∧ y ≤ x :=
 theorem USize.le_antisymm {x y : USize} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
   USize.le_antisymm_iff.2 ⟨h1, h2⟩
 
-instance : Std.TransOrd USize := .compareOfLessAndEq_of_le
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt.1 USize.le_antisymm
+instance : Std.LawfulOrd USize := .compareOfLessAndEq
+  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm

@@ -32,6 +32,9 @@ theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ <
 instance : Std.TransOrd String := .compareOfLessAndEq
   String.lt_irrefl String.lt_trans String.lt_antisymm
 
+instance : Std.LTOrd String := .compareOfLessAndEq
+  String.lt_irrefl String.lt_trans String.lt_antisymm
+
 instance : Std.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
 
 @[simp] theorem default_eq : default = "" := rfl
