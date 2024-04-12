@@ -179,7 +179,7 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let ⟨size, buckets⟩ := m
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
-  bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else m
+  bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else ⟨size, buckets⟩
 
 /-- Map a function over the values in the map. -/
 @[inline] def mapVal (f : α → β → γ) (self : Imp α β) : Imp α γ :=
