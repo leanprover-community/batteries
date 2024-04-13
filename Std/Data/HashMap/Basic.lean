@@ -396,7 +396,8 @@ Folds a monadic function over the elements in the map (in arbitrary order).
 def sumEven (sum: Nat) (k : String) (v : Nat) : Except String Nat :=
   if v % 2 == 0 then pure (sum + v) else throw s!"value {v} at key {k} is not even"
 
-foldM sumEven 0 (ofList [("one", 1), ("three", 3)]) = Except.error "value 3 at key three is not even"
+foldM sumEven 0 (ofList [("one", 1), ("three", 3)]) =
+  Except.error "value 3 at key three is not even"
 foldM sumEven 0 (ofList [("two", 2), ("four", 4)]) = Except.ok 6
 ```
 -/
