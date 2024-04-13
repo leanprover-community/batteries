@@ -88,6 +88,12 @@ theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z 
 
 end TransCmp
 
+instance [inst : OrientedCmp cmp] : OrientedCmp (flip cmp) where
+  symm _ _ := inst.symm ..
+
+instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
+  le_trans h1 h2 := inst.le_trans h2 h1
+
 end Std
 
 namespace Ordering

@@ -267,8 +267,8 @@ def isOrdered (cmp : α → α → Ordering)
 
 /-- The second half of Okasaki's `balance`, concerning red-red sequences in the right child. -/
 @[inline] def balance2 : RBNode α → α → RBNode α → RBNode α
-  | a, x, node red (node red b y c) z d
-  | a, x, node red b y (node red c z d) => node red (node black a x b) y (node black c z d)
+  | a, x, node red b y (node red c z d)
+  | a, x, node red (node red b y c) z d => node red (node black a x b) y (node black c z d)
   | a, x, b                             => node black a x b
 
 /-- Returns `red` if the node is red, otherwise `black`. (Nil nodes are treated as `black`.) -/
@@ -284,10 +284,15 @@ Returns `black` if the node is black, otherwise `red`.
   | node c .. => c
   | _         => red
 
-/-- Change the color of the root to `black`. -/
+/-- Changes the color of the root to `black`. -/
 def setBlack : RBNode α → RBNode α
   | nil          => nil
   | node _ l v r => node black l v r
+
+/-- `O(n)`. Reverses the ordering of the tree without any rebalancing. -/
+@[simp] def reverse : RBNode α → RBNode α
+  | nil          => nil
+  | node c l v r => node c r.reverse v l.reverse
 
 section Insert
 
@@ -897,7 +902,7 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 
 /-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (t : RBMap α β cmp) : m PUnit :=
-  t.foldlM (fun _ k v => f k v) ⟨⟩
+  t.1.forM (fun (a, b) => f a b)
 
 instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
 
