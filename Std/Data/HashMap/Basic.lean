@@ -263,7 +263,7 @@ instance [BEq α] [Hashable α] : Inhabited (HashMap α β) where
 instance [BEq α] [Hashable α] : EmptyCollection (HashMap α β) := ⟨mkHashMap⟩
 
 /--
-Make a new empty hash map
+Make a new empty hash map.
 ```
 (empty : Std.HashMap Int Int).toList = []
 ```
