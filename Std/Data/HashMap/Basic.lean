@@ -338,6 +338,8 @@ def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α �
 
 /--
 Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
+Note that the returned key may not be identical to the input, if `==` ignores some part
+of the value.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
 hashMap.findEntry? "one" = some ("one", 1)
