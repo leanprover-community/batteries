@@ -12,7 +12,7 @@ import Std.Lean.Delaborator
 
 `#show_unused decl1 decl2 ..` will highlight every theorem or definition in the current file
 not involved in the definition of declarations `decl1`, `decl2`, etc. The result is shown
-both in the message on  `#show_unused`, as well as on the declarations themselves.
+both in the message on `#show_unused`, as well as on the declarations themselves.
 -/
 
 namespace Std.Tactic.ShowUnused
@@ -37,7 +37,7 @@ private partial def visit (n : Name) : StateM NameSet Unit := do
 /--
 `#show_unused decl1 decl2 ..` will highlight every theorem or definition in the current file
 not involved in the definition of declarations `decl1`, `decl2`, etc. The result is shown
-both in the message on  `#show_unused`, as well as on the declarations themselves.
+both in the message on `#show_unused`, as well as on the declarations themselves.
 ```
 def foo := 1
 def baz := 2
