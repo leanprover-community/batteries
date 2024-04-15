@@ -94,6 +94,7 @@ import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.SeqFocus
+import Std.Tactic.ShowUnused
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
