@@ -46,7 +46,7 @@ def bar := foo
 ```
 -/
 elab tk:"#show_unused" ids:(ppSpace colGt ident)* : command => do
-  let ns ← ids.mapM Elab.resolveGlobalConstNoOverloadWithInfo
+  let ns ← ids.mapM (Elab.Command.liftCoreM <| Elab.realizeGlobalConstNoOverloadWithInfo ·)
   let env ← getEnv
   let decls := env.constants.map₂.foldl (fun m n _ => m.insert n) {}
   let mut unused := #[]
