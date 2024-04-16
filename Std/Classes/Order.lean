@@ -123,7 +123,7 @@ theorem BEqCmp.cmp_iff_eq [BEq α] [LawfulBEq α] [BEqCmp (α := α) cmp] : cmp 
 
 /-- `LTCmp cmp` asserts that `cmp x y = .lt` and `x < y` coincide. -/
 class LTCmp [LT α] (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
-  /-- `cmp x y = .eq` holds iff `x < y` is true. -/
+  /-- `cmp x y = .lt` holds iff `x < y` is true. -/
   cmp_iff_lt : cmp x y = .lt ↔ x < y
 
 theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < x := by
@@ -131,14 +131,14 @@ theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < 
 
 /-- `LECmp cmp` asserts that `cmp x y ≠ .gt` and `x ≤ y` coincide. -/
 class LECmp [LE α] (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
-  /-- `cmp x y = .eq` holds iff `x < y` is true. -/
+  /-- `cmp x y ≠ .gt` holds iff `x ≤ y` is true. -/
   cmp_iff_le : cmp x y ≠ .gt ↔ x ≤ y
 
 theorem LTCmp.cmp_iff_ge [LE α] [LECmp (α := α) cmp] : cmp x y ≠ .lt ↔ y ≤ x := by
   rw [← OrientedCmp.cmp_ne_gt, LECmp.cmp_iff_le]
 
-/-- `LawfulCmp α` asserts that the `Ord`, `LE`, `LT` instances are all coherent with each other,
-describing a strict weak order (a linear order except for antisymmetry). -/
+/-- `LawfulCmp cmp` asserts that the `LE`, `LT`, `BEq` instances are all coherent with each other
+and with `cmp`, describing a strict weak order (a linear order except for antisymmetry). -/
 class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) extends
   TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp : Prop
 
