@@ -686,8 +686,11 @@ if it returns `.eq` we will remove the element.
 (The function `cmp k` for some key `k` is a valid cut function, but we can also use cuts that
 are not of this form as long as they are suitably monotonic.)
 -/
-@[inline] def erase (t : RBSet α cmp) (cut : α → Ordering) : RBSet α cmp :=
+@[inline] def eraseP (t : RBSet α cmp) (cut : α → Ordering) : RBSet α cmp :=
   ⟨t.1.erase cut, t.2.erase⟩
+
+/-- `O(log n)`. Remove element `x` from the tree, if present. -/
+@[inline] def erase (t : RBSet α cmp) (x : α) : RBSet α cmp := t.eraseP (cmp x)
 
 /-- `O(log n)`. Find an element in the tree using a cut function. -/
 @[inline] def findP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.find? cut
@@ -705,7 +708,7 @@ if it exists. If multiple keys in the map return `eq` under `cut`, any of them m
 @[inline] def upperBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.upperBound? cut
 
 /--
-`O(log n)`. `upperBound? k` retrieves the largest entry smaller than or equal to `k`,
+`O(log n)`. `upperBound? k` retrieves the smallest entry larger than or equal to `k`,
 if it exists.
 -/
 @[inline] def upperBound? (t : RBSet α cmp) (k : α) : Option α := t.upperBoundP? (cmp k)
@@ -1049,7 +1052,7 @@ instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
 @[inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBSet.insert t (k, v)
 
 /-- `O(log n)`. Remove an element `k` from the map. -/
-@[inline] def erase (t : RBMap α β cmp) (k : α) : RBMap α β cmp := RBSet.erase t (cmp k ·.1)
+@[inline] def erase (t : RBMap α β cmp) (k : α) : RBMap α β cmp := RBSet.eraseP t (cmp k ·.1)
 
 /-- `O(n log n)`. Build a tree from an unsorted list by inserting them one at a time. -/
 @[inline] def ofList (l : List (α × β)) (cmp : α → α → Ordering) : RBMap α β cmp :=
@@ -1067,6 +1070,13 @@ instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
 
 /-- `O(log n)`. Find the value corresponding to key `k`, or return `v₀` if it is not in the map. -/
 @[inline] def findD (t : RBMap α β cmp) (k : α) (v₀ : β) : β := (t.find? k).getD v₀
+
+/--
+`O(log n)`. `upperBound? k` retrieves the key-value pair of the smallest key
+larger than or equal to `k`, if it exists.
+-/
+@[inline] def upperBound? (t : RBMap α β cmp) (k : α) : Option (α × β) :=
+   RBSet.upperBoundP? t (cmp k ·.1)
 
 /--
 `O(log n)`. `lowerBound? k` retrieves the key-value pair of the largest key
