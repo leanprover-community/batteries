@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Fin.Basic
-import Std.Data.Array.Lemmas
+import Std.Data.List.Init.Lemmas
+import Std.Data.Array.Init.Lemmas
 
 namespace Fin
 
@@ -24,7 +25,7 @@ attribute [norm_cast] val_last
 @[simp] theorem length_list (n) : (list n).length = n := by simp [list]
 
 @[simp] theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
-  cases i; simp only [list]; rw [←Array.getElem_eq_data_get, getElem_enum, cast_mk]
+  cases i; simp only [list]; rw [← Array.getElem_eq_data_get, getElem_enum, cast_mk]
 
 @[simp] theorem list_zero : list 0 = [] := rfl
 
@@ -55,7 +56,7 @@ theorem foldl_succ (f : α → Fin (n+1) → α) (x) :
     foldl (n+1) f x = foldl n (fun x i => f x i.succ) (f x 0) := foldl_loop ..
 
 theorem foldl_eq_foldl_list (f : α → Fin n → α) (x) : foldl n f x = (list n).foldl f x := by
-  induction n using Nat.recAux generalizing x with
+  induction n generalizing x with
   | zero => rfl
   | succ n ih => rw [foldl_succ, ih, list_succ, List.foldl_cons, List.foldl_map]
 
@@ -69,7 +70,7 @@ theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : m < n) :
 theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
     foldr.loop (n+1) f ⟨m+1, h⟩ x =
       f 0 (foldr.loop n (fun i => f i.succ) ⟨m, Nat.le_of_succ_le_succ h⟩ x) := by
-  induction m using Nat.recAux generalizing x with
+  induction m generalizing x with
   | zero => simp [foldr_loop_zero, foldr_loop_succ]
   | succ m ih => rw [foldr_loop_succ, ih]; rfl
 
@@ -77,6 +78,6 @@ theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
     foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
 
 theorem foldr_eq_foldr_list (f : Fin n → α → α) (x) : foldr n f x = (list n).foldr f x := by
-  induction n using Nat.recAux with
+  induction n with
   | zero => rfl
   | succ n ih => rw [foldr_succ, ih, list_succ, List.foldr_cons, List.foldr_map]
