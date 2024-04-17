@@ -12,7 +12,7 @@ namespace Std.HashMap
 namespace Imp
 
 @[simp] theorem empty_buckets :
-    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
+    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil⟩ := rfl
 
 @[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
 

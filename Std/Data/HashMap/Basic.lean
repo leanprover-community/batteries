@@ -17,13 +17,14 @@ class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
 
 namespace Imp
 
--- structure Buckets.Imp (α : Type u) (β : Type v)
-
 /--
-The bucket array of a `HashMap` is a nonempty array of `AssocList`s.
+The bucket array of a `HashMap` is an array of `AssocList`s.
 (This type is an internal implementation detail of `HashMap`.)
+All operations assume that the array is nonempty. This fact is part of `Buckets.WF`. We do not
+bundle it here for positivity reasons (see `test/collection_positivity.lean`).
 -/
 structure Buckets (α : Type u) (β : Type v) where mk' ::
+  /-- The array of `AssocList`s making up the bucket array. -/
   b : Array (AssocList α β)
 
 namespace Buckets
@@ -138,7 +139,7 @@ def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
     let ⟨_, buckets⟩ := m
     let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
     buckets.1[i].find? a
-  else .none
+  else .none -- Will never happen for well-formed inputs
 
 /-- Returns true if the element `a` is in the map. -/
 def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
@@ -185,7 +186,7 @@ If an element equal to `a` is already in the map, it is replaced by `b`.
         { size := size', buckets := buckets' }
       else
         expand size' buckets'
-  else m
+  else m -- Will never happen for well-formed inputs
 
 /--
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
@@ -196,7 +197,7 @@ def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
     let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
     let bkt := buckets.1[i]
     bif bkt.contains a then ⟨size - 1, buckets.update i (bkt.erase a) h⟩ else ⟨size, buckets⟩
-  else m
+  else m -- Will never happen for well-formed inputs
 
 /-- Map a function over the values in the map. -/
 @[inline] def mapVal (f : α → β → γ) (self : Imp α β) : Imp α γ :=
@@ -210,7 +211,7 @@ def modify [BEq α] [Hashable α] (m : Imp α β) (a : α) (f : α → β → β
     let bkt := buckets.1[i]
     let buckets := buckets.update i .nil h -- for linearity
     ⟨size, buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h)⟩
-  else m
+  else m -- Will never happen for well-formed inputs
 
 /--
 Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
