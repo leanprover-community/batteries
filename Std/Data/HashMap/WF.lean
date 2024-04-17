@@ -35,10 +35,12 @@ theorem update_update (self : Buckets α β) (i d d' h h') :
 theorem size_eq (data : Buckets α β) :
   size data = .sum (data.1.data.map (·.toList.length)) := rfl
 
+@[simp]
 theorem mk_size : (mk n : Buckets α β).size = 0 := by
   simp [Buckets.size_eq, Buckets.mk, mkArray]
   induction n <;> simp [*, Nat.sum] <;> simpa
 
+@[simp]
 theorem mk_size' : (mk n : Buckets α β).1.size = n := by
   simp [Buckets.mk]
 
@@ -74,7 +76,7 @@ end Buckets
   split <;> simp
 
 theorem reinsertAux_size [Hashable α] (data : Buckets α β) (hd : 0 < data.1.size) (a : α) (b : β) :
-    (reinsertAux data a b).size = data.size.succ := by
+    (reinsertAux data a b).size = data.size + 1 := by
   simp [Buckets.size_eq, reinsertAux, hd]
   refine have ⟨l₁, l₂, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
   simp [h₁, Nat.succ_add]; rfl
@@ -89,14 +91,7 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
     | _, _, .head .. => rfl
     | H, _, .tail _ h => H _ h
 
-theorem List.drop_set {α : Type u} {l : List α} {a} {i j} (h : i < j) :
-    (l.set i a).drop j = l.drop j := by
-  apply List.ext
-  intro n
-  rw [List.get?_drop, List.get?_drop, List.get?_set_ne]
-  omega
-
-theorem expand_size'_step [Hashable α] (l : AssocList α β) (target : Buckets α β)
+theorem expand_size'.foldl [Hashable α] (l : AssocList α β) (target : Buckets α β)
     : (l.foldl reinsertAux target).1.size = target.1.size := by
   induction l generalizing target
   · simp
@@ -107,17 +102,17 @@ theorem expand_size'_step [Hashable α] (l : AssocList α β) (target : Buckets 
     simp at this
     rw [this]
 
-theorem expand_size_step [Hashable α] (l : AssocList α β) (target : Buckets α β)
+theorem expand_size.foldl [Hashable α] {l : AssocList α β} (target : Buckets α β)
     (ht : 0 < target.1.size) :
     (l.foldl reinsertAux target).size = target.size + l.toList.length := by
   induction l generalizing target
   · simp
   · next k v t ih =>
-    simp
+    simp only [AssocList.foldl_eq, AssocList.toList, List.foldl_cons, List.length_cons,
+      Nat.succ_eq_add_one]
     have := ih (reinsertAux target k v)
-    simp at this
-    rw [this ht, reinsertAux_size _ ht]
-    rw [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm 1]
+    simp only [Array.data_length, reinsertAux_size', AssocList.foldl_eq] at this
+    rw [this ht, reinsertAux_size _ ht, Nat.add_assoc, Nat.add_comm 1]
 
 theorem expand_size [Hashable α] {buckets : Buckets α β} (hd : 0 < buckets.1.size) :
     (expand sz buckets).buckets.size = buckets.size := by
@@ -135,12 +130,12 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} (hd : 0 < buckets.1.
         rw [expand.go]
         simp only [hi, dite_true]
         refine (ih ?_).trans ?_
-        · simpa only [newTarget, expand_size'_step]
+        · simpa only [newTarget, expand_size'.foldl]
         · rw [Array.size_eq_length_data] at hi
           rw [List.drop_eq_get_cons hi, List.map_cons, Nat.sum_cons]
           clear ih
           simp only [newSource, Array.data_set]
-          rw [List.drop_set (by omega), expand_size_step _ _ ht]
+          rw [List.drop_set_of_lt _ _ (by omega), expand_size.foldl _ ht]
           simp only [es]
           rw [Array.get_eq_getElem, Array.getElem_eq_data_get]
           simp only [Nat.add_comm, ← Nat.add_assoc]
