@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import Std.Classes.Order
 import Std.Control.ForInStep.Basic
 import Std.Tactic.Lint.Misc
+import Std.Tactic.Alias
 
 /-!
 # Red-black trees
@@ -55,16 +56,19 @@ open RBColor
 instance : EmptyCollection (RBNode α) := ⟨nil⟩
 
 /-- The minimum element of a tree is the left-most value. -/
-protected def min : RBNode α → Option α
+protected def min? : RBNode α → Option α
   | nil            => none
   | node _ nil v _ => some v
-  | node _ l _ _   => l.min
+  | node _ l _ _   => l.min?
 
 /-- The maximum element of a tree is the right-most value. -/
-protected def max : RBNode α → Option α
+protected def max? : RBNode α → Option α
   | nil            => none
   | node _ _ v nil => some v
-  | node _ _ _ r   => r.max
+  | node _ _ _ r   => r.max?
+
+@[deprecated] protected alias min := RBNode.min?
+@[deprecated] protected alias max := RBNode.max?
 
 /--
 Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
@@ -646,10 +650,13 @@ instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStrea
 @[inline] def toList (t : RBSet α cmp) : List α := t.1.toList
 
 /-- `O(log n)`. Returns the entry `a` such that `a ≤ k` for all keys in the RBSet. -/
-@[inline] protected def min (t : RBSet α cmp) : Option α := t.1.min
+@[inline] protected def min? (t : RBSet α cmp) : Option α := t.1.min?
 
 /-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBSet. -/
-@[inline] protected def max (t : RBSet α cmp) : Option α := t.1.max
+@[inline] protected def max? (t : RBSet α cmp) : Option α := t.1.max?
+
+@[deprecated] protected alias min := RBSet.min?
+@[deprecated] protected alias max := RBSet.max?
 
 instance [Repr α] : Repr (RBSet α cmp) where
   reprPrec m prec := Repr.addAppParen ("RBSet.ofList " ++ repr m.toList) prec
@@ -751,10 +758,10 @@ instance [BEq α] : BEq (RBSet α cmp) where
 def size (m : RBSet α cmp) : Nat := m.1.size
 
 /-- `O(log n)`. Returns the minimum element of the tree, or panics if the tree is empty. -/
-@[inline] def min! [Inhabited α] (t : RBSet α cmp) : α := t.min.getD (panic! "tree is empty")
+@[inline] def min! [Inhabited α] (t : RBSet α cmp) : α := t.min?.getD (panic! "tree is empty")
 
 /-- `O(log n)`. Returns the maximum element of the tree, or panics if the tree is empty. -/
-@[inline] def max! [Inhabited α] (t : RBSet α cmp) : α := t.max.getD (panic! "tree is empty")
+@[inline] def max! [Inhabited α] (t : RBSet α cmp) : α := t.max?.getD (panic! "tree is empty")
 
 /--
 `O(log n)`. Attempts to find the value with key `k : α` in `t` and panics if there is no such key.
@@ -1002,10 +1009,13 @@ instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 @[inline] def toList : RBMap α β cmp → List (α × β) := RBSet.toList
 
 /-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≤ k` for all keys in the RBMap. -/
-@[inline] protected def min : RBMap α β cmp → Option (α × β) := RBSet.min
+@[inline] protected def min? : RBMap α β cmp → Option (α × β) := RBSet.min?
 
 /-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≥ k` for all keys in the RBMap. -/
-@[inline] protected def max : RBMap α β cmp → Option (α × β) := RBSet.max
+@[inline] protected def max? : RBMap α β cmp → Option (α × β) := RBSet.max?
+
+@[deprecated] protected alias min := RBMap.min?
+@[deprecated] protected alias max := RBMap.max?
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.ofList " ++ repr m.toList) prec
