@@ -34,13 +34,11 @@ theorem update_update (self : Buckets α β) (i d d' h h') :
 theorem size_eq (data : Buckets α β) :
   size data = .sum (data.1.data.map (·.toList.length)) := rfl
 
-@[simp]
-theorem mk_size : (mk n : Buckets α β).size = 0 := by
+@[simp] theorem mk_size : (mk n : Buckets α β).size = 0 := by
   simp [Buckets.size_eq, Buckets.mk, mkArray]
   induction n <;> simp [*]
 
-@[simp]
-theorem mk_size' : (mk n : Buckets α β).1.size = n := by
+@[simp] theorem mk_size' : (mk n : Buckets α β).1.size = n := by
   simp [Buckets.mk]
 
 theorem WF.mk' [BEq α] [Hashable α] (h : 0 < n) : (Buckets.mk n : Buckets α β).WF := by
