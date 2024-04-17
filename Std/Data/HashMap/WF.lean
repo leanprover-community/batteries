@@ -37,7 +37,7 @@ theorem size_eq (data : Buckets α β) :
 @[simp]
 theorem mk_size : (mk n : Buckets α β).size = 0 := by
   simp [Buckets.size_eq, Buckets.mk, mkArray]
-  induction n <;> simp [*, Nat.sum] <;> simpa
+  induction n <;> simp [*]
 
 @[simp]
 theorem mk_size' : (mk n : Buckets α β).1.size = n := by
