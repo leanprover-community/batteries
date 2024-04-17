@@ -1370,6 +1370,13 @@ theorem any_eq_not_all_not (l : List α) (p : α → Bool) : l.any p = !l.all (!
 theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!p .) := by
   simp only [not_any_eq_all_not, Bool.not_not]
 
+/-! ### all₂ -/
+
+theorem beq_eq_all₂ [BEq α] (l₁ l₂ : List α) : (l₁ == l₂) = l₁.all₂ BEq.beq l₂ := by
+  simp [BEq.beq]
+  induction l₁ generalizing l₂ <;> cases l₂ <;> simp [List.beq, all₂]
+  next a _ ih b _ => cases a == b <;> simp [ih]
+
 /-! ### reverse -/
 
 @[simp] theorem mem_reverseAux {x : α} : ∀ {as bs}, x ∈ reverseAux as bs ↔ x ∈ as ∨ x ∈ bs
