@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.HashMap.Basic
+import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
 import Std.Data.Nat.Lemmas
+import Std.Data.List.Init.Lemmas
 
 namespace Std.HashMap
 namespace Imp
@@ -14,13 +16,12 @@ attribute [-simp] Bool.not_eq_true
 
 namespace Buckets
 
+
 @[ext] protected theorem ext : ∀ {b₁ b₂ : Buckets α β}, b₁.1.data = b₂.1.data → b₁ = b₂
   | ⟨⟨_⟩⟩, ⟨⟨_⟩⟩, rfl => rfl
 
 theorem update_data (self : Buckets α β) (i d h) :
     (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
-
-theorem update_
 
 theorem exists_of_update (self : Buckets α β) (i d h) :
     ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
@@ -36,7 +37,10 @@ theorem size_eq (data : Buckets α β) :
 
 theorem mk_size : (mk n : Buckets α β).size = 0 := by
   simp [Buckets.size_eq, Buckets.mk, mkArray]
-  induction n <;> simp [*]
+  induction n <;> simp [*, Nat.sum] <;> simpa
+
+theorem mk_size' : (mk n : Buckets α β).1.size = n := by
+  simp [Buckets.mk]
 
 theorem WF.mk' [BEq α] [Hashable α] (h : 0 < n) : (Buckets.mk n : Buckets α β).WF := by
   refine ⟨fun _ h => ?_, fun i h => ?_, ?_⟩
@@ -64,6 +68,11 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
 
 end Buckets
 
+@[simp] theorem reinsertAux_size' [Hashable α] (data : Buckets α β) (a : α) (b : β) :
+    (reinsertAux data a b).1.size = data.1.size := by
+  dsimp only [reinsertAux]
+  split <;> simp
+
 theorem reinsertAux_size [Hashable α] (data : Buckets α β) (hd : 0 < data.1.size) (a : α) (b : β) :
     (reinsertAux data a b).size = data.size.succ := by
   simp [Buckets.size_eq, reinsertAux, hd]
@@ -80,48 +89,66 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
     | _, _, .head .. => rfl
     | H, _, .tail _ h => H _ h
 
--- theorem expand_size [Hashable α] {buckets : Buckets α β} (hd : 0 < buckets.1.size) :
---     (expand sz buckets).buckets.size = buckets.size := by
---   rw [expand, go]
---   · rw [Buckets.mk_size]; simp [Buckets.size]
---   · nofun
--- where
---   go (i source) (target : Buckets α β) (ht : 0 < target.1.size)
---       (hs : ∀ j < i, source.data.getD j .nil = .nil) : (expand.go i source target).size =
---         .sum (source.data.map (·.toList.length)) + target.size := by
---     unfold expand.go; split
---     · next H =>
---       refine (go (i+1) _ _ ?a fun j hj => ?b).trans ?c <;> simp
---       · case a =>
---           simp
---       · case b =>
---         simp [List.getD_eq_get?, List.get?_set]; split
---         · cases List.get? .. <;> rfl
---         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
---       · case c =>
---         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set' H; eq ▸ ?_
---         simp [h₁, Buckets.size_eq]
---         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
---         (conv => rhs; rw [Nat.add_left_comm]); congr 1
---         rw [← Array.getElem_eq_data_get]
---         have := @reinsertAux_size α β _; simp [Buckets.size] at this
---         induction source[i].toList generalizing target-- <;> simp [*, Nat.succ_add, this _ h₁]
---         · simp
---         · next h t ih =>
---           rw [List.map_foldl]
---           rw [List.foldl_cons]
---           simp only [List.foldl_cons, List.length_cons, Nat.succ_add]
---           rw [this (reinsertAux target h.fst h.snd)]
---           simp [*, Nat.add_succ]
---     · next H =>
---       rw [(_ : Nat.sum _ = 0), Nat.zero_add]
---       rw [← (_ : source.data.map (fun _ => .nil) = source.data)]
---       · simp; induction source.data <;> simp [*]
---       refine List.ext_get (by simp) fun j h₁ h₂ => ?_
---       simp
---       have := (hs j (Nat.lt_of_lt_of_le h₂ (Nat.not_lt.1 H))).symm
---       rwa [List.getD_eq_get?, List.get?_eq_get, Option.getD_some] at this
---   termination_by source.size - i
+theorem List.drop_set {α : Type u} {l : List α} {a} {i j} (h : i < j) :
+    (l.set i a).drop j = l.drop j := by
+  apply List.ext
+  intro n
+  rw [List.get?_drop, List.get?_drop, List.get?_set_ne]
+  omega
+
+theorem expand_size'_step [Hashable α] (l : AssocList α β) (target : Buckets α β)
+    : (l.foldl reinsertAux target).1.size = target.1.size := by
+  induction l generalizing target
+  · simp
+  · next k v t ih =>
+    skip
+    simp
+    have := ih (reinsertAux target k v)
+    simp at this
+    rw [this]
+
+theorem expand_size_step [Hashable α] (l : AssocList α β) (target : Buckets α β)
+    (ht : 0 < target.1.size) :
+    (l.foldl reinsertAux target).size = target.size + l.toList.length := by
+  induction l generalizing target
+  · simp
+  · next k v t ih =>
+    simp
+    have := ih (reinsertAux target k v)
+    simp at this
+    rw [this ht, reinsertAux_size _ ht]
+    rw [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm 1]
+
+theorem expand_size [Hashable α] {buckets : Buckets α β} (hd : 0 < buckets.1.size) :
+    (expand sz buckets).buckets.size = buckets.size := by
+  rw [expand, go]
+  · rw [Buckets.mk_size, Buckets.size, Nat.add_zero, List.drop_zero]
+  · rw [Buckets.mk_size']
+    exact Nat.mul_pos hd (by decide)
+  where
+    go (i source) (target : Buckets α β) (ht : 0 < target.1.size) :
+      (expand.go i source target).size =
+        .sum ((source.data.drop i).map (·.toList.length)) + target.size := by
+      induction i, source, target using expand.go.induct
+      · next i source target hi _ es newSource newTarget ih =>
+        skip
+        rw [expand.go]
+        simp only [hi, dite_true]
+        refine (ih ?_).trans ?_
+        · simpa only [newTarget, expand_size'_step]
+        · rw [Array.size_eq_length_data] at hi
+          rw [List.drop_eq_get_cons hi, List.map_cons, Nat.sum_cons]
+          clear ih
+          simp only [newSource, Array.data_set]
+          rw [List.drop_set (by omega), expand_size_step _ _ ht]
+          simp only [es]
+          rw [Array.get_eq_getElem, Array.getElem_eq_data_get]
+          simp only [Nat.add_comm, ← Nat.add_assoc]
+      · next i source target hi =>
+        rw [expand.go]
+        simp only [hi, dite_false]
+        rw [Array.size_eq_length_data, Nat.not_lt, ← List.drop_eq_nil_iff_le] at hi
+        simp [hi]
 
 theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α × β)} {i : Nat}
     (hl₁ : ∀ [PartialEquivBEq α] [LawfulHashable α], l.Pairwise fun a b => ¬(a.1 == b.1))
@@ -140,7 +167,7 @@ theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α
     refine ih hl₁.2 hl₂.2
       (reinsertAux_WF ht₁ fun _ h => (ht₂ _ (Array.getElem_mem_data ..) _ h).2.1)
       (fun _ h => ?_)
-    simp [reinsertAux, Buckets.update] at h
+    simp [reinsertAux, Buckets.update, ht₁.3] at h
     match List.mem_or_eq_of_mem_set h with
     | .inl h =>
       intro _ hf
@@ -155,7 +182,8 @@ theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α
 
 theorem expand_WF [BEq α] [Hashable α] {buckets : Buckets α β} (H : buckets.WF) :
     (expand sz buckets).buckets.WF :=
-  go _ H.1 H.2 ⟨.mk' _, fun _ _ _ _ => by simp_all [Buckets.mk, List.mem_replicate]⟩
+  go _ H.1 H.2 ⟨.mk' (Nat.mul_pos H.3 (by decide)),
+    fun _ _ _ _ => by simp_all [Buckets.mk, List.mem_replicate]⟩
 where
   go (i) {source : Array (AssocList α β)}
       (hs₁ : ∀ [LawfulHashable α] [PartialEquivBEq α], ∀ bucket ∈ source.data,
@@ -185,10 +213,11 @@ where
     · exact ht.1
   termination_by source.size - i
 
-theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
+theorem insert_size [BEq α] [Hashable α] {m : Imp α β} (hm : 0 < m.2.1.size) {k v}
     (h : m.size = m.buckets.size) :
     (insert m k v).size = (insert m k v).buckets.size := by
-  dsimp [insert, cond]; split
+  simp [insert, hm]
+  dsimp [cond]; split
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
     simp [h, h₁, Buckets.size_eq]
@@ -196,7 +225,7 @@ theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
     simp [h, h₁, Buckets.size_eq, Nat.succ_add]; rfl
-  · rw [expand_size]; simp [h, expand, Buckets.size]
+  · rw [expand_size (by simpa)]; simp [h, expand, Buckets.size]
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
     simp [h₁, Buckets.size_eq, Nat.succ_add]; rfl
 
@@ -234,7 +263,8 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
 
 theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.buckets.WF) : (insert m k v).buckets.WF := by
-  dsimp [insert, cond]; split
+  simp [insert, h.3]
+  dsimp [cond]; split
   · next h₁ =>
     simp at h₁; have ⟨x, hx₁, hx₂⟩ := h₁
     refine h.update (fun H => ?_) (fun H a h => ?_)
@@ -252,10 +282,11 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
       | head => rfl
       | tail _ h => exact H _ h
 
-theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
+theorem erase_size [BEq α] [Hashable α] {m : Imp α β} (hm : 0 < m.2.1.size) {k}
     (h : m.size = m.buckets.size) :
     (erase m k).size = (erase m k).buckets.size := by
-  dsimp [erase, cond]; split
+  simp [erase, hm]
+  dsimp [cond]; split
   · next H =>
     simp [h, Buckets.size]
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
@@ -270,23 +301,26 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
 
 theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     (h : m.buckets.WF) : (erase m k).buckets.WF := by
-  dsimp [erase, cond]; split
+  simp [erase, h.3]
+  dsimp [cond]; split
   · refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
     · exact H.sublist (List.eraseP_sublist _)
     · exact H _ (List.mem_of_mem_eraseP h)
   · exact h
 
-theorem modify_size [BEq α] [Hashable α] {m : Imp α β} {k}
+theorem modify_size [BEq α] [Hashable α] {m : Imp α β} (hm : 0 < m.2.1.size) {k}
     (h : m.size = m.buckets.size) :
     (modify m k f).size = (modify m k f).buckets.size := by
-  dsimp [modify, cond]; rw [Buckets.update_update]
+  simp [modify, hm]
+  dsimp [cond]; rw [Buckets.update_update]
   simp [h, Buckets.size]
   refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
   simp [h, h₁, Buckets.size_eq]
 
 theorem modify_WF [BEq α] [Hashable α] {m : Imp α β} {k}
     (h : m.buckets.WF) : (modify m k f).buckets.WF := by
-  dsimp [modify, cond]; rw [Buckets.update_update]
+  simp [modify, h.3]
+  dsimp [cond]; rw [Buckets.update_update]
   refine h.update (fun H => ?_) (fun H a h => ?_) <;> simp at h ⊢
   · exact pairwise_replaceF H
   · simp [AssocList.All] at H h ⊢
@@ -298,10 +332,10 @@ theorem WF.out [BEq α] [Hashable α] {m : Imp α β} (h : m.WF) :
     m.size = m.buckets.size ∧ m.buckets.WF := by
   induction h with
   | mk h₁ h₂ => exact ⟨h₁, h₂⟩
-  | @empty' _ h => exact ⟨(Buckets.mk_size h).symm, .mk' h⟩
-  | insert _ ih => exact ⟨insert_size ih.1, insert_WF ih.2⟩
-  | erase _ ih => exact ⟨erase_size ih.1, erase_WF ih.2⟩
-  | modify _ ih => exact ⟨modify_size ih.1, modify_WF ih.2⟩
+  | @empty' _ h => exact ⟨(Buckets.mk_size).symm, .mk' h⟩
+  | insert _ ih => exact ⟨insert_size ih.2.3 ih.1, insert_WF ih.2⟩
+  | erase _ ih => exact ⟨erase_size ih.2.3 ih.1, erase_WF ih.2⟩
+  | modify _ ih => exact ⟨modify_size ih.2.3 ih.1, modify_WF ih.2⟩
 
 theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
     m.WF ↔ m.size = m.buckets.size ∧ m.buckets.WF :=
@@ -310,7 +344,7 @@ theorem WF_iff [BEq α] [Hashable α] {m : Imp α β} :
 theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (mapVal f m) := by
   have ⟨h₁, h₂⟩ := H.out
-  simp [Imp.mapVal, Buckets.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_⟩
+  simp [Imp.mapVal, Buckets.mapVal, WF_iff, h₁]; refine ⟨?_, ?_, fun i h => ?_, ?_⟩
   · simp [Buckets.size]; congr; funext l; simp
   · simp only [Array.map_data, List.forall_mem_map_iff]
     simp only [AssocList.toList_mapVal, List.pairwise_map]
@@ -318,6 +352,7 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   · simp [AssocList.All] at h ⊢
     intro a m
     apply h₂.2 _ _ _ m
+  · simpa using H.out.2.3
 
 theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
@@ -345,12 +380,12 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
       simp; exact match f a.1 a.2 with
       | none => .cons _ ih
       | some b => .cons₂ _ ih
-  suffices ∀ bk sz (h : 0 < bk.length),
-    m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
-    WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
+  suffices ∀ (bk : Array (AssocList α γ)) sz,
+    m.buckets.1.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (bk, ⟨sz⟩) →
+    WF ⟨sz, ⟨bk⟩⟩ from this _ _ rfl
   simp [Array.mapM_eq_mapM_data, bind, StateT.bind, H2, g]
-  intro bk sz h e'; cases e'
-  refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
+  intro bk sz e'; cases e'
+  refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_, ?_⟩
   · simp only [List.forall_mem_map_iff, List.toList_toAssocList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
@@ -362,6 +397,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     simp [AssocList.All, g₁] at this ⊢
     rintro _ _ h' _ _ rfl
     exact this _ h'
+  · simpa using H.out.2.3
 
 end Imp
 

@@ -219,10 +219,6 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 @[specialize] def filterMap {α : Type u} {β : Type v} {γ : Type w}
     (f : α → β → Option γ) (m : Imp α β) : Imp α γ :=
   let m' := m.buckets.1.mapM (m := StateT (ULift Nat) Id) (go .nil) |>.run ⟨0⟩ |>.run
-  -- have : m'.1.size > 0 := by
-  --   have := Array.size_mapM (m := StateT (ULift Nat) Id) (go .nil) m.buckets.1
-  --   simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
-  --   simp [this, Id.run, StateT.run, m.2.2, m']
   ⟨m'.2.1, ⟨m'.1⟩⟩
 where
   /-- Inner loop of `filterMap`. Note that this reverses the bucket lists,
@@ -249,7 +245,7 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
     is lawful then every element hashes to its index. -/
   | mk : m.size = m.buckets.size → m.buckets.WF → WF m
   /-- The empty hash map is well formed. -/
-  | empty' : WF (empty' n)
+  | empty' : 0 < n → WF (empty' n)
   /-- Inserting into a well formed hash map yields a well formed hash map. -/
   | insert : WF m → WF (insert m a b)
   /-- Removing an element from a well formed hash map yields a well formed hash map. -/
@@ -257,7 +253,11 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
   /-- Replacing an element in a well formed hash map yields a well formed hash map. -/
   | modify : WF m → WF (modify m a f)
 
-theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by unfold empty; apply empty'
+theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by
+  dsimp only [Imp.empty]
+  split
+  · exact WF.empty' (by decide)
+  · next h => exact WF.empty' (Nat.pos_of_ne_zero h)
 
 end Imp
 
