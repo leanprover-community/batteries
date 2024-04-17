@@ -68,7 +68,9 @@ structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
 end Buckets
 end Imp
 
-/-- `HashMap.Imp α β` is the internal implementation type of `HashMap α β`. -/
+/-- `HashMap.Imp α β` is the implementation type of `HashMap α β` without the bundled
+    well-formedness constraint. Unlike `HashMap α β`, it is possible to use `HashMap.Imp α β` as a
+    constructor argument for an inductive type `β`, because `HashMap.Imp α β` is "positive". -/
 structure Imp (α : Type u) (β : Type v) where
   /-- The number of elements stored in the `HashMap`.
   We cache this both so that we can implement `.size` in `O(1)`, and also because we
@@ -131,7 +133,7 @@ def findEntry? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option (α × �
     let ⟨_, buckets⟩ := m
     let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
     buckets.1[i].findEntry? a
-  else .none
+  else .none -- Will never happen for well-formed inputs
 
 /-- Looks up an element in the map with key `a`. -/
 def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
@@ -147,7 +149,7 @@ def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
     let ⟨_, buckets⟩ := m
     let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
     buckets.1[i].contains a
-  else false
+  else false -- Will never happen for well-formed inputs
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
 def expand [Hashable α] (size : Nat) (buckets : Buckets α β) : Imp α β :=
