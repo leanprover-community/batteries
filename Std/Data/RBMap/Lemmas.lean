@@ -93,6 +93,15 @@ theorem WF.depth_bound {t : RBNode α} (h : t.WF cmp) : t.depth ≤ 2 * (t.size 
 
 end depth
 
+@[simp] theorem min?_reverse (t : RBNode α) : t.reverse.min? = t.max? := by
+  unfold RBNode.max?; split <;> simp [RBNode.min?]
+  unfold RBNode.min?; rw [min?.match_1.eq_3]
+  · apply min?_reverse
+  · simpa [reverse_eq_iff]
+
+@[simp] theorem max?_reverse (t : RBNode α) : t.reverse.max? = t.min? := by
+  rw [← min?_reverse, reverse_reverse]
+
 @[simp] theorem mem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [(·∈·), EMem]
 @[simp] theorem mem_node {y c a x b} :
     y ∈ (.node c a x b : RBNode α) ↔ y = x ∨ y ∈ a ∨ y ∈ b := by simp [(·∈·), EMem]
@@ -367,14 +376,38 @@ theorem foldr_cons (t : RBNode α) (l) : t.foldr (·::·) l = t.toList ++ l := b
 @[simp] theorem toList_node : (.node c a x b : RBNode α).toList = a.toList ++ x :: b.toList := by
   rw [toList, foldr, foldr_cons]; rfl
 
+@[simp] theorem toList_reverse (t : RBNode α) : t.reverse.toList = t.toList.reverse := by
+  induction t <;> simp [*]
+
 @[simp] theorem mem_toList {t : RBNode α} : x ∈ t.toList ↔ x ∈ t := by
   induction t <;> simp [*, or_left_comm]
+
+@[simp] theorem mem_reverse {t : RBNode α} : a ∈ t.reverse ↔ a ∈ t := by rw [← mem_toList]; simp
+
+theorem min?_eq_toList_head? {t : RBNode α} : t.min? = t.toList.head? := by
+  induction t with
+  | nil => rfl
+  | node _ l _ _ ih =>
+    cases l <;> simp [RBNode.min?, ih]
+    next ll _ _ => cases toList ll <;> rfl
+
+theorem max?_eq_toList_getLast? {t : RBNode α} : t.max? = t.toList.getLast? := by
+  rw [← min?_reverse, min?_eq_toList_head?]; simp
 
 theorem foldr_eq_foldr_toList {t : RBNode α} : t.foldr f init = t.toList.foldr f init := by
   induction t generalizing init <;> simp [*]
 
 theorem foldl_eq_foldl_toList {t : RBNode α} : t.foldl f init = t.toList.foldl f init := by
   induction t generalizing init <;> simp [*]
+
+theorem foldl_reverse {α β : Type _} {t : RBNode α} {f : β → α → β} {init : β} :
+    t.reverse.foldl f init = t.foldr (flip f) init := by
+  simp (config := {unfoldPartialApp := true})
+    [foldr_eq_foldr_toList, foldl_eq_foldl_toList, flip]
+
+theorem foldr_reverse {α β : Type _} {t : RBNode α} {f : α → β → β} {init : β} :
+    t.reverse.foldr f init = t.foldl (flip f) init :=
+  foldl_reverse.symm.trans (by simp; rfl)
 
 theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     t.forM (m := m) f = t.toList.forM f := by induction t <;> simp [*]
@@ -466,6 +499,13 @@ theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairw
 
 theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
   induction t <;> simp [*, size]; rfl
+
+@[simp] theorem reverse_size (t : RBNode α) : t.reverse.size = t.size := by simp [size_eq]
+
+@[simp] theorem find?_reverse (t : RBNode α) (cut : α → Ordering) :
+    t.reverse.find? cut = t.find? (cut · |>.swap) := by
+  induction t <;> simp [*, find?]
+  cases cut _ <;> simp [Ordering.swap]
 
 namespace Path
 
