@@ -7,7 +7,6 @@ import Std.Data.HashMap.Basic
 import Std.Data.List.Lemmas
 import Std.Data.Array.Lemmas
 import Std.Data.Nat.Lemmas
-import Std.Data.List.Init.Lemmas
 
 namespace Std.HashMap
 namespace Imp
@@ -211,7 +210,7 @@ where
 theorem insert_size [BEq α] [Hashable α] {m : Imp α β} (hm : 0 < m.2.1.size) {k v}
     (h : m.size = m.buckets.size) :
     (insert m k v).size = (insert m k v).buckets.size := by
-  simp [insert, hm]
+  simp only [insert, hm]
   dsimp [cond]; split
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
@@ -258,7 +257,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
 
 theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
     (h : m.buckets.WF) : (insert m k v).buckets.WF := by
-  simp [insert, h.3]
+  simp only [insert, h.3]
   dsimp [cond]; split
   · next h₁ =>
     simp at h₁; have ⟨x, hx₁, hx₂⟩ := h₁
@@ -280,7 +279,7 @@ theorem insert_WF [BEq α] [Hashable α] {m : Imp α β} {k v}
 theorem erase_size [BEq α] [Hashable α] {m : Imp α β} (hm : 0 < m.2.1.size) {k}
     (h : m.size = m.buckets.size) :
     (erase m k).size = (erase m k).buckets.size := by
-  simp [erase, hm]
+  simp only [erase, hm]
   dsimp [cond]; split
   · next H =>
     simp [h, Buckets.size]
