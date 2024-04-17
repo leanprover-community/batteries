@@ -924,6 +924,16 @@ theorem get?_take {l : List α} {n m : Nat} (h : m < n) : (l.take n).get? m = l.
       · simp only [get?, take]
       · simpa only using hn (Nat.lt_of_succ_lt_succ h)
 
+theorem get?_take_eq_none {l : List α} {n m : Nat} (h : n ≤ m) :
+    (l.take n).get? m = none :=
+  get?_eq_none.mpr <| Nat.le_trans (length_take_le _ _) h
+
+theorem get?_take_eq_if {l : List α} {n m : Nat} :
+    (l.take n).get? m = if m < n then l.get? m else none := by
+  split
+  · next h => exact get?_take h
+  · next h => exact get?_take_eq_none (Nat.le_of_not_lt h)
+
 @[simp]
 theorem nth_take_of_succ {l : List α} {n : Nat} : (l.take (n + 1)).get? n = l.get? n :=
   get?_take (Nat.lt_succ_self n)
@@ -1289,6 +1299,18 @@ theorem mem_or_eq_of_mem_set : ∀ {l : List α} {n : Nat} {a b : α}, a ∈ l.s
   | _ :: _, 0, _, _, h => ((mem_cons ..).1 h).symm.imp_left (.tail _)
   | _ :: _, _+1, _, _, .head .. => .inl (.head ..)
   | _ :: _, _+1, _, _, .tail _ h => (mem_or_eq_of_mem_set h).imp_left (.tail _)
+
+theorem drop_set_of_lt (a : α) {n m : Nat} (l : List α) (h : n < m) :
+    (l.set n a).drop m = l.drop m :=
+  List.ext fun i => by rw [get?_drop, get?_drop, get?_set_ne _ _ (by omega)]
+
+theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
+    (l.set n a).take m = l.take m :=
+  List.ext fun i => by
+    rw [get?_take_eq_if, get?_take_eq_if]
+    split
+    · next h' => rw [get?_set_ne _ _ (by omega)]
+    · rfl
 
 /-! ### remove nth -/
 
