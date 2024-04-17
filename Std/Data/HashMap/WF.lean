@@ -90,12 +90,7 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
 
 theorem expand_size'.foldl [Hashable α] (l : AssocList α β) (target : Buckets α β)
     : (l.foldl reinsertAux target).1.size = target.1.size := by
-  induction l generalizing target
-  · simp
-  · next k v t ih =>
-    simp only [AssocList.foldl_eq, AssocList.toList, List.foldl_cons, Array.data_length]
-    have := ih (reinsertAux target k v)
-    simp_all
+  induction l generalizing target <;> simp_all
 
 theorem expand_size.foldl [Hashable α] {l : AssocList α β} (target : Buckets α β)
     (ht : 0 < target.1.size) :
