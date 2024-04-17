@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Control.ForInStep.Lemmas
 import Std.Data.Nat.Basic
+import Std.Data.List.Init.Lemmas
 import Std.Data.List.Basic
 import Std.Tactic.Init
 import Std.Tactic.Alias
