@@ -33,6 +33,16 @@ theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := 
   rw [push, mk_length, List.length_append, List.length_singleton, Nat.succ.injEq]
   rfl
 
+@[simp] theorem length_pushn (c : Char) (n : Nat) : (pushn s c n).length = s.length + n := by
+  induction n with
+  | zero => simp [pushn, Nat.repeat]
+  | succ k h =>
+    simp [pushn, Nat.repeat, Nat.add_succ]
+    exact h
+
+@[simp] theorem length_append (s t : String) : (s ++ t).length = s.length + t.length := by
+  simp only [length, append, List.length_append]
+
 @[simp] theorem data_push (s : String) (c : Char) : (s.push c).1 = s.1 ++ [c] := rfl
 
 @[simp] theorem data_append (s t : String) : (s ++ t).1 = s.1 ++ t.1 := rfl
