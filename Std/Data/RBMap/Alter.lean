@@ -26,20 +26,6 @@ def OnRoot (p : α → Prop) : RBNode α → Prop
   | nil => True
   | node _ _ x _ => p x
 
-/--
-Auxiliary definition for `zoom_ins`: set the root of the tree to `v`, creating a node if necessary.
--/
-def setRoot (v : α) : RBNode α → RBNode α
-  | nil => node red nil v nil
-  | node c a _ b => node c a v b
-
-/--
-Auxiliary definition for `zoom_ins`: set the root of the tree to `v`, creating a node if necessary.
--/
-def delRoot : RBNode α → RBNode α
-  | nil => nil
-  | node _ a _ b => a.append b
-
 namespace Path
 
 /-- Same as `fill` but taking its arguments in a pair for easier composition with `zoom`. -/
@@ -53,39 +39,6 @@ theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
 
 theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
-
-theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
-    t.zoom (cmp v) path = (t', path') →
-    path.ins (t.ins cmp v) = path'.ins (t'.setRoot v) := by
-  unfold RBNode.ins; split <;> simp [zoom]
-  · intro | rfl, rfl => rfl
-  all_goals
-  · split
-    · exact zoom_ins
-    · exact zoom_ins
-    · intro | rfl => rfl
-
-theorem insertNew_eq_insert (h : zoom (cmp v) t = (nil, path)) :
-    path.insertNew v = (t.insert cmp v).setBlack :=
-  insert_setBlack .. ▸ (zoom_ins h).symm
-
-theorem zoom_del {t : RBNode α} :
-    t.zoom cut path = (t', path') →
-    path.del (t.del cut) (match t with | node c .. => c | _ => red) =
-    path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
-  unfold RBNode.del; split <;> simp [zoom]
-  · intro | rfl, rfl => rfl
-  · next c a y b =>
-    split
-    · have IH := @zoom_del (t := a)
-      match a with
-      | nil => intro | rfl => rfl
-      | node black .. | node red .. => apply IH
-    · have IH := @zoom_del (t := b)
-      match b with
-      | nil => intro | rfl => rfl
-      | node black .. | node red .. => apply IH
-    · intro | rfl => rfl
 
 variable (c₀ : RBColor) (n₀ : Nat) in
 /--
@@ -134,13 +87,6 @@ protected theorem _root_.Std.RBNode.Balanced.zoom : t.Balanced c n → path.Bala
     · exact hb.zoom (.blackR ha hp)
     · intro e; cases e; exact ⟨_, _, .black ha hb, hp⟩
 
-theorem ins_eq_fill {path : Path α} {t : RBNode α} :
-    path.Balanced c₀ n₀ c n → t.Balanced c n → path.ins t = (path.fill t).setBlack
-  | .root, h => rfl
-  | .redL hb H, ha | .redR ha H, hb => by unfold ins; exact ins_eq_fill H (.red ha hb)
-  | .blackL hb H, ha => by rw [ins, fill, ← ins_eq_fill H (.black ha hb), balance1_eq ha]
-  | .blackR ha H, hb => by rw [ins, fill, ← ins_eq_fill H (.black ha hb), balance2_eq hb]
-
 protected theorem Balanced.ins {path : Path α}
     (hp : path.Balanced c₀ n₀ c n) (ht : t.RedRed (c = red) n) :
     ∃ n, (path.ins t).Balanced black n := by
@@ -159,21 +105,6 @@ protected theorem Balanced.ins {path : Path α}
 
 protected theorem Balanced.insertNew {path : Path α} (H : path.Balanced c n black 0) :
     ∃ n, (path.insertNew v).Balanced black n := H.ins (.balanced (.red .nil .nil))
-
-protected theorem Balanced.insert {path : Path α} (hp : path.Balanced c₀ n₀ c n) :
-    t.Balanced c n → ∃ c n, (path.insert t v).Balanced c n
-  | .nil => ⟨_, hp.insertNew⟩
-  | .red ha hb => ⟨_, _, hp.fill (.red ha hb)⟩
-  | .black ha hb => ⟨_, _, hp.fill (.black ha hb)⟩
-
-theorem zoom_insert {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
-    (H : zoom (cmp v) t = (t', path)) :
-    (path.insert t' v).setBlack = (t.insert cmp v).setBlack := by
-  have ⟨_, _, ht', hp'⟩ := ht.zoom .root H
-  cases ht' with simp [insert]
-  | nil => simp [insertNew_eq_insert H, setBlack_idem]
-  | red hl hr => rw [← ins_eq_fill hp' (.red hl hr), insert_setBlack]; exact (zoom_ins H).symm
-  | black hl hr => rw [← ins_eq_fill hp' (.black hl hr), insert_setBlack]; exact (zoom_ins H).symm
 
 protected theorem Balanced.del {path : Path α}
     (hp : path.Balanced c₀ n₀ c n) (ht : t.DelProp c' n) (hc : c = black → c' ≠ red) :
@@ -194,18 +125,6 @@ protected theorem Balanced.del {path : Path α}
     | red, _, ⟨_, hb⟩ => exact ih ⟨_, rfl, .redred ⟨⟩ ha hb⟩ nofun
     | black, _, ⟨_, rfl, hb⟩ => exact ih ⟨_, rfl, (ha.balRight hb).imp fun _ => ⟨⟩⟩ nofun
 
-/-- Asserts that `p` holds on all elements to the left of the hole. -/
-def AllL (p : α → Prop) : Path α → Prop
-  | .root => True
-  | .left _ parent _ _ => parent.AllL p
-  | .right _ a x parent => a.All p ∧ p x ∧ parent.AllL p
-
-/-- Asserts that `p` holds on all elements to the right of the hole. -/
-def AllR (p : α → Prop) : Path α → Prop
-  | .root => True
-  | .left _ parent x b => parent.AllR p ∧ p x ∧ b.All p
-  | .right _ _ _ parent => parent.AllR p
-
 /--
 The property of a path returned by `t.zoom cut`. Each of the parents visited along the path have
 the appropriate ordering relation to the cut.
@@ -214,15 +133,6 @@ def Zoomed (cut : α → Ordering) : Path α → Prop
   | .root => True
   | .left _ parent x _ => cut x = .lt ∧ parent.Zoomed cut
   | .right _ _ x parent => cut x = .gt ∧ parent.Zoomed cut
-
-theorem zoom_zoomed₁ (e : zoom cut t path = (t', path')) : t'.OnRoot (cut · = .eq) :=
-  match t, e with
-  | nil, rfl => trivial
-  | node .., e => by
-    revert e; unfold zoom; split
-    · exact zoom_zoomed₁
-    · exact zoom_zoomed₁
-    · next H => intro e; cases e; exact H
 
 theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
     (hp : path.Zoomed cut) : path'.Zoomed cut :=
@@ -309,13 +219,6 @@ theorem Ordered.insertNew {path : Path α} (hp : path.Ordered cmp) (vp : path.Ro
     (path.insertNew v).Ordered cmp :=
   hp.ins ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ ⟨vp, ⟨⟩, ⟨⟩⟩
 
-theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
-    t.OnRoot (cmpEq cmp v) → (path.insert t v).Ordered cmp
-  | _, nil, hp, _, _, vp, _ => hp.insertNew vp
-  | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩, vp, xv => Ordered.fill.2
-    ⟨hp, ⟨ax.imp xv.lt_congr_right.2, xb.imp xv.lt_congr_left.2, ha, hb⟩, vp, ap, bp⟩
-
 theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
   | .root, t, _, ht, _, _ => Ordered.setBlack.2 ht
@@ -329,11 +232,6 @@ theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
   | .right _ a x parent, b, black, hb, ⟨hp, ax, xp, ap, ha⟩, H => by
     unfold del; have ⟨xb, bp⟩ := All_and.1 H
     exact hp.del (ha.balRight ax xb hb) (ap.balRight xp bp)
-
-theorem Ordered.erase : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → (path.erase t).Ordered cmp
-  | _, nil, hp, ht, tp => Ordered.fill.2 ⟨hp, ht, tp⟩
-  | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩ => hp.del (ha.append ax xb hb) (ap.append bp)
 
 end Path
 
