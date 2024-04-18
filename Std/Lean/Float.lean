@@ -6,6 +6,19 @@
 
 namespace Float
 
+/--
+The floating point value "positive infinity", also used to represent numerical computations
+which produce finite values outside of the representable range of `Float`.
+-/
+def inf : Float := 1/0
+
+/--
+The floating point value "not a number", used to represent erroneous numerical computations
+such as `0 / 0`. Using `nan` in any float operation will return `nan`, and all comparisons
+involving `nan` return `false`, including in particular `nan == nan`.
+-/
+def nan : Float := 0/0
+
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
 (`e` is not minimal, but `v.abs` will be at most `2^53 - 1`.)
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
@@ -58,3 +71,32 @@ def toStringFull (f : Float) : String :=
         s!"{intPart}.{rem.extract ⟨1⟩ rem.endPos}"
     if v < 0 then s!"-{s}" else s
   else f.toString -- inf, -inf, nan
+
+end Float
+
+/--
+Divide two natural numbers, to produce a correctly rounded (nearest-ties-to-even) `Float` result.
+-/
+protected def Nat.divFloat (a b : Nat) : Float :=
+  if b = 0 then
+    if a = 0 then Float.nan else Float.inf
+  else
+    let ea := a.log2
+    let eb := b.log2
+    if eb + 1024 < ea then Float.inf else
+    let eb' := if b <<< ea ≤ a <<< eb then eb else eb + 1
+    let mantissa : UInt64 := (a <<< (eb' + 53) / b <<< ea).toUInt64
+    let rounded := if mantissa &&& 3 == 1 && a <<< (eb' + 53) == mantissa.toNat * (b <<< ea) then
+      mantissa >>> 1
+    else
+      (mantissa + 1) >>> 1
+    rounded.toFloat.scaleB (ea - (eb' + 52))
+
+/--
+Divide two integers, to produce a correctly rounded (nearest-ties-to-even) `Float` result.
+-/
+protected def Int.divFloat (a b : Int) : Float :=
+  if (a ≥ 0) == (b ≥ 0) then
+    a.natAbs.divFloat b.natAbs
+  else
+    -a.natAbs.divFloat b.natAbs
