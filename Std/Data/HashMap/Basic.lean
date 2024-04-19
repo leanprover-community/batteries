@@ -71,10 +71,13 @@ structure Imp (α : Type u) (β : Type v) where
   /-- The bucket array of the `HashMap`. -/
   buckets : Array (AssocList α β)
 
-def Buckets.mk' : {m : Imp α β // 0 < m.2.size} → Imp.Buckets α β
-  | ⟨m, h⟩ => ⟨m.2, h⟩
+@[inline] def Buckets.mk' (m : {m : Imp α β // 0 < m.2.size}) : Imp.Buckets α β := ⟨m.1.2, m.2⟩
 
 namespace Imp
+
+@[inline, match_pattern] def Imp.mk' (size : Nat) (buckets : Imp.Buckets α β) :
+    {m : Imp α β // 0 < m.2.size} :=
+  ⟨⟨size, buckets.1⟩, buckets.2⟩
 
 /--
 Given a desired capacity, this returns the number of buckets we should reserve.
@@ -84,8 +87,9 @@ A "load factor" of 0.75 is the usual standard for hash maps, so we return `capac
   capacity * 4 / 3
 
 /-- Constructs an empty hash map with the specified nonzero number of buckets. -/
-@[inline] def empty' (buckets := 8) : Imp α β :=
-  ⟨0, mkArray buckets .nil⟩
+@[inline] def empty' (buckets := 8) (h : 0 < buckets := by decide) :
+    {m : Imp α β // 0 < m.2.size} :=
+  Imp.mk' 0 (.mk buckets h)
 
 /-- Constructs an empty hash map with the specified target capacity. -/
 def empty (capacity := 0) : {m : Imp α β // 0 < m.2.size} :=
@@ -93,7 +97,7 @@ def empty (capacity := 0) : {m : Imp α β // 0 < m.2.size} :=
   let n : {n : Nat // 0 < n} :=
     if h : nbuckets = 0 then ⟨8, by decide⟩
     else ⟨nbuckets, Nat.zero_lt_of_ne_zero h⟩
-  ⟨empty' n, by simpa [empty'] using n.2⟩
+  empty' n n.2
 
 /-- Calculates the bucket index from a hash value `u`. -/
 def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
@@ -121,29 +125,26 @@ already in the array, which is appropriate when reinserting elements into the ar
   h.buckets.1.forM fun b => b.forM f
 
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
-def findEntry? [BEq α] [Hashable α] (m : Imp α β) (h : 0 < m.2.size) (a : α) : Option (α × β) :=
-  let ⟨_, buckets⟩ := m
+def findEntry? [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) : Option (α × β) :=
+  let ⟨⟨_, buckets⟩, h⟩ := m
   let ⟨i, h⟩ := mkIdx h (hash a |>.toUSize)
   buckets[i].findEntry? a
 
 /-- Looks up an element in the map with key `a`. -/
-def find? [BEq α] [Hashable α] (m : Imp α β) (h : 0 < m.2.size) (a : α) : Option β :=
-  let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx h (hash a |>.toUSize)
-  buckets[i].find? a
+def find? [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) : Option β :=
+  let ⟨i, h⟩ := mkIdx m.2 (hash a |>.toUSize)
+  m.1.buckets[i].find? a
 
 /-- Returns true if the element `a` is in the map. -/
-def contains [BEq α] [Hashable α] (m : Imp α β) (h : 0 < m.2.size) (a : α) : Bool :=
-  let ⟨_, buckets⟩ := m
-  let ⟨i, h⟩ := mkIdx h (hash a |>.toUSize)
-  buckets[i].contains a
+def contains [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) : Bool :=
+  let ⟨i, h⟩ := mkIdx m.2 (hash a |>.toUSize)
+  m.1.buckets[i].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
 def expand [Hashable α] (size : Nat) (buckets : Buckets α β) :
     {m : Imp α β // 0 < m.2.size} :=
   let nbuckets := buckets.1.size * 2
-  let ⟨arr, h⟩ := go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide)))
-  ⟨{ size, buckets := arr }, h⟩
+  Imp.mk' size (go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide))))
 where
   /-- Inner loop of `expand`. Copies elements `source[i:]` into `target`,
   destroying `source` in the process. -/
@@ -163,56 +164,52 @@ where
 Inserts key-value pair `a, b` into the map.
 If an element equal to `a` is already in the map, it is replaced by `b`.
 -/
-@[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (hm : 0 < m.2.size) (a : α) (b : β) :
+@[inline] def insert [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) (b : β) :
     {m : Imp α β // 0 < m.2.size} :=
-  let ⟨size, bucketArray⟩ := m
+  let ⟨⟨size, bucketArray⟩, hm⟩ := m
   let buckets : Buckets α β := ⟨bucketArray, hm⟩
   let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
   let bkt := bucketArray[i]
   bif bkt.contains a then
-    let ⟨newBucketArray, hnew⟩ := buckets.update i (bkt.replace a b) h
-    ⟨⟨size, newBucketArray⟩, hnew⟩
+    Imp.mk' size (buckets.update i (bkt.replace a b) h)
   else
     let size' := size + 1
-    let ⟨buckets', hnew⟩ := buckets.update i (.cons a b bkt) h
+    let buckets' := buckets.update i (.cons a b bkt) h
     if numBucketsForCapacity size' ≤ buckets.1.size then
-      ⟨{ size := size', buckets := buckets' }, hnew⟩
+      Imp.mk' size' buckets'
     else
-      expand size' ⟨buckets', hnew⟩
+      expand size' buckets'
 
 /--
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
 -/
-def erase [BEq α] [Hashable α] (m : Imp α β) (hm : 0 < m.2.size) (a : α) :
+def erase [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) :
     {m : Imp α β // 0 < m.2.size} :=
-  let ⟨size, bucketArray⟩ := m
-  let buckets : Buckets α β := ⟨bucketArray, hm⟩
+  let ⟨⟨size, bucketArray⟩, hm⟩ := m
   let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
   let bkt := bucketArray[i]
   bif bkt.contains a then
-    let ⟨newBuckets, hnew⟩ := buckets.update i (bkt.erase a) h
-    ⟨⟨size - 1, newBuckets⟩, hnew⟩
+    let buckets : Buckets α β := ⟨bucketArray, hm⟩
+    Imp.mk' (size - 1) (buckets.update i (bkt.erase a) h)
   else
     ⟨⟨size, bucketArray⟩, hm⟩
 
 /-- Map a function over the values in the map. -/
-@[inline] def mapVal (f : α → β → γ) (self : Imp α β) (hm : 0 < self.2.size) :
+@[inline] def mapVal (f : α → β → γ) (self : {m : Imp α β // 0 < m.2.size}) :
     {m : Imp α γ // 0 < m.2.size} :=
-  let ⟨size, bucketArray⟩ := self
+  let ⟨⟨size, bucketArray⟩, hm⟩ := self
   let buckets : Buckets α β := ⟨bucketArray, hm⟩
-  let ⟨newBucketArray, hnew⟩ := buckets.mapVal f
-  ⟨{ size := size, buckets := newBucketArray }, hnew⟩
+  Imp.mk' size (buckets.mapVal f)
 
 /-- Performs an in-place edit of the value, ensuring that the value is used linearly. -/
-def modify [BEq α] [Hashable α] (m : Imp α β) (hm : 0 < m.2.size) (a : α) (f : α → β → β) :
+def modify [BEq α] [Hashable α] (m : {m : Imp α β // 0 < m.2.size}) (a : α) (f : α → β → β) :
     {m : Imp α β // 0 < m.2.size} :=
-  let ⟨size, bucketArray⟩ := m
-  let buckets : Buckets α β := ⟨bucketArray, hm⟩
+  let ⟨⟨size, bucketArray⟩, hm⟩ := m
   let ⟨i, h⟩ := mkIdx hm (hash a |>.toUSize)
   let bkt := bucketArray[i]
+  let buckets : Buckets α β := ⟨bucketArray, hm⟩
   let buckets := buckets.update i .nil h -- for linearity
-  let ⟨newBucketArray, hnew⟩ := buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h)
-  ⟨⟨size, newBucketArray⟩, hnew⟩
+  Imp.mk' size (buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h))
 
 /--
 Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
@@ -246,7 +243,7 @@ The well-formedness invariant for a hash map. The first constructor is the real 
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
 which have more complex proofs that are delayed to `Std.Data.HashMap.Lemmas`.
 -/
-inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
+inductive WF [BEq α] [Hashable α] : Imp α γ → Prop where
   /-- The real well-formedness invariant:
   * The `size` field should match the actual number of elements in the map
   * The bucket array should be well-formed, meaning that if the hashable instance
@@ -254,29 +251,22 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
   | mk (m : Imp α β) :
       (h : 0 < m.2.size) → m.size = Buckets.size ⟨m.2, h⟩ → Buckets.WF ⟨m.2, h⟩ → WF m
   /-- The empty hash map is well formed. -/
-  | empty' : 0 < n → WF (empty' n)
+  | empty' (h) : WF (empty' n h).1
   /-- Inserting into a well formed hash map yields a well formed hash map. -/
-  | insert : WF m → WF (insert m hm a b).1
+  | insert : WF m → WF (insert ⟨m, h⟩ a b).1
   /-- Removing an element from a well formed hash map yields a well formed hash map. -/
-  | erase : WF m → WF (erase m h a).1
+  | erase : WF m → WF (erase ⟨m, h⟩ a).1
   /-- Replacing an element in a well formed hash map yields a well formed hash map. -/
-  | modify : WF m → WF (modify m h a f).1
+  | modify : WF m → WF (modify ⟨m, h⟩ a f).1
 
-theorem WF.empty [BEq α] [Hashable α] : WF ((Imp.empty n).1 : Imp α β) := by
-  dsimp only [Imp.empty]
-  split
-  · apply WF.empty'
-    simp
-  · next h =>
-    apply WF.empty'
-    exact Nat.pos_of_ne_zero h
+theorem WF.empty [BEq α] [Hashable α] : WF (Imp.empty (α := α) (β := β) n).1 := WF.empty' _
 
 theorem WF.size [BEq α] [Hashable α] {m : Imp α β} : m.WF → 0 < m.2.size
   | mk _ h _ _ => h
-  | empty' h => by simp [h, Imp.empty']
-  | insert _ => (Imp.insert _ _ _ _).2
-  | erase _ => (Imp.erase _ _ _).2
-  | modify _ => (Imp.modify _ _ _ _).2
+  | empty' _ => (Imp.empty' _ _).2
+  | insert _ => (Imp.insert _ _ _).2
+  | erase _ => (Imp.erase _ _).2
+  | modify _ => (Imp.modify _ _ _).2
 
 end Imp
 
@@ -290,6 +280,10 @@ Copies are `O(n)`.
 def _root_.Std.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] := {m : Imp α β // m.WF}
 
 open HashMap.Imp
+
+@[inline] protected def imp [BEq α] [Hashable α] (self : HashMap α β) :
+    {m : Imp α β // 0 < m.2.size} :=
+  ⟨self.1, self.2.size⟩
 
 /-- Make a new hash map with the specified capacity. -/
 @[inline] def _root_.Std.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
@@ -337,7 +331,7 @@ hashMap.insert "two" 0 = {"one" => 1, "two" => 0}
 ```
 -/
 def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β :=
-   ⟨self.1.insert self.2.size a b, self.2.insert⟩
+   ⟨Imp.insert self.imp a b, self.2.insert⟩
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
@@ -363,7 +357,7 @@ hashMap.erase "three" = {"one" => 1, "two" => 2}
 ```
 -/
 @[inline] def erase (self : HashMap α β) (a : α) : HashMap α β :=
-  ⟨self.1.erase self.2.size a, self.2.erase⟩
+  ⟨Imp.erase self.imp a, self.2.erase⟩
 
 /--
 Performs an in-place edit of the value, ensuring that the value is used linearly.
@@ -374,7 +368,7 @@ The function `f` is passed the original key of the entry, along with the value i
 ```
 -/
 def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
-  ⟨self.1.modify self.2.size a f, self.2.modify⟩
+  ⟨Imp.modify self.imp a f, self.2.modify⟩
 
 /--
 Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
@@ -387,7 +381,7 @@ hashMap.findEntry? "three" = none
 ```
 -/
 @[inline] def findEntry? (self : HashMap α β) (a : α) : Option (α × β) :=
-  self.1.findEntry? self.2.size a
+  Imp.findEntry? self.imp a
 
 /--
 Looks up an element in the map with key `a`.
@@ -397,7 +391,7 @@ hashMap.find? "one" = some 1
 hashMap.find? "three" = none
 ```
 -/
-@[inline] def find? (self : HashMap α β) (a : α) : Option β := self.1.find? self.2.size a
+@[inline] def find? (self : HashMap α β) (a : α) : Option β := Imp.find? self.imp a
 
 /--
 Looks up an element in the map with key `a`. Returns `b₀` if the element is not found.
@@ -431,7 +425,7 @@ hashMap.contains "one" = true
 hashMap.contains "three" = false
 ```
 -/
-@[inline] def contains (self : HashMap α β) (a : α) : Bool := self.1.contains self.2.size a
+@[inline] def contains (self : HashMap α β) (a : α) : Bool := Imp.contains self.imp a
 
 /--
 Folds a monadic function over the elements in the map (in arbitrary order).

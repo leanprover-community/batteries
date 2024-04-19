@@ -11,6 +11,7 @@ namespace Std.HashMap
 namespace Imp
 
 attribute [-simp] Bool.not_eq_true
+attribute [local simp] Imp.mk' Buckets.mk'
 
 namespace Buckets
 
@@ -77,7 +78,6 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
 
 theorem expand_size [Hashable α] {buckets : Buckets α β} :
     (Buckets.mk' (expand sz buckets)).size = buckets.size := by
-  rw [expand]
   change (expand.go 0 buckets.val _).size = _ -- Meh
   rw [go]
   · rw [Buckets.mk_size]; simp [Buckets.size]
@@ -175,7 +175,8 @@ where
 
 theorem insert_size [BEq α] [Hashable α] {m : Imp α β} (hm) {k v}
     (h : m.size = (Buckets.mk' ⟨m, hm⟩).size) :
-    (insert m hm k v).1.size = (Buckets.mk' (insert m hm k v)).size := by
+    (insert ⟨m, hm⟩ k v).1.size = (Buckets.mk' (insert ⟨m, hm⟩ k v)).size := by
+  -- fixme
   dsimp [insert, cond]; split
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
