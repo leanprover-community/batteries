@@ -71,12 +71,28 @@ structure Raw (α : Type u) (β : Type v) where
   /-- The bucket array of the `HashMap`. -/
   bucketArray : Array (AssocList α β)
 
+namespace Raw
+
+/-- Folds a monadic function over the elements in the map (in arbitrary order). -/
+@[inline] def foldM [Monad m] (f : δ → α → β → m δ) (d : δ) (map : Raw α β) : m δ :=
+  map.bucketArray.foldlM (init := d) fun d b => b.foldlM f d
+
+/-- Folds a function over the elements in the map (in arbitrary order). -/
+@[inline] def fold (f : δ → α → β → δ) (d : δ) (m : Raw α β) : δ :=
+  Id.run $ foldM f d m
+
+/-- Runs a monadic function over the elements in the map (in arbitrary order). -/
+@[inline] def forM [Monad m] (f : α → β → m PUnit) (h : Raw α β) : m PUnit :=
+  h.bucketArray.forM fun b => b.forM f
+
+end Raw
+
 /-- `HashMap.Imp α β` is the internal implementation type of `HashMap α β`. -/
 def Imp (α : Type u) (β : Type v) := {m : Raw α β // 0 < m.2.size}
 
 namespace Imp
 
-@[inline, match_pattern] def Imp.mk' (size : Nat) (buckets : Imp.Buckets α β) : Imp α β :=
+@[inline, match_pattern] def mk' (size : Nat) (buckets : Imp.Buckets α β) : Imp α β :=
   ⟨⟨size, buckets.1⟩, buckets.2⟩
 
 @[inline] def buckets (m : Imp α β) : Imp.Buckets α β := ⟨m.1.2, m.2⟩
@@ -90,7 +106,7 @@ A "load factor" of 0.75 is the usual standard for hash maps, so we return `capac
 
 /-- Constructs an empty hash map with the specified nonzero number of buckets. -/
 @[inline] def empty' (buckets := 8) (h : 0 < buckets := by decide) : Imp α β :=
-  Imp.mk' 0 (.mk buckets h)
+  mk' 0 (.mk buckets h)
 
 /-- Constructs an empty hash map with the specified target capacity. -/
 def empty (capacity := 0) : Imp α β :=
@@ -113,23 +129,10 @@ already in the array, which is appropriate when reinserting elements into the ar
   let ⟨i, h⟩ := mkIdx data.2 (hash a |>.toUSize)
   data.update i (.cons a b data.1[i]) h
 
-/-- Folds a monadic function over the elements in the map (in arbitrary order). -/
-@[inline] def foldM [Monad m] (f : δ → α → β → m δ) (d : δ) (map : Raw α β) : m δ :=
-  map.bucketArray.foldlM (init := d) fun d b => b.foldlM f d
-
-/-- Folds a function over the elements in the map (in arbitrary order). -/
-@[inline] def fold (f : δ → α → β → δ) (d : δ) (m : Raw α β) : δ :=
-  Id.run $ foldM f d m
-
-/-- Runs a monadic function over the elements in the map (in arbitrary order). -/
-@[inline] def forM [Monad m] (f : α → β → m PUnit) (h : Raw α β) : m PUnit :=
-  h.bucketArray.forM fun b => b.forM f
-
 /-- Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`. -/
 def findEntry? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option (α × β) :=
-  let ⟨⟨_, buckets⟩, h⟩ := m
-  let ⟨i, h⟩ := mkIdx h (hash a |>.toUSize)
-  buckets[i].findEntry? a
+  let ⟨i, h⟩ := mkIdx m.2 (hash a |>.toUSize)
+  m.1.bucketArray[i].findEntry? a
 
 /-- Looks up an element in the map with key `a`. -/
 def find? [BEq α] [Hashable α] (m : Imp α β) (a : α) : Option β :=
@@ -142,10 +145,9 @@ def contains [BEq α] [Hashable α] (m : Imp α β) (a : α) : Bool :=
   m.1.bucketArray[i].contains a
 
 /-- Copies all the entries from `buckets` into a new hash map with a larger capacity. -/
-def expand [Hashable α] (size : Nat) (buckets : Buckets α β) :
-    Imp α β :=
+def expand [Hashable α] (size : Nat) (buckets : Buckets α β) : Imp α β :=
   let nbuckets := buckets.1.size * 2
-  Imp.mk' size (go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide))))
+  mk' size (go 0 buckets.1 (.mk nbuckets (Nat.mul_pos buckets.2 (by decide))))
 where
   /-- Inner loop of `expand`. Copies elements `source[i:]` into `target`,
   destroying `source` in the process. -/
@@ -165,41 +167,34 @@ where
 Inserts key-value pair `a, b` into the map.
 If an element equal to `a` is already in the map, it is replaced by `b`.
 -/
-@[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (a : α) (b : β) :
-    Imp α β :=
+@[inline] def insert [BEq α] [Hashable α] (m : Imp α β) (a : α) (b : β) : Imp α β :=
   let size := m.1.1
   let buckets := m.buckets
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
   bif bkt.contains a then
-    Imp.mk' size (buckets.update i (bkt.replace a b) h)
+    mk' size (buckets.update i (bkt.replace a b) h)
   else
     let size' := size + 1
     let buckets' := buckets.update i (.cons a b bkt) h
     if numBucketsForCapacity size' ≤ buckets.1.size then
-      Imp.mk' size' buckets'
+      mk' size' buckets'
     else
       expand size' buckets'
 
 /--
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
 -/
-def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) :
-    Imp α β :=
+def erase [BEq α] [Hashable α] (m : Imp α β) (a : α) : Imp α β :=
   let size := m.1.1
   let buckets := m.buckets
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
-  bif bkt.contains a then
-    Imp.mk' (size - 1) (buckets.update i (bkt.erase a) h)
-  else
-    Imp.mk' size buckets
+  bif bkt.contains a then mk' (size - 1) (buckets.update i (bkt.erase a) h) else mk' size buckets
 
 /-- Map a function over the values in the map. -/
 @[inline] def mapVal (f : α → β → γ) (self : Imp α β) : Imp α γ :=
-  let size := self.1.1
-  let buckets := self.buckets
-  Imp.mk' size (buckets.mapVal f)
+  mk' self.1.size (self.buckets.mapVal f)
 
 /-- Performs an in-place edit of the value, ensuring that the value is used linearly. -/
 def modify [BEq α] [Hashable α] (m : Imp α β) (a : α) (f : α → β → β) : Imp α β :=
@@ -208,7 +203,7 @@ def modify [BEq α] [Hashable α] (m : Imp α β) (a : α) (f : α → β → β
   let ⟨i, h⟩ := mkIdx buckets.2 (hash a |>.toUSize)
   let bkt := buckets.1[i]
   let buckets := buckets.update i .nil h -- for linearity
-  Imp.mk' size (buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h))
+  mk' size (buckets.update i (bkt.modify a f) ((Buckets.update_size ..).symm ▸ h))
 
 /--
 Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
@@ -245,9 +240,9 @@ inductive WF [BEq α] [Hashable α] : Imp α γ → Prop where
   * The `size` field should match the actual number of elements in the map
   * The bucket array should be well-formed, meaning that if the hashable instance
     is lawful then every element hashes to its index. -/
-  | mk {m : Imp α β} : m.1.size = m.buckets.size → m.buckets.WF → WF m
+  | mk : m.1.size = m.buckets.size → m.buckets.WF → WF m
   /-- The empty hash map is well formed. -/
-  | empty' (h) : WF (empty' n h)
+  | empty' : WF (empty' n h)
   /-- Inserting into a well formed hash map yields a well formed hash map. -/
   | insert : WF m → WF (insert m a b)
   /-- Removing an element from a well formed hash map yields a well formed hash map. -/
@@ -255,7 +250,7 @@ inductive WF [BEq α] [Hashable α] : Imp α γ → Prop where
   /-- Replacing an element in a well formed hash map yields a well formed hash map. -/
   | modify : WF m → WF (modify m a f)
 
-theorem WF.empty [BEq α] [Hashable α] : WF (Imp.empty (α := α) (β := β) n) := WF.empty' _
+theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := WF.empty'
 
 end Imp
 
@@ -315,8 +310,7 @@ hashMap.insert "three" 3 = {"one" => 1, "two" => 2, "three" => 3}
 hashMap.insert "two" 0 = {"one" => 1, "two" => 0}
 ```
 -/
-def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β :=
-   ⟨self.1.insert a b, self.2.insert⟩
+def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := ⟨self.1.insert a b, self.2.insert⟩
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
@@ -341,8 +335,7 @@ hashMap.erase "one" = {"two" => 2}
 hashMap.erase "three" = {"one" => 1, "two" => 2}
 ```
 -/
-@[inline] def erase (self : HashMap α β) (a : α) : HashMap α β :=
-  ⟨self.1.erase a, self.2.erase⟩
+@[inline] def erase (self : HashMap α β) (a : α) : HashMap α β := ⟨self.1.erase a, self.2.erase⟩
 
 /--
 Performs an in-place edit of the value, ensuring that the value is used linearly.
@@ -365,8 +358,7 @@ hashMap.findEntry? "one" = some ("one", 1)
 hashMap.findEntry? "three" = none
 ```
 -/
-@[inline] def findEntry? (self : HashMap α β) (a : α) : Option (α × β) :=
-  self.1.findEntry? a
+@[inline] def findEntry? (self : HashMap α β) (a : α) : Option (α × β) := self.1.findEntry? a
 
 /--
 Looks up an element in the map with key `a`.
@@ -424,7 +416,7 @@ foldM sumEven 0 (ofList [("two", 2), ("four", 4)]) = Except.ok 6
 ```
 -/
 @[inline] def foldM [Monad m] (f : δ → α → β → m δ) (init : δ) (self : HashMap α β) : m δ :=
-  Imp.foldM f init self.1.1
+  self.1.1.foldM f init
 
 /--
 Folds a function over the elements in the map (in arbitrary order).
@@ -432,8 +424,7 @@ Folds a function over the elements in the map (in arbitrary order).
 fold (fun sum _ v => sum + v) 0 (ofList [("one", 1), ("two", 2)]) = 3
 ```
 -/
-@[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ :=
-  Imp.fold f init self.1.1
+@[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ := self.1.1.fold f init
 
 /--
 Combines two hashmaps using a monadic function `f` to combine two values at a key.
@@ -482,8 +473,7 @@ forM checkEven (ofList [("one", 1), ("three", 3)]) = Except.error "value 3 at ke
 forM checkEven (ofList [("two", 2), ("four", 4)]) = Except.ok ()
 ```
 -/
-@[inline] def forM [Monad m] (f : α → β → m PUnit) (self : HashMap α β) : m PUnit :=
-  Imp.forM f self.1.1
+@[inline] def forM [Monad m] (f : α → β → m PUnit) (self : HashMap α β) : m PUnit := self.1.1.forM f
 
 /--
 Converts the map into a list of key-value pairs.
