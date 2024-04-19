@@ -76,8 +76,10 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
     | H, _, .tail _ h => H _ h
 
 theorem expand_size [Hashable α] {buckets : Buckets α β} :
-    (expand sz buckets).buckets.size = buckets.size := by
-  rw [expand, go]
+    (Buckets.mk' (expand sz buckets)).size = buckets.size := by
+  rw [expand]
+  change (expand.go 0 buckets.val _).size = _ -- Meh
+  rw [go]
   · rw [Buckets.mk_size]; simp [Buckets.size]
   · nofun
 where
@@ -140,7 +142,7 @@ theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α
         exact ⟨h₁, h₂.2⟩
 
 theorem expand_WF [BEq α] [Hashable α] {buckets : Buckets α β} (H : buckets.WF) :
-    (expand sz buckets).buckets.WF :=
+    (Buckets.mk' (expand sz buckets)).WF :=
   go _ H.1 H.2 ⟨.mk' _, fun _ _ _ _ => by simp_all [Buckets.mk, List.mem_replicate]⟩
 where
   go (i) {source : Array (AssocList α β)}
@@ -171,9 +173,9 @@ where
     · exact ht.1
   termination_by source.size - i
 
-theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
-    (h : m.size = m.buckets.size) :
-    (insert m k v).size = (insert m k v).buckets.size := by
+theorem insert_size [BEq α] [Hashable α] {m : Imp α β} (hm) {k v}
+    (h : m.size = (Buckets.mk' ⟨m, hm⟩).size) :
+    (insert m hm k v).1.size = (Buckets.mk' (insert m hm k v)).size := by
   dsimp [insert, cond]; split
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
