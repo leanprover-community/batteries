@@ -3,7 +3,7 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.AssocList
+import Std.Data.AssocList.WF
 import Std.Data.Nat.Basic
 import Std.Data.Array.Monadic
 import Std.Classes.BEq
@@ -51,17 +51,26 @@ noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
   ⟨self.1.map (.mapVal f)⟩
 
+/-- Well-formedness invariant for a bucket saying that a certain bucket is well-formed
+in the  -/
+structure BucketWFAt [BEq α] [Hashable α] (l : AssocList α β) (i size : Nat) : Prop where
+  /-- The bucket should be a well-formed associative list. -/
+  WF : l.WF
+  /-- Every element in a bucket should hash to its location. -/
+  hash_self [LawfulHashable α] : ∀ k, l.contains k → ((hash k).toUSize % size).toNat = i
+
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
 structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
-  /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
-  distinct [LawfulHashable α] [PartialEquivBEq α] : ∀ bucket ∈ buckets.1.data,
-    bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
-  /-- Every element in a bucket should hash to its location. -/
-  hash_self (i : Nat) (h : i < buckets.1.size) :
-    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
+  bucket_wf (i : Nat) (h : i < buckets.1.size) : BucketWFAt buckets.1[i] i buckets.1.size
+  -- /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
+  -- distinct [LawfulHashable α] [PartialEquivBEq α] (i : Nat) (h : i < buckets.1.size) :
+  --   buckets.1[i].WF
+  -- /-- Every element in a bucket should hash to its location. -/
+  -- hash_self (i : Nat) (h : i < buckets.1.size) :
+  --   buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
   /-- There must be at least one bucket. -/
   size : 0 < buckets.1.size
 
