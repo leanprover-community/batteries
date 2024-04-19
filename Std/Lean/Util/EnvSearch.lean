@@ -3,7 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-import Std.Tactic.Lint.Misc
+import Lean.Environment
 
 namespace Lean
 
@@ -22,7 +22,6 @@ def getMatchingConstants {m} [Monad m] [MonadEnv m]
   (← getEnv).constants.map₂.foldlM (init := matches_) check
 where
   /-- Check constant should be returned -/
-  @[nolint unusedArguments]
   check matches_ (_name : Name) cinfo := do
     let include ← p cinfo
     if include then
