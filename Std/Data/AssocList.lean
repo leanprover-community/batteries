@@ -308,3 +308,12 @@ protected theorem beq_eq [BEq α] [BEq β] {l m : AssocList α β} :
     (l == m) = (l.toList == m.toList) := by
   simp [(· == ·)]
   induction l generalizing m <;> cases m <;> simp [*, (· == ·), AssocList.beq, List.beq]
+
+/-- Map an associative list to its list of keys. -/
+def keys : AssocList α β → List α
+  | .nil => []
+  | .cons k _ t => k :: t.keys
+
+@[simp]
+theorem keys_eq_toList (l : AssocList α β) : l.keys = l.toList.map (·.1) := by
+  induction l <;> simp_all [keys]

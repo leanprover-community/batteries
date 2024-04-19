@@ -3,17 +3,12 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.AssocList
+import Std.Data.AssocList.WF
 import Std.Data.Nat.Basic
 import Std.Data.Array.Monadic
 import Std.Classes.BEq
 
 namespace Std.HashMap
-
-/-- A hash is lawful if elements which compare equal under `==` have equal hash. -/
-class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
-  /-- Two elements which compare equal under the `BEq` instance have equal hash. -/
-  hash_eq {a b : α} : a == b → hash a = hash b
 
 namespace Imp
 
@@ -52,12 +47,8 @@ The well-formedness invariant for the bucket array says that every element hashe
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
 structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
-  /-- The elements of a bucket are all distinct according to the `BEq` relation. -/
-  distinct [LawfulHashable α] [PartialEquivBEq α] : ∀ bucket ∈ buckets.1.data,
-    bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
-  /-- Every element in a bucket should hash to its location. -/
-  hash_self (i : Nat) (h : i < buckets.1.size) :
-    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
+  /-- Every bucket is well-formed at its position -/
+  wfAtPosition (i : Nat) (h : i < buckets.1.size) : buckets.1[i].WFAtPosition i buckets.1.size
 
 end Buckets
 end Imp
