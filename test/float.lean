@@ -57,3 +57,12 @@ import Std.Lean.Float
 #guard Nat.divFloat (((2^53-1)*4+2)*(2^(1024-53))) 4 == Float.inf
 #guard Nat.divFloat (((2^53-1)*4+3)*(2^(1024-53))) 4 == Float.inf
 #guard Nat.divFloat (((2^53-1)*4+4)*(2^(1024-53))) 4 == Float.inf
+
+#guard Int.divFloat 1 3 == (1 / 3 : Float)
+#guard Int.divFloat (-1) 3 == (-1 / 3 : Float)
+#guard Int.divFloat 1 (-3) == (1 / -3 : Float)
+#guard Int.divFloat (-1) (-3) == (-1 / -3 : Float)
+#guard Int.divFloat (-1) 0 == -Float.inf
+#guard (Int.divFloat 0 0).isNaN
+#guard (Int.divFloat 0 1).toString == "0.000000"
+#guard (Int.divFloat 0 (-1)).toString == "-0.000000"
