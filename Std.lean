@@ -79,7 +79,6 @@ import Std.Tactic.Case
 import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact
-import Std.Tactic.FalseOrByContra
 import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.Lint
