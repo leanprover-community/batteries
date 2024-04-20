@@ -23,6 +23,11 @@ def classical [Monad m] [MonadEnv m] [MonadFinally m] [MonadLiftT MetaM m] (t : 
   finally
     modifyEnv Meta.instanceExtension.popScope
 
+/-- `classical!` has been removed; use `classical` instead -/
+-- Deprecated 2024-04-19
+elab "classical!" : tactic => do
+  throwError "`classical!` has been removed; use `classical` instead"
+
 /--
 `classical tacs` runs `tacs` in a scope where `Classical.propDecidable` is a low priority
 local instance.
