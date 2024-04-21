@@ -13,14 +13,11 @@ Authors: François G. Dorais
 
 theorem UInt8.toNat_lt (x : UInt8) : x.toNat < 2 ^ 8 := x.val.isLt
 
-@[simp] theorem UInt8.toUInt16_toNat (x : UInt8) : x.toUInt16.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt8.toUInt16_toNat (x : UInt8) : x.toUInt16.toNat = x.toNat := rfl
 
-@[simp] theorem UInt8.toUInt32_toNat (x : UInt8) : x.toUInt32.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt8.toUInt32_toNat (x : UInt8) : x.toUInt32.toNat = x.toNat := rfl
 
-@[simp] theorem UInt8.toUInt64_toNat (x : UInt8) : x.toUInt64.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt8.toUInt64_toNat (x : UInt8) : x.toUInt64.toNat = x.toNat := rfl
 
 /-! ### UInt16 -/
 
@@ -33,11 +30,9 @@ theorem UInt16.toNat_lt (x : UInt16) : x.toNat < 2 ^ 16 := x.val.isLt
 
 @[simp] theorem UInt16.toUInt8_toNat (x : UInt16) : x.toUInt8.toNat = x.toNat % 2 ^ 8 := rfl
 
-@[simp] theorem UInt16.toUInt32_toNat (x : UInt16) : x.toUInt32.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt16.toUInt32_toNat (x : UInt16) : x.toUInt32.toNat = x.toNat := rfl
 
-@[simp] theorem UInt16.toUInt64_toNat (x : UInt16) : x.toUInt64.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt16.toUInt64_toNat (x : UInt16) : x.toUInt64.toNat = x.toNat := rfl
 
 /-! ### UInt32 -/
 
@@ -97,5 +92,4 @@ theorem USize.toNat_lt (x : USize) : x.toNat < 2 ^ System.Platform.numBits := by
 @[simp] theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
   simp only [USize.toUInt64, UInt64.toNat]; rfl
 
-@[simp] theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt USize.le_size)
+@[simp] theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := rfl
