@@ -4,3 +4,5 @@ import Std.Data.Array.Lemmas
 import Std.Data.Array.Match
 import Std.Data.Array.Merge
 import Std.Data.Array.Monadic
+import Std.Data.Array.Perm
+import Std.Data.Array.QSort

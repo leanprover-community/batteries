@@ -166,6 +166,22 @@ theorem append_eq_append_iff {a b c d : List α} :
   | nil => simp; exact (or_iff_left_of_imp fun ⟨_, ⟨e, rfl⟩, h⟩ => e ▸ h.symm).symm
   | cons a as ih => cases c <;> simp [eq_comm, and_assoc, ih, and_or_left]
 
+theorem append_eq_append_iff_of_length_le {a b c d : List α} (h : a.length ≤ c.length) :
+    a ++ b = c ++ d ↔ ∃ a', c = a ++ a' ∧ b = a' ++ d := by
+  refine append_eq_append_iff.trans <| or_iff_left_of_imp ?_
+  rintro ⟨a', rfl, rfl⟩
+  rw [length_append] at h
+  cases length_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_left (k := 0)).1 h
+  exact ⟨[], by simp⟩
+
+theorem append_eq_append_iff_of_length_le' {a b c d : List α} (h : d.length ≤ b.length) :
+    a ++ b = c ++ d ↔ ∃ a', c = a ++ a' ∧ b = a' ++ d := by
+  refine append_eq_append_iff.trans <| or_iff_left_of_imp ?_
+  rintro ⟨a', rfl, rfl⟩
+  rw [length_append, Nat.add_comm] at h
+  cases length_eq_zero.1 <| Nat.le_zero.1 <| (Nat.add_le_add_iff_left (k := 0)).1 h
+  exact ⟨[], by simp⟩
+
 @[simp] theorem mem_append {a : α} {s t : List α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
   induction s <;> simp_all [or_assoc]
 
@@ -816,6 +832,9 @@ theorem get_of_append {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.lengt
     l.get ⟨n, get_of_append_proof eq h⟩ = a := Option.some.inj <| by
   rw [← get?_eq_get, eq, get?_append_right (h ▸ Nat.le_refl _), h, Nat.sub_self]; rfl
 
+theorem get_of_append' {l : List α} {n} (eq : l = l₁ ++ a :: l₂) (h : l₁.length = n.1) :
+    l.get n = a := get_of_append eq h
+
 @[simp] theorem get_replicate (a : α) {n : Nat} (m : Fin _) : (replicate n a).get m = a :=
   eq_of_mem_replicate (get_mem _ _ _)
 
@@ -850,6 +869,33 @@ theorem length_take_le' (n) (l : List α) : length (take n l) ≤ l.length :=
   by simp [Nat.min_le_right]
 
 theorem length_take_of_le (h : n ≤ length l) : length (take n l) = n := by simp [Nat.min_eq_left h]
+
+theorem exists_of_length_le {n} {l : List α} (h : n ≤ l.length) :
+    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
+  ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
+
+theorem exists_of_length_lt {n} {l : List α} (h : n < l.length) :
+    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n :=
+  match exists_of_length_le (Nat.le_of_lt h) with
+  | ⟨l₁, [], _, _⟩ => by subst l; simp at h; omega
+  | ⟨l₁, a::l₂, H⟩ => ⟨l₁, a, l₂, H⟩
+
+theorem exists_three_of_le (l : List α) (h1 : i ≤ j) (h2 : j ≤ l.length) :
+    ∃ l₁ l₂ l₃, l₁.length = i ∧ i + l₂.length = j ∧ l = l₁ ++ l₂ ++ l₃ := by
+  obtain ⟨l', l₃, rfl, rfl⟩ := exists_of_length_le h2
+  let ⟨l₁, l₂, eq, hl₁⟩ := exists_of_length_le h1
+  exact ⟨l₁, l₂, l₃, hl₁, by simp [eq, hl₁]⟩
+
+theorem exists_three_of_lt (l : List α) (h1 : i < j) (h2 : j < l.length) :
+    ∃ l₁ a l₂ b l₃, l₁.length = i ∧ i + l₂.length + 1 = j ∧ l = l₁ ++ a :: l₂ ++ b :: l₃ := by
+  obtain ⟨l', b, l₃, rfl, rfl⟩ := exists_of_length_lt h2
+  let ⟨l₁, a, l₂, eq, hl₁⟩ := exists_of_length_lt h1
+  exact ⟨l₁, a, l₂, b, l₃, hl₁, by simp [eq, hl₁, Nat.add_succ]⟩
+
+theorem exists_of_get {l : List α} (h : n < l.length) :
+    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.get ⟨n, h⟩ = a :=
+  have ⟨_, _, _, eq, hl⟩ := exists_of_length_lt h
+  ⟨_, _, _, eq, hl, get_of_append eq hl⟩
 
 theorem take_all_of_le : ∀ {n} {l : List α}, length l ≤ n → take n l = l
   | 0, [], _ => rfl
@@ -1181,11 +1227,14 @@ theorem modifyNthTail_add (f : List α → List α) (n) (l₁ l₂ : List α) :
     modifyNthTail f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyNthTail f n l₂ := by
   induction l₁ <;> simp [*, Nat.succ_add]
 
+theorem modifyNthTail_of_append (f : List α → List α) {n} {l : List α}
+    (eq : l = l₁ ++ l₂) (h : l₁.length = n) : l.modifyNthTail f n = l₁ ++ f l₂ :=
+  eq ▸ h ▸ modifyNthTail_add (n := 0) ..
+
 theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h : n ≤ l.length) :
     ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n ∧ modifyNthTail f n l = l₁ ++ f l₂ :=
-  have ⟨_, _, eq, hl⟩ : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
-    ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
-  ⟨_, _, eq, hl, hl ▸ eq ▸ modifyNthTail_add (n := 0) ..⟩
+  have ⟨_, _, eq, hl⟩ := exists_of_length_le h
+  ⟨_, _, eq, hl, modifyNthTail_of_append _ eq hl⟩
 
 @[simp] theorem modify_get?_length (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
   modifyNthTail_length _ fun l => by cases l <;> rfl
@@ -1198,11 +1247,13 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
     (modifyNth f m l).get? n = l.get? n := by
   simp only [get?_modifyNth, if_neg h, id_map']
 
+theorem modifyNth_of_append (f : α → α) {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.length = n) :
+    l.modifyNth f n = l₁ ++ f a :: l₂ := modifyNthTail_of_append _ eq h
+
 theorem exists_of_modifyNth (f : α → α) {n} {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modifyNth f n l = l₁ ++ f a :: l₂ :=
-  match exists_of_modifyNthTail _ (Nat.le_of_lt h) with
-  | ⟨_, _::_, eq, hl, H⟩ => ⟨_, _, _, eq, hl, H⟩
-  | ⟨_, [], eq, hl, _⟩ => nomatch Nat.ne_of_gt h (eq ▸ append_nil _ ▸ hl)
+  have ⟨_, _, _, eq, hl⟩ := exists_of_length_lt h
+  ⟨_, _, _, eq, hl, modifyNth_of_append _ eq hl⟩
 
 theorem modifyNthTail_eq_take_drop (f : List α → List α) (H : f [] = []) :
     ∀ n l, modifyNthTail f n l = take n l ++ f (drop n l)
@@ -1239,6 +1290,9 @@ theorem modifyNth_eq_set_get? (f : α → α) :
 theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modifyNth_eq_set_get?, get?_eq_get h]; rfl
+
+theorem set_of_append {l : List α} (a') (eq : l = l₁ ++ a :: l₂) (h : l₁.length = n) :
+    l.set n a' = l₁ ++ a' :: l₂ := by rw [set_eq_modifyNth]; exact modifyNth_of_append _ eq h
 
 theorem exists_of_set {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
