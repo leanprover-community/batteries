@@ -47,8 +47,7 @@ theorem UInt32.toNat_lt (x : UInt32) : x.toNat < 2 ^ 32 := x.val.isLt
 
 @[simp] theorem UInt32.toUInt16_toNat (x : UInt32) : x.toUInt16.toNat = x.toNat % 2 ^ 16 := rfl
 
-@[simp] theorem UInt32.toUInt64_toNat (x : UInt32) : x.toUInt64.toNat = x.toNat :=
-  Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le x.toNat_lt (by decide))
+@[simp] theorem UInt32.toUInt64_toNat (x : UInt32) : x.toUInt64.toNat = x.toNat := rfl
 
 /-! ### UInt64 -/
 
