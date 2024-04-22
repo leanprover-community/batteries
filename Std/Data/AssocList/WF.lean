@@ -24,28 +24,30 @@ structure WF [BEq α] (l : AssocList α β) : Prop where
 theorem WF.nil [BEq α] : (.nil : AssocList α β).WF :=
   ⟨by simp⟩
 
-theorem WF.cons [BEq α] {l : AssocList α β} {k : α} {v : β} (h : l.contains k = false) :
+theorem WF.cons [BEq α] {l : AssocList α β} {k : α} {v : β} (h : ∀ [PartialEquivBEq α], l.contains k = false) :
     l.WF → (l.cons k v).WF := sorry
 
 theorem WF.replace [BEq α] {l : AssocList α β} {k : α} {v : β} :
     l.WF → (l.replace k v).WF := sorry
 
 /-- Well-formedness invariant for a bucket in a hash map. -/
-structure WFAtPosition [BEq α] [Hashable α] (l : AssocList α β) (i size : Nat)
-    extends l.WF : Prop where
+structure WFAtPosition [BEq α] [Hashable α] (l : AssocList α β) (i size : Nat) : Prop where
+  /-- The bucket should be well-formed as an associative list. -/
+  wf [LawfulHashable α] : l.WF
   /-- Every element in a bucket should hash to its location. -/
   hash_self [LawfulHashable α] : ∀ k, l.contains k → ((hash k).toUSize % size).toNat = i
 
 @[simp]
 theorem WFAtPosition.nil [BEq α] [Hashable α] {i size} :
     (.nil : AssocList α β).WFAtPosition i size :=
-  { WF.nil with
+  { wf := by simp
     hash_self := by simp }
 
 theorem WFAtPosition.cons [BEq α] [Hashable α] {l : AssocList α β} {k : α} {v : β}
-    (h₁ : l.contains k = false) {i size : Nat} (h₂ : ((hash k).toUSize % size).toNat = i)
+    (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α], l.contains k = false) {i size : Nat}
+    (h₂ : ∀ [LawfulHashable α], ((hash k).toUSize % size).toNat = i)
     (h : l.WFAtPosition i size) : (l.cons k v).WFAtPosition i size :=
-  { h.toWF.cons h₁ with
+  { wf := h.wf.cons h₁
     hash_self := by
       intros _ k'
       sorry -- Okay, I need all of my normal forms from my own development
