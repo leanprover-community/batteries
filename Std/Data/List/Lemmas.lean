@@ -1575,6 +1575,7 @@ theorem erase_subset (a : α) (l : List α) : l.erase a ⊆ l := (erase_sublist 
 
 theorem Sublist.erase (a : α) {l₁ l₂ : List α} (h : l₁ <+ l₂) : l₁.erase a <+ l₂.erase a := by
   simp only [erase_eq_eraseP']; exact h.eraseP
+@[deprecated] alias sublist.erase := Sublist.erase
 
 theorem mem_of_mem_erase {a b : α} {l : List α} (h : a ∈ l.erase b) : a ∈ l := erase_subset _ _ h
 
