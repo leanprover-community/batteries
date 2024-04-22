@@ -5,7 +5,7 @@ Authors: Markus Himmel
 -/
 import Std.Classes.BEq
 import Std.Classes.Hashable
-import Std.Data.AssocList
+import Std.Data.AssocList.Basic
 
 set_option autoImplicit false
 
