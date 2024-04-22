@@ -114,13 +114,8 @@ protected theorem PermStabilizing.mono (H : PermStabilizing lo hi as as')
 
 theorem Vector.split_three (as : Vector α n) (h1 : lo ≤ hi) (h2 : hi ≤ n) :
     ∃ L₁ L₂ L₃, L₁.length = lo ∧ lo + L₂.length = hi ∧
-      as.1.data = L₁ ++ L₂ ++ L₃ := by
-  rw [← take_append_drop hi as.1.data, ← take_append_drop lo (as.1.data.take hi)]
-  have lenhi {as : Vector α n} : length (take hi as.val.data) = hi :=
-    length_take_of_le <| by rwa [← size, as.2]
-  have {as : Vector α n} : lo ≤ length (take hi as.val.data) := lenhi.symm ▸ h1
-  refine ⟨_, _, _, length_take_of_le this, ?_, rfl⟩
-  rw [length_drop, Nat.add_sub_cancel' this, lenhi]
+      as.1.data = L₁ ++ L₂ ++ L₃ :=
+  exists_three_of_le _ h1 (as.2.symm ▸ h2 :)
 
 theorem PermStabilizing.list_perm (H : @PermStabilizing α n lo hi as as')
     {L₁ L₂ L₃} (eq : as.1.data = L₁ ++ L₂ ++ L₃)
