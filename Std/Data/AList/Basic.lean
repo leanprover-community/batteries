@@ -406,12 +406,12 @@ theorem WF_of_keys_eq [BEq α] {l l' : List (Σ a, β a)} (h : l.keys = l'.keys)
   WF_of_sublist_keys (h ▸ Sublist.refl _)
 
 -- TODO
-theorem List.contains_iff_exists_beq [BEq α] (l : List α) (a : α) : l.contains a ↔ ∃ a' ∈ l, a == a' := by
+theorem List.contains_iff_exists_mem_beq [BEq α] (l : List α) (a : α) : l.contains a ↔ ∃ a' ∈ l, a == a' := by
   induction l <;> simp_all
 
 theorem containsKey_iff_exists [BEq α] [EquivBEq α] {l : List (Σ a, β a)} {a : α} :
     l.containsKey a ↔ ∃ a' ∈ l.keys, a == a' := by
-  rw [containsKey_eq_keys_containsKey, List.contains_iff_exists_beq]
+  rw [containsKey_eq_keys_containsKey, List.contains_iff_exists_mem_beq]
 
 theorem containsKey_eq_false_iff_forall [BEq α] [EquivBEq α] {l : List (Σ a, β a)} {a : α} :
     (l.containsKey a) = false ↔ ∀ a' ∈ l.keys, (a == a') = false := by
