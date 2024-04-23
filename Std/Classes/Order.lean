@@ -3,8 +3,6 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Data.Ord
-import Std.Tactic.Simpa
 
 /-! ## Ordering -/
 
@@ -90,6 +88,12 @@ theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z 
 
 end TransCmp
 
+instance [inst : OrientedCmp cmp] : OrientedCmp (flip cmp) where
+  symm _ _ := inst.symm ..
+
+instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
+  le_trans h1 h2 := inst.le_trans h2 h1
+
 end Std
 
 namespace Ordering
@@ -109,15 +113,3 @@ instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCm
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
 
 end Ordering
-
-@[simp] theorem ge_iff_le [LE α] {x y : α} : x ≥ y ↔ y ≤ x := Iff.rfl
-
-@[simp] theorem gt_iff_lt [LT α] {x y : α} : x > y ↔ y < x := Iff.rfl
-
-theorem le_of_eq_of_le {a b c : α} [LE α] (h₁ : a = b) (h₂ : b ≤ c) : a ≤ c := by subst h₁; exact h₂
-
-theorem le_of_le_of_eq {a b c : α} [LE α] (h₁ : a ≤ b) (h₂ : b = c) : a ≤ c := by subst h₂; exact h₁
-
-theorem lt_of_eq_of_lt {a b c : α} [LT α] (h₁ : a = b) (h₂ : b < c) : a < c := by subst h₁; exact h₂
-
-theorem lt_of_lt_of_eq {a b c : α} [LT α] (h₁ : a < b) (h₂ : b = c) : a < c := by subst h₂; exact h₁

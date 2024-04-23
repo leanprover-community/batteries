@@ -3,7 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Std.Classes.Dvd
 
 namespace Nat
 
@@ -101,12 +100,6 @@ protected def casesDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
   Nat.recDiag zero_zero (fun _ _ => zero_succ _) (fun _ _ => succ_zero _)
     (fun _ _ _ => succ_succ _ _) m n
 
-/--
-Divisibility of natural numbers. `a ∣ b` (typed as `\|`) says that
-there is some `c` such that `b = a * c`.
--/
-instance : Dvd Nat := ⟨fun a b => ∃ c, b = a * c⟩
-
 /-- The least common multiple of `m` and `n`, defined using `gcd`. -/
 def lcm (m n : Nat) : Nat := m * n / gcd m n
 
@@ -129,12 +122,3 @@ where
     else
       guess
   termination_by guess
-
-/-!
-### testBit
-We define an operation for testing individual bits in the binary representation
-of a number.
--/
-
-/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
-def testBit (m n : Nat) : Bool := (m >>> n) &&& 1 != 0

@@ -40,12 +40,6 @@ def lambdaArity : Expr → Nat
   | lam _ _ b _ => 1 + lambdaArity b
   | _ => 0
 
-/-- Like `getAppFn` but ignores metadata. -/
-def getAppFn' : Expr → Expr
-  | mdata _ b => getAppFn' b
-  | app f _ => getAppFn' f
-  | e => e
-
 /-- Like `getAppNumArgs` but ignores metadata. -/
 def getAppNumArgs' (e : Expr) : Nat :=
   go e 0
@@ -104,37 +98,16 @@ def getRevArgD' : Expr → Nat → Expr → Expr
   | app f _  , i+1, v => getRevArgD' f i v
   | _        , _  , v => v
 
-/-- Like `getRevArg!` but ignores metadata. -/
-@[inline]
-def getRevArg!' : Expr → Nat → Expr
-  | mdata _ b, n   => getRevArg!' b n
-  | app _ a  , 0   => a
-  | app f _  , i+1 => getRevArg!' f i
-  | _        , _   => panic! "invalid index"
-
 /-- Like `getArgD` but ignores metadata. -/
 @[inline]
 def getArgD' (e : Expr) (i : Nat) (v₀ : Expr) (n := e.getAppNumArgs') : Expr :=
   getRevArgD' e (n - i - 1) v₀
-
-/-- Like `getArg!` but ignores metadata. -/
-@[inline]
-def getArg!' (e : Expr) (i : Nat) (n := e.getAppNumArgs') : Expr :=
-  getRevArg!' e (n - i - 1)
 
 /-- Like `isAppOf` but ignores metadata. -/
 def isAppOf' (e : Expr) (n : Name) : Bool :=
   match e.getAppFn' with
   | const c .. => c == n
   | _ => false
-
-/-- If the expression is a constant, return that name. Otherwise return `Name.anonymous`. -/
-def constName (e : Expr) : Name :=
-  e.constName?.getD Name.anonymous
-
-/-- Return the function (name) and arguments of an application. -/
-def getAppFnArgs (e : Expr) : Name × Array Expr :=
-  withApp e λ e a => (e.constName, a)
 
 /-- Turns an expression that is a natural number literal into a natural number. -/
 def natLit! : Expr → Nat
@@ -150,28 +123,3 @@ def intLit! (e : Expr) : Int :=
     .negOfNat e.appArg!.natLit!
   else
     panic! "not a raw integer literal"
-
-/--
-Checks if an expression is a "natural number in normal form",
-i.e. of the form `OfNat n`, where `n` matches `.lit (.natVal lit)` for some `lit`.
-and if so returns `lit`.
--/
--- Note that an `Expr.lit (.natVal n)` is not considered in normal form!
-def nat? (e : Expr) : Option Nat := do
-  guard <| e.isAppOfArity ``OfNat.ofNat 3
-  let lit (.natVal n) := e.appFn!.appArg! | none
-  n
-
-/--
-Checks if an expression is an "integer in normal form",
-i.e. either a natural number in normal form, or the negation of a positive natural number,
-and if so returns the integer.
--/
-def int? (e : Expr) : Option Int :=
-  if e.isAppOfArity ``Neg.neg 3 then
-    match e.appArg!.nat? with
-    | none => none
-    | some 0 => none
-    | some n => some (-n)
-  else
-    e.nat?

@@ -7,9 +7,8 @@ import Std.Data.Char
 import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
+import Std.Tactic.Lint.Misc
 import Std.Tactic.SeqFocus
-import Std.Tactic.Ext.Attr
-import Std.Tactic.Simpa
 
 @[simp] theorem Char.length_toString (c : Char) : c.toString.length = 1 := rfl
 
@@ -33,6 +32,12 @@ theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := 
 @[simp] theorem length_push (c : Char) : (String.push s c).length = s.length + 1 := by
   rw [push, mk_length, List.length_append, List.length_singleton, Nat.succ.injEq]
   rfl
+
+@[simp] theorem length_pushn (c : Char) (n : Nat) : (pushn s c n).length = s.length + n := by
+  unfold pushn; induction n <;> simp [Nat.repeat, Nat.add_succ, *]
+
+@[simp] theorem length_append (s t : String) : (s ++ t).length = s.length + t.length := by
+  simp only [length, append, List.length_append]
 
 @[simp] theorem data_push (s : String) (c : Char) : (s.push c).1 = s.1 ++ [c] := rfl
 
@@ -379,7 +384,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
-    simp [bne]; split <;> simp
+    simp; split <;> simp
     subst b
     rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + csize a⟩ by simp [hl₁, next_of_valid]]
     simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using

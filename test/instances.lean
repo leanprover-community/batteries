@@ -1,5 +1,4 @@
 import Std.Tactic.Instances
-import Std.Tactic.GuardMsgs
 
 set_option linter.missingDocs false
 

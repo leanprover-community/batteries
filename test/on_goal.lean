@@ -1,4 +1,3 @@
-import Std.Tactic.GuardExpr
 import Std.Tactic.PermuteGoals
 import Std.Tactic.Unreachable
 

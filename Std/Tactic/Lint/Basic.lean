@@ -3,7 +3,9 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Std.Util.TermUnsafe
+import Lean.Structure
+import Lean.Elab.InfoTree.Main
+import Lean.Elab.Exception
 
 open Lean Meta
 
@@ -33,7 +35,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
   if let Name.str n s := decl then
-    if s.startsWith "proof_" || s.startsWith "match_" then return true
+    if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
     if (← getEnv).isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
@@ -41,7 +43,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
         ].any (· == s) then
         return true
-      if let some _ := isSubobjectField? (← getEnv) n s then
+      if let some _ := isSubobjectField? (← getEnv) n (.mkSimple s) then
         return true
   pure false
 

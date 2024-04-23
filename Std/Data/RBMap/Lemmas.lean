@@ -93,6 +93,15 @@ theorem WF.depth_bound {t : RBNode α} (h : t.WF cmp) : t.depth ≤ 2 * (t.size 
 
 end depth
 
+@[simp] theorem min?_reverse (t : RBNode α) : t.reverse.min? = t.max? := by
+  unfold RBNode.max?; split <;> simp [RBNode.min?]
+  unfold RBNode.min?; rw [min?.match_1.eq_3]
+  · apply min?_reverse
+  · simpa [reverse_eq_iff]
+
+@[simp] theorem max?_reverse (t : RBNode α) : t.reverse.max? = t.min? := by
+  rw [← min?_reverse, reverse_reverse]
+
 @[simp] theorem mem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [(·∈·), EMem]
 @[simp] theorem mem_node {y c a x b} :
     y ∈ (.node c a x b : RBNode α) ↔ y = x ∨ y ∈ a ∨ y ∈ b := by simp [(·∈·), EMem]
@@ -258,7 +267,7 @@ theorem lowerBound?_le' {t : RBNode α} (H : ∀ {x}, x ∈ lb → cut x ≠ .lt
 
 /-- The value `x` returned by `lowerBound?` is less or equal to the `cut`. -/
 theorem lowerBound?_le {t : RBNode α} : t.lowerBound? cut none = some x → cut x ≠ .lt :=
-  lowerBound?_le' (fun.)
+  lowerBound?_le' nofun
 
 theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb → p x) :
     t.lowerBound? cut lb = some x → p x := by
@@ -271,14 +280,14 @@ theorem All.lowerBound?_lb {t : RBNode α} (hp : t.All p) (H : ∀ {x}, x ∈ lb
     · exact fun | rfl => hp.1
 
 theorem All.lowerBound? {t : RBNode α} (hp : t.All p) : t.lowerBound? cut none = some x → p x :=
-  hp.lowerBound?_lb (fun.)
+  hp.lowerBound?_lb nofun
 
 theorem lowerBound?_mem_lb {t : RBNode α}
     (h : t.lowerBound? cut lb = some x) : x ∈ t ∨ x ∈ lb :=
   All.lowerBound?_lb (p := fun x => x ∈ t ∨ x ∈ lb) (All_def.2 fun _ => .inl) Or.inr h
 
 theorem lowerBound?_mem {t : RBNode α} (h : t.lowerBound? cut none = some x) : x ∈ t :=
-  (lowerBound?_mem_lb h).resolve_right (fun.)
+  (lowerBound?_mem_lb h).resolve_right nofun
 
 theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
   induction t generalizing y <;> simp [lowerBound?]; split <;> simp [*]
@@ -302,7 +311,7 @@ theorem Ordered.lowerBound?_least_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
     (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
     t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   induction t generalizing lb with
-  | nil => intro.
+  | nil => nofun
   | node _ _ _ _ ihl ihr =>
     simp [lowerBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
     · exact hv
@@ -328,7 +337,7 @@ strictly greater than the cut (so there is no exact match, and nothing closer to
 theorem Ordered.lowerBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
     (H : t.lowerBound? cut none = some x) (hy : y ∈ t)
     (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
-  ht.lowerBound?_least_lb (by exact fun.) H hy hx xy
+  ht.lowerBound?_least_lb (by nofun) H hy hx xy
 
 theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
     t.MemP cut ↔ ∃ x, t.lowerBound? cut none = some x ∧ cut x = .eq := by
@@ -367,14 +376,38 @@ theorem foldr_cons (t : RBNode α) (l) : t.foldr (·::·) l = t.toList ++ l := b
 @[simp] theorem toList_node : (.node c a x b : RBNode α).toList = a.toList ++ x :: b.toList := by
   rw [toList, foldr, foldr_cons]; rfl
 
+@[simp] theorem toList_reverse (t : RBNode α) : t.reverse.toList = t.toList.reverse := by
+  induction t <;> simp [*]
+
 @[simp] theorem mem_toList {t : RBNode α} : x ∈ t.toList ↔ x ∈ t := by
   induction t <;> simp [*, or_left_comm]
+
+@[simp] theorem mem_reverse {t : RBNode α} : a ∈ t.reverse ↔ a ∈ t := by rw [← mem_toList]; simp
+
+theorem min?_eq_toList_head? {t : RBNode α} : t.min? = t.toList.head? := by
+  induction t with
+  | nil => rfl
+  | node _ l _ _ ih =>
+    cases l <;> simp [RBNode.min?, ih]
+    next ll _ _ => cases toList ll <;> rfl
+
+theorem max?_eq_toList_getLast? {t : RBNode α} : t.max? = t.toList.getLast? := by
+  rw [← min?_reverse, min?_eq_toList_head?]; simp
 
 theorem foldr_eq_foldr_toList {t : RBNode α} : t.foldr f init = t.toList.foldr f init := by
   induction t generalizing init <;> simp [*]
 
 theorem foldl_eq_foldl_toList {t : RBNode α} : t.foldl f init = t.toList.foldl f init := by
   induction t generalizing init <;> simp [*]
+
+theorem foldl_reverse {α β : Type _} {t : RBNode α} {f : β → α → β} {init : β} :
+    t.reverse.foldl f init = t.foldr (flip f) init := by
+  simp (config := {unfoldPartialApp := true})
+    [foldr_eq_foldr_toList, foldl_eq_foldl_toList, flip]
+
+theorem foldr_reverse {α β : Type _} {t : RBNode α} {f : α → β → β} {init : β} :
+    t.reverse.foldr f init = t.foldl (flip f) init :=
+  foldl_reverse.symm.trans (by simp; rfl)
 
 theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBNode α} :
     t.forM (m := m) f = t.toList.forM f := by induction t <;> simp [*]
@@ -467,6 +500,27 @@ theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairw
 theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
   induction t <;> simp [*, size]; rfl
 
+@[simp] theorem reverse_size (t : RBNode α) : t.reverse.size = t.size := by simp [size_eq]
+
+@[simp] theorem find?_reverse (t : RBNode α) (cut : α → Ordering) :
+    t.reverse.find? cut = t.find? (cut · |>.swap) := by
+  induction t <;> simp [*, find?]
+  cases cut _ <;> simp [Ordering.swap]
+
+/--
+Auxiliary definition for `zoom_ins`: set the root of the tree to `v`, creating a node if necessary.
+-/
+def setRoot (v : α) : RBNode α → RBNode α
+  | nil => node red nil v nil
+  | node c a _ b => node c a v b
+
+/--
+Auxiliary definition for `zoom_ins`: set the root of the tree to `v`, creating a node if necessary.
+-/
+def delRoot : RBNode α → RBNode α
+  | nil => nil
+  | node _ a _ b => a.append b
+
 namespace Path
 
 attribute [simp] RootOrdered Ordered
@@ -516,6 +570,15 @@ theorem ordered_iff {p : Path α} :
       fun ⟨⟨hL, ⟨hl, lx⟩, Ll, Lx⟩, hR, LR, lR, xR⟩ =>
        ⟨⟨hL, hR, LR⟩, lx, ⟨Lx, xR⟩, ⟨fun _ ha _ hb => Ll _ hb _ ha, lR⟩, hl⟩⟩
 
+theorem zoom_zoomed₁ (e : zoom cut t path = (t', path')) : t'.OnRoot (cut · = .eq) :=
+  match t, e with
+  | nil, rfl => trivial
+  | node .., e => by
+    revert e; unfold zoom; split
+    · exact zoom_zoomed₁
+    · exact zoom_zoomed₁
+    · next H => intro e; cases e; exact H
+
 @[simp] theorem fill_toList {p : Path α} : (p.fill t).toList = p.withList t.toList := by
   induction p generalizing t <;> simp [*]
 
@@ -533,6 +596,85 @@ theorem _root_.Std.RBNode.zoom_toList {t : RBNode α} (eq : t.zoom cut = (t', p'
 theorem insert_toList {p : Path α} :
     (p.insert t v).toList = p.withList (t.setRoot v).toList := by
   simp [insert]; split <;> simp [setRoot]
+
+protected theorem Balanced.insert {path : Path α} (hp : path.Balanced c₀ n₀ c n) :
+    t.Balanced c n → ∃ c n, (path.insert t v).Balanced c n
+  | .nil => ⟨_, hp.insertNew⟩
+  | .red ha hb => ⟨_, _, hp.fill (.red ha hb)⟩
+  | .black ha hb => ⟨_, _, hp.fill (.black ha hb)⟩
+
+theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
+    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
+    t.OnRoot (cmpEq cmp v) → (path.insert t v).Ordered cmp
+  | _, nil, hp, _, _, vp, _ => hp.insertNew vp
+  | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩, vp, xv => Ordered.fill.2
+    ⟨hp, ⟨ax.imp xv.lt_congr_right.2, xb.imp xv.lt_congr_left.2, ha, hb⟩, vp, ap, bp⟩
+
+theorem Ordered.erase : ∀ {path : Path α} {t : RBNode α},
+    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → (path.erase t).Ordered cmp
+  | _, nil, hp, ht, tp => Ordered.fill.2 ⟨hp, ht, tp⟩
+  | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩ => hp.del (ha.append ax xb hb) (ap.append bp)
+
+theorem zoom_ins {t : RBNode α} {cmp : α → α → Ordering} :
+    t.zoom (cmp v) path = (t', path') →
+    path.ins (t.ins cmp v) = path'.ins (t'.setRoot v) := by
+  unfold RBNode.ins; split <;> simp [zoom]
+  · intro | rfl, rfl => rfl
+  all_goals
+  · split
+    · exact zoom_ins
+    · exact zoom_ins
+    · intro | rfl => rfl
+
+theorem insertNew_eq_insert (h : zoom (cmp v) t = (nil, path)) :
+    path.insertNew v = (t.insert cmp v).setBlack :=
+  insert_setBlack .. ▸ (zoom_ins h).symm
+
+theorem ins_eq_fill {path : Path α} {t : RBNode α} :
+    path.Balanced c₀ n₀ c n → t.Balanced c n → path.ins t = (path.fill t).setBlack
+  | .root, h => rfl
+  | .redL hb H, ha | .redR ha H, hb => by unfold ins; exact ins_eq_fill H (.red ha hb)
+  | .blackL hb H, ha => by rw [ins, fill, ← ins_eq_fill H (.black ha hb), balance1_eq ha]
+  | .blackR ha H, hb => by rw [ins, fill, ← ins_eq_fill H (.black ha hb), balance2_eq hb]
+
+theorem zoom_insert {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
+    (H : zoom (cmp v) t = (t', path)) :
+    (path.insert t' v).setBlack = (t.insert cmp v).setBlack := by
+  have ⟨_, _, ht', hp'⟩ := ht.zoom .root H
+  cases ht' with simp [insert]
+  | nil => simp [insertNew_eq_insert H, setBlack_idem]
+  | red hl hr => rw [← ins_eq_fill hp' (.red hl hr), insert_setBlack]; exact (zoom_ins H).symm
+  | black hl hr => rw [← ins_eq_fill hp' (.black hl hr), insert_setBlack]; exact (zoom_ins H).symm
+
+theorem zoom_del {t : RBNode α} :
+    t.zoom cut path = (t', path') →
+    path.del (t.del cut) (match t with | node c .. => c | _ => red) =
+    path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
+  unfold RBNode.del; split <;> simp [zoom]
+  · intro | rfl, rfl => rfl
+  · next c a y b =>
+    split
+    · have IH := @zoom_del (t := a)
+      match a with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · have IH := @zoom_del (t := b)
+      match b with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · intro | rfl => rfl
+
+/-- Asserts that `p` holds on all elements to the left of the hole. -/
+def AllL (p : α → Prop) : Path α → Prop
+  | .root => True
+  | .left _ parent _ _ => parent.AllL p
+  | .right _ a x parent => a.All p ∧ p x ∧ parent.AllL p
+
+/-- Asserts that `p` holds on all elements to the right of the hole. -/
+def AllR (p : α → Prop) : Path α → Prop
+  | .root => True
+  | .left _ parent x b => parent.AllR p ∧ p x ∧ b.All p
+  | .right _ _ _ parent => parent.AllR p
 
 end Path
 
@@ -598,7 +740,7 @@ theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht�
       simp [← mem_toList, h₂] at h; rw [← or_assoc, or_right_comm] at h
       refine h.imp_left fun h => ?_
       simp [← mem_toList, h₁, h]
-      rw [find?_eq_zoom, e]; intro.
+      rw [find?_eq_zoom, e]; nofun
     | (node .., p) =>
       let ⟨_, _, h₁, h₂⟩ := exists_insert_toList_zoom_node ht e
       simp [← mem_toList, h₂] at h; simp [← mem_toList, h₁]; rw [or_left_comm] at h ⊢

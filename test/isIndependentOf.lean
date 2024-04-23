@@ -1,5 +1,6 @@
+import Std.Lean.Meta.Basic
 import Std.Tactic.PermuteGoals
-import Std.Tactic.GuardMsgs
+import Lean.Meta.Tactic.IndependentOf
 
 open Lean Meta Elab.Tactic
 
@@ -18,7 +19,7 @@ elab "check_indep" : tactic => do
       pure ()
 
 /-- warning: ?w : Nat is not independent of: -/
-#guard_msgs(warning) in
+#guard_msgs(warning, drop info) in
 example : ∃ (n : Nat), ∀(x : Fin n), x.val = 0 := by
   apply Exists.intro
   intro x
@@ -31,7 +32,7 @@ example : ∃ (n : Nat), ∀(x : Fin n), x.val = 0 := by
 
 -- This is a tricker one, where the dependency is via a hypothesis.
 /-- warning: ?w : Nat is not independent of: -/
-#guard_msgs(warning) in
+#guard_msgs(warning, drop info) in
 example : ∃ (n : Nat), ∀(x : Fin n) (y : Nat), x.val = y → y = 0 := by
   apply Exists.intro
   intro x y p

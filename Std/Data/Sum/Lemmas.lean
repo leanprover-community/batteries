@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
 import Std.Data.Sum.Basic
-import Std.Tactic.Ext
+import Std.Logic
 
 /-!
 # Disjoint union of types
@@ -90,9 +90,9 @@ theorem inl.inj_iff : (inl a : α ⊕ β) = inl b ↔ a = b := ⟨inl.inj, congr
 
 theorem inr.inj_iff : (inr a : α ⊕ β) = inr b ↔ a = b := ⟨inr.inj, congrArg _⟩
 
-theorem inl_ne_inr : inl a ≠ inr b := fun.
+theorem inl_ne_inr : inl a ≠ inr b := nofun
 
-theorem inr_ne_inl : inr b ≠ inl a := fun.
+theorem inr_ne_inl : inr b ≠ inl a := nofun
 
 /-! ### `Sum.elim` -/
 
@@ -112,6 +112,10 @@ theorem comp_elim (f : γ → δ) (g : α → γ) (h : β → γ) :
 @[simp] theorem elim_comp_inl_inr (f : α ⊕ β → γ) :
     Sum.elim (f ∘ inl) (f ∘ inr) = f :=
   funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
+
+theorem elim_eq_iff {u u' : α → γ} {v v' : β → γ} :
+    Sum.elim u v = Sum.elim u' v' ↔ u = u' ∧ v = v' := by
+  simp [funext_iff]
 
 /-! ### `Sum.map` -/
 
