@@ -183,11 +183,14 @@ example : True ∧ ∀ x : Nat, x = x := by
 
 -- Test focusing by full match, suffix match, and prefix match
 /--
-warning: unused variable `x` [linter.unusedVariables]
+warning: unused variable `x`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
 ---
-warning: unused variable `y` [linter.unusedVariables]
+warning: unused variable `y`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
 ---
-warning: unused variable `z` [linter.unusedVariables]
+warning: unused variable `z`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
 -/
 #guard_msgs in
 example : True := by

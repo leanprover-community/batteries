@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 -/
 
 import Std.Data.Sum.Basic
+import Std.Logic
 
 /-!
 # Disjoint union of types
@@ -111,6 +112,10 @@ theorem comp_elim (f : γ → δ) (g : α → γ) (h : β → γ) :
 @[simp] theorem elim_comp_inl_inr (f : α ⊕ β → γ) :
     Sum.elim (f ∘ inl) (f ∘ inr) = f :=
   funext fun x => Sum.casesOn x (fun _ => rfl) fun _ => rfl
+
+theorem elim_eq_iff {u u' : α → γ} {v v' : β → γ} :
+    Sum.elim u v = Sum.elim u' v' ↔ u = u' ∧ v = v' := by
+  simp [funext_iff]
 
 /-! ### `Sum.map` -/
 
