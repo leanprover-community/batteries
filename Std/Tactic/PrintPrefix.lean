@@ -73,11 +73,12 @@ private def lexNameLt : Name -> Name -> Bool
 | .str _ _, .num _ _ => false
 | .str p m, .str q n => m < n || m == n && lexNameLt p q
 
-private def matchingConstants (opts : PrintPrefixConfig) (pre : Name)
-     : MetaM (Array MessageData) := do
+private def appendMatchingConstants (msg : MessageData) (opts : PrintPrefixConfig) (pre : Name)
+     : MetaM MessageData := do
   let cinfos ← getMatchingConstants (matchName opts pre) opts.imported
   let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
-  cinfos.mapM fun cinfo => do
+  let mut msg := msg
+  let ppInfo cinfo : MetaM MessageData := do
     if opts.showTypes then
       pure <| .ofPPFormat { pp := fun
         | some ctx => ctx.runMetaM <|
@@ -86,6 +87,9 @@ private def matchingConstants (opts : PrintPrefixConfig) (pre : Name)
       } ++ "\n"
     else
       pure m!"{ppConst (← mkConstWithLevelParams cinfo.name)}\n"
+  for cinfo in cinfos do
+    msg := msg ++ (← ppInfo cinfo)
+  pure msg
 
 /--
 The command `#print prefix foo` will print all definitions that start with
@@ -118,8 +122,9 @@ elab (name := printPrefix) "#print" tk:"prefix"
     cfg:(Lean.Parser.Tactic.config)? name:ident : command => liftTermElabM do
   let nameId := name.getId
   let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
-  let mut msgs ← matchingConstants opts nameId
-  if msgs.isEmpty then
+  let mut msg ← appendMatchingConstants "" opts nameId
+  if msg.isEmpty then
     if let [name] ← resolveGlobalConst name then
-      msgs ← matchingConstants opts name
-  logInfoAt tk (.joinSep msgs.toList "")
+      msg ← appendMatchingConstants msg opts name
+  if !msg.isEmpty then
+    logInfoAt tk msg
