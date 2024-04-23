@@ -1620,13 +1620,124 @@ See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
 /--
-`O(|l| + |r|)`. Merge two lists using `s` as a switch.
+`O(|xs| + |ys|)`. Merge lists `xs` and `ys`. If the lists are sorted according to `lt`, then the
+result is sorted as well. If two (or more) elements are equal according to `lt`, they are preserved.
 -/
-def merge (s : α → α → Bool) (l r : List α) : List α :=
-  loop l r []
+def merge (lt : α → α → Bool) : (xs ys : List α) → List α
+  | [], xs
+  | xs, [] => xs
+  | x :: xs, y :: ys =>
+    bif lt x y then x :: merge lt xs (y :: ys) else y :: merge lt (x :: xs) ys
+
+/-- Tail recursive version of `merge`. -/
+@[inline] def mergeTR (lt : α → α → Bool) (xs ys : List α) : List α := go xs ys [] where
+  /-- Auxiliary for `mergeTR`: `mergeTR.go xs ys acc = acc.toList ++ merge xs ys`. -/
+  go : List α → List α → List α → List α
+  | [], ys, acc => reverseAux acc ys
+  | xs, [], acc => reverseAux acc xs
+  | x::xs, y::ys, acc => bif lt x y then go xs (y::ys) (x::acc) else go (x::xs) ys (y::acc)
+
+@[csimp] theorem merge_eq_mergeTR : @merge = @mergeTR := by
+  funext α lt xs ys
+  let rec go (acc) : ∀ xs ys, @mergeTR.go α lt xs ys acc = reverseAux acc (merge lt xs ys)
+  | [], _ => by simp [mergeTR.go, merge]
+  | _::_, [] => by simp [mergeTR.go, merge]
+  | x::xs, y::ys => by
+    simp [mergeTR.go, merge, cond]; split
+    · exact go _ xs (y::ys)
+    · exact go _ (x::xs) ys
+  simp [mergeTR, go]
+
+/--
+`O(|xs| + |ys|)`. Merge lists `xs` and `ys`, which must be sorted according to `compare` and must
+not contain duplicates. Equal elements are merged using `merge`. If `merge` respects the order
+(i.e. for all `x`, `y`, `y'`, `z`, if `x < y < z` and `x < y' < z` then `x < merge y y' < z`)
+then the resulting list is again sorted.
+-/
+def mergeDedupWith [Ord α] (merge : α → α → α) : (xs ys : List α) → List α
+  | [], xs
+  | xs, [] => xs
+  | x :: xs, y :: ys =>
+    match compare x y with
+    | .lt => x :: mergeDedupWith merge xs (y :: ys)
+    | .gt => y :: mergeDedupWith merge (x :: xs) ys
+    | .eq => merge x y :: mergeDedupWith merge xs ys
+
+/--
+`O(|xs| + |ys|)`. Merge lists `xs` and `ys`, which must be sorted according to `compare` and must
+not contain duplicates. If an element appears in both `xs` and `ys`, only one copy is kept.
+-/
+@[inline] def mergeDedup [Ord α] (xs ys : List α) : List α := mergeDedupWith (fun x _ => x) xs ys
+
+/--
+`O(|xs| * |ys|)`. Merge `xs` and `ys`, which do not need to be sorted. Elements which occur in
+both `xs` and `ys` are only added once. If `xs` and `ys` do not contain duplicates, then neither
+does the result.
+-/
+def mergeUnsortedDedup [BEq α] (xs ys : List α) : List α :=
+  if xs.length < ys.length then go ys xs else go xs ys
 where
-  /-- Inner loop for `List.merge`. Tail recursive. -/
-  loop : List α → List α → List α → List α
-  | [], r, t => reverseAux t r
-  | l, [], t => reverseAux t l
-  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
+  /-- Auxiliary definition for `mergeUnsortedDedup`. -/
+  go (xs ys : List α) := xs ++ ys.filter fun y => xs.any (· == y)
+
+/-- Replace each run `[x₁, ⋯, xₙ]` of equal elements in `xs` with `f ⋯ (f (f x₁ x₂) x₃) ⋯ xₙ`. -/
+def mergeAdjacentDups [BEq α] (f : α → α → α) : (xs : List α) → List α
+  | [] => []
+  | x :: xs => go x xs
+where
+  /-- Auxiliary definition for `mergeAdjacentDups`. -/
+  go (hd : α)
+  | [] => [hd]
+  | x :: xs =>
+    if x == hd then
+      go (f hd x) xs
+    else
+      hd :: go x xs
+
+/--
+`O(|xs|)`. Deduplicate a sorted list. The list must be sorted with to an order which agrees with
+`==`, i.e. whenever `x == y` then `compare x y == .eq`.
+-/
+def dedupSorted [BEq α] (xs : List α) : List α :=
+  xs.mergeAdjacentDups fun x _ => x
+
+namespace MergeSort
+
+/-- `O(|l|)`. Split `l` into two lists of approximately equal length.
+```
+split [1, 2, 3, 4, 5] = ([1, 3, 5], [2, 4])
+```
+-/
+@[simp] def split : List α → List α × List α
+  | [] => ([], [])
+  | a :: l =>
+    let (l₁, l₂) := split l
+    (a :: l₂, l₁)
+
+theorem length_split_le :
+    ∀ l : List α, length (split l).1 ≤ length l ∧ length (split l).2 ≤ length l
+  | [] => ⟨Nat.le_refl 0, Nat.le_refl 0⟩
+  | _ :: l =>
+    let ⟨h₁, h₂⟩ := length_split_le l
+    ⟨Nat.succ_le_succ h₂, Nat.le_succ_of_le h₁⟩
+
+end MergeSort
+
+/-- `O(|l| log |l|)`. Uses merge sort to sort a list in ascending order by `lt`. -/
+def mergeSort (lt : α → α → Bool) (l : List α) : List α :=
+  match _e : l with
+  | [] => []
+  | [a] => [a]
+  | _ :: _ :: _ =>
+    let ls := MergeSort.split l
+    merge lt (mergeSort lt ls.1) (mergeSort lt ls.2)
+  termination_by length l
+  decreasing_by
+    all_goals subst _e
+    · exact Nat.add_le_add_right (MergeSort.length_split_le _).1 2
+    · exact Nat.add_le_add_right (MergeSort.length_split_le _).2 2
+
+/-- `O(|xs| log |xs|)`. Sort and deduplicate a list. -/
+def sortDedup [ord : Ord α] (xs : List α) : List α :=
+  have := ord.toBEq
+  dedupSorted <| xs.mergeSort (compare · · |>.isLT)
