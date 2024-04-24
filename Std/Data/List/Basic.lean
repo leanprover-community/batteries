@@ -1703,7 +1703,7 @@ def dedupSorted [BEq α] (xs : List α) : List α :=
 
 namespace MergeSort
 
-/-- `O(|l|)`. Split `l` into two lists of approximately equal length.
+/-- `O(|l|)`. Split alternating elements of list `l` into two lists. The two lists will have equal length if `|l|` is even, otherwise the first list will be one element longer than the second.
 ```
 split [1, 2, 3, 4, 5] = ([1, 3, 5], [2, 4])
 ```
