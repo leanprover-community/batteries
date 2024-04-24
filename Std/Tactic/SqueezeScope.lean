@@ -85,7 +85,7 @@ elab_rules : tactic
       throw e
     if let some new := new then
       for (_, stx, usedSimps) in new do
-        let usedSimps := usedSimps.foldl (fun s usedSimps => usedSimps.fold .insert s) {}
+        let usedSimps := usedSimps.foldl (fun s usedSimps => usedSimps.foldl .insert s) {}
         let stx' ← mkSimpCallStx stx usedSimps
         TryThis.addSuggestion stx[0] stx' (origSpan? := stx)
 
@@ -107,8 +107,9 @@ elab_rules : tactic
       | some mvarId => replaceMainGoal [mvarId]
       pure usedSimps
     | ``Parser.Tactic.dsimp => do
-      let { ctx, .. } ← withMainContext <| mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
-      dsimpLocation' ctx (expandOptLocation stx[5])
+      let { ctx, simprocs, .. } ← withMainContext <|
+        mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
+      dsimpLocation' ctx simprocs (expandOptLocation stx[5])
     | _ => Elab.throwUnsupportedSyntax
     let a := a.getId; let x := x.getId
     squeezeScopes.modify fun map => Id.run do

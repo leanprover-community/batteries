@@ -115,8 +115,7 @@ theorem countP_mono_left (h : ∀ x ∈ l, p x → q x) : countP p l ≤ countP 
     . simp
       apply Nat.le_trans ?_ (Nat.le_add_right _ _)
       apply ihl hl
-    . simp [ha h, Nat.add_one]
-      apply Nat.succ_le_succ
+    . simp [ha h]
       apply ihl hl
 
 theorem countP_congr (h : ∀ x ∈ l, p x ↔ q x) : countP p l = countP q l :=

@@ -124,7 +124,7 @@ initialize
           if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticSeqCodeActionExt.addEntry · (decl, ← mkTacticSeqCodeAction decl))
         else
-          let args ← args.mapM resolveGlobalConstNoOverloadWithInfo
+          let args ← args.mapM realizeGlobalConstNoOverloadWithInfo
           if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, args⟩, ← mkTacticCodeAction decl))
       | _ => pure ()

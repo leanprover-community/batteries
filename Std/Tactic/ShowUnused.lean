@@ -16,7 +16,7 @@ both in the message on `#show_unused`, as well as on the declarations themselves
 -/
 
 namespace Std.Tactic.ShowUnused
-open Lean
+open Lean Elab Command
 
 variable (env : Environment) in
 private partial def visit (n : Name) : StateM NameSet Unit := do
@@ -46,7 +46,7 @@ def bar := foo
 ```
 -/
 elab tk:"#show_unused" ids:(ppSpace colGt ident)* : command => do
-  let ns ← ids.mapM Elab.resolveGlobalConstNoOverloadWithInfo
+  let ns ← ids.mapM fun s => liftCoreM <| realizeGlobalConstNoOverloadWithInfo s
   let env ← getEnv
   let decls := env.constants.map₂.foldl (fun m n _ => m.insert n) {}
   let mut unused := #[]

@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 import Std.Control.ForInStep.Lemmas
-import Std.Data.Bool
-import Std.Data.Fin.Basic
-import Std.Data.Nat.Lemmas
 import Std.Data.List.Init.Lemmas
 import Std.Data.List.Basic
-import Std.Data.Option.Lemmas
-import Std.Classes.BEq
+import Std.Tactic.Init
+import Std.Tactic.Alias
 
 namespace List
 
@@ -163,7 +160,7 @@ theorem cons_eq_append :
 theorem append_eq_append_iff {a b c d : List α} :
     a ++ b = c ++ d ↔ (∃ a', c = a ++ a' ∧ b = a' ++ d) ∨ ∃ c', a = c ++ c' ∧ d = c' ++ b := by
   induction a generalizing c with
-  | nil => simp; exact (or_iff_left_of_imp fun ⟨_, ⟨e, rfl⟩, h⟩ => e ▸ h.symm).symm
+  | nil => simp_all
   | cons a as ih => cases c <;> simp [eq_comm, and_assoc, ih, and_or_left]
 
 @[simp] theorem mem_append {a : α} {s t : List α} : a ∈ s ++ t ↔ a ∈ s ∨ a ∈ t := by
@@ -222,7 +219,7 @@ theorem forall_mem_map_iff {f : α → β} {l : List α} {P : β → Prop} :
 @[simp] theorem length_zipWith (f : α → β → γ) (l₁ l₂) :
     length (zipWith f l₁ l₂) = min (length l₁) (length l₂) := by
   induction l₁ generalizing l₂ <;> cases l₂ <;>
-    simp_all [add_one, succ_min_succ, Nat.zero_min, Nat.min_zero]
+    simp_all [succ_min_succ, Nat.zero_min, Nat.min_zero]
 
 @[simp]
 theorem zipWith_map {μ} (f : γ → δ → μ) (g : α → γ) (h : β → δ) (l₁ : List α) (l₂ : List β) :
@@ -765,7 +762,7 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
 @[simp] theorem getElem_eq_get (l : List α) (i : Nat) (h) : l[i]'h = l.get ⟨i, h⟩ := rfl
 
 @[simp] theorem getElem?_eq_get? (l : List α) (i : Nat) : l[i]? = l.get? i := by
-  unfold getElem?; split
+  simp only [getElem?]; split
   · exact (get?_eq_get ‹_›).symm
   · exact (get?_eq_none.2 <| Nat.not_lt.1 ‹_›).symm
 
@@ -842,7 +839,7 @@ alias take_succ_cons := take_cons_succ
 @[simp] theorem length_take : ∀ (i : Nat) (l : List α), length (take i l) = min i (length l)
   | 0, l => by simp [Nat.zero_min]
   | succ n, [] => by simp [Nat.min_zero]
-  | succ n, _ :: l => by simp [Nat.succ_min_succ, add_one, length_take]
+  | succ n, _ :: l => by simp [Nat.succ_min_succ, length_take]
 
 theorem length_take_le (n) (l : List α) : length (take n l) ≤ n := by simp [Nat.min_le_left]
 
@@ -918,7 +915,6 @@ theorem get_take' (L : List α) {j i} :
 theorem get?_take {l : List α} {n m : Nat} (h : m < n) : (l.take n).get? m = l.get? m := by
   induction n generalizing l m with
   | zero =>
-    simp only [Nat.zero_eq] at h
     exact absurd h (Nat.not_lt_of_le m.zero_le)
   | succ _ hn =>
     cases l with
@@ -1343,10 +1339,10 @@ theorem contains_eq_any_beq [BEq α] (l : List α) (a : α) : l.contains a = l.a
   induction l with simp | cons b l => cases a == b <;> simp [*]
 
 theorem not_all_eq_any_not (l : List α) (p : α → Bool) : (!l.all p) = l.any fun a => !p a := by
-  induction l with simp | cons _ _ ih => rw [Bool.not_and, ih]
+  induction l with simp | cons _ _ ih => rw [ih]
 
 theorem not_any_eq_all_not (l : List α) (p : α → Bool) : (!l.any p) = l.all fun a => !p a := by
-  induction l with simp | cons _ _ ih => rw [Bool.not_or, ih]
+  induction l with simp | cons _ _ ih => rw [ih]
 
 theorem or_all_distrib_left (l : List α) (p : α → Bool) (q : Bool) :
     (q || l.all p) = l.all fun a => q || p a := by
