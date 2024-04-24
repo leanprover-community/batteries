@@ -5,24 +5,10 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.ElabRules
 
-/-! # `classical` and `classical!` tactics -/
+/-! # `classical` tactic -/
 
 namespace Std.Tactic
 open Lean Meta Elab.Tactic
-
-/--
-`classical!` adds a proof of `Classical.propDecidable` as a local variable, which makes it
-available for instance search and effectively makes all propositions decidable.
-```
-noncomputable def foo : Bool := by
-  classical!
-  have := ∀ p, decide p -- uses the classical instance
-  exact decide (0 < 1) -- uses the classical instance even though `0 < 1` is decidable
-```
-Consider using `classical` instead if you want to use the decidable instance when available.
--/
-macro (name := classical!) "classical!" : tactic =>
-  `(tactic| have em := Classical.propDecidable)
 
 /--
 `classical t` runs `t` in a scope where `Classical.propDecidable` is a low priority
@@ -37,21 +23,15 @@ def classical [Monad m] [MonadEnv m] [MonadFinally m] [MonadLiftT MetaM m] (t : 
   finally
     modifyEnv Meta.instanceExtension.popScope
 
+/-- `classical!` has been removed; use `classical` instead -/
+-- Deprecated 2024-04-19
+elab "classical!" : tactic => do
+  throwError "`classical!` has been removed; use `classical` instead"
+
 /--
 `classical tacs` runs `tacs` in a scope where `Classical.propDecidable` is a low priority
-local instance. It differs from `classical!` in that `classical!` uses a local variable,
-which has high priority:
-```
-noncomputable def foo : Bool := by
-  classical!
-  have := ∀ p, decide p -- uses the classical instance
-  exact decide (0 < 1) -- uses the classical instance even though `0 < 1` is decidable
+local instance.
 
-def bar : Bool := by
-  classical
-  have := ∀ p, decide p -- uses the classical instance
-  exact decide (0 < 1) -- uses the decidable instance
-```
 Note that (unlike lean 3) `classical` is a scoping tactic - it adds the instance only within the
 scope of the tactic.
 -/
