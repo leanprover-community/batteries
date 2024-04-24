@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Control.ForInStep.Lemmas
 import Std.Data.Nat.Basic
+import Std.Data.List.Init.Lemmas
 import Std.Data.List.Basic
 import Std.Tactic.Init
 import Std.Tactic.Alias
@@ -694,6 +695,11 @@ theorem getLastD_mem_cons : ∀ (l : List α) (a : α), getLastD l a ∈ a::l
   | [], _ => .head ..
   | _::_, _ => .tail _ <| getLast_mem _
 
+@[simp] theorem getLast?_reverse (l : List α) : l.reverse.getLast? = l.head? := by cases l <;> simp
+
+@[simp] theorem head?_reverse (l : List α) : l.reverse.head? = l.getLast? := by
+  rw [← getLast?_reverse, reverse_reverse]
+
 /-! ### dropLast -/
 
 /-! NB: `dropLast` is the specification for `Array.pop`, so theorems about `List.dropLast`
@@ -778,9 +784,6 @@ theorem get?_inj
       rw [mem_iff_get?]
     exact ⟨_, h₂⟩; exact ⟨_ , h₂.symm⟩
 
-@[simp] theorem get_map (f : α → β) {l n} : get (map f l) n = f (get l ⟨n, length_map l f ▸ n.2⟩) :=
-  Option.some.inj <| by rw [← get?_eq_get, get?_map, get?_eq_get]; rfl
-
 /--
 If one has `get l i hi` in a formula and `h : l = l'`, one can not `rw h` in the formula as
 `hi` gives `i < l.length` and not `i < l'.length`. The theorem `get_of_eq` can be used to make
@@ -820,23 +823,6 @@ theorem get_of_append {l : List α} (eq : l = l₁ ++ a :: l₂) (h : l₁.lengt
 theorem get_cons_length (x : α) (xs : List α) (n : Nat) (h : n = xs.length) :
     (x :: xs).get ⟨n, by simp [h]⟩ = (x :: xs).getLast (cons_ne_nil x xs) := by
   rw [getLast_eq_get]; cases h; rfl
-
-@[ext] theorem ext : ∀ {l₁ l₂ : List α}, (∀ n, l₁.get? n = l₂.get? n) → l₁ = l₂
-  | [], [], _ => rfl
-  | a :: l₁, [], h => nomatch h 0
-  | [], a' :: l₂, h => nomatch h 0
-  | a :: l₁, a' :: l₂, h => by
-    have h0 : some a = some a' := h 0
-    injection h0 with aa; simp only [aa, ext fun n => h (n+1)]
-
-theorem ext_get {l₁ l₂ : List α} (hl : length l₁ = length l₂)
-    (h : ∀ n h₁ h₂, get l₁ ⟨n, h₁⟩ = get l₂ ⟨n, h₂⟩) : l₁ = l₂ :=
-  ext fun n =>
-    if h₁ : n < length l₁ then by
-      rw [get?_eq_get, get?_eq_get, h n h₁ (by rwa [← hl])]
-    else by
-      have h₁ := Nat.le_of_not_lt h₁
-      rw [get?_len_le h₁, get?_len_le]; rwa [← hl]
 
 theorem get!_of_get? [Inhabited α] : ∀ {l : List α} {n}, get? l n = some a → get! l n = a
   | _a::_, 0, rfl => rfl
@@ -938,6 +924,16 @@ theorem get?_take {l : List α} {n m : Nat} (h : m < n) : (l.take n).get? m = l.
       cases m
       · simp only [get?, take]
       · simpa only using hn (Nat.lt_of_succ_lt_succ h)
+
+theorem get?_take_eq_none {l : List α} {n m : Nat} (h : n ≤ m) :
+    (l.take n).get? m = none :=
+  get?_eq_none.mpr <| Nat.le_trans (length_take_le _ _) h
+
+theorem get?_take_eq_if {l : List α} {n m : Nat} :
+    (l.take n).get? m = if m < n then l.get? m else none := by
+  split
+  · next h => exact get?_take h
+  · next h => exact get?_take_eq_none (Nat.le_of_not_lt h)
 
 @[simp]
 theorem nth_take_of_succ {l : List α} {n : Nat} : (l.take (n + 1)).get? n = l.get? n :=
@@ -1304,6 +1300,18 @@ theorem mem_or_eq_of_mem_set : ∀ {l : List α} {n : Nat} {a b : α}, a ∈ l.s
   | _ :: _, 0, _, _, h => ((mem_cons ..).1 h).symm.imp_left (.tail _)
   | _ :: _, _+1, _, _, .head .. => .inl (.head ..)
   | _ :: _, _+1, _, _, .tail _ h => (mem_or_eq_of_mem_set h).imp_left (.tail _)
+
+theorem drop_set_of_lt (a : α) {n m : Nat} (l : List α) (h : n < m) :
+    (l.set n a).drop m = l.drop m :=
+  List.ext fun i => by rw [get?_drop, get?_drop, get?_set_ne _ _ (by omega)]
+
+theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
+    (l.set n a).take m = l.take m :=
+  List.ext fun i => by
+    rw [get?_take_eq_if, get?_take_eq_if]
+    split
+    · next h' => rw [get?_set_ne _ _ (by omega)]
+    · rfl
 
 /-! ### remove nth -/
 
@@ -1981,14 +1989,6 @@ theorem disjoint_of_disjoint_append_right_right (d : Disjoint l (l₁ ++ l₂)) 
   (disjoint_append_right.1 d).2
 
 /-! ### foldl / foldr -/
-
-theorem foldl_map (f : β₁ → β₂) (g : α → β₂ → α) (l : List β₁) (init : α) :
-    (l.map f).foldl g init = l.foldl (fun x y => g x (f y)) init := by
-  induction l generalizing init <;> simp [*]
-
-theorem foldr_map (f : α₁ → α₂) (g : α₂ → β → β) (l : List α₁) (init : β) :
-    (l.map f).foldr g init = l.foldr (fun x y => g (f x) y) init := by
-  induction l generalizing init <;> simp [*]
 
 theorem foldl_hom (f : α₁ → α₂) (g₁ : α₁ → β → α₁) (g₂ : α₂ → β → α₂) (l : List β) (init : α₁)
     (H : ∀ x y, g₂ (f x) y = f (g₁ x y)) : l.foldl g₂ (f init) = f (l.foldl g₁ init) := by
