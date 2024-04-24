@@ -20,12 +20,6 @@ def insert' (m : PersistentHashMap α β) (a : α) (b : β) : PersistentHashMap 
   (m, m.size == oldSize)
 
 /--
-Turns a `PersistentHashMap` into an array of key-value pairs.
--/
-def toArray (m : PersistentHashMap α β) : Array (α × β) :=
-  m.foldl (init := Array.mkEmpty m.size) fun xs k v => xs.push (k, v)
-
-/--
 Builds a `PersistentHashMap` from a list of key-value pairs. Values of
 duplicated keys are replaced by their respective last occurrences.
 -/

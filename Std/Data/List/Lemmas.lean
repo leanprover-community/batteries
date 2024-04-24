@@ -92,8 +92,11 @@ theorem append_of_mem {a : α} {l : List α} : a ∈ l → ∃ s t : List α, l 
   | .head l => ⟨[], l, rfl⟩
   | .tail b h => let ⟨s, t, h'⟩ := append_of_mem h; ⟨b::s, t, by rw [h', cons_append]⟩
 
-@[simp] theorem elem_iff {_ : DecidableEq α} {a : α} {as : List α} :
-    elem a as ↔ a ∈ as := ⟨mem_of_elem_eq_true, elem_eq_true_of_mem⟩
+theorem elem_iff [BEq α] [LawfulBEq α] {a : α} {as : List α} :
+    elem a as = true ↔ a ∈ as := ⟨mem_of_elem_eq_true, elem_eq_true_of_mem⟩
+
+@[simp] theorem elem_eq_mem [BEq α] [LawfulBEq α] (a : α) (as : List α) :
+    elem a as = decide (a ∈ as) := by rw [Bool.eq_iff_iff, elem_iff, decide_eq_true_iff]
 
 theorem mem_of_ne_of_mem {a y : α} {l : List α} (h₁ : a ≠ y) (h₂ : a ∈ y :: l) : a ∈ l :=
   Or.elim (mem_cons.mp h₂) (absurd · h₁) (·)
@@ -617,13 +620,14 @@ theorem Sublist.eq_of_length_le (s : l₁ <+ l₂) (h : length l₂ ≤ length l
     | refl => apply Sublist.refl
     | step => simp [*, replicate, Sublist.cons]
 
-theorem isSublist_iff_sublist [DecidableEq α] {l₁ l₂ : List α} : l₁.isSublist l₂ ↔ l₁ <+ l₂ := by
+theorem isSublist_iff_sublist [BEq α] [LawfulBEq α] {l₁ l₂ : List α} :
+    l₁.isSublist l₂ ↔ l₁ <+ l₂ := by
   cases l₁ <;> cases l₂ <;> simp [isSublist]
   case cons.cons hd₁ tl₁ hd₂ tl₂ =>
     if h_eq : hd₁ = hd₂ then
       simp [h_eq, cons_sublist_cons, isSublist_iff_sublist]
     else
-      simp only [h_eq]
+      simp only [beq_iff_eq, h_eq]
       constructor
       · intro h_sub
         apply Sublist.cons
@@ -644,7 +648,6 @@ theorem head!_of_head? [Inhabited α] : ∀ {l : List α}, head? l = some a → 
   | _a::_l, rfl => rfl
 
 theorem head?_eq_head : ∀ l h, @head? α l = some (head l h)
-  | [], h => nomatch h rfl
   | _::_, _ => rfl
 
 /-! ### tail -/
@@ -754,7 +757,7 @@ theorem get?_zero (l : List α) : l.get? 0 = l.head? := by cases l <;> rfl
 @[simp] theorem getElem_eq_get (l : List α) (i : Nat) (h) : l[i]'h = l.get ⟨i, h⟩ := rfl
 
 @[simp] theorem getElem?_eq_get? (l : List α) (i : Nat) : l[i]? = l.get? i := by
-  unfold getElem?; split
+  simp only [getElem?]; split
   · exact (get?_eq_get ‹_›).symm
   · exact (get?_eq_none.2 <| Nat.not_lt.1 ‹_›).symm
 
@@ -1105,12 +1108,16 @@ theorem get?_drop (L : List α) (i j : Nat) : get? (L.drop i) j = get? L (i + j)
       _ = drop (n + m) l := drop_drop n m l
       _ = drop (n + (m + 1)) (a :: l) := rfl
 
-theorem drop_take : ∀ (m n : Nat) (l : List α), drop m (take (m + n) l) = take n (drop m l)
-  | 0, n, _ => by simp
-  | m + 1, n, nil => by simp
-  | m + 1, n, _ :: l => by
-    have h : m + 1 + n = m + n + 1 := by rw [Nat.add_assoc, Nat.add_comm 1 n, ← Nat.add_assoc]
-    simpa [take_cons_succ, h] using drop_take m n l
+theorem take_drop : ∀ (m n : Nat) (l : List α), take n (drop m l) = drop m (take (m + n) l)
+  | 0, _, _ => by simp
+  | _, _, [] => by simp
+  | _+1, _, _ :: _ => by simpa [Nat.succ_add, take_succ_cons, drop_succ_cons] using take_drop ..
+
+theorem drop_take : ∀ (m n : Nat) (l : List α), drop n (take m l) = take (m - n) (drop n l)
+  | 0, _, _ => by simp
+  | _, 0, _ => by simp
+  | _, _, [] => by simp
+  | _+1, _+1, _ :: _ => by simpa [take_succ_cons, drop_succ_cons] using drop_take ..
 
 theorem map_drop (f : α → β) :
     ∀ (L : List α) (i : Nat), (L.drop i).map f = (L.map f).drop i
@@ -1363,13 +1370,13 @@ theorem all_eq_not_any_not (l : List α) (p : α → Bool) : l.all p = !l.any (!
 /-! ### insert -/
 
 section insert
-variable [DecidableEq α]
+variable [BEq α] [LawfulBEq α]
 
 @[simp] theorem insert_of_mem {l : List α} (h : a ∈ l) : l.insert a = l := by
-  simp only [List.insert, elem_iff, if_pos h]
+  simp [List.insert, h]
 
 @[simp] theorem insert_of_not_mem {l : List α} (h : a ∉ l) : l.insert a = a :: l := by
-  simp only [List.insert,  elem_iff, if_neg h]
+  simp [List.insert, h]
 
 @[simp] theorem mem_insert_iff {l : List α} : a ∈ l.insert b ↔ a = b ∨ a ∈ l := by
   if h : b ∈ l then
@@ -1995,25 +2002,25 @@ theorem foldr_hom (f : β₁ → β₂) (g₁ : α → β₁ → β₁) (g₂ : 
 
 section union
 
-variable [DecidableEq α]
+variable [BEq α]
 
-theorem union_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
+theorem union_def [BEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
 
 @[simp] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
 
 @[simp] theorem cons_union (a : α) (l₁ l₂ : List α) :
     (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
-@[simp] theorem mem_union_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_union_iff [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
 
 end union
 
 /-! ### inter -/
 
-theorem inter_def [DecidableEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (· ∈ l₂) l₁ := rfl
+theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem · l₂) l₁ := rfl
 
-@[simp] theorem mem_inter_iff {_ : DecidableEq α} {x : α} {l₁ l₂ : List α} :
+@[simp] theorem mem_inter_iff [BEq α] [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by
   cases l₁ <;> simp [List.inter_def, mem_filter]
 
@@ -2059,8 +2066,8 @@ theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
 /-! ### diff -/
 
 section Diff
--- TODO: theorems about `BEq`
-variable [DecidableEq α]
+variable [BEq α]
+variable [LawfulBEq α]
 
 @[simp] theorem diff_nil (l : List α) : l.diff [] = l := rfl
 
@@ -2325,6 +2332,8 @@ theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
+
+/-! ### drop -/
 
 theorem mem_of_mem_drop {n} {l : List α} (h : a ∈ l.drop n) : a ∈ l := drop_subset _ _ h
 
