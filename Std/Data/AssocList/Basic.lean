@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.List.Basic
+import Std.Data.AList.Basic
 
 namespace Std
 
@@ -30,6 +31,14 @@ in terms of corresponding list functions.
 @[simp] def toList : AssocList α β → List (α × β)
   | nil => []
   | cons a b es => (a, b) :: es.toList
+
+def toDList : AssocList α β → List ((_ : α) × β)
+  | nil => []
+  | cons a b es => ⟨a, b⟩ :: es.toDList
+
+@[simp] theorem toDList_nil : (.nil : AssocList α β).toDList = [] := rfl
+@[simp] theorem toDList_cons {l : AssocList α β} {k : α} {v : β} :
+    (l.cons k v).toDList = ⟨k, v⟩ :: l.toDList := rfl
 
 instance : EmptyCollection (AssocList α β) := ⟨nil⟩
 
@@ -168,6 +177,10 @@ def All (p : α → β → Prop) (l : AssocList α β) : Prop := ∀ a ∈ l.toL
 @[simp] theorem contains_eq [BEq α] (a : α) (l : AssocList α β) :
     contains a l = l.toList.any (·.1 == a) := by
   induction l <;> simp [*, contains]
+
+theorem contains_eq_contains_toDList [BEq α] (a : α) (l : AssocList α β) :
+    l.contains a = l.toDList.containsKey a := by
+  induction l <;> simp_all
 
 /--
 `O(n)`. Replace the first entry in the list

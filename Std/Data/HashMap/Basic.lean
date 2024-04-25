@@ -7,6 +7,7 @@ import Std.Data.AssocList.WF
 import Std.Data.Nat.Basic
 import Std.Data.Array.Monadic
 import Std.Classes.BEq
+import Std.Data.AList.Basic
 
 namespace Std.HashMap
 
@@ -29,12 +30,6 @@ def update (data : Buckets α β) (i : USize)
     (d : AssocList α β) (h : i.toNat < data.1.size) : Buckets α β :=
   ⟨data.1.uset i d h, (Array.size_uset ..).symm ▸ data.2⟩
 
-/--
-The number of elements in the bucket array.
-Note: this is marked `noncomputable` because it is only intended for specification.
--/
-noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·.toList.length))
-
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
     (self.update i d h).1.size = self.1.size := Array.size_uset ..
 
@@ -42,13 +37,25 @@ noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.data.map (·
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
   ⟨self.1.map (.mapVal f), by simp [self.2]⟩
 
+def toDList (self : Buckets α β) : List ((_ : α) × β) :=
+  self.1.foldl (fun l a => l ++ a.toDList) []
+
+/--
+The number of elements in the bucket array.
+Note: this is marked `noncomputable` because it is only intended for specification.
+-/
+noncomputable def size (data : Buckets α β) : Nat := data.toDList.length
+
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
 structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
-  /-- Every bucket is well-formed at its position -/
-  wfAtPosition (i : Nat) (h : i < buckets.1.size) : buckets.1[i].WFAtPosition i buckets.1.size
+  /--  -/
+  distinct : buckets.toDList.WF
+  /-- -/
+  hash_self (i : Nat) (h : i < buckets.1.size) :
+    ∀ k, buckets.1[i].toDList.containsKey k → ((hash k).toUSize % buckets.1.size).toNat = i
 
 end Buckets
 end Imp

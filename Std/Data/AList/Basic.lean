@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro, Markus Himmel
 -/
 import Std.Classes.BEq
 import Std.Data.List.Lemmas
+import Std.Data.List.Perm
 
 universe v u
 
@@ -117,6 +118,17 @@ def containsKey [BEq α] (a : α) : List (Σ a, β a) → Bool
 @[simp] theorem containsKey_nil [BEq α] {a : α} : (nil : List (Σ a, β a)).containsKey a = false := rfl
 @[simp] theorem containsKey_cons [BEq α] {l : List (Σ a, β a)} {k a : α} {v : β k} :
     (⟨k, v⟩ :: l).containsKey a = (k == a || l.containsKey a) := rfl
+
+theorem containsKey_eq_foldl [BEq α] {a : α} {l : List (Σ a, β a)} :
+    l.containsKey a = l.foldl (fun acc e => acc || e.1 == a) false := by
+  suffices ∀ b, (b || l.containsKey a) = l.foldl (fun acc e => acc || e.1 == a) b by simpa using this false
+  induction l using assoc_induction
+  · simp
+  · next k v t ih =>
+    skip
+    simp
+    intro b
+    rw [← Bool.or_assoc, ih]
 
 theorem containsKey_cons_eq_false [BEq α] {l : List (Σ a, β a)} {k a : α} {v : β k} :
     ((⟨k, v⟩ :: l).containsKey a = false) ↔ ((k == a) = false) ∧ (l.containsKey a = false) := by
@@ -381,6 +393,8 @@ def keys : List (Σ a, β a) → List α
 @[simp] theorem keys_nil : (nil : List (Σ a, β a)).keys = [] := rfl
 @[simp] theorem keys_cons {l : List (Σ a, β a)} {k : α} {v : β k} : (⟨k, v⟩ :: l).keys = k :: l.keys := rfl
 
+theorem keys_eq_map (l : List (Σ a, β a)) : l.keys = l.map (·.1) := by
+  induction l using assoc_induction <;> simp_all
 
 theorem containsKey_eq_keys_containsKey [BEq α] [EquivBEq α] {l : List (Σ a, β a)} {a : α} :
     l.containsKey a = l.keys.contains a := by
@@ -398,6 +412,16 @@ theorem WF_nil [BEq α] : (nil : List (Σ a, β a)).WF :=
   ⟨by simp⟩
 
 open List
+
+theorem WF_of_perm_keys [BEq α] [PartialEquivBEq α] {l l' : List (Σ a, β a)}
+    (h : l'.keys ~ l.keys) : l.WF → l'.WF
+  | ⟨h'⟩ => ⟨h'.perm h.symm BEq.symm_false⟩
+
+theorem WF_of_perm [BEq α] [PartialEquivBEq α] {l l' : List (Σ a, β a)} (h : l' ~ l) :
+    l.WF → l'.WF := by
+  apply WF_of_perm_keys
+  rw [keys_eq_map, keys_eq_map]
+  exact h.map _
 
 theorem WF_of_sublist_keys [BEq α] {l l' : List (Σ a, β a)} (h : l'.keys <+ l.keys) : l.WF → l'.WF :=
   fun ⟨h'⟩ => ⟨h'.sublist h⟩
@@ -663,6 +687,65 @@ theorem containsKey_of_containsKey_eraseKey [BEq α] [EquivBEq α] {l : List (Σ
   cases hka : k == a
   · rwa [containsKey_eraseKey_of_false hka] at h
   · simp [containsKey_eraseKey_of_beq hl hka] at h
+
+theorem findEntry?_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} (hl : l.WF)
+    (h : l ~ l') : l.findEntry? k = l'.findEntry? k := by
+  induction h
+  · simp
+  · next p t₁ t₂ _ ih₂ =>
+    rcases p with ⟨k', v'⟩
+    simp only [WF_cons_iff] at hl
+    simp only [findEntry?_cons]
+    cases k' == k
+    · simpa using ih₂ hl.1
+    · simp
+  · next k' p p' t =>
+    skip
+    rcases p with ⟨k₁, v₁⟩
+    rcases p' with ⟨k₂, v₂⟩
+    simp only [WF_cons_iff, containsKey_cons, Bool.or_eq_false_iff] at hl
+    rcases hl with ⟨⟨_, _⟩, ⟨hk, _⟩⟩
+    simp only [findEntry?_cons]
+    cases h₂ : k₂ == k <;> cases h₁ : k₁ == k
+    · simp
+    · simp
+    · simp
+    · refine ((Bool.eq_false_iff.1 hk).elim ?_).elim
+      exact BEq.trans h₁ (BEq.symm h₂)
+  · next l₁ l₂ l₃ hl₁₂ _ ih₁ ih₂ =>
+    skip
+    refine (ih₁ hl).trans (ih₂ (WF_of_perm (hl₁₂.symm) hl))
+
+@[simp]
+theorem containsKey_append [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} :
+    (l ++ l').containsKey k = (l.containsKey k || l'.containsKey k) := by
+  induction l using assoc_induction <;> simp_all [Bool.or_assoc]
+
+theorem containsKey_append_of_not_contains_right [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α}
+    (hl' : l'.containsKey k = false) : (l ++ l').containsKey k = l.containsKey k := by
+  simp [hl']
+
+theorem replaceEntry_append_of_containsKey_left [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α}
+    {v : β k} (h : l.containsKey k) : (l ++ l').replaceEntry k v = (l.replaceEntry k v) ++ l' := by
+  induction l using assoc_induction
+  · simp at h
+  · next k' v' t ih =>
+    simp only [containsKey_cons, Bool.or_eq_true] at h
+    cases h' : k' == k
+    · simpa [replaceEntry_cons, h'] using ih (h.resolve_left (Bool.not_eq_true _ ▸ h'))
+    · simp [replaceEntry_cons, h']
+
+theorem insert_append_of_not_contains_right [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)}
+    {k : α} {v : β k} (h' : l'.containsKey k = false) :
+    (l ++ l').insertEntry k v = l.insertEntry k v ++ l' := by
+  cases h : l.containsKey k
+  · simp [insertEntry, containsKey_append, h, h']
+  · simp [insertEntry, containsKey_append, h, h', replaceEntry_append_of_containsKey_left h]
+
+theorem containsKey_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} (hl : l.WF)
+    (h : l ~ l') : l.containsKey k = l'.containsKey k := by
+  simp only [containsKey_eq_isSome_findEntry?, findEntry?_of_perm hl h]
+
 
 -- TODO: results about combining modification operations
 
