@@ -1,6 +1,9 @@
 import Std.Linter.UnreachableTactic
 
-/-- warning: this tactic is never executed [linter.unreachableTactic] -/
+/--
+warning: this tactic is never executed
+note: this linter can be disabled with `set_option linter.unreachableTactic false`
+-/
 #guard_msgs in
 example : 1 = 1 := by
   rfl <;> simp

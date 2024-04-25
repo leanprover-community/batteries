@@ -5,7 +5,10 @@ open Std.Tactic.Lint
 
 namespace A
 
-/-- warning: unused variable `β` [linter.unusedVariables] -/
+/--
+warning: unused variable `β`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
 #guard_msgs in
 local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨default⟩
 

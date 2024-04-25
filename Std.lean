@@ -79,7 +79,6 @@ import Std.Tactic.Case
 import Std.Tactic.Classical
 import Std.Tactic.Congr
 import Std.Tactic.Exact
-import Std.Tactic.FalseOrByContra
 import Std.Tactic.Init
 import Std.Tactic.Instances
 import Std.Tactic.Lint
@@ -94,6 +93,7 @@ import Std.Tactic.PermuteGoals
 import Std.Tactic.PrintDependents
 import Std.Tactic.PrintPrefix
 import Std.Tactic.SeqFocus
+import Std.Tactic.ShowUnused
 import Std.Tactic.SqueezeScope
 import Std.Tactic.Unreachable
 import Std.Tactic.Where
