@@ -38,7 +38,8 @@ def update (data : Buckets α β) (i : USize)
   ⟨self.1.map (.mapVal f), by simp [self.2]⟩
 
 def toDList (self : Buckets α β) : List ((_ : α) × β) :=
-  self.1.foldl (fun l a => l ++ a.toDList) []
+  self.1.data.bind AssocList.toDList
+  -- self.1.foldl (fun l a => l ++ a.toDList) []
 
 /--
 The number of elements in the bucket array.
