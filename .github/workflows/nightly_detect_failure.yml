@@ -77,13 +77,13 @@ jobs:
         }
         response = client.get_messages(request)
         messages = response['messages']
-        if not messages or messages[0]['content'] != "✅ The latest CI for Std's branch#nightly-testing has succeeded!":
+        if not messages or messages[0]['content'] != "✅ The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has succeeded!":
             # Post the success message
             request = {
                 'type': 'stream',
                 'to': 'nightly-testing',
                 'topic': 'Std status updates',
-                'content': "✅ The latest CI for Std's branch#nightly-testing has succeeded!"
+                'content': "✅ The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has succeeded!"
             }
             result = client.send_message(request)
             print(result)
