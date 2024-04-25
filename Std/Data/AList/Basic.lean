@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro, Markus Himmel
 import Std.Classes.BEq
 import Std.Data.List.Lemmas
 import Std.Data.List.Perm
+import Std.Classes.Hashable
 
 universe v u
 
@@ -762,6 +763,24 @@ theorem insert_append_of_not_contains_right [BEq α] [EquivBEq α] {l l' : List 
 theorem containsKey_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} (hl : l.WF)
     (h : l ~ l') : l.containsKey k = l'.containsKey k := by
   simp only [containsKey_eq_isSome_findEntry?, findEntry?_of_perm hl h]
+
+-- TODO: Move to new file
+structure HashesTo [BEq α] [Hashable α] (l : List (Σ a, β a)) (i : Nat) (size : Nat) : Prop where
+  hash_self : ∀ k, l.containsKey k → ((hash k).toUSize % size).toNat = i
+
+@[simp]
+theorem hashesTo_nil [BEq α] [Hashable α] {i : Nat} {size : Nat} :
+    ([] : List (Σ a, β a)).HashesTo i size where
+  hash_self := by simp
+
+theorem hashesTo_cons [BEq α] [Hashable α] [LawfulHashable α] {i : Nat} {size : Nat} {l : List (Σ a, β a)} {k : α}
+    {v : β k} (h : ((hash k).toUSize % size).toNat = i) :
+    l.HashesTo i size → (⟨k, v⟩ :: l).HashesTo i size := by
+  refine fun ⟨ih⟩ => ⟨fun k' hk => ?_⟩
+  simp only [containsKey_cons, Bool.or_eq_true] at hk
+  rcases hk with (hk|hk)
+  · rwa [← LawfulHashable.hash_eq hk]
+  · exact ih _ hk
 
 
 -- TODO: results about combining modification operations
