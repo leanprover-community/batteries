@@ -43,6 +43,10 @@
       (mk n h : Buckets α β).val[i] = .nil := by
     simp [Buckets.mk]
 
+  @[simp]
+  theorem mk.HashSelf [BEq α] [Hashable α] : (mk n h : Buckets α β).IsHashSelf where
+    hash_self i hi k hk := by simp at hk
+
   open List
 
   theorem toDList_eq' [BEq α] [Hashable α] (self : Buckets α β) :
@@ -104,7 +108,6 @@ theorem bucket_toDList_perm_update [BEq α] [Hashable α]
         rw [containsKey_eq_true_iff_exists_mem]
         refine ⟨⟨k', v'⟩, ?_, hk₂⟩
         suffices b = self.val[l₁.length + (j + 1)] by simpa [this] using hb₂
-        -- rw [← hj]
         rw [Array.getElem_eq_data_get]
         rw [← List.getElem_eq_get]
         simp only [h₁]
@@ -153,7 +156,7 @@ theorem contains_eq_containsKey_toDList₃ [BEq α] [Hashable α] [EquivBEq α] 
       intro hlk'
       have := hlk h k hlk'
       simp [idx, mkIdx] at this
-  · exact List.WF_of_perm hl.symm h.1
+  · exact List.WF_of_perm hl.symm h.2
 
 end HashMap.Imp
 
@@ -170,6 +173,9 @@ theorem reinsertAux_toDList [BEq α] [Hashable α] (data : Buckets α β) (a : �
   refine hl₂.trans ?_
   simpa using hl₁.symm
 
+theorem reinsertAux_hashSelf [BEq α] [Hashable α] (data : Buckets α β) (a : α) (b : β) :
+    data.IsHashSelf → (reinsertAux data a b).IsHashSelf := sorry
+
 theorem expand.foldl_toDList [BEq α] [Hashable α] (l : AssocList α β) (target : Buckets α β) :
     (l.foldl reinsertAux target).toDList ~ l.toDList ++ target.toDList := by
   induction l generalizing target
@@ -183,6 +189,12 @@ theorem expand.foldl_toDList [BEq α] [Hashable α] (l : AssocList α β) (targe
     refine ((reinsertAux_toDList target k v).append_left t.toDList).trans ?_
     simp
 
+theorem expand.foldl_hashSelf [BEq α] [Hashable α] (l : AssocList α β) (target : Buckets α β) :
+    target.IsHashSelf → (l.foldl reinsertAux target).IsHashSelf := by
+  induction l generalizing target
+  · simp
+  · next k v _ ih => exact fun h => ih _ (reinsertAux_hashSelf _ _ _ h)
+
 
 theorem expand.go_pos [Hashable α] {i : Nat} {source : Array (AssocList α β)} {target : Buckets α β}
     (h : i < source.size) : expand.go i source target =
@@ -195,6 +207,25 @@ theorem expand.go_neg [Hashable α] {i : Nat} {source : Array (AssocList α β)}
   rw [expand.go]
   simp only [h, dite_false]
 
+theorem expand.hashSelf [BEq α] [Hashable α] {buckets : Buckets α β} :
+    (expand sz buckets).buckets.IsHashSelf := by
+  rw [expand]
+  dsimp
+  apply go
+  simp
+  where
+    go (i) (source : Array (AssocList α β)) (target : Buckets α β) :
+        target.IsHashSelf → (expand.go i source target).IsHashSelf := by
+      induction i, source, target using expand.go.induct
+      · next i source target hi _ es newSource newTarget ih =>
+        skip
+        simp only [newSource, newTarget, es] at *
+        rw [expand.go_pos hi]
+        refine ih ∘ ?_
+        exact expand.foldl_hashSelf _ _
+      · next i source target hi =>
+        rw [expand.go_neg hi]
+        exact id
 
 theorem List.append_swap_perm (l l' : List α) : l ++ l' ~ l' ++ l := by exact perm_append_comm
 
@@ -225,7 +256,12 @@ theorem expand_toDList [BEq α] [Hashable α] {buckets : Buckets α β} :
         rw [Array.size_eq_length_data, Nat.not_lt, ← List.drop_eq_nil_iff_le] at hi
         simp [hi]
 
-theorem insert_toDList [BEq α] [Hashable α] {m : HashMap.Imp α β} (h : m.WF) :
+theorem expand_WF [BEq α] [Hashable α] [PartialEquivBEq α] {buckets : Buckets α β} (H : buckets.WF) :
+    (expand sz buckets).buckets.WF :=
+  { expand.hashSelf with
+    distinct := WF_of_perm expand_toDList H.distinct }
+
+theorem insert_toDList [BEq α] [Hashable α] [EquivBEq α] {m : HashMap.Imp α β} (hwf : m.buckets.WF) :
     (m.insert k v).buckets.toDList ~ m.buckets.toDList.insertEntry k v := by
   rw [insert]
   dsimp
@@ -238,10 +274,35 @@ theorem insert_toDList [BEq α] [Hashable α] {m : HashMap.Imp α β} (h : m.WF)
     obtain ⟨l, hl₁, hl₂, hlk⟩ := Buckets.bucket_toDList_perm_update m.buckets idx.1 idx.2
       (m.buckets.1[idx.1].replace k v)
     refine hl₂.trans ?_
-    sorry
+    rw [AssocList.contains_eq_contains_toDList] at h
+    erw [AssocList.toDList_replace, ← replaceEntry_append_of_containsKey_left h]
+    refine (replaceEntry_of_perm k v hwf.2 hl₁).symm.trans ?_
+    rw [insertEntry_of_containsKey]
+    rw [containsKey_of_perm hwf.2 hl₁]
+    simp [h]
   · next h =>
     skip
-    sorry
+    have : (m.buckets.update (mkIdx m.buckets.2 (hash k).toUSize).val
+        (AssocList.cons k v m.buckets.1[idx.1]) idx.2).toDList.Perm
+        (m.buckets.toDList.insertEntry k v) := by
+      dsimp
+      obtain ⟨l, hl₁, hl₂, hlk⟩ := Buckets.bucket_toDList_perm_update m.buckets idx.1 idx.2
+        (m.buckets.1[idx.1].cons k v)
+      refine hl₂.trans ?_
+      rw [AssocList.contains_eq_contains_toDList] at h
+      erw [AssocList.toDList_cons, cons_append]
+      refine (hl₁.symm.cons _).trans ?_A
+      rw [insertEntry_of_containsKey_eq_false]
+      rw [Bool.eq_false_iff]
+      rw [containsKey_of_perm hwf.1 hl₁]
+      simp
+      refine ⟨h, ?_⟩
+      intro hcon
+      apply hlk hwf _ hcon
+      rfl
+    split
+    · next h' => exact this
+    · next h' => exact expand_toDList.trans this
 
 @[simp] theorem reinsertAux_size' [Hashable α] (data : Buckets α β) (a : α) (b : β) :
     (reinsertAux data a b).1.size = data.1.size := by

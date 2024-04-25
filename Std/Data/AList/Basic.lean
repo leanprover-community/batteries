@@ -720,6 +720,19 @@ theorem findEntry?_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k 
     skip
     refine (ih₁ hl).trans (ih₂ (WF_of_perm (hl₁₂.symm) hl))
 
+theorem replaceEntry_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} (k : α) (v : β k)
+    (hl : l.WF) (h : l ~ l') : l.replaceEntry k v ~ l'.replaceEntry k v := sorry
+
+theorem insertEntry_of_perm [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} {v : β k}
+    (hl : l.WF) (h : l ~ l') : l.insertEntry k v ~ l'.insertEntry k v := by
+  induction h
+  · simp
+  · next p t₁ t₂ _ ih₂ =>
+    skip
+    sorry
+  · next k' p p' t => sorry
+  · next l₁ l₂ l₃ hl₁₂ hl₂₃ ih₁ ih₂ => sorry
+
 @[simp]
 theorem containsKey_append [BEq α] [EquivBEq α] {l l' : List (Σ a, β a)} {k : α} :
     (l ++ l').containsKey k = (l.containsKey k || l'.containsKey k) := by

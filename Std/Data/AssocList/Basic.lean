@@ -203,6 +203,13 @@ with key equal to `a` to have key `a` and value `b`.
   · simp only [replace, length_cons]
     split <;> simp_all
 
+theorem toDList_replace [BEq α] (l : AssocList α β) (a : α) (b : β) :
+    (l.replace a b).toDList = l.toDList.replaceEntry a b := by
+  induction l, a, b using replace.induct a b
+  · simp
+  · simp_all [List.replaceEntry_cons]
+  · simp_all [List.replaceEntry_cons]
+
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
 @[specialize, simp] def eraseP (p : α → β → Bool) : AssocList α β → AssocList α β
   | nil         => nil

@@ -47,16 +47,17 @@ Note: this is marked `noncomputable` because it is only intended for specificati
 -/
 noncomputable def size (data : Buckets α β) : Nat := data.toDList.length
 
+structure IsHashSelf [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
+  hash_self (i : Nat) (h : i < buckets.1.size) :
+    ∀ k, buckets.1[i].toDList.containsKey k → ((hash k).toUSize % buckets.1.size).toNat = i
+
 /--
 The well-formedness invariant for the bucket array says that every element hashes to its index
 (assuming the hash is lawful - otherwise there are no promises about where elements are located).
 -/
-structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
+structure WF [BEq α] [Hashable α] (buckets : Buckets α β) extends IsHashSelf buckets : Prop where
   /--  -/
   distinct : buckets.toDList.WF
-  /-- -/
-  hash_self (i : Nat) (h : i < buckets.1.size) :
-    ∀ k, buckets.1[i].toDList.containsKey k → ((hash k).toUSize % buckets.1.size).toNat = i
 
 end Buckets
 end Imp
