@@ -403,6 +403,10 @@ theorem containsKey_eq_keys_containsKey [BEq α] [EquivBEq α] {l : List (Σ a, 
   · next k _ l ih =>
     simp [ih, BEq.comm]
 
+theorem containsKey_eq_true_iff_exists_mem [BEq α] [EquivBEq α] {l : List (Σ a, β a)} {a : α} :
+    l.containsKey a = true ↔ ∃ p ∈ l, p.1 == a := by
+  induction l using assoc_induction <;> simp_all
+
 /-- The well-formedness predicate for `AssocList` says that keys are pairwise distinct. -/
 structure WF [BEq α] (l : List (Σ a, β a)) : Prop where
   distinct : l.keys.Pairwise fun a b => (a == b) = false

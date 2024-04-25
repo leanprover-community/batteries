@@ -1,134 +1,199 @@
-/-
-Copyright (c) 2022 Mario Carneiro. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Markus Himmel
--/
-import Std.Data.HashMap.Basic
-import Std.Data.Array.Lemmas
-import Std.Data.Nat.Lemmas
+  /-
+  Copyright (c) 2022 Mario Carneiro. All rights reserved.
+  Released under Apache 2.0 license as described in the file LICENSE.
+  Authors: Mario Carneiro, Markus Himmel
+  -/
+  import Std.Data.HashMap.Basic
+  import Std.Data.Array.Lemmas
+  import Std.Data.Nat.Lemmas
 
-namespace Std.HashMap
-namespace Imp
+  namespace Std.HashMap
+  namespace Imp
 
-attribute [-simp] Bool.not_eq_true
+  attribute [-simp] Bool.not_eq_true
 
-namespace Buckets
+  namespace Buckets
 
-@[ext] protected theorem ext : ∀ {b₁ b₂ : Buckets α β}, b₁.1.data = b₂.1.data → b₁ = b₂
-  | ⟨⟨_⟩, _⟩, ⟨⟨_⟩, _⟩, rfl => rfl
+  @[ext] protected theorem ext : ∀ {b₁ b₂ : Buckets α β}, b₁.1.data = b₂.1.data → b₁ = b₂
+    | ⟨⟨_⟩, _⟩, ⟨⟨_⟩, _⟩, rfl => rfl
 
-theorem update_data (self : Buckets α β) (i d h) :
-    (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
+  theorem update_data (self : Buckets α β) (i d h) :
+      (self.update i d h).1.data = self.1.data.set i.toNat d := rfl
 
-theorem update_get {self : Buckets α β} {i d h} {j : Nat} (hj : j < (self.update i d h).1.size) :
-    have : j < self.1.size := by simpa using hj;
-    (self.update i d h).1[j] = if i.toNat = j then d else self.1[j] := by
-  simp [Buckets.update]
-  rw [Array.get_set]
+  theorem update_get {self : Buckets α β} {i d h} {j : Nat} (hj : j < (self.update i d h).1.size) :
+      have : j < self.1.size := by simpa using hj;
+      (self.update i d h).1[j] = if i.toNat = j then d else self.1[j] := by
+    simp [Buckets.update]
+    rw [Array.get_set]
 
-theorem exists_of_update (self : Buckets α β) (i d h) :
-    ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
-      (self.update i d h).1.data = l₁ ++ d :: l₂ := by
-  simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
+  theorem exists_of_update (self : Buckets α β) (i d h) :
+      ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
+        (self.update i d h).1.data = l₁ ++ d :: l₂ := by
+    simp [Array.getElem_eq_data_get]; exact List.exists_of_set' h
 
-theorem update_update (self : Buckets α β) (i d d' h h') :
-    (self.update i d h).update i d' h' = self.update i d' h := by
-  simp [update]; congr 1; rw [Array.set_set]
+  theorem update_update (self : Buckets α β) (i d d' h h') :
+      (self.update i d h).update i d' h' = self.update i d' h := by
+    simp [update]; congr 1; rw [Array.set_set]
 
--- theorem size_eq (data : Buckets α β) :
---   size data = .sum (data.1.data.map (·.toList.length)) := rfl
+  -- theorem size_eq (data : Buckets α β) :
+  --   size data = .sum (data.1.data.map (·.toList.length)) := rfl
 
-@[simp] theorem mk_size' (h) : (mk n h : Buckets α β).1.size = n := by
-  simp [Buckets.mk]
+  @[simp] theorem mk_size' (h) : (mk n h : Buckets α β).1.size = n := by
+    simp [Buckets.mk]
 
--- theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
---   simp [Buckets.size_eq, Buckets.mk, mkArray]; clear h
---   induction n <;> simp [*]
+  -- theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
+  --   simp [Buckets.size_eq, Buckets.mk, mkArray]; clear h
+  --   induction n <;> simp [*]
 
-@[simp]
-theorem mk_val (h) (i : Nat) {h' : i < (Buckets.mk n h).1.size} :
-    (mk n h : Buckets α β).val[i] = .nil := by
-  simp [Buckets.mk]
+  @[simp]
+  theorem mk_val (h) (i : Nat) {h' : i < (Buckets.mk n h).1.size} :
+      (mk n h : Buckets α β).val[i] = .nil := by
+    simp [Buckets.mk]
 
-theorem toDList_eq [BEq α] [Hashable α] (self : Buckets α β) :
-    self.toDList = self.1.data.foldl (fun l a => l ++ a.toDList) [] := by
-  rw [toDList, Array.foldl_eq_foldl_data]
+  theorem toDList_eq [BEq α] [Hashable α] (self : Buckets α β) :
+      self.toDList = self.1.data.foldl (fun l a => l ++ a.toDList) [] := by
+    rw [toDList, Array.foldl_eq_foldl_data]
 
-#check Buckets.WF
+  #check Buckets.WF
 
-open List
+  open List
 
--- theorem bucket_toDList_perm [BEq α] [Hashable α] [PartialEquivBEq α] [LawfulHashable α]
---     (self : Buckets α β) (h : self.WF) (i : Nat) (hi : i < self.1.size) :
---       ∃ l, self.toDList ~ self.1[i].toDList ++ l ∧ ∀ p ∈ l, ((hash p.1).toUSize % self.1.size).toNat ≠ i := sorry
+  -- theorem bucket_toDList_perm [BEq α] [Hashable α] [PartialEquivBEq α] [LawfulHashable α]
+  --     (self : Buckets α β) (h : self.WF) (i : Nat) (hi : i < self.1.size) :
+  --       ∃ l, self.toDList ~ self.1[i].toDList ++ l ∧ ∀ p ∈ l, ((hash p.1).toUSize % self.1.size).toNat ≠ i := sorry
 
--- theorem update_toDList_perm [BEq α] [Hashable α] [PartialEquivBEq α] [LawfulHashable α]
---     (self : Buckets α β) (h : self.WF) (i : Nat) (hi : i < self.1.size) :
-
-
--- want: (m.insert k v).buckets.toDList ~ m.buckets.toDList.insert k v
+  -- theorem update_toDList_perm [BEq α] [Hashable α] [PartialEquivBEq α] [LawfulHashable α]
+  --     (self : Buckets α β) (h : self.WF) (i : Nat) (hi : i < self.1.size) :
 
 
-section
-
-variable (f : α → α → α) [Std.Associative f]
-
-theorem foldl_assoc (l : List α) (a₁ a₂ : α) :
-    l.foldl f (f a₁ a₂) = f a₁ (l.foldl f a₂) := by
-  induction l generalizing a₂
-  · simp
-  · next h t ih =>
-    skip
-    rw [List.foldl_cons, List.foldl_cons, ← ih, Associative.assoc (op := f)]
-
-variable (e : α) [Std.LawfulRightIdentity f e]
-
-theorem foldl_ident (l : List α) (a : α) :
-    l.foldl f a = f a (l.foldl f e) := by
-  rw [← LawfulRightIdentity.right_id (op := f) a, foldl_assoc,
-    LawfulRightIdentity.right_id (op := f)]
-
-instance : Std.Associative (List.append (α := α)) := ⟨List.append_assoc⟩
-instance : Std.LawfulIdentity (List.append (α := α)) [] where
-  left_id := List.nil_append
-  right_id := List.append_nil
+  -- want: (m.insert k v).buckets.toDList ~ m.buckets.toDList.insert k v
 
 
-end
+  section
 
-theorem List.bind_eq_foldl (f : α → List β) (l : List α) :
-    l.bind f = l.foldl (fun acc a => acc ++ f a) [] := by
-  simpa using go []
-  where
-    go (l') : l' ++ l.bind f = l.foldl (fun acc a => acc ++ f a) l' := by
-      induction l generalizing l'
-      · simp
-      · next h t ih =>
-        rw [List.cons_bind, ← List.append_assoc, ih, List.foldl_cons]
-  -- suffices ∀ l', l' ++ l.bind f = l.foldl (fun acc a => acc ++ f a) l' by simpa using this []
-  -- induction l
-  -- · simp
-  -- · next h t ih =>
-  --   intro l'
-  --   rw [List.cons_bind, ← List.append_assoc, ih, List.foldl_cons]
+  variable (f : α → α → α) [Std.Associative f]
 
--- Oooooof
-theorem toDList_eq' [BEq α] [Hashable α] (self : Buckets α β) :
-    self.toDList = self.1.data.bind AssocList.toDList := by
-  simp [toDList, Array.foldl_eq_foldl_data, List.bind_eq_foldl]
+  theorem foldl_assoc (l : List α) (a₁ a₂ : α) :
+      l.foldl f (f a₁ a₂) = f a₁ (l.foldl f a₂) := by
+    induction l generalizing a₂
+    · simp
+    · next h t ih =>
+      skip
+      rw [List.foldl_cons, List.foldl_cons, ← ih, Associative.assoc (op := f)]
+
+  variable (e : α) [Std.LawfulRightIdentity f e]
+
+  theorem foldl_ident (l : List α) (a : α) :
+      l.foldl f a = f a (l.foldl f e) := by
+    rw [← LawfulRightIdentity.right_id (op := f) a, foldl_assoc,
+      LawfulRightIdentity.right_id (op := f)]
+
+  instance : Std.Associative (List.append (α := α)) := ⟨List.append_assoc⟩
+  instance : Std.LawfulIdentity (List.append (α := α)) [] where
+    left_id := List.nil_append
+    right_id := List.append_nil
 
 
-theorem bucket_toDList_perm_update [BEq α] [Hashable α]
-    (self : Buckets α β) (i : USize) (hi : i.toNat < self.1.size) (d : AssocList α β) :
-      ∃ l, self.toDList ~ self.1[i].toDList ++ l ∧
-        (self.update i d hi).toDList ~ d.toDList ++ l ∧
-        (self.WF → ∀ k, l.containsKey k → ((hash k).toUSize % self.1.size).toNat ≠ i.toNat) := by
-  sorry
+  end
+
+  theorem List.bind_eq_foldl (f : α → List β) (l : List α) :
+      l.bind f = l.foldl (fun acc a => acc ++ f a) [] := by
+    simpa using go []
+    where
+      go (l') : l' ++ l.bind f = l.foldl (fun acc a => acc ++ f a) l' := by
+        induction l generalizing l'
+        · simp
+        · next h t ih =>
+          rw [List.cons_bind, ← List.append_assoc, ih, List.foldl_cons]
+    -- suffices ∀ l', l' ++ l.bind f = l.foldl (fun acc a => acc ++ f a) l' by simpa using this []
+    -- induction l
+    -- · simp
+    -- · next h t ih =>
+    --   intro l'
+    --   rw [List.cons_bind, ← List.append_assoc, ih, List.foldl_cons]
+
+  -- Oooooof
+  -- TODO: Try to redefine toDList as this?
+  theorem toDList_eq' [BEq α] [Hashable α] (self : Buckets α β) :
+      self.toDList = self.1.data.bind AssocList.toDList := by
+    simp [toDList, Array.foldl_eq_foldl_data, List.bind_eq_foldl]
+
+  #check Array.foldl_induction
+
+
+theorem List.perm_append_comm_assoc (l₁ l₂ l₃ : List α) : l₁ ++ (l₂ ++ l₃) ~ l₂ ++ (l₁ ++ l₃) := by
+  simpa only [List.append_assoc] using perm_append_comm.append_right _
+
+  theorem bucket_toDList_perm_update [BEq α] [Hashable α]
+      (self : Buckets α β) (i : USize) (hi : i.toNat < self.1.size) (d : AssocList α β) :
+        ∃ l, self.toDList ~ self.1[i].toDList ++ l ∧
+          (self.update i d hi).toDList ~ d.toDList ++ l ∧
+          (∀ [EquivBEq α], self.WF → ∀ k, l.containsKey k → ((hash k).toUSize % self.1.size).toNat ≠ i.toNat) := by
+    obtain ⟨l₁, l₂, h₁, h₂, h₃⟩ := self.exists_of_update i d hi
+    refine ⟨l₁.bind AssocList.toDList ++ l₂.bind AssocList.toDList, ?_, ?_, ?_⟩
+    · rw [toDList_eq', h₁]
+      simpa using List.perm_append_comm_assoc _ _ _
+    · rw [toDList_eq', h₃]
+      simpa using List.perm_append_comm_assoc _ _ _
+    · intros _ h k hk
+      simp at hk
+      rcases hk with (hk|hk)
+      · rw [containsKey_eq_true_iff_exists_mem] at hk
+        rcases hk with ⟨⟨k', v'⟩, ⟨hk₁, hk₂⟩⟩
+        rw [mem_bind] at hk₁
+        obtain ⟨b, ⟨hb₁, hb₂⟩⟩ := hk₁
+        obtain ⟨j, hj⟩ := get_of_mem hb₁
+        have : l₁.length ≤ self.val.data.length := by
+          rw [h₁]
+          simp
+          exact Nat.le_add_right l₁.length (l₂.length + 1)
+        have hkey : self.val.data.get (j.castLE this) = b := by
+          rcases j with ⟨j, hj'⟩
+          simp
+          rw [← List.getElem_eq_get]
+          simp only [h₁]
+          rw [List.getElem_eq_get]
+          rwa [List.get_append_left _ _ hj']
+        have hh := h.hash_self j (j.castLE this).2 k
+        have : j.1 ≠ i.toNat := by omega
+        rw [hh]
+        exact this
+        erw [Array.getElem_eq_data_get, hkey, containsKey_eq_true_iff_exists_mem]
+        refine ⟨⟨k', v'⟩, hb₂, hk₂⟩
+      · rw [containsKey_eq_true_iff_exists_mem] at hk
+        rcases hk with ⟨⟨k', v'⟩, ⟨hk₁, hk₂⟩⟩
+        rw [mem_bind] at hk₁
+        obtain ⟨b, ⟨hb₁, hb₂⟩⟩ := hk₁
+        obtain ⟨⟨j, hj'⟩, hj⟩ := get_of_mem hb₁
+        have : l₁.length + (j + 1) < self.val.size := by
+          rw [Array.size_eq_length_data, h₁]
+          simp
+          omega
+        have hh := h.hash_self (l₁.length + (j + 1)) this k
+        suffices containsKey k self.val[l₁.length + (j + 1)].toDList = true by
+          rw [hh this, h₂]
+          omega
+        rw [containsKey_eq_true_iff_exists_mem]
+        refine ⟨⟨k', v'⟩, ?_, hk₂⟩
+        suffices b = self.val[l₁.length + (j + 1)] by simpa [this] using hb₂
+        -- rw [← hj]
+        rw [Array.getElem_eq_data_get]
+        rw [← List.getElem_eq_get]
+        simp only [h₁]
+        rw [List.getElem_eq_get]
+        have haux : ¬l₁.length + (j + 1) < l₁.length := by omega
+        have haux₂ : l₁.length + (j + 1) - l₁.length < (self.val[i] :: l₂).length := by
+          simp
+          omega
+        rw [List.get_append_right (h'' := haux₂) (h := haux)]
+        have : l₁.length + (j + 1) - l₁.length = j + 1 := by omega
+        simp only [this]
+        rw [List.get_cons_succ, hj]
 
 theorem bucket_toDList_perm [BEq α] [Hashable α]
     (self : Buckets α β) (i : USize) (hi : i.toNat < self.1.size) :
       ∃ l, self.toDList ~ self.1[i].toDList ++ l ∧
-        (self.WF → ∀ k, l.containsKey k → ((hash k).toUSize % self.1.size).toNat ≠ i.toNat) := by
+        (∀ [EquivBEq α], self.WF → ∀ k, l.containsKey k → ((hash k).toUSize % self.1.size).toNat ≠ i.toNat) := by
   obtain ⟨l, hl, -, hlk⟩ := bucket_toDList_perm_update self i hi .nil
   exact ⟨l, hl, hlk⟩
 
@@ -437,6 +502,8 @@ theorem contains_eq_containsKey_toDList₃ [BEq α] [Hashable α] [EquivBEq α] 
       simp [idx, mkIdx] at this
   · exact List.WF_of_perm hl.symm h.1
 
+#print axioms contains_eq_containsKey_toDList₃
+
 open List
 
 -- theorem reinsertAux_toDList [BEq α] [Hashable α] (m : HashMap.Imp α β)
@@ -537,9 +604,6 @@ theorem expand.go_neg [Hashable α] {i : Nat} {source : Array (AssocList α β)}
 
 theorem List.append_swap_perm (l l' : List α) : l ++ l' ~ l' ++ l := by exact perm_append_comm
 
-theorem List.perm_append_comm_assoc (l₁ l₂ l₃ : List α) : l₁ ++ (l₂ ++ l₃) ~ l₂ ++ (l₁ ++ l₃) := by
-  simpa only [List.append_assoc] using perm_append_comm.append_right _
-
 theorem expand_toDList [BEq α] [Hashable α] {buckets : Buckets α β} :
     (expand sz buckets).buckets.toDList ~ buckets.toDList := by
   rw [expand]
@@ -561,7 +625,7 @@ theorem expand_toDList [BEq α] [Hashable α] {buckets : Buckets α β} :
           Array.get_eq_getElem, Array.getElem_eq_data_get]
         refine ((expand.foldl_toDList _ _).append_left _).trans ?_
         simp
-        exact List.perm_append_comm_assoc _ _ _
+        exact Buckets.List.perm_append_comm_assoc _ _ _
       · next i source target hi =>
         rw [expand.go_neg hi]
         rw [Array.size_eq_length_data, Nat.not_lt, ← List.drop_eq_nil_iff_le] at hi
