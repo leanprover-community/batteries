@@ -57,14 +57,14 @@ private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (h : ∀ (y : α), r y a → Acc r y) :
-    recC intro (Acc.intro _ h) = intro a h (fun y hr => recC intro (h y hr)) :=
-  rfl
+    recC intro (Acc.intro _ h) = intro a h (fun y hr => recC intro (h y hr)) := recC.eq_1 ..
 
 @[csimp] private theorem rec_eq_recC : @Acc.rec = @Acc.recC := by
   funext α r motive intro a t
   induction t with
   | intro x h ih =>
-    dsimp only [recC_intro intro h]
+    rw [recC_intro]
+    dsimp
     congr; funext y hr; exact ih _ hr
 
 /-- A computable version of `Acc.ndrec`. Workaround until Lean has native support for this. -/
@@ -120,6 +120,7 @@ Workaround until Lean has native support for this. -/
   F x (fun y _ => fixC hwf F y)
 termination_by hwf.wrap x
 
-@[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
+@[csimp] private theorem fix_eq_fixC : @fix = @fixC := by
+  rfl -- This (ab)uses that the rfl tactic uses .all transparency
 
 end WellFounded
