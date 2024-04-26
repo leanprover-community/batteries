@@ -272,6 +272,10 @@ theorem expand_toDList [BEq α] [Hashable α] {buckets : Buckets α β} :
         rw [Array.size_eq_length_data, Nat.not_lt, ← List.drop_eq_nil_iff_le] at hi
         simp [hi]
 
+theorem expand_size [BEq α] [Hashable α] {buckets : Buckets α β} :
+    (expand sz buckets).buckets.size = buckets.size :=
+  expand_toDList.length_eq
+
 theorem expand_WF [BEq α] [Hashable α] [PartialEquivBEq α] [LawfulHashable α] {buckets : Buckets α β} (H : buckets.WF) :
     (expand sz buckets).buckets.WF :=
   { expand.hashSelf with

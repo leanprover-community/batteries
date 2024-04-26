@@ -207,7 +207,7 @@ theorem toDList_replace [BEq α] (l : AssocList α β) (a : α) (b : β) :
     (l.replace a b).toDList = l.toDList.replaceEntry a b := by
   induction l, a, b using replace.induct a b
   · simp
-  · simp_all [List.replaceEntry_cons]
+  · simp_all? [List.replaceEntry_cons]
   · simp_all [List.replaceEntry_cons]
 
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
