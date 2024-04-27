@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Std.Data.Fin.Basic
-import Std.Data.List.Init.Lemmas
 import Std.Data.Array.Init.Lemmas
 
 namespace Fin
