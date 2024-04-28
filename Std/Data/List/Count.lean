@@ -164,6 +164,7 @@ theorem count_singleton' (a b : α) : count a [b] = if a = b then 1 else 0 := by
 
 theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count a l) := by simp
 
+@[simp]
 theorem count_pos_iff_mem {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := by
   simp only [count, countP_pos, beq_iff_eq, exists_eq_right]
 
@@ -173,9 +174,11 @@ theorem count_pos_iff_mem {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := 
 theorem not_mem_of_count_eq_zero {a : α} {l : List α} (h : count a l = 0) : a ∉ l :=
   fun h' => Nat.ne_of_lt (count_pos_iff_mem.2 h') h.symm
 
+@[simp]
 theorem count_eq_zero {l : List α} : count a l = 0 ↔ a ∉ l :=
   ⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
+@[simp]
 theorem count_eq_length {l : List α} : count a l = l.length ↔ ∀ b ∈ l, a = b := by
   rw [count, countP_eq_length]
   refine ⟨fun h b hb => Eq.symm ?_, fun h b hb => ?_⟩
