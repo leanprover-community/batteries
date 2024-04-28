@@ -2763,19 +2763,34 @@ theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
     · simp_arith [length_merge s l (b::r)]
     · simp_arith [length_merge s (a::l) r]
 
-@[simp]
-theorem mem_merge {s : α → α → Bool} : x ∈ merge s l r ↔ x ∈ l ∨ x ∈ r := by
+theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r := by
   match l, r with
-  | l, [] => simp
-  | [], l => simp
+  | l, [] => simp [h]
   | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp [mem_merge (l := l) (r := b::r), or_assoc]
-    · simp [mem_merge (l := a::l) (r := r), or_assoc, or_left_comm]
+    match mem_cons.1 h with
+    | .inl rfl =>
+      rw [cons_merge_cons]
+      split
+      · exact mem_cons_self ..
+      · apply mem_cons_of_mem; exact mem_merge_left s h
+    | .inr h' =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_left s h'
+      · apply mem_cons_of_mem; exact mem_merge_left s h
 
-theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
-  mem_merge.2 <| .inl h
-
-theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
-  mem_merge.2 <| .inr h
+theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r := by
+  match l, r with
+  | [], r => simp [h]
+  | a::l, b::r =>
+    match mem_cons.1 h with
+    | .inl rfl =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_right s h
+      · exact mem_cons_self ..
+    | .inr h' =>
+      rw [cons_merge_cons]
+      split
+      · apply mem_cons_of_mem; exact mem_merge_right s h
+      · apply mem_cons_of_mem; exact mem_merge_right s h'
