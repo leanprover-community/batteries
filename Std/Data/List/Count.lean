@@ -144,8 +144,8 @@ theorem count_cons (a b : α) (l : List α) :
 @[simp] theorem count_cons_of_ne (h : a ≠ b) (l : List α) : count a (b :: l) = count a l := by
   simp [count_cons, h]
 
-theorem count_tail : ∀ (l : List α) (a : α) (h : 0 < l.length),
-      l.tail.count a = l.count a - if a = get l ⟨0, h⟩ then 1 else 0
+theorem count_tail : ∀ (l : List α) (a : α) (h : l ≠ []),
+      l.tail.count a = l.count a - if a = l.head h then 1 else 0
   | head :: tail, a, h => by simp [count_cons]
 
 theorem count_le_length (a : α) (l : List α) : count a l ≤ l.length := countP_le_length _
