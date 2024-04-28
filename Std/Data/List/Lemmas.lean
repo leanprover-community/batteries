@@ -365,6 +365,9 @@ theorem exists_of_mem_join : a ∈ join L → ∃ l, l ∈ L ∧ a ∈ l := mem_
 
 theorem mem_join_of_mem (lL : l ∈ L) (al : a ∈ l) : a ∈ join L := mem_join.2 ⟨l, lL, al⟩
 
+theorem length_join (l : List (List α)) : (join l).length = Nat.sum (l.map length) := by
+  induction l <;> simp [*]
+
 /-! ### bind -/
 
 theorem mem_bind {f : α → List β} {b} {l : List α} : b ∈ l.bind f ↔ ∃ a, a ∈ l ∧ b ∈ f a := by

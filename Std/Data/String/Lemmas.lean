@@ -499,6 +499,11 @@ theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).join⟩ := go ss
 @[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).join := by
   rw [join_eq]
 
+@[simp] theorem comp_length_data : List.length ∘ String.data = String.length := rfl
+
+theorem length_join (l : List String) : (String.join l).length = Nat.sum (l.map String.length) := by
+  simp [length, List.length_join, List.map_map]
+
 theorem singleton_eq (c : Char) : singleton c = ⟨[c]⟩ := rfl
 
 @[simp] theorem data_singleton (c : Char) : (singleton c).data = [c] := rfl
