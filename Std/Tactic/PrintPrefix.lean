@@ -5,9 +5,11 @@ Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
 import Std.Lean.Name
 import Std.Lean.Util.EnvSearch
+import Std.Lean.Delaborator
 import Lean.Elab.Tactic.Config
 
-namespace Lean.Elab.Command
+namespace Std.Tactic
+open Lean Elab Command
 
 /--
 Options to control `#print prefix` command and `getMatchingConstants`.
@@ -28,35 +30,6 @@ structure PrintPrefixConfig where
 
 /-- Function elaborating `Config`. -/
 declare_config_elab elabPrintPrefixConfig PrintPrefixConfig
-
-/--
-The command `#print prefix foo` will print all definitions that start with
-the namespace `foo`.
-
-For example, the command below will print out definitions in the `List` namespace:
-
-```lean
-#print prefix List
-```
-
-`#print prefix` can be controlled by flags in `PrintPrefixConfig`.  These provide
-options for filtering names and formatting.   For example,
-`#print prefix` by default excludes internal names, but this can be controlled
-via config:
-```lean
-#print prefix (config:={internals:=true}) List
-```
-
-By default, `#print prefix` prints the type after each name.  This can be controlled
-by setting `showTypes` to `false`:
-```lean
-#print prefix (config:={showTypes:=false}) List
-```
-
-The complete set of flags can be seen in the documentation
-for `Lean.Elab.Command.PrintPrefixConfig`.
--/
-syntax (name := printPrefix) "#print" "prefix" (Lean.Parser.Tactic.config)? ident : command
 
 /--
 `reverseName name` reverses the components of a name.
@@ -88,12 +61,9 @@ private def matchName (opts : PrintPrefixConfig)
   let (root, post) := takeNameSuffix (nameCnt - preCnt) name
   if root ≠ pre then return false
   if !opts.internals && post.isInternalDetail then return false
+  if opts.propositions != opts.propositionsOnly then return opts.propositions
   let isProp := (Expr.isProp <$> Lean.Meta.inferType cinfo.type) <|> pure false
-  if opts.propositions then do
-    if opts.propositionsOnly && !(←isProp) then return false
-  else do
-    if opts.propositionsOnly || (←isProp) then return false
-  pure true
+  pure <| opts.propositionsOnly == (← isProp)
 
 private def lexNameLt : Name -> Name -> Bool
 | _, .anonymous => false
@@ -103,32 +73,53 @@ private def lexNameLt : Name -> Name -> Bool
 | .str _ _, .num _ _ => false
 | .str p m, .str q n => m < n || m == n && lexNameLt p q
 
-private def appendMatchingConstants (msg : String) (opts : PrintPrefixConfig) (pre : Name)
-     : MetaM String := do
+private def matchingConstants (opts : PrintPrefixConfig) (pre : Name)
+     : MetaM (Array MessageData) := do
   let cinfos ← getMatchingConstants (matchName opts pre) opts.imported
   let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
-  let mut msg := msg
-  let ppInfo cinfo :=
-        if opts.showTypes then do
-          pure s!"{cinfo.name} : {← Meta.ppExpr cinfo.type}\n"
-        else
-          pure s!"{cinfo.name}\n"
-  for cinfo in cinfos do
-    msg := msg ++ (← ppInfo cinfo)
-  pure msg
+  cinfos.mapM fun cinfo => do
+    if opts.showTypes then
+      pure <| .ofPPFormat { pp := fun
+        | some ctx => ctx.runMetaM <|
+          withOptions (pp.tagAppFns.set · true) <| PrettyPrinter.ppSignature cinfo.name
+        | none     => return f!"{cinfo.name}"  -- should never happen
+      } ++ "\n"
+    else
+      pure m!"{ppConst (← mkConstWithLevelParams cinfo.name)}\n"
 
 /--
-Implementation for #print prefix
+The command `#print prefix foo` will print all definitions that start with
+the namespace `foo`.
+
+For example, the command below will print out definitions in the `List` namespace:
+
+```lean
+#print prefix List
+```
+
+`#print prefix` can be controlled by flags in `PrintPrefixConfig`.  These provide
+options for filtering names and formatting.   For example,
+`#print prefix` by default excludes internal names, but this can be controlled
+via config:
+```lean
+#print prefix (config := {internals := true}) List
+```
+
+By default, `#print prefix` prints the type after each name.  This can be controlled
+by setting `showTypes` to `false`:
+```lean
+#print prefix (config := {showTypes := false}) List
+```
+
+The complete set of flags can be seen in the documentation
+for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
-@[command_elab printPrefix] def elabPrintPrefix : CommandElab
-| `(#print prefix%$tk $[$cfg:config]? $name:ident) => do
+elab (name := printPrefix) "#print" tk:"prefix"
+    cfg:(Lean.Parser.Tactic.config)? name:ident : command => liftTermElabM do
   let nameId := name.getId
-  liftTermElabM do
-    let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
-    let mut msg ← appendMatchingConstants "" opts nameId
-    if msg.isEmpty then
-      if let [name] ← resolveGlobalConst name then
-        msg ← appendMatchingConstants msg opts name
-    if !msg.isEmpty then
-      logInfoAt tk msg
-| _ => throwUnsupportedSyntax
+  let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
+  let mut msgs ← matchingConstants opts nameId
+  if msgs.isEmpty then
+    if let [name] ← resolveGlobalConst name then
+      msgs ← matchingConstants opts name
+  logInfoAt tk (.joinSep msgs.toList "")

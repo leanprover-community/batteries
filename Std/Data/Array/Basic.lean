@@ -130,15 +130,21 @@ protected def maxI [ord : Ord α] [Inhabited α]
   xs.minI (ord := ord.opposite) start stop
 
 /--
-Unsafe implementation of `attach`, taking advantage of the fact that the representation of
-`Array {x // x ∈ xs}` is the same as the input `Array α`.
+Unsafe implementation of `attachWith`, taking advantage of the fact that the representation of
+`Array {x // P x}` is the same as the input `Array α`.
 -/
-@[inline] private unsafe def attachImpl (xs : Array α) : Array {x // x ∈ xs} := unsafeCast xs
+@[inline] private unsafe def attachWithImpl
+    (xs : Array α) (P : α → Prop) (_ : ∀ x ∈ xs, P x) : Array {x // P x} := unsafeCast xs
 
-/-- "Attach" the proof that the elements of `xs` are in `xs` to produce a new list
+/-- `O(1)`. "Attach" a proof `P x` that holds for all the elements of `xs` to produce a new array
+  with the same elements but in the type `{x // P x}`. -/
+@[implemented_by attachWithImpl] def attachWith
+    (xs : Array α) (P : α → Prop) (H : ∀ x ∈ xs, P x) : Array {x // P x} :=
+  ⟨xs.data.attachWith P fun x h => H x (Array.Mem.mk h)⟩
+
+/-- `O(1)`. "Attach" the proof that the elements of `xs` are in `xs` to produce a new array
   with the same elements but in the type `{x // x ∈ xs}`. -/
-@[implemented_by attachImpl] def attach (xs : Array α) : Array {x // x ∈ xs} :=
-  ⟨xs.data.pmap Subtype.mk fun _ => Array.Mem.mk⟩
+@[inline] def attach (xs : Array α) : Array {x // x ∈ xs} := xs.attachWith _ fun _ => id
 
 /--
 `O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
@@ -155,11 +161,11 @@ namespace Subarray
 The empty subarray.
 -/
 protected def empty : Subarray α where
-  as := #[]
+  array := #[]
   start := 0
   stop := 0
-  h₁ := Nat.le_refl 0
-  h₂ := Nat.le_refl 0
+  start_le_stop := Nat.le_refl 0
+  stop_le_array_size := Nat.le_refl 0
 
 instance : EmptyCollection (Subarray α) :=
   ⟨Subarray.empty⟩
@@ -192,7 +198,7 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
       let tail :=
         { as with
           start := as.start + 1
-          h₁ := Nat.le_of_lt_succ $ Nat.succ_lt_succ h  }
+          start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h }
       some (head, tail)
     else
       none
