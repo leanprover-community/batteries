@@ -12,7 +12,6 @@ TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 #guard_msgs in
 #print prefix TEmpty -- Test type that probably won't change much.
 
-/-- info: -/
 #guard_msgs in
 #print prefix (config := {imported := false}) Empty
 
