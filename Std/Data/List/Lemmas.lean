@@ -793,7 +793,7 @@ theorem get_of_eq {l l' : List α} (h : l = l') (i : Fin l.length) :
 @[simp] theorem get_singleton (a : α) : (n : Fin 1) → get [a] n = a
   | ⟨0, _⟩ => rfl
 
-theorem get_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.head?
+theorem get_mk_zero : ∀ {l : List α} (h : 0 < l.length), l.get ⟨0, h⟩ = l.head (length_pos.mp h)
   | _::_, _ => rfl
 
 theorem get_append_right_aux {l₁ l₂ : List α} {n : Nat}
