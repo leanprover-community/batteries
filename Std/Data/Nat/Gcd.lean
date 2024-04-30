@@ -62,15 +62,21 @@ theorem not_coprime_of_dvd_of_dvd (dgt1 : 1 < d) (Hm : d ∣ m) (Hn : d ∣ n) :
   fun co => Nat.not_le_of_gt dgt1 <| Nat.le_of_dvd Nat.zero_lt_one <| by
     rw [← co.gcd_eq_one]; exact dvd_gcd Hm Hn
 
-theorem exists_coprime (H : 0 < gcd m n) :
-    ∃ m' n', Coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
-  ⟨_, _, coprime_div_gcd_div_gcd H,
-    (Nat.div_mul_cancel (gcd_dvd_left m n)).symm,
-    (Nat.div_mul_cancel (gcd_dvd_right m n)).symm⟩
+theorem exists_coprime (m n : Nat) :
+    ∃ m' n', Coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n := by
+  cases eq_zero_or_pos (gcd m n) with
+  | inl h0 =>
+    rw [gcd_eq_zero_iff] at h0
+    refine ⟨1, 1, gcd_one_left 1, ?_⟩
+    simp [h0]
+  | inr hpos =>
+    exact ⟨_, _, coprime_div_gcd_div_gcd hpos,
+      (Nat.div_mul_cancel (gcd_dvd_left m n)).symm,
+      (Nat.div_mul_cancel (gcd_dvd_right m n)).symm⟩
 
 theorem exists_coprime' (H : 0 < gcd m n) :
     ∃ g m' n', 0 < g ∧ Coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
-  let ⟨m', n', h⟩ := exists_coprime H; ⟨_, m', n', H, h⟩
+  let ⟨m', n', h⟩ := exists_coprime m n; ⟨_, m', n', H, h⟩
 
 theorem Coprime.mul (H1 : Coprime m k) (H2 : Coprime n k) : Coprime (m * n) k :=
   (H1.gcd_mul_left_cancel n).trans H2
