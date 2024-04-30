@@ -9,6 +9,12 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
+protected theorem le_antisymm_iff {x y : Fin n} : x = y ↔ x ≤ y ∧ y ≤ x :=
+  Fin.ext_iff.trans Nat.le_antisymm_iff
+
+protected theorem le_antisymm {x y : Fin n} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
+  Fin.le_antisymm_iff.2 ⟨h1, h2⟩
+
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
