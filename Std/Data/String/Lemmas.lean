@@ -19,6 +19,24 @@ namespace String
 
 theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := ⟨fun h => h ▸ rfl, ext⟩
 
+theorem lt_irrefl (s : String) : ¬s < s := List.lt_irrefl' (α := Char) (fun _ => Nat.lt_irrefl _) _
+
+theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
+  List.lt_trans' (α := Char) Nat.lt_trans
+    (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
+
+theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
+  ext <| List.lt_antisymm' (α := Char)
+    (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
+
+instance : Std.TransOrd String := .compareOfLessAndEq
+  String.lt_irrefl String.lt_trans String.lt_antisymm
+
+instance : Std.LTOrd String := .compareOfLessAndEq
+  String.lt_irrefl String.lt_trans String.lt_antisymm
+
+instance : Std.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
+
 @[simp] theorem default_eq : default = "" := rfl
 
 @[simp] theorem str_eq : str = push := rfl
