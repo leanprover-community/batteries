@@ -403,6 +403,10 @@ theorem forall_mem_append {p : α → Prop} {l₁ l₂ : List α} :
     (∀ x ∈ l₁ ++ l₂, p x) ↔ (∀ x ∈ l₁, p x) ∧ (∀ x ∈ l₂, p x) := by
   simp only [mem_append, or_imp, forall_and]
 
+@[simp] theorem forall_get_iff_forall_mem {p : α → Prop} {l : List α} :
+    (∀ i : Fin (l.length), p (l.get i)) ↔ (∀ x ∈ l, p x) := by
+  simp [List.mem_iff_get]
+
 /-! ### List subset -/
 
 theorem subset_def {l₁ l₂ : List α} : l₁ ⊆ l₂ ↔ ∀ {a : α}, a ∈ l₁ → a ∈ l₂ := .rfl
