@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Std.Data.List.Init.Attach
+import Std.Data.Array.Init.Lemmas
 
 /-!
 ## Definitions on Arrays
