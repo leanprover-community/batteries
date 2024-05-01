@@ -5,7 +5,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Std.Data.List.Lemmas
-import Std.Data.Array.Init.Lemmas
 import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
 import Std.Util.ProofWanted
@@ -95,7 +94,7 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
     simp [heq, getElem?_pos, get_push_eq]
   | Or.inr (Or.inr g) =>
     simp only [getElem?, size_push]
-    have h1 : ¬ (i < a.size ) := by omega
+    have h1 : ¬ (i < a.size) := by omega
     have h2 : ¬ (i < a.size + 1) := by omega
     have h3 : i ≠ a.size := by omega
     simp [h1, h2, h3]

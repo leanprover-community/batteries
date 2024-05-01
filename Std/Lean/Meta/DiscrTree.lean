@@ -42,7 +42,7 @@ where
   /-- Auxiliary definition for `mergePreservingDuplicates`. -/
   mergeChildren (cs₁ cs₂ : Array (Key × Trie α)) :
       Array (Key × Trie α) :=
-    Array.mergeSortedMergingDuplicates
+    Array.mergeDedupWith
       (ord := ⟨compareOn (·.fst)⟩) cs₁ cs₂
       (fun (k₁, t₁) (_, t₂) => (k₁, mergePreservingDuplicates t₁ t₂))
 
