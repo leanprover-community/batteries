@@ -92,7 +92,7 @@ elab_rules : tactic
 elab_rules : tactic
   | `(tactic| squeeze_wrap $a $x => $tac) => do
     let stx := tac.raw
-    let usedSimps ← match stx.getKind with
+    let stats ← match stx.getKind with
     | ``Parser.Tactic.simp => do
       let { ctx, simprocs, dischargeWrapper } ←
         withMainContext <| mkSimpContext stx (eraseLocal := false)
@@ -101,11 +101,11 @@ elab_rules : tactic
     | ``Parser.Tactic.simpAll => do
       let { ctx, simprocs, .. } ← mkSimpContext stx
         (eraseLocal := true) (kind := .simpAll) (ignoreStarArg := true)
-      let (result?, usedSimps) ← simpAll (← getMainGoal) ctx simprocs
+      let (result?, stats) ← simpAll (← getMainGoal) ctx simprocs
       match result? with
       | none => replaceMainGoal []
       | some mvarId => replaceMainGoal [mvarId]
-      pure usedSimps
+      pure stats
     | ``Parser.Tactic.dsimp => do
       let { ctx, simprocs, .. } ← withMainContext <|
         mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
@@ -115,6 +115,6 @@ elab_rules : tactic
     squeezeScopes.modify fun map => Id.run do
       let some map1 := map.find? a | return map
       let newSimps := match map1.find? x with
-      | some (stx, oldSimps) => (stx, usedSimps :: oldSimps)
-      | none => (stx, [usedSimps])
+      | some (stx, oldSimps) => (stx, stats.usedTheorems :: oldSimps)
+      | none => (stx, [stats.usedTheorems])
       map.insert a (map1.insert x newSimps)
