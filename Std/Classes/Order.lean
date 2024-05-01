@@ -163,7 +163,7 @@ abbrev LawfulOrd (α) [LE α] [LT α] [BEq α] [Ord α] := LawfulCmp (α := α) 
 theorem compareOfLessAndEq_eq_lt {x y : α} [LT α] [Decidable (x < y)] [DecidableEq α] :
     compareOfLessAndEq x y = .lt ↔ x < y := by
   simp [compareOfLessAndEq]
-  split <;> simpa using Decidable.not_not
+  split <;> simp
 
 protected theorem TransCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
@@ -272,17 +272,17 @@ instance [inst₁ : TransCmp cmp₁] [inst₂ : TransCmp cmp₂] :
     | .eq => exact inst₂.le_trans (h1.2 ab) (h2.2 (inst₁.cmp_congr_left ab ▸ e1)) e2
     | .lt => exact h2.1 <| (inst₁.cmp_eq_gt).2 (inst₁.cmp_congr_left e1 ▸ ab)
 
-instance [Ord β] [inst : OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) where
+instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) where
   symm _ _ := OrientedCmp.symm (α := β) ..
 
-instance [Ord β] [inst : TransOrd β] (f : α → β) : TransCmp (compareOn f) where
+instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) where
   le_trans := TransCmp.le_trans (α := β)
 
 -- FIXME: remove after lean4#3882 is merged
 theorem _root_.lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := by
   funext a b
-  simp [lexOrd, compareLex, compareOn]; cases compare a.1 b.1 <;> simp [Ordering.then]
+  simp [lexOrd, compareLex, compareOn]
 
 section «non-canonical instances»
 -- Note: the following instances seem to cause lean to fail, see:
