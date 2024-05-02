@@ -33,10 +33,14 @@ example {α β : Type _} {F : _ → β} {f g : { f : α → β // f = f }}
   guard_target = type_of% h
   exact h
 
+section
+
 -- Adaptation note: the next two examples have always failed if `List.ext` was in scope,
 -- but until nightly-2024-04-24 (when `List.ext` was upstreamed), it wasn't in scope.
--- For now these are commented out,
--- but if anyone would like to replace these tests that would be great!
+-- In order to preserve the test behaviour we locally remove the `ext` attribute.
+attribute [-ext] List.ext
+
+private opaque List.sum : List Nat → Nat
 
 -- private opaque List.sum : List Nat → Nat
 
@@ -51,6 +55,8 @@ example {α β : Type _} {F : _ → β} {f g : { f : α → β // f = f }}
 --     (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
 --   rcongr x
 --   exact h x
+
+end
 
 -- succeed when either `ext` or `congr` can close the goal
 example : () = () := by rcongr
