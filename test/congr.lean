@@ -42,19 +42,17 @@ attribute [-ext] List.ext
 
 private opaque List.sum : List Nat → Nat
 
--- private opaque List.sum : List Nat → Nat
+example {ls : List Nat} :
+    (ls.map fun x => (ls.map fun y => 1 + y).sum + 1) =
+    (ls.map fun x => (ls.map fun y => Nat.succ y).sum + 1) := by
+  rcongr (_x y)
+  guard_target =ₐ 1 + y = y.succ
+  rw [Nat.add_comm]
 
--- example {ls : List Nat} :
---     (ls.map fun x => (ls.map fun y => 1 + y).sum + 1) =
---     (ls.map fun x => (ls.map fun y => Nat.succ y).sum + 1) := by
---   rcongr (_x y)
---   guard_target =ₐ 1 + y = y.succ
---   rw [Nat.add_comm]
-
--- example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
---     (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
---   rcongr x
---   exact h x
+example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
+    (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
+  rcongr x
+  exact h x
 
 end
 
