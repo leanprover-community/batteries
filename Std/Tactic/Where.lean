@@ -35,7 +35,7 @@ private def describeOpenDecls (ds : List OpenDecl) : MessageData := Id.run do
         (lines, simple) := flush lines simple
         let ex' := ex.map toMessageData
         lines := lines.push m!"open {ns} hiding {MessageData.joinSep ex' ", "}"
-  (lines, simple) := flush lines simple
+  (lines, _) := flush lines simple
   return MessageData.joinSep lines.toList "\n"
 
 private def describeOptions (opts : Options) : CommandElabM (Option MessageData) := do

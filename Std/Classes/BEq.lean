@@ -16,8 +16,3 @@ class PartialEquivBEq (α) [BEq α] : Prop where
   symm : (a : α) == b → b == a
   /-- Transitivity for `BEq`. If `a == b` and `b == c` then `a == c`. -/
   trans : (a : α) == b → b == c → a == c
-
-@[simp] theorem beq_eq_false_iff_ne [BEq α] [LawfulBEq α]
-    (a b : α) : (a == b) = false ↔ a ≠ b := by
-  rw [ne_eq, ← beq_iff_eq a b]
-  cases a == b <;> decide

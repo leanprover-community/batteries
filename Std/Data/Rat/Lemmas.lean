@@ -143,9 +143,13 @@ theorem divInt_self (a : Rat) : a.num /. a.den = a := by rw [divInt_ofNat, mkRat
 
 theorem neg_divInt_neg (num den) : -num /. -den = num /. den := by
   match den with
-  | Nat.succ n => simp [divInt, Int.neg_ofNat_succ, normalize_eq_mkRat, Int.neg_neg]
+  | Nat.succ n =>
+    simp only [divInt, Int.neg_ofNat_succ]
+    simp [normalize_eq_mkRat, Int.neg_neg]
   | 0 => rfl
-  | Int.negSucc n => simp [divInt, Int.neg_negSucc, normalize_eq_mkRat, Int.neg_neg]
+  | Int.negSucc n =>
+    simp only [divInt, Int.neg_negSucc]
+    simp [normalize_eq_mkRat, Int.neg_neg]
 
 theorem divInt_neg' (num den) : num /. -den = -num /. den := by rw [← neg_divInt_neg, Int.neg_neg]
 

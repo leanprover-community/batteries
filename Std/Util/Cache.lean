@@ -62,8 +62,8 @@ def Cache.get [Monad m] [MonadEnv m] [MonadLog m] [MonadOptions m] [MonadLiftT B
       -- Default heartbeats to a reasonable value.
       -- otherwise exact? times out on mathlib
       -- TODO: add customization option
-      let options := Core.maxHeartbeats.set options <|
-        options.get? Core.maxHeartbeats.name |>.getD 1000000
+      let options := maxHeartbeats.set options <|
+        options.get? maxHeartbeats.name |>.getD 1000000
       let res ← EIO.asTask <|
         init {} |>.run' {} { options, fileName, fileMap } |>.run' { env }
       cache.set (m := BaseIO) (.inr res)

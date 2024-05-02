@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
 import Std.Data.Char
-import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
 import Std.Tactic.Lint.Misc
@@ -52,7 +51,7 @@ instance : Std.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
   rfl
 
 @[simp] theorem length_pushn (c : Char) (n : Nat) : (pushn s c n).length = s.length + n := by
-  unfold pushn; induction n <;> simp [Nat.repeat, Nat.add_succ, *]
+  unfold pushn; induction n <;> simp [Nat.repeat, Nat.add_assoc, *]
 
 @[simp] theorem length_append (s t : String) : (s ++ t).length = s.length + t.length := by
   simp only [length, append, List.length_append]
