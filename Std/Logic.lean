@@ -32,9 +32,6 @@ end Classical
 
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
-theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : HEq hp hq := by
-  cases propext (iff_of_true hp hq); rfl
-
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
 
@@ -59,6 +56,9 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
     {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
   funext fun _ => funext₂ <| h _
 
+theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
+  ⟨congrFun, funext⟩
+
 theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
   mt <| congrArg _
 
@@ -74,16 +74,6 @@ alias congr_arg₂ := congrArg₂
 alias congr_fun := congrFun
 alias congr_fun₂ := congrFun₂
 alias congr_fun₃ := congrFun₃
-
-theorem eq_mp_eq_cast (h : α = β) : Eq.mp h = cast h :=
-  rfl
-
-theorem eq_mpr_eq_cast (h : α = β) : Eq.mpr h = cast h.symm :=
-  rfl
-
-@[simp] theorem cast_cast : ∀ (ha : α = β) (hb : β = γ) (a : α),
-    cast hb (cast ha a) = cast (ha.trans hb) a
-  | rfl, rfl, _ => rfl
 
 theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
   | rfl, rfl => .rfl

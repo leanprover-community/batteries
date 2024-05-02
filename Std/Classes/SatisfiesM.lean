@@ -11,6 +11,20 @@ The `SatisfiesM` predicate works over an arbitrary (lawful) monad / applicative 
 and enables Hoare-like reasoning over monadic expressions. For example, given a monadic
 function `f : α → m β`, to say that the return value of `f` satisfies `Q` whenever
 the input satisfies `P`, we write `∀ a, P a → SatisfiesM Q (f a)`.
+
+## Notes
+
+`SatisfiesM` is not yet a satisfactory solution for verifying the behaviour of large scale monadic
+programs. Such a solution would allow ergonomic reasoning about large `do` blocks,
+with convenient mechanisms for introducing invariants and loop conditions as needed.
+
+It is possible that in the future `SatiesfiesM` will become part of such a solution,
+presumably requiring more syntactic support (and smarter `do` blocks) from Lean.
+Or it may be that such a solution will look different!
+This is an open research program, and for now one should not be overly ambitious using `SatisfiesM`.
+
+In particular lemmas about pure operations on data structures in `Std` except for `HashMap` should
+avoid `SatisfiesM` for now, so that it is easy to migrate to other approaches in future.
 -/
 
 /--

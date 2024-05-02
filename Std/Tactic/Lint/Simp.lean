@@ -112,17 +112,17 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
-      let ({ expr := lhs', proof? := prf1, .. }, prf1Lems) ←
+      let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <| simp lhs ctx
-      if prf1Lems.contains (.decl declName) then return none
-      let ({ expr := rhs', .. }, used_lemmas) ←
-        decorateError "simplify fails on right-hand side:" <| simp rhs ctx (usedSimps := prf1Lems)
+      if prf1Stats.usedTheorems.contains (.decl declName) then return none
+      let ({ expr := rhs', .. }, stats) ←
+        decorateError "simplify fails on right-hand side:" <| simp rhs ctx (stats := prf1Stats)
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
         return m!"simp can prove this:
-  by {← formatLemmas used_lemmas}
+  by {← formatLemmas stats.usedTheorems}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
 "
@@ -132,7 +132,7 @@ If that's not the case try reordering lemmas or adding @[priority].
 to
   {lhs'}
 using
-  {← formatLemmas prf1Lems}
+  {← formatLemmas prf1Stats.usedTheorems}
 Try to change the left-hand side to the simplified term!
 "
       else if !isConditional && lhs == lhs' then

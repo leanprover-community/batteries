@@ -9,6 +9,12 @@ namespace Fin
 /-- `min n m` as an element of `Fin (m + 1)` -/
 def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
 
+/-- `enum n` is the array of all elements of `Fin n` in order -/
+def enum (n) : Array (Fin n) := Array.ofFn id
+
+/-- `list n` is the list of all elements of `Fin n` in order -/
+def list (n) : List (Fin n) := (enum n).data
+
 /-- Folds over `Fin n` from the left: `foldl 3 f x = f (f (f x 0) 1) 2`. -/
 @[inline] def foldl (n) (f : α → Fin n → α) (init : α) : α := loop init 0 where
   /-- Inner loop for `Fin.foldl`. `Fin.foldl.loop n f x i = f (f (f x i) ...) (n-1)`  -/

@@ -34,16 +34,18 @@ expansion.
 def isAutoDecl (decl : Name) : CoreM Bool := do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
+  let env ← getEnv
+  if isReservedName env decl then return true
   if let Name.str n s := decl then
     if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
-    if (← getEnv).isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
+    if env.isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
       if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix, "ibelow",
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
         ].any (· == s) then
         return true
-      if let some _ := isSubobjectField? (← getEnv) n s then
+      if let some _ := isSubobjectField? env n (.mkSimple s) then
         return true
   pure false
 

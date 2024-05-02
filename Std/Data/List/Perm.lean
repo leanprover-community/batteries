@@ -3,11 +3,11 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Std.Tactic.Relation.Rfl
-import Std.Data.List.Lemmas
-import Std.Data.List.Count
-import Std.Data.List.Pairwise
+import Std.Tactic.Alias
 import Std.Data.List.Init.Attach
+import Std.Data.List.Pairwise
+-- Adaptation note: nightly-2024-03-18. We should be able to remove this after nightly-2024-03-19.
+import Lean.Elab.Tactic.Rfl
 
 /-!
 # List Permutations
@@ -476,13 +476,10 @@ theorem Perm.diff_right {l₁ l₂ : List α} (t : List α) (h : l₁ ~ l₂) : 
   induction t generalizing l₁ l₂ h with simp only [List.diff]
   | nil => exact h
   | cons x t ih =>
-    split <;> rename_i hx
-    · simp [elem_eq_true_of_mem (h.subset (mem_of_elem_eq_true hx))]
-      exact ih (h.erase _)
-    · have : ¬elem x l₂ = true := fun contra =>
-        hx <| elem_eq_true_of_mem <| h.symm.subset <| mem_of_elem_eq_true contra
-      simp [this]
-      exact ih h
+    simp only [elem_eq_mem, decide_eq_true_eq, Perm.mem_iff h]
+    split
+    · exact ih (h.erase _)
+    · exact ih h
 
 theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l.diff t₁ = l.diff t₂ := by
   induction h generalizing l with try simp [List.diff]
@@ -500,21 +497,15 @@ theorem Perm.diff {l₁ l₂ t₁ t₂ : List α} (hl : l₁ ~ l₂) (ht : t₁ 
 
 theorem Subperm.diff_right {l₁ l₂ : List α} (h : l₁ <+~ l₂) (t : List α) :
     l₁.diff t <+~ l₂.diff t := by
-  induction t generalizing l₁ l₂ h with
-  | nil => simp only [List.diff]; exact h
+  induction t generalizing l₁ l₂ h with simp [List.diff, elem_eq_mem, *]
   | cons x t ih =>
-    simp only [List.diff]; split <;> rename_i hx1
-    · have : elem x l₂ = true := by
-        apply elem_eq_true_of_mem
-        apply h.subset (mem_of_elem_eq_true hx1)
-      simp [this]
-      apply ih
-      apply h.erase
-    · split <;> rename_i hx2
-      · apply ih
-        have := h.erase x
-        simpa [erase_of_not_mem (hx1 ∘ elem_eq_true_of_mem)] using this
-      · apply ih h
+    split <;> rename_i hx1
+    · simp [h.subset hx1]
+      exact ih (h.erase _)
+    · split
+      · rw [← erase_of_not_mem hx1]
+        exact ih (h.erase _)
+      · exact ih h
 
 theorem erase_cons_subperm_cons_erase (a b : α) (l : List α) :
     (a :: l).erase b <+~ a :: l.erase b := by
@@ -548,7 +539,7 @@ theorem perm_iff_count {l₁ l₂ : List α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     | nil => rfl
     | cons b l₂ =>
       specialize H b
-      simp at H; cases H
+      simp at H
   | cons a l₁ IH =>
     have : a ∈ l₂ := count_pos_iff_mem.mp (by rw [← H]; simp)
     refine ((IH fun b => ?_).cons a).trans (perm_cons_erase this).symm

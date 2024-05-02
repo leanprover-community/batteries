@@ -115,8 +115,7 @@ theorem countP_mono_left (h : ∀ x ∈ l, p x → q x) : countP p l ≤ countP 
     . simp
       apply Nat.le_trans ?_ (Nat.le_add_right _ _)
       apply ihl hl
-    . simp [ha h, Nat.add_one]
-      apply Nat.succ_le_succ
+    . simp [ha h]
       apply ihl hl
 
 theorem countP_congr (h : ∀ x ∈ l, p x ↔ q x) : countP p l = countP q l :=
@@ -144,8 +143,8 @@ theorem count_cons (a b : α) (l : List α) :
 @[simp] theorem count_cons_of_ne (h : a ≠ b) (l : List α) : count a (b :: l) = count a l := by
   simp [count_cons, h]
 
-theorem count_tail : ∀ (l : List α) (a : α) (h : 0 < l.length),
-      l.tail.count a = l.count a - if a = get l ⟨0, h⟩ then 1 else 0
+theorem count_tail : ∀ (l : List α) (a : α) (h : l ≠ []),
+      l.tail.count a = l.count a - if a = l.head h then 1 else 0
   | head :: tail, a, h => by simp [count_cons]
 
 theorem count_le_length (a : α) (l : List α) : count a l ≤ l.length := countP_le_length _
@@ -164,6 +163,7 @@ theorem count_singleton' (a b : α) : count a [b] = if a = b then 1 else 0 := by
 
 theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count a l) := by simp
 
+@[simp]
 theorem count_pos_iff_mem {a : α} {l : List α} : 0 < count a l ↔ a ∈ l := by
   simp only [count, countP_pos, beq_iff_eq, exists_eq_right]
 

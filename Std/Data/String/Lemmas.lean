@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
 import Std.Data.Char
-import Std.Data.Nat.Lemmas
 import Std.Data.List.Lemmas
 import Std.Data.String.Basic
 import Std.Tactic.Lint.Misc
@@ -19,6 +18,24 @@ namespace String
 
 theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := ⟨fun h => h ▸ rfl, ext⟩
 
+theorem lt_irrefl (s : String) : ¬s < s := List.lt_irrefl' (α := Char) (fun _ => Nat.lt_irrefl _) _
+
+theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
+  List.lt_trans' (α := Char) Nat.lt_trans
+    (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
+
+theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
+  ext <| List.lt_antisymm' (α := Char)
+    (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
+
+instance : Std.TransOrd String := .compareOfLessAndEq
+  String.lt_irrefl String.lt_trans String.lt_antisymm
+
+instance : Std.LTOrd String := .compareOfLessAndEq
+  String.lt_irrefl String.lt_trans String.lt_antisymm
+
+instance : Std.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
+
 @[simp] theorem default_eq : default = "" := rfl
 
 @[simp] theorem str_eq : str = push := rfl
@@ -32,6 +49,12 @@ theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := 
 @[simp] theorem length_push (c : Char) : (String.push s c).length = s.length + 1 := by
   rw [push, mk_length, List.length_append, List.length_singleton, Nat.succ.injEq]
   rfl
+
+@[simp] theorem length_pushn (c : Char) (n : Nat) : (pushn s c n).length = s.length + n := by
+  unfold pushn; induction n <;> simp [Nat.repeat, Nat.add_assoc, *]
+
+@[simp] theorem length_append (s t : String) : (s ++ t).length = s.length + t.length := by
+  simp only [length, append, List.length_append]
 
 @[simp] theorem data_push (s : String) (c : Char) : (s.push c).1 = s.1 ++ [c] := rfl
 
@@ -378,7 +401,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
-    simp [bne]; split <;> simp
+    simp; split <;> simp
     subst b
     rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + csize a⟩ by simp [hl₁, next_of_valid]]
     simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using

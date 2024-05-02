@@ -7,5 +7,5 @@ Authors: Kim Morrison
 
 /-!
 While this file is currently empty, it is intended as a home for any lemmas which are required for
-definitions in `Std.Data.Array.Basic`, but which are not provided by Lean.
+definitions in `Std.Data.List.Basic`, but which are not provided by Lean.
 -/
