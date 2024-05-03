@@ -51,9 +51,9 @@ Let's hope that people using the tactic implementations can work this out themse
 @[deprecated] alias Std.UFNode := Batteries.UFNode
 @[deprecated] alias Std.UnionFind := Batteries.UnionFind
 
-set_option warningAsError true in
 -- Check that these generate usable deprecated hints
 -- when referring to names inside these namespaces.
+set_option warningAsError true in
 /--
 error: `Std.UnionFind` has been deprecated, use `Batteries.UnionFind` instead
 ---
