@@ -1159,7 +1159,7 @@ theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = 
 theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
   mt drop_eq_nil_of_eq_nil h
 
-/-! ### modify head -/
+/-! ### modifyHead -/
 
 -- Mathlib porting note: List.modifyHead has @[simp], and Lean 4 treats this as
 -- an invitation to unfold modifyHead in any context,
