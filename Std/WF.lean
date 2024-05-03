@@ -53,7 +53,7 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
   intro a (fun x h => t.inv h) (fun y hr => recC intro (t.inv hr))
 termination_by Subtype.mk a t
 
-attribute [local semireducible] recC
+unseal recC
 
 private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
@@ -122,7 +122,7 @@ Workaround until Lean has native support for this. -/
   F x (fun y _ => fixC hwf F y)
 termination_by hwf.wrap x
 
-attribute [local semireducible] fixC
+unseal fixC
 
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 

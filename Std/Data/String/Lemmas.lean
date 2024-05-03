@@ -346,16 +346,16 @@ theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
 
 @[simp] theorem next'_eq (s : String) (p : Pos) (h) : next' s p h = next s p := rfl
 
-attribute [local semireducible] posOfAux findAux in
+unseal posOfAux findAux in
 theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
 
-attribute [local semireducible] posOfAux findAux in
+unseal posOfAux findAux in
 theorem posOf_eq (s c) : posOf s c = find s (· == c) := rfl
 
-attribute [local semireducible] revPosOfAux revFindAux in
+unseal revPosOfAux revFindAux in
 theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := rfl
 
-attribute [local semireducible] revPosOfAux revFindAux in
+unseal revPosOfAux revFindAux in
 theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := rfl
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
