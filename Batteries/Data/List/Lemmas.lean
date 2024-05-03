@@ -1156,7 +1156,7 @@ theorem drop_eq_nil_of_eq_nil : ∀ {as : List α} {i}, as = [] → as.drop i = 
 theorem ne_nil_of_drop_ne_nil {as : List α} {i : Nat} (h: as.drop i ≠ []) : as ≠ [] :=
   mt drop_eq_nil_of_eq_nil h
 
-/-! ### modify nth -/
+/-! ### modifyNth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
@@ -1318,7 +1318,7 @@ theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
     · next h' => rw [get?_set_ne _ _ (by omega)]
     · rfl
 
-/-! ### remove nth -/
+/-! ### removeNth -/
 
 theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) = length l - 1
   | [], _, _ => rfl
