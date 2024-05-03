@@ -15,7 +15,7 @@ Lints for instances with arguments that cannot be filled in, like
 instance {α β : Type} [Group α] : Mul α where ...
 ```
 -/
-@[batteries_linter] def impossibleInstance : Linter where
+@[env_linter] def impossibleInstance : Linter where
   noErrorsFound := "No instance has arguments that are impossible to infer"
   errorsFound := "SOME INSTANCES HAVE ARGUMENTS THAT ARE IMPOSSIBLE TO INFER
 These are arguments that are not instance-implicit and do not appear in
@@ -36,7 +36,7 @@ another instance-implicit argument or the return type."
 /--
 A linter for checking if any declaration whose type is not a class is marked as an instance.
 -/
-@[batteries_linter] def nonClassInstance : Linter where
+@[env_linter] def nonClassInstance : Linter where
   noErrorsFound := "No instances of non-classes"
   errorsFound := "INSTANCES OF NON-CLASSES"
   test declName := do

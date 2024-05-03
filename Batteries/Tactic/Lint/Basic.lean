@@ -19,7 +19,7 @@ framework.  A linter essentially consists of a function
 `(declaration : Name) → MetaM (Option MessageData)`, this function together with some
 metadata is stored in the `Linter` structure. We define two attributes:
 
- * `@[batteries_linter]` applies to a declaration of type `Linter`
+ * `@[env_linter]` applies to a declaration of type `Linter`
    and adds it to the default linter set.
 
  * `@[nolint linterName]` omits the tagged declaration from being checked by
@@ -73,7 +73,7 @@ structure NamedLinter extends Linter where
 def getLinter (name declName : Name) : CoreM NamedLinter := unsafe
   return { ← evalConstCheck Linter ``Linter declName with name, declName }
 
-/-- Defines the `batteries_linter` extension for adding a linter to the default set. -/
+/-- Defines the `env_linter` extension for adding a linter to the default set. -/
 initialize batteriesLinterExt :
     PersistentEnvExtension (Name × Bool) (Name × Bool) (NameMap (Name × Bool)) ←
   let addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
@@ -86,25 +86,25 @@ initialize batteriesLinterExt :
   }
 
 /--
-Defines the `@[batteries_linter]` attribute for adding a linter to the default set.
-The form `@[batteries_linter disabled]` will not add the linter to the default set,
+Defines the `@[env_linter]` attribute for adding a linter to the default set.
+The form `@[env_linter disabled]` will not add the linter to the default set,
 but it will be shown by `#list_linters` and can be selected by the `#lint` command.
 
 Linters are named using their declaration names, without the namespace. These must be distinct.
 -/
-syntax (name := batteries_linter) "batteries_linter" &" disabled"? : attr
+syntax (name := env_linter) "env_linter" &" disabled"? : attr
 
 initialize registerBuiltinAttribute {
-  name := `batteries_linter
+  name := `env_linter
   descr := "Use this declaration as a linting test in #lint"
   add   := fun decl stx kind => do
     let dflt := stx[1].isNone
-    unless kind == .global do throwError "invalid attribute 'batteries_linter', must be global"
+    unless kind == .global do throwError "invalid attribute 'env_linter', must be global"
     let shortName := decl.updatePrefix .anonymous
     if let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName then
       Elab.addConstInfo stx declName
       throwError
-        "invalid attribute 'batteries_linter', linter '{shortName}' has already been declared"
+        "invalid attribute 'env_linter', linter '{shortName}' has already been declared"
     let constInfo ← getConstInfo decl
     unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
       throwError "must have type Linter, got {constInfo.type}"

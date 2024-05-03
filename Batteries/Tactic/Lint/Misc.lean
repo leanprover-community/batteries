@@ -23,7 +23,7 @@ This file defines several small linters.
 -/
 
 /-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
-@[batteries_linter] def dupNamespace : Linter where
+@[env_linter] def dupNamespace : Linter where
   noErrorsFound := "No declarations have a duplicate namespace."
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
@@ -36,7 +36,7 @@ This file defines several small linters.
 
 /-- A linter for checking for unused arguments.
 We skip all declarations that contain `sorry` in their value. -/
-@[batteries_linter] def unusedArguments : Linter where
+@[env_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
   errorsFound := "UNUSED ARGUMENTS."
   test declName := do
@@ -61,7 +61,7 @@ We skip all declarations that contain `sorry` in their value. -/
           return m!"argument {i+1} {arg} : {← inferType arg}") m!", "
 
 /-- A linter for checking definition doc strings. -/
-@[batteries_linter] def docBlame : Linter where
+@[env_linter] def docBlame : Linter where
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
@@ -85,7 +85,7 @@ We skip all declarations that contain `sorry` in their value. -/
     return m!"{kind} missing documentation string"
 
 /-- A linter for checking theorem doc strings. -/
-@[batteries_linter disabled] def docBlameThm : Linter where
+@[env_linter disabled] def docBlameThm : Linter where
   noErrorsFound := "No theorems are missing documentation."
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
@@ -106,7 +106,7 @@ We skip all declarations that contain `sorry` in their value. -/
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
-@[batteries_linter] def defLemma : Linter where
+@[env_linter] def defLemma : Linter where
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
@@ -126,7 +126,7 @@ has been used. -/
     | _, _ => return none
 
 /-- A linter for checking whether statements of declarations are well-typed. -/
-@[batteries_linter] def checkType : Linter where
+@[env_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
@@ -180,7 +180,7 @@ occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alo
 `(α : Type u) (β : Type (max u v))` is a occasionally useful method of saying that `β` lives in
 a higher universe level than `α`.
 -/
-@[batteries_linter] def checkUnivs : Linter where
+@[env_linter] def checkUnivs : Linter where
   noErrorsFound :=
     "All declarations have good universe levels."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. \
@@ -205,7 +205,7 @@ where `e₁` and `e₂` are identical exprs.
 We call declarations of this form syntactic tautologies.
 Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
 with rfl when elaboration results in a different term than the user intended. -/
-@[batteries_linter] def synTaut : Linter where
+@[env_linter] def synTaut : Linter where
   noErrorsFound :=
     "No declarations are syntactic tautologies."
   errorsFound := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. \
@@ -240,9 +240,9 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
   res.get
 
 /-- A linter for checking that declarations don't have unused term mode have statements. We do not
-tag this as `@[batteries_linter]` so that it is not in the default linter set as it is slow and an
+tag this as `@[env_linter]` so that it is not in the default linter set as it is slow and an
 uncommon problem. -/
-@[batteries_linter] def unusedHavesSuffices : Linter where
+@[env_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
   errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. \
     In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not \
@@ -268,7 +268,7 @@ uncommon problem. -/
 A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
 variables should be implicit instead.
 -/
-@[batteries_linter disabled] def explicitVarsOfIff : Linter where
+@[env_linter disabled] def explicitVarsOfIff : Linter where
   noErrorsFound := "No explicit variables on both sides of iff"
   errorsFound := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF"
   test declName := do
