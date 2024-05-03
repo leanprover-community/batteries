@@ -139,9 +139,6 @@ theorem drop_left' {l₁ l₂ : List α} {n} (h : length l₁ = n) : drop n (l�
 @[simp] theorem isEmpty_nil : ([] : List α).isEmpty = true := rfl
 @[simp] theorem isEmpty_cons : (x :: xs : List α).isEmpty = false := rfl
 
--- Mathlib porting note: this does not work as desired
--- attribute [simp] List.isEmpty
-
 theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
 
 /-! ### append -/
