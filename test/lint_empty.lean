@@ -16,7 +16,7 @@ def id (x : α) := x
 
 open Lean Parser Elab in
 /--
-Test that the linters import Batteries all work when run on a declaration in an empty environment.
+Test that the linters imported from Batteries all work when run on a declaration in an empty environment.
 
 This runs the linters because there's a global IO.Ref that contains them, rather than having them
 be in a field of the environment itself, precisely so they can run in situations like this. However,

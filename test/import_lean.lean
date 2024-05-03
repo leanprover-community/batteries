@@ -2,5 +2,5 @@ import Lean
 import Batteries
 
 /-!
-This file ensures that we can import Batteries` without name conflicts.
+This file ensures that we can import all of `Lean` and `Batteries` without name conflicts.
 -/

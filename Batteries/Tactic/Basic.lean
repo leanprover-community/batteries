@@ -4,4 +4,4 @@ import Batteries.Tactic.Init
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
 
--- This is an import Batteries
+-- This is an import only file for common tactics used throughout Batteries
