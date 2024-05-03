@@ -57,6 +57,10 @@ Let's hope that people using the tactic implementations can work this out themse
 warning: `Std.UnionFind` has been deprecated, use `Batteries.UnionFind` instead
 ---
 error: unknown constant 'Std.UnionFind.find'
+---
+warning: `Std.UnionFind` has been deprecated, use `Batteries.UnionFind` instead
+---
+error: unknown constant 'Std.UnionFind.find'
 -/
 #guard_msgs in
-#eval Std.UnionFind.find
+example : Std.UnionFind.find = Std.UnionFind.find := rfl
