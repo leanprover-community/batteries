@@ -153,7 +153,8 @@ def RootOrdered (cmp : α → α → Ordering) : Path α → α → Prop
   | .left _ parent x _, v => cmpLT cmp v x ∧ parent.RootOrdered cmp v
   | .right _ _ x parent, v => cmpLT cmp x v ∧ parent.RootOrdered cmp v
 
-theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr {cmp : α → α → Ordering} (h : cmpEq cmp a b) :
+theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr
+    {cmp : α → α → Ordering} (h : cmpEq cmp a b) :
     ∀ {t : Path α}, t.RootOrdered cmp a ↔ t.RootOrdered cmp b
   | .root => .rfl
   | .left .. => and_congr h.lt_congr_left h.RootOrdered_congr

@@ -14,8 +14,9 @@ import Batteries.CodeAction.Attr
 This declares a code action provider that calls all `@[hole_code_action]` definitions
 on each occurrence of a hole (`_`, `?_` or `sorry`).
 
-(This is in a separate file from `Batteries.CodeAction.Hole.Attr` so that the server does not attempt
-to use this code action provider when browsing the `Batteries.CodeAction.Hole.Attr` file itself.)
+(This is in a separate file from `Batteries.CodeAction.Hole.Attr` so that the server does not
+attempt to use this code action provider when browsing the `Batteries.CodeAction.Hole.Attr` file
+itself.)
 -/
 namespace Std.CodeAction
 

@@ -19,7 +19,8 @@ framework.  A linter essentially consists of a function
 `(declaration : Name) → MetaM (Option MessageData)`, this function together with some
 metadata is stored in the `Linter` structure. We define two attributes:
 
- * `@[batteries_linter]` applies to a declaration of type `Linter` and adds it to the default linter set.
+ * `@[batteries_linter]` applies to a declaration of type `Linter`
+   and adds it to the default linter set.
 
  * `@[nolint linterName]` omits the tagged declaration from being checked by
    the linter with name `linterName`.

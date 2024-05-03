@@ -107,7 +107,8 @@ def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
   let mut last : String.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unreachable.qsort (key ·.1 < key ·.1) do
-    if stx.getKind ∈ [``Batteries.Tactic.unreachable, ``Batteries.Tactic.unreachableConv] then continue
+    if stx.getKind ∈ [``Batteries.Tactic.unreachable, ``Batteries.Tactic.unreachableConv] then
+      continue
     if last.start ≤ r.start && r.stop ≤ last.stop then continue
     logLint linter.unreachableTactic stx "this tactic is never executed"
     last := r
