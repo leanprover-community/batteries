@@ -1,4 +1,4 @@
-import Std.Control.Nondet.Basic
+import Batteries.Control.Nondet.Basic
 
 set_option linter.missingDocs false
 

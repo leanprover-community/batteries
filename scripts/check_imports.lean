@@ -3,14 +3,14 @@ Copyright (c) 2024 Joe Hendrix. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix
 -/
-import Std
+import Batteries
 
 /-!
-This test checks that all directories in `Std/Data/` have corresponding
-`Std.Data.<dir>` modules imported by `Std` that import all of the submodules
+This test checks that all directories in `Batteries/Data/` have corresponding
+`Batteries.Data.<dir>` modules imported by `Batteries` that import all of the submodules
 under that directory.
 
-It will also check that `Std` imports all the expected modules.
+It will also check that `Batteries` imports all the expected modules.
 
 It has a flag (`autofix` below) to automatically fix the errors found.  This
 command may need to be rerun to fix all errors; it tries to avoid overwriting
@@ -42,7 +42,7 @@ def createModuleHashmap (env : Environment) : HashMap Name ModuleData := Id.run 
     nameMap := nameMap.insert nm md
   pure nameMap
 
-/-- Get the imports we expect in a directory of `Std.Data`. -/
+/-- Get the imports we expect in a directory of `Batteries.Data`. -/
 partial def addModulesIn (recurse : Bool) (prev : Array Name) (root : Name := .anonymous)
     (path : FilePath) : IO (Array Name) := do
   let mut r := prev
@@ -78,14 +78,14 @@ def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Ar
       warned := true
   pure warned
 
-/-- Check directory entry in `Std/Data/` -/
-def checkStdDataDir
+/-- Check directory entry in `Batteries/Data/` -/
+def checkBatteriesDataDir
     (modMap : HashMap Name ModuleData)
     (entry : IO.FS.DirEntry) (autofix : Bool := false) : LogIO Unit := do
-  let moduleName := `Std.Data ++ .mkSimple entry.fileName
+  let moduleName := `Batteries.Data ++ .mkSimple entry.fileName
   let requiredImports ← addModulesIn (recurse := true) #[] (root := moduleName) entry.path
   let .some module := modMap.find? moduleName
-    | warn true s!"Could not find {moduleName}; Not imported into Std."
+    | warn true s!"Could not find {moduleName}; Not imported into Batteries."
       let path := modulePath moduleName
       -- We refuse to generate imported modules whose path doesn't exist.
       -- The import failure will be fixed later and the file rerun
@@ -105,14 +105,14 @@ def checkStdDataDir
   if autofix && warned && !hasDecls then
     writeImportModule (modulePath moduleName) requiredImports
 
-/-- Compute imports expected by `Std.lean` -/
-def expectedStdImports : IO (Array Name) := do
+/-- Compute imports expected by `Batteries.lean` -/
+def expectedBatteriesImports : IO (Array Name) := do
   let mut needed := #[]
-  for top in ← FilePath.readDir "Std" do
+  for top in ← FilePath.readDir "Batteries" do
     if top.fileName == "Data" then
-      needed ← addModulesIn (recurse := false) needed `Std.Data top.path
+      needed ← addModulesIn (recurse := false) needed `Batteries.Data top.path
     else
-      let nm := `Std
+      let nm := `Batteries
       let rootname := FilePath.withExtension top.fileName ""
       let root :=  nm.mkStr rootname.toString
       if ← top.path.isDir then
@@ -121,37 +121,37 @@ def expectedStdImports : IO (Array Name) := do
         needed := needed.push root
   pure needed
 
-def checkStdDataImports : MetaM Unit := do
-  -- N.B. This can be used to automatically fix Std.lean as well as
+def checkBatteriesDataImports : MetaM Unit := do
+  -- N.B. This can be used to automatically fix Batteries.lean as well as
   -- other import files.
   -- It uses an environment variable to do that.
-  -- The easiest way to use this is run `./scripts/updateStd.sh.`
-  let autofix := (← IO.getEnv "__LEAN_STD_AUTOFIX_IMPORTS").isSome
+  -- The easiest way to use this is run `./scripts/updateBatteries.sh.`
+  let autofix := (← IO.getEnv "__LEAN_BATTERIES_AUTOFIX_IMPORTS").isSome
   let env ← getEnv
   let modMap := createModuleHashmap env
   runLogIO do
-    for entry in ← FilePath.readDir ("Std" / "Data") do
+    for entry in ← FilePath.readDir ("Batteries" / "Data") do
       if ← entry.path.isDir then
-        checkStdDataDir (autofix := autofix) modMap entry
-    let stdImports ← expectedStdImports
-    let .some stdMod := modMap.find? `Std
-        | warn false "Missing Std module!; Run `lake build`."
-    let warned ← checkMissingImports `Std stdMod stdImports
+        checkBatteriesDataDir (autofix := autofix) modMap entry
+    let batteriesImports ← expectedBatteriesImports
+    let .some batteriesMod := modMap.find? `Batteries
+        | warn false "Missing Batteries module!; Run `lake build`."
+    let warned ← checkMissingImports `Batteries batteriesMod batteriesImports
     if autofix && warned then
-      writeImportModule "Std.lean" stdImports
+      writeImportModule "Batteries.lean" batteriesImports
     match ← getWarningInfo with
     | (false, _) =>
       pure ()
     | (_, true) =>
       IO.eprintln s!"Found errors that cannot be automatically fixed.\n\
-                     Address unfixable issues and rerun lake build && ./scripts/updateStd.sh."
+                     Address unfixable issues and rerun lake build && ./scripts/updateBatteries.sh."
     | _ =>
       if autofix then
         IO.eprintln s!"Found missing imports and attempted fixes.\n\
-                       Run lake build && ./scripts/updateStd.sh to verify.\n\
+                       Run lake build && ./scripts/updateBatteries.sh to verify.\n\
                        Multiple runs may be needed."
       else
         IO.eprintln s!"Found missing imports.\n\
-                       Run lake build && ./scripts/updateStd.sh to attempt automatic fixes."
+                       Run lake build && ./scripts/updateBatteries.sh to attempt automatic fixes."
 
-run_meta checkStdDataImports
+run_meta checkBatteriesDataImports

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
 
-import Std.Tactic.Basic
+import Batteries.Tactic.Basic
 
 -- The example from the doc string, for quick comparision
 -- and keeping the doc up-to-date

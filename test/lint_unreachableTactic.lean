@@ -1,4 +1,4 @@
-import Std.Linter.UnreachableTactic
+import Batteries.Linter.UnreachableTactic
 
 /--
 warning: this tactic is never executed

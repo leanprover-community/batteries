@@ -1,4 +1,4 @@
-import Std.Tactic.Instances
+import Batteries.Tactic.Instances
 
 set_option linter.missingDocs false
 

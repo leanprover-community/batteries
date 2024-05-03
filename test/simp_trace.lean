@@ -1,4 +1,4 @@
-import Std.Tactic.SqueezeScope
+import Batteries.Tactic.SqueezeScope
 
 set_option linter.missingDocs false
 
