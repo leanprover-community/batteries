@@ -1168,6 +1168,8 @@ theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNt
   | n+1, [] => rfl
   | n+1, a :: l => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
 
+@[deprecated] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
+
 theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
   | n, l, 0 => by cases l <;> cases n <;> rfl
@@ -1325,6 +1327,8 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
     have : i < length xs := Nat.lt_of_succ_lt_succ h
     simp [eraseIdx, ← Nat.add_one]
     rw [length_eraseIdx this, Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]
+
+@[deprecated] alias length_removeNth := length_eraseIdx
 
 /-! ### tail -/
 

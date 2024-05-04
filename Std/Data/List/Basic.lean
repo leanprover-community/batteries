@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import Std.Data.List.Init.Lemmas
+import Std.Tactic.Alias
 
 namespace List
 
@@ -91,6 +92,10 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
+
+@[deprecated] alias removeNth := eraseIdx
+@[deprecated] alias removeNthTR := eraseIdxTR
+@[deprecated] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
