@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Std.Control.ForInStep.Lemmas
 import Std.Data.List.Basic
+import Std.Data.Nat.Lemmas
 import Std.Tactic.Init
 import Std.Tactic.Alias
 
@@ -364,6 +365,9 @@ theorem mem_join : ∀ {L : List (List α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧
 theorem exists_of_mem_join : a ∈ join L → ∃ l, l ∈ L ∧ a ∈ l := mem_join.1
 
 theorem mem_join_of_mem (lL : l ∈ L) (al : a ∈ l) : a ∈ join L := mem_join.2 ⟨l, lL, al⟩
+
+theorem length_join (l : List (List α)) : (join l).length = Nat.sum (l.map length) := by
+  induction l <;> simp [*]
 
 /-! ### bind -/
 
