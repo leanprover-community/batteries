@@ -28,7 +28,6 @@ This file defines several small linters.
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
     if ← isAutoDecl declName then return none
-    if isGlobalInstance (← getEnv) declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
