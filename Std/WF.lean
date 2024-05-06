@@ -123,3 +123,20 @@ termination_by hwf.wrap x
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
 end WellFounded
+
+/--
+Helper function to define a well founded relation on the subtype of elements
+which are `r`-accessible. Useful for `termination_by` clauses.
+-/
+def WellFoundedRelation.ofAcc {r : β → β → Prop} (F : α → {x : β // Acc r x}) :
+    WellFoundedRelation α :=
+  invImage F ⟨InvImage r (·.1), ⟨fun ⟨_, h⟩ => InvImage.accessible _ h⟩⟩
+
+/--
+Introduces a predicate `p` into an accessibility relation,
+provided that it holds of the initial point.
+-/
+def Acc.restriction (p : α → Prop) {r : α → α → Prop}
+    {a : α} (ac : Acc r a) (h : p a) : Acc (fun x y => p y → p x ∧ r x y) a := by
+  induction ac with
+  | intro x _ ih => exact ⟨_, fun y hr => ih y (hr h).2 (hr h).1⟩
