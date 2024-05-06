@@ -29,7 +29,7 @@ Additionally, please make sure that you're using the version of Lean that the cu
 
 # Documentation
 
-You can generate `batteries`'s documentation with
+You can generate `batteries`' documentation with
 
 ```text
 # if you're generating documentation for the first time

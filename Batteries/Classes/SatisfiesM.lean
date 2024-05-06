@@ -23,7 +23,7 @@ presumably requiring more syntactic support (and smarter `do` blocks) from Lean.
 Or it may be that such a solution will look different!
 This is an open research program, and for now one should not be overly ambitious using `SatisfiesM`.
 
-In particular lemmas about pure operations on data structures in `Batteries` except for `HashMap`
+In particular lemmas about pure operations on data structures in `batteries` except for `HashMap`
 should avoid `SatisfiesM` for now, so that it is easy to migrate to other approaches in future.
 -/
 
