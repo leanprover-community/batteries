@@ -858,7 +858,34 @@ theorem substrEq_loop_self_append {s t : String} {off stp : Pos}
     exact substrEq_loop_self_append (valid_next h_off off_lt_end) h_stp
 termination_by stp.1 - off.1
 
--- TODO: isPrefixOf
+/-! ### isPrefixOf -/
+
+@[nolint unusedHavesSuffices, simp] -- false positive from unfolding substrEq.loop
+theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
+  simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
+
+@[simp] theorem isPrefixOf_empty_iff_empty (s : String) : s.isPrefixOf "" ↔ s = "" := by
+  apply Iff.intro <;> intro h
+  · simp [isPrefixOf, substrEq, endPos, utf8ByteSize] at h
+    exact ext h.left
+  · simp [empty_isPrefixOf, h]
+
+@[simp] theorem isPrefixOf_self (s : String) : s.isPrefixOf s := by
+  simp [isPrefixOf, substrEq, substrEq_loop_rfl]
+
+@[simp] theorem isPrefixOf_push_self (s : String) (c : Char) : s.isPrefixOf (s.push c) := by
+  simp [isPrefixOf, substrEq, push]
+  apply And.intro
+  · rw [endPos]
+    exact Nat.le_add_right _ _
+  · have mk_data_append : mk (s.data ++ [c]) = s ++ ⟨[c]⟩ := rfl
+    rw [mk_data_append, substrEq_loop_self_append Pos.valid_zero Pos.valid_endPos]
+
+@[simp] theorem isPrefixOf_self_append (s t : String) : s.isPrefixOf (s ++ t) := by
+  simp [isPrefixOf, substrEq, substrEq_loop_self_append]
+  simp only [endPos, utf8ByteSize, utf8ByteSize.go_eq, append, utf8Len_append]
+  exact Nat.le_add_right _ _
+
 -- TODO: replace
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.takeWhileAux
