@@ -9,20 +9,6 @@ import Std.Data.Array.Basic
 import Std.Tactic.SeqFocus
 import Std.Util.ProofWanted
 
-@[simp] theorem getElem_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n) (h : Dom a i) :
-    a[i] = a[i.1] := rfl
-
-@[simp] theorem getElem?_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
-    [Decidable (Dom a i)] : a[i]? = a[i.1]? := rfl
-
-@[simp] theorem getElem!_fin [GetElem Cont Nat Elem Dom] (a : Cont) (i : Fin n)
-    [Decidable (Dom a i)] [Inhabited Elem] : a[i]! = a[i.1]! := rfl
-
-@[simp] theorem mkArray_data (n : Nat) (v : α) : (mkArray n v).data = List.replicate n v := rfl
-
-@[simp] theorem getElem_mkArray (n : Nat) (v : α) (h : i < (mkArray n v).size) :
-    (mkArray n v)[i] = v := by simp [Array.getElem_eq_data_get]
-
 namespace Array
 
 theorem forIn_eq_data_forIn [Monad m]
