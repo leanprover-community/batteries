@@ -1,4 +1,4 @@
-import Std.Tactic.Case
+import Batteries.Tactic.Case
 
 set_option linter.missingDocs false
 

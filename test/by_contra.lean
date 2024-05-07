@@ -1,4 +1,4 @@
-import Std.Tactic.Basic
+import Batteries.Tactic.Basic
 
 private def nonDecid (P : Prop) (x : P) : P := by
   by_contra h

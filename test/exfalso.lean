@@ -1,4 +1,4 @@
-import Std.Tactic.Basic
+import Batteries.Tactic.Basic
 
 private axiom test_sorry : ∀ {α}, α
 
@@ -10,4 +10,3 @@ example {A} : False → A := by
   exfalso
   show False -- exfalso is not supposed to close the goal yet
   exact test_sorry
-  
