@@ -1,5 +1,5 @@
-import Std.Util.CheckTactic
-import Std.Data.Array
+import Batteries.Util.CheckTactic
+import Batteries.Data.Array
 
 section
 variable {α : Type _}
