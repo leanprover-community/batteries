@@ -1163,10 +1163,12 @@ theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | _+1, [] => rfl
   | n+1, a :: l => congrArg (cons a) (modifyNthTail_id n l)
 
-theorem removeNth_eq_nth_tail : ∀ n (l : List α), removeNth l n = modifyNthTail tail n l
+theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNthTail tail n l
   | 0, l => by cases l <;> rfl
   | n+1, [] => rfl
-  | n+1, a :: l => congrArg (cons _) (removeNth_eq_nth_tail _ _)
+  | n+1, a :: l => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
+
+@[deprecated] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
 
 theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
@@ -1318,13 +1320,15 @@ theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
 
 /-! ### remove nth -/
 
-theorem length_removeNth : ∀ {l i}, i < length l → length (@removeNth α l i) = length l - 1
+theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) = length l - 1
   | [], _, _ => rfl
-  | _::_, 0, _ => by simp [removeNth]
+  | _::_, 0, _ => by simp [eraseIdx]
   | x::xs, i+1, h => by
     have : i < length xs := Nat.lt_of_succ_lt_succ h
-    simp [removeNth, ← Nat.add_one]
-    rw [length_removeNth this, Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]
+    simp [eraseIdx, ← Nat.add_one]
+    rw [length_eraseIdx this, Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]
+
+@[deprecated] alias length_removeNth := length_eraseIdx
 
 /-! ### tail -/
 

@@ -822,6 +822,8 @@ If equal keys exist in both, the key from `t₂` is preferred.
 def union (t₁ t₂ : RBSet α cmp) : RBSet α cmp :=
   t₂.foldl .insert t₁
 
+instance : Union (RBSet α cmp) := ⟨RBSet.union⟩
+
 /--
 `O(n₂ * log (n₁ + n₂))`. Merges the maps `t₁` and `t₂`. If equal keys exist in both,
 then use `mergeFn a₁ a₂` to produce the new merged value.
@@ -856,6 +858,8 @@ def map (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
 `O(n₁ * (log n₁ + log n₂))`. Constructs the set of all elements of `t₁` that are not in `t₂`.
 -/
 def sdiff (t₁ t₂ : RBSet α cmp) : RBSet α cmp := t₁.filter (!t₂.contains ·)
+
+instance : SDiff (Std.RBSet α cmp) := ⟨RBSet.sdiff⟩
 
 end RBSet
 

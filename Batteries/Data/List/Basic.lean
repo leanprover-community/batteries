@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 import Batteries.Data.List.Init.Lemmas
+import Batteries.Tactic.Alias
 
 namespace List
 
@@ -92,31 +93,9 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
-/-- Removes the `n`th element of `l`, or the original list if `n` is out of bounds. -/
-@[simp] def removeNth : List α → Nat → List α
-  | [], _ => []
-  | _ :: xs, 0 => xs
-  | x :: xs, i+1 => x :: removeNth xs i
-
-/-- Tail recursive version of `removeNth`. -/
-@[inline] def removeNthTR (l : List α) (n : Nat) : List α := go l n #[] where
-  /-- Auxiliary for `removeNthTR`:
-  `removeNthTR.go l xs n acc = acc.toList ++ removeNth xs n` if `n < length xs`, else `l`. -/
-  go : List α → Nat → Array α → List α
-  | [], _, _ => l
-  | _ :: xs, 0, acc => acc.toListAppend xs
-  | x :: xs, i+1, acc => go xs i (acc.push x)
-
-@[csimp] theorem removeNth_eq_removeNthTR : @removeNth = @removeNthTR := by
-  funext α l n; simp [removeNthTR]
-  suffices ∀ xs acc, l = acc.data ++ xs →
-      removeNthTR.go l xs n acc = acc.data ++ xs.removeNth n from
-    (this l #[] (by simp)).symm
-  intro xs; induction xs generalizing n with intro acc
-  | nil => simp [removeNth, removeNthTR.go]
-  | cons x xs IH =>
-    cases n <;> simp [removeNth, removeNthTR.go, *]
-    · intro h; rw [IH]; simp; simp; exact h
+@[deprecated] alias removeNth := eraseIdx
+@[deprecated] alias removeNthTR := eraseIdxTR
+@[deprecated] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
@@ -223,7 +202,7 @@ def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
   | [], acc => [acc.reverse]
   | a :: t, acc => if P a then acc.reverse :: go t [] else go t (a::acc)
 
-/-- Tail recursive version of `removeNth`. -/
+/-- Tail recursive version of `splitOnP`. -/
 @[inline] def splitOnPTR (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
   /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc r = r.toList ++ res'`
   where `res'` is obtained from `splitOnP P xs` by prepending `acc.toList` to the first element. -/
