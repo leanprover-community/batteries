@@ -736,7 +736,15 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).data
+def ofFn {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) where
+  /-- Auxillary for `List.ofFn`. -/
+  -- This used to be defined via `Array.ofFn`
+  -- but `Array.ofFn.go` is defined by well-founded recursion (slow to reduce)
+  -- and used `Array.push` (quadratic complexity on lists). Since mathlib relies on
+  -- reducing `List.ofFn`, use a structurally recursive definition here.
+  go : (i : Nat) → (h : i ≤ n) → List α
+  | 0, _ => []
+  | i+1, h => f ⟨n - (i+1), by omega⟩ :: go i (by omega)
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
