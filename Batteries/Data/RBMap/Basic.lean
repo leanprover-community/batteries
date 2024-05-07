@@ -859,7 +859,7 @@ def map (t : RBSet α cmpα) (f : α → β) : RBSet β cmpβ :=
 -/
 def sdiff (t₁ t₂ : RBSet α cmp) : RBSet α cmp := t₁.filter (!t₂.contains ·)
 
-instance : SDiff (Std.RBSet α cmp) := ⟨RBSet.sdiff⟩
+instance : SDiff (Batteries.RBSet α cmp) := ⟨RBSet.sdiff⟩
 
 end RBSet
 
