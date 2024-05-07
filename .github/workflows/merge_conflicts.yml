@@ -6,7 +6,7 @@ on:
 
 jobs:
   main:
-    if: github.repository_owner == 'leanprover'
+    if: github.repository_owner == 'leanprover-community'
     runs-on: ubuntu-latest
     steps:
       - name: check if prs are dirty

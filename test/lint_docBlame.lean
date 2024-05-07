@@ -1,4 +1,4 @@
-import Std.Tactic.Lint
+import Batteries.Tactic.Lint
 
 set_option linter.missingDocs false
 

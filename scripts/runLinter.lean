@@ -1,6 +1,6 @@
-import Std.Tactic.Lint
-import Std.Data.Array.Basic
-import Std.Lean.Util.Path
+import Batteries.Tactic.Lint
+import Batteries.Data.Array.Basic
+import Batteries.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
 open System (FilePath)
@@ -18,9 +18,9 @@ def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
   IO.FS.writeFile path <| toJson a |>.pretty
 
 /--
-Usage: `runLinter [--update] [Std.Data.Nat.Basic]`
+Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
 
-Runs the linters on all declarations in the given module (or `Std` by default).
+Runs the linters on all declarations in the given module (or `Batteries` by default).
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
 to be nolinted.
 -/
@@ -31,12 +31,12 @@ unsafe def main (args : List String) : IO Unit := do
     | _ => (false, args)
   let some module :=
       match args with
-      | [] => some `Std
+      | [] => some `Batteries
       | [mod] => match mod.toName with
         | .anonymous => none
         | name => some name
       | _ => none
-    | IO.eprintln "Usage: runLinter [--update] [Std.Data.Nat.Basic]" *> IO.Process.exit 1
+    | IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
   searchPathRef.set compile_time_search_path%
   let mFile ← findOLean module
   unless (← mFile.pathExists) do

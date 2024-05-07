@@ -1,4 +1,4 @@
-import Std.Tactic.Lint
+import Batteries.Tactic.Lint
 
 -- should be ignored as the proof contains sorry
 /-- warning: declaration uses 'sorry' -/

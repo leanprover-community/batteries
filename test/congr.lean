@@ -1,4 +1,4 @@
-import Std.Tactic.Congr
+import Batteries.Tactic.Congr
 
 section congr
 
