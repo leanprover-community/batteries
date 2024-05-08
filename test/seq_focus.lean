@@ -1,4 +1,4 @@
-import Std.Tactic.SeqFocus
+import Batteries.Tactic.SeqFocus
 
 example : (True ∧ (∃ x : Nat, x = x)) ∧ True := by
   constructor
