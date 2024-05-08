@@ -737,7 +737,7 @@ ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
 def ofFn {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) where
-  /-- Auxillary for `List.ofFn`. -/
+  /-- Auxiliary for `List.ofFn`. -/
   -- This used to be defined via `Array.ofFn`
   -- but `Array.ofFn.go` is defined by well-founded recursion (slow to reduce)
   -- and used `Array.push` (quadratic complexity on lists). Since mathlib relies on
