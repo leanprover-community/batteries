@@ -238,9 +238,14 @@ modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
   | n+1, a :: l => a :: modifyNthTail f n l
 
 /-- Apply `f` to the head of the list, if it exists. -/
-@[simp, inline] def modifyHead (f : α → α) : List α → List α
+@[inline] def modifyHead (f : α → α) : List α → List α
   | [] => []
   | a :: l => f a :: l
+
+@[simp] theorem modifyHead_nil (f : α → α) : [].modifyHead f = [] := by rw [modifyHead]
+
+@[simp] theorem modifyHead_cons (a : α) (l : List α) (f : α → α) :
+    (a :: l).modifyHead f = f a :: l := by rw [modifyHead]
 
 /-- Apply `f` to the nth element of the list, if it exists. -/
 def modifyNth (f : α → α) : Nat → List α → List α :=
