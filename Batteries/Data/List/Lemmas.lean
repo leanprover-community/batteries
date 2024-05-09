@@ -406,7 +406,7 @@ theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
     · next h' => rw [get?_set_ne _ _ (by omega)]
     · rfl
 
-/-! ### remove nth -/
+/-! ### removeNth -/
 
 theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) = length l - 1
   | [], _, _ => rfl
