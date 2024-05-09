@@ -195,7 +195,7 @@ subarray, or `none` if the subarray is empty.
 def popHead? (as : Subarray α) : Option (α × Subarray α) :=
   if h : as.start < as.stop
     then
-      let head := as.as.get ⟨as.start, Nat.lt_of_lt_of_le h as.h₂⟩
+      let head := as.array.get ⟨as.start, Nat.lt_of_lt_of_le h as.stop_le_array_size⟩
       let tail :=
         { as with
           start := as.start + 1
