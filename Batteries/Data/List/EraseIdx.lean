@@ -75,7 +75,7 @@ theorem mem_eraseIdx_iff_get {x : α} :
 
 theorem mem_eraseIdx_iff_get? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ i ≠ k, l.get? i = x := by
   simp only [mem_eraseIdx_iff_get, Fin.exists_iff, exists_and_left, get_eq_iff, exists_prop]
-  refine exists_congr fun i ↦ and_congr_right' <| and_iff_right_of_imp fun h ↦ ?_
+  refine exists_congr fun i => and_congr_right' <| and_iff_right_of_imp fun h => ?_
   obtain ⟨h, -⟩ := get?_eq_some.1 h
   exact h
 
