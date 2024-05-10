@@ -19,4 +19,4 @@ test: $(TESTS)
 	lake env lean $(@:.run=.lean)
 
 lint: build
-	./.lake/build/bin/runLinter
+	lake exe runLinter
