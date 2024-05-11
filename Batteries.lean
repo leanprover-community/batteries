@@ -37,6 +37,7 @@ import Batteries.Data.String
 import Batteries.Data.Sum
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
+import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
 import Batteries.Lean.Delaborator
 import Batteries.Lean.Except
