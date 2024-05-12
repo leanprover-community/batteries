@@ -241,7 +241,7 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
 
-/-! ### nth element -/
+/-! ### get? -/
 
 theorem get?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
@@ -1500,7 +1500,7 @@ theorem merge_loop (s : α → α → Bool) (l r t) :
   | zero =>
     rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_left hn)]
     rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_right hn)]
-    rfl
+    simp only [merge.loop, reverseAux]
   | succ n ih =>
     match l, r with
     | [], r => simp only [merge_loop_nil_left]; rfl
