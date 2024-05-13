@@ -29,7 +29,7 @@ jobs:
 
       - name: test batteries
         if: steps.build.outcome == 'success'
-        run: make test
+        run: lake test
 
       - name: lint batteries
         if: steps.build.outcome == 'success'
