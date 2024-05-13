@@ -1,4 +1,4 @@
-import Std.Test.Internal.DummyLabelAttr
+import Batteries.Test.Internal.DummyLabelAttr
 import Lean.LabelAttribute
 
 set_option linter.missingDocs false
