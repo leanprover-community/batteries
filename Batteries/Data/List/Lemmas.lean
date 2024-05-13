@@ -735,6 +735,8 @@ theorem dropLast_append_cons : dropLast (l₁ ++ b::l₂) = l₁ ++ dropLast (b:
 
 /-! ### nth element -/
 
+theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by simp [get?_eq_some]
+
 @[simp] theorem get_cons_cons_one : (a₁ :: a₂ :: as).get (1 : Fin (as.length + 2)) = a₂ := rfl
 
 theorem get!_cons_succ [Inhabited α] (l : List α) (a : α) (n : Nat) :
