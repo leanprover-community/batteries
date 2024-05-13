@@ -18,5 +18,5 @@ test: $(TESTS)
 %.run: build
 	lake env lean $(@:.run=.lean)
 
-lint: build
-	./.lake/build/bin/runLinter
+lint:
+	lake exe runLinter

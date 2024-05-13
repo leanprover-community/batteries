@@ -1,5 +1,5 @@
-import Std.Tactic.Classical
-import Std.Tactic.PermuteGoals
+import Batteries.Tactic.Classical
+import Batteries.Tactic.PermuteGoals
 
 example : Bool := by
   fail_if_success have := ∀ p, decide p -- no classical in scope
