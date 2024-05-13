@@ -58,8 +58,6 @@ instance : Std.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
 
 @[simp] theorem data_push (s : String) (c : Char) : (s.push c).1 = s.1 ++ [c] := rfl
 
-@[simp] theorem data_append (s t : String) : (s ++ t).1 = s.1 ++ t.1 := rfl
-
 @[simp] theorem cons_append (c : Char) (cs : List Char) (t : String) :
   ⟨c :: cs⟩ ++ t = ⟨c :: (cs ++ t.1)⟩ := rfl
 
@@ -862,7 +860,7 @@ termination_by stp.1 - off.1
 
 -- unusedHavesSuffices lint false positive from unfolding substrEq.loop
 -- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices, simp] 
+@[nolint unusedHavesSuffices, simp]
 theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
   simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
 
