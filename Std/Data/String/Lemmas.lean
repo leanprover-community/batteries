@@ -860,7 +860,9 @@ termination_by stp.1 - off.1
 
 /-! ### isPrefixOf -/
 
-@[nolint unusedHavesSuffices, simp] -- false positive from unfolding substrEq.loop
+-- unusedHavesSuffices lint false positive from unfolding substrEq.loop
+-- This will be fixed by https://github.com/leanprover/lean4/pull/4143
+@[nolint unusedHavesSuffices, simp] 
 theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
   simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
 
