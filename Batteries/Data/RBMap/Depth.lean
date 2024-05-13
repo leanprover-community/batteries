@@ -9,7 +9,7 @@ import Batteries.Data.RBMap.WF
 # RBNode depth bounds
 -/
 
-namespace Std.RBNode
+namespace Batteries.RBNode
 open RBColor
 
 /--
