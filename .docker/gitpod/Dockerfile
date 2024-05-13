@@ -1,4 +1,4 @@
-# This is the Dockerfile for leanprover/std4
+# This is the Dockerfile for leanprover-community/batteries
 # This file is mostly copied from [mathlib4](https://github.com/leanprover-community/mathlib4/blob/master/.docker/gitpod/Dockerfile)
 
 # gitpod doesn't support multiple FROM statements, (or rather, you can't copy from one to another)
@@ -23,8 +23,8 @@ RUN { echo && echo "PS1='\[\033[01;32m\]\u\[\033[00m\] \[\033[01;34m\]\w\[\033[0
 # install elan
 RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
 
-# install whichever toolchain std4 is currently using
-RUN . ~/.profile && elan toolchain install $(curl https://raw.githubusercontent.com/leanprover/std4/main/lean-toolchain)
+# install whichever toolchain batteries is currently using
+RUN . ~/.profile && elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/batteries/main/lean-toolchain)
 
 # install neovim (for any lean.nvim user), via tarball since the appimage doesn't work for some reason, and jammy's version is ancient
 RUN curl -s -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz | tar xzf - && sudo mv nvim-linux64 /opt/nvim

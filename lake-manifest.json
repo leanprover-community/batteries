@@ -46,5 +46,5 @@
    "inputRev": "main",
    "inherited": false,
    "configFile": "lakefile.lean"}],
- "name": "std",
+ "name": "batteries",
  "lakeDir": ".lake"}
