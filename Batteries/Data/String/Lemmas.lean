@@ -60,7 +60,7 @@ instance : Batteries.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
 
 @[simp] theorem data_append (s t : String) : (s ++ t).1 = s.1 ++ t.1 := rfl
 
-@[simp] theorem cons_append (c : Char) (cs : List Char) (t : String) :
+theorem cons_append (c : Char) (cs : List Char) (t : String) :
   ⟨c :: cs⟩ ++ t = ⟨c :: (cs ++ t.1)⟩ := rfl
 
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
@@ -282,7 +282,7 @@ theorem get_append_of_valid {s t} {p : Pos} (h : p.Valid s) (h' : p ≠ endPos s
     (s ++ t).get p = s.get p := by
   match s, t, p with
   | ⟨[]⟩, _, _ => simp_all; contradiction;
-  | ⟨_ :: _⟩, _, ⟨0⟩ => simp_all
+  | ⟨_ :: _⟩, _, ⟨0⟩ => simp_all [cons_append]
   | ⟨a :: l⟩, _, p@⟨k+1⟩ => next p_eq_succ =>
     have p_ne_zero : p ≠ 0 := by rw [ne_eq, Pos.ext_iff]; simp [p_eq_succ]
     have ⟨n, csize_a⟩ : ∃ n, p = ⟨n + csize a⟩ := by
@@ -293,7 +293,7 @@ theorem get_append_of_valid {s t} {p : Pos} (h : p.Valid s) (h' : p ≠ endPos s
     rw [endPos, ne_eq, Pos.ext_iff] at h'
     simp_all [-p_eq_succ, (by rw [p_eq_succ] : k + 1 = p.byteIdx), Nat.add_right_cancel_iff]
     rw [← Pos.ext_iff] at h'
-    rw [← Pos.addChar_eq, get_cons_addChar, get_cons_addChar]
+    rw [← Pos.addChar_eq, get_cons_addChar, cons_append, get_cons_addChar]
     rw [← Pos.addChar_eq] at h
     exact get_append_of_valid (Pos.Valid.cons_addChar h) h'
 
@@ -862,7 +862,7 @@ termination_by stp.1 - off.1
 
 -- unusedHavesSuffices lint false positive from unfolding substrEq.loop
 -- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices, simp] 
+@[nolint unusedHavesSuffices, simp]
 theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
   simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
 
