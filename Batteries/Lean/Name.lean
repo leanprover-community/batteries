@@ -23,5 +23,6 @@ def isInternalDetail : Name → Bool
   | .num _ _     => true
   | p            => p.isInternalOrNum
 where
+  /-- Check that a string begins with the given prefix, and then is only digit characters. -/
   matchPrefix (s : String) (pre : String) :=
     s.startsWith pre && (s |>.drop pre.length |>.all Char.isDigit)
