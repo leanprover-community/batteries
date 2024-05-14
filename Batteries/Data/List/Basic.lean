@@ -238,9 +238,14 @@ modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
   | n+1, a :: l => a :: modifyNthTail f n l
 
 /-- Apply `f` to the head of the list, if it exists. -/
-@[simp, inline] def modifyHead (f : α → α) : List α → List α
+@[inline] def modifyHead (f : α → α) : List α → List α
   | [] => []
   | a :: l => f a :: l
+
+@[simp] theorem modifyHead_nil (f : α → α) : [].modifyHead f = [] := by rw [modifyHead]
+
+@[simp] theorem modifyHead_cons (a : α) (l : List α) (f : α → α) :
+    (a :: l).modifyHead f = f a :: l := by rw [modifyHead]
 
 /-- Apply `f` to the nth element of the list, if it exists. -/
 def modifyNth (f : α → α) : Nat → List α → List α :=
@@ -736,7 +741,28 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := (Array.ofFn f).data
+def ofFn {n} (f : Fin n → α) : List α := go n 0 rfl where
+  /-- Auxiliary for `List.ofFn`. `ofFn.go f i j _ = [f j, ..., f (n - 1)]`. -/
+  -- This used to be defined via `Array.ofFn` but mathlib relies on reducing it,
+  -- so we use a structurally recursive definition here.
+  go : (i j : Nat) → (h : i + j = n) → List α
+  | 0, _, _ => []
+  | i+1, j, h => f ⟨j, by omega⟩ :: go i (j+1) (Nat.add_right_comm .. ▸ h :)
+
+/-- Tail-recursive version of `ofFn`. -/
+@[inline] def ofFnTR {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) [] where
+  /-- Auxiliary for `List.ofFnTR`. `ofFnTR.go f i _ acc = f 0 :: ... :: f (i - 1) :: acc`. -/
+  go : (i : Nat) → (h : i ≤ n) → List α → List α
+  | 0, _, acc => acc
+  | i+1, h, acc => go i (Nat.le_of_lt h) (f ⟨i, h⟩ :: acc)
+
+@[csimp] theorem ofFn_eq_ofFnTR : @ofFn = @ofFnTR := by
+  funext α n f; simp [ofFnTR]
+  let rec go (i j h h') : ofFnTR.go f j h' (ofFn.go f i j h) = ofFn f := by
+    unfold ofFnTR.go; split
+    · subst h; rfl
+    · next l j h' => exact go (i+1) j ((Nat.succ_add ..).trans h) (Nat.le_of_lt h')
+  exact (go 0 n (Nat.zero_add _) (Nat.le_refl _)).symm
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
