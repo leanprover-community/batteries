@@ -13,6 +13,9 @@ If no arguments are provided, run everything in the `test/` directory.
 
 If arguments are provided, assume they are names of files in the `test/` directory,
 and just run those.
+
+Requires not only that tests succeed, but that they produce no output on stdout or stderr.
+The flag `--allow-noisy` can be used to allow tests to produce output.
 -/
 def main (args : List String) : IO Unit := do
   -- We first run `lake build`, to ensure oleans are available.
@@ -20,8 +23,8 @@ def main (args : List String) : IO Unit := do
   -- but currently with parallelism this results in build jobs interfering with each other.
   _ ← (← IO.Process.spawn { cmd := "lake", args := #["build"] }).wait
   -- Collect test targets, either from the command line or by walking the `test/` directory.
-  let failOnNoisy := args.contains "--fail-on-noisy"
-  let targets ← match args.erase "--fail-on-noisy" with
+  let allowNoisy := args.contains "--allow-noisy"
+  let targets ← match args.erase "--allow-noisy" with
   | [] => System.FilePath.walkDir "./test"
   | _ => pure <| (args.map fun t => mkFilePath [".", "test", t] |>.withExtension "lean") |>.toArray
   let existing ← targets.filterM fun t => do pure <| (← t.pathExists) && !(← t.isDir)
@@ -38,7 +41,7 @@ def main (args : List String) : IO Unit := do
           IO.println s!"Test succeeded: {t}"
         else
           IO.println s!"Test succeeded with noisy output: {t}"
-          if failOnNoisy then exitCode := 1
+          unless allowNoisy do exitCode := 1
       else
         IO.eprintln s!"Test failed: `lake env lean {t}` produced:"
       unless out.stdout.isEmpty do IO.eprintln out.stdout
