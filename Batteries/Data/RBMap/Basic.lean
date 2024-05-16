@@ -119,11 +119,11 @@ An auxiliary data structure (an iterator) over an `RBNode` which lazily
 pulls elements from the left.
 -/
 protected inductive Stream (α : Type _)
-  | /-- The stream is empty. -/
-    nil
-  | /-- We are ready to deliver element `v` with right child `r`,
-    and where `tail` represents all the subtrees we have yet to destructure. -/
-    cons (v : α) (r : RBNode α) (tail : RBNode.Stream α)
+  /-- The stream is empty. -/
+  | nil
+  /-- We are ready to deliver element `v` with right child `r`,
+  and where `tail` represents all the subtrees we have yet to destructure. -/
+  | cons (v : α) (r : RBNode α) (tail : RBNode.Stream α)
 
 /-- `O(log n)`. Turn a node into a stream, by descending along the left spine. -/
 def toStream : RBNode α → (_ : RBNode.Stream α := .nil) → RBNode.Stream α
@@ -407,8 +407,17 @@ are not of this form as long as they are suitably monotonic.)
     | .gt => find? cut b
     | .eq => some y
 
+/-- `upperBound? cut` retrieves the smallest entry larger than or equal to `cut`, if it exists. -/
+@[specialize] def upperBound? (cut : α → Ordering) : RBNode α → (ub : Option α := .none) → Option α
+  | nil,          ub => ub
+  | node _ a y b, ub =>
+    match cut y with
+    | .lt => upperBound? cut a (some y)
+    | .gt => upperBound? cut b ub
+    | .eq => some y
+
 /-- `lowerBound? cut` retrieves the largest entry smaller than or equal to `cut`, if it exists. -/
-@[specialize] def lowerBound? (cut : α → Ordering) : RBNode α → Option α → Option α
+@[specialize] def lowerBound? (cut : α → Ordering) : RBNode α → (lb : Option α := .none) → Option α
   | nil,          lb => lb
   | node _ a y b, lb =>
     match cut y with
@@ -690,17 +699,28 @@ are not of this form as long as they are suitably monotonic.)
 @[inline] def findPD (t : RBSet α cmp) (cut : α → Ordering) (v₀ : α) : α := (t.findP? cut).getD v₀
 
 /--
-`O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
+`O(log n)`. `upperBoundP cut` retrieves the smallest entry comparing `gt` or `eq` under `cut`,
+if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
+-/
+@[inline] def upperBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.upperBound? cut
+
+/--
+`O(log n)`. `upperBound? k` retrieves the largest entry smaller than or equal to `k`,
 if it exists.
 -/
-@[inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α :=
-  t.1.lowerBound? cut none
+@[inline] def upperBound? (t : RBSet α cmp) (k : α) : Option α := t.upperBoundP? (cmp k)
+
+/--
+`O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
+if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
+-/
+@[inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.lowerBound? cut
 
 /--
 `O(log n)`. `lowerBound? k` retrieves the largest entry smaller than or equal to `k`,
 if it exists.
 -/
-@[inline] def lowerBound? (t : RBSet α cmp) (k : α) : Option α := t.1.lowerBound? (cmp k) none
+@[inline] def lowerBound? (t : RBSet α cmp) (k : α) : Option α := t.lowerBoundP? (cmp k)
 
 /-- `O(log n)`. Returns true if the given cut returns `eq` for something in the RBSet. -/
 @[inline] def containsP (t : RBSet α cmp) (cut : α → Ordering) : Bool := (t.findP? cut).isSome
