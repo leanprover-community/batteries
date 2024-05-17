@@ -61,8 +61,7 @@ instance [Inhabited α] : Inhabited (Vector α n) where
   default := mkVector n default
 
 /-- The list obtained from a vector. -/
-def toList (v : Vector α n) : List α :=
-  v.1.1
+def toList (v : Vector α n) : List α := v.1.1
 
 /-- nth element of a vector, indexed by a `Fin` type. -/
 abbrev get (v : Vector α n) (i : Fin n) : α :=
@@ -78,33 +77,32 @@ instance : GetElem (Vector α n) Nat α fun _ i => i < n where
 By default, the proof of validity `h : i < n` is supplied by the `get_elem_tactic`.
 If this fails, a proof must be supplied at the function call.
 -/
-abbrev getN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) : α :=
-  Array.get v.toArray ⟨i, v.size_eq.symm ▸ h⟩
+abbrev getN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) : α := v[i]
 
 /--
 `getD v i v₀` gets the `iᵗʰ` element of v if valid.
 Otherwise it returns `v₀` by default
 -/
-abbrev getD (v : Vector α n) (i : Nat) (v₀ : α) : α :=
-  Array.getD v.toArray i v₀
+abbrev getD (v : Vector α n) (i : Nat) (v₀ : α) : α := Array.getD v.toArray i v₀
 
 /--`get! v i` gets the `iᵗʰ` element of v if valid, else panics -/
-def get! [Inhabited α] (v : Vector α n) (i : Nat) : α :=
-  v.toArray.get! i
+def get! [Inhabited α] (v : Vector α n) (i : Nat) : α := v.toArray.get! i
+
+/-- `get? v i` gets `some v[i]` if `i` is a valid index, otherwise `none` -/
+def get? (v : Vector α n) (i : Nat) : Option α := Array.get? v.toArray i
 
 /--
 `v.back! v` gets the last element of the vector.
 panics if `v` is empty.
 -/
-def back! [Inhabited α] (v : Vector α n) : α :=
-  Vector.get! v (n - 1)
+abbrev back! [Inhabited α] (v : Vector α n) : α := Vector.get! v (n - 1)
 
 /--
 `v.back?` gets the last element `x` of the array as `some x`
 if it exists. Else the vector is empty and it returns `none`
 -/
 def back? (v : Vector α n) : Option α :=
-  v.toArray.get? (n - 1)
+  v.get? (n - 1)
 
 /-- `Vector.head` produces the head of a vector -/
 abbrev head (v : Vector α (n+1)) := v.get 0
