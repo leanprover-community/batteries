@@ -208,8 +208,7 @@ def drop (i : Nat) (v : Vector α n) : Vector α (n - i) :=
   Vector.cast this (extract v i n)
 
 /-- Takes `i` elements from a vector of length `n`; we can have `i > n`. -/
-def take (i : Nat) (v : Vector α n) : Vector α (min i n) :=
-  extract v 0 i
+alias take := shrink
 
 /-- Returns a vector of length `n` from a function on `Fin n`. -/
 def ofFn (f : Fin n → α) : Vector α n := ⟨Array.ofFn f, by {rw [size_ofFn]}⟩
