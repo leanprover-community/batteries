@@ -46,6 +46,20 @@ def empty : Vector α 0 := ⟨Array.empty, rfl⟩
 /-- Make an empty vector with pre-allocated capacity-/
 def mkEmpty (capacity : Nat) : Vector α 0 := ⟨Array.mkEmpty capacity, rfl⟩
 
+/-- Makes a vector of size `n` with all cells containing `v` -/
+def mkVector (n : Nat) (v : α) : Vector α n :=
+  ⟨mkArray n v, proof⟩
+  where
+    proof := by
+      rw [size_mkArray]
+
+/--
+The Inhabited instance for `Vector α n` with `[Inhabited α]` produces a vector of size `n`
+with all its elements equal to the `default` element of type `α`
+-/
+instance [Inhabited α] : Inhabited (Vector α n) where
+  default := mkVector n default
+
 /-- The list obtained from a vector. -/
 def toList (v : Vector α n) : List α :=
   v.1.1
@@ -92,7 +106,10 @@ if it exists. Else the vector is empty and it returns `none`
 def back? (v : Vector α n) : Option α :=
   v.toArray.get? (n - 1)
 
-/-- `push v x` pushes `x` to the end of vector `v` in $$O(1)$$ time -/
+/-- `Vector.head` produces the head of a vector -/
+abbrev head (v : Vector α (n+1)) := v.get 0
+
+/-- `push v x` pushes `x` to the end of vector `v` in O(1) time -/
 def push (x : α) (v : Vector α n)  : Vector α (n + 1) :=
   ⟨v.toArray.push x, proof⟩
   where
@@ -151,17 +168,6 @@ def append : Vector α n → Vector α m → Vector α (n + m)
 instance : HAppend (Vector α n) (Vector α m) (Vector α (n + m)) where
   hAppend := append
 
-/-- `Vector.head` produces the head of a vector -/
-abbrev head (v : Vector α (n+1)) :=
-  v.toArray.get ⟨0, v.size_eq.symm ▸ Nat.zero_lt_succ n⟩
-
-/-- Makes a vector of size `n` with all cells containing `v` -/
-def mkVector (n : Nat) (v : α) : Vector α n :=
-  ⟨mkArray n v, proof⟩
-  where
-    proof := by
-      rw [size_mkArray]
-
 /-- Creates a vector from another with a provably equal length. -/
 protected def cast {n m : Nat} (h : n = m) : Vector α n → Vector α m
   | ⟨x, p⟩ => ⟨x, h ▸ p⟩
@@ -171,8 +177,8 @@ protected def cast {n m : Nat} (h : n = m) : Vector α n → Vector α m
 If `start` is greater or equal to `stop`, the result is empty.
 If `stop` is greater than the size of `v`, the size is used instead.
 -/
-def extract (v : Vector α n) (start halt : Nat) : Vector α (min halt n - start) :=
-  ⟨Array.extract v.toArray start halt, proof⟩
+def extract (v : Vector α n) (start stop : Nat) : Vector α (min stop n - start) :=
+  ⟨Array.extract v.toArray start stop, proof⟩
   where
     proof := by
       rw [size_extract, v.size_eq]
@@ -249,8 +255,6 @@ def swap! (v : Vector α n) (i j : Nat) : Vector α n :=
 /--
 Swaps the entry with index `i : Fin n` in the vector for a new entry.
 The old entry is returned with the modified vector.
-
-This will perform the update destructively provided that `v` has a reference count of 1 when called.
 -/
 def swapAt (v : Vector α n) (i : Fin n) (x : α) : α × Vector α n:=
   let res := v.toArray.swapAt (Fin.cast v.size_eq.symm i) x
@@ -269,17 +273,8 @@ def swapAtN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) (x : �
   swapAt v ⟨i,h⟩ x
 
 /--
-The Inhabited instance for `Vector α n` with `[Inhabited α]` produces a vector of size `n`
-with all its elements equal to the `default` element of type `α`
--/
-instance [Inhabited α] : Inhabited (Vector α n) where
-  default := mkVector n default
-
-/--
 `swapAt! v i x` swaps out the entry at index `i : Nat` in the vector for `x`, if the index is valid.
 Otherwise it panics The old entry is returned with the modified vector.
-
-This will perform the update destructively provided that `v` has a reference count of 1 when called.
 -/
 def swapAt! (v : Vector α n) (i : Nat) (x : α) : α × Vector α n :=
   if h : i < n then
