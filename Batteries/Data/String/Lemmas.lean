@@ -858,6 +858,47 @@ theorem substrEq_loop_self_append {s t : String} {off stp : Pos}
     exact substrEq_loop_self_append (valid_next h_off off_lt_end) h_stp
 termination_by stp.1 - off.1
 
+theorem substrEq_loop_cons_addChar {off : Pos} :
+  substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ (off + c) (off + c) ⟨utf8Len (c :: s)⟩
+  = substrEq.loop ⟨s⟩ ⟨t⟩ off off ⟨utf8Len s⟩ := by
+  unfold substrEq.loop
+  simp only [pos_add_char, utf8Len_cons, Nat.add_lt_add_iff_right, dite_eq_ite]
+  split
+  · next off_lt_s =>
+    simp [get_cons_addChar]
+    rw [Pos.addChar_right_comm, Pos.addChar_right_comm _ c _]
+    match h : get ⟨s⟩ off == get ⟨t⟩ off with
+    | false => simp
+    | true =>
+      have : utf8Len s - (off.byteIdx + csize (get ⟨t⟩ off)) < utf8Len s - off.byteIdx :=
+        Nat.sub_lt_sub_left off_lt_s (Nat.lt_add_right_iff_pos.mpr <| csize_pos _)
+      simp_all
+      exact substrEq_loop_cons_addChar
+  · rfl
+termination_by utf8Len s - off.1
+
+theorem substrEq_loop_cons_zero :
+  substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩ = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
+  have : 0 < utf8Len s + csize c := add_csize_pos
+  conv => lhs; rw [substrEq.loop]; simp [*]
+  exact substrEq_loop_cons_addChar
+
+theorem substrEq_cons : substrEq ⟨s₀ :: s⟩ 0 ⟨t₀ :: t⟩ 0 (utf8Len (s₀ :: s)) ↔
+  s₀ = t₀ ∧ substrEq ⟨s⟩ 0 ⟨t⟩ 0 (utf8Len s) := by
+  apply Iff.intro
+  · unfold substrEq
+    simp_all
+    intros slen_le_tlen h
+    have : 0 < utf8Len s + csize s₀ := add_csize_pos
+    have s₀_eq_t₀ : s₀ = t₀ := by rw [substrEq.loop] at h; simp_all
+    rw [s₀_eq_t₀, ← utf8Len_cons, substrEq_loop_cons_zero] at h
+    exact ⟨s₀_eq_t₀, Nat.add_le_add_iff_right.mp (s₀_eq_t₀ ▸ slen_le_tlen), h⟩
+  · intro ⟨s₀_eq_t₀, h⟩
+    unfold substrEq at *
+    simp_all
+    rw [← @substrEq_loop_cons_zero t₀] at h
+    exact ⟨Nat.add_le_add_iff_right.mpr h.left, h.right⟩
+
 /-! ### isPrefixOf -/
 
 -- unusedHavesSuffices lint false positive from unfolding substrEq.loop
