@@ -929,6 +929,67 @@ theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
   simp only [endPos, utf8ByteSize, utf8ByteSize.go_eq, append, utf8Len_append]
   exact Nat.le_add_right _ _
 
+theorem isPrefixOf_cons : isPrefixOf ⟨s₀ :: s'⟩ ⟨t₀ :: t'⟩ ↔ s₀ = t₀ ∧ isPrefixOf ⟨s'⟩ ⟨t'⟩ := by
+  apply Iff.intro <;>
+  intro h
+  rw [isPrefixOf] at *
+  · exact substrEq_cons.mp h
+  · exact substrEq_cons.mpr h
+
+theorem exists_append_of_isPrefixOf {p s : String} (h : p.isPrefixOf s) : ∃ t, s = p ++ t := by
+  match p_eq : p.data, s_eq : s.data with
+  | [], [] => apply Exists.intro ""; simp_all [ext_iff]
+  | [], _ => apply Exists.intro s; simp_all [ext_iff]
+  | _, [] => rw [← ext_iff] at s_eq; simp_all
+  | p₀ :: p', s₀ :: s' =>
+    have : p'.length < p.length := by simp [ext p_eq]
+    rw [← ext_iff] at *
+    have ⟨_, p'_pre_s'⟩ := isPrefixOf_cons.mp (p_eq ▸ s_eq ▸ h)
+    have ⟨t, h'⟩ := exists_append_of_isPrefixOf p'_pre_s'
+    apply Exists.intro t
+    simp_all [ext_iff]
+termination_by p.length
+
+theorem isPrefixOf_iff_exists_append {p s : String} : p.isPrefixOf s ↔ ∃ t, s = p ++ t := by
+  apply Iff.intro
+  · intro h
+    exact exists_append_of_isPrefixOf h
+  · intro ⟨_, h⟩
+    rw [h, isPrefixOf_self_append]
+
+theorem isPrefixOf_trans : isPrefixOf s₁ s₂ → isPrefixOf s₂ s₃ → isPrefixOf s₁ s₃ := by
+  intros p₁₂ p₂₃
+  have ⟨_, a₁₂⟩ := isPrefixOf_iff_exists_append.mp p₁₂
+  have ⟨_, a₂₃⟩ := isPrefixOf_iff_exists_append.mp p₂₃
+  rw [a₂₃, a₁₂, String.append_assoc]
+  exact isPrefixOf_self_append s₁ _
+
+theorem data_isPrefixOf_iff_isPrefixOf {s t : String} : s.1.isPrefixOf t.1 ↔ s.isPrefixOf t := by
+  apply Iff.intro
+  · intro h
+    unfold List.isPrefixOf at h
+    split at h
+    · rw [← ext_iff] at *; simp_all
+    · contradiction
+    · next _ as _ _ s_eq t_eq =>
+      rw [← ext_iff] at s_eq t_eq
+      simp_all
+      have : as.length < s.length := by simp [s_eq]
+      apply isPrefixOf_cons.mpr ⟨rfl, data_isPrefixOf_iff_isPrefixOf.mp h.right⟩
+  · intro h
+    unfold List.isPrefixOf
+    split
+    · trivial
+    · have : ∀ s, s.data = [] → s = "" := fun _ => ext
+      simp_all only [isPrefixOf_empty_iff_empty]
+    · next a as b bs s_eq t_eq =>
+      rw [← ext_iff] at s_eq t_eq
+      rw [s_eq, t_eq] at h
+      simp_all
+      have : as.length < s.length := by simp [s_eq]
+      exact (isPrefixOf_cons.mp h).imp_right data_isPrefixOf_iff_isPrefixOf.mpr
+termination_by s.length
+
 -- TODO: replace
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.takeWhileAux
