@@ -79,13 +79,9 @@ private def matchingConstants (opts : PrintPrefixConfig) (pre : Name)
   let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
   cinfos.mapM fun cinfo => do
     if opts.showTypes then
-      pure <| .ofPPFormat { pp := fun
-        | some ctx => ctx.runMetaM <|
-          withOptions (pp.tagAppFns.set · true) <| PrettyPrinter.ppSignature cinfo.name
-        | none     => return f!"{cinfo.name}"  -- should never happen
-      } ++ "\n"
+      pure <| MessageData.signature cinfo.name ++ "\n"
     else
-      pure m!"{ppConst (← mkConstWithLevelParams cinfo.name)}\n"
+      pure m!"{MessageData.ofConst (← mkConstWithLevelParams cinfo.name)}\n"
 
 /--
 The command `#print prefix foo` will print all definitions that start with
