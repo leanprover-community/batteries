@@ -17,8 +17,6 @@ class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
 
 namespace Imp
 
-this is an obvious syntax error
-
 /--
 The bucket array of a `HashMap` is a nonempty array of `AssocList`s.
 (This type is an internal implementation detail of `HashMap`.)
