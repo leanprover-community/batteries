@@ -72,14 +72,6 @@ instance : GetElem (Vector α n) Nat α fun _ i => i < n where
   getElem := fun x i h => get x ⟨i, h⟩
 
 /--
-`getN v i` gets the `iᵗʰ` element of v if valid.
-
-By default, the proof of validity `h : i < n` is supplied by the `get_elem_tactic`.
-If this fails, a proof must be supplied at the function call.
--/
-abbrev getN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) : α := v[i]
-
-/--
 `getD v i v₀` gets the `iᵗʰ` element of v if valid.
 Otherwise it returns `v₀` by default
 -/
