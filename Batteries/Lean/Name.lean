@@ -16,12 +16,8 @@ Generally, user code should not explicitly use internal names.
 def isInternalDetail : Name → Bool
   | .str p s     =>
     s.startsWith "_"
-      || matchPrefix s "eq_"
-      || matchPrefix s "match_"
-      || matchPrefix s "proof_"
+      || s.startsWith "match_"
+      || s.startsWith "proof_"
       || p.isInternalOrNum
   | .num _ _     => true
   | p            => p.isInternalOrNum
-where
-  matchPrefix (s : String) (pre : String) :=
-    s.startsWith pre && (s |>.drop pre.length |>.all Char.isDigit)
