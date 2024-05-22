@@ -22,12 +22,12 @@ jobs:
         organization-url: 'https://leanprover.zulipchat.com'
         to: 'nightly-testing'
         type: 'stream'
-        topic: 'Std status updates'
+        topic: 'Batteries status updates'
         content: |
-          ❌ The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
+          ❌ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
 
   # Whenever `nightly-testing` passes CI,
-  # push it to `nightly-testing-YYYY-MM-DD` so we have a known good version of Std on that nightly release.
+  # push it to `nightly-testing-YYYY-MM-DD` so we have a known good version of Batteries on that nightly release.
   handle_success:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'nightly-testing' }}
     runs-on: ubuntu-latest
@@ -72,18 +72,18 @@ jobs:
           'anchor': 'newest',
           'num_before': 1,
           'num_after': 0,
-          'narrow': [{'operator': 'stream', 'operand': 'nightly-testing'}, {'operator': 'topic', 'operand': 'Std status updates'}],
+          'narrow': [{'operator': 'stream', 'operand': 'nightly-testing'}, {'operator': 'topic', 'operand': 'Batteries status updates'}],
           'apply_markdown': False
         }
         response = client.get_messages(request)
         messages = response['messages']
-        if not messages or messages[0]['content'] != "✅ The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has succeeded!":
+        if not messages or messages[0]['content'] != "✅ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!":
             # Post the success message
             request = {
                 'type': 'stream',
                 'to': 'nightly-testing',
-                'topic': 'Std status updates',
-                'content': "✅ The latest CI for Std's [`nightly-testing`](https://github.com/leanprover/std4/tree/nightly-testing) branch has succeeded!"
+                'topic': 'Batteries status updates',
+                'content': "✅ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!"
             }
             result = client.send_message(request)
             print(result)

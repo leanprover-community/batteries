@@ -1,4 +1,4 @@
-import Std.Lean.Float
+import Batteries.Lean.Float
 
 #guard 0.0.toRatParts == some (0, -53)
 #guard (2^(-1000):Float).toRatParts == some (4503599627370496, -1052)
@@ -41,3 +41,28 @@ import Std.Lean.Float
 #guard 1e1000.toStringFull == "inf"
 #guard (-1e1000).toStringFull == "-inf"
 #guard (-0/0:Float).toStringFull == "NaN"
+
+#guard Nat.divFloat 1 0 == Float.inf
+#guard Nat.divFloat 50 0 == Float.inf
+#guard (Nat.divFloat 0 0).isNaN
+#guard Nat.divFloat 1 3 == (1 / 3 : Float)
+#guard Nat.divFloat 1 6 == (1 / 6 : Float)
+#guard Nat.divFloat 2 3 == (2 / 3 : Float)
+#guard Nat.divFloat 100 17 == (100 / 17 : Float)
+#guard Nat.divFloat 5000000000000000 1 == (5000000000000000 : Float)
+#guard [0,0,0,1,1,1,2,2,2,2,2,3,3,3,4,4,4].enum.all fun p =>
+  Nat.divFloat (5000000000000000*4+p.1) 4 == (5000000000000000+p.2).toFloat
+#guard Nat.divFloat ((2^53-1)*(2^(1024-53))) 1 == ((2^53-1)*(2^(1024-53)))
+#guard Nat.divFloat (((2^53-1)*4+1)*(2^(1024-53))) 4 == ((2^53-1)*(2^(1024-53)))
+#guard Nat.divFloat (((2^53-1)*4+2)*(2^(1024-53))) 4 == Float.inf
+#guard Nat.divFloat (((2^53-1)*4+3)*(2^(1024-53))) 4 == Float.inf
+#guard Nat.divFloat (((2^53-1)*4+4)*(2^(1024-53))) 4 == Float.inf
+
+#guard Int.divFloat 1 3 == (1 / 3 : Float)
+#guard Int.divFloat (-1) 3 == (-1 / 3 : Float)
+#guard Int.divFloat 1 (-3) == (1 / -3 : Float)
+#guard Int.divFloat (-1) (-3) == (-1 / -3 : Float)
+#guard Int.divFloat (-1) 0 == -Float.inf
+#guard (Int.divFloat 0 0).isNaN
+#guard (Int.divFloat 0 1).toString == "0.000000"
+#guard (Int.divFloat 0 (-1)).toString == "-0.000000"
