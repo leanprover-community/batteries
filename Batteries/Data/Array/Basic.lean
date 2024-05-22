@@ -162,14 +162,6 @@ should prove the index bound.
 -/
 
 /--
-`getN a i` gets the `iᵗʰ` element of `a` if valid.
-By default, the proof of validity `h : i < a.size` is supplied by the `get_elem_tactic`.
-If this fails, a proof must be supplied at the function call.
--/
-abbrev getN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : α :=
-  Array.get a ⟨i, h⟩
-
-/--
 `setN a i h x` sets an element in a vector using a Nat index which is provably valid.
 A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
