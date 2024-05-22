@@ -7,6 +7,7 @@ import Batteries.Data.AssocList
 import Batteries.Data.Nat.Basic
 import Batteries.Data.Array.Monadic
 import Batteries.Classes.BEq
+import Batteries.Classes.Order
 
 namespace Batteries.HashMap
 
