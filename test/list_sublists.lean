@@ -8,3 +8,5 @@ example : [1, 2, 3].sublists.sublists.length = 256 := rfl
 -- this is a sanity check that these two are equal.
 example : ([] : List Nat).sublists = [].sublistsFast := rfl
 example : [1, 2, 3].sublists = [1, 2, 3].sublistsFast := rfl
+
+this is an obvious syntax error
