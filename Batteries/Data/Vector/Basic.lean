@@ -124,9 +124,7 @@ By default a proof by `get_elem_tactic` is provided.
 This will perform the update destructively provided that a has a reference count of 1 when called.
 -/
 def setN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) (x : α) : Vector α n :=
-  ⟨v.toArray.set (Fin.cast v.size_eq.symm ⟨i, h⟩) x, proof⟩
-  where
-    proof := by {rw [size_set]; exact v.size_eq}
+  v.set ⟨i,h⟩ x
 /--
 Sets an element in a vector, or do nothing if the index is out of bounds.
 
