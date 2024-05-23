@@ -193,15 +193,6 @@ def map (f : α → β) : Vector α n → Vector β n
 def zipWith : Vector α n → Vector β n → (α → β → φ) → Vector φ n
   | ⟨a, h₁⟩, ⟨b, h₂⟩, f => ⟨Array.zipWith a b f, by simp [Array.size_zipWith, h₁, h₂]⟩
 
-/-- Drops `i` elements from a vector of length `n`; we can have `i > n`. -/
-def drop (i : Nat) (v : Vector α n) : Vector α (n - i) :=
-  have : min n n - i = n - i := by
-    rw [Nat.min_self]
-  Vector.cast this (extract v i n)
-
-/-- Takes `i` elements from a vector of length `n`; we can have `i > n`. -/
-alias take := shrink
-
 /-- Returns a vector of length `n` from a function on `Fin n`. -/
 def ofFn (f : Fin n → α) : Vector α n := ⟨Array.ofFn f, by {rw [size_ofFn]}⟩
 
@@ -295,6 +286,15 @@ def shrink (v : Vector α n) (m : Nat) : Vector α (min m n) :=
     proof := by
       rw [Array.shrink, Array.size_shrink_loop, v.size_eq]
       omega
+
+/-- Drops `i` elements from a vector of length `n`; we can have `i > n`. -/
+def drop (i : Nat) (v : Vector α n) : Vector α (n - i) :=
+  have : min n n - i = n - i := by
+    rw [Nat.min_self]
+  Vector.cast this (extract v i n)
+
+/-- Takes `i` elements from a vector of length `n`; we can have `i > n`. -/
+alias take := shrink
 
 /--
 `isEqv` takes a given boolean property `p`. It returns `true`
