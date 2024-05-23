@@ -104,6 +104,9 @@ theorem get?_push {a : Array α} : (a.push x)[i]? = if i = a.size then some x el
 
 @[simp] theorem data_set (a : Array α) (i v) : (a.set i v).data = a.data.set i.1 v := rfl
 
+@[simp] theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by
+  rw [set!_is_setD, size_setD]
+
 theorem get_set_eq (a : Array α) (i : Fin a.size) (v : α) :
     (a.set i v)[i.1] = v := by
   simp only [set, getElem_eq_data_get, List.get_set_eq]
