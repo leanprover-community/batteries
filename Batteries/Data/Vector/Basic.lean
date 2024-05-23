@@ -173,13 +173,13 @@ def extract (v : Vector α n) (start stop : Nat) : Vector α (min stop n - start
     proof := by
       rw [size_extract, v.size_eq]
 
-/-- Custom eliminator for `Vector α n` through Arrays -/
+/-- Custom eliminator for `Vector α n` through `Array α` -/
 @[elab_as_elim]
 def elimAsArray {motive : ∀ {n}, Vector α n → Sort u} (mk : ∀ a : Array α, motive ⟨a, rfl⟩) :
     {n : Nat} → (v : Vector α n) → motive v
   | _, ⟨a, rfl⟩ => mk a
 
-/-- Custom eliminator for `Vector α n` throughLists -/
+/-- Custom eliminator for `Vector α n` through `List α` -/
 @[elab_as_elim]
 def elimAsList {motive : ∀ {n}, Vector α n → Sort u} (mk : ∀ a : List α, motive ⟨⟨a⟩, rfl⟩) :
     {n : Nat} → (v : Vector α n) → motive v
