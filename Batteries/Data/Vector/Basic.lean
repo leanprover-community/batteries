@@ -355,10 +355,7 @@ This function takes worst case O(n) time because it has to backshift all element
 greater than i.
 -/
 def eraseIdxN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) : Vector α (n - 1) :=
-  ⟨Array.feraseIdx v.toArray (Fin.cast v.size_eq.symm ⟨i, h⟩), proof⟩
-  where
-    proof := by
-      rw [Array.size_feraseIdx, v.size_eq]
+  v.feraseIdx ⟨i,h⟩
 
 /--
 If `x` is an element of vector `v` at index `j`, then `indexOf? v x` returns `some j`.
