@@ -859,6 +859,9 @@ theorem substrEq_loop_self_append {s t : String} {off stp : Pos}
     exact substrEq_loop_self_append (valid_next h_off off_lt_end) h_stp
 termination_by stp.1 - off.1
 
+-- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
+-- This will be fixed by https://github.com/leanprover/lean4/pull/4143
+@[nolint unusedHavesSuffices]
 theorem substrEq_loop_cons_addChar {off : Pos} :
   substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ (off + c) (off + c) ⟨utf8Len (c :: s)⟩
   = substrEq.loop ⟨s⟩ ⟨t⟩ off off ⟨utf8Len s⟩ := by
@@ -871,27 +874,32 @@ theorem substrEq_loop_cons_addChar {off : Pos} :
     match h : get ⟨s⟩ off == get ⟨t⟩ off with
     | false => simp
     | true =>
-      have : utf8Len s - (off.byteIdx + csize (get ⟨t⟩ off)) < utf8Len s - off.byteIdx :=
-        Nat.sub_lt_sub_left off_lt_s (Nat.lt_add_right_iff_pos.mpr <| csize_pos _)
       simp_all
       exact substrEq_loop_cons_addChar
   · rfl
 termination_by utf8Len s - off.1
+decreasing_by
+  refine Nat.sub_lt_sub_left ?_ (Nat.lt_add_right_iff_pos.mpr <| csize_pos _)
+  assumption
 
+-- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
+-- This will be fixed by https://github.com/leanprover/lean4/pull/4143
+@[nolint unusedHavesSuffices]
 theorem substrEq_loop_cons_zero : substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩
   = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
-  have : 0 < utf8Len s + csize c := add_csize_pos
-  conv => lhs; rw [substrEq.loop]; simp [*]
+  conv => lhs; rw [substrEq.loop]; simp [add_csize_pos]
   exact substrEq_loop_cons_addChar
 
+-- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
+-- This will be fixed by https://github.com/leanprover/lean4/pull/4143
+@[nolint unusedHavesSuffices]
 theorem substrEq_cons : substrEq ⟨s₀ :: s⟩ 0 ⟨t₀ :: t⟩ 0 (utf8Len (s₀ :: s)) ↔
   s₀ = t₀ ∧ substrEq ⟨s⟩ 0 ⟨t⟩ 0 (utf8Len s) := by
   apply Iff.intro
   · unfold substrEq
     simp_all
     intros slen_le_tlen h
-    have : 0 < utf8Len s + csize s₀ := add_csize_pos
-    have s₀_eq_t₀ : s₀ = t₀ := by rw [substrEq.loop] at h; simp_all
+    have s₀_eq_t₀ : s₀ = t₀ := by rw [substrEq.loop] at h; simp_all [add_csize_pos]
     rw [s₀_eq_t₀, ← utf8Len_cons, substrEq_loop_cons_zero] at h
     exact ⟨s₀_eq_t₀, Nat.add_le_add_iff_right.mp (s₀_eq_t₀ ▸ slen_le_tlen), h⟩
   · intro ⟨s₀_eq_t₀, h⟩
