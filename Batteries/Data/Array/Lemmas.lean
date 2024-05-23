@@ -869,3 +869,15 @@ theorem swap_comm (a : Array α) {i j : Fin a.size} : a.swap i j = a.swap j i :=
     split
     · split <;> simp_all
     · split <;> simp_all
+
+/-! ### shrink -/
+
+theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
+  induction n generalizing a with simp[shrink.loop]
+  | succ n ih =>
+      simp[ih]
+      omega
+
+theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
+  simp [shrink, size_shrink_loop]
+  omega
