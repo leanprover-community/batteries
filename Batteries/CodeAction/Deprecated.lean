@@ -29,10 +29,10 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
   let mut i := 0
   let doc ← readDoc
   let mut msgs := #[]
-  for m in snap.msgLog.msgs do
+  for m in snap.msgLog.toList do
     if m.data.isDeprecationWarning then
       if h : _ then
-        msgs := msgs.push (snap.cmdState.messages.msgs[i])
+        msgs := msgs.push (snap.cmdState.messages.toList[i])
     i := i + 1
   if msgs.isEmpty then return #[]
   let start := doc.meta.text.lspPosToUtf8Pos params.range.start
