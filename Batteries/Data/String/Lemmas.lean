@@ -282,7 +282,8 @@ theorem get_append_of_valid {s t} {p : Pos} (h : p.Valid s) (h' : p ≠ endPos s
     (s ++ t).get p = s.get p := by
   match s, t, p with
   | ⟨[]⟩, _, _ => simp_all; contradiction;
-  | ⟨_ :: _⟩, _, ⟨0⟩ => simp_all [cons_append]
+  | ⟨_ :: _⟩, _, ⟨0⟩ => simp_all only [Pos.mk_zero, Pos.valid_zero, endPos_eq, utf8Len_cons,
+    ne_eq, cons_append, get_cons_zero]
   | ⟨a :: l⟩, _, p@⟨k+1⟩ => next p_eq_succ =>
     have p_ne_zero : p ≠ 0 := by rw [ne_eq, Pos.ext_iff]; simp [p_eq_succ]
     have ⟨n, csize_a⟩ : ∃ n, p = ⟨n + csize a⟩ := by
@@ -877,8 +878,8 @@ theorem substrEq_loop_cons_addChar {off : Pos} :
   · rfl
 termination_by utf8Len s - off.1
 
-theorem substrEq_loop_cons_zero :
-  substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩ = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
+theorem substrEq_loop_cons_zero : substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩
+  = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
   have : 0 < utf8Len s + csize c := add_csize_pos
   conv => lhs; rw [substrEq.loop]; simp [*]
   exact substrEq_loop_cons_addChar
