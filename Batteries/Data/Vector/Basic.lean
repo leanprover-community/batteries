@@ -217,12 +217,7 @@ This will perform the update destructively provided that `v` has a reference cou
 -/
 def swapN (v : Vector α n) (i j : Nat)
     (hi : i < n := by get_elem_tactic) (hj : j < n := by get_elem_tactic) : Vector α n :=
-  ⟨Array.swap v.toArray (Fin.cast v.size_eq.symm ⟨i, hi⟩) (Fin.cast v.size_eq.symm ⟨j, hj⟩),
-    proof⟩
-  where
-    proof := by
-      rw [size_swap]
-      exact v.size_eq
+  v.swap ⟨i,hi⟩ ⟨j,hj⟩
 
 /--
 Swaps two entries in a `Vector α n`, or panics if either index is out of bounds.
