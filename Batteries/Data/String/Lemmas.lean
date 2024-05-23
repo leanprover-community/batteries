@@ -990,6 +990,8 @@ theorem data_isPrefixOf_iff_isPrefixOf {s t : String} : s.1.isPrefixOf t.1 ↔ s
       exact (isPrefixOf_cons.mp h).imp_right data_isPrefixOf_iff_isPrefixOf.mpr
 termination_by s.length
 
+-- TODO: substrEq
+-- TODO: isPrefixOf
 -- TODO: replace
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.takeWhileAux
