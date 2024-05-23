@@ -44,18 +44,19 @@ protected theorem countP_go_eq_add (l) : countP.go p l n = n + countP.go p l 0 :
 theorem countP_cons (a : α) (l) : countP p (a :: l) = countP p l + if p a then 1 else 0 := by
   by_cases h : p a <;> simp [h]
 
-theorem length_eq_countP_add_countP (l) : length l = countP p l + countP (fun a => ¬p a) l := by
+theorem length_eq_countP_add_countP (l) : length l = countP p l + countP (fun a => ! p a) l := by
   induction l with
   | nil => rfl
   | cons x h ih =>
     if h : p x then
       rw [countP_cons_of_pos _ _ h, countP_cons_of_neg _ _ _, length, ih]
       · rw [Nat.add_assoc, Nat.add_comm _ 1, Nat.add_assoc]
-      · simp only [h, not_true_eq_false, decide_False, not_false_eq_true]
+      · simp only [h, not_true_eq_false, decide_False, not_false_eq_true, Bool.not_true,
+          Bool.false_eq_true, not_false_eq_true]
     else
-      rw [countP_cons_of_pos (fun a => ¬p a) _ _, countP_cons_of_neg _ _ h, length, ih]
+      rw [countP_cons_of_pos (fun a => ! p a) _ _, countP_cons_of_neg _ _ h, length, ih]
       · rfl
-      · simp only [h, not_false_eq_true, decide_True]
+      · simp only [h, not_false_eq_true, decide_True, Bool.not_false]
 
 theorem countP_eq_length_filter (l) : countP p l = length (filter p l) := by
   induction l with
