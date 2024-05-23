@@ -77,24 +77,18 @@ Otherwise it returns `v₀` by default
 -/
 abbrev getD (v : Vector α n) (i : Nat) (v₀ : α) : α := Array.getD v.toArray i v₀
 
-/--`get! v i` gets the `iᵗʰ` element of v if valid, else panics -/
-def get! [Inhabited α] (v : Vector α n) (i : Nat) : α := v.toArray.get! i
-
-/-- `get? v i` gets `some v[i]` if `i` is a valid index, otherwise `none` -/
-def get? (v : Vector α n) (i : Nat) : Option α := Array.get? v.toArray i
-
 /--
 `v.back! v` gets the last element of the vector.
 panics if `v` is empty.
 -/
-abbrev back! [Inhabited α] (v : Vector α n) : α := Vector.get! v (n - 1)
+abbrev back! [Inhabited α] (v : Vector α n) : α := v[n - 1]!
 
 /--
 `v.back?` gets the last element `x` of the array as `some x`
 if it exists. Else the vector is empty and it returns `none`
 -/
 def back? (v : Vector α n) : Option α :=
-  v.get? (n - 1)
+  v[n-1]?
 
 /-- `Vector.head` produces the head of a vector -/
 abbrev head (v : Vector α (n+1)) := v.get 0
