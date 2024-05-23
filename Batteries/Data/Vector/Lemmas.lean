@@ -7,7 +7,6 @@ Authors: Shreyas Srinivas, Francois Dorais
 import Batteries.Data.Vector.Basic
 import Batteries.Data.List.Basic
 import Batteries.Data.List.Lemmas
-import Batteries.CodeAction
 
 /-!
 ## Vectors
