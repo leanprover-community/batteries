@@ -1,6 +1,7 @@
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
 import Batteries.Lean.Util.Path
+import Lake.CLI.Main
 
 open Lean Core Elab Command Std.Tactic.Lint
 open System (FilePath)
@@ -17,6 +18,27 @@ def readJsonFile (α) [FromJson α] (path : System.FilePath) : IO α := do
 def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
   IO.FS.writeFile path <| toJson a |>.pretty
 
+open Lake
+
+/-- Get either the first lean_exe or lean_lib which is a default Lake target-/
+def getFirstDefaultExeRootOrLib?: IO (Option Name) := do
+  -- Load the Lake workspace
+  let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
+  let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
+  let workspace ← MonadError.runEIO <| MainM.runLogIO (loadWorkspace config)
+  let defaultTargets := workspace.root.defaultTargets
+
+  -- Get the first default lean_exe
+  let firstLeanExeDefault :=
+    workspace.root.leanExes.find? (fun exe => defaultTargets.contains exe.name)
+
+  -- Get the first default lean_lib
+  let firstLeanLibDefault :=
+    (workspace.root.leanLibs.map (·.name)).find? (fun lib => defaultTargets.contains lib)
+
+  -- return either the root module of the first lean_exe or the module of the first lean_lib
+  return firstLeanExeDefault.map (·.config.root) <|> firstLeanLibDefault
+
 /--
 Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
 
@@ -29,9 +51,10 @@ unsafe def main (args : List String) : IO Unit := do
     match args with
     | "--update" :: args => (true, args)
     | _ => (false, args)
+  let defaultTarget ← getFirstDefaultExeRootOrLib?
   let some module :=
       match args with
-      | [] => some `Batteries
+      | [] => defaultTarget
       | [mod] => match mod.toName with
         | .anonymous => none
         | name => some name
