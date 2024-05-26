@@ -13,6 +13,8 @@ import Batteries.Data.List.Lemmas
 Lemmas about `Vector α n`
 -/
 
+namespace Batteries
+
 namespace Vector
 
 /-- An `empty` vector maps to a `empty` vector. -/
@@ -43,3 +45,5 @@ protected theorem ext (a b : Vector α n) (h : (i : Nat) → (_ : i < n) → a[i
     exact h i hi
 
 end Vector
+
+end Batteries

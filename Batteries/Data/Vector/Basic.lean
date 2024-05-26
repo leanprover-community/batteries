@@ -17,6 +17,8 @@ that offer `O(1)` accesses and in-place mutations for arrays with no more than o
 with static guarantees about the size of the underlying array.
 -/
 
+namespace Batteries
+
 /-- `Vector α n` is an `Array α` whose size is statically fixed to `n` -/
 structure Vector (α : Type u) (n : Nat) where
   /-- Internally, a vector is stored as an array for fast access -/
@@ -315,3 +317,6 @@ def isPrefixOf [BEq α] (as : Vector α m ) (bs : Vector α n) : Bool :=
 /-- `allDiff as i` returns `true` when all elements of `v` are distinct from each other` -/
 def allDiff [BEq α] (as : Vector α n) : Bool :=
   Array.allDiff as.toArray
+
+end Vector
+end Batteries
