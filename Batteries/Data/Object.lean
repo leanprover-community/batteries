@@ -66,7 +66,8 @@ protected def get (a : ObjectArray size type) (i : Fin size) : type i :=
   a.data[i].cast (a.type_eq i).symm
 
 /-- Sets the `ObjectArray` item at index `i`. -/
-protected def set (a : ObjectArray size type) (i : Fin size) (v : type i) : ObjectArray size type where
+protected def set (a : ObjectArray size type) (i : Fin size) (v : type i) :
+    ObjectArray size type where
   data := a.data.set (i.cast a.size_eq.symm) ⟨v⟩
   size_eq := (Array.size_set ..).symm ▸ a.size_eq
   type_eq j := by
@@ -110,8 +111,8 @@ theorem get_set_ne {type : Fin size → Type _} (a : ObjectArray size type) (v :
   apply mt Fin.eq_of_val_eq h
 
 @[simp]
-theorem set_set {type : Fin size → Type _} (a : ObjectArray size type) (i : Fin size) (v w : type i) :
-    (a.set i v).set i w = a.set i w := by
+theorem set_set {type : Fin size → Type _} (a : ObjectArray size type) (i : Fin size)
+    (v w : type i) : (a.set i v).set i w = a.set i w := by
   ext j
   if h : i = j then
     rw [← h, get_set, get_set]
