@@ -23,10 +23,8 @@ protected theorem ext : {a b : Object} → HEq a.val b.val → a = b
 protected def cast : (a : Object) → α = a.type → α
   | ⟨a⟩, rfl => a
 
-@[simp]
 theorem val_mk (a : α) : Object.val ⟨a⟩ = a := rfl
 
-@[simp]
 theorem type_mk (a : α) : Object.type ⟨a⟩ = α := rfl
 
 @[simp]
