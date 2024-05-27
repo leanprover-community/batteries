@@ -34,7 +34,6 @@ import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
 import Batteries.Data.Rat
-import Batteries.Data.Sigma
 import Batteries.Data.String
 import Batteries.Data.Sum
 import Batteries.Data.UInt

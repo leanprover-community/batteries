@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
-import Batteries.Data.Sigma
-
 namespace Batteries
 
 /-- `DArray` is a heterogenous array with element types given by `type`. -/
