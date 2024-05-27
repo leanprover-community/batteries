@@ -20,46 +20,28 @@ def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
 
 open Lake
 
-/-- Get either the first lean_exe or lean_lib which is a default Lake target-/
-def getFirstDefaultExeRootOrLib?: IO (Option Name) := do
+/-- Returns the root modules of all `lean_exe` default targets in a Lake workspace. -/
+def getDefaultExeRoots (workspace : Workspace) : Array Name :=
+  workspace.root.leanExes.filter (fun exe => workspace.root.defaultTargets.contains exe.name)
+    |>.map (·.config.root)
+
+/-- Returns the root modules of all `lean_lib` default targets in a Lake workspace. -/
+def getDefaultLibRoots (workspace : Workspace) : Array Name :=
+  workspace.root.leanLibs.filter (fun lib => workspace.root.defaultTargets.contains lib.name)
+    |>.map (·.roots) |>.flatten
+
+/-- Returns the root modules of `lean_exe` or `lean_lib` default targets in the Lake workspace. -/
+def getDefaultRootModules : IO (Array Name) := do
   -- Load the Lake workspace
   let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
   let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
   let workspace ← MonadError.runEIO <| MainM.runLogIO (loadWorkspace config)
-  let defaultTargets := workspace.root.defaultTargets
 
-  -- Get the first default lean_exe
-  let firstLeanExeDefault :=
-    workspace.root.leanExes.find? (fun exe => defaultTargets.contains exe.name)
+  -- return the root modules
+  return (getDefaultExeRoots workspace) ++ (getDefaultLibRoots workspace)
 
-  -- Get the first default lean_lib
-  let firstLeanLibDefault :=
-    (workspace.root.leanLibs.map (·.name)).find? (fun lib => defaultTargets.contains lib)
-
-  -- return either the root module of the first lean_exe or the module of the first lean_lib
-  return firstLeanExeDefault.map (·.config.root) <|> firstLeanLibDefault
-
-/--
-Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
-
-Runs the linters on all declarations in the given module (or `Batteries` by default).
-If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
-to be nolinted.
--/
-unsafe def main (args : List String) : IO Unit := do
-  let (update, args) :=
-    match args with
-    | "--update" :: args => (true, args)
-    | _ => (false, args)
-  let defaultTarget ← getFirstDefaultExeRootOrLib?
-  let some module :=
-      match args with
-      | [] => defaultTarget
-      | [mod] => match mod.toName with
-        | .anonymous => none
-        | name => some name
-      | _ => none
-    | IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
+/-- Runs the linter on `module`. -/
+unsafe def runLinter (update : Bool) (module : Name): IO Unit := do
   searchPathRef.set compile_time_search_path%
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
@@ -98,4 +80,43 @@ unsafe def main (args : List String) : IO Unit := do
         IO.print (← fmtResults.toString)
         IO.Process.exit 1
       else
-        IO.println "-- Linting passed."
+        println!"-- Linting passed for {module}."
+
+/--
+Parse the specified module from args.
+
+Throws an exception if unable to parse the arguments.
+Returns `none` if no module is specified.-/
+def parseSpecifiedModule (args: List String) : Except String (Option Name) :=
+  match args with
+    | [] => Except.ok none
+    | [mod] => match mod.toName with
+      | .anonymous => throw "cannot convert module to Name"
+      | name => Except.ok (some name)
+    | _ => throw "too many arguments"
+
+/--
+Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
+
+Runs the linters on all declarations in the given module
+(or all root modules of Lake default targets by default).
+If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
+to be nolinted.
+-/
+unsafe def main (args : List String) : IO Unit := do
+  let (update, args) :=
+    match args with
+    | "--update" :: args => (true, args)
+    | _ => (false, args)
+  match parseSpecifiedModule args with
+   | .error msg => IO.eprintln s!"Error: {msg}. Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
+   | .ok module? =>
+      match module? with
+       | some module =>
+          println!"Running linter on specified module: {module}"
+          runLinter update module
+       | none =>
+          println!"Automatically detecting modules to lint"
+          let defaultRootModules ← getDefaultRootModules
+          println!"running linter on default root modules: {defaultRootModules}"
+          Array.forM (runLinter update) defaultRootModules
