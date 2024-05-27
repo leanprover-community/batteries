@@ -28,7 +28,7 @@ protected theorem ext : {a b : DArray n α} → (∀ i, a.get i = b.get i) → a
 @[simp]
 theorem get_mk (i : Fin n) : DArray.get (.mk init) i = init i := rfl
 
-theorem set_mk {α : Fin n → Type _} {init} (i : Fin n) (v : α i) :
+theorem set_mk {α : Fin n → Type _} {init : (i : Fin n) → α i} (i : Fin n) (v : α i) :
     DArray.set (.mk init) i v = .mk fun j => if h : i = j then h ▸ v else init j := rfl
 
 @[simp]
