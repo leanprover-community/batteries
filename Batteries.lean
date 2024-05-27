@@ -28,6 +28,7 @@ import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
 import Batteries.Data.Nat
+import Batteries.Data.Object
 import Batteries.Data.Option
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
