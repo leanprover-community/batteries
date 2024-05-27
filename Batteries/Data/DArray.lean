@@ -107,7 +107,13 @@ theorem set_mk {type : Fin size → Type _} {init} (i : Fin size) (v : type i) :
   else
     rw [get_set_ne _ _ h, get_mk, get_mk, dif_neg h]
 
-/- Experimental Unsafe Implementation -/
+/-! # Experimental Unsafe Implementation
+
+For this implementation, `DArray n α` is secretly stored as an `Array Unit` with size `n`. This
+works because Lean never actually checks that the objects stored in an array have the appropriate
+type. So it's safe, in principle, to `unsafeCast` the fake `Unit` objects to the appropriate type
+and similarly to `unsafeCast` any relevant object to a fake `Unit` object.
+-/
 
 private unsafe def mkUnsafe (init : (i : Fin size) → type i) : DArray size type :=
   let data : Array Unit := .ofFn fun i => unsafeCast (init i)
