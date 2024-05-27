@@ -106,3 +106,30 @@ theorem set_mk {type : Fin size → Type _} {init} (i : Fin size) (v : type i) :
     rw [← h, get_set, get_mk, dif_pos rfl]
   else
     rw [get_set_ne _ _ h, get_mk, get_mk, dif_neg h]
+
+/- Experimental Unsafe Implementation -/
+
+private unsafe def mkUnsafe (init : (i : Fin size) → type i) : DArray size type :=
+  let data : Array Unit := .ofFn fun i => unsafeCast (init i)
+  unsafeCast data
+
+private unsafe def getUnsafe (a : DArray size type) (i) : type i :=
+  let data : Array Unit := unsafeCast a
+  unsafeCast <| data[i.val]'(lcProof)
+
+private unsafe def setUnsafe (a : DArray size type) (i) (v : type i) : DArray size type :=
+  let data : Array Unit := unsafeCast a
+  unsafeCast <| data.set ⟨i.val, lcProof⟩ <| unsafeCast v
+
+private unsafe def dataUnsafe (a : DArray size type) : Array (Sigma type) :=
+  .ofFn fun i => ⟨_, a.getUnsafe i⟩
+
+private unsafe def mk_Unsafe {type : Fin size → Type _} (data : Array (Sigma type))
+    (size_eq : data.size = size) (idx_eq : ∀ (i : Fin size), data[i].fst = i) : DArray size type :=
+  mkUnsafe fun i => idx_eq i ▸ data[i].snd
+
+attribute [implemented_by mk_Unsafe] DArray.mk_
+attribute [implemented_by mkUnsafe] DArray.mk
+attribute [implemented_by dataUnsafe] DArray.data
+attribute [implemented_by getUnsafe] DArray.get
+attribute [implemented_by setUnsafe] DArray.set
