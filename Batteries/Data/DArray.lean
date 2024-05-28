@@ -84,7 +84,7 @@ attribute [implemented_by casesOnImpl] DArray.casesOn
 protected def set (a : DArray n α) (i : Fin n) (v : α i) : DArray n α :=
   mk fun j => if h : i = j then h ▸ v else a.get j
 
-@[simp, inherit_doc DArray.get]
+@[simp, inherit_doc DArray.set]
 protected abbrev setN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) (v : α ⟨i, h⟩) :=
   a.set ⟨i, h⟩ v
 
