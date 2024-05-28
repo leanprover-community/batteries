@@ -27,7 +27,7 @@ use `UnsafeCast` to convert array items to the appropriate type when necessary.
 
 /-- `DArray` is a heterogenous array where the type of each item depends on the index. -/
 inductive DArray (n) (α : Fin n → Type _) where
-  /-- Makes a new `DArray` with given item values. -/
+  /-- Makes a new `DArray` with given item values. `O(n*g)` where `get i` is `O(g)`. -/
   | mk (get : (i : Fin n) → α i)
 
 namespace DArray
