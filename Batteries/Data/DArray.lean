@@ -43,6 +43,9 @@ private unsafe def mkImpl (get : (i : Fin n) → α i) : DArray n α :=
 private unsafe def getImpl (a : DArray n α) (i) : α i :=
   unsafeCast <| a.data.get ⟨i.val, lcProof⟩
 
+private unsafe def ugetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
+  unsafeCast <| a.data.uget i lcProof
+
 private unsafe def setImpl (a : DArray n α) (i) (v : α i) : DArray n α :=
   unsafeCast <| a.data.set ⟨i.val, lcProof⟩ <| unsafeCast v
 
@@ -64,6 +67,11 @@ protected def get : DArray n α → (i : Fin n) → α i
 @[simp, inherit_doc DArray.get]
 protected abbrev getN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) : α ⟨i, h⟩ :=
   a.get ⟨i, h⟩
+
+/-- Gets the `DArray` item at index `i : USize`. Slightly faster than `get`; `O(1)`. -/
+@[implemented_by ugetImpl]
+protected def uget (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
+  a.get ⟨i.toNat, h⟩
 
 private def recOnImpl.{u} {motive : DArray n α → Sort u} (a : DArray n α)
   (h : (get : (i : Fin n) → α i) → motive (.mk get)) : motive a :=
@@ -94,6 +102,10 @@ theorem get_mk (i : Fin n) : DArray.get (.mk init) i = init i := rfl
 
 theorem set_mk {α : Fin n → Type _} {init : (i : Fin n) → α i} (i : Fin n) (v : α i) :
     DArray.set (.mk init) i v = .mk fun j => if h : i = j then h ▸ v else init j := rfl
+
+@[simp]
+theorem uget_eq_get (a : DArray n α) (i : USize) (h : i.toNat < n) :
+    a.uget i h = a.get ⟨i.toNat, h⟩ := rfl
 
 @[simp]
 theorem get_set (a : DArray n α) (i : Fin n) (v : α i) : (a.set i v).get i = v := by
