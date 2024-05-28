@@ -52,6 +52,20 @@ private unsafe def setImpl (a : DArray n α) (i) (v : α i) : DArray n α :=
 private unsafe def usetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :
     DArray n α := unsafeCast <| a.data.uset i (unsafeCast v) lcProof
 
+private unsafe def modifyFImpl [Functor f] (a : DArray n α) (i : Fin n)
+    (t : α i → f (α i)) : f (DArray n α) :=
+  let v := unsafeCast <| a.data.get ⟨i.val, lcProof⟩
+  -- Make sure `v` is unshared, if possible, by replacing its array entry by `box(0)`.
+  let a := unsafeCast <| a.data.set ⟨i.val, lcProof⟩ (unsafeCast ())
+  setImpl a i <$> t v
+
+private unsafe def umodifyFImpl [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < n)
+    (t : α ⟨i.toNat, h⟩ → f (α ⟨i.toNat, h⟩)) : f (DArray n α) :=
+  let v := unsafeCast <| a.data.uget i lcProof
+  -- Make sure `v` is unshared, if possible, by replacing its array entry by `box(0)`.
+  let a := unsafeCast <| a.data.uset i (unsafeCast ()) lcProof
+  usetImpl a i h <$> t v
+
 private unsafe def copyImpl (a : DArray n α) : DArray n α :=
   unsafeCast <| a.data.extract 0 n
 
@@ -98,6 +112,25 @@ protected def uset (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.
 @[simp, inherit_doc DArray.set]
 protected abbrev setN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) (v : α ⟨i, h⟩) :=
   a.set ⟨i, h⟩ v
+
+/-- Modifies the `DArray` item at index `i` using transform `t` and the functor `f`. -/
+@[implemented_by modifyFImpl]
+protected def modifyF [Functor f] (a : DArray n α) (i : Fin n)
+    (t : α i → f (α i)) : f (DArray n α) := a.set i <$> t (a.get i)
+
+/-- Modifies the `DArray` item at index `i` using transform `t`. -/
+protected abbrev modify (a : DArray n α) (i : Fin n) (t : α i → α i) : DArray n α :=
+  a.modifyF (f:=Id) i t
+
+/-- Modifies the `DArray` item at index `i : USize` using transform `t` and the functor `f`. -/
+@[implemented_by umodifyFImpl]
+protected def umodifyF [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < n)
+    (t : α ⟨i.toNat, h⟩ → f (α ⟨i.toNat, h⟩)) : f (DArray n α) := a.uset i h <$> t (a.uget i h)
+
+/-- Modifies the `DArray` item at index `i : USize` using transform `t`. -/
+protected abbrev umodify (a : DArray n α) (i : USize) (h : i.toNat < n)
+    (t : α ⟨i.toNat, h⟩ → α ⟨i.toNat, h⟩) : DArray n α :=
+  a.umodifyF (f:=Id) i h t
 
 /-- Copies the `DArray` to an exclusive `DArray`. `O(1)` if exclusive else `O(n)`. -/
 @[implemented_by copyImpl]
