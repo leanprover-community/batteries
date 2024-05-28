@@ -52,6 +52,9 @@ end unsafe_implementation
 
 attribute [implemented_by mkImpl] DArray.mk
 
+instance (α : Fin n → Type _) [(i : Fin n) → Inhabited (α i)] : Inhabited (DArray n α) where
+  default := mk fun _ => default
+
 /-- Gets the `DArray` item at index `i`. `O(1)`. -/
 @[implemented_by getImpl]
 protected def get : DArray n α → (i : Fin n) → α i
