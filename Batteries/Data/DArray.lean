@@ -126,7 +126,8 @@ protected def modifyF [Functor f] (a : DArray n α) (i : Fin n)
     (t : α i → f (α i)) : f (DArray n α) := a.set i <$> t (a.get i)
 
 /-- Modifies the `DArray` item at index `i` using transform `t`. -/
-protected abbrev modify (a : DArray n α) (i : Fin n) (t : α i → α i) : DArray n α :=
+@[inline]
+protected def modify (a : DArray n α) (i : Fin n) (t : α i → α i) : DArray n α :=
   a.modifyF (f:=Id) i t
 
 /-- Modifies the `DArray` item at index `i : USize` using transform `t` and the functor `f`. -/
@@ -135,7 +136,8 @@ protected def umodifyF [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < 
     (t : α ⟨i.toNat, h⟩ → f (α ⟨i.toNat, h⟩)) : f (DArray n α) := a.uset i h <$> t (a.uget i h)
 
 /-- Modifies the `DArray` item at index `i : USize` using transform `t`. -/
-protected abbrev umodify (a : DArray n α) (i : USize) (h : i.toNat < n)
+@[inline]
+protected def umodify (a : DArray n α) (i : USize) (h : i.toNat < n)
     (t : α ⟨i.toNat, h⟩ → α ⟨i.toNat, h⟩) : DArray n α :=
   a.umodifyF (f:=Id) i h t
 
