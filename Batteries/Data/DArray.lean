@@ -20,9 +20,9 @@ also support destructive updates when the array is exclusive (RC=1).
 ### Implementation Details
 
 Lean's array API does not directly support dependent arrays. Each `DArray n α` is internally stored
-as an `Array Unit` with length `n`. This is sound since Lean's array implementation does not record
-nor use the type of the items stored in the array. So it is safe to use `UnsafeCast` to convert
-array items to the appropriate type when necessary.
+as an `Array NonScalar` with length `n`. This is sound since Lean's array implementation does not
+record nor use the type of the items stored in the array. So it is safe to use `UnsafeCast` to
+convert array items to the appropriate type when necessary.
 -/
 
 /-- `DArray` is a heterogenous array where the type of each item depends on the index. -/
@@ -35,10 +35,10 @@ namespace DArray
 
 section unsafe_implementation
 
-private unsafe abbrev data : DArray n α → Array Unit := unsafeCast
+private unsafe abbrev data : DArray n α → Array NonScalar := unsafeCast
 
 private unsafe def mkImpl (get : (i : Fin n) → α i) : DArray n α :=
-  unsafeCast <| Array.ofFn fun i => (unsafeCast (get i) : Unit)
+  unsafeCast <| Array.ofFn fun i => (unsafeCast (get i) : NonScalar)
 
 private unsafe def getImpl (a : DArray n α) (i) : α i :=
   unsafeCast <| a.data.get ⟨i.val, lcProof⟩
