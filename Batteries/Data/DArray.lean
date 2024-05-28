@@ -73,12 +73,11 @@ protected abbrev getN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) : 
 protected def uget (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
   a.get ⟨i.toNat, h⟩
 
-private def recOnImpl.{u} {motive : DArray n α → Sort u} (a : DArray n α)
-  (h : (get : (i : Fin n) → α i) → motive (.mk get)) : motive a :=
+private def casesOnImpl.{u} {motive : DArray n α → Sort u} (a : DArray n α)
+    (h : (get : (i : Fin n) → α i) → motive (.mk get)) : motive a :=
   h a.get
 
-attribute [implemented_by recOnImpl] DArray.recOn
-attribute [implemented_by recOnImpl] DArray.casesOn
+attribute [implemented_by casesOnImpl] DArray.casesOn
 
 /-- Sets the `DArray` item at index `i`. `O(1)` if exclusive else `O(n)`. -/
 @[implemented_by setImpl]
