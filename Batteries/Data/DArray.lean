@@ -49,10 +49,10 @@ theorem set_set {α : Fin n → Type _} (a : DArray n α) (i : Fin n)
 
 /-! # Experimental Unsafe Implementation
 
-For this implementation, `DArray n α` is secretly stored as an `Array Unit` with n `n`. This
-works because Lean never actually checks that the objects stored in an array have the appropriate
-α. So it's safe, in principle, to `unsafeCast` the fake `Unit` objects to the appropriate α
-and similarly to `unsafeCast` any relevant object to a fake `Unit` object.
+For this implementation, `DArray n α` is secretly stored as an `Array Unit` with size `n`. This
+works because Lean never actually checks that objects have the appropriate type. So it's safe, in
+principle, to `unsafeCast` the fake `Unit` or `Array` objects to the appropriate type and similarly
+to `unsafeCast` any relevant object to a fake `Unit` or `Array` object.
 -/
 
 private unsafe def mkUnsafe (get : (i : Fin n) → α i) : DArray n α :=
@@ -61,7 +61,7 @@ private unsafe def mkUnsafe (get : (i : Fin n) → α i) : DArray n α :=
 
 private unsafe def getUnsafe (a : DArray n α) (i) : α i :=
   let data : Array Unit := unsafeCast a
-  unsafeCast <| data[i.val]'(lcProof)
+  unsafeCast <| data.get ⟨i.val, lcProof⟩
 
 private unsafe def setUnsafe (a : DArray n α) (i) (v : α i) : DArray n α :=
   let data : Array Unit := unsafeCast a
