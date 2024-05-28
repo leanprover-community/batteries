@@ -13,16 +13,16 @@ namespace Batteries
 for this type is the dependent function type `(i : Fin n) → α i` where `α i` is the type assigned
 to items at index `i`.
 
-The implementation of `DArray` is based on Lean's persistent array type. This means that the array
-values are stored in a contiguous memory region and can be accessed in constant time. Lean's
-persistent arrays also support destructive updates when the array is exclusive (RC=1).
+The implementation of `DArray` is based on Lean's dynamic array type. This means that the array
+values are stored in a contiguous memory region and can be accessed in constant time. Lean's arrays
+also support destructive updates when the array is exclusive (RC=1).
 
 ### Implementation Details
 
-Lean's persistent array API does not directly support dependent arrays. Each `DArray n α` is
-internally stored as an `Array Unit` with length `n`. This is sound since Lean's persistent array
-implementation does not record nor use the type of the items stored in the array. So it is safe to
-use `UnsafeCast` to convert array items to the appropriate type when necessary.
+Lean's array API does not directly support dependent arrays. Each `DArray n α` is internally stored
+as an `Array Unit` with length `n`. This is sound since Lean's array implementation does not record
+nor use the type of the items stored in the array. So it is safe to use `UnsafeCast` to convert
+array items to the appropriate type when necessary.
 -/
 
 /-- `DArray` is a heterogenous array where the type of each item depends on the index. -/
