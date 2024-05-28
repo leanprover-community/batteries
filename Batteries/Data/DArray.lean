@@ -66,6 +66,13 @@ private unsafe def umodifyFImpl [Functor f] (a : DArray n α) (i : USize) (h : i
   let a := unsafeCast <| a.data.uset i (unsafeCast ()) lcProof
   usetImpl a i h <$> t v
 
+private unsafe def pushImpl (a : DArray n α) (v : β) :
+    DArray (n+1) fun i => if h : i.val < n then α ⟨i.val, h⟩ else β :=
+  unsafeCast <| a.data.push <| unsafeCast v
+
+private unsafe def popImpl (a : DArray (n+1) α) : DArray n fun i => α i.castSucc :=
+  unsafeCast <| a.data.pop
+
 private unsafe def copyImpl (a : DArray n α) : DArray n α :=
   unsafeCast <| a.data.extract 0 n
 
@@ -135,6 +142,17 @@ protected abbrev umodify (a : DArray n α) (i : USize) (h : i.toNat < n)
 /-- Copies the `DArray` to an exclusive `DArray`. `O(1)` if exclusive else `O(n)`. -/
 @[implemented_by copyImpl]
 protected def copy (a : DArray n α) : DArray n α := mk a.get
+
+/-- Push an element onto the end of a `DArray`. `O(1)` if exclusive else `O(n)`. -/
+@[implemented_by pushImpl]
+protected def push (a : DArray n α) (v : β) :
+    DArray (n+1) fun i => if h : i.val < n then α ⟨i.val, h⟩ else β :=
+  mk fun i => if h : i.val < n then dif_pos h ▸ a.get ⟨i.val, h⟩ else dif_neg h ▸ v
+
+/-- Delete the last item of a `DArray`. `O(1)` if exclusive else `O(n)`. -/
+@[implemented_by popImpl]
+protected def pop (a : DArray (n+1) α) : DArray n fun i => α i.castSucc :=
+  mk fun i => a.get i.castSucc
 
 @[ext]
 protected theorem ext : {a b : DArray n α} → (∀ i, a.get i = b.get i) → a = b
