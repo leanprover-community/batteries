@@ -1,4 +1,4 @@
-import Std.Tactic.PrintPrefix
+import Batteries.Tactic.PrintPrefix
 
 inductive TEmpty : Type
 /--

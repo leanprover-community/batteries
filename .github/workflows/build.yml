@@ -14,26 +14,14 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: install elan
-        run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> $GITHUB_PATH
-
       - uses: actions/checkout@v4
 
-      - name: build std
-        id: build
-        run: lake build -Kwerror
-
-      - name: test std
-        if: steps.build.outcome == 'success'
-        run: make test
-
-      - name: lint std
-        if: steps.build.outcome == 'success'
-        run: make lint
+      - id: lean-action
+        name: build, test, and lint batteries
+        uses: leanprover/lean-action@v1-beta
+        with:
+          build-args: '-Kwerror'
+          lint-module: 'Batteries'
 
       - name: Check that all files are imported
         run: lake env lean scripts/check_imports.lean
@@ -57,7 +45,7 @@ jobs:
       - name: Check for long lines
         if: always()
         run: |
-          ! (find Std -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
+          ! (find Batteries -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
 
       - name: Check for trailing whitespace
         if: always()
