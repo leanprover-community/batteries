@@ -20,3 +20,9 @@ def bar := foo.set 0 "bar"
 #guard ((bar.set 0 "baz").set 1 1).get 0 == "baz"
 #guard ((bar.set 0 "baz").set 0 "foo").get 0 == "foo"
 #guard ((bar.set 0 "foo").set 0 "baz").get 0 == "baz"
+
+def Batteries.DArray.head : DArray (n+1) α → α 0
+  | mk f => f 0
+
+#guard foo.head == "foo"
+#guard bar.head == "bar"

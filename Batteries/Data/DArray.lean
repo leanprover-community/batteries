@@ -67,6 +67,12 @@ private unsafe def setUnsafe (a : DArray n α) (i) (v : α i) : DArray n α :=
   let data : Array Unit := unsafeCast a
   unsafeCast <| data.set ⟨i.val, lcProof⟩ <| unsafeCast v
 
+private unsafe def recOnUnsafe.{u} {motive : DArray n α → Sort u} (a : DArray n α)
+  (h : (get : (i : Fin n) → α i) → motive (.mk get)) : motive a :=
+  h a.get
+
 attribute [implemented_by mkUnsafe] DArray.mk
 attribute [implemented_by getUnsafe] DArray.get
 attribute [implemented_by setUnsafe] DArray.set
+attribute [implemented_by recOnUnsafe] DArray.recOn
+attribute [implemented_by recOnUnsafe] DArray.casesOn
