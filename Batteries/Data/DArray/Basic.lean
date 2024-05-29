@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
+import Batteries.Data.Fin.Basic
+
 namespace Batteries
 
 /-!
@@ -75,6 +77,33 @@ private unsafe def popImpl (a : DArray (n+1) α) : DArray n fun i => α i.castSu
 
 private unsafe def copyImpl (a : DArray n α) : DArray n α :=
   unsafeCast <| a.data.extract 0 n
+
+private unsafe def foldlMImpl [Monad m] (a : DArray n α) (f : β → {i : Fin n} → α i → m β)
+    (init : β) : m β :=
+  if n < USize.size then
+    loop 0 init
+  else
+    have : Inhabited β := ⟨init⟩
+    -- array data exceeds the entire address space!
+    panic! "out of memory"
+where
+  -- loop invariant: `i.toNat ≤ n`
+  loop (i : USize) (x : β) : m β :=
+    if i.toNat ≥ n then pure x else
+      f x (a.ugetImpl i lcProof) >>= loop (i+1)
+
+private unsafe def foldrMImpl [Monad m] (a : DArray n α) (f : {i : Fin n} → α i → β → m β)
+    (init : β) : m β :=
+  if h : n < USize.size then
+    loop (.ofNatCore n h) init
+  else
+    have : Inhabited β := ⟨init⟩
+    -- array data exceeds the entire address space!
+    panic! "out of memory"
+where
+  -- loop invariant: `i.toNat ≤ n`
+  loop (i : USize) (x : β) : m β :=
+    if i = 0 then pure x else f (a.ugetImpl (i-1) lcProof) x >>= loop (i-1)
 
 end unsafe_implementation
 
@@ -155,3 +184,40 @@ protected def push (a : DArray n α) (v : β) :
 @[implemented_by popImpl]
 protected def pop (a : DArray (n+1) α) : DArray n fun i => α i.castSucc :=
   mk fun i => a.get i.castSucc
+
+/--
+Folds a monadic function over a `DArray` from left to right:
+```
+DArray.foldlM a f x₀ = do
+  let x₁ ← f x₀ (a.get 0)
+  let x₂ ← f x₁ (a.get 1)
+  ...
+  let xₙ ← f xₙ₋₁ (a.get (n-1))
+  pure xₙ
+```
+-/
+@[implemented_by foldlMImpl]
+def foldlM [Monad m] (a : DArray n α) (f : β → {i : Fin n} → α i → m β) (init : β) : m β :=
+  Fin.foldlM n (f · <| a.get ·) init
+
+/-- Folds a function over a `DArray` from the left. -/
+def foldl (a : DArray n α) (f : β → {i : Fin n} → α i → β) (init : β) : β :=
+  a.foldlM (m:=Id) f init
+
+/--
+Folds a monadic function over a `DArray` from right to left:
+```
+DArray.foldrM a f x₀ = do
+  let x₁ ← f (a.get (n-1)) x₀
+  let x₂ ← f (a.get (n-2)) x₁
+  ...
+  let xₙ ← f (a.get 0) xₙ₋₁
+  pure xₙ
+```
+-/
+def foldrM [Monad m] (a : DArray n α) (f : {i : Fin n} → α i → β → m β) (init : β) : m β :=
+  Fin.foldrM n (f <| a.get ·) init
+
+/-- Folds a function over a `DArray` from the right. -/
+def foldr (a : DArray n α) (f : {i : Fin n} → α i → β → β) (init : β) : β :=
+  a.foldrM (m:=Id) f init
