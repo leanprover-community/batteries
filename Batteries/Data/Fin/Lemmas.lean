@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
+import Batteries.Data.List.Lemmas
 
 namespace Fin
 
@@ -36,52 +37,91 @@ protected theorem le_antisymm {x y : Fin n} (h1 : x ≤ y) (h2 : y ≤ x) : x = 
 theorem list_succ (n) : list (n+1) = 0 :: (list n).map Fin.succ := by
   apply List.ext_get; simp; intro i; cases i <;> simp
 
-/-! ### foldl -/
+/-! ### foldlM -/
 
-theorem foldl_loop_lt (f : α → Fin n → α) (x) (h : m < n) :
-    foldl.loop n f x m = foldl.loop n f (f x ⟨m, h⟩) (m+1) := by
-  rw [foldl.loop, dif_pos h]
+theorem foldlM_loop_lt [Monad m] (f : α → Fin n → m α) (x) (h : i < n) :
+    foldlM.loop n f x i = f x ⟨i, h⟩ >>= (foldlM.loop n f . (i+1)) := by
+  rw [foldlM.loop, dif_pos h]
 
-theorem foldl_loop_eq (f : α → Fin n → α) (x) : foldl.loop n f x n = x := by
-  rw [foldl.loop, dif_neg (Nat.lt_irrefl _)]
+theorem foldlM_loop_eq [Monad m] (f : α → Fin n → m α) (x) : foldlM.loop n f x n = pure x := by
+  rw [foldlM.loop, dif_neg (Nat.lt_irrefl _)]
 
-theorem foldl_loop (f : α → Fin (n+1) → α) (x) (h : m < n+1) :
-    foldl.loop (n+1) f x m = foldl.loop n (fun x i => f x i.succ) (f x ⟨m, h⟩) m := by
-  if h' : m < n then
-    rw [foldl_loop_lt _ _ h, foldl_loop_lt _ _ h', foldl_loop]; rfl
+theorem foldlM_loop [Monad m] (f : α → Fin (n+1) → m α) (x) (h : i < n+1) :
+    foldlM.loop (n+1) f x i = f x ⟨i, h⟩ >>= (foldlM.loop n (fun x j => f x j.succ) . i) := by
+  if h' : i < n then
+    rw [foldlM_loop_lt _ _ h]
+    congr; funext
+    rw [foldlM_loop_lt _ _ h', foldlM_loop]; rfl
   else
     cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
-    rw [foldl_loop_lt, foldl_loop_eq, foldl_loop_eq]
-termination_by n - m
+    rw [foldlM_loop_lt]
+    congr; funext
+    rw [foldlM_loop_eq, foldlM_loop_eq]
+termination_by n - i
+
+theorem foldlM_zero [Monad m] (f : α → Fin 0 → m α) (x) : foldlM 0 f x = pure x := rfl
+
+theorem foldlM_succ [Monad m] (f : α → Fin (n+1) → m α) (x) :
+    foldlM (n+1) f x = f x 0 >>= foldlM n (fun x j => f x j.succ) := foldlM_loop ..
+
+theorem foldlM_eq_foldlM_list [Monad m] (f : α → Fin n → m α) (x) :
+    foldlM n f x = (list n).foldlM f x := by
+  induction n generalizing x with
+  | zero => rfl
+  | succ n ih =>
+    rw [foldlM_succ, list_succ, List.foldlM_cons]
+    congr; funext
+    rw [List.foldlM_map, ih]
+
+theorem foldl_eq_foldlM : foldl n f init = foldlM (m:=Id) n f init := rfl
 
 theorem foldl_zero (f : α → Fin 0 → α) (x) : foldl 0 f x = x := rfl
 
 theorem foldl_succ (f : α → Fin (n+1) → α) (x) :
-    foldl (n+1) f x = foldl n (fun x i => f x i.succ) (f x 0) := foldl_loop ..
+    foldl (n+1) f x = foldl n (fun x j => f x j.succ) (f x 0) := foldlM_succ ..
 
-theorem foldl_eq_foldl_list (f : α → Fin n → α) (x) : foldl n f x = (list n).foldl f x := by
-  induction n generalizing x with
-  | zero => rfl
-  | succ n ih => rw [foldl_succ, ih, list_succ, List.foldl_cons, List.foldl_map]
+theorem foldl_eq_foldl_list (f : α → Fin n → α) (x) :
+    foldl n f x = (list n).foldl f x :=
+  by simp only [foldl_eq_foldlM, foldlM_eq_foldlM_list, List.foldl_eq_foldlM]
 
-/-! ### foldr -/
+/-! ### foldrM -/
 
-theorem foldr_loop_zero (f : Fin n → α → α) (x) : foldr.loop n f ⟨0, Nat.zero_le _⟩ x = x := rfl
+theorem foldrM_loop_zero [Monad m] (f : Fin n → α → m α) (x) :
+    foldrM.loop n f ⟨0, Nat.zero_le _⟩ x = pure x := rfl
 
-theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : m < n) :
-    foldr.loop n f ⟨m+1, h⟩ x = foldr.loop n f ⟨m, Nat.le_of_lt h⟩ (f ⟨m, h⟩ x) := rfl
+theorem foldrM_loop_succ [Monad m] (f : Fin n → α → m α) (x) (h : i < n) :
+    foldrM.loop n f ⟨i+1, h⟩ x = f ⟨i, h⟩ x >>= foldrM.loop n f ⟨i, Nat.le_of_lt h⟩ := rfl
 
-theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
-    foldr.loop (n+1) f ⟨m+1, h⟩ x =
-      f 0 (foldr.loop n (fun i => f i.succ) ⟨m, Nat.le_of_succ_le_succ h⟩ x) := by
-  induction m generalizing x with
-  | zero => simp [foldr_loop_zero, foldr_loop_succ]
-  | succ m ih => rw [foldr_loop_succ, ih]; rfl
+theorem foldrM_loop [Monad m] [LawfulMonad m] (f : Fin (n+1) → α → m α) (x) (h : i+1 ≤ n+1) :
+    foldrM.loop (n+1) f ⟨i+1, h⟩ x =
+      foldrM.loop n (fun j => f j.succ) ⟨i, Nat.le_of_succ_le_succ h⟩ x >>= f 0 := by
+  induction i generalizing x with
+  | zero =>
+    rw [foldrM_loop_zero, foldrM_loop_succ, pure_bind]
+    conv => rhs; rw [←bind_pure (f 0 x)]
+    congr
+  | succ i ih =>
+    rw [foldrM_loop_succ, foldrM_loop_succ, bind_assoc]
+    congr; funext; exact ih ..
 
-theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
-    foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
+theorem foldrM_zero [Monad m] (f : Fin 0 → α → m α) (x) : foldrM 0 f x = pure x := rfl
 
-theorem foldr_eq_foldr_list (f : Fin n → α → α) (x) : foldr n f x = (list n).foldr f x := by
+theorem foldrM_succ [Monad m] [LawfulMonad m] (f : Fin (n+1) → α → m α) (x) :
+    foldrM (n+1) f x = foldrM n (fun i => f i.succ) x >>= f 0 := foldrM_loop ..
+
+theorem foldrM_eq_foldrM_list [Monad m] [LawfulMonad m] (f : Fin n → α → m α) (x) :
+    foldrM n f x = (list n).foldrM f x := by
   induction n with
   | zero => rfl
-  | succ n ih => rw [foldr_succ, ih, list_succ, List.foldr_cons, List.foldr_map]
+  | succ n ih => rw [foldrM_succ, ih, list_succ, List.foldrM_cons, List.foldrM_map]
+
+theorem foldr_eq_foldrM (f : Fin n → α → α) (init) : foldr n f init = foldrM (m:=Id) n f init := rfl
+
+theorem foldr_zero (f : Fin 0 → α → α) (x) : foldr 0 f x = x := rfl
+
+theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
+    foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldrM_loop ..
+
+theorem foldr_eq_foldr_list (f : Fin n → α → α) (x) :
+    foldr n f x = (list n).foldr f x := by
+  simp only [foldr_eq_foldrM, foldrM_eq_foldrM_list, List.foldr_eq_foldrM]
