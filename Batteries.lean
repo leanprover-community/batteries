@@ -20,6 +20,7 @@ import Batteries.Data.BitVec
 import Batteries.Data.Bool
 import Batteries.Data.ByteArray
 import Batteries.Data.Char
+import Batteries.Data.DArray
 import Batteries.Data.DList
 import Batteries.Data.Fin
 import Batteries.Data.HashMap
