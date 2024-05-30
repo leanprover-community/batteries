@@ -22,17 +22,17 @@ open Lake
 
 /-- Returns the root modules of `lean_exe` or `lean_lib` default targets in the Lake workspace. -/
 def resolveDefaultRootModules : IO (Array Name) := do
-  -- Load the Lake workspace
+  -- load the Lake workspace
   let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
   let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
   let workspace ← MonadError.runEIO <| MainM.runLogIO (loadWorkspace config)
 
-  -- resolve the default build specs from the Lake workspace in similar fashion to `lake build`
+  -- resolve the default build specs from the Lake workspace (based on `lake build`)
   let defaultBuildSpecs ← match resolveDefaultPackageTarget workspace workspace.root with
     | Except.error e => IO.eprintln s!"Error getting default package target: {e}" *> IO.Process.exit 1
     | Except.ok targets => pure targets
 
-  -- build a list of all root modules of `lean_exe` and `lean_lib` build targets
+  -- build an array of all root modules of `lean_exe` and `lean_lib` build targets
   let defaultTargetModules := defaultBuildSpecs.concatMap <|
     fun target => match target.info with
       | BuildInfo.libraryFacet lib _ => lib.roots
@@ -41,30 +41,30 @@ def resolveDefaultRootModules : IO (Array Name) := do
   return defaultTargetModules
 
 /--
-Parse update and module arguments for `runLinter`
+Parse args list for `runLinter`
+and return a pair of the update and specified module arguments.
 
-Throws an exception if unable to parse the module argument.
-Returns `none` if no module is specified.-/
-def parseLinterArgs (args: List String) : Bool × Except String (Option Name) :=
+Throws an exception if unable to parse the arguments.
+Returns `none` for the specified module if no module is specified.-/
+def parseLinterArgs (args: List String) : Except String (Bool × Option Name) :=
   let (update, moreArgs) :=
     match args with
     | "--update" :: args => (true, args)
     | _ => (false, args)
-  let specifiedModule : Except String (Option Name) := match moreArgs with
-    | [] => Except.ok none
+  match moreArgs with
+    | [] => Except.ok (update, none)
     | [mod] => match mod.toName with
       | .anonymous => Except.error "cannot convert module to Name"
-      | name => Except.ok (some name)
-    | _ => Except.error "too many arguments"
-  (update, specifiedModule)
+      | name => Except.ok (update, some name)
+    | _ => Except.error "cannot parse arguments"
 
 /--
 Return an array of the modules to lint.
 
 If `specifiedModule` is not `none` return an array containing only `specifiedModule`.
-Otherwise, get resolve the default root modules from the Lake workspace -/
+Otherwise, resolve the default root modules from the Lake workspace -/
 def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := do
-    match specifiedModule with
+  match specifiedModule with
   | some module =>
     println!"Running linter on specified module: {module}"
     return #[module]
@@ -78,18 +78,20 @@ def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := 
 Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
 
 Runs the linters on all declarations in the given module
-(or all root modules of Lake default targets by default).
+(or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
 to be nolinted.
 -/
 unsafe def main (args : List String) : IO Unit := do
-  let (update, specifiedModule) := parseLinterArgs args
+  let linterArgs := parseLinterArgs args
+  let (update, specifiedModule) ← match linterArgs with
+    | Except.ok args => pure args
+    | Except.error msg => do
+      IO.eprintln s!"Error parsing args: {msg}"
+      IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]"
+      IO.Process.exit 1
 
-  let modulesToLint ← match specifiedModule with
-  -- if arg parsing the specified module threw an exception, log it out and exit
-  | Except.error msg => IO.eprintln s!"Error: {msg}. Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
-  -- if arg parsing was successful use the specified module to determine the modules to lint
-  | Except.ok specifiedModule => determineModulesToLint specifiedModule
+  let modulesToLint ← determineModulesToLint specifiedModule
 
   modulesToLint.forM fun module => do
     searchPathRef.set compile_time_search_path%
