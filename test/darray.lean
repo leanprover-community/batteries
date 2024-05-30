@@ -1,4 +1,4 @@
-import Batteries.Data.DArray
+import Batteries.Data.DArray.Basic
 
 open Batteries
 
@@ -26,3 +26,18 @@ def Batteries.DArray.head : DArray (n+1) α → α 0
 
 #guard foo.head == "foo"
 #guard bar.head == "bar"
+
+abbrev Data (n : Nat) : Type _ := DArray (n+1) fun | 0 => String | ⟨_+1,_⟩ => Nat
+
+def Data.sum (a : Data n) : String × Nat := Id.run do
+  let mut r := ("", 0)
+  for ⟨i, x⟩ in a do
+    match i with
+    | 0 => r := (x, r.snd)
+    | ⟨_+1,_⟩ => r := ⟨r.fst, r.snd+x⟩
+  return r
+
+def test : Data 2 :=
+  .mk fun | 0 => "foo" | 1 => 4 | 2 => 2
+
+#guard test.sum == ("foo", 6)

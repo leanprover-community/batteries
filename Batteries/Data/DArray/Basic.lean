@@ -221,3 +221,17 @@ def foldrM [Monad m] (a : DArray n α) (f : {i : Fin n} → α i → β → m β
 /-- Folds a function over a `DArray` from the right. -/
 def foldr (a : DArray n α) (f : {i : Fin n} → α i → β → β) (init : β) : β :=
   a.foldrM (m:=Id) f init
+
+/-- Implementation of `ForIn` for `DArray`. -/
+@[specialize]
+def forIn [Monad m] (a : DArray n α) (init : β) (f : Sigma α → β → m (ForInStep β)) : m β := do
+  match ← a.foldlM step (.yield init) with
+  | .done r => pure r
+  | .yield r => pure r
+where
+  step : ForInStep β → {i : Fin n} → α i → m (ForInStep β)
+  | .done r, _, _ => pure (.done r)
+  | .yield r, i, x => f ⟨i, x⟩ r
+
+instance (α : Fin n → Type _) [Monad m] : ForIn m (DArray n α) (Sigma α) where
+  forIn := forIn
