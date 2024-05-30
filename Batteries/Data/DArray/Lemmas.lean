@@ -71,5 +71,28 @@ theorem umodifyF_eq_modifyF [Functor f] (a : DArray n α) (i : USize) (h : i.toN
 theorem umodify_eq_modify (a : DArray n α) (i : USize) (h : i.toNat < n)
     (t : α ⟨i.toNat, h⟩ → α ⟨i.toNat, h⟩) : a.umodify i h t = a.modify ⟨i.toNat, h⟩ t := rfl
 
+theorem foldlM_eq_fin_foldlM [Monad m] (a : DArray n α) (f : β → {i : Fin n} → α i → m β) (init) :
+    a.foldlM f init = Fin.foldlM n (f · <| a.get ·) init := rfl
+
+theorem foldl_eq_foldlM (a : DArray n α) (f : β → {i : Fin n} → α i → β) (init) :
+    a.foldl f init = a.foldlM (m:=Id) f init := rfl
+
+theorem foldrM_eq_fin_foldrM [Monad m] (a : DArray n α) (f : {i : Fin n} → α i → β → m β) (init) :
+    a.foldrM f init = Fin.foldrM n (f <| a.get ·) init := rfl
+
+theorem foldr_eq_foldrM (a : DArray n α) (f : {i : Fin n} → α i → β → β) (init) :
+    a.foldr f init = a.foldrM (m:=Id) f init := rfl
+
 @[simp]
 theorem copy_eq (a : DArray n α) : a.copy = a := rfl
+
+theorem get_map {β : Fin n → Type _} (f : {i : Fin n} → α i → β i) (a : DArray n α) (i : Fin n) :
+    (a.map f).get i = f (a.get i) := rfl
+
+@[simp]
+theorem size_amap (f : {i : Fin n} → α i → β) (a : DArray n α) :
+    (a.amap f).size = n := Array.size_ofFn ..
+
+theorem getElem_amap (f : {i : Fin n} → α i → β) (a : DArray n α) (i : Fin n)
+    (h : i.val < (a.amap f).size := (a.size_amap f).symm ▸ i.is_lt) :
+    (a.amap f)[i] = f (a.get i) := by simp [amap]
