@@ -105,6 +105,15 @@ where
   loop (i : USize) (x : β) : m β :=
     if i = 0 then pure x else f (a.ugetImpl (i-1) lcProof) x >>= loop (i-1)
 
+@[specialize]
+private unsafe def mapImpl (f : {i : Fin n} → α i → β i) (a : DArray n α) : DArray n β :=
+  let f := fun i x => (unsafeCast (f (i:=i.cast lcProof) (unsafeCast x)) : NonScalar)
+  unsafeCast <| a.data.mapIdx f
+
+@[specialize]
+private unsafe def amapImpl (f : {i : Fin n} → α i → β) (a : DArray n α) : Array β :=
+  unsafeCast <| a.mapImpl f
+
 end unsafe_implementation
 
 attribute [implemented_by mkImpl] DArray.mk
@@ -235,3 +244,19 @@ where
 
 instance (α : Fin n → Type _) [Monad m] : ForIn m (DArray n α) (Sigma α) where
   forIn := forIn
+
+/--
+Applies `f : {i : Fin n} → α i → β i` to each element of a `DArray n α`,
+returns the dependent array of results.
+-/
+@[implemented_by mapImpl]
+protected def map (f : {i : Fin n} → α i → β i) (a : DArray n α) : DArray n β :=
+  mk fun i => f (a.get i)
+
+/--
+Applies `f : {i : Fin n} → α i → β` to each element of a `DArray n α`,
+returns the (non-dependent) array of results.
+-/
+@[implemented_by amapImpl]
+def amap (f : {i : Fin n} → α i → β) (a : DArray n α) : Array β :=
+  Array.ofFn fun i => f (a.get i)
