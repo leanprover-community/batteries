@@ -241,7 +241,7 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
 
-/-! ### nth element -/
+/-! ### get? -/
 
 theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by simp [get?_eq_some]
 

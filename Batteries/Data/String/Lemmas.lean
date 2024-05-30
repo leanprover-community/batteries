@@ -18,8 +18,6 @@ namespace String
 
 theorem ext_iff {s₁ s₂ : String} : s₁ = s₂ ↔ s₁.data = s₂.data := ⟨fun h => h ▸ rfl, ext⟩
 
-theorem lt_irrefl (s : String) : ¬s < s := List.lt_irrefl' (α := Char) (fun _ => Nat.lt_irrefl _) _
-
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
   List.lt_trans' (α := Char) Nat.lt_trans
     (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
