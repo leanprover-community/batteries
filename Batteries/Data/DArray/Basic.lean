@@ -238,11 +238,12 @@ def forIn [Monad m] (a : DArray n α) (init : β) (f : Sigma α → β → m (Fo
   | .done r => pure r
   | .yield r => pure r
 where
+  /-- Step function for `forIn`. -/
   step : ForInStep β → {i : Fin n} → α i → m (ForInStep β)
   | .done r, _, _ => pure (.done r)
   | .yield r, i, x => f ⟨i, x⟩ r
 
-instance (α : Fin n → Type _) [Monad m] : ForIn m (DArray n α) (Sigma α) where
+instance (m : Type _ → Type _) (α : Fin n → Type _) : ForIn m (DArray n α) (Sigma α) where
   forIn := forIn
 
 /--
