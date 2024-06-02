@@ -272,7 +272,7 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
     · simp
     · simp [hl]
 
-/-! ### modify nth -/
+/-! ### modifyNth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
