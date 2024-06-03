@@ -36,16 +36,20 @@ def main (args : List String) : IO Unit := do
           args := #["env", "lean", t.toString],
           env := #[("LEAN_ABORT_ON_PANIC", "1")] }
       let mut exitCode := out.exitCode
+      let stdout := out.stdout
+      let stderr := "\n".intercalate <|
+        -- We don't count manifest out of date warnings as noise.
+        out.stderr.splitOn "\n" |>.filter (!·.startsWith "warning: manifest out of date: ")
       if exitCode = 0 then
-        if out.stdout.isEmpty && out.stderr.isEmpty then
+        if stdout.isEmpty && stderr.isEmpty then
           IO.println s!"Test succeeded: {t}"
         else
           IO.println s!"Test succeeded with noisy output: {t}"
           unless allowNoisy do exitCode := 1
       else
         IO.eprintln s!"Test failed: `lake env lean {t}` produced:"
-      unless out.stdout.isEmpty do IO.eprintln out.stdout
-      unless out.stderr.isEmpty do IO.eprintln out.stderr
+      unless stdout.isEmpty do IO.eprintln stdout
+      unless stderr.isEmpty do IO.eprintln out.stderr
       pure exitCode
   -- Wait on all the jobs and exit with 1 if any failed.
   let mut exitCode : UInt8 := 0
