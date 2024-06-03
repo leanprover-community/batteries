@@ -49,7 +49,7 @@ def main (args : List String) : IO Unit := do
       else
         IO.eprintln s!"Test failed: `lake env lean {t}` produced:"
       unless stdout.isEmpty do IO.eprintln stdout
-      unless stderr.isEmpty do IO.eprintln out.stderr
+      unless out.stderr.isEmpty do IO.eprintln out.stderr -- We still print the manifest warning.
       pure exitCode
   -- Wait on all the jobs and exit with 1 if any failed.
   let mut exitCode : UInt8 := 0
