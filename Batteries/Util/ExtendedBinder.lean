@@ -52,22 +52,3 @@ macro_rules -- TODO: merging the two macro_rules breaks expansion
   | `(∀ᵉ _ : $ty:term, $b) => `(∀ _ : $ty:term, $b)
   | `(∀ᵉ $x:ident : $ty:term, $b) => `(∀ $x:ident : $ty:term, $b)
   | `(∀ᵉ $x:binderIdent $p:binderPred, $b) => `(∀ $x:binderIdent $p:binderPred, $b)
-
-open Parser.Command in
-/--
-Declares a binder predicate.  For example:
-```
-binder_predicate x " > " y:term => `($x > $y)
-```
--/
-syntax (name := binderPredicate) (docComment)? (Parser.Term.attributes)? (attrKind)?
-  "binder_predicate" optNamedName optNamedPrio ppSpace ident (ppSpace macroArg)* " => "
-    term : command
-
-open Linter.MissingDocs Parser Term in
-/-- Missing docs handler for `binder_predicate` -/
-@[missing_docs_handler binderPredicate]
-def checkBinderPredicate : SimpleHandler := fun stx => do
-  if stx[0].isNone && stx[2][0][0].getKind != ``«local» then
-    if stx[4].isNone then lint stx[3] "binder predicate"
-    else lintNamed stx[4][0][3] "binder predicate"
