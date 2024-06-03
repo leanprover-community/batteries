@@ -99,7 +99,7 @@ elab tk:"#print" &"dependents" ids:(ppSpace colGt ident)* : command => do
       if let some ranges ← findDeclarationRanges? c then
         out := out.push (c, ranges.range.pos.1)
   let msg ← out.qsort (·.2 < ·.2) |>.mapM fun (c, _) => do
-    let mut msg := m!"{ppConst (← mkConstWithLevelParams c)}: "
+    let mut msg := m!"{MessageData.ofConst (← mkConstWithLevelParams c)}: "
     if init.result.contains c then
       msg := msg ++ m!"<specified>"
     else
@@ -113,6 +113,6 @@ elab tk:"#print" &"dependents" ids:(ppSpace colGt ident)* : command => do
       | _                                => #[]
       for c in RBTree.fromArray consts Name.cmp do
         if state.result.find? c = some true then
-          msg := msg ++ m!"{ppConst (← mkConstWithLevelParams c)} "
+          msg := msg ++ m!"{MessageData.ofConst (← mkConstWithLevelParams c)} "
     return msg
   logInfoAt tk (.joinSep msg.toList "\n")

@@ -246,8 +246,8 @@ theorem Heap.WF.merge (h₁ : s₁.WF le) (h₂ : s₂.WF le) :
 theorem Heap.WF.combine (h : s.NodeWF le a) : (combine le s).WF le :=
   match s with
   | .nil => nil
-  | .node b c .nil => node h.2.1
-  | .node b₁ c₁ (.node b₂ c₂ s) => merge (merge_node h.2.1 h.2.2.2.1) (combine h.2.2.2.2)
+  | .node _b _c .nil => node h.2.1
+  | .node _b₁ _c₁ (.node _b₂ _c₂ _s) => merge (merge_node h.2.1 h.2.2.2.1) (combine h.2.2.2.2)
 
 theorem Heap.WF.deleteMin {s : Heap α} (h : s.WF le)
     (eq : s.deleteMin le = some (a, s')) : s'.WF le := by

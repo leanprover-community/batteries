@@ -243,6 +243,8 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 
 /-! ### get? -/
 
+theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by simp [get?_eq_some]
+
 theorem get?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
   induction xs generalizing i j with
@@ -270,7 +272,7 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
     · simp
     · simp [hl]
 
-/-! ### modify nth -/
+/-! ### modifyNth -/
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl

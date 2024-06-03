@@ -68,12 +68,14 @@ theorem foldl_eq_foldl_list (f : α → Fin n → α) (x) : foldl n f x = (list 
 
 /-! ### foldr -/
 
+unseal foldr.loop in
 theorem foldr_loop_zero (f : Fin n → α → α) (x) : foldr.loop n f ⟨0, Nat.zero_le _⟩ x = x :=
-  foldr.loop.eq_1 ..
+  rfl
 
+unseal foldr.loop in
 theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : m < n) :
     foldr.loop n f ⟨m+1, h⟩ x = foldr.loop n f ⟨m, Nat.le_of_lt h⟩ (f ⟨m, h⟩ x) :=
-  foldr.loop.eq_2 ..
+  rfl
 
 theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
     foldr.loop (n+1) f ⟨m+1, h⟩ x =
