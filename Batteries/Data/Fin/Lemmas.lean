@@ -54,7 +54,7 @@ theorem foldl_loop (f : α → Fin (n+1) → α) (x) (h : m < n+1) :
     rw [foldl_loop_lt, foldl_loop_eq, foldl_loop_eq]
 termination_by n - m
 
-theorem foldl_zero (f : α → Fin 0 → α) (x) : foldl 0 f x = x := rfl
+@[simp] theorem foldl_zero (f : α → Fin 0 → α) (x) : foldl 0 f x = x := rfl
 
 theorem foldl_succ (f : α → Fin (n+1) → α) (x) :
     foldl (n+1) f x = foldl n (fun x i => f x i.succ) (f x 0) := foldl_loop ..
@@ -77,6 +77,8 @@ theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
   induction m generalizing x with
   | zero => simp [foldr_loop_zero, foldr_loop_succ]
   | succ m ih => rw [foldr_loop_succ, ih]; rfl
+
+@[simp] theorem foldr_zero (f : Fin 0 → α → α) (x) : foldr 0 f x = x := rfl
 
 theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
     foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
