@@ -44,13 +44,13 @@ theorem list_succ' (n) : list (n+1) = (list n).map castSucc ++ [last n] := by
     rw [list_succ, List.map_cons castSucc, ih]
     simp [Function.comp_def, succ_castSucc]
 
-theorem list_map_rev (n) : (list n).map rev = (list n).reverse := by
+theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
   induction n with
   | zero => rfl
   | succ n ih =>
-    conv => lhs; rw [list_succ]
-    conv => rhs; rw [list_succ']
-    simp [List.reverse_map, ← ih, Function.comp_def, rev_succ]
+    conv => lhs; rw [list_succ']
+    conv => rhs; rw [list_succ]
+    simp [List.reverse_map, ih, Function.comp_def, rev_succ]
 
 /-! ### foldl -/
 
