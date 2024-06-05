@@ -77,6 +77,13 @@ theorem foldl_zero (f : α → Fin 0 → α) (x) : foldl 0 f x = x := by simp [f
 theorem foldl_succ (f : α → Fin (n+1) → α) (x) :
     foldl (n+1) f x = foldl n (fun x i => f x i.succ) (f x 0) := foldl_loop ..
 
+theorem foldl_succ_last (f : α → Fin (n+1) → α) (x) :
+    foldl (n+1) f x = f (foldl n (f · ·.castSucc) x) (last n) := by
+  rw [foldl_succ]
+  induction n generalizing x with
+  | zero => rfl
+  | succ n ih => rw [foldl_succ, ih (f · ·.succ), foldl_succ]; simp [succ_castSucc]
+
 theorem foldl_eq_foldl_list (f : α → Fin n → α) (x) : foldl n f x = (list n).foldl f x := by
   induction n generalizing x with
   | zero => rw [foldl_zero, list_zero, List.foldl_nil]
@@ -108,7 +115,28 @@ theorem foldr_zero (f : Fin 0 → α → α) (x) :
 theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
     foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
 
+theorem foldr_succ_last (f : Fin (n+1) → α → α) (x) :
+    foldr (n+1) f x = foldr n (f ·.castSucc) (f (last n) x) := by
+  rw [foldr_succ]
+  induction n generalizing x with
+  | zero => rfl
+  | succ n ih => rw [foldr_succ, ih (f ·.succ), foldr_succ]; simp [succ_castSucc]
+
 theorem foldr_eq_foldr_list (f : Fin n → α → α) (x) : foldr n f x = (list n).foldr f x := by
   induction n with
   | zero => rw [foldr_zero, list_zero, List.foldr_nil]
   | succ n ih => rw [foldr_succ, ih, list_succ, List.foldr_cons, List.foldr_map]
+
+/-! ### foldl/foldr -/
+
+theorem foldl_rev (f : Fin n → α → α) (x) :
+    foldl n (fun x i => f i.rev x) x = foldr n f x := by
+  induction n generalizing x with
+  | zero => rfl
+  | succ n ih => rw [foldl_succ, foldr_succ_last, ← ih]; simp [rev_succ]
+
+theorem foldr_rev (f : α → Fin n → α) (x) :
+     foldr n (fun i x => f x i.rev) x = foldl n f x := by
+  induction n generalizing x with
+  | zero => rfl
+  | succ n ih => rw [foldl_succ_last, foldr_succ, ← ih]; simp [rev_succ]
