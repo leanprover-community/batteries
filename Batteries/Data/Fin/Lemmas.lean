@@ -36,7 +36,7 @@ protected theorem le_antisymm {x y : Fin n} (h1 : x ≤ y) (h2 : y ≤ x) : x = 
 theorem list_succ (n) : list (n+1) = 0 :: (list n).map Fin.succ := by
   apply List.ext_get; simp; intro i; cases i <;> simp
 
-theorem list_succ' (n) : list (n+1) = (list n).map castSucc ++ [last n] := by
+theorem list_succ_last (n) : list (n+1) = (list n).map castSucc ++ [last n] := by
   rw [list_succ]
   induction n with
   | zero => rfl
@@ -48,7 +48,7 @@ theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
   induction n with
   | zero => rfl
   | succ n ih =>
-    conv => lhs; rw [list_succ']
+    conv => lhs; rw [list_succ_last]
     conv => rhs; rw [list_succ]
     simp [List.reverse_map, ih, Function.comp_def, rev_succ]
 
