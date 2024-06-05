@@ -110,8 +110,6 @@ theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
 theorem foldr_zero (f : Fin 0 → α → α) (x) :
     foldr 0 f x = x := foldr_loop_zero ..
 
-@[simp] theorem foldr_zero (f : Fin 0 → α → α) (x) : foldr 0 f x = x := rfl
-
 theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
     foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
 
