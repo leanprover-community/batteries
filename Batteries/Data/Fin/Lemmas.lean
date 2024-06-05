@@ -103,7 +103,7 @@ theorem foldr_eq_foldr_list (f : Fin n → α → α) (x) : foldr n f x = (list 
 /-! ### foldl/foldr -/
 
 theorem foldl_rev (f : Fin n → α → α) (x) :
-    foldl n (fun x i ↦ f i.rev x) x = foldr n f x := by
+    foldl n (fun x i => f i.rev x) x = foldr n f x := by
   induction n generalizing x with
   | zero => rfl
   | succ n ih => rw [foldl_succ, foldr_succ', ← ih]; simp [rev_succ]
