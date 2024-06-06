@@ -36,7 +36,6 @@ Fin.foldlM n f x₀ = do
     let xₙ ← f xₙ₋₁ (n-1)
     pure xₙ
   ```
-  `Fin.foldlM.loop n f x i = f x i >>= fun x => f x (i+1) >>= ...`
   -/
   loop (x : α) (i : Nat) : m α := do
     if h : i < n then f x ⟨i, h⟩ >>= (loop · (i+1)) else pure x
@@ -45,12 +44,12 @@ Fin.foldlM n f x₀ = do
 /--
 Folds a monadic function over `Fin n` from right to left:
 ```
-Fin.foldrM n f x₀ = do
-  let x₁ ← f (n-1) x₀
-  let x₂ ← f (n-2) x₁
+Fin.foldrM n f xₙ = do
+  let xₙ₋₁ ← f (n-1) xₙ
+  let xₙ₋₂ ← f (n-2) xₙ₋₁
   ...
-  let xₙ ← f 0 xₙ₋₁
-  pure xₙ
+  let x₀ ← f 0 x₁
+  pure x₀
 ```
 -/
 @[inline] def foldrM [Monad m] (n) (f : Fin n → α → m α) (init : α) : m α :=
@@ -58,12 +57,12 @@ Fin.foldrM n f x₀ = do
   /--
   Inner loop for `Fin.foldrM`.
   ```
-  Fin.foldrM n f i x₀ = do
-    let x₁ ← f (n-1) x₀
-    let x₂ ← f (n-2) x₁
+  Fin.foldrM.loop n f i xᵢ = do
+    let xᵢ₋₁ ← f (i-1) xᵢ
     ...
-    let xᵢ ← f (n-i) xᵢ₋₁
-    pure xᵢ
+    let x₁ ← f 1 x₂
+    let x₀ ← f 0 x₁
+    pure x₀
   ```
   -/
   loop : {i // i ≤ n} → α → m α
