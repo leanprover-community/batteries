@@ -15,16 +15,66 @@ def enum (n) : Array (Fin n) := Array.ofFn id
 /-- `list n` is the list of all elements of `Fin n` in order -/
 def list (n) : List (Fin n) := (enum n).data
 
-/-- Folds over `Fin n` from the left: `foldl 3 f x = f (f (f x 0) 1) 2`. -/
-@[inline] def foldl (n) (f : α → Fin n → α) (init : α) : α := loop init 0 where
-  /-- Inner loop for `Fin.foldl`. `Fin.foldl.loop n f x i = f (f (f x i) ...) (n-1)`  -/
-  loop (x : α) (i : Nat) : α :=
-    if h : i < n then loop (f x ⟨i, h⟩) (i+1) else x
+/--
+Folds a monadic function over `Fin n` from left to right:
+```
+Fin.foldlM n f x₀ = do
+  let x₁ ← f x₀ 0
+  let x₂ ← f x₁ 1
+  ...
+  let xₙ ← f xₙ₋₁ (n-1)
+  pure xₙ
+```
+-/
+@[inline] def foldlM [Monad m] (n) (f : α → Fin n → m α) (init : α) : m α := loop init 0 where
+  /--
+  Inner loop for `Fin.foldlM`.
+  ```
+  Fin.foldlM.loop n f xᵢ i = do
+    let xᵢ₊₁ ← f xᵢ i
+    ...
+    let xₙ ← f xₙ₋₁ (n-1)
+    pure xₙ
+  ```
+  -/
+  loop (x : α) (i : Nat) : m α := do
+    if h : i < n then f x ⟨i, h⟩ >>= (loop · (i+1)) else pure x
   termination_by n - i
 
+/--
+Folds a monadic function over `Fin n` from right to left:
+```
+Fin.foldrM n f xₙ = do
+  let xₙ₋₁ ← f (n-1) xₙ
+  let xₙ₋₂ ← f (n-2) xₙ₋₁
+  ...
+  let x₀ ← f 0 x₁
+  pure x₀
+```
+-/
+@[inline] def foldrM [Monad m] (n) (f : Fin n → α → m α) (init : α) : m α :=
+  loop ⟨n, Nat.le_refl n⟩ init where
+  /--
+  Inner loop for `Fin.foldrM`.
+  ```
+  Fin.foldrM.loop n f i xᵢ = do
+    let xᵢ₋₁ ← f (i-1) xᵢ
+    ...
+    let x₁ ← f 1 x₂
+    let x₀ ← f 0 x₁
+    pure x₀
+  ```
+  -/
+  loop : {i // i ≤ n} → α → m α
+  | ⟨0, _⟩, x => pure x
+  | ⟨i+1, h⟩, x => f ⟨i, h⟩ x >>= loop ⟨i, Nat.le_of_lt h⟩
+
+-- These are also defined in core in the root namespace!
+
 /-- Folds over `Fin n` from the right: `foldr 3 f x = f 0 (f 1 (f 2 x))`. -/
-@[inline] def foldr (n) (f : Fin n → α → α) (init : α) : α := loop ⟨n, Nat.le_refl n⟩ init where
-  /-- Inner loop for `Fin.foldr`. `Fin.foldr.loop n f i x = f 0 (f ... (f (i-1) x))`  -/
-  loop : {i // i ≤ n} → α → α
-  | ⟨0, _⟩, x => x
-  | ⟨i+1, h⟩, x => loop ⟨i, Nat.le_of_lt h⟩ (f ⟨i, h⟩ x)
+@[inline] def foldr (n) (f : Fin n → α → α) (init : α) : α :=
+  foldrM (m:=Id) n f init
+
+/-- Folds over `Fin n` from the left: `foldl 3 f x = f (f (f x 0) 1) 2`. -/
+@[inline] def foldl (n) (f : α → Fin n → α) (init : α) : α :=
+  foldlM (m:=Id) n f init

@@ -2822,3 +2822,13 @@ theorem lt_antisymm' [LT α]
       have ab : ¬a < b := fun ab => h₁ (.head _ _ ab)
       cases lt_antisymm ab (fun ba => h₂ (.head _ _ ba))
       rw [ih (fun ll => h₁ (.tail ab ab ll)) (fun ll => h₂ (.tail ab ab ll))]
+
+/-! ### foldlM and foldrM -/
+
+theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
+    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
+  induction l generalizing g init <;> simp [*]
+
+theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
+    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
+  induction l generalizing g init <;> simp [*]
