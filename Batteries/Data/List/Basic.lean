@@ -471,6 +471,40 @@ def IsInfix (l₁ : List α) (l₂ : List α) : Prop := ∃ s t, s ++ l₁ ++ t 
 @[inherit_doc] infixl:50 " <:+: " => IsInfix
 
 /--
+`IsStrictSuffix l₁ l₂` means that `l₁` is a strict suffix of `l₂`,
+that is, `IsSuffix l₁ l₂` and `l₁ ≠ l₂`.
+-/
+def IsStrictSuffix (l1 l2 : List α) := l1 <:+ l2 ∧ l1 ≠ l2
+
+theorem IsStrictSuffix.length_lt {l1 l2 : List α} (h : l1.IsStrictSuffix l2) :
+    l1.length < l2.length :=
+  h.rec (·.rec (·.rec (by simp_all) fun _ _ _ => (by simp_arith [← ·])))
+
+/-- Strong recursor for `List` -/
+@[elab_as_elim]
+protected def strongRec {motive : List α → Sort _}
+  (h : ∀ l, (∀ l', l'.IsStrictSuffix l → motive l') → motive l)
+  (l : List α) : motive l := h l fun l' _h => List.strongRec h l'
+termination_by l.length
+decreasing_by exact _h.length_lt
+
+/-- Strong recursor for `List` -/
+@[elab_as_elim]
+protected def strongRecOn (l : List α) {motive : List α → Sort _}
+  (h : ∀ l, (∀ l', l'.IsStrictSuffix l → motive l') → motive l) : motive l := List.strongRec h l
+
+/-- Variant of `List.strongRecOn` using non-strict suffixes -/
+@[elab_as_elim]
+protected def caseStrongRecOn (l : List α) {motive : List α → Sort _}
+    (nil : motive [])
+    (cons : ∀ hd tl, (∀ tl', tl' <:+ tl → motive tl') → motive (hd :: tl)) : motive l :=
+  match l with
+  | [] => nil
+  | hd :: tl => cons hd tl fun tl' _h => List.caseStrongRecOn tl' nil cons
+termination_by l.length
+decreasing_by exact _h.rec fun _ => (by simp_wf; simp_arith [← ·])
+
+/--
 `inits l` is the list of initial segments of `l`.
 ```
 inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]]

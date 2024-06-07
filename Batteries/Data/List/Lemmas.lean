@@ -1025,9 +1025,19 @@ theorem infix_append (l₁ l₂ l₃ : List α) : l₂ <:+: l₁ ++ l₂ ++ l₃
 @[simp] theorem infix_append' (l₁ l₂ l₃ : List α) : l₂ <:+: l₁ ++ (l₂ ++ l₃) := by
   rw [← List.append_assoc]; apply infix_append
 
+theorem isStrictSuffix_iff_append {l₁ l₂ : List α} :
+    l₁.IsStrictSuffix l₂ ↔ ∃ t, t ≠ [] ∧ t ++ l₁ = l₂ :=
+  ⟨fun ⟨⟨t, ht⟩, h⟩ => ⟨t, fun _ => by simp_all, ht⟩,
+   fun ⟨t, ht, h⟩ => ⟨⟨t, h⟩, (ht <| append_cancel_right <| h.trans ·.symm)⟩⟩
+
+theorem isStrictSuffix_append {l₁ : List α} (h : l₁ ≠ []) (l₂ : List α) :
+    l₂.IsStrictSuffix (l₁ ++ l₂) := isStrictSuffix_iff_append.mpr ⟨l₁, h, rfl⟩
+
 theorem IsPrefix.isInfix : l₁ <+: l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨[], t, h⟩
 
 theorem IsSuffix.isInfix : l₁ <:+ l₂ → l₁ <:+: l₂ := fun ⟨t, h⟩ => ⟨t, [], by rw [h, append_nil]⟩
+
+theorem IsStrictSuffix.isSuffix : l₁.IsStrictSuffix l₂ → l₁ <:+ l₂ := (·.1)
 
 theorem nil_prefix (l : List α) : [] <+: l := ⟨l, rfl⟩
 
@@ -1043,6 +1053,15 @@ theorem infix_refl (l : List α) : l <:+: l := (prefix_refl l).isInfix
 
 @[simp] theorem suffix_cons (a : α) : ∀ l, l <:+ a :: l := suffix_append [a]
 
+theorem isStrictSuffix_cons_iff {a : α} {l₁ l₂ : List α} :
+    l₁.IsStrictSuffix (a :: l₂) ↔ l₁ <:+ l₂ :=
+  isStrictSuffix_iff_append.trans
+    ⟨(·.rec (·.rec (by simp) fun _ t _ _ => ⟨t, by simp_all⟩)),
+     fun ⟨t, ht⟩ => ⟨a :: t, cons_ne_nil a t, by simp [ht]⟩⟩
+
+@[simp] theorem isStrictSuffix_cons (a : α) : ∀ l, IsStrictSuffix l (a :: l) :=
+  (isStrictSuffix_cons_iff.mpr <| suffix_refl ·)
+
 theorem infix_cons : l₁ <:+: l₂ → l₁ <:+: a :: l₂ := fun ⟨L₁, L₂, h⟩ => ⟨a :: L₁, L₂, h ▸ rfl⟩
 
 theorem infix_concat : l₁ <:+: l₂ → l₁ <:+: concat l₂ a := fun ⟨L₁, L₂, h⟩ =>
@@ -1056,6 +1075,10 @@ theorem IsSuffix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+ l₂ → l₂ 
 
 theorem IsInfix.trans : ∀ {l₁ l₂ l₃ : List α}, l₁ <:+: l₂ → l₂ <:+: l₃ → l₁ <:+: l₃
   | l, _, _, ⟨l₁, r₁, rfl⟩, ⟨l₂, r₂, rfl⟩ => ⟨l₂ ++ l₁, r₁ ++ r₂, by simp only [append_assoc]⟩
+
+theorem IsStrictSuffix.trans {l₁ l₂ l₃ : List α}
+    (h₁ : l₁.IsStrictSuffix l₂) (h₂ : l₂.IsStrictSuffix l₃) : l₁.IsStrictSuffix l₃ :=
+  ⟨h₁.1.trans h₂.1, (ne_of_lt (Nat.lt_trans h₁.length_lt h₂.length_lt) <| congrArg length ·)⟩
 
 protected theorem IsInfix.sublist : l₁ <:+: l₂ → l₁ <+ l₂
   | ⟨_, _, h⟩ => h ▸ (sublist_append_right ..).trans (sublist_append_left ..)
