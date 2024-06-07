@@ -243,7 +243,9 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 
 /-! ### get? -/
 
-theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by simp [get?_eq_some]
+theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
+  simp only [get_eq_getElem, get?_eq_getElem?, getElem?_eq_some]
+  exact ⟨fun h => ⟨n.2, h⟩, fun h => h.2⟩
 
 theorem get?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
@@ -254,12 +256,14 @@ theorem get?_inj
     | 0, 0 => rfl
     | i+1, j+1 => simp; cases h₁ with
       | cons ha h₁ => exact ih (Nat.lt_of_succ_lt_succ h₀) h₁ h₂
-    | i+1, 0 => ?_ | 0, j+1 => ?_
+    | i+1, 0 => ?_
+    | 0, j+1 => ?_
     all_goals
-      simp at h₂
+      simp only [get?_eq_getElem?, getElem?_cons_zero, getElem?_cons_succ] at h₂
       cases h₁; rename_i h' h
       have := h x ?_ rfl; cases this
       rw [mem_iff_get?]
+      simp only [get?_eq_getElem?]
     exact ⟨_, h₂⟩; exact ⟨_ , h₂.symm⟩
 
 /-! ### drop -/
@@ -274,6 +278,11 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
 
 /-! ### modifyNth -/
 
+@[simp] theorem modifyNth_nil (f : α → α) (n) : [].modifyNth f n = [] := by cases n <;> rfl
+
+theorem modifyNth_zero_cons (f : α → α) (a : α) (l : List α) :
+    (a :: l).modifyNth f 0 = f a :: l := rfl
+
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
   | _+1, [] => rfl
@@ -286,6 +295,16 @@ theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNt
 
 @[deprecated] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
 
+theorem getElem?_modifyNth (f : α → α) :
+    ∀ n (l : List α) m, (modifyNth f n l)[m]? = (fun a => if n = m then f a else a) <$> l[m]?
+  | n, l, 0 => by cases l <;> cases n <;> simp
+  | n, [], _+1 => by cases n <;> rfl
+  | 0, _ :: l, m+1 => by cases h : l[m]? <;> simp [h, modifyNth, m.succ_ne_zero.symm]
+  | n+1, a :: l, m+1 =>
+    (getElem?_modifyNth f n l m).trans <| by
+      cases h' : l[m]? <;> by_cases h : n = m <;>
+        simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
+
 theorem get?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
   | n, l, 0 => by cases l <;> cases n <;> rfl
@@ -293,7 +312,7 @@ theorem get?_modifyNth (f : α → α) :
   | 0, _ :: l, m+1 => by cases h : l.get? m <;> simp [h, modifyNth, m.succ_ne_zero.symm]
   | n+1, a :: l, m+1 =>
     (get?_modifyNth f n l m).trans <| by
-      cases h' : l.get? m <;> by_cases h : n = m <;>
+      cases h' : l[m]? <;> by_cases h : n = m <;>
         simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
@@ -314,6 +333,10 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
 
 @[simp] theorem modify_get?_length (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
   modifyNthTail_length _ fun l => by cases l <;> rfl
+
+@[simp] theorem getElem?_modifyNth_eq (f : α → α) (n) (l : List α) :
+  (modifyNth f n l)[n]? = f <$> l[n]? := by
+  simp only [get?_modifyNth, if_pos]
 
 @[simp] theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
   (modifyNth f n l).get? n = f <$> l.get? n := by
@@ -359,7 +382,7 @@ theorem modifyNth_eq_set_get? (f : α → α) :
   | 0, l => by cases l <;> rfl
   | n+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l.get? n <;> simp [h]
+    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
 theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
@@ -372,6 +395,10 @@ theorem exists_of_set {l : List α} (h : n < l.length) :
 theorem exists_of_set' {l : List α} (h : n < l.length) :
     ∃ l₁ l₂, l = l₁ ++ l.get ⟨n, h⟩ :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ :=
   have ⟨_, _, _, h₁, h₂, h₃⟩ := exists_of_set h; ⟨_, _, get_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
+
+@[simp]
+theorem getElem?_set_eq (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by
+  simp only [set_eq_modifyNth, get?_modifyNth_eq]
 
 @[simp]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
