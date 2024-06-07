@@ -304,11 +304,13 @@ theorem get?_modifyNth (f : α → α) :
       cases h' : l.get? m <;> by_cases h : n = m <;>
         simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
-theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
+theorem length_modifyNthTail (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
   | 0, _ => H _
   | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (·+1) (modifyNthTail_length _ H _ _)
+  | _+1, _ :: _ => congrArg (·+1) (length_modifyNthTail _ H _ _)
+
+@[deprecated (since := "2024-06-07")] alias modifyNthTail_length := length_modifyNthTail
 
 theorem modifyNthTail_add (f : List α → List α) (n) (l₁ l₂ : List α) :
     modifyNthTail f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyNthTail f n l₂ := by
@@ -320,8 +322,10 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
     ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
   ⟨_, _, eq, hl, hl ▸ eq ▸ modifyNthTail_add (n := 0) ..⟩
 
-@[simp] theorem modify_get?_length (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
-  modifyNthTail_length _ fun l => by cases l <;> rfl
+@[simp] theorem length_modifyNth (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
+  length_modifyNthTail _ fun l => by cases l <;> rfl
+
+@[deprecated (since := "2024-06-07")] alias modify_get?_length := length_modifyNth
 
 @[simp] theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
   (modifyNth f n l).get? n = f <$> l.get? n := by
