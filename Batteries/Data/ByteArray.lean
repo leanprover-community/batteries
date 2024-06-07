@@ -14,9 +14,6 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### uget/uset -/
 
-@[simp] theorem ugetElem_eq_getElem (a : ByteArray) {i : USize} (h : i.toNat < a.size) :
-    a[i] = a[i.toNat] := rfl
-
 @[simp] theorem uset_eq_set (a : ByteArray) {i : USize} (h : i.toNat < a.size) (v : UInt8) :
     a.uset i v h = a.set ⟨i.toNat, h⟩ v := rfl
 
