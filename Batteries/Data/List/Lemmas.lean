@@ -274,6 +274,14 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
 
 /-! ### modifyNth -/
 
+@[simp] theorem modifyNth_nil (f : α → α) (n) : [].modifyNth f n = [] := by cases n <;> rfl
+
+@[simp] theorem modifyNth_zero_cons (f : α → α) (a : α) (l : List α) :
+    (a :: l).modifyNth f 0 = f a :: l := rfl
+
+@[simp] theorem modifyNth_succ_cons (f : α → α) (a : α) (l : List α) (n) :
+    (a :: l).modifyNth f (n + 1) = a :: l.modifyNth f n := by rfl
+
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
   | _+1, [] => rfl
