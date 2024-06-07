@@ -29,6 +29,15 @@ protected def strongRecOn (t : Nat) {motive : Nat → Sort _}
   (ind : ∀ n, (∀ m, m < n → motive m) → motive n) : motive t := Nat.strongRec ind t
 
 /--
+  Strong recursor via `Nat`-valued measure
+-/
+@[elab_as_elim]
+protected def strongRecMeasureOn (f : α → Nat) (x : α) {motive : α → Sort _}
+    (ind : ∀ x, (∀ y, f y < f x → motive y) → motive x) : motive x :=
+  ind x fun y _ => Nat.strongRecMeasureOn f y ind
+termination_by f x
+
+/--
   Simple diagonal recursor for `Nat`
 -/
 @[elab_as_elim]
