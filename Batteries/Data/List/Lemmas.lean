@@ -280,8 +280,11 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
 
 @[simp] theorem modifyNth_nil (f : α → α) (n) : [].modifyNth f n = [] := by cases n <;> rfl
 
-theorem modifyNth_zero_cons (f : α → α) (a : α) (l : List α) :
+@[simp] theorem modifyNth_zero_cons (f : α → α) (a : α) (l : List α) :
     (a :: l).modifyNth f 0 = f a :: l := rfl
+
+@[simp] theorem modifyNth_succ_cons (f : α → α) (a : α) (l : List α) (n) :
+    (a :: l).modifyNth f (n + 1) = a :: l.modifyNth f n := by rfl
 
 theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
   | 0, _ => rfl
@@ -300,20 +303,15 @@ theorem getElem?_modifyNth (f : α → α) :
   | n, l, 0 => by cases l <;> cases n <;> simp
   | n, [], _+1 => by cases n <;> rfl
   | 0, _ :: l, m+1 => by cases h : l[m]? <;> simp [h, modifyNth, m.succ_ne_zero.symm]
-  | n+1, a :: l, m+1 =>
-    (getElem?_modifyNth f n l m).trans <| by
-      cases h' : l[m]? <;> by_cases h : n = m <;>
-        simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
+  | n+1, a :: l, m+1 => by
+    simp only [modifyNth_succ_cons, getElem?_cons_succ, Nat.reduceEqDiff, Option.map_eq_map]
+    refine (getElem?_modifyNth f n l m).trans ?_
+    cases h' : l[m]? <;> by_cases h : n = m <;>
+      simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
-theorem get?_modifyNth (f : α → α) :
-    ∀ n (l : List α) m, (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m
-  | n, l, 0 => by cases l <;> cases n <;> rfl
-  | n, [], _+1 => by cases n <;> rfl
-  | 0, _ :: l, m+1 => by cases h : l.get? m <;> simp [h, modifyNth, m.succ_ne_zero.symm]
-  | n+1, a :: l, m+1 =>
-    (get?_modifyNth f n l m).trans <| by
-      cases h' : l[m]? <;> by_cases h : n = m <;>
-        simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
+theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
+    (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
+  simp [getElem?_modifyNth]
 
 theorem modifyNthTail_length (f : List α → List α) (H : ∀ l, length (f l) = length l) :
     ∀ n l, length (modifyNthTail f n l) = length l
@@ -336,9 +334,9 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
 
 @[simp] theorem getElem?_modifyNth_eq (f : α → α) (n) (l : List α) :
   (modifyNth f n l)[n]? = f <$> l[n]? := by
-  simp only [get?_modifyNth, if_pos]
+  simp only [getElem?_modifyNth, if_pos]
 
-@[simp] theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
+theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
   (modifyNth f n l).get? n = f <$> l.get? n := by
   simp only [get?_modifyNth, if_pos]
 
