@@ -7,7 +7,7 @@ Authors: Miyahara Kō
 /-!
 # Computable Acc.rec and WellFounded.fix
 
-This file exports no public definitions / theorems, but by importing it the compiler will
+By importing this file, the compiler will
 be able to compile `Acc.rec` and functions that use it. For example:
 
 Before:
@@ -36,6 +36,26 @@ def log2p1 : Nat → Nat := -- works!
       0
 
 #eval log2p1 4   -- 3
+```
+
+# `measureRec`
+
+`measureRec` provides the `induction` tactic with an analogue to
+`termination_by` a `Nat`-valued measure. For example:
+```lean
+import Batteries.WF
+
+example (l : List α) : sorry := by
+  induction l using measureRec List.length with
+  | ind l ih => exact ih sorry sorry
+```
+is analogous to:
+```lean
+example (l : List α) : sorry := by
+  let rec proof (l : List α) : sorry := proof sorry
+  termination_by List.length l
+  decreasing_by sorry
+  exact proof l
 ```
 -/
 
@@ -127,3 +147,15 @@ unseal fixC
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
 end WellFounded
+
+/--
+Strong recursor via a `Nat`-valued measure.
+
+Note that for non-`Prop` output it is preferable to use the equation compiler
+directly if possible, since this produces equation lemmas.
+-/
+@[elab_as_elim]
+def measureRec (f : α → Nat) {motive : α → Sort _}
+    (ind : ∀ x, (∀ y, f y < f x → motive y) → motive x) (x : α) : motive x :=
+  ind x fun y _ => measureRec f ind y
+termination_by f x
