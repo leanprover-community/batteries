@@ -9,7 +9,7 @@ import Lean.Elab.Term
 /-
 This file is the home for commands to tactics behave as expected.
 
-It currently includes two tactixs:
+It currently includes two tactics:
 
 #check_tactic t ~> res
 

@@ -53,6 +53,8 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
   intro a (fun x h => t.inv h) (fun y hr => recC intro (t.inv hr))
 termination_by Subtype.mk a t
 
+unseal recC
+
 private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
@@ -91,7 +93,7 @@ end Acc
 namespace WellFounded
 
 /-- Attaches to `x` the proof that `x` is accessible in the given well-founded relation.
-This can be used in recursive function definitions to explicitly use a differerent relation
+This can be used in recursive function definitions to explicitly use a different relation
 than the one inferred by default:
 
 ```
@@ -119,6 +121,8 @@ Workaround until Lean has native support for this. -/
     (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
   F x (fun y _ => fixC hwf F y)
 termination_by hwf.wrap x
+
+unseal fixC
 
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 

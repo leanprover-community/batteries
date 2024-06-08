@@ -45,11 +45,7 @@ elab (name := instancesCmd) tk:"#instances " stx:term : command => runTermElabM 
       let mut msg := m!"\n"
       if e.priority != 1000 then -- evalPrio default := 1000
         msg := msg ++ m!"(prio {e.priority}) "
-      msgs := msgs.push <| msg ++ .ofPPFormat { pp := fun
-        | some ctx => ctx.runMetaM <| withOptions (pp.tagAppFns.set · true) <|
-          PrettyPrinter.ppSignature c
-        | none     => return f!"{c}"
-      }
+      msgs := msgs.push <| msg ++ MessageData.signature c
     for linst in ← getLocalInstances do
       if linst.className == className then
         msgs := msgs.push m!"(local) {linst.fvar} : {← inferType linst.fvar}"
