@@ -100,8 +100,8 @@ protected theorem Balanced.ins {path : Path α}
     | .balanced .nil => exact ih (.balanced (.red hl .nil))
     | .balanced (.red ha hb) => exact ih (.redred rfl hl (.red ha hb))
     | .balanced (.black ha hb) => exact ih (.balanced (.red hl (.black ha hb)))
-  | blackL hr hp ih => exact have ⟨c, h⟩ := ht.balance1 hr; ih (.balanced h)
-  | blackR hl hp ih => exact have ⟨c, h⟩ := ht.balance2 hl; ih (.balanced h)
+  | blackL hr _hp ih => exact have ⟨c, h⟩ := ht.balance1 hr; ih (.balanced h)
+  | blackR hl _hp ih => exact have ⟨c, h⟩ := ht.balance2 hl; ih (.balanced h)
 
 protected theorem Balanced.insertNew {path : Path α} (H : path.Balanced c n black 0) :
     ∃ n, (path.insertNew v).Balanced black n := H.ins (.balanced (.red .nil .nil))

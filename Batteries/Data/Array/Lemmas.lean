@@ -115,3 +115,15 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 /-! ### erase -/
 
 @[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+
+/-! ### shrink -/
+
+theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
+  induction n generalizing a with simp[shrink.loop]
+  | succ n ih =>
+      simp[ih]
+      omega
+
+theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
+  simp [shrink, size_shrink_loop]
+  omega

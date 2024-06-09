@@ -394,10 +394,10 @@ theorem Heap.WF.merge' (h₁ : s₁.WF le n) (h₂ : s₂.WF le n) :
     · let ⟨ih₁, ih₂⟩ := merge' (s₁ := .cons ..)
         ⟨Nat.le_succ_of_le hr₁, this, ht₁.of_rankGT hl₁⟩
         (ht₂.of_le (Nat.le_succ_of_le hr₁))
-      exact ⟨ih₁, fun _ => ih₂ ⟨fun _ => ht₂.rankGT.of_le hr₁, fun h => Nat.lt_succ_of_le hr₁⟩⟩
+      exact ⟨ih₁, fun _ => ih₂ ⟨fun _ => ht₂.rankGT.of_le hr₁, fun _ => Nat.lt_succ_of_le hr₁⟩⟩
     · let ⟨ih₁, ih₂⟩ := merge' (s₂ := .cons ..) (ht₁.of_le (Nat.le_succ_of_le hr₁))
         ⟨Nat.le_succ_of_le hr₁, this, ht₂.of_rankGT hl₂⟩
-      exact ⟨ih₁, fun _ => ih₂ ⟨fun h => Nat.lt_succ_of_le hr₁, fun _ => ht₁.rankGT.of_le hr₁⟩⟩
+      exact ⟨ih₁, fun _ => ih₂ ⟨fun _ => Nat.lt_succ_of_le hr₁, fun _ => ht₁.rankGT.of_le hr₁⟩⟩
     · let ⟨ih₁, ih₂⟩ := merge' ht₁ ht₂
       exact ⟨⟨Nat.le_succ_of_le hr₁, this, ih₁.of_rankGT (ih₂ (iff_of_false hl₁ hl₂))⟩,
         fun _ => Nat.lt_succ_of_le hr₁⟩
