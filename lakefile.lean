@@ -21,6 +21,6 @@ lean_exe runLinter where
 meta if get_config? doc |>.isSome then
 require «doc-gen4» from git "https://github.com/leanprover/doc-gen4" @ "main"
 
-@[test_runner]
+@[test_driver]
 lean_exe test where
   srcDir := "scripts"
