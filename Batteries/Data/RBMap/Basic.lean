@@ -679,6 +679,16 @@ instance [Repr α] : Repr (RBSet α cmp) where
 @[inline] def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
 
 /--
+Insert all elements from a collection into a `RBSet α cmp`.
+-/
+def insertMany [ForIn Id ρ α] (s : RBSet α cmp) (as : ρ) :
+    RBSet α cmp := Id.run do
+  let mut s := s
+  for a in as do
+    s := s.insert a
+  return s
+
+/--
 `O(log n)`. Remove an element from the tree using a cut function.
 The `cut` function is used to locate an element in the tree:
 it returns `.gt` if we go too high and `.lt` if we go too low;
