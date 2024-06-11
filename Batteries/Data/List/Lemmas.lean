@@ -243,9 +243,12 @@ theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_t
 
 /-! ### get? -/
 
-theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
+theorem getElem_eq_iff {l : List α} {n : Nat} {h : n < l.length} : l[n] = x ↔ l[n]? = some x := by
   simp only [get_eq_getElem, get?_eq_getElem?, getElem?_eq_some]
-  exact ⟨fun h => ⟨n.2, h⟩, fun h => h.2⟩
+  exact ⟨fun w => ⟨h, w⟩, fun h => h.2⟩
+
+theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
+  simp [getElem_eq_iff]
 
 theorem get?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
