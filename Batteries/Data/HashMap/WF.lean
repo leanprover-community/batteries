@@ -87,15 +87,15 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} :
   · rw [Buckets.mk_size]; simp [Buckets.size]
   · nofun
 where
-  go (i source) (target : Buckets α β) (hs : ∀ j < i, source.data.getD j .nil = .nil) :
+  go (i source) (target : Buckets α β) (hs : ∀ j < i, source.data[j]?.getD .nil = .nil) :
       (expand.go i source target).size =
         .sum (source.data.map (·.toList.length)) + target.size := by
     unfold expand.go; split
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b <;> simp
       · case a =>
-        simp only [List.getD_eq_get?, List.get?_set, Option.map_eq_map]; split
-        · cases List.get? .. <;> rfl
+        simp [List.getD_eq_get?, List.getElem?_set, Option.map_eq_map]; split
+        · cases source.data[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set' H; eq ▸ ?_
@@ -114,7 +114,7 @@ where
       refine List.ext_get (by simp) fun j h₁ h₂ => ?_
       simp only [List.get_map, Array.data_length]
       have := (hs j (Nat.lt_of_lt_of_le h₂ (Nat.not_lt.1 H))).symm
-      rwa [List.getD_eq_get?, List.get?_eq_get, Option.getD_some] at this
+      rwa [List.getElem?_eq_getElem] at this
   termination_by source.size - i
 
 theorem expand_WF.foldl [BEq α] [Hashable α] (rank : α → Nat) {l : List (α × β)} {i : Nat}
