@@ -112,11 +112,18 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
+      let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
-        decorateError "simplify fails on left-hand side:" <| simp lhs ctx
+        decorateError "simplify fails on left-hand side:" <|
+          if !isRfl then simp lhs ctx else do
+            let (e, s) ← dsimp lhs ctx
+            return (Simp.Result.mk e .none .true, s)
       if prf1Stats.usedTheorems.contains (.decl declName) then return none
       let ({ expr := rhs', .. }, stats) ←
-        decorateError "simplify fails on right-hand side:" <| simp rhs ctx (stats := prf1Stats)
+        decorateError "simplify fails on right-hand side:" <|
+          if !isRfl then simp rhs ctx (stats := prf1Stats) else do
+            let (e, s) ← dsimp rhs ctx (stats := prf1Stats)
+            return (Simp.Result.mk e .none .true, s)
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
       if lhs'EqRhs' then
