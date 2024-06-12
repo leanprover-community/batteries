@@ -17,7 +17,7 @@ def Up (ub a i : Nat) := i < a ∧ i < ub
 theorem Up.next {ub i} (h : i < ub) : Up ub (i+1) i := ⟨Nat.lt_succ_self _, h⟩
 
 theorem Up.WF (ub) : WellFounded (Up ub) :=
-  Subrelation.wf (h₂ := (measure (ub - ·)).wf) fun ⟨ia, iu⟩ ↦ Nat.sub_lt_sub_left iu ia
+  Subrelation.wf (h₂ := (measure (ub - ·)).wf) fun ⟨ia, iu⟩ => Nat.sub_lt_sub_left iu ia
 
 /-- A well-ordered relation for "upwards" induction on the natural numbers up to some bound `ub`. -/
 def upRel (ub : Nat) : WellFoundedRelation Nat := ⟨Up ub, Up.WF ub⟩
@@ -64,7 +64,7 @@ def forIn.loop [Monad m] (f : UInt8 → β → m (ForInStep β))
 termination_by _end - i
 
 instance : ForIn m ByteSlice UInt8 :=
-  ⟨fun ⟨arr, off, len⟩ b f ↦ forIn.loop f arr off (off + len) off b⟩
+  ⟨fun ⟨arr, off, len⟩ b f => forIn.loop f arr off (off + len) off b⟩
 
 end ByteSlice
 
