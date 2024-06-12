@@ -72,7 +72,7 @@ unsafe def main (args : List String) : IO Unit := do
         let fmtResults ←
           formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
             s!"in {module}" (runSlowLinters := true) .medium linters.size
-        IO.print (← fmtResults.toString)
+        IO.print (← (← addMessageContext fmtResults).toString)
         IO.Process.exit 1
       else
         IO.println "-- Linting passed."

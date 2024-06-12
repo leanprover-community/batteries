@@ -125,11 +125,9 @@ def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Boo
   (filePath : System.FilePath := default) : CoreM MessageData := do
   if useErrorFormat then
     if let some range ← findDeclarationRanges? declName then
-      let msg ← addMessageContextPartial
-        m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
+      return m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
           ← mkConstWithLevelParams declName} {warning}"
-      return msg
-  addMessageContextPartial m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
+  pure m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
 def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePath := default)
