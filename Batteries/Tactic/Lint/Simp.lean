@@ -115,20 +115,25 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
       let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <|
-          if !isRfl then simp lhs ctx else do
+          if !isRfl then
+            simp lhs ctx
+          else do
             let (e, s) ← dsimp lhs ctx
             return (Simp.Result.mk e .none .true, s)
       if prf1Stats.usedTheorems.contains (.decl declName) then return none
       let ({ expr := rhs', .. }, stats) ←
         decorateError "simplify fails on right-hand side:" <|
-          if !isRfl then simp rhs ctx (stats := prf1Stats) else do
+          if !isRfl then
+            simp rhs ctx (stats := prf1Stats)
+          else do
             let (e, s) ← dsimp rhs ctx (stats := prf1Stats)
             return (Simp.Result.mk e .none .true, s)
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
+      let simpName := if !isRfl then "simp" else "dsimp"
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
-        return m!"simp can prove this:
+        return m!"{simpName} can prove this:
   by {← formatLemmas stats.usedTheorems}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
