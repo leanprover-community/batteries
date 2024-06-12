@@ -34,23 +34,11 @@ theorem foo_eq_id : foo = id := by
   funext n
   simp [foo]
 
--- The following `dsimp`-lemma is flagged by the linter
+-- The following `dsimp`-lemma is (correctly) not flagged by the linter
 @[simp]
 theorem foo_eq_ite (n : Nat) : foo n = if n = n then n else 0 := by
   rfl
 
 end Equiv
 
-/--
-error: /- The `simpNF` linter reports:
-SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
-see note [simp-normal form] for tips how to debug this.
-https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form -/
-#check Equiv.foo_eq_ite /- simp can prove this:
-  by simp only [Equiv.foo_eq_id, @id_eq, @ite_true]
-One of the lemmas above could be a duplicate.
-If that's not the case try reordering lemmas or adding @[priority].
- -/
--/
-#guard_msgs in
 #lint- only simpNF
