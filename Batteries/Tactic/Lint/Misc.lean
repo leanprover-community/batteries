@@ -234,7 +234,8 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
     | some (n, t, _, b) =>
       if n.isInternal then return
       if b.hasLooseBVars then return
-      let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
+      let msg ← Elab.withSaveInfoContext do
+        addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
       res.modify (·.push msg)
     | _ => return
   res.get
