@@ -269,9 +269,9 @@ def pmap {α β} {p : α → Prop} (f : ∀ a, p a → β) : ∀ l : LazyList α
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new `LazyList`
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach {α} (l : LazyList α) : LazyList { x // x ∈ l } :=
-  pmap Subtype.mk l fun _ ↦ id
+  pmap Subtype.mk l fun _ => id
 
 instance {α} [Repr α] : Repr (LazyList α) :=
-  ⟨fun xs _ ↦ repr xs.toList⟩
+  ⟨fun xs _ => repr xs.toList⟩
 
 end LazyList
