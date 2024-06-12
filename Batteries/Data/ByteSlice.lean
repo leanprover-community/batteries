@@ -24,6 +24,7 @@ def upRel (ub : Nat) : WellFoundedRelation Nat := ⟨Up ub, Up.WF ub⟩
 
 end Nat
 
+set_option linter.missingDocs false in -- TODO
 /-- A terminal byte slice, a suffix of a byte array. -/
 structure ByteSliceT := (arr : ByteArray) (off : Nat)
 
@@ -40,6 +41,7 @@ end ByteSliceT
 /-- Convert a byte array into a terminal slice. -/
 def ByteArray.toSliceT (arr : ByteArray) : ByteSliceT := ⟨arr, 0⟩
 
+set_option linter.missingDocs false in -- TODO
 /-- A byte slice, given by a backing byte array, and an offset and length. -/
 structure ByteSlice := (arr : ByteArray) (off len : Nat)
 
