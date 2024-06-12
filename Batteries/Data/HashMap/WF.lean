@@ -23,7 +23,7 @@ theorem update_data (self : Buckets α β) (i d h) :
 theorem exists_of_update (self : Buckets α β) (i d h) :
     ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
-  simp only [Array.data_length, Array.ugetElem_eq_getElem, Array.getElem_eq_data_get]
+  simp only [Array.data_length, Array.ugetElem_eq_getElem, Array.getElem_eq_data_getElem]
   exact List.exists_of_set' h
 
 theorem update_update (self : Buckets α β) (i d d' h h') :
@@ -43,7 +43,7 @@ theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF 
   refine ⟨fun _ h => ?_, fun i h => ?_⟩
   · simp only [Buckets.mk, mkArray, List.mem_replicate, ne_eq] at h
     simp [h, List.Pairwise.nil]
-  · simp [Buckets.mk, empty', mkArray, Array.getElem_eq_data_get, AssocList.All]
+  · simp [Buckets.mk, empty', mkArray, Array.getElem_eq_data_getElem, AssocList.All]
 
 theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : buckets.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
@@ -57,7 +57,8 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     | .inl hl => H.1 _ hl
     | .inr rfl => h₁ (H.1 _ (Array.getElem_mem_data ..))
   · revert hp
-    simp only [Array.getElem_eq_data_get, update_data, List.get_set, Array.data_length, update_size]
+    simp only [Array.getElem_eq_data_getElem, update_data, List.getElem_set, Array.data_length,
+      update_size]
     split <;> intro hp
     · next eq => exact eq ▸ h₂ (H.2 _ _) _ hp
     · simp only [update_size, Array.data_length] at hi
@@ -81,6 +82,7 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
     | _, _, .head .. => rfl
     | H, _, .tail _ h => H _ h
 
+set_option linter.deprecated false in
 theorem expand_size [Hashable α] {buckets : Buckets α β} :
     (expand sz buckets).buckets.size = buckets.size := by
   rw [expand, go]
@@ -166,8 +168,8 @@ where
       · match List.mem_or_eq_of_mem_set hl with
         | .inl hl => exact hs₁ _ hl
         | .inr e => exact e ▸ .nil
-      · simp only [Array.data_length, Array.size_set, Array.getElem_eq_data_get, Array.data_set,
-          List.get_set]
+      · simp only [Array.data_length, Array.size_set, Array.getElem_eq_data_getElem, Array.data_set,
+          List.getElem_set]
         split
         · nofun
         · exact hs₂ _ (by simp_all)
@@ -362,8 +364,8 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp only [Array.size_mk, List.length_map, Array.data_length, Array.getElem_eq_data_get,
-      List.get_map] at h ⊢
+  · simp only [Array.size_mk, List.length_map, Array.data_length, Array.getElem_eq_data_getElem,
+      List.getElem_map] at h ⊢
     have := H.out.2.2 _ h
     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
       Option.map_eq_some', forall_exists_index, and_imp, g₁] at this ⊢

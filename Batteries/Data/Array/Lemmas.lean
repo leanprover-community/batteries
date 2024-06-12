@@ -64,7 +64,7 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
       let i_bs : Fin bs.data.length := ⟨i, hbs⟩
       rw [h₁, List.append_assoc]
       congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_data_get, getElem_eq_data_get]
+      rw [← List.zipWith_append (h := by simp), getElem_eq_data_getElem, getElem_eq_data_getElem]
       show List.zipWith f ((List.get as.data i_as) :: List.drop (i_as + 1) as.data)
         ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
