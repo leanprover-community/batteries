@@ -234,18 +234,26 @@ theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
     refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
     simp [comp_def, pairwise_map, IH, ← get_eq_getElem]
 
-theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
+theorem pairwise_iff_getElem : Pairwise R l ↔
+    ∀ (i j : Nat) (_hi : i < l.length) (_hj : j < l.length) (_hij : i < j), R l[i] l[j] := by
   rw [pairwise_iff_forall_sublist]
   constructor <;> intro h
-  · intros i j h'
+  · intros i j hi hj h'
     apply h
-    apply map_get_sublist (is := [i, j])
-    rw [Fin.lt_def] at h'; simp [h']
+    simpa [h'] using map_get_sublist (is := [⟨i, hi⟩, ⟨j, hj⟩])
   · intros a b h'
     have ⟨is, h', hij⟩ := sublist_eq_map_get h'
     rcases is with ⟨⟩ | ⟨a', ⟨⟩ | ⟨b', ⟨⟩⟩⟩ <;> simp at h'
     rcases h' with ⟨rfl, rfl⟩
     apply h; simpa using hij
+
+theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
+  rw [pairwise_iff_getElem]
+  constructor <;> intro h
+  · intros i j h'
+    exact h _ _ _ _ h'
+  · intros i j hi hj h'
+    exact h ⟨i, hi⟩ ⟨j, hj⟩ h'
 
 theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
     ∀ n : Nat, Pairwise r (List.replicate n x)
