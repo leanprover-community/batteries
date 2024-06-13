@@ -380,8 +380,8 @@ theorem modifyNth_eq_take_drop (f : α → α) :
   modifyNthTail_eq_take_drop _ rfl
 
 theorem modifyNth_eq_take_cons_drop (f : α → α) {n l} (h) :
-    modifyNth f n l = take n l ++ f (get l ⟨n, h⟩) :: drop (n + 1) l := by
-  rw [modifyNth_eq_take_drop, drop_eq_get_cons h]; rfl
+    modifyNth f n l = take n l ++ f l[n] :: drop (n + 1) l := by
+  rw [modifyNth_eq_take_drop, drop_eq_getElem_cons h]; rfl
 
 /-! ### set -/
 
