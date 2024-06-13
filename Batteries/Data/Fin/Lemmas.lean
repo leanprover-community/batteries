@@ -34,6 +34,7 @@ protected theorem le_antisymm {x y : Fin n} (h1 : x ≤ y) (h2 : y ≤ x) : x = 
     (list n)[i] = cast (length_list n) ⟨i, h⟩ := by
   simp only [list]; rw [← Array.getElem_eq_data_getElem, getElem_enum, cast_mk]
 
+@[deprecated getElem_list (since := "2024-06-12")]
 theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
   simp [getElem_list]
 

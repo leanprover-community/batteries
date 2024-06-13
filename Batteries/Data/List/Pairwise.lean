@@ -247,6 +247,7 @@ theorem pairwise_iff_getElem : Pairwise R l ↔
     rcases h' with ⟨rfl, rfl⟩
     apply h; simpa using hij
 
+@[deprecated pairwise_iff_getElem (since := "2024-06-12")]
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_getElem]
   constructor <;> intro h

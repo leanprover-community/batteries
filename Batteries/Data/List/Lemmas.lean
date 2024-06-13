@@ -247,18 +247,21 @@ theorem getElem_eq_iff {l : List α} {n : Nat} {h : n < l.length} : l[n] = x ↔
   simp only [get_eq_getElem, get?_eq_getElem?, getElem?_eq_some]
   exact ⟨fun w => ⟨h, w⟩, fun h => h.2⟩
 
+@[deprecated getElem_eq_iff (since := "2024-06-12")]
 theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
   simp [getElem_eq_iff]
 
-theorem get?_inj
-    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
+theorem getElem?_inj
+    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs[i]? = xs[j]?) : i = j := by
   induction xs generalizing i j with
   | nil => cases h₀
   | cons x xs ih =>
     match i, j with
     | 0, 0 => rfl
     | i+1, j+1 => simp; cases h₁ with
-      | cons ha h₁ => exact ih (Nat.lt_of_succ_lt_succ h₀) h₁ h₂
+      | cons ha h₁ =>
+        simp only [getElem?_cons_succ] at h₂
+        exact ih (Nat.lt_of_succ_lt_succ h₀) h₁ h₂
     | i+1, 0 => ?_
     | 0, j+1 => ?_
     all_goals
@@ -268,6 +271,12 @@ theorem get?_inj
       rw [mem_iff_get?]
       simp only [get?_eq_getElem?]
     exact ⟨_, h₂⟩; exact ⟨_ , h₂.symm⟩
+
+@[deprecated getElem?_inj (since := "2024-06-12")]
+theorem get?_inj
+    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
+  apply getElem?_inj h₀ h₁
+  simp_all
 
 /-! ### drop -/
 
@@ -312,6 +321,7 @@ theorem getElem?_modifyNth (f : α → α) :
     cases h' : l[m]? <;> by_cases h : n = m <;>
       simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
+@[deprecated getElem?_modifyNth (since := "2024-06-12")]
 theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
     (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
   simp [getElem?_modifyNth]
@@ -336,17 +346,19 @@ theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h :
   modifyNthTail_length _ fun l => by cases l <;> rfl
 
 @[simp] theorem getElem?_modifyNth_eq (f : α → α) (n) (l : List α) :
-  (modifyNth f n l)[n]? = f <$> l[n]? := by
+    (modifyNth f n l)[n]? = f <$> l[n]? := by
   simp only [getElem?_modifyNth, if_pos]
 
+@[deprecated getElem?_modifyNth_eq (since := "2024-06-12")]
 theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-  (modifyNth f n l).get? n = f <$> l.get? n := by
-  simp only [get?_modifyNth, if_pos]
+    (modifyNth f n l).get? n = f <$> l.get? n := by
+  simp [getElem?_modifyNth_eq]
 
 @[simp] theorem getElem?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
     (modifyNth f m l)[n]? = l[n]? := by
   simp only [getElem?_modifyNth, if_neg h, id_map']
 
+@[deprecated getElem?_modifyNth_ne (since := "2024-06-12")]
 theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
     (modifyNth f m l).get? n = l.get? n := by
   simp [h]
@@ -406,19 +418,23 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
 theorem getElem?_set_eq (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by
   simp only [set_eq_modifyNth, getElem?_modifyNth_eq]
 
+@[deprecated getElem?_set_eq (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
   simp
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-  (set l n a)[n]? = some a := by rw [getElem?_set_eq, getElem?_eq_getElem h]; rfl
+    (set l n a)[n]? = some a := by rw [getElem?_set_eq, getElem?_eq_getElem h]; rfl
 
+@[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
 theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-  (set l n a).get? n = some a := by rw [get?_set_eq, get?_eq_get h]; rfl
+    (set l n a).get? n = some a := by
+  rw [get?_eq_getElem?,getElem?_set_eq, getElem?_eq_getElem h]; rfl
 
 @[simp]
 theorem getElem?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a)[n]? = l[n]? := by
   simp only [set_eq_modifyNth, getElem?_modifyNth_ne _ _ h]
 
+@[deprecated getElem?_set_ne (since := "2024-06-12")]
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
   simp [h]
 
@@ -426,6 +442,7 @@ theorem getElem?_set (a : α) {m n} (l : List α) :
     (set l m a)[n]? = if m = n then (fun _ => a) <$> l[n]? else l[n]? := by
   by_cases m = n <;> simp [*]
 
+@[deprecated getElem?_set (since := "2024-06-12")]
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
   simp [getElem?_set]
@@ -440,14 +457,14 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 theorem drop_set_of_lt (a : α) {n m : Nat} (l : List α) (h : n < m) :
     (l.set n a).drop m = l.drop m :=
-  List.ext_get? fun i => by rw [get?_drop, get?_drop, get?_set_ne _ _ (by omega)]
+  List.ext_getElem? fun i => by rw [getElem?_drop, getElem?_drop, getElem?_set_ne _ _ (by omega)]
 
 theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
     (l.set n a).take m = l.take m :=
-  List.ext_get? fun i => by
-    rw [get?_take_eq_if, get?_take_eq_if]
+  List.ext_getElem? fun i => by
+    rw [getElem?_take_eq_if, getElem?_take_eq_if]
     split
-    · next h' => rw [get?_set_ne _ _ (by omega)]
+    · next h' => rw [getElem?_set_ne _ _ (by omega)]
     · rfl
 
 /-! ### removeNth -/
@@ -1376,14 +1393,16 @@ theorem getElem?_range' (s step) :
     exact (getElem?_range' (s + step) step (Nat.lt_of_add_lt_add_right h)).trans <| by
       simp [Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
 
+@[deprecated getElem?_range' (since := "2024-06-12")]
 theorem get?_range' (s step) {m n : Nat} (h : m < n) :
     get? (range' s n step) m = some (s + step * m) := by
   simp [getElem?_range', h]
 
 @[simp] theorem getElem_range' {n m step} (i) (H : i < (range' n m step).length) :
     (range' n m step)[i] = n + step * i :=
-  (get?_eq_some.1 <| get?_range' n step (by simpa using H)).2
+  (getElem?_eq_some.1 <| getElem?_range' n step (by simpa using H)).2
 
+@[deprecated getElem_range' (since := "2024-06-12")]
 theorem get_range' {n m step} (i) (H : i < (range' n m step).length) :
     get (range' n m step) ⟨i, H⟩ = n + step * i := by
   simp
@@ -1433,6 +1452,7 @@ theorem self_mem_range_succ (n : Nat) : n ∈ range (n + 1) := by simp
 theorem getElem?_range {m n : Nat} (h : m < n) : (range n)[m]? = some m := by
   simp [range_eq_range', getElem?_range' _ _ h]
 
+@[deprecated getElem?_range (since := "2024-06-12")]
 theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
   simp [getElem?_range, h]
 
@@ -1465,6 +1485,7 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 @[simp] theorem getElem_range {n} (i) (H : i < (range n).length) : (range n)[i] = i :=
   Option.some.inj <| by rw [← getElem?_eq_getElem _, getElem?_range (by simpa using H)]
 
+@[deprecated getElem_range (since := "2024-06-12")]
 theorem get_range {n} (i) (H : i < (range n).length) : get (range n) ⟨i, H⟩ = i := by
   simp
 
