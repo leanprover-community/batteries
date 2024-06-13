@@ -73,6 +73,7 @@ theorem mem_eraseIdx_iff_getElem {x : α} :
   | a::l, k+1 => by
     simp [Fin.exists_fin_succ, mem_eraseIdx_iff_getElem, @eq_comm _ a, k.succ_ne_zero.symm]
 
+@[deprecated mem_eraseIdx_iff_getElem (since := "2024-06-12")]
 theorem mem_eraseIdx_iff_get {x : α} {l} {k} :
     x ∈ eraseIdx l k ↔ ∃ i : Fin l.length, ↑i ≠ k ∧ l.get i = x := by
   simp [mem_eraseIdx_iff_getElem]
@@ -86,6 +87,7 @@ theorem mem_eraseIdx_iff_getElem? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ 
     obtain ⟨h', -⟩ := getElem?_eq_some.1 h
     exact ⟨h', h⟩
 
+@[deprecated mem_eraseIdx_iff_getElem? (since := "2024-06-12")]
 theorem mem_eraseIdx_iff_get? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ i ≠ k, l.get? i = x := by
   simp [mem_eraseIdx_iff_getElem?]
 
