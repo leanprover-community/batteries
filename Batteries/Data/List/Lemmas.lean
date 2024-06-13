@@ -409,10 +409,9 @@ theorem exists_of_set {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
   rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
 
-set_option linter.deprecated false in
 theorem exists_of_set' {l : List α} (h : n < l.length) :
-    ∃ l₁ l₂, l = l₁ ++ l.get ⟨n, h⟩ :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ :=
-  have ⟨_, _, _, h₁, h₂, h₃⟩ := exists_of_set h; ⟨_, _, get_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
+    ∃ l₁ l₂, l = l₁ ++ l[n] :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ :=
+  have ⟨_, _, _, h₁, h₂, h₃⟩ := exists_of_set h; ⟨_, _, getElem_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
 
 @[simp]
 theorem getElem?_set_eq (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by

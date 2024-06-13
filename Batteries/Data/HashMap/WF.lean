@@ -105,7 +105,7 @@ where
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.data_length]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
-        rw [List.get_eq_getElem, ← Array.getElem_eq_data_getElem]
+        rw [← Array.getElem_eq_data_getElem]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
         induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
     · next H =>
