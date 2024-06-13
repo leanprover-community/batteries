@@ -82,7 +82,6 @@ theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b
     | _, _, .head .. => rfl
     | H, _, .tail _ h => H _ h
 
-set_option linter.deprecated false in
 theorem expand_size [Hashable α] {buckets : Buckets α β} :
     (expand sz buckets).buckets.size = buckets.size := by
   rw [expand, go]
@@ -96,7 +95,7 @@ where
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b <;> simp
       · case a =>
-        simp [List.getD_eq_get?, List.getElem?_set, Option.map_eq_map]; split
+        simp [List.getD_eq_getElem?, List.getElem?_set, Option.map_eq_map]; split
         · cases source.data[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
@@ -105,7 +104,7 @@ where
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add,  Array.data_length]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
-        rw [← Array.getElem_eq_data_get]
+        rw [List.get_eq_getElem, ← Array.getElem_eq_data_getElem]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
         induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
     · next H =>
@@ -113,8 +112,8 @@ where
       rw [← (_ : source.data.map (fun _ => .nil) = source.data)]
       · simp only [List.map_map]
         induction source.data <;> simp [*]
-      refine List.ext_get (by simp) fun j h₁ h₂ => ?_
-      simp only [List.get_map, Array.data_length]
+      refine List.ext_getElem (by simp) fun j h₁ h₂ => ?_
+      simp only [List.getElem_map, Array.data_length]
       have := (hs j (Nat.lt_of_lt_of_le h₂ (Nat.not_lt.1 H))).symm
       rwa [List.getElem?_eq_getElem] at this
   termination_by source.size - i
