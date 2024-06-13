@@ -100,7 +100,8 @@ where
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set' H; eq ▸ ?_
-        simp only [Buckets.size_eq, h₁, List.map_append, List.map_cons, AssocList.toList,
+        rw [h₁]
+        simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.data_length]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
