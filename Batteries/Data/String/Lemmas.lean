@@ -33,13 +33,13 @@ instance : Batteries.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
 
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
-private theorem add_csize_pos : 0 < i + csize c :=
-  Nat.add_pos_right _ (csize_pos c)
+private theorem add_csize_pos : 0 < i + Char.utf8Size c :=
+  Nat.add_pos_right _ (Char.utf8Size_pos c)
 
-private theorem ne_add_csize_add_self : i ≠ n + csize c + i :=
+private theorem ne_add_csize_add_self : i ≠ n + Char.utf8Size c + i :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)
 
-private theorem ne_self_add_add_csize : i ≠ i + (n + csize c) :=
+private theorem ne_self_add_add_csize : i ≠ i + (n + Char.utf8Size c) :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
 
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
@@ -51,7 +51,7 @@ private theorem ne_self_add_add_csize : i ≠ i + (n + csize c) :=
 
 @[simp] theorem utf8Len_nil : utf8Len [] = 0 := rfl
 
-@[simp] theorem utf8Len_cons (c cs) : utf8Len (c :: cs) = utf8Len cs + csize c := rfl
+@[simp] theorem utf8Len_cons (c cs) : utf8Len (c :: cs) = utf8Len cs + c.utf8Size := rfl
 
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
   induction cs₁ <;> simp [*, Nat.add_right_comm]
@@ -88,7 +88,7 @@ namespace Pos
 
 attribute [ext] ext
 
-theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (csize_pos _)
+theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
 
 private theorem zero_ne_addChar {i : Pos} {c : Char} : 0 ≠ i + c :=
   ne_of_lt add_csize_pos
@@ -197,11 +197,11 @@ theorem modify_of_valid (cs cs' : List Char) :
   rw [modify, set_of_valid, get_of_valid]; cases cs' <;> rfl
 
 theorem next_of_valid' (cs cs' : List Char) :
-    next ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + csize (cs'.headD default)⟩ := by
+    next ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + (cs'.headD default).utf8Size⟩ := by
   simp only [next, get_of_valid]; rfl
 
 theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
-    next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + csize c⟩ := next_of_valid' ..
+    next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos) : atEnd s p ↔ s.endPos ≤ p :=
   decide_eq_true_iff _
@@ -214,7 +214,7 @@ theorem valid_next {p : Pos} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).
     simpa using Pos.Valid.mk (cs ++ [c]) cs'
 
 theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
-    (hp : i + (utf8Len cs + csize c) = p) :
+    (hp : i + (utf8Len cs + c.utf8Size) = p) :
     utf8PrevAux (cs ++ c :: cs') ⟨i⟩ ⟨p⟩ = ⟨i + utf8Len cs⟩ := by
   match cs with
   | [] => simp [utf8PrevAux, ← hp, Pos.addChar_eq]
@@ -226,7 +226,7 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
-    prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + csize c⟩ = ⟨utf8Len cs⟩ := by
+    prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
   simp [prev]; refine (if_neg (Pos.ne_of_gt add_csize_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
 
@@ -310,9 +310,9 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
     simp; split <;> simp
     subst b
-    rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + csize a⟩ by simp [hl₁, next_of_valid]]
+    rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by simp [hl₁, next_of_valid]]
     simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
-      firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + csize a)
+      firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
         (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
   · next h =>
     rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
@@ -758,7 +758,8 @@ theorem toIterator : ∀ {s}, ValidFor l m r s → s.toIterator.ValidFor l.rever
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
   | _, ⟨⟩ => by simpa using get_of_valid (l ++ m₁) (c :: m₂ ++ r)
 
-theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + csize c⟩
+theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
+    s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + c.utf8Size⟩
   | _, ⟨⟩ => by
     simp [Substring.next]
     rw [if_neg (mt Pos.ext_iff.1 ?a)]
@@ -772,7 +773,8 @@ theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.next ⟨utf8Len
 theorem next_stop : ∀ {s}, ValidFor l m r s → s.next ⟨utf8Len m⟩ = ⟨utf8Len m⟩
   | _, ⟨⟩ => by simp [Substring.next, Pos.add_eq]
 
-theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.prev ⟨utf8Len m₁ + csize c⟩ = ⟨utf8Len m₁⟩
+theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
+    s.prev ⟨utf8Len m₁ + c.utf8Size⟩ = ⟨utf8Len m₁⟩
   | _, ⟨⟩ => by
     simp [Substring.prev]
     rw [if_neg (mt Pos.ext_iff.1 <| Ne.symm ?a)]
@@ -916,7 +918,7 @@ theorem get : ∀ {s}, Valid s → s.toString.1 = m₁ ++ c :: m₂ → s.get �
     simp [h.toString] at e; subst e; simp [h.get]
 
 theorem next : ∀ {s}, Valid s → s.toString.1 = m₁ ++ c :: m₂ →
-    s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + csize c⟩
+    s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + c.utf8Size⟩
   | _, h, e => by
     let ⟨l, m, r, h⟩ := h.validFor
     simp [h.toString] at e; subst e; simp [h.next]
@@ -925,7 +927,7 @@ theorem next_stop : ∀ {s}, Valid s → s.next ⟨s.bsize⟩ = ⟨s.bsize⟩
   | _, h => let ⟨l, m, r, h⟩ := h.validFor; by simp [h.bsize, h.next_stop]
 
 theorem prev : ∀ {s}, Valid s → s.toString.1 = m₁ ++ c :: m₂ →
-    s.prev ⟨utf8Len m₁ + csize c⟩ = ⟨utf8Len m₁⟩
+    s.prev ⟨utf8Len m₁ + c.utf8Size⟩ = ⟨utf8Len m₁⟩
   | _, h, e => by
     let ⟨l, m, r, h⟩ := h.validFor
     simp [h.toString] at e; subst e; simp [h.prev]
