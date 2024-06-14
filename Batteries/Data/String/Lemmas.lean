@@ -738,7 +738,7 @@ theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by
   exact substrEq_loop_rfl s _ _
 termination_by stp.1 - off.1
 
-theorem substrEq_rfl (s : String) (off : Pos) (n : Nat) (h : off.byteIdx + n ≤ s.endPos.byteIdx) :
+theorem substrEq_rfl {s : String} {off : Pos} {n : Nat} (h : off.byteIdx + n ≤ s.endPos.byteIdx) :
   substrEq s off s off n := by
   simp [substrEq, substrEq_loop_rfl]
   exact h
@@ -756,11 +756,7 @@ theorem substrEq_loop_self_append {s t : String} {off stp : Pos}
   · have : stp.byteIdx - (off.byteIdx + csize (get s off)) < stp.byteIdx - off.byteIdx := by
       simpa [Nat.sub_add_eq] using Nat.sub_lt (Nat.sub_pos_of_lt offb_lt_stpb) (csize_pos _)
     exact substrEq_loop_self_append (valid_next h_off off_lt_end) h_stp
-termination_by stp.1 - off.1
 
--- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
--- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices]
 theorem substrEq_loop_cons_addChar {off : Pos} :
   substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ (off + c) (off + c) ⟨utf8Len (c :: s)⟩
   = substrEq.loop ⟨s⟩ ⟨t⟩ off off ⟨utf8Len s⟩ := by
@@ -776,22 +772,15 @@ theorem substrEq_loop_cons_addChar {off : Pos} :
       simp_all
       exact substrEq_loop_cons_addChar
   · rfl
-termination_by utf8Len s - off.1
 decreasing_by
   refine Nat.sub_lt_sub_left ?_ (Nat.lt_add_right_iff_pos.mpr <| csize_pos _)
   assumption
 
--- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
--- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices]
 theorem substrEq_loop_cons_zero : substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩
   = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
   conv => lhs; rw [substrEq.loop]; simp [add_csize_pos]
   exact substrEq_loop_cons_addChar
 
--- unusedHavesSuffices lint false positive from unfolding `substrEq.loop`
--- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices]
 theorem substrEq_cons : substrEq ⟨s₀ :: s⟩ 0 ⟨t₀ :: t⟩ 0 (utf8Len (s₀ :: s)) ↔
   s₀ = t₀ ∧ substrEq ⟨s⟩ 0 ⟨t⟩ 0 (utf8Len s) := by
   apply Iff.intro
@@ -809,10 +798,7 @@ theorem substrEq_cons : substrEq ⟨s₀ :: s⟩ 0 ⟨t₀ :: t⟩ 0 (utf8Len (s
 
 /-! ### isPrefixOf -/
 
--- unusedHavesSuffices lint false positive from unfolding substrEq.loop
--- This will be fixed by https://github.com/leanprover/lean4/pull/4143
-@[nolint unusedHavesSuffices, simp]
-theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
+@[simp] theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
   simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
 
 @[simp] theorem isPrefixOf_empty_iff_empty (s : String) : s.isPrefixOf "" ↔ s = "" := by
