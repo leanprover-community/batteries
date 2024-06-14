@@ -1,10 +1,10 @@
+/-
+Copyright (c) 2024 François G. Dorais. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE
+Authors: François G. Dorais, et al.
+-/
+
 namespace Thunk
 
-@[ext]
-theorem ext {α : Type u} {a b : Thunk α} (eq : a.get = b.get) : a = b := by
-  have ⟨_⟩ := a
-  have ⟨_⟩ := b
-  congr
-  exact funext fun _ => eq
-
-end Thunk
+@[ext] protected theorem ext : {a b : Thunk α} → a.get = b.get → a = b
+  | {..}, {..}, heq => congrArg _ <| funext fun _ => heq
