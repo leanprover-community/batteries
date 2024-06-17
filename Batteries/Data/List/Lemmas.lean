@@ -1458,8 +1458,6 @@ theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
 theorem range_succ (n : Nat) : range (succ n) = range n ++ [n] := by
   simp only [range_eq_range', range'_1_concat, Nat.zero_add]
 
-@[simp] theorem range_zero : range 0 = [] := rfl
-
 theorem range_add (a b : Nat) : range (a + b) = range a ++ (range b).map (a + ·) := by
   rw [← range'_eq_map_range]
   simpa [range_eq_range', Nat.add_comm] using (range'_append_1 0 a b).symm
