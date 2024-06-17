@@ -414,41 +414,37 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
   have ⟨_, _, _, h₁, h₂, h₃⟩ := exists_of_set h; ⟨_, _, getElem_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
 
 @[simp]
-theorem getElem?_set_eq (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by
+theorem getElem?_set_eq' (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by
   simp only [set_eq_modifyNth, getElem?_modifyNth_eq]
 
-@[deprecated getElem?_set_eq (since := "2024-06-12")]
+@[deprecated getElem?_set_eq' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
   simp
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a)[n]? = some a := by rw [getElem?_set_eq, getElem?_eq_getElem h]; rfl
+    (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
 theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?,getElem?_set_eq, getElem?_eq_getElem h]; rfl
-
-@[simp]
-theorem getElem?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a)[n]? = l[n]? := by
-  simp only [set_eq_modifyNth, getElem?_modifyNth_ne _ _ h]
+  rw [get?_eq_getElem?, getElem?_set_eq', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_ne (since := "2024-06-12")]
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
   simp [h]
 
-theorem getElem?_set (a : α) {m n} (l : List α) :
+theorem getElem?_set' (a : α) {m n} (l : List α) :
     (set l m a)[n]? = if m = n then (fun _ => a) <$> l[n]? else l[n]? := by
   by_cases m = n <;> simp [*]
 
 @[deprecated getElem?_set (since := "2024-06-12")]
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set]
+  simp [getElem?_set']
 
 theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
-  simp [getElem?_set, getElem?_eq_getElem h]
+  simp [getElem?_set', getElem?_eq_getElem h]
 
 theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
@@ -456,14 +452,14 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 theorem drop_set_of_lt (a : α) {n m : Nat} (l : List α) (h : n < m) :
     (l.set n a).drop m = l.drop m :=
-  List.ext_getElem? fun i => by rw [getElem?_drop, getElem?_drop, getElem?_set_ne _ _ (by omega)]
+  List.ext_getElem? fun i => by rw [getElem?_drop, getElem?_drop, getElem?_set_ne (by omega)]
 
 theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
     (l.set n a).take m = l.take m :=
   List.ext_getElem? fun i => by
     rw [getElem?_take_eq_if, getElem?_take_eq_if]
     split
-    · next h' => rw [getElem?_set_ne _ _ (by omega)]
+    · next h' => rw [getElem?_set_ne (by omega)]
     · rfl
 
 /-! ### removeNth -/
@@ -1457,8 +1453,6 @@ theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
 
 theorem range_succ (n : Nat) : range (succ n) = range n ++ [n] := by
   simp only [range_eq_range', range'_1_concat, Nat.zero_add]
-
-@[simp] theorem range_zero : range 0 = [] := rfl
 
 theorem range_add (a b : Nat) : range (a + b) = range a ++ (range b).map (a + ·) := by
   rw [← range'_eq_map_range]
