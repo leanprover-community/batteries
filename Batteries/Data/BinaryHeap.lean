@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+namespace Batteries
+
 /-- A max-heap data structure. -/
 structure BinaryHeap (α) (lt : α → α → Bool) where
   /-- Backing array for `BinaryHeap`. -/
@@ -153,22 +155,22 @@ def decreaseKey {lt} (self : BinaryHeap α lt) (i : Fin self.size) (x : α) : Bi
 def increaseKey {lt} (self : BinaryHeap α lt) (i : Fin self.size) (x : α) : BinaryHeap α lt where
   arr := heapifyUp lt (self.1.set i x) ⟨i, by rw [self.1.size_set]; exact i.2⟩
 
-end BinaryHeap
+end Batteries.BinaryHeap
 
 /-- `O(n)`. Convert an unsorted array to a `BinaryHeap`. -/
-def Array.toBinaryHeap (lt : α → α → Bool) (a : Array α) : BinaryHeap α lt where
-  arr := BinaryHeap.mkHeap lt a
+def Array.toBinaryHeap (lt : α → α → Bool) (a : Array α) : Batteries.BinaryHeap α lt where
+  arr := Batteries.BinaryHeap.mkHeap lt a
 
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
 @[specialize] def Array.heapSort (a : Array α) (lt : α → α → Bool) : Array α :=
   loop (a.toBinaryHeap (flip lt)) #[]
 where
   /-- Inner loop for `heapSort`. -/
-  loop (a : BinaryHeap α (flip lt)) (out : Array α) : Array α :=
+  loop (a : Batteries.BinaryHeap α (flip lt)) (out : Array α) : Array α :=
     match e: a.max with
     | none => out
     | some x =>
       have : a.popMax.size < a.size := by
-        simp; exact Nat.sub_lt (BinaryHeap.size_pos_of_max e) Nat.zero_lt_one
+        simp; exact Nat.sub_lt (Batteries.BinaryHeap.size_pos_of_max e) Nat.zero_lt_one
       loop a.popMax (out.push x)
   termination_by a.size
