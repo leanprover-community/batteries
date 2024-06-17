@@ -15,6 +15,7 @@ import Batteries.Control.Lemmas
 import Batteries.Control.Nondet.Basic
 import Batteries.Data.Array
 import Batteries.Data.AssocList
+import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.Bool
