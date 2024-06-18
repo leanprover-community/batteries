@@ -653,31 +653,12 @@ end erase
 
 /-! ### filterMap -/
 
-theorem length_filter_le (p : α → Bool) (l : List α) :
-    (l.filter p).length ≤ l.length := (filter_sublist _).length_le
-
-theorem length_filterMap_le (f : α → Option β) (l : List α) :
-    (filterMap f l).length ≤ l.length := by
-  rw [← length_map _ some, map_filterMap_some_eq_filter_map_is_some, ← length_map _ f]
-  apply length_filter_le
-
 protected theorem Sublist.filterMap (f : α → Option β) (s : l₁ <+ l₂) :
     filterMap f l₁ <+ filterMap f l₂ := by
-  induction s <;> simp <;> split <;> simp [*, cons, cons₂]
+  induction s <;> simp [filterMap_cons] <;> split <;> simp [*, cons, cons₂]
 
 theorem Sublist.filter (p : α → Bool) {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ := by
   rw [← filterMap_eq_filter]; apply s.filterMap
-
-@[simp]
-theorem filter_eq_self {l} : filter p l = l ↔ ∀ a ∈ l, p a := by
-  induction l with simp
-  | cons a l ih =>
-    cases h : p a <;> simp [*]
-    intro h; exact Nat.lt_irrefl _ (h ▸ length_filter_le p l)
-
-@[simp]
-theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=
-  Iff.trans ⟨l.filter_sublist.eq_of_length, congrArg length⟩ filter_eq_self
 
 /-! ### findIdx -/
 
