@@ -66,9 +66,10 @@ def heapifyUp (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match i with
   | ⟨0, _⟩ => a
-  | ⟨i+1, hi⟩ =>
-    if lt a[i/2] a[i+1] then
-      heapifyUp lt (a.swapN (i+1) (i/2)) ⟨i/2, by get_elem_tactic⟩
+  | ⟨i'+1, hi⟩ =>
+    let j := ⟨i'/2, by get_elem_tactic⟩
+    if lt a[j] a[i] then
+      heapifyUp lt (a.swap i j) j
     else a
 
 /-- `O(1)`. Build a new empty heap. -/
