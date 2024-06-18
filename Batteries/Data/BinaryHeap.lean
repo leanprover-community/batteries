@@ -60,25 +60,15 @@ where
     let a' := heapifyDown lt a ⟨i, Nat.lt_of_succ_le h⟩
     loop i a' (Nat.le_trans (Nat.le_succ _) h)
 
-private def parent : Fin sz → Option (Fin sz)
-  | ⟨0, _⟩ => none
-  | ⟨i+1, hi⟩ => some ⟨i / 2, Nat.lt_of_le_of_lt (Nat.div_le_self _ _) (Nat.lt_of_succ_lt hi)⟩
-
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` up to restore the max-heap property. -/
 def heapifyUp (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
-  match h : parent i with
-  | none => a
-  | some j =>
-    have : j < i := by
-      cases i; cases j
-      simp only [parent] at h
-      split at h
-      · contradiction
-      · next heq => cases heq; cases h; simp_arith [Nat.div_le_self]
-    if lt a[j] a[i] then
-      heapifyUp lt (a.swap i j) j
+  match i with
+  | ⟨0, _⟩ => a
+  | ⟨i+1, hi⟩ =>
+    if lt a[i/2] a[i+1] then
+      heapifyUp lt (a.swapN (i+1) (i/2)) ⟨i/2, by get_elem_tactic⟩
     else a
 
 /-- `O(1)`. Build a new empty heap. -/
