@@ -326,7 +326,9 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
   have H1 (l n acc) : filterMap.go f acc l n =
       (((g₁ l).reverse ++ acc.toList).toAssocList, ⟨n.1 + (g₁ l).length⟩) := by
-    induction l generalizing n acc with simp [filterMap.go, g₁, *]
+    induction l generalizing n acc with simp only [filterMap.go, AssocList.toList,
+      List.filterMap_nil, List.reverse_nil, List.nil_append, AssocList.toList_toAssocList,
+      List.length_nil, Nat.add_zero, List.filterMap_cons, g₁, *]
     | cons a b l => match f a b with
       | none => rfl
       | some c =>
@@ -348,7 +350,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     induction l with
     | nil => exact .slnil
     | cons a l ih =>
-      simp; exact match f a.1 a.2 with
+      simp only [List.filterMap_cons, List.map_cons]; exact match f a.1 a.2 with
       | none => .cons _ ih
       | some b => .cons₂ _ ih
   suffices ∀ bk sz (h : 0 < bk.length),
