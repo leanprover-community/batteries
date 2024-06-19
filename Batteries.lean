@@ -35,6 +35,7 @@ import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.String
 import Batteries.Data.Sum
+import Batteries.Data.Thunk
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Lean.AttributeExtra
@@ -57,7 +58,6 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.Name
 import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
