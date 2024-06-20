@@ -249,7 +249,7 @@ theorem getElem_eq_iff {l : List α} {n : Nat} {h : n < l.length} : l[n] = x ↔
 
 @[deprecated getElem_eq_iff (since := "2024-06-12")]
 theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
-  simp [getElem_eq_iff]
+  simp
 
 theorem getElem?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs[i]? = xs[j]?) : i = j := by
@@ -724,7 +724,7 @@ theorem findIdx?_eq_some_iff (xs : List α) (p : α → Bool) :
   | nil => simp
   | cons x xs ih =>
     simp only [findIdx?_cons, Nat.zero_add, findIdx?_succ, take_succ_cons, map_cons]
-    split <;> cases i <;> simp_all
+    split <;> cases i <;> simp_all [replicate_succ]
 
 theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p = some i) :
     match xs.get? i with | some a => p a | none => false := by
@@ -1369,14 +1369,14 @@ theorem getElem?_range' (s step) :
     exact (getElem?_range' (s + step) step (Nat.lt_of_add_lt_add_right h)).trans <| by
       simp [Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
 
-@[deprecated getElem?_range' (since := "2024-06-12")]
-theorem get?_range' (s step) {m n : Nat} (h : m < n) :
-    get? (range' s n step) m = some (s + step * m) := by
-  simp [getElem?_range', h]
-
 @[simp] theorem getElem_range' {n m step} (i) (H : i < (range' n m step).length) :
     (range' n m step)[i] = n + step * i :=
   (getElem?_eq_some.1 <| getElem?_range' n step (by simpa using H)).2
+
+@[deprecated getElem?_range' (since := "2024-06-12")]
+theorem get?_range' (s step) {m n : Nat} (h : m < n) :
+    get? (range' s n step) m = some (s + step * m) := by
+  simp [h]
 
 @[deprecated getElem_range' (since := "2024-06-12")]
 theorem get_range' {n m step} (i) (H : i < (range' n m step).length) :
@@ -1428,9 +1428,16 @@ theorem self_mem_range_succ (n : Nat) : n ∈ range (n + 1) := by simp
 theorem getElem?_range {m n : Nat} (h : m < n) : (range n)[m]? = some m := by
   simp [range_eq_range', getElem?_range' _ _ h]
 
+@[simp] theorem getElem_range {n : Nat} (m) (h : m < (range n).length) : (range n)[m] = m := by
+  simp [range_eq_range']
+
 @[deprecated getElem?_range (since := "2024-06-12")]
 theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
   simp [getElem?_range, h]
+
+@[deprecated getElem_range (since := "2024-06-12")]
+theorem get_range {n} (i) (H : i < (range n).length) : get (range n) ⟨i, H⟩ = i := by
+  simp
 
 theorem range_succ (n : Nat) : range (succ n) = range n ++ [n] := by
   simp only [range_eq_range', range'_1_concat, Nat.zero_add]
@@ -1456,12 +1463,6 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
       show s + (n + 1) - 1 = s + n from rfl, map, map_map]
     simp [reverse_range', Nat.sub_right_comm]; rfl
 
-@[simp] theorem getElem_range {n} (i) (H : i < (range n).length) : (range n)[i] = i :=
-  Option.some.inj <| by rw [← getElem?_eq_getElem _, getElem?_range (by simpa using H)]
-
-@[deprecated getElem_range (since := "2024-06-12")]
-theorem get_range {n} (i) (H : i < (range n).length) : get (range n) ⟨i, H⟩ = i := by
-  simp
 
 /-! ### enum, enumFrom -/
 

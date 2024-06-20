@@ -37,7 +37,7 @@ theorem size_eq (data : Buckets α β) :
 
 theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
   simp only [mk, mkArray, size_eq]; clear h
-  induction n <;> simp [*]
+  induction n <;> simp_all [List.replicate_succ]
 
 theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF := by
   refine ⟨fun _ h => ?_, fun i h => ?_⟩
