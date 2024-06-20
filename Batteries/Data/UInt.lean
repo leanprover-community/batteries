@@ -28,7 +28,7 @@ theorem UInt8.toNat_lt (x : UInt8) : x.toNat < 2 ^ 8 := x.val.isLt
 
 @[simp] theorem UInt8.toUInt64_toNat (x : UInt8) : x.toUInt64.toNat = x.toNat := rfl
 
-@[simp] theorem UInt8.toNat_zero : (0 : UInt8).toNat = 0 := rfl
+theorem UInt8.toNat_zero : (0 : UInt8).toNat = 0 := rfl
 
 theorem UInt8.toNat_add (x y : UInt8) : (x + y).toNat = (x.toNat + y.toNat) % UInt8.size := rfl
 
@@ -75,7 +75,7 @@ theorem UInt16.toNat_lt (x : UInt16) : x.toNat < 2 ^ 16 := x.val.isLt
 
 @[simp] theorem UInt16.toUInt64_toNat (x : UInt16) : x.toUInt64.toNat = x.toNat := rfl
 
-@[simp] theorem UInt16.toNat_zero : (0 : UInt16).toNat = 0 := rfl
+theorem UInt16.toNat_zero : (0 : UInt16).toNat = 0 := rfl
 
 theorem UInt16.toNat_add (x y : UInt16) : (x + y).toNat = (x.toNat + y.toNat) % UInt16.size := rfl
 
@@ -122,7 +122,7 @@ theorem UInt32.toNat_lt (x : UInt32) : x.toNat < 2 ^ 32 := x.val.isLt
 
 @[simp] theorem UInt32.toUInt64_toNat (x : UInt32) : x.toUInt64.toNat = x.toNat := rfl
 
-@[simp] theorem UInt32.toNat_zero : (0 : UInt32).toNat = 0 := rfl
+theorem UInt32.toNat_zero : (0 : UInt32).toNat = 0 := rfl
 
 theorem UInt32.toNat_add (x y : UInt32) : (x + y).toNat = (x.toNat + y.toNat) % UInt32.size := rfl
 
@@ -169,7 +169,7 @@ theorem UInt64.toNat_lt (x : UInt64) : x.toNat < 2 ^ 64 := x.val.isLt
 
 @[simp] theorem UInt64.toUInt32_toNat (x : UInt64) : x.toUInt32.toNat = x.toNat % 2 ^ 32 := rfl
 
-@[simp] theorem UInt64.toNat_zero : (0 : UInt64).toNat = 0 := rfl
+theorem UInt64.toNat_zero : (0 : UInt64).toNat = 0 := rfl
 
 theorem UInt64.toNat_add (x y : UInt64) : (x + y).toNat = (x.toNat + y.toNat) % UInt64.size := rfl
 
@@ -230,7 +230,7 @@ theorem USize.toNat_lt (x : USize) : x.toNat < 2 ^ System.Platform.numBits := by
 
 @[simp] theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := rfl
 
-@[simp] theorem USize.toNat_zero : (0 : USize).toNat = 0 := rfl
+theorem USize.toNat_zero : (0 : USize).toNat = 0 := rfl
 
 theorem USize.toNat_add (x y : USize) : (x + y).toNat = (x.toNat + y.toNat) % USize.size := rfl
 
