@@ -1,4 +1,4 @@
-import Std.Data.String.Basic
+import Batteries.Data.String.Matcher
 
 /-! Tests for Knuth-Morris-Pratt matching algorithm -/
 
