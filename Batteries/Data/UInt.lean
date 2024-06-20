@@ -304,8 +304,7 @@ theorem USize.size_le : USize.size ≤ 2 ^ 64 := by
   apply Nat.pow_le_pow_of_le_right (by decide)
   cases System.Platform.numBits_eq <;> simp_arith [*]
 
-theorem USize.toNat_lt (x : USize) : x.toNat < 2 ^ System.Platform.numBits := by
-  rw [←USize.size_eq]; exact x.val.isLt
+theorem USize.toNat_lt (x : USize) : x.toNat < USize.size := x.val.isLt
 
 @[simp] theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
   simp only [USize.toUInt64, UInt64.toNat]; rfl
