@@ -42,6 +42,37 @@ theorem UInt8.le_antisymm {x y : UInt8} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
 instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
 
+theorem UInt8.le_iff_toNat_le_toNat {x y : UInt8} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
+
+theorem UInt8.lt_iff_toNat_lt_toNat {x y : UInt8} : x < y ↔ x.toNat < y.toNat := .rfl
+
+theorem UInt8.compare_eq_compare_toNat (x y : UInt8) : compare x y = compare x.toNat y.toNat := by
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+
+theorem UInt8.max_def (x y : UInt8) : max x y = if x ≤ y then y else x := rfl
+
+theorem UInt8.min_def (x y : UInt8) : min x y = if x ≤ y then x else y := rfl
+
+theorem UInt8.max_toNat (x y : UInt8) : (max x y).toNat = max x.toNat y.toNat := by
+  rw [max_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_right h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
+
+theorem UInt8.min_toNat (x y : UInt8) : (min x y).toNat = min x.toNat y.toNat := by
+  rw [min_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_left h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
+
 /-! ### UInt16 -/
 
 @[ext] theorem UInt16.ext : {x y : UInt16} → x.toNat = y.toNat → x = y
@@ -78,6 +109,37 @@ theorem UInt16.le_antisymm {x y : UInt16} (h1 : x ≤ y) (h2 : y ≤ x) : x = y 
 
 instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
+
+theorem UInt16.le_iff_toNat_le_toNat {x y : UInt16} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
+
+theorem UInt16.lt_iff_toNat_lt_toNat {x y : UInt16} : x < y ↔ x.toNat < y.toNat := .rfl
+
+theorem UInt16.compare_eq_compare_toNat (x y : UInt16) : compare x y = compare x.toNat y.toNat := by
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+
+theorem UInt16.max_def (x y : UInt16) : max x y = if x ≤ y then y else x := rfl
+
+theorem UInt16.min_def (x y : UInt16) : min x y = if x ≤ y then x else y := rfl
+
+theorem UInt16.max_toNat (x y : UInt16) : (max x y).toNat = max x.toNat y.toNat := by
+  rw [max_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_right h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
+
+theorem UInt16.min_toNat (x y : UInt16) : (min x y).toNat = min x.toNat y.toNat := by
+  rw [min_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_left h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
 
 /-! ### UInt32 -/
 
@@ -116,6 +178,37 @@ theorem UInt32.le_antisymm {x y : UInt32} (h1 : x ≤ y) (h2 : y ≤ x) : x = y 
 instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
 
+theorem UInt32.le_iff_toNat_le_toNat {x y : UInt32} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
+
+theorem UInt32.lt_iff_toNat_lt_toNat {x y : UInt32} : x < y ↔ x.toNat < y.toNat := .rfl
+
+theorem UInt32.compare_eq_compare_toNat (x y : UInt32) : compare x y = compare x.toNat y.toNat := by
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+
+theorem UInt32.max_def (x y : UInt32) : max x y = if x ≤ y then y else x := rfl
+
+theorem UInt32.min_def (x y : UInt32) : min x y = if x ≤ y then x else y := rfl
+
+theorem UInt32.max_toNat (x y : UInt32) : (max x y).toNat = max x.toNat y.toNat := by
+  rw [max_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_right h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
+
+theorem UInt32.min_toNat (x y : UInt32) : (min x y).toNat = min x.toNat y.toNat := by
+  rw [min_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_left h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
+
 /-! ### UInt64 -/
 
 @[ext] theorem UInt64.ext : {x y : UInt64} → x.toNat = y.toNat → x = y
@@ -152,6 +245,37 @@ theorem UInt64.le_antisymm {x y : UInt64} (h1 : x ≤ y) (h2 : y ≤ x) : x = y 
 
 instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
+
+theorem UInt64.le_iff_toNat_le_toNat {x y : UInt64} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
+
+theorem UInt64.lt_iff_toNat_lt_toNat {x y : UInt64} : x < y ↔ x.toNat < y.toNat := .rfl
+
+theorem UInt64.compare_eq_compare_toNat (x y : UInt64) : compare x y = compare x.toNat y.toNat := by
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+
+theorem UInt64.max_def (x y : UInt64) : max x y = if x ≤ y then y else x := rfl
+
+theorem UInt64.min_def (x y : UInt64) : min x y = if x ≤ y then x else y := rfl
+
+theorem UInt64.max_toNat (x y : UInt64) : (max x y).toNat = max x.toNat y.toNat := by
+  rw [max_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_right h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
+
+theorem UInt64.min_toNat (x y : UInt64) : (min x y).toNat = min x.toNat y.toNat := by
+  rw [min_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_left h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
 
 /-! ### USize -/
 
@@ -203,3 +327,34 @@ theorem USize.le_antisymm {x y : USize} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
 
 instance : Batteries.LawfulOrd USize := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm
+
+theorem USize.le_iff_toNat_le_toNat {x y : USize} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
+
+theorem USize.lt_iff_toNat_lt_toNat {x y : USize} : x < y ↔ x.toNat < y.toNat := .rfl
+
+theorem USize.compare_eq_compare_toNat (x y : USize) : compare x y = compare x.toNat y.toNat := by
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+
+theorem USize.max_def (x y : USize) : max x y = if x ≤ y then y else x := rfl
+
+theorem USize.min_def (x y : USize) : min x y = if x ≤ y then x else y := rfl
+
+theorem USize.max_toNat (x y : USize) : (max x y).toNat = max x.toNat y.toNat := by
+  rw [max_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_right h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
+
+theorem USize.min_toNat (x y : USize) : (min x y).toNat = min x.toNat y.toNat := by
+  rw [min_def]
+  split
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_left h]
+  · next h =>
+      rw [le_iff_toNat_le_toNat] at h
+      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
