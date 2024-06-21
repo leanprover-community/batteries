@@ -33,7 +33,7 @@ theorem UInt8.toNat_zero : (0 : UInt8).toNat = 0 := rfl
 theorem UInt8.toNat_add (x y : UInt8) : (x + y).toNat = (x.toNat + y.toNat) % UInt8.size := rfl
 
 theorem UInt8.toNat_sub (x y : UInt8) :
-  (x - y).toNat = (x.toNat + (UInt8.size - y.toNat)) % UInt8.size := rfl
+    (x - y).toNat = (UInt8.size - y.toNat + x.toNat) % UInt8.size := rfl
 
 theorem UInt8.toNat_mul (x y : UInt8) : (x * y).toNat = (x.toNat * y.toNat) % UInt8.size := rfl
 
@@ -80,7 +80,7 @@ theorem UInt16.toNat_zero : (0 : UInt16).toNat = 0 := rfl
 theorem UInt16.toNat_add (x y : UInt16) : (x + y).toNat = (x.toNat + y.toNat) % UInt16.size := rfl
 
 theorem UInt16.toNat_sub (x y : UInt16) :
-  (x - y).toNat = (x.toNat + (UInt16.size - y.toNat)) % UInt16.size := rfl
+    (x - y).toNat = (UInt16.size - y.toNat + x.toNat) % UInt16.size := rfl
 
 theorem UInt16.toNat_mul (x y : UInt16) : (x * y).toNat = (x.toNat * y.toNat) % UInt16.size := rfl
 
@@ -127,7 +127,7 @@ theorem UInt32.toNat_zero : (0 : UInt32).toNat = 0 := rfl
 theorem UInt32.toNat_add (x y : UInt32) : (x + y).toNat = (x.toNat + y.toNat) % UInt32.size := rfl
 
 theorem UInt32.toNat_sub (x y : UInt32) :
-  (x - y).toNat = (x.toNat + (UInt32.size - y.toNat)) % UInt32.size := rfl
+    (x - y).toNat = (UInt32.size - y.toNat + x.toNat) % UInt32.size := rfl
 
 theorem UInt32.toNat_mul (x y : UInt32) : (x * y).toNat = (x.toNat * y.toNat) % UInt32.size := rfl
 
@@ -174,7 +174,7 @@ theorem UInt64.toNat_zero : (0 : UInt64).toNat = 0 := rfl
 theorem UInt64.toNat_add (x y : UInt64) : (x + y).toNat = (x.toNat + y.toNat) % UInt64.size := rfl
 
 theorem UInt64.toNat_sub (x y : UInt64) :
-  (x - y).toNat = (x.toNat + (UInt64.size - y.toNat)) % UInt64.size := rfl
+    (x - y).toNat = (UInt64.size - y.toNat + x.toNat) % UInt64.size := rfl
 
 theorem UInt64.toNat_mul (x y : UInt64) : (x * y).toNat = (x.toNat * y.toNat) % UInt64.size := rfl
 
@@ -235,7 +235,7 @@ theorem USize.toNat_zero : (0 : USize).toNat = 0 := rfl
 theorem USize.toNat_add (x y : USize) : (x + y).toNat = (x.toNat + y.toNat) % USize.size := rfl
 
 theorem USize.toNat_sub (x y : USize) :
-  (x - y).toNat = (x.toNat + (USize.size - y.toNat)) % USize.size := rfl
+    (x - y).toNat = (USize.size - y.toNat + x.toNat) % USize.size := rfl
 
 theorem USize.toNat_mul (x y : USize) : (x * y).toNat = (x.toNat * y.toNat) % USize.size := rfl
 
