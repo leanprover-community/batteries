@@ -62,7 +62,7 @@ def parseLinterArgs (args: List String) : Except String (Bool × Option Name) :=
 Return an array of the modules to lint.
 
 If `specifiedModule` is not `none` return an array containing only `specifiedModule`.
-Otherwise, resolve the default root modules from the Lake workspace -/
+Otherwise, resolve the default root modules from the Lake workspace. -/
 def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := do
   match specifiedModule with
   | some module =>
