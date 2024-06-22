@@ -85,7 +85,8 @@ elab_rules : tactic
       throw e
     if let some new := new then
       for (_, stx, usedSimps) in new do
-        let usedSimps := usedSimps.foldl (fun s usedSimps => usedSimps.foldl .insert s) {}
+        let usedSimps := usedSimps.reverse.foldl
+          (fun s usedSimps => usedSimps.toArray.foldl .insert s) {}
         let stx' ← mkSimpCallStx stx usedSimps
         TryThis.addSuggestion stx[0] stx' (origSpan? := stx)
 

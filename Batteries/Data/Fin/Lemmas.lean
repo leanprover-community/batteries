@@ -57,7 +57,7 @@ theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
   | succ n ih =>
     conv => lhs; rw [list_succ_last]
     conv => rhs; rw [list_succ]
-    simp [List.reverse_map, ih, Function.comp_def, rev_succ]
+    simp [← List.map_reverse, ih, Function.comp_def, rev_succ]
 
 /-! ### foldl -/
 

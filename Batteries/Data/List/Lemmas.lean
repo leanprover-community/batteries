@@ -1461,7 +1461,7 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
   | s, n + 1 => by
     rw [range'_1_concat, reverse_append, range_succ_eq_map,
       show s + (n + 1) - 1 = s + n from rfl, map, map_map]
-    simp [reverse_range', Nat.sub_right_comm]; rfl
+    simp [reverse_range', Nat.sub_right_comm, Nat.sub_sub]
 
 
 /-! ### enum, enumFrom -/
