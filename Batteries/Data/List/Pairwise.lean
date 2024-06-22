@@ -258,7 +258,7 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
 theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
     ∀ n : Nat, Pairwise r (List.replicate n x)
   | 0 => by simp
-  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n]
+  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n, replicate_succ]
 
 /-! ### Pairwise filtering -/
 
