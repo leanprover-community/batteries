@@ -232,7 +232,7 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
-    prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + csize c⟩ = ⟨utf8Len cs⟩ := by
+    prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
   simp only [prev]
   refine (if_neg (Pos.ne_of_gt add_csize_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
@@ -282,7 +282,8 @@ theorem findAux_of_valid (p) : ∀ l m r,
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
-      simp at foo -- FIXME this is a nonterminal `simp`, but `simp?` gives a different result.
+      simp only [List.append_assoc, List.singleton_append, List.cons_append, utf8Len_append,
+        utf8Len_cons, utf8Len_nil, Nat.zero_add, List.nil_append] at foo
       rw [Nat.add_right_comm, Nat.add_assoc] at foo
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
     · simp
@@ -324,9 +325,9 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     split
     · simp only [utf8Len_cons]
       subst b
-      rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + csize a⟩ by simp [hl₁, next_of_valid]]
+      rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by simp [hl₁, next_of_valid]]
       simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
-        firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + csize a)
+        firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
           (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
     · simp
   · next h =>
@@ -351,7 +352,7 @@ theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
   simp only [Pos.ext_iff, Pos.addChar_eq] at h ⊢
   simp only [Nat.add_right_cancel_iff, h, ↓reduceIte, List.cons.injEq, true_and]
   rw [Nat.add_right_comm]
-  exact ih
+  simpa using ih
 
 theorem extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
     e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
@@ -372,7 +373,7 @@ theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
     simp only [Pos.ext_iff, Pos.addChar_eq] at h ih ⊢
     simp only [Nat.add_right_cancel_iff, h, ↓reduceIte]
     rw [Nat.add_right_comm]
-    exact ih
+    simpa using ih
 
 theorem extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
     go₁ (c :: cs) 0 (b + c) (e + c) = go₁ cs 0 b e := by
@@ -644,7 +645,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
     unfold offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_csize_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
-    simp only [List.cons_append, ↓reduceDite, utf8Len_cons, next_of_valid l c (m ++ r),
+    simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r),
       List.length_cons, Nat.succ_eq_add_one]
     simpa [← Nat.add_assoc, Nat.add_right_comm, Nat.succ_eq_add_one] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
@@ -673,7 +674,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
   induction m.reverse generalizing r a with (unfold foldrAux; simp)
   | cons c m IH =>
     rw [if_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
-    simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
+    simp only [by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
 
@@ -902,7 +903,6 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b,
         simp only [Pos.add_byteIdx, Nat.min_eq_min, utf8Len_append]
           <;> rw [Nat.min_eq_right]
           <;> try simp [Nat.add_le_add_iff_left, Nat.le_add_right]
-      rw [Nat.add_assoc]
 
 -- TODO: splitOn
 
