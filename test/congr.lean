@@ -1,5 +1,4 @@
-import Std.Tactic.GuardExpr
-import Std.Tactic.Congr
+import Batteries.Tactic.Congr
 
 section congr
 
@@ -8,7 +7,7 @@ example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
   apply Iff.of_eq -- FIXME: not needed in lean 3
   congr
   · guard_target =ₐ x = x'
-    apply_ext_lemma
+    apply_ext_theorem
     assumption
   · guard_target =ₐ z = z'
     ext
@@ -34,6 +33,13 @@ example {α β : Type _} {F : _ → β} {f g : { f : α → β // f = f }}
   guard_target = type_of% h
   exact h
 
+section
+
+-- Adaptation note: the next two examples have always failed if `List.ext` was in scope,
+-- but until nightly-2024-04-24 (when `List.ext` was upstreamed), it wasn't in scope.
+-- In order to preserve the test behaviour we locally remove the `ext` attribute.
+attribute [-ext] List.ext_getElem?
+
 private opaque List.sum : List Nat → Nat
 
 example {ls : List Nat} :
@@ -47,6 +53,8 @@ example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
     (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
   rcongr x
   exact h x
+
+end
 
 -- succeed when either `ext` or `congr` can close the goal
 example : () = () := by rcongr

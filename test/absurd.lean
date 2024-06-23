@@ -1,5 +1,4 @@
-import Std.Tactic.Basic
-import Std.Tactic.GuardMsgs
+import Batteries.Tactic.Basic
 
 /-! Tests for `absurd` tactic -/
 

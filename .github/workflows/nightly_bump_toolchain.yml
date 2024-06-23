@@ -2,17 +2,18 @@ name: Bump lean-toolchain on nightly-testing
 
 on:
   schedule:
-    - cron: '0 9 * * *' 
+    - cron: '0 9 * * *'
     # 10AM CET/1AM PT, 2 hours after lean4 starts building the nightly.
     # Mathlib's `nightly-testing` branch is bumped one hour later.
 
 jobs:
   update-toolchain:
+    if: github.repository_owner == 'leanprover-community'
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: nightly-testing # checkout nightly-testing branch
         token: ${{ secrets.NIGHTLY_TESTING }}

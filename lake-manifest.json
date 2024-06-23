@@ -1,1 +1,5 @@
-{"version": 6, "packagesDir": "lake-packages", "packages": [], "name": "std"}
+{"version": "1.0.0",
+ "packagesDir": ".lake/packages",
+ "packages": [],
+ "name": "batteries",
+ "lakeDir": ".lake"}
