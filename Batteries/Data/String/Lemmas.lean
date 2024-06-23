@@ -282,7 +282,8 @@ theorem findAux_of_valid (p) : ∀ l m r,
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
-      simp at foo -- FIXME this is a nonterminal `simp`, but `simp?` gives a different result.
+      simp only [List.append_assoc, List.singleton_append, List.cons_append, utf8Len_append,
+        utf8Len_cons, utf8Len_nil, Nat.zero_add, List.nil_append] at foo
       rw [Nat.add_right_comm, Nat.add_assoc] at foo
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
     · simp
