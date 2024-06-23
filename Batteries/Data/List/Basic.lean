@@ -913,7 +913,7 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
     range'TR.go step n (s + step * n) (range' (s + step * n) m step) = range' s (n + m) step
   | 0, m => by simp [range'TR.go]
   | n+1, m => by
-    simp [range'TR.go]
+    simp only [range'TR.go]
     rw [Nat.mul_succ, ← Nat.add_assoc, Nat.add_sub_cancel, Nat.add_right_comm n]
     exact go s n (m + 1)
   exact (go s n 0).symm

@@ -54,7 +54,7 @@ private theorem ne_self_add_add_csize : i ≠ i + (n + Char.utf8Size c) :=
 @[simp] theorem utf8Len_cons (c cs) : utf8Len (c :: cs) = utf8Len cs + c.utf8Size := rfl
 
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ <;> simp [*, Nat.add_right_comm]
+  induction cs₁ <;> simp [*, Nat.add_comm (utf8Len cs₂)]
 
 @[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
@@ -880,7 +880,7 @@ theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
   | _, ⟨⟩ => by
     simp only [Substring.dropWhile, takeWhileAux_of_valid]
     refine' .of_eq .. <;> simp
-    rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
+    rw [← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
 -- TODO: takeRightWhile
 
