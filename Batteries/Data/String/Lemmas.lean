@@ -8,6 +8,7 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Batteries.Tactic.SqueezeScope
 
 namespace String
 
@@ -301,7 +302,8 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
-    cases p c <;> simp
+    cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
+      List.tail?_cons, Option.map_some']
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
@@ -347,7 +349,7 @@ theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
     go₂ s ⟨i + n⟩ ⟨e + n⟩ = go₂ s ⟨i⟩ ⟨e⟩ := by
   apply utf8InductionOn s ⟨i⟩ ⟨e⟩ (motive := fun s i =>
     go₂ s ⟨i.byteIdx + n⟩ ⟨e + n⟩ = go₂ s i ⟨e⟩)
-    <;> simp [go₂] -- TODO nonterminal simp; requires signficant restructure to avoid
+    <;> simp only [ne_eq, go₂, pos_add_char, implies_true, ↓reduceIte]
   intro c cs ⟨i⟩ h ih
   simp only [Pos.ext_iff, Pos.addChar_eq] at h ⊢
   simp only [Nat.add_right_cancel_iff, h, ↓reduceIte, List.cons.injEq, true_and]
@@ -366,7 +368,7 @@ theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
     go₁ s ⟨i + n⟩ ⟨b + n⟩ ⟨e + n⟩ = go₁ s ⟨i⟩ ⟨b⟩ ⟨e⟩ := by
   apply utf8InductionOn s ⟨i⟩ ⟨b⟩ (motive := fun s i =>
     go₁ s ⟨i.byteIdx + n⟩ ⟨b + n⟩ ⟨e + n⟩ = go₁ s i ⟨b⟩ ⟨e⟩)
-    <;> simp [go₁] -- TODO nonterminal simp; requires signficant restructure to avoid
+    <;> simp only [ne_eq, go₁, pos_add_char, implies_true, ↓reduceIte]
   · intro c cs
     apply go₂_add_right_cancel
   · intro c cs ⟨i⟩ h ih
