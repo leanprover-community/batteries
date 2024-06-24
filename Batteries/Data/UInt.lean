@@ -10,8 +10,6 @@ import Batteries.Classes.Order
 @[ext] theorem UInt8.ext : {x y : UInt8} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt8.ext_iff {x y : UInt8} : x = y ↔ x.toNat = y.toNat := ⟨congrArg _, UInt8.ext⟩
-
 @[simp] theorem UInt8.val_val_eq_toNat (x : UInt8) : x.val.val = x.toNat := rfl
 
 @[simp] theorem UInt8.val_ofNat (n) :
@@ -56,8 +54,6 @@ instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
 
 @[ext] theorem UInt16.ext : {x y : UInt16} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
-
-theorem UInt16.ext_iff {x y : UInt16} : x = y ↔ x.toNat = y.toNat := ⟨congrArg _, UInt16.ext⟩
 
 @[simp] theorem UInt16.val_val_eq_toNat (x : UInt16) : x.val.val = x.toNat := rfl
 
@@ -104,8 +100,6 @@ instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
 @[ext] theorem UInt32.ext : {x y : UInt32} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt32.ext_iff {x y : UInt32} : x = y ↔ x.toNat = y.toNat := ⟨congrArg _, UInt32.ext⟩
-
 @[simp] theorem UInt32.val_val_eq_toNat (x : UInt32) : x.val.val = x.toNat := rfl
 
 @[simp] theorem UInt32.val_ofNat (n) :
@@ -151,8 +145,6 @@ instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
 @[ext] theorem UInt64.ext : {x y : UInt64} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt64.ext_iff {x y : UInt64} : x = y ↔ x.toNat = y.toNat := ⟨congrArg _, UInt64.ext⟩
-
 @[simp] theorem UInt64.val_val_eq_toNat (x : UInt64) : x.val.val = x.toNat := rfl
 
 @[simp] theorem UInt64.val_ofNat (n) :
@@ -197,8 +189,6 @@ instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
 
 @[ext] theorem USize.ext : {x y : USize} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
-
-theorem USize.ext_iff {x y : USize} : x = y ↔ x.toNat = y.toNat := ⟨congrArg _, USize.ext⟩
 
 @[simp] theorem USize.val_val_eq_toNat (x : USize) : x.val.val = x.toNat := rfl
 
