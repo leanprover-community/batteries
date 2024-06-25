@@ -381,6 +381,8 @@ hashMap.find! "three" => panic!
 
 instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
   getElem m k _ := m.find? k
+  getElem? m k := m.find? k
+  getElem! m k := m.find? k
 
 /--
 Returns true if the element `a` is in the map.
