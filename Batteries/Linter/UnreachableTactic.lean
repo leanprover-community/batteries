@@ -7,7 +7,7 @@ import Lean.Elab.Command
 import Lean.Linter.Util
 import Batteries.Tactic.Unreachable
 
-namespace Std.Linter
+namespace Batteries.Linter
 open Lean Elab Command Linter
 
 /--
@@ -86,7 +86,7 @@ partial def eraseUsedTactics : InfoTree → M Unit
 
 end
 
-/-- The main entry point to the unreachable tactic linter. -/
+@[inherit_doc Batteries.Linter.UnreachableTactic.unreachableTacticLinter]
 def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
     return
