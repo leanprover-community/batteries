@@ -86,7 +86,7 @@ partial def eraseUsedTactics : InfoTree → M Unit
 
 end
 
-@[inherit_doc Batteries.Linter.UnreachableTactic.unreachableTacticLinter]
+@[inherit_doc Batteries.Linter.linter.unreachableTactic]
 def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
     return
