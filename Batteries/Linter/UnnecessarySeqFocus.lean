@@ -7,7 +7,7 @@ import Lean.Elab.Command
 import Lean.Linter.Util
 import Batteries.Lean.AttributeExtra
 
-namespace Std.Linter
+namespace Batteries.Linter
 open Lean Elab Command Linter
 
 /--
@@ -147,7 +147,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
 
 end
 
-/-- The main entry point to the unused tactic linter. -/
+@[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
 def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
     return
