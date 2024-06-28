@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Batteries.Tactic.Alias
-import Batteries.Data.List.Init.Attach
 import Batteries.Data.List.Pairwise
 -- Adaptation note: nightly-2024-03-18. We should be able to remove this after nightly-2024-03-19.
 import Lean.Elab.Tactic.Rfl
