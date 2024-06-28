@@ -23,13 +23,13 @@ theorem Heap.deleteMin_fst : ((s : Heap α).deleteMin le).map (·.1) = s.head? l
   | _, .nil, rfl => rfl
   | _, .node .., ⟨_, rfl, _, c, s⟩ => by
     rw [realSize, realSize_eq c, Nat.pow_succ, Nat.mul_succ]
-    simp [Nat.add_assoc, realSize_eq s]
+    simp [← Nat.add_assoc', realSize_eq s]
 
 @[simp] theorem Heap.WF.size_eq :
     ∀ {s : Heap α}, s.WF le n → s.size = s.realSize
   | .nil, _ => rfl
   | .cons .., ⟨_, h₁, h₂⟩ => by
     simp [size, Nat.shiftLeft, size_eq h₂, Nat.pow_succ, Nat.mul_succ]
-    simp [Nat.add_assoc, Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
+    simp [← Nat.add_assoc', Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
 
 end Imp

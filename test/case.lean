@@ -164,13 +164,13 @@ example (a : Nat) : 0 + a = a := by
   induction a
   case _ n ih : 0 + (n + 1) = n + 1 =>
     guard_target =ₛ 0 + (n + 1) = n + 1
-    rw [← Nat.add_assoc, ih]
+    rw [Nat.add_assoc', ih]
   case _ : 0 + 0 = 0 := rfl
 
 example (a : Nat) : 0 + a = a := by
   induction a
   case _ n ih : 0 + (n + 1) = n + 1 | _ : 0 + 0 = 0
-  · rw [← Nat.add_assoc, ih]
+  · rw [Nat.add_assoc', ih]
   · rfl
 
 example : True ∧ ∀ x : Nat, x = x := by

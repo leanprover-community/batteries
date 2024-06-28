@@ -521,7 +521,7 @@ theorem exists_or_eq_self_of_eraseP (p) (l : List α) :
 @[simp] theorem length_eraseP_of_mem (al : a ∈ l) (pa : p a) :
     length (l.eraseP p) = Nat.pred (length l) := by
   let ⟨_, l₁, l₂, _, _, e₁, e₂⟩ := exists_of_eraseP al pa
-  rw [e₂]; simp [length_append, e₁]; rfl
+  rw [e₂]; simp [length_append, e₁]
 
 theorem eraseP_append_left {a : α} (pa : p a) :
     ∀ {l₁ : List α} l₂, a ∈ l₁ → (l₁++l₂).eraseP p = l₁.eraseP p ++ l₂
@@ -1311,7 +1311,7 @@ theorem mem_range' : ∀{n}, m ∈ range' s n step ↔ ∃ i < n, m = s + step *
   | n + 1 => by
     have h (i) : i ≤ n ↔ i = 0 ∨ ∃ j, i = succ j ∧ j < n := by cases i <;> simp [Nat.succ_le]
     simp [range', mem_range', Nat.lt_succ, h]; simp only [← exists_and_right, and_assoc]
-    rw [exists_comm]; simp [Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
+    rw [exists_comm]; simp [Nat.mul_succ, ← Nat.add_assoc', Nat.add_comm]
 
 @[simp] theorem mem_range'_1 : m ∈ range' s n ↔ s ≤ m ∧ m < s + n := by
   simp [mem_range']; exact ⟨
@@ -1321,7 +1321,7 @@ theorem mem_range' : ∀{n}, m ∈ range' s n step ↔ ∃ i < n, m = s + step *
 @[simp]
 theorem map_add_range' (a) : ∀ s n step, map (a + ·) (range' s n step) = range' (a + s) n step
   | _, 0, _ => rfl
-  | s, n + 1, step => by simp [range', map_add_range' _ (s + step) n step, Nat.add_assoc]
+  | s, n + 1, step => by simp [range', map_add_range' _ (s + step) n step, ← Nat.add_assoc']
 
 theorem map_sub_range' (a s n : Nat) (h : a ≤ s) :
     map (· - a) (range' s n step) = range' (s - a) n step := by
@@ -1342,7 +1342,7 @@ theorem range'_append : ∀ s m n step : Nat,
     range' s m step ++ range' (s + step * m) n step = range' s (n + m) step
   | s, 0, n, step => rfl
   | s, m + 1, n, step => by
-    simpa [range', Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
+    simpa [range', Nat.mul_succ, ← Nat.add_assoc', Nat.add_comm]
       using range'_append (s + step) m n step
 
 @[simp] theorem range'_append_1 (s m n : Nat) :
@@ -1367,7 +1367,7 @@ theorem getElem?_range' (s step) :
   | m + 1, n + 1, h => by
     simp only [range'_succ, getElem?_cons_succ]
     exact (getElem?_range' (s + step) step (Nat.lt_of_add_lt_add_right h)).trans <| by
-      simp [Nat.mul_succ, Nat.add_assoc, Nat.add_comm]
+      simp [Nat.mul_succ, ← Nat.add_assoc', Nat.add_comm]
 
 @[simp] theorem getElem_range' {n m step} (i) (H : i < (range' n m step).length) :
     (range' n m step)[i] = n + step * i :=
@@ -1391,7 +1391,7 @@ theorem range'_1_concat (s n : Nat) : range' s (n + 1) = range' s n ++ [s + n] :
 
 theorem range_loop_range' : ∀ s n : Nat, range.loop s (range' s n) = range' 0 (n + s)
   | 0, n => rfl
-  | s + 1, n => by rw [← Nat.add_assoc, Nat.add_right_comm n s 1]; exact range_loop_range' s (n + 1)
+  | s + 1, n => by rw [Nat.add_assoc', Nat.add_right_comm n s 1]; exact range_loop_range' s (n + 1)
 
 theorem range_eq_range' (n : Nat) : range n = range' 0 n :=
   (range_loop_range' n 0).trans <| by rw [Nat.zero_add]
@@ -1494,7 +1494,7 @@ theorem foldrIdx_start :
     dsimp [foldrIdx]
     simp only [@ih f]
     simp only [@ih (fun i => f (i + s))]
-    simp [Nat.add_assoc, Nat.add_comm 1 s]
+    simp [← Nat.add_assoc', Nat.add_comm 1 s]
 
 @[simp] theorem foldrIdx_cons :
     (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl

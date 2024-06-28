@@ -66,10 +66,10 @@ theorem Balanced.depth_le : @Balanced α t c n → t.depth ≤ depthUB c n
 theorem Balanced.le_size : @Balanced α t c n → 2 ^ depthLB c n ≤ t.size + 1
   | .nil => Nat.le_refl _
   | .red hl hr => by
-    rw [size, Nat.add_right_comm (size _), Nat.add_assoc, depthLB, Nat.pow_succ, Nat.mul_two]
+    rw [size, Nat.add_right_comm (size _), ← Nat.add_assoc', depthLB, Nat.pow_succ, Nat.mul_two]
     exact Nat.add_le_add hl.le_size hr.le_size
   | .black hl hr => by
-    rw [size, Nat.add_right_comm (size _), Nat.add_assoc, depthLB, Nat.pow_succ, Nat.mul_two]
+    rw [size, Nat.add_right_comm (size _), ← Nat.add_assoc', depthLB, Nat.pow_succ, Nat.mul_two]
     refine Nat.add_le_add (Nat.le_trans ?_ hl.le_size) (Nat.le_trans ?_ hr.le_size) <;>
       exact Nat.pow_le_pow_of_le_right (by decide) (depthLB_le ..)
 

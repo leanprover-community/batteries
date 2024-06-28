@@ -31,7 +31,7 @@ protected theorem countP_go_eq_add (l) : countP.go p l n = n + countP.go p l 0 :
   | cons head tail ih =>
     unfold countP.go
     rw [ih (n := n + 1), ih (n := n), ih (n := 1)]
-    if h : p head then simp [h, Nat.add_assoc] else simp [h]
+    if h : p head then simp [h, ← Nat.add_assoc'] else simp [h]
 
 @[simp] theorem countP_cons_of_pos (l) (pa : p a) : countP p (a :: l) = countP p l + 1 := by
   have : countP.go p (a :: l) 0 = countP.go p l 1 := show cond .. = _ by rw [pa]; rfl
@@ -50,7 +50,7 @@ theorem length_eq_countP_add_countP (l) : length l = countP p l + countP (fun a 
   | cons x h ih =>
     if h : p x then
       rw [countP_cons_of_pos _ _ h, countP_cons_of_neg _ _ _, length, ih]
-      · rw [Nat.add_assoc, Nat.add_comm _ 1, Nat.add_assoc]
+      · rw [← Nat.add_assoc', Nat.add_comm _ 1, ← Nat.add_assoc']
       · simp only [h, not_true_eq_false, decide_False, not_false_eq_true]
     else
       rw [countP_cons_of_pos (fun a => ¬p a) _ _, countP_cons_of_neg _ _ h, length, ih]

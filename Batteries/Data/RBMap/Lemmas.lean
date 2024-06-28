@@ -282,7 +282,7 @@ theorem Ordered.le_max? {t : RBNode α} [TransCmp cmp] (ht : t.Ordered cmp) (h :
   unfold balRight; split <;> (try simp); split <;> simp
 
 theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
-  induction t <;> simp [*, size]; rfl
+  induction t <;> simp [*, size]
 
 @[simp] theorem reverse_size (t : RBNode α) : t.reverse.size = t.size := by simp [size_eq]
 

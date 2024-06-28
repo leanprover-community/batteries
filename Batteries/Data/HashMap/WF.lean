@@ -71,7 +71,7 @@ theorem reinsertAux_size [Hashable α] (data : Buckets α β) (a : α) (b : β) 
   simp only [reinsertAux, Array.data_length, Array.ugetElem_eq_getElem, Buckets.size_eq,
     Nat.succ_eq_add_one]
   refine have ⟨l₁, l₂, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
-  simp [h₁, Nat.succ_add]; rfl
+  simp [h₁, Nat.succ_add]
 
 theorem reinsertAux_WF [BEq α] [Hashable α] {data : Buckets α β} {a : α} {b : β} (H : data.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
@@ -103,11 +103,11 @@ where
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.data_length]
-        rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
+        rw [← Nat.add_assoc', ← Nat.add_assoc', ← Nat.add_assoc']; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
         rw [← Array.getElem_eq_data_getElem]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
-        induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
+        induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]
     · next H =>
       rw [(_ : Nat.sum _ = 0), Nat.zero_add]
       rw [← (_ : source.data.map (fun _ => .nil) = source.data)]
@@ -194,10 +194,10 @@ theorem insert_size [BEq α] [Hashable α] {m : Imp α β} {k v}
   split
   · unfold Buckets.size
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
-    simp [h, h₁, Buckets.size_eq, Nat.succ_add]; rfl
+    simp [h, h₁, Buckets.size_eq, Nat.succ_add]
   · rw [expand_size]; simp only [expand, h, Buckets.size, Array.data_length, Buckets.update_size]
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
-    simp [h₁, Buckets.size_eq, Nat.succ_add]; rfl
+    simp [h₁, Buckets.size_eq, Nat.succ_add]
 
 private theorem mem_replaceF {l : List (α × β)} {x : α × β} {p : α × β → Bool} {f : α × β → β} :
     x ∈ (l.replaceF fun a => bif p a then some (k, f a) else none) → x.1 = k ∨ x ∈ l := by
@@ -268,7 +268,7 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     simp only [AssocList.contains_eq, List.any_eq_true] at H
     have ⟨a, h₁, h₂⟩ := H
     refine have ⟨_, _, _, _, _, h, eq⟩ := List.exists_of_eraseP h₁ h₂; eq ▸ ?_
-    simp [h]; rfl
+    simp [h]
   · exact h
 
 theorem erase_WF [BEq α] [Hashable α] {m : Imp α β} {k}
@@ -345,7 +345,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
       (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
     induction l generalizing n with
     | nil => rfl
-    | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl
+    | cons l L IH => simp [bind, StateT.bind, IH, H1, ← Nat.add_assoc', g]; rfl
   have H3 (l : List _) :
     (l.filterMap (fun (a, b) => (f a b).map (a, ·))).map (fun a => a.fst)
      |>.Sublist (l.map (·.1)) := by
