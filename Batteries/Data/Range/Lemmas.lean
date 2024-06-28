@@ -32,7 +32,7 @@ private theorem numElems_le_iff {start stop step i} (hstep : 0 < step) :
     _ ↔ stop - start + step - 1 < step * i + step := by
       rw [← Nat.lt_succ (n := i), Nat.div_lt_iff_lt_mul hstep, Nat.mul_comm, ← Nat.mul_succ]
     _ ↔ stop - start + step - 1 < step * i + 1 + (step - 1) := by
-      rw [Nat.add_right_comm, Nat.add_assoc, Nat.sub_add_cancel hstep]
+      rw [Nat.add_right_comm, ← Nat.add_assoc', Nat.sub_add_cancel hstep]
     _ ↔ stop ≤ start + step * i := by
       rw [Nat.add_sub_assoc hstep, Nat.add_lt_add_iff_right, Nat.lt_succ,
         Nat.sub_le_iff_le_add']
@@ -84,7 +84,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
         | succ l =>
           have ih := ih _ _ (Nat.le_trans hle (Nat.le_add_right ..))
             (List.forall_mem_cons.1 H).2 (Nat.le_of_succ_le_succ h1) fun i => by
-              rw [Nat.add_right_comm, Nat.add_assoc, ← Nat.mul_succ, h2, Nat.succ_le_succ_iff]
+              rw [Nat.add_right_comm, ← Nat.add_assoc', ← Nat.mul_succ, h2, Nat.succ_le_succ_iff]
           have := h2 0; simp at this
           rw [forIn'.loop]; simp [List.forIn, this, ih]; rfl
   else

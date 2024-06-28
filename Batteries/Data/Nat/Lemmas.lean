@@ -180,7 +180,7 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 @[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+  induction l₁ <;> simp [*, ← Nat.add_assoc']
 
 @[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
 @[deprecated] alias pow_two_pos := Nat.two_pow_pos -- deprecated 2024-02-09

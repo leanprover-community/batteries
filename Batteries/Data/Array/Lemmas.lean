@@ -19,7 +19,7 @@ theorem forIn_eq_data_forIn [Monad m]
     | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
     | i+1, _, _, j, ij => by
       simp only [forIn.loop, Nat.add]
-      have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
+      have j_eq : j = size as - 1 - i := by simp [← ij, Nat.add_assoc']
       have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
       have : as[size as - 1 - i] :: as.data.drop (j + 1) = as.data.drop j := by
         rw [j_eq]; exact List.getElem_cons_drop _ _ this
