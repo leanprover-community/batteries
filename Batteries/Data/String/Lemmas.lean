@@ -525,7 +525,8 @@ theorem prev : ∀ {it}, ValidFor (c :: l) r it → ValidFor l (c :: r) it.prev
     cases h.out'
     have := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse] at this
-    simp [Iterator.prev, this] -- FIXME nonterminal simp, but `simp?` gives a different result
+    simp only [Iterator.prev, List.reverse_cons, List.append_assoc, List.singleton_append,
+      utf8Len_append, utf8Len_reverse, utf8Len_cons, utf8Len_nil, Nat.zero_add, this]
     exact .of_eq _ (by simp [List.reverseAux_eq]) (by simp)
 
 theorem prev_nil : ∀ {it}, ValidFor [] r it → ValidFor [] r it.prev
@@ -536,8 +537,8 @@ theorem prev_nil : ∀ {it}, ValidFor [] r it → ValidFor [] r it.prev
 
 theorem atEnd : ∀ {it}, ValidFor l r it → (it.atEnd ↔ r = [])
   | it, h => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Iterator.atEnd, h.pos, h.toString]
+    simp only [Iterator.atEnd, h.pos, h.toString, endPos_eq, utf8Len_reverseAux, ge_iff_le,
+      decide_eq_true_eq]
     exact Nat.add_le_add_iff_left.trans <| Nat.le_zero.trans utf8Len_eq_zero
 
 theorem hasNext : ∀ {it}, ValidFor l r it → (it.hasNext ↔ r ≠ [])
@@ -559,8 +560,7 @@ theorem setCurr (h : ValidFor l (c :: r) it) :
     ValidFor l (c :: r) (it.setCurr c) := h.setCurr'
 
 theorem toEnd (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := by
-  -- FIXME nonterminal simp, but `simp?` gives a different result
-  simp [Iterator.toEnd, h.toString]
+  simp only [Iterator.toEnd, h.toString, endPos_eq, utf8Len_reverseAux]
   exact .of_eq _ (by simp [List.reverseAux_eq]) (by simp [Nat.add_comm])
 
 theorem toEnd' (it : Iterator) : ValidFor it.s.1.reverse [] it.toEnd := by
@@ -570,8 +570,10 @@ theorem toEnd' (it : Iterator) : ValidFor it.s.1.reverse [] it.toEnd := by
 theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse ++ l) r it₂) :
     it₁.extract it₂ = ⟨m⟩ := by
   cases h₁.out; cases h₂.out
-  -- FIXME nonterminal simp, but `simp?` gives a different result
-  simp [Iterator.extract, List.reverseAux_eq, Nat.not_lt.2 (Nat.le_add_left ..)]
+  simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
+    List.append_assoc, ne_eq, not_true_eq_false, decide_False, utf8Len_append, utf8Len_reverse,
+    gt_iff_lt, pos_lt_eq, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
+    ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r
 
 theorem remainingToString {it} (h : ValidFor l r it) : it.remainingToString = ⟨r⟩ := by
@@ -582,8 +584,7 @@ theorem nextn : ∀ {it}, ValidFor l r it →
       ∀ n, n ≤ r.length → ValidFor ((r.take n).reverse ++ l) (r.drop n) (it.nextn n)
   | it, h, 0, _ => by simp [h, Iterator.nextn]
   | it, h, n+1, hn => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [h, Iterator.nextn]
+    simp only [Iterator.nextn]
     have a::r := r
     simpa using h.next.nextn _ (Nat.le_of_succ_le_succ hn)
 
@@ -591,8 +592,7 @@ theorem prevn : ∀ {it}, ValidFor l r it →
       ∀ n, n ≤ l.length → ValidFor (l.drop n) ((l.take n).reverse ++ r) (it.prevn n)
   | it, h, 0, _ => by simp [h, Iterator.prevn]
   | it, h, n+1, hn => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [h, Iterator.prevn]
+    simp only [Iterator.prevn]
     have a::l := l
     simpa using h.prev.prevn _ (Nat.le_of_succ_le_succ hn)
 
@@ -797,8 +797,7 @@ theorem toString : ∀ {s}, ValidFor l m r s → s.toString = ⟨m⟩
 
 theorem toIterator : ∀ {s}, ValidFor l m r s → s.toIterator.ValidFor l.reverse (m ++ r)
   | _, h => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.toIterator]
+    simp only [Substring.toIterator]
     exact .of_eq _ (by simp [h.str, List.reverseAux_eq]) (by simp [h.startPos])
 
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
@@ -806,8 +805,7 @@ theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m
 
 theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + csize c⟩
   | _, ⟨⟩ => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.next]
+    simp only [Substring.next, utf8Len_append, utf8Len_cons, List.append_assoc, List.cons_append]
     rw [if_neg (mt Pos.ext_iff.1 ?a)]
     case a =>
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
@@ -821,8 +819,7 @@ theorem next_stop : ∀ {s}, ValidFor l m r s → s.next ⟨utf8Len m⟩ = ⟨ut
 
 theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.prev ⟨utf8Len m₁ + csize c⟩ = ⟨utf8Len m₁⟩
   | _, ⟨⟩ => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.prev]
+    simp only [Substring.prev, List.append_assoc, List.cons_append]
     rw [if_neg (mt Pos.ext_iff.1 <| Ne.symm ?a)]
     case a => simpa [Nat.add_comm] using @ne_add_csize_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
@@ -837,8 +834,7 @@ theorem nextn : ∀ {s}, ValidFor l (m₁ ++ m₂) r s →
     ∀ n, s.nextn n ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + utf8Len (m₂.take n)⟩
   | _, _, 0 => by simp [Substring.nextn]
   | s, h, n+1 => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.nextn]
+    simp only [Substring.nextn]
     match m₂ with
     | [] => simp at h; simp [h.next_stop, h.nextn_stop]
     | c::m₂ =>
@@ -850,8 +846,7 @@ theorem prevn : ∀ {s}, ValidFor l (m₁.reverse ++ m₂) r s →
     ∀ n, s.prevn n ⟨utf8Len m₁⟩ = ⟨utf8Len (m₁.drop n)⟩
   | _, _, 0 => by simp [Substring.prevn]
   | s, h, n+1 => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.prevn]
+    simp only [Substring.prevn]
     match m₁ with
     | [] => simp
     | c::m₁ =>
@@ -864,9 +859,8 @@ theorem front : ∀ {s}, ValidFor l (c :: m) r s → s.front = c
 theorem drop : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor (l ++ m.take n) (m.drop n) r (s.drop n)
   | s, h, n => by
     have : Substring.nextn {..} .. = _ := h.nextn (m₁ := []) n
-    simp at this
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.drop, this]
+    simp only [utf8Len_nil, Pos.mk_zero, Nat.zero_add] at this
+    simp only [Substring.drop, this]
     simp only [h.str, List.append_assoc, h.startPos, h.stopPos]
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ (by simp) (by simp) ?_
@@ -877,8 +871,7 @@ theorem take : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor l (m.take n) (m.dro
   | s, h, n => by
     have : Substring.nextn {..} .. = _ := h.nextn (m₁ := []) n
     simp at this
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.take, this]
+    simp only [Substring.take, this]
     simp only [h.str, List.append_assoc, h.startPos]
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ ?_ (by simp) (by simp)
@@ -893,8 +886,8 @@ theorem atEnd : ∀ {s}, ValidFor l m r s → (s.atEnd ⟨p⟩ ↔ p = utf8Len m
 theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨⟨m⟩, b, e⟩ →
     ∃ l' r', ValidFor l' mm r' (s.extract b e)
   | _, ⟨⟩, ⟨⟩ => by
-    -- FIXME nonterminal simp, but `simp?` gives a different result
-    simp [Substring.extract]; split
+    simp only [Substring.extract, ge_iff_le, Pos.mk_le_mk, List.append_assoc, utf8Len_append]
+    split
     · next h =>
       rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| Nat.add_le_add_iff_left.1 h]
       exact ⟨[], [], ⟨⟩⟩
