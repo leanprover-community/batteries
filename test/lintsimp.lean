@@ -59,3 +59,25 @@ run_meta guard (← simpNF.test ``bad1).isNone
 run_meta guard (← simpNF.test ``bad2).isNone
 
 end
+
+section
+
+structure MyType where
+  t : Nat
+
+def MyTypeFamily : Nat → Type :=
+  fun _ => MyType
+
+def foo : MyType := ⟨0⟩
+def bar : MyTypeFamily 0 := ⟨0⟩
+def baz : MyTypeFamily 1 := ⟨0⟩
+
+@[simp] theorem foo_eq_bar : foo = bar := rfl
+@[simp] theorem foo_eq_baz : foo = baz := rfl
+
+@[simp] theorem myTypeFamily_one : MyTypeFamily 1 = MyType := rfl
+
+run_meta guard (← simpTypeNF.test ``foo_eq_bar).isSome
+run_meta guard (← simpTypeNF.test ``foo_eq_baz).isNone
+
+end

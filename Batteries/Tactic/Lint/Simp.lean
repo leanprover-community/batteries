@@ -219,6 +219,23 @@ Some simp lemmas have a variable as head symbol of the left-hand side (after whn
     unless headSym.isFVar do return none
     return m!"Left-hand side has variable as head symbol: {headSym}"
 
+/--
+A linter for simp lemmas where the type of the left-hand side has a different dsimp normal form
+than the type of the right-hand side.
+-/
+@[env_linter] def simpTypeNF : Linter where
+  noErrorsFound :=
+    "No simp lemma has different dsimp normal form of types on left-hand and right-hand side."
+  errorsFound := "TYPE OF LEFT-HAND SIDE HAS DIFFERENT DSIMP NORMAL FORM THEN TYPE OF RIGHT-HAND SIDE."
+  test := fun declName => do
+    unless ← isSimpTheorem declName do return none
+    let ctx := { ← Simp.Context.mkDefault with config.decide := false }
+    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, ..} => do
+      let (lhsType, _) ← dsimp (← inferType lhs) ctx
+      let (rhsType, _) ← dsimp (← inferType rhs) ctx
+      if ← isSimpEq lhsType rhsType then return none
+      return m!"Type of left-hand side has different dsimp normal form then type of right-hand side: {lhsType}, {rhsType}"
+
 private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   | .app (.app (.app (.const ``Eq _) _) lhs) rhs
   | .app (.app (.const ``Iff _) lhs) rhs
