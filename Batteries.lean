@@ -15,6 +15,7 @@ import Batteries.Control.Lemmas
 import Batteries.Control.Nondet.Basic
 import Batteries.Data.Array
 import Batteries.Data.AssocList
+import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.Bool
@@ -35,6 +36,7 @@ import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.String
 import Batteries.Data.Sum
+import Batteries.Data.Thunk
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Lean.AttributeExtra
