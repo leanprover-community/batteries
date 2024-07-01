@@ -216,7 +216,7 @@ theorem parent_rootD (self : UnionFind) (x : Nat) :
 
 @[nolint unusedHavesSuffices]
 theorem rootD_parent (self : UnionFind) (x : Nat) : self.rootD (self.parent x) = self.rootD x := by
-  simp [rootD, parent_lt]
+  simp only [rootD, Array.data_length, parent_lt]
   split
   · simp only [parentD, ↓reduceDIte, *]
     (conv => rhs; rw [root]); split
