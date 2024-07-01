@@ -234,7 +234,8 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
-  simp [prev]; refine (if_neg (Pos.ne_of_gt add_csize_pos)).trans ?_
+  simp only [prev]
+  refine (if_neg (Pos.ne_of_gt add_csize_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
 
 theorem prev_of_valid' (cs cs' : List Char) :
@@ -322,12 +323,15 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
-    simp; split <;> simp
-    subst b
-    rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by simp [hl₁, next_of_valid]]
-    simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
-      firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
-        (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
+    simp only [bne_iff_ne, ne_eq, ite_not, decide_eq_true_eq]
+    split
+    · simp only [utf8Len_cons]
+      subst b
+      rw [show next ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by simp [hl₁, next_of_valid]]
+      simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
+        firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
+          (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
+    · simp
   · next h =>
     rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
     intro h₁ h₂
