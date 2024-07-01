@@ -59,7 +59,6 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.Name
 import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap

@@ -313,7 +313,8 @@ def takeD : Nat → List α → α → List α
 @[simp] theorem takeD_succ (l) (a : α) :
     takeD (n+1) l a = l.head?.getD a :: takeD n l.tail a := by simp [takeD]
 
-@[simp] theorem takeD_nil (n) (a : α) : takeD n [] a = replicate n a := by induction n <;> simp [*]
+@[simp] theorem takeD_nil (n) (a : α) : takeD n [] a = replicate n a := by
+  induction n <;> simp [*, replicate_succ]
 
 /-- Tail-recursive version of `takeD`. -/
 def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
@@ -325,7 +326,7 @@ def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
 
 theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l dflt
   | 0, _ => by simp [takeDTR.go]
-  | _+1, [] => by simp [takeDTR.go]
+  | _+1, [] => by simp [takeDTR.go, replicate_succ]
   | _+1, _::l => by simp [takeDTR.go, takeDTR_go_eq _ l]
 
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
@@ -485,7 +486,7 @@ def initsTR (l : List α) : List (List α) :=
   l.foldr (fun a arrs => (arrs.map fun t => a :: t).push []) #[[]] |>.toListRev
 
 @[csimp] theorem inits_eq_initsTR : @inits = @initsTR := by
-  funext α l; simp [initsTR]; induction l <;> simp [*, reverse_map]
+  funext α l; simp [initsTR]; induction l <;> simp [*, map_reverse]
 
 /--
 `tails l` is the list of terminal segments of `l`.

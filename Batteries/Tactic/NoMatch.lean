@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.ElabRules
+import Lean.DocString
 
 /-!
 Deprecation warnings for `match ⋯ with.`, `fun.`, `λ.`, and `intro.`.

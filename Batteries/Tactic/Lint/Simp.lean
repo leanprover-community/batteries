@@ -96,7 +96,7 @@ def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
 def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) : MetaM MessageData := do
   let mut args := #[]
   let env ← getEnv
-  for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
+  for (thm, _) in usedSimps.map.toArray.qsort (·.2 < ·.2) do
     if let .decl declName := thm then
       if env.contains declName && declName != ``eq_self then
         args := args.push (← mkConstWithFreshMVarLevels declName)
@@ -120,7 +120,7 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
           else do
             let (e, s) ← dsimp lhs ctx
             return (Simp.Result.mk e .none .true, s)
-      if prf1Stats.usedTheorems.contains (.decl declName) then return none
+      if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
       let ({ expr := rhs', .. }, stats) ←
         decorateError "simplify fails on right-hand side:" <|
           if !isRfl then
