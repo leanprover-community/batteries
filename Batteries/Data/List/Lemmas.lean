@@ -1474,16 +1474,6 @@ theorem reverse_range' : ∀ s n : Nat, reverse (range' s n) = map (s + n - 1 - 
 @[simp] theorem enum_map_fst (l : List α) : map Prod.fst (enum l) = range l.length := by
   simp only [enum, enumFrom_map_fst, range_eq_range']
 
-/-! ### maximum? -/
-
--- A specialization of `maximum?_eq_some_iff` to Nat.
-theorem maximum?_eq_some_iff' {xs : List Nat} :
-    xs.maximum? = some a ↔ (a ∈ xs ∧ ∀ b ∈ xs, b ≤ a) :=
-  maximum?_eq_some_iff
-    (le_refl := Nat.le_refl)
-    (max_eq_or := fun _ _ => Nat.max_def .. ▸ by split <;> simp)
-    (max_le_iff := fun _ _ _ => Nat.max_le)
-
 /-! ### indexOf and indexesOf -/
 
 theorem foldrIdx_start :
