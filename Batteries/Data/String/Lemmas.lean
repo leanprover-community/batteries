@@ -647,9 +647,8 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
     unfold offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_csize_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
-    simp only [List.cons_append, ↓reduceDite, utf8Len_cons, next_of_valid l c (m ++ r),
-      List.length_cons, Nat.succ_eq_add_one]
-    simpa [← Nat.add_assoc, Nat.add_right_comm, Nat.succ_eq_add_one] using
+    simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
+    simpa [← Nat.add_assoc, Nat.add_right_comm] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
 theorem offsetOfPos_of_valid (l r) : offsetOfPos ⟨l ++ r⟩ ⟨utf8Len l⟩ = l.length := by
