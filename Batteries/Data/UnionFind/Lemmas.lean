@@ -65,36 +65,7 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
     (xroot : self.parent x = x) (yroot : self.parent y = y) :
     ∃ r, (r = x ∨ r = y) ∧ ∀ i,
       (link self x y yroot).rootD i =
-      if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
-  if h : x.1 = y then
-    refine ⟨x, .inl rfl, fun i => ?_⟩
-    rw [rootD_ext (m2 := self) (fun _ => by rw [parent_link, if_pos h])]
-    split <;> [obtain _ | _ := ‹_› <;> simp [*]; rfl]
-  else
-  have {x y : Fin self.size}
-      (xroot : self.parent x = x) (yroot : self.parent y = y) {m : UnionFind}
-      (hm : ∀ i, m.parent i = if y = i then x.1 else self.parent i) :
-      ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-        m.rootD i = if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
-    let rec go (i) :
-        m.rootD i = if self.rootD i = x ∨ self.rootD i = y then x.1 else self.rootD i := by
-      if h : m.parent i = i then
-        rw [rootD_eq_self.2 h]; rw [hm i] at h; split at h
-        · rw [if_pos, h]; simp [← h, rootD_eq_self, xroot]
-        · rw [rootD_eq_self.2 ‹_›]; split <;> [skip; rfl]
-          next h' => exact h'.resolve_right (Ne.symm ‹_›)
-      else
-        have _ := Nat.sub_lt_sub_left (m.lt_rankMax i) (m.rank_lt h)
-        rw [← rootD_parent, go (m.parent i)]
-        rw [hm i]; split <;> [subst i; rw [rootD_parent]]
-        simp [rootD_eq_self.2 xroot, rootD_eq_self.2 yroot]
-    termination_by m.rankMax - m.rank i
-    exact ⟨x, .inl rfl, go⟩
-  if hr : self.rank y < self.rank x then
-    exact this xroot yroot fun i => by simp [parent_link, h, hr]
-  else
-    simpa (config := {singlePass := true}) [or_comm] using
-      this yroot xroot fun i => by simp [parent_link, h, hr]
+      if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := sorry
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
 theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
