@@ -122,7 +122,7 @@ where
        ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_get_cons h, ←getElem_eq_data_get, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -143,7 +143,7 @@ theorem eraseIdx_swap_data {l : Array α} (i : Nat) (lt : i + 1 < size l) :
     have lt' := Nat.lt_of_succ_lt_succ lt
     have : (swap ⟨x₀::x₁::xs⟩ ⟨i.succ + 1, lt⟩ ⟨i.succ, Nat.lt_of_succ_lt lt⟩).data
         = x₀::(swap ⟨x₁::xs⟩ ⟨i + 1, lt'⟩ ⟨i, Nat.lt_of_succ_lt lt'⟩).data := by
-      simp [swap_def, List.set_succ, getElem_eq_data_get]
+      simp [swap_def, getElem_eq_data_getElem]
     simp [this, ih]
 
 theorem feraseIdx_data {l : Array α} {i : Fin l.size} :
