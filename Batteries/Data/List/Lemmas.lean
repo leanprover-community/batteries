@@ -405,13 +405,12 @@ theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modifyNth_eq_set_get?, get?_eq_get h]; rfl
 
-theorem exists_of_set {l : List α} (h : n < l.length) :
+-- The naming of `exists_of_set'` and `exists_of_set` have been swapped.
+-- If no one complains, we will remove this version later.
+@[deprecated exists_of_set (since := "2024-07-04")]
+theorem exists_of_set' {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
   rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
-
-theorem exists_of_set' {l : List α} (h : n < l.length) :
-    ∃ l₁ l₂, l = l₁ ++ l[n] :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ :=
-  have ⟨_, _, _, h₁, h₂, h₃⟩ := exists_of_set h; ⟨_, _, getElem_of_append h₁ h₂ ▸ h₁, h₂, h₃⟩
 
 @[simp]
 theorem getElem?_set_eq' (a : α) (n) (l : List α) : (set l n a)[n]? = (fun _ => a) <$> l[n]? := by
@@ -449,10 +448,6 @@ theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
 theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*, getElem?_eq_getElem h]
-
-theorem drop_set_of_lt (a : α) {n m : Nat} (l : List α) (h : n < m) :
-    (l.set n a).drop m = l.drop m :=
-  List.ext_getElem? fun i => by rw [getElem?_drop, getElem?_drop, getElem?_set_ne (by omega)]
 
 theorem take_set_of_lt (a : α) {n m : Nat} (l : List α) (h : m < n) :
     (l.set n a).take m = l.take m :=
