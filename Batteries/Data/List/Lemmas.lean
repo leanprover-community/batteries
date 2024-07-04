@@ -613,6 +613,10 @@ theorem erase_comm [LawfulBEq α] (a b : α) (l : List α) :
       rw [erase_append_right _ h₁, erase_append_right _ h₁, erase_append_right _ ha',
           erase_cons_tail _ ab, erase_cons_head]
 
+theorem erase_of_forall_bne (a : α) (xs : List α) (h : ∀ (x : α), x ∈ xs → ¬x == a) :
+    xs.erase a = xs := by
+  rw [erase_eq_eraseP', eraseP_of_forall_not h]
+
 end erase
 
 /-! ### filter and partition -/
@@ -723,6 +727,13 @@ theorem findIdx?_of_eq_some {xs : List α} {p : α → Bool} (w : xs.findIdx? p 
     simp_all only [findIdx?_cons, Nat.zero_add, findIdx?_succ]
     split at w <;> cases i <;> simp_all
 
+theorem findIdx?_eq_none (xs : List α) (p : α → Bool) :
+    xs.findIdx? p = none ↔ ∀ x ∈ xs, ¬p x := by
+  induction xs with
+  | nil => simp
+  | cons x xs ih =>
+    by_cases h : p x <;> simp [h, ih]
+
 theorem findIdx?_of_eq_none {xs : List α} {p : α → Bool} (w : xs.findIdx? p = none) :
     ∀ i, match xs.get? i with | some a => ¬ p a | none => true := by
   intro i
@@ -761,7 +772,7 @@ theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
     if h : p x then
       simp [h]
     else
-      cases h' : findIdx? p xs <;> (simp [h, h'] at *; assumption)
+      cases h' : findIdx? p xs <;> simp [h, h', ih]
 
 /-! ### pairwise -/
 
@@ -1534,6 +1545,10 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
 theorem indexOf?_cons [BEq α] :
     (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
   simp [indexOf?]
+
+theorem indexOf?_eq_none_iff [BEq α] (a : α) (l : List α) :
+    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
+  simp [indexOf?, findIdx?_eq_none]
 
 theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
     l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by

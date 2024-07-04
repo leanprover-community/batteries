@@ -158,31 +158,18 @@ theorem feraseIdx_data {l : Array α} {i : Fin l.size} :
     simp [feraseIdx, lt, List.dropLast_eq_eraseIdx last]
 
 @[simp] theorem erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a := by
-  let ⟨xs⟩ := l
-  match h : indexOf? ⟨xs⟩ a with
+  match h : indexOf? l a with
   | none =>
     simp only [erase, h]
-    apply erase_none 0
-    simpa [←indexOf?_data] using congrArg (Option.map Fin.val) h
+    apply Eq.symm
+    apply List.erase_of_forall_bne
+    rw [←List.indexOf?_eq_none_iff, indexOf?_data, h, Option.map_none']
   | some i =>
     simp only [erase, h]
     rw [feraseIdx_data, ←List.eraseIdx_indexOf_eq_erase]
     congr
     rw [List.indexOf_eq_indexOf?, indexOf?_data]
     simp [h]
-where
-  erase_none {xs : List α} (i : Nat) (h : List.indexOf? a xs = none) :
-      xs.drop i = (xs.drop i).erase a := by
-    if le : xs.length ≤ i then
-      rw [List.drop_length_le le]
-      rfl
-    else
-      have lt : i < xs.length := Nat.lt_of_not_le le
-      have h' := List.findIdx?_of_eq_none h i
-      simp only [List.get?_eq_get lt] at h'
-      rw [List.drop_eq_get_cons lt, List.erase]
-      simp [h', ←erase_none (i+1) h]
-  termination_by xs.length - i
 
 /-! ### shrink -/
 
