@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.SeqFocus
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.Init.Attach
 
 namespace Std.Range
 
