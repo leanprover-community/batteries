@@ -617,6 +617,8 @@ theorem erase_of_forall_bne (a : α) (xs : List α) (h : ∀ (x : α), x ∈ xs 
     xs.erase a = xs := by
   rw [erase_eq_eraseP', eraseP_of_forall_not h]
 
+-- TODO a version of the above theorem with LawfulBEq and ∉
+
 end erase
 
 /-! ### filter and partition -/
