@@ -6,11 +6,6 @@ Authors: Jannis Limperg
 import Batteries.Data.UInt
 import Batteries.Tactic.Alias
 
-@[ext] theorem Char.ext : {a b : Char} → a.val = b.val → a = b
-  | ⟨_,_⟩, ⟨_,_⟩, rfl => rfl
-
-theorem Char.ext_iff {x y : Char} : x = y ↔ x.val = y.val := ⟨congrArg _, Char.ext⟩
-
 theorem Char.le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=
   Char.ext_iff.trans UInt32.le_antisymm_iff
 
