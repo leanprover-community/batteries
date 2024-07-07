@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import Batteries.Data.HashMap.Basic
 import Batteries.Data.Array.Lemmas
-import Batteries.Util.ProofWanted
 
 /-!
 # Lemmas for `Batteries.HashMap`
