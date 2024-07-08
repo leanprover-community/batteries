@@ -7,7 +7,7 @@ import Batteries.Tactic.Alias
 
 namespace Option
 
-@[deprecated] alias to_list_some := toList_some
-@[deprecated] alias to_list_none := toList_none
+@[deprecated (since := "2024-03-05")] alias to_list_some := toList_some
+@[deprecated (since := "2024-03-05")] alias to_list_none := toList_none
 
 end Option

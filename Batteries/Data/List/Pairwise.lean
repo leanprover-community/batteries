@@ -188,7 +188,7 @@ theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l �
         intro a b hab
         apply h; exact hab.cons _
 
-@[deprecated pairwise_iff_forall_sublist]
+@[deprecated pairwise_iff_forall_sublist (since := "2023-09-18")]
 theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
     (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
   apply pairwise_iff_forall_sublist.mpr

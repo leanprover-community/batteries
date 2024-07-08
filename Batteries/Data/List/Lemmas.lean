@@ -308,7 +308,7 @@ theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNt
   | n+1, [] => rfl
   | n+1, a :: l => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
 
-@[deprecated] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
+@[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
 
 theorem getElem?_modifyNth (f : α → α) :
     ∀ n (l : List α) m, (modifyNth f n l)[m]? = (fun a => if n = m then f a else a) <$> l[m]?
@@ -467,7 +467,7 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
     simp [eraseIdx, ← Nat.add_one]
     rw [length_eraseIdx this, Nat.sub_add_cancel (Nat.lt_of_le_of_lt (Nat.zero_le _) this)]
 
-@[deprecated] alias length_removeNth := length_eraseIdx
+@[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
 /-! ### tail -/
 
@@ -614,7 +614,7 @@ theorem erase_subset (a : α) (l : List α) : l.erase a ⊆ l := (erase_sublist 
 
 theorem Sublist.erase (a : α) {l₁ l₂ : List α} (h : l₁ <+ l₂) : l₁.erase a <+ l₂.erase a := by
   simp only [erase_eq_eraseP']; exact h.eraseP
-@[deprecated] alias sublist.erase := Sublist.erase
+@[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
 
 theorem mem_of_mem_erase {a b : α} {l : List α} (h : a ∈ l.erase b) : a ∈ l := erase_subset _ _ h
 
