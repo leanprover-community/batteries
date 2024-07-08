@@ -21,35 +21,35 @@ but it would be much harder to generate the deprecations.
 Let's hope that people using the tactic implementations can work this out themselves.
 -/
 
-@[deprecated] alias Std.AssocList := Batteries.AssocList
-@[deprecated] alias Std.HashMap := Batteries.HashMap
-@[deprecated] alias Std.mkHashMap := Batteries.mkHashMap
-@[deprecated] alias Std.DList := Batteries.DList
-@[deprecated] alias Std.PairingHeapImp.Heap := Batteries.PairingHeapImp.Heap
-@[deprecated] alias Std.TotalBLE := Batteries.TotalBLE
-@[deprecated] alias Std.OrientedCmp := Batteries.OrientedCmp
-@[deprecated] alias Std.TransCmp := Batteries.TransCmp
-@[deprecated] alias Std.BEqCmp := Batteries.BEqCmp
-@[deprecated] alias Std.LTCmp := Batteries.LTCmp
-@[deprecated] alias Std.LECmp := Batteries.LECmp
-@[deprecated] alias Std.LawfulCmp := Batteries.LawfulCmp
-@[deprecated] alias Std.OrientedOrd := Batteries.OrientedOrd
-@[deprecated] alias Std.TransOrd := Batteries.TransOrd
-@[deprecated] alias Std.BEqOrd := Batteries.BEqOrd
-@[deprecated] alias Std.LTOrd := Batteries.LTOrd
-@[deprecated] alias Std.LEOrd := Batteries.LEOrd
-@[deprecated] alias Std.LawfulOrd := Batteries.LawfulOrd
-@[deprecated] alias Std.compareOfLessAndEq_eq_lt := Batteries.compareOfLessAndEq_eq_lt
-@[deprecated] alias Std.RBColor := Batteries.RBColor
-@[deprecated] alias Std.RBNode := Batteries.RBNode
-@[deprecated] alias Std.RBSet := Batteries.RBSet
-@[deprecated] alias Std.mkRBSet := Batteries.mkRBSet
-@[deprecated] alias Std.RBMap := Batteries.RBMap
-@[deprecated] alias Std.mkRBMap := Batteries.mkRBMap
-@[deprecated] alias Std.BinomialHeap := Batteries.BinomialHeap
-@[deprecated] alias Std.mkBinomialHeap := Batteries.mkBinomialHeap
-@[deprecated] alias Std.UFNode := Batteries.UFNode
-@[deprecated] alias Std.UnionFind := Batteries.UnionFind
+@[deprecated (since := "2024-05-07")] alias Std.AssocList := Batteries.AssocList
+@[deprecated (since := "2024-05-07")] alias Std.HashMap := Batteries.HashMap
+@[deprecated (since := "2024-05-07")] alias Std.mkHashMap := Batteries.mkHashMap
+@[deprecated (since := "2024-05-07")] alias Std.DList := Batteries.DList
+@[deprecated (since := "2024-05-07")] alias Std.PairingHeapImp.Heap := Batteries.PairingHeapImp.Heap
+@[deprecated (since := "2024-05-07")] alias Std.TotalBLE := Batteries.TotalBLE
+@[deprecated (since := "2024-05-07")] alias Std.OrientedCmp := Batteries.OrientedCmp
+@[deprecated (since := "2024-05-07")] alias Std.TransCmp := Batteries.TransCmp
+@[deprecated (since := "2024-05-07")] alias Std.BEqCmp := Batteries.BEqCmp
+@[deprecated (since := "2024-05-07")] alias Std.LTCmp := Batteries.LTCmp
+@[deprecated (since := "2024-05-07")] alias Std.LECmp := Batteries.LECmp
+@[deprecated (since := "2024-05-07")] alias Std.LawfulCmp := Batteries.LawfulCmp
+@[deprecated (since := "2024-05-07")] alias Std.OrientedOrd := Batteries.OrientedOrd
+@[deprecated (since := "2024-05-07")] alias Std.TransOrd := Batteries.TransOrd
+@[deprecated (since := "2024-05-07")] alias Std.BEqOrd := Batteries.BEqOrd
+@[deprecated (since := "2024-05-07")] alias Std.LTOrd := Batteries.LTOrd
+@[deprecated (since := "2024-05-07")] alias Std.LEOrd := Batteries.LEOrd
+@[deprecated (since := "2024-05-07")] alias Std.LawfulOrd := Batteries.LawfulOrd
+@[deprecated (since := "2024-05-07")] alias Std.compareOfLessAndEq_eq_lt := Batteries.compareOfLessAndEq_eq_lt
+@[deprecated (since := "2024-05-07")] alias Std.RBColor := Batteries.RBColor
+@[deprecated (since := "2024-05-07")] alias Std.RBNode := Batteries.RBNode
+@[deprecated (since := "2024-05-07")] alias Std.RBSet := Batteries.RBSet
+@[deprecated (since := "2024-05-07")] alias Std.mkRBSet := Batteries.mkRBSet
+@[deprecated (since := "2024-05-07")] alias Std.RBMap := Batteries.RBMap
+@[deprecated (since := "2024-05-07")] alias Std.mkRBMap := Batteries.mkRBMap
+@[deprecated (since := "2024-05-07")] alias Std.BinomialHeap := Batteries.BinomialHeap
+@[deprecated (since := "2024-05-07")] alias Std.mkBinomialHeap := Batteries.mkBinomialHeap
+@[deprecated (since := "2024-05-07")] alias Std.UFNode := Batteries.UFNode
+@[deprecated (since := "2024-05-07")] alias Std.UnionFind := Batteries.UnionFind
 
 -- Check that these generate usable deprecated hints
 -- when referring to names inside these namespaces.

@@ -93,9 +93,9 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
-@[deprecated] alias removeNth := eraseIdx
-@[deprecated] alias removeNthTR := eraseIdxTR
-@[deprecated] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth := eraseIdx
+@[deprecated (since := "2024-05-06")] alias removeNthTR := eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
@@ -926,7 +926,7 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
 Use `List.getLastD` instead.
 -/
-@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
@@ -934,7 +934,7 @@ Use `List.getLastD` instead.
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
 Use `List.getLast?` instead
 -/
-@[simp, deprecated getLast?] def last' {α} : List α → Option α
+@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l

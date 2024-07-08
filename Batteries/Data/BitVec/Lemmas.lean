@@ -7,13 +7,10 @@ import Batteries.Tactic.Alias
 
 namespace BitVec
 
-/-- Replaced 2024-02-07. -/
-@[deprecated] alias zero_is_unique := eq_nil
+@[deprecated (since := "2024-02-07")] alias zero_is_unique := eq_nil
 
 /-! ### sub/neg -/
 
-/-- Replaced 2024-02-06. -/
-@[deprecated] alias sub_toNat := toNat_sub
+@[deprecated (since := "2024-02-07")] alias sub_toNat := toNat_sub
 
-/-- Replaced 2024-02-06. -/
-@[deprecated] alias neg_toNat := toNat_neg
+@[deprecated (since := "2024-02-07")] alias neg_toNat := toNat_neg
