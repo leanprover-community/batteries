@@ -73,11 +73,11 @@ theorem Eq.congr_left {x y z : α} (h : x = y) : x = z ↔ y = z := by rw [h]
 
 theorem Eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 
-alias congr_arg := congrArg
-alias congr_arg₂ := congrArg₂
-alias congr_fun := congrFun
-alias congr_fun₂ := congrFun₂
-alias congr_fun₃ := congrFun₃
+@[deprecated congrArg  (since := "2024-07-08")] alias congr_arg := congrArg
+@[deprecated congrArg₂ (since := "2024-07-08")] alias congr_arg₂ := congrArg₂
+@[deprecated congrFun  (since := "2024-07-08")] alias congr_fun := congrFun
+@[deprecated congrFun₂ (since := "2024-07-08")] alias congr_fun₂ := congrFun₂
+@[deprecated congrFun₃ (since := "2024-07-08")] alias congr_fun₃ := congrFun₃
 
 theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
   | rfl, rfl => .rfl
