@@ -15,6 +15,7 @@ import Batteries.Control.Lemmas
 import Batteries.Control.Nondet.Basic
 import Batteries.Data.Array
 import Batteries.Data.AssocList
+import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.Bool
@@ -58,7 +59,6 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.Name
 import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
