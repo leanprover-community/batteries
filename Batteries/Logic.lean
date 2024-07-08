@@ -10,7 +10,7 @@ import Batteries.Tactic.Lint.Misc
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
-@[deprecated] alias proofIrrel := proof_irrel
+@[deprecated (since := "2024-03-15")] alias proofIrrel := proof_irrel
 
 /-! ## id -/
 

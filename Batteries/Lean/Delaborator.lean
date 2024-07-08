@@ -8,6 +8,6 @@ import Lean.PrettyPrinter
 open Lean PrettyPrinter Delaborator SubExpr
 
 /-- Abbreviation for `Lean.MessageData.ofConst`. -/
-@[deprecated Lean.MessageData.ofConst]
+@[deprecated Lean.MessageData.ofConst (since := "2024-05-18")]
 def Lean.ppConst (e : Expr) : MessageData :=
   Lean.MessageData.ofConst e
