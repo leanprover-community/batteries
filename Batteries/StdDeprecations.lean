@@ -39,7 +39,8 @@ Let's hope that people using the tactic implementations can work this out themse
 @[deprecated (since := "2024-05-07")] alias Std.LTOrd := Batteries.LTOrd
 @[deprecated (since := "2024-05-07")] alias Std.LEOrd := Batteries.LEOrd
 @[deprecated (since := "2024-05-07")] alias Std.LawfulOrd := Batteries.LawfulOrd
-@[deprecated (since := "2024-05-07")] alias Std.compareOfLessAndEq_eq_lt := Batteries.compareOfLessAndEq_eq_lt
+@[deprecated (since := "2024-05-07")]
+alias Std.compareOfLessAndEq_eq_lt := Batteries.compareOfLessAndEq_eq_lt
 @[deprecated (since := "2024-05-07")] alias Std.RBColor := Batteries.RBColor
 @[deprecated (since := "2024-05-07")] alias Std.RBNode := Batteries.RBNode
 @[deprecated (since := "2024-05-07")] alias Std.RBSet := Batteries.RBSet
