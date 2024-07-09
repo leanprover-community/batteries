@@ -16,10 +16,6 @@ instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
 
 theorem Function.id_def : @id α = fun x => x := rfl
 
-/-! ## exists and forall -/
-
-alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
-
 /-! ## decidable -/
 
 protected alias ⟨Decidable.exists_not_of_not_forall, _⟩ := Decidable.not_forall
@@ -127,9 +123,7 @@ end Mem
 -- instance (priority := 10) {α} [Subsingleton α] : DecidableEq α
 --   | a, b => isTrue (Subsingleton.elim a b)
 
--- @[simp] -- TODO(Mario): profile
-theorem eq_iff_true_of_subsingleton [Subsingleton α] (x y : α) : x = y ↔ True :=
-  iff_true_intro (Subsingleton.elim ..)
+-- TODO(Mario): profile adding `@[simp]` to `eq_iff_true_of_subsingleton`
 
 /-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 theorem subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : Subsingleton α :=

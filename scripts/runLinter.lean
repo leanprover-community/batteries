@@ -1,6 +1,6 @@
+import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
-import Batteries.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
 open System (FilePath)
