@@ -18,7 +18,7 @@ theorem Function.id_def : @id α = fun x => x := rfl
 
 /-! ## exists and forall -/
 
-alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
+--alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
 
 /-! ## decidable -/
 
@@ -60,11 +60,7 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
     {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
   funext fun _ => funext₂ <| h _
 
-protected theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
-  ⟨congrFun, funext⟩
-
--- TODO(kmill): remove once core has `funext_iff` (needs stage0 update)
-alias funext_iff := Function.funext_iff
+protected alias Function.funext_iff := funext_iff
 
 theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
   mt <| congrArg _
@@ -132,8 +128,8 @@ end Mem
 --   | a, b => isTrue (Subsingleton.elim a b)
 
 -- @[simp] -- TODO(Mario): profile
-theorem eq_iff_true_of_subsingleton [Subsingleton α] (x y : α) : x = y ↔ True :=
-  iff_true_intro (Subsingleton.elim ..)
+-- theorem eq_iff_true_of_subsingleton [Subsingleton α] (x y : α) : x = y ↔ True :=
+--   iff_true_intro (Subsingleton.elim ..)
 
 /-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 theorem subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : Subsingleton α :=
