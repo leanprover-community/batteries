@@ -17,18 +17,18 @@ namespace Batteries
 
 namespace Vector
 
-unseal Array.mapM.map
+unseal Array.mapM.map in
 /-- An `empty` vector maps to a `empty` vector. -/
 @[simp]
 theorem map_empty (f : α → β) : map f empty = empty := rfl
 
 
-theorem eq : ∀ v w : Vector α n, v.toArray = w.toArray → v = w
+theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v = w
   | {..}, {..}, rfl => rfl
 
 /-- A vector of length `0` is an `empty` vector. -/
 protected theorem eq_empty (v : Vector α 0) : v = empty := by
-  apply Vector.eq v #v[]
+  apply Vector.toArray_injective
   apply Array.eq_empty_of_size_eq_zero v.2
 
 /--
@@ -36,8 +36,8 @@ protected theorem eq_empty (v : Vector α 0) : v = empty := by
 Vectors `a` and `b` are equal to each other if their elements are equal for each valid index.
 -/
 @[ext]
-protected theorem ext (a b : Vector α n) (h : (i : Nat) → (_ : i < n) → a[i] = b[i]) : a = b := by
-  apply Vector.eq
+protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i] = b[i]) : a = b := by
+  apply Vector.toArray_injective
   apply Array.ext
   · rw [a.size_eq, b.size_eq]
   · intro i hi _
