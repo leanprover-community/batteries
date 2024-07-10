@@ -130,4 +130,4 @@ theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
 /-! ### map -/
 
 unseal mapM.map in
-theorem mem_empty (f : α → β) : map f empty = empty := rfl
+theorem map_empty (f : α → β) : map f empty = empty := rfl
