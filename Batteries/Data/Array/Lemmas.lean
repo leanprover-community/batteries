@@ -126,3 +126,8 @@ theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - 
 theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
   simp [shrink, size_shrink_loop]
   omega
+
+/-! ### map -/
+
+unseal mapM.map in
+theorem mem_empty (f : α → β) : map f empty = empty := rfl
