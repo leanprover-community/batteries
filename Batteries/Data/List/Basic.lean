@@ -269,7 +269,7 @@ theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ inse
 @[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
   funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
 
-@[simp] theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
+theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
 /--
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
