@@ -629,29 +629,6 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   rw [Array.foldl_eq_foldl_data, Array.foldl_data_eq_bind]; rfl
   intros; apply Array.foldl_data_eq_map
 
-/-- `eraseP p l` removes the first element of `l` satisfying the predicate `p`. -/
-def eraseP (p : α → Bool) : List α → List α
-  | [] => []
-  | a :: l => bif p a then l else a :: eraseP p l
-
-/-- Tail-recursive version of `eraseP`. -/
-@[inline] def erasePTR (p : α → Bool) (l : List α) : List α := go l #[] where
-  /-- Auxiliary for `erasePTR`: `erasePTR.go p l xs acc = acc.toList ++ eraseP p xs`,
-  unless `xs` does not contain any elements satisfying `p`, where it returns `l`. -/
-  @[specialize] go : List α → Array α → List α
-  | [], _ => l
-  | a :: l, acc => bif p a then acc.toListAppend l else go l (acc.push a)
-
-@[csimp] theorem eraseP_eq_erasePTR : @eraseP = @erasePTR := by
-  funext α p l; simp [erasePTR]
-  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    erasePTR.go p l xs acc = acc.data ++ xs.eraseP p
-  | [] => fun h => by simp [erasePTR.go, eraseP, h]
-  | x::xs => by
-    simp [erasePTR.go, eraseP]; cases p x <;> simp
-    · intro h; rw [go _ xs]; {simp}; simp [h]
-  exact (go #[] _ rfl).symm
-
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
 `p`, and `l`, with `a` removed. If there is no such element `a` it returns `(none, l)`.
