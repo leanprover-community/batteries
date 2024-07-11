@@ -62,8 +62,8 @@ theorem countP_eq_length_filter (l) : countP p l = length (filter p l) := by
   | nil => rfl
   | cons x l ih =>
     if h : p x
-    then rw [countP_cons_of_pos p l h, ih, filter_cons_of_pos l h, length]
-    else rw [countP_cons_of_neg p l h, ih, filter_cons_of_neg l h]
+    then rw [countP_cons_of_pos p l h, ih, filter_cons_of_pos h, length]
+    else rw [countP_cons_of_neg p l h, ih, filter_cons_of_neg h]
 
 theorem countP_le_length : countP p l ≤ l.length := by
   simp only [countP_eq_length_filter]
