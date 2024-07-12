@@ -152,7 +152,6 @@ theorem min?_eq_toList_head? {t : RBNode α} : t.min? = t.toList.head? := by
   | nil => rfl
   | node _ l _ _ ih =>
     cases l <;> simp [RBNode.min?, ih]
-    next ll _ _ => cases toList ll <;> rfl
 
 theorem max?_eq_toList_getLast? {t : RBNode α} : t.max? = t.toList.getLast? := by
   rw [← min?_reverse, min?_eq_toList_head?]; simp
