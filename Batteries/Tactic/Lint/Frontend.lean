@@ -65,17 +65,23 @@ inductive LintVerbosity
   | high
   deriving Inhabited, DecidableEq, Repr
 
-/-- `getChecks slow useAlso` produces a list of linters.
-`useAlso` is an optional list of names that should resolve to declarations with type `NamedLinter`.
-If populated, these linters are always run (regardless of their configuration).
+/-- `getChecks slow runOnly runAlways` produces a list of linters.
+`runOnly` is an optional list of names that should resolve to declarations with type `NamedLinter`.
+If populated, only these linters are run (regardless of the default configuration).
+`runAlways` is an optional list of names that should resolve to declarations with type
+`NamedLinter`. If populated, these linters are always run (regardless of their configuration).
+Specifying a linter in `runAlways` but not `runOnly` is an error.
 Otherwise, it uses all enabled linters in the environment tagged with `@[env_linter]`.
 If `slow` is false, it only uses the fast default tests. -/
-def getChecks (slow : Bool) (useAlso : Option (List Name)) : CoreM (Array NamedLinter) := do
+def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (List Name)) :
+    CoreM (Array NamedLinter) := do
   let mut result := #[]
   for (name, declName, default) in batteriesLinterExt.getState (← getEnv) do
-    let shouldRun := default || match useAlso with
-      | some extras => extras.contains name
-      | none => false
+    let shouldRun := match (runOnly, runAlways) with
+      | (some only, some always) => only.contains name && (always.contains name || default)
+      | (some only, none) => only.contains name
+      | (none, some always) => default || always.contains name
+      | _ => default
     if shouldRun then
       let linter ← getLinter name declName
       if slow || linter.isFast then
@@ -240,13 +246,11 @@ elab tk:"#lint" verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
     | some ⟨.node _ `token.«-» _⟩ => pure .low
     | _ => throwUnsupportedSyntax
   let fast := fast.isSome
-  let onlyNames : Option (List Name) := match only with
-    | some _ => some (linters.map fun l => l.getId).toList
-    | none => none
+  let onlyNames : Option (List Name) := match only.isSome with
+    | true => some (linters.map fun l => l.getId).toList
+    | false => none
   let linters ← liftCoreM do
-    let mut result ← getChecks (slow := !fast) none
-    if let some only := onlyNames then
-      result := result.filter fun lint => only.contains lint.name
+    let mut result ← getChecks (slow := !fast) (runOnly := onlyNames) none
     let linterState := batteriesLinterExt.getState (← getEnv)
     for id in linters do
       let name := id.getId.eraseMacroScopes
