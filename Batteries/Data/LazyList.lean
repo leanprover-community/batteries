@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Simon Hudon
 -/
 import Batteries.Data.Thunk
-
 /-!
 # Lazy lists
 
@@ -18,6 +17,7 @@ logically we can prove that `LazyList α` is isomorphic to `List α`.)
 /-- Lazy list.
 All elements (except the first) are computed lazily.
 -/
+@[deprecated "Consider using `MLList`." (since := "2024-07-15")]
 inductive LazyList (α : Type u) : Type u
   /-- The empty lazy list. -/
   | nil : LazyList α
@@ -25,6 +25,7 @@ inductive LazyList (α : Type u) : Type u
   | cons (hd : α) (tl : Thunk <| LazyList α) : LazyList α
 
 
+set_option linter.deprecated false
 namespace LazyList
 
 
