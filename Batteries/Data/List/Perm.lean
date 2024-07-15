@@ -437,12 +437,12 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
     | .cons _ s₁ => exact IH d.2 s₁ h
     | .cons₂ _ s₁ =>
       have := Subperm.subset ⟨_, h.symm, s₂⟩ (.head _)
-      exact (d.1 _ this rfl).elim
+      exact (d.1 this).elim
   | cons₂ a _ IH =>
     match s₁ with
     | .cons _ s₁ =>
       have := Subperm.subset ⟨_, h, s₁⟩ (.head _)
-      exact (d.1 _ this rfl).elim
+      exact (d.1 this).elim
     | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
 section DecidableEq

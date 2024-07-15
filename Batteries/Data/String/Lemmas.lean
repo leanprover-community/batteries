@@ -12,7 +12,8 @@ import Batteries.Tactic.SqueezeScope
 
 namespace String
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
+attribute [ext (iff := false)] ext
 
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
   List.lt_trans' (α := Char) Nat.lt_trans
@@ -87,7 +88,8 @@ end
 
 namespace Pos
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.Pos.ext` in core.
+attribute [ext (iff := false)] ext
 
 theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
 

@@ -24,7 +24,7 @@ theorem exists_of_update (self : Buckets α β) (i d h) :
     ∃ l₁ l₂, self.1.data = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.data = l₁ ++ d :: l₂ := by
   simp only [Array.data_length, Array.ugetElem_eq_getElem, Array.getElem_eq_data_getElem]
-  exact List.exists_of_set' h
+  exact List.exists_of_set h
 
 theorem update_update (self : Buckets α β) (i d d' h h') :
     (self.update i d h).update i d' h' = self.update i d' h := by
@@ -95,11 +95,11 @@ where
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b <;> simp
       · case a =>
-        simp [List.getD_eq_getElem?, List.getElem?_set, Option.map_eq_map]; split
+        simp [List.getD_eq_getElem?_getD, List.getElem?_set, Option.map_eq_map]; split
         · cases source.data[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
-        refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set' H; eq ▸ ?_
+        refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.data_length]

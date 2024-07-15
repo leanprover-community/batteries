@@ -10,10 +10,10 @@ namespace Bool
 
 /-! ### injectivity lemmas -/
 
-@[deprecated] alias not_inj' := not_inj_iff
+@[deprecated (since := "2023-10-27")] alias not_inj' := not_inj_iff
 
-@[deprecated] alias and_or_inj_right' := and_or_inj_right_iff
+@[deprecated (since := "2023-10-27")] alias and_or_inj_right' := and_or_inj_right_iff
 
-@[deprecated] alias and_or_inj_left' := and_or_inj_left_iff
+@[deprecated (since := "2023-10-27")] alias and_or_inj_left' := and_or_inj_left_iff
 
 end Bool

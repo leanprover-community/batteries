@@ -11,16 +11,6 @@ namespace List
 /-! ## New definitions -/
 
 /--
-`l₁ ⊆ l₂` means that every element of `l₁` is also an element of `l₂`, ignoring multiplicity.
--/
-protected def Subset (l₁ l₂ : List α) := ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂
-
-instance : HasSubset (List α) := ⟨List.Subset⟩
-
-instance [DecidableEq α] : DecidableRel (Subset : List α → List α → Prop) :=
-  fun _ _ => decidableBAll _ _
-
-/--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
 is identified, it is removed from `l₂`, so elements are counted with multiplicity.
@@ -93,9 +83,9 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
-@[deprecated] alias removeNth := eraseIdx
-@[deprecated] alias removeNthTR := eraseIdxTR
-@[deprecated] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth := eraseIdx
+@[deprecated (since := "2024-05-06")] alias removeNthTR := eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
@@ -138,26 +128,6 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 @[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
-
-/-- `l₁ <+ l₂`, or `Sublist l₁ l₂`, says that `l₁` is a (non-contiguous) subsequence of `l₂`. -/
-inductive Sublist {α} : List α → List α → Prop
-  /-- the base case: `[]` is a sublist of `[]` -/
-  | slnil : Sublist [] []
-  /-- If `l₁` is a subsequence of `l₂`, then it is also a subsequence of `a :: l₂`. -/
-  | cons a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
-  /-- If `l₁` is a subsequence of `l₂`, then `a :: l₁` is a subsequence of `a :: l₂`. -/
-  | cons₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
-
-@[inherit_doc] scoped infixl:50 " <+ " => Sublist
-
-/-- True if the first list is a potentially non-contiguous sub-sequence of the second list. -/
-def isSublist [BEq α] : List α → List α → Bool
-  | [], _ => true
-  | _, [] => false
-  | l₁@(hd₁::tl₁), hd₂::tl₂ =>
-    if hd₁ == hd₂
-    then tl₁.isSublist tl₂
-    else l₁.isSublist tl₂
 
 /--
 Split a list at an index.
@@ -299,7 +269,7 @@ theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ inse
 @[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
   funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
 
-@[simp] theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
+theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
 /--
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
@@ -806,46 +776,6 @@ where
     rename_i a as b bs; unfold cond; cases R a b <;> simp [go as bs]
   exact (go as bs [] []).symm
 
-section Pairwise
-
-variable (R : α → α → Prop)
-
-/--
-`Pairwise R l` means that all the elements with earlier indexes are
-`R`-related to all the elements with later indexes.
-```
-Pairwise R [1, 2, 3] ↔ R 1 2 ∧ R 1 3 ∧ R 2 3
-```
-For example if `R = (·≠·)` then it asserts `l` has no duplicates,
-and if `R = (·<·)` then it asserts that `l` is (strictly) sorted.
--/
-inductive Pairwise : List α → Prop
-  /-- All elements of the empty list are vacuously pairwise related. -/
-  | nil : Pairwise []
-  /-- `a :: l` is `Pairwise R` if `a` `R`-relates to every element of `l`,
-  and `l` is `Pairwise R`. -/
-  | cons : ∀ {a : α} {l : List α}, (∀ a' ∈ l, R a a') → Pairwise l → Pairwise (a :: l)
-
-attribute [simp] Pairwise.nil
-
-variable {R}
-
-@[simp] theorem pairwise_cons : Pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ Pairwise R l :=
-  ⟨fun | .cons h₁ h₂ => ⟨h₁, h₂⟩, fun ⟨h₁, h₂⟩ => h₂.cons h₁⟩
-
-instance instDecidablePairwise [DecidableRel R] :
-    (l : List α) → Decidable (Pairwise R l)
-  | [] => isTrue .nil
-  | hd :: tl =>
-    match instDecidablePairwise tl with
-    | isTrue ht =>
-      match decidableBAll (R hd) tl with
-      | isFalse hf => isFalse fun hf' => hf (pairwise_cons.1 hf').1
-      | isTrue ht' => isTrue <| pairwise_cons.mpr (And.intro ht' ht)
-    | isFalse hf => isFalse fun | .cons _ ih => hf ih
-
-end Pairwise
-
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
 `pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
@@ -880,13 +810,6 @@ def Chain' : List α → Prop
   | a :: l => Chain R a l
 
 end Chain
-
-/-- `Nodup l` means that `l` has no duplicates, that is, any element appears at most
-  once in the List. It is defined as `Pairwise (≠)`. -/
-def Nodup : List α → Prop := Pairwise (· ≠ ·)
-
-instance nodupDecidable [DecidableEq α] : ∀ l : List α, Decidable (Nodup l) :=
-  instDecidablePairwise
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
@@ -926,7 +849,7 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
 Use `List.getLastD` instead.
 -/
-@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
@@ -934,7 +857,7 @@ Use `List.getLastD` instead.
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
 Use `List.getLast?` instead
 -/
-@[simp, deprecated getLast?] def last' {α} : List α → Option α
+@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l

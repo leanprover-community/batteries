@@ -188,7 +188,7 @@ theorem pairwise_iff_forall_sublist : l.Pairwise R ↔ (∀ {a b}, [a,b] <+ l �
         intro a b hab
         apply h; exact hab.cons _
 
-@[deprecated pairwise_iff_forall_sublist]
+@[deprecated pairwise_iff_forall_sublist (since := "2023-09-18")]
 theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
     (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
   apply pairwise_iff_forall_sublist.mpr
@@ -254,11 +254,6 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
     exact h _ _ _ _ h'
   · intros i j hi hj h'
     exact h ⟨i, hi⟩ ⟨j, hj⟩ h'
-
-theorem pairwise_replicate {α : Type _} {r : α → α → Prop} {x : α} (hx : r x x) :
-    ∀ n : Nat, Pairwise r (List.replicate n x)
-  | 0 => by simp
-  | n + 1 => by simp [mem_replicate, hx, pairwise_replicate hx n, replicate_succ]
 
 /-! ### Pairwise filtering -/
 
