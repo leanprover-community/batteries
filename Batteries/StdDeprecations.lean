@@ -22,6 +22,7 @@ Let's hope that people using the tactic implementations can work this out themse
 -/
 
 @[deprecated (since := "2024-05-07")] alias Std.AssocList := Batteries.AssocList
+@[deprecated (since := "2024-05-07")] alias Std.HashMap := Batteries.HashMap
 @[deprecated (since := "2024-05-07")] alias Std.mkHashMap := Batteries.mkHashMap
 @[deprecated (since := "2024-05-07")] alias Std.DList := Batteries.DList
 @[deprecated (since := "2024-05-07")] alias Std.PairingHeapImp.Heap := Batteries.PairingHeapImp.Heap
