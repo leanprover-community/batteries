@@ -1,4 +1,3 @@
-import Batteries.Classes.BEq
 import Batteries.Classes.Cast
 import Batteries.Classes.Order
 import Batteries.Classes.RatCast
@@ -64,12 +63,10 @@ import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
 import Batteries.Lean.Position
-import Batteries.Lean.SMap
 import Batteries.Lean.Syntax
 import Batteries.Lean.System.IO
 import Batteries.Lean.TagAttribute
 import Batteries.Lean.Util.EnvSearch
-import Batteries.Lean.Util.Path
 import Batteries.Linter
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
