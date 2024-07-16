@@ -134,10 +134,10 @@ theorem pairwise_filterMap (f : β → Option α) {l : List β} :
   | cons a l IH => ?_
   match e : f a with
   | none =>
-    rw [filterMap_cons_none _ _ e, pairwise_cons]
+    rw [filterMap_cons_none e, pairwise_cons]
     simp only [e, false_implies, implies_true, true_and, IH]
   | some b =>
-    rw [filterMap_cons_some _ _ _ e]
+    rw [filterMap_cons_some e]
     simpa [IH, e] using fun _ =>
       ⟨fun h a ha b hab => h _ _ ha hab, fun h a b ha hab => h _ ha _ hab⟩
 
