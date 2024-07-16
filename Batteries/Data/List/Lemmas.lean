@@ -264,12 +264,7 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
 
 /-! ### erase -/
 
-section erase
-variable [BEq α]
-
 @[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
-
-end erase
 
 /-! ### findIdx -/
 
