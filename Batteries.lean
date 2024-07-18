@@ -98,7 +98,6 @@ import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
 import Batteries.Util.Cache
-import Batteries.Util.CheckTactic
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
 import Batteries.Util.Pickle
