@@ -129,5 +129,7 @@ theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
 
 /-! ### map -/
 
-unseal mapM.map in
-theorem map_empty (f : α → β) : map f empty = empty := rfl
+theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
+  rw [mapM, mapM.map]; rfl
+
+@[simp] theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty ..
