@@ -7,6 +7,7 @@ Authors: Shreyas Srinivas, Francois Dorais
 import Batteries.Data.Vector.Basic
 import Batteries.Data.List.Basic
 import Batteries.Data.List.Lemmas
+import Batteries.Data.Array.Lemmas
 
 /-!
 ## Vectors
@@ -17,11 +18,12 @@ namespace Batteries
 
 namespace Vector
 
-unseal Array.mapM.map in
+
 /-- An `empty` vector maps to a `empty` vector. -/
 @[simp]
-theorem map_empty (f : α → β) : map f empty = empty := rfl
-
+theorem map_empty (f : α → β) : map f empty = empty := by
+  simp[map, empty]
+  exact Array.map_empty f
 
 theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v = w
   | {..}, {..}, rfl => rfl
