@@ -125,7 +125,7 @@ def extractMax (self : BinaryHeap α lt) : Option α × BinaryHeap α lt :=
   (self.max, self.popMax)
 
 theorem size_pos_of_max {self : BinaryHeap α lt} (h : self.max = some x) : 0 < self.size := by
-  simp only [max, GetElem.getElem?] at h
+  simp only [max, getElem?_def] at h
   split at h
   · assumption
   · contradiction
