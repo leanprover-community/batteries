@@ -7,6 +7,11 @@ import Batteries.Data.Thunk
 /-!
 # Lazy lists
 
+Deprecated. This module is deprecated and will be removed in the future.
+Most use cases can use `MLList`. Without custom support from the kernel
+(previously provided in Lean 3) this type is not very useful,
+but was ported from Lean 3 anyway.
+
 The type `LazyList α` is a lazy list with elements of type `α`.
 In the VM, these are potentially infinite lists
 where all elements after the first are computed on-demand.
