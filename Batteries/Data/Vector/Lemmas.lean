@@ -22,7 +22,7 @@ namespace Vector
 /-- An `empty` vector maps to a `empty` vector. -/
 @[simp]
 theorem map_empty (f : α → β) : map f empty = empty := by
-  simp only [map, empty, mk.injEq]
+  rw [map, empty, mk.injEq]
   exact Array.map_empty f
 
 theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v = w
