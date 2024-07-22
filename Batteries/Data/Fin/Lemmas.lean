@@ -30,8 +30,13 @@ protected theorem le_antisymm {x y : Fin n} (h1 : x ≤ y) (h2 : y ≤ x) : x = 
 
 @[simp] theorem length_list (n) : (list n).length = n := by simp [list]
 
-@[simp] theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
-  cases i; simp only [list]; rw [← Array.getElem_eq_data_get, getElem_enum, cast_mk]
+@[simp] theorem getElem_list (i : Nat) (h : i < (list n).length) :
+    (list n)[i] = cast (length_list n) ⟨i, h⟩ := by
+  simp only [list]; rw [← Array.getElem_eq_data_getElem, getElem_enum, cast_mk]
+
+@[deprecated getElem_list (since := "2024-06-12")]
+theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
+  simp [getElem_list]
 
 @[simp] theorem list_zero : list 0 = [] := by simp [list]
 
@@ -52,7 +57,7 @@ theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
   | succ n ih =>
     conv => lhs; rw [list_succ_last]
     conv => rhs; rw [list_succ]
-    simp [List.reverse_map, ih, Function.comp_def, rev_succ]
+    simp [← List.map_reverse, ih, Function.comp_def, rev_succ]
 
 /-! ### foldl -/
 
