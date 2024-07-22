@@ -18,7 +18,7 @@ def g (n : Nat) : MLList Lean.Meta.MetaM Nat := do
 /-!
 ### Test `MLList.ofTaskList`.
 
-We generate three tasks which sleep for `100`, `10`, and `1` milliseconds respectively,
+We generate three tasks which sleep for `100`, `50`, and `1` milliseconds respectively,
 and then verify that `MLList.ofTaskList` return their results in the order they complete.
 -/
 
@@ -28,9 +28,9 @@ def sleep (n : UInt32) : BaseIO (Task UInt32) :=
   | .error _ => 0
 
 def sleeps : MLList BaseIO UInt32 := .squash fun _ => do
-  let r ← [100,10,1].map sleep |>.traverse id
+  let r ← [100,50,1].map sleep |>.traverse id
   return .ofTaskList r
 
-/-- info: [1, 10, 100] -/
+/-- info: [1, 50, 100] -/
 #guard_msgs in
 #eval sleeps.force
