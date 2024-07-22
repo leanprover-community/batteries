@@ -9,7 +9,7 @@ import Lean.Elab.Exception
 
 open Lean Meta
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Basic linter types and attributes

@@ -14,7 +14,7 @@ import Batteries.Tactic.Lint.Basic
 
 open Lean Meta
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Various linters
