@@ -1,5 +1,4 @@
-import Std.Tactic.Lemma
-import Std.Tactic.GuardMsgs
+import Batteries.Tactic.Lemma
 
 -- lemma disabled by default
 /--

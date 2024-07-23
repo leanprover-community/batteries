@@ -1,4 +1,4 @@
-import Std.Tactic.ShowUnused
+import Batteries.Tactic.ShowUnused
 
 def foo := 1
 def baz := 2
