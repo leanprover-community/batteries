@@ -65,20 +65,28 @@ inductive LintVerbosity
   | high
   deriving Inhabited, DecidableEq, Repr
 
-/-- `getChecks slow extra use_only` produces a list of linters.
-`extras` is a list of names that should resolve to declarations with type `linter`.
-If `useOnly` is true, it only uses the linters in `extra`.
-Otherwise, it uses all linters in the environment tagged with `@[env_linter]`.
+/-- `getChecks slow runOnly runAlways` produces a list of linters.
+`runOnly` is an optional list of names that should resolve to declarations with type `NamedLinter`.
+If populated, only these linters are run (regardless of the default configuration).
+`runAlways` is an optional list of names that should resolve to declarations with type
+`NamedLinter`. If populated, these linters are always run (regardless of their configuration).
+Specifying a linter in `runAlways` but not `runOnly` is an error.
+Otherwise, it uses all enabled linters in the environment tagged with `@[env_linter]`.
 If `slow` is false, it only uses the fast default tests. -/
-def getChecks (slow : Bool) (useOnly : Bool) : CoreM (Array NamedLinter) := do
+def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (List Name)) :
+    CoreM (Array NamedLinter) := do
   let mut result := #[]
-  unless useOnly do
-    for (name, declName, dflt) in batteriesLinterExt.getState (← getEnv) do
-      if dflt then
-        let linter ← getLinter name declName
-        if slow || linter.isFast then
-          let _ := Inhabited.mk linter
-          result := result.binInsert (·.name.lt ·.name) linter
+  for (name, declName, default) in batteriesLinterExt.getState (← getEnv) do
+    let shouldRun := match (runOnly, runAlways) with
+      | (some only, some always) => only.contains name && (always.contains name || default)
+      | (some only, none) => only.contains name
+      | (none, some always) => default || always.contains name
+      | _ => default
+    if shouldRun then
+      let linter ← getLinter name declName
+      if slow || linter.isFast then
+        let _ := Inhabited.mk linter
+        result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
 -- Note: we have to use the same context as `runTermElabM` here so that the `simpNF`
@@ -125,9 +133,11 @@ def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Boo
   (filePath : System.FilePath := default) : CoreM MessageData := do
   if useErrorFormat then
     if let some range ← findDeclarationRanges? declName then
-      return m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
+      let msg ← addMessageContextPartial
+        m!"{filePath}:{range.range.pos.line}:{range.range.pos.column + 1}: error: {
           ← mkConstWithLevelParams declName} {warning}"
-  pure m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
+      return msg
+  addMessageContextPartial m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
 def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePath := default)
@@ -236,9 +246,11 @@ elab tk:"#lint" verbosity:("+" <|> "-")? fast:"*"? only:(&" only")?
     | some ⟨.node _ `token.«-» _⟩ => pure .low
     | _ => throwUnsupportedSyntax
   let fast := fast.isSome
-  let only := only.isSome
+  let onlyNames : Option (List Name) := match only.isSome with
+    | true => some (linters.map fun l => l.getId).toList
+    | false => none
   let linters ← liftCoreM do
-    let mut result ← getChecks (slow := !fast) only
+    let mut result ← getChecks (slow := !fast) (runOnly := onlyNames) none
     let linterState := batteriesLinterExt.getState (← getEnv)
     for id in linters do
       let name := id.getId.eraseMacroScopes

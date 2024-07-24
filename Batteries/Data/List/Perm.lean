@@ -155,8 +155,8 @@ theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ 
     filterMap f l₁ ~ filterMap f l₂ := by
   induction p with
   | nil => simp
-  | cons x _p IH => cases h : f x <;> simp [h, filterMap, IH, Perm.cons]
-  | swap x y l₂ => cases hx : f x <;> cases hy : f y <;> simp [hx, hy, filterMap, swap]
+  | cons x _p IH => cases h : f x <;> simp [h, filterMap_cons, IH, Perm.cons]
+  | swap x y l₂ => cases hx : f x <;> cases hy : f y <;> simp [hx, hy, filterMap_cons, swap]
   | trans _p₁ _p₂ IH₁ IH₂ => exact IH₁.trans IH₂
 
 theorem Perm.map (f : α → β) {l₁ l₂ : List α} (p : l₁ ~ l₂) : map f l₁ ~ map f l₂ :=
@@ -643,7 +643,7 @@ theorem Perm.union {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : 
 theorem Perm.inter_right {l₁ l₂ : List α} (t₁ : List α) : l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
 
 theorem Perm.inter_left (l : List α) {t₁ t₂ : List α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-  filter_congr' fun a _ => by simpa using p.mem_iff (a := a)
+  filter_congr fun a _ => by simpa using p.mem_iff (a := a)
 
 theorem Perm.inter {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
   p₂.inter_left l₂ ▸ p₁.inter_right t₁

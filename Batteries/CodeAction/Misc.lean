@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
-import Batteries.Lean.Name
 import Batteries.Lean.Position
 import Batteries.CodeAction.Attr
 import Lean.Meta.Tactic.TryThis

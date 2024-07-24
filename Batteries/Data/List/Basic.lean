@@ -93,9 +93,9 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 /-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
 def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
-@[deprecated] alias removeNth := eraseIdx
-@[deprecated] alias removeNthTR := eraseIdxTR
-@[deprecated] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth := eraseIdx
+@[deprecated (since := "2024-05-06")] alias removeNthTR := eraseIdxTR
+@[deprecated (since := "2024-05-06")] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
@@ -313,7 +313,8 @@ def takeD : Nat → List α → α → List α
 @[simp] theorem takeD_succ (l) (a : α) :
     takeD (n+1) l a = l.head?.getD a :: takeD n l.tail a := by simp [takeD]
 
-@[simp] theorem takeD_nil (n) (a : α) : takeD n [] a = replicate n a := by induction n <;> simp [*]
+@[simp] theorem takeD_nil (n) (a : α) : takeD n [] a = replicate n a := by
+  induction n <;> simp [*, replicate_succ]
 
 /-- Tail-recursive version of `takeD`. -/
 def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
@@ -325,7 +326,7 @@ def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
 
 theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l dflt
   | 0, _ => by simp [takeDTR.go]
-  | _+1, [] => by simp [takeDTR.go]
+  | _+1, [] => by simp [takeDTR.go, replicate_succ]
   | _+1, _::l => by simp [takeDTR.go, takeDTR_go_eq _ l]
 
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
@@ -485,7 +486,7 @@ def initsTR (l : List α) : List (List α) :=
   l.foldr (fun a arrs => (arrs.map fun t => a :: t).push []) #[[]] |>.toListRev
 
 @[csimp] theorem inits_eq_initsTR : @inits = @initsTR := by
-  funext α l; simp [initsTR]; induction l <;> simp [*, reverse_map]
+  funext α l; simp [initsTR]; induction l <;> simp [*, map_reverse]
 
 /--
 `tails l` is the list of terminal segments of `l`.
@@ -925,7 +926,7 @@ def range' : (start len : Nat) → (step : Nat := 1) → List Nat
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
 Use `List.getLastD` instead.
 -/
-@[simp, deprecated getLastD] def ilast' {α} : α → List α → α
+@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
   | a, [] => a
   | _, b :: l => ilast' b l
 
@@ -933,7 +934,7 @@ Use `List.getLastD` instead.
 `last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
 Use `List.getLast?` instead
 -/
-@[simp, deprecated getLast?] def last' {α} : List α → Option α
+@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
   | [] => none
   | [a] => some a
   | _ :: l => last' l

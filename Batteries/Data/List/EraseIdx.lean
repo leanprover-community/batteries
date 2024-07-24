@@ -63,20 +63,32 @@ protected theorem IsPrefix.eraseIdx {l l' : List α} (h : l <+: l') (k : Nat) :
     rw [Nat.not_lt] at hkl
     simp [eraseIdx_append_of_length_le hkl, eraseIdx_of_length_le hkl]
 
-theorem mem_eraseIdx_iff_get {x : α} :
-    ∀ {l} {k}, x ∈ eraseIdx l k ↔ ∃ i : Fin l.length, ↑i ≠ k ∧ l.get i = x
+theorem mem_eraseIdx_iff_getElem {x : α} :
+    ∀ {l} {k}, x ∈ eraseIdx l k ↔ ∃ i : Fin l.length, ↑i ≠ k ∧ l[i.1] = x
   | [], _ => by
     simp only [eraseIdx, Fin.exists_iff, not_mem_nil, false_iff]
     rintro ⟨i, h, -⟩
     exact Nat.not_lt_zero _ h
   | a::l, 0 => by simp [Fin.exists_fin_succ, mem_iff_get]
   | a::l, k+1 => by
-    simp [Fin.exists_fin_succ, mem_eraseIdx_iff_get, @eq_comm _ a, k.succ_ne_zero.symm]
+    simp [Fin.exists_fin_succ, mem_eraseIdx_iff_getElem, @eq_comm _ a, k.succ_ne_zero.symm]
 
+@[deprecated mem_eraseIdx_iff_getElem (since := "2024-06-12")]
+theorem mem_eraseIdx_iff_get {x : α} {l} {k} :
+    x ∈ eraseIdx l k ↔ ∃ i : Fin l.length, ↑i ≠ k ∧ l.get i = x := by
+  simp [mem_eraseIdx_iff_getElem]
+
+theorem mem_eraseIdx_iff_getElem? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ i ≠ k, l[i]? = some x := by
+  simp only [mem_eraseIdx_iff_getElem, getElem_eq_iff, Fin.exists_iff, exists_and_left]
+  refine exists_congr fun i => and_congr_right' ?_
+  constructor
+  · rintro ⟨_, h⟩; exact h
+  · rintro h;
+    obtain ⟨h', -⟩ := getElem?_eq_some.1 h
+    exact ⟨h', h⟩
+
+@[deprecated mem_eraseIdx_iff_getElem? (since := "2024-06-12")]
 theorem mem_eraseIdx_iff_get? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ i ≠ k, l.get? i = x := by
-  simp only [mem_eraseIdx_iff_get, Fin.exists_iff, exists_and_left, get_eq_iff, exists_prop]
-  refine exists_congr fun i => and_congr_right' <| and_iff_right_of_imp fun h => ?_
-  obtain ⟨h, -⟩ := get?_eq_some.1 h
-  exact h
+  simp [mem_eraseIdx_iff_getElem?]
 
 end List

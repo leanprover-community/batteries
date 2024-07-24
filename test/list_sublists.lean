@@ -1,7 +1,7 @@
 import Batteries.Data.List.Basic
 
 -- this times out with `sublistsFast`
-set_option maxRecDepth 561 in
+set_option maxRecDepth 562 in
 example : [1, 2, 3].sublists.sublists.length = 256 := rfl
 
 -- TODO(batteries#307): until we have the `csimp` lemma in batteries,
