@@ -20,7 +20,7 @@ A common source of such things is `simp <;> tac` in the case that `simp` improve
 closes a subgoal that was previously being closed by `tac`.
 -/
 register_option linter.unreachableTactic : Bool := {
-  defValue := true
+  defValue := false -- disabled for the byAsSorry branch
   descr := "enable the 'unreachable tactic' linter"
 }
 

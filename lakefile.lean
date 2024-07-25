@@ -7,7 +7,7 @@ macro "opt_arg?" x:ident v:term : term => `(if get_config? $x |>.isSome then $v 
 package batteries where
   moreLeanArgs := opt_arg? werror #["-DwarningAsError=true"]
   leanOptions :=
-    #[⟨`linter.missingDocs, true⟩, ⟨`debug.byAsSorry, true⟩] ++
+    #[⟨`linter.missingDocs, true⟩, ⟨`debug.byAsSorry, true⟩, ⟨`linter.unusedVariables, false⟩] ++
     opt_arg? disable_new_compiler #[⟨`compiler.enableNew, false⟩]
 
 @[default_target]
