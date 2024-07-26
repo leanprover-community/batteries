@@ -437,10 +437,10 @@ theorem disjoint_of_subset_right (ss : l₂ ⊆ l) (d : Disjoint l₁ l) : Disjo
   fun _ m m₁ => d m (ss m₁)
 
 theorem disjoint_of_disjoint_cons_left {l₁ l₂} : Disjoint (a :: l₁) l₂ → Disjoint l₁ l₂ :=
-disjoint_of_subset_left (subset_cons _ _)
+  disjoint_of_subset_left (subset_cons_self _ _)
 
 theorem disjoint_of_disjoint_cons_right {l₁ l₂} : Disjoint l₁ (a :: l₂) → Disjoint l₁ l₂ :=
-disjoint_of_subset_right (subset_cons _ _)
+  disjoint_of_subset_right (subset_cons_self _ _)
 
 @[simp] theorem disjoint_nil_left (l : List α) : Disjoint [] l := fun a => (not_mem_nil a).elim
 
