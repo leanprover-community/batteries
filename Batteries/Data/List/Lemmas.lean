@@ -1008,7 +1008,7 @@ theorem self_mem_range_succ (n : Nat) : n ∈ range (n + 1) := by simp
 theorem getElem?_range {m n : Nat} (h : m < n) : (range n)[m]? = some m := by
   simp [range_eq_range', getElem?_range' _ _ h]
 
-@[simp] theorem getElem_range {n : Nat} (m) (h : m < (range n).length) : (range n)[m] = m := by
+@[simp] theorem getElem_range {n : Nat} (m) (h : m < (range n).length) : (range n)[m]'h = m := by
   simp [range_eq_range']
 
 @[deprecated getElem?_range (since := "2024-06-12")]
