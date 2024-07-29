@@ -912,7 +912,7 @@ section union
 
 variable [BEq α]
 
-theorem union_def [BEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
+theorem union_def (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
 
 @[simp] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
 
@@ -977,9 +977,10 @@ theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
 
 section Diff
 variable [BEq α]
-variable [LawfulBEq α]
 
 @[simp] theorem diff_nil (l : List α) : l.diff [] = l := rfl
+
+variable [LawfulBEq α]
 
 @[simp] theorem diff_cons (l₁ l₂ : List α) (a : α) : l₁.diff (a :: l₂) = (l₁.erase a).diff l₂ := by
   simp_all [List.diff, erase_of_not_mem]
