@@ -27,15 +27,6 @@ protected def diff {α} [BEq α] : List α → List α → List α
 
 open Option Nat
 
-/-- Get the tail of a nonempty list, or return `[]` for `[]`. -/
-def tail : List α → List α
-  | []    => []
-  | _::as => as
-
--- FIXME: `@[simp]` on the definition simplifies even `tail l`
-@[simp] theorem tail_nil : @tail α [] = [] := rfl
-@[simp] theorem tail_cons : @tail α (a::as) = as := rfl
-
 /-- Get the head and tail of a list, if it is nonempty. -/
 @[inline] def next? : List α → Option (α × List α)
   | [] => none
@@ -72,16 +63,6 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 @[specialize] def after (p : α → Bool) : List α → List α
   | [] => []
   | x :: xs => bif p x then xs else after p xs
-
-/-- Returns the index of the first element satisfying `p`, or the length of the list otherwise. -/
-@[inline] def findIdx (p : α → Bool) (l : List α) : Nat := go l 0 where
-  /-- Auxiliary for `findIdx`: `findIdx.go p l n = findIdx p l + n` -/
-  @[specialize] go : List α → Nat → Nat
-  | [], n => n
-  | a :: l, n => bif p a then n else go l (n + 1)
-
-/-- Returns the index of the first element equal to `a`, or the length of the list otherwise. -/
-def indexOf [BEq α] (a : α) : List α → Nat := findIdx (· == a)
 
 @[deprecated (since := "2024-05-06")] alias removeNth := eraseIdx
 @[deprecated (since := "2024-05-06")] alias removeNthTR := eraseIdxTR
@@ -303,19 +284,6 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
 /--
-Pads `l : List α` with repeated occurrences of `a : α` until it is of length `n`.
-If `l` is initially larger than `n`, just return `l`.
--/
-def leftpad (n : Nat) (a : α) (l : List α) : List α := replicate (n - length l) a ++ l
-
-/-- Optimized version of `leftpad`. -/
-@[inline] def leftpadTR (n : Nat) (a : α) (l : List α) : List α :=
-  replicateTR.loop a (n - length l) l
-
-@[csimp] theorem leftpad_eq_leftpadTR : @leftpad = @leftpadTR := by
-  funext α n a l; simp [leftpad, leftpadTR, replicateTR_loop_eq]
-
-/--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
@@ -386,14 +354,6 @@ indexesOf a [a, b, a, a] = [0, 2, 3]
 -/
 @[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
 
-/-- Return the index of the first occurrence of an element satisfying `p`. -/
-def findIdx? (p : α → Bool) : List α → (start : Nat := 0) → Option Nat
-| [], _ => none
-| a :: l, i => if p a then some i else findIdx? p l (i + 1)
-
-/-- Return the index of the first occurrence of `a` in the list. -/
-@[inline] def indexOf? [BEq α] (a : α) : List α → Option Nat := findIdx? (· == a)
-
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
 `lookmap f l` will apply `f : α → Option α` to each element of the list,
@@ -406,16 +366,6 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
   | a :: l, acc => match f a with
     | some b => acc.toListAppend (b :: l)
     | none => go l (acc.push a)
-
-/-- `countP p l` is the number of elements of `l` that satisfy `p`. -/
-@[inline] def countP (p : α → Bool) (l : List α) : Nat := go l 0 where
-  /-- Auxiliary for `countP`: `countP.go p l acc = countP p l + acc`. -/
-  @[specialize] go : List α → Nat → Nat
-  | [], acc => acc
-  | x :: xs, acc => bif p x then go xs (acc + 1) else go xs acc
-
-/-- `count a l` is the number of occurrences of `a` in `l`. -/
-@[inline] def count [BEq α] (a : α) : List α → Nat := countP (· == a)
 
 /--
 `inits l` is the list of initial segments of `l`.
@@ -769,34 +719,6 @@ Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
-
-/-- `range' start len step` is the list of numbers `[start, start+step, ..., start+(len-1)*step]`.
-  It is intended mainly for proving properties of `range` and `iota`. -/
-def range' : (start len : Nat) → (step : Nat := 1) → List Nat
-  | _, 0, _ => []
-  | s, n+1, step => s :: range' (s+step) n step
-
-/-- Optimized version of `range'`. -/
-@[inline] def range'TR (s n : Nat) (step : Nat := 1) : List Nat := go n (s + step * n) [] where
-  /-- Auxiliary for `range'TR`: `range'TR.go n e = [e-n, ..., e-1] ++ acc`. -/
-  go : Nat → Nat → List Nat → List Nat
-  | 0, _, acc => acc
-  | n+1, e, acc => go n (e-step) ((e-step) :: acc)
-
-@[csimp] theorem range'_eq_range'TR : @range' = @range'TR := by
-  funext s n step
-  let rec go (s) : ∀ n m,
-    range'TR.go step n (s + step * n) (range' (s + step * n) m step) = range' s (n + m) step
-  | 0, m => by simp [range'TR.go]
-  | n+1, m => by
-    simp [range'TR.go]
-    rw [Nat.mul_succ, ← Nat.add_assoc, Nat.add_sub_cancel, Nat.add_right_comm n]
-    exact go s n (m + 1)
-  exact (go s n 0).symm
-
-/-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
-@[inline] def reduceOption {α} : List (Option α) → List α :=
-  List.filterMap id
 
 /--
 `ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
