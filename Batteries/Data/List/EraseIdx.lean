@@ -50,7 +50,7 @@ theorem eraseIdx_append_of_length_le {l : List α} {k : Nat} (hk : length l ≤ 
     eraseIdx (l ++ l') k = l ++ eraseIdx l' (k - length l) := by
   rw [eraseIdx_eq_take_drop_succ, eraseIdx_eq_take_drop_succ,
     take_append_eq_append_take, drop_append_eq_append_drop,
-    take_all_of_le hk, drop_eq_nil_of_le (by omega), nil_append, append_assoc]
+    take_of_length_le hk, drop_eq_nil_of_le (by omega), nil_append, append_assoc]
   congr
   omega
 
