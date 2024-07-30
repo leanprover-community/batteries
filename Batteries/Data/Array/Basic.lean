@@ -197,8 +197,10 @@ greater than i.
 def eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
 
-end Array
+/-- `finRange n` is the array of all elements of `Fin n` in order -/
+def finRange (n) : Array (Fin n) := ofFn id
 
+end Array
 
 namespace Subarray
 

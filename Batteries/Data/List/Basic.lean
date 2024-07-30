@@ -1393,3 +1393,6 @@ where
   | [], r, t => reverseAux t r
   | l, [], t => reverseAux t l
   | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
+
+/-- `finRange n` is the list of all elements of `Fin n` in order -/
+def finRange (n) : List (Fin n) := ofFn id

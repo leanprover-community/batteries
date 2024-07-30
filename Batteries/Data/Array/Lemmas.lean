@@ -145,3 +145,19 @@ theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 alias append_empty := append_nil
 
 alias empty_append := nil_append
+
+/-! ### ofFn -/
+
+@[simp] theorem data_ofFn (f : Fin n → α) : (ofFn f).data = List.ofFn f := by
+  apply List.ext_getElem
+  · rw [data_length, size_ofFn, List.length_ofFn]
+  · intros; rw [← getElem_eq_data_getElem, getElem_ofFn, List.getElem_ofFn]
+
+/-! ### finRange -/
+
+@[simp] theorem size_finRange (n) : (finRange n).size = n := size_ofFn ..
+
+@[simp] theorem data_finRange (n) : (finRange n).data = List.finRange n := data_ofFn ..
+
+theorem getElem_finRange (n i) (hi : i < (finRange n).size) :
+    (finRange n)[i] = ⟨i, size_finRange n ▸ hi⟩ := by simp [getElem_eq_data_getElem]

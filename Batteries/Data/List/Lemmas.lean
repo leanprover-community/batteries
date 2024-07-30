@@ -1609,3 +1609,57 @@ theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l 
 
 theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
   mem_merge.2 <| .inr h
+
+/-! ### ofFn -/
+
+theorem length_ofFn_go (f : Fin n → α) (i j h) : (ofFn.go f i j h).length = i := by
+  unfold ofFn.go
+  split
+  · rfl
+  · rw [length_cons, length_ofFn_go]
+
+@[simp] theorem length_ofFn (f : Fin n → α) : (ofFn f).length = n := by
+  simp [ofFn, length_ofFn_go]
+
+theorem getElem_ofFn_go (f : Fin n → α) (i j k h) (hk : k < (ofFn.go f i j h).length) :
+    (ofFn.go f i j h)[k] = f ⟨k + j, by rw [length_ofFn_go] at hk; omega⟩ := by
+  unfold ofFn.go
+  match i, k with
+  | 0, _ => contradiction
+  | i+1, 0 => simp; done
+  | i+1, k+1 => simp only [getElem_cons_succ, getElem_ofFn_go]; congr 2; omega
+
+@[simp] theorem getElem_ofFn (f : Fin n → α) (i) (hi : i < (ofFn f).length) :
+    (ofFn f)[i] = f ⟨i, length_ofFn f ▸ hi⟩ := by
+  simp [ofFn, getElem_ofFn_go]
+
+/-! ### finRange -/
+
+@[simp] theorem length_finRange (n) : (finRange n).length = n := length_ofFn ..
+
+@[simp] theorem getElem_finRange (n i) (hi : i < (finRange n).length) :
+    (finRange n)[i] = ⟨i, length_finRange n ▸ hi⟩ := getElem_ofFn ..
+
+@[simp] theorem finRange_zero : finRange 0 = [] := rfl
+
+theorem finRange_succ (n) : finRange (n+1) = 0 :: (finRange n).map Fin.succ := by
+  apply List.ext_getElem
+  · simp
+  · intro i _ _; cases i <;> simp
+
+theorem finRange_succ_last (n) :
+    finRange (n+1) = (finRange n).map Fin.castSucc ++ [Fin.last n] := by
+  rw [finRange_succ]
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [finRange_succ, List.map_cons Fin.castSucc, ih]
+    simp [Function.comp_def, Fin.succ_castSucc]
+
+theorem finRange_reverse (n) : (finRange n).reverse = (finRange n).map Fin.rev := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    conv => lhs; rw [finRange_succ_last]
+    conv => rhs; rw [finRange_succ]
+    simp [← List.map_reverse, ih, Function.comp_def, Fin.rev_succ]
