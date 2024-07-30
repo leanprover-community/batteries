@@ -54,7 +54,8 @@ theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
     foldl n f x = (List.finRange n).foldl f x := by
   induction n generalizing x with
   | zero => rw [foldl_zero, List.finRange_zero, List.foldl_nil]
-  | succ n ih => rw [foldl_succ, ih, List.finRange_succ, List.foldl_cons, List.foldl_map]
+  | succ n ih =>
+    rw [foldl_succ, ih, List.finRange_succ_eq_zero_cons_map, List.foldl_cons, List.foldl_map]
 
 /-! ### foldr -/
 
@@ -90,7 +91,8 @@ theorem foldr_eq_foldr_finRange (f : Fin n → α → α) (x) :
     foldr n f x = (List.finRange n).foldr f x := by
   induction n with
   | zero => rw [foldr_zero, List.finRange_zero, List.foldr_nil]
-  | succ n ih => rw [foldr_succ, ih, List.finRange_succ, List.foldr_cons, List.foldr_map]
+  | succ n ih =>
+    rw [foldr_succ, ih, List.finRange_succ_eq_zero_cons_map, List.foldr_cons, List.foldr_map]
 
 /-! ### foldl/foldr -/
 

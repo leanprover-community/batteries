@@ -1642,24 +1642,25 @@ theorem getElem_ofFn_go (f : Fin n → α) (i j k h) (hk : k < (ofFn.go f i j h)
 
 @[simp] theorem finRange_zero : finRange 0 = [] := rfl
 
-theorem finRange_succ (n) : finRange (n+1) = 0 :: (finRange n).map Fin.succ := by
+theorem finRange_succ_eq_zero_cons_map (n) :
+    finRange (n+1) = 0 :: (finRange n).map Fin.succ := by
   apply List.ext_getElem
   · simp
   · intro i _ _; cases i <;> simp
 
-theorem finRange_succ_last (n) :
-    finRange (n+1) = (finRange n).map Fin.castSucc ++ [Fin.last n] := by
-  rw [finRange_succ]
+theorem finRange_succ_eq_map_concat_last (n) :
+    finRange (n+1) = concat ((finRange n).map Fin.castSucc) (Fin.last n) := by
+  rw [finRange_succ_eq_zero_cons_map]
   induction n with
   | zero => rfl
   | succ n ih =>
-    rw [finRange_succ, List.map_cons Fin.castSucc, ih]
+    rw [finRange_succ_eq_zero_cons_map, List.map_cons Fin.castSucc, ih]
     simp [Function.comp_def, Fin.succ_castSucc]
 
 theorem finRange_reverse (n) : (finRange n).reverse = (finRange n).map Fin.rev := by
   induction n with
   | zero => rfl
   | succ n ih =>
-    conv => lhs; rw [finRange_succ_last]
-    conv => rhs; rw [finRange_succ]
+    conv => lhs; rw [finRange_succ_eq_map_concat_last]
+    conv => rhs; rw [finRange_succ_eq_zero_cons_map]
     simp [← List.map_reverse, ih, Function.comp_def, Fin.rev_succ]
