@@ -59,14 +59,12 @@ theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
 
 /-! ### foldr -/
 
-unseal foldr.loop in
-theorem foldr_loop_zero (f : Fin n → α → α) (x) : foldr.loop n f ⟨0, Nat.zero_le _⟩ x = x :=
-  rfl
+theorem foldr_loop_zero (f : Fin n → α → α) (x) : foldr.loop n f ⟨0, Nat.zero_le _⟩ x = x := by
+  rw [foldr.loop]
 
-unseal foldr.loop in
 theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : m < n) :
-    foldr.loop n f ⟨m+1, h⟩ x = foldr.loop n f ⟨m, Nat.le_of_lt h⟩ (f ⟨m, h⟩ x) :=
-  rfl
+    foldr.loop n f ⟨m+1, h⟩ x = foldr.loop n f ⟨m, Nat.le_of_lt h⟩ (f ⟨m, h⟩ x) := by
+  rw [foldr.loop]
 
 theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : m+1 ≤ n+1) :
     foldr.loop (n+1) f ⟨m+1, h⟩ x =
