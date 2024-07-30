@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Simon Hudon
 -/
 import Batteries.Data.Thunk
-
 /-!
 # Lazy lists
+
+Deprecated. This module is deprecated and will be removed in the future.
+Most use cases can use `MLList`. Without custom support from the kernel
+(previously provided in Lean 3) this type is not very useful,
+but was ported from Lean 3 anyway.
 
 The type `LazyList α` is a lazy list with elements of type `α`.
 In the VM, these are potentially infinite lists
@@ -18,6 +22,7 @@ logically we can prove that `LazyList α` is isomorphic to `List α`.)
 /-- Lazy list.
 All elements (except the first) are computed lazily.
 -/
+@[deprecated "Consider using `MLList`." (since := "2024-07-15")]
 inductive LazyList (α : Type u) : Type u
   /-- The empty lazy list. -/
   | nil : LazyList α
@@ -25,6 +30,7 @@ inductive LazyList (α : Type u) : Type u
   | cons (hd : α) (tl : Thunk <| LazyList α) : LazyList α
 
 
+set_option linter.deprecated false
 namespace LazyList
 
 
