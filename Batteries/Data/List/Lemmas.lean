@@ -1637,7 +1637,7 @@ theorem getElem_ofFn_go (f : Fin n → α) (i j k h) (hk : k < (ofFn.go f i j h)
 
 @[simp] theorem length_finRange (n) : (finRange n).length = n := length_ofFn ..
 
-@[simp] theorem getElem_finRange (n i) (hi : i < (finRange n).length) :
+@[simp] theorem getElem_finRange (hi : i < (finRange n).length) :
     (finRange n)[i] = ⟨i, length_finRange n ▸ hi⟩ := getElem_ofFn ..
 
 @[simp] theorem finRange_zero : finRange 0 = [] := rfl

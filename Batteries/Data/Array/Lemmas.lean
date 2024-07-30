@@ -159,5 +159,5 @@ alias empty_append := nil_append
 
 @[simp] theorem data_finRange (n) : (finRange n).data = List.finRange n := data_ofFn ..
 
-theorem getElem_finRange (n i) (hi : i < (finRange n).size) :
+theorem getElem_finRange (hi : i < (finRange n).size) :
     (finRange n)[i] = ⟨i, size_finRange n ▸ hi⟩ := by simp [getElem_eq_data_getElem]
