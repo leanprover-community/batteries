@@ -347,15 +347,6 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
   simp only [product, and_imp, mem_map, Prod.mk.injEq,
     exists_eq_right_right, mem_bind, iff_self]
 
-/-! ### leftpad -/
-
-/-- The length of the List returned by `List.leftpad n a l` is equal
-  to the larger of `n` and `l.length` -/
-@[simp]
-theorem leftpad_length (n : Nat) (a : α) (l : List α) :
-    (leftpad n a l).length = max n l.length := by
-  simp only [leftpad, length_append, length_replicate, Nat.sub_add_eq_max]
-
 /-! ### monadic operations -/
 
 theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
