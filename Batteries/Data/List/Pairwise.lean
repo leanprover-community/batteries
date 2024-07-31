@@ -42,53 +42,6 @@ theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α
     apply h <;> try (apply hab.subset; simp)
     exact heq
 
-/-- given a list `is` of monotonically increasing indices into `l`, getting each index
-  produces a sublist of `l`.  -/
-theorem map_get_sublist {l : List α} {is : List (Fin l.length)} (h : is.Pairwise (·.val < ·.val)) :
-    is.map (get l) <+ l := by
-  suffices ∀ n l', l' = l.drop n → (∀ i ∈ is, n ≤ i) → map (get l) is <+ l'
-    from this 0 l (by simp) (by simp)
-  intro n l' hl' his
-  induction is generalizing n l' with
-  | nil => simp
-  | cons hd tl IH =>
-    simp; cases hl'
-    have := IH h.of_cons (hd+1) _ rfl (pairwise_cons.mp h).1
-    specialize his hd (.head _)
-    have := (drop_eq_getElem_cons ..).symm ▸ this.cons₂ (get l hd)
-    have := Sublist.append (nil_sublist (take hd l |>.drop n)) this
-    rwa [nil_append, ← (drop_append_of_le_length ?_), take_append_drop] at this
-    simp [Nat.min_eq_left (Nat.le_of_lt hd.isLt), his]
-
-/-- given a sublist `l' <+ l`, there exists a list of indices `is` such that
-  `l' = map (get l) is`. -/
-theorem sublist_eq_map_get (h : l' <+ l) : ∃ is : List (Fin l.length),
-    l' = map (get l) is ∧ is.Pairwise (· < ·) := by
-  induction h with
-  | slnil => exact ⟨[], by simp⟩
-  | cons _ _ IH =>
-    let ⟨is, IH⟩ := IH
-    refine ⟨is.map (·.succ), ?_⟩
-    simp [comp, pairwise_map]
-    exact IH
-  | cons₂ _ _ IH =>
-    rcases IH with ⟨is,IH⟩
-    refine ⟨⟨0, by simp [Nat.zero_lt_succ]⟩ :: is.map (·.succ), ?_⟩
-    simp [comp_def, pairwise_map, IH, ← get_eq_getElem]
-
-theorem pairwise_iff_getElem : Pairwise R l ↔
-    ∀ (i j : Nat) (_hi : i < l.length) (_hj : j < l.length) (_hij : i < j), R l[i] l[j] := by
-  rw [pairwise_iff_forall_sublist]
-  constructor <;> intro h
-  · intros i j hi hj h'
-    apply h
-    simpa [h'] using map_get_sublist (is := [⟨i, hi⟩, ⟨j, hj⟩])
-  · intros a b h'
-    have ⟨is, h', hij⟩ := sublist_eq_map_get h'
-    rcases is with ⟨⟩ | ⟨a', ⟨⟩ | ⟨b', ⟨⟩⟩⟩ <;> simp at h'
-    rcases h' with ⟨rfl, rfl⟩
-    apply h; simpa using hij
-
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_getElem]
   constructor <;> intro h
