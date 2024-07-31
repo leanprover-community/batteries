@@ -102,7 +102,7 @@ theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
 theorem cmp_congr_left' (xy : cmp x y = .eq) : cmp x = cmp y :=
   funext fun _ => cmp_congr_left xy
 
-theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z := by
+theorem cmp_congr_right (yz : cmp y z = .eq) : cmp x y = cmp x z := by
   rw [← Ordering.swap_inj, symm, symm, cmp_congr_left yz]
 
 end TransCmp
