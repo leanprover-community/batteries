@@ -6,6 +6,7 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 import Lean.Elab.Command
 import Lean.Elab.DeclarationRange
 import Lean.Compiler.NoncomputableAttr
+import Lean.DocString
 import Batteries.CodeAction.Deprecated
 
 /-!

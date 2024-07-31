@@ -239,9 +239,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
     | _ => return
   res.get
 
-/-- A linter for checking that declarations don't have unused term mode have statements. We do not
-tag this as `@[env_linter]` so that it is not in the default linter set as it is slow and an
-uncommon problem. -/
+/-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
   errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. \

@@ -196,11 +196,11 @@ theorem filter_beq (l : List α) (a : α) : l.filter (· == a) = replicate (coun
 theorem filter_eq (l : List α) (a : α) : l.filter (· = a) = replicate (count a l) a :=
   filter_beq l a
 
-@[deprecated filter_eq]
+@[deprecated filter_eq (since := "2023-12-14")]
 theorem filter_eq' (l : List α) (a : α) : l.filter (a = ·) = replicate (count a l) a := by
   simpa only [eq_comm] using filter_eq l a
 
-@[deprecated filter_beq]
+@[deprecated filter_beq (since := "2023-12-14")]
 theorem filter_beq' (l : List α) (a : α) : l.filter (a == ·) = replicate (count a l) a := by
   simpa only [eq_comm (b := a)] using filter_eq l a
 
