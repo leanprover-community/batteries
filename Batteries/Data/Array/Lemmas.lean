@@ -22,7 +22,7 @@ theorem forIn_eq_data_forIn [Monad m]
       have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
       have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
       have : as[size as - 1 - i] :: as.data.drop (j + 1) = as.data.drop j := by
-        rw [j_eq]; exact List.get_cons_drop _ ⟨_, this⟩
+        rw [j_eq]; exact List.getElem_cons_drop _ _ this
       simp only [← this, List.forIn_cons]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   conv => lhs; simp only [forIn, Array.forIn]
@@ -64,12 +64,11 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
       let i_bs : Fin bs.data.length := ⟨i, hbs⟩
       rw [h₁, List.append_assoc]
       congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_data_get, getElem_eq_data_get]
-      show List.zipWith f ((List.get as.data i_as) :: List.drop (i_as + 1) as.data)
+      rw [← List.zipWith_append (h := by simp), getElem_eq_data_getElem, getElem_eq_data_getElem]
+      show List.zipWith f (as.data[i_as] :: List.drop (i_as + 1) as.data)
         ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
-      simp only [List.get_cons_drop]
-    termination_by as.size - i
+      simp only [data_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
@@ -115,3 +114,34 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 /-! ### erase -/
 
 @[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+
+/-! ### shrink -/
+
+theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
+  induction n generalizing a with simp[shrink.loop]
+  | succ n ih =>
+      simp[ih]
+      omega
+
+theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
+  simp [shrink, size_shrink_loop]
+  omega
+
+/-! ### map -/
+
+theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
+  rw [mapM, mapM.map]; rfl
+
+@[simp] theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty ..
+
+/-! ### mem -/
+
+alias not_mem_empty := not_mem_nil
+
+theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
+
+/-! ### append -/
+
+alias append_empty := append_nil
+
+alias empty_append := nil_append

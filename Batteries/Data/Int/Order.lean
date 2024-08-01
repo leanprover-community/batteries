@@ -7,4 +7,4 @@ import Batteries.Tactic.Alias
 
 namespace Int
 
-@[deprecated] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
+@[deprecated (since := "2024-01-24")] alias ofNat_natAbs_eq_of_nonneg := natAbs_of_nonneg
