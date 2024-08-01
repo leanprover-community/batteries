@@ -23,6 +23,28 @@ open Nat
 theorem drop_one : ∀ l : List α, drop 1 l = tail l
   | [] | _ :: _ => rfl
 
+theorem drop_append_left (l₁ l₂ : List α) (n) :
+    drop (length l₁ + n) (l₁ ++ l₂) = drop n l₂ := by
+  match l₁ with
+  | [] => simp
+  | [a] =>
+    simp only [length_singleton, singleton_append]
+    rw [Nat.add_comm, drop_add, drop_one, tail_cons]
+  | a :: b :: l₁ =>
+    rw [← singleton_append, length_append, Nat.add_assoc, append_assoc]
+    have ih := by simpa only [length_append] using
+      drop_append_left [a] (b::l₁++l₂) ((b::l₁).length+n)
+    rw [ih, drop_append_left (b::l₁) l₂ n]
+termination_by length l₁
+
+/-! ### isEmpty -/
+
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
+
+@[simp] theorem isEmpty_append : (l₁ ++ l₂ : List α).isEmpty ↔ l₁.isEmpty ∧ l₂.isEmpty := by
+  repeat rw [isEmpty_iff_eq_nil]
+  apply append_eq_nil
+
 /-! ### zipWith -/
 
 theorem zipWith_distrib_tail : (zipWith f l l').tail = zipWith f l.tail l'.tail := by
@@ -230,11 +252,32 @@ theorem isSublist_iff_sublist [BEq α] [LawfulBEq α] {l₁ l₂ : List α} :
 instance [DecidableEq α] (l₁ l₂ : List α) : Decidable (l₁ <+ l₂) :=
   decidable_of_iff (l₁.isSublist l₂) isSublist_iff_sublist
 
+/-! ### head -/
+
+theorem headD_eq_head : ∀ l {a₀} h, @headD α l a₀ = head l h
+  | _::_, _, _ => rfl
+
+theorem head_append : ∀ l m h, @head α (l ++ m) (by simp [h]) = head l h
+  | _::_, _, _ => rfl
+
 /-! ### tail -/
 
 theorem tail_eq_tailD (l) : @tail α l = tailD l [] := by cases l <;> rfl
 
 theorem tail_eq_tail? (l) : @tail α l = (tail? l).getD [] := by simp [tail_eq_tailD]
+
+/-! ### head and tail -/
+
+theorem head_cons_tail : ∀ l h, @head α l h :: l.tail = l
+  | _::_, _ => rfl
+
+theorem tail_append (l m) (h : l ≠ []) : @tail α (l ++ m) = tail l ++ m := by
+  rw [← head_cons_tail l h]
+  simp
+
+theorem singleton_head_eq_self (l : List α) (hne : l ≠ []) (htl : l.tail = []) :
+    [l.head hne] = l := by
+  conv => rhs; rw [← head_cons_tail l hne, htl]
 
 /-! ### next? -/
 
@@ -287,6 +330,15 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
     cases n
     · simp
     · simp [hl]
+
+/-! ### modifyHead -/
+
+theorem modifyHead_id : ∀ (l : List α), l.modifyHead id = l
+  | [] => rfl
+  | _::_ => rfl
+
+@[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
 
 /-! ### modifyNth -/
 
@@ -1152,6 +1204,15 @@ theorem IsPrefix.eq_of_length (h : l₁ <+: l₂) : l₁.length = l₂.length �
 theorem IsSuffix.eq_of_length (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
   h.sublist.eq_of_length
 
+theorem IsInfix.length_lt_of_ne (hin : l₁ <:+: l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsInfix.length_le hin) (mt (IsInfix.eq_of_length hin) hne)
+
+theorem IsPrefix.length_lt_of_ne (hpf : l₁ <+: l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsPrefix.length_le hpf) (mt (IsPrefix.eq_of_length hpf) hne)
+
+theorem IsSuffix.length_lt_of_ne (hsf : l₁ <:+ l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsSuffix.length_le hsf) (mt (IsSuffix.eq_of_length hsf) hne)
+
 theorem prefix_of_prefix_length_le :
     ∀ {l₁ l₂ l₃ : List α}, l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
   | [], l₂, _, _, _, _ => nil_prefix _
@@ -1209,6 +1270,9 @@ theorem prefix_append_right_inj (l) : l ++ l₁ <+: l ++ l₂ ↔ l₁ <+: l₂ 
 theorem prefix_cons_inj (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
   prefix_append_right_inj [a]
 
+theorem singleton_prefix_cons (a) : [a] <+: a :: l :=
+  (prefix_cons_inj a).mpr (nil_prefix l)
+
 theorem take_prefix (n) (l : List α) : take n l <+: l :=
   ⟨_, take_append_drop _ _⟩
 
@@ -1244,6 +1308,99 @@ theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
+
+@[simp] theorem isPrefixOf_iff_IsPrefix [BEq α] [LawfulBEq α] {l₁ l₂ : List α} :
+    isPrefixOf l₁ l₂ ↔ l₁ <+: l₂ := by
+  match l₁, l₂ with
+  | [],   _  => simp [nil_prefix]
+  | _::_, [] => simp
+  | a::as, b::bs =>
+    constructor
+    · intro h
+      simp only [isPrefixOf, Bool.and_eq_true, beq_iff_eq] at h
+      let ⟨t, ht⟩ := isPrefixOf_iff_IsPrefix.mp h.2
+      exists t
+      simpa [h.1]
+    · intro ⟨t, ht⟩
+      simp only [cons_append, cons.injEq] at ht
+      have hpf : as <+: bs := ⟨t, ht.2⟩
+      simpa [isPrefixOf, ht.1] using isPrefixOf_iff_IsPrefix.mpr hpf
+
+@[simp] theorem isSuffixOf_iff_IsSuffix [BEq α] [LawfulBEq α] {l₁ l₂ : List α} :
+    isSuffixOf l₁ l₂ ↔ l₁ <:+ l₂ := by
+  match l₁, l₂ with
+  | [],   _  => simp [nil_suffix, isSuffixOf]
+  | _::_, [] => simp [isSuffixOf, isPrefixOf]
+  | a::as, b::bs =>
+    constructor
+    · intro h
+      simp only [isSuffixOf, reverse_cons] at h
+      let ⟨t, ht⟩ := isPrefixOf_iff_IsPrefix.mp h
+      exists t.reverse
+      simpa using congrArg reverse ht
+    · intro ⟨t, ht⟩
+      have hpf : (as.reverse ++ [a]) <+: (bs.reverse ++ [b]) := by
+        exists t.reverse
+        simpa using congrArg reverse ht
+      simpa [isSuffixOf, reverse_cons] using isPrefixOf_iff_IsPrefix.mpr hpf
+
+theorem cons_prefix_cons : a :: l₁ <+: b :: l₂ ↔ a = b ∧ l₁ <+: l₂ := by
+  constructor
+  · rintro ⟨L, hL⟩
+    simp only [cons_append] at hL
+    injection hL with hLLeft hLRight
+    exact ⟨hLLeft, ⟨L, hLRight⟩⟩
+  · rintro ⟨rfl, h⟩
+    rwa [prefix_cons_inj]
+
+theorem eq_of_cons_prefix_cons {a b : α} {l₁ l₂} (h : a :: l₁ <+: b :: l₂) : a = b :=
+  (cons_prefix_cons.mp h).1
+
+theorem head_eq_head_of_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) (h : l₁ <+: l₂) :
+    l₁.head hl₁ = l₂.head hl₂ := by
+  obtain ⟨a, l₁, rfl⟩ := l₁.exists_cons_of_ne_nil hl₁
+  obtain ⟨b, l₂, rfl⟩ := l₂.exists_cons_of_ne_nil hl₂
+  simp [eq_of_cons_prefix_cons h, head_cons]
+
+theorem tail_prefix_tail_of_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) (h : l₁ <+: l₂) :
+    l₁.tail <+: l₂.tail := by
+  have heq := head_eq_head_of_prefix hl₁ hl₂ h
+  let ⟨t, ht⟩ := h
+  rw [← head_cons_tail l₁ hl₁, ← head_cons_tail l₂ hl₂, ← heq] at ht
+  simp only [cons_append, cons.injEq, true_and] at ht
+  exact ⟨t, ht⟩
+
+theorem prefix_iff_head_eq_and_tail_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) :
+    l₁ <+: l₂ ↔ l₁.head hl₁ = l₂.head hl₂ ∧ l₁.tail <+: l₂.tail := by
+  constructor <;> intro h
+  · exact ⟨head_eq_head_of_prefix hl₁ hl₂ h, tail_prefix_tail_of_prefix hl₁ hl₂ h⟩
+  · let ⟨t, ht⟩ := h.2
+    exists t
+    rw [← head_cons_tail l₁ hl₁, ← head_cons_tail l₂ hl₂]
+    simpa [h.1]
+
+theorem ne_nil_of_not_prefix (h : ¬l₁ <+: l₂) : l₁ ≠ [] := by
+  intro heq
+  simp [heq, nil_prefix] at h
+
+theorem not_prefix_and_not_prefix_symm_iff_exists [BEq α] [LawfulBEq α] [DecidableEq α]
+    {l₁ l₂ : List α} : ¬l₁ <+: l₂ ∧ ¬l₂ <+: l₁ ↔ ∃ c₁ c₂ pre suf₁ suf₂, c₁ ≠ c₂ ∧
+      l₁ = pre ++ c₁ :: suf₁ ∧ l₂ = pre ++ c₂ :: suf₂ := by
+  constructor <;> intro h
+  · obtain ⟨c₁, l₁, rfl⟩ := l₁.exists_cons_of_ne_nil (ne_nil_of_not_prefix h.1)
+    obtain ⟨c₂, l₂, rfl⟩ := l₂.exists_cons_of_ne_nil (ne_nil_of_not_prefix h.2)
+    simp only [cons_prefix_cons, not_and] at h
+    cases Decidable.em (c₁ = c₂)
+    · subst c₂
+      simp only [forall_const] at h
+      let ⟨c₁', c₂', pre, suf₁, suf₂, hc, heq₁, heq₂⟩ :=
+        not_prefix_and_not_prefix_symm_iff_exists.mp h
+      exact ⟨c₁', c₂', c₁::pre, suf₁, suf₂, hc, by simp [heq₁], by simp [heq₂]⟩
+    · next hc =>
+      exact ⟨c₁, c₂, [], l₁, l₂, hc, nil_append .., nil_append ..⟩
+  · let ⟨c₁, c₂, pre, suf₁, suf₂, hc, heq₁, heq₂⟩ := h
+    rw [heq₁, heq₂]
+    simp [prefix_append_right_inj, cons_prefix_cons, hc, hc.symm]
 
 /-! ### drop -/
 

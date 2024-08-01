@@ -3,8 +3,9 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
+import Batteries.Logic
 import Batteries.Data.Char
-import Batteries.Data.List.Lemmas
+import Batteries.Data.List.SplitOnList
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
@@ -438,7 +439,83 @@ theorem splitAux_of_valid (p l m r acc) :
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []
 
--- TODO: splitOn
+theorem splitOnAux_of_valid (sep₁ sep₂ l m r acc) (h : sep₂ ≠ []) :
+    splitOnAux ⟨l ++ m ++ sep₁ ++ r⟩ ⟨sep₁ ++ sep₂⟩ ⟨utf8Len l⟩ ⟨utf8Len (l ++ m ++ sep₁)⟩
+      ⟨utf8Len sep₁⟩ acc =
+    acc.reverse ++ (List.modifyHead (m ++ ·) <| List.splitOnListAux r sep₁ sep₂ h).map mk := by
+  obtain ⟨c₂, sep₂, rfl⟩ := sep₂.exists_cons_of_ne_nil h
+  rw [splitOnAux, List.splitOnListAux]
+  simp only [List.append_assoc, utf8Len_append, atEnd_iff, endPos_eq, Pos.mk_le_mk,
+    Nat.add_le_add_iff_left, Nat.add_right_le_self, utf8Len_eq_zero, by simpa only
+    [List.append_assoc, utf8Len_append] using (⟨get_of_valid (l++m++sep₁) r, next_of_valid
+    (l++m++sep₁) (r.headD default) r, extract_of_valid l (m++sep₁) r⟩ : _∧_∧_),  List.reverse_cons,
+    get_of_valid, List.headD_cons, beq_iff_eq, next, Pos.addChar_eq, utf8Len_cons,
+    Nat.add_left_le_self, Pos.sub_eq, dite_eq_ite]
+  split
+  · simp
+  · next hls =>
+    obtain ⟨cᵣ, r, rfl⟩ := r.exists_cons_of_ne_nil hls
+    simp only [List.headD_cons, List.head_cons, List.tail_cons, false_or]
+    split
+    · next hc =>
+      subst c₂
+      rw [← Nat.add_assoc, Nat.add_assoc, Nat.add_sub_cancel, Nat.add_assoc]
+      split
+      · subst sep₂
+        have ih := by simpa only [List.append_assoc, List.append_nil, List.singleton_append,
+          List.nil_append, utf8Len_append, utf8Len_cons, utf8Len_nil, Nat.zero_add, Pos.mk_zero,
+          List.reverse_cons, ← Function.id_def, List.modifyHead_id] using (splitOnAux_of_valid []
+          (sep₁++[cᵣ]) (l++m++sep₁++[cᵣ]) [] r (⟨m⟩::acc) (by simp))
+        simp [by simpa using extract_of_valid l m (sep₁++cᵣ::r), ih]
+      · next hsp₂ =>
+        simpa using splitOnAux_of_valid (sep₁++[cᵣ]) sep₂ l m r acc hsp₂
+    · next hc =>
+      have hget := by simpa only [List.append_assoc, utf8Len_append]
+        using get_of_valid (l++m) (sep₁++cᵣ::r)
+      have ih := by simpa only [List.append_assoc, List.append_nil, List.singleton_append,
+        List.nil_append, utf8Len_append, utf8Len_cons, utf8Len_nil, Nat.zero_add, Pos.mk_zero,
+        List.head_cons_tail (sep₁++cᵣ::r) (by simp)] using (splitOnAux_of_valid [] (sep₁++c₂::sep₂)
+        l (m++[(sep₁++cᵣ::r).head (by simp)]) (sep₁++cᵣ::r).tail acc (by simp))
+      rw [Nat.add_sub_assoc, Nat.add_sub_cancel, hget, List.headD_eq_head (sep₁++cᵣ::r) (by simp),
+        Nat.add_assoc, ih, List.append_cancel_left_eq, List.modifyHead_modifyHead,
+        Function.comp_def]; clear hget ih
+      apply Nat.le_add_left
+termination_by (utf8Len sep₁ + utf8Len r, utf8Len sep₂)
+decreasing_by
+  all_goals simp_wf
+  · rename_i _₀ _₁ _sep₂ _₂ _₃ _₄ _₅ _₆ _₇ _r _₈ _₉ _₁₀ _₁₁ _₁₂ _ _₁₃ _₁₄ _ _hc
+    clear _₀ _₁ _₂ _₃ _₄ _₅ _₆ _₇ _₈ _₉ _₁₀ _₁₁ _₁₂ _₁₃ _₁₄
+    subst _r _sep₂
+    left
+    rw [← utf8Len_append]
+    conv => rhs; rw [← List.head_cons_tail (sep₁++cᵣ::r) (by simp), utf8Len_cons]
+    apply Pos.lt_addChar
+  · rename_i _₀ _₁ _sep₂ _₂ _₃ _₄ _₅ _₆ _₇ _r _₈ _₉ _₁₀ _₁₁ _₁₂ _ _₁₃ _₁₄ _₁₅ _ _hc _hsp₂
+    clear _₀ _₁ _₂ _₃ _₄ _₅ _₆ _₇ _₈ _₉ _₁₀ _₁₁ _₁₂ _₁₃ _₁₄ _₁₅
+    subst _r _sep₂ c₂
+    repeat rw [utf8Len_cons]
+    rw [Nat.add_right_comm, Nat.add_assoc]
+    right
+    apply Pos.lt_addChar
+  · rename_i _₀ _₁ _sep₂ _₂ _₃ _₄ _₅ _₆ _₇ _r _₈ _₉ _₁₀ _₁₁ _₁₂ _ _₁₃ _₁₄ _₁₅ _ _hc _₁₆ _hsp₂
+    clear _₀ _₁ _₂ _₃ _₄ _₅ _₆ _₇ _₈ _₉ _₁₀ _₁₁ _₁₂ _₁₃ _₁₄ _₁₅ _₁₆
+    subst _r _sep₂
+    left
+    rw [utf8Len_cons]
+    calc
+      utf8Len r < utf8Len r + csize cᵣ := Pos.lt_addChar ..
+      utf8Len r + csize cᵣ ≤ utf8Len sep₁ + (utf8Len r + csize cᵣ) := Nat.le_add_left ..
+
+theorem splitOn_of_valid (s sep) : splitOn s sep = (List.splitOnList s.1 sep.1).map mk := by
+  simp only [splitOn, beq_iff_eq]
+  split <;> rename_i hsp
+  · simp [hsp, List.splitOnList]
+  · have aux := by simpa only [List.append_nil, List.nil_append, utf8Len_nil, Pos.mk_zero,
+      List.reverse_nil, ← Function.id_def, List.modifyHead_id] using
+      splitOnAux_of_valid [] sep.1 [] [] s.1 [] (hsp ∘ ext)
+    rw [aux]; clear aux
+    apply congrArg
+    simp [List.splitOnListAux_eq_splitOnList_append_append]
 
 @[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
   extract_zero_endPos _
