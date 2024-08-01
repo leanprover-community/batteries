@@ -23,6 +23,10 @@ open Nat
 theorem drop_one : ∀ l : List α, drop 1 l = tail l
   | [] | _ :: _ => rfl
 
+/-! ### isEmpty -/
+
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
+
 /-! ### zipWith -/
 
 theorem zipWith_distrib_tail : (zipWith f l l').tail = zipWith f l.tail l'.tail := by
@@ -287,6 +291,11 @@ theorem tail_drop (l : List α) (n : Nat) : (l.drop n).tail = l.drop (n + 1) := 
     cases n
     · simp
     · simp [hl]
+
+/-! ### modifyHead -/
+
+@[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
 
 /-! ### modifyNth -/
 
@@ -1244,6 +1253,15 @@ theorem IsInfix.filter (p : α → Bool) ⦃l₁ l₂ : List α⦄ (h : l₁ <:+
     l₁.filter p <:+: l₂.filter p := by
   obtain ⟨xs, ys, rfl⟩ := h
   rw [filter_append, filter_append]; apply infix_append _
+
+theorem cons_prefix_cons : a :: l₁ <+: b :: l₂ ↔ a = b ∧ l₁ <+: l₂ := by
+  constructor
+  · rintro ⟨L, hL⟩
+    simp only [cons_append] at hL
+    injection hL with hLLeft hLRight
+    exact ⟨hLLeft, ⟨L, hLRight⟩⟩
+  · rintro ⟨rfl, h⟩
+    rwa [prefix_cons_inj]
 
 /-! ### drop -/
 
