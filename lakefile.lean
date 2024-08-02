@@ -13,7 +13,7 @@ package batteries where
 @[default_target]
 lean_lib Batteries
 
-@[default_target]
+@[default_target, lint_driver]
 lean_exe runLinter where
   srcDir := "scripts"
   supportInterpreter := true
