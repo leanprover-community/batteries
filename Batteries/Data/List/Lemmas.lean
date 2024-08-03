@@ -478,6 +478,20 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
 
 @[simp] theorem length_tail (l : List α) : length (tail l) = length l - 1 := by cases l <;> rfl
 
+theorem length_tail' (l : List α) (h : 0 < length l) : (length (tail l)).succ = length l := by
+  cases l <;> simp at h ⊢
+
+theorem length_tail_le (l : List α) : length (tail l) ≤ length l := by
+  cases l <;> simp [Nat.le_succ]
+
+@[simp] theorem getElem?_tail {n} (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
+
+@[simp] theorem getElem_tail {n} (l : List α) (h : n < l.tail.length) :
+    l.tail[n] = l[n + 1]'(Nat.lt_of_lt_of_le (succ_lt_succ h)
+    (length_tail' _ (Nat.lt_of_le_of_lt (zero_le n)
+    (Nat.lt_of_lt_of_le h (length_tail_le _))) ▸ Nat.le_refl l.length)) := by
+  cases l <;> simp [Nat.not_lt_zero] at h ⊢
+
 /-! ### eraseP -/
 
 @[simp] theorem eraseP_nil : [].eraseP p = [] := rfl
