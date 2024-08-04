@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Data.List.Basic
+import Batteries.Data.Nat.Lemmas
 import Batteries.Tactic.Init
 import Batteries.Tactic.Alias
 
@@ -479,7 +480,7 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
 @[simp] theorem length_tail (l : List α) : length (tail l) = length l - 1 := by cases l <;> rfl
 
 theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
-  simp [Nat.sub_add_cancel h]
+  simp [h]
 
 @[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
 
