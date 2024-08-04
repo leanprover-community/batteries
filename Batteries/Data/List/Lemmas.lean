@@ -479,7 +479,7 @@ theorem length_eraseIdx : ∀ {l i}, i < length l → length (@eraseIdx α l i) 
 @[simp] theorem length_tail (l : List α) : length (tail l) = length l - 1 := by cases l <;> rfl
 
 theorem succ_length_tail (l : List α) (h : 0 < length l) : (length (tail l)).succ = length l := by
-  cases l; contradiction; simp
+  simp [Nat.sub_add_cancel h]
 
 @[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
 
