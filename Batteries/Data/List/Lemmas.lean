@@ -486,11 +486,11 @@ theorem length_tail_le (l : List α) : length (tail l) ≤ length l := by
 
 @[simp] theorem getElem?_tail {n} (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
 
-@[simp] theorem getElem_tail {n} (l : List α) (h : n < l.tail.length) :
-    l.tail[n] = l[n + 1]'(Nat.lt_of_lt_of_le (succ_lt_succ h)
-    (succ_length_tail _ (Nat.lt_of_le_of_lt (zero_le n)
-    (Nat.lt_of_lt_of_le h (length_tail_le _))) ▸ Nat.le_refl l.length)) := by
-  cases l <;> simp [Nat.not_lt_zero] at h ⊢
+@[simp] theorem getElem_tail (l : List α) (h : n < l.tail.length)
+    (h' : n + 1 < l.length := by
+      cases l; contradiction; apply Nat.succ_lt_succ; apply Nat.lt_of_lt_of_le h; simp) :
+    l.tail[n] = l[n + 1] := by
+  cases l; contradiction; simp
 
 /-! ### eraseP -/
 
