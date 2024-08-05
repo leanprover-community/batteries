@@ -189,6 +189,19 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
+/-! ### tail -/
+
+theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
+  simp [Nat.sub_add_cancel h]
+
+@[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
+
+@[simp] theorem getElem_tail (l : List α) (h : n < l.tail.length)
+    (h' : n + 1 < l.length := by
+      cases l; contradiction; apply Nat.succ_lt_succ; apply Nat.lt_of_lt_of_le h; simp) :
+    l.tail[n] = l[n + 1] := by
+  cases l; contradiction; simp
+
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
