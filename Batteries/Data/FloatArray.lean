@@ -6,16 +6,6 @@ Authors: François G. Dorais
 
 namespace FloatArray
 
--- TODO: remove once lean4#4801 is applied
-/--
-Low-level version of `size` that directly queries the C array object cached size.
-
-While this is not provable, `usize` always returns the exact size of the array since the
-implementation only supports arrays of size less than `USize.size`.
--/
-@[extern "lean_sarray_size", simp]
-def usize (a : @& FloatArray) : USize := a.size.toUSize
-
 /--
 Unsafe optimized implementation of `mapM`.
 

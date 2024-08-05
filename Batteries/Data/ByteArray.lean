@@ -12,16 +12,6 @@ namespace ByteArray
 
 theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data[i] := rfl
 
--- TODO: remove once lean4#4801 is applied
-/--
-Low-level version of `size` that directly queries the C array object cached size.
-
-While this is not provable, `usize` always returns the exact size of the array since the
-implementation only supports arrays of size less than `USize.size`.
--/
-@[extern "lean_sarray_size", simp]
-def usize (a : @& ByteArray) : USize := a.size.toUSize
-
 /-! ### uget/uset -/
 
 @[simp] theorem uset_eq_set (a : ByteArray) {i : USize} (h : i.toNat < a.size) (v : UInt8) :
