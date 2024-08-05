@@ -3,7 +3,7 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Batteries.Lean.Meta.DiscrTree
+import Lean.Meta.DiscrTree
 
 /-!
 # Once-per-file cache for tactics

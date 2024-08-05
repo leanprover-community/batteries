@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, James Gallicchio
 -/
 import Batteries.Data.List.Count
-import Batteries.Data.Fin.Lemmas
 
 /-!
 # Pairwise relations on a list

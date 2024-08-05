@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Batteries.Lean.Meta.Basic
+import Lean.Meta.Tactic.Assert
 
 open Lean Lean.Meta
 

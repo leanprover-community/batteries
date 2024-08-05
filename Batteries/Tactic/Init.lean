@@ -3,16 +3,14 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Lean.Meta.Basic
-import Lean.Elab.Command
-import Lean.Elab.Tactic.BuiltinTactic
+import Lean.Elab.Tactic.ElabTerm
 
 /-!
 # Simple tactics that are used throughout Batteries.
 -/
 
 namespace Batteries.Tactic
-open Lean Parser.Tactic Elab Command Elab.Tactic Meta
+open Lean Parser.Tactic Elab Elab.Tactic Meta
 
 /--
 `_` in tactic position acts like the `done` tactic: it fails and gives the list
