@@ -12,7 +12,8 @@ import Batteries.Tactic.SqueezeScope
 
 namespace String
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
+attribute [ext (iff := false)] ext
 
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
   List.lt_trans' (α := Char) Nat.lt_trans
@@ -87,7 +88,8 @@ end
 
 namespace Pos
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.Pos.ext` in core.
+attribute [ext (iff := false)] ext
 
 theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
 
@@ -335,7 +337,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
   · next h =>
     rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
     intro h₁ h₂
-    have : ∀ {cs}, p < p + utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
+    have : ∀ {cs}, 0 < utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
     obtain ⟨a, as, e₁⟩ := List.exists_cons_of_ne_nil (this h₁)
     obtain ⟨b, bs, e₂⟩ := List.exists_cons_of_ne_nil (this h₂)
     exact h _ _ _ _ e₁ e₂
@@ -420,8 +422,9 @@ theorem splitAux_of_valid (p l m r acc) :
     splitAux ⟨l ++ m ++ r⟩ p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
   unfold splitAux
-  simp only [List.append_assoc, atEnd_iff, endPos_eq, utf8Len_append, Pos.mk_le_mk, by
-    simpa using atEnd_of_valid (l ++ m) r, List.reverse_cons, dite_eq_ite]
+  simp only [List.append_assoc, atEnd_iff, endPos_eq, utf8Len_append, Pos.mk_le_mk,
+    Nat.add_le_add_iff_left, by simpa using atEnd_of_valid (l ++ m) r, List.reverse_cons,
+    dite_eq_ite]
   split
   · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
@@ -674,7 +677,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
   rw [← m.reverse_reverse]
   induction m.reverse generalizing r a with (unfold foldrAux; simp)
   | cons c m IH =>
-    rw [if_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
+    rw [if_pos add_utf8Size_pos]
     simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
