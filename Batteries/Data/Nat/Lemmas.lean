@@ -155,15 +155,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ## sub -/
 
-theorem le_of_sub_one_le (h : a - 1 < b) : a ≤ b := by
-  omega
-
-@[simp] theorem add_sub_of_sub_one_lt (h : a - 1 < b) : a + (b - a) = b := by
-  exact add_sub_of_le (le_of_sub_one_le h)
-
-@[simp] theorem sub_add_cancel_of_sub_one_lt (h : a - 1 < b) : b - a + a = b := by
-  rw [Nat.add_comm, add_sub_of_sub_one_lt h]
-
 @[deprecated (since := "2023-11-25")]
 protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
 
