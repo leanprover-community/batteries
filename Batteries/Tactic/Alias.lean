@@ -19,7 +19,7 @@ an iff theorem.
 
 namespace Batteries.Tactic.Alias
 
-open Lean Elab Parser.Command Std
+open Lean Elab Parser.Command
 
 /-- An alias can be in one of three forms -/
 inductive AliasInfo where

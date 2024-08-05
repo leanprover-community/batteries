@@ -52,8 +52,8 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-namespace Std.Tactic.Lint
-open Lean Std
+namespace Batteries.Tactic.Lint
+open Lean
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
