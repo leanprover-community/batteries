@@ -186,10 +186,6 @@ protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
 
 /-! ### sum -/
 
-@[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
-
-@[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
-
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
 
