@@ -53,7 +53,7 @@ sanity check, lint, cleanup, command, tactic
 -/
 
 namespace Batteries.Tactic.Lint
-open Lean Std
+open Lean
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity

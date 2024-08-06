@@ -86,8 +86,6 @@ where
   | Trie.node vs children =>
     children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
 
-open Std
-
 /-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
