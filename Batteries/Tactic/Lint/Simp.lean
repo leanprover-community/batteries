@@ -9,7 +9,7 @@ import Batteries.Tactic.OpenPrivate
 import Batteries.Util.LibraryNote
 open Lean Meta
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Linter for simplification lemmas

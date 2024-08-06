@@ -39,7 +39,7 @@ You can append `only name1 name2 ...` to any command to run a subset of linters,
 
 You can add custom linters by defining a term of type `Linter` with the
 `@[env_linter]` attribute.
-A linter defined with the name `Std.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
+A linter defined with the name `Batteries.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
 or `#lint only myNewCheck`.
 If you add the attribute `@[env_linter disabled]` to `linter.myNewCheck` it will be
 registered, but not run by default.
@@ -52,7 +52,7 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 open Lean Std
 
 /-- Verbosity for the linter output. -/
