@@ -6,7 +6,7 @@ Authors: Gabriel Ebner
 import Lean.Meta.Instances
 import Batteries.Tactic.Lint.Basic
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 open Lean Meta
 
 /--
