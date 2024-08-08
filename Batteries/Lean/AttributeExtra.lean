@@ -8,6 +8,8 @@ open Lean
 
 namespace Lean
 
+open Std
+
 /--
 `TagAttributeExtra` works around a limitation of `TagAttribute`, which is that definitions
 must be tagged in the same file that declares the definition.
@@ -94,7 +96,7 @@ or `none` if `decl` is not tagged.
 -/
 def getParam? [Inhabited α] (attr : ParametricAttributeExtra α)
     (env : Environment) (decl : Name) : Option α :=
-  attr.attr.getParam? env decl <|> attr.base.find? decl
+  attr.attr.getParam? env decl <|> attr.base[decl]?
 
 /-- Applies attribute `attr` to declaration `decl`, given a value for the parameter. -/
 def setParam (attr : ParametricAttributeExtra α)
