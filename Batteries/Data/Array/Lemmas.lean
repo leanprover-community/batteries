@@ -126,3 +126,22 @@ theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - 
 theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
   simp [shrink, size_shrink_loop]
   omega
+
+/-! ### map -/
+
+theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
+  rw [mapM, mapM.map]; rfl
+
+@[simp] theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty ..
+
+/-! ### mem -/
+
+alias not_mem_empty := not_mem_nil
+
+theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
+
+/-! ### append -/
+
+alias append_empty := append_nil
+
+alias empty_append := nil_append
