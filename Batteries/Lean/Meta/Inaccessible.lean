@@ -5,7 +5,7 @@ Authors: Jannis Limperg
 -/
 import Lean.Meta.InferType
 
-open Lean Lean.Meta
+open Lean Lean.Meta Std
 
 /--
 Obtain the inaccessible fvars from the given local context. An fvar is

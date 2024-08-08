@@ -8,7 +8,7 @@ import Lean.Linter.Util
 import Batteries.Tactic.Unreachable
 
 namespace Batteries.Linter
-open Lean Elab Command Linter
+open Lean Elab Command Linter Std
 
 /--
 Enables the 'unreachable tactic' linter. This will warn on any tactics that are never executed.
