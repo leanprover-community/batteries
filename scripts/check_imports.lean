@@ -70,7 +70,7 @@ def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
 /-- Check for imports and return true if warnings issued. -/
 def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Array Name) :
     LogIO Bool := do
-  let names : HashSet Name := HashSet.ofArray (modData.imports.map (·.module))
+  let names : Std.HashSet Name := Std.HashSet.ofArray (modData.imports.map (·.module))
   let mut warned := false
   for req in reqImports do
     if !names.contains req then
