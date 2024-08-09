@@ -83,7 +83,7 @@ structure Entry where
   used : Bool
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (HashMap String.Range Entry) (ST ω)
+abbrev M (ω) := StateRefT (Std.HashMap String.Range Entry) (ST ω)
 
 /-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
 @[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=

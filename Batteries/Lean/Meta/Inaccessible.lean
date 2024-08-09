@@ -15,7 +15,7 @@ later fvar with the same user name.
 def Lean.LocalContext.inaccessibleFVars (lctx : LocalContext) :
     Array LocalDecl :=
   let (result, _) :=
-    lctx.foldr (β := Array LocalDecl × HashSet Name)
+    lctx.foldr (β := Array LocalDecl × Std.HashSet Name)
       (init := (Array.mkEmpty lctx.numIndices, {}))
       fun ldecl (result, seen) =>
         if ldecl.isImplementationDetail then

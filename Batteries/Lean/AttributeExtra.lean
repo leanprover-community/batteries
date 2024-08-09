@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Lean.TagAttribute
+import Std.Data.HashMap.Basic
+
 open Lean
 
 namespace Lean
@@ -75,7 +77,7 @@ structure ParametricAttributeExtra (α : Type) where
   /-- The underlying `ParametricAttribute`. -/
   attr : ParametricAttribute α
   /-- A list of pre-tagged declarations with their values. -/
-  base : HashMap Name α
+  base : Std.HashMap Name α
   deriving Inhabited
 
 /--
