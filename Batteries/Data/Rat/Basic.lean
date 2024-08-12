@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Nat.Gcd
-import Batteries.Data.Int.DivMod
 import Batteries.Lean.Float
 
 /-! # Basics for the Rational Numbers -/
