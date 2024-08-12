@@ -29,14 +29,14 @@ namespace UnreachableTactic
 def getLinterUnreachableTactic (o : Options) : Bool := getLinterValue linter.unreachableTactic o
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M := StateRefT (HashMap String.Range Syntax) IO
+abbrev M := StateRefT (Std.HashMap String.Range Syntax) IO
 
 /--
 A list of blacklisted syntax kinds, which are expected to have subterms that contain
 unevaluated tactics.
 -/
 initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
-  IO.mkRef <| HashSet.empty
+  IO.mkRef <| Std.HashSet.empty
     |>.insert ``Parser.Term.binderTactic
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq

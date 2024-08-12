@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Batteries.Data.Array.Lemmas
 
 namespace Batteries
 

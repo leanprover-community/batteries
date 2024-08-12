@@ -131,7 +131,7 @@ private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
 termination_by n - i
 
 @[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
+  funext n f; ext1; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
 where
   ofFnAux_data {n} (f : Fin n → UInt8) (i) {acc} :
       (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
