@@ -225,7 +225,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
   | cons a l ih =>
     simp only [List.pairwise_cons, List.replaceF] at H ⊢
     generalize e : cond .. = z; unfold cond at e; revert e
-    split <;> (intro h; subst h; simp)
+    split <;> (intro h; subst h; simp only [List.pairwise_cons])
     · next e => exact ⟨(H.1 · · ∘ PartialEquivBEq.trans e), H.2⟩
     · next e =>
       refine ⟨fun a h => ?_, ih H.2⟩
