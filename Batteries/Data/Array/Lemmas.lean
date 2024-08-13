@@ -27,7 +27,7 @@ theorem forIn_eq_forIn_data [Monad m]
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   conv => lhs; simp only [forIn, Array.forIn]
   rw [loop (Nat.zero_add _)]; rfl
-@[deprecated (since:="2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
+@[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
 
 /-! ### zipWith / zip -/
 
@@ -71,7 +71,7 @@ theorem data_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
       simp only [data_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
-@[deprecated (since:="2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
+@[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
@@ -80,7 +80,7 @@ theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
 theorem data_zip (as : Array α) (bs : Array β) :
     (as.zip bs).data = as.data.zip bs.data :=
   data_zipWith Prod.mk as bs
-@[deprecated (since:="2024-08-13")] alias zip_eq_zip_data := data_zip
+@[deprecated (since := "2024-08-13")] alias zip_eq_zip_data := data_zip
 
 theorem size_zip (as : Array α) (bs : Array β) :
     (as.zip bs).size = min as.size bs.size :=
@@ -104,7 +104,7 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
   induction l with
   | nil => simp
   | cons h => induction h.data <;> simp [*]
-@[deprecated (since:="2024-08-13")] alias join_data := data_join
+@[deprecated (since := "2024-08-13")] alias join_data := data_join
 
 theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
   simp only [mem_def, data_join, List.mem_join, List.mem_map]
