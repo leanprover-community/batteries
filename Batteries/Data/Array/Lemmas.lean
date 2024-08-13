@@ -11,11 +11,6 @@ import Batteries.Util.ProofWanted
 
 namespace Array
 
-theorem get_modify {arr : Array α} {x i} (h : i < arr.size) :
-    (arr.modify x f).get ⟨i, by simp [h]⟩ =
-    if x = i then f (arr.get ⟨i, h⟩) else arr.get ⟨i, h⟩ := by
-  simp [getElem_modify h]
-
 theorem forIn_eq_data_forIn [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.data b f := by
