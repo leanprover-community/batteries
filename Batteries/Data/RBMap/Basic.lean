@@ -67,8 +67,8 @@ protected def max? : RBNode α → Option α
   | node _ _ v nil => some v
   | node _ _ _ r   => r.max?
 
-@[deprecated] protected alias min := RBNode.min?
-@[deprecated] protected alias max := RBNode.max?
+@[deprecated (since := "2024-04-17")] protected alias min := RBNode.min?
+@[deprecated (since := "2024-04-17")] protected alias max := RBNode.max?
 
 /--
 Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
@@ -119,11 +119,11 @@ An auxiliary data structure (an iterator) over an `RBNode` which lazily
 pulls elements from the left.
 -/
 protected inductive Stream (α : Type _)
-  | /-- The stream is empty. -/
-    nil
-  | /-- We are ready to deliver element `v` with right child `r`,
-    and where `tail` represents all the subtrees we have yet to destructure. -/
-    cons (v : α) (r : RBNode α) (tail : RBNode.Stream α)
+  /-- The stream is empty. -/
+  | nil
+  /-- We are ready to deliver element `v` with right child `r`,
+  and where `tail` represents all the subtrees we have yet to destructure. -/
+  | cons (v : α) (r : RBNode α) (tail : RBNode.Stream α)
 
 /-- `O(log n)`. Turn a node into a stream, by descending along the left spine. -/
 def toStream : RBNode α → (_ : RBNode.Stream α := .nil) → RBNode.Stream α
@@ -407,8 +407,17 @@ are not of this form as long as they are suitably monotonic.)
     | .gt => find? cut b
     | .eq => some y
 
+/-- `upperBound? cut` retrieves the smallest entry larger than or equal to `cut`, if it exists. -/
+@[specialize] def upperBound? (cut : α → Ordering) : RBNode α → (ub : Option α := .none) → Option α
+  | nil,          ub => ub
+  | node _ a y b, ub =>
+    match cut y with
+    | .lt => upperBound? cut a (some y)
+    | .gt => upperBound? cut b ub
+    | .eq => some y
+
 /-- `lowerBound? cut` retrieves the largest entry smaller than or equal to `cut`, if it exists. -/
-@[specialize] def lowerBound? (cut : α → Ordering) : RBNode α → Option α → Option α
+@[specialize] def lowerBound? (cut : α → Ordering) : RBNode α → (lb : Option α := .none) → Option α
   | nil,          lb => lb
   | node _ a y b, lb =>
     match cut y with
@@ -660,14 +669,24 @@ instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStrea
 /-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBSet. -/
 @[inline] protected def max? (t : RBSet α cmp) : Option α := t.1.max?
 
-@[deprecated] protected alias min := RBSet.min?
-@[deprecated] protected alias max := RBSet.max?
+@[deprecated (since := "2024-04-17")] protected alias min := RBSet.min?
+@[deprecated (since := "2024-04-17")] protected alias max := RBSet.max?
 
 instance [Repr α] : Repr (RBSet α cmp) where
   reprPrec m prec := Repr.addAppParen ("RBSet.ofList " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert element `v` into the tree. -/
 @[inline] def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
+
+/--
+Insert all elements from a collection into a `RBSet α cmp`.
+-/
+def insertMany [ForIn Id ρ α] (s : RBSet α cmp) (as : ρ) :
+    RBSet α cmp := Id.run do
+  let mut s := s
+  for a in as do
+    s := s.insert a
+  return s
 
 /--
 `O(log n)`. Remove an element from the tree using a cut function.
@@ -690,17 +709,28 @@ are not of this form as long as they are suitably monotonic.)
 @[inline] def findPD (t : RBSet α cmp) (cut : α → Ordering) (v₀ : α) : α := (t.findP? cut).getD v₀
 
 /--
-`O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
+`O(log n)`. `upperBoundP cut` retrieves the smallest entry comparing `gt` or `eq` under `cut`,
+if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
+-/
+@[inline] def upperBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.upperBound? cut
+
+/--
+`O(log n)`. `upperBound? k` retrieves the largest entry smaller than or equal to `k`,
 if it exists.
 -/
-@[inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α :=
-  t.1.lowerBound? cut none
+@[inline] def upperBound? (t : RBSet α cmp) (k : α) : Option α := t.upperBoundP? (cmp k)
+
+/--
+`O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
+if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
+-/
+@[inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.lowerBound? cut
 
 /--
 `O(log n)`. `lowerBound? k` retrieves the largest entry smaller than or equal to `k`,
 if it exists.
 -/
-@[inline] def lowerBound? (t : RBSet α cmp) (k : α) : Option α := t.1.lowerBound? (cmp k) none
+@[inline] def lowerBound? (t : RBSet α cmp) (k : α) : Option α := t.lowerBoundP? (cmp k)
 
 /-- `O(log n)`. Returns true if the given cut returns `eq` for something in the RBSet. -/
 @[inline] def containsP (t : RBSet α cmp) (cut : α → Ordering) : Bool := (t.findP? cut).isSome
@@ -1023,8 +1053,8 @@ instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 /-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≥ k` for all keys in the RBMap. -/
 @[inline] protected def max? : RBMap α β cmp → Option (α × β) := RBSet.max?
 
-@[deprecated] protected alias min := RBMap.min?
-@[deprecated] protected alias max := RBMap.max?
+@[deprecated (since := "2024-04-17")] protected alias min := RBMap.min?
+@[deprecated (since := "2024-04-17")] protected alias max := RBMap.max?
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.ofList " ++ repr m.toList) prec

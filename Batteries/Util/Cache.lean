@@ -3,7 +3,7 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Batteries.Lean.Meta.DiscrTree
+import Lean.Meta.DiscrTree
 
 /-!
 # Once-per-file cache for tactics
@@ -132,7 +132,7 @@ the second will store declarations from imports (and will hopefully be "read-onl
 -/
 @[reducible] def DiscrTreeCache (α : Type) : Type := DeclCache (DiscrTree α × DiscrTree α)
 
-/-- Discrimation tree settings for the `DiscrTreeCache`. -/
+/-- Discrimination tree settings for the `DiscrTreeCache`. -/
 def DiscrTreeCache.config : WhnfCoreConfig := {}
 
 /--

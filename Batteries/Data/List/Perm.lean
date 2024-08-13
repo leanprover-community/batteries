@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Batteries.Tactic.Alias
-import Batteries.Data.List.Init.Attach
 import Batteries.Data.List.Pairwise
--- Adaptation note: nightly-2024-03-18. We should be able to remove this after nightly-2024-03-19.
-import Lean.Elab.Tactic.Rfl
 
 /-!
 # List Permutations
@@ -155,8 +152,8 @@ theorem Perm.filterMap (f : α → Option β) {l₁ l₂ : List α} (p : l₁ ~ 
     filterMap f l₁ ~ filterMap f l₂ := by
   induction p with
   | nil => simp
-  | cons x _p IH => cases h : f x <;> simp [h, filterMap, IH, Perm.cons]
-  | swap x y l₂ => cases hx : f x <;> cases hy : f y <;> simp [hx, hy, filterMap, swap]
+  | cons x _p IH => cases h : f x <;> simp [h, filterMap_cons, IH, Perm.cons]
+  | swap x y l₂ => cases hx : f x <;> cases hy : f y <;> simp [hx, hy, filterMap_cons, swap]
   | trans _p₁ _p₂ IH₁ IH₂ => exact IH₁.trans IH₂
 
 theorem Perm.map (f : α → β) {l₁ l₂ : List α} (p : l₁ ~ l₂) : map f l₁ ~ map f l₂ :=
@@ -234,7 +231,7 @@ theorem Subperm.trans {l₁ l₂ l₃ : List α} (s₁₂ : l₁ <+~ l₂) (s₂
   ⟨l₁', p₁, s₁.trans s₂⟩
 
 theorem Subperm.cons_right {α : Type _} {l l' : List α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
-  h.trans (sublist_cons x l').subperm
+  h.trans (sublist_cons_self x l').subperm
 
 theorem Subperm.length_le {l₁ l₂ : List α} : l₁ <+~ l₂ → length l₁ ≤ length l₂
   | ⟨_l, p, s⟩ => p.length_eq ▸ s.length_le
@@ -371,7 +368,7 @@ theorem perm_append_right_iff {l₁ l₂ : List α} (l) : l₁ ++ l ~ l₂ ++ l 
 theorem subperm_cons (a : α) {l₁ l₂ : List α} : a :: l₁ <+~ a :: l₂ ↔ l₁ <+~ l₂ := by
   refine ⟨fun ⟨l, p, s⟩ => ?_, fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons₂ _⟩⟩
   match s with
-  | .cons _ s' => exact (p.subperm_left.2 <| (sublist_cons _ _).subperm).trans s'.subperm
+  | .cons _ s' => exact (p.subperm_left.2 <| (sublist_cons_self _ _).subperm).trans s'.subperm
   | .cons₂ _ s' => exact ⟨_, p.cons_inv, s'⟩
 
 /-- Weaker version of `Subperm.cons_left` -/
@@ -412,7 +409,7 @@ theorem Subperm.exists_of_length_lt {l₁ l₂ : List α} (s : l₁ <+~ l₂) (h
   | slnil => cases h
   | cons a s IH =>
     match Nat.lt_or_eq_of_le (Nat.le_of_lt_succ h) with
-    | .inl h => exact (IH h).imp fun a s => s.trans (sublist_cons _ _).subperm
+    | .inl h => exact (IH h).imp fun a s => s.trans (sublist_cons_self _ _).subperm
     | .inr h => exact ⟨a, s.eq_of_length h ▸ .refl _⟩
   | cons₂ b _ IH =>
     exact (IH <| Nat.lt_of_succ_lt_succ h).imp fun a s =>
@@ -440,12 +437,12 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
     | .cons _ s₁ => exact IH d.2 s₁ h
     | .cons₂ _ s₁ =>
       have := Subperm.subset ⟨_, h.symm, s₂⟩ (.head _)
-      exact (d.1 _ this rfl).elim
+      exact (d.1 this).elim
   | cons₂ a _ IH =>
     match s₁ with
     | .cons _ s₁ =>
       have := Subperm.subset ⟨_, h, s₁⟩ (.head _)
-      exact (d.1 _ this rfl).elim
+      exact (d.1 this).elim
     | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
 section DecidableEq
@@ -464,7 +461,7 @@ theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   if h : a ∈ l then
     (perm_cons_erase h).subperm
   else
-    (erase_of_not_mem h).symm ▸ (sublist_cons _ _).subperm
+    (erase_of_not_mem h).symm ▸ (sublist_cons_self _ _).subperm
 
 theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := (erase_sublist _ _).subperm
 
@@ -513,7 +510,7 @@ theorem erase_cons_subperm_cons_erase (a b : α) (l : List α) :
     rw [h, erase_cons_head]; apply subperm_cons_erase
   else
     have : ¬(a == b) = true := by simp only [beq_false_of_ne h, not_false_eq_true]
-    rw [erase_cons_tail _ this]
+    rw [erase_cons_tail this]
 
 theorem subperm_cons_diff {a : α} {l₁ l₂ : List α} : (a :: l₁).diff l₂ <+~ a :: l₁.diff l₂ := by
   induction l₂ with
@@ -643,7 +640,7 @@ theorem Perm.union {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : 
 theorem Perm.inter_right {l₁ l₂ : List α} (t₁ : List α) : l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
 
 theorem Perm.inter_left (l : List α) {t₁ t₂ : List α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-  filter_congr' fun a _ => by simpa using p.mem_iff (a := a)
+  filter_congr fun a _ => by simpa using p.mem_iff (a := a)
 
 theorem Perm.inter {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
   p₂.inter_left l₂ ▸ p₁.inter_right t₁

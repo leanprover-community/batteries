@@ -13,14 +13,11 @@ package batteries where
 @[default_target]
 lean_lib Batteries
 
-@[default_target]
+@[default_target, lint_driver]
 lean_exe runLinter where
   srcDir := "scripts"
   supportInterpreter := true
 
-meta if get_config? doc |>.isSome then
-require «doc-gen4» from git "https://github.com/leanprover/doc-gen4" @ "main"
-
-@[test_runner]
+@[test_driver]
 lean_exe test where
   srcDir := "scripts"

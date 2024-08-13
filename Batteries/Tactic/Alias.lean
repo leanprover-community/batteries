@@ -6,6 +6,7 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 import Lean.Elab.Command
 import Lean.Elab.DeclarationRange
 import Lean.Compiler.NoncomputableAttr
+import Lean.DocString
 import Batteries.CodeAction.Deprecated
 
 /-!
@@ -63,9 +64,11 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   StateT.run (m := Id) (s := false) do
     arr.mapM fun s => do
       if s.name == `deprecated then
-        if let `(deprecated| deprecated%$tk) := s.stx then
+        if let `(deprecated| deprecated%$tk $[$desc:str]? $[(since := $since)]?) := s.stx then
           set true
-          pure { s with stx := Unhygienic.run `(deprecated| deprecated%$tk $(mkCIdent target)) }
+          let stx := Unhygienic.run
+            `(deprecated| deprecated%$tk $(mkCIdent target) $[$desc:str]? $[(since := $since)]?)
+          pure { s with stx }
         else pure s
       else pure s
 

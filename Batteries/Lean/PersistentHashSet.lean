@@ -57,16 +57,6 @@ instance : BEq (PersistentHashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
 
 /--
-Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a => b`.
--/
-@[inline]
-def insert' (s : PersistentHashSet α) (a : α) : PersistentHashSet α × Bool :=
-  let oldSize := s.size
-  let s := s.insert a
-  (s, s.size == oldSize)
-
-/--
 Insert all elements from a collection into a `PersistentHashSet`.
 -/
 def insertMany [ForIn Id ρ α] (s : PersistentHashSet α) (as : ρ) :
