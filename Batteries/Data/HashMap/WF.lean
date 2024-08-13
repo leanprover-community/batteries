@@ -3,9 +3,10 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.SeqFocus
 import Batteries.Data.HashMap.Basic
-import Batteries.Data.Array.Lemmas
 import Batteries.Data.Nat.Lemmas
+import Batteries.Data.List.Lemmas
 
 namespace Batteries.HashMap
 namespace Imp
@@ -224,7 +225,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
   | cons a l ih =>
     simp only [List.pairwise_cons, List.replaceF] at H ⊢
     generalize e : cond .. = z; unfold cond at e; revert e
-    split <;> (intro h; subst h; simp)
+    split <;> (intro h; subst h; simp only [List.pairwise_cons])
     · next e => exact ⟨(H.1 · · ∘ PartialEquivBEq.trans e), H.2⟩
     · next e =>
       refine ⟨fun a h => ?_, ih H.2⟩
@@ -315,7 +316,7 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
   have ⟨h₁, h₂⟩ := H.out
   simp only [Imp.mapVal, h₁, Buckets.mapVal, WF_iff]; refine ⟨?_, ?_, fun i h => ?_⟩
   · simp only [Buckets.size, Array.map_data, List.map_map]; congr; funext l; simp
-  · simp only [Array.map_data, List.forall_mem_map_iff]
+  · simp only [Array.map_data, List.forall_mem_map]
     simp only [AssocList.toList_mapVal, List.pairwise_map]
     exact fun _ => h₂.1 _
   · simp only [Array.size_map, AssocList.All, Array.getElem_map, AssocList.toList_mapVal,
@@ -361,7 +362,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   simp only [Array.mapM_eq_mapM_data, bind, StateT.bind, H2, List.map_map, Nat.zero_add, g]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
-  · simp only [List.forall_mem_map_iff, List.toList_toAssocList]
+  · simp only [List.forall_mem_map, List.toList_toAssocList]
     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
