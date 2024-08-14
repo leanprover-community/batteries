@@ -4,8 +4,9 @@ import Batteries.Tactic.Lemma
 /--
 info: Try this: theorem
 ---
-error: `lemma` is not supported, please use `theorem` instead.
-Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command
+error: `lemma` is not supported by default, please use `theorem` instead.
+Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command in a file.
+Use the command line option `-Dlang.lemmaCmd=true` to enable the use of `lemma` globally.
 -/
 #guard_msgs in
 lemma test1 : 3 < 7 := by decide
@@ -18,8 +19,9 @@ lemma test2 : 3 < 7 := by decide
 /--
 info: Try this: theorem
 ---
-error: `lemma` is not supported, please use `theorem` instead.
-Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command
+error: `lemma` is not supported by default, please use `theorem` instead.
+Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command in a file.
+Use the command line option `-Dlang.lemmaCmd=true` to enable the use of `lemma` globally.
 -/
 #guard_msgs in
 lemma test3 : 3 < 7 := by decide
