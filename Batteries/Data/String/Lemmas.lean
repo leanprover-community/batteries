@@ -922,14 +922,14 @@ theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.takeWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.dropWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
 -- TODO: takeRightWhile
