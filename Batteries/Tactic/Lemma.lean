@@ -39,8 +39,9 @@ emits a warning and code action instructing the user to use `theorem` instead.-/
     Elab.Command.liftTermElabM <|
       TryThis.addSuggestion lemmaStx { suggestion := "theorem" }
     logErrorAt lemmaStx
-      "`lemma` is not supported, please use `theorem` instead.\n\
-      Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command"
+      "`lemma` is not supported by default, please use `theorem` instead.\n\
+      Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command in a file.\n\
+      Use the command line option `-Dlang.lemmaCmd=true` to enable the use of `lemma` globally"```
   let out ← Elab.liftMacroM <| do
     let stx := stx.modifyArg 1 fun stx =>
       let stx := stx.modifyArg 0 (mkAtomFrom · "theorem" (canonical := true))
