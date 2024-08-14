@@ -302,6 +302,7 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
     apply dif_pos
     exact parent'_lt ..
 
+set_option linter.deprecated false in
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
   if h : i < self.size then
@@ -316,6 +317,7 @@ theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
 termination_by self.rankMax - self.rank x
 
+set_option linter.deprecated false in
 theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i =
     if i = x then self.rootD x else parentD (self.findAux ⟨_, self.parent'_lt x⟩).s i := by
