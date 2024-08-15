@@ -93,14 +93,14 @@ def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
 /-- Render the list of simp lemmas. -/
-def formatLemmas (usedSimps : Simp.UsedSimps) : MetaM MessageData := do
+def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) : MetaM MessageData := do
   let mut args := #[]
   let env ← getEnv
-  for (thm, _) in usedSimps.toArray.qsort (·.2 < ·.2) do
+  for (thm, _) in usedSimps.map.toArray.qsort (·.2 < ·.2) do
     if let .decl declName := thm then
       if env.contains declName && declName != ``eq_self then
         args := args.push (← mkConstWithFreshMVarLevels declName)
-  return m!"simp only {args.toList}"
+  return m!"{simpName} only {args.toList}"
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[env_linter] def simpNF : Linter where
@@ -112,17 +112,29 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
     unless ← isSimpTheorem declName do return none
     let ctx := { ← Simp.Context.mkDefault with config.decide := false }
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
+      let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
-        decorateError "simplify fails on left-hand side:" <| simp lhs ctx
-      if prf1Stats.usedTheorems.contains (.decl declName) then return none
+        decorateError "simplify fails on left-hand side:" <|
+          if !isRfl then
+            simp lhs ctx
+          else do
+            let (e, s) ← dsimp lhs ctx
+            return (Simp.Result.mk e .none .true, s)
+      if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
       let ({ expr := rhs', .. }, stats) ←
-        decorateError "simplify fails on right-hand side:" <| simp rhs ctx (stats := prf1Stats)
+        decorateError "simplify fails on right-hand side:" <|
+          if !isRfl then
+            simp rhs ctx (stats := prf1Stats)
+          else do
+            let (e, s) ← dsimp rhs ctx (stats := prf1Stats)
+            return (Simp.Result.mk e .none .true, s)
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
+      let simpName := if !isRfl then "simp" else "dsimp"
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
-        return m!"simp can prove this:
-  by {← formatLemmas stats.usedTheorems}
+        return m!"{simpName} can prove this:
+  by {← formatLemmas stats.usedTheorems simpName}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
 "
@@ -132,7 +144,7 @@ If that's not the case try reordering lemmas or adding @[priority].
 to
   {lhs'}
 using
-  {← formatLemmas prf1Stats.usedTheorems}
+  {← formatLemmas prf1Stats.usedTheorems simpName}
 Try to change the left-hand side to the simplified term!
 "
       else if !isConditional && lhs == lhs' then

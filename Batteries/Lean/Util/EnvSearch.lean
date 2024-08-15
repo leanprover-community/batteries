@@ -24,8 +24,7 @@ where
   /-- Check constant should be returned -/
   @[nolint unusedArguments]
   check matches_ (_name : Name) cinfo := do
-    let include ← p cinfo
-    if include then
+    if ← p cinfo then
       pure $ matches_.push cinfo
     else
       pure matches_

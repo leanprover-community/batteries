@@ -11,15 +11,6 @@ namespace Lean.PersistentHashMap
 variable [BEq α] [Hashable α]
 
 /--
-Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a => b`.
--/
-def insert' (m : PersistentHashMap α β) (a : α) (b : β) : PersistentHashMap α β × Bool :=
-  let oldSize := m.size
-  let m := m.insert a b
-  (m, m.size == oldSize)
-
-/--
 Builds a `PersistentHashMap` from a list of key-value pairs. Values of
 duplicated keys are replaced by their respective last occurrences.
 -/

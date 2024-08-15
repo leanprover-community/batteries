@@ -1,6 +1,6 @@
+import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
-import Batteries.Lean.Util.Path
 
 open Lean Core Elab Command Std.Tactic.Lint
 open System (FilePath)
@@ -57,7 +57,7 @@ unsafe def main (args : List String) : IO Unit := do
     let state := { env }
     Prod.fst <$> (CoreM.toIO · ctx state) do
       let decls ← getDeclsInPackage module.getRoot
-      let linters ← getChecks (slow := true) (useOnly := false)
+      let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
       let results ← lintCore decls linters
       if update then
         writeJsonFile (α := NoLints) nolintsFile <|

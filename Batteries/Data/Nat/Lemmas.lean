@@ -151,19 +151,21 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ## add -/
 
-@[deprecated] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
+@[deprecated (since := "2023-11-25")] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
 
 /-! ## sub -/
 
-@[deprecated] protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
+@[deprecated (since := "2023-11-25")]
+protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
 
-@[deprecated] protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
+@[deprecated (since := "2023-11-25")]
+protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
 
 /-! ### mul -/
 
-@[deprecated] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
+@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
 
-@[deprecated] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
+@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
 
 /-! ### div/mod -/
 
@@ -175,12 +177,8 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
-@[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
-
-@[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
-
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
 
-@[deprecated] protected alias lt_connex := Nat.lt_or_gt_of_ne
-@[deprecated] alias pow_two_pos := Nat.two_pow_pos -- deprecated 2024-02-09
+@[deprecated (since := "2024-03-05")] protected alias lt_connex := Nat.lt_or_gt_of_ne
+@[deprecated (since := "2024-02-09")] alias pow_two_pos := Nat.two_pow_pos

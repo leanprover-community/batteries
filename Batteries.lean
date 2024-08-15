@@ -1,4 +1,3 @@
-import Batteries.Classes.BEq
 import Batteries.Classes.Cast
 import Batteries.Classes.Order
 import Batteries.Classes.RatCast
@@ -15,6 +14,7 @@ import Batteries.Control.Lemmas
 import Batteries.Control.Nondet.Basic
 import Batteries.Data.Array
 import Batteries.Data.AssocList
+import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.Bool
@@ -57,18 +57,15 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.Name
 import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
 import Batteries.Lean.Position
-import Batteries.Lean.SMap
 import Batteries.Lean.Syntax
 import Batteries.Lean.System.IO
 import Batteries.Lean.TagAttribute
 import Batteries.Lean.Util.EnvSearch
-import Batteries.Lean.Util.Path
 import Batteries.Linter
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
@@ -100,7 +97,6 @@ import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
 import Batteries.Util.Cache
-import Batteries.Util.CheckTactic
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
 import Batteries.Util.Pickle

@@ -3,7 +3,7 @@ Copyright (c) 2023 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Array.Lemmas
+import Batteries.Tactic.Alias
 
 namespace ByteArray
 
@@ -14,23 +14,23 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### uget/uset -/
 
-@[simp] theorem ugetElem_eq_getElem (a : ByteArray) {i : USize} (h : i.toNat < a.size) :
-    a[i] = a[i.toNat] := rfl
-
 @[simp] theorem uset_eq_set (a : ByteArray) {i : USize} (h : i.toNat < a.size) (v : UInt8) :
     a.uset i v h = a.set ⟨i.toNat, h⟩ v := rfl
 
 /-! ### empty -/
 
-@[simp] theorem mkEmpty_data (cap) : (mkEmpty cap).data = #[] := rfl
+@[simp] theorem data_mkEmpty (cap) : (mkEmpty cap).data = #[] := rfl
+@[deprecated (since := "2024-08-13")] alias mkEmpty_data := data_mkEmpty
 
-@[simp] theorem empty_data : empty.data = #[] := rfl
+@[simp] theorem data_empty : empty.data = #[] := rfl
+@[deprecated (since := "2024-08-13")] alias empty_data := data_empty
 
 @[simp] theorem size_empty : empty.size = 0 := rfl
 
 /-! ### push -/
 
-@[simp] theorem push_data (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
+@[simp] theorem data_push (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
+@[deprecated (since := "2024-08-13")] alias push_data := data_push
 
 @[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
   Array.size_push ..
@@ -44,8 +44,9 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 /-! ### set -/
 
-@[simp] theorem set_data (a : ByteArray) (i : Fin a.size) (v : UInt8) :
+@[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).data = a.data.set i v := rfl
+@[deprecated (since := "2024-08-13")] alias set_data := data_set
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
@@ -64,20 +65,22 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### copySlice -/
 
-@[simp] theorem copySlice_data (a i b j len exact) :
+@[simp] theorem data_copySlice (a i b j len exact) :
   (copySlice a i b j len exact).data = b.data.extract 0 j ++ a.data.extract i (i + len)
     ++ b.data.extract (j + min len (a.data.size - i)) b.data.size := rfl
+@[deprecated (since := "2024-08-13")] alias copySlice_data := data_copySlice
 
 /-! ### append -/
 
 @[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
 
-@[simp] theorem append_data (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
+@[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
   rw [←append_eq]; simp [ByteArray.append, size]
   rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_nil]
+@[deprecated (since := "2024-08-13")] alias append_data := data_append
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
-  simp only [size, append_eq, append_data]; exact Array.size_append ..
+  simp only [size, append_eq, data_append]; exact Array.size_append ..
 
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
@@ -91,12 +94,13 @@ theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b
 
 /-! ### extract -/
 
-@[simp] theorem extract_data (a : ByteArray) (start stop) :
+@[simp] theorem data_extract (a : ByteArray) (start stop) :
     (a.extract start stop).data = a.data.extract start stop := by
   simp [extract]
   match Nat.le_total start stop with
   | .inl h => simp [h, Nat.add_sub_cancel']
   | .inr h => simp [h, Nat.sub_eq_zero_of_le, Array.extract_empty_of_stop_le_start]
+@[deprecated (since := "2024-08-13")] alias extract_data := data_extract
 
 @[simp] theorem size_extract (a : ByteArray) (start stop) :
     (a.extract start stop).size = min stop a.size - start := by
@@ -117,7 +121,8 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 def ofFn (f : Fin n → UInt8) : ByteArray where
   data := .ofFn f
 
-@[simp] theorem ofFn_data (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := rfl
+@[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := rfl
+@[deprecated (since := "2024-08-13")] alias ofFn_data := data_ofFn
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
   simp [size]
@@ -135,9 +140,9 @@ private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
 termination_by n - i
 
 @[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext; simp [ofFnAux, Array.ofFn, ofFnAux_data, mkEmpty]
+  funext n f; ext1; simp [ofFnAux, Array.ofFn, data_ofFnAux, mkEmpty]
 where
-  ofFnAux_data {n} (f : Fin n → UInt8) (i) {acc} :
+  data_ofFnAux {n} (f : Fin n → UInt8) (i) {acc} :
       (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
-    rw [ofFnAux.go, Array.ofFn.go]; split; rw [ofFnAux_data f (i+1), push_data]; rfl
+    rw [ofFnAux.go, Array.ofFn.go]; split; rw [data_ofFnAux f (i+1), data_push]; rfl
   termination_by n - i

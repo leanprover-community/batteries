@@ -19,8 +19,6 @@ example {α β γ δ} {F : ∀ {α β}, (α → β) → γ → δ} {f g : α →
   -- apply_assumption -- FIXME
   apply h
 
-attribute [ext] Subtype.eq
-
 example {α β : Type _} {f : _ → β} {x y : { x : { x : α // x = x } // x = x }}
     (h : x.1 = y.1) : f x = f y := by
   congr with : 1
@@ -38,7 +36,7 @@ section
 -- Adaptation note: the next two examples have always failed if `List.ext` was in scope,
 -- but until nightly-2024-04-24 (when `List.ext` was upstreamed), it wasn't in scope.
 -- In order to preserve the test behaviour we locally remove the `ext` attribute.
-attribute [-ext] List.ext
+attribute [-ext] List.ext_getElem?
 
 private opaque List.sum : List Nat → Nat
 

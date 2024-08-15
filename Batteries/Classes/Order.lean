@@ -102,7 +102,7 @@ theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
 theorem cmp_congr_left' (xy : cmp x y = .eq) : cmp x = cmp y :=
   funext fun _ => cmp_congr_left xy
 
-theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z := by
+theorem cmp_congr_right (yz : cmp y z = .eq) : cmp x y = cmp x z := by
   rw [← Ordering.swap_inj, symm, symm, cmp_congr_left yz]
 
 end TransCmp
@@ -278,11 +278,8 @@ instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) w
 instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) where
   le_trans := TransCmp.le_trans (α := β)
 
--- FIXME: remove after lean4#3882 is merged
 theorem _root_.lexOrd_def [Ord α] [Ord β] :
-    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := by
-  funext a b
-  simp [lexOrd, compareLex, compareOn]
+    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
 section «non-canonical instances»
 -- Note: the following instances seem to cause lean to fail, see:

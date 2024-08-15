@@ -93,7 +93,7 @@ end Acc
 namespace WellFounded
 
 /-- Attaches to `x` the proof that `x` is accessible in the given well-founded relation.
-This can be used in recursive function definitions to explicitly use a differerent relation
+This can be used in recursive function definitions to explicitly use a different relation
 than the one inferred by default:
 
 ```
