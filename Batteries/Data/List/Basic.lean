@@ -973,6 +973,31 @@ allSome [some 1, none  ] = none
 -/
 @[inline] def allSome (l : List (Option α)) : Option (List α) := l.mapM id
 
+private theorem allSome_length'
+    (l : List (Option α)) (res k : List α) (eq : List.mapM.loop id l k = some res)
+    : l.length + k.length = res.length := by
+  unfold mapM.loop at eq
+  match l with
+  | [] =>
+    simp only [reverse_nil, pure_def, some.injEq] at eq
+    simp only [length_nil, Nat.zero_add, length_reverse, ←eq]
+  | .none :: tail =>
+    simp_all only [id_eq, bind_eq_bind, none_bind]
+  | .some head :: tail =>
+    simp_all only [id_eq, bind_eq_bind, some_bind, length_cons]
+    rw [Nat.add_assoc, Nat.add_comm 1 k.length]
+    have := allSome_length' tail res (head :: k) eq
+    rw [length_cons] at this
+    exact this
+
+/--
+`allSome` preserves list length.
+-/
+theorem allSome_length
+    (l : List (Option α)) (res : List α) (eq : allSome l = some res)
+    : l.length = res.length :=
+  allSome_length' l res [] eq
+
 /--
 `fillNones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
 are not enough `ys` to replace all the `none`s, the remaining `none`s are
