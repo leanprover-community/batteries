@@ -82,6 +82,7 @@ import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
+import Batteries.Tactic.Lemma
 import Batteries.Tactic.Lint
 import Batteries.Tactic.Lint.Basic
 import Batteries.Tactic.Lint.Frontend
