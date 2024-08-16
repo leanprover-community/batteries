@@ -29,15 +29,13 @@ def trailingWhitespaceLinter : Linter where run := withSetOptionIn fun stx => do
     return
   if (← get).messages.hasErrors then
     return
-  let srg := stx.getRange?.getD default
+  unless Parser.isTerminalCommand stx do return
   let fm ← getFileMap
   for lb in fm.positions do
-    if srg.contains lb then
     let last : Substring := { str := fm.source, startPos := ⟨lb.1 - 2⟩, stopPos := ⟨lb.1 - 1⟩ }
     if last.toString == " " then
       Linter.logLint linter.trailingWhitespace (.ofRange ⟨⟨lb.1 - 2⟩, ⟨lb.1 - 1⟩⟩)
         m!"Lines should not end with a space."
-  unless Parser.isTerminalCommand stx do return
   let (backBack, back) := (fm.positions.pop.back, fm.positions.back)
   let rg : String.Range := ⟨back - ⟨1⟩, back⟩
   if backBack != back then
