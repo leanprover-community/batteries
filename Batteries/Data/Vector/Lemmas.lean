@@ -45,7 +45,3 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
   · intro i hi _
     rw [a.size_eq] at hi
     exact h i hi
-
-end Vector
-
-end Batteries

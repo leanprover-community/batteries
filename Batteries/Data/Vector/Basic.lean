@@ -317,6 +317,3 @@ def isPrefixOf [BEq α] (as : Vector α m ) (bs : Vector α n) : Bool :=
 /-- `allDiff as i` returns `true` when all elements of `v` are distinct from each other` -/
 def allDiff [BEq α] (as : Vector α n) : Bool :=
   Array.allDiff as.toArray
-
-end Vector
-end Batteries
