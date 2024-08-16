@@ -25,7 +25,7 @@ structure Vector (α : Type u) (n : Nat) where
   toArray : Array α
   /-- `size_eq` fixes the size of `toArray` statically -/
   size_eq : toArray.size = n
-deriving Repr, BEq, DecidableEq
+deriving Repr, DecidableEq
 
 namespace Vector
 
@@ -62,8 +62,7 @@ def mkEmpty (capacity : Nat) : Vector α 0 := ⟨Array.mkEmpty capacity, rfl⟩
 def mkVector (n : Nat) (v : α) : Vector α n := ⟨mkArray n v, Array.size_mkArray ..⟩
 
 /-- Returns a vector of size `1` with a single element `v` -/
-def singleton (v : α) : Vector α 1 :=
-  mkVector 1 v
+def singleton (v : α) : Vector α 1 := mkVector 1 v
 
 /--
 The Inhabited instance for `Vector α n` with `[Inhabited α]` produces a vector of size `n`
@@ -101,7 +100,7 @@ abbrev back! [Inhabited α] (v : Vector α n) : α := v[n - 1]!
 `v.back?` gets the last element `x` of the array as `some x`
 if it exists. Else the vector is empty and it returns `none`
 -/
-abbrev back? (v : Vector α n) : Option α := v[n-1]?
+abbrev back? (v : Vector α n) : Option α := v[n - 1]?
 
 /-- `Vector.head` produces the head of a vector -/
 abbrev head (v : Vector α (n+1)) := v[0]
@@ -128,7 +127,7 @@ By default a proof by `get_elem_tactic` is provided.
 
 This will perform the update destructively provided that a has a reference count of 1 when called.
 -/
-def setN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) (x : α) : Vector α n :=
+def setN (v : Vector α n) (i : Nat) (x : α) (h : i < n := by get_elem_tactic) : Vector α n :=
   v.set ⟨i, h⟩ x
 
 /--
@@ -171,7 +170,7 @@ def map (f : α → β) (v : Vector α n) : Vector β n :=
   ⟨v.toArray.map f, by simp [v.size_eq]⟩
 
 /-- Maps two vectors under a curried function of two variables. -/
-def zipWith : Vector α n → Vector β n → (α → β → φ) → Vector φ n
+def zipWith : (a : Vector α n) → (b : Vector β n) → (f : α → β → φ) → Vector φ n
   | ⟨a, h₁⟩, ⟨b, h₂⟩, f => ⟨Array.zipWith a b f, by simp [Array.size_zipWith, h₁, h₂]⟩
 
 /-- Returns a vector of length `n` from a function on `Fin n`. -/
@@ -208,7 +207,7 @@ def swap! (v : Vector α n) (i j : Nat) : Vector α n :=
 Swaps the entry with index `i : Fin n` in the vector for a new entry.
 The old entry is returned with the modified vector.
 -/
-def swapAt (v : Vector α n) (i : Fin n) (x : α) : α × Vector α n:=
+def swapAt (v : Vector α n) (i : Fin n) (x : α) : α × Vector α n :=
   let res := v.toArray.swapAt (Fin.cast v.size_eq.symm i) x
   (res.1, ⟨res.2, by simp [Array.swapAt_def, res, v.size_eq]⟩)
 
@@ -216,10 +215,10 @@ def swapAt (v : Vector α n) (i : Fin n) (x : α) : α × Vector α n:=
 Swaps the entry with index `i : Nat` in the vector for a new entry `x`.
 The old entry is returned alongwith the modified vector.
 
-Automatically generates proof of `i < n` with `get_elem_tactic` where feasible.
+Automatically generates a proof of `i < n` with `get_elem_tactic` where feasible.
 -/
-def swapAtN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) (x : α) : α × Vector α n :=
-  swapAt v ⟨i,h⟩ x
+def swapAtN (v : Vector α n) (i : Nat) (x : α) (h : i < n := by get_elem_tactic) : α × Vector α n :=
+  swapAt v ⟨i, h⟩ x
 
 /--
 `swapAt! v i x` swaps out the entry at index `i : Nat` in the vector for `x`, if the index is valid.
@@ -232,56 +231,59 @@ Otherwise it panics The old entry is returned with the modified vector.
     have : Inhabited α := ⟨x⟩
     panic! s!"Index {i} is out of bounds"
 
-/-- `range n` Returns a vector `#v[1,2,3,...,n-1]` -/
+/-- `range n` returns the vector `#v[0,1,2,...,n-1]`. -/
 def range (n : Nat) : Vector Nat n := ⟨Array.range n, Array.size_range ..⟩
 
-/-- `shrink v m` shrinks the vector to the first `m` elements if `m < n`. -/
+/--
+`shrink v m` shrinks the vector to the first `m` elements if `m < n`.
+Returns `v` unchanged if `m ≥ n`.
+-/
 def shrink (v : Vector α n) (m : Nat) : Vector α (min n m) :=
   ⟨v.toArray.shrink m, by simp [Array.size_shrink, v.size_eq]⟩
 
-/-- Drops `i` elements from a vector of length `n`; we can have `i > n`. -/
+/--
+Drops the first (up to) `i` elements from a vector of length `n`.
+If `m ≥ n`, the return value is empty.
+-/
 def drop (i : Nat) (v : Vector α n) : Vector α (n - i) :=
   have : min n n - i = n - i := by rw [Nat.min_self]
   Vector.cast this (extract v i n)
 
-/-- Takes `i` elements from a vector of length `n`; we can have `i > n`. -/
+/--
+Takes the first (up to) `i` elements from a vector of length `n`.
+
+-/
 alias take := shrink
 
 /--
 `isEqv` takes a given boolean property `p`. It returns `true`
 if and only if `p a[i] b[i]` holds true for all valid indices `i`.
 -/
-def isEqv (a b : Vector α n) (p : α → α → Bool) : Bool :=
-  Array.isEqv a.toArray b.toArray p
+@[inline] def isEqv (a b : Vector α n) (p : α → α → Bool) : Bool :=
+  Array.isEqvAux a.toArray b.toArray (a.size_eq.trans b.size_eq.symm) p 0
 
 instance [BEq α] : BEq (Vector α n) :=
   ⟨fun a b => isEqv a b BEq.beq⟩
 
-/-- `reverse v` reverses the vector `v` -/
+proof_wanted lawfulBEq [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n)
+
+/-- `reverse v` reverses the vector `v`. -/
 def reverse (v : Vector α n) : Vector α n :=
   ⟨v.toArray.reverse, by simp [v.size_eq]⟩
 
-/--
-`feraseIdx v i` removes the element at a given index from a vector using a Fin index.
-
-This function takes worst case O(n) time because it has to backshift all elements
-at positions greater than i.
--/
+/-- `O(|v| - i)`. `feraseIdx v i` removes the element at position `i` in vector `v`. -/
 def feraseIdx (v : Vector α n) (i : Fin n) : Vector α (n-1) :=
   ⟨v.toArray.feraseIdx (Fin.cast v.size_eq.symm i), by simp [Array.size_feraseIdx, v.size_eq]⟩
 
-/-- `Vector.tail` produces the tail of a vector -/
+/-- `Vector.tail` produces the tail of the vector `v`. -/
 @[inline] def tail (v : Vector α n) : Vector α (n-1) :=
   match n with
   | 0 => v
   | _ + 1 => Vector.feraseIdx v 0
 
 /--
-`eraseIdx! v i` removes the element at position `i` from a vector of length `n` if `i < n`.
-Panics otherwise.
-
-This function takes worst case O(n) time because it has to backshift all elements at positions
-greater than i.
+`O(|v| - i)`. `eraseIdx! v i` removes the element at position `i` from vector `v` of length `n`.
+Panics if `i` is not less than `n`.
 -/
 @[inline] def eraseIdx! (v : Vector α n) (i : Nat) : Vector α (n-1) :=
   if h : i < n then
@@ -311,7 +313,7 @@ def indexOf? [BEq α] (v : Vector α n) (x : α) : Option (Fin n) :=
   | none => none
 
 /-- `isPrefixOf as bs` returns true iff vector `as` is a prefix of vector`bs` -/
-def isPrefixOf [BEq α] (as : Vector α m ) (bs : Vector α n) : Bool :=
+def isPrefixOf [BEq α] (as : Vector α m) (bs : Vector α n) : Bool :=
   Array.isPrefixOf as.toArray bs.toArray
 
 /-- `allDiff as i` returns `true` when all elements of `v` are distinct from each other` -/
