@@ -68,6 +68,7 @@ import Batteries.Lean.System.IO
 import Batteries.Lean.TagAttribute
 import Batteries.Lean.Util.EnvSearch
 import Batteries.Linter
+import Batteries.Linter.TrailingWhitespace
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
 import Batteries.Logic

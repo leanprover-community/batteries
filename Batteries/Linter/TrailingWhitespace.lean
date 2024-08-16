@@ -10,7 +10,7 @@ does not end with a line break.
 
 open Lean Elab
 
-namespace Mathlib.Linter
+namespace Batteries.Linter
 
 /--
 The "trailingWhitespace" linter emits a warning whenever a line ends with a space or a file
@@ -23,8 +23,8 @@ register_option linter.trailingWhitespace : Bool := {
 
 namespace TrailingWhitespace
 
-@[inherit_doc Mathlib.Linter.linter.trailingWhitespace]
-def trailingWhitespaceLinter : Linter where run := withSetOptionIn fun stx ↦ do
+@[inherit_doc Batteries.Linter.linter.trailingWhitespace]
+def trailingWhitespaceLinter : Linter where run := withSetOptionIn fun stx => do
   unless Linter.getLinterValue linter.trailingWhitespace (← getOptions) do
     return
   if (← get).messages.hasErrors then
@@ -47,4 +47,4 @@ initialize addLinter trailingWhitespaceLinter
 
 end TrailingWhitespace
 
-end Mathlib.Linter
+end Batteries.Linter
