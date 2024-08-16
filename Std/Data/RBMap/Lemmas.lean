@@ -3,10 +3,9 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Std.Data.RBMap.Alter
-import Std.Data.Nat.Lemmas
-import Std.Data.List.Lemmas
-import Std.Tactic.Lint
+import Batteries.Data.RBMap.Alter
+import Batteries.Data.Nat.Lemmas
+import Batteries.Data.List.Lemmas
 
 /-!
 # Additional lemmas for Red-black trees
@@ -1007,7 +1006,7 @@ theorem findEntry?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
 
 theorem find?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
     t.find? x = some v ↔ ∃ y, (y, v) ∈ toList t ∧ cmp x y = .eq := by
-  simp [find?, findEntry?_some]; constructor
+  simp only [find?, findEntry?_some, Option.map_eq_some']; constructor
   · rintro ⟨_, h, rfl⟩; exact ⟨_, h⟩
   · rintro ⟨b, h⟩; exact ⟨_, h, rfl⟩
 
