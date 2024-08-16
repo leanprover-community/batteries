@@ -116,13 +116,13 @@ Split a list at an index.
 splitAt 2 [a, b, c] = ([a, b], [c])
 ```
 -/
-def splitAt (n : Nat) (l : List α) : List α × List α := go l n #[] where
-  /-- Auxiliary for `splitAt`: `splitAt.go l n xs acc = (acc.toList ++ take n xs, drop n xs)`
+def splitAt (n : Nat) (l : List α) : List α × List α := go l n [] where
+  /-- Auxiliary for `splitAt`: `splitAt.go l n xs acc = (acc.reverse ++ take n xs, drop n xs)`
   if `n < length xs`, else `(l, [])`. -/
-  go : List α → Nat → Array α → List α × List α
+  go : List α → Nat → List α → List α × List α
   | [], _, _ => (l, [])
-  | x :: xs, n+1, acc => go xs n (acc.push x)
-  | xs, _, acc => (acc.toList, xs)
+  | x :: xs, n+1, acc => go xs n (x :: acc)
+  | xs, _, acc => (acc.reverse, xs)
 
 /--
 Split a list at an index. Ensures the left list always has the specified length
@@ -132,13 +132,13 @@ splitAtD 2 [a, b, c] x = ([a, b], [c])
 splitAtD 4 [a, b, c] x = ([a, b, c, x], [])
 ```
 -/
-def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l #[] where
-  /-- Auxiliary for `splitAtD`: `splitAtD.go dflt n l acc = (acc.toList ++ left, right)`
+def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l [] where
+  /-- Auxiliary for `splitAtD`: `splitAtD.go dflt n l acc = (acc.reverse ++ left, right)`
   if `splitAtD n l dflt = (left, right)`. -/
-  go : Nat → List α → Array α → List α × List α
-  | n+1, x :: xs, acc => go n xs (acc.push x)
-  | 0, xs, acc => (acc.toList, xs)
-  | n, [], acc => (acc.toListAppend (replicate n dflt), [])
+  go : Nat → List α → List α → List α × List α
+  | n+1, x :: xs, acc => go n xs (x :: acc)
+  | 0, xs, acc => (acc, xs)
+  | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
 /--
 Split a list at every element satisfying a predicate. The separators are not in the result.
