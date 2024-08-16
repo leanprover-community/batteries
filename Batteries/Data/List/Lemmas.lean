@@ -637,3 +637,13 @@ theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l 
 
 theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
   mem_merge.2 <| .inr h
+
+/-! ### foldlM and foldrM -/
+
+theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
+    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
+  induction l generalizing g init <;> simp [*]
+
+theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
+    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
+  induction l generalizing g init <;> simp [*]
