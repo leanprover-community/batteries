@@ -137,7 +137,7 @@ def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l 
   if `splitAtD n l dflt = (left, right)`. -/
   go : Nat → List α → List α → List α × List α
   | n+1, x :: xs, acc => go n xs (x :: acc)
-  | 0, xs, acc => (acc, xs)
+  | 0, xs, acc => (acc.reverse, xs)
   | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
 /--
