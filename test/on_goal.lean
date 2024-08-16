@@ -1,5 +1,5 @@
-import Std.Tactic.GuardExpr
-import Std.Tactic.PermuteGoals
+import Batteries.Tactic.PermuteGoals
+import Batteries.Tactic.Unreachable
 
 example (p q r : Prop) : p → q → r → p ∧ q ∧ r := by
   intros

@@ -1,5 +1,4 @@
-import Std.Tactic.Basic
-import Std.Tactic.GuardMsgs
+import Batteries.Tactic.Basic
 
 /-! Tests for `absurd` tactic -/
 
@@ -44,5 +43,5 @@ h : p → False
 ⊢ p
 -/
 #guard_msgs in
-example (h : p → False) : 0 = 3 := by
+example {p : Prop} (h : p → False) : 0 = 3 := by
   absurd h

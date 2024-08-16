@@ -1,5 +1,4 @@
-import Std.Tactic.Instances
-import Std.Tactic.GuardMsgs
+import Batteries.Tactic.Instances
 
 set_option linter.missingDocs false
 

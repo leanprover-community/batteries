@@ -1,5 +1,4 @@
-import Std.Tactic.Alias
-import Std.Tactic.GuardMsgs
+import Batteries.Tactic.Alias
 
 set_option linter.unusedVariables false
 set_option linter.missingDocs false
@@ -14,12 +13,15 @@ theorem foo : 1 + 1 = 2 := rfl
 alias foo1 := foo
 @[deprecated] alias foo2 := foo
 @[deprecated foo2] alias _root_.B.foo3 := foo
+@[deprecated foo2 "it was never a good idea anyway" (since := "last thursday")] alias foo4 := foo
 
 example : 1 + 1 = 2 := foo1
 /-- warning: `A.foo2` has been deprecated, use `A.foo` instead -/
 #guard_msgs in example : 1 + 1 = 2 := foo2
 /-- warning: `B.foo3` has been deprecated, use `A.foo2` instead -/
 #guard_msgs in example : 1 + 1 = 2 := B.foo3
+/-- warning: it was never a good idea anyway -/
+#guard_msgs in example : 1 + 1 = 2 := foo4
 
 /-- doc string for bar -/
 def bar : Nat := 5
@@ -87,9 +89,9 @@ unsafe alias barbaz3 := id
 
 @[deprecated] alias ⟨mpId, mprId⟩ := Iff.rfl
 
-/-- info: A.mpId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
-/-- info: A.mprId {a : Prop} (a✝ : a) : a -/
+/-- info: A.mprId {a : Prop} : a → a -/
 #guard_msgs in #check mprId
 
 /--
@@ -104,6 +106,6 @@ warning: `A.mprId` has been deprecated, use `Iff.rfl` instead
 /-- info: **Alias** of `A.foo`. -/
 #guard_msgs in
 #eval show MetaM _ from do
-  match ← Std.Tactic.Alias.getAliasInfo `A.foo1 with
+  match ← Batteries.Tactic.Alias.getAliasInfo `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"

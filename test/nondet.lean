@@ -1,5 +1,4 @@
-import Std.Control.Nondet.Basic
-import Std.Tactic.GuardMsgs
+import Batteries.Control.Nondet.Basic
 
 set_option linter.missingDocs false
 
