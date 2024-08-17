@@ -132,7 +132,7 @@ where
         simp [h, h', ←aux l (i+1), Function.comp_def, ←Nat.add_assoc, Nat.add_right_comm]
     else
       have h' : l.size ≤ i := Nat.le_of_not_lt h
-      simp [h, List.drop_length_le h', List.indexOf?]
+      simp [h, List.drop_of_length_le h', List.indexOf?]
   termination_by l.size - i
 
 /-! ### erase -/
@@ -154,7 +154,7 @@ theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
   induction l, i using feraseIdx.induct with
   | @case1 a i lt a' i' ih =>
     rw [feraseIdx]
-    simp [lt, ih, a', eraseIdx_swap_data i lt]
+    simp [lt, ih, a', eraseIdx_data_swap i lt]
   | case2 a i lt =>
     have : i + 1 ≥ a.size := Nat.ge_of_not_lt lt
     have last : i + 1 = a.size := Nat.le_antisymm i.is_lt this
@@ -169,7 +169,7 @@ theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
     rw [←List.indexOf?_eq_none_iff, indexOf?_data, h, Option.map_none']
   | some i =>
     simp only [erase, h]
-    rw [feraseIdx_data, ←List.eraseIdx_indexOf_eq_erase]
+    rw [data_feraseIdx, ←List.eraseIdx_indexOf_eq_erase]
     congr
     rw [List.indexOf_eq_indexOf?, indexOf?_data]
     simp [h]
