@@ -133,7 +133,7 @@ where
 
 /-! ### erase -/
 
-theorem eraseIdx_swap_data {l : Array α} (i : Nat) (lt : i + 1 < size l) :
+theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
     (l.swap ⟨i+1, lt⟩ ⟨i, Nat.lt_of_succ_lt lt⟩).data.eraseIdx (i+1) = l.data.eraseIdx i := by
   let ⟨xs⟩ := l
   induction i generalizing xs <;> let x₀::x₁::xs := xs
