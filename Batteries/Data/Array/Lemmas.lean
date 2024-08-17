@@ -145,7 +145,7 @@ theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
       simp [swap_def, getElem_eq_data_getElem]
     simp [this, ih]
 
-theorem feraseIdx_data {l : Array α} {i : Fin l.size} :
+theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
     (l.feraseIdx i).data = l.data.eraseIdx i := by
   induction l, i using feraseIdx.induct with
   | @case1 a i lt a' i' ih =>
