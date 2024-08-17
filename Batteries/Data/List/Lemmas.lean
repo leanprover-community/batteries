@@ -229,7 +229,7 @@ theorem erase_of_forall_bne [BEq α] (a : α) (xs : List α) (h : ∀ (x : α), 
 
 /-! ### findIdx? -/
 
-theorem findIdx?_eq_none (xs : List α) (p : α → Bool) :
+theorem findIdx?_eq_none_iff {xs : List α} {p : α → Bool} :
     xs.findIdx? p = none ↔ ∀ x ∈ xs, ¬p x := by
   induction xs with
   | nil => simp
