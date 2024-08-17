@@ -189,6 +189,22 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
+/-! ### splitAt -/
+
+theorem splitAt_go (n : Nat) (l acc : List α) :
+    splitAt.go l n acc = (acc.reverse ++ l.take n, l.drop n) := by
+  induction l generalizing n acc with
+  | nil => simp [splitAt.go]
+  | cons x xs ih =>
+    cases n with
+    | zero => simp [splitAt.go]
+    | succ n =>
+      rw [splitAt.go, take_succ_cons, drop_succ_cons, ih n (x :: acc),
+        reverse_cons, append_assoc, singleton_append]
+
+theorem splitAt_eq (n : Nat) (l : List α) : splitAt n l = (l.take n, l.drop n) := by
+  rw [splitAt, splitAt_go, reverse_nil, nil_append]
+
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
@@ -562,9 +578,36 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
         specialize ih m
         simpa
 
+/-! ### insertP -/
+
+theorem insertP_loop (a : α) (l r : List α) :
+    insertP.loop p a l r = reverseAux r (insertP p a l) := by
+  induction l generalizing r with simp [insertP, insertP.loop, cond]
+  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> rfl
+
+@[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
+
+@[simp] theorem insertP_cons_pos (p : α → Bool) (a b l) (h : p b) :
+    insertP p a (b :: l) = a :: b :: l := by
+  simp only [insertP, insertP.loop, cond, h]; rfl
+
+@[simp] theorem insertP_cons_neg (p : α → Bool) (a b l) (h : ¬ p b) :
+    insertP p a (b :: l) = b :: insertP p a l := by
+  simp only [insertP, insertP.loop, cond, h]; exact insertP_loop ..
+
+@[simp] theorem length_insertP (p : α → Bool) (a l) : (insertP p a l).length = l.length + 1 := by
+  induction l with simp [insertP, insertP.loop, cond]
+  | cons _ _ ih => split <;> simp [insertP_loop, ih]
+
+@[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
+  induction l with simp [insertP, insertP.loop, cond]
+  | cons _ _ ih => split <;> simp [insertP_loop, ih]
+
 theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
     merge.loop s [] r t = reverseAux t r := by
   rw [merge.loop]
+
+/-! ### merge -/
 
 theorem merge_loop_nil_right (s : α → α → Bool) (l t) :
     merge.loop s l [] t = reverseAux t l := by
@@ -637,3 +680,13 @@ theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l 
 
 theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
   mem_merge.2 <| .inr h
+
+/-! ### foldlM and foldrM -/
+
+theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
+    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
+  induction l generalizing g init <;> simp [*]
+
+theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
+    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
+  induction l generalizing g init <;> simp [*]
