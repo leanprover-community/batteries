@@ -117,8 +117,7 @@ splitAt 2 [a, b, c] = ([a, b], [c])
 ```
 -/
 def splitAt (n : Nat) (l : List α) : List α × List α := go l n [] where
-  /-- Auxiliary for `splitAt`: `splitAt.go l n xs acc = (acc.reverse ++ take n xs, drop n xs)`
-  if `n < length xs`, else `(l, [])`. -/
+  /-- Auxiliary for `splitAt`: `splitAt.go xs n acc = (acc.reverse ++ take n xs, drop n xs)`. -/
   go : List α → Nat → List α → List α × List α
   | x :: xs, n+1, acc => go xs n (x :: acc)
   | xs, _, acc => (acc.reverse, xs)
