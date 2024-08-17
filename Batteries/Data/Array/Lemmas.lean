@@ -156,7 +156,7 @@ theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
     have last : i + 1 = a.size := Nat.le_antisymm i.is_lt this
     simp [feraseIdx, lt, List.dropLast_eq_eraseIdx last]
 
-@[simp] theorem erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a := by
+@[simp] theorem data_erase [BEq α] (l : Array α) (a : α) : (l.erase a).data = l.data.erase a := by
   match h : indexOf? l a with
   | none =>
     simp only [erase, h]
