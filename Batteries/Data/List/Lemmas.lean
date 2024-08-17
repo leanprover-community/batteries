@@ -586,6 +586,7 @@ theorem insertP_loop (a : α) (l r : List α) :
 @[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
+
 theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
     merge.loop s [] r t = reverseAux t r := by
   rw [merge.loop]
