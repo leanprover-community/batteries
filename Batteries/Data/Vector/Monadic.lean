@@ -39,27 +39,49 @@ applying `f`.
 def modifyOp (v : Vector α n) (idx : Nat) (f : α → α) : Vector α n :=
   v.modify idx f
 
+/--
+`forIn v acc f` iterates over `v` applying `f` on each element and the
+accumulated result. The final value of `acc` after the completion of the loop
+is returned.
+-/
 protected def forIn {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
-  (vs : Vector α n) (acc : β) (f : α → β → m (ForInStep β)) : m β := do
-    Array.forIn vs.toArray acc f
+  (v : Vector α n) (acc : β) (f : α → β → m (ForInStep β)) : m β := do
+    Array.forIn v.toArray acc f
 
 instance : ForIn m (Vector α n) α where
   forIn := Vector.forIn
 
+/--
+`foldlM f init v start stop` is the monadic left fold function that folds `f`
+over `v` from left to right.
+-/
 def foldlM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (f : β → α → m β) (init : β)
   (v : Vector α n) (start := 0) (stop := n) : m β := do
     Array.foldlM f init v.toArray start stop
 
+/--
+`foldrM f init v start stop` is the monadic right fold function that folds `f`
+over `v` from right to left.
+-/
 def foldrM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (f : α → β → m β) (init : β) (v : Vector α n)
   (start := n) (stop := 0) : m β :=
     Array.foldrM f init v.toArray start stop
 
+/--
+`mapM f v` maps a monadic function `f : α → m β` over `v` and returns
+the resultant vector in the same monad `m`.
+-/
 def mapM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (f : α → m β) (v : Vector α n) : m (Vector β n) := do
     return ⟨←Array.mapM f v.toArray, by sorry⟩
 
+/--
+`mapIdx f v` maps a monadic function `f : Fin n → α → m β` that takes vector
+elements and their index, and maps them over `v`. It returns the resultant
+vector in the same monad `m`.
+-/
 @[inline]
 def mapIdxM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (v : Vector α n) (f : Fin n → α → m β) : m (Vector β n) := do
