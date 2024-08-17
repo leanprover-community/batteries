@@ -192,18 +192,21 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 /-! ### splitAt -/
 
 theorem splitAt_go (n : Nat) (l acc : List α) :
-    splitAt.go l n acc = (acc.reverse ++ l.take n, l.drop n) := by
-  induction l generalizing n acc with
+    splitAt.go l xs n acc =
+      if n < xs.length then (acc.reverse ++ xs.take n, xs.drop n) else (l, []) := by
+  induction xs generalizing n acc with
   | nil => simp [splitAt.go]
   | cons x xs ih =>
     cases n with
     | zero => simp [splitAt.go]
     | succ n =>
       rw [splitAt.go, take_succ_cons, drop_succ_cons, ih n (x :: acc),
-        reverse_cons, append_assoc, singleton_append]
+        reverse_cons, append_assoc, singleton_append, length_cons]
+      simp only [Nat.succ_lt_succ_iff]
 
 theorem splitAt_eq (n : Nat) (l : List α) : splitAt n l = (l.take n, l.drop n) := by
   rw [splitAt, splitAt_go, reverse_nil, nil_append]
+  split <;> simp_all [take_of_length_le, drop_of_length_le]
 
 /-! ### eraseP -/
 
