@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Util.FoldConsts
-import Batteries.Lean.Delaborator
 
 /-!
 # `#print dependents` command
