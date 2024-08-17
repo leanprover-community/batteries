@@ -189,6 +189,22 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
+/-! ### splitAt -/
+
+theorem splitAt_go (n : Nat) (l acc : List α) :
+    splitAt.go l n acc = (acc.reverse ++ l.take n, l.drop n) := by
+  induction l generalizing n acc with
+  | nil => simp [splitAt.go]
+  | cons x xs ih =>
+    cases n with
+    | zero => simp [splitAt.go]
+    | succ n =>
+      rw [splitAt.go, take_succ_cons, drop_succ_cons, ih n (x :: acc),
+        reverse_cons, append_assoc, singleton_append]
+
+theorem splitAt_eq (n : Nat) (l : List α) : splitAt n l = (l.take n, l.drop n) := by
+  rw [splitAt, splitAt_go, reverse_nil, nil_append]
+
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
