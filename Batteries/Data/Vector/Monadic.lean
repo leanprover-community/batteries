@@ -16,17 +16,28 @@ namespace Batteries
 
 namespace Vector
 
+/--
+`modifyM v i f` applies a monadic transformation `f` to `v[i]`
+-/
 def modifyM [Monad m] (v : Vector α n) (i : Nat)
   (f : α → m α) : m (Vector α n) := do
     return ⟨←Array.modifyM v.toArray i f, by sorry⟩
 
+/--
+`modify v i f` takes a vector `v`, index `i`, and a modification function `f`
+and sets `v[i]` to `f`.
+-/
 @[inline]
 def modify (v : Vector α n) (i : Nat) (f : α → α) : Vector α n :=
   Id.run <| modifyM v i f
 
+/--
+`modifyOp self idx f` is identical to `modify v i f` It modifies `v[i]` by
+applying `f`.
+-/
 @[inline]
-def modifyOp (self : Vector α n) (idx : Nat) (f : α → α) : Vector α n :=
-  self.modify idx f
+def modifyOp (v : Vector α n) (idx : Nat) (f : α → α) : Vector α n :=
+  v.modify idx f
 
 protected def forIn {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (vs : Vector α n) (acc : β) (f : α → β → m (ForInStep β)) : m β := do
@@ -93,8 +104,9 @@ def forM {α : Type u} {m : Type v → Type w} [Monad m] (f : α → m PUnit)
   as.foldlM (fun _ => f) ⟨⟩ start stop
 
 @[inline]
-def forRevM {α : Type u} {m : Type v → Type w} [Monad m] (f : α → m PUnit) (as : Array α) (start := as.size) (stop := 0) : m PUnit :=
-  as.foldrM (fun a _ => f a) ⟨⟩ start stop
+def forRevM {α : Type u} {m : Type v → Type w} [Monad m] (f : α → m PUnit)
+  (v : Vector α n) (start := n) (stop := 0) : m PUnit :=
+  v.toArray.foldrM (fun a _ => f a) ⟨⟩ start stop
 
 @[inline]
 def foldl {α : Type u} {β : Type v} (f : β → α → β) (init : β)
