@@ -6,6 +6,8 @@ Authors: Shreyas Srinivas
 
 import Batteries.Data.Vector.Basic
 import Init.Data.Array.Basic
+import Init.Data.Array.Lemmas
+import Batteries.Classes.SatisfiesM
 
 /-!
 ## Monadic Definitions for Vectors
@@ -21,7 +23,8 @@ namespace Vector
 -/
 def modifyM [Monad m] (v : Vector α n) (i : Nat)
   (f : α → m α) : m (Vector α n) := do
-    return ⟨←Array.modifyM v.toArray i f, by sorry⟩
+    return ⟨←Array.modifyM v.toArray i f,
+      by rw[←v.size_eq]; sorry⟩
 
 /--
 `modify v i f` takes a vector `v`, index `i`, and a modification function `f`
@@ -30,14 +33,6 @@ and sets `v[i]` to `f`.
 @[inline]
 def modify (v : Vector α n) (i : Nat) (f : α → α) : Vector α n :=
   Id.run <| modifyM v i f
-
-/--
-`modifyOp self idx f` is identical to `modify v i f` It modifies `v[i]` by
-applying `f`.
--/
-@[inline]
-def modifyOp (v : Vector α n) (idx : Nat) (f : α → α) : Vector α n :=
-  v.modify idx f
 
 /--
 `forIn v acc f` iterates over `v` applying `f` on each element and the
