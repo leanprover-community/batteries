@@ -70,7 +70,7 @@ the resultant vector in the same monad `m`.
 -/
 def mapM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (f : α → m β) (v : Vector α n) : m (Vector β n) := do
-    return ⟨←Array.mapM f v.toArray, by sorry⟩
+    return ⟨←Array.mapM f v.toArray, by rw[←v.size_eq]; sorry⟩
 
 /--
 `mapIdx f v` maps a monadic function `f : Fin n → α → m β` that takes vector
@@ -80,7 +80,8 @@ vector in the same monad `m`.
 @[inline]
 def mapIdxM {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
   (v : Vector α n) (f : Fin n → α → m β) : m (Vector β n) := do
-    return ⟨←Array.mapIdxM v.toArray (v.size_eq.symm ▸ f), by sorry⟩
+    return ⟨←Array.mapIdxM v.toArray (v.size_eq.symm ▸ f),
+      by rw[←v.size_eq]; sorry⟩
 
 @[inline]
 def findSomeM? {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m]
