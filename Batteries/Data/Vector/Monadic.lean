@@ -167,5 +167,108 @@ def findSomeRev? {α : Type u} {β : Type v} (v : Vector α n) (f : α → Optio
 def findRev? {α : Type} (v : Vector α n) (p : α → Bool) : Option α :=
   Id.run <| v.findRevM? p
 
+/--
+Check whether vectors `xs` and `ys` are equal as sets, i.e. they
+contain the same elements when disregarding order and duplicates.
+-/
+def equalSet [BEq α] (xs ys : Vector α n) : Bool :=
+  xs.toArray.all (ys.toArray.contains ·)
+    && ys.toArray.all (xs.toArray.contains ·)
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Returns the first minimal element among `d` and elements of the vector.
+If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered (in addition to `d`).
+-/
+@[inline]
+protected def minWith [ord : Ord α]
+    (xs : Vector α n) (d : α) (start := 0) (stop := n) : α :=
+  xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
+    if compare x min |>.isLT then x else min
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first minimal element of a vector. If the array is empty, `d` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def minD [ord : Ord α]
+    (xs : Vector α n) (d : α) (start := 0) (stop := xs.size) : α :=
+  if h: start < xs.size ∧ start < stop then
+    xs.minWith (xs.get ⟨start, h.left⟩) (start + 1) stop
+  else
+    d
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first minimal element of a vector. If the vector is empty, `none` is
+returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+considered.
+-/
+@[inline]
+protected def min? [ord : Ord α]
+    (xs : Vector α n) (start := 0) (stop := xs.size) : Option α :=
+  if h : start < xs.size ∧ start < stop then
+    some $ xs.minD (xs.get ⟨start, h.left⟩) start stop
+  else
+    none
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first minimal element of a vector. If the vector is empty, `default` is
+returned. If `start` and `stop` are given, only the subvector `xs[start:stop]`
+is considered.
+-/
+@[inline]
+protected def minI [ord : Ord α] [Inhabited α]
+    (xs : Vector α n) (start := 0) (stop := xs.size) : α :=
+  xs.minD default start stop
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Returns the first maximal element among `d` and elements of the vector.
+If `start` and `stop` are given, only the subvector `xs[start:stop]` is
+considered (in addition to `d`).
+-/
+@[inline]
+protected def maxWith [ord : Ord α]
+    (xs : Vector α n) (d : α) (start := 0) (stop := xs.size) : α :=
+  xs.minWith (ord := ord.opposite) d start stop
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first maximal element of a vector. If the vector is empty, `d` is
+returned. If `start` and `stop` are given, only the subvector `xs[start:stop]`
+is considered.
+-/
+@[inline]
+protected def maxD [ord : Ord α]
+    (xs : Vector α n) (d : α) (start := 0) (stop := xs.size) : α :=
+  xs.minD (ord := ord.opposite) d start stop
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first maximal element of a vector. If the vector is empty, `none` is
+returned. If `start` and `stop` are given, only the subvector `xs[start:stop]`
+is considered.
+-/
+@[inline]
+protected def max? [ord : Ord α]
+    (xs : Vector α n) (start := 0) (stop := xs.size) : Option α :=
+  xs.min? (ord := ord.opposite) start stop
+
+set_option linter.unusedVariables.funArgs false in
+/--
+Find the first maximal element of a vector. If the vector is empty, `default` is
+returned. If `start` and `stop` are given, only the subvector `xs[start:stop]`
+is considered.
+-/
+@[inline]
+protected def maxI [ord : Ord α] [Inhabited α]
+    (xs : Array α) (start := 0) (stop := xs.size) : α :=
+  xs.minI (ord := ord.opposite) start stop
+
 end Vector
 end Batteries
