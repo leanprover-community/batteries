@@ -1185,7 +1185,9 @@ theorem contains_iff_findEntry? {t : RBMap α β cmp} :
 
 theorem contains_iff_find? {t : RBMap α β cmp} :
     t.contains x ↔ ∃ v, t.find? x = some v := by
-  simp [contains_iff_findEntry?, find?, and_comm, exists_comm]
+  simp only [contains_iff_findEntry?, Prod.exists, find?, Option.map_eq_some', and_comm,
+    exists_eq_left]
+  rw [exists_comm]
 
 theorem size_eq (t : RBMap α β cmp) : t.size = t.toList.length := RBNode.size_eq
 
