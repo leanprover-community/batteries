@@ -589,10 +589,6 @@ theorem insertP_loop (a : α) (l r : List α) :
 
 /-! ### merge -/
 
-@[simp] theorem merge_nil (s : α → α → Bool) (l) : merge s l [] = l := by simp [merge]
-
-@[simp] theorem nil_merge (s : α → α → Bool) (r) : merge s [] r = r := by simp [merge]
-
 theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
     merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
   simp only [merge]
