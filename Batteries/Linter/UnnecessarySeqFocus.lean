@@ -7,8 +7,8 @@ import Lean.Elab.Command
 import Lean.Linter.Util
 import Batteries.Lean.AttributeExtra
 
-namespace Std.Linter
-open Lean Elab Command Linter
+namespace Batteries.Linter
+open Lean Elab Command Linter Std
 
 /--
 Enables the 'unnecessary `<;>`' linter. This will warn whenever the `<;>` tactic combinator
@@ -83,7 +83,7 @@ structure Entry where
   used : Bool
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (HashMap String.Range Entry) (ST ω)
+abbrev M (ω) := StateRefT (Std.HashMap String.Range Entry) (ST ω)
 
 /-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
 @[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=
@@ -120,7 +120,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
   | .node i c => do
     if let .ofTacticInfo i := i then
       if let some r := i.stx.getRange? true then
-      if let some entry := (← get).find? r then
+      if let some entry := (← get)[r]? then
       if i.stx.getKind == ``Parser.Tactic.«tactic_<;>_» then
         let isBad := do
           unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
@@ -147,7 +147,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
 
 end
 
-/-- The main entry point to the unused tactic linter. -/
+@[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
 def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
     return

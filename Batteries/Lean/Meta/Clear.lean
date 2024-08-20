@@ -5,6 +5,7 @@ Authors: Jannis Limperg
 -/
 
 import Batteries.Lean.Meta.Basic
+import Lean.Meta.Tactic.Clear
 
 open Lean Lean.Meta
 
