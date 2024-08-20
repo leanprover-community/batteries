@@ -111,24 +111,6 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
 /--
-Split a list at an index.
-```
-splitAt 2 [a, b, c] = ([a, b], [c])
-```
--/
-def splitAt (n : Nat) (l : List α) : List α × List α := go l n [] where
-  /--
-  Auxiliary for `splitAt`:
-  `splitAt.go l xs n acc = (acc.reverse ++ take n xs, drop n xs)` if `n < xs.length`,
-  and `(l, [])` otherwise.
-  -/
-  go : List α → Nat → List α → List α × List α
-  | [], _, _ => (l, []) -- This branch ensures the pointer equality of the result with the input
-                        -- without any runtime branching cost.
-  | x :: xs, n+1, acc => go xs n (x :: acc)
-  | xs, _, acc => (acc.reverse, xs)
-
-/--
 Split a list at an index. Ensures the left list always has the specified length
 by right padding with the provided default element.
 ```
@@ -1171,15 +1153,3 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
-
-/--
-`O(|l| + |r|)`. Merge two lists using `s` as a switch.
--/
-def merge (s : α → α → Bool) (l r : List α) : List α :=
-  loop l r []
-where
-  /-- Inner loop for `List.merge`. Tail recursive. -/
-  loop : List α → List α → List α → List α
-  | [], r, t => reverseAux t r
-  | l, [], t => reverseAux t l
-  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
