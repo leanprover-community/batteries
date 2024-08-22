@@ -562,45 +562,36 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
         specialize ih m
         simpa
 
-theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
-    merge.loop s [] r t = reverseAux t r := by
-  rw [merge.loop]
+/-! ### insertP -/
 
-theorem merge_loop_nil_right (s : α → α → Bool) (l t) :
-    merge.loop s l [] t = reverseAux t l := by
-  cases l <;> rw [merge.loop]; intro; contradiction
+theorem insertP_loop (a : α) (l r : List α) :
+    insertP.loop p a l r = reverseAux r (insertP p a l) := by
+  induction l generalizing r with simp [insertP, insertP.loop, cond]
+  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> simp
 
-theorem merge_loop (s : α → α → Bool) (l r t) :
-    merge.loop s l r t = reverseAux t (merge s l r) := by
-  rw [merge]; generalize hn : l.length + r.length = n
-  induction n using Nat.recAux generalizing l r t with
-  | zero =>
-    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_left hn)]
-    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_right hn)]
-    simp only [merge.loop, reverseAux]
-  | succ n ih =>
-    match l, r with
-    | [], r => simp only [merge_loop_nil_left]; rfl
-    | l, [] => simp only [merge_loop_nil_right]; rfl
-    | a::l, b::r =>
-      simp only [merge.loop, cond]
-      split
-      · have hn : l.length + (b :: r).length = n := by
-          apply Nat.add_right_cancel (m:=1)
-          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
-        rw [ih _ _ (a::t) hn, ih _ _ [] hn, ih _ _ [a] hn]; rfl
-      · have hn : (a::l).length + r.length = n := by
-          apply Nat.add_right_cancel (m:=1)
-          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
-        rw [ih _ _ (b::t) hn, ih _ _ [] hn, ih _ _ [b] hn]; rfl
+@[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
 
-@[simp] theorem merge_nil (s : α → α → Bool) (l) : merge s l [] = l := merge_loop_nil_right ..
+@[simp] theorem insertP_cons_pos (p : α → Bool) (a b l) (h : p b) :
+    insertP p a (b :: l) = a :: b :: l := by
+  simp only [insertP, insertP.loop, cond, h]; rfl
 
-@[simp] theorem nil_merge (s : α → α → Bool) (r) : merge s [] r = r := merge_loop_nil_left ..
+@[simp] theorem insertP_cons_neg (p : α → Bool) (a b l) (h : ¬ p b) :
+    insertP p a (b :: l) = b :: insertP p a l := by
+  simp only [insertP, insertP.loop, cond, h]; exact insertP_loop ..
+
+@[simp] theorem length_insertP (p : α → Bool) (a l) : (insertP p a l).length = l.length + 1 := by
+  induction l with simp [insertP, insertP.loop, cond]
+  | cons _ _ ih => split <;> simp [insertP_loop, ih]
+
+@[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
+  induction l with simp [insertP, insertP.loop, cond]
+  | cons _ _ ih => split <;> simp [insertP_loop, ih]
+
+/-! ### merge -/
 
 theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-  merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
-  simp only [merge, merge.loop, cond]; split <;> (next hs => rw [hs, merge_loop]; rfl)
+    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
+  simp only [merge]
 
 @[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
     merge s (a::l) (b::r) = a :: merge s l (b::r) := by
@@ -621,19 +612,18 @@ theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
     · simp_arith [length_merge s l (b::r)]
     · simp_arith [length_merge s (a::l) r]
 
-@[simp]
-theorem mem_merge {s : α → α → Bool} : x ∈ merge s l r ↔ x ∈ l ∨ x ∈ r := by
-  match l, r with
-  | l, [] => simp
-  | [], l => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp [mem_merge (l := l) (r := b::r), or_assoc]
-    · simp [mem_merge (l := a::l) (r := r), or_assoc, or_left_comm]
-
 theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
   mem_merge.2 <| .inl h
 
 theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
   mem_merge.2 <| .inr h
+
+/-! ### foldlM and foldrM -/
+
+theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
+    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
+  induction l generalizing g init <;> simp [*]
+
+theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
+    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
+  induction l generalizing g init <;> simp [*]

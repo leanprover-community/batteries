@@ -111,20 +111,6 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
 /--
-Split a list at an index.
-```
-splitAt 2 [a, b, c] = ([a, b], [c])
-```
--/
-def splitAt (n : Nat) (l : List α) : List α × List α := go l n #[] where
-  /-- Auxiliary for `splitAt`: `splitAt.go l n xs acc = (acc.toList ++ take n xs, drop n xs)`
-  if `n < length xs`, else `(l, [])`. -/
-  go : List α → Nat → Array α → List α × List α
-  | [], _, _ => (l, [])
-  | x :: xs, n+1, acc => go xs n (acc.push x)
-  | xs, _, acc => (acc.toList, xs)
-
-/--
 Split a list at an index. Ensures the left list always has the specified length
 by right padding with the provided default element.
 ```
@@ -132,13 +118,13 @@ splitAtD 2 [a, b, c] x = ([a, b], [c])
 splitAtD 4 [a, b, c] x = ([a, b, c, x], [])
 ```
 -/
-def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l #[] where
-  /-- Auxiliary for `splitAtD`: `splitAtD.go dflt n l acc = (acc.toList ++ left, right)`
+def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l [] where
+  /-- Auxiliary for `splitAtD`: `splitAtD.go dflt n l acc = (acc.reverse ++ left, right)`
   if `splitAtD n l dflt = (left, right)`. -/
-  go : Nat → List α → Array α → List α × List α
-  | n+1, x :: xs, acc => go n xs (acc.push x)
-  | 0, xs, acc => (acc.toList, xs)
-  | n, [], acc => (acc.toListAppend (replicate n dflt), [])
+  go : Nat → List α → List α → List α × List α
+  | n+1, x :: xs, acc => go n xs (x :: acc)
+  | 0, xs, acc => (acc.reverse, xs)
+  | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
 /--
 Split a list at every element satisfying a predicate. The separators are not in the result.
@@ -544,7 +530,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   | l :: L, h => by
     simp only [any, foldr, Bool.or_eq_true] at h
     match l, h with
-    | [], .inl rfl => simp; induction sections L <;> simp [*]
+    | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
 
 @[csimp] theorem sections_eq_sectionsTR : @sections = @sectionsTR := by
@@ -1142,30 +1128,6 @@ protected def traverse [Applicative F] (f : α → F β) : List α → F (List �
   | x :: xs => List.cons <$> f x <*> List.traverse f xs
 
 /--
-`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
-of each other. This is defined by induction using pairwise swaps.
--/
-inductive Perm : List α → List α → Prop
-  /-- `[] ~ []` -/
-  | nil : Perm [] []
-  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
-  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
-  /-- `x::y::l ~ y::x::l` -/
-  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
-  /-- `Perm` is transitive. -/
-  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
-
-@[inherit_doc] scoped infixl:50 " ~ " => Perm
-
-/--
-`O(|l₁| * |l₂|)`. Computes whether `l₁` is a permutation of `l₂`. See `isPerm_iff` for a
-characterization in terms of `List.Perm`.
--/
-def isPerm [BEq α] : List α → List α → Bool
-  | [], l₂ => l₂.isEmpty
-  | a :: l₁, l₂ => l₂.contains a && l₁.isPerm (l₂.erase a)
-
-/--
 `Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
 a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
 multiplicities of elements, and is used for the `≤` relation on multisets.
@@ -1181,13 +1143,13 @@ See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
 /--
-`O(|l| + |r|)`. Merge two lists using `s` as a switch.
+`O(|l|)`. Inserts `a` in `l` right before the first element such that `p` is true, or at the end of
+the list if `p` always false on `l`.
 -/
-def merge (s : α → α → Bool) (l r : List α) : List α :=
-  loop l r []
+def insertP (p : α → Bool) (a : α) (l : List α) : List α :=
+  loop l []
 where
-  /-- Inner loop for `List.merge`. Tail recursive. -/
-  loop : List α → List α → List α → List α
-  | [], r, t => reverseAux t r
-  | l, [], t => reverseAux t l
-  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
+  /-- Inner loop for `insertP`. Tail recursive. -/
+  loop : List α → List α → List α
+  | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
+  | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
