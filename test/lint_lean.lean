@@ -20,9 +20,7 @@ but it is useful to run locally to see what the linters would catch.
 
 -- #lint only explicitVarsOfIff in all -- Found 109 errors
 
--- Many fixed in https://github.com/leanprover/lean4/pull/4620
--- and should be checked again.
--- #lint only simpNF in all -- Found 34 errors
+-- #lint only simpNF in all -- Found 30 errors
 
 /-! Lints that fail, but that we're not intending to do anything about. -/
 
