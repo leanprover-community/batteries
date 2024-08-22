@@ -52,7 +52,7 @@ unsafe def main (args : List String) : IO Unit := do
     readJsonFile NoLints nolintsFile
   else
     pure #[]
-  withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
+  withImportModules #[{module},  { module := `Batteries.Tactic.Lint }] {} (trustLevel := 1024) fun env =>
     let ctx := { fileName := "", fileMap := default }
     let state := { env }
     Prod.fst <$> (CoreM.toIO · ctx state) do
