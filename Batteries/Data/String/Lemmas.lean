@@ -57,9 +57,9 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
   induction cs₁ <;> simp [*, Nat.add_right_comm]
 
-@[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
+theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp_all [← Nat.add_assoc, Nat.add_right_comm]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
@@ -174,7 +174,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | c::cs, cs' =>
     simp only [utf8GetAux?, List.append_eq]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -189,7 +189,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | c::cs, cs' =>
     simp only [utf8SetAux, List.append_eq, List.cons_append]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 

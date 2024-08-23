@@ -11,7 +11,7 @@ import Batteries.Util.ProofWanted
 
 namespace Array
 
-theorem forIn_eq_data_forIn [Monad m]
+theorem forIn_eq_forIn_data [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.data b f := by
   let rec loop : ∀ {i h b j}, j + i = as.size →
@@ -27,10 +27,11 @@ theorem forIn_eq_data_forIn [Monad m]
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   conv => lhs; simp only [forIn, Array.forIn]
   rw [loop (Nat.zero_add _)]; rfl
+@[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
 
 /-! ### zipWith / zip -/
 
-theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Array β) :
+theorem data_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
     (as.zipWith bs f).data = as.data.zipWith f bs.data := by
   let rec loop : ∀ (i : Nat) cs, i ≤ as.size → i ≤ bs.size →
       (zipWithAux f as bs i cs).data = cs.data ++ (as.data.drop i).zipWith f (bs.data.drop i) := by
@@ -70,14 +71,16 @@ theorem zipWith_eq_zipWith_data (f : α → β → γ) (as : Array α) (bs : Arr
         List.zipWith f (List.drop i as.data) (List.drop i bs.data)
       simp only [data_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
+@[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
-  rw [size_eq_length_data, zipWith_eq_zipWith_data, List.length_zipWith]
+  rw [size_eq_length_data, data_zipWith, List.length_zipWith]
 
-theorem zip_eq_zip_data (as : Array α) (bs : Array β) :
+theorem data_zip (as : Array α) (bs : Array β) :
     (as.zip bs).data = as.data.zip bs.data :=
-  zipWith_eq_zipWith_data Prod.mk as bs
+  data_zipWith Prod.mk as bs
+@[deprecated (since := "2024-08-13")] alias zip_eq_zip_data := data_zip
 
 theorem size_zip (as : Array α) (bs : Array β) :
     (as.zip bs).size = min as.size bs.size :=
@@ -92,7 +95,7 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
 
 /-! ### join -/
 
-@[simp] theorem join_data {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
+@[simp] theorem data_join {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
   dsimp [join]
   simp only [foldl_eq_foldl_data]
   generalize l.data = l
@@ -101,9 +104,10 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
   induction l with
   | nil => simp
   | cons h => induction h.data <;> simp [*]
+@[deprecated (since := "2024-08-13")] alias join_data := data_join
 
 theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
-  simp only [mem_def, join_data, List.mem_join, List.mem_map]
+  simp only [mem_def, data_join, List.mem_join, List.mem_map]
   intro l
   constructor
   · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
@@ -113,7 +117,7 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 
 /-! ### erase -/
 
-@[simp] proof_wanted erase_data [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+@[simp] proof_wanted data_erase [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
 
 /-! ### shrink -/
 
