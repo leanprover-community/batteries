@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Server.CodeActions
 import Batteries.CodeAction.Basic
-import Batteries.Lean.Position
 
 /-!
 # Code action for @[deprecated] replacements

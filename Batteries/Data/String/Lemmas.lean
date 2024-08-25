@@ -8,7 +8,6 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
-import Batteries.Tactic.SqueezeScope
 
 namespace String
 
@@ -175,7 +174,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | c::cs, cs' =>
     simp only [utf8GetAux?, List.append_eq]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -190,7 +189,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | c::cs, cs' =>
     simp only [utf8SetAux, List.append_eq, List.cons_append]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
