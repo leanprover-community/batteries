@@ -201,7 +201,7 @@ theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l))
       cases l; contradiction; apply Nat.succ_lt_succ; apply Nat.lt_of_lt_of_le h; simp) :
     l.tail[n] = l[n + 1] := by
   cases l; contradiction; simp
-  
+
 /-! ### splitAt -/
 
 theorem splitAt_go (n : Nat) (l acc : List α) :
