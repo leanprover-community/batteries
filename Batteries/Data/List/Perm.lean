@@ -144,7 +144,7 @@ theorem perm_ext_iff_of_nodup {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : 
 theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
     (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ := by
   refine ⟨fun h => ?_, fun h => by rw [h]⟩
-  induction s₂ generalizing l₁ with simp [Nodup] at d
+  induction s₂ generalizing l₁ with simp [Nodup, List.forall_mem_ne] at d
   | slnil => exact h.eq_nil
   | cons a s₂ IH =>
     match s₁ with
