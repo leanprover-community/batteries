@@ -160,7 +160,7 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
 
 @[deprecated getElem?_set_eq' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp
+  simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
@@ -567,7 +567,7 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
 theorem insertP_loop (a : α) (l r : List α) :
     insertP.loop p a l r = reverseAux r (insertP p a l) := by
   induction l generalizing r with simp [insertP, insertP.loop, cond]
-  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> rfl
+  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> simp
 
 @[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
 

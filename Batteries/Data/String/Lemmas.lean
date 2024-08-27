@@ -59,7 +59,7 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
 
 @[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp_all [← Nat.add_assoc, Nat.add_right_comm]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
