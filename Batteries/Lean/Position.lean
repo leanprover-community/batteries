@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Syntax
-import Lean.Meta.Tactic.TryThis
 import Lean.Data.Lsp.Utf16
 
 /-- Gets the LSP range of syntax `stx`. -/

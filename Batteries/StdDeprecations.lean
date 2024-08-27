@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
 import Batteries.Tactic.Alias
-import Batteries.Data.HashMap
 import Batteries.Data.DList
 import Batteries.Data.PairingHeap
-import Batteries.Data.RBMap
-import Batteries.Data.BinomialHeap
-import Batteries.Data.UnionFind
+import Batteries.Data.BinomialHeap.Basic
+import Batteries.Data.HashMap.Basic
+import Batteries.Data.RBMap.Basic
+import Batteries.Data.UnionFind.Basic
 
 /-!
 # We set up deprecations for identifiers formerly in the `Std` namespace.

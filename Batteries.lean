@@ -19,6 +19,7 @@ import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.Bool
 import Batteries.Data.ByteArray
+import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
 import Batteries.Data.DList
 import Batteries.Data.Fin
@@ -35,9 +36,9 @@ import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.String
 import Batteries.Data.Sum
-import Batteries.Data.Thunk
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
+import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
 import Batteries.Lean.Delaborator
 import Batteries.Lean.Except
@@ -80,6 +81,7 @@ import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
+import Batteries.Tactic.Lemma
 import Batteries.Tactic.Lint
 import Batteries.Tactic.Lint.Basic
 import Batteries.Tactic.Lint.Frontend
