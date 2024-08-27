@@ -586,7 +586,7 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
 theorem insertP_loop (a : α) (l r : List α) :
     insertP.loop p a l r = reverseAux r (insertP p a l) := by
   induction l generalizing r with simp [insertP, insertP.loop, cond]
-  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> rfl
+  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> simp
 
 @[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
 
