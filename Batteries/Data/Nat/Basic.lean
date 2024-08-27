@@ -21,6 +21,10 @@ protected def recAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
 protected def strongRec {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
   (t : Nat) : motive t := ind t fun m _ => Nat.strongRec ind m
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/lean-pr-testing-5147
 /--
   Strong recursor via a `Nat`-valued measure
 -/
