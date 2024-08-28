@@ -45,10 +45,10 @@ section get
   | inr _, _ => rfl
 
 @[simp] theorem getLeft?_eq_none_iff {x : α ⊕ β} : x.getLeft? = none ↔ x.isRight := by
-  cases x <;> simp only [getLeft?, isRight, eq_self_iff_true]
+  cases x <;> simp only [getLeft?, isRight, eq_self_iff_true, reduceCtorEq]
 
 @[simp] theorem getRight?_eq_none_iff {x : α ⊕ β} : x.getRight? = none ↔ x.isLeft := by
-  cases x <;> simp only [getRight?, isLeft, eq_self_iff_true]
+  cases x <;> simp only [getRight?, isLeft, eq_self_iff_true, reduceCtorEq]
 
 theorem eq_left_getLeft_of_isLeft : ∀ {x : α ⊕ β} (h : x.isLeft), x = inl (x.getLeft h)
   | inl _, _ => rfl
@@ -63,10 +63,10 @@ theorem eq_right_getRight_of_isRight : ∀ {x : α ⊕ β} (h : x.isRight), x = 
   cases x <;> simp at h ⊢
 
 @[simp] theorem getLeft?_eq_some_iff : x.getLeft? = some a ↔ x = inl a := by
-  cases x <;> simp only [getLeft?, Option.some.injEq, inl.injEq]
+  cases x <;> simp only [getLeft?, Option.some.injEq, inl.injEq, reduceCtorEq]
 
 @[simp] theorem getRight?_eq_some_iff : x.getRight? = some b ↔ x = inr b := by
-  cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq]
+  cases x <;> simp only [getRight?, Option.some.injEq, inr.injEq, reduceCtorEq]
 
 @[simp] theorem bnot_isLeft (x : α ⊕ β) : !x.isLeft = x.isRight := by cases x <;> rfl
 

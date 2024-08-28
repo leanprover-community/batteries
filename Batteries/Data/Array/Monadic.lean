@@ -102,7 +102,7 @@ theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
     · intro
       | true, h => simp only [true_iff]; exact h
       | false, h =>
-        simp only [false_iff]
+        simp only [false_iff, reduceCtorEq]
         exact h.2.imp fun ⟨j, h₁, h₂, hq⟩ => ⟨j, h₁, Nat.lt_min.2 ⟨h₂, j.2⟩, hq⟩
   | inr hstart =>
     rw [anyM_stop_le_start (h := hstart)]

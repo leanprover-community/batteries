@@ -47,7 +47,7 @@ theorem strongRec_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → m
 
 theorem strongRecOn_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
     (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind :=
-  Nat.strongRec_eq ..
+  WellFounded.fix_eq WellFoundedRelation.wf ind t
 
 @[simp] theorem recDiagAux_zero_left {motive : Nat → Nat → Sort _}
     (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
