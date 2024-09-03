@@ -25,9 +25,9 @@ attribute [simp] fold foldl foldr Any forM foldlM Ordered
 @[simp] theorem max?_reverse (t : RBNode α) : t.reverse.max? = t.min? := by
   rw [← min?_reverse, reverse_reverse]
 
-@[simp] theorem mem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [(·∈·), EMem]
+@[simp] theorem mem_nil {x} : ¬x ∈ (.nil : RBNode α) := by simp [Membership.mem, EMem]
 @[simp] theorem mem_node {y c a x b} :
-    y ∈ (.node c a x b : RBNode α) ↔ y = x ∨ y ∈ a ∨ y ∈ b := by simp [(·∈·), EMem]
+    y ∈ (.node c a x b : RBNode α) ↔ y = x ∨ y ∈ a ∨ y ∈ b := by simp [Membership.mem, EMem]
 
 theorem All_def {t : RBNode α} : t.All p ↔ ∀ x ∈ t, p x := by
   induction t <;> simp [or_imp, forall_and, *]
@@ -1185,7 +1185,9 @@ theorem contains_iff_findEntry? {t : RBMap α β cmp} :
 
 theorem contains_iff_find? {t : RBMap α β cmp} :
     t.contains x ↔ ∃ v, t.find? x = some v := by
-  simp [contains_iff_findEntry?, find?, and_comm, exists_comm]
+  simp only [contains_iff_findEntry?, Prod.exists, find?, Option.map_eq_some', and_comm,
+    exists_eq_left]
+  rw [exists_comm]
 
 theorem size_eq (t : RBMap α β cmp) : t.size = t.toList.length := RBNode.size_eq
 

@@ -36,7 +36,6 @@ import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.String
 import Batteries.Data.Sum
-import Batteries.Data.Thunk
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Data.Vector
