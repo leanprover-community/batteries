@@ -161,6 +161,7 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
 @[deprecated getElem?_set_eq' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
   simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
+  rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl

@@ -215,7 +215,7 @@ theorem erase_cons_subperm_cons_erase (a b : α) (l : List α) :
   if h : a = b then
     rw [h, erase_cons_head]; apply subperm_cons_erase
   else
-    have : ¬(a == b) = true := by simp only [beq_false_of_ne h, not_false_eq_true]
+    have : ¬(a == b) = true := by simp only [beq_false_of_ne h, not_false_eq_true, reduceCtorEq]
     rw [erase_cons_tail this]
 
 theorem subperm_cons_diff {a : α} {l₁ l₂ : List α} : (a :: l₁).diff l₂ <+~ a :: l₁.diff l₂ := by
