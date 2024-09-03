@@ -105,8 +105,13 @@ def stripSuffix (s : String) (suff : Substring) : String :=
 def count (s : String) (c : Char) : Nat :=
   s.foldl (fun n d => if d = c then n + 1 else n) 0
 
-/-- Convert a string of assumed-ASCII characters into a byte array.
-(If any characters are non-ASCII they will be reduced modulo 256.) -/
+/--
+Convert a string of assumed-ASCII characters into a byte array.
+(If any characters are non-ASCII they will be reduced modulo 256.)
+
+Note: if you just need the underlying `ByteArray` of a non-ASCII string,
+use `String.toUTF8`.
+-/
 def toAsciiByteArray (s : String) : ByteArray :=
   let rec
   /--
