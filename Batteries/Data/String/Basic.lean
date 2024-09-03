@@ -108,7 +108,12 @@ def count (s : String) (c : Char) : Nat :=
 /-- Convert a string of assumed-ASCII characters into a byte array.
 (If any characters are non-ASCII they will be reduced modulo 256.) -/
 def toAsciiByteArray (s : String) : ByteArray :=
-  let rec loop (p : Pos) (out : ByteArray) : ByteArray :=
+  let rec
+  /--
+  Internal implementation of `toAsciiByteArray`.
+  `loop p out = out ++ toAsciiByteArray ({ s with startPos := p } : Substring)`
+  -/
+  loop (p : Pos) (out : ByteArray) : ByteArray :=
     if h : s.atEnd p then out else
     let c := s.get p
     have : utf8ByteSize s - (next s p).byteIdx < utf8ByteSize s - p.byteIdx :=
