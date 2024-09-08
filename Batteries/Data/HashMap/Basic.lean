@@ -237,7 +237,7 @@ inductive WF [BEq α] [Hashable α] : Imp α β → Prop where
   /-- Replacing an element in a well formed hash map yields a well formed hash map. -/
   | modify : WF m → WF (modify m a f)
 
-theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := by unfold empty; apply empty'
+theorem WF.empty [BEq α] [Hashable α] : WF (empty n : Imp α β) := empty'
 
 end Imp
 
