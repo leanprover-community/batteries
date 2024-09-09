@@ -160,7 +160,8 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
 
 @[deprecated getElem?_set_eq' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp
+  simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
+  rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
@@ -201,25 +202,6 @@ theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l))
       cases l; contradiction; apply Nat.succ_lt_succ; apply Nat.lt_of_lt_of_le h; simp) :
     l.tail[n] = l[n + 1] := by
   cases l; contradiction; simp
-
-/-! ### splitAt -/
-
-theorem splitAt_go (n : Nat) (l acc : List α) :
-    splitAt.go l xs n acc =
-      if n < xs.length then (acc.reverse ++ xs.take n, xs.drop n) else (l, []) := by
-  induction xs generalizing n acc with
-  | nil => simp [splitAt.go]
-  | cons x xs ih =>
-    cases n with
-    | zero => simp [splitAt.go]
-    | succ n =>
-      rw [splitAt.go, take_succ_cons, drop_succ_cons, ih n (x :: acc),
-        reverse_cons, append_assoc, singleton_append, length_cons]
-      simp only [Nat.succ_lt_succ_iff]
-
-theorem splitAt_eq (n : Nat) (l : List α) : splitAt n l = (l.take n, l.drop n) := by
-  rw [splitAt, splitAt_go, reverse_nil, nil_append]
-  split <;> simp_all [take_of_length_le, drop_of_length_le]
 
 /-! ### eraseP -/
 
@@ -599,7 +581,7 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
 theorem insertP_loop (a : α) (l r : List α) :
     insertP.loop p a l r = reverseAux r (insertP p a l) := by
   induction l generalizing r with simp [insertP, insertP.loop, cond]
-  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> rfl
+  | cons b l ih => rw [ih (b :: r), ih [b]]; split <;> simp
 
 @[simp] theorem insertP_nil (p : α → Bool) (a) : insertP p a [] = [a] := rfl
 
@@ -619,47 +601,11 @@ theorem insertP_loop (a : α) (l r : List α) :
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
 
-theorem merge_loop_nil_left (s : α → α → Bool) (r t) :
-    merge.loop s [] r t = reverseAux t r := by
-  rw [merge.loop]
-
 /-! ### merge -/
 
-theorem merge_loop_nil_right (s : α → α → Bool) (l t) :
-    merge.loop s l [] t = reverseAux t l := by
-  cases l <;> rw [merge.loop]; intro; contradiction
-
-theorem merge_loop (s : α → α → Bool) (l r t) :
-    merge.loop s l r t = reverseAux t (merge s l r) := by
-  rw [merge]; generalize hn : l.length + r.length = n
-  induction n using Nat.recAux generalizing l r t with
-  | zero =>
-    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_left hn)]
-    rw [eq_nil_of_length_eq_zero (Nat.eq_zero_of_add_eq_zero_right hn)]
-    simp only [merge.loop, reverseAux]
-  | succ n ih =>
-    match l, r with
-    | [], r => simp only [merge_loop_nil_left]; rfl
-    | l, [] => simp only [merge_loop_nil_right]; rfl
-    | a::l, b::r =>
-      simp only [merge.loop, cond]
-      split
-      · have hn : l.length + (b :: r).length = n := by
-          apply Nat.add_right_cancel (m:=1)
-          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
-        rw [ih _ _ (a::t) hn, ih _ _ [] hn, ih _ _ [a] hn]; rfl
-      · have hn : (a::l).length + r.length = n := by
-          apply Nat.add_right_cancel (m:=1)
-          rw [←hn]; simp only [length_cons, Nat.add_succ, Nat.succ_add]
-        rw [ih _ _ (b::t) hn, ih _ _ [] hn, ih _ _ [b] hn]; rfl
-
-@[simp] theorem merge_nil (s : α → α → Bool) (l) : merge s l [] = l := merge_loop_nil_right ..
-
-@[simp] theorem nil_merge (s : α → α → Bool) (r) : merge s [] r = r := merge_loop_nil_left ..
-
 theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-  merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
-  simp only [merge, merge.loop, cond]; split <;> (next hs => rw [hs, merge_loop]; rfl)
+    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
+  simp only [merge]
 
 @[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
     merge s (a::l) (b::r) = a :: merge s l (b::r) := by
@@ -679,17 +625,6 @@ theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
     split
     · simp_arith [length_merge s l (b::r)]
     · simp_arith [length_merge s (a::l) r]
-
-@[simp]
-theorem mem_merge {s : α → α → Bool} : x ∈ merge s l r ↔ x ∈ l ∨ x ∈ r := by
-  match l, r with
-  | l, [] => simp
-  | [], l => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp [mem_merge (l := l) (r := b::r), or_assoc]
-    · simp [mem_merge (l := a::l) (r := r), or_assoc, or_left_comm]
 
 theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
   mem_merge.2 <| .inl h

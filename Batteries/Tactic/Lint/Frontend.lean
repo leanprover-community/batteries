@@ -126,7 +126,7 @@ def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
   for (n, _) in results.toArray do
     if let some range ← findDeclarationRanges? n then
       key := key.insert n <| range.range.pos.line
-  pure $ results.toArray.qsort fun (a, _) (b, _) => key.findD a 0 < key.findD b 0
+  pure $ results.toArray.qsort fun (a, _) (b, _) => key.getD a 0 < key.getD b 0
 
 /-- Formats a linter warning as `#check` command with comment. -/
 def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Bool := false)
@@ -158,7 +158,7 @@ def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Boo
       let mod ← findModuleOf? declName
       let mod := mod.getD (← getEnv).mainModule
       grouped.insert mod <$>
-        match grouped.find? mod with
+        match grouped[mod]? with
         | some (fp, msgs) => pure (fp, msgs.insert declName msg)
         | none => do
           let fp ← if useErrorFormat then
@@ -217,7 +217,7 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
   let mut decls ← getDeclsInCurrModule
   let modules := env.header.moduleNames.map (pkg.isPrefixOf ·)
   return env.constants.map₁.fold (init := decls) fun decls declName _ =>
-    if modules[env.const2ModIdx[declName].get! (α := Nat)]! then
+    if modules[env.const2ModIdx[declName]?.get! (α := Nat)]! then
       decls.push declName
     else decls
 
