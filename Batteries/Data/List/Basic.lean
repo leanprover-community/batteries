@@ -707,23 +707,6 @@ Defined as `pwFilter (≠)`.
 @[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
-`ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
-Use `List.getLastD` instead.
--/
-@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
-  | a, [] => a
-  | _, b :: l => ilast' b l
-
-/--
-`last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
-Use `List.getLast?` instead
--/
-@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
-  | [] => none
-  | [a] => some a
-  | _ :: l => last' l
-
-/--
 `rotate l n` rotates the elements of `l` to the left by `n`
 ```
 rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]

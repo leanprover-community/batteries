@@ -16,8 +16,6 @@ import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
-import Batteries.Data.BitVec
-import Batteries.Data.Bool
 import Batteries.Data.ByteArray
 import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
@@ -30,7 +28,6 @@ import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
 import Batteries.Data.Nat
-import Batteries.Data.Option
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
