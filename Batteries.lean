@@ -23,6 +23,7 @@ import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
 import Batteries.Data.DList
 import Batteries.Data.Fin
+import Batteries.Data.FloatArray
 import Batteries.Data.HashMap
 import Batteries.Data.Int
 import Batteries.Data.LazyList
