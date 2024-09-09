@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
 import Lean.Server.InfoUtils
+import Lean.Server.CodeActions.Provider
 import Batteries.CodeAction.Attr
 
 /-!
