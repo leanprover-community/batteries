@@ -131,6 +131,11 @@ theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
   simp [shrink, size_shrink_loop]
   omega
 
+/-! ### set -/
+
+theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by
+  rw [set!_is_setD, size_setD]
+
 /-! ### map -/
 
 theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
