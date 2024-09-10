@@ -196,8 +196,8 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[simp] theorem extractP_eq_find?_eraseP
     (l : List α) : extractP p l = (find? p l, eraseP p l) := by
-  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    extractP.go p l xs acc = (xs.find? p, acc.data ++ xs.eraseP p)
+  let rec go (acc) : ∀ xs, l = acc.toList ++ xs →
+    extractP.go p l xs acc = (xs.find? p, acc.toList ++ xs.eraseP p)
   | [] => fun h => by simp [extractP.go, find?, eraseP, h]
   | x::xs => by
     simp [extractP.go, find?, eraseP]; cases p x <;> simp

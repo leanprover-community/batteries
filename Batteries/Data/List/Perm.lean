@@ -235,8 +235,8 @@ theorem subperm_append_diff_self_of_count_le {l₁ l₂ : List α}
   | nil => simp
   | cons hd tl IH =>
     have : hd ∈ l₂ := by
-      rw [← count_pos_iff_mem]
-      exact Nat.lt_of_lt_of_le (count_pos_iff_mem.mpr (.head _)) (h hd (.head _))
+      rw [← count_pos_iff]
+      exact Nat.lt_of_lt_of_le (count_pos_iff.mpr (.head _)) (h hd (.head _))
     have := perm_cons_erase this
     refine Perm.trans ?_ this.symm
     rw [cons_append, diff_cons, perm_cons]
