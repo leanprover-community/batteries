@@ -149,8 +149,9 @@ def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
 
 @[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
   funext α P l; simp [splitOnPTR]
-  suffices ∀ xs acc r, splitOnPTR.go P xs acc r = r.toList ++ splitOnP.go P xs acc.toList.reverse from
-    (this l #[] #[]).symm
+  suffices ∀ xs acc r,
+    splitOnPTR.go P xs acc r = r.toList ++ splitOnP.go P xs acc.toList.reverse from
+      (this l #[] #[]).symm
   intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
   | cons x xs IH => cases P x <;> simp [*]
 

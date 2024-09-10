@@ -36,7 +36,8 @@ theorem forIn_eq_forIn_toList [Monad m]
 theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
     (as.zipWith bs f).toList = as.toList.zipWith f bs.toList := by
   let rec loop : ∀ (i : Nat) cs, i ≤ as.size → i ≤ bs.size →
-      (zipWithAux f as bs i cs).toList = cs.toList ++ (as.toList.drop i).zipWith f (bs.toList.drop i) := by
+      (zipWithAux f as bs i cs).toList =
+        cs.toList ++ (as.toList.drop i).zipWith f (bs.toList.drop i) := by
     intro i cs hia hib
     unfold zipWithAux
     by_cases h : i = as.size ∨ i = bs.size
@@ -67,7 +68,8 @@ theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
       let i_bs : Fin bs.toList.length := ⟨i, hbs⟩
       rw [h₁, List.append_assoc]
       congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_toList_getElem, getElem_eq_toList_getElem]
+      rw [← List.zipWith_append (h := by simp), getElem_eq_toList_getElem,
+        getElem_eq_toList_getElem]
       show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
         ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
         List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
@@ -122,7 +124,8 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 
 /-! ### erase -/
 
-@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} : (l.erase a).toList = l.toList.erase a
+@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
+    (l.erase a).toList = l.toList.erase a
 
 /-! ### shrink -/
 

@@ -60,8 +60,8 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     | .inl hl => H.1 _ hl
     | .inr rfl => h₁ (H.1 _ (Array.getElem_mem_toList ..))
   · revert hp
-    simp only [Array.getElem_eq_toList_getElem, toList_update, List.getElem_set, Array.toList_length,
-      update_size]
+    simp only [Array.getElem_eq_toList_getElem, toList_update, List.getElem_set,
+      Array.toList_length, update_size]
     split <;> intro hp
     · next eq => exact eq ▸ h₂ (H.2 _ _) _ hp
     · simp only [update_size, Array.toList_length] at hi
@@ -171,8 +171,8 @@ where
       · match List.mem_or_eq_of_mem_set hl with
         | .inl hl => exact hs₁ _ hl
         | .inr e => exact e ▸ .nil
-      · simp only [Array.toList_length, Array.size_set, Array.getElem_eq_toList_getElem, Array.toList_set,
-          List.getElem_set]
+      · simp only [Array.toList_length, Array.size_set, Array.getElem_eq_toList_getElem,
+          Array.toList_set, List.getElem_set]
         split
         · nofun
         · exact hs₂ _ (by simp_all)
