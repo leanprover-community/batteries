@@ -10,8 +10,6 @@ import Batteries.Tactic.Alias
 
 namespace List
 
-open Nat
-
 /-! ### mem -/
 
 @[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
@@ -158,18 +156,18 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
   rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
 
-@[deprecated getElem?_set_eq' (since := "2024-06-12")]
+@[deprecated getElem?_set_self' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
+  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
   rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
+    (set l n a)[n]? = some a := by rw [getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
 theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_eq', getElem?_eq_getElem h]; rfl
+  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_ne (since := "2024-06-12")]
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
@@ -178,7 +176,7 @@ theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get
 @[deprecated getElem?_set (since := "2024-06-12")]
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']
+  simp [getElem?_set']; rfl
 
 theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by

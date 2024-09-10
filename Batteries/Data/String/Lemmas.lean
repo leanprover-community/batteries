@@ -15,11 +15,11 @@ namespace String
 attribute [ext (iff := false)] ext
 
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
-  List.lt_trans' (α := Char) Nat.lt_trans
+  List.lt_trans (α := Char) Nat.lt_trans
     (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
 
 theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
-  ext <| List.lt_antisymm' (α := Char)
+  ext <| List.lt_antisymm (α := Char)
     (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
 
 instance : Batteries.TransOrd String := .compareOfLessAndEq
@@ -209,7 +209,7 @@ theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos) : atEnd s p ↔ s.endPos ≤ p :=
-  decide_eq_true_iff _
+  decide_eq_true_iff
 
 theorem valid_next {p : Pos} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).Valid s := by
   match s, p, h with
