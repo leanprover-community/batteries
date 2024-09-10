@@ -3,7 +3,7 @@
 tmpfile=$(mktemp)
 issues_found=0
 
-find Std -type f -name "*.lean" | while IFS= read -r file; do
+find Batteries -type f -name "*.lean" | while IFS= read -r file; do
     # Check for trailing whitespace and print line number if found
     while IFS=: read -r line_num line; do
         echo "Trailing whitespace found in $file at line $line_num: $line"

@@ -14,12 +14,18 @@ def foo (n : α) := [n]
 
 section unnecessarySimpa
 
-/-- warning: try 'simp' instead of 'simpa' [linter.unnecessarySimpa] -/
+/--
+warning: try 'simp' instead of 'simpa'
+note: this linter can be disabled with `set_option linter.unnecessarySimpa false`
+-/
 #guard_msgs in
 example : foo n = [n] := by
   simpa only [foo]
 
-/-- warning: try 'simp at h' instead of 'simpa using h' [linter.unnecessarySimpa] -/
+/--
+warning: try 'simp at h' instead of 'simpa using h'
+note: this linter can be disabled with `set_option linter.unnecessarySimpa false`
+-/
 #guard_msgs in
 example (h : foo n ≠ [n]) : False := by
   simpa [foo] using h
