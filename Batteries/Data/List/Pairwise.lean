@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, James Gallicchio
 -/
 import Batteries.Data.List.Count
-import Batteries.Data.Fin.Lemmas
 
 /-!
 # Pairwise relations on a list
@@ -29,18 +28,6 @@ open Nat Function
 namespace List
 
 /-! ### Pairwise -/
-
-@[deprecated pairwise_iff_forall_sublist (since := "2023-09-18")]
-theorem pairwise_of_reflexive_on_dupl_of_forall_ne [DecidableEq α] {l : List α} {r : α → α → Prop}
-    (hr : ∀ a, 1 < count a l → r a a) (h : ∀ a ∈ l, ∀ b ∈ l, a ≠ b → r a b) : l.Pairwise r := by
-  apply pairwise_iff_forall_sublist.mpr
-  intro a b hab
-  if heq : a = b then
-    cases heq; apply hr
-    rwa [show [a,a] = replicate 2 a from rfl, ← le_count_iff_replicate_sublist] at hab
-  else
-    apply h <;> try (apply hab.subset; simp)
-    exact heq
 
 theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i) (get l j) := by
   rw [pairwise_iff_getElem]

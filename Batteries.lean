@@ -16,19 +16,17 @@ import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
-import Batteries.Data.BitVec
-import Batteries.Data.Bool
 import Batteries.Data.ByteArray
+import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
 import Batteries.Data.DList
 import Batteries.Data.Fin
+import Batteries.Data.FloatArray
 import Batteries.Data.HashMap
-import Batteries.Data.Int
 import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
 import Batteries.Data.Nat
-import Batteries.Data.Option
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
@@ -37,6 +35,7 @@ import Batteries.Data.String
 import Batteries.Data.Sum
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
+import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
 import Batteries.Lean.Delaborator
 import Batteries.Lean.Except
@@ -79,6 +78,7 @@ import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
+import Batteries.Tactic.Lemma
 import Batteries.Tactic.Lint
 import Batteries.Tactic.Lint.Basic
 import Batteries.Tactic.Lint.Frontend

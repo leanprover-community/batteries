@@ -8,7 +8,6 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
-import Batteries.Tactic.SqueezeScope
 
 namespace String
 
@@ -16,11 +15,11 @@ namespace String
 attribute [ext (iff := false)] ext
 
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
-  List.lt_trans' (α := Char) Nat.lt_trans
+  List.lt_trans (α := Char) Nat.lt_trans
     (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
 
 theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
-  ext <| List.lt_antisymm' (α := Char)
+  ext <| List.lt_antisymm (α := Char)
     (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
 
 instance : Batteries.TransOrd String := .compareOfLessAndEq
@@ -58,9 +57,9 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
   induction cs₁ <;> simp [*, Nat.add_right_comm]
 
-@[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
+theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp_all [← Nat.add_assoc, Nat.add_right_comm]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
@@ -175,7 +174,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | c::cs, cs' =>
     simp only [utf8GetAux?, List.append_eq]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -190,7 +189,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | c::cs, cs' =>
     simp only [utf8SetAux, List.append_eq, List.cons_append]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -210,7 +209,7 @@ theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos) : atEnd s p ↔ s.endPos ≤ p :=
-  decide_eq_true_iff _
+  decide_eq_true_iff
 
 theorem valid_next {p : Pos} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).Valid s := by
   match s, p, h with
@@ -923,14 +922,14 @@ theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.takeWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.dropWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
 -- TODO: takeRightWhile

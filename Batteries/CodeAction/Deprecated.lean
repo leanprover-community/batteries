@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Server.CodeActions
 import Batteries.CodeAction.Basic
-import Batteries.Lean.Position
 
 /-!
 # Code action for @[deprecated] replacements
@@ -16,7 +15,7 @@ whenever the deprecation lint also fires, allowing the user to replace the usage
 constant.
 -/
 namespace Std
-open Lean Elab Server Lsp RequestM
+open Lean Elab Server Lsp RequestM CodeAction
 
 /-- An environment extension for identifying `@[deprecated]` definitions which can be auto-fixed -/
 initialize machineApplicableDeprecated : TagDeclarationExtension ← mkTagDeclarationExtension
