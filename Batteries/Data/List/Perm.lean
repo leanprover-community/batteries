@@ -325,7 +325,7 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
-theorem perm_merge (s : α → α → Bool) (l r) : merge s l r ~ l ++ r := by
+theorem perm_merge (s : α → α → Bool) (l r) : merge l r s ~ l ++ r := by
   match l, r with
   | [], r => simp
   | l, [] => simp
@@ -342,5 +342,5 @@ theorem perm_merge (s : α → α → Bool) (l r) : merge s l r ~ l ++ r := by
       exact Perm.rfl
 
 theorem Perm.merge (s₁ s₂ : α → α → Bool) (hl : l₁ ~ l₂) (hr : r₁ ~ r₂) :
-    merge s₁ l₁ r₁ ~ merge s₂ l₂ r₂ :=
+    merge l₁ r₁ s₁ ~ merge l₂ r₂ s₂ :=
   Perm.trans (perm_merge ..) <| Perm.trans (Perm.append hl hr) <| Perm.symm (perm_merge ..)

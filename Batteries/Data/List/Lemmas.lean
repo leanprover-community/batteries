@@ -593,19 +593,19 @@ theorem insertP_loop (a : α) (l r : List α) :
 /-! ### merge -/
 
 theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
+    merge (a::l) (b::r) s = if s a b then a :: merge l (b::r) s else b :: merge (a::l) r s := by
   simp only [merge]
 
 @[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
-    merge s (a::l) (b::r) = a :: merge s l (b::r) := by
+    merge (a::l) (b::r) s = a :: merge l (b::r) s := by
   rw [cons_merge_cons, if_pos h]
 
 @[simp] theorem cons_merge_cons_neg (s : α → α → Bool) (l r) (h : ¬ s a b) :
-    merge s (a::l) (b::r) = b :: merge s (a::l) r := by
+    merge (a::l) (b::r) s = b :: merge (a::l) r s := by
   rw [cons_merge_cons, if_neg h]
 
 @[simp] theorem length_merge (s : α → α → Bool) (l r) :
-    (merge s l r).length = l.length + r.length := by
+    (merge l r s).length = l.length + r.length := by
   match l, r with
   | [], r => simp
   | l, [] => simp
@@ -615,10 +615,10 @@ theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
     · simp_arith [length_merge s l (b::r)]
     · simp_arith [length_merge s (a::l) r]
 
-theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
+theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge l r s :=
   mem_merge.2 <| .inl h
 
-theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
+theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge l r s :=
   mem_merge.2 <| .inr h
 
 /-! ### foldlM and foldrM -/
