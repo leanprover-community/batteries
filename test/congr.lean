@@ -1,4 +1,4 @@
-import Std.Tactic.Congr
+import Batteries.Tactic.Congr
 
 section congr
 
@@ -19,8 +19,6 @@ example {α β γ δ} {F : ∀ {α β}, (α → β) → γ → δ} {f g : α →
   -- apply_assumption -- FIXME
   apply h
 
-attribute [ext] Subtype.eq
-
 example {α β : Type _} {f : _ → β} {x y : { x : { x : α // x = x } // x = x }}
     (h : x.1 = y.1) : f x = f y := by
   congr with : 1
@@ -32,6 +30,13 @@ example {α β : Type _} {F : _ → β} {f g : { f : α → β // f = f }}
   revert x
   guard_target = type_of% h
   exact h
+
+section
+
+-- Adaptation note: the next two examples have always failed if `List.ext` was in scope,
+-- but until nightly-2024-04-24 (when `List.ext` was upstreamed), it wasn't in scope.
+-- In order to preserve the test behaviour we locally remove the `ext` attribute.
+attribute [-ext] List.ext_getElem?
 
 private opaque List.sum : List Nat → Nat
 
@@ -46,6 +51,8 @@ example {ls : List Nat} {f g : Nat → Nat} {h : ∀ x, f x = g x} :
     (ls.map fun x => f x + 3) = ls.map fun x => g x + 3 := by
   rcongr x
   exact h x
+
+end
 
 -- succeed when either `ext` or `congr` can close the goal
 example : () = () := by rcongr

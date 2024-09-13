@@ -1,7 +1,8 @@
-import Std.Tactic.Where
+import Batteries.Tactic.Where
 
 -- Return to pristine state
 set_option linter.missingDocs false
+set_option internal.cmdlineSnapshots false
 
 /-- info: -- In root namespace with initial scope -/
 #guard_msgs in #where
@@ -60,13 +61,13 @@ open Lean.Elab hiding TermElabM
 -/
 #guard_msgs in #where
 
-open Command Std
+open Command Batteries
 open Array renaming map -> listMap
 
 /--
 info: open Lean Lean.Meta
 open Lean.Elab hiding TermElabM
-open Lean.Elab.Command Std
+open Lean.Elab.Command Batteries
 open listMap → Array.map
 -/
 #guard_msgs in #where
