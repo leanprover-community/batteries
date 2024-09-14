@@ -57,9 +57,9 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
   induction cs₁ <;> simp [*, Nat.add_right_comm]
 
-@[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
+theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp_all [← Nat.add_assoc, Nat.add_right_comm]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
@@ -922,14 +922,14 @@ theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.takeWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.dropWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
 -- TODO: takeRightWhile

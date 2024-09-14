@@ -24,7 +24,7 @@ jobs:
         type: 'stream'
         topic: 'Batteries status updates'
         content: |
-          ❌ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
+          ❌️ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}).
 
   # Whenever `nightly-testing` passes CI,
   # push it to `nightly-testing-YYYY-MM-DD` so we have a known good version of Batteries on that nightly release.
@@ -77,13 +77,13 @@ jobs:
         }
         response = client.get_messages(request)
         messages = response['messages']
-        if not messages or messages[0]['content'] != "✅ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!":
+        if not messages or messages[0]['content'] != "✅️ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!":
             # Post the success message
             request = {
                 'type': 'stream',
                 'to': 'nightly-testing',
                 'topic': 'Batteries status updates',
-                'content': "✅ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!"
+                'content': "✅️ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded!"
             }
             result = client.send_message(request)
             print(result)

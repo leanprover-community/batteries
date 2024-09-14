@@ -22,13 +22,6 @@ protected def strongRec {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n �
   (t : Nat) : motive t := ind t fun m _ => Nat.strongRec ind m
 
 /--
-  Strong recursor for `Nat`
--/
-@[elab_as_elim]
-protected def strongRecOn (t : Nat) {motive : Nat → Sort _}
-  (ind : ∀ n, (∀ m, m < n → motive m) → motive n) : motive t := Nat.strongRec ind t
-
-/--
   Strong recursor via a `Nat`-valued measure
 -/
 @[elab_as_elim]
