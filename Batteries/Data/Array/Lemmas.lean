@@ -153,8 +153,6 @@ theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
 
 /-! ### mem -/
 
-alias not_mem_empty := not_mem_nil
-
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
 /-! ### append -/
