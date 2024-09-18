@@ -9,10 +9,6 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
-/-! ### last -/
-
-@[simp] theorem last_zero : last 0 = 0 := rfl
-
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
