@@ -196,8 +196,8 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[simp] theorem extractP_eq_find?_eraseP
     (l : List α) : extractP p l = (find? p l, eraseP p l) := by
-  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    extractP.go p l xs acc = (xs.find? p, acc.data ++ xs.eraseP p)
+  let rec go (acc) : ∀ xs, l = acc.toList ++ xs →
+    extractP.go p l xs acc = (xs.find? p, acc.toList ++ xs.eraseP p)
   | [] => fun h => by simp [extractP.go, find?, eraseP, h]
   | x::xs => by
     simp [extractP.go, find?, eraseP]; cases p x <;> simp
@@ -589,37 +589,6 @@ theorem insertP_loop (a : α) (l r : List α) :
 @[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
-
-/-! ### merge -/
-
-theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
-  simp only [merge]
-
-@[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
-    merge s (a::l) (b::r) = a :: merge s l (b::r) := by
-  rw [cons_merge_cons, if_pos h]
-
-@[simp] theorem cons_merge_cons_neg (s : α → α → Bool) (l r) (h : ¬ s a b) :
-    merge s (a::l) (b::r) = b :: merge s (a::l) r := by
-  rw [cons_merge_cons, if_neg h]
-
-@[simp] theorem length_merge (s : α → α → Bool) (l r) :
-    (merge s l r).length = l.length + r.length := by
-  match l, r with
-  | [], r => simp
-  | l, [] => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp_arith [length_merge s l (b::r)]
-    · simp_arith [length_merge s (a::l) r]
-
-theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
-  mem_merge.2 <| .inl h
-
-theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
-  mem_merge.2 <| .inr h
 
 /-! ### foldlM and foldrM -/
 

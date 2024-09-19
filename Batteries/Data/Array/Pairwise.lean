@@ -17,15 +17,15 @@ larger indices.
 For example `as.Pairwise (· ≠ ·)` asserts that `as` has no duplicates, `as.Pairwise (· < ·)` asserts
 that `as` is strictly sorted and `as.Pairwise (· ≤ ·)` asserts that `as` is weakly sorted.
 -/
-def Pairwise (R : α → α → Prop) (as : Array α) : Prop := as.data.Pairwise R
+def Pairwise (R : α → α → Prop) (as : Array α) : Prop := as.toList.Pairwise R
 
 theorem pairwise_iff_get {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Fin as.size), i < j → R (as.get i) (as.get j) := by
-  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_data_get]; rfl
+  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_toList_get]; rfl
 
 theorem pairwise_iff_getElem {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Nat) (_ : i < as.size) (_ : j < as.size), i < j → R as[i] as[j] := by
-  unfold Pairwise; simp [List.pairwise_iff_getElem, data_length]; rfl
+  unfold Pairwise; simp [List.pairwise_iff_getElem, toList_length]; rfl
 
 instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R as) :=
   have : (∀ (j : Fin as.size) (i : Fin j.val), R as[i.val] (as[j.val])) ↔ Pairwise R as := by
@@ -46,12 +46,13 @@ theorem pairwise_pair : #[a, b].Pairwise R ↔ R a b := by
 
 theorem pairwise_append {as bs : Array α} :
     (as ++ bs).Pairwise R ↔ as.Pairwise R ∧ bs.Pairwise R ∧ (∀ x ∈ as, ∀ y ∈ bs, R x y) := by
-  unfold Pairwise; simp [← mem_data, append_data, ← List.pairwise_append]
+  unfold Pairwise; simp [← mem_toList, append_toList, ← List.pairwise_append]
 
 theorem pairwise_push {as : Array α} :
     (as.push a).Pairwise R ↔ as.Pairwise R ∧ (∀ x ∈ as, R x a) := by
   unfold Pairwise
-  simp [← mem_data, push_data, List.pairwise_append, List.pairwise_singleton, List.mem_singleton]
+  simp [← mem_toList, push_toList, List.pairwise_append, List.pairwise_singleton,
+    List.mem_singleton]
 
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
     (as.extract start stop).Pairwise R := by

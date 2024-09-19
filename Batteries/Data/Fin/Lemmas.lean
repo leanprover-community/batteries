@@ -9,10 +9,6 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
-/-! ### last -/
-
-@[simp] theorem last_zero : last 0 = 0 := rfl
-
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
@@ -30,7 +26,7 @@ attribute [norm_cast] val_last
 
 @[simp] theorem getElem_list (i : Nat) (h : i < (list n).length) :
     (list n)[i] = cast (length_list n) ⟨i, h⟩ := by
-  simp only [list]; rw [← Array.getElem_eq_data_getElem, getElem_enum, cast_mk]
+  simp only [list]; rw [← Array.getElem_eq_toList_getElem, getElem_enum, cast_mk]
 
 @[deprecated getElem_list (since := "2024-06-12")]
 theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by

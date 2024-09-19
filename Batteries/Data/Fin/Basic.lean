@@ -13,4 +13,4 @@ def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le
 def enum (n) : Array (Fin n) := Array.ofFn id
 
 /-- `list n` is the list of all elements of `Fin n` in order -/
-def list (n) : List (Fin n) := (enum n).data
+def list (n) : List (Fin n) := (enum n).toList
