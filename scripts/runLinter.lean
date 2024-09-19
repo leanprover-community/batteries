@@ -1,6 +1,6 @@
+import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
-import Batteries.Lean.Util.Path
 
 open Lean Core Elab Command Batteries.Tactic.Lint
 open System (FilePath)
@@ -47,12 +47,24 @@ unsafe def main (args : List String) : IO Unit := do
       stdin := .null
     }
     _ ← child.wait
+  -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
+  -- the linters are ineffective. So we import it here.
+  let lintModule := `Batteries.Tactic.Lint
+  let lintFile ← findOLean lintModule
+  unless (← lintFile.pathExists) do
+    -- run `lake build +Batteries.Tactic.Lint` (and ignore result) if the file hasn't been built yet
+    let child ← IO.Process.spawn {
+      cmd := (← IO.getEnv "LAKE").getD "lake"
+      args := #["build", s!"+{lintModule}"]
+      stdin := .null
+    }
+    _ ← child.wait
   let nolintsFile : FilePath := "scripts/nolints.json"
   let nolints ← if ← nolintsFile.pathExists then
     readJsonFile NoLints nolintsFile
   else
     pure #[]
-  withImportModules #[{module}] {} (trustLevel := 1024) fun env =>
+  withImportModules #[module, lintModule] {} (trustLevel := 1024) fun env =>
     let ctx := { fileName := "", fileMap := default }
     let state := { env }
     Prod.fst <$> (CoreM.toIO · ctx state) do

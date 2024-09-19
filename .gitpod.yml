@@ -4,3 +4,8 @@ image:
 vscode:
   extensions:
     - leanprover.lean4
+
+tasks:
+  - init: |
+      elan self update
+      lake build

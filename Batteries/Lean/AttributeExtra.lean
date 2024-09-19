@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Lean.TagAttribute
+import Std.Data.HashMap.Basic
+
 open Lean
 
 namespace Lean
+
+open Std
 
 /--
 `TagAttributeExtra` works around a limitation of `TagAttribute`, which is that definitions
@@ -73,7 +77,7 @@ structure ParametricAttributeExtra (α : Type) where
   /-- The underlying `ParametricAttribute`. -/
   attr : ParametricAttribute α
   /-- A list of pre-tagged declarations with their values. -/
-  base : HashMap Name α
+  base : Std.HashMap Name α
   deriving Inhabited
 
 /--
@@ -94,7 +98,7 @@ or `none` if `decl` is not tagged.
 -/
 def getParam? [Inhabited α] (attr : ParametricAttributeExtra α)
     (env : Environment) (decl : Name) : Option α :=
-  attr.attr.getParam? env decl <|> attr.base.find? decl
+  attr.attr.getParam? env decl <|> attr.base[decl]?
 
 /-- Applies attribute `attr` to declaration `decl`, given a value for the parameter. -/
 def setParam (attr : ParametricAttributeExtra α)

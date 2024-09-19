@@ -3,9 +3,9 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
-import Lean.Meta.InferType
+import Lean.Meta.Basic
 
-open Lean Lean.Meta
+open Lean Lean.Meta Std
 
 /--
 Obtain the inaccessible fvars from the given local context. An fvar is
@@ -15,7 +15,7 @@ later fvar with the same user name.
 def Lean.LocalContext.inaccessibleFVars (lctx : LocalContext) :
     Array LocalDecl :=
   let (result, _) :=
-    lctx.foldr (β := Array LocalDecl × HashSet Name)
+    lctx.foldr (β := Array LocalDecl × Std.HashSet Name)
       (init := (Array.mkEmpty lctx.numIndices, {}))
       fun ldecl (result, seen) =>
         if ldecl.isImplementationDetail then
