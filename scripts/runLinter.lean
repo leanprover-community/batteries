@@ -73,7 +73,7 @@ unsafe def main (args : List String) : IO Unit := do
       let results ← lintCore decls linters
       if update then
         writeJsonFile (α := NoLints) nolintsFile <|
-          .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
+          .qsort (f := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
           .flatten <| results.map fun (linter, decls) =>
           decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
       let results := results.map fun (linter, decls) =>
