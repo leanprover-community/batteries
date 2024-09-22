@@ -102,6 +102,9 @@ if it exists. Else the vector is empty and it returns `none`
 -/
 abbrev back? (v : Vector α n) : Option α := v[n - 1]?
 
+/-- Abbreviation for the last element of a non-empty `Vector`.-/
+abbrev back (v : Vector α (n + 1)) : α := v[n]
+
 /-- `Vector.head` produces the head of a vector -/
 abbrev head (v : Vector α (n+1)) := v[0]
 

@@ -60,7 +60,7 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
   rcases v with ⟨data, rfl⟩
   simp
 
-theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
+@[simp] theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
     (v.push x)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
   simp [Array.get_push_lt, h]
@@ -68,3 +68,59 @@ theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
 @[simp] theorem getElem_pop {v : Vector α n} {i : Nat} (h : i < n - 1) : (v.pop)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
   simp
+
+/--
+Variant of `getElem_pop` that will sometimes fire when `getElem_pop` gets stuck because of
+defeq issues in the implicit size argument.
+-/
+@[simp] theorem getElem_pop' (v : Vector α (n + 1)) (i : Nat) (h : i < n + 1 - 1) :
+    @getElem (Vector α n) Nat α (fun _ i => i < n) instGetElemNatLt v.pop i h = v[i] :=
+  getElem_pop h
+
+@[simp] theorem push_pop_back (v : Vector α (n + 1)) : v.pop.push v.back = v := by
+  ext i
+  by_cases h : i < n
+  · simp [h]
+  · replace h : i = n := by omega
+    subst h
+    simp
+
+/-! ### Decidable quantifiers. -/
+
+theorem forall_zero_iff {P : Vector α 0 → Prop} :
+    (∀ v, P v) ↔ P .empty := by
+  constructor
+  · intro h
+    apply h
+  · intro h v
+    obtain (rfl : v = .empty) := (by ext i h; simp at h)
+    apply h
+
+theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
+    (∀ v : Vector α (n + 1), P v) ↔ (∀ (x : α) (v : Vector α n), P (v.push x)) := by
+  constructor
+  · intro h _ _
+    apply h
+  · intro h v
+    have w : v = v.pop.push v.back := by simp
+    rw [w]
+    apply h
+
+instance instDecidableForallVectorZero (P : (Vector α 0) → Prop) :
+    ∀ [Decidable (P .empty)], Decidable (∀ v, P v)
+  | .isTrue h => .isTrue fun ⟨v, s⟩ => by
+    obtain (rfl : v = .empty) := (by ext i h₁ h₂; exact s; cases h₂)
+    exact h
+  | .isFalse h => .isFalse (fun w => h (w _))
+
+instance instDecidableForallVectorSucc (P : (Vector α (n+1)) → Prop) [DecidablePred P]
+    [Decidable (∀ (x : α) (v : Vector α n), P (v.push x))] : Decidable (∀ v, P v) :=
+  decidable_of_iff' (∀ x (v : Vector α n), P (v.push x)) forall_cons_iff
+
+instance instDecidableExistsVectorZero (P : (Vector α 0) → Prop) [Decidable (P .empty)] :
+    Decidable (∃ v, P v) :=
+  decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
+
+instance instDecidableExistsVectorSucc (P : (Vector α (n+1)) → Prop) [DecidablePred P]
+    [Decidable (∀ (x : α) (v : Vector α n), ¬ P (v.push x))] : Decidable (∃ v, P v) :=
+  decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
