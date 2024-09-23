@@ -115,7 +115,7 @@ instance instDecidableForallVectorZero (P : Vector α 0 → Prop) :
     exact h
   | .isFalse h => .isFalse (fun w => h (w _))
 
-instance instDecidableForallVectorSucc (P : Vector α (n+1) → Prop) [DecidablePred P]
+instance instDecidableForallVectorSucc (P : Vector α (n+1) → Prop)
     [Decidable (∀ (x : α) (v : Vector α n), P (v.push x))] : Decidable (∀ v, P v) :=
   decidable_of_iff' (∀ x (v : Vector α n), P (v.push x)) forall_cons_iff
 
