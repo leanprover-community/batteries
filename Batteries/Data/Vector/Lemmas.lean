@@ -108,21 +108,21 @@ theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
     rw [w]
     apply h
 
-instance instDecidableForallVectorZero (P : (Vector α 0) → Prop) :
+instance instDecidableForallVectorZero (P : Vector α 0 → Prop) :
     ∀ [Decidable (P .empty)], Decidable (∀ v, P v)
   | .isTrue h => .isTrue fun ⟨v, s⟩ => by
     obtain (rfl : v = .empty) := (by ext i h₁ h₂; exact s; cases h₂)
     exact h
   | .isFalse h => .isFalse (fun w => h (w _))
 
-instance instDecidableForallVectorSucc (P : (Vector α (n+1)) → Prop) [DecidablePred P]
+instance instDecidableForallVectorSucc (P : Vector α (n+1) → Prop) [DecidablePred P]
     [Decidable (∀ (x : α) (v : Vector α n), P (v.push x))] : Decidable (∀ v, P v) :=
   decidable_of_iff' (∀ x (v : Vector α n), P (v.push x)) forall_cons_iff
 
-instance instDecidableExistsVectorZero (P : (Vector α 0) → Prop) [Decidable (P .empty)] :
+instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P .empty)] :
     Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
 
-instance instDecidableExistsVectorSucc (P : (Vector α (n+1)) → Prop) [DecidablePred P]
+instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop) [DecidablePred P]
     [Decidable (∀ (x : α) (v : Vector α n), ¬ P (v.push x))] : Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
