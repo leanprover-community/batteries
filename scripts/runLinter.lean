@@ -15,7 +15,7 @@ def readJsonFile (α) [FromJson α] (path : System.FilePath) : IO α := do
 
 /-- Serialize the given value `a : α` to the file as JSON. -/
 def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
-  IO.FS.writeFile path <| toJson a |>.pretty
+  IO.FS.writeFile path <| toJson a |>.pretty.push '\n'
 
 /--
 Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
