@@ -123,6 +123,6 @@ instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P 
     Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
 
-instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop) [DecidablePred P]
+instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop)
     [Decidable (∀ (x : α) (v : Vector α n), ¬ P (v.push x))] : Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
