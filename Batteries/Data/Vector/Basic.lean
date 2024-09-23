@@ -260,7 +260,7 @@ alias take := shrink
 if and only if `p a[i] b[i]` holds true for all valid indices `i`.
 -/
 @[inline] def isEqv (a b : Vector α n) (p : α → α → Bool) : Bool :=
-  Array.isEqvAux a.toArray b.toArray (a.size_eq.trans b.size_eq.symm) p 0
+  Array.isEqvAux a.toArray b.toArray (a.size_eq.trans b.size_eq.symm) p 0 (Nat.zero_le _)
 
 instance [BEq α] : BEq (Vector α n) :=
   ⟨fun a b => isEqv a b BEq.beq⟩
