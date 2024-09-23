@@ -96,12 +96,14 @@ where
         .sum (source.toList.map (·.toList.length)) + target.size := by
     unfold expand.go; split
     · next H =>
-      refine (go (i+1) _ _ fun j hj => ?a).trans ?b <;> simp
+      refine (go (i+1) _ _ fun j hj => ?a).trans ?b
       · case a =>
+        simp only [Array.toList_length, Array.toList_set]
         simp [List.getD_eq_getElem?_getD, List.getElem?_set, Option.map_eq_map]; split
         · cases source.toList[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
+        simp only [Array.toList_length, Array.toList_set, Array.get_eq_getElem, AssocList.foldl_eq]
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
