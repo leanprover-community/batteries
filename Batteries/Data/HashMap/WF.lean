@@ -328,56 +328,57 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
     intro a m
     apply h₂.2 _ _ _ m
 
-theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
-    {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
-  let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
-  have H1 (l n acc) : filterMap.go f acc l n =
-      (((g₁ l).reverse ++ acc.toList).toAssocList, ⟨n.1 + (g₁ l).length⟩) := by
-    induction l generalizing n acc with simp only [filterMap.go, AssocList.toList,
-      List.filterMap_nil, List.reverse_nil, List.nil_append, AssocList.toList_toAssocList,
-      List.length_nil, Nat.add_zero, List.filterMap_cons, g₁, *]
-    | cons a b l => match f a b with
-      | none => rfl
-      | some c =>
-        simp only [Option.map_some', List.reverse_cons, List.append_assoc, List.singleton_append,
-          List.length_cons, Nat.succ_eq_add_one, Prod.mk.injEq, true_and]
-        rw [Nat.add_right_comm]
-        rfl
-  let g l := (g₁ l).reverse.toAssocList
-  let M := StateT (ULift Nat) Id
-  have H2 (l : List (AssocList α β)) n :
-      l.mapM (m := M) (filterMap.go f .nil) n =
-      (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
-    induction l generalizing n with
-    | nil => rfl
-    | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl
-  have H3 (l : List _) :
-    (l.filterMap (fun (a, b) => (f a b).map (a, ·))).map (fun a => a.fst)
-     |>.Sublist (l.map (·.1)) := by
-    induction l with
-    | nil => exact .slnil
-    | cons a l ih =>
-      simp only [List.filterMap_cons, List.map_cons]; exact match f a.1 a.2 with
-      | none => .cons _ ih
-      | some b => .cons₂ _ ih
-  suffices ∀ bk sz (h : 0 < bk.length),
-    m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
-    WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
-  simp only [Array.mapM_eq_mapM_toList, bind, StateT.bind, H2, List.map_map, Nat.zero_add, g]
-  intro bk sz h e'; cases e'
-  refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
-  · simp only [List.forall_mem_map, List.toList_toAssocList]
-    refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
-    have := H.out.2.1 _ h
-    rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
-    exact this.sublist (H3 l.toList)
-  · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_toList_getElem,
-      List.getElem_map] at h ⊢
-    have := H.out.2.2 _ h
-    simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
-      Option.map_eq_some', forall_exists_index, and_imp, g₁] at this ⊢
-    rintro _ _ h' _ _ rfl
-    exact this _ h'
+-- Temporarily removed on lean-pr-testing-5403.
+-- theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
+--     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
+--   let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
+--   have H1 (l n acc) : filterMap.go f acc l n =
+--       (((g₁ l).reverse ++ acc.toList).toAssocList, ⟨n.1 + (g₁ l).length⟩) := by
+--     induction l generalizing n acc with simp only [filterMap.go, AssocList.toList,
+--       List.filterMap_nil, List.reverse_nil, List.nil_append, AssocList.toList_toAssocList,
+--       List.length_nil, Nat.add_zero, List.filterMap_cons, g₁, *]
+--     | cons a b l => match f a b with
+--       | none => rfl
+--       | some c =>
+--         simp only [Option.map_some', List.reverse_cons, List.append_assoc, List.singleton_append,
+--           List.length_cons, Nat.succ_eq_add_one, Prod.mk.injEq, true_and]
+--         rw [Nat.add_right_comm]
+--         rfl
+--   let g l := (g₁ l).reverse.toAssocList
+--   let M := StateT (ULift Nat) Id
+--   have H2 (l : List (AssocList α β)) n :
+--       l.mapM (m := M) (filterMap.go f .nil) n =
+--       (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
+--     induction l generalizing n with
+--     | nil => rfl
+--     | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl
+--   have H3 (l : List _) :
+--     (l.filterMap (fun (a, b) => (f a b).map (a, ·))).map (fun a => a.fst)
+--      |>.Sublist (l.map (·.1)) := by
+--     induction l with
+--     | nil => exact .slnil
+--     | cons a l ih =>
+--       simp only [List.filterMap_cons, List.map_cons]; exact match f a.1 a.2 with
+--       | none => .cons _ ih
+--       | some b => .cons₂ _ ih
+--   suffices ∀ bk sz (h : 0 < bk.length),
+--     m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
+--     WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
+--   simp only [Array.mapM_eq_mapM_toList, bind, StateT.bind, H2, List.map_map, Nat.zero_add, g]
+--   intro bk sz h e'; cases e'
+--   refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
+--   · simp only [List.forall_mem_map, List.toList_toAssocList]
+--     refine fun l h => (List.pairwise_reverse.2 ?_).imp (mt PartialEquivBEq.symm)
+--     have := H.out.2.1 _ h
+--     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
+--     exact this.sublist (H3 l.toList)
+--   · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_toList_getElem,
+--       List.getElem_map] at h ⊢
+--     have := H.out.2.2 _ h
+--     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
+--       Option.map_eq_some', forall_exists_index, and_imp, g₁] at this ⊢
+--     rintro _ _ h' _ _ rfl
+--     exact this _ h'
 
 end Imp
 
@@ -387,13 +388,15 @@ variable {_ : BEq α} {_ : Hashable α}
 @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.mapVal f, self.2.mapVal⟩
 
-/--
-Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
-`a, c` is pushed into the new map; else the key is removed from the map.
--/
-@[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
-  ⟨self.1.filterMap f, self.2.filterMap⟩
+-- Temporarily removed on lean-pr-testing-5403.
 
-/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
-@[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
-  self.filterMap fun a b => bif f a b then some b else none
+-- /--
+-- Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+-- `a, c` is pushed into the new map; else the key is removed from the map.
+-- -/
+-- @[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
+--   ⟨self.1.filterMap f, self.2.filterMap⟩
+
+-- /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+-- @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
+--   self.filterMap fun a b => bif f a b then some b else none
