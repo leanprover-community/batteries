@@ -80,7 +80,7 @@ def get (v : Vector α n) (i : Fin n) : α := v.toArray.get <| i.cast v.size_eq.
 /-- Vector lookup function that takes an index `i` of type `USize` -/
 def uget (v : Vector α n) (i : USize) (h : i.toNat < n) : α := v.toArray.uget i (v.size_eq.symm ▸ h)
 
-/-- `Vector α n` nstance for the `GetElem` typeclass. -/
+/-- `Vector α n` instance for the `GetElem` typeclass. -/
 instance : GetElem (Vector α n) Nat α fun _ i => i < n where
   getElem := fun x i h => get x ⟨i, h⟩
 
