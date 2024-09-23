@@ -4,6 +4,8 @@ import Batteries.Data.Vector
 
 open Batteries
 
+example : ∃ v : Vector Bool 6, v.toList.count true = 3 := by decide
+
 inductive Gate : Nat → Type
 | const : Bool → Gate 0
 | if : ∀ {n}, Gate n → Gate n → Gate (n + 1)
