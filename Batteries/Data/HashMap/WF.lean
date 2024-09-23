@@ -372,8 +372,8 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
 --     have := H.out.2.1 _ h
 --     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
 --     exact this.sublist (H3 l.toList)
---   · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_toList_getElem,
---       List.getElem_map] at h ⊢
+--   · simp only [Array.size_mk, List.length_map, Array.toList_length,
+--       Array.getElem_eq_toList_getElem, List.getElem_map] at h ⊢
 --     have := H.out.2.2 _ h
 --     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
 --       Option.map_eq_some', forall_exists_index, and_imp, g₁] at this ⊢
