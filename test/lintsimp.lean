@@ -1,6 +1,6 @@
 import Batteries.Tactic.Lint
 
-open Std.Tactic.Lint
+open Batteries.Tactic.Lint
 set_option linter.missingDocs false
 
 def f : Nat := 0
