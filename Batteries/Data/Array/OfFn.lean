@@ -12,7 +12,7 @@ namespace Array
 /-! ### ofFn -/
 
 @[simp]
-theorem toList_ofFn (f : Fin n → α) : (ofFn f).toList = List.ofFn f := by
+theorem data_ofFn (f : Fin n → α) : (ofFn f).data = List.ofFn f := by
   ext1
   rw [List.getElem?_eq]
   simp [ofFnNthVal]
