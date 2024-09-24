@@ -27,10 +27,6 @@ open Nat
     simp [ih, List.toArrayAux]
     omega
 
-@[simp] theorem size_toArray (l : List α) : l.toArray.size = l.length := by
-  rw [toArray]
-  simp
-
 @[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := rfl
 
