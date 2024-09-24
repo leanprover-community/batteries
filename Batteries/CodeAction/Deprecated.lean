@@ -14,7 +14,9 @@ This is an opt-in mechanism for making machine-applicable `@[deprecated]` defini
 whenever the deprecation lint also fires, allowing the user to replace the usage of the deprecated
 constant.
 -/
-namespace Std
+
+namespace Batteries
+
 open Lean Elab Server Lsp RequestM CodeAction
 
 /-- An environment extension for identifying `@[deprecated]` definitions which can be auto-fixed -/
