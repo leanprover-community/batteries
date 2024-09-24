@@ -31,7 +31,8 @@ open Nat
   rw [toArray]
   simp
 
-@[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) : (Array.mk xs)[i] = xs[i] := rfl
+@[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
+    (Array.mk xs)[i] = xs[i] := rfl
 
 @[simp] theorem getElem_toArray (l : List α) (i : Nat) (h : i < l.toArray.size) :
     l.toArray[i] = l[i]'(by simpa using h) := by
