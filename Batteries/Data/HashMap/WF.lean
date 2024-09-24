@@ -3,9 +3,10 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.SeqFocus
 import Batteries.Data.HashMap.Basic
-import Batteries.Data.Array.Lemmas
 import Batteries.Data.Nat.Lemmas
+import Batteries.Data.List.Lemmas
 
 namespace Batteries.HashMap
 namespace Imp
@@ -224,7 +225,7 @@ private theorem pairwise_replaceF [BEq α] [PartialEquivBEq α]
   | cons a l ih =>
     simp only [List.pairwise_cons, List.replaceF] at H ⊢
     generalize e : cond .. = z; unfold cond at e; revert e
-    split <;> (intro h; subst h; simp)
+    split <;> (intro h; subst h; simp only [List.pairwise_cons])
     · next e => exact ⟨(H.1 · · ∘ PartialEquivBEq.trans e), H.2⟩
     · next e =>
       refine ⟨fun a h => ?_, ih H.2⟩

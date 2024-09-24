@@ -29,11 +29,3 @@ variable [DecidableEq α]
 theorem count_singleton' (a b : α) : count a [b] = if b = a then 1 else 0 := by simp [count_cons]
 
 theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count a l) := by simp
-
-@[deprecated filter_eq (since := "2023-12-14")]
-theorem filter_eq' (l : List α) (a : α) : l.filter (a = ·) = replicate (count a l) a := by
-  simpa only [eq_comm] using filter_eq l a
-
-@[deprecated filter_beq (since := "2023-12-14")]
-theorem filter_beq' (l : List α) (a : α) : l.filter (a == ·) = replicate (count a l) a := by
-  simpa only [eq_comm (b := a)] using filter_eq l a
