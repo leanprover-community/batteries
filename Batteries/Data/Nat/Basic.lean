@@ -22,13 +22,6 @@ protected def strongRec {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n �
   (t : Nat) : motive t := ind t fun m _ => Nat.strongRec ind m
 
 /--
-  Strong recursor for `Nat`
--/
-@[elab_as_elim]
-protected def strongRecOn (t : Nat) {motive : Nat → Sort _}
-  (ind : ∀ n, (∀ m, m < n → motive m) → motive n) : motive t := Nat.strongRec ind t
-
-/--
   Strong recursor via a `Nat`-valued measure
 -/
 @[elab_as_elim]
@@ -93,9 +86,6 @@ protected def casesDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
     motive m n :=
   Nat.recDiag zero_zero (fun _ _ => zero_succ _) (fun _ _ => succ_zero _)
     (fun _ _ _ => succ_succ _ _) m n
-
-/-- Sum of a list of natural numbers. -/
-protected def sum (l : List Nat) : Nat := l.foldr (·+·) 0
 
 /--
 Integer square root function. Implemented via Newton's method.
