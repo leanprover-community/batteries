@@ -146,3 +146,38 @@ where
       (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
     rw [ofFnAux.go, Array.ofFn.go]; split; rw [data_ofFnAux f (i+1), data_push]; rfl
   termination_by n - i
+
+/-! ### map/mapM -/
+
+/--
+Unsafe optimized implementation of `mapM`.
+
+This function is unsafe because it relies on the implementation limit that the size of an array is
+always less than `USize.size`.
+-/
+@[inline]
+unsafe def mapMUnsafe [Monad m] (a : ByteArray) (f : UInt8 → m UInt8) : m ByteArray :=
+  loop a 0 a.usize
+where
+  /-- Inner loop for `mapMUnsafe`. -/
+  @[specialize]
+  loop (a : ByteArray) (k s : USize) := do
+    if k < a.usize then
+      let x := a.uget k lcProof
+      let y ← f x
+      let a := a.uset k y lcProof
+      loop a (k+1) s
+    else pure a
+
+/-- `mapM f a` applies the monadic function `f` to each element of the array. -/
+@[implemented_by mapMUnsafe]
+def mapM [Monad m] (a : ByteArray) (f : UInt8 → m UInt8) : m ByteArray := do
+  let mut r := a
+  for i in [0:r.size] do
+    r := r.set! i (← f r[i]!)
+  return r
+
+/-- `map f a` applies the function `f` to each element of the array. -/
+@[inline]
+def map (a : ByteArray) (f : UInt8 → UInt8) : ByteArray :=
+  mapM (m:=Id) a f
