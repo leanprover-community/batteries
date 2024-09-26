@@ -37,7 +37,7 @@ protected theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h : i < (ofFn f).le
 protected theorem getElem?_ofFn (f : Fin n → α) (i) : (ofFn f)[i]? = ofFnNthVal f i :=
   if h : i < (ofFn f).length
   then by
-    rw [getElem?_eq_getElem h, getElem_ofFn]
+    rw [getElem?_eq_getElem h, List.getElem_ofFn]
     · simp only [length_ofFn] at h; simp [ofFnNthVal, h]
   else by
     rw [ofFnNthVal, dif_neg] <;>
