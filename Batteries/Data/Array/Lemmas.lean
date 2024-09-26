@@ -124,15 +124,15 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 
 /-! ### indexOf? -/
 
-theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
-    l.data.indexOf? a = (l.indexOf? a).map Fin.val := by
+theorem indexOf?_toList [BEq α] {a : α} {l : Array α} :
+    l.toList.indexOf? a = (l.indexOf? a).map Fin.val := by
   simpa using aux l 0
 where
   aux (l : Array α) (i : Nat) :
-       ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
+       ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
