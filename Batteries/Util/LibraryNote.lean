@@ -41,6 +41,8 @@ Use `#check_note "some tag"` to display all notes with the tag
 elab "library_note " title:strLit ppSpace text:docComment : command => do
   modifyEnv (libraryNoteExt.addEntry · (title.getString, text.getDocString))
 
+
+open Lean Parser in
 /--
 `#check_note "some tag"` displays all library notes with tag
 `"some tag"` in the infoview.
