@@ -20,6 +20,22 @@ namespace List
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
 
+/-! ### dropLast -/
+
+theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.length) :
+    xs.dropLast = List.eraseIdx xs i := by
+  induction i generalizing xs with
+  | zero =>
+    let [x] := xs
+    rfl
+  | succ n ih =>
+    let x::xs := xs
+    simp at last_idx
+    rw [dropLast, eraseIdx]
+    congr
+    exact ih last_idx
+    exact fun _ => nomatch xs
+
 /-! ### get? -/
 
 @[deprecated getElem_eq_iff (since := "2024-06-12")]
@@ -207,6 +223,25 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 /-! ### erase -/
 
 @[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
+
+theorem erase_of_forall_bne [BEq α] (a : α) (xs : List α) (h : ∀ (x : α), x ∈ xs → ¬x == a) :
+    xs.erase a = xs := by
+  rw [erase_eq_eraseP', eraseP_of_forall_not h]
+
+-- TODO a version of the above theorem with LawfulBEq and ∉
+
+/-! ### findIdx? -/
+
+theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
+    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [findIdx_cons, findIdx?_cons]
+    if h : p x then
+      simp [h]
+    else
+      cases h' : findIdx? p xs <;> simp [h, h', ih]
 
 /-! ### replaceF -/
 
@@ -551,6 +586,14 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
     bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
   simp [indexesOf, findIdxs_cons]
 
+@[simp] theorem eraseIdx_indexOf_eq_erase [BEq α] (a : α) (l : List α) :
+    l.eraseIdx (l.indexOf a) = l.erase a := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [List.erase, indexOf_cons]
+    cases x == a <;> simp [ih]
+
 theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.indexOf x ∈ xs.indexesOf x := by
   induction xs with
@@ -564,6 +607,19 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+@[simp] theorem indexOf?_nil [BEq α] : ([] : List α).indexOf? x = none := rfl
+theorem indexOf?_cons [BEq α] :
+    (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
+  simp [indexOf?]
+
+theorem indexOf?_eq_none_iff [BEq α] {a : α} {l : List α} :
+    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
+  simp [indexOf?, findIdx?_eq_none_iff]
+
+theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
+    l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
+  simp [indexOf, indexOf?, findIdx_eq_findIdx?]
 
 /-! ### insertP -/
 

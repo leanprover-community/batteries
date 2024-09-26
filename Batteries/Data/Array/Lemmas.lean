@@ -122,6 +122,26 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
   · rintro ⟨s, h₁, h₂⟩
     refine ⟨s.toList, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
 
+/-! ### indexOf? -/
+
+theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
+    l.data.indexOf? a = (l.indexOf? a).map Fin.val := by
+  simpa using aux l 0
+where
+  aux (l : Array α) (i : Nat) :
+       ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
+    rw [indexOfAux]
+    if h : i < l.size then
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
+      if h' : l[i] == a then
+        simp [h, h']
+      else
+        simp [h, h', ←aux l (i+1), Function.comp_def, ←Nat.add_assoc, Nat.add_right_comm]
+    else
+      have h' : l.size ≤ i := Nat.le_of_not_lt h
+      simp [h, List.drop_of_length_le h', List.indexOf?]
+  termination_by l.size - i
+
 /-! ### erase -/
 
 @[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
