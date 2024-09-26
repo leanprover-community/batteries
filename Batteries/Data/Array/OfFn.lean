@@ -14,8 +14,7 @@ namespace Array
 @[simp]
 theorem data_ofFn (f : Fin n → α) : (ofFn f).data = List.ofFn f := by
   ext1
-  rw [List.getElem?_eq]
-  simp [ofFnNthVal]
+  simp only [getElem?_eq, data_length, size_ofFn, length_ofFn, getElem_ofFn]
   split
   · rw [← getElem_eq_data_getElem]
     simp
