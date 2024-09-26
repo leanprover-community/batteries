@@ -31,6 +31,8 @@ set_option linter.unusedVariables false in
 def mergeSortedPreservingDuplicates [ord : Ord α] (xs ys : Array α) : Array α :=
   merge (compare · · |>.isLT) xs ys
 
+-- We name `ord` so it can be provided as a named argument.
+set_option linter.unusedVariables false in
 /--
 `O(|xs| + |ys|)`. Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
 not contain duplicates. Equal elements are merged using `merge`. If `merge` respects the order
@@ -85,6 +87,8 @@ where
 
 @[deprecated (since := "2024-04-24")] alias mergeUnsortedDeduplicating := mergeUnsortedDedup
 
+-- We name `eq` so it can be provided as a named argument.
+set_option linter.unusedVariables false in
 /--
 `O(|xs|)`. Replace each run `[x₁, ⋯, xₙ]` of equal elements in `xs` with
 `f ⋯ (f (f x₁ x₂) x₃) ⋯ xₙ`.

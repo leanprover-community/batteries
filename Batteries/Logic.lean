@@ -31,7 +31,7 @@ end Classical
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
-    (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
+    (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
 
 theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl

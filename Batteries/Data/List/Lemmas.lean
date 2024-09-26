@@ -49,8 +49,8 @@ theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
 
 theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNthTail tail n l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
-  | n+1, a :: l => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
+  | _+1, [] => rfl
+  | _+1, _ :: _ => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
 
 @[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
 
@@ -135,8 +135,8 @@ theorem modifyNth_eq_take_cons_drop (f : α → α) {n l} (h : n < length l) :
 
 theorem set_eq_modifyNth (a : α) : ∀ n (l : List α), set l n a = modifyNth (fun _ => a) n l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
-  | n+1, b :: l => congrArg (cons _) (set_eq_modifyNth _ _ _)
+  | _+1, [] => rfl
+  | _+1, _ :: _ => congrArg (cons _) (set_eq_modifyNth _ _ _)
 
 theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
@@ -145,7 +145,7 @@ theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
 theorem modifyNth_eq_set_get? (f : α → α) :
     ∀ n (l : List α), l.modifyNth f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
+  | _+1, [] => rfl
   | n+1, b :: l =>
     (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
@@ -229,10 +229,10 @@ theorem replaceF_of_forall_none {l : List α} (h : ∀ a, a ∈ l → p a = none
   | nil => rfl
   | cons _ _ ih => simp [h _ (.head ..), ih (forall_mem_cons.1 h).2]
 
-theorem exists_of_replaceF : ∀ {l : List α} {a a'} (al : a ∈ l) (pa : p a = some a'),
+theorem exists_of_replaceF : ∀ {l : List α} {a a'} (_ : a ∈ l) (_ : p a = some a'),
     ∃ a a' l₁ l₂,
       (∀ b ∈ l₁, p b = none) ∧ p a = some a' ∧ l = l₁ ++ a :: l₂ ∧ l.replaceF p = l₁ ++ a' :: l₂
-  | b :: l, a, a', al, pa =>
+  | b :: l, _, _, al, pa =>
     match pb : p b with
     | some b' => ⟨b, b', [], l, forall_mem_nil _, pb, by simp [pb]⟩
     | none =>
@@ -425,7 +425,7 @@ theorem Sublist.diff_right : ∀ {l₁ l₂ l₃ : List α}, l₁ <+ l₂ → l�
 
 theorem Sublist.erase_diff_erase_sublist {a : α} :
     ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
-  | [], l₂, _ => erase_sublist _ _
+  | [], _, _ => erase_sublist _ _
   | b :: l₁, l₂, h => by
     if heq : b = a then
       simp [heq]
