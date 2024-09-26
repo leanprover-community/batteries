@@ -15,6 +15,24 @@ namespace List
 @[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
   simp [Array.mem_def]
 
+/-! ### toArray-/
+
+@[simp] theorem size_toArrayAux (l : List α) (r : Array α) :
+    (l.toArrayAux r).size = r.size + l.length := by
+  induction l generalizing r with
+  | nil => simp [toArrayAux]
+  | cons a l ih =>
+    simp [ih, List.toArrayAux]
+    omega
+
+@[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
+    (Array.mk xs)[i] = xs[i] := rfl
+
+@[simp] theorem getElem_toArray (l : List α) (i : Nat) (h : i < l.toArray.size) :
+    l.toArray[i] = l[i]'(by simpa using h) := by
+  rw [Array.getElem_eq_data_getElem]
+  simp
+
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
