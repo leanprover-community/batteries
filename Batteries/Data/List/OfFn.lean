@@ -20,7 +20,7 @@ theorem length_ofFn (f : Fin n → α) : (ofFn f).length = n := by
   | succ n ih => simp [Fin.foldr_succ, ih]
 
 @[simp]
-theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h : i < (ofFn f).length) :
+protected theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h : i < (ofFn f).length) :
     (ofFn f)[i] = f ⟨i, by simp_all⟩ := by
   simp only [ofFn]
   induction n generalizing i with
@@ -34,7 +34,7 @@ theorem getElem_ofFn (f : Fin n → α) (i : Nat) (h : i < (ofFn f).length) :
       simp_all
 
 @[simp]
-theorem getElem?_ofFn (f : Fin n → α) (i) : (ofFn f)[i]? = ofFnNthVal f i :=
+protected theorem getElem?_ofFn (f : Fin n → α) (i) : (ofFn f)[i]? = ofFnNthVal f i :=
   if h : i < (ofFn f).length
   then by
     rw [getElem?_eq_getElem h, getElem_ofFn]
