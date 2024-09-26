@@ -373,7 +373,7 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
 theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
     (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
     forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
-  induction l generalizing init <;> simp [*, map_eq_pure_bind]
+  induction l generalizing init <;> simp [*]
   congr; ext (b | b) <;> simp
 
 /-! ### diff -/
