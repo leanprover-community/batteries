@@ -8,6 +8,7 @@ import Batteries.Data.Vector.Basic
 import Batteries.Data.List.Basic
 import Batteries.Data.List.Lemmas
 import Batteries.Data.Array.Lemmas
+import Batteries.Tactic.Lint.Simp
 
 /-!
 ## Vectors
@@ -45,3 +46,27 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
   · intro i hi _
     rw [a.size_eq] at hi
     exact h i hi
+
+@[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
+    (Vector.mk data size)[i] = data[i] := rfl
+
+@[simp] theorem push_mk {data : Array α} {size : data.size = n} {x : α} :
+    (Vector.mk data size).push x =
+      Vector.mk (data.push x) (by simp [size, Nat.succ_eq_add_one]) := rfl
+
+@[simp] theorem pop_mk {data : Array α} {size : data.size = n} :
+    (Vector.mk data size).pop = Vector.mk data.pop (by simp [size]) := rfl
+
+@[simp] theorem getElem_push_last {v : Vector α n} {x : α} : (v.push x)[n] = x := by
+  rcases v with ⟨data, rfl⟩
+  simp
+
+-- The `simpNF` linter incorrectly claims that this lemma can not be applied by `simp`.
+@[simp, nolint simpNF] theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
+    (v.push x)[i] = v[i] := by
+  rcases v with ⟨data, rfl⟩
+  simp [Array.get_push_lt, h]
+
+@[simp] theorem getElem_pop {v : Vector α n} {i : Nat} (h : i < n - 1) : (v.pop)[i] = v[i] := by
+  rcases v with ⟨data, rfl⟩
+  simp

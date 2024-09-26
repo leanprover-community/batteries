@@ -15,7 +15,7 @@ import Lean.Server.CodeActions.Provider
 
 This declares some basic tactic code actions, using the `@[tactic_code_action]` API.
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Meta Elab Server RequestM CodeAction
 
