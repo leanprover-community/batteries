@@ -48,7 +48,7 @@ theorem UInt8.lt_iff_toNat_lt_toNat {x y : UInt8} : x < y ↔ x.toNat < y.toNat 
 
 theorem UInt8.compare_eq_toNat_compare_toNat (x y : UInt8) :
     compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, UInt8.ext_iff]
 
 theorem UInt8.max_def (x y : UInt8) : max x y = if x ≤ y then y else x := rfl
 
@@ -117,7 +117,7 @@ theorem UInt16.lt_iff_toNat_lt_toNat {x y : UInt16} : x < y ↔ x.toNat < y.toNa
 
 theorem UInt16.compare_eq_toNat_compare_toNat (x y : UInt16) :
     compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, UInt16.ext_iff]
 
 theorem UInt16.max_def (x y : UInt16) : max x y = if x ≤ y then y else x := rfl
 
@@ -186,7 +186,7 @@ theorem UInt32.lt_iff_toNat_lt_toNat {x y : UInt32} : x < y ↔ x.toNat < y.toNa
 
 theorem UInt32.compare_eq_toNat_compare_toNat (x y : UInt32) :
     compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, UInt32.ext_iff]
 
 theorem UInt32.max_def (x y : UInt32) : max x y = if x ≤ y then y else x := rfl
 
@@ -255,7 +255,7 @@ theorem UInt64.lt_iff_toNat_lt_toNat {x y : UInt64} : x < y ↔ x.toNat < y.toNa
 
 theorem UInt64.compare_eq_toNat_compare_toNat (x y : UInt64) :
     compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, UInt64.ext_iff]
 
 theorem UInt64.max_def (x y : UInt64) : max x y = if x ≤ y then y else x := rfl
 
@@ -337,7 +337,7 @@ theorem USize.lt_iff_toNat_lt_toNat {x y : USize} : x < y ↔ x.toNat < y.toNat 
 
 theorem USize.compare_eq_toNat_compare_toNat (x y : USize) :
     compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, ext_iff]
+  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, USize.ext_iff]
 
 theorem USize.max_def (x y : USize) : max x y = if x ≤ y then y else x := rfl
 
