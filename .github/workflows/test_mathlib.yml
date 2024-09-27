@@ -49,14 +49,14 @@ jobs:
         with:
           script: |
             const prNumber = ${{ steps.workflow-info.outputs.pullRequestNumber }};
-            const pr = await github.pulls.get({
-              owner: 'leanprover-community',
-              repo: 'batteries',
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               pull_number: prNumber
             });
             return {
-              headRepo: pr.data.head.repo.full_name,
-              headBranch: pr.data.head.ref
+              headRepo: pr.head.repo.full_name,
+              headBranch: pr.head.ref
             };
 
       - name: Check if tag exists
