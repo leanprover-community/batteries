@@ -46,8 +46,8 @@ alias Std.compareOfLessAndEq_eq_lt := Batteries.compareOfLessAndEq_eq_lt
 @[deprecated (since := "2024-05-07")] alias Std.mkRBSet := Batteries.mkRBSet
 @[deprecated (since := "2024-05-07")] alias Std.RBMap := Batteries.RBMap
 @[deprecated (since := "2024-05-07")] alias Std.mkRBMap := Batteries.mkRBMap
--- @[deprecated (since := "2024-05-07")] alias Std.BinomialHeap := Batteries.BinomialHeap
--- @[deprecated (since := "2024-05-07")] alias Std.mkBinomialHeap := Batteries.mkBinomialHeap
+@[deprecated (since := "2024-05-07")] alias Std.BinomialHeap := Batteries.BinomialHeap
+@[deprecated (since := "2024-05-07")] alias Std.mkBinomialHeap := Batteries.mkBinomialHeap
 @[deprecated (since := "2024-05-07")] alias Std.UFNode := Batteries.UFNode
 @[deprecated (since := "2024-05-07")] alias Std.UnionFind := Batteries.UnionFind
 
