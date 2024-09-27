@@ -115,9 +115,64 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
   · rintro ⟨s, h₁, h₂⟩
     refine ⟨s.data, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
 
+/-! ### indexOf? -/
+
+theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
+    l.data.indexOf? a = (l.indexOf? a).map Fin.val := by
+  simpa using aux l 0
+where
+  aux (l : Array α) (i : Nat) :
+       ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
+    rw [indexOfAux]
+    if h : i < l.size then
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
+      if h' : l[i] == a then
+        simp [h, h']
+      else
+        simp [h, h', ←aux l (i+1), Function.comp_def, ←Nat.add_assoc, Nat.add_right_comm]
+    else
+      have h' : l.size ≤ i := Nat.le_of_not_lt h
+      simp [h, List.drop_of_length_le h', List.indexOf?]
+  termination_by l.size - i
+
 /-! ### erase -/
 
-@[simp] proof_wanted data_erase [BEq α] {l : Array α} {a : α} : (l.erase a).data = l.data.erase a
+theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
+    (l.swap ⟨i+1, lt⟩ ⟨i, Nat.lt_of_succ_lt lt⟩).data.eraseIdx (i+1) = l.data.eraseIdx i := by
+  let ⟨xs⟩ := l
+  induction i generalizing xs <;> let x₀::x₁::xs := xs
+  case zero => simp [swap, get]
+  case succ i ih _ =>
+    have lt' := Nat.lt_of_succ_lt_succ lt
+    have : (swap ⟨x₀::x₁::xs⟩ ⟨i.succ + 1, lt⟩ ⟨i.succ, Nat.lt_of_succ_lt lt⟩).data
+        = x₀::(swap ⟨x₁::xs⟩ ⟨i + 1, lt'⟩ ⟨i, Nat.lt_of_succ_lt lt'⟩).data := by
+      simp [swap_def, getElem_eq_data_getElem]
+    simp [this, ih]
+
+@[simp] theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
+    (l.feraseIdx i).data = l.data.eraseIdx i := by
+  induction l, i using feraseIdx.induct with
+  | @case1 a i lt a' i' ih =>
+    rw [feraseIdx]
+    simp [lt, ih, a', eraseIdx_data_swap i lt]
+  | case2 a i lt =>
+    have : i + 1 ≥ a.size := Nat.ge_of_not_lt lt
+    have last : i + 1 = a.size := Nat.le_antisymm i.is_lt this
+    simp [feraseIdx, lt, List.dropLast_eq_eraseIdx last]
+
+@[simp] theorem data_erase [BEq α] (l : Array α) (a : α) : (l.erase a).data = l.data.erase a := by
+  match h : indexOf? l a with
+  | none =>
+    simp only [erase, h]
+    apply Eq.symm
+    apply List.erase_of_forall_bne
+    rw [←List.indexOf?_eq_none_iff, indexOf?_data, h, Option.map_none']
+  | some i =>
+    simp only [erase, h]
+    rw [data_feraseIdx, ←List.eraseIdx_indexOf_eq_erase]
+    congr
+    rw [List.indexOf_eq_indexOf?, indexOf?_data]
+    simp [h]
 
 /-! ### shrink -/
 
