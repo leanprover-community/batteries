@@ -74,7 +74,8 @@ jobs:
             echo "Branch does not exist, creating it."
             git switch -c batteries-pr-testing-$PR_NUMBER "$BASE"
 
-            sed -i 's,require "leanprover-community" / "batteries" @ git ".\+",require "leanprover-community" / "batteries" from git "https://github.com/$HEAD_REPO" @ "$HEAD_BRANCH",' lakefile.lean
+            # Use the fork and branch name to modify the lakefile.lean
+            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
 
             lake update batteries
             git add lakefile.lean lake-manifest.json
