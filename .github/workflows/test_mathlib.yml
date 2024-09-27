@@ -42,6 +42,23 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
 
+      - name: Retrieve PR information
+        if: steps.workflow-info.outputs.pullRequestNumber != ''
+        id: pr-info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = ${{ steps.workflow-info.outputs.pullRequestNumber }};
+            const pr = await github.pulls.get({
+              owner: 'leanprover-community',
+              repo: 'batteries',
+              pull_number: prNumber
+            });
+            return {
+              headRepo: pr.data.head.repo.full_name,
+              headBranch: pr.data.head.ref
+            };
+
       - name: Check if tag exists
         if: steps.workflow-info.outputs.pullRequestNumber != ''
         id: check_mathlib_tag
@@ -57,7 +74,10 @@ jobs:
           if [ "$EXISTS" = "0" ]; then
             echo "Branch does not exist, creating it."
             git switch -c batteries-pr-testing-${{ steps.workflow-info.outputs.pullRequestNumber }} "$BASE"
-            sed -i 's,require "leanprover-community" / "batteries" @ git ".\+",require "leanprover-community" / "batteries" @ git "refs/pull/${{ steps.workflow-info.outputs.pullRequestNumber }}/head",' lakefile.lean
+
+            # Use the fork and branch name to modify the lakefile.lean
+            sed -i 's,require "leanprover-community" / "batteries" @ git ".\+",require "leanprover-community" / "batteries" @ git "${{ steps.pr-info.outputs.headBranch }}" from git "https://github.com/${{ steps.pr-info.outputs.headRepo }}",' lakefile.lean
+
             lake update batteries
             git add lakefile.lean lake-manifest.json
             git commit -m "Update Batteries branch for testing https://github.com/leanprover-community/batteries/pull/${{ steps.workflow-info.outputs.pullRequestNumber }}"
