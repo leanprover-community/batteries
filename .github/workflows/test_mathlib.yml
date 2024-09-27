@@ -27,7 +27,7 @@ jobs:
 
       # Checkout the mathlib4 repository with all branches
       - name: Checkout mathlib4 repository
-        if: steps.workflow-info.outputs.pullRequestNumber != '' && steps.ready.outputs.mathlib_ready == 'true'
+        if: steps.workflow-info.outputs.pullRequestNumber != ''
         uses: actions/checkout@v4
         with:
           repository: leanprover-community/mathlib4
@@ -43,7 +43,7 @@ jobs:
           echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
 
       - name: Check if tag exists
-        if: steps.workflow-info.outputs.pullRequestNumber != '' && steps.ready.outputs.mathlib_ready == 'true'
+        if: steps.workflow-info.outputs.pullRequestNumber != ''
         id: check_mathlib_tag
         run: |
           git config user.name "leanprover-community-mathlib4-bot"
@@ -70,6 +70,6 @@ jobs:
           fi
 
       - name: Push changes
-        if: steps.workflow-info.outputs.pullRequestNumber != '' && steps.ready.outputs.mathlib_ready == 'true'
+        if: steps.workflow-info.outputs.pullRequestNumber != ''
         run: |
           git push origin batteries-pr-testing-${{ steps.workflow-info.outputs.pullRequestNumber }}
