@@ -244,11 +244,9 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
 
-theorem erase_of_forall_bne [BEq α] (a : α) (xs : List α) (h : ∀ (x : α), x ∈ xs → ¬x == a) :
-    xs.erase a = xs := by
-  rw [erase_eq_eraseP', eraseP_of_forall_not h]
-
--- TODO a version of the above theorem with LawfulBEq and ∉
+theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
+    xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
+  rw [erase_eq_eraseP', eraseP_eq_self_iff]
 
 /-! ### findIdx? -/
 

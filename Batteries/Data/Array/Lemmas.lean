@@ -165,8 +165,8 @@ theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
   | none =>
     simp only [erase, h]
     apply Eq.symm
-    apply List.erase_of_forall_bne
-    rw [←List.indexOf?_eq_none_iff, indexOf?_data, h, Option.map_none']
+    rw [List.erase_eq_self_iff_forall_bne, ←List.indexOf?_eq_none_iff, indexOf?_data,
+        h, Option.map_none']
   | some i =>
     simp only [erase, h]
     rw [data_feraseIdx, ←List.eraseIdx_indexOf_eq_erase]
