@@ -25,7 +25,7 @@ only `pp.*` options.
 
 -/
 
-namespace Mathlib.Tactic
+namespace Batteries.Tactic
 open Lean Meta Elab Tactic Command
 
 /--
@@ -315,5 +315,3 @@ syntax withPosition("#help " colGt &"command" "+"?
 macro_rules
   | `(#help command%$tk $[+%$more]? $(id)?) =>
     `(#help cat$[+%$more]? $(mkIdentFrom tk `command) $(id)?)
-
-end Mathlib.Tactic
