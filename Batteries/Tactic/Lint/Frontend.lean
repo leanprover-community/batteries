@@ -39,7 +39,7 @@ You can append `only name1 name2 ...` to any command to run a subset of linters,
 
 You can add custom linters by defining a term of type `Linter` with the
 `@[env_linter]` attribute.
-A linter defined with the name `Std.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
+A linter defined with the name `Batteries.Tactic.Lint.myNewCheck` can be run with `#lint myNewCheck`
 or `#lint only myNewCheck`.
 If you add the attribute `@[env_linter disabled]` to `linter.myNewCheck` it will be
 registered, but not run by default.
@@ -52,8 +52,8 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-namespace Std.Tactic.Lint
-open Lean Std
+namespace Batteries.Tactic.Lint
+open Lean
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
@@ -97,7 +97,7 @@ Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter) :
-    CoreM (Array (NamedLinter × HashMap Name MessageData)) := do
+    CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   let env ← getEnv
   let options ← getOptions -- TODO: sanitize options?
 
@@ -114,15 +114,15 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
   tasks.mapM fun (linter, decls) => do
-    let mut msgs : HashMap Name MessageData := {}
+    let mut msgs : Std.HashMap Name MessageData := {}
     for (declName, msg?) in decls do
       if let some msg := msg?.get then
         msgs := msgs.insert declName msg
     pure (linter, msgs)
 
 /-- Sorts a map with declaration keys as names by line number. -/
-def sortResults (results : HashMap Name α) : CoreM <| Array (Name × α) := do
-  let mut key : HashMap Name Nat := {}
+def sortResults (results : Std.HashMap Name α) : CoreM <| Array (Name × α) := do
+  let mut key : Std.HashMap Name Nat := {}
   for (n, _) in results.toArray do
     if let some range ← findDeclarationRanges? n then
       key := key.insert n <| range.range.pos.line
@@ -140,7 +140,7 @@ def printWarning (declName : Name) (warning : MessageData) (useErrorFormat : Boo
   addMessageContextPartial m!"#check {← mkConstWithLevelParams declName} /- {warning} -/"
 
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePath := default)
+def printWarnings (results : Std.HashMap Name MessageData) (filePath : System.FilePath := default)
     (useErrorFormat : Bool := false) : CoreM MessageData := do
   (MessageData.joinSep ·.toList Format.line) <$>
     (← sortResults results).mapM fun (declName, warning) =>
@@ -150,10 +150,10 @@ def printWarnings (results : HashMap Name MessageData) (filePath : System.FilePa
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
 The first `drop_fn_chars` characters are stripped from the filename.
 -/
-def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Bool := false) :
+def groupedByFilename (results : Std.HashMap Name MessageData) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
   let sp ← if useErrorFormat then initSrcSearchPath ["."] else pure {}
-  let grouped : HashMap Name (System.FilePath × HashMap Name MessageData) ←
+  let grouped : Std.HashMap Name (System.FilePath × Std.HashMap Name MessageData) ←
     results.foldM (init := {}) fun grouped declName msg => do
       let mod ← findModuleOf? declName
       let mod := mod.getD (← getEnv).mainModule
@@ -174,7 +174,7 @@ def groupedByFilename (results : HashMap Name MessageData) (useErrorFormat : Boo
 Formats the linter results as Lean code with comments and `#check` commands.
 -/
 def formatLinterResults
-    (results : Array (NamedLinter × HashMap Name MessageData))
+    (results : Array (NamedLinter × Std.HashMap Name MessageData))
     (decls : Array Name)
     (groupByFilename : Bool)
     (whereDesc : String) (runSlowLinters : Bool)
