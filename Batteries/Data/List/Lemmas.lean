@@ -213,12 +213,6 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
   simp [Nat.sub_add_cancel h]
 
-@[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
-
-@[simp] theorem getElem_tail (l : List α) (h : n < l.tail.length) :
-    l.tail[n] = l[n + 1]'(by simp at h; omega) := by
-  cases l; contradiction; simp
-
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
