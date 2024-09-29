@@ -86,7 +86,52 @@ syntax ... [Lean.Parser.Syntax.numPrec]
 #guard_msgs in
 #help cat prec
 
--- TODO: test #help cat+ somehow...
+/--
+info:
+syntax "("... [«prec(_)»]
+  Parentheses are used for grouping precedence expressions.
++ macro «_aux_Init_Notation___macroRules_prec(_)_1»
+  Parentheses are used for grouping precedence expressions.
+
+syntax "+"... [Lean.Parser.Syntax.addPrec]
+  Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
++ macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_addPrec_1
+
+syntax "-"... [Lean.Parser.Syntax.subPrec]
+  Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
++ macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_subPrec_1
+
+syntax "arg"... [precArg]
+  Precedence used for application arguments (`do`, `by`, ...).
++ macro _aux_Init_Notation___macroRules_precArg_1
+  Precedence used for application arguments (`do`, `by`, ...).
+
+syntax "lead"... [precLead]
+  Precedence used for terms not supposed to be used as arguments (`let`, `have`, ...).
++ macro _aux_Init_Notation___macroRules_precLead_1
+  Precedence used for terms not supposed to be used as arguments (`let`, `have`, ...).
+
+syntax "max"... [precMax]
+  Maximum precedence used in term parsers, in particular for terms in
+  function position (`ident`, `paren`, ...)
++ macro _aux_Init_Notation___macroRules_precMax_1
+  Maximum precedence used in term parsers, in particular for terms in
+  function position (`ident`, `paren`, ...)
+
+syntax "min"... [precMin]
+  Minimum precedence used in term parsers.
++ macro _aux_Init_Notation___macroRules_precMin_1
+  Minimum precedence used in term parsers.
+
+syntax "min1"... [precMin1]
+  `(min+1)` (we can only write `min+1` after `Meta.lean`)
++ macro _aux_Init_Notation___macroRules_precMin1_1
+  `(min+1)` (we can only write `min+1` after `Meta.lean`)
+
+syntax ... [Lean.Parser.Syntax.numPrec]
+-/
+#guard_msgs in
+#help cat+ prec
 
 /-! #help cats -/
 
@@ -147,6 +192,20 @@ syntax "#exit"... [Lean.Parser.Command.exit]
 #guard_msgs in
 #help command "#e"
 
+/--
+info:
+syntax "#eval"... [Lean.Parser.Command.eval]
++ command elab Lean.Elab.Command.elabEval
+
+syntax "#eval!"... [Lean.Parser.Command.evalBang]
++ command elab Lean.Elab.Command.elabEvalBang
+
+syntax "#exit"... [Lean.Parser.Command.exit]
++ command elab Lean.Elab.Command.elabExit
+-/
+#guard_msgs in
+#help command+ "#e"
+
 /-! #help conv -/
 
 -- this is a long and constantly updated listing, we don't check the output
@@ -172,6 +231,23 @@ syntax "rewrite"... [Lean.Parser.Tactic.Conv.rewrite]
 -/
 #guard_msgs in
 #help conv "re"
+
+/--
+info:
+syntax "reduce"... [Lean.Parser.Tactic.Conv.reduce]
+  Puts term in normal form, this tactic is meant for debugging purposes only.
++ tactic elab Lean.Elab.Tactic.Conv.evalReduce
+
+syntax "repeat"... [Lean.Parser.Tactic.Conv.convRepeat_]
+  `repeat convs` runs the sequence `convs` repeatedly until it fails to apply.
++ macro Lean.Parser.Tactic.Conv._aux_Init_Conv___macroRules_Lean_Parser_Tactic_Conv_convRepeat__1
+
+syntax "rewrite"... [Lean.Parser.Tactic.Conv.rewrite]
+  `rw [thm]` rewrites the target using `thm`. See the `rw` tactic for more information.
++ tactic elab Lean.Elab.Tactic.Conv.evalRewrite
+-/
+#guard_msgs in
+#help conv+ "re"
 
 /-! #help option -/
 
@@ -221,7 +297,17 @@ and `h : ¬ p` in the second branch.
 #guard_msgs in
 #help tactic by
 
-/-! #help tactic -/
+/--
+info:
+syntax "by_cases"... [«tacticBy_cases_:_»]
+  `by_cases (h :)? p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch.
++ macro «_aux_Init_ByCases___macroRules_tacticBy_cases_:__2»
++ macro «_aux_Init_ByCases___macroRules_tacticBy_cases_:__1»
+-/
+#guard_msgs in
+#help tactic+ by
+
+/-! #help term -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -242,3 +328,15 @@ syntax "default_or_ofNonempty%"... [Lean.Parser.Term.defaultOrOfNonempty]
 -/
 #guard_msgs in
 #help term de
+
+/--
+info:
+syntax "decl_name%"... [Lean.Parser.Term.declName]
+  A macro which evaluates to the name of the currently elaborating declaration.
++ term elab Lean.Elab.Term.elabDeclName
+
+syntax "default_or_ofNonempty%"... [Lean.Parser.Term.defaultOrOfNonempty]
++ term elab Lean.Elab.Term.Op.elabDefaultOrNonempty
+-/
+#guard_msgs in
+#help term+ de
