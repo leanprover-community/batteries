@@ -21,11 +21,11 @@ def Pairwise (R : α → α → Prop) (as : Array α) : Prop := as.toList.Pairwi
 
 theorem pairwise_iff_get {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Fin as.size), i < j → R (as.get i) (as.get j) := by
-  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_toList_get]; rfl
+  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_toList_get]
 
 theorem pairwise_iff_getElem {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Nat) (_ : i < as.size) (_ : j < as.size), i < j → R as[i] as[j] := by
-  unfold Pairwise; simp [List.pairwise_iff_getElem, toList_length]; rfl
+  unfold Pairwise; simp [List.pairwise_iff_getElem, toList_length]
 
 instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R as) :=
   have : (∀ (j : Fin as.size) (i : Fin j.val), R as[i.val] (as[j.val])) ↔ Pairwise R as := by

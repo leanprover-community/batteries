@@ -68,8 +68,8 @@ theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
       let i_bs : Fin bs.toList.length := ⟨i, hbs⟩
       rw [h₁, List.append_assoc]
       congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_toList_getElem,
-        getElem_eq_toList_getElem]
+      rw [← List.zipWith_append (h := by simp), getElem_eq_getElem_toList,
+        getElem_eq_getElem_toList]
       show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
         ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
         List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
@@ -96,7 +96,7 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
     (l.filter p).size ≤ l.size := by
-  simp only [← toList_length, filter_toList]
+  simp only [← toList_length, toList_filter]
   apply List.length_filter_le
 
 /-! ### join -/
@@ -124,15 +124,15 @@ theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L �
 
 /-! ### indexOf? -/
 
-theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
-    l.data.indexOf? a = (l.indexOf? a).map Fin.val := by
+theorem indexOf?_toList [BEq α] {a : α} {l : Array α} :
+    l.toList.indexOf? a = (l.indexOf? a).map Fin.val := by
   simpa using aux l 0
 where
   aux (l : Array α) (i : Nat) :
-       ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
+       ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -144,42 +144,8 @@ where
 
 /-! ### erase -/
 
-theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
-    (l.swap ⟨i+1, lt⟩ ⟨i, Nat.lt_of_succ_lt lt⟩).data.eraseIdx (i+1) = l.data.eraseIdx i := by
-  let ⟨xs⟩ := l
-  induction i generalizing xs <;> let x₀::x₁::xs := xs
-  case zero => simp [swap, get]
-  case succ i ih _ =>
-    have lt' := Nat.lt_of_succ_lt_succ lt
-    have : (swap ⟨x₀::x₁::xs⟩ ⟨i.succ + 1, lt⟩ ⟨i.succ, Nat.lt_of_succ_lt lt⟩).data
-        = x₀::(swap ⟨x₁::xs⟩ ⟨i + 1, lt'⟩ ⟨i, Nat.lt_of_succ_lt lt'⟩).data := by
-      simp [swap_def, getElem_eq_data_getElem]
-    simp [this, ih]
-
-@[simp] theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
-    (l.feraseIdx i).data = l.data.eraseIdx i := by
-  induction l, i using feraseIdx.induct with
-  | @case1 a i lt a' i' ih =>
-    rw [feraseIdx]
-    simp [lt, ih, a', eraseIdx_data_swap i lt]
-  | case2 a i lt =>
-    have : i + 1 ≥ a.size := Nat.ge_of_not_lt lt
-    have last : i + 1 = a.size := Nat.le_antisymm i.is_lt this
-    simp [feraseIdx, lt, List.dropLast_eq_eraseIdx last]
-
-@[simp] theorem data_erase [BEq α] (l : Array α) (a : α) : (l.erase a).data = l.data.erase a := by
-  match h : indexOf? l a with
-  | none =>
-    simp only [erase, h]
-    apply Eq.symm
-    rw [List.erase_eq_self_iff_forall_bne, ←List.indexOf?_eq_none_iff, indexOf?_data,
-        h, Option.map_none']
-  | some i =>
-    simp only [erase, h]
-    rw [data_feraseIdx, ←List.eraseIdx_indexOf_eq_erase]
-    congr
-    rw [List.indexOf_eq_indexOf?, indexOf?_data]
-    simp [h]
+@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
+    (l.erase a).toList = l.toList.erase a
 
 /-! ### shrink -/
 
@@ -203,7 +169,7 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by
 theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
   rw [mapM, mapM.map]; rfl
 
-@[simp] theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty ..
+theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 /-! ### mem -/
 

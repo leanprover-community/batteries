@@ -59,10 +59,3 @@ def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
   let oldSize := s.size
   let s := s.insert a
   (s, s.size == oldSize)
-
-/--
-`O(n)`. Obtain a `HashSet` from an array.
--/
-@[inline]
-protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
-  HashSet.empty.insertMany as

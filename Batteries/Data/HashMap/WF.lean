@@ -26,7 +26,7 @@ theorem toList_update (self : Buckets α β) (i d h) :
 theorem exists_of_update (self : Buckets α β) (i d h) :
     ∃ l₁ l₂, self.1.toList = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.toList = l₁ ++ d :: l₂ := by
-  simp only [Array.toList_length, Array.ugetElem_eq_getElem, Array.getElem_eq_toList_getElem]
+  simp only [Array.toList_length, Array.ugetElem_eq_getElem, Array.getElem_eq_getElem_toList]
   exact List.exists_of_set h
 
 theorem update_update (self : Buckets α β) (i d d' h h') :
@@ -46,7 +46,7 @@ theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF 
   refine ⟨fun _ h => ?_, fun i h => ?_⟩
   · simp only [Buckets.mk, mkArray, List.mem_replicate, ne_eq] at h
     simp [h, List.Pairwise.nil]
-  · simp [Buckets.mk, empty', mkArray, Array.getElem_eq_toList_getElem, AssocList.All]
+  · simp [Buckets.mk, empty', mkArray, Array.getElem_eq_getElem_toList, AssocList.All]
 
 theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : buckets.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
@@ -60,7 +60,7 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     | .inl hl => H.1 _ hl
     | .inr rfl => h₁ (H.1 _ (Array.getElem_mem_toList ..))
   · revert hp
-    simp only [Array.getElem_eq_toList_getElem, toList_update, List.getElem_set,
+    simp only [Array.getElem_eq_getElem_toList, toList_update, List.getElem_set,
       Array.toList_length, update_size]
     split <;> intro hp
     · next eq => exact eq ▸ h₂ (H.2 _ _) _ hp
@@ -98,19 +98,19 @@ where
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b
       · case a =>
-        simp only [Array.data_length, Array.data_set]
+        simp only [Array.toList_length, Array.toList_set]
         simp [List.getD_eq_getElem?_getD, List.getElem?_set, Option.map_eq_map]; split
         · cases source.toList[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
-        simp only [Array.data_length, Array.data_set, Array.get_eq_getElem, AssocList.foldl_eq]
+        simp only [Array.toList_length, Array.toList_set, Array.get_eq_getElem, AssocList.foldl_eq]
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
           List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.toList_length]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
-        rw [← Array.getElem_eq_toList_getElem]
+        rw [← Array.getElem_eq_getElem_toList]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
         induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
     · next H =>
@@ -173,7 +173,7 @@ where
       · match List.mem_or_eq_of_mem_set hl with
         | .inl hl => exact hs₁ _ hl
         | .inr e => exact e ▸ .nil
-      · simp only [Array.toList_length, Array.size_set, Array.getElem_eq_toList_getElem,
+      · simp only [Array.toList_length, Array.size_set, Array.getElem_eq_getElem_toList,
           Array.toList_set, List.getElem_set]
         split
         · nofun
@@ -371,7 +371,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_toList_getElem,
+  · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_getElem_toList,
       List.getElem_map] at h ⊢
     have := H.out.2.2 _ h
     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
@@ -387,13 +387,15 @@ variable {_ : BEq α} {_ : Hashable α}
 @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.mapVal f, self.2.mapVal⟩
 
-/--
-Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
-`a, c` is pushed into the new map; else the key is removed from the map.
--/
-@[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
-  ⟨self.1.filterMap f, self.2.filterMap⟩
+-- Temporarily removed on lean-pr-testing-5403.
 
-/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
-@[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
-  self.filterMap fun a b => bif f a b then some b else none
+-- /--
+-- Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+-- `a, c` is pushed into the new map; else the key is removed from the map.
+-- -/
+-- @[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
+--   ⟨self.1.filterMap f, self.2.filterMap⟩
+
+-- /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+-- @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
+--   self.filterMap fun a b => bif f a b then some b else none
