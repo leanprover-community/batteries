@@ -15,10 +15,44 @@ namespace List
 @[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
   simp [Array.mem_def]
 
+/-! ### toArray-/
+
+@[simp] theorem size_toArrayAux (l : List α) (r : Array α) :
+    (l.toArrayAux r).size = r.size + l.length := by
+  induction l generalizing r with
+  | nil => simp [toArrayAux]
+  | cons a l ih =>
+    simp [ih, List.toArrayAux]
+    omega
+
+@[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
+    (Array.mk xs)[i] = xs[i] := rfl
+
+@[simp] theorem getElem_toArray (l : List α) (i : Nat) (h : i < l.toArray.size) :
+    l.toArray[i] = l[i]'(by simpa using h) := by
+  rw [Array.getElem_eq_data_getElem]
+  simp
+
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
+
+/-! ### dropLast -/
+
+theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.length) :
+    xs.dropLast = List.eraseIdx xs i := by
+  induction i generalizing xs with
+  | zero =>
+    let [x] := xs
+    rfl
+  | succ n ih =>
+    let x::xs := xs
+    simp at last_idx
+    rw [dropLast, eraseIdx]
+    congr
+    exact ih last_idx
+    exact fun _ => nomatch xs
 
 /-! ### get? -/
 
@@ -192,6 +226,17 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
+/-! ### tail -/
+
+theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
+  simp [Nat.sub_add_cancel h]
+
+@[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
+
+@[simp] theorem getElem_tail (l : List α) (h : n < l.tail.length) :
+    l.tail[n] = l[n + 1]'(by simp at h; omega) := by
+  cases l; contradiction; simp
+
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
@@ -207,6 +252,23 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 /-! ### erase -/
 
 @[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
+
+theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
+    xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
+  rw [erase_eq_eraseP', eraseP_eq_self_iff]
+
+/-! ### findIdx? -/
+
+theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
+    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [findIdx_cons, findIdx?_cons]
+    if h : p x then
+      simp [h]
+    else
+      cases h' : findIdx? p xs <;> simp [h, h', ih]
 
 /-! ### replaceF -/
 
@@ -551,6 +613,14 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
     bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
   simp [indexesOf, findIdxs_cons]
 
+@[simp] theorem eraseIdx_indexOf_eq_erase [BEq α] (a : α) (l : List α) :
+    l.eraseIdx (l.indexOf a) = l.erase a := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [List.erase, indexOf_cons]
+    cases x == a <;> simp [ih]
+
 theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.indexOf x ∈ xs.indexesOf x := by
   induction xs with
@@ -564,6 +634,19 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+@[simp] theorem indexOf?_nil [BEq α] : ([] : List α).indexOf? x = none := rfl
+theorem indexOf?_cons [BEq α] :
+    (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
+  simp [indexOf?]
+
+theorem indexOf?_eq_none_iff [BEq α] {a : α} {l : List α} :
+    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
+  simp [indexOf?, findIdx?_eq_none_iff]
+
+theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
+    l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
+  simp [indexOf, indexOf?, findIdx_eq_findIdx?]
 
 /-! ### insertP -/
 

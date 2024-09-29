@@ -20,7 +20,7 @@ jobs:
         name: build, test, and lint batteries
         uses: leanprover/lean-action@v1
         with:
-          build-args: '-Kwerror'
+          build-args: '--wfail'
 
       - name: Check that all files are imported
         run: lake env lean scripts/check_imports.lean
