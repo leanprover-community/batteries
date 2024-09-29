@@ -1,26 +1,28 @@
 import Batteries.Tactic.HelpCmd
 
-/-! The #help command family
+/-! The `#help` command
 
-The #help command family currently contains these subcommands:
+The `#help` command family currently contains these subcommands:
 
-* #help attr
-* #help cat
-* #help cats
-* #help command (abbrev for #help cat command)
-* #help conv (abbrev for #help cat conv)
-* #help option
-* #help tactic (abbrev for #help cat tactic)
-* #help term (abbrev for #help cat term)
+* `#help attr` / `#help attribute`
+* `#help cat`
+* `#help cats`
+* `#help command` (abbrev for `#help cat command`)
+* `#help conv` (abbrev for `#help cat conv`)
+* `#help option`
+* `#help tactic` (abbrev for `#help cat tactic`)
+* `#help term` (abbrev for `#help cat term`)
 
-All forms take an optional identifier prefix to narrow the search.
+All forms take an optional identifier prefix to narrow the search. The `#help cat` command has a
+variant `#help cat+` that displays additional information, similarly for commands derived from
+`#help cat`.
 
 WARNING: Some of these tests will need occasional updates when new features are added and even when
 some documentation is edited. This type of break will be unexpected but the fix will not be
 unexpected! Just update the guard text to match the output after your addition.
 -/
 
-/-! #help attr -/
+/-! `#help attr` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -42,7 +44,7 @@ info:
 #guard_msgs in
 #help attr inl
 
-/-! #help cat -/
+/-! `#help cat` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -133,7 +135,7 @@ syntax ... [Lean.Parser.Syntax.numPrec]
 #guard_msgs in
 #help cat+ prec
 
-/-! #help cats -/
+/-! `#help cats` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -169,7 +171,7 @@ category prio [Lean.Parser.Category.prio]
 #guard_msgs in
 #help cats pr
 
-/-! #help command -/
+/-! `#help command` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -249,7 +251,7 @@ syntax "rewrite"... [Lean.Parser.Tactic.Conv.rewrite]
 #guard_msgs in
 #help conv+ "re"
 
-/-! #help option -/
+/-! `#help option` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
@@ -276,7 +278,7 @@ option pp.instantiateMVars : Bool := true
 #guard_msgs in
 #help option pp.ins
 
-/-! #help tactic -/
+/-! `#help tactic` -/
 
 -- this is a long and constantly updated listing, we don't check the output
 #guard_msgs(error, drop info) in
