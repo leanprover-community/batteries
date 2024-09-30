@@ -73,7 +73,7 @@ theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
       show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
         ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
         List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
-      simp only [toList_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
+      simp only [length_toList, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
@@ -96,7 +96,7 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
     (l.filter p).size ≤ l.size := by
-  simp only [← toList_length, toList_filter]
+  simp only [← length_toList, toList_filter]
   apply List.length_filter_le
 
 /-! ### join -/
