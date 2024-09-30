@@ -26,7 +26,7 @@ theorem toList_update (self : Buckets α β) (i d h) :
 theorem exists_of_update (self : Buckets α β) (i d h) :
     ∃ l₁ l₂, self.1.toList = l₁ ++ self.1[i] :: l₂ ∧ List.length l₁ = i.toNat ∧
       (self.update i d h).1.toList = l₁ ++ d :: l₂ := by
-  simp only [Array.toList_length, Array.ugetElem_eq_getElem, Array.getElem_eq_getElem_toList]
+  simp only [Array.length_toList, Array.ugetElem_eq_getElem, Array.getElem_eq_getElem_toList]
   exact List.exists_of_set h
 
 theorem update_update (self : Buckets α β) (i d d' h h') :
