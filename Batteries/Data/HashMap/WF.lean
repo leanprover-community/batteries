@@ -363,7 +363,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   suffices ∀ bk sz (h : 0 < bk.length),
     m.buckets.val.mapM (m := M) (filterMap.go f .nil) ⟨0⟩ = (⟨bk⟩, ⟨sz⟩) →
     WF ⟨sz, ⟨bk⟩, h⟩ from this _ _ _ rfl
-  simp only [Array.mapM_eq_mapM_toList, bind, StateT.bind, H2, List.map_map, Nat.zero_add, g]
+  simp only [Array.mapM_eq_mapM_toList, Functor.map, StateT.map, H2, List.map_map, Nat.zero_add, g]
   intro bk sz h e'; cases e'
   refine .mk (by simp [Buckets.size]) ⟨?_, fun i h => ?_⟩
   · simp only [List.forall_mem_map, List.toList_toAssocList]
@@ -371,7 +371,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp only [Array.size_mk, List.length_map, Array.toList_length, Array.getElem_eq_getElem_toList,
+  · simp only [Array.size_mk, List.length_map, Array.length_toList, Array.getElem_eq_getElem_toList,
       List.getElem_map] at h ⊢
     have := H.out.2.2 _ h
     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,

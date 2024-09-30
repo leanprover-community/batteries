@@ -309,8 +309,7 @@ theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rw [findAux_s]; split <;> [rfl; skip]
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     have := lt_of_parentD (by rwa [parentD_eq])
-    rw [rankD_eq' (by simp [FindAux.size_eq, h])]
-    rw [Array.get_modify (by rwa [FindAux.size_eq])]
+    rw [rankD_eq' (by simp [FindAux.size_eq, h]), Array.get_modify]
     split <;> simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt x⟩), -Array.get_eq_getElem]
   else
     simp only [rankD, Array.data_length, Array.get_eq_getElem, rank]
