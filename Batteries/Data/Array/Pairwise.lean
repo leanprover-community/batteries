@@ -46,7 +46,7 @@ theorem pairwise_pair : #[a, b].Pairwise R ↔ R a b := by
 
 theorem pairwise_append {as bs : Array α} :
     (as ++ bs).Pairwise R ↔ as.Pairwise R ∧ bs.Pairwise R ∧ (∀ x ∈ as, ∀ y ∈ bs, R x y) := by
-  unfold Pairwise; simp [← mem_toList, append_toList, ← List.pairwise_append]
+  unfold Pairwise; simp [← mem_toList, toList_append, ← List.pairwise_append]
 
 theorem pairwise_push {as : Array α} :
     (as.push a).Pairwise R ↔ as.Pairwise R ∧ (∀ x ∈ as, R x a) := by
@@ -56,7 +56,7 @@ theorem pairwise_push {as : Array α} :
 
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
     (as.extract start stop).Pairwise R := by
-  simp only [pairwise_iff_getElem, get_extract, size_extract] at h ⊢
+  simp only [pairwise_iff_getElem, getElem_extract, size_extract] at h ⊢
   intro _ _ _ _ hlt
   apply h
   exact Nat.add_lt_add_left hlt start
