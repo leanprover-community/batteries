@@ -25,7 +25,7 @@ open Perm (swap)
 
 section Subperm
 
-theorem nil_subperm {l : List α} : [] <+~ l := ⟨[], Perm.nil, by simp⟩
+@[simp] theorem nil_subperm {l : List α} : [] <+~ l := ⟨[], Perm.nil, by simp⟩
 
 theorem Perm.subperm_left {l l₁ l₂ : List α} (p : l₁ ~ l₂) : l <+~ l₁ ↔ l <+~ l₂ :=
   suffices ∀ {l₁ l₂ : List α}, l₁ ~ l₂ → l <+~ l₁ → l <+~ l₂ from ⟨this p, this p.symm⟩
@@ -47,6 +47,8 @@ theorem Subperm.trans {l₁ l₂ l₃ : List α} (s₁₂ : l₁ <+~ l₂) (s₂
   let ⟨l₁', p₁, s₁⟩ := p₂.subperm_left.2 s₁₂
   ⟨l₁', p₁, s₁.trans s₂⟩
 
+theorem Subperm.cons_self : l <+~ a :: l := ⟨l, .refl _, sublist_cons_self ..⟩
+
 theorem Subperm.cons_right {α : Type _} {l l' : List α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
   h.trans (sublist_cons_self x l').subperm
 
@@ -66,6 +68,9 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
     filter p l <+~ filter p l' := by
   let ⟨xs, hp, h⟩ := h
   exact ⟨_, hp.filter p, h.filter p⟩
+
+@[simp] theorem subperm_nil : l <+~ [] ↔ l = [] :=
+  ⟨fun h ↦ length_eq_zero.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
 
 @[simp] theorem singleton_subperm_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
   refine ⟨fun ⟨s, hla, h⟩ => ?_, fun h => ⟨[a], .rfl, singleton_sublist.mpr h⟩⟩
