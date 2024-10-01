@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Lean.Data.HashSet
+import Std.Data.HashSet
 
-namespace Lean.HashSet
+namespace Std.HashSet
 
 variable [BEq α] [Hashable α]
 
@@ -54,7 +54,7 @@ instance : BEq (HashSet α) where
 `O(1)` amortized. Similar to `insert`, but also returns a Boolean flag indicating whether an
 existing entry has been replaced with `a => b`.
 -/
-@[inline]
+@[inline, deprecated containsThenInsert (since := "2024-09-17")]
 def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
   let oldSize := s.size
   let s := s.insert a
@@ -65,11 +65,4 @@ def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
 -/
 @[inline]
 protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
-  HashSet.empty.insertMany as
-
-/--
-`O(n)`. Obtain a `HashSet` from a list.
--/
-@[inline]
-protected def ofList [BEq α] [Hashable α] (as : List α) : HashSet α :=
   HashSet.empty.insertMany as
