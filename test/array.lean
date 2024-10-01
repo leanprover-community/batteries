@@ -1,4 +1,3 @@
-import Batteries.Util.CheckTactic
 import Batteries.Data.Array
 
 section

@@ -19,8 +19,6 @@ example {α β γ δ} {F : ∀ {α β}, (α → β) → γ → δ} {f g : α →
   -- apply_assumption -- FIXME
   apply h
 
-attribute [ext] Subtype.eq
-
 example {α β : Type _} {f : _ → β} {x y : { x : { x : α // x = x } // x = x }}
     (h : x.1 = y.1) : f x = f y := by
   congr with : 1

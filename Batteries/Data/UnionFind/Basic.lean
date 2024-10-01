@@ -3,8 +3,9 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.Array.Lemmas
 import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.SeqFocus
+import Batteries.Data.Array.Lemmas
 
 namespace Batteries
 
@@ -301,19 +302,22 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
     apply dif_pos
     exact parent'_lt ..
 
+set_option linter.deprecated false in
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
   if h : i < self.size then
     rw [findAux_s]; split <;> [rfl; skip]
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     have := lt_of_parentD (by rwa [parentD_eq])
-    rw [rankD_eq' (by simp [FindAux.size_eq, h]), Array.get_modify (by rwa [FindAux.size_eq])]
+    rw [rankD_eq' (by simp [FindAux.size_eq, h])]
+    rw [Array.get_modify (by rwa [FindAux.size_eq])]
     split <;> simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt x⟩), -Array.get_eq_getElem]
   else
     simp only [rankD, Array.data_length, Array.get_eq_getElem, rank]
     rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
 termination_by self.rankMax - self.rank x
 
+set_option linter.deprecated false in
 theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i =
     if i = x then self.rootD x else parentD (self.findAux ⟨_, self.parent'_lt x⟩).s i := by
