@@ -3,9 +3,7 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-import Batteries.Lean.Name
 import Batteries.Lean.Util.EnvSearch
-import Batteries.Lean.Delaborator
 import Lean.Elab.Tactic.Config
 
 namespace Batteries.Tactic
@@ -79,13 +77,9 @@ private def matchingConstants (opts : PrintPrefixConfig) (pre : Name)
   let cinfos := cinfos.qsort fun p q => lexNameLt (reverseName p.name) (reverseName q.name)
   cinfos.mapM fun cinfo => do
     if opts.showTypes then
-      pure <| .ofPPFormat { pp := fun
-        | some ctx => ctx.runMetaM <|
-          withOptions (pp.tagAppFns.set · true) <| PrettyPrinter.ppSignature cinfo.name
-        | none     => return f!"{cinfo.name}"  -- should never happen
-      } ++ "\n"
+      pure <| MessageData.signature cinfo.name ++ "\n"
     else
-      pure m!"{ppConst (← mkConstWithLevelParams cinfo.name)}\n"
+      pure m!"{MessageData.ofConst (← mkConstWithLevelParams cinfo.name)}\n"
 
 /--
 The command `#print prefix foo` will print all definitions that start with

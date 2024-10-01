@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Util.FoldConsts
 import Lean.Linter.UnusedVariables
-import Batteries.Lean.Delaborator
 
 /-!
 # The `#show_unused` command
@@ -61,11 +60,11 @@ elab tk:"#show_unused" ids:(ppSpace colGt ident)* : command => do
   let pos := fileMap.toPosition <| (tk.getPos? <|> (← getRef).getPos?).getD 0
   let pfx := m!"#show_unused (line {pos.line}) says:\n"
   let post := m!" is not used transitively by \
-    {← ns.mapM (Lean.ppConst <$> mkConstWithLevelParams ·)}"
+    {← ns.mapM (MessageData.ofConst <$> mkConstWithLevelParams ·)}"
   for (c, range) in unused do
     logWarningAt (Syntax.ofRange range) <|
       .tagged Linter.linter.unusedVariables.name <|
-        m!"{pfx}{Lean.ppConst (← mkConstWithLevelParams c)}{post}"
+        m!"{pfx}{MessageData.ofConst (← mkConstWithLevelParams c)}{post}"
   if unused.isEmpty then
     logInfoAt tk "No unused definitions"
   else
