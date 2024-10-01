@@ -6,6 +6,7 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 import Lean.Elab.Command
 import Lean.Elab.DeclarationRange
 import Lean.Compiler.NoncomputableAttr
+import Lean.DocString
 import Batteries.CodeAction.Deprecated
 
 /-!
@@ -18,7 +19,7 @@ an iff theorem.
 
 namespace Batteries.Tactic.Alias
 
-open Lean Elab Parser.Command Std
+open Lean Elab Parser.Command
 
 /-- An alias can be in one of three forms -/
 inductive AliasInfo where

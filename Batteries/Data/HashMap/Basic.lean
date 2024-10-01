@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 import Batteries.Data.AssocList
 import Batteries.Data.Nat.Basic
 import Batteries.Data.Array.Monadic
-import Batteries.Classes.BEq
 
 namespace Batteries.HashMap
 

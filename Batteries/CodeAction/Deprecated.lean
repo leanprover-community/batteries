@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Server.CodeActions
 import Batteries.CodeAction.Basic
-import Batteries.Lean.Position
 
 /-!
 # Code action for @[deprecated] replacements
@@ -15,8 +14,10 @@ This is an opt-in mechanism for making machine-applicable `@[deprecated]` defini
 whenever the deprecation lint also fires, allowing the user to replace the usage of the deprecated
 constant.
 -/
-namespace Std
-open Lean Elab Server Lsp RequestM
+
+namespace Batteries
+
+open Lean Elab Server Lsp RequestM CodeAction
 
 /-- An environment extension for identifying `@[deprecated]` definitions which can be auto-fixed -/
 initialize machineApplicableDeprecated : TagDeclarationExtension ← mkTagDeclarationExtension
@@ -32,7 +33,7 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
   for m in snap.msgLog.toList do
     if m.data.isDeprecationWarning then
       if h : _ then
-        msgs := msgs.push (snap.cmdState.messages.toList[i])
+        msgs := msgs.push (snap.cmdState.messages.toList[i]'h)
     i := i + 1
   if msgs.isEmpty then return #[]
   let start := doc.meta.text.lspPosToUtf8Pos params.range.start

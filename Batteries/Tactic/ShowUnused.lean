@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Util.FoldConsts
 import Lean.Linter.UnusedVariables
-import Batteries.Lean.Delaborator
 
 /-!
 # The `#show_unused` command

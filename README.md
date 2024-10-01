@@ -23,7 +23,9 @@ Additionally, please make sure that you're using the version of Lean that the cu
   curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
   ```
   If this also fails, follow the instructions under `Regular install` [here](https://leanprover-community.github.io/get_started.html).
-* To build `batteries` run `lake build`. To build and run all tests, run `make`.
+* To build `batteries` run `lake build`.
+* To build and run all tests, run `lake test`.
+* To run the environment linter, run `lake lint`.
 * If you added a new file, run the command `scripts/updateBatteries.sh` to update the
   imports.
 
