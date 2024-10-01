@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.BuiltinTerm
 import Lean.Elab.BuiltinNotation
-import Batteries.Lean.Name
 import Batteries.Lean.Position
 import Batteries.CodeAction.Attr
 import Lean.Meta.Tactic.TryThis
@@ -16,7 +15,7 @@ import Lean.Server.CodeActions.Provider
 
 This declares some basic tactic code actions, using the `@[tactic_code_action]` API.
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Meta Elab Server RequestM CodeAction
 

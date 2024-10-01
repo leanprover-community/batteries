@@ -2,6 +2,7 @@ import Batteries.Tactic.Where
 
 -- Return to pristine state
 set_option linter.missingDocs false
+set_option internal.cmdlineSnapshots false
 
 /-- info: -- In root namespace with initial scope -/
 #guard_msgs in #where

@@ -34,7 +34,7 @@ def warn (fixable : Bool) (msg : String) : LogIO Unit := do
 -- | Predicate indicates if warnings are present and if they fixable.
 def getWarningInfo : LogIO (Bool × Bool) :=  get
 
-def createModuleHashmap (env : Environment) : HashMap Name ModuleData := Id.run do
+def createModuleHashmap (env : Environment) : Std.HashMap Name ModuleData := Id.run do
   let mut nameMap := {}
   for i in [0:env.header.moduleNames.size] do
     let nm := env.header.moduleNames[i]!
@@ -70,7 +70,7 @@ def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
 /-- Check for imports and return true if warnings issued. -/
 def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Array Name) :
     LogIO Bool := do
-  let names : HashSet Name := HashSet.ofArray (modData.imports.map (·.module))
+  let names : Std.HashSet Name := Std.HashSet.ofArray (modData.imports.map (·.module))
   let mut warned := false
   for req in reqImports do
     if !names.contains req then
@@ -80,11 +80,11 @@ def checkMissingImports (modName : Name) (modData : ModuleData) (reqImports : Ar
 
 /-- Check directory entry in `Batteries/Data/` -/
 def checkBatteriesDataDir
-    (modMap : HashMap Name ModuleData)
+    (modMap : Std.HashMap Name ModuleData)
     (entry : IO.FS.DirEntry) (autofix : Bool := false) : LogIO Unit := do
   let moduleName := `Batteries.Data ++ .mkSimple entry.fileName
   let requiredImports ← addModulesIn (recurse := true) #[] (root := moduleName) entry.path
-  let .some module := modMap.find? moduleName
+  let .some module := modMap[moduleName]?
     | warn true s!"Could not find {moduleName}; Not imported into Batteries."
       let path := modulePath moduleName
       -- We refuse to generate imported modules whose path doesn't exist.
@@ -134,7 +134,7 @@ def checkBatteriesDataImports : MetaM Unit := do
       if ← entry.path.isDir then
         checkBatteriesDataDir (autofix := autofix) modMap entry
     let batteriesImports ← expectedBatteriesImports
-    let .some batteriesMod := modMap.find? `Batteries
+    let .some batteriesMod := modMap[`Batteries]?
         | warn false "Missing Batteries module!; Run `lake build`."
     let warned ← checkMissingImports `Batteries batteriesMod batteriesImports
     if autofix && warned then

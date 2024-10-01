@@ -12,9 +12,9 @@ import Lean.Util.Recognizers
 import Lean.DocString
 import Batteries.Tactic.Lint.Basic
 
-open Lean Meta
+open Lean Meta Std
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Various linters
@@ -143,7 +143,7 @@ In pseudo-mathematical form, this returns `{{p : parameter | p ∈ u} | (u : lev
 FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality
 instance. It will ignore `nm₀.proof_i` declarations.
 -/
-private def univParamsGrouped (e : Expr) (nm₀ : Name) : Lean.HashSet (Array Name) :=
+private def univParamsGrouped (e : Expr) (nm₀ : Name) : Std.HashSet (Array Name) :=
   runST fun σ => do
     let res ← ST.mkRef (σ := σ) {}
     e.forEach fun
@@ -239,9 +239,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
     | _ => return
   res.get
 
-/-- A linter for checking that declarations don't have unused term mode have statements. We do not
-tag this as `@[env_linter]` so that it is not in the default linter set as it is slow and an
-uncommon problem. -/
+/-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
   errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. \
