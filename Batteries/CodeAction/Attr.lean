@@ -14,7 +14,7 @@ import Lean.Server.CodeActions.Basic
 * Attribute `@[tactic_code_action]` collects code actions which will be called
   on each occurrence of a tactic.
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Elab Server Lsp RequestM Snapshots
 

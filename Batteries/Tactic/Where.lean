@@ -40,10 +40,14 @@ private def describeOpenDecls (ds : List OpenDecl) : MessageData := Id.run do
 
 private def describeOptions (opts : Options) : CommandElabM (Option MessageData) := do
   let mut lines := #[]
+  let decls ← getOptionDecls
   for (name, val) in opts do
-    let dval ← getOptionDefaultValue name
-    if val != dval then
-      lines := lines.push m!"set_option {name} {val}"
+    match decls.find? name with
+    | some decl =>
+      if val != decl.defValue then
+        lines := lines.push m!"set_option {name} {val}"
+    | none =>
+      lines := lines.push m!"-- set_option {name} {val}  -- unknown"
   if lines.isEmpty then
     return none
   else

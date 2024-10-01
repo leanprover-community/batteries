@@ -47,7 +47,7 @@ theorem strongRec_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → m
 
 theorem strongRecOn_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
     (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind :=
-  Nat.strongRec_eq ..
+  WellFounded.fix_eq WellFoundedRelation.wf ind t
 
 @[simp] theorem recDiagAux_zero_left {motive : Nat → Nat → Sort _}
     (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
@@ -149,24 +149,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
   | .eq => .inr (.inl (Nat.compare_eq_eq.1 h))
   | .gt => .inr (.inr (Nat.compare_eq_gt.1 h))
 
-/-! ## add -/
-
-@[deprecated (since := "2023-11-25")] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
-
-/-! ## sub -/
-
-@[deprecated (since := "2023-11-25")]
-protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
-
-@[deprecated (since := "2023-11-25")]
-protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
-
-/-! ### mul -/
-
-@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
-
-@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
-
 /-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
@@ -179,6 +161,3 @@ protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
 
 @[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
   induction l₁ <;> simp [*, Nat.add_assoc]
-
-@[deprecated (since := "2024-03-05")] protected alias lt_connex := Nat.lt_or_gt_of_ne
-@[deprecated (since := "2024-02-09")] alias pow_two_pos := Nat.two_pow_pos

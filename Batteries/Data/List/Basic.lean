@@ -111,24 +111,6 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
 /--
-Split a list at an index.
-```
-splitAt 2 [a, b, c] = ([a, b], [c])
-```
--/
-def splitAt (n : Nat) (l : List α) : List α × List α := go l n [] where
-  /--
-  Auxiliary for `splitAt`:
-  `splitAt.go l xs n acc = (acc.reverse ++ take n xs, drop n xs)` if `n < xs.length`,
-  and `(l, [])` otherwise.
-  -/
-  go : List α → Nat → List α → List α × List α
-  | [], _, _ => (l, []) -- This branch ensures the pointer equality of the result with the input
-                        -- without any runtime branching cost.
-  | x :: xs, n+1, acc => go xs n (x :: acc)
-  | xs, _, acc => (acc.reverse, xs)
-
-/--
 Split a list at an index. Ensures the left list always has the specified length
 by right padding with the provided default element.
 ```
@@ -548,7 +530,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   | l :: L, h => by
     simp only [any, foldr, Bool.or_eq_true] at h
     match l, h with
-    | [], .inl rfl => simp; induction sections L <;> simp [*]
+    | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
 
 @[csimp] theorem sections_eq_sectionsTR : @sections = @sectionsTR := by
@@ -619,28 +601,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := go n 0 rfl where
-  /-- Auxiliary for `List.ofFn`. `ofFn.go f i j _ = [f j, ..., f (n - 1)]`. -/
-  -- This used to be defined via `Array.ofFn` but mathlib relies on reducing it,
-  -- so we use a structurally recursive definition here.
-  go : (i j : Nat) → (h : i + j = n) → List α
-  | 0, _, _ => []
-  | i+1, j, h => f ⟨j, by omega⟩ :: go i (j+1) (Nat.add_right_comm .. ▸ h :)
-
-/-- Tail-recursive version of `ofFn`. -/
-@[inline] def ofFnTR {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) [] where
-  /-- Auxiliary for `List.ofFnTR`. `ofFnTR.go f i _ acc = f 0 :: ... :: f (i - 1) :: acc`. -/
-  go : (i : Nat) → (h : i ≤ n) → List α → List α
-  | 0, _, acc => acc
-  | i+1, h, acc => go i (Nat.le_of_lt h) (f ⟨i, h⟩ :: acc)
-
-@[csimp] theorem ofFn_eq_ofFnTR : @ofFn = @ofFnTR := by
-  funext α n f; simp [ofFnTR]
-  let rec go (i j h h') : ofFnTR.go f j h' (ofFn.go f i j h) = ofFn f := by
-    unfold ofFnTR.go; split
-    · subst h; rfl
-    · next l j h' => exact go (i+1) j ((Nat.succ_add ..).trans h) (Nat.le_of_lt h')
-  exact (go 0 n (Nat.zero_add _) (Nat.le_refl _)).symm
+def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
@@ -723,23 +684,6 @@ Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 @[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
-
-/--
-`ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
-Use `List.getLastD` instead.
--/
-@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
-  | a, [] => a
-  | _, b :: l => ilast' b l
-
-/--
-`last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
-Use `List.getLast?` instead
--/
-@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
-  | [] => none
-  | [a] => some a
-  | _ :: l => last' l
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
@@ -1146,30 +1090,6 @@ protected def traverse [Applicative F] (f : α → F β) : List α → F (List �
   | x :: xs => List.cons <$> f x <*> List.traverse f xs
 
 /--
-`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
-of each other. This is defined by induction using pairwise swaps.
--/
-inductive Perm : List α → List α → Prop
-  /-- `[] ~ []` -/
-  | nil : Perm [] []
-  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
-  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
-  /-- `x::y::l ~ y::x::l` -/
-  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
-  /-- `Perm` is transitive. -/
-  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
-
-@[inherit_doc] scoped infixl:50 " ~ " => Perm
-
-/--
-`O(|l₁| * |l₂|)`. Computes whether `l₁` is a permutation of `l₂`. See `isPerm_iff` for a
-characterization in terms of `List.Perm`.
--/
-def isPerm [BEq α] : List α → List α → Bool
-  | [], l₂ => l₂.isEmpty
-  | a :: l₁, l₂ => l₂.contains a && l₁.isPerm (l₂.erase a)
-
-/--
 `Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
 a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
 multiplicities of elements, and is used for the `≤` relation on multisets.
@@ -1195,15 +1115,3 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
-
-/--
-`O(|l| + |r|)`. Merge two lists using `s` as a switch.
--/
-def merge (s : α → α → Bool) (l r : List α) : List α :=
-  loop l r []
-where
-  /-- Inner loop for `List.merge`. Tail recursive. -/
-  loop : List α → List α → List α → List α
-  | [], r, t => reverseAux t r
-  | l, [], t => reverseAux t l
-  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)
