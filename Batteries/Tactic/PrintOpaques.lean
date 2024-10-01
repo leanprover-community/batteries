@@ -46,15 +46,50 @@ partial def collect (c : Name) : M Unit := do
 end CollectOpaques
 
 /--
-The command `#print opaques X` prints all opaque or partial definitions that `X` depends on.
+The command `#print opaques X` prints all opaque and partial definitions that `X` depends on.
 
-...
+For example, the follwing command prints all opaque and partial definitions that `Classical.choose`
+depends on.
+```
+#print opaques Classical.choose
+```
+The output is:
+```
+'Classical.choose' depends on opaque or partial definitions: [Classical.choice]
+```
+
+Opaque and partial definitions that occur in a computationally irrelevant context are ignored.
+For example,
+```
+#print opaques Classical.em
+```
+outputs `'Classical.em' does not use any opaque or partial definitions`. But
+```
+#print axioms Classical.em
+```
+reveals that `'Classical.em' depends on axioms: [propext, Classical.choice, Quot.sound]`. The
+reason is that `Classical.em` is a `Prop` and it is itself computationally irrelevant.
+
+Axioms are not the only opaque definitions. In fact, the outputs of `#print axioms` and
+`#print opaques` are often quite different.
+```
+#print opaques Std.HashMap.insert
+```
+show that `'Std.HashMap.insert' depends on opaque or partial definitions:
+[System.Platform.getNumBits, UInt64.toUSize]`. But
+```
+#print axioms Std.HashMap.insert
+```
+gives `'Std.HashMap.insert' depends on axioms: [propext, Classical.choice, Quot.sound]`. The axioms
+`propext` and `Quot.sound` are computationally irrelevant. The axiom `Classical.choice` is
+computationally relevant. The reason it does not appear in the list of opaques is that it is only
+used inside proofs of propositions, so it is not used in a computationally relevant context.
 -/
 elab "#print" &"opaques" name:ident : command => do
   let constName ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo name
   let env ← getEnv
   let (_, s) ← liftTermElabM <| ((CollectOpaques.collect constName).run env).run {}
   if s.opaques.isEmpty then
-    logInfo m!"'{constName}' does not use any partial definitions"
+    logInfo m!"'{constName}' does not use any opaque or partial definitions"
   else
     logInfo m!"'{constName}' depends on opaque or partial definitions: {s.opaques.toList}"
