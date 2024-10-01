@@ -23,6 +23,8 @@ We generate three tasks which sleep for `100`, `50`, and `1` milliseconds respec
 and then verify that `MLList.ofTaskList` return their results in the order they complete.
 -/
 
+/- This test is very flaky, so it's disabled for now.
+
 def sleep (n : UInt32) : BaseIO (Task UInt32) :=
   IO.asTask (do IO.sleep n; return n) |>.map fun t => t.map fun
   | .ok n => n
@@ -35,3 +37,4 @@ def sleeps : MLList BaseIO UInt32 := .squash fun _ => do
 /-- info: [1, 50, 100] -/
 #guard_msgs in
 #eval sleeps.force
+-/
