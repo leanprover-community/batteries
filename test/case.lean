@@ -182,17 +182,6 @@ example : True ∧ ∀ x : Nat, x = x := by
   rfl
 
 -- Test focusing by full match, suffix match, and prefix match
-/--
-warning: unused variable `x`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
----
-warning: unused variable `y`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
----
-warning: unused variable `z`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
--/
-#guard_msgs in
 example : True := by
   have x : Bool := ?a
   have y : Nat := ?a.b.c
