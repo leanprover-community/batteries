@@ -24,13 +24,6 @@ def anyM [Monad m] (s : HashSet α) (f : α → m Bool) : m Bool := do
   return false
 
 /--
-`O(n)`. Returns `true` if `f` returns `true` for any element of the set.
--/
-@[inline]
-def any (s : HashSet α) (f : α → Bool) : Bool :=
-  Id.run <| s.anyM f
-
-/--
 `O(n)`. Returns `true` if `f` returns `true` for all elements of the set.
 -/
 @[specialize]
@@ -39,13 +32,6 @@ def allM [Monad m] (s : HashSet α) (f : α → m Bool) : m Bool := do
     if !(← f a) then
       return false
   return true
-
-/--
-`O(n)`. Returns `true` if `f` returns `true` for all elements of the set.
--/
-@[inline]
-def all (s : HashSet α) (f : α → Bool) : Bool :=
-  Id.run <| s.allM f
 
 instance : BEq (HashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
