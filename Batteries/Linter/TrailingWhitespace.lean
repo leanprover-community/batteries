@@ -17,7 +17,7 @@ The "trailingWhitespace" linter emits a warning whenever a line ends with a spac
 does not end with a line break.
 -/
 register_option linter.trailingWhitespace : Bool := {
-  defValue := true
+  defValue := false
   descr := "enable the trailingWhitespace linter"
 }
 
