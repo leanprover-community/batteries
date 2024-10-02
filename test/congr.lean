@@ -41,8 +41,8 @@ attribute [-ext] List.ext_getElem?
 private opaque List.sum : List Nat → Nat
 
 example {ls : List Nat} :
-    (ls.map fun x => (ls.map fun y => 1 + y).sum + 1) =
-    (ls.map fun x => (ls.map fun y => Nat.succ y).sum + 1) := by
+    (ls.map fun _ => (ls.map fun y => 1 + y).sum + 1) =
+    (ls.map fun _ => (ls.map fun y => Nat.succ y).sum + 1) := by
   rcongr (_x y)
   guard_target =ₐ 1 + y = y.succ
   rw [Nat.add_comm]
