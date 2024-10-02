@@ -85,12 +85,12 @@ theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_left hlt
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_left hlt
 
 theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b).size)
     (h' : i - a.size < b.size := Nat.sub_lt_left_of_lt_add hle (size_append .. ▸ h)) :
     (a ++ b)[i] = b[i - a.size] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_right hle
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_right hle
 
 /-! ### extract -/
 
