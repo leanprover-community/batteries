@@ -759,7 +759,7 @@ where
   | x::xs, n+1, acc => go m xs n (acc.push x)
 
 theorem dropSlice_zero₂ : ∀ n l, @dropSlice α n 0 l = l
-  | 0, [] | 0, _::_ | n+1, [] => rfl
+  | 0, [] | 0, _::_ | _+1, [] => rfl
   | n+1, x::xs => by simp [dropSlice, dropSlice_zero₂]
 
 @[csimp] theorem dropSlice_eq_dropSliceTR : @dropSlice = @dropSliceTR := by
