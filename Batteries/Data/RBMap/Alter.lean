@@ -204,7 +204,7 @@ theorem _root_.Batteries.RBNode.Ordered.zoom {t : RBNode α}
 
 theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.ins t).Ordered cmp
-  | .root, t, ht, _, _ => Ordered.setBlack.2 ht
+  | .root, _, ht, _, _ => Ordered.setBlack.2 ht
   | .left red parent x b, a, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold Path.ins
     have ⟨ax, ap⟩ := All_and.1 H
@@ -228,7 +228,7 @@ theorem Ordered.insertNew {path : Path α} (hp : path.Ordered cmp) (vp : path.Ro
 
 theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
-  | .root, t, _, ht, _, _ => Ordered.setBlack.2 ht
+  | .root, _, _, ht, _, _ => Ordered.setBlack.2 ht
   | .left _ parent x b, a, red, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold Path.del
     have ⟨ax, ap⟩ := All_and.1 H
