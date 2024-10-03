@@ -73,7 +73,7 @@ theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
       show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
         ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
         List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
-      simp only [toList_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
+      simp only [length_toList, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
@@ -96,7 +96,7 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
     (l.filter p).size ≤ l.size := by
-  simp only [← toList_length, toList_filter]
+  simp only [← length_toList, toList_filter]
   apply List.length_filter_le
 
 /-! ### join -/
@@ -201,7 +201,7 @@ private theorem get_insertAt_loop_lt (as : Array α) (i : Fin (as.size+1)) (j : 
   split
   · have h1 : k ≠ j - 1 := by omega
     have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_lt, get_swap, if_neg h1, if_neg h2]
+    rw [get_insertAt_loop_lt, getElem_swap, if_neg h1, if_neg h2]
     exact h
   · rfl
 
@@ -212,7 +212,7 @@ private theorem get_insertAt_loop_gt (as : Array α) (i : Fin (as.size+1)) (j : 
   split
   · have h1 : k ≠ j - 1 := by omega
     have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_gt, get_swap, if_neg h1, if_neg h2]
+    rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_neg h2]
     exact Nat.lt_of_le_of_lt (Nat.pred_le _) hgt
   · rfl
 
@@ -222,8 +222,7 @@ private theorem get_insertAt_loop_eq (as : Array α) (i : Fin (as.size+1)) (j : 
   unfold insertAt.loop
   split
   · next h =>
-    rw [get_insertAt_loop_eq, Fin.getElem_fin, get_swap, if_pos rfl]
-    exact Nat.lt_of_le_of_lt (Nat.pred_le _) j.is_lt
+    rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_swap, if_pos rfl]
     exact heq
     exact Nat.le_pred_of_lt h
   · congr; omega
@@ -237,18 +236,17 @@ private theorem get_insertAt_loop_gt_le (as : Array α) (i : Fin (as.size+1)) (j
     if h0 : k = j then
       cases h0
       have h1 : j.val ≠ j - 1 := by omega
-      rw [get_insertAt_loop_gt, get_swap, if_neg h1, if_pos rfl]; rfl
-      · exact j.is_lt
-      · exact Nat.pred_lt_of_lt hgt
+      rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_pos rfl]; rfl
+      exact Nat.pred_lt_of_lt hgt
     else
       have h1 : k - 1 ≠ j - 1 := by omega
       have h2 : k - 1 ≠ j := by omega
-      rw [get_insertAt_loop_gt_le, get_swap, if_neg h1, if_neg h2]
-      exact hgt
+      rw [get_insertAt_loop_gt_le, getElem_swap, if_neg h1, if_neg h2]
       apply Nat.le_of_lt_add_one
       rw [Nat.sub_one_add_one]
       exact Nat.lt_of_le_of_ne hle h0
       exact Nat.not_eq_zero_of_lt h
+      exact hgt
   · next h =>
     absurd h
     exact Nat.lt_of_lt_of_le hgt hle
