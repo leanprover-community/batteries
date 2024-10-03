@@ -29,13 +29,6 @@ def equalSet [BEq α] (xs ys : Array α) : Bool :=
 
 set_option linter.unusedVariables.funArgs false in
 /--
-Sort an array using `compare` to compare elements.
--/
-def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort fun x y => compare x y |>.isLT
-
-set_option linter.unusedVariables.funArgs false in
-/--
 Returns the first minimal element among `d` and elements of the array.
 If `start` and `stop` are given, only the subarray `xs[start:stop]` is
 considered (in addition to `d`).
@@ -183,22 +176,6 @@ end Array
 
 
 namespace Subarray
-
-/--
-The empty subarray.
--/
-protected def empty : Subarray α where
-  array := #[]
-  start := 0
-  stop := 0
-  start_le_stop := Nat.le_refl 0
-  stop_le_array_size := Nat.le_refl 0
-
-instance : EmptyCollection (Subarray α) :=
-  ⟨Subarray.empty⟩
-
-instance : Inhabited (Subarray α) :=
-  ⟨{}⟩
 
 /--
 Check whether a subarray is empty.

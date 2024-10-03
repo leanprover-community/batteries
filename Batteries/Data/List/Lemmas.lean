@@ -10,30 +10,10 @@ import Batteries.Tactic.Alias
 
 namespace List
 
-open Nat
-
-/-! ### mem -/
-
-@[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
-  simp [Array.mem_def]
-
 /-! ### toArray-/
-
-@[simp] theorem size_toArrayAux (l : List α) (r : Array α) :
-    (l.toArrayAux r).size = r.size + l.length := by
-  induction l generalizing r with
-  | nil => simp [toArrayAux]
-  | cons a l ih =>
-    simp [ih, List.toArrayAux]
-    omega
 
 @[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := rfl
-
-@[simp] theorem getElem_toArray (l : List α) (i : Nat) (h : i < l.toArray.size) :
-    l.toArray[i] = l[i]'(by simpa using h) := by
-  rw [Array.getElem_eq_data_getElem]
-  simp
 
 /-! ### next? -/
 
@@ -196,18 +176,18 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
   rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
 
-@[deprecated getElem?_set_eq' (since := "2024-06-12")]
+@[deprecated getElem?_set_self' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
+  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
   rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
+    (set l n a)[n]? = some a := by rw [getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
 theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_eq', getElem?_eq_getElem h]; rfl
+  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_ne (since := "2024-06-12")]
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
@@ -216,7 +196,7 @@ theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get
 @[deprecated getElem?_set (since := "2024-06-12")]
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']
+  simp [getElem?_set']; rfl
 
 theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
@@ -233,18 +213,12 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
   simp [Nat.sub_add_cancel h]
 
-@[simp] theorem getElem?_tail (l : List α) : l.tail[n]? = l[n + 1]? := by cases l <;> simp
-
-@[simp] theorem getElem_tail (l : List α) (h : n < l.tail.length) :
-    l.tail[n] = l[n + 1]'(by simp at h; omega) := by
-  cases l; contradiction; simp
-
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
     (l : List α) : extractP p l = (find? p l, eraseP p l) := by
-  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    extractP.go p l xs acc = (xs.find? p, acc.data ++ xs.eraseP p)
+  let rec go (acc) : ∀ xs, l = acc.toList ++ xs →
+    extractP.go p l xs acc = (xs.find? p, acc.toList ++ xs.eraseP p)
   | [] => fun h => by simp [extractP.go, find?, eraseP, h]
   | x::xs => by
     simp [extractP.go, find?, eraseP]; cases p x <;> simp
@@ -419,7 +393,7 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
 theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
     (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
     forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
-  induction l generalizing init <;> simp [*, map_eq_pure_bind]
+  induction l generalizing init <;> simp [*]
   congr; ext (b | b) <;> simp
 
 /-! ### diff -/
@@ -674,37 +648,6 @@ theorem insertP_loop (a : α) (l r : List α) :
 @[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
-
-/-! ### merge -/
-
-theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
-  simp only [merge]
-
-@[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
-    merge s (a::l) (b::r) = a :: merge s l (b::r) := by
-  rw [cons_merge_cons, if_pos h]
-
-@[simp] theorem cons_merge_cons_neg (s : α → α → Bool) (l r) (h : ¬ s a b) :
-    merge s (a::l) (b::r) = b :: merge s (a::l) r := by
-  rw [cons_merge_cons, if_neg h]
-
-@[simp] theorem length_merge (s : α → α → Bool) (l r) :
-    (merge s l r).length = l.length + r.length := by
-  match l, r with
-  | [], r => simp
-  | l, [] => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp_arith [length_merge s l (b::r)]
-    · simp_arith [length_merge s (a::l) r]
-
-theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
-  mem_merge.2 <| .inl h
-
-theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
-  mem_merge.2 <| .inr h
 
 /-! ### foldlM and foldrM -/
 

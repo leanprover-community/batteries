@@ -24,13 +24,6 @@ def anyM [Monad m] (s : HashSet α) (f : α → m Bool) : m Bool := do
   return false
 
 /--
-`O(n)`. Returns `true` if `f` returns `true` for any element of the set.
--/
-@[inline]
-def any (s : HashSet α) (f : α → Bool) : Bool :=
-  Id.run <| s.anyM f
-
-/--
 `O(n)`. Returns `true` if `f` returns `true` for all elements of the set.
 -/
 @[specialize]
@@ -39,13 +32,6 @@ def allM [Monad m] (s : HashSet α) (f : α → m Bool) : m Bool := do
     if !(← f a) then
       return false
   return true
-
-/--
-`O(n)`. Returns `true` if `f` returns `true` for all elements of the set.
--/
-@[inline]
-def all (s : HashSet α) (f : α → Bool) : Bool :=
-  Id.run <| s.allM f
 
 instance : BEq (HashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
@@ -59,10 +45,3 @@ def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
   let oldSize := s.size
   let s := s.insert a
   (s, s.size == oldSize)
-
-/--
-`O(n)`. Obtain a `HashSet` from an array.
--/
-@[inline]
-protected def ofArray [BEq α] [Hashable α] (as : Array α) : HashSet α :=
-  HashSet.empty.insertMany as
