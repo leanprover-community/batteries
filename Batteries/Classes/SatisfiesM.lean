@@ -52,7 +52,7 @@ protected theorem trivial [Applicative m] [LawfulApplicative m] {x : m α} :
 /-- The `SatisfiesM p x` predicate is monotonic in `p`. -/
 theorem imp [Functor m] [LawfulFunctor m] {x : m α}
     (h : SatisfiesM p x) (H : ∀ {a}, p a → q a) : SatisfiesM q x :=
-  let ⟨x, h⟩ := h; ⟨(fun ⟨a, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
+  let ⟨x, h⟩ := h; ⟨(fun ⟨_, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
 
 /-- `SatisfiesM` distributes over `<$>`, general version. -/
 protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
