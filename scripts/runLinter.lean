@@ -37,7 +37,7 @@ unsafe def main (args : List String) : IO Unit := do
         | name => some name
       | _ => none
     | IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
-  searchPathRef.set compile_time_search_path%
+  initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
     -- run `lake build module` (and ignore result) if the file hasn't been built yet
