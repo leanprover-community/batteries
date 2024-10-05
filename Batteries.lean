@@ -97,6 +97,7 @@ import Batteries.Test.Internal.DummyLabelAttr
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
+import Batteries.Util.Panic
 import Batteries.Util.Pickle
 import Batteries.Util.ProofWanted
 import Batteries.WF
