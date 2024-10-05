@@ -45,9 +45,7 @@ import Batteries.Lean.HashMap
 import Batteries.Lean.HashSet
 import Batteries.Lean.IO.Process
 import Batteries.Lean.Json
-import Batteries.Lean.Meta.AssertHypotheses
 import Batteries.Lean.Meta.Basic
-import Batteries.Lean.Meta.Clear
 import Batteries.Lean.Meta.DiscrTree
 import Batteries.Lean.Meta.Expr
 import Batteries.Lean.Meta.Inaccessible

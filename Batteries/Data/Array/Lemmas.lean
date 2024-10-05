@@ -11,30 +11,33 @@ import Batteries.Util.ProofWanted
 
 namespace Array
 
-theorem forIn_eq_forIn_data [Monad m]
+theorem forIn_eq_forIn_toList [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
-    forIn as b f = forIn as.data b f := by
+    forIn as b f = forIn as.toList b f := by
   let rec loop : ∀ {i h b j}, j + i = as.size →
-      Array.forIn.loop as f i h b = forIn (as.data.drop j) b f
+      Array.forIn.loop as f i h b = forIn (as.toList.drop j) b f
     | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
     | i+1, _, _, j, ij => by
       simp only [forIn.loop, Nat.add]
       have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
       have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
-      have : as[size as - 1 - i] :: as.data.drop (j + 1) = as.data.drop j := by
+      have : as[size as - 1 - i] :: as.toList.drop (j + 1) = as.toList.drop j := by
         rw [j_eq]; exact List.getElem_cons_drop _ _ this
       simp only [← this, List.forIn_cons]; congr; funext x; congr; funext b
       rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
   conv => lhs; simp only [forIn, Array.forIn]
   rw [loop (Nat.zero_add _)]; rfl
+
+@[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
 @[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
 
 /-! ### zipWith / zip -/
 
-theorem data_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
-    (as.zipWith bs f).data = as.data.zipWith f bs.data := by
+theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
+    (as.zipWith bs f).toList = as.toList.zipWith f bs.toList := by
   let rec loop : ∀ (i : Nat) cs, i ≤ as.size → i ≤ bs.size →
-      (zipWithAux f as bs i cs).data = cs.data ++ (as.data.drop i).zipWith f (bs.data.drop i) := by
+      (zipWithAux f as bs i cs).toList =
+        cs.toList ++ (as.toList.drop i).zipWith f (bs.toList.drop i) := by
     intro i cs hia hib
     unfold zipWithAux
     by_cases h : i = as.size ∨ i = bs.size
@@ -59,27 +62,30 @@ theorem data_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
       have has : i < as.size := Nat.lt_of_le_of_ne hia h.1
       have hbs : i < bs.size := Nat.lt_of_le_of_ne hib h.2
       simp only [has, hbs, dite_true]
-      rw [loop (i+1) _ has hbs, Array.push_data]
+      rw [loop (i+1) _ has hbs, Array.push_toList]
       have h₁ : [f as[i] bs[i]] = List.zipWith f [as[i]] [bs[i]] := rfl
-      let i_as : Fin as.data.length := ⟨i, has⟩
-      let i_bs : Fin bs.data.length := ⟨i, hbs⟩
+      let i_as : Fin as.toList.length := ⟨i, has⟩
+      let i_bs : Fin bs.toList.length := ⟨i, hbs⟩
       rw [h₁, List.append_assoc]
       congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_data_getElem, getElem_eq_data_getElem]
-      show List.zipWith f (as.data[i_as] :: List.drop (i_as + 1) as.data)
-        ((List.get bs.data i_bs) :: List.drop (i_bs + 1) bs.data) =
-        List.zipWith f (List.drop i as.data) (List.drop i bs.data)
-      simp only [data_length, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
+      rw [← List.zipWith_append (h := by simp), getElem_eq_getElem_toList,
+        getElem_eq_getElem_toList]
+      show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
+        ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
+        List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
+      simp only [length_toList, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
   simp [zipWith, loop 0 #[] (by simp) (by simp)]
+@[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
 theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
-  rw [size_eq_length_data, data_zipWith, List.length_zipWith]
+  rw [size_eq_length_toList, toList_zipWith, List.length_zipWith]
 
-theorem data_zip (as : Array α) (bs : Array β) :
-    (as.zip bs).data = as.data.zip bs.data :=
-  data_zipWith Prod.mk as bs
+theorem toList_zip (as : Array α) (bs : Array β) :
+    (as.zip bs).toList = as.toList.zip bs.toList :=
+  toList_zipWith Prod.mk as bs
+@[deprecated (since := "2024-09-09")] alias data_zip := toList_zip
 @[deprecated (since := "2024-08-13")] alias zip_eq_zip_data := data_zip
 
 theorem size_zip (as : Array α) (bs : Array β) :
@@ -90,42 +96,43 @@ theorem size_zip (as : Array α) (bs : Array β) :
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
     (l.filter p).size ≤ l.size := by
-  simp only [← data_length, filter_data]
+  simp only [← length_toList, toList_filter]
   apply List.length_filter_le
 
 /-! ### join -/
 
-@[simp] theorem data_join {l : Array (Array α)} : l.join.data = (l.data.map data).join := by
+@[simp] theorem toList_join {l : Array (Array α)} : l.join.toList = (l.toList.map toList).join := by
   dsimp [join]
-  simp only [foldl_eq_foldl_data]
-  generalize l.data = l
-  have : ∀ a : Array α, (List.foldl ?_ a l).data = a.data ++ ?_ := ?_
+  simp only [foldl_eq_foldl_toList]
+  generalize l.toList = l
+  have : ∀ a : Array α, (List.foldl ?_ a l).toList = a.toList ++ ?_ := ?_
   exact this #[]
   induction l with
   | nil => simp
-  | cons h => induction h.data <;> simp [*]
+  | cons h => induction h.toList <;> simp [*]
+@[deprecated (since := "2024-09-09")] alias data_join := toList_join
 @[deprecated (since := "2024-08-13")] alias join_data := data_join
 
 theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
-  simp only [mem_def, data_join, List.mem_join, List.mem_map]
+  simp only [mem_def, toList_join, List.mem_join, List.mem_map]
   intro l
   constructor
   · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
     exact ⟨s, m, h⟩
   · rintro ⟨s, h₁, h₂⟩
-    refine ⟨s.data, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+    refine ⟨s.toList, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
 
 /-! ### indexOf? -/
 
-theorem indexOf?_data [BEq α] {a : α} {l : Array α} :
-    l.data.indexOf? a = (l.indexOf? a).map Fin.val := by
+theorem indexOf?_toList [BEq α] {a : α} {l : Array α} :
+    l.toList.indexOf? a = (l.indexOf? a).map Fin.val := by
   simpa using aux l 0
 where
   aux (l : Array α) (i : Nat) :
-       ((l.data.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
+       ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_data_getElem, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -137,42 +144,8 @@ where
 
 /-! ### erase -/
 
-theorem eraseIdx_data_swap {l : Array α} (i : Nat) (lt : i + 1 < size l) :
-    (l.swap ⟨i+1, lt⟩ ⟨i, Nat.lt_of_succ_lt lt⟩).data.eraseIdx (i+1) = l.data.eraseIdx i := by
-  let ⟨xs⟩ := l
-  induction i generalizing xs <;> let x₀::x₁::xs := xs
-  case zero => simp [swap, get]
-  case succ i ih _ =>
-    have lt' := Nat.lt_of_succ_lt_succ lt
-    have : (swap ⟨x₀::x₁::xs⟩ ⟨i.succ + 1, lt⟩ ⟨i.succ, Nat.lt_of_succ_lt lt⟩).data
-        = x₀::(swap ⟨x₁::xs⟩ ⟨i + 1, lt'⟩ ⟨i, Nat.lt_of_succ_lt lt'⟩).data := by
-      simp [swap_def, getElem_eq_data_getElem]
-    simp [this, ih]
-
-@[simp] theorem data_feraseIdx {l : Array α} (i : Fin l.size) :
-    (l.feraseIdx i).data = l.data.eraseIdx i := by
-  induction l, i using feraseIdx.induct with
-  | @case1 a i lt a' i' ih =>
-    rw [feraseIdx]
-    simp [lt, ih, a', eraseIdx_data_swap i lt]
-  | case2 a i lt =>
-    have : i + 1 ≥ a.size := Nat.ge_of_not_lt lt
-    have last : i + 1 = a.size := Nat.le_antisymm i.is_lt this
-    simp [feraseIdx, lt, List.dropLast_eq_eraseIdx last]
-
-@[simp] theorem data_erase [BEq α] (l : Array α) (a : α) : (l.erase a).data = l.data.erase a := by
-  match h : indexOf? l a with
-  | none =>
-    simp only [erase, h]
-    apply Eq.symm
-    rw [List.erase_eq_self_iff_forall_bne, ←List.indexOf?_eq_none_iff, indexOf?_data,
-        h, Option.map_none']
-  | some i =>
-    simp only [erase, h]
-    rw [data_feraseIdx, ←List.eraseIdx_indexOf_eq_erase]
-    congr
-    rw [List.indexOf_eq_indexOf?, indexOf?_data]
-    simp [h]
+@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
+    (l.erase a).toList = l.toList.erase a
 
 /-! ### shrink -/
 
@@ -196,11 +169,9 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by
 theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
   rw [mapM, mapM.map]; rfl
 
-@[simp] theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty ..
+theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 /-! ### mem -/
-
-alias not_mem_empty := not_mem_nil
 
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
@@ -230,7 +201,7 @@ private theorem get_insertAt_loop_lt (as : Array α) (i : Fin (as.size+1)) (j : 
   split
   · have h1 : k ≠ j - 1 := by omega
     have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_lt, get_swap, if_neg h1, if_neg h2]
+    rw [get_insertAt_loop_lt, getElem_swap, if_neg h1, if_neg h2]
     exact h
   · rfl
 
@@ -241,7 +212,7 @@ private theorem get_insertAt_loop_gt (as : Array α) (i : Fin (as.size+1)) (j : 
   split
   · have h1 : k ≠ j - 1 := by omega
     have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_gt, get_swap, if_neg h1, if_neg h2]
+    rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_neg h2]
     exact Nat.lt_of_le_of_lt (Nat.pred_le _) hgt
   · rfl
 
@@ -251,8 +222,7 @@ private theorem get_insertAt_loop_eq (as : Array α) (i : Fin (as.size+1)) (j : 
   unfold insertAt.loop
   split
   · next h =>
-    rw [get_insertAt_loop_eq, Fin.getElem_fin, get_swap, if_pos rfl]
-    exact Nat.lt_of_le_of_lt (Nat.pred_le _) j.is_lt
+    rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_swap, if_pos rfl]
     exact heq
     exact Nat.le_pred_of_lt h
   · congr; omega
@@ -266,18 +236,17 @@ private theorem get_insertAt_loop_gt_le (as : Array α) (i : Fin (as.size+1)) (j
     if h0 : k = j then
       cases h0
       have h1 : j.val ≠ j - 1 := by omega
-      rw [get_insertAt_loop_gt, get_swap, if_neg h1, if_pos rfl]; rfl
-      · exact j.is_lt
-      · exact Nat.pred_lt_of_lt hgt
+      rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_pos rfl]; rfl
+      exact Nat.pred_lt_of_lt hgt
     else
       have h1 : k - 1 ≠ j - 1 := by omega
       have h2 : k - 1 ≠ j := by omega
-      rw [get_insertAt_loop_gt_le, get_swap, if_neg h1, if_neg h2]
-      exact hgt
+      rw [get_insertAt_loop_gt_le, getElem_swap, if_neg h1, if_neg h2]
       apply Nat.le_of_lt_add_one
       rw [Nat.sub_one_add_one]
       exact Nat.lt_of_le_of_ne hle h0
       exact Nat.not_eq_zero_of_lt h
+      exact hgt
   · next h =>
     absurd h
     exact Nat.lt_of_lt_of_le hgt hle
