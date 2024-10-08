@@ -41,10 +41,10 @@ jobs:
             exit 1
           fi
 
-      # - name: Check for long lines
-      #   if: always()
-      #   run: |
-      #     ! (find Batteries -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
+      - name: Check for long lines
+        if: always()
+        run: |
+          ! (find Batteries -name "*.lean" -type f -exec grep -E -H -n '^.{101,}$' {} \; | grep -v -E 'https?://')
 
       - name: Check for trailing whitespace
         if: always()
