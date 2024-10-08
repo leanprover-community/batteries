@@ -50,7 +50,7 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
-  intro a (fun x h => t.inv h) (fun y hr => recC intro (t.inv hr))
+  intro a (fun _ h => t.inv h) (fun _ hr => recC intro (t.inv hr))
 termination_by Subtype.mk a t
 
 unseal recC

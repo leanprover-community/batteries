@@ -10,12 +10,10 @@ import Batteries.Tactic.Alias
 
 namespace List
 
-open Nat
+/-! ### toArray-/
 
-/-! ### mem -/
-
-@[simp] theorem mem_toArray {a : α} {l : List α} : a ∈ l.toArray ↔ a ∈ l := by
-  simp [Array.mem_def]
+@[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
+    (Array.mk xs)[i] = xs[i] := rfl
 
 /-! ### isEmpty -/
 
@@ -25,6 +23,22 @@ theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
 @[simp] theorem next?_cons (a l) : @next? α (a :: l) = some (a, l) := rfl
+
+/-! ### dropLast -/
+
+theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.length) :
+    xs.dropLast = List.eraseIdx xs i := by
+  induction i generalizing xs with
+  | zero =>
+    let [x] := xs
+    rfl
+  | succ n ih =>
+    let x::xs := xs
+    simp at last_idx
+    rw [dropLast, eraseIdx]
+    congr
+    exact ih last_idx
+    exact fun _ => nomatch xs
 
 /-! ### get? -/
 
@@ -60,8 +74,8 @@ theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
 
 theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNthTail tail n l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
-  | n+1, a :: l => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
+  | _+1, [] => rfl
+  | _+1, _ :: _ => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
 
 @[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
 
@@ -146,8 +160,8 @@ theorem modifyNth_eq_take_cons_drop (f : α → α) {n l} (h : n < length l) :
 
 theorem set_eq_modifyNth (a : α) : ∀ n (l : List α), set l n a = modifyNth (fun _ => a) n l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
-  | n+1, b :: l => congrArg (cons _) (set_eq_modifyNth _ _ _)
+  | _+1, [] => rfl
+  | _+1, _ :: _ => congrArg (cons _) (set_eq_modifyNth _ _ _)
 
 theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
@@ -156,7 +170,7 @@ theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
 theorem modifyNth_eq_set_get? (f : α → α) :
     ∀ n (l : List α), l.modifyNth f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
   | 0, l => by cases l <;> rfl
-  | n+1, [] => rfl
+  | _+1, [] => rfl
   | n+1, b :: l =>
     (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
@@ -171,18 +185,18 @@ theorem exists_of_set' {l : List α} (h : n < l.length) :
     ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
   rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
 
-@[deprecated getElem?_set_eq' (since := "2024-06-12")]
+@[deprecated getElem?_set_self' (since := "2024-06-12")]
 theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_eq', Option.map_eq_map]
+  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
   rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a)[n]? = some a := by rw [getElem?_set_eq', getElem?_eq_getElem h]; rfl
+    (set l n a)[n]? = some a := by rw [getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
 theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_eq', getElem?_eq_getElem h]; rfl
+  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
 
 @[deprecated getElem?_set_ne (since := "2024-06-12")]
 theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
@@ -191,7 +205,7 @@ theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get
 @[deprecated getElem?_set (since := "2024-06-12")]
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']
+  simp [getElem?_set']; rfl
 
 theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
@@ -203,12 +217,17 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 
 @[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
+/-! ### tail -/
+
+theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l)) + 1 = length l := by
+  simp [Nat.sub_add_cancel h]
+
 /-! ### eraseP -/
 
 @[simp] theorem extractP_eq_find?_eraseP
     (l : List α) : extractP p l = (find? p l, eraseP p l) := by
-  let rec go (acc) : ∀ xs, l = acc.data ++ xs →
-    extractP.go p l xs acc = (xs.find? p, acc.data ++ xs.eraseP p)
+  let rec go (acc) : ∀ xs, l = acc.toList ++ xs →
+    extractP.go p l xs acc = (xs.find? p, acc.toList ++ xs.eraseP p)
   | [] => fun h => by simp [extractP.go, find?, eraseP, h]
   | x::xs => by
     simp [extractP.go, find?, eraseP]; cases p x <;> simp
@@ -218,6 +237,23 @@ theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
 /-! ### erase -/
 
 @[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
+
+theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
+    xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
+  rw [erase_eq_eraseP', eraseP_eq_self_iff]
+
+/-! ### findIdx? -/
+
+theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
+    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [findIdx_cons, findIdx?_cons]
+    if h : p x then
+      simp [h]
+    else
+      cases h' : findIdx? p xs <;> simp [h, h', ih]
 
 /-! ### replaceF -/
 
@@ -240,10 +276,10 @@ theorem replaceF_of_forall_none {l : List α} (h : ∀ a, a ∈ l → p a = none
   | nil => rfl
   | cons _ _ ih => simp [h _ (.head ..), ih (forall_mem_cons.1 h).2]
 
-theorem exists_of_replaceF : ∀ {l : List α} {a a'} (al : a ∈ l) (pa : p a = some a'),
+theorem exists_of_replaceF : ∀ {l : List α} {a a'} (_ : a ∈ l) (_ : p a = some a'),
     ∃ a a' l₁ l₂,
       (∀ b ∈ l₁, p b = none) ∧ p a = some a' ∧ l = l₁ ++ a :: l₂ ∧ l.replaceF p = l₁ ++ a' :: l₂
-  | b :: l, a, a', al, pa =>
+  | b :: l, _, _, al, pa =>
     match pb : p b with
     | some b' => ⟨b, b', [], l, forall_mem_nil _, pb, by simp [pb]⟩
     | none =>
@@ -366,7 +402,7 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
 theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
     (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
     forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
-  induction l generalizing init <;> simp [*, map_eq_pure_bind]
+  induction l generalizing init <;> simp [*]
   congr; ext (b | b) <;> simp
 
 /-! ### diff -/
@@ -436,7 +472,7 @@ theorem Sublist.diff_right : ∀ {l₁ l₂ l₃ : List α}, l₁ <+ l₂ → l�
 
 theorem Sublist.erase_diff_erase_sublist {a : α} :
     ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
-  | [], l₂, _ => erase_sublist _ _
+  | [], _, _ => erase_sublist _ _
   | b :: l₁, l₂, h => by
     if heq : b = a then
       simp [heq]
@@ -562,6 +598,14 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
     bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
   simp [indexesOf, findIdxs_cons]
 
+@[simp] theorem eraseIdx_indexOf_eq_erase [BEq α] (a : α) (l : List α) :
+    l.eraseIdx (l.indexOf a) = l.erase a := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [List.erase, indexOf_cons]
+    cases x == a <;> simp [ih]
+
 theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.indexOf x ∈ xs.indexesOf x := by
   induction xs with
@@ -575,6 +619,19 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
       case tail m =>
         specialize ih m
         simpa
+
+@[simp] theorem indexOf?_nil [BEq α] : ([] : List α).indexOf? x = none := rfl
+theorem indexOf?_cons [BEq α] :
+    (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
+  simp [indexOf?]
+
+theorem indexOf?_eq_none_iff [BEq α] {a : α} {l : List α} :
+    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
+  simp [indexOf?, findIdx?_eq_none_iff]
+
+theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
+    l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
+  simp [indexOf, indexOf?, findIdx_eq_findIdx?]
 
 /-! ### insertP -/
 
@@ -600,37 +657,6 @@ theorem insertP_loop (a : α) (l r : List α) :
 @[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
-
-/-! ### merge -/
-
-theorem cons_merge_cons (s : α → α → Bool) (a b l r) :
-    merge s (a::l) (b::r) = if s a b then a :: merge s l (b::r) else b :: merge s (a::l) r := by
-  simp only [merge]
-
-@[simp] theorem cons_merge_cons_pos (s : α → α → Bool) (l r) (h : s a b) :
-    merge s (a::l) (b::r) = a :: merge s l (b::r) := by
-  rw [cons_merge_cons, if_pos h]
-
-@[simp] theorem cons_merge_cons_neg (s : α → α → Bool) (l r) (h : ¬ s a b) :
-    merge s (a::l) (b::r) = b :: merge s (a::l) r := by
-  rw [cons_merge_cons, if_neg h]
-
-@[simp] theorem length_merge (s : α → α → Bool) (l r) :
-    (merge s l r).length = l.length + r.length := by
-  match l, r with
-  | [], r => simp
-  | l, [] => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · simp_arith [length_merge s l (b::r)]
-    · simp_arith [length_merge s (a::l) r]
-
-theorem mem_merge_left (s : α → α → Bool) (h : x ∈ l) : x ∈ merge s l r :=
-  mem_merge.2 <| .inl h
-
-theorem mem_merge_right (s : α → α → Bool) (h : x ∈ r) : x ∈ merge s l r :=
-  mem_merge.2 <| .inr h
 
 /-! ### foldlM and foldrM -/
 

@@ -26,7 +26,7 @@ attribute [norm_cast] val_last
 
 @[simp] theorem getElem_list (i : Nat) (h : i < (list n).length) :
     (list n)[i] = cast (length_list n) ⟨i, h⟩ := by
-  simp only [list]; rw [← Array.getElem_eq_data_getElem, getElem_enum, cast_mk]
+  simp only [list]; rw [← Array.getElem_eq_getElem_toList, getElem_enum, cast_mk]
 
 @[deprecated getElem_list (since := "2024-06-12")]
 theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
@@ -40,14 +40,14 @@ theorem list_succ (n) : list (n+1) = 0 :: (list n).map Fin.succ := by
 theorem list_succ_last (n) : list (n+1) = (list n).map castSucc ++ [last n] := by
   rw [list_succ]
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     rw [list_succ, List.map_cons castSucc, ih]
     simp [Function.comp_def, succ_castSucc]
 
 theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     conv => lhs; rw [list_succ_last]
     conv => rhs; rw [list_succ]
