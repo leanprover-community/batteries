@@ -141,7 +141,7 @@ should prove the index bound.
 A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def setN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : Array α :=
+abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set ⟨i, h⟩ x
 
 /--
@@ -150,7 +150,7 @@ Uses `get_elem_tactic` to supply a proof that the indices are in range.
 `hi` and `hj` are both given a default argument `by get_elem_tactic`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def swapN (a : Array α) (i j : Nat)
+abbrev swapN (a : Array α) (i j : Nat)
     (hi : i < a.size := by get_elem_tactic) (hj : j < a.size := by get_elem_tactic) : Array α :=
   Array.swap a ⟨i,hi⟩ ⟨j, hj⟩
 
@@ -159,8 +159,8 @@ def swapN (a : Array α) (i j : Nat)
 The old entry is returned alongwith the modified vector.
 Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasible.
 -/
-def swapAtN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : α × Array α :=
-  swapAt a ⟨i,h⟩ x
+abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
+    α × Array α := swapAt a ⟨i,h⟩ x
 
 /--
 `eraseIdxN a i h` Removes the element at position `i` from a vector of length `n`.
@@ -169,7 +169,7 @@ that the index is valid.
 This function takes worst case O(n) time because it has to backshift all elements at positions
 greater than i.
 -/
-def eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
+abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
 
 end Array

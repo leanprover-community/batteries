@@ -387,15 +387,13 @@ variable {_ : BEq α} {_ : Hashable α}
 @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.mapVal f, self.2.mapVal⟩
 
--- Temporarily removed on lean-pr-testing-5403.
+/--
+Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
+`a, c` is pushed into the new map; else the key is removed from the map.
+-/
+@[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
+  ⟨self.1.filterMap f, self.2.filterMap⟩
 
--- /--
--- Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
--- `a, c` is pushed into the new map; else the key is removed from the map.
--- -/
--- @[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
---   ⟨self.1.filterMap f, self.2.filterMap⟩
-
--- /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
--- @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
---   self.filterMap fun a b => bif f a b then some b else none
+/-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
+@[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
+  self.filterMap fun a b => bif f a b then some b else none
