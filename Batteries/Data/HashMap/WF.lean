@@ -52,7 +52,7 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
       (buckets.1[i].toList.Pairwise fun a b => ¬(a.1 == b.1)) →
       d.toList.Pairwise fun a b => ¬(a.1 == b.1))
-    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i.toNat) →
+    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % .ofNat buckets.1.size).toNat = i.toNat) →
       d.All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i.toNat) :
     (buckets.update i d h).WF := by
   refine ⟨fun l hl => ?_, fun i hi p hp => ?_⟩
