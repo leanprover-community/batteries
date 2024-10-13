@@ -91,8 +91,10 @@ where
   ⟨state.data.set i x, i'⟩
 
 /-- Update the state by a number of generation steps (default 1). -/
-@[inline] protected def State.update (state : State cfg) (steps := 1) : State cfg :=
-  if steps = 0 then state else state.twist.update (steps-1)
+-- TODO: optimize to `O(log(steps))` using the minimal polynomial
+protected def State.update (state : State cfg) : (steps : Nat := 1) → State cfg
+  | 0 => state
+  | steps+1 => state.twist.update steps
 
 /-- Mersenne Twister iteration. -/
 @[specialize cfg] protected def State.next (state : State cfg) : BitVec cfg.wordSize × State cfg :=
@@ -112,7 +114,9 @@ where
 instance (cfg) : RandomGen (State cfg) where
   range _ := (0, 2 ^ cfg.wordSize - 1)
   next s := match s.next with | (r, s) => (r.toNat, s)
-  split s := let (a, s) := s.next; (s, cfg.init a)
+  split s :=
+    -- TODO: use `(s, s.update (2 ^ 128))` once `update` is optimized.
+    let (a, s) := s.next; (s, cfg.init a)
 
 instance (cfg) : Stream (State cfg) (BitVec cfg.wordSize) where
   next? s := s.next
