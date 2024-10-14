@@ -15,6 +15,10 @@ namespace List
 @[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := rfl
 
+/-! ### isEmpty -/
+
+theorem isEmpty_iff_eq_nil {l : List α} : l.isEmpty ↔ l = [] := by cases l <;> simp [isEmpty]
+
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
@@ -47,6 +51,11 @@ theorem get?_inj
     (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
   apply getElem?_inj h₀ h₁
   simp_all
+
+/-! ### modifyHead -/
+
+@[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
+    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
 
 /-! ### modifyNth -/
 
