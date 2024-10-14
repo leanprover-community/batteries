@@ -1,16 +1,7 @@
 import Batteries.Data.Random.MersenneTwister
+import Batteries.Data.Stream
 
 open Batteries.Random.MersenneTwister
-
-/- TODO: move somewhere else... -/
-def Stream.take [Stream σ α] (s : σ) (n : Nat) : Array α × σ :=
-  loop s (.mkEmpty n) (Nat.zero_le _)
-where
-  @[inline] loop (s : σ) (acc : Array α) (h : acc.size ≤ n) :=
-    if heq : acc.size = n then (acc, s) else
-      match Stream.next? s with
-      | none => (acc, s)
-      | some (v, s) => loop s (acc.push v) (by simp only [Array.size_push]; omega)
 
 #guard (Stream.take mt19937.init 5).1 == #[874448474, 2424656266, 2174085406, 1265871120, 3155244894]
 
