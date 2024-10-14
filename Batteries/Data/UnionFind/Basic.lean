@@ -3,9 +3,14 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.Alias
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Batteries.Util.Panic
 import Batteries.Data.Array.Lemmas
+
+@[deprecated (since := "2024-10-05")]
+protected alias Batteries.UnionFind.panicWith := Batteries.panicWith
 
 namespace Batteries
 
@@ -17,11 +22,6 @@ structure UFNode where
   rank : Nat
 
 namespace UnionFind
-
-/-- Panic with return value -/
-def panicWith (v : α) (msg : String) : α := @panic α ⟨v⟩ msg
-
-@[simp] theorem panicWith_eq (v : α) (msg) : panicWith v msg = v := rfl
 
 /-- Parent of a union-find node, defaults to self when the node is a root -/
 def parentD (arr : Array UFNode) (i : Nat) : Nat :=
