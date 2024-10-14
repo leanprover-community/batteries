@@ -7,7 +7,26 @@ import Batteries.Data.Vector
 
 /-! # Mersenne Twister
 
-Reference implementation for the Mersenne Twister pseudorandom number generator.
+Generic implementation for the Mersenne Twister pseudorandom number generator.
+
+All choices of parameters from Matsumoto and Nishimura (1998) are supported, along with later
+refinements. Parameters for the standard 32-bit MT19937 and 64-bit MT19937-64 algorithms are
+provided. Both `RandomGen` and `Stream` interfaces are provided.
+
+Use `mt19937.init seed` to create a MT19937 PRNG with a 32 bit seed value; use
+`mt19937_64.init seed` to create a MT19937-64 PRNG with a 64 bit seed value. If omitted, default
+seed choices will be used.
+
+Sample usage:
+```
+import Batteries.Data.Random.MersenneTwister
+
+open Batteries.Random.MersenneTwister
+
+def mtgen := mt19937.init -- default seed 4357
+
+#eval (Stream.take mtgen 5).fst -- #[874448474, 2424656266, 2174085406, 1265871120, 3155244894]
+```
 
 ### References:
 
