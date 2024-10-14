@@ -32,6 +32,7 @@ import Batteries.Data.RBMap
 import Batteries.Data.Random
 import Batteries.Data.Range
 import Batteries.Data.Rat
+import Batteries.Data.Stream
 import Batteries.Data.String
 import Batteries.Data.Sum
 import Batteries.Data.UInt
