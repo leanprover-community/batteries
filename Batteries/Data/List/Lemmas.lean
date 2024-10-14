@@ -24,6 +24,10 @@ namespace List
 theorem head_cons_tail : ∀ l h, @head α l h :: l.tail = l
   | _::_, _ => rfl
 
+theorem singleton_head_eq_self (l : List α) (hne : l ≠ []) (htl : l.tail = []) :
+    [l.head hne] = l := by
+  conv => rhs; rw [← head_cons_tail l hne, htl]
+
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
@@ -489,9 +493,31 @@ end Diff
 
 /-! ### prefix, suffix, infix -/
 
+theorem singleton_prefix_cons (a) : [a] <+: a :: l :=
+  (prefix_cons_inj a).mpr nil_prefix
+
 theorem ne_nil_of_not_prefix (h : ¬l₁ <+: l₂) : l₁ ≠ [] := by
   intro heq
   simp [heq, nil_prefix] at h
+
+theorem not_prefix_and_not_prefix_symm_iff_exists [BEq α] [LawfulBEq α] [DecidableEq α]
+    {l₁ l₂ : List α} : ¬l₁ <+: l₂ ∧ ¬l₂ <+: l₁ ↔ ∃ c₁ c₂ pre suf₁ suf₂, c₁ ≠ c₂ ∧
+      l₁ = pre ++ c₁ :: suf₁ ∧ l₂ = pre ++ c₂ :: suf₂ := by
+  constructor <;> intro h
+  · obtain ⟨c₁, l₁, rfl⟩ := l₁.exists_cons_of_ne_nil (ne_nil_of_not_prefix h.1)
+    obtain ⟨c₂, l₂, rfl⟩ := l₂.exists_cons_of_ne_nil (ne_nil_of_not_prefix h.2)
+    simp only [cons_prefix_cons, not_and] at h
+    cases Decidable.em (c₁ = c₂)
+    · subst c₂
+      simp only [forall_const] at h
+      let ⟨c₁', c₂', pre, suf₁, suf₂, hc, heq₁, heq₂⟩ :=
+        not_prefix_and_not_prefix_symm_iff_exists.mp h
+      exact ⟨c₁', c₂', c₁::pre, suf₁, suf₂, hc, by simp [heq₁], by simp [heq₂]⟩
+    · next hc =>
+      exact ⟨c₁, c₂, [], l₁, l₂, hc, nil_append .., nil_append ..⟩
+  · let ⟨c₁, c₂, pre, suf₁, suf₂, hc, heq₁, heq₂⟩ := h
+    rw [heq₁, heq₂]
+    simp [prefix_append_right_inj, cons_prefix_cons, hc, hc.symm]
 
 /-! ### drop -/
 
