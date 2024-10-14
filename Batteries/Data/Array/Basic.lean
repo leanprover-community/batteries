@@ -29,13 +29,6 @@ def equalSet [BEq α] (xs ys : Array α) : Bool :=
 
 set_option linter.unusedVariables.funArgs false in
 /--
-Sort an array using `compare` to compare elements.
--/
-def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort fun x y => compare x y |>.isLT
-
-set_option linter.unusedVariables.funArgs false in
-/--
 Returns the first minimal element among `d` and elements of the array.
 If `start` and `stop` are given, only the subarray `xs[start:stop]` is
 considered (in addition to `d`).
@@ -148,7 +141,7 @@ should prove the index bound.
 A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def setN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : Array α :=
+abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set ⟨i, h⟩ x
 
 /--
@@ -157,7 +150,7 @@ Uses `get_elem_tactic` to supply a proof that the indices are in range.
 `hi` and `hj` are both given a default argument `by get_elem_tactic`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def swapN (a : Array α) (i j : Nat)
+abbrev swapN (a : Array α) (i j : Nat)
     (hi : i < a.size := by get_elem_tactic) (hj : j < a.size := by get_elem_tactic) : Array α :=
   Array.swap a ⟨i,hi⟩ ⟨j, hj⟩
 
@@ -166,8 +159,8 @@ def swapN (a : Array α) (i j : Nat)
 The old entry is returned alongwith the modified vector.
 Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasible.
 -/
-def swapAtN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : α × Array α :=
-  swapAt a ⟨i,h⟩ x
+abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
+    α × Array α := swapAt a ⟨i,h⟩ x
 
 /--
 `eraseIdxN a i h` Removes the element at position `i` from a vector of length `n`.
@@ -176,29 +169,13 @@ that the index is valid.
 This function takes worst case O(n) time because it has to backshift all elements at positions
 greater than i.
 -/
-def eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
+abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
 
 end Array
 
 
 namespace Subarray
-
-/--
-The empty subarray.
--/
-protected def empty : Subarray α where
-  array := #[]
-  start := 0
-  stop := 0
-  start_le_stop := Nat.le_refl 0
-  stop_le_array_size := Nat.le_refl 0
-
-instance : EmptyCollection (Subarray α) :=
-  ⟨Subarray.empty⟩
-
-instance : Inhabited (Subarray α) :=
-  ⟨{}⟩
 
 /--
 Check whether a subarray is empty.
