@@ -32,17 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/--
-Given a function `f : Nat → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`.
--/
-@[inline] def mapIdx (f : Nat → α → β) (as : List α) : List β := go as #[] where
-  /-- Auxiliary for `mapIdx`:
-  `mapIdx.go [a₀, a₁, ...] acc = acc.toList ++ [f acc.size a₀, f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → List β
-  | [], acc => acc.toList
-  | a :: as, acc => go as (acc.push (f acc.size a))
-
 /-- Monadic variant of `mapIdx`. -/
 @[inline] def mapIdxM {m : Type v → Type w} [Monad m]
     (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
