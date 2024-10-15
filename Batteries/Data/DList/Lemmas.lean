@@ -8,7 +8,7 @@ import Batteries.Data.DList.Defs
 /-!
 # Difference list
 
-This file provides a few results about `DList`, which is defined in `Batteries`.
+This file provides a few results about `DList`.
 
 A difference list is a function that, given a list, returns the original content of the
 difference list prepended to the given list. It is useful to represent elements of a given type

@@ -7,7 +7,7 @@ namespace Batteries
 /--
 A difference List is a Function that, given a List, returns the original
 contents of the difference List prepended to the given List.
-This structure supports `O(1)` `append` and `concat` operations on lists, making it
+This structure supports `O(1)` `append` and `push` operations on lists, making it
 useful for append-heavy uses such as logging and pretty printing.
 -/
 structure DList (α : Type u) where
