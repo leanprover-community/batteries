@@ -19,7 +19,9 @@ import Batteries.Data.BinomialHeap
 import Batteries.Data.ByteArray
 import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
+import Batteries.Data.DList.Basic
 import Batteries.Data.DList.Defs
+import Batteries.Data.DList.Lemmas
 import Batteries.Data.Fin
 import Batteries.Data.FloatArray
 import Batteries.Data.HashMap
