@@ -99,28 +99,11 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
   simp only [← length_toList, toList_filter]
   apply List.length_filter_le
 
-/-! ### join -/
+/-! ### flatten -/
 
-@[simp] theorem toList_join {l : Array (Array α)} : l.join.toList = (l.toList.map toList).join := by
-  dsimp [join]
-  simp only [foldl_eq_foldl_toList]
-  generalize l.toList = l
-  have : ∀ a : Array α, (List.foldl ?_ a l).toList = a.toList ++ ?_ := ?_
-  exact this #[]
-  induction l with
-  | nil => simp
-  | cons h => induction h.toList <;> simp [*]
-@[deprecated (since := "2024-09-09")] alias data_join := toList_join
-@[deprecated (since := "2024-08-13")] alias join_data := data_join
-
-theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
-  simp only [mem_def, toList_join, List.mem_join, List.mem_map]
-  intro l
-  constructor
-  · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
-    exact ⟨s, m, h⟩
-  · rintro ⟨s, h₁, h₂⟩
-    refine ⟨s.toList, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+@[deprecated (since := "2024-09-09")] alias data_join := toList_flatten
+@[deprecated (since := "2024-08-13")] alias join_data := toList_flatten
+@[deprecated (since := "2024-10-15")] alias mem_join := mem_flatten
 
 /-! ### indexOf? -/
 
@@ -164,9 +147,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 /-! ### swapAt -/
 
 theorem size_swapAt (a : Array α) (x i) : (a.swapAt i x).snd.size = a.size := by simp
-
-@[simp] theorem size_swapAt! (a : Array α) (x) (h : i < a.size) :
-    (a.swapAt! i x).snd.size = a.size := by simp [h]
 
 /-! ### map -/
 
