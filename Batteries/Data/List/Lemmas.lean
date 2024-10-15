@@ -21,7 +21,7 @@ namespace List
 
 /-! ### head and tail -/
 
-theorem head_cons_tail : ∀ l h, @head α l h :: l.tail = l
+theorem head_cons_tail : ∀ (l : List α) (hne : l ≠ []), l.head hne :: l.tail = l
   | _::_, _ => rfl
 
 theorem singleton_head_eq_self (l : List α) (hne : l ≠ []) (htl : l.tail = []) :
