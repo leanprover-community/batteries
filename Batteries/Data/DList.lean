@@ -1,2 +1,2 @@
-import Batteries.Data.DList.Defs
+import Batteries.Data.DList.Basic
 import Batteries.Data.DList.Lemmas
