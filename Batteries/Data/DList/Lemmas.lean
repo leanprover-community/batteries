@@ -53,11 +53,11 @@ theorem toList_push (x : α) (l : DList α) : toList (push l x) = toList l ++ [x
   obtain ⟨_, l_invariant⟩ := l; simp; rw [l_invariant]
 
 @[simp]
-theorem DList_singleton {α : Type _} {a : α} : DList.singleton a = DList.lazy_ofList [a] :=
+theorem DList_singleton {α : Type _} {a : α} : singleton a = lazy_ofList [a] :=
   rfl
 
 @[simp]
-theorem DList_lazy {α : Type _} {l : List α} : DList.lazy_ofList l = Batteries.DList.ofList l :=
+theorem DList_lazy {α : Type _} {l : List α} : lazy_ofList l = ofList l :=
   rfl
 
 end Batteries.DList

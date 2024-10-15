@@ -75,6 +75,6 @@ def lazy_ofList (l : Thunk (List α)) : DList α :=
 
 /-- Concatenates a list of difference lists to form a single difference list. Similar to
 `List.join`. -/
-def DList.join {α : Type _} : List (DList α) → DList α
+def join {α : Type _} : List (DList α) → DList α
   | [] => DList.empty
   | x :: xs => x ++ DList.join xs
