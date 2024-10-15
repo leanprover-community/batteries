@@ -68,3 +68,13 @@ def push : DList α → α → DList α
   }
 
 instance : Append (DList α) := ⟨DList.append⟩
+
+/-- Convert a lazily-evaluated `List` to a `DList` -/
+def lazy_ofList (l : Thunk (List α)) : DList α :=
+  ⟨fun xs => l.get ++ xs, fun t => by simp⟩
+
+/-- Concatenates a list of difference lists to form a single difference list. Similar to
+`List.join`. -/
+def DList.join {α : Type _} : List (DList α) → DList α
+  | [] => DList.empty
+  | x :: xs => x ++ DList.join xs

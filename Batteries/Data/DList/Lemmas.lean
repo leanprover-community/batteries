@@ -26,10 +26,6 @@ open Function
 
 variable {α : Type u}
 
-/-- Convert a lazily-evaluated `List` to a `DList` -/
-def lazy_ofList (l : Thunk (List α)) : DList α :=
-  ⟨fun xs => l.get ++ xs, fun t => by simp⟩
-
 attribute [local simp] Function.comp
 
 attribute [local simp] ofList toList empty singleton cons push append
@@ -55,5 +51,13 @@ theorem toList_cons (x : α) (l : DList α) : toList (cons x l) = x :: toList l 
 
 theorem toList_push (x : α) (l : DList α) : toList (push l x) = toList l ++ [x] := by
   obtain ⟨_, l_invariant⟩ := l; simp; rw [l_invariant]
+
+@[simp]
+theorem DList_singleton {α : Type _} {a : α} : DList.singleton a = DList.lazy_ofList [a] :=
+  rfl
+
+@[simp]
+theorem DList_lazy {α : Type _} {l : List α} : DList.lazy_ofList l = Batteries.DList.ofList l :=
+  rfl
 
 end Batteries.DList

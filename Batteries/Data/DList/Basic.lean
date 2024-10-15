@@ -20,18 +20,4 @@ useful for append-heavy uses such as logging and pretty printing.
 
 namespace Batteries
 
-/-- Concatenates a list of difference lists to form a single difference list. Similar to
-`List.join`. -/
-def DList.join {α : Type _} : List (DList α) → DList α
-  | [] => DList.empty
-  | x :: xs => x ++ DList.join xs
-
-@[simp]
-theorem DList_singleton {α : Type _} {a : α} : DList.singleton a = DList.lazy_ofList [a] :=
-  rfl
-
-@[simp]
-theorem DList_lazy {α : Type _} {l : List α} : DList.lazy_ofList l = Batteries.DList.ofList l :=
-  rfl
-
 end Batteries
