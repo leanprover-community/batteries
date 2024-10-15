@@ -504,6 +504,48 @@ section
 
 variable [DecidableEq α]
 
+/-- Returns the longest common prefix of two lists. -/
+def commonPrefix : (l₁ l₂ : List α) → List α
+  | [], _ => []
+  | _, [] => []
+  | a₁::l₁, a₂::l₂ =>
+    if a₁ = a₂ then
+      a₁ :: (commonPrefix l₁ l₂)
+    else
+      []
+
+theorem commonPrefix_prefix_left (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₁ := by
+  match l₁, l₂ with
+  | [],   _  => simp [commonPrefix]
+  | _::_, [] => simp [commonPrefix]
+  | a₁::l₁, a₂::l₂ =>
+    simp only [commonPrefix]
+    cases Decidable.em (a₁ = a₂)
+    · next h =>
+      simp only [h, ↓reduceIte, cons_prefix_cons, true_and]
+      apply commonPrefix_prefix_left
+    · next h =>
+      simp [h]
+
+theorem commonPrefix_prefix_right (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₂ := by
+   match l₁, l₂ with
+  | [],   _  => simp [commonPrefix]
+  | _::_, [] => simp [commonPrefix]
+  | a₁::l₁, a₂::l₂ =>
+    simp only [commonPrefix]
+    cases Decidable.em (a₁ = a₂)
+    · next h =>
+      simp only [h, ↓reduceIte, cons_prefix_cons, true_and]
+      apply commonPrefix_prefix_right
+    · next h =>
+      simp [h]
+
+theorem commonPrefix_append_append (p l₁ l₂ : List α) :
+    commonPrefix (p ++ l₁) (p ++ l₂) = p ++ commonPrefix l₁ l₂ := by
+  match p with
+  | []   => rfl
+  | a::p => simpa [commonPrefix] using commonPrefix_append_append p l₁ l₂
+
 theorem not_prefix_and_not_prefix_symm_iff_exists {l₁ l₂ : List α} :
     ¬l₁ <+: l₂ ∧ ¬l₂ <+: l₁ ↔ ∃ c₁ c₂ pre suf₁ suf₂, c₁ ≠ c₂ ∧ l₁ = pre ++ c₁ :: suf₁ ∧
       l₂ = pre ++ c₂ :: suf₂ := by
