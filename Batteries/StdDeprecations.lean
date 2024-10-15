@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
 import Batteries.Tactic.Alias
-import Batteries.Data.DList
+import Batteries.Data.DList.Defs
 import Batteries.Data.PairingHeap
 import Batteries.Data.BinomialHeap.Basic
 import Batteries.Data.HashMap.Basic
