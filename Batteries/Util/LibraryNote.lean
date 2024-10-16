@@ -70,7 +70,7 @@ elab "#help note" name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       valid_entries.map ("/--\n" ++ String.trim · ++ "\n-/")
 
-  -- for when `List.nil_not_mem_groupBy` has landed in batteries or higher in the hierarchy.
+  -- for when `List.ne_nil_of_mem_groupBy` has landed in batteries or higher in the hierarchy.
   /-
   let imported_entries_filtered := imported_entries.flatten.toList.filterMap
     (fun x => if entry_name.isPrefixOf x.fst then some x else Option.none)
@@ -88,7 +88,7 @@ elab "#help note" name:strLit : command => do
       grouped_valid_entries.attach.map (fun ⟨l,h⟩ =>
         "library_note \"" ++ (l.head (by
           unfold grouped_valid_entries at h
-          -- `exact List.nil_not_mem_groupBy h`
+          -- `exact List.ne_nil_of_mem_groupBy h`
           -- from mathlib would prove this
           sorry)
           ).fst ++ "\"\n"
