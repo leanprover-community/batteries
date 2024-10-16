@@ -74,6 +74,7 @@ import Batteries.Tactic.Case
 import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
+import Batteries.Tactic.HelpCmd
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
 import Batteries.Tactic.Lemma
