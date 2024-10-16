@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner
+Authors: Gabriel Ebner, Edward van de Meent
 -/
 import Lean.Elab.Command
 
@@ -35,7 +35,7 @@ creates a new "library note", which can then be cross-referenced using
 -- See note [some tag]
 ```
 in doc-comments.
-Use `#check_note "some tag"` to display all notes with the tag
+Use `#help note "some tag"` to display all notes with the tag
 `"some tag"` in the infoview.
 -/
 elab "library_note " title:strLit ppSpace text:docComment : command => do
