@@ -184,22 +184,106 @@ error: no command declarations start with foobarbaz
 #help command foobarbaz
 
 /--
-info:
-syntax "#eval"... [Lean.Parser.Command.eval]
+info: syntax "#eval"... [Lean.Parser.Command.eval]
+  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  ⏎
+  * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
+  * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
+    to one of the monads that `#eval` supports, which include `IO`, `CoreM`, `MetaM`, `TermElabM`, and `CommandElabM`.
+    Users can define `MonadEval` instances to extend the list of supported monads.
+  ⏎
+  The `#eval` command gracefully degrades in capability depending on what is imported.
+  Importing the `Lean.Elab.Command` module provides full capabilities.
+  ⏎
+  Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
+  since the presence of `sorry` can lead to runtime instability and crashes.
+  This check can be overridden with the `#eval! e` command.
+  ⏎
+  Options:
+  * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
+    usual pretty printer. Otherwise, only tries using `Repr` and `ToString` instances.
+  * If `eval.type` is true (default: false) then pretty prints the type of the evaluated value.
+  * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
+    when there is no other way to print the result.
+  ⏎
+  See also: `#reduce e` for evaluation by term reduction.
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
-
-syntax "#exit"... [Lean.Parser.Command.exit]
+  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  ⏎
+  * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
+  * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
+    to one of the monads that `#eval` supports, which include `IO`, `CoreM`, `MetaM`, `TermElabM`, and `CommandElabM`.
+    Users can define `MonadEval` instances to extend the list of supported monads.
+  ⏎
+  The `#eval` command gracefully degrades in capability depending on what is imported.
+  Importing the `Lean.Elab.Command` module provides full capabilities.
+  ⏎
+  Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
+  since the presence of `sorry` can lead to runtime instability and crashes.
+  This check can be overridden with the `#eval! e` command.
+  ⏎
+  Options:
+  * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
+    usual pretty printer. Otherwise, only tries using `Repr` and `ToString` instances.
+  * If `eval.type` is true (default: false) then pretty prints the type of the evaluated value.
+  * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
+    when there is no other way to print the result.
+  ⏎
+  See also: `#reduce e` for evaluation by term reduction.  syntax "#exit"... [Lean.Parser.Command.exit]
 -/
 #guard_msgs in
 #help command "#e"
 
 /--
-info:
-syntax "#eval"... [Lean.Parser.Command.eval]
+info: syntax "#eval"... [Lean.Parser.Command.eval]
+  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  ⏎
+  * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
+  * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
+    to one of the monads that `#eval` supports, which include `IO`, `CoreM`, `MetaM`, `TermElabM`, and `CommandElabM`.
+    Users can define `MonadEval` instances to extend the list of supported monads.
+  ⏎
+  The `#eval` command gracefully degrades in capability depending on what is imported.
+  Importing the `Lean.Elab.Command` module provides full capabilities.
+  ⏎
+  Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
+  since the presence of `sorry` can lead to runtime instability and crashes.
+  This check can be overridden with the `#eval! e` command.
+  ⏎
+  Options:
+  * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
+    usual pretty printer. Otherwise, only tries using `Repr` and `ToString` instances.
+  * If `eval.type` is true (default: false) then pretty prints the type of the evaluated value.
+  * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
+    when there is no other way to print the result.
+  ⏎
+  See also: `#reduce e` for evaluation by term reduction.
 + command elab Lean.Elab.Command.elabEval
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
+  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  ⏎
+  * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
+  * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
+    to one of the monads that `#eval` supports, which include `IO`, `CoreM`, `MetaM`, `TermElabM`, and `CommandElabM`.
+    Users can define `MonadEval` instances to extend the list of supported monads.
+  ⏎
+  The `#eval` command gracefully degrades in capability depending on what is imported.
+  Importing the `Lean.Elab.Command` module provides full capabilities.
+  ⏎
+  Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
+  since the presence of `sorry` can lead to runtime instability and crashes.
+  This check can be overridden with the `#eval! e` command.
+  ⏎
+  Options:
+  * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
+    usual pretty printer. Otherwise, only tries using `Repr` and `ToString` instances.
+  * If `eval.type` is true (default: false) then pretty prints the type of the evaluated value.
+  * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
+    when there is no other way to print the result.
+  ⏎
+  See also: `#reduce e` for evaluation by term reduction.
 + command elab Lean.Elab.Command.elabEvalBang
 
 syntax "#exit"... [Lean.Parser.Command.exit]
