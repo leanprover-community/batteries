@@ -504,6 +504,16 @@ section
 
 variable [DecidableEq α]
 
+/-- Returns the longest common prefix of two lists. -/
+def commonPrefix : (l₁ l₂ : List α) → List α
+  | [], _ => []
+  | _, [] => []
+  | a₁::l₁, a₂::l₂ =>
+    if a₁ = a₂ then
+      a₁ :: (commonPrefix l₁ l₂)
+    else
+      []
+
 theorem commonPrefix_prefix_left (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₁ := by
   match l₁, l₂ with
   | [],   _  => simp [commonPrefix]
