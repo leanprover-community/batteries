@@ -172,6 +172,16 @@ greater than i.
 abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
 
+/--
+Remove the element at a given index from an array, panics if index is out of bounds.
+-/
+def eraseIdx! (a : Array α) (i : Nat) : Array α :=
+  if h : i < a.size then
+    a.feraseIdx ⟨i, h⟩
+  else
+    have : Inhabited (Array α) := ⟨a⟩
+    panic! s!"index {i} out of bounds"
+
 end Array
 
 
