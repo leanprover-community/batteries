@@ -520,7 +520,7 @@ theorem commonPrefix_prefix_left (l₁ l₂ : List α) : commonPrefix l₁ l₂ 
   | _::_, [] => simp [commonPrefix]
   | a₁::l₁, a₂::l₂ =>
     simp only [commonPrefix]
-    split
+    cases Decidable.em (a₁ = a₂)
     · next h =>
       simp only [h, ↓reduceIte, cons_prefix_cons, true_and]
       apply commonPrefix_prefix_left
