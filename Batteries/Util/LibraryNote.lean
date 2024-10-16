@@ -69,3 +69,28 @@ elab "#help note" name:strLit : command => do
   else
     logInfo <| "\n\n".intercalate <|
       valid_entries.map ("/--\n" ++ String.trim · ++ "\n-/")
+
+  -- for when `List.nil_ne_mem_groupBy` has landed in batteries or higher in the hierarchy.
+  /-
+  let imported_entries_filtered := imported_entries.flatten.toList.filterMap
+    (fun x => if entry_name.isPrefixOf x.fst then some x else Option.none)
+  let valid_entries := imported_entries_filtered ++ local_entries.filterMap
+    (fun x => if entry_name.isPrefixOf x.fst then some x else none)
+
+  let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
+    |>.groupBy (·.fst == ·.fst)
+
+  -- display results in a readable style
+  if grouped_valid_entries.isEmpty then
+    logInfo "Note not found"
+  else
+    logInfo <| "\n\n".intercalate <|
+      grouped_valid_entries.attach.map (fun ⟨l,h⟩ =>
+        "library_note \"" ++ (l.head (by
+          unfold grouped_valid_entries at h
+          -- `exact List.nil_ne_mem_groupBy h`
+          -- from mathlib would prove this
+          sorry)
+          ).fst ++ "\"\n"
+        ++ ("\n\n".intercalate <| l.map (fun e => "/--\n" ++ e.snd.trim ++ "\n-/")))
+  -/
