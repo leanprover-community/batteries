@@ -71,7 +71,6 @@ import Batteries.StdDeprecations
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
-import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
 import Batteries.Tactic.HelpCmd
