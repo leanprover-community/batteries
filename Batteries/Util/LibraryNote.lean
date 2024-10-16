@@ -53,7 +53,7 @@ elab "#help note" name:strLit : command => do
   let env ← getEnv
 
   -- get the library notes from both this and imported files
-  let local_entries := libraryNoteExt.getEntries env
+  let local_entries := (libraryNoteExt.getEntries env).reverse
   let imported_entries := (libraryNoteExt.toEnvExtension.getState env).importedEntries
 
   -- filter for the appropriate notes while casting to list
@@ -68,4 +68,4 @@ elab "#help note" name:strLit : command => do
     logInfo "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
-      valid_entries.reverse.map ("/--\n" ++ String.trim · ++ "\n-/")
+      valid_entries.map ("/--\n" ++ String.trim · ++ "\n-/")
