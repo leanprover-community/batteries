@@ -44,12 +44,12 @@ elab "library_note " title:strLit ppSpace text:docComment : command => do
 
 open Lean Parser in
 /--
-`#check_note "some tag"` displays all library notes with tag
+`#help note "some tag"` displays all library notes with tag
 `"some tag"` in the infoview.
 The command only displays the library notes that are declared in
 imported files or in the same file above the line containing the command.
 -/
-elab "#check_note" name:strLit : command => do
+elab "#help note" name:strLit : command => do
   let env ← getEnv
 
   -- get the library notes from both this and imported files
