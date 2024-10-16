@@ -36,13 +36,13 @@ theorem toList_empty : toList (@empty α) = [] := by simp [empty]
 theorem toList_singleton (x : α) : toList (singleton x) = [x] := by simp [singleton]
 
 theorem toList_append (l₁ l₂ : DList α) : toList (l₁ ++ l₂) = toList l₁ ++ toList l₂ := by
-  obtain ⟨_, l₁_invariant⟩ := l₁; cases l₂; simp [append]; rw [l₁_invariant]
+  simp only [toList, append, Function.comp]; rw [invariant]
 
 theorem toList_cons (x : α) (l : DList α) : toList (cons x l) = x :: toList l := by
   cases l; simp [cons]
 
 theorem toList_push (x : α) (l : DList α) : toList (push l x) = toList l ++ [x] := by
-  obtain ⟨_, l_invariant⟩ := l; simp [push]; rw [l_invariant]
+  simp only [toList, push]; rw [invariant]
 
 @[simp]
 theorem singleton_eq_ofThunk {α : Type _} {a : α} : singleton a = ofThunk [a] :=
