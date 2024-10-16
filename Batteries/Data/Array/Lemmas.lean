@@ -147,6 +147,13 @@ where
 @[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
     (l.erase a).toList = l.toList.erase a
 
+@[simp] theorem eraseIdx!_eq_eraseIdx (a : Array α) (i : Nat) :
+    a.eraseIdx! i = a.eraseIdx i := rfl
+
+@[simp] theorem size_eraseIdx (a : Array α) (i : Nat) :
+    (a.eraseIdx i).size = if i < a.size then a.size-1 else a.size := by
+  simp only [eraseIdx]; split; simp; rfl
+
 /-! ### shrink -/
 
 theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by

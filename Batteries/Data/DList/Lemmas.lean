@@ -18,20 +18,12 @@ This structure supports `O(1)` `append` and `push` operations on lists, making i
 useful for append-heavy uses such as logging and pretty printing.
 -/
 
-universe u
-
 namespace Batteries.DList
 
 open Function
 
-variable {α : Type u}
-
-attribute [local simp] Function.comp
-
-attribute [local simp] ofList toList empty singleton cons push append
-
 theorem toList_ofList (l : List α) : DList.toList (DList.ofList l) = l := by
-  cases l; rfl; simp only [DList.toList, DList.ofList, List.cons_append, List.append_nil]
+  cases l; rfl; simp [ofList]
 
 theorem ofList_toList (l : DList α) : DList.ofList (DList.toList l) = l := by
    obtain ⟨app, inv⟩ := l
@@ -39,25 +31,28 @@ theorem ofList_toList (l : DList α) : DList.ofList (DList.toList l) = l := by
    funext x
    rw [(inv x)]
 
-theorem toList_empty : toList (@empty α) = [] := by simp
+theorem toList_empty : toList (@empty α) = [] := by simp [empty]
 
-theorem toList_singleton (x : α) : toList (singleton x) = [x] := by simp
+theorem toList_singleton (x : α) : toList (singleton x) = [x] := by simp [singleton]
 
 theorem toList_append (l₁ l₂ : DList α) : toList (l₁ ++ l₂) = toList l₁ ++ toList l₂ := by
-  obtain ⟨_, l₁_invariant⟩ := l₁; cases l₂; simp; rw [l₁_invariant]
+  simp only [toList, append, Function.comp]; rw [invariant]
 
 theorem toList_cons (x : α) (l : DList α) : toList (cons x l) = x :: toList l := by
-  cases l; simp
+  cases l; simp [cons]
 
 theorem toList_push (x : α) (l : DList α) : toList (push l x) = toList l ++ [x] := by
-  obtain ⟨_, l_invariant⟩ := l; simp; rw [l_invariant]
+  simp only [toList, push]; rw [invariant]
 
 @[simp]
-theorem DList_singleton {α : Type _} {a : α} : singleton a = lazy_ofList [a] :=
+theorem singleton_eq_ofThunk {α : Type _} {a : α} : singleton a = ofThunk [a] :=
   rfl
 
 @[simp]
-theorem DList_lazy {α : Type _} {l : List α} : lazy_ofList l = ofList l :=
+theorem ofThunk_coe {α : Type _} {l : List α} : ofThunk l = ofList l :=
   rfl
+
+@[deprecated (since := "2024-10-16")] alias DList_singleton := singleton_eq_ofThunk
+@[deprecated (since := "2024-10-16")] alias DList_lazy := ofThunk_coe
 
 end Batteries.DList
