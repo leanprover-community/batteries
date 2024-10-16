@@ -504,6 +504,16 @@ section
 
 variable [DecidableEq α]
 
+theorem commonPrefix_comm (l₁ l₂ : List α) : commonPrefix l₁ l₂ = commonPrefix l₂ l₁ := by
+  cases l₁ <;> cases l₂ <;> simp only [commonPrefix]
+  next a₁ l₁ a₂ l₂ =>
+  split
+  · subst a₁
+    simp only [↓reduceIte, cons.injEq, true_and]
+    apply commonPrefix_comm
+  · next h =>
+    simp [Ne.symm h]
+
 theorem commonPrefix_prefix_left (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₁ := by
   match l₁, l₂ with
   | [],   _  => simp [commonPrefix]
