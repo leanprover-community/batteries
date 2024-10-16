@@ -108,12 +108,15 @@ by setting `showTypes` to `false`:
 The complete set of flags can be seen in the documentation
 for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
-elab (name := printPrefix) "#print" tk:"prefix"
-    cfg:(Lean.Parser.Tactic.config)? name:ident : command => liftTermElabM do
-  let nameId := name.getId
-  let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
-  let mut msgs ← matchingConstants opts nameId
-  if msgs.isEmpty then
-    if let [name] ← resolveGlobalConst name then
-      msgs ← matchingConstants opts name
-  logInfoAt tk (.joinSep msgs.toList "")
+elab (name := printPrefix) tk:"#print " colGt &"prefix"
+    cfg:(Lean.Parser.Tactic.config)? name:(ident)? : command => liftTermElabM do
+  match name with
+  | none =>
+    logInfoAt tk "unexpected end of input; expected identifier or string literal"
+  | some name =>
+    let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
+    let mut msgs ← matchingConstants opts name.getId
+    if msgs.isEmpty then
+      if let [name] ← resolveGlobalConst name then
+        msgs ← matchingConstants opts name
+    logInfoAt tk (.joinSep msgs.toList "")

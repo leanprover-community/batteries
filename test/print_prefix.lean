@@ -171,3 +171,7 @@ TestInd.toCtorIdx : TestInd → Nat
 -/
 #guard_msgs in
 #print prefix TestInd
+
+/-- info: unexpected end of input; expected identifier or string literal -/
+#guard_msgs in
+#print prefix
