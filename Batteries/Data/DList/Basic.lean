@@ -3,6 +3,8 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
+import Batteries.Tactic.Alias
+
 namespace Batteries
 /--
 A difference List is a Function that, given a List, returns the original
@@ -15,6 +17,8 @@ structure DList (α : Type u) where
   apply     : List α → List α
   /-- The `apply` function of a `DList` is completely determined by the list `apply []`. -/
   invariant : ∀ l, apply l = apply [] ++ l
+
+attribute [simp] DList.apply
 
 namespace DList
 variable {α : Type u}
@@ -30,8 +34,10 @@ def empty : DList α :=
 
 instance : EmptyCollection (DList α) := ⟨DList.empty⟩
 
+instance : Inhabited (DList α) := ⟨DList.empty⟩
+
 /-- `O(apply())`. Convert a `DList α` into a `List α` by running the `apply` function. -/
-def toList : DList α → List α
+@[simp] def toList : DList α → List α
   | ⟨f, _⟩ => f []
 
 /-- `O(1)` (`apply` is `O(1)`). A `DList α` corresponding to the list `[a]`. -/
@@ -70,8 +76,10 @@ def push : DList α → α → DList α
 instance : Append (DList α) := ⟨DList.append⟩
 
 /-- Convert a lazily-evaluated `List` to a `DList` -/
-def lazy_ofList (l : Thunk (List α)) : DList α :=
+def ofThunk (l : Thunk (List α)) : DList α :=
   ⟨fun xs => l.get ++ xs, fun t => by simp⟩
+
+@[deprecated (since := "2024-10-16")] alias lazy_ofList := ofThunk
 
 /-- Concatenates a list of difference lists to form a single difference list. Similar to
 `List.join`. -/
