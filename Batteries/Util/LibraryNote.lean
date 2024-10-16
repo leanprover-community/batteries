@@ -67,4 +67,5 @@ elab "#help note" name:strLit : command => do
   if valid_entries.isEmpty then
     logInfo "Note not found"
   else
-    logInfo <| "\n\n".intercalate <| valid_entries.reverse.map ("/--" ++ · ++ "-/")
+    logInfo <| "\n\n".intercalate <|
+      valid_entries.reverse.map ("/--\n" ++ String.trim · ++ "\n-/")
