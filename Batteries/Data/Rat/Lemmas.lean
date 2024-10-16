@@ -332,6 +332,12 @@ theorem ofScientific_def : Rat.ofScientific m s e =
     if s then mkRat m (10 ^ e) else (m * 10 ^ e : Nat) := by
   cases s; exact ofScientific_false_def; exact ofScientific_true_def
 
+/-- `Rat.ofScientific` applied to numeric literals is the same as a scientific literal. -/
+@[simp]
+theorem ofScientific_ofNat_ofNat :
+    Rat.ofScientific (no_index (OfNat.ofNat m)) s (no_index (OfNat.ofNat e))
+      = OfScientific.ofScientific m s e := rfl
+
 @[simp] theorem intCast_den (a : Int) : (a : Rat).den = 1 := rfl
 
 @[simp] theorem intCast_num (a : Int) : (a : Rat).num = a := rfl

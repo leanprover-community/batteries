@@ -112,7 +112,8 @@ def divInt : Int → Int → Rat
   else
     (m * 10 ^ e : Nat)
 
-instance : OfScientific Rat where ofScientific := Rat.ofScientific
+instance : OfScientific Rat where
+  ofScientific m s e := Rat.ofScientific (OfNat.ofNat m) s (OfNat.ofNat e)
 
 /-- Rational number strictly less than relation, as a `Bool`. -/
 protected def blt (a b : Rat) : Bool :=
