@@ -18,6 +18,8 @@ structure DList (α : Type u) where
   /-- The `apply` function of a `DList` is completely determined by the list `apply []`. -/
   invariant : ∀ l, apply l = apply [] ++ l
 
+attribute [simp] DList.apply
+
 namespace DList
 variable {α : Type u}
 open List
@@ -35,7 +37,7 @@ instance : EmptyCollection (DList α) := ⟨DList.empty⟩
 instance : Inhabited (DList α) := ⟨DList.empty⟩
 
 /-- `O(apply())`. Convert a `DList α` into a `List α` by running the `apply` function. -/
-def toList : DList α → List α
+@[simp] def toList : DList α → List α
   | ⟨f, _⟩ => f []
 
 /-- `O(1)` (`apply` is `O(1)`). A `DList α` corresponding to the list `[a]`. -/
