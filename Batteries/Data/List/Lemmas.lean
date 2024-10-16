@@ -500,11 +500,7 @@ theorem ne_nil_of_not_prefix (h : ¬l₁ <+: l₂) : l₁ ≠ [] := by
   intro heq
   simp [heq, nil_prefix] at h
 
-section
-
-variable [DecidableEq α]
-
-theorem not_prefix_and_not_prefix_symm_iff_exists {l₁ l₂ : List α} :
+theorem not_prefix_and_not_prefix_symm_iff_exists [DecidableEq α] {l₁ l₂ : List α} :
     ¬l₁ <+: l₂ ∧ ¬l₂ <+: l₁ ↔ ∃ c₁ c₂ pre suf₁ suf₂, c₁ ≠ c₂ ∧ l₁ = pre ++ c₁ :: suf₁ ∧
       l₂ = pre ++ c₂ :: suf₂ := by
   constructor <;> intro h
@@ -522,8 +518,6 @@ theorem not_prefix_and_not_prefix_symm_iff_exists {l₁ l₂ : List α} :
   · let ⟨c₁, c₂, pre, suf₁, suf₂, hc, heq₁, heq₂⟩ := h
     rw [heq₁, heq₂]
     simp [prefix_append_right_inj, cons_prefix_cons, hc, hc.symm]
-
-end
 
 /-! ### drop -/
 
