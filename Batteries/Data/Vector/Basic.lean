@@ -34,7 +34,7 @@ syntax "#v[" withoutPosition(sepBy(term, ", ")) "]" : term
 
 open Lean in
 macro_rules
-  | `(#v[ $elems,* ]) => `(Vector.mk (n := $(quote elems.getElems.size)) #[$elems,*] rfl)
+  | `(#v[ $elems,* ]) => `(Vector.mk (n := $(quote elems.getElems.size)) #[$elems,*] (by rfl))
 
 /-- Custom eliminator for `Vector α n` through `Array α` -/
 @[elab_as_elim]
