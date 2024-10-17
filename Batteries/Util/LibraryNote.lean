@@ -74,5 +74,5 @@ elab "#help note" name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       grouped_valid_entries.map
         fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
-          "\n\n".intercalate (l.map fun e => "/--\n" ++ e.snd.trim ++ "\n-/")
+          "\n\n".intercalate (l.map fun e => "/-\n" ++ e.snd.trim ++ "\n-/")
     -- this could use List.head when List.ne_nil_of_mem_groupBy gets upstreamed from mathlib
