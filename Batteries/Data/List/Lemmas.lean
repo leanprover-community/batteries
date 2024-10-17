@@ -395,7 +395,7 @@ theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem
 theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
   simp only [product, and_imp, mem_map, Prod.mk.injEq,
-    exists_eq_right_right, mem_bind, iff_self]
+    exists_eq_right_right, mem_flatMap, iff_self]
 
 /-! ### monadic operations -/
 
