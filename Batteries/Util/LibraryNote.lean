@@ -47,7 +47,7 @@ open Lean Parser in
 /--
 `#help note "foo"` searches (case-insensitively) for all library notes whose
 label starts with "foo", then displays those library notes sorted alphabetically by label,
-grouped (case-sensitively) by label.
+grouped by label.
 The command only displays the library notes that are declared in
 imported files or in the same file above the line containing the command.
 -/
@@ -59,11 +59,11 @@ elab "#help note" name:strLit : command => do
   let imported_entries := (libraryNoteExt.toEnvExtension.getState env).importedEntries
 
   -- filter for the appropriate notes while casting to list
-  let label_prefix := name.getString.toLower
+  let label_prefix := name.getString
   let imported_entries_filtered := imported_entries.flatten.toList.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none
+    fun x => if label_prefix.isPrefixOf x.fst then some x else none
   let valid_entries := imported_entries_filtered ++ local_entries.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none
+    fun x => if label_prefix.isPrefixOf x.fst then some x else none
   let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
     |>.groupBy (·.fst == ·.fst)
 
