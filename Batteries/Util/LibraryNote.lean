@@ -15,6 +15,7 @@ open Lean
 
 /-- A library note consists of a (short) tag and a (long) note. -/
 def LibraryNoteEntry := String × String
+deriving Inhabited
 
 /-- Environment extension supporting `library_note`. -/
 initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array LibraryNoteEntry) ←
@@ -60,10 +61,9 @@ elab "#help note" name:strLit : command => do
   -- filter for the appropriate notes while casting to list
   let label_prefix := name.getString.toLower
   let imported_entries_filtered := imported_entries.flatten.toList.filterMap
-    (fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none)
+    fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none
   let valid_entries := imported_entries_filtered ++ local_entries.filterMap
-    (fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none)
-
+    fun x => if label_prefix.isPrefixOf x.fst.toLower then some x else none
   let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
     |>.groupBy (·.fst == ·.fst)
 
@@ -72,8 +72,7 @@ elab "#help note" name:strLit : command => do
     logInfo "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
-      grouped_valid_entries.map (fun l =>
-        "library_note \"" ++ (@List.head! _ ⟨⟨"",""⟩⟩ l
-          ).fst ++ "\"\n"
-        ++ ("\n\n".intercalate <| l.map (fun e => "/--\n" ++ e.snd.trim ++ "\n-/")))
+      grouped_valid_entries.map
+        fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
+          "\n\n".intercalate (l.map fun e => "/--\n" ++ e.snd.trim ++ "\n-/")
     -- this could use List.head when List.ne_nil_of_mem_groupBy gets upstreamed from mathlib
