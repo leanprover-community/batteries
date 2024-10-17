@@ -19,6 +19,16 @@ namespace List
 
 @[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
 
+/-! ### head -/
+
+theorem headD_eq_head : ∀ (l : List α) {a₀ : α} (hne : l ≠ []), headD l a₀ = head l hne
+  | _::_, _, _ => rfl
+
+/-! ### head and tail -/
+
+theorem head_cons_tail : ∀ (l : List α) (hne : l ≠ []), l.head hne :: l.tail = l
+  | _::_, _ => rfl
+
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
@@ -53,6 +63,10 @@ theorem get?_inj
   simp_all
 
 /-! ### modifyHead -/
+
+theorem modifyHead_id : ∀ (l : List α), l.modifyHead id = l
+  | [] => rfl
+  | _::_ => rfl
 
 @[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
     (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
@@ -481,6 +495,47 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
       exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
 
 end Diff
+
+/-! ### prefix, suffix, infix -/
+
+theorem IsInfix.length_lt_of_ne (hin : l₁ <:+: l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsInfix.length_le hin) (mt (IsInfix.eq_of_length hin) hne)
+
+theorem IsPrefix.length_lt_of_ne (hpf : l₁ <+: l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsPrefix.length_le hpf) (mt (IsPrefix.eq_of_length hpf) hne)
+
+theorem IsSuffix.length_lt_of_ne (hsf : l₁ <:+ l₂) (hne : l₁ ≠ l₂) : l₁.length < l₂.length :=
+  Nat.lt_of_le_of_ne (IsSuffix.length_le hsf) (mt (IsSuffix.eq_of_length hsf) hne)
+
+theorem eq_of_cons_prefix_cons (h : a :: l₁ <+: b :: l₂) : a = b :=
+  (cons_prefix_cons.mp h).1
+
+theorem head_eq_head_of_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) (h : l₁ <+: l₂) :
+    l₁.head hl₁ = l₂.head hl₂ := by
+  obtain ⟨a, l₁, rfl⟩ := l₁.exists_cons_of_ne_nil hl₁
+  obtain ⟨b, l₂, rfl⟩ := l₂.exists_cons_of_ne_nil hl₂
+  simp [eq_of_cons_prefix_cons h, head_cons]
+
+theorem tail_prefix_tail_of_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) (h : l₁ <+: l₂) :
+    l₁.tail <+: l₂.tail := by
+  have heq := head_eq_head_of_prefix hl₁ hl₂ h
+  let ⟨t, ht⟩ := h
+  rw [← head_cons_tail l₁ hl₁, ← head_cons_tail l₂ hl₂, ← heq] at ht
+  simp only [cons_append, cons.injEq, true_and] at ht
+  exact ⟨t, ht⟩
+
+theorem prefix_iff_head_eq_and_tail_prefix (hl₁ : l₁ ≠ []) (hl₂ : l₂ ≠ []) :
+    l₁ <+: l₂ ↔ l₁.head hl₁ = l₂.head hl₂ ∧ l₁.tail <+: l₂.tail := by
+  constructor <;> intro h
+  · exact ⟨head_eq_head_of_prefix hl₁ hl₂ h, tail_prefix_tail_of_prefix hl₁ hl₂ h⟩
+  · let ⟨t, ht⟩ := h.2
+    exists t
+    rw [← head_cons_tail l₁ hl₁, ← head_cons_tail l₂ hl₂]
+    simpa [h.1]
+
+theorem ne_nil_of_not_prefix (h : ¬l₁ <+: l₂) : l₁ ≠ [] := by
+  intro heq
+  simp [heq, nil_prefix] at h
 
 /-! ### drop -/
 
