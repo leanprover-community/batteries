@@ -32,17 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/--
-Given a function `f : Nat → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`.
--/
-@[inline] def mapIdx (f : Nat → α → β) (as : List α) : List β := go as #[] where
-  /-- Auxiliary for `mapIdx`:
-  `mapIdx.go [a₀, a₁, ...] acc = acc.toList ++ [f acc.size a₀, f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → List β
-  | [], acc => acc.toList
-  | a :: as, acc => go as (acc.push (f acc.size a))
-
 /-- Monadic variant of `mapIdx`. -/
 @[inline] def mapIdxM {m : Type v → Type w} [Monad m]
     (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
@@ -602,28 +591,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := go n 0 rfl where
-  /-- Auxiliary for `List.ofFn`. `ofFn.go f i j _ = [f j, ..., f (n - 1)]`. -/
-  -- This used to be defined via `Array.ofFn` but mathlib relies on reducing it,
-  -- so we use a structurally recursive definition here.
-  go : (i j : Nat) → (h : i + j = n) → List α
-  | 0, _, _ => []
-  | i+1, j, h => f ⟨j, by omega⟩ :: go i (j+1) (Nat.add_right_comm .. ▸ h :)
-
-/-- Tail-recursive version of `ofFn`. -/
-@[inline] def ofFnTR {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) [] where
-  /-- Auxiliary for `List.ofFnTR`. `ofFnTR.go f i _ acc = f 0 :: ... :: f (i - 1) :: acc`. -/
-  go : (i : Nat) → (h : i ≤ n) → List α → List α
-  | 0, _, acc => acc
-  | i+1, h, acc => go i (Nat.le_of_lt h) (f ⟨i, h⟩ :: acc)
-
-@[csimp] theorem ofFn_eq_ofFnTR : @ofFn = @ofFnTR := by
-  funext α n f; simp [ofFnTR]
-  let rec go (i j h h') : ofFnTR.go f j h' (ofFn.go f i j h) = ofFn f := by
-    unfold ofFnTR.go; split
-    · subst h; rfl
-    · next l j h' => exact go (i+1) j ((Nat.succ_add ..).trans h) (Nat.le_of_lt h')
-  exact (go 0 n (Nat.zero_add _) (Nat.le_refl _)).symm
+def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
