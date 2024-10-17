@@ -482,6 +482,56 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
 
 end Diff
 
+/-! ### prefix, suffix, infix -/
+
+section
+
+variable [DecidableEq α]
+
+theorem commonPrefix_comm (l₁ l₂ : List α) : commonPrefix l₁ l₂ = commonPrefix l₂ l₁ := by
+  cases l₁ <;> cases l₂ <;> simp only [commonPrefix]
+  next a₁ l₁ a₂ l₂ =>
+  split
+  · subst a₁
+    simp only [↓reduceIte, cons.injEq, true_and]
+    apply commonPrefix_comm
+  · next h =>
+    simp [Ne.symm h]
+
+theorem commonPrefix_prefix_left (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₁ := by
+  match l₁, l₂ with
+  | [],   _  => simp [commonPrefix]
+  | _::_, [] => simp [commonPrefix]
+  | a₁::l₁, a₂::l₂ =>
+    simp only [commonPrefix]
+    split
+    · next h =>
+      simp only [h, ↓reduceIte, cons_prefix_cons, true_and]
+      apply commonPrefix_prefix_left
+    · next h =>
+      simp [h]
+
+theorem commonPrefix_prefix_right (l₁ l₂ : List α) : commonPrefix l₁ l₂ <+: l₂ := by
+  rw [commonPrefix_comm]
+  apply commonPrefix_prefix_left
+
+theorem commonPrefix_append_append (p l₁ l₂ : List α) :
+    commonPrefix (p ++ l₁) (p ++ l₂) = p ++ commonPrefix l₁ l₂ := by
+  match p with
+  | []   => rfl
+  | a::p => simpa [commonPrefix] using commonPrefix_append_append p l₁ l₂
+
+theorem not_prefix_and_not_prefix_symm_iff {l₁ l₂ : List α} (hp : commonPrefix l₁ l₂ = []) :
+    ¬l₁ <+: l₂ ∧ ¬l₂ <+: l₁ ↔ l₁ ≠ [] ∧ l₂ ≠ [] ∧ l₁.head? ≠ l₂.head? := by
+  match l₁, l₂ with
+  | [], _  => simp
+  | _,  [] => simp
+  | a₁::l₁, a₂::l₂ =>
+    simp only [commonPrefix, ite_eq_right_iff, reduceCtorEq, imp_false] at hp
+    simp [hp, Ne.symm hp]
+
+end
+
 /-! ### drop -/
 
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
