@@ -9,7 +9,7 @@ info: Note not found
 
 /--
 info: library_note "Other"
-/--
+/-
 1: this is a testnote with a label not starting with "te",
 so it shouldn't appear when looking for notes with label starting with "te".
 -/
@@ -28,36 +28,31 @@ and the previously added note.
 
 
 /--
-info: library_note "Test"
-/--
-1: this is a testnote with a label starting with "Te"
--/
-
-library_note "temporary note"
-/--
+info: library_note "temporary note"
+/-
 1: This is a testnote whose label also starts with "te", but gets sorted before "test"
 -/
 
 library_note "test"
-/--
+/-
 1: This is a testnote for testing the library note feature of batteries.
 The `#help note` command should be able to find this note when imported.
 -/
 
-/--
+/-
 2: This is a second testnote for testing the library note feature of batteries.
 -/
 
-/--
+/-
 3: this is a note in a different file importing the above testnotes,
 but still imported by the actual testfile.
 -/
 
-/--
+/-
 4: This note was not imported, and therefore appears below the imported notes.
 -/
 
-/--
+/-
 5: This note was also not imported, and therefore appears below the imported notes,
 and the previously added note.
 -/
