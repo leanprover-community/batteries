@@ -1,5 +1,4 @@
 /-
-/-
 Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
@@ -398,4 +397,3 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
 @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
   self.filterMap fun a b => bif f a b then some b else none
--/
