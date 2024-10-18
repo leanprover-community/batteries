@@ -447,12 +447,12 @@ theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
 
 attribute [simp] toSubstring'
 
-theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).join⟩ := go ss [] where
-  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).join⟩
+theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).flatten⟩ := go ss [] where
+  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).flatten⟩
     | [], _ => by simp
     | ⟨s⟩::ss, _ => (go ss _).trans (by simp)
 
-@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).join := by
+@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).flatten := by
   rw [join_eq]
 
 @[deprecated (since := "2024-06-06")] alias append_nil := append_empty

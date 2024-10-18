@@ -40,16 +40,6 @@ def lambdaArity : Expr → Nat
   | lam _ _ b _ => 1 + lambdaArity b
   | _ => 0
 
-/-- Like `getAppNumArgs` but ignores metadata. -/
-def getAppNumArgs' (e : Expr) : Nat :=
-  go e 0
-where
-  /-- Auxiliary definition for `getAppNumArgs'`. -/
-  go : Expr → Nat → Nat
-    | mdata _ b, n => go b n
-    | app f _  , n => go f (n + 1)
-    | _        , n => n
-
 /-- Like `withApp` but ignores metadata. -/
 @[inline]
 def withApp' (e : Expr) (k : Expr → Array Expr → α) : α :=

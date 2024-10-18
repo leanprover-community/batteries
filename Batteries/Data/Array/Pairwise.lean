@@ -21,7 +21,7 @@ def Pairwise (R : α → α → Prop) (as : Array α) : Prop := as.toList.Pairwi
 
 theorem pairwise_iff_get {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Fin as.size), i < j → R (as.get i) (as.get j) := by
-  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_toList_get]
+  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_getElem_toList]
 
 theorem pairwise_iff_getElem {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Nat) (_ : i < as.size) (_ : j < as.size), i < j → R as[i] as[j] := by

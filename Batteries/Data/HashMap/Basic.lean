@@ -56,7 +56,7 @@ structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
     bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
   /-- Every element in a bucket should hash to its location. -/
   hash_self (i : Nat) (h : i < buckets.1.size) :
-    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
+    buckets.1[i].All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i
 
 end Buckets
 end Imp
@@ -93,7 +93,7 @@ def empty (capacity := 0) : Imp α β :=
 
 /-- Calculates the bucket index from a hash value `u`. -/
 def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
-  ⟨u % n, USize.modn_lt _ h⟩
+  ⟨u % USize.ofNat n, USize.toNat_mod_lt _ h⟩
 
 /--
 Inserts a key-value pair into the bucket array. This function assumes that the data is not

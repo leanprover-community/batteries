@@ -2,9 +2,6 @@ import Batteries.Tactic.Lint
 
 set_option linter.missingDocs false
 
-protected def Sum.elim {α β γ : Sort _} (f : α → γ) (g : β → γ) : Sum α β → γ :=
-  fun x => Sum.casesOn x f g
-
 structure Equiv (α : Sort _) (β : Sort _) where
   toFun : α → β
   invFun : β → α
