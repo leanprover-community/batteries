@@ -76,6 +76,7 @@ import Batteries.Tactic.Case
 import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
+import Batteries.Tactic.HelpCmd
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
 import Batteries.Tactic.Lemma
@@ -99,6 +100,7 @@ import Batteries.Test.Internal.DummyLabelAttr
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
+import Batteries.Util.Panic
 import Batteries.Util.Pickle
 import Batteries.Util.ProofWanted
 import Batteries.WF
