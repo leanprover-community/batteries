@@ -125,7 +125,7 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
   simp [foldrM]; split; {exact go _ h0}
   · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
-theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as.size → α → m β)
+theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β)
     (motive : Nat → Prop) (h0 : motive 0)
     (p : Fin as.size → β → Prop)
     (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f i as[i])) :
@@ -141,7 +141,8 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin as
       have := (Nat.zero_add _).symm.trans h
       exact .pure ⟨this ▸ hm, h₁ ▸ this, fun _ _ => h₂ ..⟩
     | succ i ih =>
-      refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
+      refine (hs ⟨j, by omega⟩ (by exact hm)).bind
+        fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
       simp at hi'; simp [get_push]; split
       · next h => exact h₂ _ _ h
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
