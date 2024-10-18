@@ -70,7 +70,7 @@ end Prod
 theorem implicit_lambda (h : ∀ {x : Nat}, a = x) : a = 2 := by
   simpa using h
 
-theorem implicit_lambda2 (h : a = 2) : ∀ {x : Nat}, a = 2 := by
+theorem implicit_lambda2 (h : a = 2) : ∀ {_ : Nat}, a = 2 := by
   simpa using h
 
 theorem no_implicit_lambda (h : ∀ {x : Nat}, a = x) : ∀ {x : Nat}, a = x := by
