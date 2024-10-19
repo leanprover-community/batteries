@@ -6,3 +6,4 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.List.OfFn
 import Batteries.Data.List.Pairwise
 import Batteries.Data.List.Perm
+import Batteries.Data.List.SplitOnList
