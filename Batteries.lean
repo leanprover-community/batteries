@@ -92,6 +92,7 @@ import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused
 import Batteries.Tactic.SqueezeScope
+import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
