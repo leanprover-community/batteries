@@ -74,6 +74,7 @@ import Batteries.Tactic.Case
 import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
+import Batteries.Tactic.HelpCmd
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
 import Batteries.Tactic.Lemma
@@ -91,6 +92,7 @@ import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused
 import Batteries.Tactic.SqueezeScope
+import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
