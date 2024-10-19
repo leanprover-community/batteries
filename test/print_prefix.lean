@@ -171,3 +171,7 @@ TestInd.toCtorIdx : TestInd → Nat
 -/
 #guard_msgs in
 #print prefix TestInd
+
+-- `#print prefix` does nothing if no identifier is provided
+#guard_msgs in
+#print prefix
