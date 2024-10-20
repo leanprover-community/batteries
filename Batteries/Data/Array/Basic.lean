@@ -15,10 +15,6 @@ proofs about these definitions, those are contained in other files in `Batteries
 
 namespace Array
 
-/-- Drop `none`s from a Array, and replace each remaining `some a` with `a`. -/
-def reduceOption (l : Array (Option α)) : Array α :=
-  l.filterMap id
-
 /--
 Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
 elements when disregarding order and duplicates. `O(n*m)`! If your element type
