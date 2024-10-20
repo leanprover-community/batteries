@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Batteries.Data.Array.Init.Lemmas
+import Batteries.Tactic.Alias
 
 /-!
 ## Definitions on Arrays
@@ -13,10 +14,6 @@ proofs about these definitions, those are contained in other files in `Batteries
 -/
 
 namespace Array
-
-/-- Drop `none`s from a Array, and replace each remaining `some a` with `a`. -/
-def reduceOption (l : Array (Option α)) : Array α :=
-  l.filterMap id
 
 /--
 Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
@@ -122,11 +119,7 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
-/--
-`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
-* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
--/
-@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
+@[deprecated (since := "2024-10-15")] alias join := flatten
 
 /-!
 ### Safe Nat Indexed Array functions
@@ -171,6 +164,16 @@ greater than i.
 -/
 abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
+
+/--
+Remove the element at a given index from an array, panics if index is out of bounds.
+-/
+def eraseIdx! (a : Array α) (i : Nat) : Array α :=
+  if h : i < a.size then
+    a.feraseIdx ⟨i, h⟩
+  else
+    have : Inhabited (Array α) := ⟨a⟩
+    panic! s!"index {i} out of bounds"
 
 end Array
 
