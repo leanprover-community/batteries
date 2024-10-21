@@ -39,6 +39,7 @@ import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
 import Batteries.Lean.Delaborator
 import Batteries.Lean.Except
+import Batteries.Lean.Elab.Command
 import Batteries.Lean.Expr
 import Batteries.Lean.Float
 import Batteries.Lean.HashMap
