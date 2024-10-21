@@ -20,7 +20,7 @@ def LibraryNoteEntry := String × String
 initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array LibraryNoteEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
-    addImportedFn := Array.concatMap id
+    addImportedFn := Array.flatMap id
   }
 
 open Lean Parser Command in

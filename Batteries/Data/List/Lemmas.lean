@@ -395,7 +395,7 @@ theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem
 theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
   simp only [product, and_imp, mem_map, Prod.mk.injEq,
-    exists_eq_right_right, mem_bind, iff_self]
+    exists_eq_right_right, mem_flatMap, iff_self]
 
 /-! ### monadic operations -/
 
@@ -657,13 +657,3 @@ theorem insertP_loop (a : α) (l r : List α) :
 @[simp] theorem mem_insertP (p : α → Bool) (a l) : a ∈ insertP p a l := by
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
-
-/-! ### foldlM and foldrM -/
-
-theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
-    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
-  induction l generalizing g init <;> simp [*]
-
-theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
-    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
-  induction l generalizing g init <;> simp [*]

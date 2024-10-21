@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 import Batteries.Data.Array.Init.Lemmas
+import Batteries.Tactic.Alias
 
 /-!
 ## Definitions on Arrays
@@ -122,11 +123,7 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
-/--
-`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
-* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
--/
-@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
+@[deprecated (since := "2024-10-15")] alias join := flatten
 
 /-!
 ### Safe Nat Indexed Array functions

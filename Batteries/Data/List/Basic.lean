@@ -32,17 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/--
-Given a function `f : Nat → α → β` and `as : list α`, `as = [a₀, a₁, ...]`, returns the list
-`[f 0 a₀, f 1 a₁, ...]`.
--/
-@[inline] def mapIdx (f : Nat → α → β) (as : List α) : List β := go as #[] where
-  /-- Auxiliary for `mapIdx`:
-  `mapIdx.go [a₀, a₁, ...] acc = acc.toList ++ [f acc.size a₀, f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → List β
-  | [], acc => acc.toList
-  | a :: as, acc => go as (acc.push (f acc.size a))
-
 /-- Monadic variant of `mapIdx`. -/
 @[inline] def mapIdxM {m : Type v → Type w} [Monad m]
     (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
@@ -416,7 +405,7 @@ sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
 def sublists (l : List α) : List (List α) :=
-  l.foldr (fun a acc => acc.bind fun x => [x, a :: x]) [[]]
+  l.foldr (fun a acc => acc.flatMap fun x => [x, a :: x]) [[]]
 
 /-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
 def sublistsFast (l : List α) : List (List α) :=
@@ -514,7 +503,7 @@ of `[L₁, L₂, ..., Lₙ]` is a list whose first element comes from
 -/
 @[simp] def sections : List (List α) → List (List α)
   | [] => [[]]
-  | l :: L => (sections L).bind fun s => l.map fun a => a :: s
+  | l :: L => (sections L).flatMap fun s => l.map fun a => a :: s
 
 /-- Optimized version of `sections`. -/
 def sectionsTR (L : List (List α)) : List (List α) :=
@@ -539,7 +528,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_bind]; rfl
+  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
 /--
@@ -569,7 +558,7 @@ def revzip (l : List α) : List (α × α) := zip l l.reverse
 product [1, 2] [5, 6] = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ```
 -/
-def product (l₁ : List α) (l₂ : List β) : List (α × β) := l₁.bind fun a => l₂.map (Prod.mk a)
+def product (l₁ : List α) (l₂ : List β) : List (α × β) := l₁.flatMap fun a => l₂.map (Prod.mk a)
 
 /-- Optimized version of `product`. -/
 def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
@@ -577,7 +566,7 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
   funext α β l₁ l₂; simp [product, productTR]
-  rw [Array.foldl_toList_eq_bind]; rfl
+  rw [Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
@@ -585,7 +574,7 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
 sigma [1, 2] (λ_, [(5 : Nat), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ``` -/
 protected def sigma {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : List (Σ a, σ a) :=
-  l₁.bind fun a => (l₂ a).map (Sigma.mk a)
+  l₁.flatMap fun a => (l₂ a).map (Sigma.mk a)
 
 /-- Optimized version of `sigma`. -/
 def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : List (Σ a, σ a) :=
@@ -593,7 +582,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
   funext α β l₁ l₂; simp [List.sigma, sigmaTR]
-  rw [Array.foldl_toList_eq_bind]; rfl
+  rw [Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
 /--
