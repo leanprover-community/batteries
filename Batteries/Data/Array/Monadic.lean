@@ -44,7 +44,7 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
   · case s =>
     intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
     refine (hs _ ih₁).map fun ⟨h₁, h₂⟩ => ⟨h₂, by simp [eq], fun j hj => ?_⟩
-    simp [get_push] at hj ⊢; split; {apply ih₂}
+    simp [getElem_push] at hj ⊢; split; {apply ih₂}
     cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
 
 theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
@@ -142,7 +142,7 @@ theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Fin
       exact .pure ⟨this ▸ hm, h₁ ▸ this, fun _ _ => h₂ ..⟩
     | succ i ih =>
       refine (hs _ (by exact hm)).bind fun b hb => ih (by simp [h₁]) (fun i hi hi' => ?_) hb.2
-      simp at hi'; simp [get_push]; split
+      simp at hi'; simp [getElem_push]; split
       · next h => exact h₂ _ _ h
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapFinIdxM]; exact go rfl nofun h0
