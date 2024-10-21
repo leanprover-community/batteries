@@ -20,7 +20,7 @@ jobs:
             const prNumber = context.payload.workflow_run.pull_requests[0].number;
             const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
-              repo: context.repo.name,
+              repo: context.repo.repo,
               pull_number: prNumber
             });
             core.setOutput('targetBranch', pr.base.ref);

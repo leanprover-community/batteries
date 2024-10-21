@@ -1,5 +1,4 @@
 /-
-/-
 Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
@@ -37,7 +36,7 @@ theorem update_update (self : Buckets α β) (i d d' h h') :
   rw [Array.set_set]
 
 theorem size_eq (data : Buckets α β) :
-  size data = .sum (data.1.toList.map (·.toList.length)) := rfl
+  size data = (data.1.toList.map (·.toList.length)).sum := rfl
 
 theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
   simp only [mk, mkArray, size_eq]; clear h
@@ -94,7 +93,7 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} :
 where
   go (i source) (target : Buckets α β) (hs : ∀ j < i, source.toList[j]?.getD .nil = .nil) :
       (expand.go i source target).size =
-        .sum (source.toList.map (·.toList.length)) + target.size := by
+        (source.toList.map (·.toList.length)).sum + target.size := by
     unfold expand.go; split
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b
@@ -108,14 +107,14 @@ where
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
-          List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.length_toList]
+          List.length_nil, Nat.sum_append, List.sum_cons, Nat.zero_add, Array.length_toList]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
         rw [← Array.getElem_eq_getElem_toList]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
         induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
     · next H =>
-      rw [(_ : Nat.sum _ = 0), Nat.zero_add]
+      rw [(_ : List.sum _ = 0), Nat.zero_add]
       rw [← (_ : source.toList.map (fun _ => .nil) = source.toList)]
       · simp only [List.map_map]
         induction source.toList <;> simp [*]
@@ -268,7 +267,7 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     simp only [h, Buckets.size]
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
     simp only [h₁, Array.length_toList, Array.ugetElem_eq_getElem, List.map_append, List.map_cons,
-      Nat.sum_append, Nat.sum_cons, AssocList.toList_erase]
+      Nat.sum_append, List.sum_cons, AssocList.toList_erase]
     rw [(_ : List.length _ = _ + 1), Nat.add_right_comm]; {rfl}
     clear h₁ eq
     simp only [AssocList.contains_eq, List.any_eq_true] at H
@@ -348,7 +347,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   let M := StateT (ULift Nat) Id
   have H2 (l : List (AssocList α β)) n :
       l.mapM (m := M) (filterMap.go f .nil) n =
-      (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
+      (l.map g, ⟨n.1 + ((l.map g).map (·.toList.length)).sum⟩) := by
     induction l generalizing n with
     | nil => rfl
     | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl
@@ -398,4 +397,3 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
 @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
   self.filterMap fun a b => bif f a b then some b else none
--/
