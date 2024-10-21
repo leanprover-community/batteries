@@ -167,7 +167,7 @@ Split a list at every occurrence of a separator element. The separators are not 
 Apply a function to the nth tail of `l`. Returns the input without
 using `f` if the index is larger than the length of the List.
 ```
-modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
+modifyTailIdx f 2 [a, b, c] = [a, b] ++ f [c]
 ```
 -/
 @[simp] def modifyTailIdx (f : List α → List α) : Nat → List α → List α
@@ -220,9 +220,9 @@ theorem modifyTR_go_eq : ∀ l n, modifyTR.go f l n acc = acc.toList ++ modify f
   | x :: xs, acc => go xs (acc.push x)
 
 /--
-`insertNth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
+`insertIdx n a l` inserts `a` into the list `l` after the first `n` elements of `l`
 ```
-insertNth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
+insertIdx 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
 ```
 -/
 def insertIdx (n : Nat) (a : α) : List α → List α :=
