@@ -15,10 +15,6 @@ namespace List
 @[simp] theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := rfl
 
-/-! ### isEmpty -/
-
-@[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
-
 /-! ### next? -/
 
 @[simp] theorem next?_nil : @next? α [] = none := rfl
@@ -40,172 +36,113 @@ theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.len
     exact ih last_idx
     exact fun _ => nomatch xs
 
-/-! ### get? -/
-
-@[deprecated getElem_eq_iff (since := "2024-06-12")]
-theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
-  simp
-
-@[deprecated getElem?_inj (since := "2024-06-12")]
-theorem get?_inj
-    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
-  apply getElem?_inj h₀ h₁
-  simp_all
-
 /-! ### modifyHead -/
 
 @[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
     (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
 
-/-! ### modifyNth -/
+/-! ### modify -/
 
-@[simp] theorem modifyNth_nil (f : α → α) (n) : [].modifyNth f n = [] := by cases n <;> rfl
+@[simp] theorem modify_nil (f : α → α) (n) : [].modify f n = [] := by cases n <;> rfl
 
-@[simp] theorem modifyNth_zero_cons (f : α → α) (a : α) (l : List α) :
-    (a :: l).modifyNth f 0 = f a :: l := rfl
+@[simp] theorem modify_zero_cons (f : α → α) (a : α) (l : List α) :
+    (a :: l).modify f 0 = f a :: l := rfl
 
-@[simp] theorem modifyNth_succ_cons (f : α → α) (a : α) (l : List α) (n) :
-    (a :: l).modifyNth f (n + 1) = a :: l.modifyNth f n := by rfl
+@[simp] theorem modify_succ_cons (f : α → α) (a : α) (l : List α) (n) :
+    (a :: l).modify f (n + 1) = a :: l.modify f n := by rfl
 
-theorem modifyNthTail_id : ∀ n (l : List α), l.modifyNthTail id n = l
+theorem modifyTailIdx_id : ∀ n (l : List α), l.modifyTailIdx id n = l
   | 0, _ => rfl
   | _+1, [] => rfl
-  | n+1, a :: l => congrArg (cons a) (modifyNthTail_id n l)
+  | n+1, a :: l => congrArg (cons a) (modifyTailIdx_id n l)
 
-theorem eraseIdx_eq_modifyNthTail : ∀ n (l : List α), eraseIdx l n = modifyNthTail tail n l
+theorem eraseIdx_eq_modifyTailIdx : ∀ n (l : List α), eraseIdx l n = modifyTailIdx tail n l
   | 0, l => by cases l <;> rfl
   | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (cons _) (eraseIdx_eq_modifyNthTail _ _)
+  | _+1, _ :: _ => congrArg (cons _) (eraseIdx_eq_modifyTailIdx _ _)
 
-@[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyNthTail
-
-theorem getElem?_modifyNth (f : α → α) :
-    ∀ n (l : List α) m, (modifyNth f n l)[m]? = (fun a => if n = m then f a else a) <$> l[m]?
+theorem getElem?_modify (f : α → α) :
+    ∀ n (l : List α) m, (modify f n l)[m]? = (fun a => if n = m then f a else a) <$> l[m]?
   | n, l, 0 => by cases l <;> cases n <;> simp
   | n, [], _+1 => by cases n <;> rfl
-  | 0, _ :: l, m+1 => by cases h : l[m]? <;> simp [h, modifyNth, m.succ_ne_zero.symm]
+  | 0, _ :: l, m+1 => by cases h : l[m]? <;> simp [h, modify, m.succ_ne_zero.symm]
   | n+1, a :: l, m+1 => by
-    simp only [modifyNth_succ_cons, getElem?_cons_succ, Nat.reduceEqDiff, Option.map_eq_map]
-    refine (getElem?_modifyNth f n l m).trans ?_
+    simp only [modify_succ_cons, getElem?_cons_succ, Nat.reduceEqDiff, Option.map_eq_map]
+    refine (getElem?_modify f n l m).trans ?_
     cases h' : l[m]? <;> by_cases h : n = m <;>
       simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
 
-@[deprecated getElem?_modifyNth (since := "2024-06-12")]
-theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
-    (modifyNth f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
-  simp [getElem?_modifyNth]
-
-theorem length_modifyNthTail (f : List α → List α) (H : ∀ l, length (f l) = length l) :
-    ∀ n l, length (modifyNthTail f n l) = length l
+theorem length_modifyTailIdx (f : List α → List α) (H : ∀ l, length (f l) = length l) :
+    ∀ n l, length (modifyTailIdx f n l) = length l
   | 0, _ => H _
   | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (·+1) (length_modifyNthTail _ H _ _)
+  | _+1, _ :: _ => congrArg (·+1) (length_modifyTailIdx _ H _ _)
 
-@[deprecated (since := "2024-06-07")] alias modifyNthTail_length := length_modifyNthTail
-
-theorem modifyNthTail_add (f : List α → List α) (n) (l₁ l₂ : List α) :
-    modifyNthTail f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyNthTail f n l₂ := by
+theorem modifyTailIdx_add (f : List α → List α) (n) (l₁ l₂ : List α) :
+    modifyTailIdx f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyTailIdx f n l₂ := by
   induction l₁ <;> simp [*, Nat.succ_add]
 
-theorem exists_of_modifyNthTail (f : List α → List α) {n} {l : List α} (h : n ≤ l.length) :
-    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n ∧ modifyNthTail f n l = l₁ ++ f l₂ :=
+theorem exists_of_modifyTailIdx (f : List α → List α) {n} {l : List α} (h : n ≤ l.length) :
+    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n ∧ modifyTailIdx f n l = l₁ ++ f l₂ :=
   have ⟨_, _, eq, hl⟩ : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
     ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
-  ⟨_, _, eq, hl, hl ▸ eq ▸ modifyNthTail_add (n := 0) ..⟩
+  ⟨_, _, eq, hl, hl ▸ eq ▸ modifyTailIdx_add (n := 0) ..⟩
 
-@[simp] theorem length_modifyNth (f : α → α) : ∀ n l, length (modifyNth f n l) = length l :=
-  length_modifyNthTail _ fun l => by cases l <;> rfl
+@[simp] theorem length_modify (f : α → α) : ∀ n l, length (modify f n l) = length l :=
+  length_modifyTailIdx _ fun l => by cases l <;> rfl
 
-@[deprecated (since := "2024-06-07")] alias modify_get?_length := length_modifyNth
+@[simp] theorem getElem?_modify_eq (f : α → α) (n) (l : List α) :
+    (modify f n l)[n]? = f <$> l[n]? := by
+  simp only [getElem?_modify, if_pos]
 
-@[simp] theorem getElem?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (modifyNth f n l)[n]? = f <$> l[n]? := by
-  simp only [getElem?_modifyNth, if_pos]
+@[simp] theorem getElem?_modify_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
+    (modify f m l)[n]? = l[n]? := by
+  simp only [getElem?_modify, if_neg h, id_map']
 
-@[deprecated getElem?_modifyNth_eq (since := "2024-06-12")]
-theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (modifyNth f n l).get? n = f <$> l.get? n := by
-  simp [getElem?_modifyNth_eq]
-
-@[simp] theorem getElem?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (modifyNth f m l)[n]? = l[n]? := by
-  simp only [getElem?_modifyNth, if_neg h, id_map']
-
-@[deprecated getElem?_modifyNth_ne (since := "2024-06-12")]
-theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (modifyNth f m l).get? n = l.get? n := by
-  simp [h]
-
-theorem exists_of_modifyNth (f : α → α) {n} {l : List α} (h : n < l.length) :
-    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modifyNth f n l = l₁ ++ f a :: l₂ :=
-  match exists_of_modifyNthTail _ (Nat.le_of_lt h) with
+theorem exists_of_modify (f : α → α) {n} {l : List α} (h : n < l.length) :
+    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modify f n l = l₁ ++ f a :: l₂ :=
+  match exists_of_modifyTailIdx _ (Nat.le_of_lt h) with
   | ⟨_, _::_, eq, hl, H⟩ => ⟨_, _, _, eq, hl, H⟩
   | ⟨_, [], eq, hl, _⟩ => nomatch Nat.ne_of_gt h (eq ▸ append_nil _ ▸ hl)
 
-theorem modifyNthTail_eq_take_drop (f : List α → List α) (H : f [] = []) :
-    ∀ n l, modifyNthTail f n l = take n l ++ f (drop n l)
+theorem modifyTailIdx_eq_take_drop (f : List α → List α) (H : f [] = []) :
+    ∀ n l, modifyTailIdx f n l = take n l ++ f (drop n l)
   | 0, _ => rfl
   | _ + 1, [] => H.symm
-  | n + 1, b :: l => congrArg (cons b) (modifyNthTail_eq_take_drop f H n l)
+  | n + 1, b :: l => congrArg (cons b) (modifyTailIdx_eq_take_drop f H n l)
 
-theorem modifyNth_eq_take_drop (f : α → α) :
-    ∀ n l, modifyNth f n l = take n l ++ modifyHead f (drop n l) :=
-  modifyNthTail_eq_take_drop _ rfl
+theorem modify_eq_take_drop (f : α → α) :
+    ∀ n l, modify f n l = take n l ++ modifyHead f (drop n l) :=
+  modifyTailIdx_eq_take_drop _ rfl
 
-theorem modifyNth_eq_take_cons_drop (f : α → α) {n l} (h : n < length l) :
-    modifyNth f n l = take n l ++ f l[n] :: drop (n + 1) l := by
-  rw [modifyNth_eq_take_drop, drop_eq_getElem_cons h]; rfl
+theorem modify_eq_take_cons_drop (f : α → α) {n l} (h : n < length l) :
+    modify f n l = take n l ++ f l[n] :: drop (n + 1) l := by
+  rw [modify_eq_take_drop, drop_eq_getElem_cons h]; rfl
 
 /-! ### set -/
 
-theorem set_eq_modifyNth (a : α) : ∀ n (l : List α), set l n a = modifyNth (fun _ => a) n l
+theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ => a) n l
   | 0, l => by cases l <;> rfl
   | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (cons _) (set_eq_modifyNth _ _ _)
+  | _+1, _ :: _ => congrArg (cons _) (set_eq_modify _ _ _)
 
 theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
-  rw [set_eq_modifyNth, modifyNth_eq_take_cons_drop _ h]
+  rw [set_eq_modify, modify_eq_take_cons_drop _ h]
 
-theorem modifyNth_eq_set_get? (f : α → α) :
-    ∀ n (l : List α), l.modifyNth f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
+theorem modify_eq_set_get? (f : α → α) :
+    ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
   | 0, l => by cases l <;> rfl
   | _+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modifyNth_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
+    (congrArg (cons _) (modify_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
-theorem modifyNth_eq_set_get (f : α → α) {n} {l : List α} (h) :
-    l.modifyNth f n = l.set n (f (l.get ⟨n, h⟩)) := by
-  rw [modifyNth_eq_set_get?, get?_eq_get h]; rfl
-
--- The naming of `exists_of_set'` and `exists_of_set` have been swapped.
--- If no one complains, we will remove this version later.
-@[deprecated exists_of_set (since := "2024-07-04")]
-theorem exists_of_set' {l : List α} (h : n < l.length) :
-    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
-  rw [set_eq_modifyNth]; exact exists_of_modifyNth _ h
-
-@[deprecated getElem?_set_self' (since := "2024-06-12")]
-theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
-  rfl
+theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
+    l.modify f n = l.set n (f (l.get ⟨n, h⟩)) := by
+  rw [modify_eq_set_get?, get?_eq_get h]; rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a)[n]? = some a := by rw [getElem?_set_self', getElem?_eq_getElem h]; rfl
-
-@[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
-theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
-
-@[deprecated getElem?_set_ne (since := "2024-06-12")]
-theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
-  simp [h]
-
-@[deprecated getElem?_set (since := "2024-06-12")]
-theorem get?_set (a : α) {m n} (l : List α) :
-    (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']; rfl
 
 theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
@@ -214,8 +151,6 @@ theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
 theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a).get? n = if m = n then some a else l.get? n := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*, getElem?_eq_getElem h]
-
-@[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
 
 /-! ### tail -/
 
@@ -235,8 +170,6 @@ theorem length_tail_add_one (l : List α) (h : 0 < length l) : (length (tail l))
   exact go #[] _ rfl
 
 /-! ### erase -/
-
-@[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase
 
 theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
     xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
