@@ -591,7 +591,6 @@ theorem insertP_loop (a : α) (l r : List α) :
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
 
-
 /-! ### deprecations -/
 
 @[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
