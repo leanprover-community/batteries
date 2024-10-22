@@ -151,10 +151,6 @@ theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - 
 
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
-/-! ### swapAt -/
-
-theorem size_swapAt (a : Array α) (x i) : (a.swapAt i x).snd.size = a.size := by simp
-
 /-! ### map -/
 
 theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
@@ -246,14 +242,14 @@ theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
     (as.insertAt i v)[k] = as[k] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_lt, get_push, dif_pos hk']
+  rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
   exact hlt
 
 theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
     (as.insertAt i v)[k] = as[k - 1] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_gt_le, get_push, dif_pos hk']
+  rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
   exact hgt
   rw [size_insertAt] at hk
   exact Nat.le_of_lt_succ hk
@@ -262,6 +258,6 @@ theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
     (as.insertAt i v)[k] = v := by
   simp only [insertAt]
-  rw [get_insertAt_loop_eq, Fin.getElem_fin, get_push_eq]
+  rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
   exact heq
   exact Nat.le_of_lt_succ i.is_lt
