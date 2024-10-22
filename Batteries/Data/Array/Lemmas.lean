@@ -137,16 +137,6 @@ where
     (a.eraseIdx i).size = if i < a.size then a.size-1 else a.size := by
   simp only [eraseIdx]; split; simp; rfl
 
-/-! ### shrink -/
-
-theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
-  induction n generalizing a with simp only [shrink.loop, Nat.sub_zero]
-  | succ n ih => simp only [ih, size_pop]; omega
-
-@[simp] theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
-  simp [shrink, size_shrink_loop]
-  omega
-
 /-! ### set -/
 
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
