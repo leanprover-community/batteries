@@ -162,8 +162,8 @@ private instance (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] : DecidableRel
 
 instance (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] : Fin.Enum (Quotient s) where
   size := Fin.count fun i => getRepr (decodeSetoid s) i = i
-  decode i := Quotient.liftOn (decodeQuotient (decodeSetoid s) i) (fun i => Quotient.mk s (decode i))
-    (fun _ _ h => Quotient.sound h)
+  decode i := Quotient.liftOn (decodeQuotient (decodeSetoid s) i)
+    (fun i => Quotient.mk s (decode i)) (fun _ _ h => Quotient.sound h)
   encode x := Quotient.liftOn x
     (fun x => encodeQuotient (decodeSetoid s) (Quotient.mk _ (encode x))) <| by
       intro _ _ h
