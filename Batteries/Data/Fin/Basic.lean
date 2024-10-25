@@ -84,15 +84,6 @@ protected def count (P : Fin n → Prop) [DecidablePred P] : Nat :=
 /-- Find the first true value of a decidable predicate on `Fin n`, if there is one. -/
 protected def find? (P : Fin n → Prop) [DecidablePred P] : Option (Fin n) :=
   foldr n (fun i v => if P i then some i else v) none
-  -- match n, P, inst with
-  -- | 0, _, _ => none
-  -- | _+1, P, _ =>
-  --   if P 0 then
-  --     some 0
-  --   else
-  --     match Fin.find? fun i => P i.succ with
-  --     | some i => some i.succ
-  --     | none => none
 
 /-- Custom recursor for `Fin (n+1)`. -/
 def recZeroSuccOn {motive : Fin (n+1) → Sort _} (x : Fin (n+1))
