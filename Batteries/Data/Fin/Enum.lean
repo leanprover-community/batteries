@@ -12,57 +12,57 @@ protected class Enum (α : Type _) where
   /-- Size of type. -/
   size : Nat
   /-- Enumeration of the type elements. -/
-  enum : Fin size → α
+  decode : Fin size → α
   /-- Find the index of a type element. -/
-  find : α → Fin size
-  /-- Inverse relation for `enum` and `find`. -/
-  enum_find (x) : enum (find x) = x
-  /-- Inverse relation for `enum` and `find`. -/
-  find_enum (i) : find (enum i) = i
+  encode : α → Fin size
+  /-- Inverse relation for `decode` and `encode`. -/
+  decode_encode (x) : decode (encode x) = x
+  /-- Inverse relation for `decode` and `encode`. -/
+  encode_decode (i) : encode (decode i) = i
 
-attribute [simp] Enum.enum_find Enum.find_enum
+attribute [simp] Enum.decode_encode Enum.encode_decode
 
 namespace Enum
 
 instance : Fin.Enum Empty where
   size := 0
-  enum := nofun
-  find := nofun
-  enum_find := nofun
-  find_enum := nofun
+  decode := nofun
+  encode := nofun
+  decode_encode := nofun
+  encode_decode := nofun
 
 instance : Fin.Enum PUnit where
   size := 1
-  enum := decodePUnit
-  find := encodePUnit
-  enum_find := decodePUnit_encodePUnit
-  find_enum := encodePUnit_decodePUnit
+  decode := decodePUnit
+  encode := encodePUnit
+  decode_encode := decodePUnit_encodePUnit
+  encode_decode := encodePUnit_decodePUnit
 
 instance : Fin.Enum Bool where
   size := 2
-  enum := decodeBool
-  find := encodeBool
-  enum_find := decodeBool_encodeBool
-  find_enum := encodeBool_decodeBool
+  decode := decodeBool
+  encode := encodeBool
+  decode_encode := decodeBool_encodeBool
+  encode_decode := encodeBool_decodeBool
 
 instance [Fin.Enum α] : Fin.Enum (Option α) where
   size := size α + 1
-  enum i := decodeOption i |>.map enum
-  find x := encodeOption <| x.map find
-  enum_find := by simp [Function.comp_def]
-  find_enum := by simp [Function.comp_def]
+  decode i := decodeOption i |>.map decode
+  encode x := encodeOption <| x.map encode
+  decode_encode := by simp [Function.comp_def]
+  encode_decode := by simp [Function.comp_def]
 
 instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α ⊕ β) where
   size := size α + size β
-  enum i :=
+  decode i :=
     match decodeSum i with
-    | .inl i => .inl <| enum i
-    | .inr i => .inr <| enum i
-  find x :=
+    | .inl i => .inl <| decode i
+    | .inr i => .inr <| decode i
+  encode x :=
     match x with
-    | .inl x => encodeSum <| .inl (find x)
-    | .inr x => encodeSum <| .inr (find x)
-  enum_find _ := by
+    | .inl x => encodeSum <| .inl (encode x)
+    | .inr x => encodeSum <| .inr (encode x)
+  decode_encode _ := by
     simp only; split
     · next h =>
       split at h;
@@ -72,7 +72,7 @@ instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α ⊕ β) where
       split at h;
       · simp at h
       · simp at h; cases h; simp
-  find_enum _ := by
+  encode_decode _ := by
     simp only; split
     · next h =>
       split at h
@@ -85,104 +85,104 @@ instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α ⊕ β) where
 
 instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α × β) where
   size := size α * size β
-  enum i := (enum (decodeProd i).fst, enum (decodeProd i).snd)
-  find x := encodeProd (find x.fst, find x.snd)
-  find_enum := by simp [Prod.eta]
-  enum_find := by simp
+  decode i := (decode (decodeProd i).fst, decode (decodeProd i).snd)
+  encode x := encodeProd (encode x.fst, encode x.snd)
+  encode_decode := by simp [Prod.eta]
+  decode_encode := by simp
 
 instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (β → α) where
   size := size α ^ size β
-  enum i x := enum (decodeFun i (find x))
-  find f := encodeFun fun x => find (f (enum x))
-  find_enum := by simp
-  enum_find := by simp
+  decode i x := decode (decodeFun i (encode x))
+  encode f := encodeFun fun x => encode (f (decode x))
+  encode_decode := by simp
+  decode_encode := by simp
 
 instance (β : α → Type _) [Fin.Enum α] [(x : α) → Fin.Enum (β x)] : Fin.Enum ((x : α) × β x) where
-  size := Fin.sum fun i => size (β (enum i))
-  enum i :=
+  size := Fin.sum fun i => size (β (decode i))
+  decode i :=
     match decodeSigma _ i with
-    | ⟨i, j⟩ => ⟨enum i, enum j⟩
-  find | ⟨x, y⟩ => encodeSigma _ ⟨find x, find (_root_.cast (by simp) y)⟩
-  find_enum i := by
+    | ⟨i, j⟩ => ⟨decode i, decode j⟩
+  encode | ⟨x, y⟩ => encodeSigma _ ⟨encode x, encode (_root_.cast (by simp) y)⟩
+  encode_decode i := by
     simp only []
     conv => rhs; rw [← encodeSigma_decodeSigma _ i]
     congr 1
     ext
     · simp
     · simp only []
-      conv => rhs; rw [← find_enum (decodeSigma _ i).snd]
+      conv => rhs; rw [← encode_decode (decodeSigma _ i).snd]
       congr <;> simp
-  enum_find
+  decode_encode
   | ⟨x, y⟩ => by
     ext
-    simp only [cast, decodeSigma_encodeSigma, enum_find]
+    simp only [cast, decodeSigma_encodeSigma, decode_encode]
     simp []
     rw [decodeSigma_encodeSigma]
     simp
 
 instance (β : α → Type _) [Fin.Enum α] [(x : α) → Fin.Enum (β x)] : Fin.Enum ((x : α) → β x) where
-  size := Fin.prod fun i => size (β (enum i))
-  enum i x := enum <| (decodePi _ i (find x)).cast (by rw [enum_find])
-  find f := encodePi _ fun i => find (f (enum i))
-  find_enum i := by
-    simp only [find_enum]
+  size := Fin.prod fun i => size (β (decode i))
+  decode i x := decode <| (decodePi _ i (encode x)).cast (by rw [decode_encode])
+  encode f := encodePi _ fun i => encode (f (decode i))
+  encode_decode i := by
+    simp only [encode_decode]
     conv => rhs; rw [← encodePi_decodePi _ i]
     congr
     ext
     simp only [cast]
-    rw [find_enum]
-  enum_find f := by
+    rw [encode_decode]
+  decode_encode f := by
     funext x
     simp only []
-    conv => rhs; rw [← enum_find (f x)]
+    conv => rhs; rw [← decode_encode (f x)]
     congr 1
     ext
     simp only [cast, decodePi_encodePi]
-    rw [enum_find]
+    rw [decode_encode]
     done
 
 instance (P : α → Prop) [DecidablePred P] [Fin.Enum α] : Fin.Enum { x // P x} where
-  size := Fin.count fun i => P (enum i)
-  enum i := ⟨enum (decodeSubtype _ i).val, (decodeSubtype _ i).property⟩
-  find x := encodeSubtype _ ⟨find x.val, (enum_find x.val).symm ▸ x.property⟩
-  find_enum i := by simp [Subtype.eta]
-  enum_find := by simp
+  size := Fin.count fun i => P (decode i)
+  decode i := ⟨decode (decodeSubtype _ i).val, (decodeSubtype _ i).property⟩
+  encode x := encodeSubtype _ ⟨encode x.val, (decode_encode x.val).symm ▸ x.property⟩
+  encode_decode i := by simp [Subtype.eta]
+  decode_encode := by simp
 
-private def enumSetoid (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] :
+private def decodeSetoid (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] :
     Setoid (Fin (size α)) where
-  r i j := s.r (enum i) (enum j)
+  r i j := s.r (decode i) (decode j)
   iseqv := {
-    refl := fun i => Setoid.refl (enum i)
+    refl := fun i => Setoid.refl (decode i)
     symm := Setoid.symm
     trans := Setoid.trans
   }
 
-private instance (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] : DecidableRel (enumSetoid s).r :=
+private instance (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] : DecidableRel (decodeSetoid s).r :=
   fun _ _ => inferInstanceAs (Decidable (s.r _ _))
 
 instance (s : Setoid α) [DecidableRel s.r] [Fin.Enum α] : Fin.Enum (Quotient s) where
-  size := Fin.count fun i => getRepr (enumSetoid s) i = i
-  enum i := Quotient.liftOn (decodeQuotient (enumSetoid s) i) (fun i => Quotient.mk s (enum i))
+  size := Fin.count fun i => getRepr (decodeSetoid s) i = i
+  decode i := Quotient.liftOn (decodeQuotient (decodeSetoid s) i) (fun i => Quotient.mk s (decode i))
     (fun _ _ h => Quotient.sound h)
-  find x := Quotient.liftOn x
-    (fun x => encodeQuotient (enumSetoid s) (Quotient.mk _ (find x))) <| by
+  encode x := Quotient.liftOn x
+    (fun x => encodeQuotient (decodeSetoid s) (Quotient.mk _ (encode x))) <| by
       intro _ _ h
       simp only []
       congr 1
       apply Quotient.sound
-      simp only [HasEquiv.Equiv, enumSetoid, enum_find]
+      simp only [HasEquiv.Equiv, decodeSetoid, decode_encode]
       exact h
-  enum_find x := by
+  decode_encode x := by
     induction x using Quotient.inductionOn with
     | _ x =>
       simp only [decodeQuotient, encodeQuotient, decodeSubtype_encodeSubtype, Quotient.liftOn,
         Quotient.mk, Quot.liftOn]
       apply Quot.sound
-      conv => rhs; rw [← enum_find x]
-      exact getRepr_equiv (enumSetoid s) ..
-  find_enum i := by
+      conv => rhs; rw [← decode_encode x]
+      exact getRepr_equiv (decodeSetoid s) ..
+  encode_decode i := by
     conv => rhs; rw [← encodeSubtype_decodeSubtype _ i]
     simp only [Quotient.liftOn, Quot.liftOn, encodeQuotient, Quotient.mk, decodeQuotient,
-      find_enum]
+      encode_decode]
     congr
     rw [(decodeSubtype _ i).property]
