@@ -220,6 +220,12 @@ theorem foldr_rev (f : α → Fin n → α) (x) :
   | zero => simp
   | succ n ih => rw [foldl_succ_last, foldr_succ, ← ih]; simp [rev_succ]
 
+theorem map_foldr {g : α → β} {f : Fin n → α → α} {f' : Fin n → β → β}
+    (h : ∀ i x, g (f i x) = f' i (g x)) (x) : g (foldr n f x) = foldr n f' (g x) := by
+  induction n generalizing x with
+  | zero => simp
+  | succ n ih => simp [foldr_succ, ih, h]
+
 /-! ### sum -/
 
 @[simp] theorem sum_zero [OfNat α (nat_lit 0)] [Add α] (x : Fin 0 → α) :
@@ -260,46 +266,53 @@ theorem count_le (P : Fin n → Prop) [DecidablePred P] : Fin.count P ≤ n := b
 
 /-! ### find? -/
 
+@[simp] theorem find?_zero {P : Fin 0 → Prop} [DecidablePred P] : Fin.find? P = none := by
+  simp [Fin.find?]
+
+theorem find?_succ (P : Fin (n+1) → Prop) [DecidablePred P] :
+    Fin.find? P = if P 0 then some 0 else (Fin.find? fun i => P i.succ).map Fin.succ := by
+  have h (i : Fin n) (v : Option (Fin n)) :
+      (if P i.succ then some i else v).map Fin.succ =
+        if P i.succ then some i.succ else v.map Fin.succ := by
+    intros; split <;> simp
+  simp [Fin.find?, foldr_succ, map_foldr h]
+
 theorem find?_prop {P : Fin n → Prop} [DecidablePred P] (h : Fin.find? P = some x) : P x := by
   induction n with
-  | zero => contradiction
+  | zero => simp at h
   | succ n ih =>
-    simp [Fin.find?] at h
+    simp [find?_succ] at h
     split at h
     · cases h; assumption
-    · split at h
-      · cases h
-        apply ih (P := fun i => P i.succ)
-        assumption
-      · contradiction
+    · simp [Option.map_eq_some] at h
+      match h with
+      | ⟨i, h', hi⟩ => cases hi; exact ih h'
 
-theorem exists_of_find?_isSome {P : Fin n → Prop} [DecidablePred P] (h : (Fin.find? P).isSome) :
-    ∃ x, P x := by
-  match heq : Fin.find? P with
-  | some x => exists x; exact find?_prop heq
-  | none => rw [heq] at h; contradiction
-
-theorem find?_isSome_of_exists {P : Fin n → Prop} [DecidablePred P] (h : ∃ x, P x) :
+theorem find?_isSome_of_prop {P : Fin n → Prop} [DecidablePred P] (h : P x) :
     (Fin.find? P).isSome := by
   induction n with
-  | zero => match h with | ⟨x, _⟩ => nomatch x
+  | zero => nomatch x
   | succ n ih =>
-    simp only [Fin.find?]
+    rw [find?_succ]
     split
     · rfl
-    · have h : ∃ (x : Fin n), P x.succ := by
-        match h with
-        | ⟨0, _⟩ => contradiction
-        | ⟨⟨i+1, hi⟩, _⟩ => exists ⟨i, Nat.lt_of_succ_lt_succ hi⟩
-      have h : (Fin.find? fun x => P x.succ).isSome := ih h
-      split
-      · rfl
-      · next heq =>
-        rw [heq] at h
+    · have hx : x ≠ 0 := by
+        intro hx
+        rw [hx] at h
         contradiction
+      have h : P (x.pred hx).succ := by simp [h]
+      rw [Option.isSome_map']
+      exact ih h
 
 theorem find?_isSome_iff_exists {P : Fin n → Prop} [DecidablePred P] :
-    (Fin.find? P).isSome ↔ ∃ x, P x := ⟨exists_of_find?_isSome, find?_isSome_of_exists⟩
+    (Fin.find? P).isSome ↔ ∃ x, P x := by
+  constructor
+  · intro h
+    match heq : Fin.find? P with
+    | some x => exists x; exact find?_prop heq
+    | none => rw [heq] at h; contradiction
+  · intro ⟨_, h⟩
+    exact find?_isSome_of_prop h
 
 /-! ### recZeroSuccOn -/
 
