@@ -42,6 +42,10 @@ Use `#help note "some tag"` to display all notes with the tag
 elab "library_note " title:strLit ppSpace text:docComment : command => do
   modifyEnv (libraryNoteExt.addEntry · (title.getString, text.getDocString))
 
+/--
+format the string to be included in a single markdown bullet
+-/
+def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
 
 open Lean Parser in
 /--
@@ -69,10 +73,10 @@ elab "#help note" name:strLit : command => do
 
   -- display results in a readable style
   if grouped_valid_entries.isEmpty then
-    logInfo "Note not found"
+    logError "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
       grouped_valid_entries.map
         fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
-          "\n\n".intercalate (l.map fun e => "/-\n" ++ e.snd.trim ++ "\n-/")
+          "\n\n".intercalate (l.map (·.snd.trim.makeBullet))
     -- this could use List.head when List.ne_nil_of_mem_groupBy gets upstreamed from mathlib
