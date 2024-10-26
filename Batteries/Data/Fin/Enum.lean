@@ -45,6 +45,13 @@ instance : Fin.Enum Bool where
   decode_encode := decodeBool_encodeBool
   encode_decode := encodeBool_decodeBool
 
+instance : Fin.Enum Char where
+  size := 1112064
+  decode := decodeChar
+  encode := encodeChar
+  decode_encode := decodeChar_encodeChar
+  encode_decode := encodeChar_decodeChar
+
 instance [Fin.Enum α] : Fin.Enum (Option α) where
   size := size α + 1
   decode i := decodeOption i |>.map decode

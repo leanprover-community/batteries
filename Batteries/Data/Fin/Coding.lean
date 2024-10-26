@@ -49,6 +49,46 @@ def encodeBool : Bool → Fin 2
   | false => rfl
   | true => rfl
 
+/-- Encode a character value as a `Fin` type. -/
+def encodeChar (c : Char) : Fin 1112064 :=
+  have : c.toNat < 1114112 :=
+    match c.valid with
+    | .inl h => Nat.lt_trans h (by decide)
+    | .inr h => h.right
+  if _ : c.toNat < 55296 then
+    ⟨c.toNat, by omega⟩
+  else
+    ⟨c.toNat - 2048, by omega⟩
+
+/-- Decode a character value as a `Fin` type. -/
+@[pp_nodot] def decodeChar (i : Fin 1112064) : Char :=
+  if h : i.val < 55296 then
+    Char.ofNatAux i.val (by omega)
+  else
+    Char.ofNatAux (i.val + 2048) (by omega)
+
+@[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
+  simp only [decodeChar, encodeChar]
+  split
+  · simp [Char.ofNatAux, Char.toNat, UInt32.toNat, *]
+  · have : ¬ x.val + 2048 < 55296 := by omega
+    simp [Char.ofNatAux, Char.toNat, UInt32.toNat, *]
+
+@[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
+  ext; simp only [decodeChar, encodeChar]
+  split
+  · simp only [Char.ofNatAux, Char.toNat]; rfl
+  · have h0 : 57344 ≤ x.toNat ∧ x.toNat < 1114112 := by
+      match x.valid with
+      | .inl h => contradiction
+      | .inr h =>
+        constructor
+        · exact Nat.add_one_le_of_lt h.left
+        · exact h.right
+    have h1 : ¬ x.toNat - 2048 < 55296 := by omega
+    have h2 : 2048 ≤ x.toNat := by omega
+    simp only [dif_neg h1, Char.ofNatAux, Nat.sub_add_cancel h2]; rfl
+
 /-- Decode an optional `Fin` types. -/
 def encodeOption : Option (Fin n) → Fin (n+1)
   | none => 0
