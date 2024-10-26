@@ -55,7 +55,7 @@ grouped by label.
 The command only displays the library notes that are declared in
 imported files or in the same file above the line containing the command.
 -/
-elab "#help note" name:strLit : command => do
+elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
   let env ← getEnv
 
   -- get the library notes from both this and imported files
