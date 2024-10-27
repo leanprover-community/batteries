@@ -1,4 +1,4 @@
-import Batteries.Util.LibraryNote
+import Batteries.Tactic.HelpCmd
 import Batteries.Test.Internal.DummyLibraryNote2
 
 /--
