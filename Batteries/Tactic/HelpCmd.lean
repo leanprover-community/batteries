@@ -28,9 +28,6 @@ a mandatory string literal, rather than an identifier.
 
 -/
 
--- The `#help note` command is defined in a different file,
--- to make sure it is available wherever there are library notes.
-
 namespace Batteries.Tactic
 open Lean Meta Elab Tactic Command
 
