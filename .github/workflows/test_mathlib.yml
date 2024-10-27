@@ -12,21 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.repository == 'leanprover-community/batteries'
     steps:
-      - name: Retrieve PR information
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Get PR info
         id: pr-info
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const prNumber = context.payload.workflow_run.pull_requests[0].number;
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            core.setOutput('targetBranch', pr.base.ref);
-            core.setOutput('pullRequestNumber', pr.number);
-            core.exportVariable('HEAD_REPO', pr.head.repo.full_name);
-            core.exportVariable('HEAD_BRANCH', pr.head.ref);
+        run: |
+          echo "pullRequestNumber=$(gh pr --json number -q .number || echo '')" >> $GITHUB_OUTPUTS
+          echo "targetBranch=$(gh pr --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUTS
 
       - name: Checkout mathlib4 repository
         if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
