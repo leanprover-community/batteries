@@ -1,0 +1,19 @@
+name = "batteries"
+testDriver = "test"
+lintDriver = "runLinter"
+defaultTargets = ["Batteries", "runLinter"]
+
+[leanOptions]
+linter.missingDocs = true
+
+[[lean_lib]]
+name = "Batteries"
+
+[[lean_exe]]
+name = "runLinter"
+srcDir = "scripts"
+supportInterpreter = true
+
+[[lean_exe]]
+name = "test"
+srcDir = "scripts"
