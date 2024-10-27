@@ -17,10 +17,10 @@ The `#help` command can be used to list all definitions in a variety of extensib
 * `#help attr` lists attributes (used in `@[myAttr] def foo := ...`)
 * `#help cats` lists syntax categories (like `term`, `tactic`, `stx` etc)
 * `#help cat C` lists elements of syntax category C
-* `#help note "some note"` lists library notes for which "some note" is a prefix of the label
   * `#help term`, `#help tactic`, `#help conv`, `#help command`
     are shorthand for `#help cat term` etc.
   * `#help cat+ C` also shows `elab` and `macro` definitions associated to the syntaxes
+* `#help note "some note"` lists library notes for which "some note" is a prefix of the label
 
 Most forms take an optional identifier to narrow the search; for example `#help option pp` shows
 only `pp.*` options. However, `#help cat` makes the identifier mandatory, while `#help note` takes
@@ -286,7 +286,7 @@ def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.split
 
 open Lean Parser Batteries.Util.LibraryNote in
 /--
-`#help note "foo"` searches (case-insensitively) for all library notes whose
+`#help note "foo"` searches for all library notes whose
 label starts with "foo", then displays those library notes sorted alphabetically by label,
 grouped by label.
 The command only displays the library notes that are declared in
@@ -316,7 +316,6 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
       grouped_valid_entries.map
         fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
           "\n\n".intercalate (l.map (·.snd.trim.makeBullet))
-    -- this could use List.head when List.ne_nil_of_mem_groupBy gets upstreamed from mathlib
 
 /--
 The command `#help term` shows all term syntaxes that have been defined in the current environment.
