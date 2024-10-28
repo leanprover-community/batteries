@@ -18,8 +18,8 @@ jobs:
       - name: Get PR info
         id: pr-info
         run: |
-          echo "pullRequestNumber=$(gh pr view --json number -q .number || echo '')" >> $GITHUB_OUTPUTS
-          echo "targetBranch=$(gh pr view --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUTS
+          echo "pullRequestNumber=$(gh pr view --json number -q .number || echo '')" >> $GITHUB_OUTPUT
+          echo "targetBranch=$(gh pr view --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
