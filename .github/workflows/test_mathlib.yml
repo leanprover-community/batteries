@@ -15,7 +15,7 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.workflow_run.head_repository }}
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
           ref: ${{github.event.workflow_run.head_branch }}
           fetch-depth: 0
 
