@@ -20,6 +20,8 @@ jobs:
         run: |
           echo "pullRequestNumber=$(gh pr view --json number -q .number || echo '')" >> $GITHUB_OUTPUTS
           echo "targetBranch=$(gh pr view --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUTS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout mathlib4 repository
         if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
