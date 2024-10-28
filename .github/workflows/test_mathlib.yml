@@ -22,9 +22,6 @@ jobs:
         run: |
           echo "pullRequestNumber=$(gh pr list --search $SHA --json number -q '.[0].number' || echo '')" >> $GITHUB_OUTPUT
           echo "targetBranch=$(gh pr list --search $SHA --json baseRefName -q '.[0].baseRefName' || echo '')" >> $GITHUB_OUTPUT
-          echo "HEAD_BRANCH=$(gh pr list --search $SHA --json headRefName -q '.[0].headRefName' || echo '')" >> $GITHUB_ENV
-          echo "HEAD_REPO=$(gh pr list --search $SHA --json headRepository -q '.[0].headRepository.name' || echo '')" >> $GITHUB_ENV
-          echo "HEAD_OWNER=$(gh pr list --search $SHA --json headRepositoryOwner -q '.[0].headRepositoryOwner.login' || echo '')" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ github.event.workflow_run.head_sha }}
@@ -51,14 +48,13 @@ jobs:
         id: check_mathlib_tag
         env:
           PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
-          HEAD_OWNER: ${{ env.HEAD_OWNER }}
-          HEAD_REPO: ${{ env.HEAD_REPO }}
-          HEAD_BRANCH: ${{ env.HEAD_BRANCH }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           git config user.name "leanprover-community-mathlib4-bot"
           git config user.email "leanprover-community-mathlib4-bot@users.noreply.github.com"
 
-          echo "PR info: $HEAD_OWNER $HEAD_REPO $HEAD_BRANCH"
+          echo "PR info: $HEAD_REPO $HEAD_BRANCH"
 
           BASE=master
           echo "Using base tag: $BASE"
