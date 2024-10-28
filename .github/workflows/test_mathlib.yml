@@ -26,7 +26,7 @@ jobs:
           echo "targetBranch=$(gh pr view --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUT
           echo "HEAD_BRANCH=$(gh pr view --json headRefName -q .headRefName || echo '')" >> $GITHUB_ENV
           echo "HEAD_REPO=$(gh pr view --json headRepository -q .headRepository.name || echo '')" >> $GITHUB_ENV
-          echo "HEAD_OWNER=$(gh pr view --json headRepositoryOwner-q .headRepositoryOwner.login || echo '')" >> $GITHUB_ENV
+          echo "HEAD_OWNER=$(gh pr view --json headRepositoryOwner -q .headRepositoryOwner.login || echo '')" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
