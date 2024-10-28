@@ -52,7 +52,7 @@ protected theorem trivial [Applicative m] [LawfulApplicative m] {x : m α} :
 /-- The `SatisfiesM p x` predicate is monotonic in `p`. -/
 theorem imp [Functor m] [LawfulFunctor m] {x : m α}
     (h : SatisfiesM p x) (H : ∀ {a}, p a → q a) : SatisfiesM q x :=
-  let ⟨x, h⟩ := h; ⟨(fun ⟨a, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
+  let ⟨x, h⟩ := h; ⟨(fun ⟨_, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
 
 /-- `SatisfiesM` distributes over `<$>`, general version. -/
 protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
@@ -171,7 +171,7 @@ theorem SatisfiesM_StateRefT_eq [Monad m] :
   · refine ⟨fun s => (fun ⟨⟨a, h⟩, s'⟩ => ⟨⟨a, s'⟩, h⟩) <$> f s, fun s => ?_⟩
     rw [← comp_map, map_eq_pure_bind]; rfl
   · refine ⟨fun s => (fun ⟨⟨a, s'⟩, h⟩ => ⟨⟨a, h⟩, s'⟩) <$> f s, funext fun s => ?_⟩
-    show _ >>= _ = _; simp [map_eq_pure_bind, ← h]
+    show _ >>= _ = _; simp [← h]
 
 @[simp] theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
     SatisfiesM (m := ExceptT ρ m) (α := α) p x ↔ SatisfiesM (m := m) (∀ a, · = .ok a → p a) x := by
@@ -179,4 +179,4 @@ theorem SatisfiesM_StateRefT_eq [Monad m] :
   · exists (fun | .ok ⟨a, h⟩ => ⟨.ok a, fun | _, rfl => h⟩ | .error e => ⟨.error e, nofun⟩) <$> f
     show _ = _ >>= _; rw [← comp_map, map_eq_pure_bind]; congr; funext a; cases a <;> rfl
   · exists ((fun | ⟨.ok a, h⟩ => .ok ⟨a, h _ rfl⟩ | ⟨.error e, _⟩ => .error e) <$> f : m _)
-    show _ >>= _ = _; simp [← comp_map, map_eq_pure_bind]; congr; funext ⟨a, h⟩; cases a <;> rfl
+    show _ >>= _ = _; simp [← comp_map, ← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
