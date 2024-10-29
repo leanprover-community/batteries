@@ -194,7 +194,8 @@ instance {t : RBNode α} [DecidablePred p] : Decidable (t.Any p) :=
 /-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
 def EMem (x : α) (t : RBNode α) : Prop := t.Any (x = ·)
 
-instance : Membership α (RBNode α) := ⟨EMem⟩
+instance : Membership α (RBNode α) where
+  mem t x := EMem x t
 
 /-- True if the specified `cut` matches at least one element of of `t`. -/
 def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
@@ -768,7 +769,8 @@ def MemP (cut : α → Ordering) (t : RBSet α cmp) : Prop := t.1.MemP cut
 /-- True if `x` is equivalent to an element of `t`. -/
 def Mem (x : α) (t : RBSet α cmp) : Prop := MemP (cmp x) t
 
-instance : Membership α (RBSet α cmp) := ⟨Mem⟩
+instance : Membership α (RBSet α cmp) where
+  mem t x := Mem x t
 
 -- These instances are put in a special namespace because they are usually not what users want
 -- when deciding membership in a RBSet, since this does a naive linear search through the tree.

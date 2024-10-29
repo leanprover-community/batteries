@@ -1,0 +1,88 @@
+# Test Mathlib against a Batteries PR
+
+name: Test Mathlib
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.repository == 'leanprover-community/batteries'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR info
+        id: pr-info
+        run: |
+          echo "pullRequestNumber=$(gh pr list --search $SHA --json number -q '.[0].number' || echo '')" >> $GITHUB_OUTPUT
+          echo "targetBranch=$(gh pr list --search $SHA --json baseRefName -q '.[0].baseRefName' || echo '')" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Checkout mathlib4 repository
+        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+        uses: actions/checkout@v4
+        with:
+          repository: leanprover-community/mathlib4
+          token: ${{ secrets.MATHLIB4_BOT }}
+          ref: master
+          fetch-depth: 0
+
+      - name: Install elan
+        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
+
+      - name: Check if tag exists
+        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+        id: check_mathlib_tag
+        env:
+          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          git config user.name "leanprover-community-mathlib4-bot"
+          git config user.email "leanprover-community-mathlib4-bot@users.noreply.github.com"
+
+          echo "PR info: $HEAD_REPO $HEAD_BRANCH"
+
+          BASE=master
+          echo "Using base tag: $BASE"
+
+          EXISTS="$(git ls-remote --heads origin batteries-pr-testing-$PR_NUMBER | wc -l)"
+          echo "Branch exists: $EXISTS"
+          if [ "$EXISTS" = "0" ]; then
+            echo "Branch does not exist, creating it."
+            git switch -c batteries-pr-testing-$PR_NUMBER "$BASE"
+
+            # Modify the lakefile.lean with the fork and branch name
+            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
+
+            lake update batteries
+            git add lakefile.lean lake-manifest.json
+            git commit -m "Update Batteries branch for testing https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
+          else
+            echo "Branch already exists, merging $BASE and bumping Batteries."
+            git switch batteries-pr-testing-$PR_NUMBER
+            git merge "$BASE" --strategy-option ours --no-commit --allow-unrelated-histories
+            lake update batteries
+            git add lake-manifest.json
+            git commit --allow-empty -m "Trigger CI for https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
+          fi
+
+      - name: Push changes
+        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+        env:
+          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
+        run: |
+          git push origin batteries-pr-testing-$PR_NUMBER

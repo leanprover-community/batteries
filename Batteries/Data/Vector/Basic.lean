@@ -80,7 +80,7 @@ def get (v : Vector α n) (i : Fin n) : α := v.toArray.get <| i.cast v.size_eq.
 /-- Vector lookup function that takes an index `i` of type `USize` -/
 def uget (v : Vector α n) (i : USize) (h : i.toNat < n) : α := v.toArray.uget i (v.size_eq.symm ▸ h)
 
-/-- `Vector α n` nstance for the `GetElem` typeclass. -/
+/-- `Vector α n` instance for the `GetElem` typeclass. -/
 instance : GetElem (Vector α n) Nat α fun _ i => i < n where
   getElem := fun x i h => get x ⟨i, h⟩
 
@@ -101,6 +101,9 @@ abbrev back! [Inhabited α] (v : Vector α n) : α := v[n - 1]!
 if it exists. Else the vector is empty and it returns `none`
 -/
 abbrev back? (v : Vector α n) : Option α := v[n - 1]?
+
+/-- Abbreviation for the last element of a non-empty `Vector`.-/
+abbrev back (v : Vector α (n + 1)) : α := v[n]
 
 /-- `Vector.head` produces the head of a vector -/
 abbrev head (v : Vector α (n+1)) := v[0]
@@ -260,7 +263,7 @@ alias take := shrink
 if and only if `p a[i] b[i]` holds true for all valid indices `i`.
 -/
 @[inline] def isEqv (a b : Vector α n) (p : α → α → Bool) : Bool :=
-  Array.isEqvAux a.toArray b.toArray (a.size_eq.trans b.size_eq.symm) p 0
+  Array.isEqvAux a.toArray b.toArray (a.size_eq.trans b.size_eq.symm) p 0 (Nat.zero_le _)
 
 instance [BEq α] : BEq (Vector α n) :=
   ⟨fun a b => isEqv a b BEq.beq⟩

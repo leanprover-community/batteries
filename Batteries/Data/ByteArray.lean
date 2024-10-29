@@ -85,12 +85,12 @@ theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_left hlt
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_left hlt
 
 theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b).size)
     (h' : i - a.size < b.size := Nat.sub_lt_left_of_lt_add hle (size_append .. ▸ h)) :
     (a ++ b)[i] = b[i - a.size] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_right hle
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_right hle
 
 /-! ### extract -/
 
@@ -140,9 +140,44 @@ private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
 termination_by n - i
 
 @[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext; simp [ofFnAux, Array.ofFn, data_ofFnAux, mkEmpty]
+  funext n f; ext1; simp [ofFnAux, Array.ofFn, data_ofFnAux, mkEmpty]
 where
   data_ofFnAux {n} (f : Fin n → UInt8) (i) {acc} :
       (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
     rw [ofFnAux.go, Array.ofFn.go]; split; rw [data_ofFnAux f (i+1), data_push]; rfl
   termination_by n - i
+
+/-! ### map/mapM -/
+
+/--
+Unsafe optimized implementation of `mapM`.
+
+This function is unsafe because it relies on the implementation limit that the size of an array is
+always less than `USize.size`.
+-/
+@[inline]
+unsafe def mapMUnsafe [Monad m] (a : ByteArray) (f : UInt8 → m UInt8) : m ByteArray :=
+  loop a 0 a.usize
+where
+  /-- Inner loop for `mapMUnsafe`. -/
+  @[specialize]
+  loop (a : ByteArray) (k s : USize) := do
+    if k < a.usize then
+      let x := a.uget k lcProof
+      let y ← f x
+      let a := a.uset k y lcProof
+      loop a (k+1) s
+    else pure a
+
+/-- `mapM f a` applies the monadic function `f` to each element of the array. -/
+@[implemented_by mapMUnsafe]
+def mapM [Monad m] (a : ByteArray) (f : UInt8 → m UInt8) : m ByteArray := do
+  let mut r := a
+  for i in [0:r.size] do
+    r := r.set! i (← f r[i]!)
+  return r
+
+/-- `map f a` applies the function `f` to each element of the array. -/
+@[inline]
+def map (a : ByteArray) (f : UInt8 → UInt8) : ByteArray :=
+  mapM (m:=Id) a f

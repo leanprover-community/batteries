@@ -86,7 +86,7 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
 
 @[csimp] theorem replaceF_eq_replaceFTR : @replaceF = @replaceFTR := by
   funext α p l; simp [replaceFTR]
-  let rec go (acc) : ∀ xs, replaceFTR.go p xs acc = acc.data ++ xs.replaceF p
+  let rec go (acc) : ∀ xs, replaceFTR.go p xs acc = acc.toList ++ xs.replaceF p
   | [] => by simp [replaceFTR.go, replaceF]
   | x::xs => by
     simp [replaceFTR.go, replaceF]; cases p x <;> simp
@@ -109,24 +109,6 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 @[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
-
-/--
-Split a list at an index.
-```
-splitAt 2 [a, b, c] = ([a, b], [c])
-```
--/
-def splitAt (n : Nat) (l : List α) : List α × List α := go l n [] where
-  /--
-  Auxiliary for `splitAt`:
-  `splitAt.go l xs n acc = (acc.reverse ++ take n xs, drop n xs)` if `n < xs.length`,
-  and `(l, [])` otherwise.
-  -/
-  go : List α → Nat → List α → List α × List α
-  | [], _, _ => (l, []) -- This branch ensures the pointer equality of the result with the input
-                        -- without any runtime branching cost.
-  | x :: xs, n+1, acc => go xs n (x :: acc)
-  | xs, _, acc => (acc.reverse, xs)
 
 /--
 Split a list at an index. Ensures the left list always has the specified length
@@ -167,8 +149,9 @@ def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
 
 @[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
   funext α P l; simp [splitOnPTR]
-  suffices ∀ xs acc r, splitOnPTR.go P xs acc r = r.data ++ splitOnP.go P xs acc.data.reverse from
-    (this l #[] #[]).symm
+  suffices ∀ xs acc r,
+    splitOnPTR.go P xs acc r = r.toList ++ splitOnP.go P xs acc.toList.reverse from
+      (this l #[] #[]).symm
   intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
   | cons x xs IH => cases P x <;> simp [*]
 
@@ -184,13 +167,15 @@ Split a list at every occurrence of a separator element. The separators are not 
 Apply a function to the nth tail of `l`. Returns the input without
 using `f` if the index is larger than the length of the List.
 ```
-modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
+modifyTailIdx f 2 [a, b, c] = [a, b] ++ f [c]
 ```
 -/
-@[simp] def modifyNthTail (f : List α → List α) : Nat → List α → List α
+@[simp] def modifyTailIdx (f : List α → List α) : Nat → List α → List α
   | 0, l => f l
   | _+1, [] => []
-  | n+1, a :: l => a :: modifyNthTail f n l
+  | n+1, a :: l => a :: modifyTailIdx f n l
+
+@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
 
 /-- Apply `f` to the head of the list, if it exists. -/
 @[inline] def modifyHead (f : α → α) : List α → List α
@@ -202,25 +187,29 @@ modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
 @[simp] theorem modifyHead_cons (a : α) (l : List α) (f : α → α) :
     (a :: l).modifyHead f = f a :: l := by rw [modifyHead]
 
-/-- Apply `f` to the nth element of the list, if it exists. -/
-def modifyNth (f : α → α) : Nat → List α → List α :=
-  modifyNthTail (modifyHead f)
+/--
+Apply `f` to the nth element of the list, if it exists, replacing that element with the result.
+-/
+def modify (f : α → α) : Nat → List α → List α :=
+  modifyTailIdx (modifyHead f)
 
-/-- Tail-recursive version of `modifyNth`. -/
-def modifyNthTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] where
-  /-- Auxiliary for `modifyNthTR`: `modifyNthTR.go f l n acc = acc.toList ++ modifyNth f n l`. -/
+@[deprecated (since := "2024-10-21")] alias modifyNth := modify
+
+/-- Tail-recursive version of `modify`. -/
+def modifyTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] where
+  /-- Auxiliary for `modifyTR`: `modifyTR.go f l n acc = acc.toList ++ modify f n l`. -/
   go : List α → Nat → Array α → List α
   | [], _, acc => acc.toList
   | a :: l, 0, acc => acc.toListAppend (f a :: l)
   | a :: l, n+1, acc => go l n (acc.push a)
 
-theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modifyNth f n l
-  | [], n => by cases n <;> simp [modifyNthTR.go, modifyNth]
-  | a :: l, 0 => by simp [modifyNthTR.go, modifyNth]
-  | a :: l, n+1 => by simp [modifyNthTR.go, modifyNth, modifyNthTR_go_eq l]
+theorem modifyTR_go_eq : ∀ l n, modifyTR.go f l n acc = acc.toList ++ modify f n l
+  | [], n => by cases n <;> simp [modifyTR.go, modify]
+  | a :: l, 0 => by simp [modifyTR.go, modify]
+  | a :: l, n+1 => by simp [modifyTR.go, modify, modifyTR_go_eq l]
 
-@[csimp] theorem modifyNth_eq_modifyNthTR : @modifyNth = @modifyNthTR := by
-  funext α f n l; simp [modifyNthTR, modifyNthTR_go_eq]
+@[csimp] theorem modify_eq_modifyTR : @modify = @modifyTR := by
+  funext α f n l; simp [modifyTR, modifyTR_go_eq]
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
@@ -231,28 +220,30 @@ theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.data ++ modi
   | x :: xs, acc => go xs (acc.push x)
 
 /--
-`insertNth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
+`insertIdx n a l` inserts `a` into the list `l` after the first `n` elements of `l`
 ```
-insertNth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
+insertIdx 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
 ```
 -/
-def insertNth (n : Nat) (a : α) : List α → List α :=
-  modifyNthTail (cons a) n
+def insertIdx (n : Nat) (a : α) : List α → List α :=
+  modifyTailIdx (cons a) n
 
-/-- Tail-recursive version of `insertNth`. -/
-@[inline] def insertNthTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
-  /-- Auxiliary for `insertNthTR`: `insertNthTR.go a n l acc = acc.toList ++ insertNth n a l`. -/
+@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
+
+/-- Tail-recursive version of `insertIdx`. -/
+@[inline] def insertIdxTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
+  /-- Auxiliary for `insertIdxTR`: `insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l`. -/
   go : Nat → List α → Array α → List α
   | 0, l, acc => acc.toListAppend (a :: l)
   | _, [], acc => acc.toList
   | n+1, a :: l, acc => go n l (acc.push a)
 
-theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.data ++ insertNth n a l
-  | 0, l | _+1, [] => by simp [insertNthTR.go, insertNth]
-  | n+1, a :: l => by simp [insertNthTR.go, insertNth, insertNthTR_go_eq n l]
+theorem insertIdxTR_go_eq : ∀ n l, insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l
+  | 0, l | _+1, [] => by simp [insertIdxTR.go, insertIdx]
+  | n+1, a :: l => by simp [insertIdxTR.go, insertIdx, insertIdxTR_go_eq n l]
 
-@[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
-  funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
+@[csimp] theorem insertIdx_eq_insertIdxTR : @insertIdx = @insertIdxTR := by
+  funext α f n l; simp [insertIdxTR, insertIdxTR_go_eq]
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -279,7 +270,7 @@ def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
   | 0, _, acc => acc.toList
   | n, [], acc => acc.toListAppend (replicate n dflt)
 
-theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.data ++ takeD n l dflt
+theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n l dflt
   | 0, _ => by simp [takeDTR.go]
   | _+1, [] => by simp [takeDTR.go, replicate_succ]
   | _+1, _::l => by simp [takeDTR.go, takeDTR_go_eq _ l]
@@ -304,7 +295,7 @@ scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
   | [], a, acc => acc.toListAppend [a]
   | b :: l, a, acc => go l (f a b) (acc.push a)
 
-theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.data ++ scanl f a l
+theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
   | [] => by simp [scanlTR.go, scanl]
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
@@ -548,7 +539,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   | l :: L, h => by
     simp only [any, foldr, Bool.or_eq_true] at h
     match l, h with
-    | [], .inl rfl => simp; induction sections L <;> simp [*]
+    | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
 
 @[csimp] theorem sections_eq_sectionsTR : @sections = @sectionsTR := by
@@ -556,8 +547,8 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [Array.foldl_eq_foldl_data, Array.foldl_data_eq_bind]; rfl
-  intros; apply Array.foldl_data_eq_map
+  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_bind]; rfl
+  intros; apply Array.foldl_toList_eq_map
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -594,8 +585,8 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
   funext α β l₁ l₂; simp [product, productTR]
-  rw [Array.foldl_data_eq_bind]; rfl
-  intros; apply Array.foldl_data_eq_map
+  rw [Array.foldl_toList_eq_bind]; rfl
+  intros; apply Array.foldl_toList_eq_map
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -610,8 +601,8 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
   funext α β l₁ l₂; simp [List.sigma, sigmaTR]
-  rw [Array.foldl_data_eq_bind]; rfl
-  intros; apply Array.foldl_data_eq_map
+  rw [Array.foldl_toList_eq_bind]; rfl
+  intros; apply Array.foldl_toList_eq_map
 
 /--
 `ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
@@ -619,28 +610,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 ofFn f = [f 0, f 1, ... , f (n - 1)]
 ```
 -/
-def ofFn {n} (f : Fin n → α) : List α := go n 0 rfl where
-  /-- Auxiliary for `List.ofFn`. `ofFn.go f i j _ = [f j, ..., f (n - 1)]`. -/
-  -- This used to be defined via `Array.ofFn` but mathlib relies on reducing it,
-  -- so we use a structurally recursive definition here.
-  go : (i j : Nat) → (h : i + j = n) → List α
-  | 0, _, _ => []
-  | i+1, j, h => f ⟨j, by omega⟩ :: go i (j+1) (Nat.add_right_comm .. ▸ h :)
-
-/-- Tail-recursive version of `ofFn`. -/
-@[inline] def ofFnTR {n} (f : Fin n → α) : List α := go n (Nat.le_refl _) [] where
-  /-- Auxiliary for `List.ofFnTR`. `ofFnTR.go f i _ acc = f 0 :: ... :: f (i - 1) :: acc`. -/
-  go : (i : Nat) → (h : i ≤ n) → List α → List α
-  | 0, _, acc => acc
-  | i+1, h, acc => go i (Nat.le_of_lt h) (f ⟨i, h⟩ :: acc)
-
-@[csimp] theorem ofFn_eq_ofFnTR : @ofFn = @ofFnTR := by
-  funext α n f; simp [ofFnTR]
-  let rec go (i j h h') : ofFnTR.go f j h' (ofFn.go f i j h) = ofFn f := by
-    unfold ofFnTR.go; split
-    · subst h; rfl
-    · next l j h' => exact go (i+1) j ((Nat.succ_add ..).trans h) (Nat.le_of_lt h')
-  exact (go 0 n (Nat.zero_add _) (Nat.le_refl _)).symm
+def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
@@ -725,23 +695,6 @@ Defined as `pwFilter (≠)`.
 @[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
-`ilast' x xs` returns the last element of `xs` if `xs` is non-empty; it returns `x` otherwise.
-Use `List.getLastD` instead.
--/
-@[simp, deprecated getLastD (since := "2024-01-09")] def ilast' {α} : α → List α → α
-  | a, [] => a
-  | _, b :: l => ilast' b l
-
-/--
-`last' xs` returns the last element of `xs` if `xs` is non-empty; it returns `none` otherwise.
-Use `List.getLast?` instead
--/
-@[simp, deprecated getLast? (since := "2024-01-09")] def last' {α} : List α → Option α
-  | [] => none
-  | [a] => some a
-  | _ :: l => last' l
-
-/--
 `rotate l n` rotates the elements of `l` to the left by `n`
 ```
 rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]
@@ -814,15 +767,15 @@ where
   | x::xs, n+1, acc => go m xs n (acc.push x)
 
 theorem dropSlice_zero₂ : ∀ n l, @dropSlice α n 0 l = l
-  | 0, [] | 0, _::_ | n+1, [] => rfl
+  | 0, [] | 0, _::_ | _+1, [] => rfl
   | n+1, x::xs => by simp [dropSlice, dropSlice_zero₂]
 
 @[csimp] theorem dropSlice_eq_dropSliceTR : @dropSlice = @dropSliceTR := by
   funext α n m l; simp [dropSliceTR]
   split; { rw [dropSlice_zero₂] }
   rename_i m
-  let rec go (acc) : ∀ xs n, l = acc.data ++ xs →
-    dropSliceTR.go l m xs n acc = acc.data ++ xs.dropSlice n (m+1)
+  let rec go (acc) : ∀ xs n, l = acc.toList ++ xs →
+    dropSliceTR.go l m xs n acc = acc.toList ++ xs.dropSlice n (m+1)
   | [],    n
   | _::xs, 0 => fun h => by simp [dropSliceTR.go, dropSlice, h]
   | x::xs, n+1 => by simp [dropSliceTR.go, dropSlice]; intro h; rw [go _ xs]; {simp}; simp [h]
@@ -857,7 +810,7 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
-  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_data_eq_map]
+  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_toList_eq_map]
   | a::as, b::bs => by simp [zipWithLeft'TR.go, go _ as bs]
   simp [zipWithLeft'TR, go]
 
@@ -926,7 +879,7 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
-  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_data_eq_map]
+  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_toList_eq_map]
   | a::as, b::bs => by simp [zipWithLeftTR.go, go _ as bs]
   simp [zipWithLeftTR, go]
 
@@ -1002,7 +955,7 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 
 @[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
   funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.data ++ as.fillNones as'
+  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
   | [], _ => by simp [fillNonesTR.go]
   | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
   | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
@@ -1146,30 +1099,6 @@ protected def traverse [Applicative F] (f : α → F β) : List α → F (List �
   | x :: xs => List.cons <$> f x <*> List.traverse f xs
 
 /--
-`Perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
-of each other. This is defined by induction using pairwise swaps.
--/
-inductive Perm : List α → List α → Prop
-  /-- `[] ~ []` -/
-  | nil : Perm [] []
-  /-- `l₁ ~ l₂ → x::l₁ ~ x::l₂` -/
-  | cons (x : α) {l₁ l₂ : List α} : Perm l₁ l₂ → Perm (x :: l₁) (x :: l₂)
-  /-- `x::y::l ~ y::x::l` -/
-  | swap (x y : α) (l : List α) : Perm (y :: x :: l) (x :: y :: l)
-  /-- `Perm` is transitive. -/
-  | trans {l₁ l₂ l₃ : List α} : Perm l₁ l₂ → Perm l₂ l₃ → Perm l₁ l₃
-
-@[inherit_doc] scoped infixl:50 " ~ " => Perm
-
-/--
-`O(|l₁| * |l₂|)`. Computes whether `l₁` is a permutation of `l₂`. See `isPerm_iff` for a
-characterization in terms of `List.Perm`.
--/
-def isPerm [BEq α] : List α → List α → Bool
-  | [], l₂ => l₂.isEmpty
-  | a :: l₁, l₂ => l₂.contains a && l₁.isPerm (l₂.erase a)
-
-/--
 `Subperm l₁ l₂`, denoted `l₁ <+~ l₂`, means that `l₁` is a sublist of
 a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
 multiplicities of elements, and is used for the `≤` relation on multisets.
@@ -1195,15 +1124,3 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
-
-/--
-`O(|l| + |r|)`. Merge two lists using `s` as a switch.
--/
-def merge (s : α → α → Bool) (l r : List α) : List α :=
-  loop l r []
-where
-  /-- Inner loop for `List.merge`. Tail recursive. -/
-  loop : List α → List α → List α → List α
-  | [], r, t => reverseAux t r
-  | l, [], t => reverseAux t l
-  | a::l, b::r, t => bif s a b then loop l (b::r) (a::t) else loop (a::l) r (b::t)

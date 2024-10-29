@@ -15,14 +15,13 @@ but it is useful to run locally to see what the linters would catch.
 -- attribute [nolint dupNamespace] Lean.Elab.Tactic.Tactic
 -- attribute [nolint dupNamespace] Lean.Parser.Parser Lean.Parser.Parser.rec Lean.Parser.Parser.mk
 --   Lean.Parser.Parser.info Lean.Parser.Parser.fn
+-- attribute [nolint explicitVarsOfIff] Iff.refl
 
 /-! Failing lints that need work. -/
 
--- #lint only explicitVarsOfIff in all -- Found 109 errors
-
--- Many fixed in https://github.com/leanprover/lean4/pull/4620
+-- Many fixed in https://github.com/leanprover/lean4/pull/4620 and subsequent PRs
 -- and should be checked again.
--- #lint only simpNF in all -- Found 34 errors
+-- #lint only simpNF in all -- Found 22 errors
 
 /-! Lints that fail, but that we're not intending to do anything about. -/
 
@@ -41,6 +40,7 @@ but it is useful to run locally to see what the linters would catch.
 
 /-! Lints that have succeeded in the past, and hopefully still do! -/
 
+-- #lint only explicitVarsOfIff in all -- Found 1 errors, `Iff.refl`, which could be nolinted.
 -- #lint only impossibleInstance  in all -- Found 0 errors
 -- #lint only simpVarHead in all -- Found 0 error
 -- #lint only unusedHavesSuffices in all  -- Found 0 errors

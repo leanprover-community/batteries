@@ -31,7 +31,7 @@ end Classical
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
-    (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
+    (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
 
 theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
@@ -54,6 +54,7 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
     {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
   funext fun _ => funext₂ <| h _
 
+@[deprecated (since := "2024-10-17")]
 protected alias Function.funext_iff := funext_iff
 
 theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
@@ -79,25 +80,25 @@ theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
   ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
 
 theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    (x : motive a rfl) {a' : α} (e : a = a') :
     @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
   subst e; rfl
 
 --Porting note: new theorem. More general version of `eqRec_heq`
 theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    (x : motive a rfl) {a' : α} (e : a = a') :
     HEq (@Eq.rec α a motive x a' e) x := by
   subst e; rfl
 
 @[simp]
 theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
   subst e; rfl
 
 @[simp]
 theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
   subst e; rfl
 
