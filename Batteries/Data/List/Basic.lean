@@ -152,47 +152,8 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-/--
-Apply a function to the nth tail of `l`. Returns the input without
-using `f` if the index is larger than the length of the List.
-```
-modifyNthTail f 2 [a, b, c] = [a, b] ++ f [c]
-```
--/
-@[simp] def modifyNthTail (f : List α → List α) : Nat → List α → List α
-  | 0, l => f l
-  | _+1, [] => []
-  | n+1, a :: l => a :: modifyNthTail f n l
-
-/-- Apply `f` to the head of the list, if it exists. -/
-@[inline] def modifyHead (f : α → α) : List α → List α
-  | [] => []
-  | a :: l => f a :: l
-
-@[simp] theorem modifyHead_nil (f : α → α) : [].modifyHead f = [] := by rw [modifyHead]
-
-@[simp] theorem modifyHead_cons (a : α) (l : List α) (f : α → α) :
-    (a :: l).modifyHead f = f a :: l := by rw [modifyHead]
-
-/-- Apply `f` to the nth element of the list, if it exists. -/
-def modifyNth (f : α → α) : Nat → List α → List α :=
-  modifyNthTail (modifyHead f)
-
-/-- Tail-recursive version of `modifyNth`. -/
-def modifyNthTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] where
-  /-- Auxiliary for `modifyNthTR`: `modifyNthTR.go f l n acc = acc.toList ++ modifyNth f n l`. -/
-  go : List α → Nat → Array α → List α
-  | [], _, acc => acc.toList
-  | a :: l, 0, acc => acc.toListAppend (f a :: l)
-  | a :: l, n+1, acc => go l n (acc.push a)
-
-theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.toList ++ modifyNth f n l
-  | [], n => by cases n <;> simp [modifyNthTR.go, modifyNth]
-  | a :: l, 0 => by simp [modifyNthTR.go, modifyNth]
-  | a :: l, n+1 => by simp [modifyNthTR.go, modifyNth, modifyNthTR_go_eq l]
-
-@[csimp] theorem modifyNth_eq_modifyNthTR : @modifyNth = @modifyNthTR := by
-  funext α f n l; simp [modifyNthTR, modifyNthTR_go_eq]
+@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
+@[deprecated (since := "2024-10-21")] alias modifyNth := modify
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
@@ -203,28 +164,30 @@ theorem modifyNthTR_go_eq : ∀ l n, modifyNthTR.go f l n acc = acc.toList ++ mo
   | x :: xs, acc => go xs (acc.push x)
 
 /--
-`insertNth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
+`insertIdx n a l` inserts `a` into the list `l` after the first `n` elements of `l`
 ```
-insertNth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
+insertIdx 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
 ```
 -/
-def insertNth (n : Nat) (a : α) : List α → List α :=
-  modifyNthTail (cons a) n
+def insertIdx (n : Nat) (a : α) : List α → List α :=
+  modifyTailIdx (cons a) n
 
-/-- Tail-recursive version of `insertNth`. -/
-@[inline] def insertNthTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
-  /-- Auxiliary for `insertNthTR`: `insertNthTR.go a n l acc = acc.toList ++ insertNth n a l`. -/
+@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
+
+/-- Tail-recursive version of `insertIdx`. -/
+@[inline] def insertIdxTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
+  /-- Auxiliary for `insertIdxTR`: `insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l`. -/
   go : Nat → List α → Array α → List α
   | 0, l, acc => acc.toListAppend (a :: l)
   | _, [], acc => acc.toList
   | n+1, a :: l, acc => go n l (acc.push a)
 
-theorem insertNthTR_go_eq : ∀ n l, insertNthTR.go a n l acc = acc.toList ++ insertNth n a l
-  | 0, l | _+1, [] => by simp [insertNthTR.go, insertNth]
-  | n+1, a :: l => by simp [insertNthTR.go, insertNth, insertNthTR_go_eq n l]
+theorem insertIdxTR_go_eq : ∀ n l, insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l
+  | 0, l | _+1, [] => by simp [insertIdxTR.go, insertIdx]
+  | n+1, a :: l => by simp [insertIdxTR.go, insertIdx, insertIdxTR_go_eq n l]
 
-@[csimp] theorem insertNth_eq_insertNthTR : @insertNth = @insertNthTR := by
-  funext α f n l; simp [insertNthTR, insertNthTR_go_eq]
+@[csimp] theorem insertIdx_eq_insertIdxTR : @insertIdx = @insertIdxTR := by
+  funext α f n l; simp [insertIdxTR, insertIdxTR_go_eq]
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
