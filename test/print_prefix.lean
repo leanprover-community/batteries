@@ -14,7 +14,7 @@ TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 
 /-- info: -/
 #guard_msgs in
-#print prefix (config := {imported := false}) Empty
+#print prefix -imported Empty
 
 namespace EmptyPrefixTest
 
@@ -82,7 +82,7 @@ TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
 -/
 #guard_msgs in
-#print prefix (config := {propositions := false}) TestStruct
+#print prefix -propositions TestStruct
 
 /--
 info: TestStruct.mk.inj {foo bar : Int} :
@@ -92,7 +92,7 @@ TestStruct.mk.injEq (foo bar : Int) :
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 -/
 #guard_msgs in
-#print prefix (config := {propositionsOnly := true}) TestStruct
+#print prefix +propositionsOnly TestStruct
 
 /--
 info: TestStruct
@@ -109,7 +109,7 @@ TestStruct.rec
 TestStruct.recOn
 -/
 #guard_msgs in
-#print prefix (config := {showTypes := false}) TestStruct
+#print prefix -showTypes TestStruct
 
 /--
 Artificial test function to show #print prefix filters out internals
@@ -147,7 +147,7 @@ testMatchProof.proof_1 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 testMatchProof.proof_2 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 -/
 #guard_msgs in
-#print prefix (config := {internals := true}) testMatchProof
+#print prefix +internals testMatchProof
 
 private inductive TestInd where
 | foo : TestInd
