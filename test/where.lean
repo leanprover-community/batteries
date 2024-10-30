@@ -71,3 +71,14 @@ open Lean.Elab.Command Batteries
 open listMap → Array.map
 -/
 #guard_msgs in #where
+
+/--
+info: open Lean Lean.Meta
+open Lean.Elab hiding TermElabM
+open Lean.Elab.Command Batteries
+open listMap → Array.map
+
+variable (a : Nat) (b : Nat)
+-/
+#guard_msgs in
+variable (a : Nat) /- a comment -/ (b : Nat) in #where
