@@ -53,6 +53,16 @@ private def describeOptions (opts : Options) : CommandElabM (Option MessageData)
   else
     return MessageData.joinSep lines.toList "\n"
 
+/-- `clearTrailing stx` assumes that `stx` is a `Lean.Parser.Term.bracketedBinder` syntax node.
+It replaces the trailing `SourceInfo` with a space (` `).
+This helps the `#where` command to omit embedded comments when printing out `variable`s.
+-/
+def clearTrailing (stx : Syntax) : Syntax :=
+  let args := stx.getArgs
+  if let .atom t r := args.back then
+      stx.modifyArg (args.size - 1) fun _ => .atom (t.updateTrailing " ".toSubstring) r
+  else stx
+
 /-- `#where` gives a description of the global scope at this point in the module.
 This includes the namespace, `open` namespaces, `universe` and `variable` commands,
 and options set with `set_option`. -/
@@ -74,7 +84,8 @@ elab "#where" : command => do
     msg := msg.push <| "universe " ++ MessageData.joinSep levels " "
   -- Variables
   if !scope.varDecls.isEmpty then
-    msg := msg.push <| ← `(command| variable $scope.varDecls*)
+    let vars := scope.varDecls.map (⟨clearTrailing ·⟩)
+    msg := msg.push <| ← `(command| variable $vars*)
   -- Options
   if let some m ← describeOptions scope.opts then
     msg := msg.push m
