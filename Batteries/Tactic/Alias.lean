@@ -110,8 +110,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     else
       addAndCompile decl
     Lean.addDeclarationRanges declName {
-      range := ← getDeclarationRange (← getRef)
-      selectionRange := ← getDeclarationRange alias
+      range := (← getDeclarationRange? (← getRef)).get!
+      selectionRange := (← getDeclarationRange? alias).get!
     }
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     addDocString' declName declMods.docString?
@@ -175,15 +175,15 @@ elab (name := aliasLR) mods:declModifiers "alias "
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
       addSide true declName declMods thm
       Lean.addDeclarationRanges declName {
-        range := ← getDeclarationRange (← getRef)
-        selectionRange := ← getDeclarationRange idFwd
+        range := (← getDeclarationRange? (← getRef)).get!
+        selectionRange := (← getDeclarationRange? idFwd).get!
       }
       Term.addTermInfo' idFwd (← mkConstWithLevelParams declName) (isBinder := true)
     if let `(binderIdent| $idRev:ident) := aliasRev then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idRev.getId
       addSide false declName declMods thm
       Lean.addDeclarationRanges declName {
-        range := ← getDeclarationRange (← getRef)
-        selectionRange := ← getDeclarationRange idRev
+        range := (← getDeclarationRange? (← getRef)).get!
+        selectionRange := (← getDeclarationRange? idRev).get!
       }
       Term.addTermInfo' idRev (← mkConstWithLevelParams declName) (isBinder := true)
