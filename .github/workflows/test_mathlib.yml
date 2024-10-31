@@ -12,21 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.repository == 'leanprover-community/batteries'
     steps:
-      - name: Retrieve PR information
-        id: pr-info
-        uses: actions/github-script@v6
+      - name: Checkout PR
+        uses: actions/checkout@v4
         with:
-          script: |
-            const prNumber = context.payload.workflow_run.pull_requests[0].number;
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            core.setOutput('targetBranch', pr.base.ref);
-            core.setOutput('pullRequestNumber', pr.number);
-            core.exportVariable('HEAD_REPO', pr.head.repo.full_name);
-            core.exportVariable('HEAD_BRANCH', pr.head.ref);
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - name: Get PR info
+        id: pr-info
+        run: |
+          echo "pullRequestNumber=$(gh pr view --json number -q .number || echo '')" >> $GITHUB_OUTPUT
+          echo "targetBranch=$(gh pr view --json baseRefName -q .baseRefName || echo '')" >> $GITHUB_OUTPUT
+          echo "HEAD_BRANCH=$(gh pr view --json headRefName -q .headRefName || echo '')" >> $GITHUB_ENV
+          echo "HEAD_REPO=$(gh pr view --json headRepository -q .headRepository.name || echo '')" >> $GITHUB_ENV
+          echo "HEAD_OWNER=$(gh pr view --json headRepositoryOwner -q .headRepositoryOwner.login || echo '')" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout mathlib4 repository
         if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
@@ -50,13 +52,14 @@ jobs:
         id: check_mathlib_tag
         env:
           PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
+          HEAD_OWNER: ${{ env.HEAD_OWNER }}
           HEAD_REPO: ${{ env.HEAD_REPO }}
           HEAD_BRANCH: ${{ env.HEAD_BRANCH }}
         run: |
           git config user.name "leanprover-community-mathlib4-bot"
           git config user.email "leanprover-community-mathlib4-bot@users.noreply.github.com"
 
-          echo "PR info: $HEAD_REPO $HEAD_BRANCH"
+          echo "PR info: $HEAD_OWNER $HEAD_REPO $HEAD_BRANCH"
 
           BASE=master
           echo "Using base tag: $BASE"

@@ -1,10 +1,11 @@
 /-
-Copyright (c) 2022 Mario Carneiro. All rights reserved.
+Copyright (c) 2024 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Edward van de Meent
 -/
 import Lean.Elab.Syntax
 import Lean.DocString
+import Batteries.Util.LibraryNote
 
 /-!
 
@@ -19,9 +20,11 @@ The `#help` command can be used to list all definitions in a variety of extensib
   * `#help term`, `#help tactic`, `#help conv`, `#help command`
     are shorthand for `#help cat term` etc.
   * `#help cat+ C` also shows `elab` and `macro` definitions associated to the syntaxes
+* `#help note "some note"` lists library notes for which "some note" is a prefix of the label
 
-All forms take an optional identifier to narrow the search; for example `#help option pp` shows
-only `pp.*` options.
+Most forms take an optional identifier to narrow the search; for example `#help option pp` shows
+only `pp.*` options. However, `#help cat` makes the identifier mandatory, while `#help note` takes
+a mandatory string literal, rather than an identifier.
 
 -/
 
@@ -275,6 +278,44 @@ elab_rules : command
   | `(#help cat $[+%$more]? $cat) => elabHelpCat more cat none
   | `(#help cat $[+%$more]? $cat $id:ident) => elabHelpCat more cat (id.getId.toString false)
   | `(#help cat $[+%$more]? $cat $id:str) => elabHelpCat more cat id.getString
+
+/--
+format the string to be included in a single markdown bullet
+-/
+def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
+
+open Lean Parser Batteries.Util.LibraryNote in
+/--
+`#help note "foo"` searches for all library notes whose
+label starts with "foo", then displays those library notes sorted alphabetically by label,
+grouped by label.
+The command only displays the library notes that are declared in
+imported files or in the same file above the line containing the command.
+-/
+elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
+  let env ← getEnv
+
+  -- get the library notes from both this and imported files
+  let local_entries := (libraryNoteExt.getEntries env).reverse
+  let imported_entries := (libraryNoteExt.toEnvExtension.getState env).importedEntries
+
+  -- filter for the appropriate notes while casting to list
+  let label_prefix := name.getString
+  let imported_entries_filtered := imported_entries.flatten.toList.filterMap
+    fun x => if label_prefix.isPrefixOf x.fst then some x else none
+  let valid_entries := imported_entries_filtered ++ local_entries.filterMap
+    fun x => if label_prefix.isPrefixOf x.fst then some x else none
+  let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
+    |>.groupBy (·.fst == ·.fst)
+
+  -- display results in a readable style
+  if grouped_valid_entries.isEmpty then
+    logError "Note not found"
+  else
+    logInfo <| "\n\n".intercalate <|
+      grouped_valid_entries.map
+        fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
+          "\n\n".intercalate (l.map (·.snd.trim.makeBullet))
 
 /--
 The command `#help term` shows all term syntaxes that have been defined in the current environment.

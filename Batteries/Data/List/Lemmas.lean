@@ -45,7 +45,7 @@ theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ 
 
 theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
-  rw [set_eq_modify, modify_eq_take_cons_drop _ h]
+  rw [set_eq_modify, modify_eq_take_cons_drop h]
 
 theorem modify_eq_set_get? (f : α → α) :
     ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
