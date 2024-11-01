@@ -52,10 +52,10 @@ TestStruct.casesOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
 TestStruct.foo (self : TestStruct) : Int
 TestStruct.mk (foo bar : Int) : TestStruct
-TestStruct.mk.inj {foo bar : Int} :
-  ∀ {foo_1 bar_1 : Int}, { foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 } → foo = foo_1 ∧ bar = bar_1
-TestStruct.mk.injEq (foo bar : Int) :
-  ∀ (foo_1 bar_1 : Int), ({ foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 }) = (foo = foo_1 ∧ bar = bar_1)
+TestStruct.mk.inj {foo bar foo✝ bar✝ : Int} :
+  { foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ } → foo = foo✝ ∧ bar = bar✝
+TestStruct.mk.injEq (foo bar foo✝ bar✝ : Int) :
+  ({ foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ }) = (foo = foo✝ ∧ bar = bar✝)
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 TestStruct.noConfusion.{u} {P : Sort u} {v1 v2 : TestStruct} (h12 : v1 = v2) : TestStruct.noConfusionType P v1 v2
 TestStruct.noConfusionType.{u} (P : Sort u) (v1 v2 : TestStruct) : Sort u
@@ -85,10 +85,10 @@ TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
 #print prefix (config := {propositions := false}) TestStruct
 
 /--
-info: TestStruct.mk.inj {foo bar : Int} :
-  ∀ {foo_1 bar_1 : Int}, { foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 } → foo = foo_1 ∧ bar = bar_1
-TestStruct.mk.injEq (foo bar : Int) :
-  ∀ (foo_1 bar_1 : Int), ({ foo := foo, bar := bar } = { foo := foo_1, bar := bar_1 }) = (foo = foo_1 ∧ bar = bar_1)
+info: TestStruct.mk.inj {foo bar foo✝ bar✝ : Int} :
+  { foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ } → foo = foo✝ ∧ bar = bar✝
+TestStruct.mk.injEq (foo bar foo✝ bar✝ : Int) :
+  ({ foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ }) = (foo = foo✝ ∧ bar = bar✝)
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 -/
 #guard_msgs in
@@ -133,16 +133,12 @@ testMatchProof._cstage1 (n : Nat) : Fin n → Unit
 testMatchProof._cstage2 : _obj → _obj → _obj
 testMatchProof._sunfold (n : Nat) : Fin n → Unit
 testMatchProof._unsafe_rec (n : Nat) : Fin n → Unit
-testMatchProof.match_1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) :
-  (x : Nat) →
-    (x_1 : Fin x) →
-      ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
-        ((as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) → motive x x_1
-testMatchProof.match_1._cstage1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) :
-  (x : Nat) →
-    (x_1 : Fin x) →
-      ((n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩) →
-        ((as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) → motive x x_1
+testMatchProof.match_1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) (x✝ : Nat) (x✝¹ : Fin x✝)
+  (h_1 : (n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩)
+  (h_2 : (as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) : motive x✝ x✝¹
+testMatchProof.match_1._cstage1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) (x✝ : Nat) (x✝¹ : Fin x✝)
+  (h_1 : (n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩)
+  (h_2 : (as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) : motive x✝ x✝¹
 testMatchProof.proof_1 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 testMatchProof.proof_2 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 -/

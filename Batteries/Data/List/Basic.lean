@@ -152,53 +152,8 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-/--
-Apply a function to the nth tail of `l`. Returns the input without
-using `f` if the index is larger than the length of the List.
-```
-modifyTailIdx f 2 [a, b, c] = [a, b] ++ f [c]
-```
--/
-@[simp] def modifyTailIdx (f : List α → List α) : Nat → List α → List α
-  | 0, l => f l
-  | _+1, [] => []
-  | n+1, a :: l => a :: modifyTailIdx f n l
-
 @[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-
-/-- Apply `f` to the head of the list, if it exists. -/
-@[inline] def modifyHead (f : α → α) : List α → List α
-  | [] => []
-  | a :: l => f a :: l
-
-@[simp] theorem modifyHead_nil (f : α → α) : [].modifyHead f = [] := by rw [modifyHead]
-
-@[simp] theorem modifyHead_cons (a : α) (l : List α) (f : α → α) :
-    (a :: l).modifyHead f = f a :: l := by rw [modifyHead]
-
-/--
-Apply `f` to the nth element of the list, if it exists, replacing that element with the result.
--/
-def modify (f : α → α) : Nat → List α → List α :=
-  modifyTailIdx (modifyHead f)
-
 @[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
-/-- Tail-recursive version of `modify`. -/
-def modifyTR (f : α → α) (n : Nat) (l : List α) : List α := go l n #[] where
-  /-- Auxiliary for `modifyTR`: `modifyTR.go f l n acc = acc.toList ++ modify f n l`. -/
-  go : List α → Nat → Array α → List α
-  | [], _, acc => acc.toList
-  | a :: l, 0, acc => acc.toListAppend (f a :: l)
-  | a :: l, n+1, acc => go l n (acc.push a)
-
-theorem modifyTR_go_eq : ∀ l n, modifyTR.go f l n acc = acc.toList ++ modify f n l
-  | [], n => by cases n <;> simp [modifyTR.go, modify]
-  | a :: l, 0 => by simp [modifyTR.go, modify]
-  | a :: l, n+1 => by simp [modifyTR.go, modify, modifyTR_go_eq l]
-
-@[csimp] theorem modify_eq_modifyTR : @modify = @modifyTR := by
-  funext α f n l; simp [modifyTR, modifyTR_go_eq]
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where

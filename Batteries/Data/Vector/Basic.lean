@@ -238,11 +238,13 @@ Otherwise it panics The old entry is returned with the modified vector.
 def range (n : Nat) : Vector Nat n := ⟨Array.range n, Array.size_range ..⟩
 
 /--
-`shrink v m` shrinks the vector to the first `m` elements if `m < n`.
+`take v m` shrinks the vector to the first `m` elements if `m < n`.
 Returns `v` unchanged if `m ≥ n`.
 -/
-def shrink (v : Vector α n) (m : Nat) : Vector α (min n m) :=
-  ⟨v.toArray.shrink m, by simp [Array.size_shrink, v.size_eq]⟩
+def take (v : Vector α n) (m : Nat) : Vector α (min n m) :=
+  ⟨v.toArray.take m, by simp [Array.size_take, v.size_eq, Nat.min_comm]⟩
+
+@[deprecated (since := "2024-10-22")] alias shrink := take
 
 /--
 Drops the first (up to) `i` elements from a vector of length `n`.
@@ -251,12 +253,6 @@ If `m ≥ n`, the return value is empty.
 def drop (i : Nat) (v : Vector α n) : Vector α (n - i) :=
   have : min n n - i = n - i := by rw [Nat.min_self]
   Vector.cast this (extract v i n)
-
-/--
-Takes the first (up to) `i` elements from a vector of length `n`.
-
--/
-alias take := shrink
 
 /--
 `isEqv` takes a given boolean property `p`. It returns `true`
