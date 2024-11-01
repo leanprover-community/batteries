@@ -69,7 +69,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
       suffices ∀ fuel l i hle H, l ≤ fuel →
           (∀ j, stop ≤ i + step * j ↔ l ≤ j) → ∀ init,
           forIn'.loop start stop step f fuel i hle init =
-          List.forIn ((List.range' i l step).pmap Subtype.mk H) init f' by
+          forIn ((List.range' i l step).pmap Subtype.mk H) init f' by
         refine this _ _ _ _ _
           ((numElems_le_iff hstep).2 (Nat.le_trans ?_ (Nat.le_add_left ..)))
           (fun _ => (numElems_le_iff hstep).symm) _
@@ -85,7 +85,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
             (List.forall_mem_cons.1 H).2 (Nat.le_of_succ_le_succ h1) fun i => by
               rw [Nat.add_right_comm, Nat.add_assoc, ← Nat.mul_succ, h2, Nat.succ_le_succ_iff]
           have := h2 0; simp at this
-          rw [forIn'.loop]; simp [List.forIn, this, ih]; rfl
+          rw [forIn'.loop]; simp [this, ih]; rfl
   else
     simp [List.range', h, numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h), L]
     cases stop <;> unfold forIn'.loop <;> simp [List.forIn', h]
@@ -94,13 +94,6 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
     (init : β) (f : Nat → β → m (ForInStep β)) :
     forIn r init f = forIn (List.range' r.start r.numElems r.step) init f := by
   refine Eq.trans ?_ <| (forIn'_eq_forIn_range' r init (fun x _ => f x)).trans ?_
-  · simp [forIn, forIn', Range.forIn, Range.forIn']
-    suffices ∀ fuel i hl b, forIn'.loop r.start r.stop r.step (fun x _ => f x) fuel i hl b =
-        forIn.loop f fuel i r.stop r.step b from (this _ ..).symm
-    intro fuel; induction fuel <;> intro i hl b <;>
-      unfold forIn.loop forIn'.loop <;> simp [*]
-    split
-    · simp [if_neg (Nat.not_le.2 ‹_›)]
-    · simp [if_pos (Nat.not_lt.1 ‹_›)]
+  · simp [forIn, forIn']
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
     intro L; induction L generalizing init <;> intro H <;> simp [*]
