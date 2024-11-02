@@ -2,6 +2,7 @@ import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
 import Batteries.Lean.Util.Path
+import Lake.CLI.Main
 
 open Lean Core Elab Command Batteries.Tactic.Lint
 open System (FilePath)
