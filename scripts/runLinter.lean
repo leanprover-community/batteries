@@ -75,7 +75,7 @@ def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := 
     return defaultModules
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
-unsafe def runLinterOnModule (module : Name) (update : Bool) : IO Unit := do
+unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
   initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
@@ -147,6 +147,5 @@ unsafe def main (args : List String) : IO Unit := do
 
   let modulesToLint ← determineModulesToLint specifiedModule
 
-  modulesToLint.forM fun module => runLinterOnModule module update
-
+  modulesToLint.forM <| runLinterOnModule update
 
