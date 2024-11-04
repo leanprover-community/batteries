@@ -31,6 +31,7 @@ import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
 import Batteries.Data.Rat
+import Batteries.Data.Stream
 import Batteries.Data.String
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
