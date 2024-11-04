@@ -34,7 +34,7 @@ def resolveDefaultRootModules : IO (Array Name) := do
     | Except.ok targets => pure targets
 
   -- build an array of all root modules of `lean_exe` and `lean_lib` build targets
-  let defaultTargetModules := defaultBuildSpecs.concatMap <|
+  let defaultTargetModules := defaultBuildSpecs.flatMap <|
     fun target => match target.info with
       | BuildInfo.libraryFacet lib _ => lib.roots
       | BuildInfo.leanExe exe => #[exe.config.root]
