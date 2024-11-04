@@ -3,8 +3,7 @@ import Lake
 open Lake DSL
 
 package batteries where
-  leanOptions := #[⟨`linter.missingDocs,true⟩]
-  testDriver := "test"
+  testDriver := "BatteriesTest"
   lintDriver := "runLinter"
 
 /-!
@@ -13,6 +12,10 @@ package batteries where
 
 @[default_target]
 lean_lib Batteries where
+  leanOptions := #[⟨`linter.missingDocs,true⟩]
+
+lean_lib BatteriesTest where
+  globs := #[.submodules `BatteriesTest]
 
 /-!
 ## Executables provided by Batteries
@@ -23,5 +26,9 @@ lean_exe runLinter where
   srcDir := "scripts"
   supportInterpreter := true
 
+/--
+this enables `lake exe test` in downstream projects;
+let's not disable that without deprications first.
+-/
 lean_exe test where
   srcDir := "scripts"
