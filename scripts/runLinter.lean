@@ -25,7 +25,8 @@ def resolveDefaultRootModules : IO (Array Name) := do
   -- load the Lake workspace
   let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
   let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
-  let workspace ← MonadError.runEIO <| MainM.runLogIO (loadWorkspace config)
+  let some workspace ← loadWorkspace config |>.toBaseIO
+    | throw <| IO.userError "failed to load Lake workspace"
 
   -- resolve the default build specs from the Lake workspace (based on `lake build`)
   let defaultBuildSpecs ← match resolveDefaultPackageTarget workspace workspace.root with
