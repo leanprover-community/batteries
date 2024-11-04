@@ -12,9 +12,6 @@ import Batteries.Classes.Order
 
 @[simp] theorem UInt8.val_val_eq_toNat (x : UInt8) : x.val.val = x.toNat := rfl
 
-@[simp] theorem UInt8.val_ofNat (n) :
-    (no_index (OfNat.ofNat n) : UInt8).val = OfNat.ofNat n := rfl
-
 @[simp] theorem UInt8.toNat_ofNat (n) :
     (no_index (OfNat.ofNat n) : UInt8).toNat = n % UInt8.size := rfl
 
@@ -48,9 +45,6 @@ instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
 @[simp] theorem UInt16.val_val_eq_toNat (x : UInt16) : x.val.val = x.toNat := rfl
-
-@[simp] theorem UInt16.val_ofNat (n) :
-    (no_index (OfNat.ofNat n) : UInt16).val = OfNat.ofNat n := rfl
 
 @[simp] theorem UInt16.toNat_ofNat (n) :
     (no_index (OfNat.ofNat n) : UInt16).toNat = n % UInt16.size := rfl
@@ -86,9 +80,6 @@ instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
 
 @[simp] theorem UInt32.val_val_eq_toNat (x : UInt32) : x.val.val = x.toNat := rfl
 
-@[simp] theorem UInt32.val_ofNat (n) :
-    (no_index (OfNat.ofNat n) : UInt32).val = OfNat.ofNat n := rfl
-
 @[simp] theorem UInt32.toNat_ofNat (n) :
     (no_index (OfNat.ofNat n) : UInt32).toNat = n % UInt32.size := rfl
 
@@ -122,9 +113,6 @@ instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
 @[simp] theorem UInt64.val_val_eq_toNat (x : UInt64) : x.val.val = x.toNat := rfl
-
-@[simp] theorem UInt64.val_ofNat (n) :
-    (no_index (OfNat.ofNat n) : UInt64).val = OfNat.ofNat n := rfl
 
 @[simp] theorem UInt64.toNat_ofNat (n) :
     (no_index (OfNat.ofNat n) : UInt64).toNat = n % UInt64.size := rfl
@@ -160,15 +148,11 @@ instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
 
 @[simp] theorem USize.val_val_eq_toNat (x : USize) : x.val.val = x.toNat := rfl
 
-@[simp] theorem USize.val_ofNat (n) :
-    (no_index (OfNat.ofNat n) : USize).val = OfNat.ofNat n := rfl
-
 @[simp] theorem USize.toNat_ofNat (n) :
     (no_index (OfNat.ofNat n) : USize).toNat = n % USize.size := rfl
 
 theorem USize.size_eq : USize.size = 2 ^ System.Platform.numBits := by
-  have : 1 ≤ 2 ^ System.Platform.numBits := Nat.succ_le_of_lt (Nat.two_pow_pos _)
-  rw [USize.size, Nat.sub_add_cancel this]
+  rw [USize.size]
 
 theorem USize.le_size : 2 ^ 32 ≤ USize.size := by
   rw [size_eq]

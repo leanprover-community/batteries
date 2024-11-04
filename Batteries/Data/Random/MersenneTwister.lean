@@ -25,7 +25,7 @@ open Batteries.Random.MersenneTwister
 
 def mtgen := mt19937.init -- default seed 4357
 
-#eval (Stream.take mtgen 5).fst -- #[874448474, 2424656266, 2174085406, 1265871120, 3155244894]
+#eval (Stream.take mtgen 5).fst -- [874448474, 2424656266, 2174085406, 1265871120, 3155244894]
 ```
 
 ### References:

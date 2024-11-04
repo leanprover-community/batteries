@@ -19,6 +19,26 @@ namespace Batteries
 
 namespace Vector
 
+attribute [simp] Vector.size_eq
+
+@[simp] theorem length_toList {α n} (xs : Vector α n) : xs.toList.length = n :=
+  xs.size_eq
+
+@[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
+    (Vector.mk data size)[i] = data[i] := rfl
+
+@[simp] theorem getElem_toArray {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toArray.size) :
+    xs.toArray[i] = xs[i]'(by simpa using h) := by
+  cases xs
+  simp
+
+@[simp] theorem getElem_toList {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toList.length) :
+    xs.toList[i] = xs[i]'(by simpa using h) := by
+  simp [toList]
+
+@[simp] theorem getElem_ofFn {α n} (f : Fin n → α) (i : Nat) (h : i < n) :
+    (Vector.ofFn f)[i] = f ⟨i, by simpa using h⟩ := by
+  simp [ofFn]
 
 /-- An `empty` vector maps to a `empty` vector. -/
 @[simp]
@@ -47,9 +67,6 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
     rw [a.size_eq] at hi
     exact h i hi
 
-@[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
-    (Vector.mk data size)[i] = data[i] := rfl
-
 @[simp] theorem push_mk {data : Array α} {size : data.size = n} {x : α} :
     (Vector.mk data size).push x =
       Vector.mk (data.push x) (by simp [size, Nat.succ_eq_add_one]) := rfl
@@ -65,7 +82,7 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
 @[simp, nolint simpNF] theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
     (v.push x)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
-  simp [Array.get_push_lt, h]
+  simp [Array.getElem_push_lt, h]
 
 @[simp] theorem getElem_pop {v : Vector α n} {i : Nat} (h : i < n - 1) : (v.pop)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩

@@ -52,7 +52,7 @@ termination_by k => k.val
 def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α where
   toArray := t.toArray.push (x, t.step x ⟨t.size, Nat.lt_succ_self _⟩)
   valid _ := by
-    rw [Array.get_push]
+    rw [Array.getElem_push]
     split
     · exact t.valid ..
     · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)

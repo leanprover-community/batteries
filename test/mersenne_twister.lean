@@ -3,7 +3,7 @@ import Batteries.Data.Stream
 
 open Batteries.Random.MersenneTwister
 
-#guard (Stream.take mt19937.init 5).1 == #[874448474, 2424656266, 2174085406, 1265871120, 3155244894]
+#guard (Stream.take mt19937.init 5).1 == [874448474, 2424656266, 2174085406, 1265871120, 3155244894]
 
 /- Sample output was generated using `numpy`'s implementation of MT19937:
 ```python

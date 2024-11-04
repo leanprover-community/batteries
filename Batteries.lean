@@ -34,7 +34,6 @@ import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.Stream
 import Batteries.Data.String
-import Batteries.Data.Sum
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Data.Vector
@@ -73,7 +72,6 @@ import Batteries.StdDeprecations
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
-import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
 import Batteries.Tactic.HelpCmd
