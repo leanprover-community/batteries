@@ -548,14 +548,6 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   rw [Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
-/--
-`ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
-```
-ofFn f = [f 0, f 1, ... , f (n - 1)]
-```
--/
-def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
-
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
