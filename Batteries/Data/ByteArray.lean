@@ -36,11 +36,11 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
   Array.size_push ..
 
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
-  Array.get_push_eq ..
+  Array.getElem_push_eq ..
 
 theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
     (a.push x)[i]'(size_push .. ▸ Nat.lt_succ_of_lt h) = a[i] :=
-  Array.get_push_lt ..
+  Array.getElem_push_lt ..
 
 /-! ### set -/
 

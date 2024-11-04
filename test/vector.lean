@@ -17,7 +17,7 @@ def and : Gate 2 := .if (.if (.const true) (.const false)) (.if (.const false) (
 def eval (g : Gate n) (v : Vector Bool n) : Bool :=
   match g, v with
   | .const b, _ => b
-  | .if g₁ g₂, v => if v.1.back then eval g₁ v.pop else eval g₂ v.pop
+  | .if g₁ g₂, v => if v.1.back! then eval g₁ v.pop else eval g₂ v.pop
 
 example : ∀ v, and.eval v = (v[0] && v[1]) := by decide
 example : ∃ v, and.eval v = false := by decide

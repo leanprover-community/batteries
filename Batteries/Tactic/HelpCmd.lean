@@ -306,7 +306,7 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
   let valid_entries := imported_entries_filtered ++ local_entries.filterMap
     fun x => if label_prefix.isPrefixOf x.fst then some x else none
   let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
-    |>.groupBy (·.fst == ·.fst)
+    |>.splitBy (·.fst == ·.fst)
 
   -- display results in a readable style
   if grouped_valid_entries.isEmpty then

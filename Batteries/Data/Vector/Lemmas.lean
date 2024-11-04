@@ -82,7 +82,7 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
 @[simp, nolint simpNF] theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
     (v.push x)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
-  simp [Array.get_push_lt, h]
+  simp [Array.getElem_push_lt, h]
 
 @[simp] theorem getElem_pop {v : Vector α n} {i : Nat} (h : i < n - 1) : (v.pop)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
