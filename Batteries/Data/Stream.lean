@@ -14,7 +14,7 @@ def drop [Stream σ α] (s : σ) : Nat → σ
     | none => s
     | some (_, s) => drop s n
 
-/-- Read up to `n` values from the stream `s`. -/
+/-- Read up to `n` values from the stream `s` as a list from first to last. -/
 def take [Stream σ α] (s : σ) : Nat → List α × σ
   | 0 => ([], s)
   | n+1 =>
