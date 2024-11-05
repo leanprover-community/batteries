@@ -141,8 +141,8 @@ This will perform the update destructively provided that the vector has a refere
   ⟨v.toArray.set! i x, by simp⟩
 
 /-- Append two vectors. -/
-@[inline] def append : Vector α n → Vector α m → Vector α (n + m)
-  | ⟨a₁, h₁⟩, ⟨a₂, h₂⟩ => ⟨a₁ ++ a₂, by simp [h₁, h₂]⟩
+@[inline] def append (v : Vector α n) (w : Vector α m) : Vector α (n + m) :=
+  ⟨v.toArray ++ w.toArray, by simp⟩
 
 instance : HAppend (Vector α n) (Vector α m) (Vector α (n + m)) where
   hAppend := append
