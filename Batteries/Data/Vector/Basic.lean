@@ -63,6 +63,9 @@ def elimAsList {motive : Vector α n → Sort u}
 /-- Returns a vector of size `1` with element `v`. -/
 @[inline] def singleton (v : α) : Vector α 1 := ⟨#[v], rfl⟩
 
+instance [Inhabited α] : Inhabited (Vector α n) where
+  default := mkVector n default
+
 /-- Get an element of a vector using a `Fin` index. -/
 @[inline] def get (v : Vector α n) (i : Fin n) : α :=
   v.toArray.get (i.cast v.size_toArray.symm)
@@ -79,9 +82,6 @@ Get an element of a vector using a `Nat` index. Returns the given default value 
 of bounds.
 -/
 @[inline] def getD (v : Vector α n) (i : Nat) (default : α) : α := v.toArray.getD i default
-
-instance [Inhabited α] : Inhabited (Vector α n) where
-  default := mkVector n default
 
 /-- The last element of a vector. Panics if the vector is empty. -/
 @[inline] def back! [Inhabited α] (v : Vector α n) : α := v.toArray.back!
