@@ -90,13 +90,13 @@ of bounds.
 @[inline] def back? (v : Vector α n) : Option α := v.toArray.back?
 
 /-- The last element of a non-empty vector. -/
-@[inline] def back (v : Vector α (n + 1)) : α :=
+@[inline] def back [NeZero n] (v : Vector α n) : α :=
   -- TODO: change to just `v[n]`
-  have : Inhabited α := ⟨v[n]⟩
+  have : Inhabited α := ⟨v[0]'(Nat.pos_of_neZero n)⟩
   v.back!
 
 /-- The first element of a non-empty vector.  -/
-@[inline] def head (v : Vector α (n+1)) := v[0]
+@[inline] def head [NeZero n] (v : Vector α n) := v[0]'(Nat.pos_of_neZero n)
 
 /-- Push an element `x` to the end of a vector. -/
 @[inline] def push (x : α) (v : Vector α n)  : Vector α (n + 1) :=
