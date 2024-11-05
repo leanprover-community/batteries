@@ -1,5 +1,5 @@
 name = "batteries"
-testDriver = "test"
+testDriver = "BatteriesTest"
 lintDriver = "runLinter"
 defaultTargets = ["Batteries", "runLinter"]
 
@@ -8,6 +8,11 @@ linter.missingDocs = true
 
 [[lean_lib]]
 name = "Batteries"
+
+[[lean_lib]]
+name = "BatteriesTest"
+globs = ["BatteriesTest.+"]
+leanOptions = {linter.missingDocs = false}
 
 [[lean_exe]]
 name = "runLinter"
