@@ -28,7 +28,7 @@ attribute [simp] Vector.size_toArray
 
 namespace Vector
 
-@[deprecated (since:="2024-10-15")] alias size_eq := size_toArray
+@[deprecated (since := "2024-10-15")] alias size_eq := size_toArray
 
 /-- Syntax for `Vector α n` -/
 syntax "#v[" withoutPosition(sepBy(term, ", ")) "]" : term
@@ -238,7 +238,7 @@ vector then the vector is returned unchanged.
 @[inline] def take (v : Vector α n) (m : Nat) : Vector α (min m n) :=
   ⟨v.toArray.take m, by simp⟩
 
-@[deprecated (since := "2024-10-31")] alias shrink := take
+@[deprecated (since := "2024-10-22")] alias shrink := take
 
 /--
 Deletes the first `m` elements of a vector. If `m` is greater than or equal to the size of the
@@ -276,7 +276,11 @@ proof_wanted instLawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α
     panic! "index out of bounds"
 
 /-- Delete the first element of a vector. Returns the empty vector if the input vector is empty. -/
-@[inline] def tail (v : Vector α n) : Vector α (n-1) := v.eraseIdx! 0
+@[inline] def tail (v : Vector α n) : Vector α (n-1) :=
+  if _ : 0 < n then
+    ⟨v.toArray.eraseIdx 0, by simp [*]⟩
+  else
+    v.cast (by omega)
 
 /--
 Delete an element of a vector using a `Nat` index. By default, the `get_elem_tactic` is used to
