@@ -14,19 +14,8 @@ namespace Array
 theorem forIn_eq_forIn_toList [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.toList b f := by
-  let rec loop : ∀ {i h b j}, j + i = as.size →
-      Array.forIn.loop as f i h b = forIn (as.toList.drop j) b f
-    | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
-    | i+1, _, _, j, ij => by
-      simp only [forIn.loop, Nat.add]
-      have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
-      have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
-      have : as[size as - 1 - i] :: as.toList.drop (j + 1) = as.toList.drop j := by
-        rw [j_eq]; exact List.getElem_cons_drop _ _ this
-      simp only [← this, List.forIn_cons]; congr; funext x; congr; funext b
-      rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
-  conv => lhs; simp only [forIn, Array.forIn]
-  rw [loop (Nat.zero_add _)]; rfl
+  cases as
+  simp
 
 @[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
 @[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
