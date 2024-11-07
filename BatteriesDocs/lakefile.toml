@@ -1,0 +1,16 @@
+name = "batteries-docs"
+reservoir = false
+defaultTargets = ["BatteriesDocs"]
+
+[[require]]
+name = "doc-gen4"
+git = "https://github.com/leanprover/doc-gen4"
+rev = "main"
+
+[[require]]
+name = "batteries"
+path = ".."
+
+[[lean_lib]]
+name = "BatteriesDocs"
+srcDir = ".."
