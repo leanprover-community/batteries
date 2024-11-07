@@ -32,7 +32,6 @@ import Batteries.Data.RBMap
 import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.String
-import Batteries.Data.Sum
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Data.Vector
@@ -45,9 +44,7 @@ import Batteries.Lean.HashMap
 import Batteries.Lean.HashSet
 import Batteries.Lean.IO.Process
 import Batteries.Lean.Json
-import Batteries.Lean.Meta.AssertHypotheses
 import Batteries.Lean.Meta.Basic
-import Batteries.Lean.Meta.Clear
 import Batteries.Lean.Meta.DiscrTree
 import Batteries.Lean.Meta.Expr
 import Batteries.Lean.Meta.Inaccessible
@@ -73,9 +70,9 @@ import Batteries.StdDeprecations
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
-import Batteries.Tactic.Classical
 import Batteries.Tactic.Congr
 import Batteries.Tactic.Exact
+import Batteries.Tactic.HelpCmd
 import Batteries.Tactic.Init
 import Batteries.Tactic.Instances
 import Batteries.Tactic.Lemma
@@ -93,12 +90,16 @@ import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused
 import Batteries.Tactic.SqueezeScope
+import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
+import Batteries.Test.Internal.DummyLibraryNote
+import Batteries.Test.Internal.DummyLibraryNote2
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
+import Batteries.Util.Panic
 import Batteries.Util.Pickle
 import Batteries.Util.ProofWanted
 import Batteries.WF

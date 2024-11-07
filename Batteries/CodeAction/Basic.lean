@@ -19,7 +19,7 @@ on each occurrence of a hole (`_`, `?_` or `sorry`).
 attempt to use this code action provider when browsing the `Batteries.CodeAction.Hole.Attr` file
 itself.)
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Elab Server RequestM CodeAction
 

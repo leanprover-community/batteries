@@ -9,7 +9,7 @@ import Batteries.Tactic.OpenPrivate
 import Batteries.Util.LibraryNote
 open Lean Meta
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Linter for simplification lemmas
@@ -85,8 +85,6 @@ where
   trieElements (arr)
   | Trie.node vs children =>
     children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
-
-open Std
 
 /-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do

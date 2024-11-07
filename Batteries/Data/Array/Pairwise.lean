@@ -56,7 +56,7 @@ theorem pairwise_push {as : Array α} :
 
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
     (as.extract start stop).Pairwise R := by
-  simp only [pairwise_iff_getElem, get_extract, size_extract] at h ⊢
+  simp only [pairwise_iff_getElem, getElem_extract, size_extract] at h ⊢
   intro _ _ _ _ hlt
   apply h
   exact Nat.add_lt_add_left hlt start

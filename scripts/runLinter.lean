@@ -2,7 +2,7 @@ import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
 
-open Lean Core Elab Command Std.Tactic.Lint
+open Lean Core Elab Command Batteries.Tactic.Lint
 open System (FilePath)
 
 /-- The list of `nolints` pulled from the `nolints.json` file -/
@@ -15,7 +15,7 @@ def readJsonFile (α) [FromJson α] (path : System.FilePath) : IO α := do
 
 /-- Serialize the given value `a : α` to the file as JSON. -/
 def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
-  IO.FS.writeFile path <| toJson a |>.pretty
+  IO.FS.writeFile path <| toJson a |>.pretty.push '\n'
 
 /--
 Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
@@ -37,7 +37,7 @@ unsafe def main (args : List String) : IO Unit := do
         | name => some name
       | _ => none
     | IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]" *> IO.Process.exit 1
-  searchPathRef.set compile_time_search_path%
+  initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
     -- run `lake build module` (and ignore result) if the file hasn't been built yet

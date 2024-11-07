@@ -52,8 +52,8 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
       (buckets.1[i].toList.Pairwise fun a b => ¬(a.1 == b.1)) →
       d.toList.Pairwise fun a b => ¬(a.1 == b.1))
-    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) →
-      d.All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) :
+    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % .ofNat buckets.1.size).toNat = i.toNat) →
+      d.All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i.toNat) :
     (buckets.update i d h).WF := by
   refine ⟨fun l hl => ?_, fun i hi p hp => ?_⟩
   · exact match List.mem_or_eq_of_mem_set hl with
@@ -178,7 +178,7 @@ where
         split
         · nofun
         · exact hs₂ _ (by simp_all)
-      · let rank (k : α) := ((hash k).toUSize % source.size).toNat
+      · let rank (k : α) := ((hash k).toUSize % USize.ofNat source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
         · simp only [Array.get_eq_getElem, AssocList.foldl_eq, Array.size_set]
           exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩

@@ -244,8 +244,8 @@ instance : ForIn m (AssocList α β) (α × β) where
 
 @[simp] theorem forIn_eq [Monad m] (l : AssocList α β) (init : δ)
     (f : (α × β) → δ → m (ForInStep δ)) : forIn l init f = forIn l.toList init f := by
-  simp [forIn, List.forIn]
-  induction l generalizing init <;> simp [AssocList.forIn, List.forIn.loop]
+  simp only [forIn]
+  induction l generalizing init <;> simp [AssocList.forIn]
   congr; funext a; split <;> simp [*]
 
 /-- Split the list into head and tail, if possible. -/

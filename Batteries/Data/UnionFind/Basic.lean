@@ -3,9 +3,14 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.Alias
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Batteries.Util.Panic
 import Batteries.Data.Array.Lemmas
+
+@[deprecated (since := "2024-10-05")]
+protected alias Batteries.UnionFind.panicWith := Batteries.panicWith
 
 namespace Batteries
 
@@ -17,11 +22,6 @@ structure UFNode where
   rank : Nat
 
 namespace UnionFind
-
-/-- Panic with return value -/
-def panicWith (v : α) (msg : String) : α := @panic α ⟨v⟩ msg
-
-@[simp] theorem panicWith_eq (v : α) (msg) : panicWith v msg = v := rfl
 
 /-- Parent of a union-find node, defaults to self when the node is a root -/
 def parentD (arr : Array UFNode) (i : Nat) : Nat :=
@@ -161,11 +161,11 @@ theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
 theorem lt_rankMax (self : UnionFind) (i : Nat) : self.rank i < self.rankMax := rankD_lt_rankMax ..
 
 theorem push_rankD (arr : Array UFNode) : rankD (arr.push ⟨arr.size, 0⟩) i = rankD arr i := by
-  simp only [rankD, Array.size_push, Array.get_eq_getElem, Array.get_push, dite_eq_ite]
+  simp only [rankD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> first | simp | cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
 theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩) i = parentD arr i := by
-  simp only [parentD, Array.size_push, Array.get_eq_getElem, Array.get_push, dite_eq_ite]
+  simp only [parentD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> try simp
   · exact Nat.le_antisymm (Nat.ge_of_not_lt ‹_›) (Nat.le_of_lt_succ ‹_›)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
@@ -309,8 +309,7 @@ theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rw [findAux_s]; split <;> [rfl; skip]
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     have := lt_of_parentD (by rwa [parentD_eq])
-    rw [rankD_eq' (by simp [FindAux.size_eq, h])]
-    rw [Array.get_modify (by rwa [FindAux.size_eq])]
+    rw [rankD_eq' (by simp [FindAux.size_eq, h]), Array.get_modify]
     split <;> simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt x⟩), -Array.get_eq_getElem]
   else
     simp only [rankD, Array.data_length, Array.get_eq_getElem, rank]
