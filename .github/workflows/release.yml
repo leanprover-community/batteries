@@ -24,13 +24,13 @@ jobs:
           use-github-cache: true
 
       - name: Build Docs
-        working-directory: BatteriesDocs
+        working-directory: docs
         run: |
           lake update
           lake build UnicodeDocs:docs
 
       - name: Compress Docs
-        working-directory: BatteriesDocs/.lake/build
+        working-directory: docs/.lake/build
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
@@ -41,6 +41,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            BatteriesDocs/docs-${{ github.ref_name }}.tar.gz
-            BatteriesDocs/docs-${{ github.ref_name }}.zip
+            docs/docs-${{ github.ref_name }}.tar.gz
+            docs/docs-${{ github.ref_name }}.zip
           fail_on_unmatched_files: true

@@ -10,8 +10,8 @@ import Batteries
 
 To generate documentation for Batteries:
 
-1. Change to the `BatteriesDocs` subdirectory
-2. Run `lake build BatteriesDocs:docs`
+1. Change to the `docs` subdirectory
+2. Run `lake build -q BatteriesDocs:docs`
 
 The [`doc-gen4`](https://github.com/leanprover/doc-gen4) documentation will be found in the
 `.lake/build/doc` and `.lake/build/doc-data` subdirectories.
