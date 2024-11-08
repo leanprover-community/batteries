@@ -94,6 +94,8 @@ import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
 import Batteries.Test.Internal.DummyLabelAttr
+import Batteries.Test.Internal.DummyLibraryNote
+import Batteries.Test.Internal.DummyLibraryNote2
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
