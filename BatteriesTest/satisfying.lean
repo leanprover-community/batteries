@@ -17,5 +17,5 @@ instance : LawfulMonad CommandElabM :=
   inferInstanceAs <| LawfulMonad (ReaderT _ $ StateRefT' _ _ $ EIO _)
 
 example (xs : Array Expr) : MetaM { ts : Array Expr // ts.size = xs.size } := do
-  let r ← satisfying (xs.mapM inferType) (size_mapM _ _)
+  let r ← satisfying (xs.size_mapM inferType)
   return r
