@@ -25,7 +25,7 @@ jobs:
 
       - name: Build Docs
         working-directory: docs
-        run: lake build UnicodeDocs:docs
+        run: lake build -q UnicodeDocs:docs
 
       - name: Compress Docs
         working-directory: docs/.lake/build
