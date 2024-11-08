@@ -38,6 +38,7 @@ import Batteries.Data.UnionFind
 import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
 import Batteries.Lean.Delaborator
+import Batteries.Lean.EStateM
 import Batteries.Lean.Except
 import Batteries.Lean.Expr
 import Batteries.Lean.Float
@@ -59,6 +60,7 @@ import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
 import Batteries.Lean.Position
+import Batteries.Lean.SatisfiesM
 import Batteries.Lean.Syntax
 import Batteries.Lean.System.IO
 import Batteries.Lean.TagAttribute
