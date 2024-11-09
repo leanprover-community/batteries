@@ -1,16 +1,15 @@
-name: Build docs on release
+name: Deploy Docs
 
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
+  workflow_dispatch:
+  schedule:
+    - cron: '0 10 * * *' # daily (UTC 10:00)
 
 permissions:
   contents: write
 
 jobs:
-  build-docs:
+  deploy-docs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'leanprover-community'
     steps:
@@ -28,22 +27,6 @@ jobs:
       - name: Build Docs
         working-directory: docs
         run: lake build -q
-
-      - name: Compress Docs
-        working-directory: docs
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          tar -czf docs-${TAG_NAME}.tar.gz doc doc-data
-          zip -rq docs-${TAG_NAME}.zip doc doc-data
-
-      - name: Release Docs
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            docs/docs-${{ github.ref_name }}.tar.gz
-            docs/docs-${{ github.ref_name }}.zip
-          fail_on_unmatched_files: true
 
       - name: Deploy Docs
         run: |
