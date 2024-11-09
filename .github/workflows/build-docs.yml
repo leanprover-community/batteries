@@ -1,4 +1,4 @@
-name: Release
+name: Build docs on release
 
 on:
   push:
@@ -10,8 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-docs:
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'leanprover-community'
     steps:
 
       - name: Checkout
