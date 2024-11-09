@@ -33,8 +33,10 @@ Additionally, please make sure that you're using the version of Lean that the cu
 
 You can generate `batteries`' documentation with
 
-1. Change to the `docs` subdirectory.
-2. Run `lake build`
+```sh
+cd docs
+lake build
+```
 
 The top-level HTML file will be located at `docs/doc/Batteries.html`, though to actually expose the
 documentation as a server you need to change to the `docs/doc` and then run a HTTP server (e.g. `python3 -m http.server`).
