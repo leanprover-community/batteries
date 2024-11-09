@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
 
 permissions:
   contents: write
@@ -25,20 +26,29 @@ jobs:
 
       - name: Build Docs
         working-directory: docs
-        run: lake build -q UnicodeDocs:docs
+        run: lake build -q
 
       - name: Compress Docs
-        working-directory: docs/.lake/build
+        working-directory: docs
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          tar -czf ../../docs-${TAG_NAME}.tar.gz doc doc-data
-          zip -rq ../../docs-${TAG_NAME}.zip doc doc-data
+          tar -czf docs-${TAG_NAME}.tar.gz doc doc-data
+          zip -rq docs-${TAG_NAME}.zip doc doc-data
 
-      - name: Release
+      - name: Release Docs
         uses: softprops/action-gh-release@v2
         with:
           files: |
             docs/docs-${{ github.ref_name }}.tar.gz
             docs/docs-${{ github.ref_name }}.zip
           fail_on_unmatched_files: true
+
+      - name: Deploy Docs
+        run: |
+          git config user.name "leanprover-community-batteries-bot"
+          git config user.email "leanprover-community-batteries-bot@users.noreply.github.com"
+          git checkout -b docs
+          git add docs/doc docs/doc-data
+          git commit -m "chore: generate docs"
+          git push origin docs

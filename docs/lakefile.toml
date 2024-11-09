@@ -1,5 +1,6 @@
 name = "batteries-docs"
 reservoir = false
+buildDir = "."
 defaultTargets = ["BatteriesDocs"]
 
 [[require]]
@@ -14,3 +15,4 @@ path = ".."
 [[lean_lib]]
 name = "BatteriesDocs"
 srcDir = ".."
+defaultFacets = ["docs"]
