@@ -1,6 +1,6 @@
 name = "batteries-docs"
 reservoir = false
-buildDir = "."
+buildDir = "../docs"
 defaultTargets = ["BatteriesDocs"]
 
 [[require]]
