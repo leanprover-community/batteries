@@ -5,6 +5,8 @@ open Lean Meta Array Elab Term Tactic Command
 
 -- For now these live in the test file, as it's not really clear we want people relying on them!
 instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
+instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
+instance : LawfulMonad IO := inferInstanceAs <| LawfulMonad (EIO _)
 instance : LawfulMonad CoreM :=
   inferInstanceAs <| LawfulMonad (ReaderT _ <| StateRefT' _ _ (EIO Exception))
 instance : LawfulMonad MetaM :=
