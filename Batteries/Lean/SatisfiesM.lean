@@ -7,22 +7,22 @@ import Batteries.Classes.SatisfiesM
 import Lean.Elab.Command
 
 /-!
-# Construct `Satisfying` instances for the Lean monad stack.
+# Construct `MonadSatisfying` instances for the Lean monad stack.
 -/
 
 open Lean Elab Term Tactic Command
 
-instance : Satisfying CoreM :=
-  inferInstanceAs <| Satisfying (ReaderT _ <| StateRefT' _ _ (EIO _))
+instance : MonadSatisfying CoreM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ (EIO _))
 
-instance : Satisfying MetaM :=
-  inferInstanceAs <| Satisfying (ReaderT _ <| StateRefT' _ _ CoreM)
+instance : MonadSatisfying MetaM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ CoreM)
 
-instance : Satisfying TermElabM :=
-  inferInstanceAs <| Satisfying (ReaderT _ <| StateRefT' _ _ MetaM)
+instance : MonadSatisfying TermElabM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ MetaM)
 
-instance : Satisfying TacticM :=
-  inferInstanceAs <| Satisfying (ReaderT _ $ StateRefT' _ _ TermElabM)
+instance : MonadSatisfying TacticM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ TermElabM)
 
-instance : Satisfying CommandElabM :=
-  inferInstanceAs <| Satisfying (ReaderT _ $ StateRefT' _ _ (EIO _))
+instance : MonadSatisfying CommandElabM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ (EIO _))

@@ -14,7 +14,7 @@ and enables Hoare-like reasoning over monadic expressions. For example, given a 
 function `f : α → m β`, to say that the return value of `f` satisfies `Q` whenever
 the input satisfies `P`, we write `∀ a, P a → SatisfiesM Q (f a)`.
 
-For any monad equipped with `Satisfying m`
+For any monad equipped with `MonadSatisfying m`
 one can lift `SatisfiesM` to a monadic value in `Subtype`,
 using `satisfying x h : m {a // p a}`, where `x : m α` and `h : SatisfiesM p x`.
 This includes `Option`, `ReaderT`, `StateT`, and `ExceptT`, and the Lean monad stack.
@@ -211,22 +211,22 @@ theorem SatisfiesM_StateRefT_eq [Monad m] :
     show _ >>= _ = _; simp [← comp_map, ← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
 
 /--
-If a monad has `Satisfying m`, then we can lift a `h : SatisfiesM (m := m) p x` predicate
+If a monad has `MonadSatisfying m`, then we can lift a `h : SatisfiesM (m := m) p x` predicate
 to monadic value `satisfying x p : m { x // p x }`.
 
-Reader, state, and exception monads have `Satisfying` instances if the base monad does.
+Reader, state, and exception monads have `MonadSatisfying` instances if the base monad does.
 -/
-class Satisfying (m : Type u → Type v) [Functor m] where
+class MonadSatisfying (m : Type u → Type v) [Functor m] where
   /-- Lift a `SatisfiesM` predicate to a monadic value. -/
   satisfying {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) :
     { y : m {a // p a} // Subtype.val <$> y = x }
 
-export Satisfying (satisfying)
+export MonadSatisfying (satisfying)
 
-instance : Satisfying Id where
+instance : MonadSatisfying Id where
   satisfying {α p x} h := ⟨⟨x, by obtain ⟨⟨_, h⟩, rfl⟩ := h; exact h⟩, rfl⟩
 
-instance : Satisfying Option where
+instance : MonadSatisfying Option where
   satisfying {α p x?} h :=
   have h' := SatisfiesM_Option_eq.mp h
   { val := match x? with
@@ -234,7 +234,7 @@ instance : Satisfying Option where
     | some x => some ⟨x, h' x rfl⟩
     property := by cases x? <;> simp }
 
-instance : Satisfying (Except ε) where
+instance : MonadSatisfying (Except ε) where
   satisfying {α p x?} h :=
   have h' := SatisfiesM_Except_eq.mp h
   { val := match x? with
@@ -245,7 +245,7 @@ instance : Satisfying (Except ε) where
 -- This will be redundant after nightly-2024-11-08.
 attribute [ext] ReaderT.ext
 
-instance [Monad m] [Satisfying m] : Satisfying (ReaderT ρ m) where
+instance [Monad m] [MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
   satisfying {α p x} h :=
   have h' := SatisfiesM_ReaderT_eq.mp h
   { val := fun r => (satisfying (h' r)).val
@@ -255,13 +255,13 @@ instance [Monad m] [Satisfying m] : Satisfying (ReaderT ρ m) where
       rw [ReaderT.run_map, ← t.2]
       rfl }
 
-instance [Monad m] [Satisfying m] : Satisfying (StateRefT' ω σ m) :=
-  inferInstanceAs <| Satisfying (ReaderT _ _)
+instance [Monad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ _)
 
 -- This will be redundant after nightly-2024-11-08.
 attribute [ext] StateT.ext
 
-instance [Monad m] [LawfulMonad m] [Satisfying m] : Satisfying (StateT ρ m) where
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
   satisfying {α p x} h :=
   have h' := SatisfiesM_StateT_eq.mp h
   { val := fun r => (fun ⟨⟨a, r'⟩, h⟩ => ⟨⟨a, h⟩, r'⟩) <$> (satisfying (h' r)).1
@@ -270,7 +270,7 @@ instance [Monad m] [LawfulMonad m] [Satisfying m] : Satisfying (StateT ρ m) whe
       rw [← (satisfying (h' r)).2, StateT.run_map]
       simp [StateT.run] }
 
-instance [Monad m] [LawfulMonad m] [Satisfying m] : Satisfying (ExceptT ε m) where
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (ExceptT ε m) where
   satisfying {α p x} h :=
   have h' := SatisfiesM_ExceptT_eq.mp h
   have x' := satisfying h'
@@ -279,7 +279,7 @@ instance [Monad m] [LawfulMonad m] [Satisfying m] : Satisfying (ExceptT ε m) wh
       ext
       simp [← x'.2] }
 
-instance : Satisfying (EStateM ε σ) where
+instance : MonadSatisfying (EStateM ε σ) where
   satisfying {α p x} h :=
   have h' := SatisfiesM_EStateM_eq.mp h
   { val := fun s => match w : x.run s with
@@ -290,5 +290,6 @@ instance : Satisfying (EStateM ε σ) where
       rw [EStateM.run_map, EStateM.run]
       split <;> simp_all }
 
-instance : Satisfying (EIO ε) := inferInstanceAs <| Satisfying (EStateM _ _)
-instance : Satisfying IO := inferInstanceAs <| Satisfying (EIO _)
+instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
+instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
+instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
