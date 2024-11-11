@@ -19,10 +19,7 @@ namespace Batteries
 
 namespace Vector
 
-attribute [simp] Vector.size_eq
-
-@[simp] theorem length_toList {α n} (xs : Vector α n) : xs.toList.length = n :=
-  xs.size_eq
+theorem length_toList {α n} (xs : Vector α n) : xs.toList.length = n := by simp
 
 @[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
     (Vector.mk data size)[i] = data[i] := rfl
@@ -32,9 +29,8 @@ attribute [simp] Vector.size_eq
   cases xs
   simp
 
-@[simp] theorem getElem_toList {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toList.length) :
-    xs.toList[i] = xs[i]'(by simpa using h) := by
-  simp [toList]
+theorem getElem_toList {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toList.length) :
+    xs.toList[i] = xs[i]'(by simpa using h) := by simp
 
 @[simp] theorem getElem_ofFn {α n} (f : Fin n → α) (i : Nat) (h : i < n) :
     (Vector.ofFn f)[i] = f ⟨i, by simpa using h⟩ := by
@@ -62,9 +58,9 @@ Vectors `a` and `b` are equal to each other if their elements are equal for each
 protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i] = b[i]) : a = b := by
   apply Vector.toArray_injective
   apply Array.ext
-  · rw [a.size_eq, b.size_eq]
+  · rw [a.size_toArray, b.size_toArray]
   · intro i hi _
-    rw [a.size_eq] at hi
+    rw [a.size_toArray] at hi
     exact h i hi
 
 @[simp] theorem push_mk {data : Array α} {size : data.size = n} {x : α} :
@@ -100,9 +96,9 @@ defeq issues in the implicit size argument.
   ext i
   by_cases h : i < n
   · simp [h]
-  · replace h : i = n := by omega
+  · replace h : i = v.size - 1 := by rw [size_toArray]; omega
     subst h
-    simp
+    simp [pop, back, back!, ← Array.eq_push_pop_back!_of_size_ne_zero]
 
 /-! ### Decidable quantifiers. -/
 
