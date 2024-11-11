@@ -217,7 +217,7 @@ to monadic value `satisfying x p : m { x // p x }`.
 
 Reader, state, and exception monads have `MonadSatisfying` instances if the base monad does.
 -/
-class MonadSatisfying (m : Type u → Type v) [Functor m] [LawfulFunctor m]where
+class MonadSatisfying (m : Type u → Type v) [Functor m] [LawfulFunctor m] where
   /-- Lift a `SatisfiesM` predicate to a monadic value. -/
   satisfying {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a}
   /-- The value of the lifted monadic value is equal to the original monadic value. -/
