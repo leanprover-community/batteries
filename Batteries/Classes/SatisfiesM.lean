@@ -168,7 +168,7 @@ end SatisfiesM
   ⟨by revert x; intro | .ok _, ⟨.ok ⟨_, h⟩, rfl⟩, _, rfl => exact h,
    fun h => match x with | .ok a => ⟨.ok ⟨a, h _ rfl⟩, rfl⟩ | .error e => ⟨.error e, rfl⟩⟩
 
-@[simp] theorem SatisfiesM_EStateM_eq :
+theorem SatisfiesM_EStateM_eq :
     SatisfiesM (m := EStateM ε σ) p x ↔ ∀ s a s', x.run s = .ok a s' → p a := by
   constructor
   · rintro ⟨x, rfl⟩ s a s' h
