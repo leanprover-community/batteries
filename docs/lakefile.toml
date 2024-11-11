@@ -1,7 +1,7 @@
-name = "batteries-docs"
+name = "docs"
 reservoir = false
-buildDir = "../docs"
-defaultTargets = ["BatteriesDocs"]
+buildDir = "."
+defaultTargets = ["docs"]
 
 [[require]]
 name = "doc-gen4"
@@ -13,6 +13,5 @@ name = "batteries"
 path = ".."
 
 [[lean_lib]]
-name = "BatteriesDocs"
-srcDir = ".."
+name = "docs"
 defaultFacets = ["docs"]

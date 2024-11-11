@@ -58,5 +58,5 @@
    "inherited": false,
    "dir": "./..",
    "configFile": "lakefile.toml"}],
- "name": "«batteries-docs»",
+ "name": "docs",
  "lakeDir": ".lake"}
