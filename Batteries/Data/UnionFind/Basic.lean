@@ -161,11 +161,11 @@ theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
 theorem lt_rankMax (self : UnionFind) (i : Nat) : self.rank i < self.rankMax := rankD_lt_rankMax ..
 
 theorem push_rankD (arr : Array UFNode) : rankD (arr.push ⟨arr.size, 0⟩) i = rankD arr i := by
-  simp only [rankD, Array.size_push, Array.get_eq_getElem, Array.get_push, dite_eq_ite]
+  simp only [rankD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> first | simp | cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
 theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩) i = parentD arr i := by
-  simp only [parentD, Array.size_push, Array.get_eq_getElem, Array.get_push, dite_eq_ite]
+  simp only [parentD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> try simp
   · exact Nat.le_antisymm (Nat.ge_of_not_lt ‹_›) (Nat.le_of_lt_succ ‹_›)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)

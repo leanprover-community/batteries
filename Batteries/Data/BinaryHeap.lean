@@ -51,7 +51,7 @@ termination_by sz - i
 /-- Core operation for binary heaps, expressed directly on arrays.
 Construct a heap from an unsorted array, by heapifying all the elements. -/
 def mkHeap (lt : α → α → Bool) (a : Vector α sz) : Vector α sz :=
-  loop (a.size / 2) a (Nat.div_le_self ..)
+  loop (sz / 2) a (Nat.div_le_self ..)
 where
   /-- Inner loop for `mkHeap`. -/
   loop : (i : Nat) → (a : Vector α sz) → i ≤ sz → Vector α sz
@@ -96,7 +96,7 @@ def insert (self : BinaryHeap α lt) (x : α) : BinaryHeap α lt where
 
 @[simp] theorem size_insert (self : BinaryHeap α lt) (x : α) :
     (self.insert x).size = self.size + 1 := by
-  simp only [insert, size, Vector.size_eq]
+  simp [size, insert]
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 def max (self : BinaryHeap α lt) : Option α := self.1[0]?
@@ -108,7 +108,7 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
     have hs : self.size - 1 < self.size := Nat.pred_lt h0
     have h0 : 0 < self.size := Nat.zero_lt_of_ne_zero h0
     let v := self.vector.swap ⟨_, h0⟩ ⟨_, hs⟩ |>.pop
-    if h : 0 < v.size then
+    if h : 0 < self.size - 1 then
       ⟨heapifyDown lt v ⟨0, h⟩ |>.toArray⟩
     else
       ⟨v.toArray⟩
@@ -118,7 +118,7 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
   simp only [popMax, size]
   split
   · simp_arith [*]
-  · split <;> simp_arith [Vector.size_eq, *]
+  · split <;> simp_arith [*]
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 def extractMax (self : BinaryHeap α lt) : Option α × BinaryHeap α lt :=
