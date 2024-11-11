@@ -31,15 +31,15 @@ Additionally, please make sure that you're using the version of Lean that the cu
 
 # Documentation
 
-You can generate `batteries`' documentation with
+You can generate `batteries` documentation with
 
 ```sh
 cd docs
-lake build
+lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation as a server you need to change to the `docs/doc` and then run a HTTP server (e.g. `python3 -m http.server`).
+documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].

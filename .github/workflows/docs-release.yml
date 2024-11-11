@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docs
         working-directory: docs
-        run: lake build -q
+        run: lake build -q Batteries:docs
 
       - name: Compress Docs
         working-directory: docs
