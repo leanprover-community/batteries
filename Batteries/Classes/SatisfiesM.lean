@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 import Batteries.Lean.EStateM
 import Batteries.Lean.Except
+import Batteries.Tactic.Lint
 
 /-!
 ## SatisfiesM
@@ -304,12 +305,13 @@ and an unsafe "proof" via `lcProof`.
 
 This is purely a performance optimization, and could be omitted.
 -/
+@[nolint unusedArguments]
 unsafe def unsafeSatisfying {m : Type u → Type v} [Functor m] [LawfulFunctor m] [MonadSatisfying m]
     {α} {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a} :=
   (⟨·, lcProof⟩) <$> x
 
 /-- `unsafeSatisfying` is equivalent to `satisfying`. -/
-@[csimp] unsafe def satisfying_eq_unsafeSatisfying :
+@[csimp, nolint defLemma] unsafe def satisfying_eq_unsafeSatisfying :
     @satisfying = @unsafeSatisfying := by
   funext m _ _ _ _ p x h
   unfold unsafeSatisfying
