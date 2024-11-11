@@ -135,7 +135,7 @@ def insertExtractMax (self : BinaryHeap α lt) (x : α) : α × BinaryHeap α lt
   | none => (x, self)
   | some m =>
     if lt x m then
-      let a := self.1.set ⟨0, size_pos_of_max e⟩ x
+      let a := self.1.set 0 x (size_pos_of_max e)
       (m, ⟨heapifyDown lt a ⟨0, by simp only [Array.size_set, a]; exact size_pos_of_max e⟩⟩)
     else (x, self)
 
@@ -144,16 +144,16 @@ def replaceMax (self : BinaryHeap α lt) (x : α) : Option α × BinaryHeap α l
   match e: self.max with
   | none => (none, ⟨self.1.push x⟩)
   | some m =>
-    let a := self.1.set ⟨0, size_pos_of_max e⟩ x
+    let a := self.1.set 0 x (size_pos_of_max e)
     (some m, ⟨heapifyDown lt a ⟨0, by simp only [Array.size_set, a]; exact size_pos_of_max e⟩⟩)
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ self.get i`. -/
 def decreaseKey (self : BinaryHeap α lt) (i : Fin self.size) (x : α) : BinaryHeap α lt where
-  arr := heapifyDown lt (self.1.set i x) ⟨i, by rw [self.1.size_set]; exact i.2⟩
+  arr := heapifyDown lt (self.1.set i x i.isLt) ⟨i, by rw [self.1.size_set]; exact i.2⟩
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `self.get i ≤ x`. -/
 def increaseKey (self : BinaryHeap α lt) (i : Fin self.size) (x : α) : BinaryHeap α lt where
-  arr := heapifyUp lt (self.1.set i x) ⟨i, by rw [self.1.size_set]; exact i.2⟩
+  arr := heapifyUp lt (self.1.set i x i.isLt) ⟨i, by rw [self.1.size_set]; exact i.2⟩
 
 end Batteries.BinaryHeap
 
