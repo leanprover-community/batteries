@@ -297,25 +297,4 @@ instance : MonadSatisfying (EStateM ε σ) where
     simp only
     split <;> simp_all
 
-set_option linter.unusedVariables false in
-/--
-Since we assume `m` is lawful,
-we can replace the implementation of `satisfying` at runtime using the identity function
-and an unsafe "proof" via `lcProof`.
-
-This is purely a performance optimization, and could be omitted.
--/
-@[nolint unusedArguments]
-unsafe def unsafeSatisfying {m : Type u → Type v} [Functor m] [LawfulFunctor m] [MonadSatisfying m]
-    {α} {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a} :=
-  (⟨·, lcProof⟩) <$> x
-
-/-- `unsafeSatisfying` is equivalent to `satisfying`. -/
-@[csimp, nolint defLemma] unsafe def satisfying_eq_unsafeSatisfying :
-    @satisfying = @unsafeSatisfying := by
-  funext m _ _ _ _ p x h
-  unfold unsafeSatisfying
-  conv => rhs; simp +singlePass [← MonadSatisfying.val_eq h]
-  simp
-
 end MonadSatisfying
