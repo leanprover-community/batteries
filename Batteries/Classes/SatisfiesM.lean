@@ -216,13 +216,15 @@ to monadic value `satisfying x p : m { x // p x }`.
 
 Reader, state, and exception monads have `MonadSatisfying` instances if the base monad does.
 -/
-class MonadSatisfying (m : Type u → Type v) [Functor m] where
+class MonadSatisfying (m : Type u → Type v) [Functor m] [LawfulFunctor m]where
   /-- Lift a `SatisfiesM` predicate to a monadic value. -/
   satisfying {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a}
   /-- The value of the lifted monadic value is equal to the original monadic value. -/
   val_eq {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : Subtype.val <$> satisfying h = x
 
 export MonadSatisfying (satisfying)
+
+namespace MonadSatisfying
 
 instance : MonadSatisfying Id where
   satisfying {α p x} h := ⟨x, by obtain ⟨⟨_, h⟩, rfl⟩ := h; exact h⟩
@@ -247,7 +249,7 @@ instance : MonadSatisfying (Except ε) where
 -- This will be redundant after nightly-2024-11-08.
 attribute [ext] ReaderT.ext
 
-instance [Monad m] [MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
+instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
   satisfying {α p x} h :=
     have h' := SatisfiesM_ReaderT_eq.mp h
     fun r => satisfying (h' r)
@@ -257,7 +259,7 @@ instance [Monad m] [MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
     rw [ReaderT.run_map, ← MonadSatisfying.val_eq (h' r)]
     rfl
 
-instance [Monad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
   inferInstanceAs <| MonadSatisfying (ReaderT _ _)
 
 -- This will be redundant after nightly-2024-11-08.
@@ -294,6 +296,24 @@ instance : MonadSatisfying (EStateM ε σ) where
     simp only
     split <;> simp_all
 
-instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
-instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
-instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
+set_option linter.unusedVariables false in
+/--
+Since we assume `m` is lawful,
+we can replace the implementation of `satisfying` at runtime using the identity function
+and an unsafe "proof" via `lcProof`.
+
+This is purely a performance optimization, and could be omitted.
+-/
+unsafe def unsafeSatisfying {m : Type u → Type v} [Functor m] [LawfulFunctor m] [MonadSatisfying m]
+    {α} {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a} :=
+  (⟨·, lcProof⟩) <$> x
+
+/-- `unsafeSatisfying` is equivalent to `satisfying`. -/
+@[csimp] unsafe def satisfying_eq_unsafeSatisfying :
+    @satisfying = @unsafeSatisfying := by
+  funext m _ _ _ _ p x h
+  unfold unsafeSatisfying
+  conv => rhs; simp +singlePass [← MonadSatisfying.val_eq h]
+  simp
+
+end MonadSatisfying
