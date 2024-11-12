@@ -1,4 +1,4 @@
-import Batteries.Test.Internal.DummyLibraryNote
+import BatteriesTest.Internal.DummyLibraryNote
 
 library_note "test" /--
 3: this is a note in a different file importing the above testnotes,

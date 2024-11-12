@@ -31,6 +31,7 @@ import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
 import Batteries.Data.Rat
+import Batteries.Data.Stream
 import Batteries.Data.String
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
@@ -93,9 +94,6 @@ import Batteries.Tactic.SqueezeScope
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
-import Batteries.Test.Internal.DummyLabelAttr
-import Batteries.Test.Internal.DummyLibraryNote
-import Batteries.Test.Internal.DummyLibraryNote2
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
