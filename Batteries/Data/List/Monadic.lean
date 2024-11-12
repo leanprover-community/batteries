@@ -12,7 +12,7 @@ import Batteries.Classes.SatisfiesM
 
 namespace List
 
-theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h₀ : motive b)
+theorem satisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h₀ : motive b)
     (h₁ : ∀ (b) (_ : motive b) (a : α) (_ : a ∈ l), SatisfiesM motive (f b a)) :
     SatisfiesM motive (List.foldlM f b l) := by
   have g b hb a am := Classical.indefiniteDescription _ (h₁ b hb a am)
@@ -26,7 +26,7 @@ theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h�
     exact ⟨(fun ⟨b, bh⟩ => ⟨b, ih bh (fun b bh a am => g b bh a (mem_cons_of_mem hd am))⟩) <$> q,
       by simpa using qh⟩
 
-theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m] {f : α → β → m β} (h₀ : motive b)
+theorem satisfiesM_foldrM [Monad m] [LawfulMonad m] {f : α → β → m β} (h₀ : motive b)
     (h₁ : ∀ (a : α) (_ : a ∈ l) (b) (_ : motive b), SatisfiesM motive (f a b)) :
     SatisfiesM motive (List.foldrM f b l) := by
   have g a am b hb := Classical.indefiniteDescription _ (h₁ a am b hb)
