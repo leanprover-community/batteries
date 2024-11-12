@@ -36,31 +36,17 @@ Additionally, please make sure that you're using the version of Lean that the cu
 
 # Documentation
 
-You can generate `batteries`' documentation with
+You can generate `batteries` documentation with
 
-```text
-# if you're generating documentation for the first time
-> lake -R -Kdoc=on update
-...
-# actually generate the documentation
-> lake -R -Kdoc=on build Batteries:docs
-...
-> ls build/doc/index.html
-build/doc/index.html
+```sh
+cd docs
+lake build Batteries:docs
 ```
 
-After generating the docs, run `lake build -R` to reset the configuration.
+The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
+documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
-The top-level HTML file will be located at `build/doc/Batteries.html`, though to actually expose the
-documentation as a server you need to
-
-```text
-> cd build/doc
-> python3 -m http.server
-Serving HTTP on :: port 8000 (http://[::]:8000/) ...
-```
-
-Note that documentation for the latest nightly of `batteries` is available as part of [the Mathlib 4
+Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
 
 [mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Batteries.html
