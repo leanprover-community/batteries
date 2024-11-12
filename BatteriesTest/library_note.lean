@@ -1,5 +1,5 @@
 import Batteries.Tactic.HelpCmd
-import Batteries.Test.Internal.DummyLibraryNote2
+import BatteriesTest.Internal.DummyLibraryNote2
 
 /--
 error: Note not found
