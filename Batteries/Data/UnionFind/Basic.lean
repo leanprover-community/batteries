@@ -45,19 +45,19 @@ theorem parentD_of_not_lt : ¬i < arr.size → parentD arr i = i := (dif_neg ·)
 theorem lt_of_parentD : parentD arr i ≠ i → i < arr.size :=
   Decidable.not_imp_comm.1 parentD_of_not_lt
 
-theorem parentD_set {arr : Array UFNode} {x v i} :
-    parentD (arr.set x v) i = if x.1 = i then v.parent else parentD arr i := by
+theorem parentD_set {arr : Array UFNode} {x v i h} :
+    parentD (arr.set x v h) i = if x = i then v.parent else parentD arr i := by
   rw [parentD]; simp only [Array.size_set, Array.get_eq_getElem, parentD]
   split
   · split <;> simp_all
-  · split <;> [(subst i; cases ‹¬_› x.2); rfl]
+  · split <;> [(subst i; cases ‹¬_› h); rfl]
 
-theorem rankD_set {arr : Array UFNode} {x v i} :
-    rankD (arr.set x v) i = if x.1 = i then v.rank else rankD arr i := by
+theorem rankD_set {arr : Array UFNode} {x v i h} :
+    rankD (arr.set x v h) i = if x = i then v.rank else rankD arr i := by
   rw [rankD]; simp only [Array.size_set, Array.get_eq_getElem, rankD]
   split
   · split <;> simp_all
-  · split <;> [(subst i; cases ‹¬_› x.2); rfl]
+  · split <;> [(subst i; cases ‹¬_› h); rfl]
 
 end UnionFind
 
@@ -454,7 +454,7 @@ def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
     else
       let arr₁ := self.set x {nx with parent := y}
       if nx.rank = ny.rank then
-        arr₁.set ⟨y, by simp [arr₁]⟩ {ny with rank := ny.rank + 1}
+        arr₁.set y {ny with rank := ny.rank + 1} (by simp [arr₁])
       else
         arr₁
 

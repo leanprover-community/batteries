@@ -135,7 +135,7 @@ A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.set ⟨i, h⟩ x
+  a.set i x
 
 /--
 `swapN a i j hi hj` swaps two `Nat` indexed entries in an `Array α`.
