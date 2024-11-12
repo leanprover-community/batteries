@@ -35,4 +35,4 @@ jobs:
           git checkout -b docs
           git add docs/doc docs/doc-data
           git commit -m "chore: generate docs"
-          git push origin docs
+          git push origin docs --force
