@@ -1,6 +1,7 @@
 name = "docs"
 reservoir = false
 buildDir = "."
+packagesDir = "../.lake/packages"
 
 [[require]]
 name = "doc-gen4"

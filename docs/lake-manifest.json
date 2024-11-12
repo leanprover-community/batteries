@@ -1,5 +1,5 @@
 {"version": "1.1.0",
- "packagesDir": ".lake/packages",
+ "packagesDir": "../.lake/packages",
  "packages":
  [{"url": "https://github.com/acmepjz/md4lean",
    "type": "git",
@@ -45,7 +45,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "e18c6c23dd7cb1f12d79d6304262351df943aa37",
+   "rev": "8add673e2ea4da0929103ad19dc824e1c0b7437d",
    "name": "«doc-gen4»",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",
