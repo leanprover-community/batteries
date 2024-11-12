@@ -143,11 +143,10 @@ where
   destroying `source` in the process. -/
   go (i : Nat) (source : Array (AssocList α β)) (target : Buckets α β) : Buckets α β :=
     if h : i < source.size then
-      let idx : Fin source.size := ⟨i, h⟩
-      let es := source.get idx
+      let es := source[i]
       -- We remove `es` from `source` to make sure we can reuse its memory cells
       -- when performing es.foldl
-      let source := source.set idx .nil
+      let source := source.set i .nil
       let target := es.foldl reinsertAux target
       go (i+1) source target
     else target

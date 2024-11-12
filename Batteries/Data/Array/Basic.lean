@@ -46,7 +46,7 @@ considered.
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   if h: start < xs.size ∧ start < stop then
-    xs.minWith (xs.get ⟨start, h.left⟩) (start + 1) stop
+    xs.minWith xs[start] (start + 1) stop
   else
     d
 
@@ -60,7 +60,7 @@ considered.
 protected def min? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
   if h : start < xs.size ∧ start < stop then
-    some $ xs.minD (xs.get ⟨start, h.left⟩) start stop
+    some $ xs.minD xs[start] start stop
   else
     none
 
@@ -201,7 +201,7 @@ subarray, or `none` if the subarray is empty.
 def popHead? (as : Subarray α) : Option (α × Subarray α) :=
   if h : as.start < as.stop
     then
-      let head := as.array.get ⟨as.start, Nat.lt_of_lt_of_le h as.stop_le_array_size⟩
+      let head := as.array[as.start]'(Nat.lt_of_lt_of_le h as.stop_le_array_size)
       let tail :=
         { as with
           start := as.start + 1
