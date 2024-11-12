@@ -1,11 +1,11 @@
 name = "docs"
 reservoir = false
-buildDir = "."
 packagesDir = "../.lake/packages"
+buildDir = "."
 
 [[require]]
+scope = "leanprover"
 name = "doc-gen4"
-git = "https://github.com/leanprover/doc-gen4"
 rev = "main"
 
 [[require]]
