@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
 import Batteries.Classes.SatisfiesM
+import Batteries.Lean.LawfulMonad
 import Lean.Elab.Command
 
 /-!
@@ -11,10 +12,6 @@ import Lean.Elab.Command
 -/
 
 open Lean Elab Term Tactic Command
-
-instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
-instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
-instance : LawfulMonad IO := inferInstanceAs <| LawfulMonad (EIO _)
 
 instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
 instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
