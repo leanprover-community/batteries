@@ -29,15 +29,13 @@ theorem satisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h�
 theorem satisfiesM_foldrM [Monad m] [LawfulMonad m] {f : α → β → m β} (h₀ : motive b)
     (h₁ : ∀ (a : α) (_ : a ∈ l) (b) (_ : motive b), SatisfiesM motive (f a b)) :
     SatisfiesM motive (List.foldrM f b l) := by
-  have g a am b hb := Classical.indefiniteDescription _ (h₁ a am b hb)
-  clear h₁
   induction l with
   | nil => exact SatisfiesM.pure h₀
   | cons hd tl ih =>
     simp only [foldrM_cons]
     apply SatisfiesM.bind_pre
-    let ⟨q, qh⟩ := ih (fun a am b hb => g a (mem_cons_of_mem hd am) b hb)
-    exact ⟨(fun ⟨b, bh⟩ => ⟨b, (g hd (mem_cons_self hd tl) b bh).existsOfSubtype⟩) <$> q,
+    let ⟨q, qh⟩ := ih (fun a am b hb => h₁ a (mem_cons_of_mem hd am) b hb)
+    exact ⟨(fun ⟨b, bh⟩ => ⟨b, h₁ hd (mem_cons_self hd tl) b bh⟩) <$> q,
       by simpa using qh⟩
 
 end List
