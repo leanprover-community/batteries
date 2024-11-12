@@ -64,7 +64,7 @@ theorem utf8Len_reverseAux (cs₁ cs₂) :
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
 @[simp] theorem utf8Len_eq_zero : utf8Len l = 0 ↔ l = [] := by
-  cases l <;> simp [Nat.ne_of_gt add_utf8Size_pos]
+  cases l <;> simp [Nat.ne_zero_iff_zero_lt.mpr (Char.utf8Size_pos _)]
 
 section
 open List
@@ -256,7 +256,7 @@ theorem back_eq (s : String) : back s = s.1.getLastD default := by
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     atEnd ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
-  cases cs' <;> simp [Nat.lt_add_of_pos_right add_utf8Size_pos]
+  cases cs' <;> simp [add_utf8Size_pos]
 
 unseal posOfAux findAux in
 theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
