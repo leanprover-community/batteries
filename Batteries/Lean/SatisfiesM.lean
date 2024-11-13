@@ -17,6 +17,8 @@ instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStat
 instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
 instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
 
+instance : MonadSatisfying (EST ε σ) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
+
 instance : MonadSatisfying CoreM :=
   inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ (EIO _))
 

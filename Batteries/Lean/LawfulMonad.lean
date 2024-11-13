@@ -16,6 +16,8 @@ instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
 instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
 instance : LawfulMonad IO := inferInstanceAs <| LawfulMonad (EIO _)
 
+instance : LawfulMonad (EST ε σ) := inferInstanceAs <| LawfulMonad (EStateM _ _)
+
 instance : LawfulMonad CoreM :=
   inferInstanceAs <| LawfulMonad (ReaderT _ <| StateRefT' _ _ (EIO Exception))
 instance : LawfulMonad MetaM :=
