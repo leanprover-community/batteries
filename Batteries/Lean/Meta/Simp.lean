@@ -71,7 +71,7 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     for h in hs do
       unless simpTheorems.isErased (.fvar h) do
         simpTheorems ← simpTheorems.addTheorem (.fvar h) (← h.getDecl).toExpr
-    let ctx ← Simp.mkContext (simpTheorems := simpTheorems)
+    let ctx := ctx.setSimpTheorems simpTheorems
     return { ctx, simprocs, dischargeWrapper }
 
 
