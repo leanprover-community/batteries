@@ -15,15 +15,13 @@ namespace List
 theorem satisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h₀ : motive b)
     (h₁ : ∀ (b) (_ : motive b) (a : α) (_ : a ∈ l), SatisfiesM motive (f b a)) :
     SatisfiesM motive (List.foldlM f b l) := by
-  have g b hb a am := Classical.indefiniteDescription _ (h₁ b hb a am)
-  clear h₁
   induction l generalizing b with
   | nil => exact SatisfiesM.pure h₀
   | cons hd tl ih =>
     simp only [foldlM_cons]
     apply SatisfiesM.bind_pre
-    let ⟨q, qh⟩ := g b h₀ hd (mem_cons_self hd tl)
-    exact ⟨(fun ⟨b, bh⟩ => ⟨b, ih bh (fun b bh a am => g b bh a (mem_cons_of_mem hd am))⟩) <$> q,
+    let ⟨q, qh⟩ := h₁ b h₀ hd (mem_cons_self hd tl)
+    exact ⟨(fun ⟨b, bh⟩ => ⟨b, ih bh (fun b bh a am => h₁ b bh a (mem_cons_of_mem hd am))⟩) <$> q,
       by simpa using qh⟩
 
 theorem satisfiesM_foldrM [Monad m] [LawfulMonad m] {f : α → β → m β} (h₀ : motive b)
