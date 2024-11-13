@@ -68,7 +68,7 @@ instance [Inhabited α] : Inhabited (Vector α n) where
 
 /-- Get an element of a vector using a `Fin` index. -/
 @[inline] def get (v : Vector α n) (i : Fin n) : α :=
-  v.toArray.get (i.cast v.size_toArray.symm)
+  v.toArray[(i.cast v.size_toArray.symm).1]
 
 /-- Get an element of a vector using a `USize` index and a proof that the index is within bounds. -/
 @[inline] def uget (v : Vector α n) (i : USize) (h : i.toNat < n) : α :=
