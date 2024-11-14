@@ -524,7 +524,6 @@ theorem get?_inj
 @[deprecated (since := "2024-10-21")] alias modifyNth_succ_cons := modify_succ_cons
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
-@[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
 @[deprecated getElem?_modify (since := "2024-06-12")]
 theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
@@ -574,5 +573,3 @@ theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
   simp [getElem?_set']; rfl
-@[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
-@[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase

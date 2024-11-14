@@ -53,10 +53,6 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
   | [] => []
   | x :: xs => bif p x then xs else after p xs
 
-@[deprecated (since := "2024-05-06")] alias removeNth := eraseIdx
-@[deprecated (since := "2024-05-06")] alias removeNthTR := eraseIdxTR
-@[deprecated (since := "2024-05-06")] alias removeNth_eq_removeNthTR := eraseIdx_eq_eraseIdxTR
-
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
 @[simp] def replaceF (f : α → Option α) : List α → List α
   | [] => []

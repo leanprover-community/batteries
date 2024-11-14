@@ -26,11 +26,6 @@ where
       if lt x y then go (acc.push x) (i + 1) j else go (acc.push y) i (j + 1)
   termination_by xs.size + ys.size - (i + j)
 
-set_option linter.unusedVariables false in
-@[deprecated merge (since := "2024-04-24"), inherit_doc merge]
-def mergeSortedPreservingDuplicates [ord : Ord α] (xs ys : Array α) : Array α :=
-  merge (compare · · |>.isLT) xs ys
-
 -- We name `ord` so it can be provided as a named argument.
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -57,16 +52,12 @@ where
       | .eq => go (acc.push (merge x y)) (i + 1) (j + 1)
   termination_by xs.size + ys.size - (i + j)
 
-@[deprecated (since := "2024-04-24")] alias mergeSortedMergingDuplicates := mergeDedupWith
-
 /--
 `O(|xs| + |ys|)`. Merge arrays `xs` and `ys`, which must be sorted according to `compare` and must
 not contain duplicates. If an element appears in both `xs` and `ys`, only one copy is kept.
 -/
 @[inline] def mergeDedup [ord : Ord α] (xs ys : Array α) : Array α :=
   mergeDedupWith (ord := ord) xs ys fun x _ => x
-
-@[deprecated (since := "2024-04-24")] alias mergeSortedDeduplicating := mergeDedup
 
 set_option linter.unusedVariables false in
 /--
@@ -84,8 +75,6 @@ where
     let xsSize := xs.size
     ys.foldl (init := xs) fun xs y =>
       if xs.any (· == y) (stop := xsSize) then xs else xs.push y
-
-@[deprecated (since := "2024-04-24")] alias mergeUnsortedDeduplicating := mergeUnsortedDedup
 
 -- We name `eq` so it can be provided as a named argument.
 set_option linter.unusedVariables.funArgs false in
@@ -105,8 +94,6 @@ where
       acc.push hd
   termination_by xs.size - i
 
-@[deprecated (since := "2024-04-24")] alias mergeAdjacentDuplicates := mergeAdjacentDups
-
 /--
 `O(|xs|)`. Deduplicate a sorted array. The array must be sorted with to an order which agrees with
 `==`, i.e. whenever `x == y` then `compare x y == .eq`.
@@ -114,13 +101,9 @@ where
 def dedupSorted [eq : BEq α] (xs : Array α) : Array α :=
   xs.mergeAdjacentDups (eq := eq) fun x _ => x
 
-@[deprecated (since := "2024-04-24")] alias deduplicateSorted := dedupSorted
-
 /-- `O(|xs| log |xs|)`. Sort and deduplicate an array. -/
 def sortDedup [ord : Ord α] (xs : Array α) : Array α :=
   have := ord.toBEq
   dedupSorted <| xs.qsort (compare · · |>.isLT)
-
-@[deprecated (since := "2024-04-24")] alias sortAndDeduplicate := sortDedup
 
 end Array

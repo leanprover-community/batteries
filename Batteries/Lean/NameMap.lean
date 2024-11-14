@@ -13,9 +13,6 @@ We provide `NameMap.filter` and `NameMap.filterMap`.
 
 namespace Lean.NameMap
 
-instance : ForIn m (NameMap β) (Name × β) :=
-  inferInstanceAs <| ForIn m (RBMap Name β _) _
-
 /--
 `filter f m` returns the `NameMap` consisting of all
 "`key`/`val`"-pairs in `m` where `f key val` returns `true`.
