@@ -19,7 +19,8 @@ See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.Coprime m 
 /-- `m` and `n` are coprime, or relatively prime, if their `gcd` is 1. -/
 @[reducible] def Coprime (m n : Nat) : Prop := gcd m n = 1
 
-instance (m n : Nat) : Decidable (Coprime m n) := inferInstanceAs (Decidable (_ = 1))
+-- if we don't inline this, then the compiler computes the GCD even if it already has it
+@[inline] instance (m n : Nat) : Decidable (Coprime m n) := inferInstanceAs (Decidable (_ = 1))
 
 theorem coprime_iff_gcd_eq_one : Coprime m n ↔ gcd m n = 1 := .rfl
 
