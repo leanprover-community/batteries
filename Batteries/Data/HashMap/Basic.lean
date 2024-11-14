@@ -40,7 +40,7 @@ Note: this is marked `noncomputable` because it is only intended for specificati
 noncomputable def size (data : Buckets α β) : Nat := (data.1.toList.map (·.toList.length)).sum
 
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
-    (self.update i d h).1.size = self.1.size := Array.size_uset ..
+    (self.update i d h).1.size = self.1.size := Array.size_uset _ _ _ h
 
 /-- Map a function over the values in the map. -/
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
@@ -143,11 +143,10 @@ where
   destroying `source` in the process. -/
   go (i : Nat) (source : Array (AssocList α β)) (target : Buckets α β) : Buckets α β :=
     if h : i < source.size then
-      let idx : Fin source.size := ⟨i, h⟩
-      let es := source.get idx
+      let es := source[i]
       -- We remove `es` from `source` to make sure we can reuse its memory cells
       -- when performing es.foldl
-      let source := source.set idx .nil
+      let source := source.set i .nil
       let target := es.foldl reinsertAux target
       go (i+1) source target
     else target
