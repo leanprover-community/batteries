@@ -463,7 +463,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
+  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
 /--
