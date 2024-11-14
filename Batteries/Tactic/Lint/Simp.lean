@@ -108,7 +108,7 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    let ctx ← Simp.mkContext { decide := false }
+    let ctx := ← Simp.Context.mkDefault
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
       let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
