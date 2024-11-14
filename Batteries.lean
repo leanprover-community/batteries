@@ -37,7 +37,6 @@ import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
-import Batteries.Lean.Delaborator
 import Batteries.Lean.EStateM
 import Batteries.Lean.Except
 import Batteries.Lean.Expr
@@ -70,7 +69,6 @@ import Batteries.Linter
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
 import Batteries.Logic
-import Batteries.StdDeprecations
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
