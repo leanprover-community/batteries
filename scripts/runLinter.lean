@@ -104,6 +104,7 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
     readJsonFile NoLints nolintsFile
   else
     pure #[]
+  Lean.enableInitializersExecution
   withImportModules #[module, lintModule] {} (trustLevel := 1024) fun env =>
     let ctx := { fileName := "", fileMap := default }
     let state := { env }
