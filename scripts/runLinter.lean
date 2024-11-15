@@ -105,30 +105,30 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
   else
     pure #[]
   unsafe Lean.enableInitializersExecution
-  withImportModules #[module, lintModule] {} (trustLevel := 1024) fun env =>
-    let ctx := { fileName := "", fileMap := default }
-    let state := { env }
-    Prod.fst <$> (CoreM.toIO · ctx state) do
-      let decls ← getDeclsInPackage module.getRoot
-      let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-      let results ← lintCore decls linters
-      if update then
-        writeJsonFile (α := NoLints) nolintsFile <|
-          .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
-          .flatten <| results.map fun (linter, decls) =>
-          decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
-      let results := results.map fun (linter, decls) =>
-        .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
-          if linter.name == linter' then decls.erase decl' else decls
-      let failed := results.any (!·.2.isEmpty)
-      if failed then
-        let fmtResults ←
-          formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
-            s!"in {module}" (runSlowLinters := true) .medium linters.size
-        IO.print (← fmtResults.toString)
-        IO.Process.exit 1
-      else
-        IO.println "-- Linting passed for {module}."
+  let env ← importModules #[module, lintModule] {} (trustLevel := 1024)
+  let ctx := { fileName := "", fileMap := default }
+  let state := { env }
+  Prod.fst <$> (CoreM.toIO · ctx state) do
+    let decls ← getDeclsInPackage module.getRoot
+    let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
+    let results ← lintCore decls linters
+    if update then
+      writeJsonFile (α := NoLints) nolintsFile <|
+        .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
+        .flatten <| results.map fun (linter, decls) =>
+        decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
+    let results := results.map fun (linter, decls) =>
+      .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
+        if linter.name == linter' then decls.erase decl' else decls
+    let failed := results.any (!·.2.isEmpty)
+    if failed then
+      let fmtResults ←
+        formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
+          s!"in {module}" (runSlowLinters := true) .medium linters.size
+      IO.print (← fmtResults.toString)
+      IO.Process.exit 1
+    else
+      IO.println s!"-- Linting passed for {module}."
 
 /--
 Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
@@ -150,4 +150,3 @@ unsafe def main (args : List String) : IO Unit := do
   let modulesToLint ← determineModulesToLint specifiedModule
 
   modulesToLint.forM <| runLinterOnModule update
-
