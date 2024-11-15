@@ -35,9 +35,7 @@ theorem set_set (a : DArray n α) (i : Fin n) (v w : α i) : (a.set i v).set i w
 
 theorem get_modifyF [Functor f] [LawfulFunctor f] (a : DArray n α) (i : Fin n) (t : α i → f (α i)) :
     (DArray.get . i) <$> a.modifyF i t = t (a.get i) := by
-  simp [DArray.modifyF, ← comp_map]
-  conv => rhs; rw [← id_map (t (a.get i))]
-  congr; ext; simp
+  simp [DArray.modifyF]
 
 @[simp]
 theorem get_modify (a : DArray n α) (i : Fin n) (t : α i → α i) :

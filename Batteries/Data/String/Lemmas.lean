@@ -15,11 +15,11 @@ namespace String
 attribute [ext (iff := false)] ext
 
 theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
-  List.lt_trans' (α := Char) Nat.lt_trans
+  List.lt_trans (α := Char) Nat.lt_trans
     (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
 
 theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
-  ext <| List.lt_antisymm' (α := Char)
+  ext <| List.lt_antisymm (α := Char)
     (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
 
 instance : Batteries.TransOrd String := .compareOfLessAndEq
@@ -64,7 +64,7 @@ theorem utf8Len_reverseAux (cs₁ cs₂) :
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
 @[simp] theorem utf8Len_eq_zero : utf8Len l = 0 ↔ l = [] := by
-  cases l <;> simp [Nat.ne_of_gt add_utf8Size_pos]
+  cases l <;> simp [Nat.ne_zero_iff_zero_lt.mpr (Char.utf8Size_pos _)]
 
 section
 open List
@@ -209,7 +209,7 @@ theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos) : atEnd s p ↔ s.endPos ≤ p :=
-  decide_eq_true_iff _
+  decide_eq_true_iff
 
 theorem valid_next {p : Pos} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).Valid s := by
   match s, p, h with
@@ -256,7 +256,7 @@ theorem back_eq (s : String) : back s = s.1.getLastD default := by
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     atEnd ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
-  cases cs' <;> simp [Nat.lt_add_of_pos_right add_utf8Size_pos]
+  cases cs' <;> simp [add_utf8Size_pos]
 
 unseal posOfAux findAux in
 theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
@@ -447,12 +447,12 @@ theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
 
 attribute [simp] toSubstring'
 
-theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).join⟩ := go ss [] where
-  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).join⟩
+theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).flatten⟩ := go ss [] where
+  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).flatten⟩
     | [], _ => by simp
     | ⟨s⟩::ss, _ => (go ss _).trans (by simp)
 
-@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).join := by
+@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).flatten := by
   rw [join_eq]
 
 @[deprecated (since := "2024-06-06")] alias append_nil := append_empty
