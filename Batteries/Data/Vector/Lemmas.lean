@@ -19,6 +19,22 @@ namespace Batteries
 
 namespace Vector
 
+theorem length_toList {α n} (xs : Vector α n) : xs.toList.length = n := by simp
+
+@[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
+    (Vector.mk data size)[i] = data[i] := rfl
+
+@[simp] theorem getElem_toArray {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toArray.size) :
+    xs.toArray[i] = xs[i]'(by simpa using h) := by
+  cases xs
+  simp
+
+theorem getElem_toList {α n} (xs : Vector α n) (i : Nat) (h : i < xs.toList.length) :
+    xs.toList[i] = xs[i]'(by simpa using h) := by simp
+
+@[simp] theorem getElem_ofFn {α n} (f : Fin n → α) (i : Nat) (h : i < n) :
+    (Vector.ofFn f)[i] = f ⟨i, by simpa using h⟩ := by
+  simp [ofFn]
 
 /-- An `empty` vector maps to a `empty` vector. -/
 @[simp]
@@ -42,13 +58,10 @@ Vectors `a` and `b` are equal to each other if their elements are equal for each
 protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i] = b[i]) : a = b := by
   apply Vector.toArray_injective
   apply Array.ext
-  · rw [a.size_eq, b.size_eq]
+  · rw [a.size_toArray, b.size_toArray]
   · intro i hi _
-    rw [a.size_eq] at hi
+    rw [a.size_toArray] at hi
     exact h i hi
-
-@[simp] theorem getElem_mk {data : Array α} {size : data.size = n} {i : Nat} (h : i < n) :
-    (Vector.mk data size)[i] = data[i] := rfl
 
 @[simp] theorem push_mk {data : Array α} {size : data.size = n} {x : α} :
     (Vector.mk data size).push x =
@@ -65,7 +78,7 @@ protected theorem ext {a b : Vector α n} (h : (i : Nat) → (_ : i < n) → a[i
 @[simp, nolint simpNF] theorem getElem_push_lt {v : Vector α n} {x : α} {i : Nat} (h : i < n) :
     (v.push x)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
-  simp [Array.get_push_lt, h]
+  simp [Array.getElem_push_lt, h]
 
 @[simp] theorem getElem_pop {v : Vector α n} {i : Nat} (h : i < n - 1) : (v.pop)[i] = v[i] := by
   rcases v with ⟨data, rfl⟩
@@ -83,9 +96,9 @@ defeq issues in the implicit size argument.
   ext i
   by_cases h : i < n
   · simp [h]
-  · replace h : i = n := by omega
+  · replace h : i = v.size - 1 := by rw [size_toArray]; omega
     subst h
-    simp
+    simp [pop, back, back!, ← Array.eq_push_pop_back!_of_size_ne_zero]
 
 /-! ### Decidable quantifiers. -/
 

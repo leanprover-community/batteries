@@ -64,7 +64,7 @@ theorem utf8Len_reverseAux (cs₁ cs₂) :
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
 @[simp] theorem utf8Len_eq_zero : utf8Len l = 0 ↔ l = [] := by
-  cases l <;> simp [Nat.ne_of_gt add_utf8Size_pos]
+  cases l <;> simp [Nat.ne_zero_iff_zero_lt.mpr (Char.utf8Size_pos _)]
 
 section
 open List
@@ -256,7 +256,7 @@ theorem back_eq (s : String) : back s = s.1.getLastD default := by
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     atEnd ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
-  cases cs' <;> simp [Nat.lt_add_of_pos_right add_utf8Size_pos]
+  cases cs' <;> simp [add_utf8Size_pos]
 
 unseal posOfAux findAux in
 theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
@@ -573,7 +573,7 @@ theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse +
     it₁.extract it₂ = ⟨m⟩ := by
   cases h₁.out; cases h₂.out
   simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
-    List.append_assoc, ne_eq, not_true_eq_false, decide_False, utf8Len_append, utf8Len_reverse,
+    List.append_assoc, ne_eq, not_true_eq_false, decide_false, utf8Len_append, utf8Len_reverse,
     gt_iff_lt, pos_lt_eq, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
     ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r

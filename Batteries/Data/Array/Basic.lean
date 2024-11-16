@@ -46,7 +46,7 @@ considered.
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   if h: start < xs.size ∧ start < stop then
-    xs.minWith (xs.get ⟨start, h.left⟩) (start + 1) stop
+    xs.minWith xs[start] (start + 1) stop
   else
     d
 
@@ -60,7 +60,7 @@ considered.
 protected def min? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
   if h : start < xs.size ∧ start < stop then
-    some $ xs.minD (xs.get ⟨start, h.left⟩) start stop
+    some $ xs.minD xs[start] start stop
   else
     none
 
@@ -135,7 +135,7 @@ A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.set ⟨i, h⟩ x
+  a.set i x
 
 /--
 `swapN a i j hi hj` swaps two `Nat` indexed entries in an `Array α`.
@@ -201,7 +201,7 @@ subarray, or `none` if the subarray is empty.
 def popHead? (as : Subarray α) : Option (α × Subarray α) :=
   if h : as.start < as.stop
     then
-      let head := as.array.get ⟨as.start, Nat.lt_of_lt_of_le h as.stop_le_array_size⟩
+      let head := as.array[as.start]'(Nat.lt_of_lt_of_le h as.stop_le_array_size)
       let tail :=
         { as with
           start := as.start + 1

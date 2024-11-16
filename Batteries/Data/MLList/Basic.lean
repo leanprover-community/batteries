@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2018 Scott Morrison. All rights reserved.
+Copyright (c) 2018 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
+Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Kim Morrison
 -/
 
 /-! # Monadic lazy lists.
@@ -334,7 +334,7 @@ partial def fin (n : Nat) : MLList m (Fin n) := go 0 where
 partial def ofArray {α : Type} (L : Array α) : MLList m α := go 0 where
   /-- Implementation of `MLList.ofArray`. -/
   go (i : Nat) : MLList m α :=
-    if h : i < L.size then cons (L.get ⟨i, h⟩) (thunk fun _ => go (i+1)) else nil
+    if h : i < L.size then cons L[i] (thunk fun _ => go (i+1)) else nil
 
 /-- Group the elements of a lazy list into chunks of a given size.
 If the lazy list is finite, the last chunk may be smaller (possibly even length 0). -/

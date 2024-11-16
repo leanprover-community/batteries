@@ -14,79 +14,20 @@ namespace Array
 theorem forIn_eq_forIn_toList [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.toList b f := by
-  let rec loop : ∀ {i h b j}, j + i = as.size →
-      Array.forIn.loop as f i h b = forIn (as.toList.drop j) b f
-    | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
-    | i+1, _, _, j, ij => by
-      simp only [forIn.loop, Nat.add]
-      have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
-      have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
-      have : as[size as - 1 - i] :: as.toList.drop (j + 1) = as.toList.drop j := by
-        rw [j_eq]; exact List.getElem_cons_drop _ _ this
-      simp only [← this, List.forIn_cons]; congr; funext x; congr; funext b
-      rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
-  conv => lhs; simp only [forIn, Array.forIn]
-  rw [loop (Nat.zero_add _)]; rfl
+  cases as
+  simp
 
 @[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
 @[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
 
 /-! ### zipWith / zip -/
 
-theorem toList_zipWith (f : α → β → γ) (as : Array α) (bs : Array β) :
-    (as.zipWith bs f).toList = as.toList.zipWith f bs.toList := by
-  let rec loop : ∀ (i : Nat) cs, i ≤ as.size → i ≤ bs.size →
-      (zipWithAux f as bs i cs).toList =
-        cs.toList ++ (as.toList.drop i).zipWith f (bs.toList.drop i) := by
-    intro i cs hia hib
-    unfold zipWithAux
-    by_cases h : i = as.size ∨ i = bs.size
-    case pos =>
-      have : ¬(i < as.size) ∨ ¬(i < bs.size) := by
-        cases h <;> simp_all only [Nat.not_lt, Nat.le_refl, true_or, or_true]
-      -- Cleaned up aesop output below
-      simp_all only [Nat.not_lt]
-      cases h <;> [(cases this); (cases this)]
-      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
-                      List.zipWith_nil_left, List.append_nil]
-      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
-                      List.zipWith_nil_left, List.append_nil]
-      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
-                      List.zipWith_nil_right, List.append_nil]
-        split <;> simp_all only [Nat.not_lt]
-      · simp_all only [Nat.le_refl, Nat.lt_irrefl, dite_false, List.drop_length,
-                      List.zipWith_nil_right, List.append_nil]
-        split <;> simp_all only [Nat.not_lt]
-    case neg =>
-      rw [not_or] at h
-      have has : i < as.size := Nat.lt_of_le_of_ne hia h.1
-      have hbs : i < bs.size := Nat.lt_of_le_of_ne hib h.2
-      simp only [has, hbs, dite_true]
-      rw [loop (i+1) _ has hbs, Array.push_toList]
-      have h₁ : [f as[i] bs[i]] = List.zipWith f [as[i]] [bs[i]] := rfl
-      let i_as : Fin as.toList.length := ⟨i, has⟩
-      let i_bs : Fin bs.toList.length := ⟨i, hbs⟩
-      rw [h₁, List.append_assoc]
-      congr
-      rw [← List.zipWith_append (h := by simp), getElem_eq_getElem_toList,
-        getElem_eq_getElem_toList]
-      show List.zipWith f (as.toList[i_as] :: List.drop (i_as + 1) as.toList)
-        ((List.get bs.toList i_bs) :: List.drop (i_bs + 1) bs.toList) =
-        List.zipWith f (List.drop i as.toList) (List.drop i bs.toList)
-      simp only [length_toList, Fin.getElem_fin, List.getElem_cons_drop, List.get_eq_getElem]
-  simp [zipWith, loop 0 #[] (by simp) (by simp)]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
 @[simp] theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
     (as.zipWith bs f).size = min as.size bs.size := by
   rw [size_eq_length_toList, toList_zipWith, List.length_zipWith]
-
-theorem toList_zip (as : Array α) (bs : Array β) :
-    (as.zip bs).toList = as.toList.zip bs.toList :=
-  toList_zipWith Prod.mk as bs
-@[deprecated (since := "2024-09-09")] alias data_zip := toList_zip
-@[deprecated (since := "2024-08-13")] alias zip_eq_zip_data := data_zip
 
 @[simp] theorem size_zip (as : Array α) (bs : Array β) :
     (as.zip bs).size = min as.size bs.size :=
@@ -136,16 +77,6 @@ where
 @[simp] theorem size_eraseIdx (a : Array α) (i : Nat) :
     (a.eraseIdx i).size = if i < a.size then a.size-1 else a.size := by
   simp only [eraseIdx]; split; simp; rfl
-
-/-! ### shrink -/
-
-theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
-  induction n generalizing a with simp only [shrink.loop, Nat.sub_zero]
-  | succ n ih => simp only [ih, size_pop]; omega
-
-@[simp] theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
-  simp [shrink, size_shrink_loop]
-  omega
 
 /-! ### set -/
 
@@ -246,14 +177,14 @@ theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
     (as.insertAt i v)[k] = as[k] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_lt, get_push, dif_pos hk']
+  rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
   exact hlt
 
 theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
     (as.insertAt i v)[k] = as[k - 1] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_gt_le, get_push, dif_pos hk']
+  rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
   exact hgt
   rw [size_insertAt] at hk
   exact Nat.le_of_lt_succ hk
@@ -262,6 +193,6 @@ theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
     (as.insertAt i v)[k] = v := by
   simp only [insertAt]
-  rw [get_insertAt_loop_eq, Fin.getElem_fin, get_push_eq]
+  rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
   exact heq
   exact Nat.le_of_lt_succ i.is_lt

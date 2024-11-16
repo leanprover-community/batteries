@@ -8,8 +8,6 @@ import Batteries.Tactic.Alias
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
-@[deprecated (since := "2024-03-15")] alias proofIrrel := proof_irrel
-
 /-! ## id -/
 
 theorem Function.id_def : @id α = fun x => x := rfl
