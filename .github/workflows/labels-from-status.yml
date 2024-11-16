@@ -5,10 +5,6 @@
 
 name: Label PR from status change
 
-permissions:
-  contents: read
-  pull-requests: write
-
 on:
   pull_request:
     types:
@@ -24,6 +20,9 @@ jobs:
   auto-label:
     if: github.repository_owner == 'leanprover-community'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
 
     - uses: actions/checkout@v4
