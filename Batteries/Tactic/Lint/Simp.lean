@@ -239,7 +239,7 @@ Some commutativity lemmas are simp lemmas:"
     unless ← isDefEq rhs lhs' do return none
     unless ← withNewMCtxDepth (isDefEq rhs lhs') do return none
     -- make sure that the discrimination tree will actually find this match (see #69)
-    if (← (← DiscrTree.empty.insert rhs () simpDtConfig).getMatch lhs' simpDtConfig).isEmpty then
+    if (← (← DiscrTree.empty.insert rhs ()).getMatch lhs').isEmpty then
       return none
     -- ensure that the second application makes progress:
     if ← isDefEq lhs' rhs' then return none
