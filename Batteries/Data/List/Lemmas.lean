@@ -403,7 +403,7 @@ theorem IsChain.imp_of_mem (hRS : ∀ a ∈ l, ∀ b ∈ l, R a b → S a b) (h 
     exact fun hR hl => hRS _ (mem_cons_self _ _) _ (mem_cons_of_mem _ <| head_mem _) (hR _)
 
 theorem IsChain.imp (hRS : ∀ a b, R a b → S a b) (h : IsChain R l) : IsChain S l :=
-  h.imp_of_mem fun a _ b _ ↦ hRS a b
+  h.imp_of_mem fun a _ b _ => hRS a b
 
 theorem IsChain.imp_cons_of_mem (hRS : ∀ a ∈ l, ∀ b ∈ l, R a b → S a b)
     (hab : ∀ c ∈ l, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
@@ -413,7 +413,7 @@ theorem IsChain.imp_cons_of_mem (hRS : ∀ a ∈ l, ∀ b ∈ l, R a b → S a b
 
 theorem IsChain.imp_cons (hRS : ∀ a b, R a b → S a b) (hab : ∀ c, R a c → S b c)
     (h : IsChain R (a :: l)) : IsChain S (b :: l) :=
-  h.imp_cons_of_mem (fun a _ b _ ↦ hRS a b) (fun c _ ↦ hab c)
+  h.imp_cons_of_mem (fun a _ b _ => hRS a b) (fun c _ => hab c)
 
 theorem Pairwise.isChain : ∀ {l}, Pairwise R l → IsChain R l
   | [], _ | [_], _ => trivial
