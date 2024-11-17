@@ -423,7 +423,7 @@ def all₂ (r : α → β → Bool) : List α → List β → Bool
     exact nofun
 
 instance {R : α → β → Prop} [∀ a b, Decidable (R a b)] : ∀ l₁ l₂, Decidable (Forall₂ R l₁ l₂) :=
-  fun l₁ l₂ => decidable_of_iff (all₂ (R · ·) l₁ l₂) (by simp [all₂_eq_true])
+  fun l₁ l₂ => decidable_of_iff (all₂ (R · ·) l₁ l₂) (by simp)
 
 end Forall₂
 
@@ -606,25 +606,48 @@ def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :
 
 section Chain
 
-variable (R : α → α → Prop)
+/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+```
+IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
+```
+-/
+def IsChain (R : α → α → Prop) : List α → Prop
+  | [] | [_] => True
+  | a :: b :: tl => R a b ∧ IsChain R (b :: tl)
+
+/-- `isChain R l` means that `R` holds between adjacent elements of `l`.
+```
+isChain R [a, b, c, d] = R a b && R b c && R c d
+```
+-/
+def isChain (R : α → α → Bool) : List α → Bool
+  | [] | [_] => true
+  | a :: tl@(b :: _) => R a b && isChain R tl
+
+@[simp]
+theorem isChain_eq_true {r : α → α → Bool} : ∀ {l}, isChain r l ↔ IsChain (r · ·) l
+  | [] | [_] => by simp [IsChain, isChain]
+  | a :: b :: l => by simp [IsChain, isChain, isChain_eq_true]
+
+instance IsChain.instDecidablePred {R : α → α → Prop} [DecidableRel R] :
+    DecidablePred (IsChain R) := fun l =>
+  decidable_of_iff (isChain (R · ·) l) <| by simp
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-inductive Chain : α → List α → Prop
-  /-- A chain of length 1 is trivially a chain. -/
-  | nil {a : α} : Chain a []
-  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+```
+Deprecated. Use `List.IsChain R (a :: l)` instead. -/
+@[deprecated IsChain (since := "2024-11-16")]
+def Chain (R : α → α → Prop) (a : α) (l : List α) := IsChain R (a :: l)
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-def Chain' : List α → Prop
-  | [] => True
-  | a :: l => Chain R a l
+```
+Deprecated. Use `List.IsChain` instead. -/
+@[deprecated IsChain (since := "2024-11-16")]
+alias Chain' := IsChain
 
 end Chain
 

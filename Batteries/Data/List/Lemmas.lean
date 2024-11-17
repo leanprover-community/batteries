@@ -346,50 +346,136 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 
 /-! ### Chain -/
 
-attribute [simp] Chain.nil
+@[simp]
+protected theorem IsChain.nil {R : α → α → Prop} : IsChain R [] := trivial
 
 @[simp]
-theorem chain_cons {a b : α} {l : List α} : Chain R a (b :: l) ↔ R a b ∧ Chain R b l :=
-  ⟨fun p => by cases p with | cons n p => exact ⟨n, p⟩,
-   fun ⟨n, p⟩ => p.cons n⟩
+protected theorem IsChain.singleton {R : α → α → Prop} : IsChain R [a] := trivial
 
-theorem rel_of_chain_cons {a b : α} {l : List α} (p : Chain R a (b :: l)) : R a b :=
-  (chain_cons.1 p).1
+@[simp]
+theorem isChain_cons_cons {a b : α} {l : List α} :
+    IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  .rfl
 
-theorem chain_of_chain_cons {a b : α} {l : List α} (p : Chain R a (b :: l)) : Chain R b l :=
-  (chain_cons.1 p).2
+theorem IsChain.cons (h₁ : R a b) (h₂ : IsChain R (b :: l)) : IsChain R (a :: b :: l) :=
+  isChain_cons_cons.mpr ⟨h₁, h₂⟩
 
+theorem IsChain.rel (h : IsChain R (a :: b :: l)) : R a b := (isChain_cons_cons.mp h).1
+
+protected theorem IsChain.tail : ∀ {l}, IsChain R l → IsChain R l.tail
+  | [], _ | [_], _ => .nil
+  | _ :: _ :: _, h => (isChain_cons_cons.mp h).2
+
+theorem IsChain.of_cons (h : IsChain R (a :: l)) : IsChain R l := h.tail
+
+theorem isChain_cons_iff_head :
+    IsChain R (a :: l) ↔ (∀ h : l ≠ [], R a (l.head h)) ∧ l.IsChain R := by
+  cases l <;> simp
+
+theorem isChain_cons_iff_head? : IsChain R (a :: l) ↔ (∀ b ∈ l.head?, R a b) ∧ l.IsChain R := by
+  cases l <;> simp
+
+/-- Recursion principle for `List.IsChain. -/
+@[elab_as_elim]
+protected def IsChain.rec {p : ∀ l : List α, IsChain R l → Sort u}
+    (nil : p [] .nil) (singleton : ∀ a, p [a] .singleton)
+    (cons : ∀ a b l (hab : R a b) (hbl : IsChain R (b :: l)), p (b :: l) hbl →
+      p (a :: b :: l) (.cons hab hbl)) : ∀ l hl, p l hl
+  | [], _ => nil
+  | [_], _ => singleton _
+  | a::b::l, h => cons a b l h.rel _ (h.of_cons.rec nil singleton cons)
+
+/-- Induction principle for `List.IsChain. -/
+@[elab_as_elim]
+protected theorem IsChain.induction {p : ∀ l : List α, IsChain R l → Prop}
+    (nil : p [] .nil) (singleton : ∀ a, p [a] .singleton)
+    (cons : ∀ a b l (hab : R a b) (hbl : IsChain R (b :: l)), p (b :: l) hbl →
+      p (a :: b :: l) (.cons hab hbl)) : ∀ l hl, p l hl := fun l hl =>
+  IsChain.rec nil singleton cons l hl
+
+theorem IsChain.imp_of_mem (hRS : ∀ a ∈ l, ∀ b ∈ l, R a b → S a b) (h : IsChain R l) :
+    IsChain S l := by
+  induction l with
+  | nil => trivial
+  | cons a l ihl =>
+    rw [isChain_cons_iff_head] at h ⊢
+    refine h.imp ?_ <| ihl fun x hx y hy => hRS x (mem_cons_of_mem _ hx) y (mem_cons_of_mem _ hy)
+    exact fun hR hl => hRS _ (mem_cons_self _ _) _ (mem_cons_of_mem _ <| head_mem _) (hR _)
+
+theorem IsChain.imp (hRS : ∀ a b, R a b → S a b) (h : IsChain R l) : IsChain S l :=
+  h.imp_of_mem fun a _ b _ ↦ hRS a b
+
+theorem IsChain.imp_cons_of_mem (hRS : ∀ a ∈ l, ∀ b ∈ l, R a b → S a b)
+    (hab : ∀ c ∈ l, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
+  cases l with
+  | nil => simp
+  | cons c l => refine .cons (hab _ (mem_cons_self _ _) h.rel) <| h.of_cons.imp_of_mem hRS
+
+theorem IsChain.imp_cons (hRS : ∀ a b, R a b → S a b) (hab : ∀ c, R a c → S b c)
+    (h : IsChain R (a :: l)) : IsChain S (b :: l) :=
+  h.imp_cons_of_mem (fun a _ b _ ↦ hRS a b) (fun c _ ↦ hab c)
+
+theorem Pairwise.isChain : ∀ {l}, Pairwise R l → IsChain R l
+  | [], _ | [_], _ => trivial
+  | _::_::_, h =>
+    .cons ((pairwise_cons.mp h).1 _ (mem_cons_self _ _)) (pairwise_cons.mp h).2.isChain
+
+section Deprecated
+
+set_option linter.deprecated false
+
+@[simp, deprecated IsChain.singleton (since := "2024-11-16")]
+theorem Chain.nil : Chain R a [] := .singleton
+
+@[simp, deprecated isChain_cons_cons (since := "2024-11-16")]
+theorem chain_cons : Chain R a (b :: l) ↔ R a b ∧ Chain R b l :=
+  isChain_cons_cons
+
+@[deprecated IsChain.rel (since := "2024-11-16")]
+theorem rel_of_chain_cons (p : Chain R a (b :: l)) : R a b := p.rel
+
+@[deprecated IsChain.of_cons (since := "2024-11-16")]
+theorem chain_of_chain_cons (p : Chain R a (b :: l)) : Chain R b l := p.of_cons
+
+@[deprecated IsChain.imp_cons (since := "2024-11-16")]
 theorem Chain.imp' {R S : α → α → Prop} (HRS : ∀ ⦃a b⦄, R a b → S a b) {a b : α}
-    (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} (p : Chain R a l) : Chain S b l := by
-  induction p generalizing b with
-  | nil => constructor
-  | cons r _ ih =>
-    constructor
-    · exact Hab r
-    · exact ih (@HRS _)
+    (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} (p : Chain R a l) : Chain S b l :=
+  p.imp_cons HRS Hab
 
-theorem Chain.imp {R S : α → α → Prop} (H : ∀ a b, R a b → S a b) {a : α} {l : List α}
+@[deprecated IsChain.imp (since := "2024-11-16")]
+nonrec theorem Chain.imp {R S : α → α → Prop} (H : ∀ a b, R a b → S a b) {a : α} {l : List α}
     (p : Chain R a l) : Chain S a l :=
-  p.imp' H (H a)
+  p.imp H
 
-protected theorem Pairwise.chain (p : Pairwise R (a :: l)) : Chain R a l := by
-  let ⟨r, p'⟩ := pairwise_cons.1 p; clear p
-  induction p' generalizing a with
-  | nil => exact Chain.nil
-  | @cons b l r' _ IH =>
-    simp only [chain_cons, forall_mem_cons] at r
-    exact chain_cons.2 ⟨r.1, IH r'⟩
+@[deprecated Pairwise.isChain (since := "2024-11-16")]
+protected theorem Pairwise.chain (p : Pairwise R (a :: l)) : Chain R a l :=
+  p.isChain
+
+end Deprecated
 
 /-! ### range', range -/
 
-theorem chain_succ_range' : ∀ s n step : Nat,
-    Chain (fun a b => b = a + step) s (range' (s + step) n step)
-  | _, 0, _ => Chain.nil
-  | s, n + 1, step => (chain_succ_range' (s + step) n step).cons rfl
+theorem isChain_eq_add_range' : ∀ s n step : Nat,
+    IsChain (fun a b => b = a + step) (range' s n step)
+  | _, 0, _ => .nil
+  | _, 1, _ => .singleton
+  | _, n + 2, _ => .cons rfl <| isChain_eq_add_range' _ (n + 1) _
 
+set_option linter.deprecated false in
+@[deprecated isChain_eq_add_range' (since := "2024-11-16")]
+theorem chain_succ_range' (s n step : Nat) :
+    Chain (fun a b => b = a + step) s (range' (s + step) n step) :=
+  isChain_eq_add_range' s (n + 1) step
+
+theorem isChain_lt_range' (s n : Nat) {step} (h : 0 < step) :
+    IsChain (· < ·) (range' s n step) :=
+  (isChain_eq_add_range' s n step).imp <| by omega
+
+set_option linter.deprecated false in
+@[deprecated isChain_lt_range' (since := "2024-11-16")]
 theorem chain_lt_range' (s n : Nat) {step} (h : 0 < step) :
     Chain (· < ·) s (range' (s + step) n step) :=
-  (chain_succ_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
+  isChain_lt_range' s (n + 1) h
 
 @[deprecated getElem?_range' (since := "2024-06-12")]
 theorem get?_range' (s step) {m n : Nat} (h : m < n) :
