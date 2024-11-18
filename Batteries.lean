@@ -31,12 +31,13 @@ import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Range
 import Batteries.Data.Rat
+import Batteries.Data.Stream
 import Batteries.Data.String
 import Batteries.Data.UInt
 import Batteries.Data.UnionFind
 import Batteries.Data.Vector
 import Batteries.Lean.AttributeExtra
-import Batteries.Lean.Delaborator
+import Batteries.Lean.EStateM
 import Batteries.Lean.Except
 import Batteries.Lean.Expr
 import Batteries.Lean.Float
@@ -44,6 +45,7 @@ import Batteries.Lean.HashMap
 import Batteries.Lean.HashSet
 import Batteries.Lean.IO.Process
 import Batteries.Lean.Json
+import Batteries.Lean.LawfulMonad
 import Batteries.Lean.Meta.Basic
 import Batteries.Lean.Meta.DiscrTree
 import Batteries.Lean.Meta.Expr
@@ -53,11 +55,11 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
 import Batteries.Lean.Position
+import Batteries.Lean.SatisfiesM
 import Batteries.Lean.Syntax
 import Batteries.Lean.System.IO
 import Batteries.Lean.TagAttribute
@@ -66,7 +68,6 @@ import Batteries.Linter
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
 import Batteries.Logic
-import Batteries.StdDeprecations
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
@@ -93,9 +94,6 @@ import Batteries.Tactic.SqueezeScope
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
 import Batteries.Tactic.Where
-import Batteries.Test.Internal.DummyLabelAttr
-import Batteries.Test.Internal.DummyLibraryNote
-import Batteries.Test.Internal.DummyLibraryNote2
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote
