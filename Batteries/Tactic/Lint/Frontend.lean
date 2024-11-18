@@ -107,7 +107,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           match ← withCurrHeartbeats (linter.test decl)
-              |>.run' mkMetaContext
+              |>.run' {}
               |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?
