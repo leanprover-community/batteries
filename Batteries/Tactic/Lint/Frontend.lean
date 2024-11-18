@@ -89,9 +89,6 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
         result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
--- Note: we have to use the same context as `runTermElabM` here so that the `simpNF`
--- linter works the same as the `simp` tactic itself. See #671
-open private mkMetaContext from Lean.Elab.Command in
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
