@@ -228,7 +228,7 @@ private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   noErrorsFound := "No commutativity lemma is marked simp."
   errorsFound := "COMMUTATIVITY LEMMA IS SIMP.
 Some commutativity lemmas are simp lemmas:"
-  test := fun declName => withReducible do
+  test := fun declName => withSimpGlobalConfig do withReducible do
     unless ← isSimpTheorem declName do return none
     let ty := (← getConstInfo declName).type
     forallTelescopeReducing ty fun _ ty' => do
