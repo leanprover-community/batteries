@@ -111,6 +111,13 @@ initialize registerBuiltinAttribute {
     unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
       throwError "must have type Linter, got {constInfo.type}"
     modifyEnv fun env => batteriesLinterExt.addEntry env (decl, dflt)
+  delab := fun decl => do
+    if let some (n, dflt) :=
+      (batteriesLinterExt.getState (← getEnv)).find? (decl.updatePrefix .anonymous)
+    then
+      if decl == n then
+        let tk := guard (!dflt) *> pure default
+        modify (·.push <| Unhygienic.run `(attr| env_linter $[disabled%$tk]?))
 }
 
 /-- `@[nolint linterName]` omits the tagged declaration from being checked by
@@ -130,6 +137,8 @@ initialize nolintAttr : ParametricAttribute (Array Name) ←
         Elab.addConstInfo id declName
         pure shortName
       | _ => Elab.throwUnsupportedSyntax
+    delabParam := fun _ val => do
+      modify (·.push <| Unhygienic.run `(attr| nolint $(val.map mkIdent)*))
   }
 
 /-- Returns true if `decl` should be checked

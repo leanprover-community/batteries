@@ -48,6 +48,9 @@ structure NameMapAttributeImpl (α : Type) where
   /-- This function is called when the attribute is applied.
   It should produce a value of type `α` from the given attribute syntax. -/
   add (src : Name) (stx : Syntax) : AttrM α
+  /-- This function is called when the attribute is being printed.
+  It should produce syntax which `add` would accept. -/
+  delab (src : Name) (val : α) : StateT (Array (TSyntax `attr)) AttrM Unit
   deriving Inhabited
 
 /-- Similar to `registerParametricAttribute` except that attributes do not
@@ -60,5 +63,8 @@ def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExten
     add := fun src stx _kind => do
       let a : α ← impl.add src stx
       ext.add src a
+    delab := fun src => do
+      if let some a := ext.find? (← getEnv) src then
+        impl.delab src a
   }
   return ext

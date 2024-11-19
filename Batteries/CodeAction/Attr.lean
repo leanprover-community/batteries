@@ -128,4 +128,5 @@ initialize
           if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, args⟩, ← mkTacticCodeAction decl))
       | _ => pure ()
+    delab := fun _ => pure () -- FIXME no reverse lookup
   }

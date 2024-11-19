@@ -85,7 +85,7 @@ Registers a new parametric attribute. The `extra` field is a list of definitions
 which will be "pre-tagged" and are not subject to the usual restriction on tagging in the same
 file as the declaration.
 -/
-def registerParametricAttributeExtra (impl : ParametricAttributeImpl α)
+def registerParametricAttributeExtra [Inhabited α] (impl : ParametricAttributeImpl α)
     (extra : List (Name × α)) : IO (ParametricAttributeExtra α) := do
   let attr ← registerParametricAttribute impl
   pure { attr, base := extra.foldl (fun s (a, b) => s.insert a b) {} }

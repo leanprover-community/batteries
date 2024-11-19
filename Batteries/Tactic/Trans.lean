@@ -48,6 +48,9 @@ initialize registerBuiltinAttribute {
     let .app (.app _ _) _ ← inferType xyHyp | fail
     let key ← withReducible <| DiscrTree.mkPath rel
     transExt.add (decl, key) kind
+  delab := fun decl => do
+    if (transExt.getState (← getEnv)).fold (fun b _ n => b || decl == n) false then
+      modify (·.push <| Unhygienic.run `(attr| $(mkIdent `trans):ident))
 }
 
 open Lean.Elab.Tactic
