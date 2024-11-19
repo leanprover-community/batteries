@@ -175,6 +175,9 @@ def eraseIdx! (a : Array α) (i : Nat) : Array α :=
     have : Inhabited (Array α) := ⟨a⟩
     panic! s!"index {i} out of bounds"
 
+/-- `finRange n` is the array of all elements of `Fin n` in order. -/
+protected def finRange (n : Nat) : Array (Fin n) := ofFn id
+
 end Array
 
 
