@@ -228,7 +228,7 @@ private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   noErrorsFound := "No commutativity lemma is marked simp."
   errorsFound := "COMMUTATIVITY LEMMA IS SIMP.
 Some commutativity lemmas are simp lemmas:"
-  test := fun declName => withReducible do
+  test := fun declName => withSimpGlobalConfig do withReducible do
     unless ← isSimpTheorem declName do return none
     let ty := (← getConstInfo declName).type
     forallTelescopeReducing ty fun _ ty' => do
@@ -239,7 +239,7 @@ Some commutativity lemmas are simp lemmas:"
     unless ← isDefEq rhs lhs' do return none
     unless ← withNewMCtxDepth (isDefEq rhs lhs') do return none
     -- make sure that the discrimination tree will actually find this match (see #69)
-    if (← (← DiscrTree.empty.insert rhs () simpDtConfig).getMatch lhs' simpDtConfig).isEmpty then
+    if (← (← DiscrTree.empty.insert rhs ()).getMatch lhs').isEmpty then
       return none
     -- ensure that the second application makes progress:
     if ← isDefEq lhs' rhs' then return none
