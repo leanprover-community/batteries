@@ -53,7 +53,7 @@ sanity check, lint, cleanup, command, tactic
 -/
 
 namespace Batteries.Tactic.Lint
-open Lean
+open Lean Elab Command
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
@@ -104,7 +104,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           match ← withCurrHeartbeats (linter.test decl)
-              |>.run' {}
+              |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
               |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?

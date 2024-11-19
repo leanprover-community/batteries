@@ -185,14 +185,15 @@ theorem SatisfiesM_EStateM_eq :
       rw [EStateM.run_map, EStateM.run]
       split <;> simp_all
 
-@[simp] theorem SatisfiesM_ReaderT_eq [Monad m] :
+theorem SatisfiesM_ReaderT_eq [Monad m] :
     SatisfiesM (m := ReaderT ρ m) p x ↔ ∀ s, SatisfiesM p (x.run s) :=
   (exists_congr fun a => by exact ⟨fun eq _ => eq ▸ rfl, funext⟩).trans Classical.skolem.symm
 
 theorem SatisfiesM_StateRefT_eq [Monad m] :
-    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) := by simp [ReaderT.run]
+    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) := by
+  simp [SatisfiesM_ReaderT_eq, ReaderT.run]
 
-@[simp] theorem SatisfiesM_StateT_eq [Monad m] [LawfulMonad m] :
+theorem SatisfiesM_StateT_eq [Monad m] [LawfulMonad m] :
     SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x.run s) := by
   change SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x s)
   refine .trans ⟨fun ⟨f, eq⟩ => eq ▸ ?_, fun ⟨f, h⟩ => ?_⟩ Classical.skolem.symm
@@ -201,7 +202,7 @@ theorem SatisfiesM_StateRefT_eq [Monad m] :
   · refine ⟨fun s => (fun ⟨⟨a, s'⟩, h⟩ => ⟨⟨a, h⟩, s'⟩) <$> f s, funext fun s => ?_⟩
     show _ >>= _ = _; simp [← h]
 
-@[simp] theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
+theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
     SatisfiesM (m := ExceptT ρ m) (α := α) p x ↔
       SatisfiesM (m := m) (∀ a, · = .ok a → p a) x.run := by
   change _ ↔ SatisfiesM (m := m) (∀ a, · = .ok a → p a) x
@@ -247,9 +248,6 @@ instance : MonadSatisfying (Except ε) where
     | .error e => .error e
   val_eq {α p x?} h := by cases x? <;> simp
 
--- This will be redundant after nightly-2024-11-08.
-attribute [ext] ReaderT.ext
-
 instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
   satisfying {α p x} h :=
     have h' := SatisfiesM_ReaderT_eq.mp h
@@ -262,9 +260,6 @@ instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
   inferInstanceAs <| MonadSatisfying (ReaderT _ _)
-
--- This will be redundant after nightly-2024-11-08.
-attribute [ext] StateT.ext
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
   satisfying {α p x} h :=
