@@ -45,6 +45,11 @@ theorem mem_range'_elems (r : Range) (h : x ∈ List.range' r.start r.numElems r
     refine Nat.not_le.1 fun h =>
       Nat.not_le.2 h' <| (numElems_le_iff (Nat.pos_of_ne_zero step0)).2 h
 
+-- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
+-- and am hoping it is not necessary to get Mathlib working again
+
+/-
+
 theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
     (init : β) (f : (a : Nat) → a ∈ r → β → m (ForInStep β)) :
     forIn' r init f =
@@ -97,3 +102,5 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
   · simp [forIn, forIn']
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
     intro L; induction L generalizing init <;> intro H <;> simp [*]
+
+-/

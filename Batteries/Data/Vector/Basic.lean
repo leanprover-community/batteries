@@ -263,6 +263,11 @@ proof_wanted instLawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α
 @[inline] def reverse (v : Vector α n) : Vector α n :=
   ⟨v.toArray.reverse, by simp⟩
 
+-- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
+-- and am hoping it is not necessary to get Mathlib working again
+
+/-
+
 /-- Delete an element of a vector using a `Fin` index. -/
 @[inline] def feraseIdx (v : Vector α n) (i : Fin n) : Vector α (n-1) :=
   ⟨v.toArray.feraseIdx (Fin.cast v.size_toArray.symm i), by simp [Array.size_feraseIdx]⟩
@@ -288,6 +293,8 @@ synthesise a proof that the index is within bounds.
 -/
 @[inline] def eraseIdxN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) :
   Vector α (n - 1) := ⟨v.toArray.eraseIdxN i (by simp [*]), by simp⟩
+
+-/
 
 /--
 Finds the first index of a given value in a vector using `==` for comparison. Returns `none` if the
