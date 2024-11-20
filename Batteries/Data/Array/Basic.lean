@@ -155,25 +155,7 @@ Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasi
 abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
     α × Array α := swapAt a ⟨i,h⟩ x
 
-/--
-`eraseIdxN a i h` Removes the element at position `i` from a vector of length `n`.
-`h : i < a.size` has a default argument `by get_elem_tactic` which tries to supply a proof
-that the index is valid.
-This function takes worst case O(n) time because it has to backshift all elements at positions
-greater than i.
--/
-abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.feraseIdx ⟨i, h⟩
-
-/--
-Remove the element at a given index from an array, panics if index is out of bounds.
--/
-def eraseIdx! (a : Array α) (i : Nat) : Array α :=
-  if h : i < a.size then
-    a.feraseIdx ⟨i, h⟩
-  else
-    have : Inhabited (Array α) := ⟨a⟩
-    panic! s!"index {i} out of bounds"
+@[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
 end Array
 

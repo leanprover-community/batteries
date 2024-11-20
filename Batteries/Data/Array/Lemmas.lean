@@ -71,12 +71,9 @@ where
 @[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
     (l.erase a).toList = l.toList.erase a
 
-@[simp] theorem eraseIdx!_eq_eraseIdx (a : Array α) (i : Nat) :
-    a.eraseIdx! i = a.eraseIdx i := rfl
-
-@[simp] theorem size_eraseIdx (a : Array α) (i : Nat) :
-    (a.eraseIdx i).size = if i < a.size then a.size-1 else a.size := by
-  simp only [eraseIdx]; split; simp; rfl
+@[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
+    (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
+  simp only [eraseIdxIfInBounds]; split; simp; rfl
 
 /-! ### set -/
 
@@ -93,96 +90,99 @@ theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
-/-! ### insertAt -/
+-- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
+-- and am hoping it is not necessary to get Mathlib working again
 
-private theorem size_insertAt_loop (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size) :
-    (insertAt.loop as i bs j).size = bs.size := by
-  unfold insertAt.loop
-  split
-  · rw [size_insertAt_loop, size_swap]
-  · rfl
+-- /-! ### insertAt -/
 
-@[simp] theorem size_insertAt (as : Array α) (i : Fin (as.size+1)) (v : α) :
-    (as.insertAt i v).size = as.size + 1 := by
-  rw [insertAt, size_insertAt_loop, size_push]
+-- private theorem size_insertAt_loop (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size) :
+--     (insertAt.loop as i bs j).size = bs.size := by
+--   unfold insertAt.loop
+--   split
+--   · rw [size_insertAt_loop, size_swap]
+--   · rfl
 
-private theorem get_insertAt_loop_lt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (h : k < i) :
-    (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
-  unfold insertAt.loop
-  split
-  · have h1 : k ≠ j - 1 := by omega
-    have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_lt, getElem_swap, if_neg h1, if_neg h2]
-    exact h
-  · rfl
+-- @[simp] theorem size_insertAt (as : Array α) (i : Fin (as.size+1)) (v : α) :
+--     (as.insertAt i v).size = as.size + 1 := by
+--   rw [insertAt, size_insertAt_loop, size_push]
 
-private theorem get_insertAt_loop_gt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : j < k) :
-    (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
-  unfold insertAt.loop
-  split
-  · have h1 : k ≠ j - 1 := by omega
-    have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_neg h2]
-    exact Nat.lt_of_le_of_lt (Nat.pred_le _) hgt
-  · rfl
+-- private theorem get_insertAt_loop_lt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
+--     (k) (hk : k < (insertAt.loop as i bs j).size) (h : k < i) :
+--     (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
+--   unfold insertAt.loop
+--   split
+--   · have h1 : k ≠ j - 1 := by omega
+--     have h2 : k ≠ j := by omega
+--     rw [get_insertAt_loop_lt, getElem_swap, if_neg h1, if_neg h2]
+--     exact h
+--   · rfl
 
-private theorem get_insertAt_loop_eq (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (heq : i = k) (h : i.val ≤ j.val) :
-    (insertAt.loop as i bs j)[k] = bs[j] := by
-  unfold insertAt.loop
-  split
-  · next h =>
-    rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_swap, if_pos rfl]
-    exact heq
-    exact Nat.le_pred_of_lt h
-  · congr; omega
+-- private theorem get_insertAt_loop_gt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
+--     (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : j < k) :
+--     (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
+--   unfold insertAt.loop
+--   split
+--   · have h1 : k ≠ j - 1 := by omega
+--     have h2 : k ≠ j := by omega
+--     rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_neg h2]
+--     exact Nat.lt_of_le_of_lt (Nat.pred_le _) hgt
+--   · rfl
 
-private theorem get_insertAt_loop_gt_le (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : i < k) (hle : k ≤ j) :
-    (insertAt.loop as i bs j)[k] = bs[k-1] := by
-  unfold insertAt.loop
-  split
-  · next h =>
-    if h0 : k = j then
-      cases h0
-      have h1 : j.val ≠ j - 1 := by omega
-      rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_pos rfl]; rfl
-      exact Nat.pred_lt_of_lt hgt
-    else
-      have h1 : k - 1 ≠ j - 1 := by omega
-      have h2 : k - 1 ≠ j := by omega
-      rw [get_insertAt_loop_gt_le, getElem_swap, if_neg h1, if_neg h2]
-      apply Nat.le_of_lt_add_one
-      rw [Nat.sub_one_add_one]
-      exact Nat.lt_of_le_of_ne hle h0
-      exact Nat.not_eq_zero_of_lt h
-      exact hgt
-  · next h =>
-    absurd h
-    exact Nat.lt_of_lt_of_le hgt hle
+-- private theorem get_insertAt_loop_eq (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
+--     (k) (hk : k < (insertAt.loop as i bs j).size) (heq : i = k) (h : i.val ≤ j.val) :
+--     (insertAt.loop as i bs j)[k] = bs[j] := by
+--   unfold insertAt.loop
+--   split
+--   · next h =>
+--     rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_swap, if_pos rfl]
+--     exact heq
+--     exact Nat.le_pred_of_lt h
+--   · congr; omega
 
-theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
-    (as.insertAt i v)[k] = as[k] := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
-  exact hlt
+-- private theorem get_insertAt_loop_gt_le (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
+--     (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : i < k) (hle : k ≤ j) :
+--     (insertAt.loop as i bs j)[k] = bs[k-1] := by
+--   unfold insertAt.loop
+--   split
+--   · next h =>
+--     if h0 : k = j then
+--       cases h0
+--       have h1 : j.val ≠ j - 1 := by omega
+--       rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_pos rfl]; rfl
+--       exact Nat.pred_lt_of_lt hgt
+--     else
+--       have h1 : k - 1 ≠ j - 1 := by omega
+--       have h2 : k - 1 ≠ j := by omega
+--       rw [get_insertAt_loop_gt_le, getElem_swap, if_neg h1, if_neg h2]
+--       apply Nat.le_of_lt_add_one
+--       rw [Nat.sub_one_add_one]
+--       exact Nat.lt_of_le_of_ne hle h0
+--       exact Nat.not_eq_zero_of_lt h
+--       exact hgt
+--   · next h =>
+--     absurd h
+--     exact Nat.lt_of_lt_of_le hgt hle
 
-theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
-    (as.insertAt i v)[k] = as[k - 1] := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
-  exact hgt
-  rw [size_insertAt] at hk
-  exact Nat.le_of_lt_succ hk
+-- theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
+--     (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
+--     (as.insertAt i v)[k] = as[k] := by
+--   simp only [insertAt]
+--   rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
+--   exact hlt
 
-theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
-    (as.insertAt i v)[k] = v := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
-  exact heq
-  exact Nat.le_of_lt_succ i.is_lt
+-- theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
+--     (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
+--     (as.insertAt i v)[k] = as[k - 1] := by
+--   simp only [insertAt]
+--   rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
+--   exact hgt
+--   rw [size_insertAt] at hk
+--   exact Nat.le_of_lt_succ hk
+
+-- theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
+--     (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
+--     (as.insertAt i v)[k] = v := by
+--   simp only [insertAt]
+--   rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
+--   exact heq
+--   exact Nat.le_of_lt_succ i.is_lt
