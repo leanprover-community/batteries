@@ -328,6 +328,9 @@ theorem WF.mapVal {α β γ} {f : α → β → γ} [BEq α] [Hashable α]
     intro a m
     apply h₂.2 _ _ _ m
 
+-- FIXME: comment out, as broken by leanprover/lean4#6123
+
+/-
 theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable α]
     {m : Imp α β} (H : WF m) : WF (filterMap f m) := by
   let g₁ (l : AssocList α β) := l.toList.filterMap (fun x => (f x.1 x.2).map (x.1, ·))
@@ -379,6 +382,8 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     rintro _ _ h' _ _ rfl
     exact this _ h'
 
+-/
+
 end Imp
 
 variable {_ : BEq α} {_ : Hashable α}
@@ -387,6 +392,8 @@ variable {_ : BEq α} {_ : Hashable α}
 @[inline] def mapVal (f : α → β → γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.mapVal f, self.2.mapVal⟩
 
+-- FIXME: comment out, as broken by leanprover/lean4#6123
+/-
 /--
 Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` then
 `a, c` is pushed into the new map; else the key is removed from the map.
@@ -394,6 +401,8 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
 @[inline] def filterMap (f : α → β → Option γ) (self : HashMap α β) : HashMap α γ :=
   ⟨self.1.filterMap f, self.2.filterMap⟩
 
+
 /-- Constructs a map with the set of all pairs `a, b` such that `f` returns true. -/
 @[inline] def filter (f : α → β → Bool) (self : HashMap α β) : HashMap α β :=
   self.filterMap fun a b => bif f a b then some b else none
+-/
