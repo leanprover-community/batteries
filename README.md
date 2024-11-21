@@ -6,7 +6,7 @@ The "batteries included" extended library for Lean 4. This is a collection of da
 
 To use `batteries` in your project, add the following to your `lakefile.lean`:
 ```lean
-require "leanprover-community" / "batteries" @ "main"
+require "leanprover-community" / "batteries" @ git "main"
 ```
 Or add the following to your `lakefile.toml`:
 ```toml
