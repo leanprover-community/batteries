@@ -139,8 +139,8 @@ theorem getElem_insertIdx_loop_eq {as : Array α} {i : Nat} {j : Nat} {hj : j < 
     · have t : ¬ i ≤ j := by omega
       simp [t]
 
-theorem getElem_insertIdx_loop_gt {as : Array α} {i : Nat} {j : Nat} {hj : j < as.size} {k : Nat} {h}
-    (w : i < k) :
+theorem getElem_insertIdx_loop_gt {as : Array α} {i : Nat} {j : Nat} {hj : j < as.size}
+    {k : Nat} {h} (w : i < k) :
     (insertIdx.loop i as ⟨j, hj⟩)[k] =
       if k ≤ j then as[k-1]'(by simp at h; omega) else as[k]'(by simpa using h) := by
   unfold insertIdx.loop
