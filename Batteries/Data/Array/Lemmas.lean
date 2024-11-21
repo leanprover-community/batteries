@@ -93,12 +93,6 @@ theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
-/-! ### append -/
-
-alias append_empty := append_nil
-
-alias empty_append := nil_append
-
 /-! ### insertAt -/
 
 private theorem size_insertAt_loop (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size) :
