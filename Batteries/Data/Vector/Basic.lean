@@ -263,9 +263,6 @@ proof_wanted instLawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α
 @[inline] def reverse (v : Vector α n) : Vector α n :=
   ⟨v.toArray.reverse, by simp⟩
 
--- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
--- and am hoping it is not necessary to get Mathlib working again
-
 /-- Delete an element of a vector using a `Nat` index and a tactic provided proof. -/
 @[inline] def eraseIdx (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) :
     Vector α (n-1) :=
