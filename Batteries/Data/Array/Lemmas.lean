@@ -90,9 +90,6 @@ theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
--- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
--- and am hoping it is not necessary to get Mathlib working again
-
 /-! ### insertAt -/
 
 @[simp] private theorem size_insertIdx_loop (as : Array α) (i : Nat) (j : Fin as.size) :
@@ -105,6 +102,8 @@ theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 @[simp] theorem size_insertIdx (as : Array α) (i : Nat) (h : i ≤ as.size) (v : α) :
     (as.insertIdx i v).size = as.size + 1 := by
   rw [insertIdx, size_insertIdx_loop, size_push]
+
+@[deprecated size_insertIdx (since := "2024-11-20")] alias size_insertAt := size_insertIdx
 
 theorem getElem_insertIdx_loop_lt {as : Array α} {i : Nat} {j : Fin as.size} {k : Nat} {h}
     (w : k < i) :
@@ -189,102 +188,43 @@ theorem getElem_insertIdx (as : Array α) (i : Nat) (h : i ≤ as.size) (v : α)
       if h₁ : k < i then
         as[k]'(by omega)
       else
-        if h₂ : k = i ∨ k - 1 ≥ as.size then
+        if h₂ : k = i then
           v
         else
-          as[k - 1] := by
+          as[k - 1]'(by simp at h'; omega) := by
   unfold insertIdx
   rw [getElem_insertIdx_loop]
-  simp at h'
+  simp only [size_insertIdx] at h'
   replace h' : k ≤ as.size := by omega
-  simp [h, h', getElem_push]
+  simp only [getElem_push, h, ↓reduceIte, Nat.lt_irrefl, ↓reduceDIte, h', dite_eq_ite]
   split <;> rename_i h₁
   · rw [dif_pos (by omega)]
   · split <;> rename_i h₂
     · simp [h₂]
     · split <;> rename_i h₃
-      · rw [dif_neg]
-        omega
-      · rw [dif_pos]
-        omega
+      · rfl
+      · omega
 
-private theorem get_insertAt_loop_lt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (h : k < i) :
-    (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
-  unfold insertAt.loop
-  split
-  · have h1 : k ≠ j - 1 := by omega
-    have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_lt, getElem_swap, if_neg h1, if_neg h2]
-    exact h
-  · rfl
+theorem getElem_insertIdx_lt (as : Array α) (i : Nat) (h : i ≤ as.size) (v : α)
+    (k) (h' : k < (as.insertIdx i v).size) (h : k < i) :
+    (as.insertIdx i v)[k] = as[k] := by
+  simp [getElem_insertIdx, h]
 
-private theorem get_insertAt_loop_gt (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : j < k) :
-    (insertAt.loop as i bs j)[k] = bs[k]'(size_insertAt_loop .. ▸ hk) := by
-  unfold insertAt.loop
-  split
-  · have h1 : k ≠ j - 1 := by omega
-    have h2 : k ≠ j := by omega
-    rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_neg h2]
-    exact Nat.lt_of_le_of_lt (Nat.pred_le _) hgt
-  · rfl
+@[deprecated getElem_insertIdx_lt (since := "2024-11-20")] alias getElem_insertAt_lt :=
+getElem_insertIdx_lt
 
-private theorem get_insertAt_loop_eq (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (heq : i = k) (h : i.val ≤ j.val) :
-    (insertAt.loop as i bs j)[k] = bs[j] := by
-  unfold insertAt.loop
-  split
-  · next h =>
-    rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_swap, if_pos rfl]
-    exact heq
-    exact Nat.le_pred_of_lt h
-  · congr; omega
+theorem getElem_insertIdx_eq (as : Array α) (i : Nat) (h : i ≤ as.size) (v : α) :
+    (as.insertIdx i v)[i]'(by simp; omega) = v := by
+  simp [getElem_insertIdx, h]
 
-private theorem get_insertAt_loop_gt_le (as : Array α) (i : Fin (as.size+1)) (j : Fin bs.size)
-    (k) (hk : k < (insertAt.loop as i bs j).size) (hgt : i < k) (hle : k ≤ j) :
-    (insertAt.loop as i bs j)[k] = bs[k-1] := by
-  unfold insertAt.loop
-  split
-  · next h =>
-    if h0 : k = j then
-      cases h0
-      have h1 : j.val ≠ j - 1 := by omega
-      rw [get_insertAt_loop_gt, getElem_swap, if_neg h1, if_pos rfl]; rfl
-      exact Nat.pred_lt_of_lt hgt
-    else
-      have h1 : k - 1 ≠ j - 1 := by omega
-      have h2 : k - 1 ≠ j := by omega
-      rw [get_insertAt_loop_gt_le, getElem_swap, if_neg h1, if_neg h2]
-      apply Nat.le_of_lt_add_one
-      rw [Nat.sub_one_add_one]
-      exact Nat.lt_of_le_of_ne hle h0
-      exact Nat.not_eq_zero_of_lt h
-      exact hgt
-  · next h =>
-    absurd h
-    exact Nat.lt_of_lt_of_le hgt hle
+@[deprecated getElem_insertIdx_eq (since := "2024-11-20")] alias getElem_insertAt_eq :=
+getElem_insertIdx_eq
 
-theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
-    (as.insertAt i v)[k] = as[k] := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
-  exact hlt
+theorem getElem_insertIdx_gt (as : Array α) (i : Nat) (h : i ≤ as.size) (v : α)
+    (k) (h' : k < (as.insertIdx i v).size) (h : i < k) :
+    (as.insertIdx i v)[k] = as[k-1]'(by simp at h'; omega) := by
+  rw [getElem_insertIdx]
+  rw [dif_neg (by omega), dif_neg (by omega)]
 
-theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
-    (as.insertAt i v)[k] = as[k - 1] := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
-  exact hgt
-  rw [size_insertAt] at hk
-  exact Nat.le_of_lt_succ hk
-
-theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
-    (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
-    (as.insertAt i v)[k] = v := by
-  simp only [insertAt]
-  rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
-  exact heq
-  exact Nat.le_of_lt_succ i.is_lt
+@[deprecated getElem_insertIdx_gt (since := "2024-11-20")] alias getElem_insertAt_gt :=
+getElem_insertIdx_gt
