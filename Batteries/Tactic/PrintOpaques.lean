@@ -46,44 +46,25 @@ partial def collect (c : Name) : M Unit := do
 end CollectOpaques
 
 /--
-The command `#print opaques X` prints all opaque and partial definitions that `X` depends on.
+The command `#print opaques X` prints all opaque definitions that `X` depends on.
 
-For example, the follwing command prints all opaque and partial definitions that `Classical.choose`
-depends on.
-```
-#print opaques Classical.choose
-```
-The output is:
-```
-'Classical.choose' depends on opaque or partial definitions: [Classical.choice]
-```
+Opaque definitions include partial definitions and axioms. Only dependencies that occur in a
+computationally relevant context are listed, occurrences within proof terms are omitted. This is
+useful to determine whether and how a definition is possibly platform dependent, possibly partial,
+or possibly noncomputable.
 
-Opaque and partial definitions that occur in a computationally irrelevant context are ignored.
-For example,
-```
-#print opaques Classical.em
-```
-outputs `'Classical.em' does not use any opaque or partial definitions`. But
-```
-#print axioms Classical.em
-```
-reveals that `'Classical.em' depends on axioms: [propext, Classical.choice, Quot.sound]`. The
-reason is that `Classical.em` is a `Prop` and it is itself computationally irrelevant.
+The command `#print opaques Std.HashMap.insert` shows that `Std.HashMap.insert` depends on the
+opaque definitions: `System.Platform.getNumBits` and `UInt64.toUSize`. Thus `Std.HashMap.insert`
+may have different behavior when compiled on a 32 bit or 64 bit platform.
 
-Axioms are not the only opaque definitions. In fact, the outputs of `#print axioms` and
-`#print opaques` are often quite different.
-```
-#print opaques Std.HashMap.insert
-```
-show that `'Std.HashMap.insert' depends on opaque or partial definitions:
-[System.Platform.getNumBits, UInt64.toUSize]`. But
-```
-#print axioms Std.HashMap.insert
-```
-gives `'Std.HashMap.insert' depends on axioms: [propext, Classical.choice, Quot.sound]`. The axioms
-`propext` and `Quot.sound` are computationally irrelevant. The axiom `Classical.choice` is
-computationally relevant. The reason it does not appear in the list of opaques is that it is only
-used inside proofs of propositions, so it is not used in a computationally relevant context.
+The command `#print opaques Stream.forIn` shows that `Stream.forIn` is possibly partial since it
+depends on the partial definition `Stream.forIn.visit`. Indeed, `Stream.forIn` may not terminate
+when the input stream is unbounded.
+
+The command `#print opaques Classical.choice` shows that `Classical.choice` is itself an opaque
+definition: it is an axiom. However, `#print opaques Classical.axiomOfChoice` returns nothing
+since it is a proposition, hence not computationally relevant. (The command `#print axioms` does
+reveal that `Classical.axiomOfChoice` depends on the `Classical.choice` axiom.)
 -/
 elab "#print" &"opaques" name:ident : command => do
   let constName ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo name

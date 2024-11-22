@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Nat.Gcd
-import Batteries.Lean.Float
 
 /-! # Basics for the Rational Numbers -/
 
@@ -278,18 +277,4 @@ protected def ceil (a : Rat) : Int :=
   else
     a.num / a.den + 1
 
-/-- Convert this rational number to a `Float` value. -/
-protected def toFloat (a : Rat) : Float := a.num.divFloat a.den
-
-/-- Convert this floating point number to a rational value. -/
-protected def _root_.Float.toRat? (a : Float) : Option Rat :=
-  a.toRatParts.map fun (v, exp) =>
-    mkRat (v.sign * v.natAbs <<< exp.toNat) (1 <<< (-exp).toNat)
-
-/--
-Convert this floating point number to a rational value,
-mapping non-finite values (`inf`, `-inf`, `nan`) to 0.
--/
-protected def _root_.Float.toRat0 (a : Float) : Rat := a.toRat?.getD 0
-
-instance : Coe Rat Float := ⟨Rat.toFloat⟩
+end Rat

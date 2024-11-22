@@ -36,7 +36,7 @@ theorem update_update (self : Buckets α β) (i d d' h h') :
   rw [Array.set_set]
 
 theorem size_eq (data : Buckets α β) :
-  size data = .sum (data.1.toList.map (·.toList.length)) := rfl
+  size data = (data.1.toList.map (·.toList.length)).sum := rfl
 
 theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
   simp only [mk, mkArray, size_eq]; clear h
@@ -52,8 +52,8 @@ theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : 
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
       (buckets.1[i].toList.Pairwise fun a b => ¬(a.1 == b.1)) →
       d.toList.Pairwise fun a b => ¬(a.1 == b.1))
-    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) →
-      d.All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i.toNat) :
+    (h₂ : (buckets.1[i].All fun k _ => ((hash k).toUSize % .ofNat buckets.1.size).toNat = i.toNat) →
+      d.All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i.toNat) :
     (buckets.update i d h).WF := by
   refine ⟨fun l hl => ?_, fun i hi p hp => ?_⟩
   · exact match List.mem_or_eq_of_mem_set hl with
@@ -93,7 +93,7 @@ theorem expand_size [Hashable α] {buckets : Buckets α β} :
 where
   go (i source) (target : Buckets α β) (hs : ∀ j < i, source.toList[j]?.getD .nil = .nil) :
       (expand.go i source target).size =
-        .sum (source.toList.map (·.toList.length)) + target.size := by
+        (source.toList.map (·.toList.length)).sum + target.size := by
     unfold expand.go; split
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b
@@ -107,14 +107,14 @@ where
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
-          List.length_nil, Nat.sum_append, Nat.sum_cons, Nat.zero_add, Array.length_toList]
+          List.length_nil, Nat.sum_append, List.sum_cons, Nat.zero_add, Array.length_toList]
         rw [Nat.add_assoc, Nat.add_assoc, Nat.add_assoc]; congr 1
         (conv => rhs; rw [Nat.add_left_comm]); congr 1
         rw [← Array.getElem_eq_getElem_toList]
         have := @reinsertAux_size α β _; simp [Buckets.size] at this
         induction source[i].toList generalizing target <;> simp [*, Nat.succ_add]; rfl
     · next H =>
-      rw [(_ : Nat.sum _ = 0), Nat.zero_add]
+      rw [(_ : List.sum _ = 0), Nat.zero_add]
       rw [← (_ : source.toList.map (fun _ => .nil) = source.toList)]
       · simp only [List.map_map]
         induction source.toList <;> simp [*]
@@ -163,9 +163,9 @@ where
       (hs₁ : ∀ [LawfulHashable α] [PartialEquivBEq α], ∀ bucket ∈ source.toList,
         bucket.toList.Pairwise fun a b => ¬(a.1 == b.1))
       (hs₂ : ∀ (j : Nat) (h : j < source.size),
-        source[j].All fun k _ => ((hash k).toUSize % source.size).toNat = j)
+        source[j].All fun k _ => ((hash k).toUSize % USize.ofNat source.size).toNat = j)
       {target : Buckets α β} (ht : target.WF ∧ ∀ bucket ∈ target.1.toList,
-        bucket.All fun k _ => ((hash k).toUSize % source.size).toNat < i) :
+        bucket.All fun k _ => ((hash k).toUSize % USize.ofNat source.size).toNat < i) :
       (expand.go i source target).WF := by
     unfold expand.go; split
     · next H =>
@@ -178,7 +178,7 @@ where
         split
         · nofun
         · exact hs₂ _ (by simp_all)
-      · let rank (k : α) := ((hash k).toUSize % source.size).toNat
+      · let rank (k : α) := ((hash k).toUSize % USize.ofNat source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
         · simp only [Array.get_eq_getElem, AssocList.foldl_eq, Array.size_set]
           exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩
@@ -267,7 +267,7 @@ theorem erase_size [BEq α] [Hashable α] {m : Imp α β} {k}
     simp only [h, Buckets.size]
     refine have ⟨_, _, h₁, _, eq⟩ := Buckets.exists_of_update ..; eq ▸ ?_
     simp only [h₁, Array.length_toList, Array.ugetElem_eq_getElem, List.map_append, List.map_cons,
-      Nat.sum_append, Nat.sum_cons, AssocList.toList_erase]
+      Nat.sum_append, List.sum_cons, AssocList.toList_erase]
     rw [(_ : List.length _ = _ + 1), Nat.add_right_comm]; {rfl}
     clear h₁ eq
     simp only [AssocList.contains_eq, List.any_eq_true] at H
@@ -347,7 +347,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
   let M := StateT (ULift Nat) Id
   have H2 (l : List (AssocList α β)) n :
       l.mapM (m := M) (filterMap.go f .nil) n =
-      (l.map g, ⟨n.1 + .sum ((l.map g).map (·.toList.length))⟩) := by
+      (l.map g, ⟨n.1 + ((l.map g).map (·.toList.length)).sum⟩) := by
     induction l generalizing n with
     | nil => rfl
     | cons l L IH => simp [bind, StateT.bind, IH, H1, Nat.add_assoc, g]; rfl

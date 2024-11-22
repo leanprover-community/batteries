@@ -36,89 +36,6 @@ theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.len
     exact ih last_idx
     exact fun _ => nomatch xs
 
-/-! ### modifyHead -/
-
-@[simp] theorem modifyHead_modifyHead (l : List α) (f g : α → α) :
-    (l.modifyHead f).modifyHead g = l.modifyHead (g ∘ f) := by cases l <;> simp [modifyHead]
-
-/-! ### modify -/
-
-@[simp] theorem modify_nil (f : α → α) (n) : [].modify f n = [] := by cases n <;> rfl
-
-@[simp] theorem modify_zero_cons (f : α → α) (a : α) (l : List α) :
-    (a :: l).modify f 0 = f a :: l := rfl
-
-@[simp] theorem modify_succ_cons (f : α → α) (a : α) (l : List α) (n) :
-    (a :: l).modify f (n + 1) = a :: l.modify f n := by rfl
-
-theorem modifyTailIdx_id : ∀ n (l : List α), l.modifyTailIdx id n = l
-  | 0, _ => rfl
-  | _+1, [] => rfl
-  | n+1, a :: l => congrArg (cons a) (modifyTailIdx_id n l)
-
-theorem eraseIdx_eq_modifyTailIdx : ∀ n (l : List α), eraseIdx l n = modifyTailIdx tail n l
-  | 0, l => by cases l <;> rfl
-  | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (cons _) (eraseIdx_eq_modifyTailIdx _ _)
-
-theorem getElem?_modify (f : α → α) :
-    ∀ n (l : List α) m, (modify f n l)[m]? = (fun a => if n = m then f a else a) <$> l[m]?
-  | n, l, 0 => by cases l <;> cases n <;> simp
-  | n, [], _+1 => by cases n <;> rfl
-  | 0, _ :: l, m+1 => by cases h : l[m]? <;> simp [h, modify, m.succ_ne_zero.symm]
-  | n+1, a :: l, m+1 => by
-    simp only [modify_succ_cons, getElem?_cons_succ, Nat.reduceEqDiff, Option.map_eq_map]
-    refine (getElem?_modify f n l m).trans ?_
-    cases h' : l[m]? <;> by_cases h : n = m <;>
-      simp [h, if_pos, if_neg, Option.map, mt Nat.succ.inj, not_false_iff, h']
-
-theorem length_modifyTailIdx (f : List α → List α) (H : ∀ l, length (f l) = length l) :
-    ∀ n l, length (modifyTailIdx f n l) = length l
-  | 0, _ => H _
-  | _+1, [] => rfl
-  | _+1, _ :: _ => congrArg (·+1) (length_modifyTailIdx _ H _ _)
-
-theorem modifyTailIdx_add (f : List α → List α) (n) (l₁ l₂ : List α) :
-    modifyTailIdx f (l₁.length + n) (l₁ ++ l₂) = l₁ ++ modifyTailIdx f n l₂ := by
-  induction l₁ <;> simp [*, Nat.succ_add]
-
-theorem exists_of_modifyTailIdx (f : List α → List α) {n} {l : List α} (h : n ≤ l.length) :
-    ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n ∧ modifyTailIdx f n l = l₁ ++ f l₂ :=
-  have ⟨_, _, eq, hl⟩ : ∃ l₁ l₂, l = l₁ ++ l₂ ∧ l₁.length = n :=
-    ⟨_, _, (take_append_drop n l).symm, length_take_of_le h⟩
-  ⟨_, _, eq, hl, hl ▸ eq ▸ modifyTailIdx_add (n := 0) ..⟩
-
-@[simp] theorem length_modify (f : α → α) : ∀ n l, length (modify f n l) = length l :=
-  length_modifyTailIdx _ fun l => by cases l <;> rfl
-
-@[simp] theorem getElem?_modify_eq (f : α → α) (n) (l : List α) :
-    (modify f n l)[n]? = f <$> l[n]? := by
-  simp only [getElem?_modify, if_pos]
-
-@[simp] theorem getElem?_modify_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (modify f m l)[n]? = l[n]? := by
-  simp only [getElem?_modify, if_neg h, id_map']
-
-theorem exists_of_modify (f : α → α) {n} {l : List α} (h : n < l.length) :
-    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ modify f n l = l₁ ++ f a :: l₂ :=
-  match exists_of_modifyTailIdx _ (Nat.le_of_lt h) with
-  | ⟨_, _::_, eq, hl, H⟩ => ⟨_, _, _, eq, hl, H⟩
-  | ⟨_, [], eq, hl, _⟩ => nomatch Nat.ne_of_gt h (eq ▸ append_nil _ ▸ hl)
-
-theorem modifyTailIdx_eq_take_drop (f : List α → List α) (H : f [] = []) :
-    ∀ n l, modifyTailIdx f n l = take n l ++ f (drop n l)
-  | 0, _ => rfl
-  | _ + 1, [] => H.symm
-  | n + 1, b :: l => congrArg (cons b) (modifyTailIdx_eq_take_drop f H n l)
-
-theorem modify_eq_take_drop (f : α → α) :
-    ∀ n l, modify f n l = take n l ++ modifyHead f (drop n l) :=
-  modifyTailIdx_eq_take_drop _ rfl
-
-theorem modify_eq_take_cons_drop (f : α → α) {n l} (h : n < length l) :
-    modify f n l = take n l ++ f l[n] :: drop (n + 1) l := by
-  rw [modify_eq_take_drop, drop_eq_getElem_cons h]; rfl
-
 /-! ### set -/
 
 theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ => a) n l
@@ -128,7 +45,7 @@ theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ 
 
 theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
-  rw [set_eq_modify, modify_eq_take_cons_drop _ h]
+  rw [set_eq_modify, modify_eq_take_cons_drop h]
 
 theorem modify_eq_set_get? (f : α → α) :
     ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
@@ -328,7 +245,7 @@ theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem
 theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
   simp only [product, and_imp, mem_map, Prod.mk.injEq,
-    exists_eq_right_right, mem_bind, iff_self]
+    exists_eq_right_right, mem_flatMap, iff_self]
 
 /-! ### monadic operations -/
 
@@ -591,16 +508,6 @@ theorem insertP_loop (a : α) (l r : List α) :
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
 
-/-! ### foldlM and foldrM -/
-
-theorem foldlM_map [Monad m] (f : β₁ → β₂) (g : α → β₂ → m α) (l : List β₁) (init : α) :
-    (l.map f).foldlM g init = l.foldlM (fun x y => g x (f y)) init := by
-  induction l generalizing g init <;> simp [*]
-
-theorem foldrM_map [Monad m] [LawfulMonad m] (f : β₁ → β₂) (g : β₂ → α → m α) (l : List β₁)
-    (init : α) : (l.map f).foldrM g init = l.foldrM (fun x y => g (f x) y) init := by
-  induction l generalizing g init <;> simp [*]
-
 /-! ### deprecations -/
 
 @[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
@@ -617,7 +524,6 @@ theorem get?_inj
 @[deprecated (since := "2024-10-21")] alias modifyNth_succ_cons := modify_succ_cons
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
-@[deprecated (since := "2024-05-06")] alias removeNth_eq_nth_tail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
 @[deprecated getElem?_modify (since := "2024-06-12")]
 theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
@@ -667,5 +573,3 @@ theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get
 theorem get?_set (a : α) {m n} (l : List α) :
     (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
   simp [getElem?_set']; rfl
-@[deprecated (since := "2024-05-06")] alias length_removeNth := length_eraseIdx
-@[deprecated (since := "2024-04-22")] alias sublist.erase := Sublist.erase

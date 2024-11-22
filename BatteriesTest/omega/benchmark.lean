@@ -4,7 +4,7 @@
 
 As it's important that `omega` is fast, particularly when it has nothing to do,
 this file maintains a benchmark suite for `omega`. It is particularly low-tech,
-and currently only reproducible on Scott Morrison's FRO machine;
+and currently only reproducible on Kim Morrison's FRO machine;
 nevertheless it seems useful to keep the benchmark history in the repository.
 
 The benchmark file consists of the test suite from `omega`'s initial release,

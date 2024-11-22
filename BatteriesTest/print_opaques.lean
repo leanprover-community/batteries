@@ -21,16 +21,16 @@ info: 'quux' depends on opaque or partial definitions: [qux]
 /-! Examples from the documentation. -/
 
 /--
-info: 'Classical.choose' depends on opaque or partial definitions: [Classical.choice]
+info: 'Classical.choice' depends on opaque or partial definitions: [Classical.choice]
 -/
 #guard_msgs in
-#print opaques Classical.choose
+#print opaques Classical.choice
 
 /--
-info: 'Classical.em' does not use any opaque or partial definitions
+info: 'Classical.axiomOfChoice' does not use any opaque or partial definitions
 -/
 #guard_msgs in
-#print opaques Classical.em
+#print opaques Classical.axiomOfChoice
 
 /--
 info: 'Std.HashMap.insert' depends on opaque or partial definitions: [System.Platform.getNumBits,
@@ -38,3 +38,9 @@ UInt64.toUSize]
 -/
 #guard_msgs in
 #print opaques Std.HashMap.insert
+
+/--
+info: 'Stream.forIn' depends on opaque or partial definitions: [Stream.forIn.visit]
+-/
+#guard_msgs in
+#print opaques Stream.forIn

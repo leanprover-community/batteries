@@ -8,8 +8,6 @@ import Batteries.Tactic.Alias
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
-@[deprecated (since := "2024-03-15")] alias proofIrrel := proof_irrel
-
 /-! ## id -/
 
 theorem Function.id_def : @id α = fun x => x := rfl
@@ -57,9 +55,6 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
 @[deprecated (since := "2024-10-17")]
 protected alias Function.funext_iff := funext_iff
 
-theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
-  mt <| congrArg _
-
 protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
   subst h₁; subst h₂; rfl
 
@@ -101,17 +96,6 @@ theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' 
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
   subst e; rfl
-
-/-! ## membership -/
-
-section Mem
-variable [Membership α β] {s t : β} {a b : α}
-
-theorem ne_of_mem_of_not_mem (h : a ∈ s) : b ∉ s → a ≠ b := mt fun e => e ▸ h
-
-theorem ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt fun e => e ▸ h
-
-end Mem
 
 /-! ## miscellaneous -/
 
