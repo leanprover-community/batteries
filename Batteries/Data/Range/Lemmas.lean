@@ -45,11 +45,6 @@ theorem mem_range'_elems (r : Range) (h : x ∈ List.range' r.start r.numElems r
     refine Nat.not_le.1 fun h =>
       Nat.not_le.2 h' <| (numElems_le_iff (Nat.pos_of_ne_zero step0)).2 h
 
--- FIXME: temporarily commented out; I've broken this on nightly-2024-11-20,
--- and am hoping it is not necessary to get Mathlib working again
-
-/-
-
 theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
     (init : β) (f : (a : Nat) → a ∈ r → β → m (ForInStep β)) :
     forIn' r init f =
@@ -62,12 +57,15 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
   suffices ∀ H, forIn' [start:stop:step] init f = forIn (L.pmap Subtype.mk H) init f' from this _
   intro H; dsimp only [forIn', Range.forIn']
   if h : start < stop then
-    simp [numElems, Nat.not_le.2 h, L]; split
+    simp only [numElems, Nat.not_le.2 h, ↓reduceIte, L]; split
     · subst step
       suffices ∀ n H init,
           forIn'.loop start stop 0 f n start (Nat.le_refl _) init =
           forIn ((List.range' start n 0).pmap Subtype.mk H) init f' from this _ ..
-      intro n; induction n with (intro H init; unfold forIn'.loop; simp [*])
+      intro n; induction n with
+        (intro H init
+         unfold forIn'.loop
+         simp only [↓reduceDIte, Nat.add_zero, List.pmap, List.forIn_cons, List.forIn_nil, h])
       | succ n ih => simp [ih (List.forall_mem_cons.1 H).2]; rfl
     · next step0 =>
       have hstep := Nat.pos_of_ne_zero step0
@@ -89,10 +87,15 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
           have ih := ih _ _ (Nat.le_trans hle (Nat.le_add_right ..))
             (List.forall_mem_cons.1 H).2 (Nat.le_of_succ_le_succ h1) fun i => by
               rw [Nat.add_right_comm, Nat.add_assoc, ← Nat.mul_succ, h2, Nat.succ_le_succ_iff]
-          have := h2 0; simp at this
-          rw [forIn'.loop]; simp [this, ih]; rfl
+          have := h2 0
+          simp only [Nat.mul_zero, Nat.add_zero, Nat.le_zero_eq, Nat.add_one_ne_zero, iff_false,
+            Nat.not_le] at this
+          rw [forIn'.loop]
+          simp only [this, ↓reduceDIte, ih, List.pmap, List.forIn_cons]
+          rfl
   else
-    simp [List.range', h, numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h), L]
+    simp only [numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h), List.range'_zero,
+      List.pmap, List.forIn_nil, L]
     cases stop <;> unfold forIn'.loop <;> simp [List.forIn', h]
 
 theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
@@ -102,5 +105,3 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
   · simp [forIn, forIn']
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
     intro L; induction L generalizing init <;> intro H <;> simp [*]
-
--/
