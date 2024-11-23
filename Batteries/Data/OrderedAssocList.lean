@@ -17,7 +17,7 @@ As a consequence, an `OrderedAssocList` is determined by the lookup function `l[
 and this makes proving identities between operations much easier than with `AssocList`.
 
 As the operations on `OrderedAssocList` are defined in terms of `AssocList`,
-they evaluate well in the kernel, but inherit the `O(n)` time complexity
+they evaluate in the kernel, but inherit the `O(n)` time complexity
 (i.e. are not suitable for large data). Their advantage relative to an ordered map is the
 simple extensionality property above.
 
