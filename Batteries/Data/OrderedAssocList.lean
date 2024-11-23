@@ -12,15 +12,15 @@ import Batteries.Classes.Order
 `OrderedAssocList` is a wrapper around `AssocList`,
 with the additional invariant that the keys are in strictly increasing order.
 
-As a consequence, an `OrderedAssocList` is determined by the `find?` function, that is
-`(∀ a, l₁.find? a = l₂.find? a) → l₁ = l₂`
-and this makes providing identities between operations more plausible than with `AssocList`.
+As a consequence, an `OrderedAssocList` is determined by the lookup function `l[x]?`, that is
+`(∀ a, l₁[a]? = l₂[a]?) → l₁ = l₂`
+and this makes proving identities between operations much easier than with `AssocList`.
 
 We will later add another wrapper requiring that a "default" value does not appear,
 so e.g. finitely supported functions can be uniquely represented.
 
 The main operations defined are:
-* `find?`, which linearly searches the list, stopping if the keys get too large.
+* `l[x]?`, which linearly searches the list, stopping if the keys get too large.
 * `insert`, which inserts a new key-value pair, maintaining the order invariant.
 * `filterMapVal f`, for `f : α → β → Option γ`, which applies a function to values,
   dropping some values.
@@ -60,8 +60,6 @@ abbrev ltHeadKey? (cmp : α → α → Ordering) (a : α) (t : AssocList α β) 
     ltHeadKey? cmp a (.nil : AssocList α β) = True := rfl
 @[simp] theorem ltHeadKey?_cons : ltHeadKey? cmp a (.cons x y t) = (cmp a x = .lt) := rfl
 
--- TODO redefine using ltHeadKey?
-
 /--
 The predicate that the keys of an `AssocList` are
 in strictly increasing order according to the comparator `cmp`.
@@ -79,7 +77,6 @@ instance instKeysOrderedDecidablePred : DecidablePred (keysOrdered cmp : AssocLi
 
 @[simp] theorem keysOrdered_cons_nil : keysOrdered cmp (.cons a b nil) := trivial
 
--- TODO rename
 theorem keysOrdered.tail (h : keysOrdered cmp (.cons a b t)) : keysOrdered cmp t :=
   match t with
   | .nil => trivial
@@ -109,8 +106,8 @@ theorem ltHeadKey?_of_le [TransCmp cmp] (h : cmp x a ≠ .gt) (w : ltHeadKey? cm
   · exact TransCmp.le_lt_trans h
 
 /--
-The head key of the first list is at most the head key of the second list,
-or the second list is empty.
+A relation on two `AssocList`s, asserting that the head key of the first list is at most
+the head key of the second list, or that the second list is empty.
 -/
 abbrev headKey?_le_headKey?
     (cmp : α → α → Ordering) (s : AssocList α β) (t : AssocList α γ) : Prop :=
@@ -458,14 +455,6 @@ theorem orderedFind?_orderedInsert_self {cmp : α → α → Ordering} [Antisymm
     (orderedInsert cmp l a b).orderedFind? cmp a = some b := by
   simp [h, orderedFind?_orderedInsert, OrientedCmp.cmp_refl]
 
--- theorem orderedInsert_contains {cmp : α → α → Ordering} [BEq α] (l : AssocList α β) (a : α) (b : β) :
---     (l.orderedInsert cmp a b).contains x = ((cmp x a = .eq) || l.contains x) := by
---   sorry
-
--- theorem orderedInsert_contains_self {cmp : α → α → Ordering} [BEq α] (l : AssocList α β) (a : α) (b : β) :
---     (l.orderedInsert cmp a b).contains a = true := by
---   sorry
-
 /--
 If two `AssocList`s have ordered keys
 we can check whether they are equal by checking if their `find?` functions are equal.
@@ -755,16 +744,17 @@ theorem getElem?_insert_self (l : OrderedAssocList cmp β) (a : α) (b : β) :
     (insert l a b)[a]? = some b := by
   simp [getElem?_insert, OrientedCmp.cmp_refl]
 
--- theorem insert_contains (l : OrderedAssocList cmp β) (a : α) (b : β) :
---     (l.insert a b).contains x = ((cmp x a = .eq) || l.contains x) := by
---   simp only [contains, find?_insert]
---   split <;> rename_i h
---   · simp [h]
---   · cases find? l x <;> simp [h]
+theorem insert_contains (l : OrderedAssocList cmp β) (a : α) (b : β) :
+    (l.insert a b).contains x = ((cmp x a = .eq) || l.contains x) := by
+  rw [contains_def, contains_def]
+  simp only [getElem?_insert]
+  split <;> rename_i h
+  · simp [h]
+  · cases find? l x <;> simp [h]
 
--- theorem insert_contains_self (l : OrderedAssocList cmp β) (a : α) (b : β) :
---     (l.insert a b).contains a = true := by
---   simp [insert_contains, OrientedCmp.cmp_refl]
+theorem insert_contains_self (l : OrderedAssocList cmp β) (a : α) (b : β) :
+    (l.insert a b).contains a = true := by
+  simp [insert_contains, OrientedCmp.cmp_refl]
 
 end insert
 
@@ -979,7 +969,7 @@ where
     | none, none => none
 
 -- This statement will look better on a version of `OrderedAssocList` with default values,
--- where we can just write `(add l₁ l₂).find a = l₁.find a + l₂.find a`.
+-- where we can just write `(add l₁ l₂)[a] = l₁[a] + l₂[a]`.
 
 @[simp] theorem getElem?_add [Add β] {l₁ : OrderedAssocList cmp β} {a : α} :
     (add l₁ l₂)[a]? =
