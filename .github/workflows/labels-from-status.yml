@@ -34,6 +34,7 @@ jobs:
       if: github.event.pull_request.state == 'closed'
       uses: actions-ecosystem/action-remove-labels@v1
       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         labels: |
           WIP
           awaiting-author
@@ -48,6 +49,7 @@ jobs:
         ! contains(github.event.pull_request.labels.*.name, 'WIP')
       uses: actions-ecosystem/action-add-labels@v1
       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         labels: WIP
 
     - name: Label unlabeled other PR as awaiting-review
@@ -59,4 +61,5 @@ jobs:
         ! contains(github.event.pull_request.labels.*.name, 'WIP')
       uses: actions-ecosystem/action-add-labels@v1
       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         labels: awaiting-review
