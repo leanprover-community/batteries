@@ -3,8 +3,8 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
-import Batteries.Data.List.Init.Attach
 import Batteries.Data.Array.Init.Lemmas
+import Batteries.Tactic.Alias
 
 /-!
 ## Definitions on Arrays
@@ -15,10 +15,6 @@ proofs about these definitions, those are contained in other files in `Batteries
 
 namespace Array
 
-/-- Drop `none`s from a Array, and replace each remaining `some a` with `a`. -/
-def reduceOption (l : Array (Option α)) : Array α :=
-  l.filterMap id
-
 /--
 Check whether `xs` and `ys` are equal as sets, i.e. they contain the same
 elements when disregarding order and duplicates. `O(n*m)`! If your element type
@@ -27,13 +23,6 @@ arrays, remove duplicates and then compare them elementwise.
 -/
 def equalSet [BEq α] (xs ys : Array α) : Bool :=
   xs.all (ys.contains ·) && ys.all (xs.contains ·)
-
-set_option linter.unusedVariables.funArgs false in
-/--
-Sort an array using `compare` to compare elements.
--/
-def qsortOrd [ord : Ord α] (xs : Array α) : Array α :=
-  xs.qsort fun x y => compare x y |>.isLT
 
 set_option linter.unusedVariables.funArgs false in
 /--
@@ -130,28 +119,7 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
-/--
-Unsafe implementation of `attachWith`, taking advantage of the fact that the representation of
-`Array {x // P x}` is the same as the input `Array α`.
--/
-@[inline] private unsafe def attachWithImpl
-    (xs : Array α) (P : α → Prop) (_ : ∀ x ∈ xs, P x) : Array {x // P x} := unsafeCast xs
-
-/-- `O(1)`. "Attach" a proof `P x` that holds for all the elements of `xs` to produce a new array
-  with the same elements but in the type `{x // P x}`. -/
-@[implemented_by attachWithImpl] def attachWith
-    (xs : Array α) (P : α → Prop) (H : ∀ x ∈ xs, P x) : Array {x // P x} :=
-  ⟨xs.data.attachWith P fun x h => H x (Array.Mem.mk h)⟩
-
-/-- `O(1)`. "Attach" the proof that the elements of `xs` are in `xs` to produce a new array
-  with the same elements but in the type `{x // x ∈ xs}`. -/
-@[inline] def attach (xs : Array α) : Array {x // x ∈ xs} := xs.attachWith _ fun _ => id
-
-/--
-`O(|join L|)`. `join L` concatenates all the arrays in `L` into one array.
-* `join #[#[a], #[], #[b, c], #[d, e, f]] = #[a, b, c, d, e, f]`
--/
-@[inline] def join (l : Array (Array α)) : Array α := l.foldl (· ++ ·) #[]
+@[deprecated (since := "2024-10-15")] alias join := flatten
 
 /-!
 ### Safe Nat Indexed Array functions
@@ -166,7 +134,7 @@ should prove the index bound.
 A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def setN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : Array α :=
+abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set ⟨i, h⟩ x
 
 /--
@@ -175,7 +143,7 @@ Uses `get_elem_tactic` to supply a proof that the indices are in range.
 `hi` and `hj` are both given a default argument `by get_elem_tactic`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
-def swapN (a : Array α) (i j : Nat)
+abbrev swapN (a : Array α) (i j : Nat)
     (hi : i < a.size := by get_elem_tactic) (hj : j < a.size := by get_elem_tactic) : Array α :=
   Array.swap a ⟨i,hi⟩ ⟨j, hj⟩
 
@@ -184,8 +152,8 @@ def swapN (a : Array α) (i j : Nat)
 The old entry is returned alongwith the modified vector.
 Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasible.
 -/
-def swapAtN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) (x : α) : α × Array α :=
-  swapAt a ⟨i,h⟩ x
+abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
+    α × Array α := swapAt a ⟨i,h⟩ x
 
 /--
 `eraseIdxN a i h` Removes the element at position `i` from a vector of length `n`.
@@ -194,29 +162,23 @@ that the index is valid.
 This function takes worst case O(n) time because it has to backshift all elements at positions
 greater than i.
 -/
-def eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
+abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.feraseIdx ⟨i, h⟩
+
+/--
+Remove the element at a given index from an array, panics if index is out of bounds.
+-/
+def eraseIdx! (a : Array α) (i : Nat) : Array α :=
+  if h : i < a.size then
+    a.feraseIdx ⟨i, h⟩
+  else
+    have : Inhabited (Array α) := ⟨a⟩
+    panic! s!"index {i} out of bounds"
 
 end Array
 
 
 namespace Subarray
-
-/--
-The empty subarray.
--/
-protected def empty : Subarray α where
-  array := #[]
-  start := 0
-  stop := 0
-  start_le_stop := Nat.le_refl 0
-  stop_le_array_size := Nat.le_refl 0
-
-instance : EmptyCollection (Subarray α) :=
-  ⟨Subarray.empty⟩
-
-instance : Inhabited (Subarray α) :=
-  ⟨{}⟩
 
 /--
 Check whether a subarray is empty.

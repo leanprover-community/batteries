@@ -3,11 +3,9 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.BuiltinTerm
-import Lean.Elab.BuiltinNotation
+import Lean.Elab.Tactic.Induction
 import Batteries.Lean.Position
 import Batteries.CodeAction.Attr
-import Lean.Meta.Tactic.TryThis
 import Lean.Server.CodeActions.Provider
 
 /-!
@@ -15,7 +13,7 @@ import Lean.Server.CodeActions.Provider
 
 This declares some basic tactic code actions, using the `@[tactic_code_action]` API.
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Meta Elab Server RequestM CodeAction
 
@@ -236,27 +234,38 @@ def removeAfterDoneAction : TacticCodeAction := fun _ _ _ stk node => do
   pure #[{ eager }]
 
 /--
-Similar to `getElabInfo`, but returns the names of binders instead of just the numbers;
+Similar to `getElimExprInfo`, but returns the names of binders instead of just the numbers;
 intended for code actions which need to name the binders.
 -/
-def getElimNames (inductName declName : Name) : MetaM (Array (Name × Array Name)) := do
-  let inductVal ← getConstInfoInduct inductName
-  let decl ← getConstInfo declName
-  forallTelescopeReducing decl.type fun xs type => do
+def getElimExprNames (elimType : Expr) : MetaM (Array (Name × Array Name)) := do
+  -- let inductVal ← getConstInfoInduct inductName
+  -- let decl ← getConstInfo declName
+  forallTelescopeReducing elimType fun xs type => do
     let motive  := type.getAppFn
     let targets := type.getAppArgs
+    let motiveType ← inferType motive
     let mut altsInfo := #[]
-    for i in [inductVal.numParams:xs.size] do
-      let x := xs[i]!
+    for _h : i in [:xs.size] do
+      let x := xs[i]
       if x != motive && !targets.contains x then
         let xDecl ← x.fvarId!.getDecl
-        let args ← forallTelescopeReducing xDecl.type fun args _ => do
-          let lctx ← getLCtx
-          pure <| args.filterMap fun y =>
-            let yDecl := (lctx.find? y.fvarId!).get!
-            if yDecl.binderInfo.isExplicit then some yDecl.userName else none
-        altsInfo := altsInfo.push (xDecl.userName, args)
+        if xDecl.binderInfo.isExplicit then
+          let args ← forallTelescopeReducing xDecl.type fun args _ => do
+            let lctx ← getLCtx
+            pure <| args.filterMap fun y =>
+              let yDecl := (lctx.find? y.fvarId!).get!
+              if yDecl.binderInfo.isExplicit then some yDecl.userName else none
+          altsInfo := altsInfo.push (xDecl.userName, args)
     pure altsInfo
+
+/-- Finds the `TermInfo` for an elaborated term `stx`. -/
+def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
+  match node.findInfo? fun
+    | .ofTermInfo i => i.stx.getKind == stx.raw.getKind && i.stx.getRange? == stx.raw.getRange?
+    | _ => false
+  with
+  | some (.ofTermInfo info) => pure info
+  | _ => none
 
 /--
 Invoking tactic code action "Generate an explicit pattern match for 'induction'" in the
@@ -278,18 +287,39 @@ It also works for `cases`.
 @[tactic_code_action Parser.Tactic.cases Parser.Tactic.induction]
 def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let .node (.ofTacticInfo info) _ := node | return #[]
-  let (discr, induction, alts) ← match info.stx with
-    | `(tactic| cases $[$_ :]? $e $[$alts:inductionAlts]?) => pure (e, false, alts)
-    | `(tactic| induction $e $[generalizing $_*]? $[$alts:inductionAlts]?) => pure (e, true, alts)
+  let (targets, induction, using_, alts) ← match info.stx with
+    | `(tactic| cases $[$[$_ :]? $targets],* $[using $u]? $(alts)?) =>
+      pure (targets, false, u, alts)
+    | `(tactic| induction $[$targets],* $[using $u]? $[generalizing $_*]? $(alts)?) =>
+      pure (targets, true, u, alts)
     | _ => return #[]
+  let some discrInfos := targets.mapM (findTermInfo? node) | return #[]
+  let some discr₀ := discrInfos[0]? | return #[]
+  let mut some ctors ← discr₀.runMetaM ctx do
+      let targets := discrInfos.map (·.expr)
+      match using_ with
+      | none =>
+        if Tactic.tactic.customEliminators.get (← getOptions) then
+          if let some elimName ← getCustomEliminator? targets induction then
+            return some (← getElimExprNames (← getConstInfo elimName).type)
+        matchConstInduct (← whnf (← inferType discr₀.expr)).getAppFn
+            (fun _ => failure) fun val _ => do
+          let elimName := if induction then mkRecName val.name else mkCasesOnName val.name
+          return some (← getElimExprNames (← getConstInfo elimName).type)
+      | some u =>
+        let some info := findTermInfo? node u | return none
+        return some (← getElimExprNames (← inferType info.expr))
+    | return #[]
+  let mut fallback := none
   if let some alts := alts then
-    -- this detects the incomplete syntax `cases e with`
-    unless alts.raw[2][0][0][0][0].isMissing do return #[]
-  let some (.ofTermInfo discrInfo) := node.findInfo? fun i =>
-    i.stx.getKind == discr.raw.getKind && i.stx.getRange? == discr.raw.getRange?
-    | return #[]
-  let .const name _ := (← discrInfo.runMetaM ctx (do whnf (← inferType discrInfo.expr))).getAppFn
-    | return #[]
+    if let `(Parser.Tactic.inductionAlts| with $(_)? $alts*) := alts then
+      for alt in alts do
+        match alt with
+        | `(Parser.Tactic.inductionAlt| | _ $_* => $fb) => fallback := fb.raw.getRange?
+        | `(Parser.Tactic.inductionAlt| | $id:ident $_* => $_) =>
+          ctors := ctors.filter (fun x => x.1 != id.getId)
+        | _ => pure ()
+  if ctors.isEmpty then return #[]
   let tacName := info.stx.getKind.updatePrefix .anonymous
   let eager := {
     title := s!"Generate an explicit pattern match for '{tacName}'."
@@ -301,15 +331,21 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
     lazy? := some do
       let tacPos := info.stx.getPos?.get!
       let endPos := doc.meta.text.utf8PosToLspPos info.stx.getTailPos?.get!
-      let startPos := if alts.isSome then
-        let stx' := info.stx.setArg (if induction then 4 else 3) mkNullNode
-        doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!
-      else endPos
-      let elimName := if induction then mkRecName name else mkCasesOnName name
-      let ctors ← discrInfo.runMetaM ctx (getElimNames name elimName)
-      let newText := if ctors.isEmpty then "" else Id.run do
-        let mut str := " with"
-        let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+      let indent := "\n".pushn ' ' (findIndentAndIsStart doc.meta.text.source tacPos).1
+      let (startPos, str') := if alts.isSome then
+        let stx' := if fallback.isSome then
+          info.stx.modifyArg (if induction then 4 else 3)
+            (·.modifyArg 0 (·.modifyArg 2 (·.modifyArgs (·.filter fun s =>
+              !(s matches `(Parser.Tactic.inductionAlt| | _ $_* => $_))))))
+        else info.stx
+        (doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!, "")
+      else (endPos, " with")
+      let fallback := if let some ⟨startPos, endPos⟩ := fallback then
+        doc.meta.text.source.extract startPos endPos
+      else
+        "sorry"
+      let newText := Id.run do
+        let mut str := str'
         for (name, args) in ctors do
           let mut ctor := toString name
           if let some _ := (Parser.getTokenTable snap.env).find? ctor then
@@ -324,7 +360,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
           else args
           for arg in args do
             str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-          str := str ++ s!" => sorry"
+          str := str ++ s!" => " ++ fallback
         str
       pure { eager with
         edit? := some <|.ofTextEdit doc.versionedIdentifier {

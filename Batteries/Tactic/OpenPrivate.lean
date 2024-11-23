@@ -99,7 +99,7 @@ name component.
 It is also possible to specify the module instead with
 `open private a b c from Other.Module`.
 -/
-syntax (name := openPrivate) "open private" (ppSpace ident)*
+syntax (name := openPrivate) "open" ppSpace "private" (ppSpace ident)*
   (" in" (ppSpace ident)*)? (" from" (ppSpace ident)*)? : command
 
 /-- Elaborator for `open private`. -/
@@ -119,7 +119,7 @@ It will also open the newly created alias definition under the provided short na
 It is also possible to specify the module instead with
 `export private a b c from Other.Module`.
 -/
-syntax (name := exportPrivate) "export private" (ppSpace ident)*
+syntax (name := exportPrivate) "export" ppSpace "private" (ppSpace ident)*
   (" in" (ppSpace ident)*)? (" from" (ppSpace ident)*)? : command
 
 /-- Elaborator for `export private`. -/

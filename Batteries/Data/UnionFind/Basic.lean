@@ -3,8 +3,14 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.Array.Lemmas
+import Batteries.Tactic.Alias
 import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.SeqFocus
+import Batteries.Util.Panic
+import Batteries.Data.Array.Lemmas
+
+@[deprecated (since := "2024-10-05")]
+protected alias Batteries.UnionFind.panicWith := Batteries.panicWith
 
 namespace Batteries
 
@@ -16,11 +22,6 @@ structure UFNode where
   rank : Nat
 
 namespace UnionFind
-
-/-- Panic with return value -/
-def panicWith (v : α) (msg : String) : α := @panic α ⟨v⟩ msg
-
-@[simp] theorem panicWith_eq (v : α) (msg) : panicWith v msg = v := rfl
 
 /-- Parent of a union-find node, defaults to self when the node is a root -/
 def parentD (arr : Array UFNode) (i : Nat) : Nat :=
@@ -46,13 +47,17 @@ theorem lt_of_parentD : parentD arr i ≠ i → i < arr.size :=
 
 theorem parentD_set {arr : Array UFNode} {x v i} :
     parentD (arr.set x v) i = if x.1 = i then v.parent else parentD arr i := by
-  rw [parentD]; simp [Array.get_eq_getElem, parentD]
-  split <;> [split <;> simp [Array.get_set, *]; split <;> [(subst i; cases ‹¬_› x.2); rfl]]
+  rw [parentD]; simp only [Array.size_set, Array.get_eq_getElem, parentD]
+  split
+  · split <;> simp_all
+  · split <;> [(subst i; cases ‹¬_› x.2); rfl]
 
 theorem rankD_set {arr : Array UFNode} {x v i} :
     rankD (arr.set x v) i = if x.1 = i then v.rank else rankD arr i := by
-  rw [rankD]; simp [Array.get_eq_getElem, rankD]
-  split <;> [split <;> simp [Array.get_set, *]; split <;> [(subst i; cases ‹¬_› x.2); rfl]]
+  rw [rankD]; simp only [Array.size_set, Array.get_eq_getElem, rankD]
+  split
+  · split <;> simp_all
+  · split <;> [(subst i; cases ‹¬_› x.2); rfl]
 
 end UnionFind
 
@@ -123,7 +128,7 @@ abbrev parent (self : UnionFind) (i : Nat) : Nat := parentD self.arr i
 
 theorem parent'_lt (self : UnionFind) (i : Fin self.size) :
     (self.arr.get i).parent < self.size := by
-  simp only [← parentD_eq, parentD_lt, Fin.is_lt, Array.data_length]
+  simp only [← parentD_eq, parentD_lt, Fin.is_lt, Array.length_toList]
 
 theorem parent_lt (self : UnionFind) (i : Nat) : self.parent i < self.size ↔ i < self.size := by
   simp only [parentD]; split <;> simp only [*, parent'_lt]
@@ -146,8 +151,8 @@ theorem rank'_lt_rankMax (self : UnionFind) (i : Fin self.size) :
   let rec go : ∀ {l} {x : UFNode}, x ∈ l → x.rank ≤ List.foldr (max ·.rank) 0 l
     | a::l, _, List.Mem.head _ => by dsimp; apply Nat.le_max_left
     | a::l, _, .tail _ h => by dsimp; exact Nat.le_trans (go h) (Nat.le_max_right ..)
-  simp [rankMax, Array.foldr_eq_foldr_data]
-  exact Nat.lt_succ.2 <| go (self.arr.data.get_mem i.1 i.2)
+  simp only [Array.get_eq_getElem, rankMax, Array.foldr_eq_foldr_toList]
+  exact Nat.lt_succ.2 <| go (self.arr.toList.get_mem i.1 i.2)
 
 theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
     rankD self.arr i < self.rankMax := by
@@ -156,11 +161,11 @@ theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
 theorem lt_rankMax (self : UnionFind) (i : Nat) : self.rank i < self.rankMax := rankD_lt_rankMax ..
 
 theorem push_rankD (arr : Array UFNode) : rankD (arr.push ⟨arr.size, 0⟩) i = rankD arr i := by
-  simp [rankD, Array.get_eq_getElem, Array.get_push]
+  simp only [rankD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> first | simp | cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
 theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩) i = parentD arr i := by
-  simp [parentD, Array.get_eq_getElem, Array.get_push]
+  simp only [parentD, Array.size_push, Array.get_eq_getElem, Array.getElem_push, dite_eq_ite]
   split <;> split <;> try simp
   · exact Nat.le_antisymm (Nat.ge_of_not_lt ‹_›) (Nat.le_of_lt_succ ‹_›)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
@@ -169,9 +174,9 @@ theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩)
 def push (self : UnionFind) : UnionFind where
   arr := self.arr.push ⟨self.arr.size, 0⟩
   parentD_lt {i} := by
-    simp [push_parentD]; simp [parentD]
+    simp only [Array.size_push, push_parentD]; simp only [parentD, Array.get_eq_getElem]
     split <;> [exact fun _ => Nat.lt_succ_of_lt (self.parent'_lt _); exact id]
-  rankD_lt := by simp [push_parentD, push_rankD]; exact self.rank_lt
+  rankD_lt := by simp only [push_parentD, ne_eq, push_rankD]; exact self.rank_lt
 
 /-- Root of a union-find node. -/
 def root (self : UnionFind) (x : Fin self.size) : Fin self.size :=
@@ -205,18 +210,23 @@ termination_by self.rankMax - self.rank x
 
 theorem parent_rootD (self : UnionFind) (x : Nat) :
     self.parent (self.rootD x) = self.rootD x := by
-  rw [rootD]; split <;>
-    [simp [parentD, parent_root, -Array.get_eq_getElem]; simp [parentD_of_not_lt, *]]
+  rw [rootD]
+  split
+  · simp [parentD, parent_root, -Array.get_eq_getElem]
+  · simp [parentD_of_not_lt, *]
 
 @[nolint unusedHavesSuffices]
 theorem rootD_parent (self : UnionFind) (x : Nat) : self.rootD (self.parent x) = self.rootD x := by
-  simp [rootD, parent_lt]; split <;> simp [parentD, parentD_of_not_lt, *, -Array.get_eq_getElem]
-  (conv => rhs; rw [root]); split
-  · rw [root, dif_pos] <;> simp [*, -Array.get_eq_getElem]
-  · simp
+  simp only [rootD, Array.length_toList, parent_lt]
+  split
+  · simp only [parentD, ↓reduceDIte, *]
+    (conv => rhs; rw [root]); split
+    · rw [root, dif_pos] <;> simp_all
+    · simp
+  · simp only [not_false_eq_true, parentD_of_not_lt, *]
 
 theorem rootD_lt {self : UnionFind} {x : Nat} : self.rootD x < self.size ↔ x < self.size := by
-  simp [rootD]; split <;> simp [*]
+  simp only [rootD, Array.length_toList]; split <;> simp [*]
 
 @[nolint unusedHavesSuffices]
 theorem rootD_eq_self {self : UnionFind} {x : Nat} : self.rootD x = x ↔ self.parent x = x := by
@@ -273,7 +283,9 @@ termination_by self.rankMax - self.rank x
 @[nolint unusedHavesSuffices]
 theorem findAux_root {self : UnionFind} {x : Fin self.size} :
     (findAux self x).root = self.root x := by
-  rw [findAux, root]; simp; split <;> simp
+  rw [findAux, root]
+  simp only [Array.length_toList, Array.get_eq_getElem, dite_eq_ite]
+  split <;> simp only
   have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
   exact findAux_root
 termination_by self.rankMax - self.rank x
@@ -286,22 +298,25 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
   rw [show self.rootD _ = (self.findAux ⟨_, self.parent'_lt x⟩).root from _]
   · rw [findAux]; split <;> rfl
   · rw [← rootD_parent, parent, parentD_eq]
-    simp [findAux_root, rootD]
+    simp only [rootD, Array.get_eq_getElem, Array.length_toList, findAux_root]
     apply dif_pos
     exact parent'_lt ..
 
+set_option linter.deprecated false in
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
   if h : i < self.size then
     rw [findAux_s]; split <;> [rfl; skip]
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
     have := lt_of_parentD (by rwa [parentD_eq])
-    rw [rankD_eq' (by simp [FindAux.size_eq, h]), Array.get_modify (by rwa [FindAux.size_eq])]
+    rw [rankD_eq' (by simp [FindAux.size_eq, h]), Array.get_modify]
     split <;> simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt x⟩), -Array.get_eq_getElem]
   else
-    simp [rank, rankD]; rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
+    simp only [rankD, Array.data_length, Array.get_eq_getElem, rank]
+    rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
 termination_by self.rankMax - self.rank x
 
+set_option linter.deprecated false in
 theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i =
     if i = x then self.rootD x else parentD (self.findAux ⟨_, self.parent'_lt x⟩).s i := by
@@ -311,7 +326,7 @@ theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
   · next h =>
     rw [parentD]; split <;> rename_i h'
     · rw [Array.get_modify (by simpa using h')]
-      simp [@eq_comm _ i, -Array.get_eq_getElem]
+      simp only [Array.data_length, @eq_comm _ i]
       split <;> simp [← parentD_eq, -Array.get_eq_getElem]
     · rw [if_neg (mt (by rintro rfl; simp [FindAux.size_eq]) h')]
       rw [parentD, dif_neg]; simpa using h'
@@ -330,9 +345,11 @@ theorem parentD_findAux_lt {self : UnionFind} {x : Fin self.size} (h : i < self.
   if h' : (self.arr.get x).parent = x then
     rw [findAux_s, if_pos h']; apply self.parentD_lt h
   else
-    rw [parentD_findAux]; split <;> [simp [rootD_lt]; skip]
-    have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
-    apply parentD_findAux_lt h
+    rw [parentD_findAux]
+    split
+    · simp [rootD_lt]
+    · have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
+      apply parentD_findAux_lt h
 termination_by self.rankMax - self.rank x
 
 theorem parentD_findAux_or (self : UnionFind) (x : Fin self.size) (i) :
@@ -341,10 +358,12 @@ theorem parentD_findAux_or (self : UnionFind) (x : Fin self.size) (i) :
   if h' : (self.arr.get x).parent = x then
     rw [findAux_s, if_pos h']; exact .inr rfl
   else
-    rw [parentD_findAux]; split <;> [simp [*]; skip]
-    have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
-    exact (parentD_findAux_or self ⟨_, self.parent'_lt x⟩ i).imp_left <| .imp_right fun h => by
-      simp only [h, ← parentD_eq, rootD_parent, Array.data_length]
+    rw [parentD_findAux]
+    split
+    · simp [*]
+    · have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ ‹_›)
+      exact (parentD_findAux_or self ⟨_, self.parent'_lt x⟩ i).imp_left <| .imp_right fun h => by
+        simp only [h, ← parentD_eq, rootD_parent, Array.length_toList]
 termination_by self.rankMax - self.rank x
 
 theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
@@ -365,7 +384,9 @@ def find (self : UnionFind) (x : Fin self.size) :
   let r := self.findAux x
   { 1.arr := r.s
     2.1.val := r.root
-    1.parentD_lt := fun h => by simp [FindAux.size_eq] at *; exact parentD_findAux_lt h
+    1.parentD_lt := fun h => by
+      simp only [Array.length_toList, FindAux.size_eq] at *
+      exact parentD_findAux_lt h
     1.rankD_lt := fun h => by rw [rankD_findAux, rankD_findAux]; exact lt_rankD_findAux h
     2.1.isLt := show _ < r.s.size by rw [r.size_eq]; exact r.root.2
     2.2 := by simp [size, r.size_eq] }
@@ -398,7 +419,8 @@ def findD (self : UnionFind) (x : Nat) : UnionFind × Nat :=
 
 @[simp] theorem find_parent_1 (self : UnionFind) (x : Fin self.size) :
     (self.find x).1.parent x = self.rootD x := by
-  simp [find, parent]; rw [parentD_findAux, if_pos rfl]
+  simp only [parent, Array.length_toList, find]
+  rw [parentD_findAux, if_pos rfl]
 
 theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
     (self.find x).1.parent i = self.rootD i ∧ self.rootD i = self.rootD x ∨
@@ -449,7 +471,8 @@ theorem setParentBump_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
   simp [hP, hR, -Array.get_eq_getElem] at *; split <;> rename_i h₁ <;> [simp [← h₁]; skip] <;>
     split <;> rename_i h₂ <;> intro h
   · simp [h₂] at h
-  · simp [rankD_eq]; split <;> rename_i h₃
+  · simp only [rankD_eq, Array.get_eq_getElem]
+    split <;> rename_i h₃
     · rw [← h₃]; apply Nat.lt_succ_self
     · exact Nat.lt_of_le_of_ne H h₃
   · cases h₂.1
@@ -469,13 +492,16 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
     (by simp [rankD_set, Nat.ne_of_lt h, rankD_eq, -Array.get_eq_getElem])
 
 @[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
-  simp [linkAux]; split <;> [rfl; split] <;> [skip; split] <;> simp
+  simp only [linkAux, Array.get_eq_getElem]
+  split <;> [rfl; split] <;> [skip; split] <;> simp
 
 /-- Link a union-find node to a root node. -/
 def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by
-    simp at *; simp [linkAux]; split <;> [skip; split <;> [skip; split]]
+    simp only [Array.length_toList, linkAux_size] at *
+    simp only [linkAux, Array.get_eq_getElem]
+    split <;> [skip; split <;> [skip; split]]
     · exact self.parentD_lt h
     · rw [parentD_set]; split <;> [exact x.2; exact self.parentD_lt h]
     · rw [parentD_set]; split
@@ -484,12 +510,21 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
     · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
   rankD_lt := by
     rw [parent, parentD_eq] at yroot
-    simp [linkAux]; split <;> [skip; split <;> [skip; split]]
+    simp only [linkAux, Array.get_eq_getElem, ne_eq]
+    split <;> [skip; split <;> [skip; split]]
     · exact self.rankD_lt
     · exact setParent_rankD_lt ‹_› self.rankD_lt
-    · refine setParentBump_rankD_lt (.inr yroot) (Nat.le_of_eq ‹_›) self.rankD_lt
-        (by simp [parentD_set]; rintro rfl; simp [*, parentD_eq]) fun {i} => ?_
-      simp [rankD_set]; split <;> simp [*]; rintro rfl; simp [rankD_eq, *]
+    · refine setParentBump_rankD_lt (.inr yroot) (Nat.le_of_eq ‹_›) self.rankD_lt (by
+        simp only [parentD_set, ite_eq_right_iff]
+        rintro rfl
+        simp [*, parentD_eq]) fun {i} => ?_
+      simp only [rankD_set, Fin.eta, Array.get_eq_getElem]
+      split
+      · simp_all
+      · simp_all only [Array.get_eq_getElem, Array.length_toList, Nat.lt_irrefl, not_false_eq_true,
+          and_true, ite_false, ite_eq_right_iff]
+        rintro rfl
+        simp [rankD_eq, *]
     · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) self.rankD_lt
 
 @[inherit_doc link]

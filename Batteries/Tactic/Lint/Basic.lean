@@ -9,7 +9,7 @@ import Lean.Elab.Exception
 
 open Lean Meta
 
-namespace Std.Tactic.Lint
+namespace Batteries.Tactic.Lint
 
 /-!
 # Basic linter types and attributes
@@ -42,6 +42,8 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
     if env.isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
+      if s.startsWith "brecOn_" || s.startsWith "below_" || s.startsWith "binductionOn_"
+        || s.startsWith "ibelow_" then return true
       if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix, "ibelow",
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
         ].any (· == s) then
