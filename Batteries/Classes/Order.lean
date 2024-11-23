@@ -72,7 +72,7 @@ end OrientedCmp
 The `BEq` instance from a comparator `cmp : α → α → Ordering` with `[AntisymmCmp cmp]` and
 `[OrientedCmp cmp]` is a `LawfulBEq`.
 -/
-def lawfulBEqOfCmp (cmp : α → α → Ordering) [AntisymmCmp cmp] [OrientedCmp cmp] :
+theorem lawfulBEqOfCmp (cmp : α → α → Ordering) [AntisymmCmp cmp] [OrientedCmp cmp] :
     letI := beqOfCmp cmp
     LawfulBEq α :=
   let _ := beqOfCmp cmp

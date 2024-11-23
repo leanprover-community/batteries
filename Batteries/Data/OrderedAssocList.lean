@@ -656,7 +656,8 @@ theorem getElem?_mk_cons [TransCmp cmp]
   · trivial
   · exact TransCmp.lt_trans w
 
-@[simp] theorem getElem?_mk_cons_self [OrientedCmp cmp] {h : (AssocList.cons a b t).keysOrdered cmp} :
+@[simp] theorem getElem?_mk_cons_self [OrientedCmp cmp]
+    {h : (AssocList.cons a b t).keysOrdered cmp} :
     (⟨.cons a b t, h⟩ : OrderedAssocList _ _)[a]? = some b := by
   simp [getElem?, find?, AssocList.orderedFind?, OrientedCmp.cmp_refl]
 
