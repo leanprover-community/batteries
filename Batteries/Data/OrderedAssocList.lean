@@ -1,14 +1,10 @@
 /-
 Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Kim Morrison
 -/
-import Std.Data.AssocList
-import Std.Classes.Order
-import Std.Data.Option.Lemmas
-import Std.Tactic.Ext
-import Std.Tactic.LeftRight
-import Std.Tactic.Omega
+import Batteries.Data.AssocList
+import Batteries.Classes.Order
 
 /-!
 # Ordered association lists
@@ -32,7 +28,7 @@ The main operations defined are:
   dropping some values. It runs in time `O(l₁.length + l₂.length)`.
 -/
 
-namespace Std
+namespace Batteries
 
 /-!
 We first define some predicates and operations in the `AssocList` namespace.
@@ -176,7 +172,7 @@ We now define `orderedInsert`, and `orderedMerge`,
 which will later be wrapped as `OrderedAssocList.insert` and `OrderedAssocList.merge`.
 
 We prove that with `keysOrdered` input these functions produce `keysOrdered` outputs.
-We prove that same about `AssocList.filterMapVal`.
+We prove the same about `AssocList.filterMapVal`.
 -/
 
 /--
@@ -191,7 +187,7 @@ We later wrap this as `OrderedAssocList.insert`.
 def orderedInsert (cmp : α → α → Ordering) (l : AssocList α β) (a : α) (b : β) : AssocList α β :=
   match l with
   | .nil => .cons a b .nil
-  | .cons x y t => match w : cmp a x with
+  | .cons x y t => match _w : cmp a x with
     | .lt => .cons a b l
     | .eq => .cons a b t
     | .gt => .cons x y (orderedInsert cmp t a b)
@@ -200,7 +196,7 @@ def orderedInsert (cmp : α → α → Ordering) (l : AssocList α β) (a : α) 
   rfl
 
 @[simp] theorem orderedInsert_cons :
-    orderedInsert cmp (.cons x y t) a b = match w : cmp a x with
+    orderedInsert cmp (.cons x y t) a b = match _w : cmp a x with
     | .lt => .cons a b (.cons x y t)
     | .eq => .cons a b t
     | .gt => .cons x y (orderedInsert cmp t a b) := rfl
@@ -300,7 +296,6 @@ def orderedMerge (cmp : α → α → Ordering) (f : α → Option β → Option
       | some d => .cons a₂ d (orderedMerge cmp f (.cons a₁ b t₁) t₂)
       | none => orderedMerge cmp f (.cons a₁ b t₁) t₂
 termination_by l₁ l₂ => l₁.length + l₂.length
-decreasing_by all_goals simp_wf; omega
 
 theorem ltHeadKey?_orderedMerge [TransCmp cmp]
     (h₁ : ltHeadKey? cmp a l₁) (h₂ : ltHeadKey? cmp a l₂)
@@ -334,6 +329,7 @@ theorem ltHeadKey?_orderedMerge [TransCmp cmp]
       · exact h₂
       · exact ltHeadKey?_orderedMerge h₁ (ltHeadKey?_of_cons h₂ w₂) w₁ w₂.tail
 
+unseal orderedMerge in
 theorem orderedMerge_keysOrdered [AntisymmCmp cmp] [TransCmp cmp]
     (h₁ : keysOrdered cmp l₁) (h₂ : keysOrdered cmp l₂) :
     keysOrdered cmp (orderedMerge cmp f l₁ l₂) := by
@@ -416,7 +412,7 @@ theorem orderedFind?_cons [TransCmp cmp]
     (h : (AssocList.cons a b t).keysOrdered cmp) :
     orderedFind? cmp (.cons a b t) x = if cmp x a = .eq then some b else orderedFind? cmp t x := by
   simp only [find?, AssocList.orderedFind?]
-  split <;> rename_i w <;> simp only [w, ite_true, ite_false]
+  split <;> rename_i w <;> simp only [w, reduceCtorEq, reduceIte]
   rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
   simp only [ltHeadKey?, headKey?]
   split <;> rename_i h'
@@ -645,7 +641,7 @@ theorem find?_mk_cons [TransCmp cmp]
     {h : (AssocList.cons a b t).keysOrdered cmp} :
     find? ⟨.cons a b t, h⟩ x = if cmp x a = .eq then some b else find? ⟨t, h.tail⟩ x := by
   simp only [find?, AssocList.orderedFind?]
-  split <;> rename_i w <;> simp only [w, ite_true, ite_false]
+  split <;> rename_i w <;> simp only [w, reduceCtorEq, reduceIte]
   rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
   have p := headKey?_tail h
   revert p
@@ -779,7 +775,7 @@ theorem find?_filterMapVal [AntisymmCmp cmp] (l : OrderedAssocList cmp β) :
     (filterMapVal f l).find? a = (l.find? a).bind (fun b => f a b) :=
   AssocList.orderedFind?_filterMapVal l.keysOrdered
 
-theorem filterMapVal_filterMapVal [AntisymmCmp cmp] [TransCmp cmp]
+theorem filterMapVal_filterMapVal [AntisymmCmp cmp]
     {f : α → γ → Option δ} {g : α → β → Option γ}
     {l : OrderedAssocList cmp β} :
     filterMapVal f (filterMapVal g l) =
@@ -806,13 +802,16 @@ def merge (f : α → Option β → Option γ → Option δ)
     (merge f l₁ l₂).list = AssocList.orderedMerge cmp f l₁.list l₂.list :=
   rfl
 
+unseal AssocList.orderedMerge in
 @[simp] theorem merge_nil_nil {f : α → Option β → Option γ → Option δ} :
     merge f (nil : OrderedAssocList cmp β) nil = nil := rfl
 
+unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_nil_mk_cons {f : α → Option β → Option γ → Option δ} :
     merge f (⟨.nil, h⟩ : OrderedAssocList cmp β) ⟨.cons x' y' t', h'⟩ =
       filterMapVal (fun a g => f a none (some g)) ⟨.cons x' y' t', h'⟩ := rfl
 
+unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_cons_mk_nil {f : α → Option β → Option γ → Option δ} :
     merge f ⟨.cons x y t, h⟩ (⟨.nil, h'⟩ : OrderedAssocList cmp γ) =
       filterMapVal (fun a b => f a (some b) none) ⟨.cons x y t, h⟩ := rfl
@@ -865,17 +864,20 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
   simp only [merge_mk_cons_mk_cons_list]
   split <;> split <;> simp_all [merge]
 
+unseal AssocList.orderedMerge in
 @[simp] theorem find?_merge {f : α → Option β → Option γ → Option δ}
     (hf : f a none none = none) {l₁ : OrderedAssocList cmp β} {l₂} :
     (merge f l₁ l₂).find? a = f a (l₁.find? a) (l₂.find? a) := by
   match l₁, l₂ with
   | ⟨.nil, _⟩, ⟨.nil, _⟩ => exact hf.symm
   | ⟨.nil, _⟩, ⟨.cons x' y' t', h'⟩ =>
-    rw [merge_mk_nil_mk_cons, find?_filterMapVal, find?_mk_nil, Option.bind]
+    rw [merge_mk_nil_mk_cons, find?_filterMapVal, find?_mk_nil]
+    unfold Option.bind
     split <;> (rename_i w; rw [w])
     rw [hf]
   | ⟨.cons x y t, h⟩, ⟨.nil, _⟩ =>
-    rw [merge_mk_cons_mk_nil, find?_filterMapVal, find?_mk_nil, Option.bind]
+    rw [merge_mk_cons_mk_nil, find?_filterMapVal, find?_mk_nil]
+    unfold Option.bind
     split <;> (rename_i w; rw [w])
     rw [hf]
   | ⟨.cons x y t, h⟩, ⟨.cons x' y' t', h'⟩ =>
@@ -931,14 +933,13 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
           exact OrientedCmp.cmp_eq_gt.mp h₁
         · rw [find?_merge hf, find?_mk_cons (a := x'), if_neg h₃]
 
-@[nolint unusedArguments] -- falsely reports that `hf` is not used.
 theorem merge_comm
     (f : α → Option β → Option γ → Option δ) (g : α → Option γ → Option β → Option δ)
-    (hf : ∀ a, f a none none = none) (hg : ∀ a, g a none none = none)
+    (hg : ∀ a, g a none none = none)
     (w : ∀ a x y, f a x y = g a y x)
     (l₁ : OrderedAssocList cmp β) (l₂) : merge f l₁ l₂ = merge g l₂ l₁ := by
   ext
-  simp [w, hf, hg]
+  simp [w, hg]
 
 theorem merge_assoc
     (f₁ : α → Option β₁ → Option β₂ → Option γ₁) (f₂ : α → Option γ₁ → Option β₃ → Option ε)

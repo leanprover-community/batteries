@@ -24,7 +24,7 @@ namespace Imp
 end Imp
 
 @[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?]
+    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?, AssocList.find?]
 
 -- `Std.HashMap` has this lemma (as `getElem?_insert`) and many more, so working on this
 -- `proof_wanted` is likely not a good use of your time.

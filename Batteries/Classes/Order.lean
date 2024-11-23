@@ -73,7 +73,7 @@ The `BEq` instance from a comparator `cmp : α → α → Ordering` with `[Antis
 `[OrientedCmp cmp]` is a `LawfulBEq`.
 -/
 def lawfulBEqOfCmp (cmp : α → α → Ordering) [AntisymmCmp cmp] [OrientedCmp cmp] :
-    let i := beqOfCmp cmp
+    letI := beqOfCmp cmp
     LawfulBEq α :=
   let _ := beqOfCmp cmp
   { eq_of_beq := fun h => by
