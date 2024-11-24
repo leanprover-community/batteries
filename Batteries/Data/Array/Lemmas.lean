@@ -150,13 +150,11 @@ theorem getElem_insertIdx_loop_gt {as : Array α} {i : Nat} {j : Nat} {hj : j < 
     have : j - 1 < j := by omega
     rw [getElem_insertIdx_loop_gt w]
     rw [getElem_swap]
-    simp only [Fin.getElem_fin]
     split <;> rename_i h₂
     · rw [if_neg (by omega), if_neg (by omega)]
       have t : k ≤ j := by omega
       simp [t]
     · rw [getElem_swap]
-      simp only [Fin.getElem_fin]
       rw [if_neg (by omega)]
       split <;> rename_i h₃
       · simp [h₃]
