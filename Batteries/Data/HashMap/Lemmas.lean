@@ -14,14 +14,5 @@ more lemmas. See the module `Std.Data.HashMap.Lemmas`.
 
 namespace Batteries.HashMap
 
-namespace Imp
-
-@[simp] theorem empty_buckets :
-    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
-
-@[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
-
-end Imp
-
 @[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?]
+    (∅ : HashMap α β).find? a = none := Std.HashMap.getElem?_empty
