@@ -10,8 +10,6 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.Array.Lemmas
 import Batteries.Tactic.Lint.Simp
 
-namespace Batteries
-
 namespace Vector
 
 theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v = w
@@ -67,12 +65,16 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem uget_mk (a : Array α) (h : a.size = n) (i) (hi : i.toNat < n) :
     (Vector.mk a h).uget i hi = a.uget i (by simp [h, hi]) := rfl
 
+-- TODO: Once on `nightly-2024-11-26`, this will be `rfl` again.
 @[simp] theorem indexOf?_mk [BEq α] (a : Array α) (h : a.size = n) (x : α) :
-    (Vector.mk a h).indexOf? x = (a.indexOf? x).map (Fin.cast h) := rfl
+    (Vector.mk a h).indexOf? x = (a.indexOf? x).map (Fin.cast h) := by
+  rw [Vector.indexOf?]
+  split <;> simp_all
 
-@[simp] theorem mk_isEqv_mk (r : α → α → Bool) (a b : Array α) (ha : a.size = n) (hb : b.size = n) :
-    Vector.isEqv (Vector.mk a ha) (Vector.mk b hb) r = Array.isEqv a b r := by
-  simp [Vector.isEqv, Array.isEqv, ha, hb]
+-- TODO: Restore once on `nightly-2024-11-26`.
+-- @[simp] theorem mk_isEqv_mk (r : α → α → Bool) (a b : Array α) (ha : a.size = n) (hb : b.size = n) :
+--     Vector.isEqv (Vector.mk a ha) (Vector.mk b hb) r = Array.isEqv a b r := by
+--   simp [Vector.isEqv, Array.isEqv, ha, hb]
 
 @[simp] theorem mk_isPrefixOf_mk [BEq α] (a b : Array α) (ha : a.size = n) (hb : b.size = m) :
     (Vector.mk a ha).isPrefixOf (Vector.mk b hb) = a.isPrefixOf b := rfl
@@ -89,17 +91,16 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem reverse_mk (a : Array α) (h : a.size = n) :
     (Vector.mk a h).reverse = Vector.mk a.reverse (by simp [h]) := rfl
 
-@[simp] theorem set_mk (a : Array α) (h : a.size = n) (i x) :
-    (Vector.mk a h).set i x = Vector.mk (a.set (i.cast h.symm) x) (by simp [h]) := rfl
+@[simp] theorem set_mk (a : Array α) (h : a.size = n) (i x w) :
+    (Vector.mk a h).set i x = Vector.mk (a.set i x) (by simp [h]) := rfl
 
 @[simp] theorem set!_mk (a : Array α) (h : a.size = n) (i x) :
     (Vector.mk a h).set! i x = Vector.mk (a.set! i x) (by simp [h]) := rfl
 
-@[simp] theorem setD_mk (a : Array α) (h : a.size = n) (i x) :
-    (Vector.mk a h).setD i x = Vector.mk (a.setD i x) (by simp [h]) := rfl
+@[simp] theorem setIfInBounds_mk (a : Array α) (h : a.size = n) (i x) :
+    (Vector.mk a h).setIfInBounds i x = Vector.mk (a.setIfInBounds i x) (by simp [h]) := rfl
 
-@[simp] theorem setN_mk (a : Array α) (h : a.size = n) (i x) (hi : i < n) :
-    (Vector.mk a h).setN i x = Vector.mk (a.setN i x) (by simp [h]) := rfl
+@[deprecated (since := "2024-11-25")] alias setN_mk := set_mk
 
 @[simp] theorem swap_mk (a : Array α) (h : a.size = n) (i j) :
     (Vector.mk a h).swap i j = Vector.mk (a.swap (i.cast h.symm) (j.cast h.symm)) (by simp [h]) :=

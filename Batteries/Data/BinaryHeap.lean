@@ -136,7 +136,7 @@ def insertExtractMax (self : BinaryHeap α lt) (x : α) : α × BinaryHeap α lt
   | none => (x, self)
   | some m =>
     if lt x m then
-      let v := self.vector.set ⟨0, size_pos_of_max e⟩ x
+      let v := self.vector.set 0 x (size_pos_of_max e)
       (m, ⟨heapifyDown lt v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
     else (x, self)
 
@@ -145,7 +145,7 @@ def replaceMax (self : BinaryHeap α lt) (x : α) : Option α × BinaryHeap α l
   match e : self.max with
   | none => (none, ⟨self.vector.push x |>.toArray⟩)
   | some m =>
-    let v := self.vector.set ⟨0, size_pos_of_max e⟩ x
+    let v := self.vector.set 0 x (size_pos_of_max e)
     (some m, ⟨heapifyDown lt v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ self.get i`. -/
