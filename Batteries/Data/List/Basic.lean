@@ -1064,3 +1064,160 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
+
+/-- `dropPrefix? l p` returns
+`some r` if `l = p' ++ r` for some `p'` which is paiwise `==` to `p`,
+and `none` otherwise. -/
+def dropPrefix? [BEq α] : List α → List α → Option (List α)
+  | list, [] => some list
+  | [], _ :: _ => none
+  | a :: as, b :: bs => if a == b then dropPrefix? as bs else none
+
+/-- `dropSuffix? l s` returns
+`some r` if `l = r ++ s'` for some `s'` which is paiwise `==` to `s`,
+and `none` otherwise. -/
+def dropSuffix? [BEq α] (l s : List α) : Option (List α) :=
+  let (r, s') := l.splitAt (l.length - s.length)
+  if s' == s then some r else none
+
+/-- `dropInfix? l i` returns
+`some (p, s)` if `l = p ++ i' ++ s` for some `i'` which is paiwise `==` to `i`,
+and `none` otherwise.
+
+Note that this is an inefficient implementation, and if computation time is a concern you should be
+using the Knuth-Morris-Pratt algorithm, e.g. as implemented in `Batteries.Data.Array.Match`.
+-/
+def dropInfix? [BEq α] (l i : List α) : Option (List α × List α) :=
+  go l []
+where
+  /-- Inner loop for `dropInfix?`. -/
+  go : List α → List α → Option (List α × List α)
+  | [], acc => if i.isEmpty then some (acc.reverse, []) else none
+  | a :: as, acc => match (a :: as).dropPrefix? i with
+    | none => go as (a :: acc)
+    | some s => (acc.reverse, s)
+
+@[simp] theorem beq_nil_iff [BEq α] {l : List α} : (l == []) = l.isEmpty := sorry
+@[simp] theorem nil_beq_iff [BEq α] {l : List α} : ([] == l) = l.isEmpty := sorry
+
+@[simp] theorem cons_beq_cons [BEq α] {a b : α} {l₁ l₂ : List α} :
+    (a :: l₁ == b :: l₂) = (a == b && l₁ == l₂) := sorry
+
+theorem length_eq_of_beq [BEq α] {l₁ l₂ : List α} (h : l₁ == l₂) : l₁.length = l₂.length := sorry
+
+theorem dropPrefix?_eq_some_iff [BEq α] {l p s : List α} :
+    dropPrefix? l p = some s ↔ ∃ p', l = p' ++ s ∧ p' == p := by
+  unfold dropPrefix?
+  split
+  · simp
+  · simp
+  · rename_i a as b bs
+    simp only [ite_none_right_eq_some]
+    constructor
+    · rw [dropPrefix?_eq_some_iff]
+      rintro ⟨w, p', rfl, h⟩
+      refine ⟨a :: p', by simp_all⟩
+    · rw [dropPrefix?_eq_some_iff]
+      rintro ⟨p, h, w⟩
+      rw [cons_eq_append_iff] at h
+      obtain (⟨rfl, rfl⟩ | ⟨a', rfl, rfl⟩) := h
+      · simp at w
+      · simp only [cons_beq_cons, Bool.and_eq_true] at w
+        refine ⟨w.1, a', rfl, w.2⟩
+
+theorem dropSuffix?_eq_some_iff [BEq α] {l p s : List α} :
+    dropSuffix? l s = some p ↔ ∃ s', l = p ++ s' ∧ s' == s := by
+  unfold dropSuffix?
+  rw [splitAt_eq]
+  simp only [ite_none_right_eq_some, some.injEq]
+  constructor
+  · rintro ⟨w, rfl⟩
+    refine ⟨_, by simp, w⟩
+  · rintro ⟨s', rfl, w⟩
+    simp [length_eq_of_beq w, w]
+
+theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
+    dropInfix?.go i l acc = some (p, s) ↔ ∃ p',
+      p = acc.reverse ++ p' ∧
+      -- `i` is an infix up to `==`
+      (∃ i', l = p' ++ i' ++ s ∧ i' == i) ∧
+        -- and there is no shorter prefix for which that is the case
+        (∀ p'' i'' s'', l = p'' ++ i'' ++ s'' → i'' == i → p''.length ≥ p'.length) := by
+  unfold dropInfix?.go
+  split
+  · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
+      append_assoc, append_eq_nil, ge_iff_le, and_imp]
+    constructor
+    · rintro ⟨rfl, rfl, rfl⟩
+      simp
+    · rintro ⟨p', rfl, ⟨_, ⟨rfl, rfl, rfl⟩, h⟩, w⟩
+      simp_all
+  · rename_i a t
+    split <;> rename_i h
+    · rw [dropInfix?_go_eq_some_iff]
+      constructor
+      · rintro ⟨p', rfl, ⟨i', rfl, h₂⟩, w⟩
+        refine ⟨a :: p', ?_⟩
+        simp [h₂]
+        intro p'' i'' s'' h₁ h₂
+        rw [cons_eq_append_iff] at h₁
+        obtain (⟨rfl, h₁⟩ | ⟨p'', rfl, h₁⟩) := h₁
+        · rw [append_assoc, ← h₁] at h
+          sorry -- okay
+        · simpa using w p'' i'' s'' (by simpa using h₁) h₂
+      · rintro ⟨p', rfl, ⟨i', h₁, h₂⟩, w⟩
+        rw [cons_eq_append_iff] at h₁
+        simp at h₁
+        obtain (⟨⟨rfl, rfl⟩, rfl⟩ | ⟨a', h₁, rfl⟩) := h₁
+        · simp at h₂
+          simp [h₂] at h
+          sorry -- okay
+        · sorry
+
+    · rename_i s'
+      simp only [some.injEq, Prod.mk.injEq, append_assoc, ge_iff_le]
+      rw [dropPrefix?_eq_some_iff] at h
+      obtain ⟨p', h, w⟩ := h
+      constructor
+      · rintro ⟨rfl, rfl⟩
+        simpa using ⟨p', by simp_all⟩
+      · rintro ⟨p'', rfl, ⟨i', h₁, h₂⟩, w'⟩
+        specialize w' [] p' s' (by simpa using h) w
+        simp at w'
+        simp [w'] at h₁ ⊢
+        rw [h] at h₁
+        sorry -- okay
+
+theorem dropInfix?_eq_some_iff [BEq α] {l i p s : List α} :
+    dropInfix? l i = some (p, s) ↔
+      -- `i` is an infix up to `==`
+      (∃ i', l = p ++ i' ++ s ∧ i' == i) ∧
+        -- and there is no shorter prefix for which that is the case
+        (∀ p' i' s', l = p' ++ i' ++ s' → i' == i → p'.length ≥ p.length) := by
+  unfold dropInfix?
+  rw [dropInfix?_go_eq_some_iff]
+  simp
+  -- unfold dropInfix?
+  -- split <;> rename_i h
+  -- · simp at h
+  --   subst h
+  --   simp only [some.injEq, Prod.mk.injEq, nil_eq, append_assoc, beq_nil_iff, isEmpty_eq_true,
+  --     exists_eq_right, nil_append, ge_iff_le]
+  --   constructor
+  --   · rintro ⟨rfl, rfl⟩
+  --     simp
+  --   · rintro ⟨rfl, w⟩
+  --     specialize w [] [] (p ++ s)
+  --     simp only [nil_append, length_nil, le_zero_eq, length_eq_zero, forall_const] at w
+  --     simp [w]
+  -- · unfold dropInfix?.go
+  --   split
+  --   · simp at h
+  --     simp [h]
+  --   · rename_i a t
+  --     split
+  --     · have := dropInfix?_eq_some_iff (l := t) (i := i) (p := p) (s := s)
+  --       unfold dropInfix? at this
+  --       rw [if_neg h] at this
+  --       sorry
+  --     · sorry
