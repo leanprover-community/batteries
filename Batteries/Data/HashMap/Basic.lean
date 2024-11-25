@@ -66,7 +66,7 @@ hashMap.insert "three" 3 = {"one" => 1, "two" => 2, "three" => 3}
 hashMap.insert "two" 0 = {"one" => 1, "two" => 0}
 ```
 -/
-def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := Std.HashMap.insert self a b
+@[inline] def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := Std.HashMap.insert self a b
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
@@ -98,7 +98,7 @@ The function `f` is passed the original key of the entry, along with the value i
 (ofList [("one", 1), ("two", 2)]).modify "three" (fun _ v => v + 1) = {"one" => 1, "two" => 2}
 ```
 -/
-def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
+@[inline]def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
   Std.HashMap.modify self a (f a)
 
 /--
@@ -252,7 +252,7 @@ def toArray (self : HashMap α β) : Array (α × β) :=
   self.fold (init := #[]) fun r k v => r.push (k, v)
 
 /-- The number of buckets in the hash map. -/
-def numBuckets (self : HashMap α β) : Nat := self.1.1.buckets.size
+def numBuckets (self : HashMap α β) : Nat := Std.HashMap.Internal.numBuckets self
 
 /--
 Builds a `HashMap` from a list of key-value pairs.
