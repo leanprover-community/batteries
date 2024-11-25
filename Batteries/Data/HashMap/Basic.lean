@@ -98,7 +98,7 @@ The function `f` is passed the original key of the entry, along with the value i
 (ofList [("one", 1), ("two", 2)]).modify "three" (fun _ v => v + 1) = {"one" => 1, "two" => 2}
 ```
 -/
-@[inline]def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
+@[inline] def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
   Std.HashMap.modify self a (f a)
 
 /--
