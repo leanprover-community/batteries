@@ -43,7 +43,7 @@ local instance (α) : Stream (List α × Nat) α where
   | (x::xs, n) => (x, xs, n+1)
 
 /--
-Find all start and end positions of all contiguous sublists of `l` matching `m.pattern`.
+Find all start and end positions of all infix sublists of `l` matching `m.pattern`.
 The sublists may be overlapping.
 -/
 partial def Matcher.findAll [BEq α] (m : Matcher α) (l : List α) : Array (Nat × Nat) :=
@@ -56,7 +56,7 @@ where
     | some (l, am) => loop l am (occs.push (l.snd - m.table.size, l.snd))
 
 /--
-Find the start and end positions of the first contiguous sublist of `l` matching `m.pattern`,
+Find the start and end positions of the first infix sublist of `l` matching `m.pattern`,
 or `none` if there is no such sublist.
 -/
 def Matcher.find? [BEq α] (m : Matcher α) (l : List α) : Option (Nat × Nat) :=
@@ -65,21 +65,21 @@ def Matcher.find? [BEq α] (m : Matcher α) (l : List α) : Option (Nat × Nat) 
   | some (l, _) => some (l.snd - m.table.size, l.snd)
 
 /--
-Returns all the start and end positions of all contiguous sublists of of `l` that match `pattern`.
+Returns all the start and end positions of all infix sublists of of `l` that match `pattern`.
 The sublists may be overlapping.
 -/
-@[inline] def findAllSublists [BEq α] (l pattern : List α) : Array (Nat × Nat) :=
+@[inline] def findAllInfix [BEq α] (l pattern : List α) : Array (Nat × Nat) :=
   (Matcher.ofList pattern).findAll l
 
 /--
-Returns the start and end positions of the first contiguous sublist of `l` that matches `pattern`,
+Returns the start and end positions of the first infix sublist of `l` that matches `pattern`,
 or `none` if there is no such sublist.
 -/
-@[inline] def findSublist? [BEq α] (l pattern : List α) : Option (Nat × Nat) :=
+@[inline] def findInfix? [BEq α] (l pattern : List α) : Option (Nat × Nat) :=
   (Matcher.ofList pattern).find? l
 
 /--
-Returns true iff `pattern` occurs as a contiguous sublist of `l`.
+Returns true iff `pattern` occurs as an infix sublist of `l`.
 -/
-@[inline] def containsSublist [BEq α] (l pattern : List α) : Bool :=
-  findSublist? l pattern |>.isSome
+@[inline] def containsInfix [BEq α] (l pattern : List α) : Bool :=
+  findInfix? l pattern |>.isSome
