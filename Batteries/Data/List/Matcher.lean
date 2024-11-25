@@ -11,9 +11,9 @@ namespace List
 /-- Knuth-Morris-Pratt matcher type
 
 This type is used to keep data for running the Knuth-Morris-Pratt (KMP) list matching algorithm.
-KMP is a linear time algorithm to locate all sublists of a list that match a given pattern.
-Generating the algorithm data is also linear in the length of the pattern but the data can be
-re-used to match the same pattern over multiple lists.
+KMP is a linear time algorithm to locate all contiguous sublists of a list that match a given
+pattern. Generating the algorithm data is also linear in the length of the pattern but the data can
+be re-used to match the same pattern over multiple lists.
 
 The KMP data for a pattern can be generated using `Matcher.ofList`. Then `Matcher.find?` and
 `Matcher.findAll` can be used to run the algorithm on an input list.
@@ -42,7 +42,10 @@ local instance (α) : Stream (List α × Nat) α where
   | ([], _) => none
   | (x::xs, n) => (x, xs, n+1)
 
-/-- Find all start and end positions of all sublists of `l` matching `m.pattern`. -/
+/--
+Find all start and end positions of all contiguous sublists of `l` matching `m.pattern`.
+The sublists may be overlapping.
+-/
 partial def Matcher.findAll [BEq α] (m : Matcher α) (l : List α) : Array (Nat × Nat) :=
   loop (l, 0) m.toMatcher #[]
 where
@@ -52,8 +55,31 @@ where
     | none => occs
     | some (l, am) => loop l am (occs.push (l.snd - m.table.size, l.snd))
 
-/-- Find the start and end positions of the first sublist of `l` matching `m.pattern`, or `none`. -/
+/--
+Find the start and end positions of the first contiguous sublist of `l` matching `m.pattern`,
+or `none` if there is no such sublist.
+-/
 def Matcher.find? [BEq α] (m : Matcher α) (l : List α) : Option (Nat × Nat) :=
   match m.next? (l, 0) with
   | none => none
   | some (l, _) => some (l.snd - m.table.size, l.snd)
+
+/--
+Returns all the start and end positions of all contiguous sublists of of `l` that match `pattern`.
+The sublists may be overlapping.
+-/
+@[inline] def findAllSublists [BEq α] (l pattern : List α) : Array (Nat × Nat) :=
+  (Matcher.ofList pattern).findAll l
+
+/--
+Returns the start and end positions of the first contiguous sublist of `l` that matches `pattern`,
+or `none` if there is no such sublist.
+-/
+@[inline] def findSublist? [BEq α] (l pattern : List α) : Option (Nat × Nat) :=
+  (Matcher.ofList pattern).find? l
+
+/--
+Returns true iff `pattern` occurs as a contiguous sublist of `l`.
+-/
+@[inline] def containsSublist [BEq α] (l pattern : List α) : Bool :=
+  findSublist? l pattern |>.isSome
