@@ -176,7 +176,7 @@ def eraseIdx! (a : Array α) (i : Nat) : Array α :=
     panic! s!"index {i} out of bounds"
 
 /-- `finRange n` is the array of all elements of `Fin n` in order. -/
-protected def finRange (n : Nat) : Array (Fin n) := ofFn id
+protected def finRange (n : Nat) : Array (Fin n) := ofFn fun i => i
 
 end Array
 
