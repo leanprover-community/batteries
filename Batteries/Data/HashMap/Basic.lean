@@ -66,7 +66,8 @@ hashMap.insert "three" 3 = {"one" => 1, "two" => 2, "three" => 3}
 hashMap.insert "two" 0 = {"one" => 1, "two" => 0}
 ```
 -/
-@[inline] def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β := Std.HashMap.insert self a b
+@[inline] def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β :=
+  Std.HashMap.insert self a b
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
