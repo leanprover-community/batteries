@@ -136,6 +136,21 @@ instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
   getElem m k _ := m[k]?
 
 /--
+Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
+Note that the returned key may not be identical to the input, if `==` ignores some part
+of the value.
+```
+def hashMap := ofList [("one", 1), ("two", 2)]
+hashMap.findEntry? "one" = some ("one", 1)
+hashMap.findEntry? "three" = none
+```
+-/
+-- This could be given a more efficient low level implementation.
+@[inline]
+def findEntry? [BEq α] [Hashable α] (m : Std.HashMap α β) (k : α) : Option (α × β) :=
+  if h : k ∈ m then some (m.getKey k h, m.get k h) else none
+
+/--
 Returns true if the element `a` is in the map.
 ```
 def hashMap := ofList [("one", 1), ("two", 2)]
@@ -260,30 +275,3 @@ def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → �
     match m.find? p.1 with
     | none   => m.insert p.1 p.2
     | some v => m.insert p.1 <| f v p.2
-
-set_option linter.unusedVariables false in
-/--
-This function has been removed, now that `HashMap` is a wrapper around `Std.HashMap`.
-The implementation simply panics.
-
-TODO: We would like to add sufficient infrastructure to `HashMap` to allow us to implement this
-again.
-
-Under the previous implemention, this function was:
-
-Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
-Note that the returned key may not be identical to the input, if `==` ignores some part
-of the value.
-```
-def hashMap := ofList [("one", 1), ("two", 2)]
-hashMap.findEntry? "one" = some ("one", 1)
-hashMap.findEntry? "three" = none
-```
--/
-@[inline,
-  deprecated "Use `m[a]?` instead. Previously this might have returned a key that was not \
-    identical to the input, if `==` ignores some part of the value. \
-    Now it panics."]
-def findEntry? (self : HashMap α β) (a : α) : Option (α × β) :=
-  panic! "`HashMap.findEntry?` has been removed, \
-  now that Batteries.HashMap is a wrapper around Std.HashMap."
