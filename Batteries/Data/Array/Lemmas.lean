@@ -25,14 +25,6 @@ theorem forIn_eq_forIn_toList [Monad m]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
-@[simp] theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
-    (as.zipWith bs f).size = min as.size bs.size := by
-  rw [size_eq_length_toList, toList_zipWith, List.length_zipWith]
-
-@[simp] theorem size_zip (as : Array α) (bs : Array β) :
-    (as.zip bs).size = min as.size bs.size :=
-  as.size_zipWith bs Prod.mk
-
 /-! ### filter -/
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
