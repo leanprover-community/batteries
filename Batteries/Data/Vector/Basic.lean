@@ -176,26 +176,21 @@ Swap two elements of a vector using `Fin` indices.
 
 This will perform the update destructively provided that the vector has a reference count of 1.
 -/
-@[inline] def swap (v : Vector α n) (i j : Fin n) : Vector α n :=
-  ⟨v.toArray.swap (Fin.cast v.size_toArray.symm i) (Fin.cast v.size_toArray.symm j), by simp⟩
-
-/--
-Swap two elements of a vector using `Nat` indices. By default, the `get_elem_tactic` is used to
-synthesize proofs that the indices are within bounds.
-
-This will perform the update destructively provided that the vector has a reference count of 1.
--/
-@[inline] def swapN (v : Vector α n) (i j : Nat)
+@[inline] def swap (v : Vector α n) (i j : Nat)
     (hi : i < n := by get_elem_tactic) (hj : j < n := by get_elem_tactic) : Vector α n :=
-  ⟨v.toArray.swapN i j (by simp_all) (by simp_all), by simp⟩
+  ⟨v.toArray.swap i j (by simpa using hi) (by simpa using hj), by simp⟩
+
+@[deprecated (since := "2024-11-24")] alias swapN := swap
 
 /--
 Swap two elements of a vector using `Nat` indices. Panics if either index is out of bounds.
 
 This will perform the update destructively provided that the vector has a reference count of 1.
 -/
-@[inline] def swap! (v : Vector α n) (i j : Nat) : Vector α n :=
-  ⟨v.toArray.swap! i j, by simp⟩
+@[inline] def swapIfInBounds (v : Vector α n) (i j : Nat) : Vector α n :=
+  ⟨v.toArray.swapIfInBounds i j, by simp⟩
+
+@[deprecated (since := "2024-11-24")] alias swap! := swapIfInBounds
 
 /--
 Swaps an element of a vector with a given value using a `Fin` index. The original value is returned
@@ -203,21 +198,12 @@ along with the updated vector.
 
 This will perform the update destructively provided that the vector has a reference count of 1.
 -/
-@[inline] def swapAt (v : Vector α n) (i : Fin n) (x : α) : α × Vector α n :=
-  let a := v.toArray.swapAt (Fin.cast v.size_toArray.symm i) x
-  ⟨a.fst, a.snd, by simp [a]⟩
-
-/--
-Swaps an element of a vector with a given value using a `Nat` index. By default, the
-`get_elem_tactic` is used to synthesise a proof that the index is within bounds. The original value
-is returned along with the updated vector.
-
-This will perform the update destructively provided that the vector has a reference count of 1.
--/
-@[inline] def swapAtN (v : Vector α n) (i : Nat) (x : α) (h : i < n := by get_elem_tactic) :
+@[inline] def swapAt (v : Vector α n) (i : Nat) (x : α) (hi : i < n := by get_elem_tactic) :
     α × Vector α n :=
-  let a := v.toArray.swapAtN i x (by simp_all)
+  let a := v.toArray.swapAt i x (by simpa using hi)
   ⟨a.fst, a.snd, by simp [a]⟩
+
+@[deprecated (since := "2024-11-24")] alias swapAtN := swapAt
 
 /--
 Swaps an element of a vector with a given value using a `Nat` index. Panics if the index is out of
