@@ -45,12 +45,12 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem drop_mk (a : Array α) (h : a.size = n) (m) :
     (Vector.mk a h).drop m = Vector.mk (a.extract m a.size) (by simp [h]) := rfl
 
-@[simp] theorem eraseIdx!_mk (a : Array α) (h : a.size = n) (i) (hi : i < n) :
-    (Vector.mk a h).eraseIdx! i = Vector.mk (a.eraseIdx! i) (by simp [h, hi]) := by
-  simp [Vector.eraseIdx!, hi]
+@[simp] theorem eraseIdx_mk (a : Array α) (h : a.size = n) (i) (h') :
+    (Vector.mk a h).eraseIdx i h' = Vector.mk (a.eraseIdx i) (by simp [h]) := rfl
 
-@[simp] theorem feraseIdx_mk (a : Array α) (h : a.size = n) (i) :
-    (Vector.mk a h).feraseIdx i = Vector.mk (a.feraseIdx (i.cast h.symm)) (by simp [h]) := rfl
+@[simp] theorem eraseIdx!_mk (a : Array α) (h : a.size = n) (i) (hi : i < n) :
+    (Vector.mk a h).eraseIdx! i = Vector.mk (a.eraseIdx i) (by simp [h, hi]) := by
+  simp [Vector.eraseIdx!, hi]
 
 @[simp] theorem extract_mk (a : Array α) (h : a.size = n) (start stop) :
     (Vector.mk a h).extract start stop = Vector.mk (a.extract start stop) (by simp [h]) := rfl
@@ -59,7 +59,7 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
     (Vector.mk a h)[i] = a[i] := rfl
 
 @[simp] theorem get_mk (a : Array α) (h : a.size = n) (i) :
-    (Vector.mk a h).get i = a.get (i.cast h.symm) := rfl
+    (Vector.mk a h).get i = a[i] := rfl
 
 @[simp] theorem getD_mk (a : Array α) (h : a.size = n) (i x) :
     (Vector.mk a h).getD i x = a.getD i x := rfl
@@ -146,15 +146,12 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem toArray_mkEmpty (cap) :
     (Vector.mkEmpty (α := α) cap).toArray = Array.mkEmpty cap := rfl
 
+@[simp] theorem toArray_eraseIdx (a : Vector α n) (i) (h) :
+    (a.eraseIdx i h).toArray = a.toArray.eraseIdx i (by simp [h]) := rfl
+
 @[simp] theorem toArray_eraseIdx! (a : Vector α n) (i) (hi : i < n) :
     (a.eraseIdx! i).toArray = a.toArray.eraseIdx! i := by
-  cases a; simp [hi]
-
-@[simp] theorem toArray_eraseIdxN (a : Vector α n) (i) (hi : i < n) :
-    (a.eraseIdxN i).toArray = a.toArray.eraseIdxN i (by simp [hi]) := rfl
-
-@[simp] theorem toArray_feraseIdx (a : Vector α n) (i) :
-    (a.feraseIdx i).toArray = a.toArray.feraseIdx (i.cast a.size_toArray.symm) := rfl
+  cases a; simp_all [Array.eraseIdx!]
 
 @[simp] theorem toArray_extract (a : Vector α n) (start stop) :
     (a.extract start stop).toArray = a.toArray.extract start stop := rfl
