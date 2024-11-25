@@ -102,26 +102,24 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 
 @[deprecated (since := "2024-11-25")] alias setN_mk := set_mk
 
-@[simp] theorem swap_mk (a : Array α) (h : a.size = n) (i j) :
-    (Vector.mk a h).swap i j = Vector.mk (a.swap (i.cast h.symm) (j.cast h.symm)) (by simp [h]) :=
+@[simp] theorem swap_mk (a : Array α) (h : a.size = n) (i j) (hi hj) :
+    (Vector.mk a h).swap i j = Vector.mk (a.swap i j) (by simp [h]) :=
   rfl
 
-@[simp] theorem swap!_mk (a : Array α) (h : a.size = n) (i j) :
-    (Vector.mk a h).swap! i j = Vector.mk (a.swap! i j) (by simp [h]) := rfl
+@[simp] theorem swapIfInBounds_mk (a : Array α) (h : a.size = n) (i j) :
+    (Vector.mk a h).swapIfInBounds i j = Vector.mk (a.swapIfInBounds i j) (by simp [h]) := rfl
 
-@[simp] theorem swapN_mk (a : Array α) (h : a.size = n) (i j) (hi : i < n) (hj : j < n) :
-    (Vector.mk a h).swapN i j = Vector.mk (a.swapN i j) (by simp [h]) := rfl
+@[deprecated (since := "2024-11-25")] alias swapN_mk := swap_mk
 
-@[simp] theorem swapAt_mk (a : Array α) (h : a.size = n) (i x) : (Vector.mk a h).swapAt i x =
-    ((a.swapAt (i.cast h.symm) x).fst, Vector.mk (a.swapAt (i.cast h.symm) x).snd (by simp [h])) :=
+@[simp] theorem swapAt_mk (a : Array α) (h : a.size = n) (i x) (hi) :
+    (Vector.mk a h).swapAt i x =
+      ((a.swapAt i x).fst, Vector.mk (a.swapAt i x).snd (by simp [h])) :=
   rfl
 
 @[simp] theorem swapAt!_mk (a : Array α) (h : a.size = n) (i x) : (Vector.mk a h).swapAt! i x =
     ((a.swapAt! i x).fst, Vector.mk (a.swapAt! i x).snd (by simp [h])) := rfl
 
-@[simp] theorem swapAtN_mk (a : Array α) (h : a.size = n) (i x) (hi : i < n) :
-    (Vector.mk a h).swapAtN i x =
-      ((a.swapAtN i x).fst, Vector.mk (a.swapAtN i x).snd (by simp [h])) := rfl
+@[deprecated (since := "2024-11-25")] alias swapAtN_mk := swapAt_mk
 
 @[simp] theorem take_mk (a : Array α) (h : a.size = n) (m) :
     (Vector.mk a h).take m = Vector.mk (a.take m) (by simp [h]) := rfl
@@ -170,42 +168,39 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 
 @[simp] theorem toArray_reverse (a : Vector α n) : a.reverse.toArray = a.toArray.reverse := rfl
 
-@[simp] theorem toArray_set (a : Vector α n) (i x) :
-    (a.set i x).toArray = a.toArray.set (i.cast a.size_toArray.symm) x := rfl
+@[simp] theorem toArray_set (a : Vector α n) (i x h) :
+    (a.set i x).toArray = a.toArray.set i x (by simpa using h):= rfl
 
 @[simp] theorem toArray_set! (a : Vector α n) (i x) :
     (a.set! i x).toArray = a.toArray.set! i x := rfl
 
-@[simp] theorem toArray_setD (a : Vector α n) (i x) :
-    (a.setD i x).toArray = a.toArray.setD i x := rfl
+@[simp] theorem toArray_setIfInBounds (a : Vector α n) (i x) :
+    (a.setIfInBounds i x).toArray = a.toArray.setIfInBounds i x := rfl
 
-@[simp] theorem toArray_setN (a : Vector α n) (i x) (hi : i < n) :
-    (a.setN i x).toArray = a.toArray.setN i x (by simp [hi]) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_setD := toArray_setIfInBounds
+@[deprecated (since := "2024-11-25")] alias toArray_setN := toArray_set
 
 @[simp] theorem toArray_singleton (x : α) : (Vector.singleton x).toArray = #[x] := rfl
 
-@[simp] theorem toArray_swap (a : Vector α n) (i j) : (a.swap i j).toArray =
-    a.toArray.swap (i.cast a.size_toArray.symm) (j.cast a.size_toArray.symm) := rfl
+@[simp] theorem toArray_swap (a : Vector α n) (i j) (hi hj) : (a.swap i j).toArray =
+    a.toArray.swap i j (by simp [hi, hj]) (by simp [hi, hj]) := rfl
 
-@[simp] theorem toArray_swap! (a : Vector α n) (i j) :
-    (a.swap! i j).toArray = a.toArray.swap! i j := rfl
+@[simp] theorem toArray_swapIfInBounds (a : Vector α n) (i j) :
+    (a.swapIfInBounds i j).toArray = a.toArray.swapIfInBounds i j := rfl
 
-@[simp] theorem toArray_swapN (a : Vector α n) (i j) (hi : i < n) (hj : j < n) :
-    (a.swapN i j).toArray = a.toArray.swapN i j (by simp [hi]) (by simp [hj]) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_swap! := toArray_swapIfInBounds
+@[deprecated (since := "2024-11-25")] alias toArray_swapN := toArray_swap
 
-@[simp] theorem toArray_swapAt (a : Vector α n) (i x) :
+@[simp] theorem toArray_swapAt (a : Vector α n) (i x h) :
     ((a.swapAt i x).fst, (a.swapAt i x).snd.toArray) =
-      ((a.toArray.swapAt (i.cast a.size_toArray.symm) x).fst,
-        (a.toArray.swapAt (i.cast a.size_toArray.symm) x).snd) := rfl
+      ((a.toArray.swapAt i x (by simpa using h)).fst,
+        (a.toArray.swapAt i x (by simpa using h)).snd) := rfl
 
 @[simp] theorem toArray_swapAt! (a : Vector α n) (i x) :
     ((a.swapAt! i x).fst, (a.swapAt! i x).snd.toArray) =
       ((a.toArray.swapAt! i x).fst, (a.toArray.swapAt! i x).snd) := rfl
 
-@[simp] theorem toArray_swapAtN (a : Vector α n) (i x) (hi : i < n) :
-    ((a.swapAtN i x).fst, (a.swapAtN i x).snd.toArray) =
-      ((a.toArray.swapAtN i x (by simp [hi])).fst,
-        (a.toArray.swapAtN i x (by simp [hi])).snd) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_swapAtN := toArray_swapAt
 
 @[simp] theorem toArray_take (a : Vector α n) (m) : (a.take m).toArray = a.toArray.take m := rfl
 
