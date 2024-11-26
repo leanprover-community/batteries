@@ -1032,3 +1032,6 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
+
+/-- `finRange n` lists all elements of `Fin n` in order -/
+def finRange (n : Nat) : List (Fin n) := ofFn fun i => i

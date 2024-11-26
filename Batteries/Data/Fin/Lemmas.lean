@@ -14,46 +14,6 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
-/-! ### enum/list -/
-
-@[simp] theorem size_enum (n) : (enum n).size = n := Array.size_ofFn ..
-
-@[simp] theorem enum_zero : (enum 0) = #[] := by simp [enum, Array.ofFn, Array.ofFn.go]
-
-@[simp] theorem getElem_enum (i) (h : i < (enum n).size) : (enum n)[i] = ⟨i, size_enum n ▸ h⟩ :=
-  Array.getElem_ofFn ..
-
-@[simp] theorem length_list (n) : (list n).length = n := by simp [list]
-
-@[simp] theorem getElem_list (i : Nat) (h : i < (list n).length) :
-    (list n)[i] = cast (length_list n) ⟨i, h⟩ := by
-  simp only [list]; rw [← Array.getElem_eq_getElem_toList, getElem_enum, cast_mk]
-
-@[deprecated getElem_list (since := "2024-06-12")]
-theorem get_list (i : Fin (list n).length) : (list n).get i = i.cast (length_list n) := by
-  simp [getElem_list]
-
-@[simp] theorem list_zero : list 0 = [] := by simp [list]
-
-theorem list_succ (n) : list (n+1) = 0 :: (list n).map Fin.succ := by
-  apply List.ext_get; simp; intro i; cases i <;> simp
-
-theorem list_succ_last (n) : list (n+1) = (list n).map castSucc ++ [last n] := by
-  rw [list_succ]
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [list_succ, List.map_cons castSucc, ih]
-    simp [Function.comp_def, succ_castSucc]
-
-theorem list_reverse (n) : (list n).reverse = (list n).map rev := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    conv => lhs; rw [list_succ_last]
-    conv => rhs; rw [list_succ]
-    simp [← List.map_reverse, ih, Function.comp_def, rev_succ]
-
 /-! ### foldlM -/
 
 theorem foldlM_eq_foldlM_list [Monad m] (f : α → Fin n → m α) (x) :
