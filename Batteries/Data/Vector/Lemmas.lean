@@ -65,18 +65,13 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem uget_mk (a : Array α) (h : a.size = n) (i) (hi : i.toNat < n) :
     (Vector.mk a h).uget i hi = a.uget i (by simp [h, hi]) := rfl
 
--- TODO: Once on `nightly-2024-11-26`, this will be `rfl` again.
 @[simp] theorem indexOf?_mk [BEq α] (a : Array α) (h : a.size = n) (x : α) :
-    (Vector.mk a h).indexOf? x = (a.indexOf? x).map (Fin.cast h) := by
-  rw [Vector.indexOf?]
-  split <;> simp_all
+    (Vector.mk a h).indexOf? x = (a.indexOf? x).map (Fin.cast h) := rfl
 
--- TODO: Restore once on `nightly-2024-11-26`.
-/-
 @[simp] theorem mk_isEqv_mk (r : α → α → Bool) (a b : Array α) (ha : a.size = n) (hb : b.size = n) :
     Vector.isEqv (Vector.mk a ha) (Vector.mk b hb) r = Array.isEqv a b r := by
   simp [Vector.isEqv, Array.isEqv, ha, hb]
--/
+
 @[simp] theorem mk_isPrefixOf_mk [BEq α] (a b : Array α) (ha : a.size = n) (hb : b.size = m) :
     (Vector.mk a ha).isPrefixOf (Vector.mk b hb) = a.isPrefixOf b := rfl
 
