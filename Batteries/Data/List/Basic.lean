@@ -1085,7 +1085,7 @@ def dropSuffix? [BEq α] (l s : List α) : Option (List α) :=
 and `none` otherwise.
 
 Note that this is an inefficient implementation, and if computation time is a concern you should be
-using the Knuth-Morris-Pratt algorithm, e.g. as implemented in `Batteries.Data.Array.Match`.
+using the Knuth-Morris-Pratt algorithm as implemented in `Batteries.Data.List.Matcher`.
 -/
 def dropInfix? [BEq α] (l i : List α) : Option (List α × List α) :=
   go l []
