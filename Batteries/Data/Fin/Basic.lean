@@ -15,5 +15,5 @@ def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le
 @[deprecated (since := "2024-11-15")]
 alias enum := Array.finRange
 
-/-- `list n` is the list of all elements of `Fin n` in order -/
-def list (n) : List (Fin n) := (enum n).toList
+@[deprecated (since := "2024-11-15")]
+alias list := List.finRange
