@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.FinRange
 import Batteries.Data.Array.Basic
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
@@ -240,3 +241,20 @@ theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
   rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
   exact heq
   exact Nat.le_of_lt_succ i.is_lt
+
+/-! ### ofFn -/
+
+@[simp] theorem toList_ofFn (f : Fin n → α) : (ofFn f).toList = List.ofFn f := by
+  apply List.ext_getElem <;> simp
+
+/-! ### finRange -/
+
+@[simp] theorem size_finRange (n) : (Array.finRange n).size = n := by
+  simp [Array.finRange]
+
+@[simp] theorem getElem_finRange (n i) (h : i < (Array.finRange n).size) :
+    (Array.finRange n)[i] = ⟨i, size_finRange n ▸ h⟩ := by
+  simp [Array.finRange]
+
+@[simp] theorem toList_finRange (n) : (Array.finRange n).toList = List.finRange n := by
+  simp [Array.finRange, List.finRange]
