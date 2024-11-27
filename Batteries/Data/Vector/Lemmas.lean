@@ -245,8 +245,8 @@ defeq issues in the implicit size argument.
 
 /-! ### empty lemmas -/
 
-@[simp] theorem map_empty (f : α → β) : map f #v[] = #v[] := by
-  apply toArray_injective; simp
+theorem map_empty (f : α → β) : map f #v[] = #v[] := by
+  simp
 
 protected theorem eq_empty (v : Vector α 0) : v = #v[] := by
   apply toArray_injective
