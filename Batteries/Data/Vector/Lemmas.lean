@@ -136,7 +136,7 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem toArray_drop (a : Vector α n) (m) :
     (a.drop m).toArray = a.toArray.extract m a.size := rfl
 
-@[simp] theorem toArray_empty : (Vector.empty (α := α)).toArray = #[] := rfl
+@[simp] theorem toArray_empty : (#v[] : Vector α 0).toArray = #[] := rfl
 
 @[simp] theorem toArray_mkEmpty (cap) :
     (Vector.mkEmpty (α := α) cap).toArray = Array.mkEmpty cap := rfl
@@ -245,22 +245,22 @@ defeq issues in the implicit size argument.
 
 /-! ### empty lemmas -/
 
-@[simp] theorem map_empty (f : α → β) : map f empty = empty := by
+@[simp] theorem map_empty (f : α → β) : map f #v[] = #v[] := by
   apply toArray_injective; simp
 
-protected theorem eq_empty (v : Vector α 0) : v = empty := by
+protected theorem eq_empty (v : Vector α 0) : v = #v[] := by
   apply toArray_injective
   apply Array.eq_empty_of_size_eq_zero v.2
 
 /-! ### Decidable quantifiers. -/
 
 theorem forall_zero_iff {P : Vector α 0 → Prop} :
-    (∀ v, P v) ↔ P .empty := by
+    (∀ v, P v) ↔ P #v[] := by
   constructor
   · intro h
     apply h
   · intro h v
-    obtain (rfl : v = .empty) := (by ext i h; simp at h)
+    obtain (rfl : v = #v[]) := (by ext i h; simp at h)
     apply h
 
 theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
@@ -274,7 +274,7 @@ theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
     apply h
 
 instance instDecidableForallVectorZero (P : Vector α 0 → Prop) :
-    ∀ [Decidable (P .empty)], Decidable (∀ v, P v)
+    ∀ [Decidable (P #v[])], Decidable (∀ v, P v)
   | .isTrue h => .isTrue fun ⟨v, s⟩ => by
     obtain (rfl : v = .empty) := (by ext i h₁ h₂; exact s; cases h₂)
     exact h
@@ -284,7 +284,7 @@ instance instDecidableForallVectorSucc (P : Vector α (n+1) → Prop)
     [Decidable (∀ (x : α) (v : Vector α n), P (v.push x))] : Decidable (∀ v, P v) :=
   decidable_of_iff' (∀ x (v : Vector α n), P (v.push x)) forall_cons_iff
 
-instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P .empty)] :
+instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P #v[])] :
     Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
 
