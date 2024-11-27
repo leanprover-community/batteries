@@ -143,9 +143,6 @@ abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tac
 
 @[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
-/-- `finRange n` is the array of all elements of `Fin n` in order. -/
-protected def finRange (n : Nat) : Array (Fin n) := ofFn fun i => i
-
 end Array
 
 

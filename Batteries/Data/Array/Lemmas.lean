@@ -74,11 +74,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
 /-! ### map -/
 
-theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
-  rw [mapM, mapM.map]; rfl
-
-theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
-
 /-! ### mem -/
 
 theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
