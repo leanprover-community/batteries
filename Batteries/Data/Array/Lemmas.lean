@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.FinRange
 import Batteries.Data.Array.Basic
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
@@ -24,14 +25,6 @@ theorem forIn_eq_forIn_toList [Monad m]
 
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
-
-@[simp] theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
-    (as.zipWith bs f).size = min as.size bs.size := by
-  rw [size_eq_length_toList, toList_zipWith, List.length_zipWith]
-
-@[simp] theorem size_zip (as : Array α) (bs : Array β) :
-    (as.zip bs).size = min as.size bs.size :=
-  as.size_zipWith bs Prod.mk
 
 /-! ### filter -/
 
@@ -80,11 +73,6 @@ where
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
 /-! ### map -/
-
-theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
-  rw [mapM, mapM.map]; rfl
-
-theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 /-! ### mem -/
 
@@ -150,13 +138,11 @@ theorem getElem_insertIdx_loop_gt {as : Array α} {i : Nat} {j : Nat} {hj : j < 
     have : j - 1 < j := by omega
     rw [getElem_insertIdx_loop_gt w]
     rw [getElem_swap]
-    simp only [Fin.getElem_fin]
     split <;> rename_i h₂
     · rw [if_neg (by omega), if_neg (by omega)]
       have t : k ≤ j := by omega
       simp [t]
     · rw [getElem_swap]
-      simp only [Fin.getElem_fin]
       rw [if_neg (by omega)]
       split <;> rename_i h₃
       · simp [h₃]
