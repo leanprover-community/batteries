@@ -11,16 +11,16 @@ theorem foo : 1 + 1 = 2 := rfl
 
 /-- doc string for `alias foo` -/
 alias foo1 := foo
-@[deprecated] alias foo2 := foo
-@[deprecated foo2] alias _root_.B.foo3 := foo
+@[deprecated (since := "2038-01-20")] alias foo2 := foo
+@[deprecated foo2 (since := "2038-01-20")] alias _root_.B.foo3 := foo
 @[deprecated foo2 "it was never a good idea anyway" (since := "last thursday")] alias foo4 := foo
 
 example : 1 + 1 = 2 := foo1
-/-- warning: `A.foo2` has been deprecated, use `A.foo` instead -/
+/-- warning: `A.foo2` has been deprecated: use `A.foo` instead -/
 #guard_msgs in example : 1 + 1 = 2 := foo2
-/-- warning: `B.foo3` has been deprecated, use `A.foo2` instead -/
+/-- warning: `B.foo3` has been deprecated: use `A.foo2` instead -/
 #guard_msgs in example : 1 + 1 = 2 := B.foo3
-/-- warning: it was never a good idea anyway -/
+/-- warning: `A.foo4` has been deprecated: it was never a good idea anyway -/
 #guard_msgs in example : 1 + 1 = 2 := foo4
 
 /-- doc string for bar -/
@@ -87,7 +87,7 @@ unsafe alias barbaz3 := id
 
 /- iff version -/
 
-@[deprecated] alias ⟨mpId, mprId⟩ := Iff.rfl
+@[deprecated (since := "2038-01-20")] alias ⟨mpId, mprId⟩ := Iff.rfl
 
 /-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
@@ -95,9 +95,9 @@ unsafe alias barbaz3 := id
 #guard_msgs in #check mprId
 
 /--
-warning: `A.mpId` has been deprecated, use `Iff.rfl` instead
+warning: `A.mpId` has been deprecated: use `Iff.rfl` instead
 ---
-warning: `A.mprId` has been deprecated, use `Iff.rfl` instead
+warning: `A.mprId` has been deprecated: use `Iff.rfl` instead
 -/
 #guard_msgs in example := And.intro @mpId @mprId
 
