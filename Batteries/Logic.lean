@@ -3,22 +3,14 @@ Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
-import Batteries.Tactic.Init
 import Batteries.Tactic.Alias
-import Batteries.Tactic.Lint.Misc
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
 
-@[deprecated] alias proofIrrel := proof_irrel
-
 /-! ## id -/
 
 theorem Function.id_def : @id α = fun x => x := rfl
-
-/-! ## exists and forall -/
-
-alias ⟨forall_not_of_not_exists, not_exists_of_forall_not⟩ := not_exists
 
 /-! ## decidable -/
 
@@ -37,7 +29,7 @@ end Classical
 theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
-    (@Eq.rec α a (fun α _ => β) y a' h) = y := by cases h; rfl
+    (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
 
 theorem congrArg₂ (f : α → β → γ) {x x' : α} {y y' : β}
     (hx : x = x') (hy : y = y') : f x y = f x' y' := by subst hx hy; rfl
@@ -60,11 +52,8 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
     {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
   funext fun _ => funext₂ <| h _
 
-theorem Function.funext_iff {β : α → Sort u} {f₁ f₂ : ∀ x : α, β x} : f₁ = f₂ ↔ ∀ a, f₁ a = f₂ a :=
-  ⟨congrFun, funext⟩
-
-theorem ne_of_apply_ne {α β : Sort _} (f : α → β) {x y : α} : f x ≠ f y → x ≠ y :=
-  mt <| congrArg _
+@[deprecated (since := "2024-10-17")]
+protected alias Function.funext_iff := funext_iff
 
 protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
   subst h₁; subst h₂; rfl
@@ -86,38 +75,27 @@ theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
   ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
 
 theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    (x : motive a rfl) {a' : α} (e : a = a') :
     @Eq.rec α a motive x a' e = cast (e ▸ rfl) x := by
   subst e; rfl
 
 --Porting note: new theorem. More general version of `eqRec_heq`
 theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') :
+    (x : motive a rfl) {a' : α} (e : a = a') :
     HEq (@Eq.rec α a motive x a' e) x := by
   subst e; rfl
 
 @[simp]
 theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
   subst e; rfl
 
 @[simp]
 theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a (rfl : a = a)) {a' : α} (e : a = a') {β : Sort _} (y : β) :
+    {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
   subst e; rfl
-
-/-! ## membership -/
-
-section Mem
-variable [Membership α β] {s t : β} {a b : α}
-
-theorem ne_of_mem_of_not_mem (h : a ∈ s) : b ∉ s → a ≠ b := mt fun e => e ▸ h
-
-theorem ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt fun e => e ▸ h
-
-end Mem
 
 /-! ## miscellaneous -/
 
@@ -128,9 +106,7 @@ end Mem
 -- instance (priority := 10) {α} [Subsingleton α] : DecidableEq α
 --   | a, b => isTrue (Subsingleton.elim a b)
 
--- @[simp] -- TODO(Mario): profile
-theorem eq_iff_true_of_subsingleton [Subsingleton α] (x y : α) : x = y ↔ True :=
-  iff_true_intro (Subsingleton.elim ..)
+-- TODO(Mario): profile adding `@[simp]` to `eq_iff_true_of_subsingleton`
 
 /-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 theorem subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : Subsingleton α :=

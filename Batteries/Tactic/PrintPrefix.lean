@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
 import Batteries.Lean.Util.EnvSearch
-import Batteries.Lean.Delaborator
 import Lean.Elab.Tactic.Config
 
 namespace Batteries.Tactic
@@ -28,7 +27,7 @@ structure PrintPrefixConfig where
   internals : Bool := false
 
 /-- Function elaborating `Config`. -/
-declare_config_elab elabPrintPrefixConfig PrintPrefixConfig
+declare_command_config_elab elabPrintPrefixConfig PrintPrefixConfig
 
 /--
 `reverseName name` reverses the components of a name.
@@ -109,12 +108,13 @@ by setting `showTypes` to `false`:
 The complete set of flags can be seen in the documentation
 for `Lean.Elab.Command.PrintPrefixConfig`.
 -/
-elab (name := printPrefix) "#print" tk:"prefix"
-    cfg:(Lean.Parser.Tactic.config)? name:ident : command => liftTermElabM do
-  let nameId := name.getId
-  let opts ← elabPrintPrefixConfig (mkOptionalNode cfg)
-  let mut msgs ← matchingConstants opts nameId
-  if msgs.isEmpty then
-    if let [name] ← resolveGlobalConst name then
-      msgs ← matchingConstants opts name
-  logInfoAt tk (.joinSep msgs.toList "")
+elab (name := printPrefix) tk:"#print " colGt "prefix"
+    cfg:Lean.Parser.Tactic.optConfig name:(ident)? : command => do
+  if let some name := name then
+    let opts ← elabPrintPrefixConfig cfg
+    liftTermElabM do
+      let mut msgs ← matchingConstants opts name.getId
+      if msgs.isEmpty then
+        if let [name] ← resolveGlobalConst name then
+          msgs ← matchingConstants opts name
+      logInfoAt tk (.joinSep msgs.toList "")

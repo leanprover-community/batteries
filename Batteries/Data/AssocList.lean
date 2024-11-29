@@ -78,7 +78,7 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 
 @[csimp] theorem toList_eq_toListTR : @toList = @toListTR := by
   funext α β as; simp [toListTR]
-  exact .symm <| (Array.foldl_data_eq_map (toList as) _ id).trans (List.map_id _)
+  exact .symm <| (Array.foldl_toList_eq_map (toList as) _ id).trans (List.map_id _)
 
 /-- `O(n)`. Run monadic function `f` on all elements in the list, from head to tail. -/
 @[specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit
@@ -244,8 +244,8 @@ instance : ForIn m (AssocList α β) (α × β) where
 
 @[simp] theorem forIn_eq [Monad m] (l : AssocList α β) (init : δ)
     (f : (α × β) → δ → m (ForInStep δ)) : forIn l init f = forIn l.toList init f := by
-  simp [forIn, List.forIn]
-  induction l generalizing init <;> simp [AssocList.forIn, List.forIn.loop]
+  simp only [forIn]
+  induction l generalizing init <;> simp [AssocList.forIn]
   congr; funext a; split <;> simp [*]
 
 /-- Split the list into head and tail, if possible. -/

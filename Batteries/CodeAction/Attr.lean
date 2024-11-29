@@ -3,7 +3,7 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Server.CodeActions
+import Lean.Server.CodeActions.Basic
 
 /-!
 # Initial setup for code action attributes
@@ -14,7 +14,7 @@ import Lean.Server.CodeActions
 * Attribute `@[tactic_code_action]` collects code actions which will be called
   on each occurrence of a tactic.
 -/
-namespace Std.CodeAction
+namespace Batteries.CodeAction
 
 open Lean Elab Server Lsp RequestM Snapshots
 
