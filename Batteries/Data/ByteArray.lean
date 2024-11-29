@@ -36,11 +36,11 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
   Array.size_push ..
 
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
-  Array.get_push_eq ..
+  Array.getElem_push_eq ..
 
 theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
     (a.push x)[i]'(size_push .. ▸ Nat.lt_succ_of_lt h) = a[i] :=
-  Array.get_push_lt ..
+  Array.getElem_push_lt ..
 
 /-! ### set -/
 
@@ -85,12 +85,12 @@ theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_left hlt
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_left hlt
 
 theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b).size)
     (h' : i - a.size < b.size := Nat.sub_lt_left_of_lt_add hle (size_append .. ▸ h)) :
     (a ++ b)[i] = b[i - a.size] := by
-  simp [getElem_eq_data_getElem]; exact Array.get_append_right hle
+  simp [getElem_eq_data_getElem]; exact Array.getElem_append_right hle
 
 /-! ### extract -/
 

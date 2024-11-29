@@ -24,31 +24,11 @@ def toSyntax (e : Expr) : TermElabM Syntax.Term := withFreshMacroScope do
   mvar.mvarId!.assign e
   pure stx
 
-/--
-Returns the number of leading `∀` binders of an expression. Ignores metadata.
--/
-def forallArity : Expr → Nat
-  | mdata _ b => forallArity b
-  | forallE _ _ body _ => 1 + forallArity body
-  | _ => 0
+@[deprecated getNumHeadLambdas (since := "2024-10-16"), inherit_doc getNumHeadLambdas]
+abbrev lambdaArity := @getNumHeadLambdas
 
-/--
-Returns the number of leading `λ` binders of an expression. Ignores metadata.
--/
-def lambdaArity : Expr → Nat
-  | mdata _ b => lambdaArity b
-  | lam _ _ b _ => 1 + lambdaArity b
-  | _ => 0
-
-/-- Like `getAppNumArgs` but ignores metadata. -/
-def getAppNumArgs' (e : Expr) : Nat :=
-  go e 0
-where
-  /-- Auxiliary definition for `getAppNumArgs'`. -/
-  go : Expr → Nat → Nat
-    | mdata _ b, n => go b n
-    | app f _  , n => go f (n + 1)
-    | _        , n => n
+@[deprecated getNumHeadForalls(since := "2024-11-13"), inherit_doc getNumHeadForalls]
+abbrev forallArity := @getNumHeadForalls
 
 /-- Like `withApp` but ignores metadata. -/
 @[inline]

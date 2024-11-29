@@ -1,0 +1,65 @@
+# This workflow assigns `awaiting-review` or `WIP` labels to new PRs, and it removes
+# `awaiting-review`, `awaiting-author`, or `WIP` label from closed PRs.
+# It does not modify labels for open PRs that already have one of the `awaiting-review`,
+# `awaiting-author`, or `WIP` labels.
+
+name: Label PR from status change
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types:
+      - closed
+      - opened
+      - reopened
+      - converted_to_draft
+      - ready_for_review
+    branches:
+      - main
+
+jobs:
+  auto-label:
+    if: github.repository_owner == 'leanprover-community'
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Unlabel closed PR
+      if: github.event.pull_request.state == 'closed'
+      uses: actions-ecosystem/action-remove-labels@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        labels: |
+          WIP
+          awaiting-author
+          awaiting-review
+
+    - name: Label unlabeled draft PR as WIP
+      if: |
+        github.event.pull_request.state == 'open' &&
+        github.event.pull_request.draft &&
+        ! contains(github.event.pull_request.labels.*.name, 'awaiting-author') &&
+        ! contains(github.event.pull_request.labels.*.name, 'awaiting-review') &&
+        ! contains(github.event.pull_request.labels.*.name, 'WIP')
+      uses: actions-ecosystem/action-add-labels@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        labels: WIP
+
+    - name: Label unlabeled other PR as awaiting-review
+      if: |
+        github.event.pull_request.state == 'open' &&
+        ! github.event.pull_request.draft &&
+        ! contains(github.event.pull_request.labels.*.name, 'awaiting-author') &&
+        ! contains(github.event.pull_request.labels.*.name, 'awaiting-review') &&
+        ! contains(github.event.pull_request.labels.*.name, 'WIP')
+      uses: actions-ecosystem/action-add-labels@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        labels: awaiting-review

@@ -1,8 +1,11 @@
 /-
 Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Kim Morrison
 -/
+import Batteries.Lean.EStateM
+import Batteries.Lean.Except
+import Batteries.Tactic.Lint
 
 /-!
 ## SatisfiesM
@@ -11,6 +14,13 @@ The `SatisfiesM` predicate works over an arbitrary (lawful) monad / applicative 
 and enables Hoare-like reasoning over monadic expressions. For example, given a monadic
 function `f : α → m β`, to say that the return value of `f` satisfies `Q` whenever
 the input satisfies `P`, we write `∀ a, P a → SatisfiesM Q (f a)`.
+
+For any monad equipped with `MonadSatisfying m`
+one can lift `SatisfiesM` to a monadic value in `Subtype`,
+using `satisfying x h : m {a // p a}`, where `x : m α` and `h : SatisfiesM p x`.
+This includes `Option`, `ReaderT`, `StateT`, and `ExceptT`, and the Lean monad stack.
+(Although it is not entirely clear one should treat the Lean monad stack as lawful,
+even though Lean accepts this.)
 
 ## Notes
 
@@ -23,7 +33,7 @@ presumably requiring more syntactic support (and smarter `do` blocks) from Lean.
 Or it may be that such a solution will look different!
 This is an open research program, and for now one should not be overly ambitious using `SatisfiesM`.
 
-In particular lemmas about pure operations on data structures in `batteries` except for `HashMap`
+In particular lemmas about pure operations on data structures in `Batteries` except for `HashMap`
 should avoid `SatisfiesM` for now, so that it is easy to migrate to other approaches in future.
 -/
 
@@ -52,7 +62,7 @@ protected theorem trivial [Applicative m] [LawfulApplicative m] {x : m α} :
 /-- The `SatisfiesM p x` predicate is monotonic in `p`. -/
 theorem imp [Functor m] [LawfulFunctor m] {x : m α}
     (h : SatisfiesM p x) (H : ∀ {a}, p a → q a) : SatisfiesM q x :=
-  let ⟨x, h⟩ := h; ⟨(fun ⟨a, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
+  let ⟨x, h⟩ := h; ⟨(fun ⟨_, h⟩ => ⟨_, H h⟩) <$> x, by rw [← h, ← comp_map]; rfl⟩
 
 /-- `SatisfiesM` distributes over `<$>`, general version. -/
 protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
@@ -158,25 +168,134 @@ end SatisfiesM
   ⟨by revert x; intro | .ok _, ⟨.ok ⟨_, h⟩, rfl⟩, _, rfl => exact h,
    fun h => match x with | .ok a => ⟨.ok ⟨a, h _ rfl⟩, rfl⟩ | .error e => ⟨.error e, rfl⟩⟩
 
-@[simp] theorem SatisfiesM_ReaderT_eq [Monad m] :
-    SatisfiesM (m := ReaderT ρ m) p x ↔ ∀ s, SatisfiesM p (x s) :=
+theorem SatisfiesM_EStateM_eq :
+    SatisfiesM (m := EStateM ε σ) p x ↔ ∀ s a s', x.run s = .ok a s' → p a := by
+  constructor
+  · rintro ⟨x, rfl⟩ s a s' h
+    match w : x.run s with
+    | .ok a s' => simp at h; exact h.1
+    | .error e s' => simp [w] at h
+  · intro w
+    refine ⟨?_, ?_⟩
+    · intro s
+      match q : x.run s with
+      | .ok a s' => exact .ok ⟨a, w s a s' q⟩ s'
+      | .error e s' => exact .error e s'
+    · ext s
+      rw [EStateM.run_map, EStateM.run]
+      split <;> simp_all
+
+theorem SatisfiesM_ReaderT_eq [Monad m] :
+    SatisfiesM (m := ReaderT ρ m) p x ↔ ∀ s, SatisfiesM p (x.run s) :=
   (exists_congr fun a => by exact ⟨fun eq _ => eq ▸ rfl, funext⟩).trans Classical.skolem.symm
 
 theorem SatisfiesM_StateRefT_eq [Monad m] :
-    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) := by simp
+    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) := by
+  simp [SatisfiesM_ReaderT_eq, ReaderT.run]
 
-@[simp] theorem SatisfiesM_StateT_eq [Monad m] [LawfulMonad m] :
-    SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x s) := by
+theorem SatisfiesM_StateT_eq [Monad m] [LawfulMonad m] :
+    SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x.run s) := by
+  change SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x s)
   refine .trans ⟨fun ⟨f, eq⟩ => eq ▸ ?_, fun ⟨f, h⟩ => ?_⟩ Classical.skolem.symm
   · refine ⟨fun s => (fun ⟨⟨a, h⟩, s'⟩ => ⟨⟨a, s'⟩, h⟩) <$> f s, fun s => ?_⟩
     rw [← comp_map, map_eq_pure_bind]; rfl
   · refine ⟨fun s => (fun ⟨⟨a, s'⟩, h⟩ => ⟨⟨a, h⟩, s'⟩) <$> f s, funext fun s => ?_⟩
-    show _ >>= _ = _; simp [map_eq_pure_bind, ← h]
+    show _ >>= _ = _; simp [← h]
 
-@[simp] theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
-    SatisfiesM (m := ExceptT ρ m) (α := α) p x ↔ SatisfiesM (m := m) (∀ a, · = .ok a → p a) x := by
+theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
+    SatisfiesM (m := ExceptT ρ m) (α := α) p x ↔
+      SatisfiesM (m := m) (∀ a, · = .ok a → p a) x.run := by
+  change _ ↔ SatisfiesM (m := m) (∀ a, · = .ok a → p a) x
   refine ⟨fun ⟨f, eq⟩ => eq ▸ ?_, fun ⟨f, eq⟩ => eq ▸ ?_⟩
   · exists (fun | .ok ⟨a, h⟩ => ⟨.ok a, fun | _, rfl => h⟩ | .error e => ⟨.error e, nofun⟩) <$> f
     show _ = _ >>= _; rw [← comp_map, map_eq_pure_bind]; congr; funext a; cases a <;> rfl
   · exists ((fun | ⟨.ok a, h⟩ => .ok ⟨a, h _ rfl⟩ | ⟨.error e, _⟩ => .error e) <$> f : m _)
-    show _ >>= _ = _; simp [← comp_map, map_eq_pure_bind]; congr; funext ⟨a, h⟩; cases a <;> rfl
+    show _ >>= _ = _; simp [← comp_map, ← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
+
+/--
+If a monad has `MonadSatisfying m`, then we can lift a `h : SatisfiesM (m := m) p x` predicate
+to monadic value `satisfying x p : m { x // p x }`.
+
+Reader, state, and exception monads have `MonadSatisfying` instances if the base monad does.
+-/
+class MonadSatisfying (m : Type u → Type v) [Functor m] [LawfulFunctor m] where
+  /-- Lift a `SatisfiesM` predicate to a monadic value. -/
+  satisfying {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : m {a // p a}
+  /-- The value of the lifted monadic value is equal to the original monadic value. -/
+  val_eq {p : α → Prop} {x : m α} (h : SatisfiesM (m := m) p x) : Subtype.val <$> satisfying h = x
+
+export MonadSatisfying (satisfying)
+
+namespace MonadSatisfying
+
+instance : MonadSatisfying Id where
+  satisfying {α p x} h := ⟨x, by obtain ⟨⟨_, h⟩, rfl⟩ := h; exact h⟩
+  val_eq {α p x} h := rfl
+
+instance : MonadSatisfying Option where
+  satisfying {α p x?} h :=
+    have h' := SatisfiesM_Option_eq.mp h
+    match x? with
+    | none => none
+    | some x => some ⟨x, h' x rfl⟩
+  val_eq {α p x?} h := by cases x? <;> simp
+
+instance : MonadSatisfying (Except ε) where
+  satisfying {α p x?} h :=
+    have h' := SatisfiesM_Except_eq.mp h
+    match x? with
+    | .ok x => .ok ⟨x, h' x rfl⟩
+    | .error e => .error e
+  val_eq {α p x?} h := by cases x? <;> simp
+
+-- This will be redundant after nightly-2024-11-08.
+attribute [ext] ReaderT.ext
+
+instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
+  satisfying {α p x} h :=
+    have h' := SatisfiesM_ReaderT_eq.mp h
+    fun r => satisfying (h' r)
+  val_eq {α p x} h := by
+    have h' := SatisfiesM_ReaderT_eq.mp h
+    ext r
+    rw [ReaderT.run_map, ← MonadSatisfying.val_eq (h' r)]
+    rfl
+
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ _)
+
+-- This will be redundant after nightly-2024-11-08.
+attribute [ext] StateT.ext
+
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
+  satisfying {α p x} h :=
+    have h' := SatisfiesM_StateT_eq.mp h
+    fun r => (fun ⟨⟨a, r'⟩, h⟩ => ⟨⟨a, h⟩, r'⟩) <$> satisfying (h' r)
+  val_eq {α p x} h := by
+    have h' := SatisfiesM_StateT_eq.mp h
+    ext r
+    rw [← MonadSatisfying.val_eq (h' r), StateT.run_map]
+    simp [StateT.run]
+
+instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (ExceptT ε m) where
+  satisfying {α p x} h :=
+    let x' := satisfying (SatisfiesM_ExceptT_eq.mp h)
+    ExceptT.mk ((fun ⟨y, w⟩ => y.pmap fun a h => ⟨a, w _ h⟩) <$> x')
+  val_eq {α p x} h:= by
+    ext
+    rw [← MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h)]
+    simp
+
+instance : MonadSatisfying (EStateM ε σ) where
+  satisfying {α p x} h :=
+    have h' := SatisfiesM_EStateM_eq.mp h
+    fun s => match w : x.run s with
+    | .ok a s' => .ok ⟨a, h' s a s' w⟩ s'
+    | .error e s' => .error e s'
+  val_eq {α p x} h := by
+    ext s
+    rw [EStateM.run_map, EStateM.run]
+    simp only
+    split <;> simp_all
+
+end MonadSatisfying
