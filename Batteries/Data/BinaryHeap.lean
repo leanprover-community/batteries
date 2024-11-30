@@ -67,9 +67,9 @@ def heapifyUp (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) :
   match i with
   | ⟨0, _⟩ => a
   | ⟨i'+1, hi⟩ =>
-    let j := ⟨i'/2, by get_elem_tactic⟩
+    let j := i'/2
     if lt a[j] a[i] then
-      heapifyUp lt (a.swap i j) j
+      heapifyUp lt (a.swap i j) ⟨j, by get_elem_tactic⟩
     else a
 
 /-- `O(1)`. Build a new empty heap. -/
@@ -107,7 +107,7 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
   if h0 : self.size = 0 then self else
     have hs : self.size - 1 < self.size := Nat.pred_lt h0
     have h0 : 0 < self.size := Nat.zero_lt_of_ne_zero h0
-    let v := self.vector.swap ⟨_, h0⟩ ⟨_, hs⟩ |>.pop
+    let v := self.vector.swap _ _ h0 hs |>.pop
     if h : 0 < self.size - 1 then
       ⟨heapifyDown lt v ⟨0, h⟩ |>.toArray⟩
     else
@@ -136,7 +136,7 @@ def insertExtractMax (self : BinaryHeap α lt) (x : α) : α × BinaryHeap α lt
   | none => (x, self)
   | some m =>
     if lt x m then
-      let v := self.vector.set ⟨0, size_pos_of_max e⟩ x
+      let v := self.vector.set 0 x (size_pos_of_max e)
       (m, ⟨heapifyDown lt v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
     else (x, self)
 
@@ -145,7 +145,7 @@ def replaceMax (self : BinaryHeap α lt) (x : α) : Option α × BinaryHeap α l
   match e : self.max with
   | none => (none, ⟨self.vector.push x |>.toArray⟩)
   | some m =>
-    let v := self.vector.set ⟨0, size_pos_of_max e⟩ x
+    let v := self.vector.set 0 x (size_pos_of_max e)
     (some m, ⟨heapifyDown lt v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ self.get i`. -/
