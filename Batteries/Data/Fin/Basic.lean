@@ -75,7 +75,7 @@ Fin.foldrM n f xₙ = do
 variable (n : Nat) (α : Fin (n + 1) → Sort _)
 
 /-- Dependent version of `Fin.foldl`. -/
-def fold (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
+@[inline] def fold (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.fold`. `Fin.fold.loop n α f i h x = f n (f (n-1) (... (f i x)))`  -/
   loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
@@ -86,7 +86,7 @@ def fold (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (
       _root_.cast (congrArg α this) x
 
 /-- Dependent version of `Fin.foldr`. -/
-def foldRev (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
+@[inline] def foldRev (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
   loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.foldRev`.
     `Fin.foldRev.loop n α f i h x = f 0 (f 1 (... (f i x)))`  -/
@@ -99,7 +99,7 @@ def foldRev (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last 
       _root_.cast (congrArg α this) x
 
 /-- Dependent version of `Fin.foldlM`. -/
-def foldM [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0)
+@[inline] def foldM [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0)
     : m (α (last n)) := loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.foldM`.
     ```
@@ -116,10 +116,9 @@ def foldM [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init
     else
       haveI : ⟨i, h⟩ = last n := by ext; simp; omega
       _root_.cast (congrArg (fun i => m (α i)) this) (pure x)
-  termination_by n - i
 
 /-- Dependent version of `Fin.foldrM`. -/
-def foldRevM [Monad m] (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n))
+@[inline] def foldRevM [Monad m] (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n))
     : m (α 0) := loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.foldRevM`.
     ```
