@@ -159,31 +159,7 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
 
-/--
-`insertIdx n a l` inserts `a` into the list `l` after the first `n` elements of `l`
-```
-insertIdx 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
-```
--/
-def insertIdx (n : Nat) (a : α) : List α → List α :=
-  modifyTailIdx (cons a) n
-
 @[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
-
-/-- Tail-recursive version of `insertIdx`. -/
-@[inline] def insertIdxTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
-  /-- Auxiliary for `insertIdxTR`: `insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l`. -/
-  go : Nat → List α → Array α → List α
-  | 0, l, acc => acc.toListAppend (a :: l)
-  | _, [], acc => acc.toList
-  | n+1, a :: l, acc => go n l (acc.push a)
-
-theorem insertIdxTR_go_eq : ∀ n l, insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l
-  | 0, l | _+1, [] => by simp [insertIdxTR.go, insertIdx]
-  | n+1, a :: l => by simp [insertIdxTR.go, insertIdx, insertIdxTR_go_eq n l]
-
-@[csimp] theorem insertIdx_eq_insertIdxTR : @insertIdx = @insertIdxTR := by
-  funext α f n l; simp [insertIdxTR, insertIdxTR_go_eq]
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -487,7 +463,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
+  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
 
 /--
@@ -543,14 +519,6 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   funext α β l₁ l₂; simp [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
   intros; apply Array.foldl_toList_eq_map
-
-/--
-`ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
-```
-ofFn f = [f 0, f 1, ... , f (n - 1)]
-```
--/
-def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
@@ -1096,6 +1064,3 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
-
-/-- `finRange n` lists all elements of `Fin n` in order -/
-def finRange (n : Nat) : List (Fin n) := ofFn fun i => i

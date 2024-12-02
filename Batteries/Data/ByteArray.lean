@@ -15,7 +15,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 /-! ### uget/uset -/
 
 @[simp] theorem uset_eq_set (a : ByteArray) {i : USize} (h : i.toNat < a.size) (v : UInt8) :
-    a.uset i v h = a.set ⟨i.toNat, h⟩ v := rfl
+    a.uset i v h = a.set i.toNat v := rfl
 
 /-! ### empty -/
 
@@ -45,7 +45,7 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 /-! ### set -/
 
 @[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v := rfl
+    (a.set i v).data = a.data.set i v i.isLt := rfl
 @[deprecated (since := "2024-08-13")] alias set_data := data_set
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
@@ -60,7 +60,7 @@ theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size
   Array.get_set_ne (h:=h) ..
 
 theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
-    (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' :=
+    (a.set i v).set i v' = a.set i v' :=
   ByteArray.ext <| Array.set_set ..
 
 /-! ### copySlice -/
@@ -132,7 +132,7 @@ def ofFn (f : Fin n → UInt8) : ByteArray where
   simp [get, Fin.cast]
 
 @[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size) :
-    (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn ..
+    (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn f ⟨i, h⟩
 
 private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
   go (i : Nat) (acc : ByteArray) : ByteArray :=
