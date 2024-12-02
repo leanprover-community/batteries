@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.FinRange
 import Batteries.Data.Array.Basic
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
@@ -228,3 +229,15 @@ theorem getElem_insertIdx_gt (as : Array α) (i : Nat) (h : i ≤ as.size) (v : 
 
 @[deprecated getElem_insertIdx_gt (since := "2024-11-20")] alias getElem_insertAt_gt :=
 getElem_insertIdx_gt
+
+/-! ### finRange -/
+
+@[simp] theorem size_finRange (n) : (Array.finRange n).size = n := by
+  simp [Array.finRange]
+
+@[simp] theorem getElem_finRange (n i) (h : i < (Array.finRange n).size) :
+    (Array.finRange n)[i] = ⟨i, size_finRange n ▸ h⟩ := by
+  simp [Array.finRange]
+
+@[simp] theorem toList_finRange (n) : (Array.finRange n).toList = List.finRange n := by
+  simp [Array.finRange, List.finRange]
