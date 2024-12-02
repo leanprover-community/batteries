@@ -26,14 +26,6 @@ theorem forIn_eq_forIn_toList [Monad m]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
-@[simp] theorem size_zipWith (as : Array α) (bs : Array β) (f : α → β → γ) :
-    (as.zipWith bs f).size = min as.size bs.size := by
-  rw [size_eq_length_toList, toList_zipWith, List.length_zipWith]
-
-@[simp] theorem size_zip (as : Array α) (bs : Array β) :
-    (as.zip bs).size = min as.size bs.size :=
-  as.size_zipWith bs Prod.mk
-
 /-! ### filter -/
 
 theorem size_filter_le (p : α → Bool) (l : Array α) :
@@ -81,11 +73,6 @@ where
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
 /-! ### map -/
-
-theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
-  rw [mapM, mapM.map]; rfl
-
-theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 /-! ### mem -/
 
@@ -151,13 +138,11 @@ theorem getElem_insertIdx_loop_gt {as : Array α} {i : Nat} {j : Nat} {hj : j < 
     have : j - 1 < j := by omega
     rw [getElem_insertIdx_loop_gt w]
     rw [getElem_swap]
-    simp only [Fin.getElem_fin]
     split <;> rename_i h₂
     · rw [if_neg (by omega), if_neg (by omega)]
       have t : k ≤ j := by omega
       simp [t]
     · rw [getElem_swap]
-      simp only [Fin.getElem_fin]
       rw [if_neg (by omega)]
       split <;> rename_i h₃
       · simp [h₃]
@@ -229,15 +214,3 @@ theorem getElem_insertIdx_gt (as : Array α) (i : Nat) (h : i ≤ as.size) (v : 
 
 @[deprecated getElem_insertIdx_gt (since := "2024-11-20")] alias getElem_insertAt_gt :=
 getElem_insertIdx_gt
-
-/-! ### finRange -/
-
-@[simp] theorem size_finRange (n) : (Array.finRange n).size = n := by
-  simp [Array.finRange]
-
-@[simp] theorem getElem_finRange (n i) (h : i < (Array.finRange n).size) :
-    (Array.finRange n)[i] = ⟨i, size_finRange n ▸ h⟩ := by
-  simp [Array.finRange]
-
-@[simp] theorem toList_finRange (n) : (Array.finRange n).toList = List.finRange n := by
-  simp [Array.finRange, List.finRange]

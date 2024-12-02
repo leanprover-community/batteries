@@ -137,28 +137,11 @@ This will perform the update destructively provided that `a` has a reference cou
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set i x
 
-/--
-`swapN a i j hi hj` swaps two `Nat` indexed entries in an `Array α`.
-Uses `get_elem_tactic` to supply a proof that the indices are in range.
-`hi` and `hj` are both given a default argument `by get_elem_tactic`.
-This will perform the update destructively provided that `a` has a reference count of 1 when called.
--/
-abbrev swapN (a : Array α) (i j : Nat)
-    (hi : i < a.size := by get_elem_tactic) (hj : j < a.size := by get_elem_tactic) : Array α :=
-  Array.swap a ⟨i,hi⟩ ⟨j, hj⟩
+@[deprecated (since := "2024-11-24")] alias swapN := swap
 
-/--
-`swapAtN a i h x` swaps the entry with index `i : Nat` in the vector for a new entry `x`.
-The old entry is returned alongwith the modified vector.
-Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasible.
--/
-abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
-    α × Array α := swapAt a ⟨i,h⟩ x
+@[deprecated (since := "2024-11-24")] alias swapAtN := swapAt
 
 @[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
-
-/-- `finRange n` is the array of all elements of `Fin n` in order. -/
-protected def finRange (n : Nat) : Array (Fin n) := ofFn fun i => i
 
 end Array
 

@@ -1064,6 +1064,3 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
-
-/-- `finRange n` lists all elements of `Fin n` in order -/
-def finRange (n : Nat) : List (Fin n) := ofFn fun i => i
