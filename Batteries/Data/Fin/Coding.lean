@@ -92,14 +92,12 @@ def encodeChar (c : Char) : Fin 1112064 :=
 /-- Decode an optional `Fin` types. -/
 def encodeOption : Option (Fin n) → Fin (n+1)
   | none => 0
-  | some x => x.succ
+  | some ⟨i, h⟩ => ⟨i+1, Nat.succ_lt_succ h⟩
 
 /-- Decode an optional `Fin` types. -/
-@[pp_nodot] def decodeOption (x : Fin (n+1)) : Option (Fin n) :=
-  if h : x = 0 then
-    none
-  else
-    some (x.pred h)
+@[pp_nodot] def decodeOption : Fin (n+1) → Option (Fin n)
+  | 0 => none
+  | ⟨i+1, h⟩ => some ⟨i, Nat.lt_of_succ_lt_succ h⟩
 
 @[simp] theorem encodeOption_decodeOption (x : Fin (n+1)) : encodeOption (decodeOption x) = x := by
   simp only [encodeOption, decodeOption]
@@ -120,11 +118,11 @@ def encodeOption : Option (Fin n) → Fin (n+1)
   · next he =>
     split at he
     · rfl
-    · simp only [Fin.succ] at he; cases he
+    · cases he
   · next he =>
     split at he
-    · simp at he
-    · rfl
+    · cases he
+    · cases he; rfl
 
 /-- Encode a sum of `Fin` types. -/
 def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
@@ -155,16 +153,12 @@ def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
 @[simp] theorem decodeSum_encodeSum (x : Sum (Fin n) (Fin m)) : decodeSum (encodeSum x) = x := by
   simp only [encodeSum, decodeSum]
   split
-  · next hd =>
-    split
+  · split
     · simp
-    · simp at hd; omega
-  · next hd =>
-    split
-    · simp at hd
-    · next x =>
-      cases x
-      simp; omega
+    · next h => simp only [coe_castLE] at h; omega
+  · split
+    · next h => simp only [coe_natAdd] at h; omega
+    · next x _ => cases x; simp only [natAdd_mk, Sum.inr.injEq, mk.injEq]; omega
 
 /-- Encode a product of `Fin` types. -/
 def encodeProd : Fin m × Fin n → Fin (m * n)
