@@ -45,3 +45,21 @@ theorem foldr_eq_foldr_finRange (f : Fin n → α → α) (x) :
 
 @[deprecated (since := "2024-11-19")]
 alias foldr_eq_foldr_list := foldr_eq_foldr_finRange
+
+variable (n : Nat) (α : Fin (n + 1) → Sort _)
+
+/-- Dependent version of `Fin.foldl`. -/
+def fold (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
+    loop 0 (Nat.zero_lt_succ n) init where
+  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
+    if h' : i < n then
+      loop (i + 1) (Nat.succ_lt_succ h') (f ⟨i, h'⟩ x)
+    else
+      haveI : ⟨i, h⟩ = last n := by
+        ext
+        simp only [val_last]
+        exact Nat.eq_of_lt_succ_of_not_lt h h'
+      _root_.cast (congrArg α this) x
+  termination_by n - i
+  decreasing_by
+    exact Nat.sub_add_lt_sub h' (Nat.lt_add_one 0)
