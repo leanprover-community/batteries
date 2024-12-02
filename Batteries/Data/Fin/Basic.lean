@@ -31,7 +31,7 @@ alias list := List.finRange
     pure xₙ
   ```
   -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
+  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
     if h' : i < n then
       (f ⟨i, h'⟩ x) >>= loop (i + 1) (Nat.succ_lt_succ h')
     else
@@ -52,7 +52,7 @@ alias list := List.finRange
     pure x₀
   ```
   -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α 0) :=
+  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α 0) :=
     if h' : i > 0 then
       (f ⟨i - 1, by omega⟩ (by simpa [Nat.sub_one_add_one_eq_of_pos h'] using x))
         >>= loop (i - 1) (by omega)
@@ -78,7 +78,7 @@ alias list := List.finRange
   loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.dfoldr`.
     `Fin.dfoldr.loop n α f i h x = f 0 (f 1 (... (f i x)))`  -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
+  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
     if h' : i > 0 then
       loop (i - 1) (by omega) (f ⟨i - 1, by omega⟩
         (by simpa [Nat.sub_one_add_one_eq_of_pos h'] using x))
