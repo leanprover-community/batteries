@@ -132,9 +132,6 @@ the second will store declarations from imports (and will hopefully be "read-onl
 -/
 @[reducible] def DiscrTreeCache (α : Type) : Type := DeclCache (DiscrTree α × DiscrTree α)
 
-/-- Discrimination tree settings for the `DiscrTreeCache`. -/
-def DiscrTreeCache.config : WhnfCoreConfig := {}
-
 /--
 Build a `DiscrTreeCache`,
 from a function that returns a collection of keys and values for each declaration.
@@ -170,4 +167,4 @@ def DiscrTreeCache.getMatch (c : DiscrTreeCache α) (e : Expr) : MetaM (Array α
   let (locals, imports) ← c.get
   -- `DiscrTree.getMatch` returns results in batches, with more specific lemmas coming later.
   -- Hence we reverse this list, so we try out more specific lemmas earlier.
-  return (← locals.getMatch e config).reverse ++ (← imports.getMatch e config).reverse
+  return (← locals.getMatch e).reverse ++ (← imports.getMatch e).reverse
