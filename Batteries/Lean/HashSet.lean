@@ -10,9 +10,6 @@ namespace Std.HashSet
 
 variable [BEq α] [Hashable α]
 
-instance : Singleton α (HashSet α) := ⟨fun x => HashSet.empty.insert x⟩
-instance : Insert α (HashSet α) := ⟨fun a s => s.insert a⟩
-
 /--
 `O(n)`. Returns `true` if `f` returns `true` for any element of the set.
 -/

@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.FinRange
 import Batteries.Data.Array.Basic
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
@@ -14,19 +15,8 @@ namespace Array
 theorem forIn_eq_forIn_toList [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.toList b f := by
-  let rec loop : ∀ {i h b j}, j + i = as.size →
-      Array.forIn.loop as f i h b = forIn (as.toList.drop j) b f
-    | 0, _, _, _, rfl => by rw [List.drop_length]; rfl
-    | i+1, _, _, j, ij => by
-      simp only [forIn.loop, Nat.add]
-      have j_eq : j = size as - 1 - i := by simp [← ij, ← Nat.add_assoc]
-      have : as.size - 1 - i < as.size := j_eq ▸ ij ▸ Nat.lt_succ_of_le (Nat.le_add_right ..)
-      have : as[size as - 1 - i] :: as.toList.drop (j + 1) = as.toList.drop j := by
-        rw [j_eq]; exact List.getElem_cons_drop _ _ this
-      simp only [← this, List.forIn_cons]; congr; funext x; congr; funext b
-      rw [loop (i := i)]; rw [← ij, Nat.succ_add]; rfl
-  conv => lhs; simp only [forIn, Array.forIn]
-  rw [loop (Nat.zero_add _)]; rfl
+  cases as
+  simp
 
 @[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
 @[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
@@ -99,28 +89,11 @@ theorem size_filter_le (p : α → Bool) (l : Array α) :
   simp only [← length_toList, toList_filter]
   apply List.length_filter_le
 
-/-! ### join -/
+/-! ### flatten -/
 
-@[simp] theorem toList_join {l : Array (Array α)} : l.join.toList = (l.toList.map toList).join := by
-  dsimp [join]
-  simp only [foldl_eq_foldl_toList]
-  generalize l.toList = l
-  have : ∀ a : Array α, (List.foldl ?_ a l).toList = a.toList ++ ?_ := ?_
-  exact this #[]
-  induction l with
-  | nil => simp
-  | cons h => induction h.toList <;> simp [*]
-@[deprecated (since := "2024-09-09")] alias data_join := toList_join
-@[deprecated (since := "2024-08-13")] alias join_data := data_join
-
-theorem mem_join : ∀ {L : Array (Array α)}, a ∈ L.join ↔ ∃ l, l ∈ L ∧ a ∈ l := by
-  simp only [mem_def, toList_join, List.mem_join, List.mem_map]
-  intro l
-  constructor
-  · rintro ⟨_, ⟨s, m, rfl⟩, h⟩
-    exact ⟨s, m, h⟩
-  · rintro ⟨s, h₁, h₂⟩
-    refine ⟨s.toList, ⟨⟨s, h₁, rfl⟩, h₂⟩⟩
+@[deprecated (since := "2024-09-09")] alias data_join := toList_flatten
+@[deprecated (since := "2024-08-13")] alias join_data := toList_flatten
+@[deprecated (since := "2024-10-15")] alias mem_join := mem_flatten
 
 /-! ### indexOf? -/
 
@@ -154,26 +127,9 @@ where
     (a.eraseIdx i).size = if i < a.size then a.size-1 else a.size := by
   simp only [eraseIdx]; split; simp; rfl
 
-/-! ### shrink -/
-
-theorem size_shrink_loop (a : Array α) (n) : (shrink.loop n a).size = a.size - n := by
-  induction n generalizing a with simp only [shrink.loop, Nat.sub_zero]
-  | succ n ih => simp only [ih, size_pop]; omega
-
-@[simp] theorem size_shrink (a : Array α) (n) : (a.shrink n).size = min a.size n := by
-  simp [shrink, size_shrink_loop]
-  omega
-
 /-! ### set -/
 
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
-
-/-! ### swapAt -/
-
-theorem size_swapAt (a : Array α) (x i) : (a.swapAt i x).snd.size = a.size := by simp
-
-@[simp] theorem size_swapAt! (a : Array α) (x) (h : i < a.size) :
-    (a.swapAt! i x).snd.size = a.size := by simp [h]
 
 /-! ### map -/
 
@@ -266,14 +222,14 @@ theorem getElem_insertAt_lt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hlt : k < i.val) {hk : k < (as.insertAt i v).size} {hk' : k < as.size} :
     (as.insertAt i v)[k] = as[k] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_lt, get_push, dif_pos hk']
+  rw [get_insertAt_loop_lt, getElem_push, dif_pos hk']
   exact hlt
 
 theorem getElem_insertAt_gt (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (hgt : k > i.val) {hk : k < (as.insertAt i v).size} {hk' : k - 1 < as.size} :
     (as.insertAt i v)[k] = as[k - 1] := by
   simp only [insertAt]
-  rw [get_insertAt_loop_gt_le, get_push, dif_pos hk']
+  rw [get_insertAt_loop_gt_le, getElem_push, dif_pos hk']
   exact hgt
   rw [size_insertAt] at hk
   exact Nat.le_of_lt_succ hk
@@ -282,6 +238,23 @@ theorem getElem_insertAt_eq (as : Array α) (i : Fin (as.size+1)) (v : α)
     (k) (heq : i.val = k) {hk : k < (as.insertAt i v).size} :
     (as.insertAt i v)[k] = v := by
   simp only [insertAt]
-  rw [get_insertAt_loop_eq, Fin.getElem_fin, get_push_eq]
+  rw [get_insertAt_loop_eq, Fin.getElem_fin, getElem_push_eq]
   exact heq
   exact Nat.le_of_lt_succ i.is_lt
+
+/-! ### ofFn -/
+
+@[simp] theorem toList_ofFn (f : Fin n → α) : (ofFn f).toList = List.ofFn f := by
+  apply List.ext_getElem <;> simp
+
+/-! ### finRange -/
+
+@[simp] theorem size_finRange (n) : (Array.finRange n).size = n := by
+  simp [Array.finRange]
+
+@[simp] theorem getElem_finRange (n i) (h : i < (Array.finRange n).size) :
+    (Array.finRange n)[i] = ⟨i, size_finRange n ▸ h⟩ := by
+  simp [Array.finRange]
+
+@[simp] theorem toList_finRange (n) : (Array.finRange n).toList = List.finRange n := by
+  simp [Array.finRange, List.finRange]
