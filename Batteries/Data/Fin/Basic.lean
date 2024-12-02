@@ -18,36 +18,11 @@ alias enum := Array.finRange
 @[deprecated (since := "2024-11-15")]
 alias list := List.finRange
 
-variable (n : Nat) (α : Fin (n + 1) → Sort _)
-
-/-- Dependent version of `Fin.foldl`. -/
-@[inline] def fold (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
-  loop 0 (Nat.zero_lt_succ n) init where
-  /-- Inner loop for `Fin.fold`. `Fin.fold.loop n α f i h x = f n (f (n-1) (... (f i x)))`  -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
-    if h' : i < n then
-      loop (i + 1) (Nat.succ_lt_succ h') (f ⟨i, h'⟩ x)
-    else
-      haveI : ⟨i, h⟩ = last n := by ext; simp; omega
-      _root_.cast (congrArg α this) x
-
-/-- Dependent version of `Fin.foldr`. -/
-@[inline] def foldRev (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
-  loop n (Nat.lt_succ_self n) init where
-  /-- Inner loop for `Fin.foldRev`.
-    `Fin.foldRev.loop n α f i h x = f 0 (f 1 (... (f i x)))`  -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
-    if h' : i > 0 then
-      loop (i - 1) (by omega) (f ⟨i - 1, by omega⟩
-        (by simpa [Nat.sub_one_add_one_eq_of_pos h'] using x))
-    else
-      haveI : ⟨i, h⟩ = 0 := by ext; simp; omega
-      _root_.cast (congrArg α this) x
-
 /-- Dependent version of `Fin.foldlM`. -/
-@[inline] def foldM [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0)
-    : m (α (last n)) := loop 0 (Nat.zero_lt_succ n) init where
-  /-- Inner loop for `Fin.foldM`.
+@[specialize] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
+    (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0) : m (α (last n)) :=
+  loop 0 (Nat.zero_lt_succ n) init where
+  /-- Inner loop for `Fin.dfoldlM`.
     ```
   Fin.foldM.loop n α f i h xᵢ = do
     let xᵢ₊₁ ← f i xᵢ
@@ -64,8 +39,9 @@ variable (n : Nat) (α : Fin (n + 1) → Sort _)
       _root_.cast (congrArg (fun i => m (α i)) this) (pure x)
 
 /-- Dependent version of `Fin.foldrM`. -/
-@[inline] def foldRevM [Monad m] (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n))
-    : m (α 0) := loop n (Nat.lt_succ_self n) init where
+@[specialize] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
+    (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n)) : m (α 0) :=
+  loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.foldRevM`.
     ```
   Fin.foldRevM.loop n α f i h xᵢ = do
@@ -83,3 +59,29 @@ variable (n : Nat) (α : Fin (n + 1) → Sort _)
     else
       haveI : ⟨i, h⟩ = 0 := by ext; simp; omega
       _root_.cast (congrArg (fun i => m (α i)) this) (pure x)
+
+/-- Dependent version of `Fin.foldl`. -/
+@[specialize] def dfoldl (n : Nat) (α : Fin (n + 1) → Sort _)
+    (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
+  loop 0 (Nat.zero_lt_succ n) init where
+  /-- Inner loop for `Fin.dfoldl`. `Fin.dfoldl.loop n α f i h x = f n (f (n-1) (... (f i x)))` -/
+  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
+    if h' : i < n then
+      loop (i + 1) (Nat.succ_lt_succ h') (f ⟨i, h'⟩ x)
+    else
+      haveI : ⟨i, h⟩ = last n := by ext; simp; omega
+      _root_.cast (congrArg α this) x
+
+/-- Dependent version of `Fin.foldr`. -/
+@[specialize] def dfoldr (n : Nat) (α : Fin (n + 1) → Sort _)
+    (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
+  loop n (Nat.lt_succ_self n) init where
+  /-- Inner loop for `Fin.dfoldr`.
+    `Fin.dfoldr.loop n α f i h x = f 0 (f 1 (... (f i x)))`  -/
+  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
+    if h' : i > 0 then
+      loop (i - 1) (by omega) (f ⟨i - 1, by omega⟩
+        (by simpa [Nat.sub_one_add_one_eq_of_pos h'] using x))
+    else
+      haveI : ⟨i, h⟩ = 0 := by ext; simp; omega
+      _root_.cast (congrArg α this) x
