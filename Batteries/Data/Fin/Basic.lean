@@ -19,7 +19,7 @@ alias enum := Array.finRange
 alias list := List.finRange
 
 /-- Dependent version of `Fin.foldlM`. -/
-@[specialize] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
+@[inline] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0) : m (α (last n)) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.dfoldlM`.
@@ -39,7 +39,7 @@ alias list := List.finRange
       _root_.cast (congrArg (fun i => m (α i)) this) (pure x)
 
 /-- Dependent version of `Fin.foldrM`. -/
-@[specialize] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
+@[inline] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n)) : m (α 0) :=
   loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.foldRevM`.
@@ -61,11 +61,11 @@ alias list := List.finRange
       _root_.cast (congrArg (fun i => m (α i)) this) (pure x)
 
 /-- Dependent version of `Fin.foldl`. -/
-@[specialize] def dfoldl (n : Nat) (α : Fin (n + 1) → Sort _)
+@[inline] def dfoldl (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.dfoldl`. `Fin.dfoldl.loop n α f i h x = f n (f (n-1) (... (f i x)))` -/
-  loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
+  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
     if h' : i < n then
       loop (i + 1) (Nat.succ_lt_succ h') (f ⟨i, h'⟩ x)
     else
@@ -73,7 +73,7 @@ alias list := List.finRange
       _root_.cast (congrArg α this) x
 
 /-- Dependent version of `Fin.foldr`. -/
-@[specialize] def dfoldr (n : Nat) (α : Fin (n + 1) → Sort _)
+@[inline] def dfoldr (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
   loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.dfoldr`.
