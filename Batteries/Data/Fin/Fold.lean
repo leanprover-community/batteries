@@ -80,7 +80,7 @@ theorem dfoldrM_loop [Monad m] [LawfulMonad m] {n : Nat} {α : Fin (n+2) → Typ
   | zero =>
     rw [dfoldrM_loop_zero, dfoldrM_loop_succ, pure_bind]
     conv => rhs; rw [←bind_pure (f 0 x)]
-    congr; funext; exact dfoldrM_loop_zero ..
+    congr
   | succ i ih =>
     rw [dfoldrM_loop_succ _ h, dfoldrM_loop_succ _ (Nat.succ_lt_succ_iff.mp h), bind_assoc]
     congr; funext; exact ih ..
