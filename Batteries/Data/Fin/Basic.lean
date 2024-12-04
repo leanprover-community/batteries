@@ -18,7 +18,10 @@ alias enum := Array.finRange
 @[deprecated (since := "2024-11-15")]
 alias list := List.finRange
 
-/-- Dependent version of `Fin.foldr`. -/
+/-- Heterogeneous fold over `Fin n` from the right: `foldr 3 f x = f 0 (f 1 (f 2 x))`, where
+`f 2 : α 3 → α 2`, `f 1 : α 2 → α 1`, etc.
+
+This is the dependent version of `Fin.foldr`. -/
 @[inline] def dfoldr (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
   loop n (Nat.lt_succ_self n) init where
@@ -29,12 +32,24 @@ alias list := List.finRange
     | i + 1 => loop i (Nat.lt_of_succ_lt h) (f ⟨i, Nat.lt_of_succ_lt_succ h⟩ x)
     | 0 => x
 
-/-- Dependent version of `Fin.foldrM`. -/
+/-- Heterogeneous monadic fold over `Fin n` from right to left:
+```
+Fin.foldrM n f xₙ = do
+  let xₙ₋₁ : α (n-1) ← f (n-1) xₙ
+  let xₙ₋₂ : α (n-2) ← f (n-2) xₙ₋₁
+  ...
+  let x₀ : α 0 ← f 0 x₁
+  pure x₀
+```
+This is the dependent version of `Fin.foldrM`, defined using `Fin.dfoldr`. -/
 @[inline] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n)) : m (α 0) :=
   dfoldr n (fun i => m (α i)) (fun i x => x >>= f i) (pure init)
 
-/-- Dependent version of `Fin.foldl`. -/
+/-- Heterogeneous fold over `Fin n` from the left: `foldl 3 f x = f 0 (f 1 (f 2 x))`, where
+`f 0 : α 0 → α 1`, `f 1 : α 1 → α 2`, etc.
+
+This is the dependent version of `Fin.foldl`. -/
 @[inline] def dfoldl (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   loop 0 (Nat.zero_lt_succ n) init where
@@ -46,16 +61,25 @@ alias list := List.finRange
       haveI : ⟨i, h⟩ = last n := by ext; simp; omega
       _root_.cast (congrArg α this) x
 
-/-- Dependent version of `Fin.foldlM`. -/
+/-- Heterogeneous monadic fold over `Fin n` from left to right:
+```
+Fin.foldlM n f x₀ = do
+  let x₁ : α 1 ← f 0 x₀
+  let x₂ : α 2 ← f 1 x₁
+  ...
+  let xₙ : α n ← f (n-1) xₙ₋₁
+  pure xₙ
+```
+This is the dependent version of `Fin.foldlM`. -/
 @[inline] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Sort _)
     (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0) : m (α (last n)) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.dfoldlM`.
     ```
   Fin.foldM.loop n α f i h xᵢ = do
-    let xᵢ₊₁ ← f i xᵢ
+    let xᵢ₊₁ : α (i+1) ← f i xᵢ
     ...
-    let xₙ ← f (n-1) xₙ₋₁
+    let xₙ : α n ← f (n-1) xₙ₋₁
     pure xₙ
   ```
   -/
