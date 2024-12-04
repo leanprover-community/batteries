@@ -130,13 +130,12 @@ theorem dfoldl_eq_foldl (f : Fin n → α → α) (x : α) :
 
 theorem dfoldr_loop_zero (f : (i : Fin n) → α i.succ → α i.castSucc) (x) :
     dfoldr.loop n α f 0 (Nat.zero_lt_succ n) x = x := by
-  rw [dfoldr.loop, dif_neg (Nat.not_lt_zero _), cast_eq]
+  rw [dfoldr.loop]
 
 theorem dfoldr_loop_succ (f : (i : Fin n) → α i.succ → α i.castSucc) (h : i < n) (x) :
       dfoldr.loop n α f (i+1) (Nat.add_lt_add_right h 1) x =
         dfoldr.loop n α f i (Nat.lt_add_right 1 h) (f ⟨i, h⟩ x) := by
-  rw [dfoldr.loop, dif_pos (Nat.zero_lt_succ i)]
-  simp only [Nat.add_one_sub_one, succ_mk, eq_mpr_eq_cast, cast_eq]
+  rw [dfoldr.loop]
 
 theorem dfoldr_loop (f : (i : Fin (n+1)) → α i.succ → α i.castSucc) (h : i+1 ≤ n+1) (x) :
       dfoldr.loop (n+1) α f (i+1) (Nat.add_lt_add_right h 1) x =

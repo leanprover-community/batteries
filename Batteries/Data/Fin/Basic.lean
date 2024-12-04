@@ -65,7 +65,7 @@ alias list := List.finRange
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.dfoldl`. `Fin.dfoldl.loop n α f i h x = f n (f (n-1) (... (f i x)))` -/
-  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
+  @[semireducible, specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α (last n) :=
     if h' : i < n then
       loop (i + 1) (Nat.succ_lt_succ h') (f ⟨i, h'⟩ x)
     else
@@ -78,10 +78,7 @@ alias list := List.finRange
   loop n (Nat.lt_succ_self n) init where
   /-- Inner loop for `Fin.dfoldr`.
     `Fin.dfoldr.loop n α f i h x = f 0 (f 1 (... (f i x)))`  -/
-  @[semireducible] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
-    if h' : i > 0 then
-      loop (i - 1) (by omega) (f ⟨i - 1, by omega⟩
-        (by simpa [Nat.sub_one_add_one_eq_of_pos h'] using x))
-    else
-      haveI : ⟨i, h⟩ = 0 := by ext; simp; omega
-      _root_.cast (congrArg α this) x
+  @[specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : α 0 :=
+    match i with
+    | i + 1 => loop i (Nat.lt_of_succ_lt h) (f ⟨i, Nat.lt_of_succ_lt_succ h⟩ x)
+    | 0 => x
