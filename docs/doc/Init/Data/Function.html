@@ -1,0 +1,67 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Data.Function</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Init.Data.Function";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Data</span>.<span class="name">Function</span></h2><form action="https://google.com/search" method="get" id="search_form"><input type="hidden" name="sitesearch" value="https://leanprover-community.github.io/mathlib4_docs"></input><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button><button>Google site search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Init/Core.html">Init.Core</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Data.Function" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Function.curry"><span class="name">Function</span>.<span class="name">curry</span></a></div><div class="nav_link"><a class="break_within" href="#Function.uncurry"><span class="name">Function</span>.<span class="name">uncurry</span></a></div><div class="nav_link"><a class="break_within" href="#Function.curry_uncurry"><span class="name">Function</span>.<span class="name">curry_uncurry</span></a></div><div class="nav_link"><a class="break_within" href="#Function.uncurry_curry"><span class="name">Function</span>.<span class="name">uncurry_curry</span></a></div><div class="nav_link"><a class="break_within" href="#Function.uncurry_apply_pair"><span class="name">Function</span>.<span class="name">uncurry_apply_pair</span></a></div><div class="nav_link"><a class="break_within" href="#Function.curry_apply"><span class="name">Function</span>.<span class="name">curry_apply</span></a></div></nav><main>
+<div class="decl" id="Function.curry"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L12-L13">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.curry"><span class="name">Function</span>.<span class="name">curry</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{φ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">α</span> <a href="../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span></span> → <span class="fn">φ</span>)</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">φ</span></span></span></span></div></div><details id="instances-for-list-Function.curry" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Function.uncurry"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L15-L17">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.uncurry"><span class="name">Function</span>.<span class="name">uncurry</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{φ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">φ</span></span>)</span> → <span class="fn"><span class="fn"><span class="fn">α</span> <a href="../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span></span> → <span class="fn">φ</span></span></span></div></div><p>Interpret a function with two arguments as a function on <code>α × β</code></p><details id="instances-for-list-Function.uncurry" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Function.curry_uncurry"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L19-L21">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.curry_uncurry"><span class="name">Function</span>.<span class="name">curry_uncurry</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{φ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">φ</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../.././Init/Data/Function.html#Function.curry">Function.curry</a> <span class="fn">(<a href="../.././Init/Data/Function.html#Function.uncurry">Function.uncurry</a> <span class="fn">f</span>)</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">f</span></span></div></div></div></div><div class="decl" id="Function.uncurry_curry"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L23-L25">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.uncurry_curry"><span class="name">Function</span>.<span class="name">uncurry_curry</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{φ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn"><span class="fn">α</span> <a href="../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span></span> → <span class="fn">φ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../.././Init/Data/Function.html#Function.uncurry">Function.uncurry</a> <span class="fn">(<a href="../.././Init/Data/Function.html#Function.curry">Function.curry</a> <span class="fn">f</span>)</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">f</span></span></div></div></div></div><div class="decl" id="Function.uncurry_apply_pair"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L27-L29">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.uncurry_apply_pair"><span class="name">Function</span>.<span class="name">uncurry_apply_pair</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(y : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../.././Init/Data/Function.html#Function.uncurry">Function.uncurry</a> <span class="fn">f</span> <span class="fn">(<span class="fn">x</span>, <span class="fn">y</span>)</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span></span></div></div></div></div><div class="decl" id="Function.curry_apply"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Init/Data/Function.lean#L31-L33">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Data/Function.html#Function.curry_apply"><span class="name">Function</span>.<span class="name">curry_apply</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../.././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn"><span class="fn">α</span> <a href="../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span></span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(y : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../.././Init/Data/Function.html#Function.curry">Function.curry</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">x</span>, <span class="fn">y</span>)</span></span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

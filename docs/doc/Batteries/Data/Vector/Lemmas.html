@@ -1,0 +1,937 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Batteries.Data.Vector.Lemmas</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Batteries.Data.Vector.Lemmas";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Batteries</span>.<span class="name">Data</span>.<span class="name">Vector</span>.<span class="name">Lemmas</span></h2><form action="https://google.com/search" method="get" id="search_form"><input type="hidden" name="sitesearch" value="https://leanprover-community.github.io/mathlib4_docs"></input><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button><button>Google site search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init.html">Init</a></li><li><a href="../../.././Batteries/Data/Array/Lemmas.html">Batteries.Data.Array.Lemmas</a></li><li><a href="../../.././Batteries/Data/List/Basic.html">Batteries.Data.List.Basic</a></li><li><a href="../../.././Batteries/Data/List/Lemmas.html">Batteries.Data.List.Lemmas</a></li><li><a href="../../.././Batteries/Data/Vector/Basic.html">Batteries.Data.Vector.Basic</a></li><li><a href="../../.././Batteries/Tactic/Lint/Simp.html">Batteries.Tactic.Lint.Simp</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Batteries.Data.Vector.Lemmas" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_injective"><span class="name">Vector</span>.<span class="name">toArray_injective</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.ext"><span class="name">Vector</span>.<span class="name">ext</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_mk"><span class="name">Vector</span>.<span class="name">toArray_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.allDiff_mk"><span class="name">Vector</span>.<span class="name">allDiff_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.mk_append_mk"><span class="name">Vector</span>.<span class="name">mk_append_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.back!_mk"><span class="name">Vector</span>.<span class="name">back!_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.back?_mk"><span class="name">Vector</span>.<span class="name">back?_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.drop_mk"><span class="name">Vector</span>.<span class="name">drop_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.eraseIdx_mk"><span class="name">Vector</span>.<span class="name">eraseIdx_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.eraseIdx!_mk"><span class="name">Vector</span>.<span class="name">eraseIdx!_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.extract_mk"><span class="name">Vector</span>.<span class="name">extract_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_mk"><span class="name">Vector</span>.<span class="name">getElem_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.get_mk"><span class="name">Vector</span>.<span class="name">get_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getD_mk"><span class="name">Vector</span>.<span class="name">getD_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.uget_mk"><span class="name">Vector</span>.<span class="name">uget_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.indexOf?_mk"><span class="name">Vector</span>.<span class="name">indexOf?_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.mk_isEqv_mk"><span class="name">Vector</span>.<span class="name">mk_isEqv_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.mk_isPrefixOf_mk"><span class="name">Vector</span>.<span class="name">mk_isPrefixOf_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.map_mk"><span class="name">Vector</span>.<span class="name">map_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.pop_mk"><span class="name">Vector</span>.<span class="name">pop_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.push_mk"><span class="name">Vector</span>.<span class="name">push_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.reverse_mk"><span class="name">Vector</span>.<span class="name">reverse_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.set_mk"><span class="name">Vector</span>.<span class="name">set_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.set!_mk"><span class="name">Vector</span>.<span class="name">set!_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.setIfInBounds_mk"><span class="name">Vector</span>.<span class="name">setIfInBounds_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.setN_mk"><span class="name">Vector</span>.<span class="name">setN_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swap_mk"><span class="name">Vector</span>.<span class="name">swap_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swapIfInBounds_mk"><span class="name">Vector</span>.<span class="name">swapIfInBounds_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swapN_mk"><span class="name">Vector</span>.<span class="name">swapN_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swapAt_mk"><span class="name">Vector</span>.<span class="name">swapAt_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swapAt!_mk"><span class="name">Vector</span>.<span class="name">swapAt!_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.swapAtN_mk"><span class="name">Vector</span>.<span class="name">swapAtN_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.take_mk"><span class="name">Vector</span>.<span class="name">take_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.mk_zipWith_mk"><span class="name">Vector</span>.<span class="name">mk_zipWith_mk</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_toArray"><span class="name">Vector</span>.<span class="name">getElem_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_append"><span class="name">Vector</span>.<span class="name">toArray_append</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_drop"><span class="name">Vector</span>.<span class="name">toArray_drop</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_empty"><span class="name">Vector</span>.<span class="name">toArray_empty</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_mkEmpty"><span class="name">Vector</span>.<span class="name">toArray_mkEmpty</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_eraseIdx"><span class="name">Vector</span>.<span class="name">toArray_eraseIdx</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_eraseIdx!"><span class="name">Vector</span>.<span class="name">toArray_eraseIdx!</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_extract"><span class="name">Vector</span>.<span class="name">toArray_extract</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_map"><span class="name">Vector</span>.<span class="name">toArray_map</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_ofFn"><span class="name">Vector</span>.<span class="name">toArray_ofFn</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_pop"><span class="name">Vector</span>.<span class="name">toArray_pop</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_push"><span class="name">Vector</span>.<span class="name">toArray_push</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_range"><span class="name">Vector</span>.<span class="name">toArray_range</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_reverse"><span class="name">Vector</span>.<span class="name">toArray_reverse</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_set"><span class="name">Vector</span>.<span class="name">toArray_set</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_set!"><span class="name">Vector</span>.<span class="name">toArray_set!</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_setIfInBounds"><span class="name">Vector</span>.<span class="name">toArray_setIfInBounds</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_setD"><span class="name">Vector</span>.<span class="name">toArray_setD</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_setN"><span class="name">Vector</span>.<span class="name">toArray_setN</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_singleton"><span class="name">Vector</span>.<span class="name">toArray_singleton</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swap"><span class="name">Vector</span>.<span class="name">toArray_swap</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swapIfInBounds"><span class="name">Vector</span>.<span class="name">toArray_swapIfInBounds</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swap!"><span class="name">Vector</span>.<span class="name">toArray_swap!</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swapN"><span class="name">Vector</span>.<span class="name">toArray_swapN</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swapAt"><span class="name">Vector</span>.<span class="name">toArray_swapAt</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swapAt!"><span class="name">Vector</span>.<span class="name">toArray_swapAt!</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_swapAtN"><span class="name">Vector</span>.<span class="name">toArray_swapAtN</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_take"><span class="name">Vector</span>.<span class="name">toArray_take</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.toArray_zipWith"><span class="name">Vector</span>.<span class="name">toArray_zipWith</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.length_toList"><span class="name">Vector</span>.<span class="name">length_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_toList"><span class="name">Vector</span>.<span class="name">getElem_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_ofFn"><span class="name">Vector</span>.<span class="name">getElem_ofFn</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_push_last"><span class="name">Vector</span>.<span class="name">getElem_push_last</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_push_lt"><span class="name">Vector</span>.<span class="name">getElem_push_lt</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_pop"><span class="name">Vector</span>.<span class="name">getElem_pop</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.getElem_pop'"><span class="name">Vector</span>.<span class="name">getElem_pop'</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.push_pop_back"><span class="name">Vector</span>.<span class="name">push_pop_back</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.map_empty"><span class="name">Vector</span>.<span class="name">map_empty</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.eq_empty"><span class="name">Vector</span>.<span class="name">eq_empty</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.forall_zero_iff"><span class="name">Vector</span>.<span class="name">forall_zero_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.forall_cons_iff"><span class="name">Vector</span>.<span class="name">forall_cons_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.instDecidableForallVectorZero"><span class="name">Vector</span>.<span class="name">instDecidableForallVectorZero</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.instDecidableForallVectorSucc"><span class="name">Vector</span>.<span class="name">instDecidableForallVectorSucc</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.instDecidableExistsVectorZero"><span class="name">Vector</span>.<span class="name">instDecidableExistsVectorZero</span></a></div><div class="nav_link"><a class="break_within" href="#Vector.instDecidableExistsVectorSucc"><span class="name">Vector</span>.<span class="name">instDecidableExistsVectorSucc</span></a></div></nav><main>
+<div class="decl" id="Vector.toArray_injective"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L15-L16">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_injective"><span class="name">Vector</span>.<span class="name">toArray_injective</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{w : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">v</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">w</span>.toArray</span></span> → <span class="fn"><span class="fn">v</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">w</span></span></span></div></div></div></div><div class="decl" id="Vector.ext"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L18-L18">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.ext"><span class="name">Vector</span>.<span class="name">ext</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn">∀ (<span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>) (<span class="fn">x</span> : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>), <span class="fn"><span class="fn"><span class="fn">a</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">b</span>[<span class="fn">i</span>]</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">b</span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="mk-lemmas">mk lemmas <a class="hover-link" href="#mk-lemmas">#</a></h3></div><div class="decl" id="Vector.toArray_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L29-L29">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_mk"><span class="name">Vector</span>.<span class="name">toArray_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">a</span></span></div></div></div></div><div class="decl" id="Vector.allDiff_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L31-L32">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.allDiff_mk"><span class="name">Vector</span>.<span class="name">allDiff_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.allDiff</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>.allDiff</span></span></div></div></div></div><div class="decl" id="Vector.mk_append_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L34-L35">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.mk_append_mk"><span class="name">Vector</span>.<span class="name">mk_append_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(ha : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hb : <span class="fn"><span class="fn"><span class="fn">b</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">m</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">ha</span> }</span> <a href="../../.././Init/Prelude.html#HAppend.hAppend">++</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">b</span>, <span class="fn">size_toArray</span> := <span class="fn">hb</span> }</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HAppend.hAppend">++</a> <span class="fn">b</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.back!_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L37-L38">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.back!_mk"><span class="name">Vector</span>.<span class="name">back!_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.back!</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>.back!</span></span></div></div></div></div><div class="decl" id="Vector.back?_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L40-L41">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.back?_mk"><span class="name">Vector</span>.<span class="name">back?_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.back?</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>.back?</span></span></div></div></div></div><div class="decl" id="Vector.drop_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L43-L44">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.drop_mk"><span class="name">Vector</span>.<span class="name">drop_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.drop</span> <span class="fn">m</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.extract</span> <span class="fn">m</span> <span class="fn"><span class="fn">a</span>.size</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.eraseIdx_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L46-L47">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.eraseIdx_mk"><span class="name">Vector</span>.<span class="name">eraseIdx_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h' : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.eraseIdx</span> <span class="fn">i</span> <span class="fn">h'</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.eraseIdx</span> <span class="fn">i</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.eraseIdx!_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L49-L51">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.eraseIdx!_mk"><span class="name">Vector</span>.<span class="name">eraseIdx!_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.eraseIdx!</span> <span class="fn">i</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.eraseIdx</span> <span class="fn">i</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.extract_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L53-L54">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.extract_mk"><span class="name">Vector</span>.<span class="name">extract_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(start : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(stop : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.extract</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.extract</span> <span class="fn">start</span> <span class="fn">stop</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.getElem_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L56-L57">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_mk"><span class="name">Vector</span>.<span class="name">getElem_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="decl" id="Vector.get_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L59-L60">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.get_mk"><span class="name">Vector</span>.<span class="name">get_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <span class="fn"><a href="../../.././Init/Prelude.html#Fin">Fin</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.get</span> <span class="fn">i</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="decl" id="Vector.getD_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L62-L63">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getD_mk"><span class="name">Vector</span>.<span class="name">getD_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.getD</span> <span class="fn">i</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.getD</span> <span class="fn">i</span> <span class="fn">x</span></span></span></div></div></div></div><div class="decl" id="Vector.uget_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L65-L66">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.uget_mk"><span class="name">Vector</span>.<span class="name">uget_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#USize">USize</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn"><span class="fn">i</span>.toNat</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.uget</span> <span class="fn">i</span> <span class="fn">hi</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.uget</span> <span class="fn">i</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Vector.indexOf?_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L68-L69">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.indexOf?_mk"><span class="name">Vector</span>.<span class="name">indexOf?_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.indexOf?</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Option.map">Option.map</a> <span class="fn">(<a href="../../.././Init/Data/Fin/Basic.html#Fin.cast">Fin.cast</a> <span class="fn">h</span>)</span> <span class="fn">(<span class="fn"><span class="fn">a</span>.indexOf?</span> <span class="fn">x</span>)</span></span></span></div></div></div></div><div class="decl" id="Vector.mk_isEqv_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L71-L73">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.mk_isEqv_mk"><span class="name">Vector</span>.<span class="name">mk_isEqv_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(r : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../.././Init/Prelude.html#Bool">Bool</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(ha : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hb : <span class="fn"><span class="fn"><span class="fn">b</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">ha</span> }</span>.isEqv</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">b</span>, <span class="fn">size_toArray</span> := <span class="fn">hb</span> }</span> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.isEqv</span> <span class="fn">b</span> <span class="fn">r</span></span></span></div></div></div></div><div class="decl" id="Vector.mk_isPrefixOf_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L75-L76">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.mk_isPrefixOf_mk"><span class="name">Vector</span>.<span class="name">mk_isPrefixOf_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(ha : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hb : <span class="fn"><span class="fn"><span class="fn">b</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">m</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">ha</span> }</span>.isPrefixOf</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">b</span>, <span class="fn">size_toArray</span> := <span class="fn">hb</span> }</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.isPrefixOf</span> <span class="fn">b</span></span></span></div></div></div></div><div class="decl" id="Vector.map_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L78-L79">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.map_mk"><span class="name">Vector</span>.<span class="name">map_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector.map">Vector.map</a> <span class="fn">f</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.map">Array.map</a> <span class="fn">f</span> <span class="fn">a</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.pop_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L81-L82">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.pop_mk"><span class="name">Vector</span>.<span class="name">pop_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.pop</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">a</span>.pop</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.push_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L84-L85">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.push_mk"><span class="name">Vector</span>.<span class="name">push_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.push</span> <span class="fn">x</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.reverse_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L87-L88">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.reverse_mk"><span class="name">Vector</span>.<span class="name">reverse_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.reverse</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">a</span>.reverse</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.set_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L90-L91">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.set_mk"><span class="name">Vector</span>.<span class="name">set_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(w : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">w</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.set!_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L93-L94">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.set!_mk"><span class="name">Vector</span>.<span class="name">set!_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.set!</span> <span class="fn">i</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.set!</span> <span class="fn">i</span> <span class="fn">x</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.setIfInBounds_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L96-L97">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.setIfInBounds_mk"><span class="name">Vector</span>.<span class="name">setIfInBounds_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.setN_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L99-L99">source</a></div><div class="attributes">@[deprecated Vector.set_mk]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.setN_mk"><span class="name">Vector</span>.<span class="name">setN_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(w : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">w</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.set_mk">Vector.set_mk</a></code>.</p></div></div><div class="decl" id="Vector.swap_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L101-L103">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swap_mk"><span class="name">Vector</span>.<span class="name">swap_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">j</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hj : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">hj</span> <span class="fn">hi</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">⋯</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.swapIfInBounds_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L105-L106">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapIfInBounds_mk"><span class="name">Vector</span>.<span class="name">swapIfInBounds_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.swapN_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L108-L108">source</a></div><div class="attributes">@[deprecated Vector.swap_mk]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapN_mk"><span class="name">Vector</span>.<span class="name">swapN_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">j</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hj : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">hj</span> <span class="fn">hi</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">⋯</span> <span class="fn">⋯</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swap_mk">Vector.swap_mk</a></code>.</p></div></div><div class="decl" id="Vector.swapAt_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L110-L113">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapAt_mk"><span class="name">Vector</span>.<span class="name">swapAt_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">hi</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.fst</span>, <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.snd</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>)</span></span></div></div></div></div><div class="decl" id="Vector.swapAt!_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L115-L116">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapAt!_mk"><span class="name">Vector</span>.<span class="name">swapAt!_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.fst</span>, <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.snd</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>)</span></span></div></div></div></div><div class="decl" id="Vector.swapAtN_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L118-L118">source</a></div><div class="attributes">@[deprecated Vector.swapAt_mk]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapAtN_mk"><span class="name">Vector</span>.<span class="name">swapAtN_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">hi</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.fst</span>, <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.snd</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>)</span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.swapAt_mk">Vector.swapAt_mk</a></code>.</p></div></div><div class="decl" id="Vector.take_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L120-L121">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.take_mk"><span class="name">Vector</span>.<span class="name">take_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">h</span> }</span>.take</span> <span class="fn">m</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.take</span> <span class="fn">m</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.mk_zipWith_mk"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L123-L125">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.mk_zipWith_mk"><span class="name">Vector</span>.<span class="name">mk_zipWith_mk</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(ha : <span class="fn"><span class="fn"><span class="fn">a</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hb : <span class="fn"><span class="fn"><span class="fn">b</span>.size</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">a</span>, <span class="fn">size_toArray</span> := <span class="fn">ha</span> }</span>.zipWith</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">b</span>, <span class="fn">size_toArray</span> := <span class="fn">hb</span> }</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">{ <span class="fn">toArray</span> := <span class="fn"><span class="fn"><span class="fn">a</span>.zipWith</span> <span class="fn">b</span> <span class="fn">f</span></span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.getElem_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L127-L129">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_toArray"><span class="name">Vector</span>.<span class="name">getElem_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(xs : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">xs</span>.size</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">xs</span>.toArray</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">xs</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="toArray-lemmas">toArray lemmas <a class="hover-link" href="#toArray-lemmas">#</a></h3></div><div class="decl" id="Vector.toArray_append"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L133-L134">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_append"><span class="name">Vector</span>.<span class="name">toArray_append</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">m</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn">a</span> <a href="../../.././Init/Prelude.html#HAppend.hAppend">++</a> <span class="fn">b</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.toArray</span> <a href="../../.././Init/Prelude.html#HAppend.hAppend">++</a> <span class="fn"><span class="fn">b</span>.toArray</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_drop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L136-L137">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_drop"><span class="name">Vector</span>.<span class="name">toArray_drop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.drop</span> <span class="fn">m</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.extract</span> <span class="fn">m</span> <span class="fn"><span class="fn">a</span>.size</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_empty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L139-L139">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_empty"><span class="name">Vector</span>.<span class="name">toArray_empty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">#[]</span></span></div></div></div></div><div class="decl" id="Vector.toArray_mkEmpty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L141-L142">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_mkEmpty"><span class="name">Vector</span>.<span class="name">toArray_mkEmpty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(cap : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.mkEmpty">Vector.mkEmpty</a> <span class="fn">cap</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Array.mkEmpty">Array.mkEmpty</a> <span class="fn">cap</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_eraseIdx"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L144-L145">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_eraseIdx"><span class="name">Vector</span>.<span class="name">toArray_eraseIdx</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.eraseIdx</span> <span class="fn">i</span> <span class="fn">h</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.eraseIdx</span> <span class="fn">i</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_eraseIdx!"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L147-L149">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_eraseIdx!"><span class="name">Vector</span>.<span class="name">toArray_eraseIdx!</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.eraseIdx!</span> <span class="fn">i</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.eraseIdx!</span> <span class="fn">i</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_extract"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L151-L152">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_extract"><span class="name">Vector</span>.<span class="name">toArray_extract</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(start : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(stop : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.extract</span> <span class="fn">start</span> <span class="fn">stop</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.extract</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L154-L155">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_map"><span class="name">Vector</span>.<span class="name">toArray_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.map">Vector.map</a> <span class="fn">f</span> <span class="fn">a</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.map">Array.map</a> <span class="fn">f</span> <span class="fn"><span class="fn">a</span>.toArray</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_ofFn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L157-L157">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_ofFn"><span class="name">Vector</span>.<span class="name">toArray_ofFn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Fin">Fin</a> <span class="fn">n</span></span> → <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.ofFn">Vector.ofFn</a> <span class="fn">f</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.ofFn">Array.ofFn</a> <span class="fn">f</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_pop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L159-L159">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_pop"><span class="name">Vector</span>.<span class="name">toArray_pop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">a</span>.pop</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>.pop</span></span></div></div></div></div><div class="decl" id="Vector.toArray_push"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L161-L161">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_push"><span class="name">Vector</span>.<span class="name">toArray_push</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">a</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.push</span> <span class="fn">x</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_range"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L163-L163">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_range"><span class="name">Vector</span>.<span class="name">toArray_range</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.range">Vector.range</a> <span class="fn">n</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.range">Array.range</a> <span class="fn">n</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_reverse"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L165-L165">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_reverse"><span class="name">Vector</span>.<span class="name">toArray_reverse</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">a</span>.reverse</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">a</span>.reverse</span></span></div></div></div></div><div class="decl" id="Vector.toArray_set"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L167-L168">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_set"><span class="name">Vector</span>.<span class="name">toArray_set</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_set!"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L170-L171">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_set!"><span class="name">Vector</span>.<span class="name">toArray_set!</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.set!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.set!</span> <span class="fn">i</span> <span class="fn">x</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_setIfInBounds"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L173-L174">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_setIfInBounds"><span class="name">Vector</span>.<span class="name">toArray_setIfInBounds</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_setD"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L176-L176">source</a></div><div class="attributes">@[deprecated Vector.toArray_setIfInBounds]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_setD"><span class="name">Vector</span>.<span class="name">toArray_setD</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.setIfInBounds</span> <span class="fn">i</span> <span class="fn">x</span></span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_setIfInBounds">Vector.toArray_setIfInBounds</a></code>.</p></div></div><div class="decl" id="Vector.toArray_setN"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L177-L177">source</a></div><div class="attributes">@[deprecated Vector.toArray_set]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_setN"><span class="name">Vector</span>.<span class="name">toArray_setN</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.set</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span></span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_set">Vector.toArray_set</a></code>.</p></div></div><div class="decl" id="Vector.toArray_singleton"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L179-L179">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_singleton"><span class="name">Vector</span>.<span class="name">toArray_singleton</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.singleton">Vector.singleton</a> <span class="fn">x</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">#[<span class="fn">x</span>]</span></span></div></div></div></div><div class="decl" id="Vector.toArray_swap"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L181-L182">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swap"><span class="name">Vector</span>.<span class="name">toArray_swap</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">j</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hj : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">hj</span> <span class="fn">hi</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">⋯</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_swapIfInBounds"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L184-L185">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapIfInBounds"><span class="name">Vector</span>.<span class="name">toArray_swapIfInBounds</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_swap!"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L187-L187">source</a></div><div class="attributes">@[deprecated Vector.toArray_swapIfInBounds]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swap!"><span class="name">Vector</span>.<span class="name">toArray_swap!</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.swapIfInBounds</span> <span class="fn">i</span> <span class="fn">j</span></span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapIfInBounds">Vector.toArray_swapIfInBounds</a></code>.</p></div></div><div class="decl" id="Vector.toArray_swapN"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L188-L188">source</a></div><div class="attributes">@[deprecated Vector.toArray_swap]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapN"><span class="name">Vector</span>.<span class="name">toArray_swapN</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(j : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(hi : <span class="fn"><span class="fn">j</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(hj : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">hj</span> <span class="fn">hi</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.swap</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">⋯</span> <span class="fn">⋯</span></span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swap">Vector.toArray_swap</a></code>.</p></div></div><div class="decl" id="Vector.toArray_swapAt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L190-L193">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapAt"><span class="name">Vector</span>.<span class="name">toArray_swapAt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.fst</span>, <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.snd</span>.toArray</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.fst</span>, <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.snd</span>)</span></span></div></div></div></div><div class="decl" id="Vector.toArray_swapAt!"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L195-L197">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapAt!"><span class="name">Vector</span>.<span class="name">toArray_swapAt!</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.fst</span>, <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.snd</span>.toArray</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.fst</span>, <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt!</span> <span class="fn">i</span> <span class="fn">x</span>)</span>.snd</span>)</span></span></div></div></div></div><div class="decl" id="Vector.toArray_swapAtN"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L199-L199">source</a></div><div class="attributes">@[deprecated Vector.toArray_swapAt]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapAtN"><span class="name">Vector</span>.<span class="name">toArray_swapAtN</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(x : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.fst</span>, <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">h</span>)</span>.snd</span>.toArray</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(<span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.fst</span>, <span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.swapAt</span> <span class="fn">i</span> <span class="fn">x</span> <span class="fn">⋯</span>)</span>.snd</span>)</span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_swapAt">Vector.toArray_swapAt</a></code>.</p></div></div><div class="decl" id="Vector.toArray_take"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L201-L201">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_take"><span class="name">Vector</span>.<span class="name">toArray_take</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(m : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.take</span> <span class="fn">m</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.take</span> <span class="fn">m</span></span></span></div></div></div></div><div class="decl" id="Vector.toArray_zipWith"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L203-L204">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.toArray_zipWith"><span class="name">Vector</span>.<span class="name">toArray_zipWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(a : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">β</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">a</span>.zipWith</span> <span class="fn">b</span> <span class="fn">f</span>)</span>.toArray</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">a</span>.zipWith</span> <span class="fn"><span class="fn">b</span>.toArray</span> <span class="fn">f</span></span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="toList-lemmas">toList lemmas <a class="hover-link" href="#toList-lemmas">#</a></h3></div><div class="decl" id="Vector.length_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L208-L208">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.length_toList"><span class="name">Vector</span>.<span class="name">length_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(xs : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">xs</span>.toList</span>.length</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">n</span></span></div></div></div></div><div class="decl" id="Vector.getElem_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L210-L211">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_toList"><span class="name">Vector</span>.<span class="name">getElem_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(xs : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.toList</span>.length</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">xs</span>.toList</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">xs</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="getElem-lemmas">getElem lemmas <a class="hover-link" href="#getElem-lemmas">#</a></h3></div><div class="decl" id="Vector.getElem_ofFn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L215-L217">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_ofFn"><span class="name">Vector</span>.<span class="name">getElem_ofFn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Fin">Fin</a> <span class="fn">n</span></span> → <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.ofFn">Vector.ofFn</a> <span class="fn">f</span>)</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">⟨<span class="fn">i</span>, <span class="fn">h</span>⟩</span></span></span></div></div></div></div><div class="decl" id="Vector.getElem_push_last"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L219-L220">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_push_last"><span class="name">Vector</span>.<span class="name">getElem_push_last</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{x : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span>[<span class="fn">n</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="Vector.getElem_push_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L223-L225">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_push_lt"><span class="name">Vector</span>.<span class="name">getElem_push_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{x : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">v</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="decl" id="Vector.getElem_pop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L227-L228">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_pop"><span class="name">Vector</span>.<span class="name">getElem_pop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">n</span> <a href="../../.././Init/Prelude.html#HSub.hSub">-</a> <span class="fn">1</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">v</span>.pop</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">v</span>[<span class="fn">i</span>]</span></span></div></div></div></div><div class="decl" id="Vector.getElem_pop'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L230-L236">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_pop'"><span class="name">Vector</span>.<span class="name">getElem_pop'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(i : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn"><span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span></span> <a href="../../.././Init/Prelude.html#HSub.hSub">-</a> <span class="fn">1</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">v</span>.pop</span>[<span class="fn">i</span>]</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">v</span>[<span class="fn">i</span>]</span></span></div></div><p>Variant of <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_pop">getElem_pop</a></code> that will sometimes fire when <code><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.getElem_pop">getElem_pop</a></code> gets stuck because of
+defeq issues in the implicit size argument.</p></div></div><div class="decl" id="Vector.push_pop_back"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L238-L244">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.push_pop_back"><span class="name">Vector</span>.<span class="name">push_pop_back</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn"><span class="fn">v</span>.back</span> <span class="fn"><span class="fn">v</span>.pop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">v</span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="empty-lemmas">empty lemmas <a class="hover-link" href="#empty-lemmas">#</a></h3></div><div class="decl" id="Vector.map_empty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L248-L249">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.map_empty"><span class="name">Vector</span>.<span class="name">map_empty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector.map">Vector.map</a> <span class="fn">f</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="decl" id="Vector.eq_empty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L251-L253">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.eq_empty"><span class="name">Vector</span>.<span class="name">eq_empty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(v : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">v</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></div></div></div></div><div class="mod_doc"><h3 class="markdown-heading" id="Decidable-quantifiers">Decidable quantifiers. <a class="hover-link" href="#Decidable-quantifiers">#</a></h3></div><div class="decl" id="Vector.forall_zero_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L257-L264">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.forall_zero_iff"><span class="name">Vector</span>.<span class="name">forall_zero_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn"><span class="fn">P</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span></span></span></div></div></div></div><div class="decl" id="Vector.forall_cons_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L266-L274">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.forall_cons_iff"><span class="name">Vector</span>.<span class="name">forall_cons_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn">∀ (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Vector.instDecidableForallVectorZero"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L276-L281">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableForallVectorZero"><span class="name">Vector</span>.<span class="name">instDecidableForallVectorZero</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(<span class="fn">P</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableForallVectorZero">Vector.instDecidableForallVectorZero</a> <span class="fn">P</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Decidable.isTrue">isTrue</a> <span class="fn">⋯</span></span></span></li><li class="equation"><span class="fn"><span class="fn"><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableForallVectorZero">Vector.instDecidableForallVectorZero</a> <span class="fn">P</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Decidable.isFalse">isFalse</a> <span class="fn">⋯</span></span></span></li></ul></details></div></div><div class="decl" id="Vector.instDecidableForallVectorSucc"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L283-L285">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableForallVectorSucc"><span class="name">Vector</span>.<span class="name">instDecidableForallVectorSucc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∀ (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span></span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableForallVectorSucc">Vector.instDecidableForallVectorSucc</a> <span class="fn">P</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/PropLemmas.html#decidable_of_iff'">decidable_of_iff'</a> <span class="fn">(∀ (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span></span>)</span> <span class="fn">⋯</span></span></span></li></ul></details></div></div><div class="decl" id="Vector.instDecidableExistsVectorZero"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L287-L289">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableExistsVectorZero"><span class="name">Vector</span>.<span class="name">instDecidableExistsVectorZero</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(<span class="fn">P</span> <span class="fn">{ <span class="fn">toArray</span> := <span class="fn">#[]</span>, <span class="fn">size_toArray</span> := <span class="fn">⋯</span> }</span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∃ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableExistsVectorZero">Vector.instDecidableExistsVectorZero</a> <span class="fn">P</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/PropLemmas.html#decidable_of_iff">decidable_of_iff</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn">∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">0</span></span>), <span class="fn"><a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">P</span> <span class="fn">v</span></span></span></span>)</span> <span class="fn">⋯</span></span></span></li></ul></details></div></div><div class="decl" id="Vector.instDecidableExistsVectorSucc"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/c016aa9938c4cedc9b7066099f99bcae1b1af625/Batteries/Data/Vector/Lemmas.lean#L291-L293">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableExistsVectorSucc"><span class="name">Vector</span>.<span class="name">instDecidableExistsVectorSucc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{n : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(P : <span class="fn"><span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span> → <a href="../../.././foundational_types.html">Prop</a></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∀ (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">n</span></span>), <span class="fn"><a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">P</span> <span class="fn">(<a href="../../.././Init/Data/Vector/Basic.html#Vector.push">Vector.push</a> <span class="fn">x</span> <span class="fn">v</span>)</span></span></span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(∃ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>), <span class="fn"><span class="fn">P</span> <span class="fn">v</span></span>)</span></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><a href="../../.././Batteries/Data/Vector/Lemmas.html#Vector.instDecidableExistsVectorSucc">Vector.instDecidableExistsVectorSucc</a> <span class="fn">P</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/PropLemmas.html#decidable_of_iff">decidable_of_iff</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn">∀ (<span class="fn">v</span> : <span class="fn"><a href="../../.././Init/Data/Vector/Basic.html#Vector">Vector</a> <span class="fn">α</span> <span class="fn">(<span class="fn">n</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span></span>), <span class="fn"><a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">P</span> <span class="fn">v</span></span></span></span>)</span> <span class="fn">⋯</span></span></span></li></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
