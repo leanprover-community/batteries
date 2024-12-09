@@ -1,0 +1,1 @@
+{"name":"Lean.Elab.InheritDoc","instances":[],"imports":["Lean.Elab.InfoTree.Main","Lean.DocString.Extension"],"declarations":[]}
