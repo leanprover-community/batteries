@@ -76,8 +76,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
 /-! ### mem -/
 
-theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
-
 /-! ### insertAt -/
 
 @[simp] private theorem size_insertIdx_loop (as : Array α) (i : Nat) (j : Fin as.size) :
