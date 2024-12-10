@@ -38,4 +38,17 @@ theorem foo_eq_ite (n : Nat) : foo n = if n = n then n else 0 := by
 
 end Equiv
 
+namespace List
+
+private axiom test_sorry : ∀ {α}, α
+
+@[simp]
+theorem ofFn_getElem_eq_map {β : Type _} (l : List α) (f : α → β) :
+    ofFn (fun i : Fin l.length => f <| l[(i : Nat)]) = l.map f := test_sorry
+
+example {β : Type _} (l : List α) (f : α → β) :
+    ofFn (fun i : Fin l.length => f <| l[(i : Nat)]) = l.map f := by simp only [ofFn_getElem_eq_map]
+
+end List
+
 #lint- only simpNF
