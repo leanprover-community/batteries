@@ -25,7 +25,7 @@ open Perm (swap)
 
 section Subperm
 
-theorem nil_subperm {l : List α} : [] <+~ l := ⟨[], Perm.nil, by simp⟩
+@[simp] theorem nil_subperm {l : List α} : [] <+~ l := ⟨[], Perm.nil, by simp⟩
 
 theorem Perm.subperm_left {l l₁ l₂ : List α} (p : l₁ ~ l₂) : l <+~ l₁ ↔ l <+~ l₂ :=
   suffices ∀ {l₁ l₂ : List α}, l₁ ~ l₂ → l <+~ l₁ → l <+~ l₂ from ⟨this p, this p.symm⟩
@@ -47,6 +47,8 @@ theorem Subperm.trans {l₁ l₂ l₃ : List α} (s₁₂ : l₁ <+~ l₂) (s₂
   let ⟨l₁', p₁, s₁⟩ := p₂.subperm_left.2 s₁₂
   ⟨l₁', p₁, s₁.trans s₂⟩
 
+theorem Subperm.cons_self : l <+~ a :: l := ⟨l, .refl _, sublist_cons_self ..⟩
+
 theorem Subperm.cons_right {α : Type _} {l l' : List α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
   h.trans (sublist_cons_self x l').subperm
 
@@ -66,6 +68,9 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
     filter p l <+~ filter p l' := by
   let ⟨xs, hp, h⟩ := h
   exact ⟨_, hp.filter p, h.filter p⟩
+
+@[simp] theorem subperm_nil : l <+~ [] ↔ l = [] :=
+  ⟨fun h => length_eq_zero.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
 
 @[simp] theorem singleton_subperm_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
   refine ⟨fun ⟨s, hla, h⟩ => ?_, fun h => ⟨[a], .rfl, singleton_sublist.mpr h⟩⟩
@@ -270,8 +275,8 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
     refine h y ?_
     simpa [hy'] using hy
 
-theorem perm_insertNth {α} (x : α) (l : List α) {n} (h : n ≤ l.length) :
-    insertNth n x l ~ x :: l := by
+theorem perm_insertIdx {α} (x : α) (l : List α) {n} (h : n ≤ l.length) :
+    insertIdx n x l ~ x :: l := by
   induction l generalizing n with
   | nil =>
     cases n with
@@ -279,10 +284,12 @@ theorem perm_insertNth {α} (x : α) (l : List α) {n} (h : n ≤ l.length) :
     | succ => cases h
   | cons _ _ ih =>
     cases n with
-    | zero => simp [insertNth]
+    | zero => simp [insertIdx]
     | succ =>
-      simp only [insertNth, modifyNthTail]
+      simp only [insertIdx, modifyTailIdx]
       refine .trans (.cons _ (ih (Nat.le_of_succ_le_succ h))) (.swap ..)
+
+@[deprecated (since := "2024-10-21")] alias perm_insertNth := perm_insertIdx
 
 theorem Perm.union_right {l₁ l₂ : List α} (t₁ : List α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ := by
   induction h with
@@ -309,10 +316,12 @@ theorem Perm.inter {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : 
 
 end DecidableEq
 
-theorem Perm.join_congr :
-    ∀ {l₁ l₂ : List (List α)} (_ : List.Forall₂ (· ~ ·) l₁ l₂), l₁.join ~ l₂.join
+theorem Perm.flatten_congr :
+    ∀ {l₁ l₂ : List (List α)} (_ : List.Forall₂ (· ~ ·) l₁ l₂), l₁.flatten ~ l₂.flatten
   | _, _, .nil => .rfl
-  | _ :: _, _ :: _, .cons h₁ h₂ => h₁.append (Perm.join_congr h₂)
+  | _ :: _, _ :: _, .cons h₁ h₂ => h₁.append (Perm.flatten_congr h₂)
+
+@[deprecated (since := "2024-10-15")] alias Perm.join_congr := Perm.flatten_congr
 
 theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
   induction l with simp [insertP, insertP.loop, cond]
