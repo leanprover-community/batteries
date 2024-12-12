@@ -1,0 +1,1 @@
+{"name":"Lean.Meta.Tactic.Grind","instances":[],"imports":["Lean.Meta.Tactic.Grind.Attr","Lean.Meta.Tactic.Grind.RevertAll","Lean.Meta.Tactic.Grind.Types","Lean.Meta.Tactic.Grind.Preprocessor","Lean.Meta.Tactic.Grind.Util","Lean.Meta.Tactic.Grind.Cases","Lean.Meta.Tactic.Grind.Injection","Lean.Meta.Tactic.Grind.Core"],"declarations":[]}

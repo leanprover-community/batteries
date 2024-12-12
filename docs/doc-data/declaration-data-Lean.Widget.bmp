@@ -1,0 +1,1 @@
+{"name":"Lean.Widget","instances":[],"imports":["Lean.Widget.InteractiveCode","Lean.Widget.InteractiveDiagnostic","Lean.Widget.InteractiveGoal","Lean.Widget.TaggedText","Lean.Widget.UserWidget"],"declarations":[]}
