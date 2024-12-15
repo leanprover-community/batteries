@@ -1,3 +1,8 @@
+-- The definition of `Std.Range.forIn'` changed significantly in
+-- https://github.com/leanprover/lean4/pull/6390
+-- and these lemmas are essentially unrecoverable.
+
+/-
 /-
 Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -105,3 +110,4 @@ theorem forIn_eq_forIn_range' [Monad m] (r : Std.Range)
   · simp [forIn, forIn']
   · suffices ∀ L H, forIn (List.pmap Subtype.mk L H) init (f ·.1) = forIn L init f from this _ ..
     intro L; induction L generalizing init <;> intro H <;> simp [*]
+-/
