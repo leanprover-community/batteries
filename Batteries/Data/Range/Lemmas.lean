@@ -65,7 +65,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
       intro n; induction n with
         (intro H init
          unfold forIn'.loop
-         simp only [↓reduceDIte, Nat.add_zero, List.pmap, List.forIn_cons, List.forIn_nil, h])
+         simp only [↓reduceDIte, Nat.add_zero, List.pmap, List.range', List.forIn_cons, List.forIn_nil, h])
       | succ n ih => simp [ih (List.forall_mem_cons.1 H).2]; rfl
     · next step0 =>
       have hstep := Nat.pos_of_ne_zero step0
@@ -91,7 +91,7 @@ theorem forIn'_eq_forIn_range' [Monad m] (r : Std.Range)
           simp only [Nat.mul_zero, Nat.add_zero, Nat.le_zero_eq, Nat.add_one_ne_zero, iff_false,
             Nat.not_le] at this
           rw [forIn'.loop]
-          simp only [this, ↓reduceDIte, ih, List.pmap, List.forIn_cons]
+          simp only [this, ↓reduceDIte, ih, List.pmap, List.range', List.forIn_cons]
           rfl
   else
     simp only [numElems_stop_le_start ⟨start, stop, step⟩ (Nat.not_lt.1 h), List.range'_zero,

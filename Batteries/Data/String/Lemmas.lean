@@ -153,7 +153,7 @@ theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len c
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8GetAux]
   | c::cs, cs' =>
-    simp only [utf8GetAux, List.append_eq, Char.reduceDefault, ↓Char.isValue]
+    simp only [List.cons_append, utf8GetAux, Char.reduceDefault]
     rw [if_neg]
     case hnc => simp only [← hp, utf8Len_cons, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux_of_valid cs cs' ?_
@@ -172,7 +172,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8GetAux?]
   | c::cs, cs' =>
-    simp only [utf8GetAux?, List.append_eq]
+    simp only [List.cons_append, utf8GetAux?]
     rw [if_neg]
     case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
@@ -224,7 +224,7 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
   match cs with
   | [] => simp [utf8PrevAux, ← hp, Pos.addChar_eq]
   | c'::cs =>
-    simp only [utf8PrevAux, Pos.addChar_eq, ← hp, utf8Len_cons, List.append_eq]
+    simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
       simp only [Pos.ext_iff]
@@ -361,7 +361,7 @@ theorem extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
     e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
 | [], t, i, _, rfl => by cases t <;> simp [go₂]
 | c :: cs, t, i, _, rfl => by
-  simp only [go₂, utf8Len_cons, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte, List.append_eq,
+  simp only [List.cons_append, utf8Len_cons, go₂, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte,
     Pos.addChar_eq, List.cons.injEq, true_and]
   apply go₂_append_left; rw [Nat.add_right_comm, Nat.add_assoc]
 
@@ -388,7 +388,7 @@ theorem extract.go₁_append_right : ∀ (s t : List Char) (i b : Nat) (e : Pos)
     b = utf8Len s + i → go₁ (s ++ t) ⟨i⟩ ⟨b⟩ e = go₂ t ⟨b⟩ e
 | [], t, i, _, e, rfl => by cases t <;> simp [go₁, go₂]
 | c :: cs, t, i, _, e, rfl => by
-  simp only [go₁, utf8Len_cons, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte, List.append_eq,
+  simp only [go₁, utf8Len_cons, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte, List.cons_append,
     Pos.addChar_eq]
   apply go₁_append_right; rw [Nat.add_right_comm, Nat.add_assoc]
 
