@@ -1,0 +1,882 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../../.././style.css"></link><link rel="icon" href="../../../.././favicon.svg"></link><link rel="mask-icon" href="../../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Data.DHashMap.Internal.Raw</title><script defer="true" src="../../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../../.././";</script><script>const MODULE_NAME="Std.Data.DHashMap.Internal.Raw";</script><script type="module" src="../../../.././jump-src.js"></script><script type="module" src="../../../.././search.js"></script><script type="module" src="../../../.././expand-nav.js"></script><script type="module" src="../../../.././how-about.js"></script><script type="module" src="../../../.././instances.js"></script><script type="module" src="../../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Data</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span></h2><form action="https://google.com/search" method="get" id="search_form"><input type="hidden" name="sitesearch" value="https://leanprover-community.github.io/mathlib4_docs"></input><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../../.././search.html';">Search</button><button>Google site search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../../.././Std/Data/DHashMap/Basic.html">Std.Data.DHashMap.Basic</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Data.DHashMap.Internal.Raw" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.empty_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">empty_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.emptyc_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">emptyc_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.insert_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insert_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.insert_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insert_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.insertIfNew_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insertIfNew_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.insertIfNew_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insertIfNew_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsert_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_snd_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsert_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_snd_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsert_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_fst_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsert_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_fst_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_snd_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_snd_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_fst_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_fst_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_snd_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_snd_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_fst_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_fst_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get?_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get?_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.contains_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">contains_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.contains_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">contains_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getD_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getD_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get!_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.get!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get!_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey?_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey?_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKeyD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKeyD_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKeyD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKeyD_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey!_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.getKey!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey!_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.erase_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">erase_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.erase_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">erase_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.filterMap_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filterMap_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.filterMap_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filterMap_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.map_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">map_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.map_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">map_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.filter_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filter_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.filter_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filter_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get?_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get?_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getD_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getD_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get!_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.get!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get!_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_snd_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_snd_val</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_fst_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_fst_val</span></a></div></nav><main>
+<div class="mod_doc"><p>This is an internal implementation file of the hash map. Users of the hash map should not rely on
+the contents of this file.</p><p>File contents: relating operations on <code>Raw</code> to operations on <code>Raw₀</code></p></div><div class="decl" id="Std.DHashMap.Internal.Raw.empty_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L27-L27">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.empty_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">empty_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{c : <a href="../../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.empty">Std.DHashMap.Raw.empty</a> <span class="fn">c</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.empty">Std.DHashMap.Internal.Raw₀.empty</a> <span class="fn">c</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.emptyc_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L29-L29">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.emptyc_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">emptyc_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Init/Core.html#EmptyCollection.emptyCollection">∅</a> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">Std.DHashMap.Internal.Raw₀.empty</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.insert_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L31-L33">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.insert_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insert_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.insert</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.insert">Std.DHashMap.Internal.Raw₀.insert</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.insert_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L35-L37">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.insert_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insert_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.insert</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.insert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.insertIfNew_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L39-L41">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.insertIfNew_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insertIfNew_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.insertIfNew</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.insertIfNew">Std.DHashMap.Internal.Raw₀.insertIfNew</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.insertIfNew_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L43-L45">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.insertIfNew_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">insertIfNew_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.insertIfNew</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.insertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsert_snd_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L47-L49">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsert_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_snd_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.containsThenInsert">Std.DHashMap.Internal.Raw₀.containsThenInsert</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsert_snd_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L51-L53">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsert_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_snd_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsert_fst_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L55-L57">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsert_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_fst_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.containsThenInsert">Std.DHashMap.Internal.Raw₀.containsThenInsert</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsert_fst_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L59-L61">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsert_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsert_fst_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsert</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L63-L66">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_snd_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.containsThenInsertIfNew">Std.DHashMap.Internal.Raw₀.containsThenInsertIfNew</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L68-L70">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_snd_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L72-L75">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_fst_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.containsThenInsertIfNew">Std.DHashMap.Internal.Raw₀.containsThenInsertIfNew</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L77-L79">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.containsThenInsertIfNew_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">containsThenInsertIfNew_fst_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.containsThenInsertIfNew</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L81-L84">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_snd_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.getThenInsertIfNew?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L86-L88">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_snd_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L90-L93">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_fst_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.getThenInsertIfNew?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L95-L97">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getThenInsertIfNew?_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getThenInsertIfNew?_fst_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.getThenInsertIfNew?</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get?_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L99-L101">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get?_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.get?</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.get?">Std.DHashMap.Internal.Raw₀.get?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get?_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L103-L105">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get?_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.get?</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.get?</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.contains_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L107-L109">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.contains_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">contains_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.contains</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.contains">Std.DHashMap.Internal.Raw₀.contains</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.contains_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L111-L113">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.contains_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">contains_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.contains</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.contains</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L115-L117">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">m</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.get</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.get">Std.DHashMap.Internal.Raw₀.get</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L119-L120">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn"><span class="fn">m</span>.val</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.get</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.get</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getD_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L122-L124">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getD_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.getD</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getD">Std.DHashMap.Internal.Raw₀.getD</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getD_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L126-L128">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getD_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getD</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.getD</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get!_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L130-L132">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get!_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">(<span class="fn">β</span> <span class="fn">a</span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.get!</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.get!">Std.DHashMap.Internal.Raw₀.get!</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.get!_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L134-L136">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.get!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">get!_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#LawfulBEq">LawfulBEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">(<span class="fn">β</span> <span class="fn">a</span>)</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.get!</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.get!</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey?_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L138-L140">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey?_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.getKey?</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getKey?">Std.DHashMap.Internal.Raw₀.getKey?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey?_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L142-L144">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey?_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getKey?</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.getKey?</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L146-L148">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">m</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.getKey</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getKey">Std.DHashMap.Internal.Raw₀.getKey</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L150-L151">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn"><span class="fn">m</span>.val</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getKey</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.getKey</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKeyD_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L153-L155">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKeyD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKeyD_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.getKeyD</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getKeyD">Std.DHashMap.Internal.Raw₀.getKeyD</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKeyD_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L157-L159">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKeyD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKeyD_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getKeyD</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.getKeyD</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey!_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L161-L163">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey!_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.getKey!</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.getKey!">Std.DHashMap.Internal.Raw₀.getKey!</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.getKey!_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L165-L167">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.getKey!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">getKey!_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.getKey!</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">m</span>.getKey!</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.erase_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L169-L171">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.erase_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">erase_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.erase</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.erase">Std.DHashMap.Internal.Raw₀.erase</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.erase_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L173-L175">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.erase_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">erase_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn"><span class="fn"><span class="fn">m</span>.val</span>.erase</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn"><span class="fn">m</span>.erase</span> <span class="fn">a</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.filterMap_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L177-L180">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.filterMap_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filterMap_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{δ : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> w</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <span class="fn"><a href="../../../.././Init/Prelude.html#Option">Option</a> <span class="fn">(<span class="fn">δ</span> <span class="fn">a</span>)</span></span></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.filterMap">Std.DHashMap.Raw.filterMap</a> <span class="fn">f</span> <span class="fn">m</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.filterMap">Std.DHashMap.Internal.Raw₀.filterMap</a> <span class="fn">f</span> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.filterMap_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L182-L184">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.filterMap_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filterMap_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{δ : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> w</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <span class="fn"><a href="../../../.././Init/Prelude.html#Option">Option</a> <span class="fn">(<span class="fn">δ</span> <span class="fn">a</span>)</span></span></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.filterMap">Std.DHashMap.Raw.filterMap</a> <span class="fn">f</span> <span class="fn"><span class="fn">m</span>.val</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.filterMap">Std.DHashMap.Internal.Raw₀.filterMap</a> <span class="fn">f</span> <span class="fn">m</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.map_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L186-L188">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.map_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">map_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{δ : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> w</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <span class="fn"><span class="fn">δ</span> <span class="fn">a</span></span></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.map">Std.DHashMap.Raw.map</a> <span class="fn">f</span> <span class="fn">m</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.map">Std.DHashMap.Internal.Raw₀.map</a> <span class="fn">f</span> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.map_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L190-L192">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.map_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">map_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{δ : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> w</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <span class="fn"><span class="fn">δ</span> <span class="fn">a</span></span></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.map">Std.DHashMap.Raw.map</a> <span class="fn">f</span> <span class="fn"><span class="fn">m</span>.val</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.map">Std.DHashMap.Internal.Raw₀.map</a> <span class="fn">f</span> <span class="fn">m</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.filter_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L194-L196">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.filter_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filter_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href="../../../.././Init/Prelude.html#Bool">Bool</a></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.filter">Std.DHashMap.Raw.filter</a> <span class="fn">f</span> <span class="fn">m</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.filter">Std.DHashMap.Internal.Raw₀.filter</a> <span class="fn">f</span> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.filter_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L198-L200">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.filter_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">filter_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <span class="fn"><span class="fn">α</span> → <a href="../../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href="../../../.././Init/Prelude.html#Bool">Bool</a></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.filter">Std.DHashMap.Raw.filter</a> <span class="fn">f</span> <span class="fn"><span class="fn">m</span>.val</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.filter">Std.DHashMap.Internal.Raw₀.filter</a> <span class="fn">f</span> <span class="fn">m</span>)</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get?_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L206-L208">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get?_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get?_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get?">Std.DHashMap.Raw.Const.get?</a> <span class="fn">m</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get?">Std.DHashMap.Internal.Raw₀.Const.get?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get?_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L210-L212">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get?_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get?_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get?">Std.DHashMap.Raw.Const.get?</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get?">Std.DHashMap.Internal.Raw₀.Const.get?</a> <span class="fn">m</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L214-L218">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">m</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get">Std.DHashMap.Raw.Const.get</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get">Std.DHashMap.Internal.Raw₀.Const.get</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L220-L221">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{h : <span class="fn"><span class="fn">a</span> <a href="../../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn"><span class="fn">m</span>.val</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get">Std.DHashMap.Raw.Const.get</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span> <span class="fn">h</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get">Std.DHashMap.Internal.Raw₀.Const.get</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">⋯</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getD_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L223-L226">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getD_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getD_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getD">Std.DHashMap.Raw.Const.getD</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getD">Std.DHashMap.Internal.Raw₀.Const.getD</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getD_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L228-L230">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getD_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getD_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{fallback : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getD">Std.DHashMap.Raw.Const.getD</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span> <span class="fn">fallback</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getD">Std.DHashMap.Internal.Raw₀.Const.getD</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">fallback</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get!_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L232-L234">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get!_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get!_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get!">Std.DHashMap.Raw.Const.get!</a> <span class="fn">m</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get!">Std.DHashMap.Internal.Raw₀.Const.get!</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.get!_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L236-L238">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.get!_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">get!_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.get!">Std.DHashMap.Raw.Const.get!</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.get!">Std.DHashMap.Internal.Raw₀.Const.get!</a> <span class="fn">m</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L240-L243">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_snd_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getThenInsertIfNew?">Std.DHashMap.Raw.Const.getThenInsertIfNew?</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L245-L248">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_snd_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_snd_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getThenInsertIfNew?">Std.DHashMap.Raw.Const.getThenInsertIfNew?</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span> <a href="../../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.snd</span>.val</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L250-L253">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_eq"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_fst_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/RawDef.html#Std.DHashMap.Raw">Std.DHashMap.Raw</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn"><span class="fn">m</span>.WF</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getThenInsertIfNew?">Std.DHashMap.Raw.Const.getThenInsertIfNew?</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?</a> <span class="fn">⟨<span class="fn">m</span>, <span class="fn">⋯</span>⟩</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div><div class="decl" id="Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_val"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/ffac974dba799956a97d63ffcb13a774f700149c/src/Std/Data/DHashMap/Internal/Raw.lean#L255-L258">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/DHashMap/Internal/Raw.html#Std.DHashMap.Internal.Raw.Const.getThenInsertIfNew?_fst_val"><span class="name">Std</span>.<span class="name">DHashMap</span>.<span class="name">Internal</span>.<span class="name">Raw</span>.<span class="name">Const</span>.<span class="name">getThenInsertIfNew?_fst_val</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Hashable">Hashable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀">Std.DHashMap.Internal.Raw₀</a> <span class="fn">α</span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{a : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{b : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Raw.html#Std.DHashMap.Raw.Const.getThenInsertIfNew?">Std.DHashMap.Raw.Const.getThenInsertIfNew?</a> <span class="fn"><span class="fn">m</span>.val</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span> <a href="../../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn">(<a href="../../../.././Std/Data/DHashMap/Internal/Defs.html#Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?">Std.DHashMap.Internal.Raw₀.Const.getThenInsertIfNew?</a> <span class="fn">m</span> <span class="fn">a</span> <span class="fn">b</span>)</span>.fst</span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
