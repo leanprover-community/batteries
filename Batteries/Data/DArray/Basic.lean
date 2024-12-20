@@ -41,22 +41,22 @@ private unsafe def mkImpl (get : (i : Fin n) → α i) : DArray n α :=
   unsafeCast <| Array.ofFn fun i => (unsafeCast (get i) : NonScalar)
 
 private unsafe def getImpl (a : DArray n α) (i) : α i :=
-  unsafeCast <| a.data.get ⟨i.val, lcProof⟩
+  unsafeCast <| a.data.get i.val
 
 private unsafe def ugetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
   unsafeCast <| a.data.uget i lcProof
 
 private unsafe def setImpl (a : DArray n α) (i) (v : α i) : DArray n α :=
-  unsafeCast <| a.data.set ⟨i.val, lcProof⟩ <| unsafeCast v
+  unsafeCast <| a.data.set i (unsafeCast v) lcProof
 
 private unsafe def usetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :
     DArray n α := unsafeCast <| a.data.uset i (unsafeCast v) lcProof
 
 private unsafe def modifyFImpl [Functor f] (a : DArray n α) (i : Fin n)
     (t : α i → f (α i)) : f (DArray n α) :=
-  let v := unsafeCast <| a.data.get ⟨i.val, lcProof⟩
+  let v := unsafeCast <| a.data.get i
   -- Make sure `v` is unshared, if possible, by replacing its array entry by `box(0)`.
-  let a := unsafeCast <| a.data.set ⟨i.val, lcProof⟩ (unsafeCast ())
+  let a := unsafeCast <| a.data.set i (unsafeCast ()) lcProof
   setImpl a i <$> t v
 
 private unsafe def umodifyFImpl [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < n)

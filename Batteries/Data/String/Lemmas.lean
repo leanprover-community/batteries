@@ -573,7 +573,7 @@ theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse +
     it₁.extract it₂ = ⟨m⟩ := by
   cases h₁.out; cases h₂.out
   simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
-    List.append_assoc, ne_eq, not_true_eq_false, decide_False, utf8Len_append, utf8Len_reverse,
+    List.append_assoc, ne_eq, not_true_eq_false, decide_false, utf8Len_append, utf8Len_reverse,
     gt_iff_lt, pos_lt_eq, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
     ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r
