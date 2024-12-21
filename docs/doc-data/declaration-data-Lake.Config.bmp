@@ -1,0 +1,1 @@
+{"name":"Lake.Config","instances":[],"imports":["Init","Lake.Config.Monad"],"declarations":[]}

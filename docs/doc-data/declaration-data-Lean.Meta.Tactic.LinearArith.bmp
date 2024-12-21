@@ -1,0 +1,1 @@
+{"name":"Lean.Meta.Tactic.LinearArith","instances":[],"imports":["Lean.Meta.Tactic.LinearArith.Solver","Lean.Meta.Tactic.LinearArith.Nat","Lean.Meta.Tactic.LinearArith.Main","Lean.Meta.Tactic.LinearArith.Simp"],"declarations":[]}
