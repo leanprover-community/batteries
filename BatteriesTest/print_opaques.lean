@@ -33,8 +33,7 @@ info: 'Classical.axiomOfChoice' does not use any opaque or partial definitions
 #print opaques Classical.axiomOfChoice
 
 /--
-info: 'Std.HashMap.insert' depends on opaque or partial definitions: [System.Platform.getNumBits,
-UInt64.toUSize]
+info: 'Std.HashMap.insert' depends on opaque or partial definitions: [System.Platform.getNumBits]
 -/
 #guard_msgs in
 #print opaques Std.HashMap.insert
