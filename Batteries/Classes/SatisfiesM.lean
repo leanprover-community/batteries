@@ -248,9 +248,6 @@ instance : MonadSatisfying (Except ε) where
     | .error e => .error e
   val_eq {α p x?} h := by cases x? <;> simp
 
--- This will be redundant after nightly-2024-11-08.
-attribute [ext] ReaderT.ext
-
 instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT ρ m) where
   satisfying {α p x} h :=
     have h' := SatisfiesM_ReaderT_eq.mp h
@@ -263,9 +260,6 @@ instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
   inferInstanceAs <| MonadSatisfying (ReaderT _ _)
-
--- This will be redundant after nightly-2024-11-08.
-attribute [ext] StateT.ext
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
   satisfying {α p x} h :=

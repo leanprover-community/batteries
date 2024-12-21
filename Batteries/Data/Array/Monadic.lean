@@ -153,7 +153,7 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat �
     (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f i as[i])) :
     SatisfiesM
       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i])
-      (Array.mapIdxM as f) :=
+      (as.mapIdxM f) :=
   SatisfiesM_mapFinIdxM as (fun i => f i) motive h0 p hs
 
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :

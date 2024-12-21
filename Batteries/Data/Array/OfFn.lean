@@ -11,8 +11,4 @@ namespace Array
 
 /-! ### ofFn -/
 
-@[simp]
-theorem toList_ofFn (f : Fin n → α) : (ofFn f).toList = List.ofFn f := by
-  apply ext_getElem <;> simp
-
 end Array

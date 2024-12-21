@@ -24,10 +24,10 @@ def toSyntax (e : Expr) : TermElabM Syntax.Term := withFreshMacroScope do
   mvar.mvarId!.assign e
   pure stx
 
-@[deprecated (since := "2024-10-16"), inherit_doc getNumHeadLambdas]
+@[deprecated getNumHeadLambdas (since := "2024-10-16"), inherit_doc getNumHeadLambdas]
 abbrev lambdaArity := @getNumHeadLambdas
 
-@[deprecated (since := "2024-11-13"), inherit_doc getNumHeadForalls]
+@[deprecated getNumHeadForalls(since := "2024-11-13"), inherit_doc getNumHeadForalls]
 abbrev forallArity := @getNumHeadForalls
 
 /-- Like `withApp` but ignores metadata. -/
