@@ -41,7 +41,7 @@ partial def collect (c : Name) : M Unit := do
       unless ← Meta.isProp v.type do
         modify fun s => { s with opaques := s.opaques.push c }
     | none                             =>
-      panic! s!"unknown constant {c}"
+      throwUnknownConstant c
 
 end CollectOpaques
 
