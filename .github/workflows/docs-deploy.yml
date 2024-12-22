@@ -1,0 +1,38 @@
+name: Deploy Docs
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 10 * * *' # daily (UTC 10:00)
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'leanprover-community'
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Lean
+        uses: leanprover/lean-action@v1
+        with:
+          test: false
+          lint: false
+          use-github-cache: true
+
+      - name: Build Docs
+        working-directory: docs
+        run: lake build -q Batteries:docs
+
+      - name: Deploy Docs
+        run: |
+          git config user.name "leanprover-community-batteries-bot"
+          git config user.email "leanprover-community-batteries-bot@users.noreply.github.com"
+          git checkout -b docs
+          git add docs/doc docs/doc-data
+          git commit -m "chore: generate docs"
+          git push origin docs --force

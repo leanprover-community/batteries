@@ -46,7 +46,7 @@ considered.
 protected def minD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   if h: start < xs.size ∧ start < stop then
-    xs.minWith (xs.get ⟨start, h.left⟩) (start + 1) stop
+    xs.minWith xs[start] (start + 1) stop
   else
     d
 
@@ -60,7 +60,7 @@ considered.
 protected def min? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
   if h : start < xs.size ∧ start < stop then
-    some $ xs.minD (xs.get ⟨start, h.left⟩) start stop
+    some $ xs.minD xs[start] start stop
   else
     none
 
@@ -135,45 +135,13 @@ A proof by `get_elem_tactic` is provided as a default argument for `h`.
 This will perform the update destructively provided that `a` has a reference count of 1 when called.
 -/
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.set ⟨i, h⟩ x
+  a.set i x
 
-/--
-`swapN a i j hi hj` swaps two `Nat` indexed entries in an `Array α`.
-Uses `get_elem_tactic` to supply a proof that the indices are in range.
-`hi` and `hj` are both given a default argument `by get_elem_tactic`.
-This will perform the update destructively provided that `a` has a reference count of 1 when called.
--/
-abbrev swapN (a : Array α) (i j : Nat)
-    (hi : i < a.size := by get_elem_tactic) (hj : j < a.size := by get_elem_tactic) : Array α :=
-  Array.swap a ⟨i,hi⟩ ⟨j, hj⟩
+@[deprecated (since := "2024-11-24")] alias swapN := swap
 
-/--
-`swapAtN a i h x` swaps the entry with index `i : Nat` in the vector for a new entry `x`.
-The old entry is returned alongwith the modified vector.
-Automatically generates proof of `i < a.size` with `get_elem_tactic` where feasible.
--/
-abbrev swapAtN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) :
-    α × Array α := swapAt a ⟨i,h⟩ x
+@[deprecated (since := "2024-11-24")] alias swapAtN := swapAt
 
-/--
-`eraseIdxN a i h` Removes the element at position `i` from a vector of length `n`.
-`h : i < a.size` has a default argument `by get_elem_tactic` which tries to supply a proof
-that the index is valid.
-This function takes worst case O(n) time because it has to backshift all elements at positions
-greater than i.
--/
-abbrev eraseIdxN (a : Array α) (i : Nat) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.feraseIdx ⟨i, h⟩
-
-/--
-Remove the element at a given index from an array, panics if index is out of bounds.
--/
-def eraseIdx! (a : Array α) (i : Nat) : Array α :=
-  if h : i < a.size then
-    a.feraseIdx ⟨i, h⟩
-  else
-    have : Inhabited (Array α) := ⟨a⟩
-    panic! s!"index {i} out of bounds"
+@[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
 end Array
 
@@ -201,7 +169,7 @@ subarray, or `none` if the subarray is empty.
 def popHead? (as : Subarray α) : Option (α × Subarray α) :=
   if h : as.start < as.stop
     then
-      let head := as.array.get ⟨as.start, Nat.lt_of_lt_of_le h as.stop_le_array_size⟩
+      let head := as.array[as.start]'(Nat.lt_of_lt_of_le h as.stop_le_array_size)
       let tail :=
         { as with
           start := as.start + 1
