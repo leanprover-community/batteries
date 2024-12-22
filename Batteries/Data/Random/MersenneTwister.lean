@@ -130,13 +130,6 @@ where
       let x := x ^^^ x <<< t &&& c
       x ^^^ x >>> l
 
-instance (cfg) : RandomGen (State cfg) where
-  range _ := (0, 2 ^ cfg.wordSize - 1)
-  next s := match s.next with | (r, s) => (r.toNat, s)
-  split s :=
-    -- TODO: use `(s, s.update (2 ^ 128))` once `update` is optimized.
-    let (a, s) := s.next; (s, cfg.init a)
-
 instance (cfg) : Stream (State cfg) (BitVec cfg.wordSize) where
   next? s := s.next
 
