@@ -29,7 +29,7 @@ convert array items to the appropriate type when necessary.
 -- TODO: Use a structure once [lean4#2292](https://github.com/leanprover/lean4/pull/2292) is fixed.
 inductive DArray (n) (α : Fin n → Type _) where
   /-- Makes a new `DArray` with given item values. `O(n*g)` where `get i` is `O(g)`. -/
-  | mk (get : (i : Fin n) → α i)
+  | mk (fget : (i : Fin n) → α i)
 
 namespace DArray
 
@@ -40,13 +40,13 @@ private unsafe abbrev data : DArray n α → Array NonScalar := unsafeCast
 private unsafe def mkImpl (get : (i : Fin n) → α i) : DArray n α :=
   unsafeCast <| Array.ofFn fun i => (unsafeCast (get i) : NonScalar)
 
-private unsafe def getImpl (a : DArray n α) (i) : α i :=
+private unsafe def fgetImpl (a : DArray n α) (i) : α i :=
   unsafeCast <| a.data.get i.val
 
 private unsafe def ugetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
   unsafeCast <| a.data.uget i lcProof
 
-private unsafe def setImpl (a : DArray n α) (i) (v : α i) : DArray n α :=
+private unsafe def fsetImpl (a : DArray n α) (i) (v : α i) : DArray n α :=
   unsafeCast <| a.data.set i (unsafeCast v) lcProof
 
 private unsafe def usetImpl (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :
@@ -57,7 +57,7 @@ private unsafe def modifyFImpl [Functor f] (a : DArray n α) (i : Fin n)
   let v := unsafeCast <| a.data.get i
   -- Make sure `v` is unshared, if possible, by replacing its array entry by `box(0)`.
   let a := unsafeCast <| a.data.set i (unsafeCast ()) lcProof
-  setImpl a i <$> t v
+  fsetImpl a i <$> t v
 
 private unsafe def umodifyFImpl [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < n)
     (t : α ⟨i.toNat, h⟩ → f (α ⟨i.toNat, h⟩)) : f (DArray n α) :=
@@ -84,28 +84,28 @@ instance (α : Fin n → Type _) [(i : Fin n) → Inhabited (α i)] : Inhabited 
   default := mk fun _ => default
 
 /-- Gets the `DArray` item at index `i`. `O(1)`. -/
-@[implemented_by getImpl]
-protected def get : DArray n α → (i : Fin n) → α i
-  | mk get => get
+@[implemented_by fgetImpl]
+protected def fget : DArray n α → (i : Fin n) → α i
+  | mk fget => fget
 
-@[simp, inherit_doc DArray.get]
-protected abbrev getN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) : α ⟨i, h⟩ :=
-  a.get ⟨i, h⟩
+@[inherit_doc DArray.fget, inline]
+protected def get (a : DArray n α) (i) (h : i < n := by get_elem_tactic) : α ⟨i, h⟩ :=
+  a.fget ⟨i, h⟩
 
 /-- Gets the `DArray` item at index `i : USize`. Slightly faster than `get`; `O(1)`. -/
 @[implemented_by ugetImpl]
 protected def uget (a : DArray n α) (i : USize) (h : i.toNat < n) : α ⟨i.toNat, h⟩ :=
-  a.get ⟨i.toNat, h⟩
+  a.fget ⟨i.toNat, h⟩
 
 private def casesOnImpl.{u} {motive : DArray n α → Sort u} (a : DArray n α)
-    (h : (get : (i : Fin n) → α i) → motive (.mk get)) : motive a :=
-  h a.get
+    (h : (fget : (i : Fin n) → α i) → motive (.mk fget)) : motive a :=
+  h a.fget
 
 attribute [implemented_by casesOnImpl] DArray.casesOn
 
 /-- Sets the `DArray` item at index `i`. `O(1)` if exclusive else `O(n)`. -/
-@[implemented_by setImpl]
-protected def set (a : DArray n α) (i : Fin n) (v : α i) : DArray n α :=
+@[implemented_by fsetImpl]
+protected def fset (a : DArray n α) (i : Fin n) (v : α i) : DArray n α :=
   mk fun j => if h : i = j then h ▸ v else a.get j
 
 /--
@@ -114,16 +114,16 @@ Slightly faster than `set` and `O(1)` if exclusive else `O(n)`.
 -/
 @[implemented_by usetImpl]
 protected def uset (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :=
-  a.set ⟨i.toNat, h⟩ v
+  a.fset ⟨i.toNat, h⟩ v
 
-@[simp, inherit_doc DArray.set]
-protected abbrev setN (a : DArray n α) (i) (h : i < n := by get_elem_tactic) (v : α ⟨i, h⟩) :=
-  a.set ⟨i, h⟩ v
+@[simp, inherit_doc DArray.fset]
+protected abbrev set (a : DArray n α) (i) (h : i < n := by get_elem_tactic) (v : α ⟨i, h⟩) :=
+  a.fset ⟨i, h⟩ v
 
 /-- Modifies the `DArray` item at index `i` using transform `t` and the functor `f`. -/
 @[implemented_by modifyFImpl]
 protected def modifyF [Functor f] (a : DArray n α) (i : Fin n)
-    (t : α i → f (α i)) : f (DArray n α) := a.set i <$> t (a.get i)
+    (t : α i → f (α i)) : f (DArray n α) := a.fset i <$> t (a.fget i)
 
 /-- Modifies the `DArray` item at index `i` using transform `t`. -/
 @[inline]
@@ -143,13 +143,13 @@ protected def umodify (a : DArray n α) (i : USize) (h : i.toNat < n)
 
 /-- Copies the `DArray` to an exclusive `DArray`. `O(1)` if exclusive else `O(n)`. -/
 @[implemented_by copyImpl]
-protected def copy (a : DArray n α) : DArray n α := mk a.get
+protected def copy (a : DArray n α) : DArray n α := mk a.fget
 
 /-- Push an element onto the end of a `DArray`. `O(1)` if exclusive else `O(n)`. -/
 @[implemented_by pushImpl]
 protected def push (a : DArray n α) (v : β) :
     DArray (n+1) fun i => if h : i.val < n then α ⟨i.val, h⟩ else β :=
-  mk fun i => if h : i.val < n then dif_pos h ▸ a.get ⟨i.val, h⟩ else dif_neg h ▸ v
+  mk fun i => if h : i.val < n then dif_pos h ▸ a.fget ⟨i.val, h⟩ else dif_neg h ▸ v
 
 /-- Delete the last item of a `DArray`. `O(1)`. -/
 @[implemented_by popImpl]

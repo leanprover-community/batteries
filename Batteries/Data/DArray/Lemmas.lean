@@ -9,57 +9,58 @@ import Batteries.Data.DArray.Basic
 namespace Batteries.DArray
 
 @[ext]
-protected theorem ext : {a b : DArray n α} → (∀ i, a.get i = b.get i) → a = b
+protected theorem ext : {a b : DArray n α} → (∀ i, a.fget i = b.fget i) → a = b
   | mk _, mk _, h => congrArg _ <| funext fun i => h i
 
 @[simp]
-theorem get_mk (i : Fin n) : DArray.get (.mk init) i = init i := rfl
+theorem fget_mk (i : Fin n) : DArray.fget (.mk init) i = init i := rfl
 
-theorem set_mk {α : Fin n → Type _} {init : (i : Fin n) → α i} (i : Fin n) (v : α i) :
-    DArray.set (.mk init) i v = .mk fun j => if h : i = j then h ▸ v else init j := rfl
-
-@[simp]
-theorem get_set (a : DArray n α) (i : Fin n) (v : α i) : (a.set i v).get i = v := by
-  simp only [DArray.get, DArray.set, dif_pos]
-
-theorem get_set_ne (a : DArray n α) (v : α i) (h : i ≠ j) : (a.set i v).get j = a.get j := by
-  simp only [DArray.get, DArray.set, dif_neg h]
+theorem fset_mk {α : Fin n → Type _} {init : (i : Fin n) → α i} (i : Fin n) (v : α i) :
+    DArray.fset (.mk init) i v = .mk fun j => if h : i = j then h ▸ v else init j := rfl
 
 @[simp]
-theorem set_set (a : DArray n α) (i : Fin n) (v w : α i) : (a.set i v).set i w = a.set i w := by
+theorem fget_fset (a : DArray n α) (i : Fin n) (v : α i) : (a.fset i v).fget i = v := by
+  simp only [DArray.fget, DArray.fset, dif_pos]
+
+theorem fget_fset_ne (a : DArray n α) (v : α i) (h : i ≠ j) : (a.fset i v).fget j = a.fget j := by
+  simp only [DArray.fget, DArray.fset, dif_neg h]; rfl
+
+@[simp]
+theorem fset_fset (a : DArray n α) (i : Fin n) (v w : α i) :
+    (a.fset i v).fset i w = a.fset i w := by
   ext j
   if h : i = j then
-    rw [← h, get_set, get_set]
+    rw [← h, fget_fset, fget_fset]
   else
-    rw [get_set_ne _ _ h, get_set_ne _ _ h, get_set_ne _ _ h]
+    rw [fget_fset_ne _ _ h, fget_fset_ne _ _ h, fget_fset_ne _ _ h]
 
-theorem get_modifyF [Functor f] [LawfulFunctor f] (a : DArray n α) (i : Fin n) (t : α i → f (α i)) :
-    (DArray.get . i) <$> a.modifyF i t = t (a.get i) := by
+theorem fget_modifyF [Functor f] [LawfulFunctor f] (a : DArray n α) (i : Fin n)
+    (t : α i → f (α i)) : (DArray.fget . i) <$> a.modifyF i t = t (a.fget i) := by
   simp [DArray.modifyF]
 
 @[simp]
-theorem get_modify (a : DArray n α) (i : Fin n) (t : α i → α i) :
-    (a.modify i t).get i = t (a.get i) := get_modifyF (f:=Id) a i t
+theorem fget_modify (a : DArray n α) (i : Fin n) (t : α i → α i) :
+    (a.modify i t).fget i = t (a.fget i) := fget_modifyF (f:=Id) a i t
 
-theorem get_modify_ne (a : DArray n α) (t : α i → α i) (h : i ≠ j) :
-    (a.modify i t).get j = a.get j := get_set_ne _ _ h
+theorem fget_modify_ne (a : DArray n α) (t : α i → α i) (h : i ≠ j) :
+    (a.modify i t).fget j = a.fget j := fget_fset_ne _ _ h
 
 @[simp]
 theorem set_modify (a : DArray n α) (i : Fin n) (t : α i → α i) (v : α i) :
-    (a.set i v).modify i t = a.set i (t v) := by
+    (a.fset i v).modify i t = a.fset i (t v) := by
   ext j
   if h : i = j then
     cases h; simp
   else
-    simp [h, get_modify_ne, get_set_ne]
+    simp [h, fget_modify_ne, fget_fset_ne]
 
 @[simp]
-theorem uget_eq_get (a : DArray n α) (i : USize) (h : i.toNat < n) :
-    a.uget i h = a.get ⟨i.toNat, h⟩ := rfl
+theorem uget_eq_fget (a : DArray n α) (i : USize) (h : i.toNat < n) :
+    a.uget i h = a.fget ⟨i.toNat, h⟩ := rfl
 
 @[simp]
-theorem uset_eq_set (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :
-    a.uset i h v = a.set ⟨i.toNat, h⟩ v := rfl
+theorem uset_eq_fset (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.toNat, h⟩) :
+    a.uset i h v = a.fset ⟨i.toNat, h⟩ v := rfl
 
 @[simp]
 theorem umodifyF_eq_modifyF [Functor f] (a : DArray n α) (i : USize) (h : i.toNat < n)
