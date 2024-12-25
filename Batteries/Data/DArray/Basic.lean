@@ -117,7 +117,7 @@ protected def uset (a : DArray n α) (i : USize) (h : i.toNat < n) (v : α ⟨i.
   a.fset ⟨i.toNat, h⟩ v
 
 @[simp, inherit_doc DArray.fset]
-protected abbrev set (a : DArray n α) (i) (h : i < n := by get_elem_tactic) (v : α ⟨i, h⟩) :=
+protected abbrev set (a : DArray n α) (i) (h : i < n) (v : α ⟨i, h⟩) :=
   a.fset ⟨i, h⟩ v
 
 /-- Modifies the `DArray` item at index `i` using transform `t` and the functor `f`. -/

@@ -13,6 +13,9 @@ protected theorem ext : {a b : DArray n α} → (∀ i, a.fget i = b.fget i) →
   | mk _, mk _, h => congrArg _ <| funext fun i => h i
 
 @[simp]
+theorem get_mk (i) (h : i < n) : DArray.get (.mk init) i = init ⟨i, h⟩ := rfl
+
+@[simp]
 theorem fget_mk (i : Fin n) : DArray.fget (.mk init) i = init i := rfl
 
 theorem fset_mk {α : Fin n → Type _} {init : (i : Fin n) → α i} (i : Fin n) (v : α i) :
@@ -46,7 +49,7 @@ theorem fget_modify_ne (a : DArray n α) (t : α i → α i) (h : i ≠ j) :
     (a.modify i t).fget j = a.fget j := fget_fset_ne _ _ h
 
 @[simp]
-theorem set_modify (a : DArray n α) (i : Fin n) (t : α i → α i) (v : α i) :
+theorem fset_modify (a : DArray n α) (i : Fin n) (t : α i → α i) (v : α i) :
     (a.fset i v).modify i t = a.fset i (t v) := by
   ext j
   if h : i = j then
