@@ -46,7 +46,7 @@ theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF 
   refine ⟨fun _ h => ?_, fun i h => ?_⟩
   · simp only [Buckets.mk, mkArray, List.mem_replicate, ne_eq] at h
     simp [h, List.Pairwise.nil]
-  · simp [Buckets.mk, empty', mkArray, Array.getElem_toList, AssocList.All]
+  · simp [Buckets.mk, empty', Array.getElem_toList, AssocList.All]
 
 theorem WF.update [BEq α] [Hashable α] {buckets : Buckets α β} {i d h} (H : buckets.WF)
     (h₁ : ∀ [PartialEquivBEq α] [LawfulHashable α],
@@ -371,7 +371,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp only [Array.size_mk, List.length_map, Array.length_toList, ← Array.getElem_toList,
+  · simp only [Array.size_toArray, List.length_map, Array.length_toList, ← Array.getElem_toList,
       List.getElem_map] at h ⊢
     have := H.out.2.2 _ h
     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,
