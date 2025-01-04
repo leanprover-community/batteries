@@ -10,8 +10,6 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.Array.Lemmas
 import Batteries.Tactic.Lint.Simp
 
-namespace Batteries
-
 namespace Vector
 
 theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v = w
@@ -45,12 +43,12 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem drop_mk (a : Array α) (h : a.size = n) (m) :
     (Vector.mk a h).drop m = Vector.mk (a.extract m a.size) (by simp [h]) := rfl
 
-@[simp] theorem eraseIdx!_mk (a : Array α) (h : a.size = n) (i) (hi : i < n) :
-    (Vector.mk a h).eraseIdx! i = Vector.mk (a.eraseIdx! i) (by simp [h, hi]) := by
-  simp [Vector.eraseIdx!, hi]
+@[simp] theorem eraseIdx_mk (a : Array α) (h : a.size = n) (i) (h') :
+    (Vector.mk a h).eraseIdx i h' = Vector.mk (a.eraseIdx i) (by simp [h]) := rfl
 
-@[simp] theorem feraseIdx_mk (a : Array α) (h : a.size = n) (i) :
-    (Vector.mk a h).feraseIdx i = Vector.mk (a.feraseIdx (i.cast h.symm)) (by simp [h]) := rfl
+@[simp] theorem eraseIdx!_mk (a : Array α) (h : a.size = n) (i) (hi : i < n) :
+    (Vector.mk a h).eraseIdx! i = Vector.mk (a.eraseIdx i) (by simp [h, hi]) := by
+  simp [Vector.eraseIdx!, hi]
 
 @[simp] theorem extract_mk (a : Array α) (h : a.size = n) (start stop) :
     (Vector.mk a h).extract start stop = Vector.mk (a.extract start stop) (by simp [h]) := rfl
@@ -59,7 +57,7 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
     (Vector.mk a h)[i] = a[i] := rfl
 
 @[simp] theorem get_mk (a : Array α) (h : a.size = n) (i) :
-    (Vector.mk a h).get i = a.get (i.cast h.symm) := rfl
+    (Vector.mk a h).get i = a[i] := rfl
 
 @[simp] theorem getD_mk (a : Array α) (h : a.size = n) (i x) :
     (Vector.mk a h).getD i x = a.getD i x := rfl
@@ -89,38 +87,35 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem reverse_mk (a : Array α) (h : a.size = n) :
     (Vector.mk a h).reverse = Vector.mk a.reverse (by simp [h]) := rfl
 
-@[simp] theorem set_mk (a : Array α) (h : a.size = n) (i x) :
-    (Vector.mk a h).set i x = Vector.mk (a.set (i.cast h.symm) x) (by simp [h]) := rfl
+@[simp] theorem set_mk (a : Array α) (h : a.size = n) (i x w) :
+    (Vector.mk a h).set i x = Vector.mk (a.set i x) (by simp [h]) := rfl
 
 @[simp] theorem set!_mk (a : Array α) (h : a.size = n) (i x) :
     (Vector.mk a h).set! i x = Vector.mk (a.set! i x) (by simp [h]) := rfl
 
-@[simp] theorem setD_mk (a : Array α) (h : a.size = n) (i x) :
-    (Vector.mk a h).setD i x = Vector.mk (a.setD i x) (by simp [h]) := rfl
+@[simp] theorem setIfInBounds_mk (a : Array α) (h : a.size = n) (i x) :
+    (Vector.mk a h).setIfInBounds i x = Vector.mk (a.setIfInBounds i x) (by simp [h]) := rfl
 
-@[simp] theorem setN_mk (a : Array α) (h : a.size = n) (i x) (hi : i < n) :
-    (Vector.mk a h).setN i x = Vector.mk (a.setN i x) (by simp [h]) := rfl
+@[deprecated (since := "2024-11-25")] alias setN_mk := set_mk
 
-@[simp] theorem swap_mk (a : Array α) (h : a.size = n) (i j) :
-    (Vector.mk a h).swap i j = Vector.mk (a.swap (i.cast h.symm) (j.cast h.symm)) (by simp [h]) :=
+@[simp] theorem swap_mk (a : Array α) (h : a.size = n) (i j) (hi hj) :
+    (Vector.mk a h).swap i j = Vector.mk (a.swap i j) (by simp [h]) :=
   rfl
 
-@[simp] theorem swap!_mk (a : Array α) (h : a.size = n) (i j) :
-    (Vector.mk a h).swap! i j = Vector.mk (a.swap! i j) (by simp [h]) := rfl
+@[simp] theorem swapIfInBounds_mk (a : Array α) (h : a.size = n) (i j) :
+    (Vector.mk a h).swapIfInBounds i j = Vector.mk (a.swapIfInBounds i j) (by simp [h]) := rfl
 
-@[simp] theorem swapN_mk (a : Array α) (h : a.size = n) (i j) (hi : i < n) (hj : j < n) :
-    (Vector.mk a h).swapN i j = Vector.mk (a.swapN i j) (by simp [h]) := rfl
+@[deprecated (since := "2024-11-25")] alias swapN_mk := swap_mk
 
-@[simp] theorem swapAt_mk (a : Array α) (h : a.size = n) (i x) : (Vector.mk a h).swapAt i x =
-    ((a.swapAt (i.cast h.symm) x).fst, Vector.mk (a.swapAt (i.cast h.symm) x).snd (by simp [h])) :=
+@[simp] theorem swapAt_mk (a : Array α) (h : a.size = n) (i x) (hi) :
+    (Vector.mk a h).swapAt i x =
+      ((a.swapAt i x).fst, Vector.mk (a.swapAt i x).snd (by simp [h])) :=
   rfl
 
 @[simp] theorem swapAt!_mk (a : Array α) (h : a.size = n) (i x) : (Vector.mk a h).swapAt! i x =
     ((a.swapAt! i x).fst, Vector.mk (a.swapAt! i x).snd (by simp [h])) := rfl
 
-@[simp] theorem swapAtN_mk (a : Array α) (h : a.size = n) (i x) (hi : i < n) :
-    (Vector.mk a h).swapAtN i x =
-      ((a.swapAtN i x).fst, Vector.mk (a.swapAtN i x).snd (by simp [h])) := rfl
+@[deprecated (since := "2024-11-25")] alias swapAtN_mk := swapAt_mk
 
 @[simp] theorem take_mk (a : Array α) (h : a.size = n) (m) :
     (Vector.mk a h).take m = Vector.mk (a.take m) (by simp [h]) := rfl
@@ -141,20 +136,17 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem toArray_drop (a : Vector α n) (m) :
     (a.drop m).toArray = a.toArray.extract m a.size := rfl
 
-@[simp] theorem toArray_empty : (Vector.empty (α := α)).toArray = #[] := rfl
+@[simp] theorem toArray_empty : (#v[] : Vector α 0).toArray = #[] := rfl
 
 @[simp] theorem toArray_mkEmpty (cap) :
     (Vector.mkEmpty (α := α) cap).toArray = Array.mkEmpty cap := rfl
 
+@[simp] theorem toArray_eraseIdx (a : Vector α n) (i) (h) :
+    (a.eraseIdx i h).toArray = a.toArray.eraseIdx i (by simp [h]) := rfl
+
 @[simp] theorem toArray_eraseIdx! (a : Vector α n) (i) (hi : i < n) :
     (a.eraseIdx! i).toArray = a.toArray.eraseIdx! i := by
-  cases a; simp [hi]
-
-@[simp] theorem toArray_eraseIdxN (a : Vector α n) (i) (hi : i < n) :
-    (a.eraseIdxN i).toArray = a.toArray.eraseIdxN i (by simp [hi]) := rfl
-
-@[simp] theorem toArray_feraseIdx (a : Vector α n) (i) :
-    (a.feraseIdx i).toArray = a.toArray.feraseIdx (i.cast a.size_toArray.symm) := rfl
+  cases a; simp_all [Array.eraseIdx!]
 
 @[simp] theorem toArray_extract (a : Vector α n) (start stop) :
     (a.extract start stop).toArray = a.toArray.extract start stop := rfl
@@ -172,42 +164,39 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 
 @[simp] theorem toArray_reverse (a : Vector α n) : a.reverse.toArray = a.toArray.reverse := rfl
 
-@[simp] theorem toArray_set (a : Vector α n) (i x) :
-    (a.set i x).toArray = a.toArray.set (i.cast a.size_toArray.symm) x := rfl
+@[simp] theorem toArray_set (a : Vector α n) (i x h) :
+    (a.set i x).toArray = a.toArray.set i x (by simpa using h):= rfl
 
 @[simp] theorem toArray_set! (a : Vector α n) (i x) :
     (a.set! i x).toArray = a.toArray.set! i x := rfl
 
-@[simp] theorem toArray_setD (a : Vector α n) (i x) :
-    (a.setD i x).toArray = a.toArray.setD i x := rfl
+@[simp] theorem toArray_setIfInBounds (a : Vector α n) (i x) :
+    (a.setIfInBounds i x).toArray = a.toArray.setIfInBounds i x := rfl
 
-@[simp] theorem toArray_setN (a : Vector α n) (i x) (hi : i < n) :
-    (a.setN i x).toArray = a.toArray.setN i x (by simp [hi]) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_setD := toArray_setIfInBounds
+@[deprecated (since := "2024-11-25")] alias toArray_setN := toArray_set
 
 @[simp] theorem toArray_singleton (x : α) : (Vector.singleton x).toArray = #[x] := rfl
 
-@[simp] theorem toArray_swap (a : Vector α n) (i j) : (a.swap i j).toArray =
-    a.toArray.swap (i.cast a.size_toArray.symm) (j.cast a.size_toArray.symm) := rfl
+@[simp] theorem toArray_swap (a : Vector α n) (i j) (hi hj) : (a.swap i j).toArray =
+    a.toArray.swap i j (by simp [hi, hj]) (by simp [hi, hj]) := rfl
 
-@[simp] theorem toArray_swap! (a : Vector α n) (i j) :
-    (a.swap! i j).toArray = a.toArray.swap! i j := rfl
+@[simp] theorem toArray_swapIfInBounds (a : Vector α n) (i j) :
+    (a.swapIfInBounds i j).toArray = a.toArray.swapIfInBounds i j := rfl
 
-@[simp] theorem toArray_swapN (a : Vector α n) (i j) (hi : i < n) (hj : j < n) :
-    (a.swapN i j).toArray = a.toArray.swapN i j (by simp [hi]) (by simp [hj]) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_swap! := toArray_swapIfInBounds
+@[deprecated (since := "2024-11-25")] alias toArray_swapN := toArray_swap
 
-@[simp] theorem toArray_swapAt (a : Vector α n) (i x) :
+@[simp] theorem toArray_swapAt (a : Vector α n) (i x h) :
     ((a.swapAt i x).fst, (a.swapAt i x).snd.toArray) =
-      ((a.toArray.swapAt (i.cast a.size_toArray.symm) x).fst,
-        (a.toArray.swapAt (i.cast a.size_toArray.symm) x).snd) := rfl
+      ((a.toArray.swapAt i x (by simpa using h)).fst,
+        (a.toArray.swapAt i x (by simpa using h)).snd) := rfl
 
 @[simp] theorem toArray_swapAt! (a : Vector α n) (i x) :
     ((a.swapAt! i x).fst, (a.swapAt! i x).snd.toArray) =
       ((a.toArray.swapAt! i x).fst, (a.toArray.swapAt! i x).snd) := rfl
 
-@[simp] theorem toArray_swapAtN (a : Vector α n) (i x) (hi : i < n) :
-    ((a.swapAtN i x).fst, (a.swapAtN i x).snd.toArray) =
-      ((a.toArray.swapAtN i x (by simp [hi])).fst,
-        (a.toArray.swapAtN i x (by simp [hi])).snd) := rfl
+@[deprecated (since := "2024-11-25")] alias toArray_swapAtN := toArray_swapAt
 
 @[simp] theorem toArray_take (a : Vector α n) (m) : (a.take m).toArray = a.toArray.take m := rfl
 
@@ -256,22 +245,22 @@ defeq issues in the implicit size argument.
 
 /-! ### empty lemmas -/
 
-@[simp] theorem map_empty (f : α → β) : map f empty = empty := by
-  apply toArray_injective; simp
+theorem map_empty (f : α → β) : map f #v[] = #v[] := by
+  simp
 
-protected theorem eq_empty (v : Vector α 0) : v = empty := by
+protected theorem eq_empty (v : Vector α 0) : v = #v[] := by
   apply toArray_injective
   apply Array.eq_empty_of_size_eq_zero v.2
 
 /-! ### Decidable quantifiers. -/
 
 theorem forall_zero_iff {P : Vector α 0 → Prop} :
-    (∀ v, P v) ↔ P .empty := by
+    (∀ v, P v) ↔ P #v[] := by
   constructor
   · intro h
     apply h
   · intro h v
-    obtain (rfl : v = .empty) := (by ext i h; simp at h)
+    obtain (rfl : v = #v[]) := (by ext i h; simp at h)
     apply h
 
 theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
@@ -285,7 +274,7 @@ theorem forall_cons_iff {P : Vector α (n + 1) → Prop} :
     apply h
 
 instance instDecidableForallVectorZero (P : Vector α 0 → Prop) :
-    ∀ [Decidable (P .empty)], Decidable (∀ v, P v)
+    ∀ [Decidable (P #v[])], Decidable (∀ v, P v)
   | .isTrue h => .isTrue fun ⟨v, s⟩ => by
     obtain (rfl : v = .empty) := (by ext i h₁ h₂; exact s; cases h₂)
     exact h
@@ -295,7 +284,7 @@ instance instDecidableForallVectorSucc (P : Vector α (n+1) → Prop)
     [Decidable (∀ (x : α) (v : Vector α n), P (v.push x))] : Decidable (∀ v, P v) :=
   decidable_of_iff' (∀ x (v : Vector α n), P (v.push x)) forall_cons_iff
 
-instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P .empty)] :
+instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P #v[])] :
     Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
 

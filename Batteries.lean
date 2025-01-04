@@ -55,7 +55,6 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
@@ -88,6 +87,7 @@ import Batteries.Tactic.NoMatch
 import Batteries.Tactic.OpenPrivate
 import Batteries.Tactic.PermuteGoals
 import Batteries.Tactic.PrintDependents
+import Batteries.Tactic.PrintOpaques
 import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused

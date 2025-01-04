@@ -43,7 +43,7 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
     if x.1 = y then
       parentD self i
     else
-      if (self.get y).rank < (self.get x).rank then
+      if self[y.1].rank < self[x.1].rank then
         if y = i then x else parentD self i
       else
         if x = i then y else parentD self i := by
