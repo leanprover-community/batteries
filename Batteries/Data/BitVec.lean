@@ -22,7 +22,7 @@ theorem getElem_shifConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
   Fin.foldr n (fun i v => v.shiftConcat (f i)) 0
 
 /-- `ofFnLE f` returns the `BitVec n` whose `i`th bit is `f i` with little endian ordering. -/
-abbrev ofFnLE (f : Fin n → Bool) : BitVec n := ofFnLEAux n f
+@[inline] def ofFnLE (f : Fin n → Bool) : BitVec n := ofFnLEAux n f
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by
@@ -41,9 +41,19 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
 @[simp] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) : (ofFnLE f)[i] = f ⟨i, h⟩ :=
   getElem_ofFnLEAux ..
 
+theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := by simp
+
+@[simp] theorem getMsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb' i = f i.rev := by
+  simp [getMsb'_eq_getLsb', Fin.rev]; congr 2; omega
+
 /-- `ofFnBE f` returns the `BitVec n` whose `i`th bit is `f i` with big endian ordering. -/
-def ofFnBE (f : Fin n → Bool) : BitVec n :=
-  ofFnLE fun i => f i.rev
+@[inline] def ofFnBE (f : Fin n → Bool) : BitVec n := ofFnLE fun i => f i.rev
 
 @[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
     (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
+
+theorem getLsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb' i = f i.rev := by
+  simp
+
+@[simp] theorem getMsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb' i = f i := by
+  simp [ofFnBE]
