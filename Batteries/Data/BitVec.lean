@@ -8,7 +8,7 @@ import Batteries.Data.Fin.OfBits
 
 namespace BitVec
 
-theorem getElem_shifConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
+theorem getElem_shiftConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
     (v.shiftConcat b)[i] = if i = 0 then b else v[i-1] := by
   rw [← getLsbD_eq_getElem, getLsbD_shiftConcat, getLsbD_eq_getElem, decide_eq_true h,
     Bool.true_and]
