@@ -14,10 +14,10 @@ theorem getElem_shiftConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
     Bool.true_and]
 
 @[simp] theorem getElem_shiftConcat_zero (v : BitVec n) (b : Bool) (h : 0 < n) :
-    (v.shiftConcat b)[0] = b := by simp [getElem_shifConcat]
+    (v.shiftConcat b)[0] = b := by simp [getElem_shiftConcat]
 
 @[simp] theorem getElem_shiftConcat_succ (v : BitVec n) (b : Bool) (h : i + 1 < n) :
-    (v.shiftConcat b)[i+1] = v[i] := by simp [getElem_shifConcat]
+    (v.shiftConcat b)[i+1] = v[i] := by simp [getElem_shiftConcat]
 
 /-- `ofFnLEAux f` returns the `BitVec m` whose `i`th bit is `f i` when `i < m`, little endian. -/
 @[inline] def ofFnLEAux (m : Nat) (f : Fin n → Bool) : BitVec m :=
@@ -53,7 +53,7 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
   induction n generalizing i m with
   | zero => contradiction
   | succ n ih =>
-    simp only [Fin.foldr_succ, getElem_shifConcat]
+    simp only [Fin.foldr_succ, getElem_shiftConcat]
     cases i with
     | zero =>
       simp
