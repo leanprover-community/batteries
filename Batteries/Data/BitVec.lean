@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
+import Batteries.Data.Fin.OfBits
+
 namespace BitVec
 
 theorem getElem_shifConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
@@ -21,8 +23,29 @@ theorem getElem_shifConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
 @[inline] def ofFnLEAux (m : Nat) (f : Fin n → Bool) : BitVec m :=
   Fin.foldr n (fun i v => v.shiftConcat (f i)) 0
 
+@[simp] theorem toNat_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
+    (ofFnLEAux m f).toNat = Nat.ofBits f % 2 ^ m := by
+  simp only [ofFnLEAux]
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [Fin.foldr_succ, toNat_shiftConcat, Nat.shiftLeft_eq, Nat.pow_one, Nat.ofBits_succ, ih,
+      ← Nat.mod_add_div (Nat.ofBits (f ∘ Fin.succ)) (2 ^ m), Nat.mul_add 2, Nat.add_right_comm,
+      Nat.mul_left_comm, Nat.add_mul_mod_self_left, Nat.mul_comm 2]
+    rfl
+
+@[simp] theorem toFin_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
+    (ofFnLEAux m f).toFin = Fin.ofNat' (2 ^ m) (Nat.ofBits f) := by
+  ext; simp
+
 /-- `ofFnLE f` returns the `BitVec n` whose `i`th bit is `f i` with little endian ordering. -/
 @[inline] def ofFnLE (f : Fin n → Bool) : BitVec n := ofFnLEAux n f
+
+@[simp] theorem toNat_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toNat = Nat.ofBits f := by
+  rw [ofFnLE, toNat_ofFnLEAux, Nat.mod_eq_of_lt (Nat.ofBits_lt_two_pow f)]
+
+@[simp] theorem toFin_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toFin = Fin.ofBits f := by
+  ext; simp
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by
@@ -48,6 +71,12 @@ theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := 
 
 /-- `ofFnBE f` returns the `BitVec n` whose `i`th bit is `f i` with big endian ordering. -/
 @[inline] def ofFnBE (f : Fin n → Bool) : BitVec n := ofFnLE fun i => f i.rev
+
+@[simp] theorem toNat_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
+  simp [ofFnBE]; rfl
+
+@[simp] theorem toFin_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
+  ext; simp
 
 @[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
     (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
