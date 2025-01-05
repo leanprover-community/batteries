@@ -17,16 +17,16 @@ theorem getElem_shifConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
 @[simp] theorem getElem_shiftConcat_succ (v : BitVec n) (b : Bool) (h : i + 1 < n) :
     (v.shiftConcat b)[i+1] = v[i] := by simp [getElem_shifConcat]
 
-/-- `ofFnAux f` returns the `BitVec m` whose `i`th bit is `f i` when `i < m` -/
-@[inline] def ofFnAux (m : Nat) (f : Fin n → Bool) : BitVec m :=
+/-- `ofFnLEAux f` returns the `BitVec m` whose `i`th bit is `f i` when `i < m`, little endian. -/
+@[inline] def ofFnLEAux (m : Nat) (f : Fin n → Bool) : BitVec m :=
   Fin.foldr n (fun i v => v.shiftConcat (f i)) 0
 
-/-- `ofFn f` returns the `BitVec n` whose `i`th bit is `f i` -/
-abbrev ofFn (f : Fin n → Bool) : BitVec n := ofFnAux n f
+/-- `ofFnLE f` returns the `BitVec n` whose `i`th bit is `f i` with little endian ordering. -/
+abbrev ofFnLE (f : Fin n → Bool) : BitVec n := ofFnLEAux n f
 
-theorem getElem_ofFnAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
-    (ofFnAux m f)[i] = f ⟨i, h⟩ := by
-  simp only [ofFnAux]
+theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
+    (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by
+  simp only [ofFnLEAux]
   induction n generalizing i m with
   | zero => contradiction
   | succ n ih =>
@@ -38,5 +38,12 @@ theorem getElem_ofFnAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
       rw [ih (fun i => f i.succ)] <;> try omega
       simp
 
-@[simp] theorem getElem_ofFn (f : Fin n → Bool) (i) (h : i < n) : (ofFn f)[i] = f ⟨i, h⟩ :=
-  getElem_ofFnAux ..
+@[simp] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) : (ofFnLE f)[i] = f ⟨i, h⟩ :=
+  getElem_ofFnLEAux ..
+
+/-- `ofFnBE f` returns the `BitVec n` whose `i`th bit is `f i` with big endian ordering. -/
+def ofFnBE (f : Fin n → Bool) : BitVec n :=
+  ofFnLE fun i => f i.rev
+
+@[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
+    (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
