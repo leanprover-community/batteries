@@ -14,7 +14,8 @@ namespace Nat
 
 @[simp] theorem ofBits_one (f : Fin 1 → Bool) : ofBits f = (f 0).toNat := Nat.zero_add ..
 
-theorem ofBits_succ (f : Fin (n+1) → Bool) : ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat := by
+theorem ofBits_succ (f : Fin (n+1) → Bool) :
+    ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat := by
   simp [ofBits, Fin.foldr_succ]
 
 theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
