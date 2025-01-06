@@ -29,12 +29,12 @@ theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
       _ ≤ 2 * 2 ^ n := Nat.mul_le_mul_left 2 (Nat.succ_le_of_lt (ih _))
       _ = 2 ^ (n + 1) := (Nat.pow_add_one' ..).symm
 
-@[simp] theorem testBit_ofBits (f : Fin n → Bool) (i) (h : i < n) :
+@[simp] theorem testBit_ofBits_lt (f : Fin n → Bool) (i) (h : i < n) :
     (ofBits f).testBit i = f ⟨i, h⟩ := by
   induction n generalizing i with
   | zero => contradiction
   | succ n ih =>
-    have h0 : (f 0).toNat < 2 := Bool.toNat_lt _
+    have h0 : (f 0).toNat < 2 := Bool.toNat_lt ..
     match i with
     | 0 =>
       rw [ofBits_succ, testBit_zero, Nat.mul_add_mod, Nat.mod_eq_of_lt h0, Fin.zero_eta]
@@ -42,3 +42,14 @@ theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
     | i+1 =>
       rw [ofBits_succ, testBit_add_one, Nat.mul_add_div Nat.zero_lt_two, Nat.div_eq_of_lt h0]
       exact ih (f ∘ Fin.succ) i (Nat.lt_of_succ_lt_succ h)
+
+@[simp] theorem testBit_ofBits_ge (f : Fin n → Bool) (i) (h : n ≤ i) :
+    (ofBits f).testBit i = false := by
+  induction n generalizing i with
+  | zero => simp
+  | succ n ih =>
+    have h0 : (f 0).toNat < 2 := Bool.toNat_lt ..
+    match i with
+    | i+1 =>
+      rw [ofBits_succ, testBit_succ, Nat.mul_add_div Nat.zero_lt_two, Nat.div_eq_of_lt h0]
+      exact ih (f ∘ Fin.succ) i (Nat.le_of_succ_le_succ h)

@@ -1,0 +1,33 @@
+/-
+Copyright (c) 2025 François G. Dorais. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: François G. Dorais
+-/
+
+import Batteries.Data.Nat.OfBits
+
+namespace Int
+
+/-- `testBit m n` returns whether the `n+1` least significant bit is `1` or `0` -/
+@[inline] def testBit : Int → Nat → Bool
+  | .ofNat m, n => Nat.testBit m n
+  | .negSucc m, n => ! Nat.testBit m n
+
+
+/--
+Construct an integer from bit values (little endian).
+
+If `fill` is false, the result will be a nonnegative integer with all higher unspecified bits zero.
+If `fill` is true, the result will be a negative integer with all higher unspecified bits one.
+-/
+@[inline] def ofBits (f : Fin n → Bool) : (fill : Bool := false) → Int
+  | false => Int.ofNat (Nat.ofBits f)
+  | true => Int.negSucc (Nat.ofBits fun i => ! f i)
+
+@[simp] theorem testBit_ofBits_lt (f : Fin n → Bool) (fill : Bool) (i) (h : i < n) :
+    (ofBits f fill).testBit i = f ⟨i, h⟩ := by
+  cases fill <;> simp [ofBits, testBit, h]
+
+@[simp] theorem testBit_ofBits_ge (f : Fin n → Bool) (fill : Bool) (i) (h : n ≤ i) :
+    (ofBits f fill).testBit i = fill := by
+  cases fill <;> simp [ofBits, testBit, h]
