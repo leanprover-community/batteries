@@ -97,6 +97,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   let env ← getEnv
   let options ← getOptions -- TODO: sanitize options?
+  let initHeartbeats := (← read).initHeartbeats
 
   let tasks : Array (NamedLinter × Array (Name × Task (Option MessageData))) ←
     linters.mapM fun linter => do
@@ -105,7 +106,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
         BaseIO.asTask do
           match ← withCurrHeartbeats (linter.test decl)
               |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
-              |>.run' {options, fileName := "", fileMap := default} {env}
+              |>.run' {options, fileName := "", fileMap := default, initHeartbeats} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"

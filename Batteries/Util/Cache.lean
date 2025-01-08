@@ -64,8 +64,9 @@ def Cache.get [Monad m] [MonadEnv m] [MonadLog m] [MonadOptions m] [MonadLiftT B
       -- TODO: add customization option
       let options := maxHeartbeats.set options <|
         options.get? maxHeartbeats.name |>.getD 1000000
+      let initHeartbeats ← IO.getNumHeartbeats
       let res ← EIO.asTask <|
-        init {} |>.run' {} { options, fileName, fileMap } |>.run' { env }
+        init {} |>.run' {} { options, fileName, fileMap, initHeartbeats } |>.run' { env }
       cache.set (m := BaseIO) (.inr res)
       pure res
   match t.get with
