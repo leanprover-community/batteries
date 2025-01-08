@@ -95,26 +95,21 @@ producing a list of results.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
-  let env ← getEnv
-  let options ← getOptions -- TODO: sanitize options?
-  let initHeartbeats := (← read).initHeartbeats
-
-  let tasks : Array (NamedLinter × Array (Name × Task (Option MessageData))) ←
+  let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
     linters.mapM fun linter => do
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        BaseIO.asTask do
-          match ← withCurrHeartbeats (linter.test decl)
-              |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
-              |>.run' {options, fileName := "", fileMap := default, initHeartbeats} {env}
-              |>.toBaseIO with
-          | Except.ok msg? => pure msg?
-          | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
+        EIO.asTask <| ← Lean.Core.wrapAsync fun _ => do
+          (linter.test decl) |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
 
   tasks.mapM fun (linter, decls) => do
     let mut msgs : Std.HashMap Name MessageData := {}
-    for (declName, msg?) in decls do
-      if let some msg := msg?.get then
+    for (declName, msgTask) in decls do
+      let msg? ← match msgTask.get with
+      | Except.ok msg? => pure msg?
+      | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
+
+      if let .some msg := msg? then
         msgs := msgs.insert declName msg
     pure (linter, msgs)
 
