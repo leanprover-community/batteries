@@ -9,6 +9,10 @@ on:
 
 name: ci
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
