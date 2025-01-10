@@ -26,10 +26,12 @@ import Batteries.Data.HashMap
 import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
+import Batteries.Data.NameSet
 import Batteries.Data.Nat
 import Batteries.Data.OrderedAssocList
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
+import Batteries.Data.Random
 import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.Stream
@@ -56,7 +58,6 @@ import Batteries.Lean.Meta.SavedState
 import Batteries.Lean.Meta.Simp
 import Batteries.Lean.Meta.UnusedNames
 import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.NameMap
 import Batteries.Lean.NameMapAttribute
 import Batteries.Lean.PersistentHashMap
 import Batteries.Lean.PersistentHashSet
@@ -89,13 +90,13 @@ import Batteries.Tactic.NoMatch
 import Batteries.Tactic.OpenPrivate
 import Batteries.Tactic.PermuteGoals
 import Batteries.Tactic.PrintDependents
+import Batteries.Tactic.PrintOpaques
 import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused
 import Batteries.Tactic.SqueezeScope
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
-import Batteries.Tactic.Where
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote

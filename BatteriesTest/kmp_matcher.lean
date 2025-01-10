@@ -1,6 +1,9 @@
 import Batteries.Data.String.Matcher
+import Batteries.Data.List.Matcher
 
-/-! Tests for Knuth-Morris-Pratt matching algorithm -/
+/-! # Tests for the Knuth-Morris-Pratt (KMP) matching algorithm -/
+
+/-! ### String API -/
 
 /-- Matcher for pattern "abba" -/
 def m := String.Matcher.ofString "abba"
@@ -24,3 +27,15 @@ def m := String.Matcher.ofString "abba"
 #guard Array.size ("xyxyyxxyx".findAllSubstr "xyx") = 2
 
 #guard Array.size ("xyxyxyyxxyxyx".findAllSubstr "xyx") = 4
+
+/-! ### List API -/
+
+def lm := List.Matcher.ofList [0,1,1,0]
+
+#guard lm.find? [2,1,1,0,1,1,2] == none
+
+#guard lm.find? [0,0,1,1,0,0] == some (1, 5)
+
+#guard (lm.findAll [0,1,1,0,1,1,0]).size == 2
+
+#guard (lm.findAll [0,1,1,0,1,1,0,1,1,0]).size == 3
