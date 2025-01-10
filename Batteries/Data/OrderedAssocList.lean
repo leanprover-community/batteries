@@ -38,9 +38,9 @@ namespace Batteries
 /-!
 We first define some predicates and operations in the `AssocList` namespace.
 
-* `keysOrdered cmp l` asserts that the keys of an `l : AssocList` are strictly increasing
+* `KeysOrdered cmp l` asserts that the keys of an `l : AssocList` are strictly increasing
   with respect to a comparator `cmp`.
-* `ltHeadKey? cmp a l` asserts that `a` is less than (according to `cmp`) the first key of `l`,
+* `LTHeadKey? cmp a l` asserts that `a` is less than (according to `cmp`) the first key of `l`,
   or that `l` is empty.
 -/
 
@@ -58,54 +58,48 @@ def headKey? (l : AssocList α β) : Option α :=
 /--
 The condition that an element is less than the first key of an `AssocList`, or that list is empty.
 -/
-abbrev ltHeadKey? (cmp : α → α → Ordering) (a : α) (t : AssocList α β) : Prop :=
+abbrev LTHeadKey? (cmp : α → α → Ordering) (a : α) (t : AssocList α β) : Prop :=
   match headKey? t with | none => True | some x => cmp a x = .lt
 
 @[simp] theorem ltHeadKey?_nil {cmp : α → α → Ordering} :
-    ltHeadKey? cmp a (.nil : AssocList α β) = True := rfl
-@[simp] theorem ltHeadKey?_cons : ltHeadKey? cmp a (.cons x y t) = (cmp a x = .lt) := rfl
+    LTHeadKey? cmp a (.nil : AssocList α β) = True := rfl
+@[simp] theorem ltHeadKey?_cons : LTHeadKey? cmp a (.cons x y t) = (cmp a x = .lt) := rfl
 
 /--
 The predicate that the keys of an `AssocList` are
 in strictly increasing order according to the comparator `cmp`.
 -/
-def keysOrdered (cmp : α → α → Ordering) : AssocList α β → Prop
+def KeysOrdered (cmp : α → α → Ordering) : AssocList α β → Prop
   | .nil => True
   | .cons _ _ .nil => True
-  | .cons a _ (.cons x y t) => cmp a x = .lt ∧ keysOrdered cmp (.cons x y t)
+  | .cons a _ (.cons x y t) => cmp a x = .lt ∧ KeysOrdered cmp (.cons x y t)
 
-instance instKeysOrderedDecidablePred : DecidablePred (keysOrdered cmp : AssocList α β → Prop) := by
-  rintro (_|⟨a, b, _|_⟩) <;> dsimp [keysOrdered]
-  · infer_instance
-  · infer_instance
-  · exact @instDecidableAnd _ _ _ (instKeysOrderedDecidablePred _)
+@[simp] theorem KeysOrdered_cons_nil : KeysOrdered cmp (.cons a b nil) := trivial
 
-@[simp] theorem keysOrdered_cons_nil : keysOrdered cmp (.cons a b nil) := trivial
-
-theorem keysOrdered.tail (h : keysOrdered cmp (.cons a b t)) : keysOrdered cmp t :=
+theorem KeysOrdered.tail (h : KeysOrdered cmp (.cons a b t)) : KeysOrdered cmp t :=
   match t with
   | .nil => trivial
   | .cons .. => h.2
 
-theorem ltHeadKey?_of_keysOrdered_cons (w : keysOrdered cmp (cons a b t)) : ltHeadKey? cmp a t :=
+theorem ltHeadKey?_of_keysOrdered_cons (w : KeysOrdered cmp (cons a b t)) : LTHeadKey? cmp a t :=
   match t with
   | .nil => trivial
   | .cons _ _ _ => w.1
 
-theorem ltHeadKey?_of_cons [TransCmp cmp] (w : ltHeadKey? cmp a (cons x y t))
-    (h : keysOrdered cmp (cons x y t)) :
-    ltHeadKey? cmp a t := by
+theorem ltHeadKey?_of_cons [TransCmp cmp] (w : LTHeadKey? cmp a (cons x y t))
+    (h : KeysOrdered cmp (cons x y t)) :
+    LTHeadKey? cmp a t := by
   have h := ltHeadKey?_of_keysOrdered_cons h
   revert w h
-  dsimp [ltHeadKey?]
+  dsimp [LTHeadKey?]
   split
   · simp
   · exact TransCmp.lt_trans
 
-theorem ltHeadKey?_of_le [TransCmp cmp] (h : cmp x a ≠ .gt) (w : ltHeadKey? cmp a t) :
-    ltHeadKey? cmp x t := by
+theorem ltHeadKey?_of_le [TransCmp cmp] (h : cmp x a ≠ .gt) (w : LTHeadKey? cmp a t) :
+    LTHeadKey? cmp x t := by
   revert w
-  dsimp [ltHeadKey?]
+  dsimp [LTHeadKey?]
   split
   · simp
   · exact TransCmp.le_lt_trans h
@@ -125,9 +119,9 @@ abbrev headKey?_le_headKey?
     headKey?_le_headKey? cmp (cons a b t) (cons x y s) = (cmp a x ≠ .gt) := rfl
 
 theorem ltHeadKey?_of_headKey?_le_headKey? [TransCmp cmp]
-    (w : ltHeadKey? cmp a s) (h : headKey?_le_headKey? cmp s t) :
-    ltHeadKey? cmp a t := by
-  dsimp [ltHeadKey?, headKey?_le_headKey?] at *
+    (w : LTHeadKey? cmp a s) (h : headKey?_le_headKey? cmp s t) :
+    LTHeadKey? cmp a t := by
+  dsimp [LTHeadKey?, headKey?_le_headKey?] at *
   revert h w
   match headKey? s, headKey? t with
   | some a, some b => exact TransCmp.lt_le_trans
@@ -136,10 +130,10 @@ theorem ltHeadKey?_of_headKey?_le_headKey? [TransCmp cmp]
   | none, none => intros; trivial
 
 theorem headKey?_le_headKey?_cons [TransCmp cmp]
-    (h : keysOrdered cmp (cons x y t)) (w : headKey?_le_headKey? cmp t s) :
+    (h : KeysOrdered cmp (cons x y t)) (w : headKey?_le_headKey? cmp t s) :
     headKey?_le_headKey? cmp (cons x y t) s := by
   have p := ltHeadKey?_of_keysOrdered_cons h
-  dsimp [ltHeadKey?, headKey?_le_headKey?] at *
+  dsimp [LTHeadKey?, headKey?_le_headKey?] at *
   revert p w
   match headKey? s, headKey? t with
   | some a, some b =>
@@ -149,15 +143,15 @@ theorem headKey?_le_headKey?_cons [TransCmp cmp]
   | none, some b => simp
   | none, none => intros; trivial
 
-theorem keysOrdered_cons {cmp : α → α → Ordering}
-    (w : ltHeadKey? cmp a t) (h : keysOrdered cmp t) :
-    keysOrdered cmp (.cons a b t) := by
+theorem KeysOrdered_cons {cmp : α → α → Ordering}
+    (w : LTHeadKey? cmp a t) (h : KeysOrdered cmp t) :
+    KeysOrdered cmp (.cons a b t) := by
   match t with
   | .nil => trivial
   | .cons x y s => exact ⟨w, h⟩
 
-theorem find?_eq_none_of_ltHeadKey? {cmp : α → α → Ordering} [TransCmp cmp] [BEq α] [LawfulBEq α]
-    (w : ltHeadKey? cmp a l) (h : keysOrdered cmp l) :
+theorem find?_eq_none_of_LTHeadKey? {cmp : α → α → Ordering} [TransCmp cmp] [BEq α] [LawfulBEq α]
+    (w : LTHeadKey? cmp a l) (h : KeysOrdered cmp l) :
     l.find? a = none := by
   match l with
   | nil => rfl
@@ -165,7 +159,7 @@ theorem find?_eq_none_of_ltHeadKey? {cmp : α → α → Ordering} [TransCmp cmp
     rw [find?]
     split
     · simp_all [OrientedCmp.cmp_refl]
-    · exact find?_eq_none_of_ltHeadKey? (ltHeadKey?_of_cons w h) h.tail
+    · exact find?_eq_none_of_LTHeadKey? (ltHeadKey?_of_cons w h) h.tail
 
 /-!
 # Ordered-respecting operations on `AssocList`
@@ -173,7 +167,7 @@ theorem find?_eq_none_of_ltHeadKey? {cmp : α → α → Ordering} [TransCmp cmp
 We now define `orderedInsert`, and `orderedMerge`,
 which will later be wrapped as `OrderedAssocList.insert` and `OrderedAssocList.merge`.
 
-We prove that with `keysOrdered` input these functions produce `keysOrdered` outputs.
+We prove that with `KeysOrdered` input these functions produce `KeysOrdered` outputs.
 We prove the same about `AssocList.filterMapVal`.
 -/
 
@@ -220,8 +214,8 @@ theorem headKey?_orderedInsert_or (cmp) (l : AssocList α β) (a) (b) :
   | .nil => left; rfl
   | .cons x y s => dsimp; cases cmp a x <;> simp
 
-theorem orderedInsert_keysOrdered [AntisymmCmp cmp] [OrientedCmp cmp] (h : keysOrdered cmp l) :
-    keysOrdered cmp (orderedInsert cmp l a b) := by
+theorem orderedInsert_KeysOrdered [AntisymmCmp cmp] [OrientedCmp cmp] (h : KeysOrdered cmp l) :
+    KeysOrdered cmp (orderedInsert cmp l a b) := by
   match l with
   | .nil => trivial
   | .cons x y t =>
@@ -234,19 +228,19 @@ theorem orderedInsert_keysOrdered [AntisymmCmp cmp] [OrientedCmp cmp] (h : keysO
     | .gt => exact aux h w
 -- I've split this step out with a name as it is useful to fill in a proof term later.
 where aux [AntisymmCmp cmp] [OrientedCmp cmp] {x y t}
-    (h : keysOrdered cmp (cons x y t)) (w : cmp a x = Ordering.gt) :
-    keysOrdered cmp (cons x y (orderedInsert cmp t a b)) := by
-        apply keysOrdered_cons
-        · dsimp [ltHeadKey?]
+    (h : KeysOrdered cmp (cons x y t)) (w : cmp a x = Ordering.gt) :
+    KeysOrdered cmp (cons x y (orderedInsert cmp t a b)) := by
+        apply KeysOrdered_cons
+        · dsimp [LTHeadKey?]
           rcases headKey?_orderedInsert_or cmp t a b with (p|p)
           · rw [p]
             exact OrientedCmp.cmp_eq_gt.mp w
           · rw [p]
             exact ltHeadKey?_of_keysOrdered_cons h
-        · apply orderedInsert_keysOrdered
+        · apply orderedInsert_KeysOrdered
           exact h.tail
 
-theorem headKey?_le_headKey?_filterMapVal [TransCmp cmp] (h : keysOrdered cmp l) :
+theorem headKey?_le_headKey?_filterMapVal [TransCmp cmp] (h : KeysOrdered cmp l) :
     headKey?_le_headKey? cmp l (l.filterMapVal f) := by
   match l with
   | .nil => simp [headKey?_le_headKey?]
@@ -257,18 +251,18 @@ theorem headKey?_le_headKey?_filterMapVal [TransCmp cmp] (h : keysOrdered cmp l)
       exact headKey?_le_headKey?_cons h (headKey?_le_headKey?_filterMapVal h.tail)
     | some _ => simp [OrientedCmp.cmp_refl]
 
-theorem filterMapVal_keysOrdered [TransCmp cmp] (h : keysOrdered cmp l) :
-    keysOrdered cmp (l.filterMapVal f) := by
+theorem filterMapVal_KeysOrdered [TransCmp cmp] (h : KeysOrdered cmp l) :
+    KeysOrdered cmp (l.filterMapVal f) := by
   match l with
   | .nil => exact h
   | .cons x y t =>
     simp only [filterMapVal]
     split
-    · exact filterMapVal_keysOrdered h.tail
-    · apply keysOrdered_cons
+    · exact filterMapVal_KeysOrdered h.tail
+    · apply KeysOrdered_cons
       · exact ltHeadKey?_of_headKey?_le_headKey? (ltHeadKey?_of_keysOrdered_cons h)
           (headKey?_le_headKey?_filterMapVal h.tail)
-      · exact filterMapVal_keysOrdered h.tail
+      · exact filterMapVal_KeysOrdered h.tail
 
 /--
 Merge two `AssocList`s,
@@ -300,9 +294,9 @@ def orderedMerge (cmp : α → α → Ordering) (f : α → Option β → Option
 termination_by l₁ l₂ => l₁.length + l₂.length
 
 theorem ltHeadKey?_orderedMerge [TransCmp cmp]
-    (h₁ : ltHeadKey? cmp a l₁) (h₂ : ltHeadKey? cmp a l₂)
-    (w₁ : keysOrdered cmp l₁) (w₂ : keysOrdered cmp l₂) :
-    ltHeadKey? cmp a (orderedMerge cmp f l₁ l₂) := by
+    (h₁ : LTHeadKey? cmp a l₁) (h₂ : LTHeadKey? cmp a l₂)
+    (w₁ : KeysOrdered cmp l₁) (w₂ : KeysOrdered cmp l₂) :
+    LTHeadKey? cmp a (orderedMerge cmp f l₁ l₂) := by
   match l₁, l₂ with
   | .nil, .nil => simp [orderedMerge]
   | .nil, .cons a₂ g t₂ =>
@@ -332,39 +326,39 @@ theorem ltHeadKey?_orderedMerge [TransCmp cmp]
       · exact ltHeadKey?_orderedMerge h₁ (ltHeadKey?_of_cons h₂ w₂) w₁ w₂.tail
 
 unseal orderedMerge in
-theorem orderedMerge_keysOrdered [AntisymmCmp cmp] [TransCmp cmp]
-    (h₁ : keysOrdered cmp l₁) (h₂ : keysOrdered cmp l₂) :
-    keysOrdered cmp (orderedMerge cmp f l₁ l₂) := by
+theorem orderedMerge_KeysOrdered [AntisymmCmp cmp] [TransCmp cmp]
+    (h₁ : KeysOrdered cmp l₁) (h₂ : KeysOrdered cmp l₂) :
+    KeysOrdered cmp (orderedMerge cmp f l₁ l₂) := by
   match l₁, l₂ with
   | .nil, .nil => trivial
-  | .nil, .cons a₂ g t₂ => exact filterMapVal_keysOrdered h₂
-  | .cons a₁ b t₁, .nil => exact filterMapVal_keysOrdered h₁
+  | .nil, .cons a₂ g t₂ => exact filterMapVal_KeysOrdered h₂
+  | .cons a₁ b t₁, .nil => exact filterMapVal_KeysOrdered h₁
   | .cons a₁ b t₁, .cons a₂ g t₂ =>
     rw [orderedMerge]
     match h : cmp a₁ a₂ with
     | .lt => match (f a₁ (some b) none) with
       | some d =>
-        apply keysOrdered_cons
+        apply KeysOrdered_cons
         · apply ltHeadKey?_orderedMerge (ltHeadKey?_of_keysOrdered_cons h₁) (ltHeadKey?_cons.mpr h)
             h₁.tail h₂
-        · exact orderedMerge_keysOrdered h₁.tail h₂
-      | none => exact orderedMerge_keysOrdered h₁.tail h₂
+        · exact orderedMerge_KeysOrdered h₁.tail h₂
+      | none => exact orderedMerge_KeysOrdered h₁.tail h₂
     | .eq => match (f a₁ (some b) (some g)) with
       | some d =>
         dsimp
-        apply keysOrdered_cons
+        apply KeysOrdered_cons
         · rcases (AntisymmCmp.eq_of_cmp_eq h) with rfl
           exact ltHeadKey?_orderedMerge (ltHeadKey?_of_keysOrdered_cons h₁)
             (ltHeadKey?_of_keysOrdered_cons h₂) h₁.tail h₂.tail
-        · exact orderedMerge_keysOrdered h₁.tail h₂.tail
-      | none => exact orderedMerge_keysOrdered h₁.tail h₂.tail
+        · exact orderedMerge_KeysOrdered h₁.tail h₂.tail
+      | none => exact orderedMerge_KeysOrdered h₁.tail h₂.tail
     | .gt => match (f a₂ none (some g)) with
       | some d =>
-        apply keysOrdered_cons
+        apply KeysOrdered_cons
         · apply ltHeadKey?_orderedMerge (ltHeadKey?_cons.mpr (OrientedCmp.cmp_eq_gt.mp h))
             (ltHeadKey?_of_keysOrdered_cons h₂) h₁ h₂.tail
-        · exact orderedMerge_keysOrdered h₁ h₂.tail
-      | none => exact orderedMerge_keysOrdered h₁ h₂.tail
+        · exact orderedMerge_KeysOrdered h₁ h₂.tail
+      | none => exact orderedMerge_KeysOrdered h₁ h₂.tail
 
 /--
 Find the value associated to a key by traversing left to right,
@@ -383,7 +377,7 @@ def orderedFind? (cmp : α → α → Ordering) (l : AssocList α β) (x : α) :
 
 theorem orderedFind?_eq_find?
     {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp] [BEq α] [LawfulBEq α]
-    (l : AssocList α β) (h : l.keysOrdered cmp) (x : α) : l.orderedFind? cmp x = l.find? x := by
+    (l : AssocList α β) (h : l.KeysOrdered cmp) (x : α) : l.orderedFind? cmp x = l.find? x := by
   match l with
   | .nil => rfl
   | .cons a b t =>
@@ -391,7 +385,7 @@ theorem orderedFind?_eq_find?
     split
     · split
       · simp_all [OrientedCmp.cmp_refl]
-      · rw [AssocList.find?_eq_none_of_ltHeadKey? (cmp := cmp)]
+      · rw [AssocList.find?_eq_none_of_LTHeadKey? (cmp := cmp)]
         · exact AssocList.ltHeadKey?_of_le (by simp_all)
             (AssocList.ltHeadKey?_of_keysOrdered_cons h)
         · exact h.tail
@@ -400,23 +394,23 @@ theorem orderedFind?_eq_find?
       · simp_all [OrientedCmp.cmp_refl]
       · apply orderedFind?_eq_find? _ h.tail
 
-theorem orderedFind?_eq_none_of_ltHeadKey? (l : AssocList α β) (w : ltHeadKey? cmp x l) :
+theorem orderedFind?_eq_none_of_LTHeadKey? (l : AssocList α β) (w : LTHeadKey? cmp x l) :
     orderedFind? cmp l x = none := by
   match l with
   | .nil => rfl
   | .cons a b t =>
     match p : cmp x a with
     | .lt => simp [orderedFind?, p]
-    | .eq => simp_all [ltHeadKey?]
-    | .gt => simp_all [ltHeadKey?]
+    | .eq => simp_all [LTHeadKey?]
+    | .gt => simp_all [LTHeadKey?]
 
 theorem orderedFind?_cons [TransCmp cmp]
-    (h : (AssocList.cons a b t).keysOrdered cmp) :
+    (h : (AssocList.cons a b t).KeysOrdered cmp) :
     orderedFind? cmp (.cons a b t) x = if cmp x a = .eq then some b else orderedFind? cmp t x := by
   simp only [find?, AssocList.orderedFind?]
   split <;> rename_i w <;> simp only [w, reduceCtorEq, reduceIte]
-  rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
-  simp only [ltHeadKey?, headKey?]
+  rw [AssocList.orderedFind?_eq_none_of_LTHeadKey?]
+  simp only [LTHeadKey?, headKey?]
   split <;> rename_i h'
   · trivial
   · apply TransCmp.lt_trans w
@@ -432,12 +426,12 @@ theorem orderedFind?_cons [TransCmp cmp]
   simp [find?, AssocList.orderedFind?, OrientedCmp.cmp_refl]
 
 theorem orderedFind?_orderedInsert {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
-    (l : AssocList α β) (h : keysOrdered cmp l) (a : α) (b : β) :
+    (l : AssocList α β) (h : KeysOrdered cmp l) (a : α) (b : β) :
     (orderedInsert cmp l a b).orderedFind? cmp x =
       if cmp x a = .eq then some b else l.orderedFind? cmp x := by
   match l with
   | .nil =>
-    simp only [orderedInsert, orderedFind?_cons, keysOrdered_cons_nil]
+    simp only [orderedInsert, orderedFind?_cons, KeysOrdered_cons_nil]
   | .cons a' b' t =>
     simp only [orderedInsert_cons]
     split <;> rename_i h₁
@@ -452,11 +446,11 @@ theorem orderedFind?_orderedInsert {cmp : α → α → Ordering} [AntisymmCmp c
         · rcases (AntisymmCmp.eq_of_cmp_eq h₂).symm
           simp_all [OrientedCmp.cmp_eq_gt]
         · rfl
-      · exact orderedInsert_keysOrdered.aux h h₁
+      · exact orderedInsert_KeysOrdered.aux h h₁
 termination_by l.length
 
 theorem orderedFind?_orderedInsert_self {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
-    (l : AssocList α β) (h : keysOrdered cmp l)  (a : α) (b : β) :
+    (l : AssocList α β) (h : KeysOrdered cmp l)  (a : α) (b : β) :
     (orderedInsert cmp l a b).orderedFind? cmp a = some b := by
   simp [h, orderedFind?_orderedInsert, OrientedCmp.cmp_refl]
 
@@ -466,7 +460,7 @@ we can check whether they are equal by checking if their `find?` functions are e
 -/
 theorem ext_orderedKeys
     (cmp : α → α → Ordering) [AntisymmCmp cmp] [TransCmp cmp]
-    {l₁ l₂ : AssocList α β} (h₁ : l₁.keysOrdered cmp) (h₂ : l₂.keysOrdered cmp)
+    {l₁ l₂ : AssocList α β} (h₁ : l₁.KeysOrdered cmp) (h₂ : l₂.KeysOrdered cmp)
     (w : ∀ a, l₁.orderedFind? cmp a = l₂.orderedFind? cmp a) : l₁ = l₂ := by
   match w₁ : l₁, w₂ : l₂ with
   | .nil, .nil => rfl
@@ -483,7 +477,7 @@ theorem ext_orderedKeys
     | .lt =>
       exfalso
       have w₂ : l₂.orderedFind? cmp a₁ = none := by
-        rw [w₂, orderedFind?_eq_none_of_ltHeadKey? _ h]
+        rw [w₂, orderedFind?_eq_none_of_LTHeadKey? _ h]
       specialize w a₁
       simp [orderedFind?_cons_self] at w
       simp_all [orderedFind?_eq_find?]
@@ -498,21 +492,21 @@ theorem ext_orderedKeys
       rw [orderedFind?_cons h₁, orderedFind?_cons h₂] at w
       split at w <;> rename_i h
       · rcases AntisymmCmp.eq_of_cmp_eq h
-        rw [orderedFind?_eq_none_of_ltHeadKey?, orderedFind?_eq_none_of_ltHeadKey?]
+        rw [orderedFind?_eq_none_of_LTHeadKey?, orderedFind?_eq_none_of_LTHeadKey?]
         apply ltHeadKey?_of_keysOrdered_cons h₂
         apply ltHeadKey?_of_keysOrdered_cons h₁
       · exact w
     | .gt =>
       exfalso
       have w₁ : l₁.orderedFind? cmp a₂ = none := by
-        rw [w₁, orderedFind?_eq_none_of_ltHeadKey? _ (OrientedCmp.cmp_eq_gt.mp h)]
+        rw [w₁, orderedFind?_eq_none_of_LTHeadKey? _ (OrientedCmp.cmp_eq_gt.mp h)]
       specialize w a₂
       simp [orderedFind?_cons_self] at w
       simp_all [orderedFind?_eq_find?]
 
 @[simp]
 theorem orderedFind?_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
-    {l : AssocList α β} (h : keysOrdered cmp l) :
+    {l : AssocList α β} (h : KeysOrdered cmp l) :
     (filterMapVal f l).orderedFind? cmp a = (l.orderedFind? cmp a).bind (fun b => f a b) := by
   -- This isn't true at the level of `AssocList`; we need uniqueness of keys.
   match l with
@@ -523,7 +517,7 @@ theorem orderedFind?_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cm
     · rw [orderedFind?_filterMapVal h.tail]
       split <;> rename_i h'
       · have h' := AntisymmCmp.eq_of_cmp_eq h'
-        rw [orderedFind?_eq_none_of_ltHeadKey?]
+        rw [orderedFind?_eq_none_of_LTHeadKey?]
         · simp_all
         · rcases h' with rfl
           exact ltHeadKey?_of_keysOrdered_cons h
@@ -532,20 +526,20 @@ theorem orderedFind?_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cm
       · split <;> rename_i h'
         · simp_all [AntisymmCmp.eq_of_cmp_eq h']
         · rw [orderedFind?_filterMapVal h.tail]
-      · exact keysOrdered_cons
+      · exact KeysOrdered_cons
           (ltHeadKey?_of_headKey?_le_headKey? (ltHeadKey?_of_keysOrdered_cons h)
             (headKey?_le_headKey?_filterMapVal h.tail))
-          (filterMapVal_keysOrdered h.tail)
+          (filterMapVal_KeysOrdered h.tail)
 termination_by l.length
 
 theorem filterMapVal_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cmp] [TransCmp cmp]
     {f : α → γ → Option δ} {g : α → β → Option γ}
-    {l : AssocList α β} (h : keysOrdered cmp l) :
+    {l : AssocList α β} (h : KeysOrdered cmp l) :
     filterMapVal f (filterMapVal g l) =
       filterMapVal (fun a b => (g a b).bind (fun c => f a c)) l := by
   apply ext_orderedKeys (cmp := cmp)
-  · exact filterMapVal_keysOrdered (filterMapVal_keysOrdered h)
-  · exact filterMapVal_keysOrdered h
+  · exact filterMapVal_KeysOrdered (filterMapVal_KeysOrdered h)
+  · exact filterMapVal_KeysOrdered h
   · intro a
     rw [orderedFind?_filterMapVal, orderedFind?_filterMapVal h, orderedFind?_filterMapVal h]
     · ext d
@@ -555,7 +549,7 @@ theorem filterMapVal_filterMapVal {cmp : α → α → Ordering} [AntisymmCmp cm
         refine ⟨b, hb, c, hc, hd⟩
       · rintro ⟨b, hb, c, hc, hd⟩
         refine ⟨c, ⟨⟨b, hb, hc⟩, hd⟩⟩
-    · exact filterMapVal_keysOrdered h
+    · exact filterMapVal_KeysOrdered h
 
 end AssocList
 
@@ -567,7 +561,7 @@ structure OrderedAssocList {α : Type u} (cmp : α → α → Ordering) (β : Ty
   /-- The underlying `AssocList` of an `OrderedAssocList`. -/
   list : AssocList α β
   /-- The invariant that the keys are in strictly increasing order according to `cmp`. -/
-  keysOrdered : list.keysOrdered cmp
+  KeysOrdered : list.KeysOrdered cmp
 
 namespace OrderedAssocList
 
@@ -628,36 +622,36 @@ def headKey? (l : OrderedAssocList cmp β) : Option α := l.list.headKey?
 @[simp] theorem headKey?_mk_cons : headKey? ⟨.cons a b t, h⟩ = some a := rfl
 
 /-- Either `a` is less than the first key of `l`, or `l` is empty. -/
-def ltHeadKey? (a : α) (l : OrderedAssocList cmp β) : Prop := AssocList.ltHeadKey? cmp a l.list
+def LTHeadKey? (a : α) (l : OrderedAssocList cmp β) : Prop := AssocList.LTHeadKey? cmp a l.list
 
 /-- The head key of a tail is either `none`, or greater than the original head key. -/
-theorem ltheadKey?_tail (h : AssocList.keysOrdered cmp (.cons a b t)) :
-    ltHeadKey? a ⟨t, h.tail⟩ := by
-  dsimp [ltHeadKey?]
+theorem ltheadKey?_tail (h : AssocList.KeysOrdered cmp (.cons a b t)) :
+    LTHeadKey? a ⟨t, h.tail⟩ := by
+  dsimp [LTHeadKey?]
   match t with
   | .nil => trivial
   | .cons _ _ _ => exact h.1
 
-theorem getElem?_eq_none_of_ltHeadKey? (l : OrderedAssocList cmp β) (w : ltHeadKey? x l) :
+theorem getElem?_eq_none_of_LTHeadKey? (l : OrderedAssocList cmp β) (w : LTHeadKey? x l) :
     l[x]? = none :=
-  AssocList.orderedFind?_eq_none_of_ltHeadKey? _ w
+  AssocList.orderedFind?_eq_none_of_LTHeadKey? _ w
 
 theorem getElem?_mk_cons [TransCmp cmp]
-    {h : (AssocList.cons a b t).keysOrdered cmp} :
+    {h : (AssocList.cons a b t).KeysOrdered cmp} :
     (⟨.cons a b t, h⟩ : OrderedAssocList _ _)[x]? =
       if cmp x a = .eq then some b else (⟨t, h.tail⟩ : OrderedAssocList _ _)[x]? := by
   simp only [getElem?, find?, AssocList.orderedFind?]
   split <;> rename_i w <;> simp only [w, reduceCtorEq, reduceIte]
-  rw [AssocList.orderedFind?_eq_none_of_ltHeadKey?]
+  rw [AssocList.orderedFind?_eq_none_of_LTHeadKey?]
   have p := ltheadKey?_tail h
   revert p
-  simp only [ltHeadKey?, AssocList.ltHeadKey?]
+  simp only [LTHeadKey?, AssocList.LTHeadKey?]
   split
   · trivial
   · exact TransCmp.lt_trans w
 
 @[simp] theorem getElem?_mk_cons_self [OrientedCmp cmp]
-    {h : (AssocList.cons a b t).keysOrdered cmp} :
+    {h : (AssocList.cons a b t).KeysOrdered cmp} :
     (⟨.cons a b t, h⟩ : OrderedAssocList _ _)[a]? = some b := by
   simp [getElem?, find?, AssocList.orderedFind?, OrientedCmp.cmp_refl]
 
@@ -667,12 +661,12 @@ theorem ext_list {l₁ l₂ : OrderedAssocList cmp β} (w : l₁.list = l₂.lis
 @[ext] theorem ext [AntisymmCmp cmp] [TransCmp cmp] {l₁ l₂ : OrderedAssocList cmp β}
     (w : ∀ a : α, l₁[a]? = l₂[a]?) : l₁ = l₂ := by
   apply ext_list
-  apply AssocList.ext_orderedKeys _ l₁.keysOrdered l₂.keysOrdered
-  simpa [find?, AssocList.orderedFind?_eq_find?, l₁.keysOrdered, l₂.keysOrdered] using w
+  apply AssocList.ext_orderedKeys _ l₁.KeysOrdered l₂.KeysOrdered
+  simpa [find?, AssocList.orderedFind?_eq_find?, l₁.KeysOrdered, l₂.KeysOrdered] using w
 
 @[simp] theorem contains_nil : contains (nil : OrderedAssocList cmp β) x = false := rfl
 @[simp] theorem contains_mk_cons_self [OrientedCmp cmp]
-    {h : (AssocList.cons a b t).keysOrdered cmp} :
+    {h : (AssocList.cons a b t).KeysOrdered cmp} :
     contains ⟨.cons a b t, h⟩ a = true := by
   rw [contains_def]
   simp
@@ -681,7 +675,7 @@ theorem ext_list {l₁ l₂ : OrderedAssocList cmp β} (w : l₁.list = l₂.lis
 Prepend a key-value pair,
 requiring a proof that the key is smaller than the existing smallest key.
 -/
-def cons (a : α) (b : β) (l : OrderedAssocList cmp β) (w : ltHeadKey? a l) :
+def cons (a : α) (b : β) (l : OrderedAssocList cmp β) (w : LTHeadKey? a l) :
     OrderedAssocList cmp β :=
   match l with
   | ⟨.nil, _⟩ => ⟨.cons a b .nil, trivial⟩
@@ -715,7 +709,7 @@ This replaces the current value if the key is already present,
 and otherwise inserts it before the first key which is greater than the inserted key.
 -/
 def insert (l : OrderedAssocList cmp β) (a : α) (b : β) : OrderedAssocList cmp β :=
-  ⟨l.list.orderedInsert cmp a b, AssocList.orderedInsert_keysOrdered l.keysOrdered⟩
+  ⟨l.list.orderedInsert cmp a b, AssocList.orderedInsert_KeysOrdered l.KeysOrdered⟩
 
 @[simp] theorem insert_mk_nil :
     insert (⟨.nil, h⟩ : OrderedAssocList cmp β) a b = ⟨.cons a b .nil, trivial⟩ := rfl
@@ -726,7 +720,7 @@ def insert (l : OrderedAssocList cmp β) (a : α) (b : β) : OrderedAssocList cm
     | .eq => ⟨.cons a b t, by
         cases (AntisymmCmp.eq_of_cmp_eq w); cases t <;> exact h⟩
     | .gt => .cons x y (insert ⟨t, h.tail⟩ a b) (AssocList.ltHeadKey?_of_keysOrdered_cons
-        (AssocList.orderedInsert_keysOrdered.aux h w)) := by
+        (AssocList.orderedInsert_KeysOrdered.aux h w)) := by
   dsimp [insert, AssocList.orderedInsert]
   congr
   split <;> simp
@@ -744,7 +738,7 @@ variable [TransCmp cmp]
 
 theorem getElem?_insert (l : OrderedAssocList cmp β) (a : α) (b : β) :
     (insert l a b)[x]? = if cmp x a = .eq then some b else l[x]? :=
-  AssocList.orderedFind?_orderedInsert l.list l.keysOrdered a b
+  AssocList.orderedFind?_orderedInsert l.list l.KeysOrdered a b
 
 theorem getElem?_insert_self (l : OrderedAssocList cmp β) (a : α) (b : β) :
     (insert l a b)[a]? = some b := by
@@ -774,12 +768,12 @@ either replacing the value or dropping it if the function returns `none`.
 -/
 def filterMapVal (f : α → β → Option δ) (l : OrderedAssocList cmp β) :
     OrderedAssocList cmp δ :=
-  ⟨l.list.filterMapVal f, AssocList.filterMapVal_keysOrdered l.keysOrdered⟩
+  ⟨l.list.filterMapVal f, AssocList.filterMapVal_KeysOrdered l.KeysOrdered⟩
 
 @[simp]
 theorem getElem?_filterMapVal [AntisymmCmp cmp] (l : OrderedAssocList cmp β) :
     (filterMapVal f l)[a]? = l[a]?.bind (fun b => f a b) :=
-  AssocList.orderedFind?_filterMapVal l.keysOrdered
+  AssocList.orderedFind?_filterMapVal l.KeysOrdered
 
 theorem filterMapVal_filterMapVal [AntisymmCmp cmp]
     {f : α → γ → Option δ} {g : α → β → Option γ}
@@ -787,7 +781,7 @@ theorem filterMapVal_filterMapVal [AntisymmCmp cmp]
     filterMapVal f (filterMapVal g l) =
       filterMapVal (fun a b => (g a b).bind (fun c => f a c)) l := by
   apply ext_list
-  exact AssocList.filterMapVal_filterMapVal l.keysOrdered
+  exact AssocList.filterMapVal_filterMapVal l.KeysOrdered
 
 end filterMapVal
 
@@ -802,7 +796,7 @@ dropping values where the function returns `none`.
 def merge (f : α → Option β → Option γ → Option δ)
     (l₁ : OrderedAssocList cmp β) (l₂ : OrderedAssocList cmp γ) : OrderedAssocList cmp δ :=
   ⟨AssocList.orderedMerge cmp f l₁.list l₂.list,
-    AssocList.orderedMerge_keysOrdered l₁.keysOrdered l₂.keysOrdered⟩
+    AssocList.orderedMerge_KeysOrdered l₁.KeysOrdered l₂.KeysOrdered⟩
 
 @[simp] theorem list_merge {l₁ : OrderedAssocList cmp β} :
     (merge f l₁ l₂).list = AssocList.orderedMerge cmp f l₁.list l₂.list :=
@@ -849,7 +843,7 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
             simp only [w, i] at p
             simp only [list_merge]
             simp only [← p]
-            exact (merge f _ _).keysOrdered⟩
+            exact (merge f _ _).KeysOrdered⟩
       | .eq => match w : f x (some y) (some y') with
         | none => merge f ⟨t, h.tail⟩ ⟨t', h'.tail⟩
         | some d => ⟨.cons x d (merge f ⟨t, h.tail⟩ ⟨t', h'.tail⟩).list, by
@@ -857,7 +851,7 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
             simp only [w, i] at p
             simp only [list_merge]
             simp only [← p]
-            exact (merge f _ _).keysOrdered⟩
+            exact (merge f _ _).KeysOrdered⟩
       | .gt => match w : f x' none (some y') with
         | none => merge f ⟨.cons x y t, h⟩ ⟨t', h'.tail⟩
         | some d => ⟨.cons x' d (merge f ⟨.cons x y t, h⟩ ⟨t', h'.tail⟩).list, by
@@ -865,7 +859,7 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
             simp only [w, i] at p
             simp only [list_merge]
             simp only [← p]
-            exact (merge f _ _).keysOrdered⟩ := by
+            exact (merge f _ _).KeysOrdered⟩ := by
   apply ext_list
   simp only [merge_mk_cons_mk_cons_list]
   split <;> split <;> simp_all [merge]
@@ -894,7 +888,7 @@ unseal AssocList.orderedMerge in
         rw [getElem?_mk_cons (a := x)]
         split <;> rename_i h₃
         · rcases AntisymmCmp.eq_of_cmp_eq h₃ with rfl
-          rw [getElem?_eq_none_of_ltHeadKey?, getElem?_eq_none_of_ltHeadKey?, hf]
+          rw [getElem?_eq_none_of_LTHeadKey?, getElem?_eq_none_of_LTHeadKey?, hf]
           · simp_all
           · exact h₁
           · exact AssocList.ltHeadKey?_of_keysOrdered_cons h
@@ -903,7 +897,7 @@ unseal AssocList.orderedMerge in
         split <;> rename_i h₃
         · rcases AntisymmCmp.eq_of_cmp_eq h₃ with rfl
           simp only [← h₂, getElem?_mk_cons_self]
-          rw [getElem?_eq_none_of_ltHeadKey?]
+          rw [getElem?_eq_none_of_LTHeadKey?]
           exact h₁
         · rw [getElem?_merge hf, getElem?_mk_cons (a := x), if_neg h₃]
     · rcases (AntisymmCmp.eq_of_cmp_eq h₁)
@@ -912,7 +906,7 @@ unseal AssocList.orderedMerge in
         rw [getElem?_mk_cons, getElem?_mk_cons]
         split <;> rename_i h₃
         · rcases (AntisymmCmp.eq_of_cmp_eq h₃)
-          rw [getElem?_eq_none_of_ltHeadKey?, getElem?_eq_none_of_ltHeadKey?, hf, h₂]
+          rw [getElem?_eq_none_of_LTHeadKey?, getElem?_eq_none_of_LTHeadKey?, hf, h₂]
           · exact AssocList.ltHeadKey?_of_keysOrdered_cons h'
           · exact AssocList.ltHeadKey?_of_keysOrdered_cons h
         · rfl
@@ -927,7 +921,7 @@ unseal AssocList.orderedMerge in
         rw [getElem?_mk_cons (a := x')]
         split <;> rename_i h₃
         · rcases (AntisymmCmp.eq_of_cmp_eq h₃)
-          rw [getElem?_eq_none_of_ltHeadKey?, getElem?_eq_none_of_ltHeadKey?, hf]
+          rw [getElem?_eq_none_of_LTHeadKey?, getElem?_eq_none_of_LTHeadKey?, hf]
           · exact h₂.symm
           · exact AssocList.ltHeadKey?_of_keysOrdered_cons h'
           · exact OrientedCmp.cmp_eq_gt.mp h₁
@@ -936,7 +930,7 @@ unseal AssocList.orderedMerge in
         split <;> rename_i h₃
         · rcases (AntisymmCmp.eq_of_cmp_eq h₃)
           simp only [getElem?_mk_cons_self]
-          rw [getElem?_eq_none_of_ltHeadKey?, h₂]
+          rw [getElem?_eq_none_of_LTHeadKey?, h₂]
           exact OrientedCmp.cmp_eq_gt.mp h₁
         · rw [getElem?_merge hf, getElem?_mk_cons (a := x'), if_neg h₃]
 
