@@ -1,0 +1,6 @@
+{"log":
+ [{"message": "Documentation indexing", "level": "info"},
+  {"message":
+   ".> ././../.lake/packages/doc-gen4/.lake/build/bin/doc-gen4 index --build ././.",
+   "level": "trace"}],
+ "depHash": "13019188637284226173"}
