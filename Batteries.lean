@@ -16,6 +16,7 @@ import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
+import Batteries.Data.BitVec
 import Batteries.Data.ByteArray
 import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
