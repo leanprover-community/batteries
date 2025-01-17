@@ -26,13 +26,6 @@ theorem forIn_eq_forIn_toList [Monad m]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
-/-! ### filter -/
-
-theorem size_filter_le (p : α → Bool) (l : Array α) :
-    (l.filter p).size ≤ l.size := by
-  simp only [← length_toList, toList_filter]
-  apply List.length_filter_le
-
 /-! ### flatten -/
 
 @[deprecated (since := "2024-09-09")] alias data_join := toList_flatten

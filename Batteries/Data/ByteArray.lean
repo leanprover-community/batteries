@@ -76,7 +76,7 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 @[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
   rw [←append_eq]; simp [ByteArray.append, size]
-  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_nil]
+  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
 @[deprecated (since := "2024-08-13")] alias append_data := data_append
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
