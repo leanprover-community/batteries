@@ -6,14 +6,14 @@ The "batteries included" extended library for Lean 4. This is a collection of da
 
 To use `batteries` in your project, add the following to your `lakefile.lean`:
 ```lean
-require "leanprover-community" / "batteries" @ "main"
+require "leanprover-community" / "batteries" @ git "main"
 ```
 Or add the following to your `lakefile.toml`:
 ```toml
 [[require]]
 name = "batteries"
 scope = "leanprover-community"
-version = "main"
+rev = "main"
 ```
 
 Additionally, please make sure that you're using the version of Lean that the current version of `batteries` expects. The easiest way to do this is to copy the [`lean-toolchain`](./lean-toolchain) file from this repository to your project. Once you've added the dependency declaration, the command `lake update` checks out the current version of `batteries` and writes it the Lake manifest file. Don't run this command again unless you're prepared to potentially also update your Lean compiler version, as it will retrieve the latest version of dependencies and add them to the manifest.

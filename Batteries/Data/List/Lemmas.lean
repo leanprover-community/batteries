@@ -508,6 +508,131 @@ theorem insertP_loop (a : α) (l r : List α) :
   induction l with simp [insertP, insertP.loop, cond]
   | cons _ _ ih => split <;> simp [insertP_loop, ih]
 
+/-! ### dropPrefix?, dropSuffix?, dropInfix?-/
+
+open Option
+
+@[simp] theorem dropPrefix?_nil [BEq α] {p : List α} : dropPrefix? p [] = some p := by
+  simp [dropPrefix?]
+
+theorem dropPrefix?_eq_some_iff [BEq α] {l p s : List α} :
+    dropPrefix? l p = some s ↔ ∃ p', l = p' ++ s ∧ p' == p := by
+  unfold dropPrefix?
+  split
+  · simp
+  · simp
+  · rename_i a as b bs
+    simp only [ite_none_right_eq_some]
+    constructor
+    · rw [dropPrefix?_eq_some_iff]
+      rintro ⟨w, p', rfl, h⟩
+      refine ⟨a :: p', by simp_all⟩
+    · rw [dropPrefix?_eq_some_iff]
+      rintro ⟨p, h, w⟩
+      rw [cons_eq_append_iff] at h
+      obtain (⟨rfl, rfl⟩ | ⟨a', rfl, rfl⟩) := h
+      · simp at w
+      · simp only [cons_beq_cons, Bool.and_eq_true] at w
+        refine ⟨w.1, a', rfl, w.2⟩
+
+theorem dropPrefix?_append_of_beq [BEq α] {l₁ l₂ : List α} (p : List α) (h : l₁ == l₂) :
+    dropPrefix? (l₁ ++ p) l₂ = some p := by
+  simp [dropPrefix?_eq_some_iff, h]
+
+theorem dropSuffix?_eq_some_iff [BEq α] {l p s : List α} :
+    dropSuffix? l s = some p ↔ ∃ s', l = p ++ s' ∧ s' == s := by
+  unfold dropSuffix?
+  rw [splitAt_eq]
+  simp only [ite_none_right_eq_some, some.injEq]
+  constructor
+  · rintro ⟨w, rfl⟩
+    refine ⟨_, by simp, w⟩
+  · rintro ⟨s', rfl, w⟩
+    simp [length_eq_of_beq w, w]
+
+@[simp] theorem dropSuffix?_nil [BEq α] {s : List α} : dropSuffix? s [] = some s := by
+  simp [dropSuffix?_eq_some_iff]
+
+theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
+    dropInfix?.go i l acc = some (p, s) ↔ ∃ p',
+      p = acc.reverse ++ p' ∧
+      -- `i` is an infix up to `==`
+      (∃ i', l = p' ++ i' ++ s ∧ i' == i) ∧
+        -- and there is no shorter prefix for which that is the case
+        (∀ p'' i'' s'', l = p'' ++ i'' ++ s'' → i'' == i → p''.length ≥ p'.length) := by
+  unfold dropInfix?.go
+  split
+  · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
+      append_assoc, append_eq_nil_iff, ge_iff_le, and_imp]
+    constructor
+    · rintro ⟨rfl, rfl, rfl⟩
+      simp
+    · rintro ⟨p', rfl, ⟨_, ⟨rfl, rfl, rfl⟩, h⟩, w⟩
+      simp_all
+  · rename_i a t
+    split <;> rename_i h
+    · rw [dropInfix?_go_eq_some_iff]
+      constructor
+      · rintro ⟨p', rfl, ⟨i', rfl, h₂⟩, w⟩
+        refine ⟨a :: p', ?_⟩
+        simp [h₂]
+        intro p'' i'' s'' h₁ h₂
+        rw [cons_eq_append_iff] at h₁
+        obtain (⟨rfl, h₁⟩ | ⟨p'', rfl, h₁⟩) := h₁
+        · rw [append_assoc, ← h₁] at h
+          have := dropPrefix?_append_of_beq s'' h₂
+          simp_all
+        · simpa using w p'' i'' s'' (by simpa using h₁) h₂
+      · rintro ⟨p', rfl, ⟨i', h₁, h₂⟩, w⟩
+        rw [cons_eq_append_iff] at h₁
+        simp at h₁
+        obtain (⟨⟨rfl, rfl⟩, rfl⟩ | ⟨a', h₁, rfl⟩) := h₁
+        · simp only [nil_beq_iff, isEmpty_eq_true] at h₂
+          simp only [h₂] at h
+          simp at h
+        · rw [append_eq_cons_iff] at h₁
+          obtain (⟨rfl, rfl⟩ | ⟨p', rfl, rfl⟩) := h₁
+          · rw [← cons_append] at h
+            have := dropPrefix?_append_of_beq s h₂
+            simp_all
+          · refine ⟨p', ?_⟩
+            simp only [reverse_cons, append_assoc, singleton_append, append_cancel_left_eq,
+              append_cancel_right_eq, exists_eq_left', ge_iff_le, true_and]
+            refine ⟨h₂, ?_⟩
+            intro p'' i'' s'' h₃ h₄
+            rw [← append_assoc] at h₃
+            rw [h₃] at w
+            simpa using w (a :: p'') i'' s'' (by simp) h₄
+    · rename_i s'
+      simp only [some.injEq, Prod.mk.injEq, append_assoc, ge_iff_le]
+      rw [dropPrefix?_eq_some_iff] at h
+      obtain ⟨p', h, w⟩ := h
+      constructor
+      · rintro ⟨rfl, rfl⟩
+        simpa using ⟨p', by simp_all⟩
+      · rintro ⟨p'', rfl, ⟨i', h₁, h₂⟩, w'⟩
+        specialize w' [] p' s' (by simpa using h) w
+        simp at w'
+        simp [w'] at h₁ ⊢
+        rw [h] at h₁
+        apply append_inj_right h₁
+        replace w := length_eq_of_beq w
+        replace h₂ := length_eq_of_beq h₂
+        simp_all
+
+theorem dropInfix?_eq_some_iff [BEq α] {l i p s : List α} :
+    dropInfix? l i = some (p, s) ↔
+      -- `i` is an infix up to `==`
+      (∃ i', l = p ++ i' ++ s ∧ i' == i) ∧
+        -- and there is no shorter prefix for which that is the case
+        (∀ p' i' s', l = p' ++ i' ++ s' → i' == i → p'.length ≥ p.length) := by
+  unfold dropInfix?
+  rw [dropInfix?_go_eq_some_iff]
+  simp
+
+@[simp] theorem dropInfix?_nil [BEq α] {s : List α} : dropInfix? s [] = some ([], s) := by
+  simp [dropInfix?_eq_some_iff]
+
 /-! ### deprecations -/
 
 @[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff

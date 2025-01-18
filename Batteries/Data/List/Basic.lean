@@ -1032,3 +1032,35 @@ where
   loop : List α → List α → List α
   | [], r => reverseAux (a :: r) [] -- Note: `reverseAux` is tail recursive.
   | b :: l, r => bif p b then reverseAux (a :: r) (b :: l) else loop l (b :: r)
+
+/-- `dropPrefix? l p` returns
+`some r` if `l = p' ++ r` for some `p'` which is paiwise `==` to `p`,
+and `none` otherwise. -/
+def dropPrefix? [BEq α] : List α → List α → Option (List α)
+  | list, [] => some list
+  | [], _ :: _ => none
+  | a :: as, b :: bs => if a == b then dropPrefix? as bs else none
+
+/-- `dropSuffix? l s` returns
+`some r` if `l = r ++ s'` for some `s'` which is paiwise `==` to `s`,
+and `none` otherwise. -/
+def dropSuffix? [BEq α] (l s : List α) : Option (List α) :=
+  let (r, s') := l.splitAt (l.length - s.length)
+  if s' == s then some r else none
+
+/-- `dropInfix? l i` returns
+`some (p, s)` if `l = p ++ i' ++ s` for some `i'` which is paiwise `==` to `i`,
+and `none` otherwise.
+
+Note that this is an inefficient implementation, and if computation time is a concern you should be
+using the Knuth-Morris-Pratt algorithm as implemented in `Batteries.Data.List.Matcher`.
+-/
+def dropInfix? [BEq α] (l i : List α) : Option (List α × List α) :=
+  go l []
+where
+  /-- Inner loop for `dropInfix?`. -/
+  go : List α → List α → Option (List α × List α)
+  | [], acc => if i.isEmpty then some (acc.reverse, []) else none
+  | a :: as, acc => match (a :: as).dropPrefix? i with
+    | none => go as (a :: acc)
+    | some s => (acc.reverse, s)

@@ -9,6 +9,7 @@ import Batteries.Data.List.Basic
 import Batteries.Data.List.Lemmas
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.PrintPrefix
 
 /-!
 # Vectors
@@ -16,40 +17,17 @@ import Batteries.Tactic.Lint.Misc
 `Vector α n` is a thin wrapper around `Array α` for arrays of fixed size `n`.
 -/
 
-namespace Batteries
-
-/-- `Vector α n` is an `Array α` with size `n`. -/
-structure Vector (α : Type u) (n : Nat) extends Array α where
-  /-- Array size. -/
-  size_toArray : toArray.size = n
-deriving Repr, DecidableEq
-
-attribute [simp] Vector.size_toArray
-
 namespace Vector
 
 @[deprecated (since := "2024-10-15")] alias size_eq := size_toArray
 
-/-- Syntax for `Vector α n` -/
-syntax "#v[" withoutPosition(sepBy(term, ", ")) "]" : term
+@[deprecated (since := "2024-11-25")] alias setN := set
 
-open Lean in
-macro_rules
-  | `(#v[ $elems,* ]) => `(Vector.mk (n := $(quote elems.getElems.size)) #[$elems,*] rfl)
+@[deprecated (since := "2024-11-25")] alias setD := setIfInBounds
 
-/-- Custom eliminator for `Vector α n` through `Array α` -/
-@[elab_as_elim]
-def elimAsArray {motive : Vector α n → Sort u}
-    (mk : ∀ (a : Array α) (ha : a.size = n), motive ⟨a, ha⟩) :
-    (v : Vector α n) → motive v
-  | ⟨a, ha⟩ => mk a ha
+@[deprecated (since := "2024-11-24")] alias swapN := swap
 
-/-- Custom eliminator for `Vector α n` through `List α` -/
-@[elab_as_elim]
-def elimAsList {motive : Vector α n → Sort u}
-    (mk : ∀ (a : List α) (ha : a.length = n), motive ⟨⟨a⟩, ha⟩) :
-    (v : Vector α n) → motive v
-  | ⟨⟨a⟩, ha⟩ => mk a ha
+@[deprecated (since := "2024-11-24")] alias swap! := swapIfInBounds
 
 /-- The empty vector. -/
 @[inline] def empty : Vector α 0 := ⟨.empty, rfl⟩
@@ -240,67 +218,13 @@ vector then the vector is returned unchanged.
 
 @[deprecated (since := "2024-10-22")] alias shrink := take
 
-/--
-Deletes the first `m` elements of a vector. If `m` is greater than or equal to the size of the
-vector then the empty vector is returned.
--/
-@[inline] def drop (v : Vector α n) (m : Nat) : Vector α (n - m) :=
-  ⟨v.toArray.extract m v.size, by simp⟩
+@[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
-/--
-Compares two vectors of the same size using a given boolean relation `r`. `isEqv v w r` returns
-`true` if and only if `r v[i] w[i]` is true for all indices `i`.
--/
-@[inline] def isEqv (v w : Vector α n) (r : α → α → Bool) : Bool :=
-  Array.isEqvAux v.toArray w.toArray (by simp) r 0 (by simp)
-
-instance [BEq α] : BEq (Vector α n) where
-  beq a b := isEqv a b (· == ·)
+/-- Use `#v[]` instead. -/
+@[deprecated "Use `#v[]`." (since := "2024-11-27")]
+def empty (α : Type u) : Vector α 0 := #v[]
 
 proof_wanted instLawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n)
-
-/-- Reverse the elements of a vector. -/
-@[inline] def reverse (v : Vector α n) : Vector α n :=
-  ⟨v.toArray.reverse, by simp⟩
-
-/-- Delete an element of a vector using a `Fin` index. -/
-@[inline] def feraseIdx (v : Vector α n) (i : Fin n) : Vector α (n-1) :=
-  ⟨v.toArray.feraseIdx (Fin.cast v.size_toArray.symm i), by simp [Array.size_feraseIdx]⟩
-
-/-- Delete an element of a vector using a `Nat` index. Panics if the index is out of bounds. -/
-@[inline] def eraseIdx! (v : Vector α n) (i : Nat) : Vector α (n-1) :=
-  if _ : i < n then
-    ⟨v.toArray.eraseIdx i, by simp [*]⟩
-  else
-    have : Inhabited (Vector α (n-1)) := ⟨v.pop⟩
-    panic! "index out of bounds"
-
-/-- Delete the first element of a vector. Returns the empty vector if the input vector is empty. -/
-@[inline] def tail (v : Vector α n) : Vector α (n-1) :=
-  if _ : 0 < n then
-    ⟨v.toArray.eraseIdx 0, by simp [*]⟩
-  else
-    v.cast (by omega)
-
-/--
-Delete an element of a vector using a `Nat` index. By default, the `get_elem_tactic` is used to
-synthesise a proof that the index is within bounds.
--/
-@[inline] def eraseIdxN (v : Vector α n) (i : Nat) (h : i < n := by get_elem_tactic) :
-  Vector α (n - 1) := ⟨v.toArray.eraseIdxN i (by simp [*]), by simp⟩
-
-/--
-Finds the first index of a given value in a vector using `==` for comparison. Returns `none` if the
-no element of the index matches the given value.
--/
-@[inline] def indexOf? [BEq α] (v : Vector α n) (x : α) : Option (Fin n) :=
-  match v.toArray.indexOf? x with
-  | some res => some (res.cast v.size_toArray)
-  | none => none
-
-/-- Returns `true` when `v` is a prefix of the vector `w`. -/
-@[inline] def isPrefixOf [BEq α] (v : Vector α m) (w : Vector α n) : Bool :=
-  v.toArray.isPrefixOf w.toArray
 
 /--
 Returns `true` when all elements of the vector are pairwise distinct using `==` for comparison.
