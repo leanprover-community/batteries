@@ -100,7 +100,8 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         EIO.asTask <| ← Lean.Core.wrapAsync fun _ => do
-          (linter.test decl) |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
+          (linter.test decl) |>.run' mkMetaContext
+          -- We use the context used by `Command.liftTermElabM`
 
   tasks.mapM fun (linter, decls) => do
     let mut msgs : Std.HashMap Name MessageData := {}
