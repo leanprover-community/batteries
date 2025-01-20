@@ -5,6 +5,9 @@ Authors: François G. Dorais
 -/
 
 import Batteries.Data.BitVec.Basic
+import Batteries.Data.Fin.OfBits
+import Batteries.Data.Nat.Lemmas
+import Batteries.Data.Int
 
 namespace BitVec
 
@@ -42,6 +45,9 @@ theorem getElem_shiftConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
 
 @[simp] theorem toFin_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toFin = Fin.ofBits f := by
   ext; simp
+
+@[simp] theorem toInt_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toInt = Int.ofBits f := by
+  simp only [BitVec.toInt, Int.ofBits, toNat_ofFnLE, Int.subNatNat_eq_coe]; rfl
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by
@@ -89,6 +95,9 @@ theorem msb_ofFnLE (f : Fin n → Bool) :
 
 @[simp] theorem toFin_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
   ext; simp
+
+@[simp] theorem toInt_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toInt = Int.ofBits (f ∘ Fin.rev) := by
+  simp [ofFnBE]; rfl
 
 @[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
     (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
