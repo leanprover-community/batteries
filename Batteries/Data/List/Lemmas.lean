@@ -563,7 +563,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
   unfold dropInfix?.go
   split
   · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
-      append_assoc, append_eq_nil, ge_iff_le, and_imp]
+      append_assoc, append_eq_nil_iff, ge_iff_le, and_imp]
     constructor
     · rintro ⟨rfl, rfl, rfl⟩
       simp
