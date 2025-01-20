@@ -8,6 +8,9 @@ import Batteries.Data.BitVec.Basic
 
 namespace BitVec
 
+theorem msb_eq_getMsbD_zero (v : BitVec n) : v.msb = v.getMsbD 0 := by
+  cases n <;> simp [getMsbD_eq_getLsbD, msb_eq_getLsbD_last]
+
 theorem getElem_shiftConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
     (v.shiftConcat b)[i] = if i = 0 then b else v[i-1] := by
   rw [← getLsbD_eq_getElem, getLsbD_shiftConcat, getLsbD_eq_getElem, decide_eq_true h,
@@ -59,8 +62,27 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
 
 theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := by simp
 
+theorem getLsbD_ofFnLE (f : Fin n → Bool) (i) :
+    (ofFnLE f).getLsbD i = if h : i < n then f ⟨i, h⟩ else false := by
+  split
+  · next h => rw [getLsbD_eq_getElem h, getElem_ofFnLE]
+  · next h => rw [getLsbD_ge _ _ (Nat.ge_of_not_lt h)]
+
 @[simp] theorem getMsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb' i = f i.rev := by
   simp [getMsb'_eq_getLsb', Fin.rev]; congr 2; omega
+
+theorem getMsbD_ofFnLE (f : Fin n → Bool) (i) :
+    (ofFnLE f).getMsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
+  split
+  · next h =>
+    have heq : n - 1 - i = n - (i + 1) := by omega
+    have hlt : n - (i + 1) < n := by omega
+    simp [getMsbD_eq_getLsbD, getLsbD_ofFnLE, Fin.rev, h, heq, hlt]
+  · next h => rw [getMsbD_ge _ _ (Nat.ge_of_not_lt h)]
+
+theorem msb_ofFnLE (f : Fin n → Bool) :
+    (ofFnLE f).msb = if h : n ≠ 0 then f ⟨n-1, Nat.sub_one_lt h⟩ else false := by
+  cases n <;> simp [msb_eq_getMsbD_zero, getMsbD_ofFnLE, Fin.last]
 
 @[simp] theorem toNat_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
   simp [ofFnBE]; rfl
@@ -74,5 +96,17 @@ theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := 
 theorem getLsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb' i = f i.rev := by
   simp
 
+theorem getLsbD_ofFnBE (f : Fin n → Bool) (i) :
+    (ofFnBE f).getLsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
+  simp [ofFnBE, getLsbD_ofFnLE]
+
 @[simp] theorem getMsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb' i = f i := by
   simp [ofFnBE]
+
+theorem getMsbD_ofFnBE (f : Fin n → Bool) (i) :
+    (ofFnBE f).getMsbD i = if h : i < n then f ⟨i, h⟩ else false := by
+  simp [ofFnBE, getMsbD_ofFnLE]
+
+theorem msb_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).msb = if h : n ≠ 0 then f ⟨0, Nat.zero_lt_of_ne_zero h⟩ else false := by
+  cases n <;> simp [ofFnBE, msb_ofFnLE, Fin.rev]
