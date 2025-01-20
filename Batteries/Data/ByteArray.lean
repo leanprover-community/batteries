@@ -53,7 +53,7 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.size_set ..
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.get_set_eq ..
+  Array.getElem_set_self _ _ _ _ (eq := rfl) _
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
