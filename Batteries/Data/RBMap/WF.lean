@@ -124,7 +124,7 @@ theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by c
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
   induction t <;> unfold ins <;> try simp [*]
-  split <;> cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
+  split <;> cases ‹_ = _› <;> split <;> simp at h₂ <;> simp [*]
 
 /-- The `ins` function preserves the ordering invariants. -/
 protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp

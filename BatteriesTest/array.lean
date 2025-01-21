@@ -15,8 +15,8 @@ variable (j_lt : j < (a.set! i v).size)
 #check_simp (a.set! i v)[i] ~> v
 
 -- Checks with different index values.
-#check_simp (a.set! i v)[j]'j_lt  ~> (a.setD i v)[j]'_
-#check_simp (a.setD i v)[j]'j_lt !~>
+#check_simp (a.set! i v)[j]'j_lt  ~> (a.setIfInBounds i v)[j]'_
+#check_simp (a.setIfInBounds i v)[j]'j_lt !~>
 
 -- This doesn't work currently.
 -- It will be address in the comprehensive overhaul of array lemmas.

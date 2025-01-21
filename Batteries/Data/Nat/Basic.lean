@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 namespace Nat
 
-
 /--
   Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
 -/
@@ -103,3 +102,9 @@ where
     else
       guess
   termination_by guess
+
+/--
+Construct a natural number from a sequence of bits using little endian convention.
+-/
+@[inline] def ofBits (f : Fin n → Bool) : Nat :=
+  Fin.foldr n (fun i v => 2 * v + (f i).toNat) 0

@@ -174,7 +174,7 @@ def fixl [Monad m] {α β : Type u} (f : α → m (α × List β)) (s : α) : ML
 
 /-- Compute, inside the monad, whether a `MLList` is empty. -/
 def isEmpty [Monad m] (xs : MLList m α) : m (ULift Bool) :=
-  (ULift.up ∘ Option.isSome) <$> uncons xs
+  (ULift.up ∘ Option.isNone) <$> uncons xs
 
 /-- Convert a `List` to a `MLList`. -/
 def ofList : List α → MLList m α

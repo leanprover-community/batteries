@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Data.List.Lemmas
+import Batteries.Data.List.FinRange
 import Batteries.Data.Array.Basic
 import Batteries.Tactic.SeqFocus
 import Batteries.Util.ProofWanted
@@ -56,7 +57,7 @@ where
        ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -80,11 +81,6 @@ where
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 
 /-! ### map -/
-
-theorem mapM_empty [Monad m] (f : α → m β) : mapM f #[] = pure #[] := by
-  rw [mapM, mapM.map]; rfl
-
-theorem map_empty (f : α → β) : map f #[] = #[] := mapM_empty f
 
 /-! ### mem -/
 

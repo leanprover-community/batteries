@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docs
         working-directory: docs
-        run: lake build -q Batteries:docs
+        run: lake build --keep-toolchain -q Batteries:docs
 
       - name: Compress Docs
         working-directory: docs
@@ -40,6 +40,8 @@ jobs:
       - name: Release Docs
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: ${{ contains(github.ref, 'rc') }}
+          make_latest: ${{ !contains(github.ref, 'rc') }}
           files: |
             docs/docs-${{ github.ref_name }}.tar.gz
             docs/docs-${{ github.ref_name }}.zip
