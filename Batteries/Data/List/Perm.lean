@@ -275,20 +275,6 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
     refine h y ?_
     simpa [hy'] using hy
 
-theorem perm_insertIdx {α} (x : α) (l : List α) {n} (h : n ≤ l.length) :
-    insertIdx n x l ~ x :: l := by
-  induction l generalizing n with
-  | nil =>
-    cases n with
-    | zero => rfl
-    | succ => cases h
-  | cons _ _ ih =>
-    cases n with
-    | zero => simp [insertIdx]
-    | succ =>
-      simp only [insertIdx, modifyTailIdx]
-      refine .trans (.cons _ (ih (Nat.le_of_succ_le_succ h))) (.swap ..)
-
 @[deprecated (since := "2024-10-21")] alias perm_insertNth := perm_insertIdx
 
 theorem Perm.union_right {l₁ l₂ : List α} (t₁ : List α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ := by
@@ -334,22 +320,4 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
-theorem perm_merge (s : α → α → Bool) (l r) : merge l r s ~ l ++ r := by
-  match l, r with
-  | [], r => simp
-  | l, [] => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · apply Perm.trans ((perm_cons a).mpr (perm_merge s l (b::r)))
-      simp [cons_append]
-    · apply Perm.trans ((perm_cons b).mpr (perm_merge s (a::l) r))
-      simp [cons_append]
-      apply Perm.trans (Perm.swap ..)
-      apply Perm.cons
-      apply perm_cons_append_cons
-      exact Perm.rfl
-
-theorem Perm.merge (s₁ s₂ : α → α → Bool) (hl : l₁ ~ l₂) (hr : r₁ ~ r₂) :
-    merge l₁ r₁ s₁ ~ merge l₂ r₂ s₂ :=
-  Perm.trans (perm_merge ..) <| Perm.trans (Perm.append hl hr) <| Perm.symm (perm_merge ..)
+@[deprecated (since := "2025-01-04")] alias perm_merge := merge_perm_append
