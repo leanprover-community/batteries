@@ -633,6 +633,43 @@ theorem dropInfix?_eq_some_iff [BEq α] {l i p s : List α} :
 @[simp] theorem dropInfix?_nil [BEq α] {s : List α} : dropInfix? s [] = some ([], s) := by
   simp [dropInfix?_eq_some_iff]
 
+/-! ### IsPrefixOf?, IsSuffixOf? -/
+
+@[simp] theorem isSome_isPrefixOf?_eq_isPrefixOf [BEq α] (xs ys : List α) :
+    (xs.isPrefixOf? ys).isSome = xs.isPrefixOf ys := by
+  match xs, ys with
+  | [], _ => simp [List.isPrefixOf?]
+  | _::_, [] => rfl
+  | _::_, _::_ =>
+    simp only [List.isPrefixOf?, List.isPrefixOf]
+    split <;> simp [*, isSome_isPrefixOf?_eq_isPrefixOf]
+
+theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
+    (h : xs.isPrefixOf? ys = some zs) : xs ++ zs = ys := by
+  match xs, ys with
+  | [], _ =>
+    simp [List.isPrefixOf?] at h
+    simp [h]
+  | _::_, [] =>
+    simp [List.isPrefixOf?] at h
+  | x::xs, y::ys =>
+    simp only [List.isPrefixOf?] at h
+    split at h
+    · next heq => rw [eq_of_beq heq, List.cons_append, append_eq_of_isPrefixOf?_eq_some h]
+    · contradiction
+
+@[simp] theorem isSome_isSuffixOf?_eq_isSuffixOf [BEq α] (xs ys : List α) :
+    (xs.isSuffixOf? ys).isSome = xs.isSuffixOf ys := by
+  simp [List.isSuffixOf?, isSuffixOf]
+
+theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
+    (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by
+  simp only [isSuffixOf?, map_eq_some'] at h
+  match h with
+  | ⟨zs, hp, heq⟩ =>
+    rw [← heq, ← reverse_inj, reverse_append, reverse_reverse]
+    exact append_eq_of_isPrefixOf?_eq_some hp
+
 /-! ### deprecations -/
 
 @[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
