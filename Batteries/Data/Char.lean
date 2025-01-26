@@ -9,9 +9,6 @@ import Batteries.Tactic.Alias
 theorem Char.le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=
   Char.ext_iff.trans UInt32.le_antisymm_iff
 
-theorem Char.le_antisymm {x y : Char} (h1 : x ≤ y) (h2 : y ≤ x) : x = y :=
-  Char.le_antisymm_iff.2 ⟨h1, h2⟩
-
 instance : Batteries.LawfulOrd Char := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
 

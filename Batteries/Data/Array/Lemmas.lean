@@ -26,13 +26,6 @@ theorem forIn_eq_forIn_toList [Monad m]
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
 @[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
-/-! ### filter -/
-
-theorem size_filter_le (p : α → Bool) (l : Array α) :
-    (l.filter p).size ≤ l.size := by
-  simp only [← length_toList, toList_filter]
-  apply List.length_filter_le
-
 /-! ### flatten -/
 
 @[deprecated (since := "2024-09-09")] alias data_join := toList_flatten
@@ -49,7 +42,7 @@ where
        ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -75,8 +68,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 /-! ### map -/
 
 /-! ### mem -/
-
-theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
 /-! ### insertAt -/
 
