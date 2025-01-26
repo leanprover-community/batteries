@@ -10,7 +10,7 @@ on:
 name: ci
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
