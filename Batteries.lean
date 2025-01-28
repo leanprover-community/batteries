@@ -26,9 +26,11 @@ import Batteries.Data.HashMap
 import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
+import Batteries.Data.NameSet
 import Batteries.Data.Nat
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
+import Batteries.Data.Random
 import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.Stream
@@ -87,6 +89,7 @@ import Batteries.Tactic.NoMatch
 import Batteries.Tactic.OpenPrivate
 import Batteries.Tactic.PermuteGoals
 import Batteries.Tactic.PrintDependents
+import Batteries.Tactic.PrintOpaques
 import Batteries.Tactic.PrintPrefix
 import Batteries.Tactic.SeqFocus
 import Batteries.Tactic.ShowUnused

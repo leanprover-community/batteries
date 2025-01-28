@@ -475,10 +475,6 @@ theorem indexOf?_cons [BEq α] :
     (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
   simp [indexOf?]
 
-theorem indexOf?_eq_none_iff [BEq α] {a : α} {l : List α} :
-    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
-  simp [indexOf?, findIdx?_eq_none_iff]
-
 theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
     l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
   simp [indexOf, indexOf?, findIdx_eq_findIdx?]
@@ -563,7 +559,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
   unfold dropInfix?.go
   split
   · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
-      append_assoc, append_eq_nil, ge_iff_le, and_imp]
+      append_assoc, append_eq_nil_iff, ge_iff_le, and_imp]
     constructor
     · rintro ⟨rfl, rfl, rfl⟩
       simp
