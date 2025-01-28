@@ -24,7 +24,7 @@ another instance-implicit argument or the return type."
     unless ← isInstance declName do return none
     forallTelescopeReducing (← inferType (← mkConstWithLevelParams declName)) fun args ty => do
     let argTys ← args.mapM inferType
-    let impossibleArgs ← args.zipWithIndex.filterMapM fun (arg, i) => do
+    let impossibleArgs ← args.zipIdx.filterMapM fun (arg, i) => do
       let fv := arg.fvarId!
       if (← fv.getDecl).binderInfo.isInstImplicit then return none
       if ty.containsFVar fv then return none
