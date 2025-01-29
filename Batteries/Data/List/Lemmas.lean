@@ -470,11 +470,6 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
         specialize ih m
         simpa
 
-@[simp] theorem indexOf?_nil [BEq α] : ([] : List α).indexOf? x = none := rfl
-theorem indexOf?_cons [BEq α] :
-    (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
-  simp [indexOf?]
-
 theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
     l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
   simp [indexOf, indexOf?, findIdx_eq_findIdx?]

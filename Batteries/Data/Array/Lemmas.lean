@@ -34,7 +34,8 @@ theorem forIn_eq_forIn_toList [Monad m]
 
 /-! ### indexOf? -/
 
-theorem indexOf?_toList [BEq α] {a : α} {l : Array α} :
+-- Adaptation note: We can remove the `LawfulBEq α` assumption again on nightly-2025-01-30.
+theorem indexOf?_toList [BEq α] [LawfulBEq α] {a : α} {l : Array α} :
     l.toList.indexOf? a = (l.indexOf? a).map Fin.val := by
   simpa using aux l 0
 where
