@@ -291,3 +291,13 @@ instance instDecidableExistsVectorZero (P : Vector α 0 → Prop) [Decidable (P 
 instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop)
     [Decidable (∀ (x : α) (v : Vector α n), ¬ P (v.push x))] : Decidable (∃ v, P v) :=
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
+
+instance LawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) where
+  rfl := by simp [(· == ·), isEqv, Array.isEqvAux_self]
+  eq_of_beq {a b} := by
+    simp only [(· == ·), isEqv]
+    intro heqv
+    have h := @Array.rel_of_isEqvAux _ (· == ·) _ _ _ n _ heqv
+    simp only [beq_iff_eq, Bool.true_beq, getElem_toArray, eq_of_beq] at h
+    apply Vector.ext
+    assumption
