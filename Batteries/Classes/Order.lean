@@ -5,29 +5,6 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.SeqFocus
 
-/-! ## Ordering -/
-
-namespace Ordering
-
-@[simp] theorem swap_swap {o : Ordering} : o.swap.swap = o := by cases o <;> rfl
-
-@[simp] theorem swap_inj {o₁ o₂ : Ordering} : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
-  ⟨fun h => by simpa using congrArg swap h, congrArg _⟩
-
-theorem swap_then (o₁ o₂ : Ordering) : (o₁.then o₂).swap = o₁.swap.then o₂.swap := by
-  cases o₁ <;> rfl
-
-theorem then_eq_lt {o₁ o₂ : Ordering} : o₁.then o₂ = lt ↔ o₁ = lt ∨ o₁ = eq ∧ o₂ = lt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-theorem then_eq_eq {o₁ o₂ : Ordering} : o₁.then o₂ = eq ↔ o₁ = eq ∧ o₂ = eq := by
-  cases o₁ <;> simp [«then»]
-
-theorem then_eq_gt {o₁ o₂ : Ordering} : o₁.then o₂ = gt ↔ o₁ = gt ∨ o₁ = eq ∧ o₂ = gt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-end Ordering
-
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
