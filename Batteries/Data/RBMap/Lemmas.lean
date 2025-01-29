@@ -292,7 +292,7 @@ theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
 
 theorem Mem_reverse [@OrientedCmp α cmp] {t : RBNode α} :
     Mem cmp x t.reverse ↔ Mem (flip cmp) x t := by
-  simp; apply Iff.of_eq; congr; funext x; rw [OrientedCmp.symm]; rfl
+  simp [Mem]; apply Iff.of_eq; congr; funext x; rw [OrientedCmp.symm]; rfl
 
 section find?
 
