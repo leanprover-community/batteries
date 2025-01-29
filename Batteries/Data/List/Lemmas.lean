@@ -475,10 +475,6 @@ theorem indexOf?_cons [BEq α] :
     (x :: xs : List α).indexOf? y = if x == y then some 0 else (xs.indexOf? y).map Nat.succ := by
   simp [indexOf?]
 
-theorem indexOf?_eq_none_iff [BEq α] {a : α} {l : List α} :
-    l.indexOf? a = none ↔ ∀ x ∈ l, ¬x == a := by
-  simp [indexOf?, findIdx?_eq_none_iff]
-
 theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
     l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
   simp [indexOf, indexOf?, findIdx_eq_findIdx?]
