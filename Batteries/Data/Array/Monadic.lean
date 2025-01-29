@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Classes.SatisfiesM
+import Batteries.Util.ProofWanted
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
@@ -162,3 +163,57 @@ theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α 
   unfold modifyM; split
   · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
   · exact .pure rfl
+
+end Array
+
+namespace List
+
+proof_wanted filterM_toArray [Monad m] [LawfulMonad m] (l : List α) (p : α → m Bool) :
+    l.toArray.filterM p = toArray <$> l.filterM p
+
+-- Similarly for `filterRevM` after nightly-2025-01-30
+
+proof_wanted filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Option β)) :
+    l.toArray.filterMapM f = toArray <$> l.filterMapM f
+
+-- After `List.flatMapM` arrives in nightly-2025-01-30
+-- proof_wanted flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
+--     l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => toList <$> f a)
+
+-- After `List.mapFinIdxM` arrives in nightly-2025-01-30
+-- proof_wanted mapFinIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
+--     (f : (i : Nat) → α → (h : i < l.length) → m β) :
+--     l.toArray.mapFinIdxM f = toArray <$> l.mapFinIdxM (fun i a h => f i a (by simpa using h))
+
+-- After `List.mapIdxM` arrives in nightly-2025-01-30
+-- proof_wanted mapIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
+--     (f : Nat → α → m β) :
+--     l.toArray.mapIdxM f = toArray <$> l.mapIdxM f
+
+end List
+
+namespace Array
+
+proof_wanted toList_filterM [Monad m] [LawfulMonad m] (a : Array α) (p : α → m Bool) :
+    toList <$> a.filterM p = a.toList.filterM p
+
+-- Similarly for `filterRevM`
+
+proof_wanted toList_filterMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Option β)) :
+    toList <$> a.filterMapM f = a.toList.filterMapM f
+
+-- After `List.flatMapM` arrives in nightly-2025-01-30
+-- proof_wanted toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
+--     toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a)
+
+-- After `List.mapFinIdxM` arrives in nightly-2025-01-30
+-- proof_wanted toList_mapFinIdxM [Monad m] [LawfulMonad m] (l : Array α)
+--     (f : (i : Nat) → α → (h : i < l.size) → m β) :
+--     toList <$> l.mapFinIdxM f = l.toList.mapFinIdxM (fun i a h => f i a (by simpa using h))
+
+-- After `List.mapIdxM` arrives in nightly-2025-01-30
+-- proof_wanted toList_mapIdxM [Monad m] [LawfulMonad m] (l : Array α)
+--     (f : Nat → α → m β) :
+--     toList <$> l.mapIdxM f = l.toList.mapIdxM f
+
+end Array
