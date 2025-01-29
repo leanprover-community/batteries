@@ -429,9 +429,11 @@ theorem splitAux_of_valid (p l m r acc) :
             extract_of_valid l m (c :: r)⟩ :
           _ ∧ _ ∧ _),
       List.splitOnP.go, List.reverse_reverse]
-    split
-    · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
-    · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    split <;> rename_i h
+    · simp_all only [List.head?_cons, Option.getD_some]
+      simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
+    · simp_all only [List.head?_cons, Option.getD_some]
+      simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []
