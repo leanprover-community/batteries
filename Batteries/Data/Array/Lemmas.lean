@@ -61,7 +61,7 @@ where
 
 /-! ### erase -/
 
-@[simp] theorem toList_erase [BEq α] {l : Array α} {a : α} :
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
     (l.erase a).toList = l.toList.erase a := by
   simp [erase, ← List.eraseIdx_indexOf_eq_erase, List.indexOf_eq_indexOf?]
   cases h : l.indexOf? a <;> simp [Array.indexOf?_toList, List.eraseIdx_of_length_le, *]
