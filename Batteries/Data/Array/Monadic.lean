@@ -63,7 +63,8 @@ theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
 proof_wanted size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as)
 
-proof_wanted size_mapFinIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
+proof_wanted size_mapFinIdxM [Monad m] [LawfulMonad m]
+    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f)
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
