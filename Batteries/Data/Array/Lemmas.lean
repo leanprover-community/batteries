@@ -54,8 +54,10 @@ where
 
 /-! ### erase -/
 
-@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
-    (l.erase a).toList = l.toList.erase a
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
+    (l.erase a).toList = l.toList.erase a := by
+  simp only [erase, ← List.eraseIdx_indexOf_eq_erase, List.indexOf_eq_indexOf?, length_toList]
+  cases h : l.indexOf? a <;> simp [Array.indexOf?_toList, List.eraseIdx_of_length_le, *]
 
 @[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
