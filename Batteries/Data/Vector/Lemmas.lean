@@ -294,7 +294,7 @@ instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop)
 
 instance LawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) where
   rfl {a} := by
-    simp [(· == ·)]
+    simp only [(· == ·)]
     rw [mk_isEqv_mk, Array.isEqv_self_beq]
   eq_of_beq {a b} := by
     simp only [(· == ·)]
