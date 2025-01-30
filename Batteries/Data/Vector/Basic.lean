@@ -31,8 +31,6 @@ namespace Vector
 
 @[deprecated (since := "2024-11-24")] alias swapAtN := swapAt
 
-@[deprecated (since := "2024-10-22")] alias shrink := take
-
 @[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
 /-- Use `#v[]` instead. -/
