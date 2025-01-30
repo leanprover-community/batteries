@@ -648,8 +648,7 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
     (h : xs.isPrefixOf? ys = some zs) : xs ++ zs = ys := by
   match xs, ys with
   | [], _ =>
-    simp [List.isPrefixOf?] at h
-    simp [h]
+    simp_all [List.isPrefixOf?]
   | _::_, [] =>
     simp [List.isPrefixOf?] at h
   | x::xs, y::ys =>
