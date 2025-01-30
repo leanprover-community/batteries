@@ -300,7 +300,6 @@ instance LawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) wher
     simp only [(· == ·)]
     rw [mk_isEqv_mk]
     intro heqv
-    apply Vector.ext
+    ext
     have ⟨_, h⟩ := Array.rel_of_isEqv heqv
-    simp only [size_toArray, getElem_toArray, beq_iff_eq] at h
-    assumption
+    simp_all
