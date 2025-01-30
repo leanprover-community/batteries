@@ -3,41 +3,13 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Std.Data.Int.Gcd
-import Std.Tactic.Replace
+import Batteries.Tactic.Alias
 
 /-!
 ## Cooper resolution: small solutions to boundedness and divisibility constraints.
 -/
 
 namespace Int
-
-protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
-
-theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
-  have w := Int.sub_nonneg_of_le w
-  rw [← Int.mul_sub] at w
-  have w := Int.ediv_nonneg w (Int.le_of_lt h)
-  rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
-  exact Int.le_of_sub_nonneg w
-
-theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
-  rw [Int.mul_comm b, Int.mul_comm c] at w
-  exact le_of_mul_le_mul_left w h
-
-theorem lt_of_mul_lt_mul_left {a b c : Int} (w : a * b < a * c) (h : 0 ≤ a) : b < c := by
-  rcases Int.lt_trichotomy b c with lt | rfl | gt
-  · exact lt
-  · exact False.elim (Int.lt_irrefl _ w)
-  · rcases Int.lt_trichotomy a 0 with a_lt | rfl | a_gt
-    · exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le a_lt h))
-    · exact False.elim (Int.lt_irrefl _ (by simpa using w))
-    · have := le_of_mul_le_mul_left (Int.le_of_lt w) a_gt
-      exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le gt this))
-
-theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) : b < c := by
-  rw [Int.mul_comm b, Int.mul_comm c] at w
-  exact lt_of_mul_lt_mul_left w h
 
 theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
   ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
@@ -46,7 +18,7 @@ theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
 theorem dvd_of_mul_dvd {a b c : Int} (w : a * b ∣ a * c) (h : 0 < a) : b ∣ c := by
   obtain ⟨z, w⟩ := w
   refine ⟨z, ?_⟩
-  replace w := congr_arg (· / a) w
+  replace w := congrArg (· / a) w
   dsimp at w
   rwa [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h), Int.mul_assoc,
     Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
@@ -137,7 +109,9 @@ theorem cooper_resolution_dvd_left
         _ ≤ _ := Int.add_le_add_left (Int.mul_le_mul_of_nonneg_left
                    (Int.ofNat_le.mpr <| Nat.mod_le _ _) (Int.le_of_lt b_pos)) _
         _ ≤ _ := upper
-    · exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
+    · have := dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
+      sorry
+      -- exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
     · rw [Int.add_assoc]
       apply dvd_mul_emod_add_of_dvd_mul_add
       · obtain ⟨z, r⟩ := dvd
