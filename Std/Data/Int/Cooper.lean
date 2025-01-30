@@ -12,6 +12,33 @@ import Std.Tactic.Replace
 
 namespace Int
 
+protected alias ⟨lt_of_not_ge, not_le_of_gt⟩ := Int.not_le
+
+theorem le_of_mul_le_mul_left {a b c : Int} (w : a * b ≤ a * c) (h : 0 < a) : b ≤ c := by
+  have w := Int.sub_nonneg_of_le w
+  rw [← Int.mul_sub] at w
+  have w := Int.ediv_nonneg w (Int.le_of_lt h)
+  rw [Int.mul_ediv_cancel_left _ (Int.ne_of_gt h)] at w
+  exact Int.le_of_sub_nonneg w
+
+theorem le_of_mul_le_mul_right {a b c : Int} (w : b * a ≤ c * a) (h : 0 < a) : b ≤ c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact le_of_mul_le_mul_left w h
+
+theorem lt_of_mul_lt_mul_left {a b c : Int} (w : a * b < a * c) (h : 0 ≤ a) : b < c := by
+  rcases Int.lt_trichotomy b c with lt | rfl | gt
+  · exact lt
+  · exact False.elim (Int.lt_irrefl _ w)
+  · rcases Int.lt_trichotomy a 0 with a_lt | rfl | a_gt
+    · exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le a_lt h))
+    · exact False.elim (Int.lt_irrefl _ (by simpa using w))
+    · have := le_of_mul_le_mul_left (Int.le_of_lt w) a_gt
+      exact False.elim (Int.lt_irrefl _ (Int.lt_of_lt_of_le gt this))
+
+theorem lt_of_mul_lt_mul_right {a b c : Int} (w : b * a < c * a) (h : 0 ≤ a) : b < c := by
+  rw [Int.mul_comm b, Int.mul_comm c] at w
+  exact lt_of_mul_lt_mul_left w h
+
 theorem exists_add_of_le {a b : Int} (h : a ≤ b) : ∃ c : Nat, b = a + c :=
   ⟨(b - a).toNat, by rw [Int.toNat_of_nonneg (Int.sub_nonneg_of_le h), ← Int.add_sub_assoc,
     Int.add_comm, Int.add_sub_cancel]⟩
