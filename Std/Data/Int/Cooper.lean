@@ -109,9 +109,7 @@ theorem cooper_resolution_dvd_left
         _ ≤ _ := Int.add_le_add_left (Int.mul_le_mul_of_nonneg_left
                    (Int.ofNat_le.mpr <| Nat.mod_le _ _) (Int.le_of_lt b_pos)) _
         _ ≤ _ := upper
-    · have := dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
-      sorry
-      -- exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
+    · exact Int.ofNat_emod _ _ ▸ dvd_emod_add_of_dvd_add (x := k') ⟨x, by rw [w, Int.add_comm]⟩ dvd_lcm_left
     · rw [Int.add_assoc]
       apply dvd_mul_emod_add_of_dvd_mul_add
       · obtain ⟨z, r⟩ := dvd
