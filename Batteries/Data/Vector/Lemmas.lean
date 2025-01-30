@@ -301,5 +301,5 @@ instance (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) where
     rw [mk_isEqv_mk]
     intro heqv
     ext
-    have ⟨_, h⟩ := Array.rel_of_isEqv heqv
+    have ⟨_, _⟩ := Array.rel_of_isEqv heqv
     simp_all
