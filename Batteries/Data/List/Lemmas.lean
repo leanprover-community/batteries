@@ -448,20 +448,23 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
     bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
   simp [indexesOf, findIdxs_cons]
 
-@[simp] theorem eraseIdx_indexOf_eq_erase [BEq α] (a : α) (l : List α) :
-    l.eraseIdx (l.indexOf a) = l.erase a := by
+@[simp] theorem eraseIdx_idxOf_eq_erase [BEq α] (a : α) (l : List α) :
+    l.eraseIdx (l.idxOf a) = l.erase a := by
   induction l with
   | nil => rfl
   | cons x xs ih =>
-    rw [List.erase, indexOf_cons]
+    rw [List.erase, idxOf_cons]
     cases x == a <;> simp [ih]
 
-theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
-    xs.indexOf x ∈ xs.indexesOf x := by
+@[deprecated (since := "2025-01-30")]
+alias eraseIdx_indexOf_eq_erase := eraseIdx_idxOf_eq_erase
+
+theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.idxOf x ∈ xs.indexesOf x := by
   induction xs with
   | nil => simp_all
   | cons h t ih =>
-    simp [indexOf_cons, indexesOf_cons, cond_eq_if]
+    simp [idxOf_cons, indexesOf_cons, cond_eq_if]
     split <;> rename_i w
     · apply mem_cons_self
     · cases m
@@ -470,9 +473,15 @@ theorem indexOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ 
         specialize ih m
         simpa
 
-theorem indexOf_eq_indexOf? [BEq α] (a : α) (l : List α) :
-    l.indexOf a = (match l.indexOf? a with | some i => i | none => l.length) := by
-  simp [indexOf, indexOf?, findIdx_eq_findIdx?]
+@[deprecated (since := "2025-01-30")]
+alias indexOf_mem_indexesOf := idxOf_mem_indexesOf
+
+theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
+    l.idxOf a = (match l.idxOf? a with | some i => i | none => l.length) := by
+  simp [idxOf, idxOf?, findIdx_eq_findIdx?]
+
+@[deprecated (since := "2025-01-30")]
+alias indexOf_eq_indexOf? := idxOf_eq_idxOf?
 
 /-! ### insertP -/
 
