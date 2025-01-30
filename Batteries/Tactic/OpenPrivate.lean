@@ -24,7 +24,7 @@ def Meta.collectPrivateIn [Monad m] [MonadEnv m] [MonadError m]
 
 /-- Get the module index given a module name. -/
 def Environment.moduleIdxForModule? (env : Environment) (mod : Name) : Option ModuleIdx :=
-  (env.allImportedModuleNames.indexOf? mod).map fun idx => idx.val
+  (env.allImportedModuleNames.idxOf? mod).map fun idx => idx
 
 instance : DecidableEq ModuleIdx := instDecidableEqNat
 
