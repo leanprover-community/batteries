@@ -84,7 +84,7 @@ theorem eq_none_of_find?_eq_none {f : Fin n → Option α} (h : find? f = none) 
 
 theorem find?_isNone {f : Fin n → Option α} : (find? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-theorem find?_eq_list_join_find?_ofFn_isSome {f : Fin n → Option α} :
+theorem find?_eq_join_find?_ofFn_isSome {f : Fin n → Option α} :
     find? f = ((List.ofFn f).find? Option.isSome).join := by
   induction n with
   | zero => rfl
