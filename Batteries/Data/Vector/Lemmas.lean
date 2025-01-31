@@ -203,7 +203,8 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem toArray_zipWith (f : α → β → γ) (a : Vector α n) (b : Vector β n) :
     (Vector.zipWith a b f).toArray = Array.zipWith a.toArray b.toArray f := rfl
 
-theorem isEqv_eq_toArray_isEqv_toArray (a b : Vector α n) : a.isEqv b r = a.toArray.isEqv b.toArray r :=
+theorem isEqv_eq_toArray_isEqv_toArray (a b : Vector α n) :
+    a.isEqv b r = a.toArray.isEqv b.toArray r :=
   match a, b with | ⟨_,_⟩, ⟨_,_⟩ => mk_isEqv_mk ..
 
 theorem beq_eq_toArray_beq [BEq α] (a b : Vector α n) : (a == b) = (a.toArray == b.toArray) := by
