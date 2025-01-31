@@ -183,10 +183,8 @@ theorem filterM_toArray [Monad m] [LawfulMonad m] (l : List α) (p : α → m Bo
   simp [Array.filterM, filterM]
   conv => lhs; rw [← reverse_nil]
   generalize [] = acc
-  induction l generalizing acc with
-  | nil => simp
+  induction l generalizing acc with simp
   | cons x xs ih =>
-    simp
     congr; funext b
     cases b
     · simp; exact ih acc
@@ -203,10 +201,8 @@ theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m
   simp [Array.filterMapM, filterMapM]
   conv => lhs; rw [← reverse_nil]
   generalize [] = acc
-  induction l generalizing acc with
-  | nil => simp [filterMapM.loop]
+  induction l generalizing acc with simp [filterMapM.loop]
   | cons x xs ih =>
-    simp [filterMapM.loop]
     congr; funext o
     cases o
     · simp; exact ih acc
