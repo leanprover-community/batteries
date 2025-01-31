@@ -8,13 +8,16 @@ import Batteries.Data.Nat.Lemmas
 
 namespace Int
 
-/-- `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`-/
+/--
+`testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`, using the two's
+complement convention for negative `m`.
+-/
 def testBit : Int → Nat → Bool
   | ofNat m, n => Nat.testBit m n
   | negSucc m, n => !(Nat.testBit m n)
 
 /--
-Construct a natural number from a sequence of bits using little endian convention.
+Construct an integer from a sequence of bits using little endian convention.
 
 The sign is determined using the two's complement convention: the result is negative if and only if
 `n > 0` and `f (n-1) = true`.
@@ -48,5 +51,5 @@ def ofBits (f : Fin n → Bool) :=
     simp [testBit, subNatNat_of_lt hlt, Nat.testBit_lt_two_pow h, negSucc_lt_zero]
 
 theorem testBit_ofBits (f : Fin n → Bool) :
-    (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else ofBits f < 0 := by
+    (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else decide (ofBits f < 0) := by
   split <;> simp_all
