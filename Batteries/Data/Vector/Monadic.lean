@@ -22,10 +22,13 @@ namespace Vector
 /--
 `modifyM v i f` applies a monadic transformation `f` to `v[i]`
 -/
-def modifyM [Monad m] (v : Vector α n) (i : Nat)
+def modifyM [Monad m] [LawfulFunctor m] [LawfulMonad m]
+  [MonadSatisfying m] (v : Vector α n) (i : Nat)
   (f : α → m α) : m (Vector α n) := do
     return ⟨←Array.modifyM v.toArray i f,
-      by rw[Array.size_modifyM]⟩
+      by
+        have size_p := Subtype.property <| ←(satisfying <| Array.size_modifyM v.toArray i f)
+        rw[←v.size_toArray]⟩
 
 /--
 `modify v i f` takes a vector `v`, index `i`, and a modification function `f`
