@@ -1064,3 +1064,10 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+`findMap? f l` returns the `f x` for the first element `x` such that `f x` is `some _`, or
+`none` if no such element is found.
+-/
+def findMap? (f : α → Option β) (l : List α) : Option β :=
+  l.foldl (fun r x => r <|> f x) none
