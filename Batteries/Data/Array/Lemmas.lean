@@ -43,22 +43,20 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
 
 /-! ### erase -/
 
-@[simp] theorem eraseP_toArray {as : List α} {p : α → Bool} :
+theorem eraseP_toArray {as : List α} {p : α → Bool} :
     as.toArray.eraseP p = (as.eraseP p).toArray := by
   rw [Array.eraseP, List.eraseP_eq_eraseIdx, findFinIdx?_toArray]
   split
   · simp only [List.findIdx?_eq_map_findFinIdx?_val, Option.map_none', *]
   · simp only [eraseIdx_toArray, List.findIdx?_eq_map_findFinIdx?_val, Option.map_some', *]
 
--- Adaptation note: We can remove the `LawfulBEq α` assumption again on nightly-2025-01-31.
-@[simp] theorem erase_toArray [BEq α] [LawfulBEq α] {as : List α} {a : α} :
+theorem erase_toArray [BEq α] {as : List α} {a : α} :
     as.toArray.erase a = (as.erase a).toArray := by
   rw [Array.erase, finIdxOf?_toArray, List.erase_eq_eraseIdx]
   rw [idxOf?_eq_map_finIdxOf?_val]
   split <;> simp_all
 
--- Adaptation note: We can remove the `LawfulBEq α` assumption again on nightly-2025-01-31.
-@[simp] theorem toList_erase [BEq α] [LawfulBEq α] (l : Array α) (a : α) :
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
     (l.erase a).toList = l.toList.erase a := by
   rcases l with ⟨l⟩
   simp
