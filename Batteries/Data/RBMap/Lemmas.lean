@@ -288,7 +288,7 @@ theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
 @[simp] theorem Any_reverse {t : RBNode α} : t.reverse.Any p ↔ t.Any p := by simp [Any_def]
 
 @[simp] theorem memP_reverse {t : RBNode α} : MemP cut t.reverse ↔ MemP (cut · |>.swap) t := by
-  simp [MemP]; apply Iff.of_eq; congr; funext x; rw [← Ordering.swap_inj]; rfl
+  simp [MemP]
 
 theorem Mem_reverse [@OrientedCmp α cmp] {t : RBNode α} :
     Mem cmp x t.reverse ↔ Mem (flip cmp) x t := by
