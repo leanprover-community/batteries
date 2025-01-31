@@ -93,8 +93,15 @@ This is the dependent version of `Fin.foldl`. -/
   dfoldlM (m := Id) n α f init
 
 /--
-`find? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such element
-is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+`findMap? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
 -/
-def find? (f : Fin n → Option α) : Option α :=
+@[inline] def findMap? (f : Fin n → Option α) : Option α :=
   foldl n (fun r i => r <|> f i) none
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
+  findMap? fun i => if p i then some i else none
