@@ -203,6 +203,12 @@ theorem toArray_mk (a : Array α) (h : a.size = n) : (Vector.mk a h).toArray = a
 @[simp] theorem toArray_zipWith (f : α → β → γ) (a : Vector α n) (b : Vector β n) :
     (Vector.zipWith a b f).toArray = Array.zipWith a.toArray b.toArray f := rfl
 
+theorem isEqv_eq_toArray_isEqv_toArray (a b : Vector α n) : a.isEqv b r = a.toArray.isEqv b.toArray r :=
+  match a, b with | ⟨_,_⟩, ⟨_,_⟩ => mk_isEqv_mk ..
+
+theorem beq_eq_toArray_beq [BEq α] (a b : Vector α n) : (a == b) = (a.toArray == b.toArray) := by
+  simp [(· == ·), isEqv_eq_toArray_isEqv_toArray]
+
 /-! ### toList lemmas -/
 
 theorem length_toList {α n} (xs : Vector α n) : xs.toList.length = n := by simp
@@ -293,13 +299,7 @@ instance instDecidableExistsVectorSucc (P : Vector α (n+1) → Prop)
   decidable_of_iff (¬ ∀ v, ¬ P v) Classical.not_forall_not
 
 instance (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) where
-  rfl {a} := by
-    simp only [(· == ·)]
-    rw [mk_isEqv_mk, Array.isEqv_self_beq]
-  eq_of_beq {a b} := by
-    simp only [(· == ·)]
-    rw [mk_isEqv_mk]
-    intro heqv
-    ext
-    have := Array.rel_of_isEqv heqv
-    simp_all
+  rfl {a} := by simp_all [beq_eq_toArray_beq]
+  eq_of_beq {a b h} := by
+    apply toArray_injective
+    simp_all [beq_eq_toArray_beq]
