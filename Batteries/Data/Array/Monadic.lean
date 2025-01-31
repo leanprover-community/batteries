@@ -208,7 +208,7 @@ theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m
     · simp; exact ih acc
     · simp; rw [← List.reverse_cons]; exact ih _
 
--- until update
+-- This needs to wait until the definition of `flatMapM` is updated in `nightly-2025-02-01`.
 proof_wanted flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
     l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => toList <$> f a)
 
