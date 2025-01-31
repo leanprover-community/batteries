@@ -118,10 +118,20 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 /-! ### ofFn -/
 
 /--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
-def ofFn (f : Fin n → UInt8) : ByteArray where
-  data := .ofFn f
+@[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
+  Fin.foldl n (fun acc i => acc.push (f i)) (mkEmpty n)
 
-@[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := rfl
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
+
+theorem ofFn_succ (f : Fin (n+1) → UInt8) :
+    ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
+  simp [ofFn, Fin.foldl_succ_last, mkEmpty]
+
+@[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
+
 @[deprecated (since := "2024-08-13")] alias ofFn_data := data_ofFn
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
