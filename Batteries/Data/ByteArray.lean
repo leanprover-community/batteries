@@ -144,19 +144,6 @@ theorem ofFn_succ (f : Fin (n+1) → UInt8) :
 @[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size) :
     (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn f ⟨i, h⟩
 
-private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
-  go (i : Nat) (acc : ByteArray) : ByteArray :=
-    if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
-termination_by n - i
-
-@[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext1; simp [ofFnAux, Array.ofFn, data_ofFnAux, mkEmpty]
-where
-  data_ofFnAux {n} (f : Fin n → UInt8) (i) {acc} :
-      (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
-    rw [ofFnAux.go, Array.ofFn.go]; split; rw [data_ofFnAux f (i+1), data_push]; rfl
-  termination_by n - i
-
 /-! ### map/mapM -/
 
 /--
