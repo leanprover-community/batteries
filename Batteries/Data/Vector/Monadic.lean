@@ -7,6 +7,7 @@ Authors: Shreyas Srinivas
 import Init.Data.Vector
 import Init.Data.Array.Basic
 import Init.Data.Array.Lemmas
+import Batteries.Data.Array.Monadic
 import Batteries.Classes.SatisfiesM
 
 /-!
@@ -24,7 +25,7 @@ namespace Vector
 def modifyM [Monad m] (v : Vector α n) (i : Nat)
   (f : α → m α) : m (Vector α n) := do
     return ⟨←Array.modifyM v.toArray i f,
-      by rw[←v.size_toArray]; sorry⟩
+      by rw[Array.size_modifyM]⟩
 
 /--
 `modify v i f` takes a vector `v`, index `i`, and a modification function `f`
