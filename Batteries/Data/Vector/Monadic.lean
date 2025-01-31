@@ -32,6 +32,7 @@ proof_wanted mapIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
 proof_wanted mapFinIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
     (a : Array α) (h : a.size = n) (f : (i : Nat) → α → (h : i < n) → m β) :
     (Vector.mk a h).mapFinIdxM f =
-      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapFinIdxM a f)
+      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying
+        (Array.size_mapFinIdxM a (fun i a h' => f i a (h ▸ h')))
 
 end Vector
