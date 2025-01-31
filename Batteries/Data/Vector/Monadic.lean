@@ -24,16 +24,14 @@ proof_wanted mapM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
     (Vector.mk a h).mapM f =
       (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapM f a)
 
--- This one can only be stated after `Array.size_mapIdxM` has been proved.
--- proof_wanted mapIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
---     (a : Array α) (h : a.size = n) (f : Nat → α → m β) :
---     (Vector.mk a h).mapIdxM f =
---       (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapIdxM f a)
+proof_wanted mapIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
+    (a : Array α) (h : a.size = n) (f : Nat → α → m β) :
+    (Vector.mk a h).mapIdxM f =
+      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapIdxM a f)
 
--- This one can only be stated after `Array.size_mapFinIdxM` has been proved.
--- proof_wanted mapFinIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
---     (a : Array α) (h : a.size = n) (f : (i : Nat) → α → (h : i < n) → m β) :
---     (Vector.mk a h).mapFinIdxM f =
---       (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapFinIdxM f a)
+proof_wanted mapFinIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
+    (a : Array α) (h : a.size = n) (f : (i : Nat) → α → (h : i < n) → m β) :
+    (Vector.mk a h).mapFinIdxM f =
+      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapFinIdxM a f)
 
 end Vector
