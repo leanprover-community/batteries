@@ -24,7 +24,8 @@ theorem toArray_mapM [Monad m] [LawfulMonad m] (a : Vector α n) (f : α → m �
 
 theorem toArray_mapFinIdxM [Monad m] [LawfulMonad m]
     (a : Vector α n) (f : (i : Nat) → α → (h : i < n) → m β) :
-    toArray <$> a.mapFinIdxM f = a.toArray.mapFinIdxM (fun i x h => f i x (size_toArray a ▸ h)) := by
+    toArray <$> a.mapFinIdxM f = a.toArray.mapFinIdxM
+      (fun i x h => f i x (size_toArray a ▸ h)) := by
   let rec go (i j : Nat) (inv : i + j = n) (bs : Vector β (n - i)) :
       toArray <$> mapFinIdxM.map a f i j inv bs
       = Array.mapFinIdxM.map a.toArray (fun i x h => f i x (size_toArray a ▸ h))
