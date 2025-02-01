@@ -90,8 +90,13 @@ theorem map_findMap?_eq_findMap?_map (g : α → β) (f : Fin n → Option α) :
   | zero => rfl
   | succ n ih => simp [findMap?_succ, Option.map_orElse, ih]
 
--- theorem findMap?_eq_findMap?_finRange (f : Fin n → Option α) :
---     findMap? f = (List.finRange n).findMap? f := sorry
+theorem findMap?_eq_findMap?_finRange (f : Fin n → Option α) :
+    findMap? f = (List.finRange n).findMap? f := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [findMap?_succ, List.finRange_succ, List.findMap?_cons]
+    cases f 0 <;> simp [ih, List.findMap?_map]
 
 /-! ### Fin.find? -/
 
