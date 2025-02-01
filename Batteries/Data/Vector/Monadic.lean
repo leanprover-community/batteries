@@ -3,7 +3,6 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Util.ProofWanted
 import Batteries.Classes.SatisfiesM
 import Batteries.Data.Array.Monadic
 
@@ -64,15 +63,12 @@ theorem _root_.LawfulMonad.map_inj_right [Monad m] [LawfulMonad m]
   · exact LawfulFunctor.map_inj_right_of_nonempty h
   · constructor
     · intro h'
-      have (x : m α) : x = (do let a ← x; let b ← pure (f a); x) := by
-        conv => lhs; rw [← bind_pure x]
+      have (z : m α) : z = (do let a ← z; let b ← pure (f a); x) := by
+        conv => lhs; rw [← bind_pure z]
         congr; funext a
         exact (hempty ⟨a⟩).elim
       rw [this x, this y]
-      rw [map_eq_pure_bind, map_eq_pure_bind] at h'
-      rw [← bind_assoc, h', bind_assoc]
-      congr; funext a
-      exact (hempty ⟨a⟩).elim
+      rw [← bind_assoc, ← map_eq_pure_bind, h', map_eq_pure_bind, bind_assoc]
     · intro h'
       rw [h']
 

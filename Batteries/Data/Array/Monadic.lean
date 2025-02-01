@@ -5,7 +5,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Classes.SatisfiesM
-import Batteries.Util.ProofWanted
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
@@ -211,8 +210,18 @@ theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m
     · simp only [pure_bind]; rw [← List.reverse_cons]; exact ih _
 
 -- This needs to wait until the definition of `flatMapM` is updated in `nightly-2025-02-01`.
-proof_wanted flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
-    l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => toList <$> f a)
+-- theorem flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
+--     l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => Array.toList <$> f a) := by
+--   simp only [Array.flatMapM, bind_pure_comp, foldlM_toArray, flatMapM]
+--   conv => lhs; arg 2; change [].reverse.flatten.toArray
+--   generalize [] = acc
+--   induction l generalizing acc with
+--   | nil => simp only [foldlM_nil, flatMapM.loop, map_pure]
+--   | cons x xs ih =>
+--     simp only [foldlM_cons, bind_map_left, flatMapM.loop, _root_.map_bind]
+--     congr; funext a
+--     conv => lhs; rw [Array.toArray_append, ← flatten_concat, ← reverse_cons]
+--     exact ih _
 
 theorem mapFinIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
     (f : (i : Nat) → α → (h : i < l.length) → m β) :
@@ -267,8 +276,10 @@ theorem toList_filterMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m
   rw [List.filterMapM_toArray]
   simp only [Functor.map_map, id_map']
 
-proof_wanted toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
-    toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a)
+-- theorem toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
+--     toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a) := by
+--   rw [List.flatMapM_toArray]
+--   simp only [Functor.map_map, id_map']
 
 theorem toList_mapFinIdxM [Monad m] [LawfulMonad m] (l : Array α)
     (f : (i : Nat) → α → (h : i < l.size) → m β) :
