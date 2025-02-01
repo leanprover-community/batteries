@@ -180,21 +180,23 @@ namespace List
 
 theorem filterM_toArray [Monad m] [LawfulMonad m] (l : List α) (p : α → m Bool) :
     l.toArray.filterM p = toArray <$> l.filterM p := by
-  simp [Array.filterM, filterM]
+  simp only [Array.filterM, filterM, foldlM_toArray, bind_pure_comp, Functor.map_map]
   conv => lhs; rw [← reverse_nil]
   generalize [] = acc
   induction l generalizing acc with simp
   | cons x xs ih =>
     congr; funext b
     cases b
-    · simp; exact ih acc
-    · simp [← List.reverse_cons]; exact ih (x :: acc)
+    · simp only [Bool.false_eq_true, ↓reduceIte, pure_bind, cond_false]
+      exact ih acc
+    · simp only [↓reduceIte, ← reverse_cons, pure_bind, cond_true]
+      exact ih (x :: acc)
 
 theorem filterRevM_toArray [Monad m] [LawfulMonad m] (l : List α) (p : α → m Bool) :
     l.toArray.filterRevM p = toArray <$> l.filterRevM p := by
   simp [Array.filterRevM, filterRevM]
   rw [← foldlM_reverse, ← foldlM_toArray, ← Array.filterM, filterM_toArray]
-  simp [filterM]
+  simp only [filterM, bind_pure_comp, Functor.map_map, reverse_toArray, reverse_reverse]
 
 theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Option β)) :
     l.toArray.filterMapM f = toArray <$> l.filterMapM f := by
@@ -205,8 +207,8 @@ theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m
   | cons x xs ih =>
     congr; funext o
     cases o
-    · simp; exact ih acc
-    · simp; rw [← List.reverse_cons]; exact ih _
+    · simp only [pure_bind]; exact ih acc
+    · simp only [pure_bind]; rw [← List.reverse_cons]; exact ih _
 
 -- This needs to wait until the definition of `flatMapM` is updated in `nightly-2025-02-01`.
 proof_wanted flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
@@ -221,16 +223,16 @@ theorem mapFinIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
         (by simp [Nat.sub_add_cancel (Nat.le.intro (Nat.add_comm _ _ ▸ inv))]) := by
     match i with
     | 0 =>
-      simp at inv
-      simp [Array.mapFinIdxM.map, inv, mapFinIdxM.go]
+      rw [Nat.zero_add] at inv
+      simp only [Array.mapFinIdxM.map, inv, drop_length, mapFinIdxM.go, map_pure]
     | k + 1 =>
       conv => enter [2, 2, 3]; rw [← getElem_cons_drop l acc.size (by omega)]
-      simp [Array.mapFinIdxM.map, mapFinIdxM.go]
+      simp only [Array.mapFinIdxM.map, mapFinIdxM.go, _root_.map_bind]
       congr; funext x
       conv => enter [1, 4]; rw [← Array.size_push _ x]
       conv => enter [2, 2, 3]; rw [← Array.size_push _ x]
       refine go k (acc.push x) _
-  simp [Array.mapFinIdxM, mapFinIdxM]
+  simp only [Array.mapFinIdxM, mapFinIdxM]
   exact go _ #[] _
 
 theorem mapIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
@@ -239,11 +241,11 @@ theorem mapIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
   let rec go (bs : List α) (acc : Array β) (inv : bs.length + acc.size = l.length) :
       mapFinIdxM.go l (fun i a h => f i a) bs acc inv = mapIdxM.go f bs acc := by
     match bs with
-    | [] => simp [mapFinIdxM.go, mapIdxM.go]
-    | x :: xs => simp [mapFinIdxM.go, mapIdxM.go, go]
+    | [] => simp only [mapFinIdxM.go, mapIdxM.go]
+    | x :: xs => simp only [mapFinIdxM.go, mapIdxM.go, go]
   unfold Array.mapIdxM
   rw [mapFinIdxM_toArray]
-  simp [mapFinIdxM, mapIdxM]
+  simp only [mapFinIdxM, mapIdxM]
   rw [go]
 
 end List
@@ -253,17 +255,17 @@ namespace Array
 theorem toList_filterM [Monad m] [LawfulMonad m] (a : Array α) (p : α → m Bool) :
     toList <$> a.filterM p = a.toList.filterM p := by
   rw [List.filterM_toArray]
-  simp
+  simp only [Functor.map_map, id_map']
 
 theorem toList_filterRevM [Monad m] [LawfulMonad m] (a : Array α) (p : α → m Bool) :
     toList <$> a.filterRevM p = a.toList.filterRevM p := by
   rw [List.filterRevM_toArray]
-  simp
+  simp only [Functor.map_map, id_map']
 
 theorem toList_filterMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Option β)) :
     toList <$> a.filterMapM f = a.toList.filterMapM f := by
   rw [List.filterMapM_toArray]
-  simp
+  simp only [Functor.map_map, id_map']
 
 proof_wanted toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
     toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a)
@@ -272,12 +274,12 @@ theorem toList_mapFinIdxM [Monad m] [LawfulMonad m] (l : Array α)
     (f : (i : Nat) → α → (h : i < l.size) → m β) :
     toList <$> l.mapFinIdxM f = l.toList.mapFinIdxM f := by
   rw [List.mapFinIdxM_toArray]
-  simp
+  simp only [Functor.map_map, id_map']
 
 theorem toList_mapIdxM [Monad m] [LawfulMonad m] (l : Array α)
     (f : Nat → α → m β) :
     toList <$> l.mapIdxM f = l.toList.mapIdxM f := by
   rw [List.mapIdxM_toArray]
-  simp
+  simp only [Functor.map_map, id_map']
 
 end Array
