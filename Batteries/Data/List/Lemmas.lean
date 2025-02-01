@@ -645,6 +645,8 @@ private theorem findMap?_aux (f : α → Option β) (xs : List α) :
 
 @[simp] theorem findMap?_nil (f : α → Option β) : [].findMap? f = none := rfl
 
+@[simp] theorem findMap?_singleton (f : α → Option β) (x) : [x].findMap? f = f x := rfl
+
 theorem findMap?_cons (f : α → Option β) : (x :: xs).findMap? f = (f x <|> xs.findMap? f) := by
   rw [findMap?, foldl_cons, findMap?_aux, none_orElse]
 
@@ -681,6 +683,42 @@ theorem eq_none_of_findMap?_eq_none_of_mem {f : α → Option β} {xs : List α}
       · apply ih h
         assumption
 
+theorem findMap?_isSome {f : α → Option β} {xs : List α} :
+    (xs.findMap? f).isSome ↔ ∃ x ∈ xs, (f x).isSome := by
+  match h : xs.findMap? f with
+  | some x =>
+    rw [isSome_some, eq_self, true_iff]
+    have ⟨x, hmem, hsome⟩ := exists_eq_some_of_findMap?_eq_some h
+    refine ⟨x, hmem, ?_⟩
+    simp [hsome]
+  | none =>
+    rw [isSome_none, Bool.false_eq_true, false_iff]
+    intro ⟨x, hmem, hsome⟩
+    rw [eq_none_of_findMap?_eq_none_of_mem h hmem] at hsome
+    contradiction
+
+theorem findMap?_eq_none {f : α → Option β} {xs : List α} :
+    xs.findMap? f = none ↔ ∀ x ∈ xs, f x = none := by
+  match h : xs.findMap? f with
+  | some x =>
+    rw [eq_false (some_ne_none x), false_iff]
+    intro hnone
+    have ⟨x, hmem, hsome⟩ := exists_eq_some_of_findMap?_eq_some h
+    rw [hnone x hmem] at hsome
+    contradiction
+  | none =>
+    rw [eq_self, true_iff]
+    intro x hmem
+    exact eq_none_of_findMap?_eq_none_of_mem h hmem
+
+theorem findMap?_append {f : α → Option β} {xs ys : List α} :
+    (xs ++ ys).findMap? f = (xs.findMap? f <|> ys.findMap? f) := by
+  induction xs with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [cons_append, findMap?_cons]
+    cases f x <;> simp [ih]
+
 theorem findMap?_map {g : α → β} {f : β → Option γ} {xs : List α} :
     (xs.map g).findMap? f = xs.findMap? fun x => f (g x) := by
   induction xs with
@@ -689,22 +727,15 @@ theorem findMap?_map {g : α → β} {f : β → Option γ} {xs : List α} :
     simp only [map_cons, findMap?_cons]
     cases (f (g x)) <;> simp [ih]
 
-proof_wanted findMap?_isSome {f : α → Option β} {xs : List α} :
-    (xs.findMap? f).isSome ↔ ∃ x ∈ xs, (f x).isSome
+theorem findMap?_flatMap {g : α → List β} {f : β → Option γ} {xs : List α} :
+    (xs.flatMap g).findMap? f = xs.findMap? fun x => (g x).findMap? f := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => rw [flatMap_cons, findMap?_append, findMap?_cons, ih]
 
-proof_wanted findMap?_eq_none {f : α → Option β} {xs : List α} :
-    xs.findMap? f = none ↔ ∀ x ∈ xs, f x = none
-
-proof_wanted findMap?_singleton {f : α → Option β} {x : α} : [x].findMap? f = f x
-
-proof_wanted findMap?_append {f : α → Option β} {xs ys : List α} :
-    (xs ++ ys).findMap? f = (xs.findMap? f <|> ys.findMap? f)
-
-proof_wanted findMap?_flatMap {g : α → List β} {f : β → Option γ} {xs : List α} :
-    (xs.flatMap g).findMap? f = xs.findMap? fun x => (g x).findMap? f
-
-proof_wanted findMap?_flatten {f : α → Option β} {xss : List (List α)} :
-    xss.flatten.findMap? f = xss.findMap? fun xs => xs.findMap? f
+theorem findMap?_flatten {f : α → Option β} {xss : List (List α)} :
+    xss.flatten.findMap? f = xss.findMap? fun xs => xs.findMap? f := by
+  rw [flatten_eq_flatMap, findMap?_flatMap]; rfl
 
 /-! ### deprecations -/
 
