@@ -681,6 +681,14 @@ theorem eq_none_of_findMap?_eq_none_of_mem {f : α → Option β} {xs : List α}
       · apply ih h
         assumption
 
+theorem findMap?_map {g : α → β} {f : β → Option γ} {xs : List α} :
+    (xs.map g).findMap? f = xs.findMap? fun x => f (g x) := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    simp only [map_cons, findMap?_cons]
+    cases (f (g x)) <;> simp [ih]
+
 proof_wanted findMap?_isSome {f : α → Option β} {xs : List α} :
     (xs.findMap? f).isSome ↔ ∃ x ∈ xs, (f x).isSome
 
@@ -697,9 +705,6 @@ proof_wanted findMap?_flatMap {g : α → List β} {f : β → Option γ} {xs : 
 
 proof_wanted findMap?_flatten {f : α → Option β} {xss : List (List α)} :
     xss.flatten.findMap? f = xss.findMap? fun xs => xs.findMap? f
-
-proof_wanted findMap?_map {g : α → β} {f : β → Option γ} {xs : List α} :
-    (xs.map g).findMap? f = xs.findMap? fun x => f (g x)
 
 /-! ### deprecations -/
 
