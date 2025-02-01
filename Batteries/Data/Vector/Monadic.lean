@@ -13,27 +13,29 @@ theorem toArray_mapM [Monad m] [LawfulMonad m] (a : Vector α n) (f : α → m �
     toArray <$> a.mapM f = a.toArray.mapM f := by
   let rec go (i : Nat) (h : i ≤ n) (acc : Vector β i) :
       toArray <$> mapM.go f a i h acc = Array.mapM.map f a.toArray i acc.toArray := by
-    unfold mapM.go Array.mapM.map; simp
-    split <;> simp
-    conv => lhs; arg 2; intro; rw [go]
-    rfl
-  simp [mapM, Array.mapM]
+    unfold mapM.go Array.mapM.map; simp only [size_toArray, getElem_toArray]
+    split
+    · simp only [map_bind]
+      conv => lhs; arg 2; intro; rw [go]
+      rfl
+    · simp only [map_pure, toArray_cast]
+  simp only [mapM, Array.mapM]
   exact go _ _ _
 
 theorem toArray_mapFinIdxM [Monad m] [LawfulMonad m]
     (a : Vector α n) (f : (i : Nat) → α → (h : i < n) → m β) :
-    toArray <$> a.mapFinIdxM f = a.toArray.mapFinIdxM (fun i a h => f i a (by simpa using h)) := by
+    toArray <$> a.mapFinIdxM f = a.toArray.mapFinIdxM (fun i x h => f i x (size_toArray a ▸ h)) := by
   let rec go (i j : Nat) (inv : i + j = n) (bs : Vector β (n - i)) :
       toArray <$> mapFinIdxM.map a f i j inv bs
-      = Array.mapFinIdxM.map a.toArray (fun i a h => f i a (by simpa using h))
-        i j (by simpa using inv) bs.toArray := by
+      = Array.mapFinIdxM.map a.toArray (fun i x h => f i x (size_toArray a ▸ h))
+        i j (size_toArray _ ▸ inv) bs.toArray := by
     match i with
-    | 0 => simp [mapFinIdxM.map, Array.mapFinIdxM.map]
+    | 0 => simp only [mapFinIdxM.map, map_pure, Array.mapFinIdxM.map, Nat.sub_zero]
     | k + 1 =>
-      simp [mapFinIdxM.map, Array.mapFinIdxM.map]
+      simp only [mapFinIdxM.map, map_bind, Array.mapFinIdxM.map, getElem_toArray]
       conv => lhs; arg 2; intro; rw [go]
       rfl
-  simp [mapFinIdxM, Array.mapFinIdxM]
+  simp only [mapFinIdxM, Array.mapFinIdxM, size_toArray]
   exact go _ _ _ _
 
 theorem toArray_mapIdxM [Monad m] [LawfulMonad m] (a : Vector α n) (f : Nat → α → m β) :
@@ -76,7 +78,7 @@ theorem _root_.LawfulMonad.map_inj_right [Monad m] [LawfulMonad m]
 theorem mapM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
     (a : Array α) (h : a.size = n) (f : α → m β) :
     (Vector.mk a h).mapM f =
-      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapM f a) := by
+      (fun ⟨a, h'⟩ => Vector.mk a (h'.trans h)) <$> satisfying (Array.size_mapM f a) := by
   rw [← LawfulMonad.map_inj_right Vector.toArray_inj.mp]
   simp [MonadSatisfying.val_eq]
   rw [toArray_mapM]
@@ -84,7 +86,7 @@ theorem mapM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
 theorem mapIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
     (a : Array α) (h : a.size = n) (f : Nat → α → m β) :
     (Vector.mk a h).mapIdxM f =
-      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying (Array.size_mapIdxM a f) := by
+      (fun ⟨a, h'⟩ => Vector.mk a (h'.trans h)) <$> satisfying (Array.size_mapIdxM a f) := by
   rw [← LawfulMonad.map_inj_right Vector.toArray_inj.mp]
   simp [MonadSatisfying.val_eq]
   rw [toArray_mapIdxM]
@@ -92,7 +94,7 @@ theorem mapIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
 theorem mapFinIdxM_mk [Monad m] [LawfulMonad m] [MonadSatisfying m]
     (a : Array α) (h : a.size = n) (f : (i : Nat) → α → (h : i < n) → m β) :
     (Vector.mk a h).mapFinIdxM f =
-      (fun ⟨a, h⟩ => Vector.mk a (by omega)) <$> satisfying
+      (fun ⟨a, h'⟩ => Vector.mk a (h'.trans h)) <$> satisfying
         (Array.size_mapFinIdxM a (fun i a h' => f i a (h ▸ h'))) := by
   rw [← LawfulMonad.map_inj_right Vector.toArray_inj.mp]
   simp [MonadSatisfying.val_eq]
