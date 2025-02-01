@@ -7,6 +7,7 @@ import Batteries.Control.ForInStep.Lemmas
 import Batteries.Data.List.Basic
 import Batteries.Tactic.Init
 import Batteries.Tactic.Alias
+import Batteries.Util.ProofWanted
 
 namespace List
 
@@ -632,6 +633,73 @@ theorem dropInfix?_eq_some_iff [BEq α] {l i p s : List α} :
 
 @[simp] theorem dropInfix?_nil [BEq α] {s : List α} : dropInfix? s [] = some ([], s) := by
   simp [dropInfix?_eq_some_iff]
+
+/-! ### findMap? -/
+
+private theorem findMap?_aux (f : α → Option β) (xs : List α) :
+    xs.foldl (fun r x => r <|> f x) t = (t <|> xs.findMap? f) := by
+  simp only [findMap?]
+  induction xs with
+  | nil => simp
+  | cons x xs ih => cases t <;> simp [ih]
+
+@[simp] theorem findMap?_nil (f : α → Option β) : [].findMap? f = none := rfl
+
+theorem findMap?_cons (f : α → Option β) : (x :: xs).findMap? f = (f x <|> xs.findMap? f) := by
+  rw [findMap?, foldl_cons, findMap?_aux, none_orElse]
+
+theorem exists_eq_some_of_findMap?_eq_some {f : α → Option β} {xs : List α}
+    (h : xs.findMap? f = some z) : ∃ x ∈ xs, f x = some z := by
+  induction xs with
+  | nil => contradiction
+  | cons x xs ih =>
+    rw [findMap?_cons] at h
+    match hx : f x with
+    | some y =>
+      rw [hx, some_orElse] at h
+      cases h; refine ⟨x, ?_, hx⟩; simp
+    | none =>
+      rw [hx, none_orElse] at h
+      match ih h with
+      | ⟨x, hmem, hx⟩ => refine ⟨x, ?_, hx⟩; simp [hmem]
+
+theorem eq_none_of_findMap?_eq_none_of_mem {f : α → Option β} {xs : List α}
+    (h : xs.findMap? f = none) (hx : x ∈ xs) : f x = none := by
+  induction xs with
+  | nil => contradiction
+  | cons x xs ih =>
+    rw [findMap?_cons] at h
+    match hx : f x with
+    | some y =>
+      rw [hx, some_orElse] at h
+      contradiction
+    | none =>
+      next hmem =>
+      rw [hx, none_orElse] at h
+      cases hmem
+      · exact hx
+      · apply ih h
+        assumption
+
+proof_wanted findMap?_isSome {f : α → Option β} {xs : List α} :
+    (xs.findMap? f).isSome ↔ ∃ x ∈ xs, (f x).isSome
+
+proof_wanted findMap?_eq_none {f : α → Option β} {xs : List α} :
+    xs.findMap? f = none ↔ ∀ x ∈ xs, f x = none
+
+proof_wanted findMap?_singleton {f : α → Option β} {x : α} : [x].findMap? f = f x
+
+proof_wanted findMap?_append {f : α → Option β} {xs ys : List α} :
+    (xs ++ ys).findMap? f = (xs.findMap? f <|> ys.findMap? f)
+
+proof_wanted findMap?_flatMap {g : α → List β} {f : β → Option γ} {xs : List α} :
+    (xs.flatMap g).findMap? f = xs.findMap? fun x => (g x).findMap? f
+
+proof_wanted findMap?_flatten {f : α → Option β} {xss : List (List α)} :
+    xss.flatten.findMap? f = xss.findMap? fun xs => xs.findMap? f
+
+proof_wanted findMap?_map {g : α → β} {f : β → Option γ} {xs : List α} :
+    (xs.map g).findMap? f = xs.findMap? fun x => f (g x)
 
 /-! ### deprecations -/
 
