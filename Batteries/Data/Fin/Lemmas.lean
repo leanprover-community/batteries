@@ -18,6 +18,8 @@ attribute [norm_cast] val_last
 
 @[simp] theorem findMap?_zero (f : Fin 0 → Option α) : findMap? f = none := rfl
 
+@[simp] theorem findMap?_one (f : Fin 1 → Option α) : findMap? f = f 0 := rfl
+
 theorem findMap?_succ (f : Fin (n+1) → Option α) :
     findMap? f = (f 0 <|> findMap? fun i => f i.succ) := by
   simp only [findMap?, foldl_succ, Option.none_orElse, Function.comp_apply]
@@ -102,11 +104,12 @@ theorem findMap?_eq_findMap?_finRange (f : Fin n → Option α) :
 
 @[simp] theorem find?_zero (p : Fin 0 → Bool) : find? p = none := rfl
 
+@[simp] theorem find?_one (p : Fin 1 → Bool) : find? p = if p 0 then some 0 else none := rfl
+
 theorem find?_succ (p : Fin (n+1) → Bool) :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
   simp [find?, findMap?_succ]
   split <;> simp [map_findMap?_eq_findMap?_map]
-
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i = true := by
   match exists_eq_some_of_findMap?_eq_some h with
