@@ -104,4 +104,4 @@ element is found. The function `f` is not evaluated on further inputs after the 
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
 @[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
-  findSome? fun i => if p i then some i else none
+  findSome? <| Option.guard fun i => p i
