@@ -8,19 +8,6 @@ import Batteries.Data.Array.Monadic
 
 namespace Vector
 
-theorem toArray_mapM [Monad m] [LawfulMonad m] (a : Vector α n) (f : α → m β) :
-    toArray <$> a.mapM f = a.toArray.mapM f := by
-  let rec go (i : Nat) (h : i ≤ n) (acc : Vector β i) :
-      toArray <$> mapM.go f a i h acc = Array.mapM.map f a.toArray i acc.toArray := by
-    unfold mapM.go Array.mapM.map; simp only [size_toArray, getElem_toArray]
-    split
-    · simp only [map_bind]
-      conv => lhs; arg 2; intro; rw [go]
-      rfl
-    · simp only [map_pure, toArray_cast]
-  simp only [mapM, Array.mapM]
-  exact go _ _ _
-
 theorem toArray_mapFinIdxM [Monad m] [LawfulMonad m]
     (a : Vector α n) (f : (i : Nat) → α → (h : i < n) → m β) :
     toArray <$> a.mapFinIdxM f = a.toArray.mapFinIdxM
