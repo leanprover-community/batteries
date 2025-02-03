@@ -14,15 +14,15 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
-/-! ### Fin.findMap? -/
+/-! ### findSome? -/
 
-@[simp] theorem findMap?_zero (f : Fin 0 → Option α) : findMap? f = none := rfl
+@[simp] theorem findSome?_zero (f : Fin 0 → Option α) : findSome? f = none := rfl
 
-@[simp] theorem findMap?_one (f : Fin 1 → Option α) : findMap? f = f 0 := rfl
+@[simp] theorem findSome?_one (f : Fin 1 → Option α) : findSome? f = f 0 := rfl
 
-theorem findMap?_succ (f : Fin (n+1) → Option α) :
-    findMap? f = (f 0 <|> findMap? fun i => f i.succ) := by
-  simp only [findMap?, foldl_succ, Option.none_orElse, Function.comp_apply]
+theorem findSome?_succ (f : Fin (n+1) → Option α) :
+    findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
+  simp only [findSome?, foldl_succ, Option.none_orElse, Function.comp_apply]
   cases f 0
   · rw [Option.none_orElse]
   · rw [Option.some_orElse]
@@ -30,12 +30,12 @@ theorem findMap?_succ (f : Fin (n+1) → Option α) :
     | zero => rfl
     | succ n ih => rw [foldl_succ, Option.some_orElse, ih fun i => f i.succ]
 
-theorem exists_eq_some_of_findMap?_eq_some {f : Fin n → Option α} (h : findMap? f = some x) :
+theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
     ∃ i, f i = some x := by
   induction n with
-  | zero => rw [findMap?_zero] at h; contradiction
+  | zero => rw [findSome?_zero] at h; contradiction
   | succ n ih =>
-    rw [findMap?_succ] at h
+    rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
       rw [heq, Option.some_orElse] at h
@@ -45,12 +45,12 @@ theorem exists_eq_some_of_findMap?_eq_some {f : Fin n → Option α} (h : findMa
       rw [heq, Option.none_orElse] at h
       match ih h with | ⟨i, _⟩ => exists i.succ
 
-theorem eq_none_of_findMap?_eq_none {f : Fin n → Option α} (h : findMap? f = none) (i) :
+theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := by
   induction n with
   | zero => cases i; contradiction
   | succ n ih =>
-    rw [findMap?_succ] at h
+    rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
       rw [heq, Option.some_orElse] at h
@@ -61,44 +61,44 @@ theorem eq_none_of_findMap?_eq_none {f : Fin n → Option α} (h : findMap? f = 
       | zero => exact heq
       | succ i => exact ih h i
 
-@[simp] theorem findMap?_isSome {f : Fin n → Option α} :
-    (findMap? f).isSome ↔ ∃ i, (f i).isSome := by
+@[simp] theorem findSome?_isSome {f : Fin n → Option α} :
+    (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   simp only [Option.isSome_iff_exists]
   constructor
   · intro ⟨x, hx⟩
-    match exists_eq_some_of_findMap?_eq_some hx with
+    match exists_eq_some_of_findSome?_eq_some hx with
     | ⟨i, hi⟩ => exists i, x
   · intro ⟨i, x, hix⟩
-    match h : findMap? f with
+    match h : findSome? f with
     | some x => exists x
-    | none => rw [eq_none_of_findMap?_eq_none h i] at hix; contradiction
+    | none => rw [eq_none_of_findSome?_eq_none h i] at hix; contradiction
 
-@[simp] theorem findMap?_eq_none {f : Fin n → Option α} :
-    findMap? f = none ↔ ∀ i, f i = none := by
+@[simp] theorem findSome?_eq_none {f : Fin n → Option α} :
+    findSome? f = none ↔ ∀ i, f i = none := by
   constructor
-  · exact eq_none_of_findMap?_eq_none
+  · exact eq_none_of_findSome?_eq_none
   · intro hf
-    match h : findMap? f with
+    match h : findSome? f with
     | none => rfl
     | some x =>
-      match exists_eq_some_of_findMap?_eq_some h with
+      match exists_eq_some_of_findSome?_eq_some h with
       | ⟨i, h⟩ => rw [hf] at h; contradiction
 
-theorem findMap?_isNone {f : Fin n → Option α} : (findMap? f).isNone ↔ ∀ i, (f i).isNone := by simp
+theorem findSome?_isNone {f : Fin n → Option α} : (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-theorem map_findMap?_eq_findMap?_map (g : α → β) (f : Fin n → Option α) :
-    (findMap? f).map g = findMap? fun i => (f i).map g := by
+theorem map_findSome?_eq_findSome?_map (g : α → β) (f : Fin n → Option α) :
+    (findSome? f).map g = findSome? fun i => (f i).map g := by
   induction n with
   | zero => rfl
-  | succ n ih => simp [findMap?_succ, Option.map_orElse, ih]
+  | succ n ih => simp [findSome?_succ, Option.map_orElse, ih]
 
-theorem findMap?_eq_findMap?_finRange (f : Fin n → Option α) :
-    findMap? f = (List.finRange n).findMap? f := by
+theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
+    findSome? f = (List.finRange n).findSome? f := by
   induction n with
   | zero => rfl
   | succ n ih =>
-    rw [findMap?_succ, List.finRange_succ, List.findMap?_cons]
-    cases f 0 <;> simp [ih, List.findMap?_map]
+    rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
+    cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
 /-! ### Fin.find? -/
 
@@ -108,27 +108,27 @@ theorem findMap?_eq_findMap?_finRange (f : Fin n → Option α) :
 
 theorem find?_succ (p : Fin (n+1) → Bool) :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
-  simp [find?, findMap?_succ]
-  split <;> simp [map_findMap?_eq_findMap?_map]
+  simp [find?, findSome?_succ]
+  split <;> simp [map_findSome?_eq_findSome?_map]
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i = true := by
-  match exists_eq_some_of_findMap?_eq_some h with
+  match exists_eq_some_of_findSome?_eq_some h with
   | ⟨i, hi⟩ =>
     split at hi
     · cases hi; assumption
     · contradiction
 
 theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) : p i = false := by
-  have hi := eq_none_of_findMap?_eq_none h i
+  have hi := eq_none_of_findSome?_eq_none h i
   split at hi
   · contradiction
   · simp [*]
 
 theorem find?_isSome {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
-  simp [find?, findMap?_isSome]
+  simp [find?, findSome?_isSome]
 
 theorem find?_isNone {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
-  simp [find?, findMap?_isSome]
+  simp [find?, findSome?_isSome]
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
   induction n with
