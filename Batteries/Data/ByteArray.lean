@@ -53,7 +53,7 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.size_set ..
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.get_set_eq ..
+  Array.getElem_set_self _ _ _ _ (eq := rfl) _
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
@@ -76,7 +76,7 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 @[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
   rw [←append_eq]; simp [ByteArray.append, size]
-  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_nil]
+  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
 @[deprecated (since := "2024-08-13")] alias append_data := data_append
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by

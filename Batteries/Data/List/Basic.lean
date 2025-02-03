@@ -32,15 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
-
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
 `p`, not including that element.
