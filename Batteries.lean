@@ -23,12 +23,15 @@ import Batteries.Data.DList
 import Batteries.Data.Fin
 import Batteries.Data.FloatArray
 import Batteries.Data.HashMap
+import Batteries.Data.Int
 import Batteries.Data.LazyList
 import Batteries.Data.List
 import Batteries.Data.MLList
+import Batteries.Data.NameSet
 import Batteries.Data.Nat
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
+import Batteries.Data.Random
 import Batteries.Data.Range
 import Batteries.Data.Rat
 import Batteries.Data.Stream
@@ -94,7 +97,6 @@ import Batteries.Tactic.ShowUnused
 import Batteries.Tactic.SqueezeScope
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Unreachable
-import Batteries.Tactic.Where
 import Batteries.Util.Cache
 import Batteries.Util.ExtendedBinder
 import Batteries.Util.LibraryNote

@@ -49,7 +49,7 @@ where
        ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
     rw [indexOfAux]
     if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, ←getElem_eq_getElem_toList, List.indexOf?_cons]
+      rw [List.drop_eq_getElem_cons h, getElem_toList, List.indexOf?_cons]
       if h' : l[i] == a then
         simp [h, h']
       else
@@ -61,8 +61,10 @@ where
 
 /-! ### erase -/
 
-@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
-    (l.erase a).toList = l.toList.erase a
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
+    (l.erase a).toList = l.toList.erase a := by
+  simp only [erase, ← List.eraseIdx_indexOf_eq_erase, List.indexOf_eq_indexOf?, length_toList]
+  cases h : l.indexOf? a <;> simp [Array.indexOf?_toList, List.eraseIdx_of_length_le, *]
 
 @[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
@@ -75,8 +77,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 /-! ### map -/
 
 /-! ### mem -/
-
-theorem mem_singleton : a ∈ #[b] ↔ a = b := by simp
 
 /-! ### insertAt -/
 
