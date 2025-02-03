@@ -53,7 +53,7 @@ theorem eraseP_toArray {as : List α} {p : α → Bool} :
 theorem erase_toArray [BEq α] {as : List α} {a : α} :
     as.toArray.erase a = (as.erase a).toArray := by
   rw [Array.erase, finIdxOf?_toArray, List.erase_eq_eraseIdx]
-  rw [idxOf?_eq_map_finIdxOf?_val]
+  rw [List.idxOf?_eq_map_finIdxOf?_val]
   split <;> simp_all
 
 @[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
