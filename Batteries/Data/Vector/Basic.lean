@@ -37,8 +37,6 @@ namespace Vector
 @[deprecated "Use `#v[]`." (since := "2024-11-27")]
 def empty (α : Type u) : Vector α 0 := #v[]
 
-proof_wanted instLawfulBEq (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n)
-
 /--
 Returns `true` when all elements of the vector are pairwise distinct using `==` for comparison.
 -/
