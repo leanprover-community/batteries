@@ -84,7 +84,8 @@ theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f 
       match exists_eq_some_of_findSome?_eq_some h with
       | ⟨i, h⟩ => rw [hf] at h; contradiction
 
-theorem findSome?_isNone {f : Fin n → Option α} : (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
+theorem findSome?_isNone {f : Fin n → Option α} :
+    (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
 theorem map_findSome?_eq_findSome?_map (g : α → β) (f : Fin n → Option α) :
     (findSome? f).map g = findSome? fun i => (f i).map g := by
