@@ -33,8 +33,14 @@ theorem findSome?_succ {f : Fin (n+1) → Option α} :
 @[simp] theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
     findSome? f = some x := by simp [findSome?_succ, h]
 
+@[simp] theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
+    findSome? f = f 0 := by cases _h : f 0 <;> simp_all
+
 @[simp] theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
     findSome? f = findSome? fun i => f i.succ := by simp [findSome?_succ, h]
+
+@[simp] theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
+    findSome? f = findSome? fun i => f i.succ := by simp_all
 
 theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
     ∃ i, f i = some x := by
@@ -90,7 +96,6 @@ theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f 
       match exists_of_findSome?_eq_some h with
       | ⟨i, h⟩ => rw [hf] at h; contradiction
 
-
 theorem findSome?_isNone_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
@@ -112,11 +117,11 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
 
 /-! ### Fin.find? -/
 
-@[simp] theorem find?_zero (p : Fin 0 → Bool) : find? p = none := rfl
+@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
 
-@[simp] theorem find?_one (p : Fin 1 → Bool) : find? p = if p 0 then some 0 else none := rfl
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
 
-theorem find?_succ (p : Fin (n+1) → Bool) :
+theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
   simp only [find?, findSome?_succ, Option.guard]
   split <;> simp [Option.none_orElse, map_findSome?, Function.comp_def, Option.guard]
