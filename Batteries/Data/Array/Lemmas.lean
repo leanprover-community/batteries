@@ -43,14 +43,14 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
 
 /-! ### erase -/
 
-theorem eraseP_toArray {as : List α} {p : α → Bool} :
+@[simp] theorem eraseP_toArray {as : List α} {p : α → Bool} :
     as.toArray.eraseP p = (as.eraseP p).toArray := by
   rw [Array.eraseP, List.eraseP_eq_eraseIdx, findFinIdx?_toArray]
   split
   · simp only [List.findIdx?_eq_map_findFinIdx?_val, Option.map_none', *]
   · simp only [eraseIdx_toArray, List.findIdx?_eq_map_findFinIdx?_val, Option.map_some', *]
 
-theorem erase_toArray [BEq α] {as : List α} {a : α} :
+@[simp] theorem erase_toArray [BEq α] {as : List α} {a : α} :
     as.toArray.erase a = (as.erase a).toArray := by
   rw [Array.erase, finIdxOf?_toArray, List.erase_eq_eraseIdx]
   rw [List.idxOf?_eq_map_finIdxOf?_val]
