@@ -40,16 +40,3 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 @[deprecated (since := "2024-11-25")] alias toArray_swap! := toArray_swapIfInBounds
 @[deprecated (since := "2024-11-25")] alias toArray_swapN := toArray_swap
 @[deprecated (since := "2024-11-25")] alias toArray_swapAtN := toArray_swapAt
-
-theorem isEqv_eq_toArray_isEqv_toArray (a b : Vector α n) :
-    a.isEqv b r = a.toArray.isEqv b.toArray r :=
-  match a, b with | ⟨_,_⟩, ⟨_,_⟩ => mk_isEqv_mk ..
-
-theorem beq_eq_toArray_beq [BEq α] (a b : Vector α n) : (a == b) = (a.toArray == b.toArray) := by
-  simp [(· == ·), isEqv_eq_toArray_isEqv_toArray]
-
-instance (α n) [BEq α] [LawfulBEq α] : LawfulBEq (Vector α n) where
-  rfl {a} := by simp_all [beq_eq_toArray_beq]
-  eq_of_beq {a b h} := by
-    apply toArray_injective
-    simp_all [beq_eq_toArray_beq]

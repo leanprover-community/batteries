@@ -9,9 +9,6 @@ import Batteries.Data.Array.Monadic
 
 namespace Vector
 
-proof_wanted toArray_mapM [Monad m] [LawfulMonad m] (a : Vector α n) (f : α → m β) :
-    toArray <$> a.mapM f = a.toArray.mapM f
-
 proof_wanted toArray_mapIdxM [Monad m] [LawfulMonad m] (a : Vector α n) (f : Nat → α → m β) :
     toArray <$> a.mapIdxM f = a.toArray.mapIdxM f
 

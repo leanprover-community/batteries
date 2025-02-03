@@ -32,131 +32,9 @@ theorem forIn_eq_forIn_toList [Monad m]
 @[deprecated (since := "2024-08-13")] alias join_data := toList_flatten
 @[deprecated (since := "2024-10-15")] alias mem_join := mem_flatten
 
-end Array
-
 /-! ### indexOf? -/
 
-namespace Array
-
-theorem findIdx?_loop_eq_map_findFinIdx?_loop_val {xs : Array α} {p : α → Bool} {j} :
-    findIdx?.loop p xs j = (findFinIdx?.loop p xs j).map (·.val) := by
-  unfold findIdx?.loop
-  unfold findFinIdx?.loop
-  split <;> rename_i h
-  case isTrue =>
-    split
-    case isTrue => simp
-    case isFalse =>
-      have : xs.size - (j + 1) < xs.size - j := Nat.sub_succ_lt_self xs.size j h
-      rw [findIdx?_loop_eq_map_findFinIdx?_loop_val (j := j + 1)]
-  case isFalse => simp
-termination_by xs.size - j
-
-theorem findIdx?_eq_map_findFinIdx?_val {xs : Array α} {p : α → Bool} :
-    xs.findIdx? p = (xs.findFinIdx? p).map (·.val) := by
-  simp [findIdx?, findFinIdx?, findIdx?_loop_eq_map_findFinIdx?_loop_val]
-
-end Array
-
-namespace List
-
-theorem findFinIdx?_go_beq_eq_idxOfAux_toArray [BEq α]
-    {xs as : List α} {a : α} {i : Nat} {h} (w : as = xs.drop i) :
-    findFinIdx?.go (fun x => x == a) xs as i h =
-      xs.toArray.idxOfAux a i := by
-  unfold findFinIdx?.go
-  unfold Array.idxOfAux
-  split <;> rename_i b as
-  · simp at h
-    simp [h]
-  · simp at h
-    rw [dif_pos (by simp; omega)]
-    simp only [getElem_toArray]
-    erw [getElem_drop' (j := 0)]
-    simp only [← w, getElem_cons_zero]
-    have : xs.length - (i + 1) < xs.length - i := by omega
-    rw [findFinIdx?_go_beq_eq_idxOfAux_toArray]
-    rw [← drop_drop, ← w]
-    simp
-termination_by xs.length - i
-
-@[simp] theorem finIdxOf?_toArray [BEq α] {as : List α} {a : α} :
-    as.toArray.finIdxOf? a = as.finIdxOf? a := by
-  unfold Array.finIdxOf?
-  unfold finIdxOf?
-  unfold findFinIdx?
-  rw [findFinIdx?_go_beq_eq_idxOfAux_toArray]
-  simp
-
-theorem findIdx?_go_eq_map_findFinIdx?_go_val {xs : List α} {p : α → Bool} {i : Nat} {h} :
-    List.findIdx?.go p xs i =
-      (List.findFinIdx?.go p l xs i h).map (·.val) := by
-  unfold findIdx?.go
-  unfold findFinIdx?.go
-  split <;> rename_i a xs
-  · simp_all
-  · simp only
-    split
-    · simp
-    · rw [findIdx?_go_eq_map_findFinIdx?_go_val]
-
-theorem findIdx?_eq_map_findFinIdx?_val {xs : List α} {p : α → Bool} :
-    xs.findIdx? p = (xs.findFinIdx? p).map (·.val) := by
-  simp [findIdx?, findFinIdx?]
-  rw [findIdx?_go_eq_map_findFinIdx?_go_val]
-
-theorem idxOf?_eq_map_finIdxOf?_val [BEq α] {xs : List α} {a : α} :
-    xs.idxOf? a = (xs.finIdxOf? a).map (·.val) := by
-  simp [idxOf?, finIdxOf?, findIdx?_eq_map_findFinIdx?_val]
-
-@[simp] theorem idxOf?_toArray [BEq α] {as : List α} {a : α} :
-    as.toArray.idxOf? a = as.idxOf? a := by
-  rw [Array.idxOf?, finIdxOf?_toArray, idxOf?_eq_map_finIdxOf?_val]
-
-open Array in
-@[simp] theorem findIdx?_toArray {as : List α} {p : α → Bool} :
-    as.toArray.findIdx? p = as.findIdx? p := by
-  unfold Array.findIdx?
-  suffices ∀ i, i ≤ as.length →
-      Array.findIdx?.loop p as.toArray (as.length - i) =
-        (findIdx? p (as.drop  (as.length - i))).map fun j => j +  (as.length - i) by
-    specialize this as.length
-    simpa
-  intro i
-  induction i with
-  | zero => simp [findIdx?.loop]
-  | succ i ih =>
-    unfold findIdx?.loop
-    simp only [size_toArray, getElem_toArray]
-    split <;> rename_i h
-    · rw [drop_eq_getElem_cons h]
-      rw [findIdx?_cons]
-      split <;> rename_i h'
-      · simp
-      · intro w
-        have : as.length - (i + 1) + 1 = as.length - i := by omega
-        specialize ih (by omega)
-        simp only [Option.map_map, this, ih]
-        congr
-        ext
-        simp
-        omega
-    · have : as.length = 0 := by omega
-      simp_all
-
-@[simp] theorem findFinIdx?_toArray {as : List α} {p : α → Bool} :
-    as.toArray.findFinIdx? p = as.findFinIdx? p := by
-  have h := findIdx?_toArray (as := as) (p := p)
-  rw [findIdx?_eq_map_findFinIdx?_val, Array.findIdx?_eq_map_findFinIdx?_val] at h
-  rwa [Option.map_inj_right] at h
-  rintro ⟨x, hx⟩ ⟨y, hy⟩ rfl
-  simp
-
-end List
-
 open List
-
-namespace Array
 
 theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
     l.toList.idxOf? a = l.idxOf? a := by
@@ -172,15 +50,13 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
   · simp only [List.findIdx?_eq_map_findFinIdx?_val, Option.map_none', *]
   · simp only [eraseIdx_toArray, List.findIdx?_eq_map_findFinIdx?_val, Option.map_some', *]
 
--- Adaptation note: We can remove the `LawfulBEq α` assumption again on nightly-2025-01-31.
-@[simp] theorem erase_toArray [BEq α] [LawfulBEq α] {as : List α} {a : α} :
+@[simp] theorem erase_toArray [BEq α] {as : List α} {a : α} :
     as.toArray.erase a = (as.erase a).toArray := by
   rw [Array.erase, finIdxOf?_toArray, List.erase_eq_eraseIdx]
-  rw [idxOf?_eq_map_finIdxOf?_val]
+  rw [List.idxOf?_eq_map_finIdxOf?_val]
   split <;> simp_all
 
--- Adaptation note: We can remove the `LawfulBEq α` assumption again on nightly-2025-01-31.
-@[simp] theorem toList_erase [BEq α] [LawfulBEq α] (l : Array α) (a : α) :
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
     (l.erase a).toList = l.toList.erase a := by
   rcases l with ⟨l⟩
   simp
