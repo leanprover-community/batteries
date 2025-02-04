@@ -34,28 +34,32 @@ theorem forIn_eq_forIn_toList [Monad m]
 
 /-! ### indexOf? -/
 
-theorem indexOf?_toList [BEq α] {a : α} {l : Array α} :
-    l.toList.indexOf? a = (l.indexOf? a).map Fin.val := by
-  simpa using aux l 0
-where
-  aux (l : Array α) (i : Nat) :
-       ((l.toList.drop i).indexOf? a).map (·+i) = (indexOfAux l a i).map Fin.val := by
-    rw [indexOfAux]
-    if h : i < l.size then
-      rw [List.drop_eq_getElem_cons h, getElem_toList, List.indexOf?_cons]
-      if h' : l[i] == a then
-        simp [h, h']
-      else
-        simp [h, h', ←aux l (i+1), Function.comp_def, ←Nat.add_assoc, Nat.add_right_comm]
-    else
-      have h' : l.size ≤ i := Nat.le_of_not_lt h
-      simp [h, List.drop_of_length_le h', List.indexOf?]
-  termination_by l.size - i
+open List
+
+theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
+    l.toList.idxOf? a = l.idxOf? a := by
+  rcases l with ⟨l⟩
+  simp
 
 /-! ### erase -/
 
-@[simp] proof_wanted toList_erase [BEq α] {l : Array α} {a : α} :
-    (l.erase a).toList = l.toList.erase a
+theorem eraseP_toArray {as : List α} {p : α → Bool} :
+    as.toArray.eraseP p = (as.eraseP p).toArray := by
+  rw [Array.eraseP, List.eraseP_eq_eraseIdx, findFinIdx?_toArray]
+  split
+  · simp only [List.findIdx?_eq_map_findFinIdx?_val, Option.map_none', *]
+  · simp only [eraseIdx_toArray, List.findIdx?_eq_map_findFinIdx?_val, Option.map_some', *]
+
+theorem erase_toArray [BEq α] {as : List α} {a : α} :
+    as.toArray.erase a = (as.erase a).toArray := by
+  rw [Array.erase, finIdxOf?_toArray, List.erase_eq_eraseIdx]
+  rw [List.idxOf?_eq_map_finIdxOf?_val]
+  split <;> simp_all
+
+@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
+    (l.erase a).toList = l.toList.erase a := by
+  rcases l with ⟨l⟩
+  simp
 
 @[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
