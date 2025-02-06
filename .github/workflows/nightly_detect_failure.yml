@@ -52,9 +52,9 @@ jobs:
               echo "Creating tag nightly-testing-$version from the current state of the nightly-testing branch."
               git tag nightly-testing-$version
               git push origin nightly-testing-$version
+          fi
           hash="$(git rev-parse "nightly-testing-${version}")"
           printf 'SHA=%s\n' "${hash}" >> "${GITHUB_ENV}"
-          fi
         else
           echo "Error: The file lean-toolchain does not contain the expected pattern."
           exit 1
