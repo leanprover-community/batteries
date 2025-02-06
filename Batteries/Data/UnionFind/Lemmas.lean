@@ -16,7 +16,7 @@ namespace Batteries.UnionFind
 
 @[simp] theorem parentD_push {arr : Array UFNode} :
     parentD (arr.push ⟨arr.size, 0⟩) a = parentD arr a := by
-  simp [parentD]; split <;> split <;> try simp [Array.get_push, *]
+  simp [parentD]; split <;> split <;> try simp [Array.getElem_push, *]
   · next h1 h2 =>
     simp [Nat.lt_succ] at h1 h2
     exact Nat.le_antisymm h2 h1
@@ -26,7 +26,7 @@ namespace Batteries.UnionFind
 
 @[simp] theorem rankD_push {arr : Array UFNode} :
     rankD (arr.push ⟨arr.size, 0⟩) a = rankD arr a := by
-  simp [rankD]; split <;> split <;> try simp [Array.get_push, *]
+  simp [rankD]; split <;> split <;> try simp [Array.getElem_push, *]
   next h1 h2 => cases h1 (Nat.lt_succ_of_lt h2)
 
 @[simp] theorem rank_push {m : UnionFind} : m.push.rank a = m.rank a := by simp [rank]
@@ -43,7 +43,7 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
     if x.1 = y then
       parentD self i
     else
-      if (self.get y).rank < (self.get x).rank then
+      if self[y.1].rank < self[x.1].rank then
         if y = i then x else parentD self i
       else
         if x = i then y else parentD self i := by
@@ -97,8 +97,8 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       this yroot xroot fun i => by simp [parent_link, h, hr]
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
-theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
-theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
+nonrec theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
+nonrec theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
 
 @[simp] theorem equiv_empty : Equiv empty a b ↔ a = b := by simp [Equiv]
 

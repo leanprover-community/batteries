@@ -15,7 +15,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 /-! ### uget/uset -/
 
 @[simp] theorem uset_eq_set (a : ByteArray) {i : USize} (h : i.toNat < a.size) (v : UInt8) :
-    a.uset i v h = a.set ⟨i.toNat, h⟩ v := rfl
+    a.uset i v h = a.set i.toNat v := rfl
 
 /-! ### empty -/
 
@@ -36,16 +36,16 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
   Array.size_push ..
 
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
-  Array.get_push_eq ..
+  Array.getElem_push_eq ..
 
 theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
     (a.push x)[i]'(size_push .. ▸ Nat.lt_succ_of_lt h) = a[i] :=
-  Array.get_push_lt ..
+  Array.getElem_push_lt ..
 
 /-! ### set -/
 
 @[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v := rfl
+    (a.set i v).data = a.data.set i v i.isLt := rfl
 @[deprecated (since := "2024-08-13")] alias set_data := data_set
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
@@ -53,14 +53,14 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.size_set ..
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.get_set_eq ..
+  Array.getElem_set_self _ _ _ _ (eq := rfl) _
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
   Array.get_set_ne (h:=h) ..
 
 theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
-    (a.set i v).set ⟨i, by simp [i.2]⟩ v' = a.set i v' :=
+    (a.set i v).set i v' = a.set i v' :=
   ByteArray.ext <| Array.set_set ..
 
 /-! ### copySlice -/
@@ -76,7 +76,7 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 @[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
   rw [←append_eq]; simp [ByteArray.append, size]
-  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_nil]
+  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
 @[deprecated (since := "2024-08-13")] alias append_data := data_append
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
@@ -118,10 +118,20 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 /-! ### ofFn -/
 
 /--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
-def ofFn (f : Fin n → UInt8) : ByteArray where
-  data := .ofFn f
+@[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
+  Fin.foldl n (fun acc i => acc.push (f i)) (mkEmpty n)
 
-@[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := rfl
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
+
+theorem ofFn_succ (f : Fin (n+1) → UInt8) :
+    ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
+  simp [ofFn, Fin.foldl_succ_last, mkEmpty]
+
+@[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
+
 @[deprecated (since := "2024-08-13")] alias ofFn_data := data_ofFn
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
@@ -132,20 +142,7 @@ def ofFn (f : Fin n → UInt8) : ByteArray where
   simp [get, Fin.cast]
 
 @[simp] theorem getElem_ofFn (f : Fin n → UInt8) (i) (h : i < (ofFn f).size) :
-    (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn ..
-
-private def ofFnAux (f : Fin n → UInt8) : ByteArray := go 0 (mkEmpty n) where
-  go (i : Nat) (acc : ByteArray) : ByteArray :=
-    if h : i < n then go (i+1) (acc.push (f ⟨i, h⟩)) else acc
-termination_by n - i
-
-@[csimp] private theorem ofFn_eq_ofFnAux : @ofFn = @ofFnAux := by
-  funext n f; ext1; simp [ofFnAux, Array.ofFn, data_ofFnAux, mkEmpty]
-where
-  data_ofFnAux {n} (f : Fin n → UInt8) (i) {acc} :
-      (ofFnAux.go f i acc).data = Array.ofFn.go f i acc.data := by
-    rw [ofFnAux.go, Array.ofFn.go]; split; rw [data_ofFnAux f (i+1), data_push]; rfl
-  termination_by n - i
+    (ofFn f)[i] = f ⟨i, size_ofFn f ▸ h⟩ := get_ofFn f ⟨i, h⟩
 
 /-! ### map/mapM -/
 

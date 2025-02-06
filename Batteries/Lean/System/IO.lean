@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Scott Morrison. All rights reserved.
+Copyright (c) 2023 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Kim Morrison
 -/
 
 /-!
@@ -25,10 +25,8 @@ Return the value and the list of remaining tasks.
 def IO.waitAny' (tasks : List (Task α)) (h : 0 < tasks.length := by nonempty_list) :
     BaseIO (α × List (Task α)) := do
   let (i, a) ← IO.waitAny
-    -- It would be more efficient to use `mapIdx` rather than `.enum.map` here
-    -- but the lemma `List.mapIdx_length` is currently interred in `Mathlib.Data.List.Indexes`
-    (tasks.enum.map fun (i, t) => t.map (prio := .max) fun a => (i, a))
-    ((tasks.enum.length_map _).symm ▸ tasks.enum_length ▸ h)
+    (tasks.mapIdx fun i t => t.map (prio := .max) fun a => (i, a))
+    (by simp_all)
   return (a, tasks.eraseIdx i)
 
 /--

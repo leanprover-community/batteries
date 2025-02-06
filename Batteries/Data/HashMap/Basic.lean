@@ -37,10 +37,10 @@ def update (data : Buckets α β) (i : USize)
 The number of elements in the bucket array.
 Note: this is marked `noncomputable` because it is only intended for specification.
 -/
-noncomputable def size (data : Buckets α β) : Nat := .sum (data.1.toList.map (·.toList.length))
+noncomputable def size (data : Buckets α β) : Nat := (data.1.toList.map (·.toList.length)).sum
 
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
-    (self.update i d h).1.size = self.1.size := Array.size_uset ..
+    (self.update i d h).1.size = self.1.size := Array.size_uset _ _ _ h
 
 /-- Map a function over the values in the map. -/
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
@@ -56,7 +56,7 @@ structure WF [BEq α] [Hashable α] (buckets : Buckets α β) : Prop where
     bucket.toList.Pairwise fun a b => ¬(a.1 == b.1)
   /-- Every element in a bucket should hash to its location. -/
   hash_self (i : Nat) (h : i < buckets.1.size) :
-    buckets.1[i].All fun k _ => ((hash k).toUSize % buckets.1.size).toNat = i
+    buckets.1[i].All fun k _ => ((hash k).toUSize % USize.ofNat buckets.1.size).toNat = i
 
 end Buckets
 end Imp
@@ -93,7 +93,7 @@ def empty (capacity := 0) : Imp α β :=
 
 /-- Calculates the bucket index from a hash value `u`. -/
 def mkIdx {n : Nat} (h : 0 < n) (u : USize) : {u : USize // u.toNat < n} :=
-  ⟨u % n, USize.modn_lt _ h⟩
+  ⟨u % USize.ofNat n, USize.toNat_mod_lt _ h⟩
 
 /--
 Inserts a key-value pair into the bucket array. This function assumes that the data is not
@@ -143,11 +143,10 @@ where
   destroying `source` in the process. -/
   go (i : Nat) (source : Array (AssocList α β)) (target : Buckets α β) : Buckets α β :=
     if h : i < source.size then
-      let idx : Fin source.size := ⟨i, h⟩
-      let es := source.get idx
+      let es := source[i]
       -- We remove `es` from `source` to make sure we can reuse its memory cells
       -- when performing es.foldl
-      let source := source.set idx .nil
+      let source := source.set i .nil
       let target := es.foldl reinsertAux target
       go (i+1) source target
     else target
@@ -202,7 +201,7 @@ Applies `f` to each key-value pair `a, b` in the map. If it returns `some c` the
   have : m'.1.size > 0 := by
     have := Array.size_mapM (m := StateT (ULift Nat) Id) (go .nil) m.buckets.1
     simp [SatisfiesM_StateT_eq, SatisfiesM_Id_eq] at this
-    simp [this, Id.run, StateT.run, m.2.2, m']
+    simp [this, Id.run, m.2.2, m']
   ⟨m'.2.1, m'.1, this⟩
 where
   /-- Inner loop of `filterMap`. Note that this reverses the bucket lists,
