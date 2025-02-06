@@ -92,7 +92,7 @@ jobs:
                 'type': 'stream',
                 'to': 'nightly-testing',
                 'topic': 'Batteries status updates',
-                'content': "✅️ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded! ([{os.getenv('SHA')}](https://github.com/${{ github.repository }}/commit/{os.getenv('SHA')}))""
+                'content': "✅️ The latest CI for Batteries' [`nightly-testing`](https://github.com/leanprover-community/batteries/tree/nightly-testing) branch has succeeded! ([{os.getenv('SHA')}](https://github.com/${{ github.repository }}/commit/{os.getenv('SHA')}))"
             }
             result = client.send_message(request)
             print(result)
