@@ -83,17 +83,17 @@ echo "### [auto] save the current branch name"
 usr_branch=$(git branch --show-current)
 
 echo
-echo "### [auto] checkout master and pull the latest changes"
+echo "### [auto] checkout main and pull the latest changes"
 
-git checkout master
+git checkout main
 git pull
 
 echo
-echo "### [auto] checkout 'bump/$BUMPVERSION' and merge the latest changes from 'origin/master'"
+echo "### [auto] checkout 'bump/$BUMPVERSION' and merge the latest changes from 'origin/main'"
 
 git checkout "bump/$BUMPVERSION"
 git pull
-git merge --no-edit origin/master || true # ignore error if there are conflicts
+git merge --no-edit origin/main || true # ignore error if there are conflicts
 
 # Check if there are merge conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
@@ -122,7 +122,7 @@ fi
 while git diff --name-only --diff-filter=U | grep -q . || ! git diff-index --quiet HEAD --; do
   echo
   echo "### [user] Conflict resolution"
-  echo "We are merging the latest changes from 'origin/master' into 'bump/$BUMPVERSION'"
+  echo "We are merging the latest changes from 'origin/main' into 'bump/$BUMPVERSION'"
   echo "There seem to be conflicts or uncommitted files"
   echo ""
   echo "  1) Open `pwd` in a new terminal and run 'git status'"
@@ -137,7 +137,7 @@ git push
 echo
 echo "### [auto] create a new branch 'bump/nightly-$NIGHTLYDATE' and merge the latest changes from 'origin/nightly-testing'"
 
-git checkout -b "bump/nightly-$NIGHTLYDATE"
+git checkout -b "bump/nightly-$NIGHTLYDATE" || git checkout "bump/nightly-$NIGHTLYDATE"
 git merge --no-edit $NIGHTLYSHA || true # ignore error if there are conflicts
 
 # Check if there are merge conflicts
@@ -197,8 +197,8 @@ if git diff --name-only bump/$BUMPVERSION bump/nightly-$NIGHTLYDATE | grep -q .;
   echo
   echo "### [auto] post a link to the PR on Zulip"
 
-  zulip_title="#$pr_number adaptations for nightly-$NIGHTLYDATE"
-  zulip_body="> $pr_title #$pr_number"$'\n\nPlease review this PR. At the end of the month this diff will land in `master`.'
+  zulip_title="batteries#$pr_number adaptations for nightly-$NIGHTLYDATE"
+  zulip_body=$(printf "> %s\n\nPlease review this PR. At the end of the month this diff will land in 'main'." "$pr_title batteries#$pr_number")
 
   echo "Posting the link to the PR in a new thread on the #nightly-testing channel on Zulip"
   echo "Here is the message:"
