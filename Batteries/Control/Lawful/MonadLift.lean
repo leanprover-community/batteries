@@ -16,7 +16,7 @@ universe u v w
   asserts that lifting commutes with `pure` and `bind`:
 ```
 monadLift (pure a) = pure a
-monadLift ma >>= (monadLift ∘ f) = monadLift (ma >>= f)
+monadLift ma >>= monadLift ∘ f = monadLift (ma >>= f)
 ```
 -/
 class LawfulMonadLift (m : semiOutParam (Type u → Type v)) (n : Type u → Type w)
@@ -27,14 +27,14 @@ class LawfulMonadLift (m : semiOutParam (Type u → Type v)) (n : Type u → Typ
 
   /-- Lifting preserves `bind` -/
   monadLift_bind {α β : Type u} (ma : m α) (f : α → m β) :
-    MonadLift.monadLift ma >>= (fun a => MonadLift.monadLift (f a)) =
+    MonadLift.monadLift ma >>= MonadLift.monadLift ∘ f =
       MonadLift.monadLift (n := n) (ma >>= f)
 
 /-- The `MonadLiftT` typeclass only contains the transitive lifting operation.
   `LawfulMonadLiftT` further asserts that lifting commutes with `pure` and `bind`:
 ```
 monadLift (pure a) = pure a
-monadLift ma >>= (monadLift ∘ f) = monadLift (ma >>= f)
+monadLift ma >>= monadLift ∘ f = monadLift (ma >>= f)
 ```
 -/
 class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m] [Monad n]
@@ -45,7 +45,7 @@ class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m]
 
   /-- Lifting preserves `bind` -/
   monadLift_bind {α β : Type u} (ma : m α) (f : α → m β) :
-    monadLift ma >>= (fun a => monadLift (f a)) = monadLift (n := n) (ma >>= f)
+    monadLift ma >>= monadLift ∘ f = monadLift (n := n) (ma >>= f)
 
 export LawfulMonadLiftT (monadLift_pure monadLift_bind)
 
@@ -97,7 +97,7 @@ instance : LawfulMonadLift m (ReaderT ρ m) where
   monadLift_bind := by
     intro α β ma f
     funext x
-    simp only [MonadLift.monadLift, bind, ReaderT.bind]
+    simp only [bind, ReaderT.bind, MonadLift.monadLift, Function.comp_apply]
 
 end ReaderT
 
