@@ -283,10 +283,10 @@ theorem toList_filterMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m
   rw [List.filterMapM_toArray]
   simp only [Functor.map_map, id_map']
 
--- theorem toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
---     toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a) := by
---   rw [List.flatMapM_toArray]
---   simp only [Functor.map_map, id_map']
+theorem toList_flatMapM [Monad m] [LawfulMonad m] (a : Array α) (f : α → m (Array β)) :
+    toList <$> a.flatMapM f = a.toList.flatMapM (fun a => toList <$> f a) := by
+  rw [List.flatMapM_toArray]
+  simp only [Functor.map_map, id_map']
 
 theorem toList_mapFinIdxM [Monad m] [LawfulMonad m] (l : Array α)
     (f : (i : Nat) → α → (h : i < l.size) → m β) :
