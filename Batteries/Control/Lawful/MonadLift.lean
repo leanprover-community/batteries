@@ -20,15 +20,12 @@ monadLift ma >>= monadLift ∘ f = monadLift (ma >>= f)
 ```
 -/
 class LawfulMonadLift (m : semiOutParam (Type u → Type v)) (n : Type u → Type w)
-    [Monad m] [Monad n] [MonadLift m n] : Prop where
-
+    [Monad m] [Monad n] [inst : MonadLift m n] : Prop where
   /-- Lifting preserves `pure` -/
-  monadLift_pure {α : Type u} (a : α) : @MonadLift.monadLift m n _ _ (pure a) = pure a
-
+  monadLift_pure {α : Type u} (a : α) : inst.monadLift (pure a) = pure a
   /-- Lifting preserves `bind` -/
   monadLift_bind {α β : Type u} (ma : m α) (f : α → m β) :
-    MonadLift.monadLift ma >>= MonadLift.monadLift ∘ f =
-      MonadLift.monadLift (n := n) (ma >>= f)
+    inst.monadLift ma >>= (fun x => inst.monadLift (f x)) = inst.monadLift (ma >>= f)
 
 /-- The `MonadLiftT` typeclass only contains the transitive lifting operation.
   `LawfulMonadLiftT` further asserts that lifting commutes with `pure` and `bind`:
@@ -38,14 +35,12 @@ monadLift ma >>= monadLift ∘ f = monadLift (ma >>= f)
 ```
 -/
 class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m] [Monad n]
-    [MonadLiftT m n] : Prop where
-
+    [inst : MonadLiftT m n] : Prop where
   /-- Lifting preserves `pure` -/
-  monadLift_pure {α : Type u} (a : α) : @monadLift m n _ _ (pure a) = pure a
-
+  monadLift_pure {α : Type u} (a : α) : inst.monadLift (pure a) = pure a
   /-- Lifting preserves `bind` -/
   monadLift_bind {α β : Type u} (ma : m α) (f : α → m β) :
-    monadLift ma >>= monadLift ∘ f = monadLift (n := n) (ma >>= f)
+    monadLift ma >>= (fun x => monadLift (f x)) = inst.monadLift (ma >>= f)
 
 export LawfulMonadLiftT (monadLift_pure monadLift_bind)
 
@@ -60,10 +55,16 @@ theorem liftM_bind {m : Type u → Type v} {n : Type u → Type w} [Monad m] [Mo
       liftM ma >>= (fun a => liftM (f a)) = liftM (n := n) (ma >>= f) :=
   monadLift_bind _ _
 
-instance {m : semiOutParam (Type u → Type v)} {n : Type u → Type w} [Monad m] [Monad n]
-    [MonadLift m n] [LawfulMonadLift m n] : LawfulMonadLiftT m n where
-  monadLift_pure := LawfulMonadLift.monadLift_pure
-  monadLift_bind := LawfulMonadLift.monadLift_bind
+instance (m n o) [Monad m] [Monad n] [Monad o] [MonadLift n o] [MonadLiftT m n]
+    [LawfulMonad m] [LawfulMonad n] [LawfulMonad o] [LawfulMonadLift n o] [LawfulMonadLiftT m n] : LawfulMonadLiftT m o where
+  monadLift_pure := fun a => by
+    simp only [monadLift, LawfulMonadLift.monadLift_pure, liftM_pure]
+  monadLift_bind := fun ma f => by
+    simp only [monadLift, LawfulMonadLift.monadLift_bind, liftM_bind]
+
+instance (m) [Monad m] [LawfulMonad m] : LawfulMonadLiftT m m where
+  monadLift_pure _ := rfl
+  monadLift_bind _ _ := rfl
 
 namespace StateT
 
