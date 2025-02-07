@@ -30,7 +30,8 @@ class LawfulMonadLift (m : semiOutParam (Type u → Type v)) (n : Type u → Typ
     MonadLift.monadLift ma >>= (fun a => MonadLift.monadLift (f a)) =
       MonadLift.monadLift (n := n) (ma >>= f)
 
-/-- The `MonadLiftT` typeclass only contains the transitive lifting operation. `LawfulMonadLiftT` further asserts that lifting commutes with `pure` and `bind`:
+/-- The `MonadLiftT` typeclass only contains the transitive lifting operation.
+  `LawfulMonadLiftT` further asserts that lifting commutes with `pure` and `bind`:
 ```
 monadLift (pure a) = pure a
 monadLift ma >>= (monadLift ∘ f) = monadLift (ma >>= f)
