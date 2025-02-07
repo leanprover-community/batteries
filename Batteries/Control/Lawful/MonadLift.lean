@@ -12,7 +12,8 @@ This file defines the `LawfulMonadLift(T)` class, which adds laws to the `MonadL
 
 universe u v w
 
-/-- The `MonadLift` typeclass only contains the lifting operation. `LawfulMonadLift` further asserts that lifting commutes with `pure` and `bind`:
+/-- The `MonadLift` typeclass only contains the lifting operation. `LawfulMonadLift` further
+  asserts that lifting commutes with `pure` and `bind`:
 ```
 monadLift (pure a) = pure a
 monadLift ma >>= (monadLift ∘ f) = monadLift (ma >>= f)
