@@ -49,8 +49,6 @@ class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m]
 
 export LawfulMonadLiftT (monadLift_pure monadLift_bind)
 
-attribute [simp] monadLift_pure monadLift_bind
-
 @[simp]
 theorem liftM_pure {m : Type u → Type v} {n : Type u → Type w} [Monad m] [Monad n] [MonadLiftT m n]
     [LawfulMonadLiftT m n] {α : Type u} (a : α) : liftM (pure a : m α) = pure (f := n) a :=
