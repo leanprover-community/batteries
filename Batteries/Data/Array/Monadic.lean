@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Classes.SatisfiesM
+import Batteries.Util.ProofWanted
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
@@ -58,6 +59,13 @@ theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m
 theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
   (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
+
+proof_wanted size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as)
+
+proof_wanted size_mapFinIdxM [Monad m] [LawfulMonad m]
+    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f)
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
@@ -209,19 +217,18 @@ theorem filterMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m
     · simp only [pure_bind]; exact ih acc
     · simp only [pure_bind]; rw [← List.reverse_cons]; exact ih _
 
--- This needs to wait until the definition of `flatMapM` is updated in `nightly-2025-02-01`.
--- theorem flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
---     l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => Array.toList <$> f a) := by
---   simp only [Array.flatMapM, bind_pure_comp, foldlM_toArray, flatMapM]
---   conv => lhs; arg 2; change [].reverse.flatten.toArray
---   generalize [] = acc
---   induction l generalizing acc with
---   | nil => simp only [foldlM_nil, flatMapM.loop, map_pure]
---   | cons x xs ih =>
---     simp only [foldlM_cons, bind_map_left, flatMapM.loop, _root_.map_bind]
---     congr; funext a
---     conv => lhs; rw [Array.toArray_append, ← flatten_concat, ← reverse_cons]
---     exact ih _
+theorem flatMapM_toArray [Monad m] [LawfulMonad m] (l : List α) (f : α → m (Array β)) :
+    l.toArray.flatMapM f = toArray <$> l.flatMapM (fun a => Array.toList <$> f a) := by
+  simp only [Array.flatMapM, bind_pure_comp, foldlM_toArray, flatMapM]
+  conv => lhs; arg 2; change [].reverse.flatten.toArray
+  generalize [] = acc
+  induction l generalizing acc with
+  | nil => simp only [foldlM_nil, flatMapM.loop, map_pure]
+  | cons x xs ih =>
+    simp only [foldlM_cons, bind_map_left, flatMapM.loop, _root_.map_bind]
+    congr; funext a
+    conv => lhs; rw [Array.toArray_append, ← flatten_concat, ← reverse_cons]
+    exact ih _
 
 theorem mapFinIdxM_toArray [Monad m] [LawfulMonad m] (l : List α)
     (f : (i : Nat) → α → (h : i < l.length) → m β) :
