@@ -10,7 +10,7 @@ namespace Function
 
 theorem id_def : @id α = fun x => x := rfl
 
-@[simp] theorem id_apply : id x = x := rfl
+@[simp] protected theorem id_apply : id x = x := rfl
 
 @[simp] theorem id_comp (f : α → β) : id ∘ f = f := funext fun _ => rfl
 
