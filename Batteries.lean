@@ -71,7 +71,9 @@ import Batteries.Lean.Util.EnvSearch
 import Batteries.Linter
 import Batteries.Linter.UnnecessarySeqFocus
 import Batteries.Linter.UnreachableTactic
-import Batteries.Logic
+import Batteries.Logic.Basic
+import Batteries.Logic.Equiv
+import Batteries.Logic.Function
 import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Case
