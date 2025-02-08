@@ -193,10 +193,10 @@ where
 /-- Encode a dependent sum of `Fin` types. -/
 def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.sum f) :=
   match n, f, x with
-  | _+1, _, ⟨⟨0, _⟩, ⟨j, hj⟩⟩ =>
-    ⟨j, Nat.lt_of_lt_of_le hj (sum_succ .. ▸ Nat.le_add_right ..)⟩
-  | _+1, f, ⟨⟨i+1, hi⟩, ⟨j, hj⟩⟩ =>
-    match encodeSigma ((f ∘ succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨j, hj⟩⟩ with
+  | _+1, _, ⟨0, j⟩ =>
+    ⟨j, Nat.lt_of_lt_of_le j.is_lt (sum_succ .. ▸ Nat.le_add_right ..)⟩
+  | _+1, f, ⟨⟨i+1, hi⟩, j⟩ =>
+    match encodeSigma ((f ∘ succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, j⟩ with
     | ⟨k, hk⟩ => ⟨f 0 + k, sum_succ .. ▸ Nat.add_lt_add_left hk ..⟩
 
 /-- Decode a dependent sum of `Fin` types. -/
@@ -221,7 +221,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
   | succ n ih =>
     simp only [decodeSigma]
     split
-    · simp [encodeSigma]
+    · rfl
     · next h1 =>
       have h2 : x - f 0 < Fin.sum (f ∘ succ) := by
         apply Nat.sub_lt_left_of_lt_add
@@ -240,7 +240,10 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
   | succ n ih =>
     simp only [decodeSigma]
     match x with
-    | ⟨0, x⟩ => simp [encodeSigma]
+    | ⟨0, x⟩ =>
+      split
+      · rfl
+      · sorry
     | ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ =>
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
       rw [dif_neg this]
@@ -350,12 +353,12 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
     funext i
     simp only [decodePi]
     split
-    · simp [Nat.mul_add_mod, Nat.mod_eq_of_lt (x 0).is_lt]
+    · simp [encodePi, Nat.mul_add_mod, Nat.mod_eq_of_lt (x 0).is_lt]
     · next i hi =>
       have h : decodePi (f ∘ succ) (encodePi (f ∘ succ) fun i => x i.succ)
           ⟨i, Nat.lt_of_succ_lt_succ hi⟩ = x ⟨i+1, hi⟩ := by rw [ih]; rfl
       conv => rhs; rw [← h]
-      congr; simp [Nat.mul_add_div h0, Nat.div_eq_of_lt (x 0).is_lt]; rfl
+      congr; simp [encodePi, Nat.mul_add_div h0, Nat.div_eq_of_lt (x 0).is_lt]; rfl
 
 /-- Encode a decidable subtype of a `Fin` type. -/
 def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i }) :
@@ -368,12 +371,12 @@ def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i 
     match encodeSubtype (fun i => P i.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, hp⟩ with
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
-        have : Fin.count P = (Fin.count fun i => P i.succ) + 1 := by
+        have : (Fin.count fun i => P i.succ) + 1 = Fin.count P := by
           simp_arith only [count_succ, Function.comp_def, if_pos h0]
-        this ▸ ⟨k+1, Nat.succ_lt_succ hk⟩
+        Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
-        have : Fin.count P = Fin.count fun i => P i.succ := by simp [count_succ, h0]
-        this ▸ ⟨k, hk⟩
+        have : (Fin.count fun i => P i.succ) = Fin.count P := by simp [count_succ, h0]
+        Fin.cast this ⟨k, hk⟩
 
 /-- Decode a decidable subtype of a `Fin` type. -/
 def decodeSubtype (p : Fin n → Prop) [inst : DecidablePred p] (k : Fin (Fin.count p)) :
@@ -393,6 +396,20 @@ def decodeSubtype (p : Fin n → Prop) [inst : DecidablePred p] (k : Fin (Fin.co
       match decodeSubtype (fun i => p (succ i)) ⟨k, this ▸ hk⟩ with
       | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
 
+theorem encodeSubtype_zero_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) :
+    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by simp [count_succ, *]⟩ := by
+  ext; rw [encodeSubtype.eq_def]; rfl
+
+theorem encodeSubtype_succ_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) {i : Fin n}
+    (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
+      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by simp [count_succ, *]) := by
+  ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
+
+theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : ¬ P 0) {i : Fin n}
+    (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
+      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).cast (by simp [count_succ, *]) := by
+  ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
+
 @[simp] theorem encodeSubtype_decodeSubtype (P : Fin n → Prop) [DecidablePred P]
     (x : Fin (Fin.count P)) : encodeSubtype P (decodeSubtype P x) = x := by
   induction n with
@@ -400,22 +417,8 @@ def decodeSubtype (p : Fin n → Prop) [inst : DecidablePred p] (k : Fin (Fin.co
   | succ n ih =>
     simp only [decodeSubtype]
     split
-    · ext; split <;> simp [encodeSubtype, count_succ, *]
+    · ext; split <;> simp [encodeSubtype_zero_pos, encodeSubtype, *]; done
     · ext; simp [encodeSubtype, count_succ, *]
-
-theorem encodeSubtype_zero_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) :
-    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by simp [count_succ, *]⟩ := by
-  ext; simp [encodeSubtype]
-
-theorem encodeSubtype_succ_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) {i : Fin n}
-    (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
-      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by simp [count_succ, *]) := by
-  ext; simp [encodeSubtype, count_succ, *]
-
-theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : ¬ P 0) {i : Fin n}
-    (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
-      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).cast (by simp [count_succ, *]) := by
-  ext; simp [encodeSubtype, count_succ, *]
 
 @[simp] theorem decodeSubtype_encodeSubtype (P : Fin n → Prop) [DecidablePred P] (x : { x // P x}) :
     decodeSubtype P (encodeSubtype P x) = x := by
@@ -426,7 +429,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
     | succ n ih =>
       if h₀ : P 0 then
         simp only [decodeSubtype, dif_pos h₀]
-        cases i using Fin.casesZeroSuccOn with
+        cases i using Fin.cases with
         | zero => rw [encodeSubtype_zero_pos h₀]
         | succ i =>
           rw [encodeSubtype_succ_pos h₀]
@@ -435,7 +438,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
           rw [ih (fun i => P i.succ) ⟨i, h⟩]
       else
         simp only [decodeSubtype, dif_neg h₀]
-        cases i using Fin.casesZeroSuccOn with
+        cases i using Fin.cases with
         | zero => contradiction
         | succ i =>
           rw [encodeSubtype_succ_neg h₀]

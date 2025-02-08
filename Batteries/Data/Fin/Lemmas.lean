@@ -114,23 +114,3 @@ theorem find?_isSome_iff_exists {P : Fin n → Prop} [DecidablePred P] :
     | none => rw [heq] at h; contradiction
   · intro ⟨_, h⟩
     exact find?_isSome_of_prop h
-
-/-! ### recZeroSuccOn -/
-
-unseal Fin.recZeroSuccOn in
-@[simp] theorem recZeroSuccOn_zero {motive : Fin (n+1) → Sort _} (zero : motive 0)
-    (succ : (x : Fin n) → motive x.castSucc → motive x.succ) :
-    Fin.recZeroSuccOn 0 zero succ = zero := rfl
-
-unseal Fin.recZeroSuccOn in
-theorem recZeroSuccOn_succ {motive : Fin (n+1) → Sort _} (x : Fin n)  (zero : motive 0)
-    (succ : (x : Fin n) → motive x.castSucc → motive x.succ) :
-    Fin.recZeroSuccOn x.succ zero succ = succ x (Fin.recZeroSuccOn x.castSucc zero succ) := rfl
-
-/-! ### casesZeroSuccOn -/
-
-@[simp] theorem casesZeroSuccOn_zero {motive : Fin (n+1) → Sort _} (zero : motive 0)
-    (succ : (x : Fin n) → motive x.succ) : Fin.casesZeroSuccOn 0 zero succ = zero := rfl
-
-@[simp] theorem casesZeroSuccOn_succ {motive : Fin (n+1) → Sort _} (x : Fin n)  (zero : motive 0)
-    (succ : (x : Fin n) → motive x.succ) : Fin.casesZeroSuccOn x.succ zero succ = succ x := rfl
