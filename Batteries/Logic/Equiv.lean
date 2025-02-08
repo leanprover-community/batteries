@@ -39,8 +39,6 @@ namespace Equiv
   left_inv _ := rfl
   right_inv _ := rfl
 
-instance inhabited' : Inhabited (α ≃ α) := ⟨Equiv.refl α⟩
-
 /-- Inverse of an equivalence `e : α ≃ β`. -/
 @[symm] protected def symm (e : α ≃ β) : β ≃ α where
   toFun := e.invFun
