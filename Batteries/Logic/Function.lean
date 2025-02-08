@@ -12,9 +12,9 @@ theorem id_def : @id α = fun x => x := rfl
 
 @[simp] theorem id_apply : id x = x := rfl
 
-@[simp] theorem id_comp : id ∘ f = f := funext fun _ => rfl
+@[simp] theorem id_comp (f : α → β) : id ∘ f = f := funext fun _ => rfl
 
-@[simp] theorem comp_id : f ∘ id = f := funext fun _ => rfl
+@[simp] theorem comp_id (f : α → β) : f ∘ id = f := funext fun _ => rfl
 
 /-! ## LeftInverse -/
 
