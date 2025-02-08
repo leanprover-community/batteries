@@ -50,7 +50,3 @@ protected def comp (e₁ : Equiv β γ) (e₂ : Equiv α β) : Equiv α γ where
   invFun := e₂.invFun ∘ e₁.invFun
   left_inv := e₁.left_inv.comp e₂.left_inv
   right_inv := e₁.right_inv.comp e₂.right_inv
-
-end Batteries.Equiv
-
-export Batteries (Equiv)
