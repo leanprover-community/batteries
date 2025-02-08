@@ -44,15 +44,41 @@ class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m]
 
 export LawfulMonadLiftT (monadLift_pure monadLift_bind)
 
+section Lemmas
+
+variable [Monad m] [Monad n] [MonadLiftT m n] [LawfulMonadLiftT m n]
+
 @[simp]
-theorem liftM_pure [Monad m] [Monad n] [MonadLiftT m n] [LawfulMonadLiftT m n] (a : α) :
-    liftM (pure a : m α) = pure (f := n) a :=
+theorem liftM_pure (a : α) : liftM (pure a : m α) = pure (f := n) a :=
   monadLift_pure _
 
 @[simp]
-theorem liftM_bind [Monad m] [Monad n] [MonadLiftT m n] [LawfulMonadLiftT m n]
-    (ma : m α) (f : α → m β) : liftM ma >>= (fun a => liftM (f a)) = liftM (n := n) (ma >>= f) :=
+theorem liftM_bind (ma : m α) (f : α → m β) :
+    liftM ma >>= (fun a => liftM (f a)) = liftM (n := n) (ma >>= f) :=
   monadLift_bind _ _
+
+@[simp]
+theorem liftM_map [LawfulMonad m] [LawfulMonad n] (f : α → β) (ma : m α) :
+    f <$> (liftM ma : n α) = liftM (f <$> ma) := by
+  rw [← bind_pure_comp, ← bind_pure_comp, ← liftM_bind]
+  simp only [bind_pure_comp, liftM_pure]
+
+@[simp]
+theorem liftM_seq [LawfulMonad m] [LawfulMonad n] (mf : m (α → β)) (ma : m α) :
+    liftM mf <*> (liftM ma : n α) = liftM (mf <*> ma) := by
+  simp only [seq_eq_bind, liftM_map, liftM_bind]
+
+@[simp]
+theorem liftM_seqLeft [LawfulMonad m] [LawfulMonad n] (x : m α) (y : m β) :
+    (liftM x : n α) <* (liftM y : n β) = liftM (x <* y) := by
+  simp only [seqLeft_eq, liftM_map, liftM_seq]
+
+@[simp]
+theorem liftM_seqRight [LawfulMonad m] [LawfulMonad n] (x : m α) (y : m β) :
+    (liftM x : n α) *> (liftM y : n β) = liftM (x *> y) := by
+  simp only [seqRight_eq, liftM_map, liftM_seq]
+
+end Lemmas
 
 instance (m n o) [Monad m] [Monad n] [Monad o] [MonadLift n o] [MonadLiftT m n]
     [LawfulMonadLift n o] [LawfulMonadLiftT m n] : LawfulMonadLiftT m o where
