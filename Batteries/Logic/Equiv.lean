@@ -8,9 +8,10 @@ import Batteries.Logic.Basic
 import Batteries.Logic.Function
 import Batteries.Tactic.Trans
 
-open Function
+namespace Batteries
 
-/-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
+open Function in
+/-- `Equiv α β` is the type of functions from `α → β` with a two-sided inverse. -/
 structure Equiv (α β : Sort _) where
   /-- Forward function of equivalence. -/
   protected toFun : α → β
@@ -21,9 +22,6 @@ structure Equiv (α β : Sort _) where
   /-- Inverse function is a right inverse. -/
   protected right_inv : RightInverse invFun toFun
 
-@[inherit_doc]
-infixl:25 " ≃ " => Equiv
-
 namespace Equiv
 
 @[ext] theorem ext {e₁ e₂ : Equiv α β} (H : ∀ x, e₁.toFun x = e₂.toFun x) : e₁ = e₂ := by
@@ -32,23 +30,27 @@ namespace Equiv
     funext x; rw [← e₁.right_inv x, e₁.left_inv, H (e₁.invFun x), e₂.left_inv]
   cases e₁; cases e₂; congr
 
-/-- Identity equivalence `α ≃ α`. -/
-@[refl] protected def refl (α) : α ≃ α where
+/-- Identity equivalence. -/
+protected def id (α) : Equiv α α where
   toFun := id
   invFun := id
   left_inv _ := rfl
   right_inv _ := rfl
 
-/-- Inverse of an equivalence `e : α ≃ β`. -/
-@[symm] protected def symm (e : α ≃ β) : β ≃ α where
+/-- Inverse of an equivalence. -/
+protected def inv (e : Equiv α β) : Equiv β α where
   toFun := e.invFun
   invFun := e.toFun
   left_inv := e.right_inv
   right_inv := e.left_inv
 
-/-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
-@[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ where
-  toFun := e₂.toFun ∘ e₁.toFun
-  invFun := e₁.invFun ∘ e₂.invFun
-  left_inv := e₂.left_inv.comp e₁.left_inv
-  right_inv := e₂.right_inv.comp e₁.right_inv
+/-- Composition of equivalences. -/
+protected def comp (e₁ : Equiv β γ) (e₂ : Equiv α β) : Equiv α γ where
+  toFun := e₁.toFun ∘ e₂.toFun
+  invFun := e₂.invFun ∘ e₁.invFun
+  left_inv := e₁.left_inv.comp e₂.left_inv
+  right_inv := e₁.right_inv.comp e₂.right_inv
+
+end Batteries.Equiv
+
+export Batteries (Equiv)
