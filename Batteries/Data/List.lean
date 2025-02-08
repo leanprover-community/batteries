@@ -1,3 +1,4 @@
+import Batteries.Data.List.ArrayMap
 import Batteries.Data.List.Basic
 import Batteries.Data.List.Count
 import Batteries.Data.List.EraseIdx

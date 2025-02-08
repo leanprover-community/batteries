@@ -3,8 +3,9 @@ Copyright (c) 2024 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-open IO.Process
-open System
+import Batteries.Data.List.ArrayMap
+
+open IO.Process System
 
 /--
 Run tests.
@@ -26,7 +27,7 @@ def main (args : List String) : IO Unit := do
   let allowNoisy := args.contains "--allow-noisy"
   let targets ← match args.erase "--allow-noisy" with
   | [] => System.FilePath.walkDir "./test"
-  | _ => pure <| (args.map fun t => mkFilePath [".", "test", t] |>.withExtension "lean") |>.toArray
+  | _ => pure <| args.toArrayMap fun t => mkFilePath [".", "test", t] |>.withExtension "lean"
   let existing ← targets.filterM fun t => do pure <| (← t.pathExists) && !(← t.isDir)
   -- Generate a `lake env lean` task for each test target.
   let tasks ← existing.mapM fun t => do
