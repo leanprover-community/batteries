@@ -8,8 +8,6 @@ import Batteries.Logic.Basic
 import Batteries.Logic.Function
 import Batteries.Tactic.Trans
 
-namespace Batteries
-
 open Function in
 /-- `Equiv α β` is the type of functions from `α → β` with a two-sided inverse. -/
 structure Equiv (α β : Sort _) where
@@ -25,9 +23,9 @@ structure Equiv (α β : Sort _) where
 namespace Equiv
 
 @[ext] theorem ext {e₁ e₂ : Equiv α β} (H : ∀ x, e₁.toFun x = e₂.toFun x) : e₁ = e₂ := by
-  have hto : e₁.toFun = e₂.toFun := by funext; exact H ..
+  have hto : e₁.toFun = e₂.toFun := funext H
   have hinv : e₁.invFun = e₂.invFun := by
-    funext x; rw [← e₁.right_inv x, e₁.left_inv, H (e₁.invFun x), e₂.left_inv]
+    funext x; conv => lhs; rw [← e₂.right_inv x, ← H, e₁.left_inv]
   cases e₁; cases e₂; congr
 
 /-- Identity equivalence. -/
