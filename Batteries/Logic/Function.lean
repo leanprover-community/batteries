@@ -10,11 +10,11 @@ namespace Function
 
 theorem id_def : @id α = fun x => x := rfl
 
-theorem id_apply : id x = x := rfl
+@[simp] theorem id_apply : id x = x := rfl
 
-theorem id_comp : id ∘ f = f := funext fun _ => rfl
+@[simp] theorem id_comp : id ∘ f = f := funext fun _ => rfl
 
-theorem comp_id : f ∘ id = f := funext fun _ => rfl
+@[simp] theorem comp_id : f ∘ id = f := funext fun _ => rfl
 
 /-! ## LeftInverse, RightInverse -/
 
