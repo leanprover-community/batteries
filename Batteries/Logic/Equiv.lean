@@ -28,23 +28,23 @@ namespace Equiv
     funext x; conv => lhs; rw [← e₂.right_inv x, ← H, e₁.left_inv]
   cases e₁; cases e₂; congr
 
--- /-- Identity equivalence. -/
--- protected def id (α) : Equiv α α where
---   toFun := id
---   invFun := id
---   left_inv _ := rfl
---   right_inv _ := rfl
+/-- Identity equivalence. -/
+protected def id (α) : Equiv α α where
+  toFun := id
+  invFun := id
+  left_inv _ := rfl
+  right_inv _ := rfl
 
--- /-- Inverse of an equivalence. -/
--- protected def inv (e : Equiv α β) : Equiv β α where
---   toFun := e.invFun
---   invFun := e.toFun
---   left_inv := e.right_inv
---   right_inv := e.left_inv
+/-- Inverse of an equivalence. -/
+protected def inv (e : Equiv α β) : Equiv β α where
+  toFun := e.invFun
+  invFun := e.toFun
+  left_inv := e.right_inv
+  right_inv := e.left_inv
 
--- /-- Composition of equivalences. -/
--- protected def comp (e₁ : Equiv β γ) (e₂ : Equiv α β) : Equiv α γ where
---   toFun := e₁.toFun ∘ e₂.toFun
---   invFun := e₂.invFun ∘ e₁.invFun
---   left_inv := e₁.left_inv.comp e₂.left_inv
---   right_inv := e₁.right_inv.comp e₂.right_inv
+/-- Composition of equivalences. -/
+protected def comp (e₁ : Equiv β γ) (e₂ : Equiv α β) : Equiv α γ where
+  toFun := e₁.toFun ∘ e₂.toFun
+  invFun := e₂.invFun ∘ e₁.invFun
+  left_inv := e₁.left_inv.comp e₂.left_inv
+  right_inv := e₁.right_inv.comp e₂.right_inv
