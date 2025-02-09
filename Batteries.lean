@@ -11,6 +11,7 @@ import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Control.Lemmas
+import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic
 import Batteries.Data.Array
 import Batteries.Data.AssocList
