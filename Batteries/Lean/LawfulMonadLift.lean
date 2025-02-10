@@ -36,7 +36,6 @@ instance : LawfulMonadLift (ST σ) (EST ε σ) where
 
 instance : LawfulMonadLift IO CoreM where
   monadLift_pure _ := rfl
-  -- TODO: introduce helper lemmas instead of unfolding everything
   monadLift_bind ma f := by
     simp only [MonadLift.monadLift, bind, pure, Core.liftIOCore, liftM, monadLift, getRef, read,
       readThe, MonadReaderOf.read, IO.toEIO]
