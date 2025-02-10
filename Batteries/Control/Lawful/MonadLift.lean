@@ -44,8 +44,6 @@ class LawfulMonadLiftT (m : Type u → Type v) (n : Type u → Type w) [Monad m]
 
 export LawfulMonadLiftT (monadLift_pure monadLift_bind)
 
-variable {m : Type u → Type v} {n : Type u → Type w} {α β σ ρ ε ω}
-
 section Lemmas
 
 variable [Monad m] [Monad n] [MonadLiftT m n] [LawfulMonadLiftT m n]
@@ -98,6 +96,8 @@ theorem liftM_seqRight [LawfulMonad m] [LawfulMonad n] (x : m α) (y : m β) :
     liftM (x *> y) = (liftM x : n α) *> (liftM y : n β) :=
   monadLift_seqRight _ _
 
+end Lemmas
+
 instance (m n o) [Monad m] [Monad n] [Monad o] [MonadLift n o] [MonadLiftT m n]
     [LawfulMonadLift n o] [LawfulMonadLiftT m n] : LawfulMonadLiftT m o where
   monadLift_pure := fun a => by
@@ -108,8 +108,6 @@ instance (m n o) [Monad m] [Monad n] [Monad o] [MonadLift n o] [MonadLiftT m n]
 instance (m) [Monad m] : LawfulMonadLiftT m m where
   monadLift_pure _ := rfl
   monadLift_bind _ _ := rfl
-
-end Lemmas
 
 namespace StateT
 
@@ -186,7 +184,7 @@ end ExceptT
 
 namespace StateRefT'
 
-instance {m} [Monad m] : LawfulMonadLift m (StateRefT' ω σ m) where
+instance [Monad m] : LawfulMonadLift m (StateRefT' ω σ m) where
   monadLift_pure _ := by
     simp only [MonadLift.monadLift, pure]
     unfold StateRefT'.lift ReaderT.pure
@@ -227,8 +225,6 @@ instance [Monad m] [LawfulMonad m] : LawfulMonadLift m (ExceptCpsT ε m) where
 end ExceptCpsT
 
 namespace Id
-
-variable {m : Type u → Type v}
 
 /-- The `pure` operation of a monad `m` can be seen as a lifting operation from `Id` to `m`. -/
 instance [Pure m] : MonadLift Id m where
