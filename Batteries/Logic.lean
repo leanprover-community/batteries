@@ -26,7 +26,7 @@ end Classical
 
 /-! ## equality -/
 
-theorem heq_iff_eq {a b : α} : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
+theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
