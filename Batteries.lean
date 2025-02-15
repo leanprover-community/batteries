@@ -31,6 +31,7 @@ import Batteries.Data.List
 import Batteries.Data.MLList
 import Batteries.Data.NameSet
 import Batteries.Data.Nat
+import Batteries.Data.OrderedAssocList
 import Batteries.Data.PairingHeap
 import Batteries.Data.RBMap
 import Batteries.Data.Random
