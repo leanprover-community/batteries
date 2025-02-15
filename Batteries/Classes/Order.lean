@@ -5,29 +5,6 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.SeqFocus
 
-/-! ## Ordering -/
-
-namespace Ordering
-
-@[simp] theorem swap_swap {o : Ordering} : o.swap.swap = o := by cases o <;> rfl
-
-@[simp] theorem swap_inj {o₁ o₂ : Ordering} : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
-  ⟨fun h => by simpa using congrArg swap h, congrArg _⟩
-
-theorem swap_then (o₁ o₂ : Ordering) : (o₁.then o₂).swap = o₁.swap.then o₂.swap := by
-  cases o₁ <;> rfl
-
-theorem then_eq_lt {o₁ o₂ : Ordering} : o₁.then o₂ = lt ↔ o₁ = lt ∨ o₁ = eq ∧ o₂ = lt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-theorem then_eq_eq {o₁ o₂ : Ordering} : o₁.then o₂ = eq ↔ o₁ = eq ∧ o₂ = eq := by
-  cases o₁ <;> simp [«then»]
-
-theorem then_eq_gt {o₁ o₂ : Ordering} : o₁.then o₂ = gt ↔ o₁ = gt ∨ o₁ = eq ∧ o₂ = gt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-end Ordering
-
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
@@ -102,7 +79,7 @@ theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
 theorem cmp_congr_left' (xy : cmp x y = .eq) : cmp x = cmp y :=
   funext fun _ => cmp_congr_left xy
 
-theorem cmp_congr_right [TransCmp cmp] (yz : cmp y z = .eq) : cmp x y = cmp x z := by
+theorem cmp_congr_right (yz : cmp y z = .eq) : cmp x y = cmp x z := by
   rw [← Ordering.swap_inj, symm, symm, cmp_congr_left yz]
 
 end TransCmp
@@ -278,11 +255,8 @@ instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) w
 instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) where
   le_trans := TransCmp.le_trans (α := β)
 
--- FIXME: remove after lean4#3882 is merged
 theorem _root_.lexOrd_def [Ord α] [Ord β] :
-    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := by
-  funext a b
-  simp [lexOrd, compareLex, compareOn]
+    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
 section «non-canonical instances»
 -- Note: the following instances seem to cause lean to fail, see:

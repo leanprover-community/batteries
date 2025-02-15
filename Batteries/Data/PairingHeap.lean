@@ -123,7 +123,7 @@ theorem Heap.size_merge_node (le) (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) 
 theorem Heap.size_merge (le) {s₁ s₂ : Heap α} (h₁ : s₁.NoSibling) (h₂ : s₂.NoSibling) :
     (merge le s₁ s₂).size = s₁.size + s₂.size := by
   match h₁, h₂ with
-  | .nil, .nil | .nil, .node _ _ | .node _ _, .nil => simp [size]
+  | .nil, .nil | .nil, .node _ _ | .node _ _, .nil => simp [merge, size]
   | .node _ _, .node _ _ => unfold merge; dsimp; split <;> simp_arith [size]
 
 theorem Heap.size_combine (le) (s : Heap α) :

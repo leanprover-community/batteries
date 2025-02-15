@@ -47,7 +47,7 @@ theorem strongRec_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → m
 
 theorem strongRecOn_eq {motive : Nat → Sort _} (ind : ∀ n, (∀ m, m < n → motive m) → motive n)
     (t : Nat) : Nat.strongRecOn t ind = ind t fun m _ => Nat.strongRecOn m ind :=
-  Nat.strongRec_eq ..
+  WellFounded.fix_eq WellFoundedRelation.wf ind t
 
 @[simp] theorem recDiagAux_zero_left {motive : Nat → Nat → Sort _}
     (zero_left : ∀ n, motive 0 n) (zero_right : ∀ m, motive m 0)
@@ -149,24 +149,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
   | .eq => .inr (.inl (Nat.compare_eq_eq.1 h))
   | .gt => .inr (.inr (Nat.compare_eq_gt.1 h))
 
-/-! ## add -/
-
-@[deprecated (since := "2023-11-25")] alias succ_add_eq_succ_add := Nat.succ_add_eq_add_succ
-
-/-! ## sub -/
-
-@[deprecated (since := "2023-11-25")]
-protected alias le_of_le_of_sub_le_sub_right := Nat.le_of_sub_le_sub_right
-
-@[deprecated (since := "2023-11-25")]
-protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
-
-/-! ### mul -/
-
-@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul := Nat.mul_lt_mul_of_lt_of_le'
-
-@[deprecated (since := "2024-01-11")] protected alias mul_lt_mul' := Nat.mul_lt_mul_of_le_of_lt
-
 /-! ### div/mod -/
 
 -- TODO mod_core_congr, mod_def
@@ -177,12 +159,48 @@ protected alias le_of_le_of_sub_le_sub_left := Nat.le_of_sub_le_sub_left
 
 /-! ### sum -/
 
-@[simp] theorem sum_nil : Nat.sum [] = 0 := rfl
 
-@[simp] theorem sum_cons : Nat.sum (a :: l) = a + Nat.sum l := rfl
-
-@[simp] theorem sum_append : Nat.sum (l₁ ++ l₂) = Nat.sum l₁ + Nat.sum l₂ := by
+@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
   induction l₁ <;> simp [*, Nat.add_assoc]
 
-@[deprecated (since := "2024-03-05")] protected alias lt_connex := Nat.lt_or_gt_of_ne
-@[deprecated (since := "2024-02-09")] alias pow_two_pos := Nat.two_pow_pos
+/-! ### ofBits -/
+
+@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := rfl
+
+theorem ofBits_succ (f : Fin (n+1) → Bool) : ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat :=
+  Fin.foldr_succ ..
+
+theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    calc ofBits f
+        = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat := ofBits_succ ..
+      _ < 2 * (ofBits (f ∘ Fin.succ) + 1) := Nat.add_lt_add_left (Bool.toNat_lt _) ..
+      _ ≤ 2 * 2 ^ n := Nat.mul_le_mul_left 2 (ih ..)
+      _ = 2 ^ (n + 1) := Nat.pow_add_one' .. |>.symm
+
+@[simp] theorem testBit_ofBits_lt (f : Fin n → Bool) (i : Nat) (h : i < n) :
+    (ofBits f).testBit i = f ⟨i, h⟩ := by
+  induction n generalizing i with
+  | zero => contradiction
+  | succ n ih =>
+    simp only [ofBits_succ]
+    match i with
+    | 0 => simp [mod_eq_of_lt (Bool.toNat_lt _)]
+    | i+1 =>
+      rw [testBit_add_one, mul_add_div Nat.zero_lt_two, Nat.div_eq_of_lt (Bool.toNat_lt _)]
+      exact ih (f ∘ Fin.succ) i (Nat.lt_of_succ_lt_succ h)
+
+@[simp] theorem testBit_ofBits_ge (f : Fin n → Bool) (i : Nat) (h : n ≤ i) :
+    (ofBits f).testBit i = false := by
+  apply testBit_lt_two_pow
+  apply Nat.lt_of_lt_of_le
+  · exact ofBits_lt_two_pow f
+  · exact pow_le_pow_of_le_right Nat.zero_lt_two h
+
+theorem testBit_ofBits (f : Fin n → Bool) :
+    (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else false := by
+  cases Nat.lt_or_ge i n with
+  | inl h => simp [h]
+  | inr h => simp [h, Nat.not_lt_of_ge h]

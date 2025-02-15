@@ -67,9 +67,6 @@ protected def max? : RBNode α → Option α
   | node _ _ v nil => some v
   | node _ _ _ r   => r.max?
 
-@[deprecated (since := "2024-04-17")] protected alias min := RBNode.min?
-@[deprecated (since := "2024-04-17")] protected alias max := RBNode.max?
-
 /--
 Fold a function in tree order along the nodes. `v₀` is used at `nil` nodes and
 `f` is used to combine results at branching nodes.
@@ -194,7 +191,8 @@ instance {t : RBNode α} [DecidablePred p] : Decidable (t.Any p) :=
 /-- True if `x` is an element of `t` "exactly", i.e. up to equality, not the `cmp` relation. -/
 def EMem (x : α) (t : RBNode α) : Prop := t.Any (x = ·)
 
-instance : Membership α (RBNode α) := ⟨EMem⟩
+instance : Membership α (RBNode α) where
+  mem t x := EMem x t
 
 /-- True if the specified `cut` matches at least one element of of `t`. -/
 def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
@@ -669,9 +667,6 @@ instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStrea
 /-- `O(log n)`. Returns the entry `a` such that `a ≥ k` for all keys in the RBSet. -/
 @[inline] protected def max? (t : RBSet α cmp) : Option α := t.1.max?
 
-@[deprecated (since := "2024-04-17")] protected alias min := RBSet.min?
-@[deprecated (since := "2024-04-17")] protected alias max := RBSet.max?
-
 instance [Repr α] : Repr (RBSet α cmp) where
   reprPrec m prec := Repr.addAppParen ("RBSet.ofList " ++ repr m.toList) prec
 
@@ -768,7 +763,8 @@ def MemP (cut : α → Ordering) (t : RBSet α cmp) : Prop := t.1.MemP cut
 /-- True if `x` is equivalent to an element of `t`. -/
 def Mem (x : α) (t : RBSet α cmp) : Prop := MemP (cmp x) t
 
-instance : Membership α (RBSet α cmp) := ⟨Mem⟩
+instance : Membership α (RBSet α cmp) where
+  mem t x := Mem x t
 
 -- These instances are put in a special namespace because they are usually not what users want
 -- when deciding membership in a RBSet, since this does a naive linear search through the tree.
@@ -1052,9 +1048,6 @@ instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 
 /-- `O(log n)`. Returns the key-value pair `(a, b)` such that `a ≥ k` for all keys in the RBMap. -/
 @[inline] protected def max? : RBMap α β cmp → Option (α × β) := RBSet.max?
-
-@[deprecated (since := "2024-04-17")] protected alias min := RBMap.min?
-@[deprecated (since := "2024-04-17")] protected alias max := RBMap.max?
 
 instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.ofList " ++ repr m.toList) prec

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Nat.Gcd
-import Batteries.Data.Int.DivMod
-import Batteries.Lean.Float
 
 /-! # Basics for the Rational Numbers -/
 
@@ -46,23 +44,23 @@ Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational n
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
 -/
 @[inline] def Rat.maybeNormalize (num : Int) (den g : Nat)
-    (den_nz : den / g ≠ 0) (reduced : (num.div g).natAbs.Coprime (den / g)) : Rat :=
+    (den_nz : den / g ≠ 0) (reduced : (num.tdiv g).natAbs.Coprime (den / g)) : Rat :=
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
       reduced := by simp [hg, Int.natAbs_ofNat] at reduced; exact reduced }
-  else { num := num.div g, den := den / g, den_nz, reduced }
+  else { num := num.tdiv g, den := den / g, den_nz, reduced }
 
 theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
     (e : g = num.natAbs.gcd den) : den / g ≠ 0 :=
   e ▸ Nat.ne_of_gt (Nat.div_gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 theorem Rat.normalize.reduced {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num.div g).natAbs.Coprime (den / g) :=
-  have : Int.natAbs (num.div ↑g) = num.natAbs / g := by
+    (e : g = num.natAbs.gcd den) : (num.tdiv g).natAbs.Coprime (den / g) :=
+  have : Int.natAbs (num.tdiv ↑g) = num.natAbs / g := by
     match num, num.eq_nat_or_neg with
     | _, ⟨_, .inl rfl⟩ => rfl
-    | _, ⟨_, .inr rfl⟩ => rw [Int.neg_div, Int.natAbs_neg, Int.natAbs_neg]; rfl
+    | _, ⟨_, .inr rfl⟩ => rw [Int.neg_tdiv, Int.natAbs_neg, Int.natAbs_neg]; rfl
   this ▸ e ▸ Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 /--
@@ -113,7 +111,8 @@ def divInt : Int → Int → Rat
   else
     (m * 10 ^ e : Nat)
 
-instance : OfScientific Rat where ofScientific := Rat.ofScientific
+instance : OfScientific Rat where
+  ofScientific m s e := Rat.ofScientific (OfNat.ofNat m) s (OfNat.ofNat e)
 
 /-- Rational number strictly less than relation, as a `Bool`. -/
 protected def blt (a b : Rat) : Bool :=
@@ -142,12 +141,12 @@ want to unfold it. Use `Rat.mul_def` instead.) -/
 @[irreducible] protected def mul (a b : Rat) : Rat :=
   let g1 := Nat.gcd a.num.natAbs b.den
   let g2 := Nat.gcd b.num.natAbs a.den
-  { num := (a.num.div g1) * (b.num.div g2)
+  { num := (a.num.tdiv g1) * (b.num.tdiv g2)
     den := (a.den / g2) * (b.den / g1)
     den_nz := Nat.ne_of_gt <| Nat.mul_pos
       (Nat.div_gcd_pos_of_pos_right _ a.den_pos) (Nat.div_gcd_pos_of_pos_right _ b.den_pos)
     reduced := by
-      simp only [Int.natAbs_mul, Int.natAbs_div, Nat.coprime_mul_iff_left]
+      simp only [Int.natAbs_mul, Int.natAbs_tdiv, Nat.coprime_mul_iff_left]
       refine ⟨Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩, Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩⟩
       · exact a.reduced.coprime_div_left (Nat.gcd_dvd_left ..)
           |>.coprime_div_right (Nat.gcd_dvd_right ..)
@@ -278,18 +277,4 @@ protected def ceil (a : Rat) : Int :=
   else
     a.num / a.den + 1
 
-/-- Convert this rational number to a `Float` value. -/
-protected def toFloat (a : Rat) : Float := a.num.divFloat a.den
-
-/-- Convert this floating point number to a rational value. -/
-protected def _root_.Float.toRat? (a : Float) : Option Rat :=
-  a.toRatParts.map fun (v, exp) =>
-    mkRat (v.sign * v.natAbs <<< exp.toNat) (1 <<< (-exp).toNat)
-
-/--
-Convert this floating point number to a rational value,
-mapping non-finite values (`inf`, `-inf`, `nan`) to 0.
--/
-protected def _root_.Float.toRat0 (a : Float) : Rat := a.toRat?.getD 0
-
-instance : Coe Rat Float := ⟨Rat.toFloat⟩
+end Rat

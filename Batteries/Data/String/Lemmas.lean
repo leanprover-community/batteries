@@ -8,19 +8,15 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
-import Batteries.Tactic.SqueezeScope
 
 namespace String
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
+attribute [ext (iff := false)] ext
 
-theorem lt_trans {s₁ s₂ s₃ : String} : s₁ < s₂ → s₂ < s₃ → s₁ < s₃ :=
-  List.lt_trans' (α := Char) Nat.lt_trans
-    (fun h1 h2 => Nat.not_lt.2 <| Nat.le_trans (Nat.not_lt.1 h2) (Nat.not_lt.1 h1))
-
-theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ :=
-  ext <| List.lt_antisymm' (α := Char)
-    (fun h1 h2 => Char.le_antisymm (Nat.not_lt.1 h2) (Nat.not_lt.1 h1)) h₁ h₂
+theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ := by
+  simp at h₁ h₂
+  exact String.le_antisymm h₂ h₁
 
 instance : Batteries.TransOrd String := .compareOfLessAndEq
   String.lt_irrefl String.lt_trans String.lt_antisymm
@@ -34,14 +30,14 @@ instance : Batteries.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
 
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
-private theorem add_csize_pos : 0 < i + Char.utf8Size c :=
+private theorem add_utf8Size_pos : 0 < i + Char.utf8Size c :=
   Nat.add_pos_right _ (Char.utf8Size_pos c)
 
-private theorem ne_add_csize_add_self : i ≠ n + Char.utf8Size c + i :=
-  Nat.ne_of_lt (Nat.lt_add_of_pos_left add_csize_pos)
+private theorem ne_add_utf8Size_add_self : i ≠ n + Char.utf8Size c + i :=
+  Nat.ne_of_lt (Nat.lt_add_of_pos_left add_utf8Size_pos)
 
-private theorem ne_self_add_add_csize : i ≠ i + (n + Char.utf8Size c) :=
-  Nat.ne_of_lt (Nat.lt_add_of_pos_right add_csize_pos)
+private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
+  Nat.ne_of_lt (Nat.lt_add_of_pos_right add_utf8Size_pos)
 
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
 @[inline] def utf8Len : List Char → Nat := utf8ByteSize.go
@@ -57,14 +53,14 @@ private theorem ne_self_add_add_csize : i ≠ i + (n + Char.utf8Size c) :=
 @[simp] theorem utf8Len_append (cs₁ cs₂) : utf8Len (cs₁ ++ cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
   induction cs₁ <;> simp [*, Nat.add_right_comm]
 
-@[simp] theorem utf8Len_reverseAux (cs₁ cs₂) :
+theorem utf8Len_reverseAux (cs₁ cs₂) :
     utf8Len (cs₁.reverseAux cs₂) = utf8Len cs₁ + utf8Len cs₂ := by
-  induction cs₁ generalizing cs₂ <;> simp [*, ← Nat.add_assoc, Nat.add_right_comm]
+  induction cs₁ generalizing cs₂ <;> simp_all [← Nat.add_assoc, Nat.add_right_comm]
 
 @[simp] theorem utf8Len_reverse (cs) : utf8Len cs.reverse = utf8Len cs := utf8Len_reverseAux ..
 
 @[simp] theorem utf8Len_eq_zero : utf8Len l = 0 ↔ l = [] := by
-  cases l <;> simp [Nat.ne_of_gt add_csize_pos]
+  cases l <;> simp [Nat.ne_zero_iff_zero_lt.mpr (Char.utf8Size_pos _)]
 
 section
 open List
@@ -87,12 +83,13 @@ end
 
 namespace Pos
 
-attribute [ext] ext
+-- TODO(kmill): add `@[ext]` attribute to `String.Pos.ext` in core.
+attribute [ext (iff := false)] ext
 
 theorem lt_addChar (p : Pos) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
 
 private theorem zero_ne_addChar {i : Pos} {c : Char} : 0 ≠ i + c :=
-  ne_of_lt add_csize_pos
+  ne_of_lt add_utf8Size_pos
 
 /-- A string position is valid if it is equal to the UTF-8 length of an initial substring of `s`. -/
 def Valid (s : String) (p : Pos) : Prop :=
@@ -152,9 +149,9 @@ theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len c
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8GetAux]
   | c::cs, cs' =>
-    simp only [utf8GetAux, List.append_eq, Char.reduceDefault, ↓Char.isValue]
+    simp only [List.cons_append, utf8GetAux, Char.reduceDefault]
     rw [if_neg]
-    case hnc => simp only [← hp, utf8Len_cons, Pos.ext_iff]; exact ne_self_add_add_csize
+    case hnc => simp only [← hp, utf8Len_cons, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -171,9 +168,9 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8GetAux?]
   | c::cs, cs' =>
-    simp only [utf8GetAux?, List.append_eq]
+    simp only [List.cons_append, utf8GetAux?]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -188,7 +185,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | c::cs, cs' =>
     simp only [utf8SetAux, List.append_eq, List.cons_append]
     rw [if_neg]
-    case hnc => simp [← hp, Pos.ext_iff]; exact ne_self_add_add_csize
+    case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
@@ -208,7 +205,7 @@ theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     next ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos) : atEnd s p ↔ s.endPos ≤ p :=
-  decide_eq_true_iff _
+  decide_eq_true_iff
 
 theorem valid_next {p : Pos} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).Valid s := by
   match s, p, h with
@@ -223,19 +220,19 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
   match cs with
   | [] => simp [utf8PrevAux, ← hp, Pos.addChar_eq]
   | c'::cs =>
-    simp only [utf8PrevAux, Pos.addChar_eq, ← hp, utf8Len_cons, List.append_eq]
+    simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
       simp only [Pos.ext_iff]
       rw [Nat.add_right_comm, Nat.add_left_comm]
-      apply ne_add_csize_add_self
+      apply ne_add_utf8Size_add_self
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
   simp only [prev]
-  refine (if_neg (Pos.ne_of_gt add_csize_pos)).trans ?_
+  refine (if_neg (Pos.ne_of_gt add_utf8Size_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
 
 theorem prev_of_valid' (cs cs' : List Char) :
@@ -255,7 +252,7 @@ theorem back_eq (s : String) : back s = s.1.getLastD default := by
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     atEnd ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
-  cases cs' <;> simp [Nat.lt_add_of_pos_right add_csize_pos]
+  cases cs' <;> simp [add_utf8Size_pos]
 
 unseal posOfAux findAux in
 theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
@@ -276,7 +273,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
   | l, [], r => by unfold findAux List.takeWhile; simp
   | l, c::m, r => by
     unfold findAux List.takeWhile
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
@@ -298,7 +295,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
   | [], r => by unfold revFindAux List.dropWhile; simp
   | c::l, r => by
     unfold revFindAux List.dropWhile
-    rw [dif_neg (by exact Pos.ne_of_gt add_csize_pos)]
+    rw [dif_neg (by exact Pos.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
@@ -320,7 +317,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     rw [
       dif_pos <| by
         rw [hstop, ← hl₁, ← hl₂]
-        refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_csize_pos,
+        refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_utf8Size_pos,
       show get ⟨l₁ ++ a :: r₁⟩ ⟨p⟩ = a by simp [hl₁, get_of_valid],
       show get ⟨l₂ ++ b :: r₂⟩ ⟨p⟩ = b by simp [hl₂, get_of_valid]]
     simp only [bne_iff_ne, ne_eq, ite_not, decide_eq_true_eq]
@@ -335,7 +332,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
   · next h =>
     rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
     intro h₁ h₂
-    have : ∀ {cs}, p < p + utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
+    have : ∀ {cs}, 0 < utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
     obtain ⟨a, as, e₁⟩ := List.exists_cons_of_ne_nil (this h₁)
     obtain ⟨b, bs, e₂⟩ := List.exists_cons_of_ne_nil (this h₂)
     exact h _ _ _ _ e₁ e₂
@@ -360,7 +357,7 @@ theorem extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
     e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
 | [], t, i, _, rfl => by cases t <;> simp [go₂]
 | c :: cs, t, i, _, rfl => by
-  simp only [go₂, utf8Len_cons, Pos.ext_iff, ne_add_csize_add_self, ↓reduceIte, List.append_eq,
+  simp only [List.cons_append, utf8Len_cons, go₂, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte,
     Pos.addChar_eq, List.cons.injEq, true_and]
   apply go₂_append_left; rw [Nat.add_right_comm, Nat.add_assoc]
 
@@ -379,7 +376,7 @@ theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
 
 theorem extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos) :
     go₁ (c :: cs) 0 (b + c) (e + c) = go₁ cs 0 b e := by
-  simp only [go₁, Pos.ext_iff, Pos.byteIdx_zero, pos_add_char, Nat.ne_of_lt add_csize_pos,
+  simp only [go₁, Pos.ext_iff, Pos.byteIdx_zero, pos_add_char, Nat.ne_of_lt add_utf8Size_pos,
     ↓reduceIte]
   apply go₁_add_right_cancel
 
@@ -387,7 +384,7 @@ theorem extract.go₁_append_right : ∀ (s t : List Char) (i b : Nat) (e : Pos)
     b = utf8Len s + i → go₁ (s ++ t) ⟨i⟩ ⟨b⟩ e = go₂ t ⟨b⟩ e
 | [], t, i, _, e, rfl => by cases t <;> simp [go₁, go₂]
 | c :: cs, t, i, _, e, rfl => by
-  simp only [go₁, utf8Len_cons, Pos.ext_iff, ne_add_csize_add_self, ↓reduceIte, List.append_eq,
+  simp only [go₁, utf8Len_cons, Pos.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte, List.cons_append,
     Pos.addChar_eq]
   apply go₁_append_right; rw [Nat.add_right_comm, Nat.add_assoc]
 
@@ -404,7 +401,7 @@ theorem extract_zero_endPos : ∀ (s : String), s.extract 0 (endPos s) = s
   | ⟨[]⟩ => rfl
   | ⟨c :: cs⟩ => by
     simp only [extract, Pos.byteIdx_zero, endPos_eq, utf8Len_cons, ge_iff_le, Nat.le_zero_eq,
-      Nat.ne_of_gt add_csize_pos, ↓reduceIte]
+      Nat.ne_of_gt add_utf8Size_pos, ↓reduceIte]
     congr
     apply extract.go₁_zero_utf8Len
 
@@ -420,8 +417,9 @@ theorem splitAux_of_valid (p l m r acc) :
     splitAux ⟨l ++ m ++ r⟩ p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map mk := by
   unfold splitAux
-  simp only [List.append_assoc, atEnd_iff, endPos_eq, utf8Len_append, Pos.mk_le_mk, by
-    simpa using atEnd_of_valid (l ++ m) r, List.reverse_cons, dite_eq_ite]
+  simp only [List.append_assoc, atEnd_iff, endPos_eq, utf8Len_append, Pos.mk_le_mk,
+    Nat.add_le_add_iff_left, by simpa using atEnd_of_valid (l ++ m) r, List.reverse_cons,
+    dite_eq_ite]
   split
   · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
@@ -431,9 +429,11 @@ theorem splitAux_of_valid (p l m r acc) :
             extract_of_valid l m (c :: r)⟩ :
           _ ∧ _ ∧ _),
       List.splitOnP.go, List.reverse_reverse]
-    split
-    · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
-    · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    split <;> rename_i h
+    · simp_all only [List.head?_cons, Option.getD_some]
+      simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
+    · simp_all only [List.head?_cons, Option.getD_some]
+      simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []
@@ -445,12 +445,12 @@ theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
 
 attribute [simp] toSubstring'
 
-theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).join⟩ := go ss [] where
-  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).join⟩
+theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).flatten⟩ := go ss [] where
+  go : ∀ (ss : List String) cs, ss.foldl (· ++ ·) (mk cs) = ⟨cs ++ (ss.map data).flatten⟩
     | [], _ => by simp
     | ⟨s⟩::ss, _ => (go ss _).trans (by simp)
 
-@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).join := by
+@[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).flatten := by
   rw [join_eq]
 
 @[deprecated (since := "2024-06-06")] alias append_nil := append_empty
@@ -571,7 +571,7 @@ theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse +
     it₁.extract it₂ = ⟨m⟩ := by
   cases h₁.out; cases h₂.out
   simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
-    List.append_assoc, ne_eq, not_true_eq_false, decide_False, utf8Len_append, utf8Len_reverse,
+    List.append_assoc, ne_eq, not_true_eq_false, decide_false, utf8Len_append, utf8Len_reverse,
     gt_iff_lt, pos_lt_eq, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
     ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r
@@ -645,7 +645,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
   | l, [], r, n => by unfold offsetOfPosAux; simp
   | l, c::m, r, n => by
     unfold offsetOfPosAux
-    rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_csize_pos))]
+    rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
@@ -660,7 +660,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
   | l, [], r, a => by unfold foldlAux; simp
   | l, c::m, r, a => by
     unfold foldlAux
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r),
       get_of_valid l (c :: (m ++ r)), Char.reduceDefault, List.headD_cons, List.foldl_cons]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
@@ -674,7 +674,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
   rw [← m.reverse_reverse]
   induction m.reverse generalizing r a with (unfold foldrAux; simp)
   | cons c m IH =>
-    rw [if_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [if_pos add_utf8Size_pos]
     simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
@@ -688,7 +688,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, [], r => by unfold anyAux; simp
   | l, c::m, r => by
     unfold anyAux
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r),
       Bool.if_true_left, Bool.decide_eq_true, List.any_cons]
@@ -732,7 +732,7 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, [], r => by unfold Substring.takeWhileAux List.takeWhile; simp
   | l, c::m, r => by
     unfold Substring.takeWhileAux List.takeWhile
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_csize_pos)]
+    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
     cases p c <;> simp
@@ -809,7 +809,7 @@ theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     rw [if_neg (mt Pos.ext_iff.1 ?a)]
     case a =>
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
-        @ne_add_csize_add_self (utf8Len l + utf8Len m₁) (utf8Len m₂) c
+        @ne_add_utf8Size_add_self (utf8Len l + utf8Len m₁) (utf8Len m₂) c
     have := next_of_valid (l ++ m₁) c (m₂ ++ r)
     simp only [List.append_assoc, utf8Len_append, Pos.add_eq] at this ⊢; rw [this]
     simp [Nat.add_assoc, Nat.add_sub_cancel_left]
@@ -822,7 +822,7 @@ theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
   | _, ⟨⟩ => by
     simp only [Substring.prev, List.append_assoc, List.cons_append]
     rw [if_neg (mt Pos.ext_iff.1 <| Ne.symm ?a)]
-    case a => simpa [Nat.add_comm] using @ne_add_csize_add_self (utf8Len l) (utf8Len m₁) c
+    case a => simpa [Nat.add_comm] using @ne_add_utf8Size_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
     simp only [List.append_assoc, utf8Len_append, Nat.add_assoc, Pos.add_eq] at this ⊢; rw [this]
     simp [Nat.add_sub_cancel_left]
@@ -920,14 +920,14 @@ theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.takeWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
     simp only [Substring.dropWhile, takeWhileAux_of_valid]
-    refine' .of_eq .. <;> simp
+    apply ValidFor.of_eq <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
 -- TODO: takeRightWhile
