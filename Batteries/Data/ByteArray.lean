@@ -7,8 +7,10 @@ import Batteries.Tactic.Alias
 
 namespace ByteArray
 
-@[ext] theorem ext : {a b : ByteArray} → a.data = b.data → a = b
-  | ⟨_⟩, ⟨_⟩, rfl => rfl
+attribute [ext] ByteArray
+
+instance : DecidableEq ByteArray :=
+  fun _ _ => decidable_of_decidable_of_iff ByteArray.ext_iff.symm
 
 theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data[i] := rfl
 
