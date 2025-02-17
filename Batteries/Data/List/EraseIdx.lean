@@ -27,6 +27,7 @@ theorem mem_eraseIdx_iff_get {x : α} {l} {k} :
   · rintro ⟨i, h, rfl⟩
     exact ⟨i.1, h, i.2, rfl⟩
 
+set_option linter.deprecated false in
 @[deprecated mem_eraseIdx_iff_getElem? (since := "2024-06-12")]
 theorem mem_eraseIdx_iff_get? {x : α} {l} {k} : x ∈ eraseIdx l k ↔ ∃ i ≠ k, l.get? i = x := by
   simp [mem_eraseIdx_iff_getElem?]
