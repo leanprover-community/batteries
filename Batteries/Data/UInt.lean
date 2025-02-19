@@ -79,12 +79,12 @@ theorem USize.size_eq : USize.size = 2 ^ System.Platform.numBits := by
 
 theorem USize.le_size : 2 ^ 32 ≤ USize.size := by
   rw [size_eq]
-  apply Nat.pow_le_pow_of_le_right (by decide)
+  apply Nat.pow_le_pow_right (by decide)
   cases System.Platform.numBits_eq <;> simp +arith [*]
 
 theorem USize.size_le : USize.size ≤ 2 ^ 64 := by
   rw [size_eq]
-  apply Nat.pow_le_pow_of_le_right (by decide)
+  apply Nat.pow_le_pow_right (by decide)
   cases System.Platform.numBits_eq <;> simp +arith [*]
 
 theorem USize.toNat_lt (x : USize) : x.toNat < 2 ^ System.Platform.numBits := by
