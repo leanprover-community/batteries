@@ -17,9 +17,6 @@ theorem Float.toBits_inj {x y : Float} : x.toBits = y.toBits ↔ x = y := by
 instance : DecidableEq Float := fun _ _ =>
   decidable_of_decidable_of_iff Float.toBits_inj
 
-example : (2047 <<< 52 ||| 2251799813685248) >>> 52 &&& 2047 = 2047 := by
-  simp
-
 theorem Float.toBits_ofBits_of_isNaNBits {x : UInt64} (h : isNaNBits x) :
     (ofBits x).toBits = 0x7ff8_0000_0000_0000 := by
   simp only [toBits_ofBits, h, reduceIte]
@@ -119,4 +116,4 @@ theorem Float.beq_self_iff (x : Float) : x == x ↔ x ≠ nan := by
 @[simp]
 theorem Float.bne_eq_not_beq (x y : Float) : (x != y) = !(x == y) := rfl
 
-example : Float.nan != Float.nan := by simp
+theorem Float.nan_bne_nan : Float.nan != Float.nan := by simp
