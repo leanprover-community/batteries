@@ -24,6 +24,11 @@ private structure Float.AxiomSet where
   isInf_def (x : Float) : x.isInf = (x.exponentPart = 2047 ∧ x.mantissa = 0)
   isFinite_def (x : Float) : x.isFinite = (x.exponentPart < 2047)
   neg_def (x : Float) : x.neg = ofBits (x.toBits ^^^ 0x8000_0000_0000_0000)
+  beq_def (x y : Float) : x.beq y =
+    if x.isNaN ∨ y.isNaN then false
+    else if x.exponentPart = 0 ∧ x.mantissa = 0 ∧
+      y.exponentPart = 0 ∧ y.mantissa = 0 then true
+    else x.toBits = y.toBits
 
 /--
 Auxiliary axiom redefining the opaque `Float` functions.
@@ -68,3 +73,19 @@ theorem Float.neg.eq_def (x : Float) :
 theorem Float.neg.eq_1 (x : Float) :
     x.neg = ofBits (x.toBits ^^^ 0x8000_0000_0000_0000) := by
   unfold Float.neg; rfl
+
+theorem Float.beq.eq_def (x y : Float) :
+    x.beq y =
+      if x.isNaN ∨ y.isNaN then false
+      else if x.exponentPart = 0 ∧ x.mantissa = 0 ∧
+        y.exponentPart = 0 ∧ y.mantissa = 0 then true
+      else x.toBits = y.toBits :=
+  Float.definitionAxiom.beq_def x y
+
+theorem Float.beq.eq_1 (x y : Float) :
+    x.beq y =
+      if x.isNaN ∨ y.isNaN then false
+      else if x.exponentPart = 0 ∧ x.mantissa = 0 ∧
+        y.exponentPart = 0 ∧ y.mantissa = 0 then true
+      else x.toBits = y.toBits := by
+  unfold beq; rfl

@@ -12,6 +12,11 @@ theorem Float.toBits_inj {x y : Float} : x.toBits = y.toBits ↔ x = y := by
   · rintro rfl
     rfl
 
+-- not sure whether we want this
+-- `0 ≠ -0` but `nan = nan`
+instance : DecidableEq Float := fun _ _ =>
+  decidable_of_decidable_of_iff Float.toBits_inj
+
 example : (2047 <<< 52 ||| 2251799813685248) >>> 52 &&& 2047 = 2047 := by
   simp
 
@@ -89,7 +94,29 @@ theorem Float.mantissa_neg (x : Float) : (-x).mantissa = x.mantissa := by
       simpa [isNaNBits, ← UInt64.toNat_inj, Nat.shiftRight_xor_distrib,
         Nat.and_xor_distrib_right] using h
 
--- not sure whether we want this
--- `0 ≠ -0` but `nan = nan`
-instance : DecidableEq Float := fun _ _ =>
-  decidable_of_decidable_of_iff Float.toBits_inj
+theorem Float.beq_def (x y : Float) : (x == y) = x.beq y := rfl
+
+@[simp]
+theorem Float.not_nan_beq (x : Float) : (nan == x) = false := by
+  rw [beq_def, beq]
+  simp only [isNaN_nan, true_or, ↓reduceIte]
+
+@[simp]
+theorem Float.not_beq_nan (x : Float) : (x == nan) = false := by
+  rw [beq_def, beq]
+  simp only [isNaN_nan, or_true, ↓reduceIte]
+
+@[simp]
+theorem Float.beq_self_eq (x : Float) : (x == x) = decide (x ≠ nan) := by
+  rw [beq_def, beq]
+  simp [Float.isNaN_iff_eq_nan]
+
+@[simp]
+theorem Float.beq_self_iff (x : Float) : x == x ↔ x ≠ nan := by
+  simp
+
+-- `a != b` is simplified to `!(a == b)` to ensure simp confluency
+@[simp]
+theorem Float.bne_eq_not_beq (x y : Float) : (x != y) = !(x == y) := rfl
+
+example : Float.nan != Float.nan := by simp
