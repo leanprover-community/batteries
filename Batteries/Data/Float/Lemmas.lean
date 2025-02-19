@@ -88,3 +88,8 @@ theorem Float.mantissa_neg (x : Float) : (-x).mantissa = x.mantissa := by
     · rw [← Float.isNaN_iff_eq_nan, isNaN] at h
       simpa [isNaNBits, ← UInt64.toNat_inj, Nat.shiftRight_xor_distrib,
         Nat.and_xor_distrib_right] using h
+
+-- not sure whether we want this
+-- `0 ≠ -0` but `nan = nan`
+instance : DecidableEq Float := fun _ _ =>
+  decidable_of_decidable_of_iff Float.toBits_inj
