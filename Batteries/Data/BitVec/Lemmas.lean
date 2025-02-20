@@ -11,20 +11,6 @@ import Batteries.Data.Int
 
 namespace BitVec
 
-theorem msb_eq_getMsbD_zero (v : BitVec n) : v.msb = v.getMsbD 0 := by
-  cases n <;> simp [getMsbD_eq_getLsbD, msb_eq_getLsbD_last]
-
-theorem getElem_shiftConcat (v : BitVec n) (b : Bool) (i) (h : i < n) :
-    (v.shiftConcat b)[i] = if i = 0 then b else v[i-1] := by
-  rw [← getLsbD_eq_getElem, getLsbD_shiftConcat, getLsbD_eq_getElem, decide_eq_true h,
-    Bool.true_and]
-
-@[simp] theorem getElem_shiftConcat_zero (v : BitVec n) (b : Bool) (h : 0 < n) :
-    (v.shiftConcat b)[0] = b := by simp [getElem_shiftConcat]
-
-@[simp] theorem getElem_shiftConcat_succ (v : BitVec n) (b : Bool) (h : i + 1 < n) :
-    (v.shiftConcat b)[i+1] = v[i] := by simp [getElem_shiftConcat]
-
 @[simp] theorem toNat_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
     (ofFnLEAux m f).toNat = Nat.ofBits f % 2 ^ m := by
   simp only [ofFnLEAux]
