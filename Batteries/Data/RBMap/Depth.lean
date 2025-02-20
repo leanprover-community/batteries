@@ -26,8 +26,8 @@ theorem size_lt_depth : ∀ t : RBNode α, t.size < 2 ^ t.depth
     rw [size, depth, Nat.add_right_comm, Nat.pow_succ, Nat.mul_two]
     refine Nat.add_le_add
       (Nat.lt_of_lt_of_le a.size_lt_depth ?_) (Nat.lt_of_lt_of_le b.size_lt_depth ?_)
-    · exact Nat.pow_le_pow_of_le_right (by decide) (Nat.le_max_left ..)
-    · exact Nat.pow_le_pow_of_le_right (by decide) (Nat.le_max_right ..)
+    · exact Nat.pow_le_pow_right (by decide) (Nat.le_max_left ..)
+    · exact Nat.pow_le_pow_right (by decide) (Nat.le_max_right ..)
 
 /--
 `depthLB c n` is the best upper bound on the depth of any balanced red-black tree
@@ -71,7 +71,7 @@ theorem Balanced.le_size : @Balanced α t c n → 2 ^ depthLB c n ≤ t.size + 1
   | .black hl hr => by
     rw [size, Nat.add_right_comm (size _), Nat.add_assoc, depthLB, Nat.pow_succ, Nat.mul_two]
     refine Nat.add_le_add (Nat.le_trans ?_ hl.le_size) (Nat.le_trans ?_ hr.le_size) <;>
-      exact Nat.pow_le_pow_of_le_right (by decide) (depthLB_le ..)
+      exact Nat.pow_le_pow_right (by decide) (depthLB_le ..)
 
 theorem Balanced.depth_bound (h : @Balanced α t c n) : t.depth ≤ 2 * (t.size + 1).log2 :=
   Nat.le_trans h.depth_le <| Nat.le_trans (depthUB_le_two_depthLB ..) <|
