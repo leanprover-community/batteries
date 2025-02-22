@@ -1,0 +1,1 @@
+{"name":"Lean.Elab.PreDefinition.PartialFixpoint","instances":[],"imports":["Lean.Elab.PreDefinition.PartialFixpoint.Eqns","Lean.Elab.PreDefinition.PartialFixpoint.Main","Lean.Elab.PreDefinition.PartialFixpoint.Induction"],"declarations":[]}

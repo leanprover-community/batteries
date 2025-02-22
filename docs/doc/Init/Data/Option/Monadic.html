@@ -1,0 +1,244 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Data.Option.Monadic</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Init.Data.Option.Monadic";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Data</span>.<span class="name">Option</span>.<span class="name">Monadic</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Control/Lawful/Basic.html">Init.Control.Lawful.Basic</a></li><li><a href="../../.././Init/Data/Option/Attach.html">Init.Data.Option.Attach</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Data.Option.Monadic" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Option.forM_none"><span class="name">Option</span>.<span class="name">forM_none</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forM_some"><span class="name">Option</span>.<span class="name">forM_some</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forM_map"><span class="name">Option</span>.<span class="name">forM_map</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_congr"><span class="name">Option</span>.<span class="name">forIn'_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_eq_pelim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_yield_eq_pelim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_pure_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_pure_yield_eq_pelim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_id_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_id_yield_eq_pelim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn'_map"><span class="name">Option</span>.<span class="name">forIn'_map</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn_eq_elim"><span class="name">Option</span>.<span class="name">forIn_eq_elim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_yield_eq_elim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn_pure_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_pure_yield_eq_elim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn_id_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_id_yield_eq_elim</span></a></div><div class="nav_link"><a class="break_within" href="#Option.forIn_map"><span class="name">Option</span>.<span class="name">forIn_map</span></a></div></nav><main>
+<div class="decl" id="Option.forM_none"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L13-L14">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forM_none"><span class="name">Option</span>.<span class="name">forM_none</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Option.none">none</a>.<a href="../../.././Init/Data/Option/Instances.html#Option.forM">forM</a></span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#PUnit.unit">PUnit.unit</a></span></div></div></div></div><div class="decl" id="Option.forM_some"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L16-L17">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forM_some"><span class="name">Option</span>.<span class="name">forM_some</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(a : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Prelude.html#Option.some">some</a> <span class="fn">a</span>)</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.forM">forM</a></span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span></span></div></div></div></div><div class="decl" id="Option.forM_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L19-L21">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forM_map"><span class="name">Option</span>.<span class="name">forM_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_4}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(g : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../.././Init/Prelude.html#Option.map">Option.map</a> <span class="fn">g</span> <span class="fn">o</span>)</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.forM">forM</a></span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.forM">forM</a></span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">g</span> <span class="fn">a</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn'_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L23-L35">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_congr"><span class="name">Option</span>.<span class="name">forIn'_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{as bs : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(w : <span class="fn">as</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">bs</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{b b' : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(hb : <span class="fn">b</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{f : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a'</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">as</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{g : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a'</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">bs</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(h : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">m_1</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">bs</span>) (<span class="fn">b</span> : <span class="fn">β</span>), <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">⋯</span> <span class="fn">b</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">m_1</span> <span class="fn">b</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">as</span> <span class="fn">b</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">bs</span> <span class="fn">b'</span> <span class="fn">g</span></span></div></div></div></div><div class="decl" id="Option.forIn'_eq_pelim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L37-L41">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_eq_pelim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.pelim">pelim</a></span> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">b</span>)</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) =&gt; <a href="../../.././Init/Control/Basic.html#ForInStep.value">ForInStep.value</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">h</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn'_yield_eq_pelim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L43-L47">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_yield_eq_pelim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β γ : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">γ</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(g : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">γ</span> → <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">m_1</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn">(fun (<span class="fn">c</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">g</span> <span class="fn">a</span> <span class="fn">m_1</span> <span class="fn">b</span> <span class="fn">c</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">m_1</span> <span class="fn">b</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.pelim">pelim</a></span> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">b</span>)</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) =&gt; <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">h</span> <span class="fn">b</span></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">h</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn'_pure_yield_eq_pelim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L49-L53">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_pure_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_pure_yield_eq_pelim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">m_1</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span> <span class="fn">m_1</span> <span class="fn">b</span>)</span>)</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.pelim">pelim</a></span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">h</span> <span class="fn">b</span></span></span>)</span></span></div></div></div></div><div class="decl" id="Option.forIn'_id_yield_eq_pelim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L55-L59">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_id_yield_eq_pelim"><span class="name">Option</span>.<span class="name">forIn'_id_yield_eq_pelim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">m</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span> <span class="fn">m</span> <span class="fn">b</span>)</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Instances.html#Option.pelim">pelim</a></span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">h</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn'_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L61-L64">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn'_map"><span class="name">Option</span>.<span class="name">forIn'_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_4}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{init : <span class="fn">γ</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(g : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>) → <span class="fn"><span class="fn">b</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn"><a href="../../.././Init/Prelude.html#Option.map">Option.map</a> <span class="fn">g</span> <span class="fn">o</span></span> → <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">γ</span>)</span></span></span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Option.map">Option.map</a> <span class="fn">g</span> <span class="fn">o</span>)</span> <span class="fn">init</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">o</span> <span class="fn">init</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">o</span>) (<span class="fn">y</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">g</span> <span class="fn">a</span>)</span> <span class="fn">⋯</span> <span class="fn">y</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn_eq_elim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L66-L70">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn_eq_elim"><span class="name">Option</span>.<span class="name">forIn_eq_elim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Basic.html#Option.elim">elim</a></span> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">b</span>)</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <a href="../../.././Init/Control/Basic.html#ForInStep.value">ForInStep.value</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn_yield_eq_elim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L72-L76">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_yield_eq_elim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β γ : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">γ</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(g : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">γ</span> → <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn">(fun (<span class="fn">c</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Basic.html#Option.elim">elim</a></span> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">b</span>)</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn_pure_yield_eq_elim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L78-L82">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn_pure_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_pure_yield_eq_elim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span>)</span>)</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Basic.html#Option.elim">elim</a></span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span></span>)</span></span></div></div></div></div><div class="decl" id="Option.forIn_id_yield_eq_elim"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L84-L88">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn_id_yield_eq_elim"><span class="name">Option</span>.<span class="name">forIn_id_yield_eq_elim</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(b : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">o</span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">b</span> : <span class="fn">β</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForInStep.yield">ForInStep.yield</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span>)</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Basic.html#Option.elim">elim</a></span> <span class="fn">b</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Option.forIn_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/93d4ae6635c0c755c9f7368f9b99483d4557b7a6/src/Init/Data/Option/Monadic.lean#L90-L93">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Option/Monadic.html#Option.forIn_map"><span class="name">Option</span>.<span class="name">forIn_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{m : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{α : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{β : <a href="../../.././foundational_types.html">Type</a> u_4}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{γ : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{init : <span class="fn">γ</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(o : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(g : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(f : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">γ</span>)</span></span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Option.map">Option.map</a> <span class="fn">g</span> <span class="fn">o</span>)</span> <span class="fn">init</span> <span class="fn">f</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">o</span> <span class="fn">init</span> <span class="fn">fun (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">y</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">g</span> <span class="fn">a</span>)</span> <span class="fn">y</span></span></span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
