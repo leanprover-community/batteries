@@ -570,7 +570,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
         (∀ p'' i'' s'', l = p'' ++ i'' ++ s'' → i'' == i → p''.length ≥ p'.length) := by
   unfold dropInfix?.go
   split
-  · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
+  · simp only [isEmpty_iff, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
       append_assoc, append_eq_nil_iff, ge_iff_le, and_imp]
     constructor
     · rintro ⟨rfl, rfl, rfl⟩
@@ -595,7 +595,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
         rw [cons_eq_append_iff] at h₁
         simp at h₁
         obtain (⟨⟨rfl, rfl⟩, rfl⟩ | ⟨a', h₁, rfl⟩) := h₁
-        · simp only [nil_beq_iff, isEmpty_eq_true] at h₂
+        · simp only [nil_beq_iff, isEmpty_iff] at h₂
           simp only [h₂] at h
           simp at h
         · rw [append_eq_cons_iff] at h₁
