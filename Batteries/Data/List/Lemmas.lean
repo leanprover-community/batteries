@@ -657,6 +657,12 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
     · next heq => rw [eq_of_beq heq, List.cons_append, append_eq_of_isPrefixOf?_eq_some h]
     · contradiction
 
+@[simp] theorem isPrefixOf?_eq_some_iff_append_eq [BEq α] [LawfulBEq α] {xs ys zs : List α} :
+    xs.isPrefixOf? ys = some zs ↔ xs ++ zs = ys := by
+  induction xs generalizing ys with
+  | nil => simp [isPrefixOf?, Eq.comm]
+  | cons => cases ys <;> simp [isPrefixOf?, *]
+
 @[simp] theorem isSome_isSuffixOf?_eq_isSuffixOf [BEq α] (xs ys : List α) :
     (xs.isSuffixOf? ys).isSome = xs.isSuffixOf ys := by
   simp [List.isSuffixOf?, isSuffixOf]
