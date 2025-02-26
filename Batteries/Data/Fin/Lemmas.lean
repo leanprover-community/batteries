@@ -144,7 +144,7 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
 theorem find?_isSome_iff {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
   simp [find?, findSome?_isSome_iff]
 
-theorem find?_isNone {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
+theorem find?_isNone_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
   simp [find?, findSome?_isSome_iff]
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
