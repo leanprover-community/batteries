@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
 import Batteries.Data.List.Lemmas
+import Batteries.Util.ProofWanted
 
 namespace Fin
 
@@ -146,6 +147,11 @@ theorem find?_isSome_iff {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i 
 
 theorem find?_isNone_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
   simp [find?, findSome?_isSome_iff]
+
+proof_wanted find?_eq_some_iff {p : Fin n → Bool} : find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j
+
+theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by
+  rw [← find?_isNone_iff, Option.isNone_iff_eq_none]
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
   induction n with
