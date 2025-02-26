@@ -30,17 +30,17 @@ theorem findSome?_succ {f : Fin (n+1) → Option α} :
     | zero => rfl
     | succ n ih => rw [foldl_succ, Option.some_orElse, ih (f := fun i => f i.succ)]
 
-@[simp] theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
+theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
     findSome? f = some x := by simp [findSome?_succ, h]
 
-@[simp] theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
-    findSome? f = f 0 := by cases _h : f 0 <;> simp_all
+theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
+    findSome? f = f 0 := by cases _h : f 0 <;> simp_all [findSome?_succ_of_some]
 
-@[simp] theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
+theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
     findSome? f = findSome? fun i => f i.succ := by simp [findSome?_succ, h]
 
-@[simp] theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
-    findSome? f = findSome? fun i => f i.succ := by simp_all
+theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
+    findSome? f = findSome? fun i => f i.succ := by simp_all [findSome?_succ_of_none]
 
 theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
     ∃ i, f i = some x := by
