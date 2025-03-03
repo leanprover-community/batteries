@@ -36,29 +36,6 @@ monad, alternative, failure
 
 universe u v w
 
-section Alternative
-
-variable {F : Type → Type v} [Alternative F]
-
--- [todo] add notation for `Functor.mapConst` and port `Functor.mapConstRev`
-/-- Returns `pure true` if the computation succeeds and `pure false` otherwise. -/
-def succeeds {α} (x : F α) : F Bool :=
-  Functor.mapConst true x <|> pure false
-
-/-- Attempts to perform the computation, but fails silently if it doesn't succeed. -/
-def tryM {α} (x : F α) : F Unit :=
-  Functor.mapConst () x <|> pure ()
-
-/-- Attempts to perform the computation, and returns `none` if it doesn't succeed. -/
-def try? {α} (x : F α) : F (Option α) :=
-  some <$> x <|> pure none
-
-@[simp] theorem guard_true {h : Decidable True} : @guard F _ True h = pure () := if_pos trivial
-
-@[simp] theorem guard_false {h : Decidable False} : @guard F _ False h = failure := if_neg id
-
-end Alternative
-
 /-- `AlternativeMonad m` means that `m` has both a `Monad` and `Alternative` instance,
 which both share the same underlying `Applicative` instance.
 The main example is `Option`, but many monad transformers also preserve or add this structure. -/
@@ -99,15 +76,6 @@ variable {m : Type u → Type v} [AlternativeMonad m] [LawfulAlternative m]
 @[simp] theorem failure_seq {α β} (x : m α) : (failure : m (α → β)) <*> x = failure := by
   rw [seq_eq_bind, failure_bind]
 
-@[simp] theorem succeeds_failure {α} : (succeeds (failure : n α)) = pure false := by
-  rw [succeeds, mapConst_failure, failure_orElse]
-
-@[simp] theorem tryM_failure {α} : tryM (failure : n α) = pure () := by
-  rw [tryM, mapConst_failure, failure_orElse]
-
-@[simp] theorem try?_failure {α} : try? (failure : n α) = pure none := by
-  rw [try?, map_failure, failure_orElse]
-
 end LawfulAlternative
 
 section LawfulAlternativeLift
@@ -125,11 +93,6 @@ attribute [simp] monadLift_failure monadLift_orElse
 
 variable {m : Type u → Type v} {n : Type u → Type w} [AlternativeMonad m] [AlternativeMonad n]
   [MonadLift m n] [LawfulAlternativeLift m n]
-
-@[simp] theorem liftM_failure {α} : liftM (failure : m α) = (failure : n α) := monadLift_failure
-
-@[simp] theorem liftM_orElse {α} (x y : m α) : liftM (x <|> y) = (liftM x <|> liftM y : n α) :=
-  monadLift_orElse x y
 
 end LawfulAlternativeLift
 
@@ -197,7 +160,7 @@ instance [LawfulAlternative m] : LawfulAlternative (ReaderT ρ m) where
   orElse_assoc _ _ _ := ReaderT.ext fun _ => orElse_assoc _ _ _
   map_orElse _ _ _ := ReaderT.ext fun _ => by simp only [run_map, run_orElse, map_orElse]
 
-instance [LawfulAlternative m] : LawfulAlternativeLift m (ReaderT σ m) where
+instance : LawfulAlternativeLift m (ReaderT ρ m) where
   monadLift_failure {α} := ReaderT.ext fun s => by simp
   monadLift_orElse {α} x y := ReaderT.ext fun s => by simp
 
