@@ -112,9 +112,9 @@ end LawfulAlternative
 
 section LawfulAlternativeLift
 
-/-- Type-class for `LawfulMonadLift`s that also preserve the failure operation. -/
+/-- Type-class for monad lifts that preserve the `Alternative` operations. -/
 class LawfulAlternativeLift (m : semiOutParam (Type u → Type v)) (n : Type u → Type w)
-    [AlternativeMonad m] [AlternativeMonad n] [MonadLift m n] where
+    [Alternative m] [Alternative n] [MonadLift m n] where
   /-- Lifting preserves `failure`. -/
   monadLift_failure {α} : monadLift (failure : m α) = (failure : n α)
   /-- Lifting preserves `orElse`. -/
