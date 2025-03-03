@@ -111,7 +111,7 @@ instance (cmp cut) [@IsCut α cmp cut] : IsCut (flip cmp) (cut · |>.swap) where
 `IsStrictCut` upgrades the `IsCut` property to ensure that at most one element of the tree
 can match the cut, and hence `find?` will return the unique such element if one exists.
 -/
-class IsStrictCut (cmp : α → α → Ordering) (cut : α → Ordering) extends IsCut cmp cut : Prop where
+class IsStrictCut (cmp : α → α → Ordering) (cut : α → Ordering) : Prop extends IsCut cmp cut where
   /-- If `cut = x`, then `cut` and `x` have compare the same with respect to other elements. -/
   exact [TransCmp cmp] : cut x = .eq → cmp x y = cut y
 
