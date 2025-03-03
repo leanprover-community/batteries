@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Linter.Util
+import Lean.Parser.Syntax
 import Batteries.Tactic.Unreachable
 
 namespace Batteries.Linter
