@@ -26,6 +26,9 @@ The law `do _ ← x; failure = failure` is true for monads like `Option` and `Li
 have any "side effects" to execution, but not for something like `OptionT` on some monads,
 so we don't include this condition.
 
+We also define a class `LawfulAlternativeLift` similar to `LawfulMonadLift` that states that
+a lifting between monads preserves `failure` and `orElse`.
+
 ## Tags
 
 monad, alternative, failure
@@ -123,11 +126,9 @@ attribute [simp] monadLift_failure monadLift_orElse
 variable {m : Type u → Type v} {n : Type u → Type w} [AlternativeMonad m] [AlternativeMonad n]
   [MonadLift m n] [LawfulAlternativeLift m n]
 
-@[simp]
-theorem liftM_failure {α} : liftM (failure : m α) = (failure : n α) := monadLift_failure
+@[simp] theorem liftM_failure {α} : liftM (failure : m α) = (failure : n α) := monadLift_failure
 
-@[simp]
-theorem liftM_orElse {α} (x y : m α) : liftM (x <|> y) = (liftM x <|> liftM y : n α) :=
+@[simp] theorem liftM_orElse {α} (x y : m α) : liftM (x <|> y) = (liftM x <|> liftM y : n α) :=
   monadLift_orElse x y
 
 end LawfulAlternativeLift
@@ -195,5 +196,9 @@ instance [LawfulAlternative m] : LawfulAlternative (ReaderT ρ m) where
   failure_orElse _ := ReaderT.ext fun _ => failure_orElse _
   orElse_assoc _ _ _ := ReaderT.ext fun _ => orElse_assoc _ _ _
   map_orElse _ _ _ := ReaderT.ext fun _ => by simp only [run_map, run_orElse, map_orElse]
+
+instance [LawfulAlternative m] : LawfulAlternativeLift m (ReaderT σ m) where
+  monadLift_failure {α} := ReaderT.ext fun s => by simp
+  monadLift_orElse {α} x y := ReaderT.ext fun s => by simp
 
 end ReaderT
