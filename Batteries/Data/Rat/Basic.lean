@@ -107,7 +107,7 @@ def divInt : Int → Int → Rat
 `Rat.ofScientific_true_def`, or `Rat.ofScientific_false_def` instead.) -/
 @[irreducible] protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
   if s then
-    Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide)
+    Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pow_pos (by decide)
   else
     (m * 10 ^ e : Nat)
 
