@@ -70,7 +70,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
   exact ⟨_, hp.filter p, h.filter p⟩
 
 @[simp] theorem subperm_nil : l <+~ [] ↔ l = [] :=
-  ⟨fun h => length_eq_zero.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
+  ⟨fun h => length_eq_zero_iff.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
 
 @[simp] theorem singleton_subperm_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
   refine ⟨fun ⟨s, hla, h⟩ => ?_, fun h => ⟨[a], .rfl, singleton_sublist.mpr h⟩⟩
