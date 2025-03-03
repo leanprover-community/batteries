@@ -20,7 +20,7 @@ structures are compatible in a natural way. More specifically they satisfy:
 * `f <$> (x <|> y) = (f <$> x <|> f <$> y)`
 
 `Option`/`OptionT` are the most basic examples, but transformers like `StateT` also preserve
-the lawfullness of this on the underlying monad.
+the lawfulness of this on the underlying monad.
 
 The law `do _ ← x; failure = failure` is true for monads like `Option` and `List` that don't
 have any "side effects" to execution, but not for something like `OptionT` on some monads,

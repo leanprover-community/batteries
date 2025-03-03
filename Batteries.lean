@@ -15,6 +15,7 @@ import Batteries.Control.Lawful.MonadLift
 import Batteries.Control.Lemmas
 import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic
+import Batteries.Control.OptionT
 import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
