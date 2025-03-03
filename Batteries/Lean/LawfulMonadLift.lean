@@ -43,7 +43,7 @@ instance : LawfulMonadLift IO CoreM where
     simp only [pure_bind, Function.comp_apply, bind_assoc, bind, pure]
     unfold ReaderT.bind ReaderT.pure
     simp only [bind_pure_comp, map_pure, pure_bind, bind, pure]
-    unfold EStateM.adaptExcept EStateM.bind EStateM.pure
+    unfold EStateM.adaptExcept EStateM.bind EStateM.castError EStateM.pure
     simp only
     funext _ _ s
     rcases ma s with a | a <;> simp only
