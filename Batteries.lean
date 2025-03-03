@@ -7,6 +7,7 @@ import Batteries.CodeAction.Attr
 import Batteries.CodeAction.Basic
 import Batteries.CodeAction.Deprecated
 import Batteries.CodeAction.Misc
+import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
