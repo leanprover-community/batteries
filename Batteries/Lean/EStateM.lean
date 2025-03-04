@@ -31,7 +31,9 @@ def map {ε σ α β} (f : α → β) (x : Result ε σ α) : Result ε σ β :=
 end Result
 
 @[simp] theorem run_map (f : α → β) (x : EStateM ε σ α) :
-    (f <$> x).run s = (x.run s).map f := rfl
+    (f <$> x).run s = (x.run s).map f := by
+  simp only [Functor.map, Result.map, EStateM.run, EStateM.map, EStateM.castError]
+  cases x s <;> rfl
 
 @[ext] theorem ext {ε σ α} {x y : EStateM ε σ α} (h : ∀ s, x.run s = y.run s) : x = y := by
   funext s
