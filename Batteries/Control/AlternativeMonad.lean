@@ -22,7 +22,7 @@ structures are compatible in a natural way. More specifically they satisfy:
 `Option`/`OptionT` are the most basic examples, but transformers like `StateT` also preserve
 the lawfulness of this on the underlying monad.
 
-The law `do _ ← x; failure = failure` is true for monads like `Option` and `List` that don't
+The law `x *> failure = failure` is true for monads like `Option` and `List` that don't
 have any "side effects" to execution, but not for something like `OptionT` on some monads,
 so we don't include this condition.
 
@@ -60,21 +60,29 @@ attribute [simp] failure_bind orElse_failure failure_orElse map_orElse
 
 section LawfulAlternative
 
-variable {m : Type u → Type v} [AlternativeMonad m] [LawfulAlternative m]
-    {n : Type → Type v} [AlternativeMonad n] [LawfulAlternative n]
+variable {m : Type u → Type v} [AlternativeMonad m] [LawfulAlternative m] {α β : Type u}
 
-@[simp] theorem map_failure {α β} (f : α → β) : f <$> (failure : m α) = failure := by
+@[simp] theorem map_failure (f : α → β) : f <$> (failure : m α) = failure := by
   rw [map_eq_pure_bind, failure_bind]
 
-@[simp] theorem mapConst_failure {α β} (y : β) : Functor.mapConst y (failure : m α) = failure := by
+@[simp] theorem mapConst_failure (y : β) : Functor.mapConst y (failure : m α) = failure := by
   rw [LawfulFunctor.map_const, Function.comp_apply, map_failure]
 
-@[simp] theorem mapConst_orElse {α β} (x x' : m α) (y : β) :
+@[simp] theorem mapConst_orElse (x x' : m α) (y : β) :
     Functor.mapConst y (x <|> x') = (Functor.mapConst y x <|> Functor.mapConst y x') := by
   simp only [map_const, Function.comp_apply, map_orElse]
 
-@[simp] theorem failure_seq {α β} (x : m α) : (failure : m (α → β)) <*> x = failure := by
+@[simp] theorem failure_seq (x : m α) : (failure : m (α → β)) <*> x = failure := by
   rw [seq_eq_bind, failure_bind]
+
+@[simp] theorem seq_failure (x : m (α → β)) : x <*> failure = x *> failure := by
+  simp only [seq_eq_bind, map_failure, seqRight_eq, bind_map_left]
+
+@[simp] theorem failure_seqLeft (x : m α) : (failure : m β) <* x = failure := by
+  simp only [seqLeft_eq, map_failure, failure_seq]
+
+@[simp] theorem failure_seqRight (x : m α) : (failure : m β) *> x = failure := by
+  simp only [seqRight_eq, map_failure, failure_seq]
 
 end LawfulAlternative
 
@@ -120,10 +128,10 @@ instance [LawfulMonad m] : LawfulAlternative (OptionT m) where
   orElse_failure x := (bind_congr (fun | some _ => rfl | none => rfl)).trans (bind_pure x)
   failure_orElse _ := pure_bind _ _
   orElse_assoc _ _ _ := by
-    simp only [OptionT.ext_iff, run_orElse, bind_assoc]
+    simp only [OptionT.ext_iff, run_orElse, Option.elimM, bind_assoc]
     refine bind_congr fun | some _ => by simp | none => rfl
   map_orElse x y f := by
-    simp only [OptionT.ext_iff, run_map, run_orElse, map_bind, bind_map_left]
+    simp only [OptionT.ext_iff, run_map, run_orElse, map_bind, bind_map_left, Option.elimM]
     refine bind_congr fun | some _ => by simp | none => rfl
 
 end OptionT
