@@ -43,7 +43,8 @@ class AlternativeMonad (m : Type u → Type v) extends Alternative m, Monad m
 
 /-- `LawfulAlternative m` means that the `failure` operation on `m` behaves naturally
 with respect to the `bind` and `orElse` operators. -/
-class LawfulAlternative (m : Type u → Type v) [AlternativeMonad m] extends LawfulMonad m where
+class LawfulAlternative (m : Type u → Type v) [AlternativeMonad m] : Prop
+    extends LawfulMonad m where
   /-- `failure` ends a computation without running any remaining continuations. -/
   failure_bind {α β : Type u} (g : α → m β) : failure >>= g = failure
   /-- `failure` is a right identity for `orElse`. -/
@@ -90,7 +91,7 @@ section LawfulAlternativeLift
 
 /-- Type-class for monad lifts that preserve the `Alternative` operations. -/
 class LawfulAlternativeLift (m : semiOutParam (Type u → Type v)) (n : Type u → Type w)
-    [Alternative m] [Alternative n] [MonadLift m n] where
+    [Alternative m] [Alternative n] [MonadLift m n] : Prop where
   /-- Lifting preserves `failure`. -/
   monadLift_failure {α} : monadLift (failure : m α) = (failure : n α)
   /-- Lifting preserves `orElse`. -/
