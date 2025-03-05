@@ -7,10 +7,19 @@ import Batteries.Tactic.SeqFocus
 
 namespace Batteries
 
+/-- Construct a `BEq` instance from a comparator function. -/
+def beqOfCmp (cmp : α → α → Ordering) : BEq α where
+  beq x y := cmp x y = .eq
+
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
 class TotalBLE (le : α → α → Bool) : Prop where
   /-- `le` is total: either `le a b` or `le b a`. -/
   total : le a b ∨ le b a
+
+/-- `AntisymmCmp cmp` asserts that `cmp x y = .eq` only if `x = y`. -/
+class AntisymmCmp (cmp : α → α → Ordering) : Prop where
+  /-- If two terms compare as `.eq`, then they are equal. -/
+  eq_of_cmp_eq : cmp x y = .eq → x = y
 
 /-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
 class OrientedCmp (cmp : α → α → Ordering) : Prop where
@@ -35,6 +44,21 @@ theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
 end OrientedCmp
+
+/--
+The `BEq` instance from a comparator `cmp : α → α → Ordering` with `[AntisymmCmp cmp]` and
+`[OrientedCmp cmp]` is a `LawfulBEq`.
+-/
+theorem lawfulBEqOfCmp (cmp : α → α → Ordering) [AntisymmCmp cmp] [OrientedCmp cmp] :
+    letI := beqOfCmp cmp
+    LawfulBEq α :=
+  let _ := beqOfCmp cmp
+  { eq_of_beq := fun h => by
+      apply AntisymmCmp.eq_of_cmp_eq (cmp := cmp)
+      simpa [beqOfCmp] using h
+    rfl := by
+      intro a
+      simpa [beqOfCmp] using OrientedCmp.cmp_refl }
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
 class TransCmp (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
