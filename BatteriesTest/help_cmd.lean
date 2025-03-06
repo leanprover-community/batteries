@@ -405,7 +405,10 @@ error: no term declarations start with foobarbaz
 #help term foobarbaz
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 
@@ -415,7 +418,11 @@ syntax "default_or_ofNonempty%"... [Lean.Parser.Term.defaultOrOfNonempty]
 #help term de
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
++ term elab Lean.Elab.Term.elabDebugAssert
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 + term elab Lean.Elab.Term.elabDeclName
