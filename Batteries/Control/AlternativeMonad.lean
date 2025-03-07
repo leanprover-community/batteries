@@ -86,7 +86,7 @@ end Alternative
 
 section AlternativeMonad
 
-variable{m : Type u → Type v} [AlternativeMonad m]
+variable {m : Type u → Type v} [AlternativeMonad m]
   [LawfulAlternative m] [LawfulMonad m] {α β : Type u}
 
 @[simp]
