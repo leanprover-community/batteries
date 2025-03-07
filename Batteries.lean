@@ -7,6 +7,7 @@ import Batteries.CodeAction.Attr
 import Batteries.CodeAction.Basic
 import Batteries.CodeAction.Deprecated
 import Batteries.CodeAction.Misc
+import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
@@ -14,6 +15,7 @@ import Batteries.Control.Lawful.MonadLift
 import Batteries.Control.Lemmas
 import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic
+import Batteries.Control.OptionT
 import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
