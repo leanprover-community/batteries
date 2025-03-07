@@ -188,3 +188,17 @@ instance : LawfulAlternativeLift m (ReaderT ρ m) where
   monadLift_orElse {α} x y := ReaderT.ext fun s => by simp
 
 end ReaderT
+
+namespace StateRefT'
+
+variable {m : Type → Type} [AlternativeMonad m] {ω σ : Type}
+
+instance : AlternativeMonad (StateRefT' ω σ m) where
+
+instance [LawfulAlternative m] : LawfulAlternative (StateRefT' ω σ m) :=
+  inferInstanceAs (LawfulAlternative (ReaderT _ _))
+
+instance : LawfulAlternativeLift m (StateRefT' ω σ m) :=
+  inferInstanceAs (LawfulAlternativeLift m (ReaderT _ _))
+
+end StateRefT'
