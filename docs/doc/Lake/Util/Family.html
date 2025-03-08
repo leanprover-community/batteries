@@ -1,0 +1,132 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Lake.Util.Family</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Lake.Util.Family";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lake</span>.<span class="name">Util</span>.<span class="name">Family</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Lean/Parser/Command.html">Lean.Parser.Command</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lake.Util.Family" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lake.FamilyDef"><span class="name">Lake</span>.<span class="name">FamilyDef</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.FamilyOut"><span class="name">Lake</span>.<span class="name">FamilyOut</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.instFamilyOutOfFamilyDef"><span class="name">Lake</span>.<span class="name">instFamilyOutOfFamilyDef</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.instFamilyDef"><span class="name">Lake</span>.<span class="name">instFamilyDef</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.instFamilyDef_1"><span class="name">Lake</span>.<span class="name">instFamilyDef_1</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.toFamily"><span class="name">Lake</span>.<span class="name">toFamily</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.ofFamily"><span class="name">Lake</span>.<span class="name">ofFamily</span></a></div><div class="nav_link"><a class="break_within" href="#Lake.familyDef"><span class="name">Lake</span>.<span class="name">familyDef</span></a></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="Open-Type-Families-in-Lean">Open Type Families in Lean <a class="hover-link" href="#Open-Type-Families-in-Lean">#</a></h1><p>This module contains utilities for defining <strong>open type families</strong> in Lean.</p><p>The concept of type families originated in Haskell with the paper
+<a href="https://doi.org/10.1145/1411204.1411215"><em>Type checking with open type functions</em></a> by Schrijvers <em>et al.</em> and
+is essentially just a fancy name for a function from an input <em>index</em> to an
+output type. However, it tends to imply some additional restrictions on syntax
+or functionality as opposed to a proper type function.The design here has some
+such limitations so the name was similarly adopted.</p><p>Type families come in two forms: open and closed.
+A <em>closed</em> type family is an ordinary total function.
+An <em>open</em> type family, on the other hand, is a partial function that allows
+additional input to output mappings to be defined as needed.</p><p>Lean does not (currently) directly support open type families.
+However, it does support type class <em>functional dependencies</em> (via <code><a href="../.././Init/Prelude.html#outParam">outParam</a></code>),
+and simple open type families can be modeled through functional dependencies,
+which is what we do here.</p><h2 class="markdown-heading" id="Defining-Families">Defining Families <a class="hover-link" href="#Defining-Families">#</a></h2><p>In this approach, to define an open type family, one first defines an <code>opaque</code>
+type function with a single argument that serves as the key:</p><pre><code class="language-lean">opaque FooFam (key : Name) : Type
+</code></pre><p>Note that, unlike Haskell, the key need not be a type. Lean's dependent type
+theory does not have Haskell's strict separation of types and data and thus
+we can use data as an index as well.</p><p>Then, to add a mapping to this family, one defines an axioms:</p><pre><code class="language-lean">axiom FooFam.bar : FooFam `bar = <a href="../.././Init/Prelude.html#Nat">Nat</a>
+</code></pre><p>To finish, one also defines an instance of the <code><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a></code> type class
+defined in this module using the axiom like so:</p><pre><code class="language-lean">instance : <a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a> FooFam `bar <a href="../.././Init/Prelude.html#Nat">Nat</a> := ⟨FooFam.bar⟩
+</code></pre><p>This module provides a <code>family_def</code> macro to define both the axiom and the
+instance in one go like so:</p><pre><code class="language-lean">family_def bar : FooFam `bar := <a href="../.././Init/Prelude.html#Nat">Nat</a>
+</code></pre><h2 class="markdown-heading" id="Type-Inference">Type Inference <a class="hover-link" href="#Type-Inference">#</a></h2><p>The signature of the type class <code><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a></code> is</p><pre><code><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a> {α : Type u} (Fam : α → Type v) (a : α) (β : <a href="../.././Init/Prelude.html#outParam">outParam</a> $ Type v) : Prop
+</code></pre><p>The key part being that <code>β</code> is an <code><a href="../.././Init/Prelude.html#outParam">outParam</a></code> so Lean's type class synthesis will
+smartly infer the defined type <code><a href="../.././Init/Prelude.html#Nat">Nat</a></code> when given the key of <code> `bar</code>. Thus, if
+we have a function define like so:</p><pre><code>def foo (key : α) [FamilyDef FooFam key β] : β := ...
+</code></pre><p>Lean will smartly infer that the type of <code>foo `bar</code> is <code><a href="../.././Init/Prelude.html#Nat">Nat</a></code>.</p><p>However, filling in the right hand side of <code>foo</code> is not quite so easy.
+<code>FooFam `bar = <a href="../.././Init/Prelude.html#Nat">Nat</a></code> is only true propositionally, so we have to manually
+<code><a href="../.././Init/Prelude.html#cast">cast</a></code> a <code><a href="../.././Init/Prelude.html#Nat">Nat</a></code> to <code>FooFam `bar</code>and provide the proof (and the same is true
+vice versa). Thus, this module provides two definitions, <code><a href="../.././Lake/Util/Family.html#Lake.toFamily">toFamily</a> : β → Fam a</code>
+and <code><a href="../.././Lake/Util/Family.html#Lake.ofFamily">ofFamily</a> : Fam a → β</code>, to help with this conversion.</p><h2 class="markdown-heading" id="Full-Example">Full Example <a class="hover-link" href="#Full-Example">#</a></h2><p>Putting this all together, one can do something like the following:</p><pre><code class="language-lean">opaque FooFam (key : Name) : Type
+
+abbrev FooMap := DRBMap Name FooFam Name.quickCmp
+def FooMap.insert (self : FooMap) (key : Name) [FamilyDef FooFam key α] (a : α) : FooMap :=
+  DRBMap.insert self key (toFamily a)
+def FooMap.find? (self : FooMap) (key : Name) [FamilyDef FooFam key α] : <a href="../.././Init/Prelude.html#Option">Option</a> α :=
+  <a href="../.././Lake/Util/Family.html#Lake.ofFamily">ofFamily</a> &lt;$&gt; DRBMap.find? self key
+
+family_def bar : FooFam `bar := <a href="../.././Init/Prelude.html#Nat">Nat</a>
+family_def baz : FooFam `baz := <a href="../.././Init/Prelude.html#String">String</a>
+def foo := <a href="../.././Init/Control/Id.html#Id.run">Id.run</a> do
+  let mut map : FooMap := {}
+  map := map.insert `bar 5
+  map := map.insert `baz &quot;str&quot;
+  return map.find? `bar
+
+#eval foo -- 5
+</code></pre><h2 class="markdown-heading" id="Type-Safety">Type Safety <a class="hover-link" href="#Type-Safety">#</a></h2><p>In order to maintain type safety, <code>a = b → Fam a = Fam b</code> must actually hold.
+That is, one must not define mappings to two different types with equivalent
+keys. Since mappings are defined through axioms, Lean WILL NOT catch violations
+of this rule itself, so extra care must be taken when defining mappings.</p><p>In Lake, this is solved by having its open type families be indexed by a
+<code><a href="../.././Init/Prelude.html#Lean.Name">Lean.Name</a></code> and defining each mapping using a name literal <code>name</code> and the
+declaration <code>axiom Fam.name : Fam `name = α</code>. This causes a name clash
+if two keys overlap and thereby produces an error.</p></div><div class="mod_doc"><h2 class="markdown-heading" id="API">API <a class="hover-link" href="#API">#</a></h2></div><div class="decl" id="Lake.FamilyDef"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L133-L139">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.FamilyDef"><span class="name">Lake</span>.<span class="name">FamilyDef</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">Fam</span> : <span class="fn"><span class="fn">α</span> → <a href="../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">β</span> : <span class="fn"><a href="../.././Init/Prelude.html#semiOutParam">semiOutParam</a> <a href="../.././foundational_types.html">(Type</a> v)</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././foundational_types.html">Prop</a></div></div><p>Defines a single mapping of the <strong>open type family</strong> <code>Fam</code>, namely <code>Fam a = β</code>.
+See the module documentation of <code><a href="../.././Lake/Util/Family.html">Lake.Util.Family</a></code> for details on what an open
+type family is in Lake.</p><ul class="structure_fields" id="Lake.FamilyDef.mk"><li id="Lake.FamilyDef.family_key_eq_type" class="structure_field"><div class="structure_field_info">family_key_eq_type : <span class="fn"><span class="fn">Fam</span> <span class="fn">a</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">β</span></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-Lake.FamilyDef" class="instances-list"></ul></details></div></div><div class="decl" id="Lake.FamilyOut"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L141-L143">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.FamilyOut"><span class="name">Lake</span>.<span class="name">FamilyOut</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">Fam</span> : <span class="fn"><span class="fn">α</span> → <a href="../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">β</span> : <span class="fn"><a href="../.././Init/Prelude.html#outParam">outParam</a> <a href="../.././foundational_types.html">(Type</a> v)</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././foundational_types.html">Prop</a></div></div><p>Like <code><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a></code>, but <code>β</code> is an <code><a href="../.././Init/Prelude.html#outParam">outParam</a></code>.</p><ul class="structure_fields" id="Lake.FamilyOut.mk"><li id="Lake.FamilyOut.family_key_eq_type" class="structure_field"><div class="structure_field_info">family_key_eq_type : <span class="fn"><span class="fn">Fam</span> <span class="fn">a</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">β</span></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-Lake.FamilyOut" class="instances-list"></ul></details></div></div><div class="decl" id="Lake.instFamilyOutOfFamilyDef"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L148-L149">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.instFamilyOutOfFamilyDef"><span class="name">Lake</span>.<span class="name">instFamilyOutOfFamilyDef</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Fam</span> : <span class="fn"><span class="fn">α✝</span> → <a href="../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a> <span class="fn">Fam</span> <span class="fn">a</span> <span class="fn">β</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyOut">FamilyOut</a> <span class="fn">Fam</span> <span class="fn">a</span> <span class="fn">β</span></span></div></div></div></div><div class="decl" id="Lake.instFamilyDef"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L151-L153">source</a></div><div class="attributes">@[defaultInstance 0]</div>
+<div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.instFamilyDef"><span class="name">Lake</span>.<span class="name">instFamilyDef</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Fam</span> : <span class="fn"><span class="fn">α✝</span> → <a href="../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a> <span class="fn">Fam</span> <span class="fn">a</span> <span class="fn">(<span class="fn">Fam</span> <span class="fn">a</span>)</span></span></div></div><p>The identity relation.</p></div></div><div class="decl" id="Lake.instFamilyDef_1"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L155-L157">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.instFamilyDef_1"><span class="name">Lake</span>.<span class="name">instFamilyDef_1</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a> <span class="fn">(fun (<span class="fn">x</span> : <span class="fn">α✝</span>) =&gt; <span class="fn">β</span>)</span> <span class="fn">a</span> <span class="fn">β</span></span></div></div><p>The constant type family.</p></div></div><div class="decl" id="Lake.toFamily"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L159-L161">source</a></div><div class="attributes">@[macro_inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.toFamily"><span class="name">Lake</span>.<span class="name">toFamily</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Fam</span> : <span class="fn"><span class="fn">α✝</span> → <a href="../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyOut">FamilyOut</a> <span class="fn">Fam</span> <span class="fn">a</span> <span class="fn">β</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">Fam</span> <span class="fn">a</span></span></div></div><p>Cast a datum from its individual type to its general family.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../.././Lake/Util/Family.html#Lake.toFamily">Lake.toFamily</a> <span class="fn">b</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../.././Init/Prelude.html#cast">cast</a> <span class="fn">⋯</span> <span class="fn">b</span></span></li></ul></details><details id="instances-for-list-Lake.toFamily" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lake.ofFamily"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L163-L165">source</a></div><div class="attributes">@[macro_inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.ofFamily"><span class="name">Lake</span>.<span class="name">ofFamily</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Fam</span> : <span class="fn"><span class="fn">α✝</span> → <a href="../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Lake/Util/Family.html#Lake.FamilyOut">FamilyOut</a> <span class="fn">Fam</span> <span class="fn">a</span> <span class="fn">β</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">Fam</span> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">β</span></div></div><p>Cast a datum from its general family to its individual type.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../.././Lake/Util/Family.html#Lake.ofFamily">Lake.ofFamily</a> <span class="fn">b</span></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../.././Init/Prelude.html#cast">cast</a> <span class="fn">⋯</span> <span class="fn">b</span></span></li></ul></details><details id="instances-for-list-Lake.ofFamily" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lake.familyDef"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/69a1d0485e241a494d69d3e2c98ad988f4396dcd/src/lake/Lake/Util/Family.lean#L178-L187">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Lake/Util/Family.html#Lake.familyDef"><span class="name">Lake</span>.<span class="name">familyDef</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">Lean.ParserDescr</a></div></div><p>The syntax:</p><pre><code class="language-lean">family_def foo : Fam 0 := <a href="../.././Init/Prelude.html#Nat">Nat</a>
+</code></pre><p>Declares a new mapping for the open type family <code>Fam</code> type via the
+production of an axiom <code>Fam.foo : Data 0 = <a href="../.././Init/Prelude.html#Nat">Nat</a></code> and an instance of <code><a href="../.././Lake/Util/Family.html#Lake.FamilyDef">FamilyDef</a></code>
+that uses this axiom for key <code>0</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lake.familyDef" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

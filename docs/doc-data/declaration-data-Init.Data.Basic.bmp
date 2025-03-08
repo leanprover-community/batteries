@@ -1,0 +1,1 @@
+{"name":"Init.Data.Basic","instances":[],"imports":["Init.Data.Nat.Basic","Init.Data.Fin.Basic","Init.Data.List.Basic","Init.Data.Char.Basic","Init.Data.String.Basic","Init.Data.Option.Basic","Init.Data.UInt","Init.Data.Repr","Init.Data.ToString.Basic","Init.Data.String.Extra"],"declarations":[]}
