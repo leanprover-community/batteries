@@ -112,6 +112,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     addDocString' declName declMods.docString?
+    enableRealizationsForConst declName
     Term.applyAttributes declName declMods.attrs
     let info := (← getAliasInfo name).getD <| AliasInfo.plain name
     setAliasInfo info declName
