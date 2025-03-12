@@ -47,6 +47,8 @@ variable [Monad m]
 
 @[simp] theorem run_pure (a) : (pure a : OptionT m α).run = pure (some a) := rfl
 
+/-- This was changed during porting from mathlib to use Option.elimM rather than explicit
+pattern matching, aligning with `run_seq` and `run_orElse`. -/
 @[simp]
 theorem run_bind (f : α → OptionT m β) :
     (x >>= f).run = Option.elimM x.run (pure none) (run ∘ f) := by
@@ -63,12 +65,8 @@ theorem run_map (f : α → β) [LawfulMonad m] : (f <$> x).run = Option.map f <
 @[simp] theorem run_monadLift {n} [LawfulMonad m] [MonadLiftT n m] (x : n α) :
     (monadLift x : OptionT m α).run = some <$> (monadLift x : m α) := (map_eq_pure_bind _ _).symm
 
-protected theorem mapConst_eq_map_const (y : β) (x : OptionT m α) :
-    Functor.mapConst y x = Function.const α y <$> x := rfl
-
 @[simp] theorem run_mapConst [LawfulMonad m] (x : OptionT m α) (y : β) :
-    (Functor.mapConst y x).run = Option.map (Function.const α y) <$> x.run := by
-  rw [OptionT.mapConst_eq_map_const, run_map]
+    (Functor.mapConst y x).run = Option.map (Function.const α y) <$> x.run := run_map _ _
 
 instance (m : Type u → Type v) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
   LawfulMonad.mk'
