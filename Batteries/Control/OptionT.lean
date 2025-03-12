@@ -47,8 +47,6 @@ variable [Monad m]
 
 @[simp] theorem run_pure (a) : (pure a : OptionT m α).run = pure (some a) := rfl
 
-/-- This was changed during porting from mathlib to use Option.elimM rather than explicit
-pattern matching, aligning with `run_seq` and `run_orElse`. -/
 @[simp]
 theorem run_bind (f : α → OptionT m β) :
     (x >>= f).run = Option.elimM x.run (pure none) (run ∘ f) := by
