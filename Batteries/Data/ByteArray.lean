@@ -21,7 +21,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### empty -/
 
-@[simp] theorem data_mkEmpty (cap) : (mkEmpty cap).data = #[] := rfl
+@[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
 @[deprecated (since := "2024-08-13")] alias mkEmpty_data := data_mkEmpty
 
 @[simp] theorem data_empty : empty.data = #[] := rfl
@@ -121,13 +121,13 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 /--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
-  Fin.foldl n (fun acc i => acc.push (f i)) (mkEmpty n)
+  Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
 @[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
-  simp [ofFn, Fin.foldl_succ_last, mkEmpty]
+  simp [ofFn, Fin.foldl_succ_last, emptyWithCapacity]
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
