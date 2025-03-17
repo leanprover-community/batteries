@@ -22,17 +22,14 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 /-! ### empty -/
 
 @[simp] theorem data_mkEmpty (cap) : (mkEmpty cap).data = #[] := rfl
-@[deprecated (since := "2024-08-13")] alias mkEmpty_data := data_mkEmpty
 
 @[simp] theorem data_empty : empty.data = #[] := rfl
-@[deprecated (since := "2024-08-13")] alias empty_data := data_empty
 
 @[simp] theorem size_empty : empty.size = 0 := rfl
 
 /-! ### push -/
 
 @[simp] theorem data_push (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
-@[deprecated (since := "2024-08-13")] alias push_data := data_push
 
 @[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
   Array.size_push ..
@@ -48,7 +45,6 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 @[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).data = a.data.set i v i.isLt := rfl
-@[deprecated (since := "2024-08-13")] alias set_data := data_set
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
@@ -70,7 +66,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 @[simp] theorem data_copySlice (a i b j len exact) :
   (copySlice a i b j len exact).data = b.data.extract 0 j ++ a.data.extract i (i + len)
     ++ b.data.extract (j + min len (a.data.size - i)) b.data.size := rfl
-@[deprecated (since := "2024-08-13")] alias copySlice_data := data_copySlice
 
 /-! ### append -/
 
@@ -79,7 +74,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 @[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
   rw [←append_eq]; simp [ByteArray.append, size]
   rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
-@[deprecated (since := "2024-08-13")] alias append_data := data_append
 
 theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
   simp only [size, append_eq, data_append]; exact Array.size_append ..
@@ -102,7 +96,6 @@ theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b
   match Nat.le_total start stop with
   | .inl h => simp [h, Nat.add_sub_cancel']
   | .inr h => simp [h, Nat.sub_eq_zero_of_le, Array.extract_empty_of_stop_le_start]
-@[deprecated (since := "2024-08-13")] alias extract_data := data_extract
 
 @[simp] theorem size_extract (a : ByteArray) (start stop) :
     (a.extract start stop).size = min stop a.size - start := by
@@ -133,8 +126,6 @@ theorem ofFn_succ (f : Fin (n+1) → UInt8) :
   induction n with
   | zero => rfl
   | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
-
-@[deprecated (since := "2024-08-13")] alias ofFn_data := data_ofFn
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
   simp [size]
