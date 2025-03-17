@@ -124,7 +124,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       let mut doc := info.toString
       if let some origDoc ← findDocString? (← getEnv) name then
         doc := s!"{doc}\n\n---\n\n{origDoc}"
-      addDocString declName doc
+      addDocStringCore declName doc
 
 /--
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
@@ -159,7 +159,7 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     let mut doc := info.toString
     if let some origDoc ← findDocString? (← getEnv) thm.name then
       doc := s!"{doc}\n\n---\n\n{origDoc}"
-    addDocString declName doc
+    addDocStringCore declName doc
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
