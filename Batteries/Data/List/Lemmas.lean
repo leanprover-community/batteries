@@ -38,7 +38,7 @@ theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.len
 
 /-! ### set -/
 
-theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ => a) n l
+theorem set_eq_modify (a : α) : ∀ n (l : List α), l.set n a = l.modify n (fun _ => a)
   | 0, l => by cases l <;> rfl
   | _+1, [] => rfl
   | _+1, _ :: _ => congrArg (cons _) (set_eq_modify _ _ _)
@@ -48,7 +48,7 @@ theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   rw [set_eq_modify, modify_eq_take_cons_drop h]
 
 theorem modify_eq_set_getElem? (f : α → α) :
-    ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l[n]?).getD l
+    ∀ n (l : List α), l.modify n f = ((fun a => l.set n (f a)) <$> l[n]?).getD l
   | 0, l => by cases l <;> simp
   | _+1, [] => rfl
   | n+1, b :: l =>
@@ -57,7 +57,7 @@ theorem modify_eq_set_getElem? (f : α → α) :
 @[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
 
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
-    l.modify f n = l.set n (f (l.get ⟨n, h⟩)) := by
+    l.modify n f = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
@@ -707,7 +707,7 @@ theorem get?_inj
 set_option linter.deprecated false in
 @[deprecated getElem?_modify (since := "2024-06-12")]
 theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
-    (modify f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
+    (l.modify n f).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
   simp [getElem?_modify]
 
 @[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
@@ -721,7 +721,7 @@ theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
 set_option linter.deprecated false in
 @[deprecated getElem?_modify_eq (since := "2024-06-12")]
 theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (modify f n l).get? n = f <$> l.get? n := by
+    (l.modify n f).get? n = f <$> l.get? n := by
   simp [getElem?_modify_eq]
 
 @[deprecated (since := "2024-06-12")] alias getElem?_modifyNth_ne := getElem?_modify_ne
@@ -729,7 +729,7 @@ theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
 set_option linter.deprecated false in
 @[deprecated getElem?_modify_ne (since := "2024-06-12")]
 theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (modify f m l).get? n = l.get? n := by
+    (l.modify m f).get? n = l.get? n := by
   simp [h]
 
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
