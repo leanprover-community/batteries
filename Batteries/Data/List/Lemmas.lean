@@ -669,11 +669,33 @@ theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
+
+set_option linter.deprecated false in
+@[deprecated getElem?_modify (since := "2024-06-12")]
+theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
+    (l.modify n f).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
+  simp [getElem?_modify]
+
 @[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_add := modifyTailIdx_add
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNthTail := exists_of_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias length_modifyNth := length_modify
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth_eq := getElem?_modify_eq
+
+set_option linter.deprecated false in
+@[deprecated getElem?_modify_eq (since := "2024-06-12")]
+theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
+    (l.modify n f).get? n = f <$> l.get? n := by
+  simp [getElem?_modify_eq]
+
+@[deprecated (since := "2024-06-12")] alias getElem?_modifyNth_ne := getElem?_modify_ne
+
+set_option linter.deprecated false in
+@[deprecated getElem?_modify_ne (since := "2024-06-12")]
+theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
+    (l.modify m f).get? n = l.get? n := by
+  simp [h]
+
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_eq_take_drop := modifyTailIdx_eq_take_drop
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_drop := modify_eq_take_drop
