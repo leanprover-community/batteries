@@ -19,17 +19,14 @@ theorem forIn_eq_forIn_toList [Monad m]
   simp
 
 @[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
-@[deprecated (since := "2024-08-13")] alias forIn_eq_data_forIn := forIn_eq_forIn_data
 
 /-! ### zipWith / zip -/
 
 @[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
-@[deprecated (since := "2024-08-13")] alias zipWith_eq_zipWith_data := data_zipWith
 
 /-! ### flatten -/
 
 @[deprecated (since := "2024-09-09")] alias data_join := toList_flatten
-@[deprecated (since := "2024-08-13")] alias join_data := toList_flatten
 @[deprecated (since := "2024-10-15")] alias mem_join := mem_flatten
 
 /-! ### indexOf? -/

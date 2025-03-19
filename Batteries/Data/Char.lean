@@ -11,10 +11,3 @@ theorem Char.le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=
 
 instance : Batteries.LawfulOrd Char := .compareOfLessAndEq
   (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
-
-namespace String
-
-@[deprecated (since := "2024-06-11")] alias csize_pos := Char.utf8Size_pos
-@[deprecated (since := "2024-06-11")] alias csize_le_4 := Char.utf8Size_le_four
-
-end String

@@ -397,26 +397,6 @@ theorem chain_lt_range' (s n : Nat) {step} (h : 0 < step) :
     Chain (· < ·) s (range' (s + step) n step) :=
   (chain_succ_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
 
-set_option linter.deprecated false in
-@[deprecated getElem?_range' (since := "2024-06-12")]
-theorem get?_range' (s step) {m n : Nat} (h : m < n) :
-    get? (range' s n step) m = some (s + step * m) := by
-  simp [h]
-
-@[deprecated getElem_range' (since := "2024-06-12")]
-theorem get_range' {n m step} (i) (H : i < (range' n m step).length) :
-    get (range' n m step) ⟨i, H⟩ = n + step * i := by
-  simp
-
-set_option linter.deprecated false in
-@[deprecated getElem?_range (since := "2024-06-12")]
-theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
-  simp [getElem?_range, h]
-
-@[deprecated getElem_range (since := "2024-06-12")]
-theorem get_range {n} (i) (H : i < (range n).length) : get (range n) ⟨i, H⟩ = i := by
-  simp
-
 /-! ### indexOf and indexesOf -/
 
 theorem foldrIdx_start :
@@ -683,55 +663,17 @@ theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 /-! ### deprecations -/
 
-@[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
-
-set_option linter.deprecated false in
-@[deprecated getElem_eq_iff (since := "2024-06-12")]
-theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
-  simp
-
-set_option linter.deprecated false in
-@[deprecated getElem?_inj (since := "2024-06-12")]
-theorem get?_inj
-    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
-  apply getElem?_inj h₀ h₁
-  simp_all
-
 @[deprecated (since := "2024-10-21")] alias modifyNth_nil := modify_nil
 @[deprecated (since := "2024-10-21")] alias modifyNth_zero_cons := modify_zero_cons
 @[deprecated (since := "2024-10-21")] alias modifyNth_succ_cons := modify_succ_cons
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify (since := "2024-06-12")]
-theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
-    (l.modify n f).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
-  simp [getElem?_modify]
-
 @[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
-@[deprecated (since := "2024-06-07")] alias modifyNthTail_length := length_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_add := modifyTailIdx_add
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNthTail := exists_of_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias length_modifyNth := length_modify
-@[deprecated (since := "2024-06-07")] alias modifyNth_get?_length := length_modify
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth_eq := getElem?_modify_eq
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify_eq (since := "2024-06-12")]
-theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (l.modify n f).get? n = f <$> l.get? n := by
-  simp [getElem?_modify_eq]
-
-@[deprecated (since := "2024-06-12")] alias getElem?_modifyNth_ne := getElem?_modify_ne
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify_ne (since := "2024-06-12")]
-theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (l.modify m f).get? n = l.get? n := by
-  simp [h]
-
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_eq_take_drop := modifyTailIdx_eq_take_drop
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_drop := modify_eq_take_drop
@@ -739,32 +681,3 @@ theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
 @[deprecated (since := "2024-10-21")] alias set_eq_modifyNth := set_eq_modify
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get? := modify_eq_set_get?
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get := modify_eq_set_get
--- The naming of `exists_of_set'` and `exists_of_set` have been swapped.
--- If no one complains, we will remove this version later.
-@[deprecated exists_of_set (since := "2024-07-04")]
-theorem exists_of_set' {l : List α} (h : n < l.length) :
-    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
-  rw [set_eq_modify]; exact exists_of_modify _ h
-
-set_option linter.deprecated false in
-@[deprecated getElem?_set_self' (since := "2024-06-12")]
-theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
-  rfl
-
-set_option linter.deprecated false in
-@[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
-theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
-
-set_option linter.deprecated false in
-@[deprecated getElem?_set_ne (since := "2024-06-12")]
-theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
-  simp [h]
-
-set_option linter.deprecated false in
-@[deprecated getElem?_set (since := "2024-06-12")]
-theorem get?_set (a : α) {m n} (l : List α) :
-    (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']; rfl
