@@ -22,7 +22,6 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 /-! ### empty -/
 
 @[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
-@[deprecated (since := "2024-08-13")] alias mkEmpty_data := data_mkEmpty
 
 @[simp] theorem data_empty : empty.data = #[] := rfl
 
