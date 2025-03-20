@@ -169,7 +169,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
             let y ← (t'?.map (pure ·.1)).getD (mkFreshExprMVar ty)
             let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
             let g₂ ← mkFreshExprMVar (some <| ← mkAppM' rel #[y, z]) .synthetic
-            g.assign (← mkAppOptM lem (mkArray (arity - 2) none ++ #[some g₁, some g₂]))
+            g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
             pure <| [g₁.mvarId!, g₂.mvarId!] ++
               if let some (_, gs') := t'? then gs' else [y.mvarId!]
           return
