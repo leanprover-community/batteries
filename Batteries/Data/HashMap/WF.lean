@@ -39,12 +39,12 @@ theorem size_eq (data : Buckets α β) :
   size data = (data.1.toList.map (·.toList.length)).sum := rfl
 
 theorem mk_size (h) : (mk n h : Buckets α β).size = 0 := by
-  simp only [mk, mkArray, size_eq]; clear h
+  simp only [mk, size_eq]; clear h
   induction n <;> simp_all [List.replicate_succ]
 
 theorem WF.mk' [BEq α] [Hashable α] (h) : (Buckets.mk n h : Buckets α β).WF := by
   refine ⟨fun _ h => ?_, fun i h => ?_⟩
-  · simp only [Buckets.mk, mkArray, List.mem_replicate, ne_eq] at h
+  · simp only [Buckets.mk, Array.replicate, List.mem_replicate, ne_eq] at h
     simp [h, List.Pairwise.nil]
   · simp [Buckets.mk, empty', Array.getElem_toList, AssocList.All]
 
