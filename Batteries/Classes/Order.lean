@@ -20,26 +20,24 @@ class OrientedCmp (cmp : α → α → Ordering) : Prop where
 
 namespace OrientedCmp
 
-variable {α} {cmp : α → α → Ordering} [OrientedCmp cmp] {x y : α}
-
-theorem cmp_eq_gt : cmp x y = .gt ↔ cmp y x = .lt := by
+theorem cmp_eq_gt [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_ne_gt : cmp x y ≠ .gt ↔ cmp y x ≠ .lt := not_congr cmp_eq_gt
+theorem cmp_ne_gt [OrientedCmp cmp] : cmp x y ≠ .gt ↔ cmp y x ≠ .lt := not_congr cmp_eq_gt
 
-theorem cmp_eq_eq_symm : cmp x y = .eq ↔ cmp y x = .eq := by
+theorem cmp_eq_eq_symm [OrientedCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-theorem cmp_refl : cmp x x = .eq :=
+theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   match e : cmp x x with
   | .lt => nomatch e.symm.trans (cmp_eq_gt.2 e)
   | .eq => rfl
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
-theorem lt_asymm (h : cmp x y = .lt) : cmp y x ≠ .lt :=
+theorem lt_asymm [OrientedCmp cmp] (h : cmp x y = .lt) : cmp y x ≠ .lt :=
   fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
 
-theorem gt_asymm (h : cmp x y = .gt) : cmp y x ≠ .gt :=
+theorem gt_asymm [OrientedCmp cmp] (h : cmp x y = .gt) : cmp y x ≠ .gt :=
   mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
 
 end OrientedCmp
@@ -50,9 +48,7 @@ class TransCmp (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp whe
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
 namespace TransCmp
-
-variable {α} {cmp : α → α → Ordering} [TransCmp cmp] {x y z : α}
-
+variable [TransCmp cmp]
 open OrientedCmp Decidable
 
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
