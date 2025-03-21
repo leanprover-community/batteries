@@ -46,14 +46,12 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
 /-- A computable version of `Acc.rec`. Workaround until Lean has native support for this. -/
-@[specialize, elab_as_elim] private def recC {motive : (a : α) → Acc r a → Sort v}
+@[specialize, elab_as_elim, semireducible] private def recC {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
   intro a (fun _ h => t.inv h) (fun _ hr => recC intro (t.inv hr))
 termination_by Subtype.mk a t
-
-unseal recC
 
 private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
