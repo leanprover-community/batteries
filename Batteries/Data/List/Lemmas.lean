@@ -466,7 +466,7 @@ alias indexOf_mem_indexesOf := idxOf_mem_indexesOf
 
 theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (match l.idxOf? a with | some i => i | none => l.length) := by
-  simp [idxOf, idxOf?, findIdx_eq_findIdx?]
+  simp [idxOf, idxOf?, findIdx_eq_findIdx?]; rfl
 
 @[deprecated (since := "2025-01-30")]
 alias indexOf_eq_indexOf? := idxOf_eq_idxOf?
