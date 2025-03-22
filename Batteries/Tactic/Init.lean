@@ -42,8 +42,8 @@ macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic
     | none => Unhygienic.run `(_%$tk)
   `(tactic| first
     | guard_target = Not _; intro $e:term
-    | refine Decidable.byContradiction fun $e => ?_
-    | refine Classical.byContradiction fun $e => ?_)
+    | refine @Decidable.byContradiction _ fun $e => ?_
+    | refine @Classical.byContradiction _ fun $e => ?_)
 
 /--
 Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
