@@ -1,7 +1,6 @@
 import Batteries.Data.List.ArrayMap
 import Batteries.Data.List.Basic
 import Batteries.Data.List.Count
-import Batteries.Data.List.EraseIdx
 import Batteries.Data.List.FinRange
 import Batteries.Data.List.Init.Lemmas
 import Batteries.Data.List.Lemmas
