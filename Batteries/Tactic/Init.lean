@@ -45,11 +45,6 @@ macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic
     | refine (Decidable.byContradiction fun $e => ?_ :)
     | refine (Classical.byContradiction fun $e => ?_ :))
 
-/-- A version of `(t :)` that does not process `·`s in `t`.
-
-This should be preferred inside macros. -/
-syntax (name := withNoExpectedType) "with_no_expected_type(" term ")" : term
-
 /--
 Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
 If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
