@@ -10,6 +10,20 @@ namespace List
 
 /-! ## New definitions -/
 
+/-- Get the maximum element of a list.
+If the given list is empty, returns `(default : α)` and produces a panic error message. -/
+def max! {α} [Inhabited α] [Max α] (xs : List α) : α :=
+  match xs.max? with
+  | none => panic! "List.max! called on empty list"
+  | some x => x
+
+/-- Get the minimum element of a list.
+If the given list is empty, returns `(default : α)` and produces a panic error message. -/
+def min! {α} [Inhabited α] [Min α] (xs : List α) : α :=
+  match xs.min? with
+  | none => panic! "List.min! called on empty list"
+  | some x => x
+
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
