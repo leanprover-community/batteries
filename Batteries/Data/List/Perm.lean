@@ -248,7 +248,7 @@ theorem subperm_append_diff_self_of_count_le {l₁ l₂ : List α}
     refine IH fun x hx => ?_
     specialize h x (.tail _ hx)
     rw [perm_iff_count.mp this] at h
-    if hx : x = hd then subst hd; simpa [Nat.succ_le_succ_iff] using h
+    if hx : hd = x then subst hd; simpa [Nat.succ_le_succ_iff] using h
     else simpa [hx] using h
 
 /-- The list version of `Multiset.le_iff_count`. -/
@@ -271,7 +271,7 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
   if hy' : y = x then
     subst x; simpa using Nat.succ_le_of_lt hx
   else
-    rw [count_cons_of_ne hy']
+    rw [count_cons_of_ne (Ne.symm hy')]
     refine h y ?_
     simpa [hy'] using hy
 

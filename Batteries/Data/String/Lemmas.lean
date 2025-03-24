@@ -453,9 +453,6 @@ theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).flatten⟩ := go
 @[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).flatten := by
   rw [join_eq]
 
-@[deprecated (since := "2024-06-06")] alias append_nil := append_empty
-@[deprecated (since := "2024-06-06")] alias nil_append := empty_append
-
 namespace Iterator
 
 @[simp] theorem forward_eq_nextn : forward = nextn := by

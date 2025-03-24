@@ -45,3 +45,26 @@ h : p → False
 #guard_msgs in
 example {p : Prop} (h : p → False) : 0 = 3 := by
   absurd h
+
+/--
+error: unsolved goals
+p : Prop
+h : p
+⊢ ¬p
+-/
+#guard_msgs in
+example {p : Prop} {h : p} : ∀ {x : True}, 0 = 0 := by
+  absurd h
+
+-- `·` should not be legal
+/--
+error: invalid occurrence of `·` notation, it must be surrounded by parentheses (e.g. `(· + 1)`)
+---
+error: unsolved goals
+p : Prop
+h : p
+⊢ ∀ {x : True}, 0 = 0
+-/
+#guard_msgs in
+example {p : Prop} {h : p} : ∀ {_ : True}, 0 = 0 := by
+  absurd ·
