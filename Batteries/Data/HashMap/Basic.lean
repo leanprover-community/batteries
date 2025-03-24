@@ -26,7 +26,7 @@ namespace Buckets
 
 /-- Construct a new empty bucket array with the specified capacity. -/
 def mk (buckets := 8) (h : 0 < buckets := by decide) : Buckets α β :=
-  ⟨mkArray buckets .nil, by simp [h]⟩
+  ⟨.replicate buckets .nil, by simp [h]⟩
 
 /-- Update one bucket in the bucket array with a new value. -/
 def update (data : Buckets α β) (i : USize)
