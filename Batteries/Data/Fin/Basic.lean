@@ -104,6 +104,16 @@ protected def prod [OfNat α (nat_lit 1)] [Mul α] (x : Fin n → α) : α :=
 protected def count (P : Fin n → Prop) [DecidablePred P] : Nat :=
   Fin.sum (if P · then 1 else 0)
 
-/-- Find the first true value of a decidable predicate on `Fin n`, if there is one. -/
-protected def find? (P : Fin n → Prop) [DecidablePred P] : Option (Fin n) :=
-  foldr n (fun i v => if P i then some i else v) none
+/--
+`findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def findSome? (f : Fin n → Option α) : Option α :=
+  foldl n (fun r i => r <|> f i) none
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
+  findSome? <| Option.guard fun i => p i

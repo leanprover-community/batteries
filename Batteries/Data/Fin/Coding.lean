@@ -240,10 +240,13 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
   | succ n ih =>
     simp only [decodeSigma]
     match x with
-    | ⟨0, x⟩ =>
+    | ⟨⟨0, _⟩, x, hx⟩ =>
       split
       · rfl
-      · sorry
+      · next h =>
+        absurd h
+        simp only [encodeSigma]
+        exact hx
     | ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ =>
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
       rw [dif_neg this]
@@ -372,28 +375,28 @@ def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i 
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
         have : (Fin.count fun i => P i.succ) + 1 = Fin.count P := by
-          simp_arith only [count_succ, Function.comp_def, if_pos h0]
+          simp +arith only [count_succ, Function.comp_def, if_pos h0]
         Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
         have : (Fin.count fun i => P i.succ) = Fin.count P := by simp [count_succ, h0]
         Fin.cast this ⟨k, hk⟩
 
 /-- Decode a decidable subtype of a `Fin` type. -/
-def decodeSubtype (p : Fin n → Prop) [inst : DecidablePred p] (k : Fin (Fin.count p)) :
-    { i // p i } :=
-  match n, p, inst, k with
+def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.count P)) :
+    { i // P i } :=
+  match n, P, inst, k with
   | 0, _, _, ⟨_, h⟩ => False.elim (by simp at h)
-  | n+1, p, inst, ⟨k, hk⟩ =>
-    if h0 : p 0 then
-      have : Fin.count p = (Fin.count fun i => p i.succ) + 1 := by simp [count_succ, h0]
+  | n+1, P, inst, ⟨k, hk⟩ =>
+    if h0 : P 0 then
+      have : Fin.count P = (Fin.count fun i => P i.succ) + 1 := by simp [count_succ, h0]
       match k with
       | 0 => ⟨0, h0⟩
       | k + 1 =>
-        match decodeSubtype (fun i => p i.succ) ⟨k, Nat.lt_of_add_lt_add_right (this ▸ hk)⟩ with
+        match decodeSubtype (fun i => P i.succ) ⟨k, Nat.lt_of_add_lt_add_right (this ▸ hk)⟩ with
         | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
     else
-      have : Fin.count p = Fin.count fun i => p i.succ := by simp [count_succ, h0]
-      match decodeSubtype (fun i => p (succ i)) ⟨k, this ▸ hk⟩ with
+      have : Fin.count P = Fin.count fun i => P i.succ := by simp [count_succ, h0]
+      match decodeSubtype (fun i => P (succ i)) ⟨k, this ▸ hk⟩ with
       | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
 
 theorem encodeSubtype_zero_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) :
@@ -448,37 +451,37 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
 
 /-- Get representative for the equivalence class of `x`. -/
 abbrev getRepr (s : Setoid (Fin n)) [DecidableRel s.r] (x : Fin n) : Fin n :=
-  match h : Fin.find? (s.r x) with
+  match h : Fin.find? (fun y => s.r x y) with
   | some y => y
   | none => False.elim <| by
-    have : Fin.find? (s.r x) |>.isSome := by
-      rw [find?_isSome_iff_exists]
+    have : Fin.find? (fun y => s.r x y) |>.isSome := by
+      rw [find?_isSome_iff]
       exists x
+      apply decide_eq_true
       exact Setoid.refl x
     simp [h] at this
 
 @[simp] theorem equiv_getRepr (s : Setoid (Fin n)) [DecidableRel s.r] (x : Fin n) :
     s.r x (getRepr s x) := by
-  apply find?_prop
   simp only [getRepr]
   split
-  · assumption
-  · next h =>
-    have : Fin.find? (s.r x) |>.isSome := by
-      rw [find?_isSome_iff_exists]
-      exists x
-      exact Setoid.refl x
-    simp [h] at this
+  · next hsome =>
+    apply of_decide_eq_true
+    apply eq_true_of_find?_eq_some hsome
+  · next hnone =>
+    absurd s.refl x
+    apply of_decide_eq_false
+    apply eq_false_of_find?_eq_none hnone
 
 @[simp] theorem getRepr_equiv (s : Setoid (Fin n)) [DecidableRel s.r] (x : Fin n) :
     s.r (getRepr s x) x := Setoid.symm (equiv_getRepr ..)
 
 theorem getRepr_eq_getRepr_of_equiv (s : Setoid (Fin n)) [DecidableRel s.r] (h : s.r x y) :
     getRepr s x = getRepr s y := by
-  have hfind : Fin.find? (s.r x) = Fin.find? (s.r y) := by
+  have hfind : Fin.find? (s.r x ·) = Fin.find? (s.r y ·) := by
     congr
     funext z
-    apply propext
+    rw [decide_eq_decide]
     constructor
     · exact Setoid.trans (Setoid.symm h)
     · exact Setoid.trans h

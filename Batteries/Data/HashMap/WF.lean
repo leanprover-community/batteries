@@ -98,12 +98,11 @@ where
     · next H =>
       refine (go (i+1) _ _ fun j hj => ?a).trans ?b
       · case a =>
-        simp only [Array.length_toList, Array.toList_set]
-        simp [List.getD_eq_getElem?_getD, List.getElem?_set, Option.map_eq_map]; split
+        simp only [Array.toList_set, List.getElem?_set, Array.length_toList]; split
         · cases source.toList[j]? <;> rfl
         · next H => exact hs _ (Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hj) (Ne.symm H))
       · case b =>
-        simp only [Array.length_toList, Array.toList_set, Array.get_eq_getElem, AssocList.foldl_eq]
+        simp only [Array.length_toList, Array.toList_set, AssocList.foldl_eq]
         refine have ⟨l₁, l₂, h₁, _, eq⟩ := List.exists_of_set H; eq ▸ ?_
         rw [h₁]
         simp only [Buckets.size_eq, List.map_append, List.map_cons, AssocList.toList,
@@ -180,7 +179,7 @@ where
         · exact hs₂ _ (by simp_all)
       · let rank (k : α) := ((hash k).toUSize % USize.ofNat source.size).toNat
         have := expand_WF.foldl rank ?_ (hs₂ _ H) ht.1 (fun _ h₁ _ h₂ => ?_)
-        · simp only [Array.get_eq_getElem, AssocList.foldl_eq, Array.size_set]
+        · simp only [AssocList.foldl_eq, Array.size_set]
           exact ⟨this.1, fun _ h₁ _ h₂ => Nat.lt_succ_of_le (this.2 _ h₁ _ h₂)⟩
         · exact hs₁ _ (Array.getElem_mem_toList ..)
         · have := ht.2 _ h₁ _ h₂
@@ -371,7 +370,7 @@ theorem WF.filterMap {α β γ} {f : α → β → Option γ} [BEq α] [Hashable
     have := H.out.2.1 _ h
     rw [← List.pairwise_map (R := (¬ · == ·))] at this ⊢
     exact this.sublist (H3 l.toList)
-  · simp only [Array.size_toArray, List.length_map, Array.length_toList, ← Array.getElem_toList,
+  · simp only [List.size_toArray, List.length_map, Array.length_toList, ← Array.getElem_toList,
       List.getElem_map] at h ⊢
     have := H.out.2.2 _ h
     simp only [AssocList.All, List.toList_toAssocList, List.mem_reverse, List.mem_filterMap,

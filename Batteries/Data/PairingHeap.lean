@@ -118,13 +118,13 @@ theorem Heap.noSibling_tail (le) (s : Heap α) : (s.tail le).NoSibling := by
 
 theorem Heap.size_merge_node (le) (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) (c₂ s₂ : Heap α) :
     (merge le (.node a₁ c₁ s₁) (.node a₂ c₂ s₂)).size = c₁.size + c₂.size + 2 := by
-  unfold merge; dsimp; split <;> simp_arith [size]
+  unfold merge; dsimp; split <;> simp +arith [size]
 
 theorem Heap.size_merge (le) {s₁ s₂ : Heap α} (h₁ : s₁.NoSibling) (h₂ : s₂.NoSibling) :
     (merge le s₁ s₂).size = s₁.size + s₂.size := by
   match h₁, h₂ with
   | .nil, .nil | .nil, .node _ _ | .node _ _, .nil => simp [merge, size]
-  | .node _ _, .node _ _ => unfold merge; dsimp; split <;> simp_arith [size]
+  | .node _ _, .node _ _ => unfold merge; dsimp; split <;> simp +arith [size]
 
 theorem Heap.size_combine (le) (s : Heap α) :
     (s.combine le).size = s.size := by
@@ -132,7 +132,7 @@ theorem Heap.size_combine (le) (s : Heap α) :
   · rename_i a₁ c₁ a₂ c₂ s
     rw [size_merge le (noSibling_merge _ _ _) (noSibling_combine _ _),
       size_merge_node, size_combine le s]
-    simp_arith [size]
+    simp +arith [size]
   · rfl
 
 theorem Heap.size_deleteMin {s : Heap α} (h : s.NoSibling) (eq : s.deleteMin le = some (a, s')) :
@@ -153,7 +153,7 @@ theorem Heap.size_tail (le) {s : Heap α} (h : s.NoSibling) : (s.tail le).size =
 
 theorem Heap.size_deleteMin_lt {s : Heap α} (eq : s.deleteMin le = some (a, s')) :
     s'.size < s.size := by
-  cases s with cases eq | node a c => simp_arith [size_combine, size]
+  cases s with cases eq | node a c => simp +arith [size_combine, size]
 
 theorem Heap.size_tail?_lt {s : Heap α} : s.tail? le = some s' →
     s'.size < s.size := by
@@ -170,7 +170,7 @@ by repeatedly pulling the minimum element out of the heap.
   match eq : s.deleteMin le with
   | none => pure init
   | some (hd, tl) =>
-    have : tl.size < s.size := by simp_arith [Heap.size_deleteMin_lt eq]
+    have : tl.size < s.size := by simp +arith [Heap.size_deleteMin_lt eq]
     do foldM le tl (← f init hd) f
 termination_by s.size
 

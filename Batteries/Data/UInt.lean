@@ -10,8 +10,6 @@ import Batteries.Classes.Order
 @[ext] theorem UInt8.ext : {x y : UInt8} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt8.toNat_lt (x : UInt8) : x.toNat < 2 ^ 8 := x.val.isLt
-
 @[simp] theorem UInt8.toUInt16_toNat (x : UInt8) : x.toUInt16.toNat = x.toNat := rfl
 
 @[simp] theorem UInt8.toUInt32_toNat (x : UInt8) : x.toUInt32.toNat = x.toNat := rfl
@@ -25,8 +23,6 @@ instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
 
 @[ext] theorem UInt16.ext : {x y : UInt16} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
-
-theorem UInt16.toNat_lt (x : UInt16) : x.toNat < 2 ^ 16 := x.val.isLt
 
 @[simp] theorem UInt16.toUInt8_toNat (x : UInt16) : x.toUInt8.toNat = x.toNat % 2 ^ 8 := rfl
 
@@ -42,8 +38,6 @@ instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
 @[ext] theorem UInt32.ext : {x y : UInt32} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt32.toNat_lt (x : UInt32) : x.toNat < 2 ^ 32 := x.val.isLt
-
 @[simp] theorem UInt32.toUInt8_toNat (x : UInt32) : x.toUInt8.toNat = x.toNat % 2 ^ 8 := rfl
 
 @[simp] theorem UInt32.toUInt16_toNat (x : UInt32) : x.toUInt16.toNat = x.toNat % 2 ^ 16 := rfl
@@ -58,8 +52,6 @@ instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
 @[ext] theorem UInt64.ext : {x y : UInt64} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-theorem UInt64.toNat_lt (x : UInt64) : x.toNat < 2 ^ 64 := x.val.isLt
-
 @[simp] theorem UInt64.toUInt8_toNat (x : UInt64) : x.toUInt8.toNat = x.toNat % 2 ^ 8 := rfl
 
 @[simp] theorem UInt64.toUInt16_toNat (x : UInt64) : x.toUInt16.toNat = x.toNat % 2 ^ 16 := rfl
@@ -73,22 +65,6 @@ instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
 
 @[ext] theorem USize.ext : {x y : USize} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
-
-theorem USize.size_eq : USize.size = 2 ^ System.Platform.numBits := by
-  rw [USize.size]
-
-theorem USize.le_size : 2 ^ 32 ≤ USize.size := by
-  rw [size_eq]
-  apply Nat.pow_le_pow_of_le_right (by decide)
-  cases System.Platform.numBits_eq <;> simp_arith [*]
-
-theorem USize.size_le : USize.size ≤ 2 ^ 64 := by
-  rw [size_eq]
-  apply Nat.pow_le_pow_of_le_right (by decide)
-  cases System.Platform.numBits_eq <;> simp_arith [*]
-
-theorem USize.toNat_lt (x : USize) : x.toNat < 2 ^ System.Platform.numBits := by
-  rw [←USize.size_eq]; exact x.val.isLt
 
 @[simp] theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
   simp only [USize.toUInt64, UInt64.toNat]; rfl

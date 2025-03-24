@@ -47,27 +47,33 @@ theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
     set l n a = take n l ++ a :: drop (n + 1) l := by
   rw [set_eq_modify, modify_eq_take_cons_drop h]
 
-theorem modify_eq_set_get? (f : α → α) :
-    ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l.get? n).getD l
-  | 0, l => by cases l <;> rfl
+theorem modify_eq_set_getElem? (f : α → α) :
+    ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l[n]?).getD l
+  | 0, l => by cases l <;> simp
   | _+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modify_eq_set_get? ..)).trans <| by cases h : l[n]? <;> simp [h]
+    (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp [h]
+
+@[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
 
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modify f n = l.set n (f (l.get ⟨n, h⟩)) := by
-  rw [modify_eq_set_get?, get?_eq_get h]; rfl
+  rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
     (set l n a)[n]? = some a := by rw [getElem?_set_self', getElem?_eq_getElem h]; rfl
 
-theorem get?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
-    (set l m a).get? n = if m = n then some a else l.get? n := by
+theorem getElem?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
+    (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set', getElem?_eq_getElem h]
 
-theorem get?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
-    (set l m a).get? n = if m = n then some a else l.get? n := by
+@[deprecated (since := "2025-02-15")] alias get?_set_of_lt := getElem?_set_of_lt
+
+theorem getElem?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
+    (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*, getElem?_eq_getElem h]
+
+@[deprecated (since := "2025-02-15")] alias get?_set_of_lt' := getElem?_set_of_lt'
 
 /-! ### tail -/
 
@@ -391,24 +397,6 @@ theorem chain_lt_range' (s n : Nat) {step} (h : 0 < step) :
     Chain (· < ·) s (range' (s + step) n step) :=
   (chain_succ_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
 
-@[deprecated getElem?_range' (since := "2024-06-12")]
-theorem get?_range' (s step) {m n : Nat} (h : m < n) :
-    get? (range' s n step) m = some (s + step * m) := by
-  simp [h]
-
-@[deprecated getElem_range' (since := "2024-06-12")]
-theorem get_range' {n m step} (i) (H : i < (range' n m step).length) :
-    get (range' n m step) ⟨i, H⟩ = n + step * i := by
-  simp
-
-@[deprecated getElem?_range (since := "2024-06-12")]
-theorem get?_range {m n : Nat} (h : m < n) : get? (range n) m = some m := by
-  simp [getElem?_range, h]
-
-@[deprecated getElem_range (since := "2024-06-12")]
-theorem get_range {n} (i) (H : i < (range n).length) : get (range n) ⟨i, H⟩ = i := by
-  simp
-
 /-! ### indexOf and indexesOf -/
 
 theorem foldrIdx_start :
@@ -562,7 +550,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
         (∀ p'' i'' s'', l = p'' ++ i'' ++ s'' → i'' == i → p''.length ≥ p'.length) := by
   unfold dropInfix?.go
   split
-  · simp only [isEmpty_eq_true, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
+  · simp only [isEmpty_iff, ite_none_right_eq_some, some.injEq, Prod.mk.injEq, nil_eq,
       append_assoc, append_eq_nil_iff, ge_iff_le, and_imp]
     constructor
     · rintro ⟨rfl, rfl, rfl⟩
@@ -587,7 +575,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
         rw [cons_eq_append_iff] at h₁
         simp at h₁
         obtain (⟨⟨rfl, rfl⟩, rfl⟩ | ⟨a', h₁, rfl⟩) := h₁
-        · simp only [nil_beq_iff, isEmpty_eq_true] at h₂
+        · simp only [nil_beq_iff, isEmpty_iff] at h₂
           simp only [h₂] at h
           simp at h
         · rw [append_eq_cons_iff] at h₁
@@ -633,43 +621,59 @@ theorem dropInfix?_eq_some_iff [BEq α] {l i p s : List α} :
 @[simp] theorem dropInfix?_nil [BEq α] {s : List α} : dropInfix? s [] = some ([], s) := by
   simp [dropInfix?_eq_some_iff]
 
+/-! ### IsPrefixOf?, IsSuffixOf? -/
+
+@[simp] theorem isSome_isPrefixOf?_eq_isPrefixOf [BEq α] (xs ys : List α) :
+    (xs.isPrefixOf? ys).isSome = xs.isPrefixOf ys := by
+  match xs, ys with
+  | [], _ => simp [List.isPrefixOf?]
+  | _::_, [] => rfl
+  | _::_, _::_ =>
+    simp only [List.isPrefixOf?, List.isPrefixOf]
+    split <;> simp [*, isSome_isPrefixOf?_eq_isPrefixOf]
+
+@[simp] theorem isPrefixOf?_eq_some_iff_append_eq [BEq α] [LawfulBEq α] {xs ys zs : List α} :
+    xs.isPrefixOf? ys = some zs ↔ xs ++ zs = ys := by
+  induction xs generalizing ys with
+  | nil => simp [isPrefixOf?, Eq.comm]
+  | cons => cases ys <;> simp [isPrefixOf?, *]
+
+theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
+    (h : xs.isPrefixOf? ys = some zs) : xs ++ zs = ys := by simp_all
+
+@[simp] theorem isSome_isSuffixOf?_eq_isSuffixOf [BEq α] (xs ys : List α) :
+    (xs.isSuffixOf? ys).isSome = xs.isSuffixOf ys := by
+  simp [List.isSuffixOf?, isSuffixOf]
+
+@[simp] theorem isSuffixOf?_eq_some_iff_append_eq [BEq α] [LawfulBEq α] {xs ys zs : List α} :
+    xs.isSuffixOf? ys = some zs ↔ zs ++ xs = ys := by
+  simp only [isSuffixOf?, map_eq_some', isPrefixOf?_eq_some_iff_append_eq]
+  constructor
+  · intro
+    | ⟨_, h, heq⟩ =>
+      rw [List.reverse_eq_iff] at heq
+      rw [heq] at h
+      rw [← reverse_inj, reverse_append, h]
+  · intro h
+    exists zs.reverse
+    simp [← h]
+
+theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
+    (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
+
 /-! ### deprecations -/
 
-@[deprecated (since := "2024-08-15")] alias isEmpty_iff_eq_nil := isEmpty_iff
-@[deprecated getElem_eq_iff (since := "2024-06-12")]
-theorem get_eq_iff : List.get l n = x ↔ l.get? n.1 = some x := by
-  simp
-@[deprecated getElem?_inj (since := "2024-06-12")]
-theorem get?_inj
-    (h₀ : i < xs.length) (h₁ : Nodup xs) (h₂ : xs.get? i = xs.get? j) : i = j := by
-  apply getElem?_inj h₀ h₁
-  simp_all
 @[deprecated (since := "2024-10-21")] alias modifyNth_nil := modify_nil
 @[deprecated (since := "2024-10-21")] alias modifyNth_zero_cons := modify_zero_cons
 @[deprecated (since := "2024-10-21")] alias modifyNth_succ_cons := modify_succ_cons
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
-@[deprecated getElem?_modify (since := "2024-06-12")]
-theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
-    (modify f n l).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
-  simp [getElem?_modify]
 @[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
-@[deprecated (since := "2024-06-07")] alias modifyNthTail_length := length_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_add := modifyTailIdx_add
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNthTail := exists_of_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias length_modifyNth := length_modify
-@[deprecated (since := "2024-06-07")] alias modifyNth_get?_length := length_modify
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth_eq := getElem?_modify_eq
-@[deprecated getElem?_modify_eq (since := "2024-06-12")]
-theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (modify f n l).get? n = f <$> l.get? n := by
-  simp [getElem?_modify_eq]
-@[deprecated (since := "2024-06-12")] alias getElem?_modifyNth_ne := getElem?_modify_ne
-@[deprecated getElem?_modify_ne (since := "2024-06-12")]
-theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (modify f m l).get? n = l.get? n := by
-  simp [h]
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_eq_take_drop := modifyTailIdx_eq_take_drop
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_drop := modify_eq_take_drop
@@ -677,24 +681,3 @@ theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
 @[deprecated (since := "2024-10-21")] alias set_eq_modifyNth := set_eq_modify
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get? := modify_eq_set_get?
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get := modify_eq_set_get
--- The naming of `exists_of_set'` and `exists_of_set` have been swapped.
--- If no one complains, we will remove this version later.
-@[deprecated exists_of_set (since := "2024-07-04")]
-theorem exists_of_set' {l : List α} (h : n < l.length) :
-    ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ l₁.length = n ∧ l.set n a' = l₁ ++ a' :: l₂ := by
-  rw [set_eq_modify]; exact exists_of_modify _ h
-@[deprecated getElem?_set_self' (since := "2024-06-12")]
-theorem get?_set_eq (a : α) (n) (l : List α) : (set l n a).get? n = (fun _ => a) <$> l.get? n := by
-  simp only [get?_eq_getElem?, getElem?_set_self', Option.map_eq_map]
-  rfl
-@[deprecated getElem?_set_eq_of_lt (since := "2024-06-12")]
-theorem get?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
-    (set l n a).get? n = some a := by
-  rw [get?_eq_getElem?, getElem?_set_self', getElem?_eq_getElem h]; rfl
-@[deprecated getElem?_set_ne (since := "2024-06-12")]
-theorem get?_set_ne (a : α) {m n} (l : List α) (h : m ≠ n) : (set l m a).get? n = l.get? n := by
-  simp [h]
-@[deprecated getElem?_set (since := "2024-06-12")]
-theorem get?_set (a : α) {m n} (l : List α) :
-    (set l m a).get? n = if m = n then (fun _ => a) <$> l.get? n else l.get? n := by
-  simp [getElem?_set']; rfl

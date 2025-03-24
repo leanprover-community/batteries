@@ -136,7 +136,7 @@ instance (β : α → Type _) [Fin.Enum α] [(x : α) → Fin.Enum (β x)] : Fin
     conv => rhs; rw [← encodePi_decodePi _ i]
     congr
     ext
-    simp only [cast]
+    simp only [coe_cast]
     rw [encode_decode]
   decode_encode f := by
     funext x
@@ -144,9 +144,8 @@ instance (β : α → Type _) [Fin.Enum α] [(x : α) → Fin.Enum (β x)] : Fin
     conv => rhs; rw [← decode_encode (f x)]
     congr 1
     ext
-    simp only [cast, decodePi_encodePi]
+    simp only [decodePi_encodePi, coe_cast]
     rw [decode_encode]
-    done
 
 instance (P : α → Prop) [DecidablePred P] [Fin.Enum α] : Fin.Enum { x // P x} where
   size := Fin.count fun i => P (decode i)
