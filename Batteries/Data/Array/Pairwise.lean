@@ -19,13 +19,11 @@ that `as` is strictly sorted and `as.Pairwise (· ≤ ·)` asserts that `as` is 
 -/
 def Pairwise (R : α → α → Prop) (as : Array α) : Prop := as.toList.Pairwise R
 
-theorem pairwise_iff_get {as : Array α} : as.Pairwise R ↔
-    ∀ (i j : Fin as.size), i < j → R (as.get i i.2) (as.get j j.2) := by
-  unfold Pairwise; simp [List.pairwise_iff_get, getElem_fin_eq_getElem_toList]
-
 theorem pairwise_iff_getElem {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Nat) (_ : i < as.size) (_ : j < as.size), i < j → R as[i] as[j] := by
   unfold Pairwise; simp [List.pairwise_iff_getElem, length_toList]
+
+@[deprecated (since := "2025-02-19")] alias pairwise_iff_get := pairwise_iff_getElem
 
 instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R as) :=
   have : (∀ (j : Fin as.size) (i : Fin j.val), R as[i.val] (as[j.val])) ↔ Pairwise R as := by

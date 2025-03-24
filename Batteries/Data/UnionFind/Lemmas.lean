@@ -97,8 +97,8 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       this yroot xroot fun i => by simp [parent_link, h, hr]
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
-theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
-theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
+nonrec theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
+nonrec theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
 
 @[simp] theorem equiv_empty : Equiv empty a b ↔ a = b := by simp [Equiv]
 

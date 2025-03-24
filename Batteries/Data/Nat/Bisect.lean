@@ -15,10 +15,10 @@ theorem avg_comm (a b : Nat) : avg a b = avg b a := by
   rw [avg, Nat.add_comm]
 
 theorem avg_le_left (h : b ≤ a) : avg a b ≤ a := by
-  apply Nat.div_le_of_le_mul; simp_arith [*]
+  apply Nat.div_le_of_le_mul; simp +arith [*]
 
 theorem avg_le_right (h : a ≤ b) : avg a b ≤ b := by
-  apply Nat.div_le_of_le_mul; simp_arith [*]
+  apply Nat.div_le_of_le_mul; simp +arith [*]
 
 theorem avg_lt_left (h : b < a) : avg a b < a := by
   apply Nat.div_lt_of_lt_mul; omega
@@ -27,10 +27,10 @@ theorem avg_lt_right (h : a < b) : avg a b < b := by
   apply Nat.div_lt_of_lt_mul; omega
 
 theorem le_avg_left (h : a ≤ b) : a ≤ avg a b := by
-  apply (Nat.le_div_iff_mul_le Nat.zero_lt_two).mpr; simp_arith [*]
+  apply (Nat.le_div_iff_mul_le Nat.zero_lt_two).mpr; simp +arith [*]
 
 theorem le_avg_right (h : b ≤ a) : b ≤ avg a b := by
-  apply (Nat.le_div_iff_mul_le Nat.zero_lt_two).mpr; simp_arith [*]
+  apply (Nat.le_div_iff_mul_le Nat.zero_lt_two).mpr; simp +arith [*]
 
 theorem le_add_one_of_avg_eq_left (h : avg a b = a) : b ≤ a + 1 := by
   cases Nat.lt_or_ge b (a+2) with
