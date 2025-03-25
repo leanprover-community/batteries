@@ -79,7 +79,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
 end Subperm
 
 theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} : l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
-  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le p
+  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le
 
 theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) :
     count a l₁ ≤ count a l₂ := s.countP_le _
@@ -174,7 +174,7 @@ theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   else
     (erase_of_not_mem h).symm ▸ (sublist_cons_self _ _).subperm
 
-theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := (erase_sublist _ _).subperm
+theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := erase_sublist.subperm
 
 theorem Subperm.erase {l₁ l₂ : List α} (a : α) (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
   let ⟨l, hp, hs⟩ := h
@@ -196,7 +196,8 @@ theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l
     if h : x = y then
       simp [h]
     else
-      simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm x y]
+      -- FIXME: remove use of named arguments in erase_comm before merging.
+      simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm (a := x) (b := y)]
       split <;> simp [h]
   | trans => simp only [*]
 

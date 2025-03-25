@@ -328,13 +328,16 @@ theorem Sublist.diff_right : ∀ {l₁ l₂ l₃ : List α}, l₁ <+ l₂ → l�
 
 theorem Sublist.erase_diff_erase_sublist {a : α} :
     ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
-  | [], _, _ => erase_sublist _ _
+  | [], _, _ => erase_sublist
   | b :: l₁, l₂, h => by
     if heq : b = a then
       simp [heq]
     else
-      simp [heq, erase_comm a]
-      exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
+      -- FIXME: restore to the following before merging.
+      -- simp [heq, erase_comm a]
+      -- exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
+      simp [heq, erase_comm (a := a)]
+      exact (erase_cons_head (a := b) ▸ h.erase b).erase_diff_erase_sublist
 
 end Diff
 
