@@ -196,8 +196,7 @@ theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l
     if h : x = y then
       simp [h]
     else
-      -- FIXME: remove use of named arguments in erase_comm before merging.
-      simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm (a := x) (b := y)]
+      simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm x y]
       split <;> simp [h]
   | trans => simp only [*]
 
