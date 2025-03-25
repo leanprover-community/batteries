@@ -333,11 +333,8 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
     if heq : b = a then
       simp [heq]
     else
-      -- FIXME: restore to the following before merging.
-      -- simp [heq, erase_comm a]
-      -- exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
-      simp [heq, erase_comm (a := a)]
-      exact (erase_cons_head (a := b) ▸ h.erase b).erase_diff_erase_sublist
+      simp [heq, erase_comm a]
+      exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
 
 end Diff
 
