@@ -102,7 +102,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
     | .inr m => let ⟨t, p', s'⟩ := ih h₁ m p; exact ⟨t, p', s'.cons _⟩
   | @cons₂ _ r₂ b _ ih =>
-    have bm : b ∈ l₁ := p.subset <| mem_cons_self _ _
+    have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
       simp only [find?, mem_cons] at h₂
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
