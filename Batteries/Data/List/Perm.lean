@@ -79,7 +79,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
 end Subperm
 
 theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} : l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
-  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le p
+  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le
 
 theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) :
     count a l₁ ≤ count a l₂ := s.countP_le _
@@ -102,7 +102,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
     | .inr m => let ⟨t, p', s'⟩ := ih h₁ m p; exact ⟨t, p', s'.cons _⟩
   | @cons₂ _ r₂ b _ ih =>
-    have bm : b ∈ l₁ := p.subset <| mem_cons_self _ _
+    have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
       simp only [find?, mem_cons] at h₂
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
@@ -174,7 +174,7 @@ theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   else
     (erase_of_not_mem h).symm ▸ (sublist_cons_self _ _).subperm
 
-theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := (erase_sublist _ _).subperm
+theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := erase_sublist.subperm
 
 theorem Subperm.erase {l₁ l₂ : List α} (a : α) (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
   let ⟨l, hp, hs⟩ := h

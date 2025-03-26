@@ -40,7 +40,7 @@ Note: this is marked `noncomputable` because it is only intended for specificati
 noncomputable def size (data : Buckets α β) : Nat := (data.1.toList.map (·.toList.length)).sum
 
 @[simp] theorem update_size (self : Buckets α β) (i d h) :
-    (self.update i d h).1.size = self.1.size := Array.size_uset _ _ _ h
+    (self.update i d h).1.size = self.1.size := Array.size_uset (h := h)
 
 /-- Map a function over the values in the map. -/
 @[specialize] def mapVal (f : α → β → γ) (self : Buckets α β) : Buckets α γ :=
