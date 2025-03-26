@@ -34,6 +34,12 @@ theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   | .eq => rfl
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
+theorem lt_asymm [OrientedCmp cmp] (h : cmp x y = .lt) : cmp y x ≠ .lt :=
+  fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
+
+theorem gt_asymm [OrientedCmp cmp] (h : cmp x y = .gt) : cmp y x ≠ .gt :=
+  mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
+
 end OrientedCmp
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
@@ -48,12 +54,6 @@ open OrientedCmp Decidable
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
   have := @TransCmp.le_trans _ cmp _ z y x
   simp [cmp_eq_gt] at *; exact this h₂ h₁
-
-theorem lt_asymm (h : cmp x y = .lt) : cmp y x ≠ .lt :=
-  fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
-
-theorem gt_asymm (h : cmp x y = .gt) : cmp y x ≠ .gt :=
-  mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
 
 theorem le_lt_trans (h₁ : cmp x y ≠ .gt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans (mt cmp_eq_gt.2 h₁) h₃ h₂
