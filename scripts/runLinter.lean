@@ -28,17 +28,14 @@ def resolveDefaultRootModules : IO (Array Name) := do
   let some workspace ← loadWorkspace config |>.toBaseIO
     | throw <| IO.userError "failed to load Lake workspace"
 
-  -- resolve the default build specs from the Lake workspace (based on `lake build`)
-  let defaultBuildSpecs ← match resolveDefaultPackageTarget workspace workspace.root with
-    | Except.error e => IO.eprintln s!"Error getting default package target: {e}" *> IO.Process.exit 1
-    | Except.ok targets => pure targets
-
-  -- build an array of all root modules of `lean_exe` and `lean_lib` build targets
-  let defaultTargetModules := defaultBuildSpecs.flatMap <|
-    fun target => match target.info with
-      | BuildInfo.libraryFacet lib _ => lib.roots
-      | BuildInfo.leanExe exe => #[exe.config.root]
-      | _ => #[]
+  -- build an array of all root modules of `lean_exe` and `lean_lib` default targets
+  let defaultTargetModules := workspace.root.defaultTargets.flatMap fun target =>
+    if let some lib := workspace.root.findLeanLib? target then
+      lib.roots
+    else if let some exe := workspace.root.findLeanExe? target then
+      #[exe.config.root]
+    else
+      #[]
   return defaultTargetModules
 
 /--
