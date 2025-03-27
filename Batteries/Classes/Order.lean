@@ -5,29 +5,6 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.SeqFocus
 
-/-! ## Ordering -/
-
-namespace Ordering
-
-@[simp] theorem swap_swap {o : Ordering} : o.swap.swap = o := by cases o <;> rfl
-
-@[simp] theorem swap_inj {o₁ o₂ : Ordering} : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
-  ⟨fun h => by simpa using congrArg swap h, congrArg _⟩
-
-theorem swap_then (o₁ o₂ : Ordering) : (o₁.then o₂).swap = o₁.swap.then o₂.swap := by
-  cases o₁ <;> rfl
-
-theorem then_eq_lt {o₁ o₂ : Ordering} : o₁.then o₂ = lt ↔ o₁ = lt ∨ o₁ = eq ∧ o₂ = lt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-theorem then_eq_eq {o₁ o₂ : Ordering} : o₁.then o₂ = eq ↔ o₁ = eq ∧ o₂ = eq := by
-  cases o₁ <;> simp [«then»]
-
-theorem then_eq_gt {o₁ o₂ : Ordering} : o₁.then o₂ = gt ↔ o₁ = gt ∨ o₁ = eq ∧ o₂ = gt := by
-  cases o₁ <;> cases o₂ <;> decide
-
-end Ordering
-
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
@@ -57,10 +34,16 @@ theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   | .eq => rfl
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
+theorem lt_asymm [OrientedCmp cmp] (h : cmp x y = .lt) : cmp y x ≠ .lt :=
+  fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
+
+theorem gt_asymm [OrientedCmp cmp] (h : cmp x y = .gt) : cmp y x ≠ .gt :=
+  mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
+
 end OrientedCmp
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
-class TransCmp (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
+class TransCmp (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- The comparator operation is transitive. -/
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
@@ -71,12 +54,6 @@ open OrientedCmp Decidable
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
   have := @TransCmp.le_trans _ cmp _ z y x
   simp [cmp_eq_gt] at *; exact this h₂ h₁
-
-theorem lt_asymm (h : cmp x y = .lt) : cmp y x ≠ .lt :=
-  fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
-
-theorem gt_asymm (h : cmp x y = .gt) : cmp y x ≠ .gt :=
-  mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
 
 theorem le_lt_trans (h₁ : cmp x y ≠ .gt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans (mt cmp_eq_gt.2 h₁) h₃ h₂
@@ -122,7 +99,7 @@ theorem BEqCmp.cmp_iff_eq [BEq α] [LawfulBEq α] [BEqCmp (α := α) cmp] : cmp 
   simp [BEqCmp.cmp_iff_beq]
 
 /-- `LTCmp cmp` asserts that `cmp x y = .lt` and `x < y` coincide. -/
-class LTCmp [LT α] (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
+class LTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y = .lt` holds iff `x < y` is true. -/
   cmp_iff_lt : cmp x y = .lt ↔ x < y
 
@@ -130,7 +107,7 @@ theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < 
   rw [OrientedCmp.cmp_eq_gt, LTCmp.cmp_iff_lt]
 
 /-- `LECmp cmp` asserts that `cmp x y ≠ .gt` and `x ≤ y` coincide. -/
-class LECmp [LE α] (cmp : α → α → Ordering) extends OrientedCmp cmp : Prop where
+class LECmp [LE α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y ≠ .gt` holds iff `x ≤ y` is true. -/
   cmp_iff_le : cmp x y ≠ .gt ↔ x ≤ y
 
@@ -139,8 +116,8 @@ theorem LECmp.cmp_iff_ge [LE α] [LECmp (α := α) cmp] : cmp x y ≠ .lt ↔ y 
 
 /-- `LawfulCmp cmp` asserts that the `LE`, `LT`, `BEq` instances are all coherent with each other
 and with `cmp`, describing a strict weak order (a linear order except for antisymmetry). -/
-class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) extends
-  TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp : Prop
+class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) : Prop extends
+  TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp
 
 /-- `OrientedOrd α` asserts that the `Ord` instance satisfies `OrientedCmp`. -/
 abbrev OrientedOrd (α) [Ord α] := OrientedCmp (α := α) compare

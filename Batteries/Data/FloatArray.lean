@@ -6,6 +6,8 @@ Authors: François G. Dorais
 
 namespace FloatArray
 
+attribute [ext] FloatArray
+
 /--
 Unsafe optimized implementation of `mapM`.
 

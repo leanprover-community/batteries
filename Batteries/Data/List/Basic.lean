@@ -32,15 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
-
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
 `p`, not including that element.
@@ -524,7 +515,7 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
-/-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
+/-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
