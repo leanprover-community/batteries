@@ -275,9 +275,9 @@ instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (Except
   satisfying {α p x} h :=
     let x' := satisfying (SatisfiesM_ExceptT_eq.mp h)
     ExceptT.mk ((fun ⟨y, w⟩ => y.pmap fun a h => ⟨a, w _ h⟩) <$> x')
-  val_eq {α p x} h:= by
+  val_eq {α p x} h := by
     ext
-    rw [← MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h)]
+    refine Eq.trans ?_ (MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h))
     simp
 
 instance : MonadSatisfying (EStateM ε σ) where
