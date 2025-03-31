@@ -14,19 +14,5 @@ more lemmas. See the module `Std.Data.HashMap.Lemmas`.
 
 namespace Batteries.HashMap
 
-namespace Imp
-
-@[simp] theorem empty_buckets :
-    (empty : Imp α β).buckets = ⟨.replicate 8 AssocList.nil, by simp⟩ := rfl
-
-@[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
-
-end Imp
-
 @[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?]
-
--- `Std.HashMap` has this lemma (as `getElem?_insert`) and many more, so working on this
--- `proof_wanted` is likely not a good use of your time.
--- proof_wanted insert_find? [BEq α] [Hashable α] (m : HashMap α β) (a a' : α) (b : β) :
---     (m.insert a b).find? a' = if a' == a then some b else m.find? a'
+    (∅ : HashMap α β).find? a = none := Std.HashMap.getElem?_empty
