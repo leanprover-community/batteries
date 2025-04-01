@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
 import Batteries.Data.HashMap.Basic
+import Batteries.Tactic.Alias
 
 /-!
 # Lemmas for `Batteries.HashMap`
@@ -14,5 +15,5 @@ more lemmas. See the module `Std.Data.HashMap.Lemmas`.
 
 namespace Batteries.HashMap
 
-@[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none := Std.HashMap.getElem?_empty
+@[deprecated (since := "2025-03-31")]
+alias empty_find? := Std.HashMap.getElem?_empty
