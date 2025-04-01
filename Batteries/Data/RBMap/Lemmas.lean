@@ -83,11 +83,11 @@ class IsCut (cmp : α → α → Ordering) (cut : α → Ordering) : Prop where
 
 theorem IsCut.lt_trans [IsCut cmp cut] [TransCmp cmp]
     (H : cmp x y = .lt) : cut x = .lt → cut y = .lt :=
-  IsCut.le_lt_trans <| TransCmp.gt_asymm <| OrientedCmp.cmp_eq_gt.2 H
+  IsCut.le_lt_trans <| OrientedCmp.gt_asymm <| OrientedCmp.cmp_eq_gt.2 H
 
 theorem IsCut.gt_trans [IsCut cmp cut] [TransCmp cmp]
     (H : cmp x y = .lt) : cut y = .gt → cut x = .gt :=
-  IsCut.le_gt_trans <| TransCmp.gt_asymm <| OrientedCmp.cmp_eq_gt.2 H
+  IsCut.le_gt_trans <| OrientedCmp.gt_asymm <| OrientedCmp.cmp_eq_gt.2 H
 
 theorem IsCut.congr [IsCut cmp cut] [TransCmp cmp] (H : cmp x y = .eq) : cut x = cut y := by
   cases ey : cut y
@@ -111,7 +111,7 @@ instance (cmp cut) [@IsCut α cmp cut] : IsCut (flip cmp) (cut · |>.swap) where
 `IsStrictCut` upgrades the `IsCut` property to ensure that at most one element of the tree
 can match the cut, and hence `find?` will return the unique such element if one exists.
 -/
-class IsStrictCut (cmp : α → α → Ordering) (cut : α → Ordering) extends IsCut cmp cut : Prop where
+class IsStrictCut (cmp : α → α → Ordering) (cut : α → Ordering) : Prop extends IsCut cmp cut where
   /-- If `cut = x`, then `cut` and `x` have compare the same with respect to other elements. -/
   exact [TransCmp cmp] : cut x = .eq → cmp x y = cut y
 
@@ -495,17 +495,17 @@ theorem Ordered.upperBound?_least_ub [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
   | node _ _ _ _ ihl ihr =>
     simp [upperBound?]; split <;> rename_i hv <;> rintro h₁ (rfl | hy' | hy') hx h₂
     · rcases upperBound?_mem_ub h₁ with h₁ | ⟨⟨⟩⟩
-      · cases TransCmp.lt_asymm h₂ (All_def.1 h.1 _ h₁).1
-      · cases TransCmp.lt_asymm h₂ h₂
+      · cases OrientedCmp.lt_asymm h₂ (All_def.1 h.1 _ h₁).1
+      · cases OrientedCmp.lt_asymm h₂ h₂
     · exact ihl h.2.2.1 (by rintro _ ⟨⟨⟩⟩; exact h.1) h₁ hy' hx h₂
-    · refine (TransCmp.lt_asymm h₂ ?_).elim; have := (All_def.1 h.2.1 _ hy').1
+    · refine (OrientedCmp.lt_asymm h₂ ?_).elim; have := (All_def.1 h.2.1 _ hy').1
       rcases upperBound?_mem_ub h₁ with h₁ | ⟨⟨⟩⟩
       · exact TransCmp.lt_trans (All_def.1 h.1 _ h₁).1 this
       · exact this
     · exact hv
     · exact IsCut.gt_trans (cut := cut) (cmp := cmp) (All_def.1 h.1 _ hy').1 hv
     · exact ihr h.2.2.2 (fun h => (hub h).2.2) h₁ hy' hx h₂
-    · cases h₁; cases TransCmp.lt_asymm h₂ h₂
+    · cases h₁; cases OrientedCmp.lt_asymm h₂ h₂
     · cases h₁; cases hx.symm.trans hv
     · cases h₁; cases hx.symm.trans hv
 
