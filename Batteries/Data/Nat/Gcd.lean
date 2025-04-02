@@ -42,7 +42,7 @@ theorem Coprime.gcd_mul_left_cancel (m : Nat) (H : Coprime k n) : gcd (k * m) n 
     rw [Coprime, Nat.gcd_assoc, H.symm.gcd_eq_one, gcd_one_right]
   Nat.dvd_antisymm
     (dvd_gcd (H1.dvd_of_dvd_mul_left (gcd_dvd_left _ _)) (gcd_dvd_right _ _))
-    (gcd_dvd_gcd_mul_left _ _ _)
+    (gcd_dvd_gcd_mul_left_left _ _ _)
 
 theorem Coprime.gcd_mul_right_cancel (m : Nat) (H : Coprime k n) : gcd (m * k) n = gcd m n := by
   rw [Nat.mul_comm m k, H.gcd_mul_left_cancel m]
