@@ -23,7 +23,7 @@ abbrev _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable �
 
 /-- Make a new hash map with the specified capacity. -/
 @[inline] def _root_.Batteries.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
-  ⟨.empty capacity, .empty⟩
+  ⟨.emptyWithCapacity capacity, .emptyWithCapacity⟩
 
 instance [BEq α] [Hashable α] : Inhabited (HashMap α β) where
   default := mkHashMap

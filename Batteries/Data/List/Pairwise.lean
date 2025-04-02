@@ -53,7 +53,7 @@ theorem pwFilter_map [DecidableRel (α := α) R] (f : β → α) :
   | x :: xs => by
     if h : ∀ b ∈ pwFilter R (map f xs), R (f x) b then
       have h' : ∀ b : β, b ∈ pwFilter (fun x y : β => R (f x) (f y)) xs → R (f x) (f b) :=
-        fun b hb => h _ (by rw [pwFilter_map f xs]; apply mem_map_of_mem _ hb)
+        fun b hb => h _ (by rw [pwFilter_map f xs]; apply mem_map_of_mem hb)
       rw [map, pwFilter_cons_of_pos h, pwFilter_cons_of_pos h', pwFilter_map f xs, map]
     else
       rw [map, pwFilter_cons_of_neg h, pwFilter_cons_of_neg ?_, pwFilter_map f xs]
@@ -99,7 +99,7 @@ theorem forall_mem_pwFilter [DecidableRel (α := α) R]
     (∀ b ∈ pwFilter R l, R a b) ↔ ∀ b ∈ l, R a b := by
   refine ⟨?_, fun h b hb => h _ <| pwFilter_subset (R := R) _ hb⟩
   induction l with
-  | nil => exact fun _ _ h => (not_mem_nil _ h).elim
+  | nil => exact fun _ _ h => (not_mem_nil h).elim
   | cons x l IH =>
     simp only [forall_mem_cons]
     if h : ∀ y ∈ pwFilter R l, R x y then
