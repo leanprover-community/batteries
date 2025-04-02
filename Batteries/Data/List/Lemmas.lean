@@ -38,7 +38,7 @@ theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.len
 
 /-! ### set -/
 
-theorem set_eq_modify (a : α) : ∀ n (l : List α), set l n a = modify (fun _ => a) n l
+theorem set_eq_modify (a : α) : ∀ n (l : List α), l.set n a = l.modify n (fun _ => a)
   | 0, l => by cases l <;> rfl
   | _+1, [] => rfl
   | _+1, _ :: _ => congrArg (cons _) (set_eq_modify _ _ _)
@@ -48,7 +48,7 @@ theorem set_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   rw [set_eq_modify, modify_eq_take_cons_drop h]
 
 theorem modify_eq_set_getElem? (f : α → α) :
-    ∀ n (l : List α), l.modify f n = ((fun a => l.set n (f a)) <$> l[n]?).getD l
+    ∀ n (l : List α), l.modify n f = ((fun a => l.set n (f a)) <$> l[n]?).getD l
   | 0, l => by cases l <;> simp
   | _+1, [] => rfl
   | n+1, b :: l =>
@@ -57,7 +57,7 @@ theorem modify_eq_set_getElem? (f : α → α) :
 @[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
 
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
-    l.modify f n = l.set n (f (l.get ⟨n, h⟩)) := by
+    l.modify n f = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
 
 theorem getElem?_set_eq_of_lt (a : α) {n} {l : List α} (h : n < length l) :
@@ -184,7 +184,7 @@ theorem disjoint_of_disjoint_cons_left {l₁ l₂} : Disjoint (a :: l₁) l₂ �
 theorem disjoint_of_disjoint_cons_right {l₁ l₂} : Disjoint l₁ (a :: l₂) → Disjoint l₁ l₂ :=
   disjoint_of_subset_right (subset_cons_self _ _)
 
-@[simp] theorem disjoint_nil_left (l : List α) : Disjoint [] l := fun a => (not_mem_nil a).elim
+@[simp] theorem disjoint_nil_left (l : List α) : Disjoint [] l := fun _ => not_mem_nil.elim
 
 @[simp] theorem disjoint_nil_right (l : List α) : Disjoint l [] := by
   rw [disjoint_comm]; exact disjoint_nil_left _
@@ -328,7 +328,7 @@ theorem Sublist.diff_right : ∀ {l₁ l₂ l₃ : List α}, l₁ <+ l₂ → l�
 
 theorem Sublist.erase_diff_erase_sublist {a : α} :
     ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
-  | [], _, _ => erase_sublist _ _
+  | [], _, _ => erase_sublist
   | b :: l₁, l₂, h => by
     if heq : b = a then
       simp [heq]
