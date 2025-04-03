@@ -184,7 +184,7 @@ theorem disjoint_of_disjoint_cons_left {l₁ l₂} : Disjoint (a :: l₁) l₂ �
 theorem disjoint_of_disjoint_cons_right {l₁ l₂} : Disjoint l₁ (a :: l₂) → Disjoint l₁ l₂ :=
   disjoint_of_subset_right (subset_cons_self _ _)
 
-@[simp] theorem disjoint_nil_left (l : List α) : Disjoint [] l := fun a => (not_mem_nil a).elim
+@[simp] theorem disjoint_nil_left (l : List α) : Disjoint [] l := fun _ => not_mem_nil.elim
 
 @[simp] theorem disjoint_nil_right (l : List α) : Disjoint l [] := by
   rw [disjoint_comm]; exact disjoint_nil_left _
@@ -328,7 +328,7 @@ theorem Sublist.diff_right : ∀ {l₁ l₂ l₃ : List α}, l₁ <+ l₂ → l�
 
 theorem Sublist.erase_diff_erase_sublist {a : α} :
     ∀ {l₁ l₂ : List α}, l₁ <+ l₂ → (l₂.erase a).diff (l₁.erase a) <+ l₂.diff l₁
-  | [], _, _ => erase_sublist _ _
+  | [], _, _ => erase_sublist
   | b :: l₁, l₂, h => by
     if heq : b = a then
       simp [heq]
@@ -669,33 +669,11 @@ theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
 @[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify (since := "2024-06-12")]
-theorem get?_modifyNth (f : α → α) (n) (l : List α) (m) :
-    (l.modify n f).get? m = (fun a => if n = m then f a else a) <$> l.get? m := by
-  simp [getElem?_modify]
-
 @[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_add := modifyTailIdx_add
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNthTail := exists_of_modifyTailIdx
 @[deprecated (since := "2024-10-21")] alias length_modifyNth := length_modify
 @[deprecated (since := "2024-10-21")] alias getElem?_modifyNth_eq := getElem?_modify_eq
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify_eq (since := "2024-06-12")]
-theorem get?_modifyNth_eq (f : α → α) (n) (l : List α) :
-    (l.modify n f).get? n = f <$> l.get? n := by
-  simp [getElem?_modify_eq]
-
-@[deprecated (since := "2024-06-12")] alias getElem?_modifyNth_ne := getElem?_modify_ne
-
-set_option linter.deprecated false in
-@[deprecated getElem?_modify_ne (since := "2024-06-12")]
-theorem get?_modifyNth_ne (f : α → α) {m n} (l : List α) (h : m ≠ n) :
-    (l.modify m f).get? n = l.get? n := by
-  simp [h]
-
 @[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
 @[deprecated (since := "2024-10-21")] alias modifyNthTail_eq_take_drop := modifyTailIdx_eq_take_drop
 @[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_drop := modify_eq_take_drop
