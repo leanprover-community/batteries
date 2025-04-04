@@ -171,7 +171,7 @@ theorem Coprime.eq_one_of_dvd {k m : Nat} (H : Coprime k m) (d : k ∣ m) : k = 
 
 theorem Coprime.gcd_mul (k : Nat) (h : Coprime m n) : gcd k (m * n) = gcd k m * gcd k n :=
   Nat.dvd_antisymm
-    (gcd_mul_dvd_mul_gcd k m n)
+    (gcd_mul_right_dvd_mul_gcd k m n)
     ((h.gcd_both k k).mul_dvd_of_dvd_of_dvd
       (gcd_dvd_gcd_mul_right_right ..)
       (gcd_dvd_gcd_mul_left_right ..))
@@ -183,5 +183,5 @@ theorem gcd_mul_gcd_of_coprime_of_mul_eq_mul
     rw [← h]
     apply Nat.mul_dvd_mul (gcd_dvd ..).1 (gcd_dvd ..).1
   · rw [gcd_comm a, gcd_comm b]
-    refine Nat.dvd_trans ?_ (gcd_mul_dvd_mul_gcd ..)
+    refine Nat.dvd_trans ?_ (gcd_mul_right_dvd_mul_gcd ..)
     rw [h, gcd_mul_right_right d c]; apply Nat.dvd_refl
