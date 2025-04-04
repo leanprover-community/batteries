@@ -102,7 +102,7 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
   else
     pure #[]
   unsafe Lean.enableInitializersExecution
-  let env ← importModules #[module, lintModule] {} (trustLevel := 1024)
+  let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
   let ctx := { fileName := "", fileMap := default }
   let state := { env }
   Prod.fst <$> (CoreM.toIO · ctx state) do
