@@ -1,0 +1,1 @@
+{"name":"Batteries.Data.HashMap","instances":[],"imports":["Init","Batteries.Data.HashMap.Basic","Batteries.Data.HashMap.Lemmas"],"declarations":[]}
