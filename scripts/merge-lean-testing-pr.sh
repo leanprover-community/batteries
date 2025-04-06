@@ -3,6 +3,7 @@ set -eu
 
 # This scripts merges a `lean-pr-testing-NNNN` branch into `nightly-testing`.
 # This script is a copy of the same script in mathlib4, and should be kept in sync.
+# Note that Mathlib uses `lakefile.lean`, while Batteries uses `lakefile.toml`
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <PR number>"
@@ -17,13 +18,13 @@ git pull --ff-only
 
 if ! git merge origin/$BRANCH_NAME; then
     echo "Merge conflicts detected. Resolving conflicts in favor of current version..."
-    git checkout --ours lean-toolchain lakefile.lean lake-manifest.json
-    git add lean-toolchain lakefile.lean lake-manifest.json
+    git checkout --ours lean-toolchain lakefile.toml lake-manifest.json
+    git add lean-toolchain lakefile.toml lake-manifest.json
 fi
 
-sed "s/$BRANCH_NAME/nightly-testing/g" < lakefile.lean > lakefile.lean.new
-mv lakefile.lean.new lakefile.lean
-git add lakefile.lean
+sed "s/$BRANCH_NAME/nightly-testing/g" < lakefile.toml > lakefile.toml.new
+mv lakefile.toml.new lakefile.toml
+git add lakefile.toml
 
 # Check for merge conflicts
 if git ls-files -u | grep -q '^'; then
@@ -39,7 +40,7 @@ if ! lake update; then
 fi
 
 # Add files touched by lake update
-git add lakefile.lean lake-manifest.json
+git add lakefile.toml lake-manifest.json
 
 # Attempt to commit. This will fail if there are conflicts.
 if git commit -m "merge $BRANCH_NAME"; then
