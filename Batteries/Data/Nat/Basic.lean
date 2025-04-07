@@ -94,8 +94,12 @@ def sqrt (n : Nat) : Nat :=
   iter n (n / 2)
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
-  returns the integer square root of `n`. -/
-  iter (n guess : Nat) : Nat :=
+  returns the integer square root of `n`.
+
+  By default this well-founded recursion would be irreducible.
+  This prevents use `decide` to resolve `Nat.sqrt n` for small values of `n`,
+  so we mark this as `@[semireducible]`. -/
+  @[semireducible] iter (n guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
     if _h : next < guess then
       iter n next
