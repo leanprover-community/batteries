@@ -18,5 +18,5 @@ def Lean.MVarId.assignIfDefEq (g : MVarId) (e : Expr) : MetaM Unit := do
   g.checkNotAssigned `assignIfDefEq
   g.assign e
 
-@[deprecated Lean.MVarId.assignIfDefEq (since := "2025-04-09")] 
+@[deprecated Lean.MVarId.assignIfDefEq (since := "2025-04-09")]
 abbrev Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq
