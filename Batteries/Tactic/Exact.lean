@@ -13,7 +13,10 @@ open Lean Meta
 `MetaM` version of `Lean.Elab.Tactic.evalExact`: add `mvarId := x` to the metavariable assignment.
 This method wraps `Lean.MVarId.assign`, checking whether `mvarId` is already assigned, and whether
 the expression has the right type. -/
-def Lean.MVarId.assignIfDefeq (g : MVarId) (e : Expr) : MetaM Unit := do
+def Lean.MVarId.assignIfDefEq (g : MVarId) (e : Expr) : MetaM Unit := do
   guard <| ← isDefEq (← g.getType) (← inferType e)
-  g.checkNotAssigned `assignIfDefeq
+  g.checkNotAssigned `assignIfDefEq
   g.assign e
+
+@[deprecated Lean.MVarId.assignIfDefEq (since := "2025-04-09")] 
+abbrev Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq
