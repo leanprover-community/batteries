@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Meta.Tactic.Util
+import Batteries.Tactic.Alias
 
 /-! # `exact` tactic (`MetaM` version) -/
 
@@ -18,5 +19,5 @@ def Lean.MVarId.assignIfDefEq (g : MVarId) (e : Expr) : MetaM Unit := do
   g.checkNotAssigned `assignIfDefEq
   g.assign e
 
-@[deprecated Lean.MVarId.assignIfDefEq (since := "2025-04-09")]
-abbrev Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq
+@[deprecated (since := "2025-04-09")]
+alias Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq
