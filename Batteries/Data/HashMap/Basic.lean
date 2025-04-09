@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.HashMap
+import Batteries.Lean.HashMap
 
 namespace Batteries.HashMap
 
@@ -19,9 +20,12 @@ to find the values. This allows it to have very good performance for lookups
 meaning that one should take care to use the map linearly when performing updates.
 Copies are `O(n)`.
 -/
+@[deprecated Std.HashMap (since := "2025-04-09")]
 structure _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   /-- The inner `Std.HashMap` powering the `Batteries.HashMap`. -/
   inner : Std.HashMap α β
+
+set_option linter.deprecated false
 
 /-- Make a new hash map with the specified capacity. -/
 @[inline] def _root_.Batteries.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
@@ -186,6 +190,7 @@ fold (fun sum _ v => sum + v) 0 (ofList [("one", 1), ("two", 2)]) = 3
 -/
 @[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ :=
   Std.HashMap.fold f init self.inner
+
 /--
 Combines two hashmaps using a monadic function `f` to combine two values at a key.
 ```
@@ -202,10 +207,7 @@ mergeWithM mergeIfNoConflict? map1 map3 = none
 -/
 @[specialize] def mergeWithM [Monad m] (f : α → β → β → m β)
     (self other : HashMap α β) : m (HashMap α β) :=
-  other.foldM (init := self) fun m k v₂ =>
-    match m.inner[k]? with
-    | none => return m.insert k v₂
-    | some v₁ => return m.insert k (← f k v₁ v₂)
+  HashMap.mk <$> self.inner.mergeWithM f other.inner
 
 /--
 Combines two hashmaps using function `f` to combine two values at a key.
@@ -216,12 +218,7 @@ mergeWith (fun _ v₁ v₂ => v₁ + v₂ )
 ```
 -/
 @[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
-  -- Implementing this function directly, rather than via `mergeWithM`, gives
-  -- us less constrained universes.
-  other.fold (init := self) fun map k v₂ =>
-    match map.inner[k]? with
-    | none => map.insert k v₂
-    | some v₁ => map.insert k $ f k v₁ v₂
+  HashMap.mk $ self.inner.mergeWith f other.inner
 
 /--
 Runs a monadic function over the elements in the map (in arbitrary order).
