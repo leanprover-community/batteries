@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.HashMap
+import Batteries.Lean.HashMap
 
 namespace Std.HashMap
 
@@ -23,43 +24,6 @@ hashMap.findEntry? "three" = none
 @[inline]
 def findEntry? [BEq α] [Hashable α] (m : Std.HashMap α β) (k : α) : Option (α × β) :=
   if h : k ∈ m then some (m.getKey k h, m.get k h) else none
-
-/--
-Combines two hashmaps using a monadic function `f` to combine two values at a key.
-```
-def map1 := ofList [("one", 1), ("two", 2)]
-def map2 := ofList [("two", 2), ("three", 3)]
-def map3 := ofList [("two", 3), ("three", 3)]
-def mergeIfNoConflict? (_ : String) (v₁ v₂ : Nat) : Option Nat :=
-  if v₁ != v₂ then none else some v₁
-
-
-mergeWithM mergeIfNoConflict? map1 map2 = some {"one" => 1, "two" => 2, "three" => 3}
-mergeWithM mergeIfNoConflict? map1 map3 = none
-```
--/
-@[specialize] def mergeWithM [Monad m] (f : α → β → β → m β)
-    (self other : HashMap α β) : m (HashMap α β) :=
-  other.foldM (init := self) fun m k v₂ =>
-    match m[k]? with
-    | none => return m.insert k v₂
-    | some v₁ => return m.insert k (← f k v₁ v₂)
-
-/--
-Combines two hashmaps using function `f` to combine two values at a key.
-```
-mergeWith (fun _ v₁ v₂ => v₁ + v₂ )
-  (ofList [("one", 1), ("two", 2)]) (ofList [("two", 2), ("three", 3)]) =
-    {"one" => 1, "two" => 4, "three" => 3}
-```
--/
-@[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
-  -- Implementing this function directly, rather than via `mergeWithM`, gives
-  -- us less constrained universes.
-  other.fold (init := self) fun map k v₂ =>
-    match map[k]? with
-    | none => map.insert k v₂
-    | some v₁ => map.insert k $ f k v₁ v₂
 
 /--
 Variant of `ofList` which accepts a function that combines values of duplicated keys.
@@ -89,7 +53,7 @@ to find the values. This allows it to have very good performance for lookups
 meaning that one should take care to use the map linearly when performing updates.
 Copies are `O(n)`.
 -/
-@[deprecated Std.HashMap (since := "2025-05-15")]
+@[deprecated Std.HashMap (since := "2025-04-09")]
 structure _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   /-- The inner `Std.HashMap` powering the `Batteries.HashMap`. -/
   inner : Std.HashMap α β
@@ -259,6 +223,7 @@ fold (fun sum _ v => sum + v) 0 (ofList [("one", 1), ("two", 2)]) = 3
 -/
 @[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ :=
   Std.HashMap.fold f init self.inner
+
 /--
 Combines two hashmaps using a monadic function `f` to combine two values at a key.
 ```
