@@ -647,7 +647,7 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 @[simp] theorem isSuffixOf?_eq_some_iff_append_eq [BEq α] [LawfulBEq α] {xs ys zs : List α} :
     xs.isSuffixOf? ys = some zs ↔ zs ++ xs = ys := by
-  simp only [isSuffixOf?, map_eq_some', isPrefixOf?_eq_some_iff_append_eq]
+  simp only [isSuffixOf?, map_eq_some_iff, isPrefixOf?_eq_some_iff_append_eq]
   constructor
   · intro
     | ⟨_, h, heq⟩ =>
