@@ -22,3 +22,8 @@ supportInterpreter = true
 [[lean_exe]]
 name = "test"
 srcDir = "scripts"
+
+[[lean_exe]]
+name = "shake"
+root = "Shake.Main"
+supportInterpreter = true
