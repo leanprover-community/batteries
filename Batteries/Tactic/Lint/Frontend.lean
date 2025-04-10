@@ -149,7 +149,7 @@ The first `drop_fn_chars` characters are stripped from the filename.
 -/
 def groupedByFilename (results : Std.HashMap Name MessageData) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
-  let sp ← if useErrorFormat then initSrcSearchPath ["."] else pure {}
+  let sp ← if useErrorFormat then getSrcSearchPath else pure {}
   let grouped : Std.HashMap Name (System.FilePath × Std.HashMap Name MessageData) ←
     results.foldM (init := {}) fun grouped declName msg => do
       let mod ← findModuleOf? declName
