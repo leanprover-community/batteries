@@ -282,7 +282,7 @@ theorem diff_erase (l₁ l₂ : List α) (a : α) : (l₁.diff l₂).erase a = (
 @[simp] theorem nil_diff (l : List α) : [].diff l = [] := by
   induction l <;> simp [*, erase_of_not_mem]
 
-theorem cons_diff [DecidableEq α] (a : α) (l₁ l₂ : List α) :
+theorem cons_diff (a : α) (l₁ l₂ : List α) :
     (a :: l₁).diff l₂ = if a ∈ l₂ then l₁.diff (l₂.erase a) else a :: l₁.diff l₂ := by
   induction l₂ generalizing l₁ with
   | nil => rfl
