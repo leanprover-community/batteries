@@ -25,8 +25,8 @@ theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
   simp only [findSome?, foldl_succ, Option.none_orElse, Function.comp_apply]
   cases f 0
-  · rw [Option.none_orElse]
-  · rw [Option.some_orElse]
+  · rw [Option.orElse_eq_orElse, Option.none_orElse, Option.none_orElse]
+  · simp only [Option.some_orElse, Option.orElse_eq_orElse, Option.none_orElse]
     induction n with
     | zero => rfl
     | succ n ih => rw [foldl_succ, Option.some_orElse, ih (f := fun i => f i.succ)]
@@ -51,11 +51,11 @@ theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f =
     rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
-      rw [heq, Option.some_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.some_orElse] at h
       exists 0
       rw [heq, h]
     | none =>
-      rw [heq, Option.none_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.none_orElse] at h
       match ih h with | ⟨i, _⟩ => exists i.succ
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
@@ -66,10 +66,10 @@ theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f 
     rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
-      rw [heq, Option.some_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.some_orElse] at h
       contradiction
     | none =>
-      rw [heq, Option.none_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.none_orElse] at h
       cases i using Fin.cases with
       | zero => exact heq
       | succ i => exact ih h i
