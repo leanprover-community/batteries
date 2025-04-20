@@ -1,5 +1,8 @@
 import Batteries.Tactic.SqueezeScope
 
+-- undo changes to simp set after test was written
+attribute [-simp] Nat.add_left_cancel_iff Nat.add_right_cancel_iff
+
 set_option linter.missingDocs false
 
 /-- info: Try this: simp only [Nat.add_comm] -/
