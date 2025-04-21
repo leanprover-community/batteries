@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
 import Lean.Linter.Util
+import Lean.Parser.Syntax
 import Batteries.Tactic.Unreachable
 
 namespace Batteries.Linter
@@ -36,7 +37,7 @@ A list of blacklisted syntax kinds, which are expected to have subterms that con
 unevaluated tactics.
 -/
 initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
-  IO.mkRef <| Std.HashSet.empty
+  IO.mkRef <| (∅ : NameHashSet)
     |>.insert ``Parser.Term.binderTactic
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq

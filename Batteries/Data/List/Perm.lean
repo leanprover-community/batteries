@@ -70,7 +70,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
   exact ⟨_, hp.filter p, h.filter p⟩
 
 @[simp] theorem subperm_nil : l <+~ [] ↔ l = [] :=
-  ⟨fun h => length_eq_zero.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
+  ⟨fun h => length_eq_zero_iff.1 $ Nat.le_zero.1 h.length_le, by rintro rfl; rfl⟩
 
 @[simp] theorem singleton_subperm_iff {α} {l : List α} {a : α} : [a] <+~ l ↔ a ∈ l := by
   refine ⟨fun ⟨s, hla, h⟩ => ?_, fun h => ⟨[a], .rfl, singleton_sublist.mpr h⟩⟩
@@ -79,7 +79,7 @@ theorem Subperm.filter (p : α → Bool) ⦃l l' : List α⦄ (h : l <+~ l') :
 end Subperm
 
 theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} : l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
-  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le p
+  | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le
 
 theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) :
     count a l₁ ≤ count a l₂ := s.countP_le _
@@ -102,7 +102,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
     | .inr m => let ⟨t, p', s'⟩ := ih h₁ m p; exact ⟨t, p', s'.cons _⟩
   | @cons₂ _ r₂ b _ ih =>
-    have bm : b ∈ l₁ := p.subset <| mem_cons_self _ _
+    have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
       simp only [find?, mem_cons] at h₂
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
@@ -174,7 +174,7 @@ theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   else
     (erase_of_not_mem h).symm ▸ (sublist_cons_self _ _).subperm
 
-theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := (erase_sublist _ _).subperm
+theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := erase_sublist.subperm
 
 theorem Subperm.erase {l₁ l₂ : List α} (a : α) (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
   let ⟨l, hp, hs⟩ := h
@@ -248,7 +248,7 @@ theorem subperm_append_diff_self_of_count_le {l₁ l₂ : List α}
     refine IH fun x hx => ?_
     specialize h x (.tail _ hx)
     rw [perm_iff_count.mp this] at h
-    if hx : x = hd then subst hd; simpa [Nat.succ_le_succ_iff] using h
+    if hx : hd = x then subst hd; simpa [Nat.succ_le_succ_iff] using h
     else simpa [hx] using h
 
 /-- The list version of `Multiset.le_iff_count`. -/
@@ -271,23 +271,9 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
   if hy' : y = x then
     subst x; simpa using Nat.succ_le_of_lt hx
   else
-    rw [count_cons_of_ne hy']
+    rw [count_cons_of_ne (Ne.symm hy')]
     refine h y ?_
     simpa [hy'] using hy
-
-theorem perm_insertIdx {α} (x : α) (l : List α) {n} (h : n ≤ l.length) :
-    insertIdx n x l ~ x :: l := by
-  induction l generalizing n with
-  | nil =>
-    cases n with
-    | zero => rfl
-    | succ => cases h
-  | cons _ _ ih =>
-    cases n with
-    | zero => simp [insertIdx]
-    | succ =>
-      simp only [insertIdx, modifyTailIdx]
-      refine .trans (.cons _ (ih (Nat.le_of_succ_le_succ h))) (.swap ..)
 
 @[deprecated (since := "2024-10-21")] alias perm_insertNth := perm_insertIdx
 
@@ -334,22 +320,4 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
-theorem perm_merge (s : α → α → Bool) (l r) : merge l r s ~ l ++ r := by
-  match l, r with
-  | [], r => simp
-  | l, [] => simp
-  | a::l, b::r =>
-    rw [cons_merge_cons]
-    split
-    · apply Perm.trans ((perm_cons a).mpr (perm_merge s l (b::r)))
-      simp [cons_append]
-    · apply Perm.trans ((perm_cons b).mpr (perm_merge s (a::l) r))
-      simp [cons_append]
-      apply Perm.trans (Perm.swap ..)
-      apply Perm.cons
-      apply perm_cons_append_cons
-      exact Perm.rfl
-
-theorem Perm.merge (s₁ s₂ : α → α → Bool) (hl : l₁ ~ l₂) (hr : r₁ ~ r₂) :
-    merge l₁ r₁ s₁ ~ merge l₂ r₂ s₂ :=
-  Perm.trans (perm_merge ..) <| Perm.trans (Perm.append hl hr) <| Perm.symm (perm_merge ..)
+@[deprecated (since := "2025-01-04")] alias perm_merge := merge_perm_append

@@ -48,7 +48,7 @@ dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
-      reduced := by simp [hg, Int.natAbs_ofNat] at reduced; exact reduced }
+      reduced := by simp [hg, Int.natAbs_natCast] at reduced; exact reduced }
   else { num := num.tdiv g, den := den / g, den_nz, reduced }
 
 theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
@@ -107,7 +107,7 @@ def divInt : Int → Int → Rat
 `Rat.ofScientific_true_def`, or `Rat.ofScientific_false_def` instead.) -/
 @[irreducible] protected def ofScientific (m : Nat) (s : Bool) (e : Nat) : Rat :=
   if s then
-    Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pos_pow_of_pos _ (by decide)
+    Rat.normalize m (10 ^ e) <| Nat.ne_of_gt <| Nat.pow_pos (by decide)
   else
     (m * 10 ^ e : Nat)
 

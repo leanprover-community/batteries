@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
 import Batteries.Data.HashMap.Basic
+import Batteries.Tactic.Alias
 
 /-!
 # Lemmas for `Batteries.HashMap`
@@ -14,19 +15,5 @@ more lemmas. See the module `Std.Data.HashMap.Lemmas`.
 
 namespace Batteries.HashMap
 
-namespace Imp
-
-@[simp] theorem empty_buckets :
-    (empty : Imp α β).buckets = ⟨mkArray 8 AssocList.nil, by simp⟩ := rfl
-
-@[simp] theorem empty_val [BEq α] [Hashable α] : (∅ : HashMap α β).val = Imp.empty := rfl
-
-end Imp
-
-@[simp] theorem empty_find? [BEq α] [Hashable α] {a : α} :
-    (∅ : HashMap α β).find? a = none := by simp [find?, Imp.find?]
-
--- `Std.HashMap` has this lemma (as `getElem?_insert`) and many more, so working on this
--- `proof_wanted` is likely not a good use of your time.
--- proof_wanted insert_find? [BEq α] [Hashable α] (m : HashMap α β) (a a' : α) (b : β) :
---     (m.insert a b).find? a' = if a' == a then some b else m.find? a'
+@[deprecated (since := "2025-03-31")]
+alias empty_find? := Std.HashMap.getElem?_empty

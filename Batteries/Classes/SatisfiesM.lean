@@ -48,7 +48,7 @@ def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) 
 namespace SatisfiesM
 
 /-- If `p` is always true, then every `x` satisfies it. -/
-theorem of_true [Applicative m] [LawfulApplicative m] {x : m α}
+theorem of_true [Functor m] [LawfulFunctor m] {x : m α}
     (h : ∀ a, p a) : SatisfiesM p x :=
   ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp_def]⟩
 
@@ -56,7 +56,7 @@ theorem of_true [Applicative m] [LawfulApplicative m] {x : m α}
 If `p` is always true, then every `x` satisfies it.
 (This is the strongest postcondition version of `of_true`.)
 -/
-protected theorem trivial [Applicative m] [LawfulApplicative m] {x : m α} :
+protected theorem trivial [Functor m] [LawfulFunctor m] {x : m α} :
   SatisfiesM (fun _ => True) x := of_true fun _ => trivial
 
 /-- The `SatisfiesM p x` predicate is monotonic in `p`. -/
@@ -275,9 +275,9 @@ instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (Except
   satisfying {α p x} h :=
     let x' := satisfying (SatisfiesM_ExceptT_eq.mp h)
     ExceptT.mk ((fun ⟨y, w⟩ => y.pmap fun a h => ⟨a, w _ h⟩) <$> x')
-  val_eq {α p x} h:= by
+  val_eq {α p x} h := by
     ext
-    rw [← MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h)]
+    refine Eq.trans ?_ (MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h))
     simp
 
 instance : MonadSatisfying (EStateM ε σ) where
