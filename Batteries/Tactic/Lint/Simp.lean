@@ -25,24 +25,10 @@ This files defines several linters that prevent common mistakes when declaring s
 structure SimpTheoremInfo where
   /-- The hypotheses of the theorem -/
   hyps : Array Expr
-  /-- True if this is a conditional rewrite rule -/
-  isConditional : Bool
   /-- The thing to replace -/
   lhs : Expr
   /-- The result of replacement -/
   rhs : Expr
-
-/-- Given the list of hypotheses, is this a conditional rewrite rule? -/
-def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
-  | [] => pure false
-  | h :: hs => do
-    let ldecl ← getFVarLocalDecl h
-    if !ldecl.binderInfo.isInstImplicit
-        && !(← hs.anyM fun h' =>
-          return (← inferType h').consumeTypeAnnotations.containsFVar h.fvarId!)
-        && !lhs.containsFVar h.fvarId! then
-      return true
-    isConditionalHyps lhs hs
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
@@ -52,8 +38,7 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
     e.toArray.mapM fun (_, ty') => do
       forallTelescopeReducing ty' fun hyps eq => do
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
-        let isConditional ← isConditionalHyps lhs hyps.toList
-        k { hyps, lhs, rhs, isConditional }
+        k { hyps, lhs, rhs }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
