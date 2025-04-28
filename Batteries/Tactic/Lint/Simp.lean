@@ -114,7 +114,7 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
       -- add the local hypotheses to the simp context
       let mut simpTheorems := ctx.simpTheorems
       for h in hyps do
-        if h.isProp then
+        if (← inferType (← inferType h)).isProp then
           simpTheorems ← simpTheorems.addTheorem (.fvar h.fvarId!) h
       let ctx := ctx.setSimpTheorems simpTheorems
       let isRfl ← isRflTheorem declName
