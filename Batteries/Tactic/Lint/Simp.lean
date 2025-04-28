@@ -109,7 +109,13 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     let ctx ← Simp.Context.mkDefault
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
+    checkAllSimpTheoremInfos (← getConstInfo declName).type
+      fun {lhs, rhs, hyps, ..} => do
+      -- add the local hypotheses to the simp context
+      let mut simpTheorems := ctx.simpTheorems
+      for h in hyps do
+        simpTheorems ← simpTheorems.addTheorem (.fvar h.fvarId!) h
+      let ctx := ctx.setSimpTheorems simpTheorems
       let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <|
@@ -145,7 +151,7 @@ using
   {← formatLemmas prf1Stats.usedTheorems simpName}
 Try to change the left-hand side to the simplified term!
 "
-      else if !isConditional && lhs == lhs' then
+      else if lhs == lhs' then
         return m!"Left-hand side does not simplify, when using the simp lemma on itself.
 This usually means that it will never apply.
 "
