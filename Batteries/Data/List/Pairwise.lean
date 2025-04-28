@@ -41,7 +41,7 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
 
 @[simp] theorem pwFilter_nil [DecidableRel R] : pwFilter R [] = [] := rfl
 
-@[simp] theorem pwFilter_cons_of_pos [DecidableRel (α := α) R] {a : α} {l : List α}
+theorem pwFilter_cons_of_pos [DecidableRel (α := α) R] {a : α} {l : List α}
     (h : ∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = a :: pwFilter R l := if_pos h
 
 @[simp] theorem pwFilter_cons_of_neg [DecidableRel (α := α) R] {a : α} {l : List α}
