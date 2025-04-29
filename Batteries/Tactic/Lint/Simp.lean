@@ -93,7 +93,8 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    let ctx ← Simp.Context.mkDefault
+    let ctx ← Simp.mkContext (config := { contextual := true })
+      (simpTheorems := #[(← getSimpTheorems)]) (congrTheorems := (← getSimpCongrTheorems))
     checkAllSimpTheoremInfos (← getConstInfo declName).type
       fun {lhs, rhs, hyps, ..} => do
       -- add the local hypotheses to the simp context
