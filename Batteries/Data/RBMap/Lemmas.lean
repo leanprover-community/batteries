@@ -707,24 +707,23 @@ theorem zoom_insert {path : Path α} {t : RBNode α} (ht : t.Balanced c n)
   | red hl hr => rw [← ins_eq_fill hp' (.red hl hr), insert_setBlack]; exact (zoom_ins H).symm
   | black hl hr => rw [← ins_eq_fill hp' (.black hl hr), insert_setBlack]; exact (zoom_ins H).symm
 
--- TODO: commented out on nightly-2025-04-25.
--- theorem zoom_del {t : RBNode α} :
---     t.zoom cut path = (t', path') →
---     path.del (t.del cut) (match t with | node c .. => c | _ => red) =
---     path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
---   unfold RBNode.del; split <;> simp [zoom]
---   · intro | rfl, rfl => rfl
---   · next c a y b =>
---     split
---     · have IH := @zoom_del (t := a)
---       match a with
---       | nil => intro | rfl => rfl
---       | node black .. | node red .. => apply IH
---     · have IH := @zoom_del (t := b)
---       match b with
---       | nil => intro | rfl => rfl
---       | node black .. | node red .. => apply IH
---     · intro | rfl => rfl
+theorem zoom_del {t : RBNode α} :
+    t.zoom cut path = (t', path') →
+    path.del (t.del cut) (match t with | node c .. => c | _ => red) =
+    path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
+  rw [RBNode.del.eq_def]; split <;> simp [zoom]
+  · intro | rfl, rfl => rfl
+  · next c a y b =>
+    split
+    · have IH := @zoom_del (t := a)
+      match a with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · have IH := @zoom_del (t := b)
+      match b with
+      | nil => intro | rfl => rfl
+      | node black .. | node red .. => apply IH
+    · intro | rfl => rfl
 
 /-- Asserts that `p` holds on all elements to the left of the hole. -/
 def AllL (p : α → Prop) : Path α → Prop
