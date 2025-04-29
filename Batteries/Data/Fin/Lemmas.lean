@@ -106,7 +106,7 @@ theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
   | zero => rfl
   | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_orElse, ih]
 
-theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard fun i => p i) = find? p := rfl
+theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
