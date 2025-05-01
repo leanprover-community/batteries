@@ -575,7 +575,7 @@ theorem dropInfix?_go_eq_some_iff [BEq α] {i l acc p s : List α} :
         rw [cons_eq_append_iff] at h₁
         simp at h₁
         obtain (⟨⟨rfl, rfl⟩, rfl⟩ | ⟨a', h₁, rfl⟩) := h₁
-        · simp only [nil_beq_iff, isEmpty_iff] at h₂
+        · simp only [nil_beq_eq, isEmpty_iff] at h₂
           simp only [h₂] at h
           simp at h
         · rw [append_eq_cons_iff] at h₁
@@ -647,7 +647,7 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 @[simp] theorem isSuffixOf?_eq_some_iff_append_eq [BEq α] [LawfulBEq α] {xs ys zs : List α} :
     xs.isSuffixOf? ys = some zs ↔ zs ++ xs = ys := by
-  simp only [isSuffixOf?, map_eq_some', isPrefixOf?_eq_some_iff_append_eq]
+  simp only [isSuffixOf?, map_eq_some_iff, isPrefixOf?_eq_some_iff_append_eq]
   constructor
   · intro
     | ⟨_, h, heq⟩ =>

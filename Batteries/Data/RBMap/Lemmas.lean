@@ -711,7 +711,7 @@ theorem zoom_del {t : RBNode α} :
     t.zoom cut path = (t', path') →
     path.del (t.del cut) (match t with | node c .. => c | _ => red) =
     path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
-  unfold RBNode.del; split <;> simp [zoom]
+  rw [RBNode.del.eq_def]; split <;> simp [zoom]
   · intro | rfl, rfl => rfl
   · next c a y b =>
     split
@@ -1152,7 +1152,7 @@ theorem findEntry?_some_mem_toList {t : RBMap α β cmp} (h : t.findEntry? x = s
 
 theorem find?_some_mem_toList {t : RBMap α β cmp} (h : t.find? x = some v) :
     ∃ y, (y, v) ∈ toList t ∧ cmp x y = .eq := by
-  obtain ⟨⟨y, v⟩, h', rfl⟩ := Option.map_eq_some'.1 h
+  obtain ⟨⟨y, v⟩, h', rfl⟩ := Option.map_eq_some_iff.1 h
   exact ⟨_, findEntry?_some_mem_toList h', findEntry?_some_eq_eq h'⟩
 
 theorem mem_toList_unique [@TransCmp α cmp] {t : RBMap α β cmp}
@@ -1176,7 +1176,7 @@ theorem findEntry?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
 
 theorem find?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
     t.find? x = some v ↔ ∃ y, (y, v) ∈ toList t ∧ cmp x y = .eq := by
-  simp only [find?, findEntry?_some, Option.map_eq_some']; constructor
+  simp only [find?, findEntry?_some, Option.map_eq_some_iff]; constructor
   · rintro ⟨_, h, rfl⟩; exact ⟨_, h⟩
   · rintro ⟨b, h⟩; exact ⟨_, h, rfl⟩
 
@@ -1185,7 +1185,7 @@ theorem contains_iff_findEntry? {t : RBMap α β cmp} :
 
 theorem contains_iff_find? {t : RBMap α β cmp} :
     t.contains x ↔ ∃ v, t.find? x = some v := by
-  simp only [contains_iff_findEntry?, Prod.exists, find?, Option.map_eq_some', and_comm,
+  simp only [contains_iff_findEntry?, Prod.exists, find?, Option.map_eq_some_iff, and_comm,
     exists_eq_left]
   rw [exists_comm]
 
