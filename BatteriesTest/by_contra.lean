@@ -24,7 +24,6 @@ example (P : Prop) : P → P := by
   guard_hyp ‹_› : ¬(P → P)
   exact ‹¬(P → P)› id
 
-
 example (P : Prop) : {_ : P} → P := by
   by_contra
   guard_hyp ‹_› : ¬(P → P)
