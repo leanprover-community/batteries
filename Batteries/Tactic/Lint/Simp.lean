@@ -35,6 +35,8 @@ We use this check to determine whether to set `contextual` to `true` in the `sim
 def isHigherHyp (e : Expr) : MetaM Bool :=
   isCond e <&&> do forallTelescope (← inferType e) fun hyps _ => hyps.anyM isCond
 where
+  /-- Is this hypothesis a condition that might turn into a `simp` side-goal?
+  i.e. is it a proposition that isn't marked as instance implicit? -/
   isCond (h : Expr) : MetaM Bool := do
     let ldecl ← getFVarLocalDecl h
     if ldecl.binderInfo.isInstImplicit then return false
