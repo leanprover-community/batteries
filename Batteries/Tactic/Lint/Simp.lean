@@ -25,24 +25,20 @@ This files defines several linters that prevent common mistakes when declaring s
 structure SimpTheoremInfo where
   /-- The hypotheses of the theorem -/
   hyps : Array Expr
-  /-- True if this is a conditional rewrite rule -/
-  isConditional : Bool
   /-- The thing to replace -/
   lhs : Expr
   /-- The result of replacement -/
   rhs : Expr
 
-/-- Given the list of hypotheses, is this a conditional rewrite rule? -/
-def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
-  | [] => pure false
-  | h :: hs => do
+/-- Is this hypothesis higher order? i.e. is it a condition whose type contains a condition?
+We use this check to determine whether to set `contextual` to `true` in the `simp` configuration. -/
+def isHigherHyp (e : Expr) : MetaM Bool :=
+  isCond e <&&> do forallTelescope (← inferType e) fun hyps _ => hyps.anyM isCond
+where
+  isCond (h : Expr) : MetaM Bool := do
     let ldecl ← getFVarLocalDecl h
-    if !ldecl.binderInfo.isInstImplicit
-        && !(← hs.anyM fun h' =>
-          return (← inferType h').consumeTypeAnnotations.containsFVar h.fvarId!)
-        && !lhs.containsFVar h.fvarId! then
-      return true
-    isConditionalHyps lhs hs
+    if ldecl.binderInfo.isInstImplicit then return false
+    isProp ldecl.type
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
@@ -52,8 +48,7 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
     e.toArray.mapM fun (_, ty') => do
       forallTelescopeReducing ty' fun hyps eq => do
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
-        let isConditional ← isConditionalHyps lhs hyps.toList
-        k { hyps, lhs, rhs, isConditional }
+        k { hyps, lhs, rhs }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
@@ -91,14 +86,16 @@ def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
 /-- Render the list of simp lemmas. -/
-def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) : MetaM MessageData := do
-  let mut args := #[]
+def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (contextual : Bool) :
+    MetaM MessageData := do
+  let mut args := #[m!"*"]
   let env ← getEnv
   for (thm, _) in usedSimps.map.toArray.qsort (·.2 < ·.2) do
     if let .decl declName := thm then
       if env.contains declName && declName != ``eq_self then
-        args := args.push (← mkConstWithFreshMVarLevels declName)
-  return m!"{simpName} only {args.toList}"
+        args := args.push m! "{← mkConstWithFreshMVarLevels declName}"
+  let contextual? := if contextual then " +contextual" else ""
+  return m!"{simpName}{contextual?} only {args.toList}"
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[env_linter] def simpNF : Linter where
@@ -108,8 +105,17 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    let ctx ← Simp.Context.mkDefault
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
+    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, hyps, ..} => do
+      -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
+      -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
+      let mut simpTheorems ← getSimpTheorems
+      let mut higherOrder := false
+      for h in hyps do
+        if ← isProof h then
+          simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
+          if !higherOrder then higherOrder ← isHigherHyp h
+      let ctx ← Simp.mkContext (config := { contextual := higherOrder })
+        (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
       let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <|
@@ -132,7 +138,7 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
         return m!"{simpName} can prove this:
-  by {← formatLemmas stats.usedTheorems simpName}
+  by {← formatLemmas stats.usedTheorems simpName higherOrder}
 One of the lemmas above could be a duplicate.
 If that's not the case try reordering lemmas or adding @[priority].
 "
@@ -142,10 +148,10 @@ If that's not the case try reordering lemmas or adding @[priority].
 to
   {lhs'}
 using
-  {← formatLemmas prf1Stats.usedTheorems simpName}
+  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}
 Try to change the left-hand side to the simplified term!
 "
-      else if !isConditional && lhs == lhs' then
+      else if lhs == lhs' then
         return m!"Left-hand side does not simplify, when using the simp lemma on itself.
 This usually means that it will never apply.
 "
