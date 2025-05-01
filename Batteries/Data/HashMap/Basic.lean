@@ -19,11 +19,13 @@ to find the values. This allows it to have very good performance for lookups
 meaning that one should take care to use the map linearly when performing updates.
 Copies are `O(n)`.
 -/
-abbrev _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] := Std.HashMap α β
+structure _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
+  /-- The inner `Std.HashMap` powering the `Batteries.HashMap`. -/
+  inner : Std.HashMap α β
 
 /-- Make a new hash map with the specified capacity. -/
 @[inline] def _root_.Batteries.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
-  ⟨.empty capacity, .empty⟩
+  ⟨.emptyWithCapacity capacity, .emptyWithCapacity⟩
 
 instance [BEq α] [Hashable α] : Inhabited (HashMap α β) where
   default := mkHashMap
@@ -46,7 +48,7 @@ The number of elements in the hash map.
 (ofList [("one", 1), ("two", 2)]).size = 2
 ```
 -/
-@[inline] def size (self : HashMap α β) : Nat := Std.HashMap.size self
+@[inline] def size (self : HashMap α β) : Nat := self.inner.size
 
 /--
 Is the map empty?
@@ -55,7 +57,7 @@ Is the map empty?
 (ofList [("one", 1), ("two", 2)]).isEmpty = false
 ```
 -/
-@[inline] def isEmpty (self : HashMap α β) : Bool := Std.HashMap.isEmpty self
+@[inline] def isEmpty (self : HashMap α β) : Bool := self.inner.isEmpty
 
 /--
 Inserts key-value pair `a, b` into the map.
@@ -67,7 +69,7 @@ hashMap.insert "two" 0 = {"one" => 1, "two" => 0}
 ```
 -/
 @[inline] def insert (self : HashMap α β) (a : α) (b : β) : HashMap α β :=
-  Std.HashMap.insert self a b
+  ⟨Std.HashMap.insert self.inner a b⟩
 
 /--
 Similar to `insert`, but also returns a boolean flag indicating whether an existing entry has been
@@ -79,7 +81,8 @@ hashMap.insert' "two" 0 = ({"one" => 1, "two" => 0}, true)
 ```
 -/
 @[inline] def insert' (m : HashMap α β) (a : α) (b : β) : HashMap α β × Bool :=
-  Prod.swap <|Std.HashMap.containsThenInsert m a b
+  let ⟨contains, insert⟩ := m.inner.containsThenInsert a b
+  ⟨⟨insert⟩, contains⟩
 
 /--
 Removes key `a` from the map. If it does not exist in the map, the map is returned unchanged.
@@ -89,7 +92,7 @@ hashMap.erase "one" = {"two" => 2}
 hashMap.erase "three" = {"one" => 1, "two" => 2}
 ```
 -/
-@[inline] def erase (self : HashMap α β) (a : α) : HashMap α β := Std.HashMap.erase self a
+@[inline] def erase (self : HashMap α β) (a : α) : HashMap α β := ⟨self.inner.erase a⟩
 
 /--
 Performs an in-place edit of the value, ensuring that the value is used linearly.
@@ -100,7 +103,7 @@ The function `f` is passed the original key of the entry, along with the value i
 ```
 -/
 @[inline] def modify (self : HashMap α β) (a : α) (f : α → β → β) : HashMap α β :=
-  Std.HashMap.modify self a (f a)
+  ⟨self.inner.modify a (f a)⟩
 
 /--
 Looks up an element in the map with key `a`.
@@ -110,7 +113,7 @@ hashMap.find? "one" = some 1
 hashMap.find? "three" = none
 ```
 -/
-@[inline] def find? (self : HashMap α β) (a : α) : Option β := self[a]?
+@[inline] def find? (self : HashMap α β) (a : α) : Option β := self.inner[a]?
 
 /--
 Looks up an element in the map with key `a`. Returns `b₀` if the element is not found.
@@ -120,7 +123,7 @@ hashMap.findD "one" 0 = 1
 hashMap.findD "three" 0 = 0
 ```
 -/
-@[inline] def findD (self : HashMap α β) (a : α) (b₀ : β) : β := self.getD a b₀
+@[inline] def findD (self : HashMap α β) (a : α) (b₀ : β) : β := self.inner.getD a b₀
 
 /--
 Looks up an element in the map with key `a`. Panics if the element is not found.
@@ -131,10 +134,10 @@ hashMap.find! "three" => panic!
 ```
 -/
 @[inline] def find! [Inhabited β] (self : HashMap α β) (a : α) : β :=
-  self.getD a (panic! "key is not in the map")
+  self.inner.getD a (panic! "key is not in the map")
 
 instance : GetElem (HashMap α β) α (Option β) fun _ _ => True where
-  getElem m k _ := m[k]?
+  getElem m k _ := m.inner[k]?
 
 /--
 Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
@@ -159,7 +162,7 @@ hashMap.contains "one" = true
 hashMap.contains "three" = false
 ```
 -/
-@[inline] def contains (self : HashMap α β) (a : α) : Bool := Std.HashMap.contains self a
+@[inline] def contains (self : HashMap α β) (a : α) : Bool := self.inner.contains a
 
 /--
 Folds a monadic function over the elements in the map (in arbitrary order).
@@ -173,7 +176,7 @@ foldM sumEven 0 (ofList [("two", 2), ("four", 4)]) = Except.ok 6
 ```
 -/
 @[inline] def foldM [Monad m] (f : δ → α → β → m δ) (init : δ) (self : HashMap α β) : m δ :=
-  Std.HashMap.foldM f init self
+  Std.HashMap.foldM f init self.inner
 
 /--
 Folds a function over the elements in the map (in arbitrary order).
@@ -182,7 +185,7 @@ fold (fun sum _ v => sum + v) 0 (ofList [("one", 1), ("two", 2)]) = 3
 ```
 -/
 @[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ :=
-  Std.HashMap.fold f init self
+  Std.HashMap.fold f init self.inner
 /--
 Combines two hashmaps using a monadic function `f` to combine two values at a key.
 ```
@@ -200,7 +203,7 @@ mergeWithM mergeIfNoConflict? map1 map3 = none
 @[specialize] def mergeWithM [Monad m] (f : α → β → β → m β)
     (self other : HashMap α β) : m (HashMap α β) :=
   other.foldM (init := self) fun m k v₂ =>
-    match m[k]? with
+    match m.inner[k]? with
     | none => return m.insert k v₂
     | some v₁ => return m.insert k (← f k v₁ v₂)
 
@@ -216,7 +219,7 @@ mergeWith (fun _ v₁ v₂ => v₁ + v₂ )
   -- Implementing this function directly, rather than via `mergeWithM`, gives
   -- us less constrained universes.
   other.fold (init := self) fun map k v₂ =>
-    match map[k]? with
+    match map.inner[k]? with
     | none => map.insert k v₂
     | some v₁ => map.insert k $ f k v₁ v₂
 
@@ -231,7 +234,7 @@ forM checkEven (ofList [("two", 2), ("four", 4)]) = Except.ok ()
 ```
 -/
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (self : HashMap α β) : m PUnit :=
-  Std.HashMap.forM f self
+  Std.HashMap.forM f self.inner
 
 /--
 Converts the map into a list of key-value pairs.
@@ -253,7 +256,7 @@ def toArray (self : HashMap α β) : Array (α × β) :=
   self.fold (init := #[]) fun r k v => r.push (k, v)
 
 /-- The number of buckets in the hash map. -/
-def numBuckets (self : HashMap α β) : Nat := Std.HashMap.Internal.numBuckets self
+def numBuckets (self : HashMap α β) : Nat := Std.HashMap.Internal.numBuckets self.inner
 
 /--
 Builds a `HashMap` from a list of key-value pairs.

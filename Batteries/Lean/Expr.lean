@@ -35,7 +35,7 @@ abbrev forallArity := @getNumHeadForalls
 def withApp' (e : Expr) (k : Expr → Array Expr → α) : α :=
   let dummy := mkSort levelZero
   let nargs := e.getAppNumArgs'
-  go e (mkArray nargs dummy) (nargs - 1)
+  go e (.replicate nargs dummy) (nargs - 1)
 where
   /-- Auxiliary definition for `withApp'`. -/
   @[specialize]
