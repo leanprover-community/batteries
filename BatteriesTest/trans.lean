@@ -122,5 +122,11 @@ example {α} {a b c : A α} (h1 : r a b) (h2 : r b c) : r a c := by
 inductive TEq : (α β : Type) → [Inhabited α] → [Inhabited β] → Prop where
 | refl [Inhabited α] : TEq α α
 
-@[trans] theorem TEq.trans {α β γ : Type} [Inhabited α] [Inhabited β] [Inhabited γ] :
-    TEq α β → TEq β γ → TEq α γ := sorry
+@[trans] axiom TEq.trans {α β γ : Type} [Inhabited α] [Inhabited β] [Inhabited γ] :
+    TEq α β → TEq β γ → TEq α γ
+
+example {α β γ : Type} [Inhabited α] [Inhabited β] [Inhabited γ]
+    (h1 : TEq α β) (h2 : TEq β γ) : TEq α γ := by
+  trans β
+  · exact h1
+  · exact h2

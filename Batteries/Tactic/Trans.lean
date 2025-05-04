@@ -24,6 +24,21 @@ open Lean Meta Elab
 
 initialize registerTraceClass `Tactic.trans
 
+/-- Classification for a relation application identifying the positions of the two explicit
+arguments. -/
+structure RelKind where
+  /-- The number of arguments after the relation expression (including implicits) -/
+  size : Nat
+  /-- The position of the first explicit argument, `ix < iz < size` -/
+  ix : Nat
+  /-- The position of the second explicit argument, `ix < iz < size` -/
+  iz : Nat
+  deriving Inhabited, BEq
+
+/-- Constructs a relation application using kind `k`. -/
+def RelKind.mkRel (rel : Expr) (k : RelKind) (x z : Expr) :=
+  mkAppOptM' rel <| Array.replicate k.size none |>.set! k.ix x |>.set! k.iz z
+
 /-- Environment extension storing transitivity lemmas -/
 initialize transExt :
     SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
@@ -43,68 +58,73 @@ def getExplicitFuncArg? (e : Expr) : MetaM (Option <| Expr × Expr) := do
   | _ => return none
 
 /-- refining `tgt ← mkAppM' rel #[x, z]` dropping more arguments if possible -/
-def getExplicitRelArgCore (tgt rel x z : Expr) : MetaM (Expr × Expr) := do
+def getExplicitRelArg (tgt rel x z : Expr) (k : RelKind) : MetaM (Expr × RelKind) := do
   match rel with
   | Expr.app rel' _ => do
+    let k' : RelKind := { size := k.size + 1, ix := k.ix + 1, iz := k.iz + 1 }
     let check ←
       try
-        let folded ← mkAppM' rel' #[x, z]
+        let folded ← k'.mkRel rel' x z
         isDefEq folded tgt
       catch _ =>
         pure false
     if !check then
-      return (rel, x)
+      return (rel, k)
     else
-      getExplicitRelArgCore tgt rel' x z
-  | _ => return (rel ,x)
-
-/-- solving `tgt ← mkAppM' rel #[x, z]` given `tgt = f z` -/
-def getExplicitRelArg? (tgt f z : Expr) : MetaM (Option <| Expr × Expr) := do
-  match f with
-  | Expr.app rel x => do
-    let check ←
-      try
-        let folded ← mkAppM' rel #[x, z]
-        isDefEq folded tgt
-      catch _ =>
-        pure false
-    if check then
-      getExplicitRelArgCore tgt rel x z
-    else
-      getExplicitRelArg? tgt rel z
-  | _ => return none
+      getExplicitRelArg tgt rel' x z k'
+  | _ => return (rel, k)
 
 /-- Internal definition for `trans` tactic. Either a binary relation or a non-dependent
 arrow. -/
 inductive TransRelation
   /-- Expression for transitive relation. -/
-  | app (rel : Expr)
+  | app (rel : Expr) (k : RelKind)
   /-- Constant name for transitive relation. -/
   | implies (name : Name) (bi : BinderInfo)
 
 /-- Finds an explicit binary relation in the argument, if possible. -/
-def getRel (tgt : Expr) : MetaM (Option (TransRelation × Expr × Expr)) := do
+def getRel (tgt : Expr) : MetaM (Option (TransRelation × Expr × Expr)) :=
   match tgt with
   | .forallE name binderType body info => return .some (.implies name info, binderType, body)
-  | .app f z => return (← getExplicitRelArg? tgt f z).map fun (rel, x) => (.app rel, x, z)
-  | _ => return none
+  | _ => tgt.withApp fun f args => do
+    let info := (← getFunInfo f).paramInfo
+    let rec findExplicit : Nat → Option Nat
+      | 0 => none
+      | i+1 => if info[i]!.binderInfo.isExplicit then some i else findExplicit i
+    if args.size ≠ info.size then return none
+    let some iz := findExplicit args.size | return none
+    let some ix := findExplicit iz | return none
+    let x := args[ix]!
+    let z := args[iz]!
+    let rel := mkAppRange f 0 ix args
+    let k : RelKind := { size := args.size - ix, ix := 0, iz := iz - ix }
+    let check ←
+      try
+        let folded ← k.mkRel rel x z
+        isDefEq folded tgt
+      catch _ => pure false
+    if check then
+      let (rel, k) ← getExplicitRelArg tgt rel x z k
+      return some (.app rel k, x, z)
+    else
+      return none
 
 initialize registerBuiltinAttribute {
   name := `trans
   descr := "transitive relation"
   add := fun decl _ kind => MetaM.run' do
     let declTy := (← getConstInfo decl).type
-    let (xs, _, targetTy) ← withReducible <| forallMetaTelescopeReducing declTy
-    let fail := throwError
-      "@[trans] attribute only applies to lemmas proving
-      x ∼ y → y ∼ z → x ∼ z, got {indentExpr declTy} with target {indentExpr targetTy}"
-    let some (.app rel, _, _) ← getRel targetTy | fail
-    let some yzHyp := xs.back? | fail
-    let some xyHyp := xs.pop.back? | fail
-    let .app (.app _ _) _ ← inferType yzHyp | fail
-    let .app (.app _ _) _ ← inferType xyHyp | fail
-    let key ← withReducible <| DiscrTree.mkPath rel
-    transExt.add (decl, key) kind
+    withReducible <| forallTelescopeReducing declTy fun xs targetTy => do
+      let fail := throwError
+        "@[trans] attribute only applies to lemmas proving
+        x ∼ y → y ∼ z → x ∼ z, got {indentExpr declTy} with target {indentExpr targetTy}"
+      let some (.app rel _, _, _) ← getRel targetTy | fail
+      let some yzHyp := xs.back? | fail
+      let some xyHyp := xs.pop.back? | fail
+      let some (.app _ _, _, _) ← getRel (← yzHyp.fvarId!.getType) | fail
+      let some (.app _ _, _, _) ← getRel (← xyHyp.fvarId!.getType) | fail
+      let key ← withReducible <| DiscrTree.mkPath rel
+      transExt.add (decl, key) kind
 }
 
 open Lean.Elab.Tactic
@@ -141,7 +161,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
       goal.assign (.lam name x (.app g₂ (.app g₁ (.bvar 0))) .default)
       pure <| [g₁.mvarId!, g₂.mvarId!] ++ if let some (_, gs') := t'? then gs' else [middle.mvarId!]
     return
-  | .app rel =>
+  | .app rel k =>
     trace[Tactic.trans] "goal decomposed: rel = {rel}, x = {x}, z = {z}"
     -- first trying the homogeneous case
     try
@@ -157,9 +177,13 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
           liftMetaTactic fun g => do
             let lemTy ← inferType (← mkConstWithLevelParams lem)
             let arity ← withReducible <| forallTelescopeReducing lemTy fun es _ => pure es.size
+            trace[Tactic.trans] "arity: {arity}"
+            trace[Tactic.trans] "lemma-type: {lemTy}"
             let y ← (t'?.map (pure ·.1)).getD (mkFreshExprMVar ty)
-            let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
-            let g₂ ← mkFreshExprMVar (some <| ← mkAppM' rel #[y, z]) .synthetic
+            trace[Tactic.trans] "obtained y = {y}"
+            trace[Tactic.trans] "rel = {rel}, x = {x}, z = {z}"
+            let g₁ ← mkFreshExprMVar (some <| ← k.mkRel rel x y) .synthetic
+            let g₂ ← mkFreshExprMVar (some <| ← k.mkRel rel y z) .synthetic
             g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
             pure <| [g₁.mvarId!, g₂.mvarId!] ++
               if let some (_, gs') := t'? then gs' else [y.mvarId!]
@@ -180,12 +204,10 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
             trace[Tactic.trans] "arity: {arity}"
             trace[Tactic.trans] "lemma-type: {lemTy}"
             let y ← (t'?.map (pure ·.1)).getD (mkFreshExprMVar none)
-            trace[Tactic.trans] "obtained y: {y}"
+            trace[Tactic.trans] "obtained y = {y}"
             trace[Tactic.trans] "rel = {rel}, x = {x}, z = {z}"
-            let g₂ ← mkFreshExprMVar (some <| ← mkAppM' rel #[y, z]) .synthetic
-            trace[Tactic.trans] "obtained g₂: {g₂}"
-            let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
-            trace[Tactic.trans] "obtained g₁: {g₁}"
+            let g₂ ← mkFreshExprMVar (some <| ← k.mkRel rel y z) .synthetic
+            let g₁ ← mkFreshExprMVar (some <| ← k.mkRel rel x y) .synthetic
             g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
             pure <| [g₁.mvarId!, g₂.mvarId!] ++
               if let some (_, gs') := t'? then gs' else [y.mvarId!]
