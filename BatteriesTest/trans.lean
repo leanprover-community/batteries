@@ -105,3 +105,16 @@ example {A : Type u} {B : Type v} {C : Type w} (h : A → B) (g : B → C) : A �
   · exact B
   · exact h
   · exact g
+
+inductive A (α : Type) where
+| mk : α → A α
+
+inductive r {α} : A α → A α → Prop where
+| trans {a b c} : r a b → r b c → r a c
+
+attribute [trans] r.trans
+
+example {α} {a b c : A α} (h1 : r a b) (h2 : r b c) : r a c := by
+  trans b
+  · exact h1
+  · exact h2
