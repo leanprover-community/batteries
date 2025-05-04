@@ -88,7 +88,9 @@ def getRel (tgt : Expr) : MetaM (Option (TransRelation × Expr × Expr)) :=
   | .forallE name binderType body info => return .some (.implies name info, binderType, body)
   | _ => tgt.withApp fun f args => do
     let info := (← getFunInfo f).paramInfo
-    let rec findExplicit : Nat → Option Nat
+    let rec
+      /-- returns the largest `i` less than the input s.t. `info[i]` is explicit -/
+      findExplicit : Nat → Option Nat
       | 0 => none
       | i+1 => if info[i]!.binderInfo.isExplicit then some i else findExplicit i
     if args.size ≠ info.size then return none
