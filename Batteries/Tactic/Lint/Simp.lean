@@ -30,17 +30,12 @@ structure SimpTheoremInfo where
   /-- The result of replacement -/
   rhs : Expr
 
-/-- Is this hypothesis higher order? i.e. is it a condition whose type contains a condition?
-We use this check to determine whether to set `contextual` to `true` in the `simp` configuration. -/
-def isHigherHyp (e : Expr) : MetaM Bool :=
-  isCond e <&&> do forallTelescope (← inferType e) fun hyps _ => hyps.anyM isCond
-where
-  /-- Is this hypothesis a condition that might turn into a `simp` side-goal?
-  i.e. is it a proposition that isn't marked as instance implicit? -/
-  isCond (h : Expr) : MetaM Bool := do
-    let ldecl ← getFVarLocalDecl h
-    if ldecl.binderInfo.isInstImplicit then return false
-    isProp ldecl.type
+/-- Is this hypothesis a condition that might turn into a `simp` side-goal?
+i.e. is it a proposition that isn't marked as instance implicit? -/
+def isCondition (h : Expr) : MetaM Bool := do
+  let ldecl ← getFVarLocalDecl h
+  if ldecl.binderInfo.isInstImplicit then return false
+  isProp ldecl.type
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
@@ -88,15 +83,15 @@ def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
   try k catch e => throw (.error e.getRef m!"{msg}\n{e.toMessageData}")
 
 /-- Render the list of simp lemmas. -/
-def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (contextual : Bool) :
+def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (higherOrder : Option Bool) :
     MetaM MessageData := do
-  let mut args := #[m!"*"]
+  let mut args := if higherOrder == none then #[] else #[m!"*"]
   let env ← getEnv
   for (thm, _) in usedSimps.map.toArray.qsort (·.2 < ·.2) do
     if let .decl declName := thm then
       if env.contains declName && declName != ``eq_self then
         args := args.push m! "{← mkConstWithFreshMVarLevels declName}"
-  let contextual? := if contextual then " +contextual" else ""
+  let contextual? := if higherOrder == some true then " +contextual" else ""
   return m!"{simpName}{contextual?} only {args.toList}"
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
@@ -108,35 +103,45 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, hyps, ..} => do
+      let isRfl ← isRflTheorem declName
+      let simpName := if !isRfl then "simp" else "dsimp"
+      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) : MetaM (Simp.Result × Simp.Stats) := do
+        if !isRfl then
+          simp e ctx (stats := stats)
+        else
+          let (e, s) ← dsimp e ctx (stats := stats)
+          return (Simp.Result.mk e .none .true, s)
       -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
       -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
       let mut simpTheorems ← getSimpTheorems
       let mut higherOrder := false
       for h in hyps do
-        if ← isProof h then
+        if ← isCondition h then
+          let hDecl ← getFVarLocalDecl h
+          let hUserName := sanitizeName hDecl.userName |>.run' {options := ← getOptions }
+          let ({ expr := hType', .. }, stats) ← decorateError m!"simplify fails on hypothesis ({hUserName} : {hDecl.type}):" <|
+            simplify hDecl.type (← Simp.Context.mkDefault)
+          unless ← isSimpEq hType' hDecl.type do
+            return m!"hypothesis {hUserName} simplifies from
+  {hDecl.type}
+to
+  {hType'}
+using
+  {← formatLemmas stats.usedTheorems simpName none}
+Try to change the hypothesis to the simplified term!
+"
           simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
-          if !higherOrder then higherOrder ← isHigherHyp h
+          if !higherOrder then
+            higherOrder ← forallTelescope hDecl.type fun hyps _ => hyps.anyM isCondition
       let ctx ← Simp.mkContext (config := { contextual := higherOrder })
         (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
-      let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
-        decorateError "simplify fails on left-hand side:" <|
-          if !isRfl then
-            simp lhs ctx
-          else do
-            let (e, s) ← dsimp lhs ctx
-            return (Simp.Result.mk e .none .true, s)
+        decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
       if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
       let ({ expr := rhs', .. }, stats) ←
-        decorateError "simplify fails on right-hand side:" <|
-          if !isRfl then
-            simp rhs ctx (stats := prf1Stats)
-          else do
-            let (e, s) ← dsimp rhs ctx (stats := prf1Stats)
-            return (Simp.Result.mk e .none .true, s)
+        decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
-      let simpName := if !isRfl then "simp" else "dsimp"
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
         return m!"{simpName} can prove this:
