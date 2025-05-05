@@ -15,6 +15,52 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
+/-! ### foldr -/
+
+theorem map_foldr {g : α → β} {f : Fin n → α → α} {f' : Fin n → β → β}
+    (h : ∀ i x, g (f i x) = f' i (g x)) (x) : g (foldr n f x) = foldr n f' (g x) := by
+  induction n generalizing x with
+  | zero => simp
+  | succ n ih => simp [foldr_succ, ih, h]
+
+/-! ### sum -/
+
+@[simp] theorem sum_zero [OfNat α (nat_lit 0)] [Add α] (x : Fin 0 → α) :
+    Fin.sum x = 0 := by
+  simp [Fin.sum]
+
+theorem sum_succ [OfNat α (nat_lit 0)] [Add α] (x : Fin (n + 1) → α) :
+    Fin.sum x = x 0 + Fin.sum (x ∘ Fin.succ) := by
+  simp [Fin.sum, foldr_succ]
+
+/-! ### prod -/
+
+@[simp] theorem prod_zero [OfNat α (nat_lit 1)] [Mul α] (x : Fin 0 → α) :
+    Fin.prod x = 1 := by
+  simp [Fin.prod]
+
+theorem prod_succ [OfNat α (nat_lit 1)] [Mul α] (x : Fin (n + 1) → α) :
+    Fin.prod x = x 0 * Fin.prod (x ∘ Fin.succ) := by
+  simp [Fin.prod, foldr_succ]
+
+/-! ### count -/
+
+@[simp] theorem count_zero (P : Fin 0 → Prop) [DecidablePred P] : Fin.count P = 0 := by
+  simp [Fin.count]
+
+theorem count_succ (P : Fin (n + 1) → Prop) [DecidablePred P] : Fin.count P =
+    if P 0 then Fin.count (fun i => P i.succ) + 1 else Fin.count (fun i => P i.succ) := by
+  split <;> simp [Fin.count, Fin.sum_succ, Nat.one_add, Function.comp_def, *]
+
+theorem count_le (P : Fin n → Prop) [DecidablePred P] : Fin.count P ≤ n := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [count_succ]
+    split
+    · simp [ih]
+    · apply Nat.le_trans _ (Nat.le_succ n); simp [ih]
+
 /-! ### findSome? -/
 
 @[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
