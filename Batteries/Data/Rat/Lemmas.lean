@@ -21,25 +21,19 @@ theorem ext : {p q : Rat} → p.num = q.num → p.den = q.den → p = q
 @[simp] theorem one_num : (1 : Rat).num = 1 := rfl
 @[simp] theorem one_den : (1 : Rat).den = 1 := rfl
 
-@[simp] theorem maybeNormalize_eq {num den g} (den_nz reduced) :
-    maybeNormalize num den g den_nz reduced =
-    { num := num.tdiv g, den := den / g, den_nz, reduced } := by
+@[simp] theorem maybeNormalize_eq {num den g} (dvd_num dvd_den den_nz reduced) :
+    maybeNormalize num den g dvd_num dvd_den den_nz reduced =
+    { num := num.divExact g dvd_num, den := den / g, den_nz, reduced } := by
   unfold maybeNormalize; split
   · subst g; simp
   · rfl
-
-theorem normalize.reduced' {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num / g).natAbs.Coprime (den / g) := by
-  rw [← Int.tdiv_eq_ediv_of_dvd (e ▸ Int.ofNat_dvd_left.2 (Nat.gcd_dvd_left ..))]
-  exact normalize.reduced den_nz e
 
 theorem normalize_eq {num den} (den_nz) : normalize num den den_nz =
     { num := num / num.natAbs.gcd den
       den := den / num.natAbs.gcd den
       den_nz := normalize.den_nz den_nz rfl
-      reduced := normalize.reduced' den_nz rfl } := by
-  simp only [normalize, maybeNormalize_eq,
-    Int.tdiv_eq_ediv_of_dvd (Int.ofNat_dvd_left.2 (Nat.gcd_dvd_left ..))]
+      reduced := normalize.reduced den_nz rfl } := by
+  simp only [normalize, maybeNormalize_eq, Int.divExact_eq_ediv]
 
 @[simp] theorem normalize_zero (nz) : normalize 0 d nz = 0 := by
   simp [normalize, Int.zero_tdiv, Int.natAbs_zero, Nat.div_self (Nat.pos_of_ne_zero nz)]; rfl
@@ -73,10 +67,11 @@ theorem normalize_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
       Int.mul_right_comm, h.1, Int.ediv_mul_cancel hn₂]
   · rw [← normalize_mul_right _ z₂, ← normalize_mul_left z₂ z₁, Int.mul_comm d₁, h]
 
-theorem maybeNormalize_eq_normalize {num : Int} {den g : Nat} (den_nz reduced)
+theorem maybeNormalize_eq_normalize {num : Int} {den g : Nat} (dvd_num dvd_den den_nz reduced)
     (hn : ↑g ∣ num) (hd : g ∣ den) :
-    maybeNormalize num den g den_nz reduced = normalize num den (mt (by simp [·]) den_nz) := by
-  simp only [maybeNormalize_eq, mk_eq_normalize, Int.tdiv_eq_ediv_of_dvd hn]
+    maybeNormalize num den g dvd_num dvd_den den_nz reduced =
+      normalize num den (mt (by simp [·]) den_nz) := by
+  simp only [maybeNormalize_eq, mk_eq_normalize, Int.divExact_eq_ediv]
   have : g ≠ 0 := mt (by simp [·]) den_nz
   rw [← normalize_mul_right _ this, Int.ediv_mul_cancel hn]
   congr 1; exact Nat.div_mul_cancel hd
@@ -191,7 +186,7 @@ theorem add_def (a b : Rat) :
   show Rat.add .. = _; delta Rat.add; dsimp only; split
   · exact (normalize_self _).symm
   · have : a.den.gcd b.den ≠ 0 := Nat.gcd_ne_zero_left a.den_nz
-    rw [maybeNormalize_eq_normalize _ _
+    rw [maybeNormalize_eq_normalize _ _ _ _
         (Int.ofNat_dvd_left.2 <| Nat.gcd_dvd_left ..)
         (Nat.dvd_trans (Nat.gcd_dvd_right ..) <|
          Nat.dvd_trans (Nat.gcd_dvd_right ..) (Nat.dvd_mul_left ..)),
@@ -227,7 +222,8 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
 @[simp] theorem neg_den (a : Rat) : (-a).den = a.den := rfl
 
 theorem neg_normalize (n d z) : -normalize n d z = normalize (-n) d z := by
-  simp [normalize]; rfl
+  simp only [normalize, maybeNormalize_eq, Int.divExact_eq_tdiv, Int.natAbs_neg, Int.neg_tdiv]
+  rfl
 
 theorem neg_mkRat (n d) : -mkRat n d = mkRat (-n) d := by
   if z : d = 0 then simp [z]; rfl else simp [← normalize_eq_mkRat z, neg_normalize]
@@ -241,7 +237,7 @@ theorem sub_def (a b : Rat) :
   show Rat.sub .. = _; delta Rat.sub; dsimp only; split
   · exact (normalize_self _).symm
   · have : a.den.gcd b.den ≠ 0 := Nat.gcd_ne_zero_left a.den_nz
-    rw [maybeNormalize_eq_normalize _ _
+    rw [maybeNormalize_eq_normalize _ _ _ _
         (Int.ofNat_dvd_left.2 <| Nat.gcd_dvd_left ..)
         (Nat.dvd_trans (Nat.gcd_dvd_right ..) <|
          Nat.dvd_trans (Nat.gcd_dvd_right ..) (Nat.dvd_mul_left ..)),
@@ -266,6 +262,7 @@ theorem mul_def (a b : Rat) :
   show Rat.mul .. = _; delta Rat.mul; dsimp only
   have H1 : a.num.natAbs.gcd b.den ≠ 0 := Nat.gcd_ne_zero_right b.den_nz
   have H2 : b.num.natAbs.gcd a.den ≠ 0 := Nat.gcd_ne_zero_right a.den_nz
+  simp only [Int.divExact_eq_tdiv, Nat.divExact_eq_div]
   rw [mk_eq_normalize, ← normalize_mul_right _ (Nat.mul_ne_zero H1 H2)]; congr 1
   · rw [Int.natCast_mul, ← Int.mul_assoc, Int.mul_right_comm (Int.tdiv ..),
       Int.tdiv_mul_cancel (Int.ofNat_dvd_left.2 <| Nat.gcd_dvd_left ..), Int.mul_assoc,
