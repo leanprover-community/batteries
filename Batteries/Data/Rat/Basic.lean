@@ -36,31 +36,36 @@ instance : Repr Rat where
 
 theorem Rat.den_pos (self : Rat) : 0 < self.den := Nat.pos_of_ne_zero self.den_nz
 
--- Note: `Rat.normalize` uses `Int.div` internally,
--- but we may want to refactor to use `/` (`Int.ediv`)
-
 /--
 Auxiliary definition for `Rat.normalize`. Constructs `num / den` as a rational number,
 dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 1.
 -/
 @[inline] def Rat.maybeNormalize (num : Int) (den g : Nat)
-    (den_nz : den / g ≠ 0) (reduced : (num.tdiv g).natAbs.Coprime (den / g)) : Rat :=
+    (dvd_num : ↑g ∣ num) (dvd_den : g ∣ den) (den_nz : den / g ≠ 0)
+    (reduced : (num / g).natAbs.Coprime (den / g)) : Rat :=
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
       reduced := by simp [hg, Int.natAbs_natCast] at reduced; exact reduced }
-  else { num := num.tdiv g, den := den / g, den_nz, reduced }
+  else { num := num.divExact g dvd_num, den := den.divExact g dvd_den, den_nz, reduced }
+
+theorem Rat.normalize.dvd_num {num : Int} {den g : Nat}
+    (e : g = num.natAbs.gcd den) : ↑g ∣ num := by
+  rw [e, ← Int.dvd_natAbs, Int.ofNat_dvd]
+  exact Nat.gcd_dvd_left num.natAbs den
+
+theorem Rat.normalize.dvd_den {num : Int} {den g : Nat}
+    (e : g = num.natAbs.gcd den) : g ∣ den :=
+  e ▸ Nat.gcd_dvd_right ..
 
 theorem Rat.normalize.den_nz {num : Int} {den g : Nat} (den_nz : den ≠ 0)
     (e : g = num.natAbs.gcd den) : den / g ≠ 0 :=
   e ▸ Nat.ne_of_gt (Nat.div_gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 theorem Rat.normalize.reduced {num : Int} {den g : Nat} (den_nz : den ≠ 0)
-    (e : g = num.natAbs.gcd den) : (num.tdiv g).natAbs.Coprime (den / g) :=
-  have : Int.natAbs (num.tdiv ↑g) = num.natAbs / g := by
-    match num, num.eq_nat_or_neg with
-    | _, ⟨_, .inl rfl⟩ => rfl
-    | _, ⟨_, .inr rfl⟩ => rw [Int.neg_tdiv, Int.natAbs_neg, Int.natAbs_neg]; rfl
+    (e : g = num.natAbs.gcd den) : (num / g).natAbs.Coprime (den / g) :=
+  have : Int.natAbs (num / ↑g) = num.natAbs / g := by
+    rw [Int.natAbs_ediv_of_dvd (dvd_num e), Int.natAbs_natCast]
   this ▸ e ▸ Nat.coprime_div_gcd_div_gcd (Nat.gcd_pos_of_pos_right _ (Nat.pos_of_ne_zero den_nz))
 
 /--
@@ -70,6 +75,7 @@ the gcd to ensure that the resulting rational number is normalized.
 -/
 @[inline] def Rat.normalize (num : Int) (den : Nat := 1) (den_nz : den ≠ 0 := by decide) : Rat :=
   Rat.maybeNormalize num den (num.natAbs.gcd den)
+    (normalize.dvd_num rfl) (normalize.dvd_den rfl)
     (normalize.den_nz den_nz rfl) (normalize.reduced den_nz rfl)
 
 /--
@@ -141,12 +147,12 @@ want to unfold it. Use `Rat.mul_def` instead.) -/
 @[irreducible] protected def mul (a b : Rat) : Rat :=
   let g1 := Nat.gcd a.num.natAbs b.den
   let g2 := Nat.gcd b.num.natAbs a.den
-  { num := (a.num.tdiv g1) * (b.num.tdiv g2)
-    den := (a.den / g2) * (b.den / g1)
+  { num := a.num.divExact g1 (normalize.dvd_num rfl) * b.num.divExact g2 (normalize.dvd_num rfl)
+    den := a.den.divExact g2 (normalize.dvd_den rfl) * b.den.divExact g1 (normalize.dvd_den rfl)
     den_nz := Nat.ne_of_gt <| Nat.mul_pos
       (Nat.div_gcd_pos_of_pos_right _ a.den_pos) (Nat.div_gcd_pos_of_pos_right _ b.den_pos)
     reduced := by
-      simp only [Int.natAbs_mul, Int.natAbs_tdiv, Nat.coprime_mul_iff_left]
+      simp only [Int.divExact_eq_tdiv, Int.natAbs_mul, Int.natAbs_tdiv, Nat.coprime_mul_iff_left]
       refine ⟨Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩, Nat.coprime_mul_iff_right.2 ⟨?_, ?_⟩⟩
       · exact a.reduced.coprime_div_left (Nat.gcd_dvd_left ..)
           |>.coprime_div_right (Nat.gcd_dvd_right ..)
@@ -225,7 +231,8 @@ unfold it. Use `Rat.add_def` instead.)
     let g1  := num.natAbs.gcd g
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos (Nat.div_gcd_pos_of_pos_left _ a.den_pos) b.den_pos
     have e : g1 = num.natAbs.gcd den := add.aux a b rfl rfl rfl
-    Rat.maybeNormalize num den g1 (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
+    Rat.maybeNormalize num den g1 (normalize.dvd_num e) (normalize.dvd_den e)
+      (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
 
 instance : Add Rat := ⟨Rat.add⟩
 
@@ -259,7 +266,8 @@ unfold it. Use `Rat.sub_def` instead.)
     let g1  := num.natAbs.gcd g
     have den_nz := Nat.ne_of_gt <| Nat.mul_pos (Nat.div_gcd_pos_of_pos_left _ a.den_pos) b.den_pos
     have e : g1 = num.natAbs.gcd den := sub.aux a b rfl rfl rfl
-    Rat.maybeNormalize num den g1 (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
+    Rat.maybeNormalize num den g1 (normalize.dvd_num e) (normalize.dvd_den e)
+      (normalize.den_nz den_nz e) (normalize.reduced den_nz e)
 
 instance : Sub Rat := ⟨Rat.sub⟩
 
