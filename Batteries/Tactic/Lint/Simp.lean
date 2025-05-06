@@ -115,7 +115,8 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
       let ctx ← Simp.mkContext (config := { contextual := higherOrder })
         (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
       let isRfl ← isRflTheorem declName
-      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) : MetaM (Simp.Result × Simp.Stats) := do
+      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) :
+          MetaM (Simp.Result × Simp.Stats) := do
         if !isRfl then
           simp e ctx (stats := stats)
         else
@@ -151,8 +152,9 @@ Try to change the left-hand side to the simplified term!
         for h in hyps do
           let ldecl ← getFVarLocalDecl h
           let name := sanitizeName ldecl.userName |>.run' { options := ← getOptions }
-          let ({ expr := hType', .. }, stats) ← decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
-            simplify ldecl.type (← Simp.Context.mkDefault)
+          let ({ expr := hType', .. }, stats) ←
+            decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
+              simplify ldecl.type (← Simp.Context.mkDefault)
           unless ← isSimpEq hType' ldecl.type do
             hints := hints ++ m!"
 This may due to the fact that hypothesis {name} simplifies from
