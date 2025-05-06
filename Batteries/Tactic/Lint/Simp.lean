@@ -102,39 +102,25 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, hyps, ..} => do
-      let isRfl ← isRflTheorem declName
-      let simpName := if !isRfl then "simp" else "dsimp"
-      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) : MetaM (Simp.Result × Simp.Stats) := do
-        if !isRfl then
-          simp e ctx (stats := stats)
-        else
-          let (e, s) ← dsimp e ctx (stats := stats)
-          return (Simp.Result.mk e .none .true, s)
+    checkAllSimpTheoremInfos (← getConstInfo declName).type fun { lhs, rhs, hyps, .. } => do
       -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
       -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
       let mut simpTheorems ← getSimpTheorems
       let mut higherOrder := false
       for h in hyps do
         if ← isCondition h then
-          let hDecl ← getFVarLocalDecl h
-          let hUserName := sanitizeName hDecl.userName |>.run' {options := ← getOptions }
-          let ({ expr := hType', .. }, stats) ← decorateError m!"simplify fails on hypothesis ({hUserName} : {hDecl.type}):" <|
-            simplify hDecl.type (← Simp.Context.mkDefault)
-          unless ← isSimpEq hType' hDecl.type do
-            return m!"hypothesis {hUserName} simplifies from
-  {hDecl.type}
-to
-  {hType'}
-using
-  {← formatLemmas stats.usedTheorems simpName none}
-Try to change the hypothesis to the simplified term!
-"
           simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
           if !higherOrder then
-            higherOrder ← forallTelescope hDecl.type fun hyps _ => hyps.anyM isCondition
+            higherOrder ← forallTelescope (← inferType h) fun hyps _ => hyps.anyM isCondition
       let ctx ← Simp.mkContext (config := { contextual := higherOrder })
         (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
+      let isRfl ← isRflTheorem declName
+      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) : MetaM (Simp.Result × Simp.Stats) := do
+        if !isRfl then
+          simp e ctx (stats := stats)
+        else
+          let (e, s) ← dsimp e ctx (stats := stats)
+          return (Simp.Result.mk e .none .true, s)
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
       if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
@@ -142,6 +128,7 @@ Try to change the hypothesis to the simplified term!
         decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
       let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
       let lhsInNF ← isSimpEq lhs' lhs
+      let simpName := if !isRfl then "simp" else "dsimp"
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
         return m!"{simpName} can prove this:
@@ -159,8 +146,24 @@ using
 Try to change the left-hand side to the simplified term!
 "
       else if lhs == lhs' then
+        -- improve the error message if there are hypotheses that aren't in `simp` normal form
+        let mut hints := m!""
+        for h in hyps do
+          let ldecl ← getFVarLocalDecl h
+          let name := sanitizeName ldecl.userName |>.run' { options := ← getOptions }
+          let ({ expr := hType', .. }, stats) ← decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
+            simplify ldecl.type (← Simp.Context.mkDefault)
+          unless ← isSimpEq hType' ldecl.type do
+            hints := hints ++ m!"
+This may due to the fact that hypothesis {name} simplifies from
+  {ldecl.type}
+to
+  {hType'}
+using
+  {← formatLemmas stats.usedTheorems simpName none}
+Try to change the hypothesis to the simplified term!"
         return m!"Left-hand side does not simplify, when using the simp lemma on itself.
-This usually means that it will never apply.
+This usually means that it will never apply.{hints}
 "
       else
         return none
