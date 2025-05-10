@@ -1,0 +1,431 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Batteries.Control.Lawful.MonadLift</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Batteries.Control.Lawful.MonadLift";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Batteries</span>.<span class="name">Control</span>.<span class="name">Lawful</span>.<span class="name">MonadLift</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init.html">Init</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Batteries.Control.Lawful.MonadLift" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#LawfulMonadLift"><span class="name">LawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulMonadLiftT"><span class="name">LawfulMonadLiftT</span></a></div><div class="nav_link"><a class="break_within" href="#monadLift_map"><span class="name">monadLift_map</span></a></div><div class="nav_link"><a class="break_within" href="#monadLift_seq"><span class="name">monadLift_seq</span></a></div><div class="nav_link"><a class="break_within" href="#monadLift_seqLeft"><span class="name">monadLift_seqLeft</span></a></div><div class="nav_link"><a class="break_within" href="#monadLift_seqRight"><span class="name">monadLift_seqRight</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_pure"><span class="name">liftM_pure</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_bind"><span class="name">liftM_bind</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_map"><span class="name">liftM_map</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_seq"><span class="name">liftM_seq</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_seqLeft"><span class="name">liftM_seqLeft</span></a></div><div class="nav_link"><a class="break_within" href="#liftM_seqRight"><span class="name">liftM_seqRight</span></a></div><div class="nav_link"><a class="break_within" href="#instLawfulMonadLiftTOfLawfulMonadLift"><span class="name">instLawfulMonadLiftTOfLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#instLawfulMonadLiftT"><span class="name">instLawfulMonadLiftT</span></a></div><div class="nav_link"><a class="break_within" href="#StateT.instLawfulMonadLift"><span class="name">StateT</span>.<span class="name">instLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#ReaderT.instLawfulMonadLift"><span class="name">ReaderT</span>.<span class="name">instLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#OptionT.lift_pure"><span class="name">OptionT</span>.<span class="name">lift_pure</span></a></div><div class="nav_link"><a class="break_within" href="#OptionT.lift_bind"><span class="name">OptionT</span>.<span class="name">lift_bind</span></a></div><div class="nav_link"><a class="break_within" href="#OptionT.instLawfulMonadLift"><span class="name">OptionT</span>.<span class="name">instLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#ExceptT.lift_bind"><span class="name">ExceptT</span>.<span class="name">lift_bind</span></a></div><div class="nav_link"><a class="break_within" href="#ExceptT.instLawfulMonadLift"><span class="name">ExceptT</span>.<span class="name">instLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#ExceptT.instLawfulMonadLiftExcept"><span class="name">ExceptT</span>.<span class="name">instLawfulMonadLiftExcept</span></a></div><div class="nav_link"><a class="break_within" href="#StateRefT'.instLawfulMonadLift"><span class="name">StateRefT'</span>.<span class="name">instLawfulMonadLift</span></a></div><div class="nav_link"><a class="break_within" href="#StateCpsT.instLawfulMonadLiftOfLawfulMonad"><span class="name">StateCpsT</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#ExceptCpsT.instLawfulMonadLiftOfLawfulMonad"><span class="name">ExceptCpsT</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Id.instMonadLiftOfPure_batteries"><span class="name">Id</span>.<span class="name">instMonadLiftOfPure_batteries</span></a></div><div class="nav_link"><a class="break_within" href="#Id.instLawfulMonadLiftOfLawfulMonad"><span class="name">Id</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="Lawful-version-of-MonadLift">Lawful version of <code><a href="../../.././Init/Prelude.html#MonadLift">MonadLift</a></code> <a class="hover-link" href="#Lawful-version-of-MonadLift">#</a></h1><p>This file defines the <code>LawfulMonadLift(T)</code> class, which adds laws to the <code>MonadLift(T)</code> class.</p></div><div class="decl" id="LawfulMonadLift"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L15-L28">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift"><span class="name">LawfulMonadLift</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././Init/Prelude.html#semiOutParam">semiOutParam</a> <span class="fn">(<a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> w</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">inst</span> : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLift">MonadLift</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>The <code><a href="../../.././Init/Prelude.html#MonadLift">MonadLift</a></code> typeclass only contains the lifting operation. <code><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a></code> further
+asserts that lifting commutes with <code>pure</code> and <code>bind</code>:</p><pre><code>monadLift (pure a) = pure a
+monadLift (ma &gt;&gt;= f) = monadLift ma &gt;&gt;= monadLift ∘ f
+</code></pre><ul class="structure_fields" id="LawfulMonadLift.mk"><li id="LawfulMonadLift.monadLift_pure" class="structure_field"><div class="structure_field_info">monadLift_pure<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLift.monadLift">MonadLift.monadLift</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></div><div class="structure_field_doc"><p>Lifting preserves <code>pure</code></p></div></li><li id="LawfulMonadLift.monadLift_bind" class="structure_field"><div class="structure_field_info">monadLift_bind<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+ : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLift.monadLift">MonadLift.monadLift</a> (<span class="fn">ma</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">x</span> ← <span class="fn"><a href="../../.././Init/Prelude.html#MonadLift.monadLift">MonadLift.monadLift</a> <span class="fn">ma</span></span>
+  <span class="fn"><a href="../../.././Init/Prelude.html#MonadLift.monadLift">MonadLift.monadLift</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></div><div class="structure_field_doc"><p>Lifting preserves <code>bind</code></p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-LawfulMonadLift" class="instances-list"></ul></details></div></div><div class="decl" id="LawfulMonadLiftT"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L30-L43">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT"><span class="name">LawfulMonadLiftT</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> w</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">inst</span> : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>The <code><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a></code> typeclass only contains the transitive lifting operation.
+<code><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a></code> further asserts that lifting commutes with <code>pure</code> and <code>bind</code>:</p><pre><code>monadLift (pure a) = pure a
+monadLift (ma &gt;&gt;= f) = monadLift ma &gt;&gt;= monadLift ∘ f
+</code></pre><ul class="structure_fields" id="LawfulMonadLiftT.mk"><li id="LawfulMonadLiftT.monadLift_pure" class="structure_field"><div class="structure_field_info">monadLift_pure<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></div><div class="structure_field_doc"><p>Lifting preserves <code>pure</code></p></div></li><li id="LawfulMonadLiftT.monadLift_bind" class="structure_field"><div class="structure_field_info">monadLift_bind<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+ : <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> (<span class="fn">ma</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">x</span> ← <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">ma</span></span>
+  <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></div><div class="structure_field_doc"><p>Lifting preserves <code>bind</code></p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-LawfulMonadLiftT" class="instances-list"></ul></details></div></div><div class="decl" id="monadLift_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L51-L54">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#monadLift_map"><span class="name">monadLift_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> (<span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">ma</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">ma</span></span></div></div></div></div><div class="decl" id="monadLift_seq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L56-L58">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#monadLift_seq"><span class="name">monadLift_seq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">mf</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">(<span class="fn">mf</span> &lt;*&gt; <span class="fn">ma</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">mf</span></span> &lt;*&gt; <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">ma</span></span></span></div></div></div></div><div class="decl" id="monadLift_seqLeft"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L60-L62">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#monadLift_seqLeft"><span class="name">monadLift_seqLeft</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">(<span class="fn">x</span> &lt;* <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">x</span></span> &lt;* <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">y</span></span></span></div></div></div></div><div class="decl" id="monadLift_seqRight"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L64-L66">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#monadLift_seqRight"><span class="name">monadLift_seqRight</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">(<span class="fn">x</span> *&gt; <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">x</span></span> *&gt; <span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">y</span></span></span></div></div></div></div><div class="mod_doc"><p>We duplicate the theorems for <code>monadLift</code> to <code><a href="../../.././Init/Prelude.html#liftM">liftM</a></code> since <code>rw</code> matches on syntax only.</p></div><div class="decl" id="liftM_pure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L70-L72">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_pure"><span class="name">liftM_pure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></div></div></div></div><div class="decl" id="liftM_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L74-L77">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_bind"><span class="name">liftM_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> (<span class="fn">ma</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">ma</span></span>
+  <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></span></div></div></div></div><div class="decl" id="liftM_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L79-L82">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_map"><span class="name">liftM_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> (<span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">ma</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">ma</span></span></div></div></div></div><div class="decl" id="liftM_seq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L84-L87">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_seq"><span class="name">liftM_seq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">mf</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">(<span class="fn">mf</span> &lt;*&gt; <span class="fn">ma</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">mf</span></span> &lt;*&gt; <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">ma</span></span></span></div></div></div></div><div class="decl" id="liftM_seqLeft"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L89-L92">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_seqLeft"><span class="name">liftM_seqLeft</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">(<span class="fn">x</span> &lt;* <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">x</span></span> &lt;* <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">y</span></span></span></div></div></div></div><div class="decl" id="liftM_seqRight"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L94-L97">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#liftM_seqRight"><span class="name">liftM_seqRight</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">(<span class="fn">x</span> *&gt; <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">x</span></span> *&gt; <span class="fn"><a href="../../.././Init/Prelude.html#liftM">liftM</a> <span class="fn">y</span></span></span></div></div></div></div><div class="decl" id="instLawfulMonadLiftTOfLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L101-L106">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#instLawfulMonadLiftTOfLawfulMonadLift"><span class="name">instLawfulMonadLiftTOfLawfulMonadLift</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">n</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_3</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">o</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_4</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">o</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLift">MonadLift</a> <span class="fn">n</span> <span class="fn">o</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT">MonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">n</span> <span class="fn">o</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">n</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">o</span></span></div></div></div></div><div class="decl" id="instLawfulMonadLiftT"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L108-L110">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#instLawfulMonadLiftT"><span class="name">instLawfulMonadLiftT</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLiftT">LawfulMonadLiftT</a> <span class="fn">m</span> <span class="fn">m</span></span></div></div></div></div><div class="decl" id="StateT.instLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L116-L124">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#StateT.instLawfulMonadLift"><span class="name">StateT</span>.<span class="name">instLawfulMonadLift</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">σ</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/State.html#StateT">StateT</a> <span class="fn">σ</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="ReaderT.instLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L132-L138">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#ReaderT.instLawfulMonadLift"><span class="name">ReaderT</span>.<span class="name">instLawfulMonadLift</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ρ</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#ReaderT">ReaderT</a> <span class="fn">ρ</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="OptionT.lift_pure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L146-L148">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#OptionT.lift_pure"><span class="name">OptionT</span>.<span class="name">lift_pure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Option.html#OptionT.lift">OptionT.lift</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></div></div></div></div><div class="decl" id="OptionT.lift_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L150-L154">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#OptionT.lift_bind"><span class="name">OptionT</span>.<span class="name">lift_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Option.html#OptionT.lift">OptionT.lift</a> (<span class="fn">ma</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn"><a href="../../.././Init/Control/Option.html#OptionT.lift">OptionT.lift</a> <span class="fn">ma</span></span>
+  <span class="fn"><a href="../../.././Init/Control/Option.html#OptionT.lift">OptionT.lift</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></span></div></div></div></div><div class="decl" id="OptionT.instLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L156-L158">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#OptionT.instLawfulMonadLift"><span class="name">OptionT</span>.<span class="name">instLawfulMonadLift</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/Option.html#OptionT">OptionT</a> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="ExceptT.lift_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L166-L169">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#ExceptT.lift_bind"><span class="name">ExceptT</span>.<span class="name">lift_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">ε</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">ma</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Except.html#ExceptT.lift">ExceptT.lift</a> (<span class="fn">ma</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn"><a href="../../.././Init/Control/Except.html#ExceptT.lift">ExceptT.lift</a> <span class="fn">ma</span></span>
+  <span class="fn"><a href="../../.././Init/Control/Except.html#ExceptT.lift">ExceptT.lift</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></span></div></div></div></div><div class="decl" id="ExceptT.instLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L171-L173">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#ExceptT.instLawfulMonadLift"><span class="name">ExceptT</span>.<span class="name">instLawfulMonadLift</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ε</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/Except.html#ExceptT">ExceptT</a> <span class="fn">ε</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="ExceptT.instLawfulMonadLiftExcept"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L175-L181">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#ExceptT.instLawfulMonadLiftExcept"><span class="name">ExceptT</span>.<span class="name">instLawfulMonadLiftExcept</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ε</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Except">Except</a> <span class="fn">ε</span>)</span> <span class="fn">(<a href="../../.././Init/Control/Except.html#ExceptT">ExceptT</a> <span class="fn">ε</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="StateRefT'.instLawfulMonadLift"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L187-L195">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#StateRefT'.instLawfulMonadLift"><span class="name">StateRefT'</span>.<span class="name">instLawfulMonadLift</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ω </span><span class="fn">σ</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/StateRef.html#StateRefT'">StateRefT'</a> <span class="fn">ω</span> <span class="fn">σ</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="StateCpsT.instLawfulMonadLiftOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L201-L209">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#StateCpsT.instLawfulMonadLiftOfLawfulMonad"><span class="name">StateCpsT</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">σ</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/StateCps.html#StateCpsT">StateCpsT</a> <span class="fn">σ</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="ExceptCpsT.instLawfulMonadLiftOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L215-L223">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#ExceptCpsT.instLawfulMonadLiftOfLawfulMonad"><span class="name">ExceptCpsT</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ε</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Control/ExceptCps.html#ExceptCpsT">ExceptCpsT</a> <span class="fn">ε</span> <span class="fn">m</span>)</span></span></div></div></div></div><div class="decl" id="Id.instMonadLiftOfPure_batteries"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L229-L231">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#Id.instMonadLiftOfPure_batteries"><span class="name">Id</span>.<span class="name">instMonadLiftOfPure_batteries</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Pure">Pure</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLift">MonadLift</a> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span></div></div><p>The <code>pure</code> operation of a monad <code>m</code> can be seen as a lifting operation from <code><a href="../../.././Init/Control/Id.html#Id">Id</a></code> to <code>m</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#Id.instMonadLiftOfPure_batteries">Id.instMonadLiftOfPure_batteries</a> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#MonadLift.mk">{</a> <span class="fn">monadLift</span> := <span class="fn">fun {<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> ?u.14} =&gt; <a href="../../.././Init/Prelude.html#Pure.pure">pure</a></span> <a href="../../.././Init/Prelude.html#MonadLift.mk">}</a></li></ul></details></div></div><div class="decl" id="Id.instLawfulMonadLiftOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Control/Lawful/MonadLift.lean#L233-L236">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Control/Lawful/MonadLift.html#Id.instLawfulMonadLiftOfLawfulMonad"><span class="name">Id</span>.<span class="name">instLawfulMonadLiftOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Batteries/Control/Lawful/MonadLift.html#LawfulMonadLift">LawfulMonadLift</a> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span></div></div><p>The lifting from <code><a href="../../.././Init/Control/Id.html#Id">Id</a></code> to a lawful monad <code>m</code> induced by <code>pure</code> is lawful.</p></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

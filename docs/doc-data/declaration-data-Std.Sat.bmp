@@ -1,0 +1,1 @@
+{"name":"Std.Sat","instances":[],"imports":["Std.Sat.AIG","Std.Sat.CNF"],"declarations":[]}

@@ -1,0 +1,343 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href=".././style.css"></link><link rel="icon" href=".././favicon.svg"></link><link rel="mask-icon" href=".././favicon.svg" color="#000000"></link><link rel="prefetch" href=".././/declarations/declaration-data.bmp" as="image"></link><title>Batteries.Logic</title><script defer="true" src=".././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT=".././";</script><script>const MODULE_NAME="Batteries.Logic";</script><script type="module" src=".././jump-src.js"></script><script type="module" src=".././search.js"></script><script type="module" src=".././expand-nav.js"></script><script type="module" src=".././how-about.js"></script><script type="module" src=".././instances.js"></script><script type="module" src=".././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Batteries</span>.<span class="name">Logic</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href=".././Init.html">Init</a></li><li><a href=".././Batteries/Tactic/Alias.html">Batteries.Tactic.Alias</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Batteries.Logic" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#instDecidablePredComp_batteries"><span class="name">instDecidablePredComp_batteries</span></a></div><div class="nav_link"><a class="break_within" href="#Function.id_def"><span class="name">Function</span>.<span class="name">id_def</span></a></div><div class="nav_link"><a class="break_within" href="#Decidable.exists_not_of_not_forall"><span class="name">Decidable</span>.<span class="name">exists_not_of_not_forall</span></a></div><div class="nav_link"><a class="break_within" href="#Classical.exists_not_of_not_forall"><span class="name">Classical</span>.<span class="name">exists_not_of_not_forall</span></a></div><div class="nav_link"><a class="break_within" href="#heq_iff_eq"><span class="name">heq_iff_eq</span></a></div><div class="nav_link"><a class="break_within" href="#eq_rec_constant"><span class="name">eq_rec_constant</span></a></div><div class="nav_link"><a class="break_within" href="#congrArg₂"><span class="name">congrArg₂</span></a></div><div class="nav_link"><a class="break_within" href="#congrFun₂"><span class="name">congrFun₂</span></a></div><div class="nav_link"><a class="break_within" href="#congrFun₃"><span class="name">congrFun₃</span></a></div><div class="nav_link"><a class="break_within" href="#funext₂"><span class="name">funext₂</span></a></div><div class="nav_link"><a class="break_within" href="#funext₃"><span class="name">funext₃</span></a></div><div class="nav_link"><a class="break_within" href="#Function.funext_iff"><span class="name">Function</span>.<span class="name">funext_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Eq.congr"><span class="name">Eq</span>.<span class="name">congr</span></a></div><div class="nav_link"><a class="break_within" href="#Eq.congr_left"><span class="name">Eq</span>.<span class="name">congr_left</span></a></div><div class="nav_link"><a class="break_within" href="#Eq.congr_right"><span class="name">Eq</span>.<span class="name">congr_right</span></a></div><div class="nav_link"><a class="break_within" href="#congr_arg"><span class="name">congr_arg</span></a></div><div class="nav_link"><a class="break_within" href="#congr_arg₂"><span class="name">congr_arg₂</span></a></div><div class="nav_link"><a class="break_within" href="#congr_fun"><span class="name">congr_fun</span></a></div><div class="nav_link"><a class="break_within" href="#congr_fun₂"><span class="name">congr_fun₂</span></a></div><div class="nav_link"><a class="break_within" href="#congr_fun₃"><span class="name">congr_fun₃</span></a></div><div class="nav_link"><a class="break_within" href="#heq_of_cast_eq"><span class="name">heq_of_cast_eq</span></a></div><div class="nav_link"><a class="break_within" href="#cast_eq_iff_heq"><span class="name">cast_eq_iff_heq</span></a></div><div class="nav_link"><a class="break_within" href="#eqRec_eq_cast"><span class="name">eqRec_eq_cast</span></a></div><div class="nav_link"><a class="break_within" href="#eqRec_heq_self"><span class="name">eqRec_heq_self</span></a></div><div class="nav_link"><a class="break_within" href="#eqRec_heq_iff_heq"><span class="name">eqRec_heq_iff_heq</span></a></div><div class="nav_link"><a class="break_within" href="#heq_eqRec_iff_heq"><span class="name">heq_eqRec_iff_heq</span></a></div><div class="nav_link"><a class="break_within" href="#not_nonempty_empty"><span class="name">not_nonempty_empty</span></a></div><div class="nav_link"><a class="break_within" href="#not_nonempty_pempty"><span class="name">not_nonempty_pempty</span></a></div><div class="nav_link"><a class="break_within" href="#subsingleton_of_forall_eq"><span class="name">subsingleton_of_forall_eq</span></a></div><div class="nav_link"><a class="break_within" href="#subsingleton_iff_forall_eq"><span class="name">subsingleton_iff_forall_eq</span></a></div><div class="nav_link"><a class="break_within" href="#congr_eqRec"><span class="name">congr_eqRec</span></a></div></nav><main>
+<div class="decl" id="instDecidablePredComp_batteries"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L8-L9">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#instDecidablePredComp_batteries"><span class="name">instDecidablePredComp_batteries</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">p</span> : <span class="fn"><span class="fn">β</span> → <a href=".././foundational_types.html">Prop</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href=".././Init/Prelude.html#DecidablePred">DecidablePred</a> <span class="fn">p</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#DecidablePred">DecidablePred</a> (<span class="fn">p</span> <a href=".././Init/Prelude.html#Function.comp">∘</a> <span class="fn">f</span>)</span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation"><a href=".././Batteries/Logic.html#instDecidablePredComp_batteries">instDecidablePredComp_batteries</a> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><a href=".././Init/Prelude.html#inferInstanceAs">inferInstanceAs</a> <span class="fn">(<a href=".././Init/Prelude.html#DecidablePred">DecidablePred</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">p</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span>)</span></span></li></ul></details></div></div><div class="mod_doc"><h2 class="markdown-heading" id="id">id <a class="hover-link" href="#id">#</a></h2></div><div class="decl" id="Function.id_def"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L13-L13">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Function.id_def"><span class="name">Function</span>.<span class="name">id_def</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href=".././Init/Prelude.html#id">id</a> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">x</span></span></div></div></div></div><div class="mod_doc"><h2 class="markdown-heading" id="decidable">decidable <a class="hover-link" href="#decidable">#</a></h2></div><div class="decl" id="Decidable.exists_not_of_not_forall"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L17-L17">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Decidable.exists_not_of_not_forall"><span class="name">Decidable</span>.<span class="name">exists_not_of_not_forall</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">p</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Prop</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href=".././Init/Prelude.html#Decidable">Decidable</a> (<a href=".././Init/Core.html#Exists">∃</a> <a href=".././Init/Core.html#Exists">(</a><span class="fn">x</span> <a href=".././Init/Core.html#Exists">:</a> <span class="fn">α</span><a href=".././Init/Core.html#Exists">)</a><a href=".././Init/Core.html#Exists">,</a> <a href=".././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">p</span> <span class="fn">x</span></span>)</span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>) → <span class="fn"><a href=".././Init/Prelude.html#Decidable">Decidable</a> <span class="fn">(<span class="fn">p</span> <span class="fn">x</span>)</span></span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href=".././Init/Prelude.html#Not">¬</a><span class="fn">∀ (<span class="fn">x</span> : <span class="fn">α</span>), <span class="fn"><span class="fn">p</span> <span class="fn">x</span></span></span>) → <a href=".././Init/Core.html#Exists">∃</a> <a href=".././Init/Core.html#Exists">(</a><span class="fn">x</span> <a href=".././Init/Core.html#Exists">:</a> <span class="fn">α</span><a href=".././Init/Core.html#Exists">)</a><a href=".././Init/Core.html#Exists">,</a> <a href=".././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">p</span> <span class="fn">x</span></span></span></div></div><p><strong>Alias</strong> of the forward direction of <code><a href=".././Init/PropLemmas.html#Decidable.not_forall">Decidable.not_forall</a></code>.</p></div></div><div class="mod_doc"><h2 class="markdown-heading" id="classical-logic">classical logic <a class="hover-link" href="#classical-logic">#</a></h2></div><div class="decl" id="Classical.exists_not_of_not_forall"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L23-L23">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Classical.exists_not_of_not_forall"><span class="name">Classical</span>.<span class="name">exists_not_of_not_forall</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">p</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Prop</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<a href=".././Init/Prelude.html#Not">¬</a><span class="fn">∀ (<span class="fn">x</span> : <span class="fn">α</span>), <span class="fn"><span class="fn">p</span> <span class="fn">x</span></span></span>) → <a href=".././Init/Core.html#Exists">∃</a> <a href=".././Init/Core.html#Exists">(</a><span class="fn">x</span> <a href=".././Init/Core.html#Exists">:</a> <span class="fn">α</span><a href=".././Init/Core.html#Exists">)</a><a href=".././Init/Core.html#Exists">,</a> <a href=".././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">p</span> <span class="fn">x</span></span></span></div></div><p><strong>Alias</strong> of the forward direction of <code><a href=".././Init/Classical.html#Classical.not_forall">Classical.not_forall</a></code>.</p></div></div><div class="mod_doc"><h2 class="markdown-heading" id="equality">equality <a class="hover-link" href="#equality">#</a></h2></div><div class="decl" id="heq_iff_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L29-L29">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#heq_iff_eq"><span class="name">heq_iff_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">a</span> <span class="fn">b</span></span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="eq_rec_constant"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L31-L32">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#eq_rec_constant"><span class="name">eq_rec_constant</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">a'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">h</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="congrArg₂"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L34-L35">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congrArg₂"><span class="name">congrArg₂</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href=".././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">x'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">y </span><span class="fn">y'</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hx</span> : <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hy</span> : <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x'</span> <span class="fn">y'</span></span></div></div></div></div><div class="decl" id="congrFun₂"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L37-L40">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congrFun₂"><span class="name">congrFun₂</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span></span></div></div></div></div><div class="decl" id="congrFun₃"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L42-L45">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congrFun₃"><span class="name">congrFun₃</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">δ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span> → <a href=".././foundational_types.html">Sort</a> u_4</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn">(<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>) → <span class="fn"><span class="fn">δ</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></div></div></div></div><div class="decl" id="funext₂"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L47-L49">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#funext₂"><span class="name">funext₂</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>), <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span></div></div></div></div><div class="decl" id="funext₃"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L51-L53">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#funext₃"><span class="name">funext₃</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">δ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span> → <a href=".././foundational_types.html">Sort</a> u_4</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn">(<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>) → <span class="fn"><span class="fn">δ</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">α</span>) (<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) (<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>), <span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span></div></div></div></div><div class="decl" id="Function.funext_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L55-L56">source</a></div><div class="attributes">@[deprecated funext_iff (since := &quot;2024-10-17&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Function.funext_iff"><span class="name">Function</span>.<span class="name">funext_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">β</span> <span class="fn">x</span></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">∀ (<span class="fn">x</span> : <span class="fn">α</span>), <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">x</span></span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Init/Ext.html#funext_iff">funext_iff</a></code>.</p></div></div><div class="decl" id="Eq.congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L58-L59">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Eq.congr"><span class="name">Eq</span>.<span class="name">congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α✝</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x₁ </span><span class="fn">y₁ </span><span class="fn">x₂ </span><span class="fn">y₂</span> : <span class="fn">α✝</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">x₁</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y₁</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">x₂</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y₂</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">x₁</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x₂</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">y₁</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y₂</span></div></div></div></div><div class="decl" id="Eq.congr_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L61-L61">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Eq.congr_left"><span class="name">Eq</span>.<span class="name">congr_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y </span><span class="fn">z</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">z</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">z</span></div></div></div></div><div class="decl" id="Eq.congr_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L63-L63">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#Eq.congr_right"><span class="name">Eq</span>.<span class="name">congr_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y </span><span class="fn">z</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">z</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">z</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="congr_arg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L65-L65">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_arg"><span class="name">congr_arg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a₁ </span><span class="fn">a₂</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a₁</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a₂</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a₁</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">a₂</span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Init/Prelude.html#congrArg">congrArg</a></code>.</p><hr></hr><p>Congruence in the function argument: if <code>a₁ = a₂</code> then <code>f a₁ = f a₂</code> for
+any (nondependent) function <code>f</code>. This is more powerful than it might look at first, because
+you can also use a lambda expression for <code>f</code> to prove that
+<code>&lt;something containing a₁&gt; = &lt;something containing a₂&gt;</code>. This function is used
+internally by tactics like <code><a href=".././Init/Prelude.html#congr">congr</a></code> and <code>simp</code> to apply equalities inside
+subterms.</p><p>For more information: <a href="https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality">Equality</a></p></div></div><div class="decl" id="congr_arg₂"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L66-L66">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_arg₂"><span class="name">congr_arg₂</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href=".././foundational_types.html">Sort</a> u_3}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">x'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">y </span><span class="fn">y'</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hx</span> : <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hy</span> : <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">y'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x'</span> <span class="fn">y'</span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Batteries/Logic.html#congrArg₂">congrArg₂</a></code>.</p></div></div><div class="decl" id="congr_fun"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L67-L67">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_fun"><span class="name">congr_fun</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">β</span> <span class="fn">x</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Init/Prelude.html#congrFun">congrFun</a></code>.</p><hr></hr><p>Congruence in the function part of an application: If <code>f = g</code> then <code>f a = g a</code>.</p></div></div><div class="decl" id="congr_fun₂"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L68-L68">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_fun₂"><span class="name">congr_fun₂</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Batteries/Logic.html#congrFun₂">congrFun₂</a></code>.</p></div></div><div class="decl" id="congr_fun₃"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L69-L69">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_fun₃"><span class="name">congr_fun₃</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">a</span></span> → <a href=".././foundational_types.html">Sort</a> u_3</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">δ</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn"><span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span> → <a href=".././foundational_types.html">Sort</a> u_4</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>) → <span class="fn">(<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>) → <span class="fn"><span class="fn">δ</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">f</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">g</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn"><span class="fn">β</span> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">c</span> : <span class="fn"><span class="fn">γ</span> <span class="fn">a</span> <span class="fn">b</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span> <span class="fn">b</span> <span class="fn">c</span></span></div></div><p><strong>Alias</strong> of <code><a href=".././Batteries/Logic.html#congrFun₃">congrFun₃</a></code>.</p></div></div><div class="decl" id="heq_of_cast_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L71-L72">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#heq_of_cast_eq"><span class="name">heq_of_cast_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <span class="fn">α</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">β</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href=".././Init/Prelude.html#cast">cast</a> <span class="fn">e</span> <span class="fn">a</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> → <span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">a</span> <span class="fn">a'</span></span></span></div></div></div></div><div class="decl" id="cast_eq_iff_heq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L74-L75">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#cast_eq_iff_heq"><span class="name">cast_eq_iff_heq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a✝ </span><span class="fn">a✝¹</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">e</span> : <span class="fn">a✝</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a✝¹</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">a✝</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">a✝¹</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#cast">cast</a> <span class="fn">e</span> <span class="fn">a</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">a</span> <span class="fn">a'</span></span></div></div></div></div><div class="decl" id="eqRec_eq_cast"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L77-L80">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#eqRec_eq_cast"><span class="name">eqRec_eq_cast</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">motive</span> : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> → <a href=".././foundational_types.html">Sort</a> u_2</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">motive</span> <span class="fn">a</span> <span class="fn">⋯</span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">e</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><a href=".././Init/Prelude.html#cast">cast</a> <span class="fn">⋯</span> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="eqRec_heq_self"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L83-L86">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#eqRec_heq_self"><span class="name">eqRec_heq_self</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">motive</span> : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> → <a href=".././foundational_types.html">Sort</a> u_2</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">motive</span> <span class="fn">a</span> <span class="fn">⋯</span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> (<span class="fn">e</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">x</span>) <span class="fn">x</span></span></div></div></div></div><div class="decl" id="eqRec_heq_iff_heq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L88-L92">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#eqRec_heq_iff_heq"><span class="name">eqRec_heq_iff_heq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">motive</span> : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> → <a href=".././foundational_types.html">Sort</a> u_2</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">motive</span> <span class="fn">a</span> <span class="fn">⋯</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">e</span> : <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">y</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> (<span class="fn">e</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">x</span>) <span class="fn">y</span></span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">x</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="heq_eqRec_iff_heq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L94-L98">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#heq_eqRec_iff_heq"><span class="name">heq_eqRec_iff_heq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">motive</span> : <span class="fn">(<span class="fn">a'</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> → <a href=".././foundational_types.html">Sort</a> u_2</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">motive</span> <span class="fn">a</span> <span class="fn">⋯</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">e</span> : <span class="fn">a</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">y</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">y</span> (<span class="fn">e</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">x</span>)</span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn"><a href=".././Init/Prelude.html#HEq">HEq</a> <span class="fn">y</span> <span class="fn">x</span></span></div></div></div></div><div class="mod_doc"><h2 class="markdown-heading" id="miscellaneous">miscellaneous <a class="hover-link" href="#miscellaneous">#</a></h2></div><div class="decl" id="not_nonempty_empty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L102-L102">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#not_nonempty_empty"><span class="name">not_nonempty_empty</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href=".././Init/Prelude.html#Not">¬</a><span class="fn"><a href=".././Init/Prelude.html#Nonempty">Nonempty</a> <a href=".././Init/Prelude.html#Empty">Empty</a></span></div></div></div></div><div class="decl" id="not_nonempty_pempty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L103-L103">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#not_nonempty_pempty"><span class="name">not_nonempty_pempty</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href=".././Init/Prelude.html#Not">¬</a><span class="fn"><a href=".././Init/Prelude.html#Nonempty">Nonempty</a> <a href=".././Init/Prelude.html#PEmpty">PEmpty</a></span></div></div></div></div><div class="decl" id="subsingleton_of_forall_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L111-L113">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#subsingleton_of_forall_eq"><span class="name">subsingleton_of_forall_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">y</span> : <span class="fn">α</span>), <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Core.html#Subsingleton">Subsingleton</a> <span class="fn">α</span></span></div></div><p>If all points are equal to a given point <code>x</code>, then <code>α</code> is a subsingleton.</p></div></div><div class="decl" id="subsingleton_iff_forall_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L115-L116">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#subsingleton_iff_forall_eq"><span class="name">subsingleton_iff_forall_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href=".././Init/Core.html#Subsingleton">Subsingleton</a> <span class="fn">α</span></span> <a href=".././Init/Core.html#Iff">↔</a> <span class="fn">∀ (<span class="fn">y</span> : <span class="fn">α</span>), <span class="fn">y</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="congr_eqRec"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/78e1181c4752c7e10874d2ed5a6a15063f4a35b6/Batteries/Logic.lean#L118-L119">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href=".././Batteries/Logic.html#congr_eqRec"><span class="name">congr_eqRec</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href=".././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">x'</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <span class="fn"><span class="fn">α</span> → <a href=".././foundational_types.html">Sort</a> u_3</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn"><span class="fn">β</span> <span class="fn">x</span></span> → <span class="fn">γ</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">x</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">x'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">β</span> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">x'</span> (<span class="fn">h</span> <a href=".././Init/Prelude.html#Eq.rec">▸</a> <span class="fn">y</span>)</span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span></div></div></div></div></main>
+<nav class="nav"><iframe src=".././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
