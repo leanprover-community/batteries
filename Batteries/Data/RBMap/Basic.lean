@@ -11,6 +11,10 @@ import Batteries.Tactic.Alias
 /-!
 # Red-black trees
 
+Note: users are recommended to use `Std.TreeMap` instead of `Batteries.RBMap`.
+`Std.TreeMap` is a mostly drop-in replacement (notably, there is no `ToStream` instance yet),
+and has more complete and consistent API. This implementation will eventually be deprecated.
+
 This module implements a type `RBMap α β cmp` which is a functional data structure for
 storing a key-value store in a binary search tree.
 
