@@ -13,7 +13,7 @@ error: type class instance expected
 info: 2 instances:
 
 instAddNat : Add Nat
-(prio 100) Lean.Grind.CommRing.toAdd.{u} {α : Type u} [self : Lean.Grind.CommRing α] : Add α
+(prio 100) Lean.Grind.Semiring.toAdd.{u} {α : Type u} [self : Lean.Grind.Semiring α] : Add α
 -/
 #guard_msgs in
 #instances Add Nat
