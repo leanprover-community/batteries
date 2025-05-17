@@ -280,7 +280,7 @@ protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.
     (balLeft l v r).reverse = balRight r.reverse v l.reverse := by
   unfold balLeft balRight; split
   · simp
-  · rw [balLeft.match_2.eq_2 _ _ _ _ (by simp [reverse_eq_iff]; intros; solve_by_elim)]
+  · rw [balLeft.match_3.eq_2 _ _ _ _ (by simp [reverse_eq_iff]; intros; solve_by_elim)]
     split <;> simp
     rw [balRight.match_1.eq_3] <;> (simp [reverse_eq_iff]; intros; solve_by_elim)
 

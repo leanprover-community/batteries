@@ -12,22 +12,6 @@ import Batteries.Control.Lemmas
 This file contains lemmas about the behavior of `OptionT` and `OptionT.run`.
 -/
 
-namespace Option
-
-@[simp] theorem elimM_pure [Monad m] [LawfulMonad m] (x : Option α) (y : m β)
-    (z : α → m β) : Option.elimM (pure x) y z = Option.elim x y z := by
-  simp [Option.elimM, Option.elim]
-
-@[simp] theorem elimM_bind [Monad m] [LawfulMonad m] (x : m α) (f : α → m (Option β))
-    (y : m γ) (z : β → m γ) : Option.elimM (x >>= f) y z = (do Option.elimM (f (← x)) y z) := by
-  simp [Option.elimM]
-
-@[simp] theorem elimM_map [Monad m] [LawfulMonad m] (x : m α) (f : α → Option β)
-    (y : m γ) (z : β → m γ) : Option.elimM (f <$> x) y z = (do Option.elim (f (← x)) y z) := by
-  simp [Option.elimM]
-
-end Option
-
 namespace OptionT
 
 @[ext] theorem ext {x x' : OptionT m α} (h : x.run = x'.run) : x = x' := h

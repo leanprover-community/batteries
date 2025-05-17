@@ -44,7 +44,7 @@ example : True := by
 namespace UnnecessarySeqFocus
 
 /-- Gets the value of the `linter.unnecessarySeqFocus` option. -/
-def getLinterUnnecessarySeqFocus (o : Options) : Bool :=
+def getLinterUnnecessarySeqFocus (o : LinterOptions) : Bool :=
   getLinterValue linter.unnecessarySeqFocus o
 
 /--
@@ -149,7 +149,7 @@ end
 
 @[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
 def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
-  unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
+  unless getLinterUnnecessarySeqFocus (← getLinterOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
     return

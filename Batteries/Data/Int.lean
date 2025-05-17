@@ -43,7 +43,7 @@ def ofBits (f : Fin n → Bool) :=
     (ofBits f).testBit i = decide (ofBits f < 0) := by
   simp only [ofBits]
   split
-  · have hge : ¬ ofNat (Nat.ofBits f) < 0 := by rw [Int.not_lt]; exact ofNat_nonneg ..
+  · have hge : ¬ ofNat (Nat.ofBits f) < 0 := by rw [Int.not_lt]; exact natCast_nonneg ..
     simp only [testBit, Nat.testBit_ofBits_ge _ _ h, hge, decide_false]
   · have hlt := Nat.ofBits_lt_two_pow f
     have h : 2 ^ n - Nat.ofBits f - 1 < 2 ^ i :=
