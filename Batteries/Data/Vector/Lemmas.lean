@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas, François G. Dorais
+Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser
 -/
 
 import Batteries.Data.Vector.Basic
@@ -64,3 +64,6 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 
 @[simp] theorem get_range (n : Nat) (i : Fin n) : (range n).get i = i :=
   getElem_range _
+
+@[simp] theorem get_ofFn (f : Fin n → α) (i : Fin n) : (ofFn f).get i = f i :=
+  getElem_ofFn _
