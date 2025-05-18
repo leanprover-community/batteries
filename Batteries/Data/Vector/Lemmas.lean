@@ -67,3 +67,7 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 
 @[simp] theorem get_ofFn (f : Fin n → α) (i : Fin n) : (ofFn f).get i = f i :=
   getElem_ofFn _
+
+@[simp] theorem get_cast (v : Vector α m) (h : m = n) (i : Fin n) :
+    (v.cast h).get i = v.get (i.cast h.symm) :=
+  getElem_cast _
