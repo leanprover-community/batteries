@@ -133,21 +133,14 @@ theorem dfoldl_eq_foldl (f : Fin n → α → α) (x : α) :
 
 theorem foldlM_eq_foldlM_finRange [Monad m] (f : α → Fin n → m α) (x) :
     foldlM n f x = (List.finRange n).foldlM f x := by
-  induction n generalizing x with
-  | zero => simp
-  | succ n ih =>
-    rw [foldlM_succ, List.finRange_succ, List.foldlM_cons]
-    congr; funext
-    rw [List.foldlM_map, ih]
+  exact foldlM_eq_finRange_foldlM f x
 
 @[deprecated (since := "2024-11-19")]
 alias foldlM_eq_foldlM_list := foldlM_eq_foldlM_finRange
 
 theorem foldrM_eq_foldrM_finRange [Monad m] [LawfulMonad m] (f : Fin n → α → m α) (x) :
     foldrM n f x = (List.finRange n).foldrM f x := by
-  induction n with
-  | zero => simp
-  | succ n ih => rw [foldrM_succ, ih, List.finRange_succ, List.foldrM_cons, List.foldrM_map]
+  exact foldrM_eq_finRange_foldrM f x
 
 @[deprecated (since := "2024-11-19")]
 alias foldrM_eq_foldrM_list := foldrM_eq_foldrM_finRange
