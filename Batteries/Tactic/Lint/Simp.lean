@@ -33,7 +33,7 @@ structure SimpTheoremInfo where
 /-- Is this hypothesis a condition that might turn into a `simp` side-goal?
 i.e. is it a proposition that isn't marked as instance implicit? -/
 def isCondition (h : Expr) : MetaM Bool := do
-  let ldecl ← getFVarLocalDecl h
+  let ldecl ← h.fvarId!.getDecl
   if ldecl.binderInfo.isInstImplicit then return false
   isProp ldecl.type
 
@@ -147,23 +147,34 @@ using
 Try to change the left-hand side to the simplified term!
 "
       else if lhs == lhs' then
-        -- improve the error message if there are hypotheses that aren't in `simp` normal form
+        let lhsType ← inferType lhs
         let mut hints := m!""
         for h in hyps do
-          let ldecl ← getFVarLocalDecl h
-          let name := sanitizeName ldecl.userName |>.run' { options := ← getOptions }
-          let ({ expr := hType', .. }, stats) ←
-            decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
-              simplify ldecl.type (← Simp.Context.mkDefault)
-          unless ← isSimpEq hType' ldecl.type do
-            hints := hints ++ m!"
-This may due to the fact that hypothesis {name} simplifies from
+          let ldecl ← h.fvarId!.getDecl
+          let mut name := ldecl.userName
+          if name.hasMacroScopes then
+            name := sanitizeName name |>.run' { options := ← getOptions }
+          if ← isProp ldecl.type then
+            -- improve the error message if the hypothesis isn't in `simp` normal form
+            let ({ expr := hType', .. }, stats) ←
+              decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
+                simplify ldecl.type (← Simp.Context.mkDefault)
+            unless ← isSimpEq hType' ldecl.type do
+              hints := hints ++ m!"
+The simp lemma may be invalid because hypothesis {name} simplifies from
   {ldecl.type}
 to
   {hType'}
 using
   {← formatLemmas stats.usedTheorems simpName none}
 Try to change the hypothesis to the simplified term!"
+          else
+            -- improve the error message if the argument can't be filled in by `simp`
+            if !ldecl.binderInfo.isInstImplicit && !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
+              hints := hints ++ m!"
+The simp lemma is invalid because the value of argument
+  {name} : {ldecl.type}
+cannot be inferred by `simp`."
         return m!"Left-hand side does not simplify, when using the simp lemma on itself.
 This usually means that it will never apply.{hints}
 "
