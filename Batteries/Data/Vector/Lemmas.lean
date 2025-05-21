@@ -41,6 +41,25 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 @[deprecated (since := "2024-11-25")] alias toArray_swapN := toArray_swap
 @[deprecated (since := "2024-11-25")] alias toArray_swapAtN := toArray_swapAt
 
+/-! ### tail lemmas -/
+
+@[simp] theorem tail_zero {v : Vector α 0} :
+    v.tail = #v[] := Vector.eq_empty
+@[simp] theorem tail_succ {v : Vector α (n + 1)} :
+    v.tail = v.eraseIdx 0 := dif_pos (Nat.zero_lt_succ _)
+
+@[simp] theorem toList_tail {v : Vector α n} :
+    v.tail.toList = v.toList.tail := match n with
+  | 0 => by simp only [tail_zero, Vector.eq_empty, List.tail_nil]
+  | _ + 1 => by simp only [tail_succ, Vector.toList_eraseIdx, List.eraseIdx_zero]
+
+/-! ### getElem lemmas -/
+
+theorem getElem_tail {v : Vector α n} {i : Nat} {hi : i < n - 1} :
+    (v.tail)[i] = v[i + 1] := match n with
+  | 0 => by contradiction
+  | _ + 1 => (getElem_congr_coll tail_succ).trans (getElem_eraseIdx (Nat.zero_lt_succ _) hi)
+
 /-! ### get lemmas -/
 
 @[simp] theorem get_push_last (v : Vector α n) (a : α) :
