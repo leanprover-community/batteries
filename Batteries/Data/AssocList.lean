@@ -70,7 +70,8 @@ theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
 
 @[simp] theorem foldl_eq (f : δ → α → β → δ) (init l) :
     foldl f init l = l.toList.foldl (fun d (a, b) => f d a b) init := by
-  simp [List.foldl_eq_foldlM, foldl, Id.run]
+  rw [foldl, foldlM_eq, List.idRun_foldlM]
+  simp [Id.run]
 
 /-- Optimized version of `toList`. -/
 def toListTR (as : AssocList α β) : List (α × β) :=
