@@ -55,7 +55,7 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 
 /-! ### getElem lemmas -/
 
-theorem getElem_tail {v : Vector α n} {i : Nat} {hi : i < n - 1} :
+theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
     (v.tail)[i] = v[i + 1] := match n with
   | 0 => by contradiction
   | _ + 1 => (getElem_congr_coll tail_succ).trans (getElem_eraseIdx (Nat.zero_lt_succ _) hi)
@@ -90,3 +90,6 @@ theorem getElem_tail {v : Vector α n} {i : Nat} {hi : i < n - 1} :
 @[simp] theorem get_cast (v : Vector α m) (h : m = n) (i : Fin n) :
     (v.cast h).get i = v.get (i.cast h.symm) :=
   getElem_cast _
+
+@[simp] theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
+    (v.tail).get i = v.get i.succ := getElem_tail _
