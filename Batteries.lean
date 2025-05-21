@@ -11,7 +11,6 @@ import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
-import Batteries.Control.Lawful.MonadLift
 import Batteries.Control.Lemmas
 import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic
