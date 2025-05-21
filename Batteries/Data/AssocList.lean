@@ -66,12 +66,11 @@ theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
 
 /-- `O(n)`. Fold a function over the list, from head to tail. -/
 @[inline] def foldl (f : δ → α → β → δ) (init : δ) (as : AssocList α β) : δ :=
-  Id.run (foldlM f init as)
+  Id.run (foldlM (fun d a b => pure (f d a b)) init as)
 
 @[simp] theorem foldl_eq (f : δ → α → β → δ) (init l) :
     foldl f init l = l.toList.foldl (fun d (a, b) => f d a b) init := by
-  rw [foldl, foldlM_eq, List.idRun_foldlM]
-  simp [Id.run]
+  simp [foldl, foldlM_eq, List.idRun_foldlM]
 
 /-- Optimized version of `toList`. -/
 def toListTR (as : AssocList α β) : List (α × β) :=
