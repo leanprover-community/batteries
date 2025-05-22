@@ -43,22 +43,21 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 
 /-! ### tail lemmas -/
 
-@[simp] theorem tail_zero {v : Vector α 0} :
+theorem tail_zero {v : Vector α 0} :
     v.tail = #v[] := Vector.eq_empty
-@[simp] theorem tail_succ {v : Vector α (n + 1)} :
-    v.tail = v.eraseIdx 0 := dif_pos (Nat.zero_lt_succ _)
+theorem tail_ne_zero [NeZero n] {v : Vector α n} :
+    v.tail = v.eraseIdx 0 n.pos_of_neZero := dif_pos _
 
 @[simp] theorem toList_tail {v : Vector α n} :
     v.tail.toList = v.toList.tail := match n with
   | 0 => by simp only [tail_zero, Vector.eq_empty, List.tail_nil]
-  | _ + 1 => by simp only [tail_succ, Vector.toList_eraseIdx, List.eraseIdx_zero]
+  | _ + 1 => by simp only [tail_ne_zero, Vector.toList_eraseIdx, List.eraseIdx_zero]
 
 /-! ### getElem lemmas -/
 
 theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
     (v.tail)[i] = v[i + 1] := match n with
-  | 0 => by contradiction
-  | _ + 1 => (getElem_congr_coll tail_succ).trans (getElem_eraseIdx (Nat.zero_lt_succ _) hi)
+  | _ + 1 => getElem_congr_coll tail_ne_zero |>.trans <| getElem_eraseIdx (Nat.zero_lt_succ _) hi
 
 /-! ### get lemmas -/
 
@@ -92,4 +91,4 @@ theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
   getElem_cast _
 
 @[simp] theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
-    (v.tail).get i = v.get i.succ := getElem_tail _
+    v.tail.get i = v.get i.succ := getElem_tail _
