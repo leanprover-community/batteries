@@ -43,9 +43,9 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 
 /-! ### tail lemmas -/
 
-theorem tail_zero {v : Vector α 0} : v.tail = #v[] := Vector.eq_empty
+theorem tail_eq_of_zero {v : Vector α 0} : v.tail = #v[] := Vector.eq_empty
 
-theorem tail_ne_zero [NeZero n] {v : Vector α n} :
+theorem tail_eq_of_ne_zero [NeZero n] {v : Vector α n} :
     v.tail = v.eraseIdx 0 n.pos_of_neZero := dif_pos _
 
 @[simp] theorem toList_tail {v : Vector α n} :
@@ -59,7 +59,9 @@ theorem tail_ne_zero [NeZero n] {v : Vector α n} :
 theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
     v.tail[i] = v[i + 1] :=
   match n with
-  | _ + 1 => getElem_congr_coll tail_ne_zero |>.trans <| getElem_eraseIdx (Nat.zero_lt_succ _) hi
+  | _ + 1 =>
+    getElem_congr_coll tail_eq_of_ne_zero |>.trans <|
+    getElem_eraseIdx (Nat.zero_lt_succ _) hi
 
 /-! ### get lemmas -/
 
