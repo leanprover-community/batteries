@@ -51,8 +51,8 @@ theorem tail_eq_of_ne_zero [NeZero n] {v : Vector α n} :
 @[simp] theorem toList_tail {v : Vector α n} :
     v.tail.toList = v.toList.tail :=
   match n with
-  | 0 => by simp only [tail_eq_of_zero, Vector.eq_empty, List.tail_nil]
-  | _ + 1 => by simp only [tail_eq_of_ne_zero, Vector.toList_eraseIdx, List.eraseIdx_zero]
+  | 0 => by simp [Vector.eq_empty]
+  | _ + 1 => by simp [tail_eq_of_ne_zero]
 
 /-! ### getElem lemmas -/
 
