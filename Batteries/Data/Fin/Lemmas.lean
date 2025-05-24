@@ -104,7 +104,7 @@ theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g ∘ f) := by
   induction n with
   | zero => rfl
-  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_orElse, ih]
+  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_or, ih]
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
