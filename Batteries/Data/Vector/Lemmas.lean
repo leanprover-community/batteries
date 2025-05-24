@@ -53,7 +53,8 @@ theorem tail_eq_of_ne_zero [NeZero n] {v : Vector α n} :
   congr 1
   omega
 
-@[simp] theorem toList_tail {v : Vector α n} :
+-- This is not a `@[simp]` lemma because the LHS simplifies to `Vector.extract`.
+theorem toList_tail {v : Vector α n} :
     v.tail.toList = v.toList.tail :=
   match n with
   | 0 => by simp [Vector.eq_empty]
@@ -106,5 +107,6 @@ theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
     (v.cast h).get i = v.get (i.cast h.symm) :=
   getElem_cast _
 
-@[simp] theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
+-- This is not a `@[simp]` lemma because the LHS simplifies to `Vector.extract`.
+theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
     v.tail.get i = v.get i.succ := getElem_tail _
