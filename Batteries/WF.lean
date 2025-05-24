@@ -125,3 +125,7 @@ unseal fixC
 @[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
 
 end WellFounded
+
+instance (priority := low+1) (r : α → α → Prop) : WellFoundedRelation { x // Acc r x } where
+  rel := InvImage r Subtype.val
+  wf := ⟨fun ⟨_, h⟩ => InvImage.accessible _ h⟩
