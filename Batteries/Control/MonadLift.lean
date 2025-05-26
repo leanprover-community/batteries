@@ -3,6 +3,7 @@ Copyright (c) 2025 Quang Dao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Quang Dao
 -/
+
 namespace Id
 
 /-- The `pure` operation of a monad `m` can be seen as a lifting operation from `Id` to `m`. -/
