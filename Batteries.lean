@@ -13,6 +13,7 @@ import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Control.Lemmas
 import Batteries.Control.Monad
+import Batteries.Control.MonadLift
 import Batteries.Control.Nondet.Basic
 import Batteries.Control.OptionT
 import Batteries.Data.Array
