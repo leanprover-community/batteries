@@ -44,12 +44,12 @@ theorem pairwise_pair : #[a, b].Pairwise R ↔ R a b := by
 
 theorem pairwise_append {as bs : Array α} :
     (as ++ bs).Pairwise R ↔ as.Pairwise R ∧ bs.Pairwise R ∧ (∀ x ∈ as, ∀ y ∈ bs, R x y) := by
-  unfold Pairwise; simp [← mem_toList, toList_append, ← List.pairwise_append]
+  unfold Pairwise; simp [← mem_toList_iff, toList_append, ← List.pairwise_append]
 
 theorem pairwise_push {as : Array α} :
     (as.push a).Pairwise R ↔ as.Pairwise R ∧ (∀ x ∈ as, R x a) := by
   unfold Pairwise
-  simp [← mem_toList, push_toList, List.pairwise_append, List.pairwise_singleton,
+  simp [← mem_toList_iff, toList_push, List.pairwise_append, List.pairwise_singleton,
     List.mem_singleton]
 
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
