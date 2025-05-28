@@ -9,9 +9,6 @@ import Batteries.Tactic.SeqFocus
 import Batteries.Util.Panic
 import Batteries.Data.Array.Lemmas
 
-@[deprecated (since := "2024-10-05")]
-protected alias Batteries.UnionFind.panicWith := Batteries.panicWith
-
 namespace Batteries
 
 /-- Union-find node type -/
