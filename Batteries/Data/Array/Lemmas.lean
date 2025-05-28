@@ -18,17 +18,6 @@ theorem forIn_eq_forIn_toList [Monad m]
   cases as
   simp
 
-@[deprecated (since := "2024-09-09")] alias forIn_eq_forIn_data := forIn_eq_forIn_toList
-
-/-! ### zipWith / zip -/
-
-@[deprecated (since := "2024-09-09")] alias data_zipWith := toList_zipWith
-
-/-! ### flatten -/
-
-@[deprecated (since := "2024-09-09")] alias data_join := toList_flatten
-@[deprecated (since := "2024-10-15")] alias mem_join := mem_flatten
-
 /-! ### indexOf? -/
 
 open List
@@ -61,11 +50,6 @@ theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
 /-! ### mem -/
 
 /-! ### insertAt -/
-
-@[deprecated (since := "2024-11-20")] alias size_insertAt := size_insertIdx
-@[deprecated (since := "2024-11-20")] alias getElem_insertAt_lt := getElem_insertIdx_of_lt
-@[deprecated (since := "2024-11-20")] alias getElem_insertAt_eq := getElem_insertIdx_self
-@[deprecated (since := "2024-11-20")] alias getElem_insertAt_gt := getElem_insertIdx_of_gt
 
 @[deprecated (since := "2025-02-06")] alias getElem_insertIdx_lt := getElem_insertIdx_of_lt
 @[deprecated (since := "2025-02-06")] alias getElem_insertIdx_eq := getElem_insertIdx_self
