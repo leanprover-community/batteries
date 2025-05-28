@@ -25,24 +25,10 @@ This files defines several linters that prevent common mistakes when declaring s
 structure SimpTheoremInfo where
   /-- The hypotheses of the theorem -/
   hyps : Array Expr
-  /-- True if this is a conditional rewrite rule -/
-  isConditional : Bool
   /-- The thing to replace -/
   lhs : Expr
   /-- The result of replacement -/
   rhs : Expr
-
-/-- Given the list of hypotheses, is this a conditional rewrite rule? -/
-def isConditionalHyps (lhs : Expr) : List Expr → MetaM Bool
-  | [] => pure false
-  | h :: hs => do
-    let ldecl ← getFVarLocalDecl h
-    if !ldecl.binderInfo.isInstImplicit
-        && !(← hs.anyM fun h' =>
-          return (← inferType h').consumeTypeAnnotations.containsFVar h.fvarId!)
-        && !lhs.containsFVar h.fvarId! then
-      return true
-    isConditionalHyps lhs hs
 
 open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
@@ -52,8 +38,7 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
     e.toArray.mapM fun (_, ty') => do
       forallTelescopeReducing ty' fun hyps eq => do
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
-        let isConditional ← isConditionalHyps lhs hyps.toList
-        k { hyps, lhs, rhs, isConditional }
+        k { hyps, lhs, rhs }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
@@ -108,8 +93,16 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    let ctx ← Simp.Context.mkDefault
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, rhs, isConditional, ..} => do
+    let ctx ← Simp.mkContext (config := { contextual := true })
+      (simpTheorems := #[(← getSimpTheorems)]) (congrTheorems := (← getSimpCongrTheorems))
+    checkAllSimpTheoremInfos (← getConstInfo declName).type
+      fun {lhs, rhs, hyps, ..} => do
+      -- add the local hypotheses to the simp context
+      let mut simpTheorems := ctx.simpTheorems
+      for h in hyps do
+        if (← inferType (← inferType h)).isProp then
+          simpTheorems ← simpTheorems.addTheorem (.fvar h.fvarId!) h
+      let ctx := ctx.setSimpTheorems simpTheorems
       let isRfl ← isRflTheorem declName
       let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
         decorateError "simplify fails on left-hand side:" <|
@@ -145,7 +138,7 @@ using
   {← formatLemmas prf1Stats.usedTheorems simpName}
 Try to change the left-hand side to the simplified term!
 "
-      else if !isConditional && lhs == lhs' then
+      else if lhs == lhs' then
         return m!"Left-hand side does not simplify, when using the simp lemma on itself.
 This usually means that it will never apply.
 "
