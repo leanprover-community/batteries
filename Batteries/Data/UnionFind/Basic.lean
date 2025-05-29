@@ -291,7 +291,6 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
   · rw [← rootD_parent, parent, parentD_eq]
     simp only [rootD, Array.length_toList, findAux_root]
     apply dif_pos
-    exact parent'_lt ..
 
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
