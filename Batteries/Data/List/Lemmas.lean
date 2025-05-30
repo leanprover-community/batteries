@@ -660,24 +660,3 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
-
-/-! ### deprecations -/
-
-@[deprecated (since := "2024-10-21")] alias modifyNth_nil := modify_nil
-@[deprecated (since := "2024-10-21")] alias modifyNth_zero_cons := modify_zero_cons
-@[deprecated (since := "2024-10-21")] alias modifyNth_succ_cons := modify_succ_cons
-@[deprecated (since := "2024-10-21")] alias modifyNthTail_id := modifyTailIdx_id
-@[deprecated (since := "2024-10-21")] alias eraseIdx_eq_modifyNthTail := eraseIdx_eq_modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias getElem?_modifyNth := getElem?_modify
-@[deprecated (since := "2024-10-21")] alias length_modifyNthTail := length_modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNthTail_add := modifyTailIdx_add
-@[deprecated (since := "2024-10-21")] alias exists_of_modifyNthTail := exists_of_modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias length_modifyNth := length_modify
-@[deprecated (since := "2024-10-21")] alias getElem?_modifyNth_eq := getElem?_modify_eq
-@[deprecated (since := "2024-10-21")] alias exists_of_modifyNth := exists_of_modify
-@[deprecated (since := "2024-10-21")] alias modifyNthTail_eq_take_drop := modifyTailIdx_eq_take_drop
-@[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_drop := modify_eq_take_drop
-@[deprecated (since := "2024-10-21")] alias modifyNth_eq_take_cons_drop := modify_eq_take_cons_drop
-@[deprecated (since := "2024-10-21")] alias set_eq_modifyNth := set_eq_modify
-@[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get? := modify_eq_set_get?
-@[deprecated (since := "2024-10-21")] alias modifyNth_eq_set_get := modify_eq_set_get
