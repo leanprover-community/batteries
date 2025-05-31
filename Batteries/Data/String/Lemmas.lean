@@ -300,7 +300,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
     cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
-      List.tail?_cons, Option.map_some']
+      List.tail?_cons, Option.map_some]
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
@@ -430,10 +430,8 @@ theorem splitAux_of_valid (p l m r acc) :
           _ ∧ _ ∧ _),
       List.splitOnP.go, List.reverse_reverse]
     split <;> rename_i h
-    · simp_all only [List.head?_cons, Option.getD_some]
-      simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
-    · simp_all only [List.head?_cons, Option.getD_some]
-      simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
+    · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.1).map mk := by
   simpa [split] using splitAux_of_valid p [] [] s.1 []

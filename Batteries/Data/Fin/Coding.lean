@@ -8,6 +8,9 @@ import Batteries.Tactic.Basic
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Lint
 
+@[simp] theorem Char.toNat_ofNatAux (n : Nat) (h : n.isValidChar) :
+  (Char.ofNatAux n h).toNat = n := rfl
+
 namespace Fin
 
 /-- Encode a unit value as a `Fin` type. -/
@@ -70,9 +73,9 @@ def encodeChar (c : Char) : Fin 1112064 :=
 @[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
   simp only [decodeChar, encodeChar]
   split
-  · simp [Char.ofNatAux, Char.toNat, UInt32.toNat, *]
+  · simp [*]
   · have : ¬ x.val + 2048 < 55296 := by omega
-    simp [Char.ofNatAux, Char.toNat, UInt32.toNat, *]
+    simp [*]
 
 @[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
   ext; simp only [decodeChar, encodeChar]

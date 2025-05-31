@@ -129,18 +129,12 @@ def testMatchProof : (n : Nat) → Fin n → Unit
 
 /--
 info: testMatchProof (n : Nat) : Fin n → Unit
-testMatchProof._cstage1 (n : Nat) : Fin n → Unit
-testMatchProof._cstage2 : _obj → _obj → _obj
+testMatchProof._proof_1 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 testMatchProof._sunfold (n : Nat) : Fin n → Unit
 testMatchProof._unsafe_rec (n : Nat) : Fin n → Unit
 testMatchProof.match_1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) (x✝ : Nat) (x✝¹ : Fin x✝)
   (h_1 : (n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩)
   (h_2 : (as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) : motive x✝ x✝¹
-testMatchProof.match_1._cstage1.{u_1} (motive : (x : Nat) → Fin x → Sort u_1) (x✝ : Nat) (x✝¹ : Fin x✝)
-  (h_1 : (n : Nat) → (isLt : 0 < n) → motive n ⟨0, isLt⟩)
-  (h_2 : (as i : Nat) → (h : i.succ < as.succ) → motive as.succ ⟨i.succ, h⟩) : motive x✝ x✝¹
-testMatchProof.proof_1 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
-testMatchProof.proof_2 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 -/
 #guard_msgs in
 #print prefix +internals testMatchProof

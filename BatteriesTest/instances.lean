@@ -10,9 +10,10 @@ error: type class instance expected
 #instances Fin 1
 
 /--
-info: 1 instance:
+info: 2 instances:
 
 instAddNat : Add Nat
+(prio 100) Lean.Grind.CommRing.toAdd.{u} {α : Type u} [self : Lean.Grind.CommRing α] : Add α
 -/
 #guard_msgs in
 #instances Add Nat

@@ -16,9 +16,6 @@ variable argument.
 /-- Compose using transitivity, homogeneous case. -/
 def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
 
-@[deprecated (since := "2024-10-18")]
-alias Trans.heq := Trans.trans
-
 namespace Batteries.Tactic
 open Lean Meta Elab
 
@@ -169,7 +166,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
             let y ← (t'?.map (pure ·.1)).getD (mkFreshExprMVar ty)
             let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
             let g₂ ← mkFreshExprMVar (some <| ← mkAppM' rel #[y, z]) .synthetic
-            g.assign (← mkAppOptM lem (mkArray (arity - 2) none ++ #[some g₁, some g₂]))
+            g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
             pure <| [g₁.mvarId!, g₂.mvarId!] ++
               if let some (_, gs') := t'? then gs' else [y.mvarId!]
           return
@@ -197,7 +194,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
           trace[Tactic.trans]"obtained g₂: {g₂}"
           let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
           trace[Tactic.trans]"obtained g₁: {g₁}"
-          g.assign (← mkAppOptM lem (mkArray (arity - 2) none ++ #[some g₁, some g₂]))
+          g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
           pure <| [g₁.mvarId!, g₂.mvarId!] ++ if let some (_, gs') := t'? then gs' else [y.mvarId!]
         return
       catch e =>

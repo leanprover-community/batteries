@@ -70,7 +70,7 @@ instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α ⊕ β) where
     | .inl x => encodeSum <| .inl (encode x)
     | .inr x => encodeSum <| .inr (encode x)
   decode_encode _ := by
-    simp only; split
+    split
     · next h =>
       split at h;
       · simp at h; cases h; simp
@@ -80,7 +80,7 @@ instance [Fin.Enum α] [Fin.Enum β] : Fin.Enum (α ⊕ β) where
       · simp at h
       · simp at h; cases h; simp
   encode_decode _ := by
-    simp only; split
+    split
     · next h =>
       split at h
       · next h' => cases h; simp [← h']
@@ -140,7 +140,6 @@ instance (β : α → Type _) [Fin.Enum α] [(x : α) → Fin.Enum (β x)] : Fin
     rw [encode_decode]
   decode_encode f := by
     funext x
-    simp only []
     conv => rhs; rw [← decode_encode (f x)]
     congr 1
     ext

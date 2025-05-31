@@ -21,7 +21,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### empty -/
 
-@[simp] theorem data_mkEmpty (cap) : (mkEmpty cap).data = #[] := rfl
+@[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
 
 @[simp] theorem data_empty : empty.data = #[] := rfl
 
@@ -51,7 +51,7 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.size_set ..
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.getElem_set_self _ _ _ _
+  Array.getElem_set_self _
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
@@ -114,13 +114,13 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 /--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
-  Fin.foldl n (fun acc i => acc.push (f i)) (mkEmpty n)
+  Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
 @[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
-  simp [ofFn, Fin.foldl_succ_last, mkEmpty]
+  simp [ofFn, Fin.foldl_succ_last, emptyWithCapacity]
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
