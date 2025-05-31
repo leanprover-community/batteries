@@ -3,13 +3,11 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+import Batteries.Data.Char
 import Batteries.Data.Fin.Lemmas
 import Batteries.Tactic.Basic
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Lint
-
-@[simp] theorem Char.toNat_ofNatAux (n : Nat) (h : n.isValidChar) :
-  (Char.ofNatAux n h).toNat = n := rfl
 
 namespace Fin
 
