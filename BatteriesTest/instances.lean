@@ -10,9 +10,12 @@ error: type class instance expected
 #instances Fin 1
 
 /--
-info: 1 instance:
+info: 4 instances:
 
 instAddNat : Add Nat
+(prio 100) Lean.Grind.Semiring.toAdd.{u} {α : Type u} [self : Lean.Grind.Semiring α] : Add α
+(prio 100) Lean.Grind.IntModule.toAdd.{u} {M : Type u} [self : Lean.Grind.IntModule M] : Add M
+(prio 100) Lean.Grind.NatModule.toAdd.{u} {M : Type u} [self : Lean.Grind.NatModule M] : Add M
 -/
 #guard_msgs in
 #instances Add Nat

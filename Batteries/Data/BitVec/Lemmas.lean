@@ -23,7 +23,7 @@ namespace BitVec
     rfl
 
 @[simp] theorem toFin_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
-    (ofFnLEAux m f).toFin = Fin.ofNat' (2 ^ m) (Nat.ofBits f) := by
+    (ofFnLEAux m f).toFin = Fin.ofNat (2 ^ m) (Nat.ofBits f) := by
   ext; simp
 
 @[simp] theorem toNat_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toNat = Nat.ofBits f := by
@@ -58,7 +58,7 @@ theorem getLsbD_ofFnLE (f : Fin n → Bool) (i) :
     (ofFnLE f).getLsbD i = if h : i < n then f ⟨i, h⟩ else false := by
   split
   · next h => rw [getLsbD_eq_getElem h, getElem_ofFnLE]
-  · next h => rw [getLsbD_ge _ _ (Nat.ge_of_not_lt h)]
+  · next h => rw [getLsbD_of_ge _ _ (Nat.ge_of_not_lt h)]
 
 @[simp] theorem getMsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb' i = f i.rev := by
   simp [getMsb'_eq_getLsb', Fin.rev]; congr 2; omega
@@ -70,7 +70,7 @@ theorem getMsbD_ofFnLE (f : Fin n → Bool) (i) :
     have heq : n - 1 - i = n - (i + 1) := by omega
     have hlt : n - (i + 1) < n := by omega
     simp [getMsbD_eq_getLsbD, getLsbD_ofFnLE, Fin.rev, h, heq, hlt]
-  · next h => rw [getMsbD_ge _ _ (Nat.ge_of_not_lt h)]
+  · next h => rw [getMsbD_of_ge _ _ (Nat.ge_of_not_lt h)]
 
 theorem msb_ofFnLE (f : Fin n → Bool) :
     (ofFnLE f).msb = if h : n ≠ 0 then f ⟨n-1, Nat.sub_one_lt h⟩ else false := by
