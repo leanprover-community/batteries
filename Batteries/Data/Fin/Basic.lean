@@ -12,12 +12,6 @@ namespace Fin
 /-- `min n m` as an element of `Fin (m + 1)` -/
 def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
 
-@[deprecated (since := "2024-11-15")]
-alias enum := Array.finRange
-
-@[deprecated (since := "2024-11-15")]
-alias list := List.finRange
-
 /-- Heterogeneous monadic fold over `Fin n` from right to left:
 ```
 Fin.foldrM n f xₙ = do

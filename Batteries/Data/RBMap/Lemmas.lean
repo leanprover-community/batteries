@@ -711,7 +711,7 @@ theorem zoom_del {t : RBNode α} :
     t.zoom cut path = (t', path') →
     path.del (t.del cut) (match t with | node c .. => c | _ => red) =
     path'.del t'.delRoot (match t' with | node c .. => c | _ => red) := by
-  unfold RBNode.del; split <;> simp [zoom]
+  rw [RBNode.del.eq_def]; split <;> simp [zoom]
   · intro | rfl, rfl => rfl
   · next c a y b =>
     split

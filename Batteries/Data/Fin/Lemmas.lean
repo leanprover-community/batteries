@@ -23,13 +23,13 @@ attribute [norm_cast] val_last
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
-  simp only [findSome?, foldl_succ, Option.none_orElse, Function.comp_apply]
+  simp only [findSome?, foldl_succ, Option.orElse_none, Function.comp_apply]
   cases f 0
-  · rw [Option.orElse_eq_orElse, Option.none_orElse, Option.none_orElse]
-  · simp only [Option.some_orElse, Option.orElse_eq_orElse, Option.none_orElse]
+  · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
+  · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
     induction n with
     | zero => rfl
-    | succ n ih => rw [foldl_succ, Option.some_orElse, ih (f := fun i => f i.succ)]
+    | succ n ih => rw [foldl_succ, Option.orElse_some, ih (f := fun i => f i.succ)]
 
 theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
     findSome? f = some x := by simp [findSome?_succ, h]
@@ -51,11 +51,11 @@ theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f =
     rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
-      rw [heq, Option.orElse_eq_orElse, Option.some_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_some] at h
       exists 0
       rw [heq, h]
     | none =>
-      rw [heq, Option.orElse_eq_orElse, Option.none_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_none] at h
       match ih h with | ⟨i, _⟩ => exists i.succ
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
@@ -66,10 +66,10 @@ theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f 
     rw [findSome?_succ] at h
     match heq : f 0 with
     | some x =>
-      rw [heq, Option.orElse_eq_orElse, Option.some_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_some] at h
       contradiction
     | none =>
-      rw [heq, Option.orElse_eq_orElse, Option.none_orElse] at h
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_none] at h
       cases i using Fin.cases with
       | zero => exact heq
       | succ i => exact ih h i
@@ -104,9 +104,9 @@ theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g ∘ f) := by
   induction n with
   | zero => rfl
-  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_orElse, ih]
+  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_or, ih]
 
-theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard fun i => p i) = find? p := rfl
+theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
@@ -125,7 +125,7 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
   simp only [find?, findSome?_succ, Option.guard]
-  split <;> simp [Option.none_orElse, map_findSome?, Function.comp_def, Option.guard]
+  split <;> simp [map_findSome?, Function.comp_def, Option.guard]
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i = true := by
   match exists_of_findSome?_eq_some h with
