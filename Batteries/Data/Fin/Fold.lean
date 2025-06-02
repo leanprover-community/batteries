@@ -3,7 +3,6 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais, Quang Dao
 -/
-import Batteries.Data.List.FinRange
 import Batteries.Data.Fin.Basic
 
 namespace Fin
@@ -143,14 +142,8 @@ theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
   | zero => rw [foldl_zero, List.finRange_zero, List.foldl_nil]
   | succ n ih => rw [foldl_succ, ih, List.finRange_succ, List.foldl_cons, List.foldl_map]
 
-@[deprecated (since := "2024-11-19")]
-alias foldl_eq_foldl_list := foldl_eq_foldl_finRange
-
 theorem foldr_eq_foldr_finRange (f : Fin n → α → α) (x) :
     foldr n f x = (List.finRange n).foldr f x := by
   induction n with
   | zero => rw [foldr_zero, List.finRange_zero, List.foldr_nil]
   | succ n ih => rw [foldr_succ, ih, List.finRange_succ, List.foldr_cons, List.foldr_map]
-
-@[deprecated (since := "2024-11-19")]
-alias foldr_eq_foldr_list := foldr_eq_foldr_finRange
