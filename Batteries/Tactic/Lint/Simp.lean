@@ -170,7 +170,8 @@ using
 Try to change the hypothesis to the simplified term!"
           else
             -- improve the error message if the argument can't be filled in by `simp`
-            if !ldecl.binderInfo.isInstImplicit && !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
+            if !ldecl.binderInfo.isInstImplicit &&
+                !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
               hints := hints ++ m!"
 The simp lemma is invalid because the value of argument
   {name} : {ldecl.type}
