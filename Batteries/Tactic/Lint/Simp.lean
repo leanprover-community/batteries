@@ -132,20 +132,20 @@ https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20for
       let simpName := if !isRfl then "simp" else "dsimp"
       if lhs'EqRhs' then
         if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
-        return m!"{simpName} can prove this:
-  by {← formatLemmas stats.usedTheorems simpName higherOrder}
-One of the lemmas above could be a duplicate.
-If that's not the case try reordering lemmas or adding @[priority].
-"
+        return m!"\
+          {simpName} can prove this:\
+          \n  by {← formatLemmas stats.usedTheorems simpName higherOrder}\
+          \nOne of the lemmas above could be a duplicate.\
+          \nIf that's not the case try reordering lemmas or adding @[priority]."
       else if ¬ lhsInNF then
-        return m!"Left-hand side simplifies from
-  {lhs}
-to
-  {lhs'}
-using
-  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}
-Try to change the left-hand side to the simplified term!
-"
+        return m!"\
+          Left-hand side simplifies from\
+          \n  {lhs}\
+          \nto\
+          \n  {lhs'}\
+          \nusing\
+          \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+          \nTry to change the left-hand side to the simplified term!"
       else if lhs == lhs' then
         let lhsType ← inferType lhs
         let mut hints := m!""
@@ -172,13 +172,13 @@ Try to change the left-hand side to the simplified term!
             -- improve the error message if the argument can't be filled in by `simp`
             if !ldecl.binderInfo.isInstImplicit &&
                 !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
-              hints := hints ++ m!"
-The simp lemma is invalid because the value of argument
-  {name} : {ldecl.type}
-cannot be inferred by `simp`."
-        return m!"Left-hand side does not simplify, when using the simp lemma on itself.
-This usually means that it will never apply.{hints}
-"
+              hints := hints ++ m!"\
+                \nThe simp lemma is invalid because the value of argument\
+                \n  {name} : {ldecl.type}\
+                \ncannot be inferred by `simp`."
+        return m!"\
+          Left-hand side does not simplify, when using the simp lemma on itself.
+          \nThis usually means that it will never apply.{hints}\n"
       else
         return none
 
