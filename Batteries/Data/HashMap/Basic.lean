@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import Std.Data.HashMap
 import Batteries.Lean.HashMap
+import Batteries.Tactic.Alias
 
 namespace Std.HashMap
 
@@ -41,10 +42,8 @@ end Std.HashMap
 
 namespace Batteries.HashMap
 
-/-- A hash is lawful if elements which compare equal under `==` have equal hash. -/
-class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
-  /-- Two elements which compare equal under the `BEq` instance have equal hash. -/
-  hash_eq {a b : α} : a == b → hash a = hash b
+@[reducible, deprecated (since := "2025-05-31")]
+alias LawfulHashable := LawfulHashable
 
 /--
 `HashMap α β` is a key-value map which stores elements in an array using a hash function

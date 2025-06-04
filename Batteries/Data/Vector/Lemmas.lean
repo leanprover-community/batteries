@@ -27,20 +27,6 @@ theorem toArray_injective : ∀ {v w : Vector α n}, v.toArray = w.toArray → v
 @[simp] theorem uget_mk (a : Array α) (h : a.size = n) (i) (hi : i.toNat < n) :
     (Vector.mk a h).uget i hi = a.uget i (by simp [h, hi]) := rfl
 
-@[deprecated (since := "2024-11-25")] alias setN_mk := set_mk
-
-@[deprecated (since := "2024-11-25")] alias swapN_mk := swap_mk
-
-@[deprecated (since := "2024-11-25")] alias swapAtN_mk := swapAt_mk
-
-/-! ### toArray lemmas -/
-
-@[deprecated (since := "2024-11-25")] alias toArray_setD := toArray_setIfInBounds
-@[deprecated (since := "2024-11-25")] alias toArray_setN := toArray_set
-@[deprecated (since := "2024-11-25")] alias toArray_swap! := toArray_swapIfInBounds
-@[deprecated (since := "2024-11-25")] alias toArray_swapN := toArray_swap
-@[deprecated (since := "2024-11-25")] alias toArray_swapAtN := toArray_swapAt
-
 /-! ### tail lemmas -/
 
 theorem tail_eq_of_zero {v : Vector α 0} : v.tail = #v[] := Vector.eq_empty

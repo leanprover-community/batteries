@@ -275,8 +275,6 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
     refine h y ?_
     simpa [hy'] using hy
 
-@[deprecated (since := "2024-10-21")] alias perm_insertNth := perm_insertIdx
-
 theorem Perm.union_right {l₁ l₂ : List α} (t₁ : List α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ := by
   induction h with
   | nil => rfl
@@ -306,8 +304,6 @@ theorem Perm.flatten_congr :
     ∀ {l₁ l₂ : List (List α)} (_ : List.Forall₂ (· ~ ·) l₁ l₂), l₁.flatten ~ l₂.flatten
   | _, _, .nil => .rfl
   | _ :: _, _ :: _, .cons h₁ h₂ => h₁.append (Perm.flatten_congr h₂)
-
-@[deprecated (since := "2024-10-15")] alias Perm.join_congr := Perm.flatten_congr
 
 theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
   induction l with simp [insertP, insertP.loop, cond]

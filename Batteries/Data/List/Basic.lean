@@ -139,9 +139,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -149,8 +146,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
