@@ -160,14 +160,14 @@ Try to change the left-hand side to the simplified term!
               decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
                 simplify ldecl.type (← Simp.Context.mkDefault)
             unless ← isSimpEq hType' ldecl.type do
-              hints := hints ++ m!"
-The simp lemma may be invalid because hypothesis {name} simplifies from
-  {ldecl.type}
-to
-  {hType'}
-using
-  {← formatLemmas stats.usedTheorems simpName none}
-Try to change the hypothesis to the simplified term!"
+              hints := hints ++ m!"\
+                \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
+                \n  {ldecl.type}\
+                \nto\
+                \n  {hType'}\
+                \nusing\
+                \n  {← formatLemmas stats.usedTheorems simpName none}\
+                \nTry to change the hypothesis to the simplified term!"
           else
             -- improve the error message if the argument can't be filled in by `simp`
             if !ldecl.binderInfo.isInstImplicit &&
