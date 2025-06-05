@@ -103,9 +103,7 @@ theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
 
 @[simp]
 theorem finIdxOf?_empty [BEq α] (v : Vector α 0) : v.finIdxOf? a = none := by
-  obtain ⟨xs, hxs⟩ := v
-  rw [Array.size_eq_zero_iff] at hxs
-  simp [hxs]
+  simp [v.eq_empty]
 
 @[simp]
 theorem finIdxOf?_eq_none_iff [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} :
