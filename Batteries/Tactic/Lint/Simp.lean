@@ -102,6 +102,7 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
+    withConfig Elab.Term.setElabConfig do
     checkAllSimpTheoremInfos (← getConstInfo declName).type fun { lhs, rhs, hyps, .. } => do
       -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
       -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
