@@ -79,8 +79,6 @@ instance : Append (DList α) := ⟨DList.append⟩
 def ofThunk (l : Thunk (List α)) : DList α :=
   ⟨fun xs => l.get ++ xs, fun t => by simp⟩
 
-@[deprecated (since := "2024-10-16")] alias lazy_ofList := ofThunk
-
 /-- Concatenates a list of difference lists to form a single difference list. Similar to
 `List.join`. -/
 def join {α : Type _} : List (DList α) → DList α

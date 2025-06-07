@@ -47,7 +47,7 @@ theorem normalize_mul_left {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
     normalize (↑a * n) (a * d) (Nat.mul_ne_zero a0 d0) = normalize n d d0 := by
   simp [normalize_eq, mk'.injEq, Int.natAbs_mul, Nat.gcd_mul_left,
     Nat.mul_div_mul_left _ _ (Nat.pos_of_ne_zero a0), Int.natCast_mul,
-    Int.mul_ediv_mul_of_pos _ _ (Int.ofNat_pos.2 <| Nat.pos_of_ne_zero a0)]
+    Int.mul_ediv_mul_of_pos _ _ (Int.natCast_pos.2 <| Nat.pos_of_ne_zero a0)]
 
 theorem normalize_mul_right {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
     normalize (n * a) (d * a) (Nat.mul_ne_zero d0 a0) = normalize n d d0 := by
