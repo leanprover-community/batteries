@@ -1,0 +1,1 @@
+{"name":"Std.Data.Iterators.Lemmas","instances":[],"imports":["Std.Data.Iterators.Lemmas.Basic","Std.Data.Iterators.Lemmas.Monadic","Std.Data.Iterators.Lemmas.Consumers","Std.Data.Iterators.Lemmas.Combinators","Std.Data.Iterators.Lemmas.Producers"],"declarations":[]}
