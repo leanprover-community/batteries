@@ -471,6 +471,24 @@ theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
 @[deprecated (since := "2025-01-30")]
 alias indexOf_eq_indexOf? := idxOf_eq_idxOf?
 
+/-! ### finIdxOf? -/
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem isSome_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {l : List α} {a : α} :
+    (l.finIdxOf? a).isSome = l.contains a := by
+  induction l with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [List.finIdxOf?_cons]
+    split <;> simp_all [BEq.comm]
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem isNone_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {l : List α} {a : α} :
+    (l.finIdxOf? a).isNone = !l.contains a := by
+  rw [← List.isSome_finIdxOf?_eq, Option.not_isSome]
+
 /-! ### insertP -/
 
 theorem insertP_loop (a : α) (l r : List α) :
