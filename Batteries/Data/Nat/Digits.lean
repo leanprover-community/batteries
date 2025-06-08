@@ -14,21 +14,21 @@ theorem isDigit_digitChar : n.digitChar.isDigit = decide (n < 10) :=
     simp only [digitChar, ↓reduceIte, Nat.reduceEqDiff]
     (repeat' split) <;> simp
 
-private theorem isDigit_of_mem_toDigitsCore_10
-    (hf : n < fuel) (hc : c ∈ cs → c.isDigit) (h : c ∈ toDigitsCore 10 fuel n cs) :
+private theorem isDigit_of_mem_toDigitsCore
+    (hc : c ∈ cs → c.isDigit) (hb₁ : 0 < b) (hb₂ : b ≤ 10) (h : c ∈ toDigitsCore b fuel n cs) :
     c.isDigit := by
   induction fuel generalizing n cs <;> rw [toDigitsCore] at h
-  next => contradiction
+  next => exact hc h
   next fuel ih =>
     split at h
-    case' isFalse => apply ih (by omega) (fun h => ?_) h
+    case' isFalse => apply ih (fun h => ?_) h
     all_goals
       cases h
-      next => simp [mod_lt]
+      next => simp [Nat.lt_of_lt_of_le (mod_lt _ hb₁) hb₂]
       next hm => exact hc hm
 
-theorem isDigit_of_mem_toDigits_10 (h : c ∈ toDigits 10 n) : c.isDigit :=
-  isDigit_of_mem_toDigitsCore_10 (Nat.lt_succ_self _) (fun _ => by contradiction) h
+theorem isDigit_of_mem_toDigits (hb₁ : 0 < b) (hb₂ : b ≤ 10) (hc : c ∈ toDigits b n) : c.isDigit :=
+  isDigit_of_mem_toDigitsCore (fun _ => by contradiction) hb₁ hb₂ hc
 
 theorem toDigits_10_of_lt_10 (h : n < 10) : toDigits 10 n = [n.digitChar] :=
   match n with
