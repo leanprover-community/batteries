@@ -34,7 +34,3 @@ theorem toDigits_10_of_lt_10 (h : n < 10) : toDigits 10 n = [n.digitChar] :=
   match n with
   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => by decide
   | _ + 10                                => by contradiction
-
-@[simp]
-theorem toDigits_10_natAbs_ofNat (n : Nat) : toDigits 10 (n : Int).natAbs = toDigits 10 n := by
-  simp
