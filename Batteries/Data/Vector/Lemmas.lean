@@ -117,12 +117,45 @@ theorem finIdxOf?_eq_some_iff [BEq α] [LawfulBEq α] {v : Vector α n} {a : α}
   obtain ⟨xs, rfl⟩ := v
   simp
 
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
 @[simp]
-theorem isSome_finIdxOf? [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} :
-    (v.finIdxOf? a).isSome ↔ a ∈ v := by
+theorem _root_.List.isSome_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {l : List α} {a : α} :
+    (l.finIdxOf? a).isSome = l.contains a := by
+  induction l with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [List.finIdxOf?_cons]
+    split <;> simp_all [BEq.comm]
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem _root_.List.isNone_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {l : List α} {a : α} :
+    (l.finIdxOf? a).isNone = !l.contains a := by
+  rw [← List.isSome_finIdxOf?_eq, Option.not_isSome]
+
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem _root_.Array.isSome_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
+    (xs.finIdxOf? a).isSome = xs.contains a := by
+  rcases xs with ⟨xs⟩
+  simp [Array.size]
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem _root_.Array.isNone_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
+    (xs.finIdxOf? a).isNone = !xs.contains a := by
+  rcases xs with ⟨xs⟩
+  simp [Array.size]
+
+@[simp]
+theorem isSome_finIdxOf? [BEq α] [PartialEquivBEq α] {v : Vector α n} {a : α} :
+    (v.finIdxOf? a).isSome = v.contains a := by
   obtain ⟨v, rfl⟩ := v
   simp
 
-theorem isNone_finIdxOf? [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} :
-    (v.finIdxOf? a).isNone = ¬ a ∈ v := by
+@[simp]
+theorem isNone_finIdxOf? [BEq α] [PartialEquivBEq α] {v : Vector α n} {a : α} :
+    (v.finIdxOf? a).isNone = !v.contains a := by
+  obtain ⟨v, rfl⟩ := v
   simp
