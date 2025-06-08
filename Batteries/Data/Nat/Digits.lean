@@ -30,7 +30,5 @@ private theorem isDigit_of_mem_toDigitsCore
 theorem isDigit_of_mem_toDigits (hb₁ : 0 < b) (hb₂ : b ≤ 10) (hc : c ∈ toDigits b n) : c.isDigit :=
   isDigit_of_mem_toDigitsCore (fun _ => by contradiction) hb₁ hb₂ hc
 
-theorem toDigits_10_of_lt_10 (h : n < 10) : toDigits 10 n = [n.digitChar] :=
-  match n with
-  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => by decide
-  | _ + 10                                => by contradiction
+theorem toDigits_10_of_lt (h : n < b) : toDigits b n = [n.digitChar] := by
+  simp_all [toDigits, toDigitsCore, mod_eq_of_lt]
