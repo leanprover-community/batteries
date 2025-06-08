@@ -36,5 +36,5 @@ theorem toDigits_10_of_lt_10 (h : n < 10) : toDigits 10 n = [n.digitChar] :=
   | _ + 10                                => by contradiction
 
 @[simp]
-theorem Nat.toDigits_10_natAbs_ofNat (n : Nat) : toDigits 10 (n : Int).natAbs = toDigits 10 n := by
+theorem toDigits_10_natAbs_ofNat (n : Nat) : toDigits 10 (n : Int).natAbs = toDigits 10 n := by
   simp
