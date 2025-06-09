@@ -38,6 +38,10 @@ private theorem toDigitsCore_of_lt_base (hb : n < b) (hf : n < fuel) :
 theorem toDigits_of_lt_base (h : n < b) : toDigits b n = [n.digitChar] :=
   toDigitsCore_of_lt_base h (lt_succ_self _)
 
+theorem toDigits_zero : (b : Nat) → toDigits b 0 = ['0']
+  | 0     => rfl
+  | _ + 1 => toDigits_of_lt_base (zero_lt_succ _)
+
 private theorem toDigitsCore_append :
     toDigitsCore b fuel n cs₁ ++ cs₂ = toDigitsCore b fuel n (cs₁ ++ cs₂) := by
   induction fuel generalizing n cs₁ with simp only [toDigitsCore]
