@@ -108,7 +108,7 @@ jobs:
             DIFF_FILES=$(git diff --name-only "origin/nightly-testing...$BRANCH")
 
             # Check if the diff contains files other than the specified ones
-            if echo "$DIFF_FILES" | grep -v -e 'lake-manifest.json' -e 'lakefile.lean' -e 'lean-toolchain'; then
+            if echo "$DIFF_FILES" | grep -v -e 'lake-manifest.json' -e 'lakefile.toml' -e 'lean-toolchain'; then
                 # Extract the actual branch name
                 ACTUAL_BRANCH=${BRANCH#origin/}
 
