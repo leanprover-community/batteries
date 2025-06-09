@@ -57,9 +57,8 @@ private theorem toDigitsCore_eq_of_lt_fuel (hb : 1 < b) (h₁ : n < fuel₁) (h�
     exact toDigitsCore_eq_of_lt_fuel hb (by omega) (by omega)
 
 private theorem toDigitsCore_toDigitsCore
-    (hb₁ : 1 < b) (hb₂ : b ≤ 10) (hn : 0 < n) (hd : d < b)
-    (hf : (b * n + d) < fuel) (hnf : n < nFuel) (hdf : d < dFuel) :
-    toDigitsCore b nFuel n (toDigitsCore b dFuel d cs) = toDigitsCore b fuel (b * n + d) cs := by
+    (hb : 1 < b) (hn : 0 < n) (hd : d < b) (hf : b * n + d < fuel) (hnf : n < nf) (hdf : d < df) :
+    toDigitsCore b nf n (toDigitsCore b df d cs) = toDigitsCore b fuel (b * n + d) cs := by
   cases fuel with
   | zero => contradiction
   | succ fuel =>
@@ -71,11 +70,11 @@ private theorem toDigitsCore_toDigitsCore
     case isFalse =>
       have h : (b * n + d) / b = n := by
         rw [mul_add_div (by omega), Nat.div_eq_zero_iff.mpr (.inr hd), Nat.add_zero]
-      have := (Nat.lt_mul_iff_one_lt_left hn).mpr hb₁
+      have := (Nat.lt_mul_iff_one_lt_left hn).mpr hb
       simp only [toDigitsCore_of_lt_base hd hdf, mul_add_mod_self_left, mod_eq_of_lt hd, h]
-      apply toDigitsCore_eq_of_lt_fuel hb₁ hnf (by omega)
+      apply toDigitsCore_eq_of_lt_fuel hb hnf (by omega)
 
-theorem toDigits_append_toDigits (hb₁ : 1 < b) (hb₂ : b ≤ 10) (hn : 0 < n) (hd : d < b) :
+theorem toDigits_append_toDigits (hb : 1 < b) (hn : 0 < n) (hd : d < b) :
     (toDigits b n) ++ (toDigits b d) = toDigits b (b * n + d) := by
   rw [toDigits, toDigitsCore_append]
-  exact toDigitsCore_toDigitsCore hb₁ hb₂ hn hd (lt_succ_self _) (lt_succ_self _) (lt_succ_self _)
+  exact toDigitsCore_toDigitsCore hb hn hd (lt_succ_self _) (lt_succ_self _) (lt_succ_self _)
