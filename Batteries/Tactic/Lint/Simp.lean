@@ -102,85 +102,86 @@ see note [simp-normal form] for tips how to debug this.
 https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun { lhs, rhs, hyps, .. } => do
-      -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
-      -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
-      let mut simpTheorems ← getSimpTheorems
-      let mut higherOrder := false
-      for h in hyps do
-        if ← isCondition h then
-          simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
-          if !higherOrder then
-            higherOrder ← forallTelescope (← inferType h) fun hyps _ => hyps.anyM isCondition
-      let ctx ← Simp.mkContext (config := { contextual := higherOrder })
-        (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
-      let isRfl ← isRflTheorem declName
-      let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) :
-          MetaM (Simp.Result × Simp.Stats) := do
-        if !isRfl then
-          simp e ctx (stats := stats)
-        else
-          let (e, s) ← dsimp e ctx (stats := stats)
-          return (Simp.Result.mk e .none .true, s)
-      let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
-        decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
-      if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
-      let ({ expr := rhs', .. }, stats) ←
-        decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
-      let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
-      let lhsInNF ← isSimpEq lhs' lhs
-      let simpName := if !isRfl then "simp" else "dsimp"
-      if lhs'EqRhs' then
-        if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
-        return m!"\
-          {simpName} can prove this:\
-          \n  by {← formatLemmas stats.usedTheorems simpName higherOrder}\
-          \nOne of the lemmas above could be a duplicate.\
-          \nIf that's not the case try reordering lemmas or adding @[priority]."
-      else if ¬ lhsInNF then
-        return m!"\
-          Left-hand side simplifies from\
-          \n  {lhs}\
-          \nto\
-          \n  {lhs'}\
-          \nusing\
-          \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
-          \nTry to change the left-hand side to the simplified term!"
-      else if lhs == lhs' then
-        let lhsType ← inferType lhs
-        let mut hints := m!""
+    withConfig Elab.Term.setElabConfig do
+      checkAllSimpTheoremInfos (← getConstInfo declName).type fun { lhs, rhs, hyps, .. } => do
+        -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
+        -- higher order simp lemmas need `simp +contextual [*]` to be able to apply to themselves
+        let mut simpTheorems ← getSimpTheorems
+        let mut higherOrder := false
         for h in hyps do
-          let ldecl ← h.fvarId!.getDecl
-          let mut name := ldecl.userName
-          if name.hasMacroScopes then
-            name := sanitizeName name |>.run' { options := ← getOptions }
-          if ← isProp ldecl.type then
-            -- improve the error message if the hypothesis isn't in `simp` normal form
-            let ({ expr := hType', .. }, stats) ←
-              decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
-                simplify ldecl.type (← Simp.Context.mkDefault)
-            unless ← isSimpEq hType' ldecl.type do
-              hints := hints ++ m!"\
-                \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
-                \n  {ldecl.type}\
-                \nto\
-                \n  {hType'}\
-                \nusing\
-                \n  {← formatLemmas stats.usedTheorems simpName none}\
-                \nTry to change the hypothesis to the simplified term!"
+          if ← isCondition h then
+            simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
+            if !higherOrder then
+              higherOrder ← forallTelescope (← inferType h) fun hyps _ => hyps.anyM isCondition
+        let ctx ← Simp.mkContext (config := { contextual := higherOrder })
+          (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
+        let isRfl ← isRflTheorem declName
+        let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) :
+            MetaM (Simp.Result × Simp.Stats) := do
+          if !isRfl then
+            simp e ctx (stats := stats)
           else
-            -- improve the error message if the argument can't be filled in by `simp`
-            if !ldecl.binderInfo.isInstImplicit &&
-                !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
-              hints := hints ++ m!"\
-                \nThe simp lemma is invalid because the value of argument\
-                \n  {name} : {ldecl.type}\
-                \ncannot be inferred by `simp`."
-        return m!"\
-          Left-hand side does not simplify, when using the simp lemma on itself.
-          \nThis usually means that it will never apply.{hints}\n"
-      else
-        return none
+            let (e, s) ← dsimp e ctx (stats := stats)
+            return (Simp.Result.mk e .none .true, s)
+        let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
+          decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
+        if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
+        let ({ expr := rhs', .. }, stats) ←
+          decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
+        let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
+        let lhsInNF ← isSimpEq lhs' lhs
+        let simpName := if !isRfl then "simp" else "dsimp"
+        if lhs'EqRhs' then
+          if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
+          return m!"\
+            {simpName} can prove this:\
+            \n  by {← formatLemmas stats.usedTheorems simpName higherOrder}\
+            \nOne of the lemmas above could be a duplicate.\
+            \nIf that's not the case try reordering lemmas or adding @[priority]."
+        else if ¬ lhsInNF then
+          return m!"\
+            Left-hand side simplifies from\
+            \n  {lhs}\
+            \nto\
+            \n  {lhs'}\
+            \nusing\
+            \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+            \nTry to change the left-hand side to the simplified term!"
+        else if lhs == lhs' then
+          let lhsType ← inferType lhs
+          let mut hints := m!""
+          for h in hyps do
+            let ldecl ← h.fvarId!.getDecl
+            let mut name := ldecl.userName
+            if name.hasMacroScopes then
+              name := sanitizeName name |>.run' { options := ← getOptions }
+            if ← isProp ldecl.type then
+              -- improve the error message if the hypothesis isn't in `simp` normal form
+              let ({ expr := hType', .. }, stats) ←
+                decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
+                  simplify ldecl.type (← Simp.Context.mkDefault)
+              unless ← isSimpEq hType' ldecl.type do
+                hints := hints ++ m!"\
+                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
+                  \n  {ldecl.type}\
+                  \nto\
+                  \n  {hType'}\
+                  \nusing\
+                  \n  {← formatLemmas stats.usedTheorems simpName none}\
+                  \nTry to change the hypothesis to the simplified term!"
+            else
+              -- improve the error message if the argument can't be filled in by `simp`
+              if !ldecl.binderInfo.isInstImplicit &&
+                  !lhs.containsFVar h.fvarId! && !lhsType.containsFVar h.fvarId! then
+                hints := hints ++ m!"\
+                  \nThe simp lemma is invalid because the value of argument\
+                  \n  {name} : {ldecl.type}\
+                  \ncannot be inferred by `simp`."
+          return m!"\
+            Left-hand side does not simplify, when using the simp lemma on itself.
+            \nThis usually means that it will never apply.{hints}\n"
+        else
+          return none
 
 library_note "simp-normal form" /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
