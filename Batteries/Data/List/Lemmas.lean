@@ -427,7 +427,7 @@ theorem findIdxs_cons :
   dsimp [findIdxs]
   rw [cond_eq_if]
   split <;>
-  · simp only [Nat.zero_add, foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+  · simp only [foldrIdx_start (s := 1), cons.injEq, true_and]
     apply findIdxs_cons_aux
 
 @[simp] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
