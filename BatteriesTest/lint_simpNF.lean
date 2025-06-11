@@ -32,7 +32,7 @@ theorem foo_eq_id : foo = id := by
   simp [foo]
 
 -- The following `dsimp`-lemma is (correctly) not flagged by the linter
-@[simp]
+@[defeq, simp]
 theorem foo_eq_ite (n : Nat) : foo n = if n = n then n else 0 := by
   rfl
 
