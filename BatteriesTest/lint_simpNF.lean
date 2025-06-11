@@ -51,4 +51,20 @@ example {β : Type _} (l : List α) (f : α → β) :
 
 end List
 
+/-! This tests that `simpNF` is not accidentally using `quasiPatternApprox := true`. -/
+
+def eqToFun {X Y : Type} (p : X = Y) : X → Y := by rw [p]; exact id
+
+@[simp]
+theorem eqToFun_comp_eq_self {β} {X : Type} {f : β → Type}
+    (z : ∀ b, X → f b) {j j' : β} (w : j = j') :
+    eqToFun (by simp [w]) ∘ z j' = z j := by
+  cases w; rfl
+
+@[simp]
+theorem eqToFun_comp_iso_hom_eq_self {β} {X : Type} {f : β → Type}
+    (z : ∀ b, X ≃ f b) {j j' : β} (w : j = j') :
+    eqToFun (by simp [w]) ∘ (z j').toFun = (z j).toFun := by
+  cases w; rfl
+
 #lint- only simpNF
