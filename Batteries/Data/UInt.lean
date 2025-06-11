@@ -66,8 +66,8 @@ instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
 @[ext] theorem USize.ext : {x y : USize} → x.toNat = y.toNat → x = y
   | ⟨⟨_,_⟩⟩, ⟨⟨_,_⟩⟩, rfl => rfl
 
-@[simp] theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
-  simp only [USize.toUInt64, UInt64.toNat]; rfl
+theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
+  simp
 
 @[simp] theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := rfl
 
