@@ -26,22 +26,6 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
   rcases l with ⟨l⟩
   simp
 
-/-! ### finIdxOf? -/
-
--- forward-port of https://github.com/leanprover/lean4/pull/8678
-@[simp]
-theorem isSome_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
-    (xs.finIdxOf? a).isSome = xs.contains a := by
-  rcases xs with ⟨xs⟩
-  simp [Array.size]
-
--- forward-port of https://github.com/leanprover/lean4/pull/8678
-@[simp]
-theorem isNone_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
-    (xs.finIdxOf? a).isNone = !xs.contains a := by
-  rcases xs with ⟨xs⟩
-  simp [Array.size]
-
 /-! ### erase -/
 
 @[deprecated (since := "2025-02-06")] alias eraseP_toArray := List.eraseP_toArray

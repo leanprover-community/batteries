@@ -67,7 +67,7 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.Conv.case',
     ``Parser.Tactic.rotateLeft,
     ``Parser.Tactic.rotateRight,
-    ``Parser.Tactic.tacticShow_,
+    ``Parser.Tactic.show,
     ``Parser.Tactic.tacticStop_
   ]
 

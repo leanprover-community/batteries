@@ -87,7 +87,9 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let declMods ← elabModifiers mods
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let declMods := { declMods with
-      isNoncomputable := declMods.isNoncomputable || isNoncomputable (← getEnv) name
+      computeKind :=
+        if isNoncomputable (← getEnv) name then .noncomputable
+        else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
     }
