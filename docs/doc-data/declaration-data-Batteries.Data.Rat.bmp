@@ -1,0 +1,1 @@
+{"name":"Batteries.Data.Rat","instances":[],"imports":["Init","Batteries.Data.Rat.Basic","Batteries.Data.Rat.Float","Batteries.Data.Rat.Lemmas"],"declarations":[]}

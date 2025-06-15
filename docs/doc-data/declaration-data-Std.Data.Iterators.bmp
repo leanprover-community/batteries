@@ -1,0 +1,1 @@
+{"name":"Std.Data.Iterators","instances":[],"imports":["Std.Data.Iterators.Basic","Std.Data.Iterators.Producers","Std.Data.Iterators.Consumers","Std.Data.Iterators.Combinators","Std.Data.Iterators.Lemmas","Std.Data.Iterators.PostConditionMonad","Std.Data.Iterators.Internal"],"declarations":[]}
