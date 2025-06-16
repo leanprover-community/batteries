@@ -267,6 +267,120 @@ def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   | some (.ofTermInfo info) => pure info
   | _ => none
 
+/- Filter for the info-nodes to find the match-nodes -/
+def isMatchTerm : (info: Info) → Bool
+  | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
+  | _ => false
+
+/-- returns the String.range that encompasses 'match e (with)' -/
+def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
+  match matchStx with
+  | `(term| match $discr:term with $_) =>
+
+    let startPos ← matchStx[0].getPos? -- begin of 'match' keyword
+    if matchStx[4].getPos?.isSome --'with' exists in this case
+      then return ⟨startPos, ←matchStx[4].getTailPos?⟩ --range until end of 'with'
+    else
+      return ⟨startPos, ←matchStx[3].getTailPos?⟩ --range until end of discriminant
+  | _ => none
+
+/-- Flattens an Infotree into an array of Info-nodes that fulfill p, inspired by InfoTree.findInfo? -/
+partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
+  let rec loop (t : InfoTree) (acc : Array Info) : Array Info :=
+    match t with
+    | .context _ childTree => loop childTree acc
+    | .node info children  =>
+      let acc' := if p info then acc.push info else acc
+      children.foldl (fun currentAcc child => loop child currentAcc) acc'
+    | .hole _              => acc
+  loop t #[]
+
+/--
+Invoking tactic code action "Generate a list of equations for this match." in the
+following:
+```lean
+def myfun2 (n:Nat) : Nat :=
+  match n
+```
+produces:
+```lean
+def myfun2 (n:Nat) : Nat :=
+  match n with
+  | .zero => _
+  | .succ n => _
+```
+
+-/
+@[command_code_action] --i couldn't make this work with '@[command_code_action Parser.Term.match]': It never fires. So i filter it myself in Step 1.
+def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
+  --dbg_trace "--------------------------------------------------------------"
+  --dbg_trace (←node.format ctx)
+  -- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match`
+  let allMatchInfos := findAllInfos isMatchTerm node
+
+  -- 2. Filter these candidates within the `RequestM` monad based on the cursor being in the header lines of these matches.
+  let doc ← readDoc
+  let relevantMatchInfos ← allMatchInfos.filterM fun matchInfo => do
+    let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return false
+    let headerRangeLsp := doc.meta.text.utf8RangeToLspRange headerRangeRaw
+
+    let cursorRangeLsp := CodeActionParams.range
+    -- check if the cursor range is contained in the header range
+    return (cursorRangeLsp.start ≥ headerRangeLsp.start && cursorRangeLsp.end ≤ headerRangeLsp.end)
+
+  -- 3. pick the first (and mostly only) candidate. There might sometimes be more, since some things are just contained multiple times in 'node'.
+  let some matchInfo := relevantMatchInfos[0]? | return #[]
+  --for m in relevantMatchInfos do
+  --  dbg_trace "-----------------------"
+  --  dbg_trace ←m.format ctx
+  let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return #[]
+
+  let (discrsStx, _altsStx) ← match matchInfo.stx with -- isolate the match-discriminant (i.e. "e" of "match e")
+    | `(term| match $discrs:term with $alts) => pure (discrs, alts)
+    | _ =>
+      return #[]
+
+  let withPresent := _altsStx.raw.hasArgs --check if "with" is already typed in.
+
+  let some (info : TermInfo) := findTermInfo? node discrsStx | return #[]
+  let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
+  let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
+  let some (.inductInfo val) := snap.env.find? name | return #[] -- Find the inductive constructors of e
+
+  let eager : Lsp.CodeAction := {
+    title := "Generate a list of equations for this match."
+    kind? := "quickfix"
+  }
+  --dbg_trace "---------------------------------------------------------------------------------------------------------"
+  --dbg_trace withPresent
+  --dbg_trace "------------"
+  --dbg_trace _altsStx
+  --dbg_trace "------------"
+  --dbg_trace (←node.format ctx)
+  --dbg_trace (_altsStx.raw.getArg 0)
+  return #[{ --rest is almost verbatim taken from eqnStub:
+    eager
+    lazy? := some do
+      let holePos := headerRangeRaw.stop --where we start inserting
+      let (indent, _) := findIndentAndIsStart doc.meta.text.source headerRangeRaw.start
+      let mut str := if withPresent then "" else " with"
+
+      let indent := "\n".pushn ' ' (indent) --use the same indent as the 'match' line.
+      for ctor in val.ctors do
+        let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
+        let ctor := toString (ctor.updatePrefix .anonymous)
+        str := str ++ indent ++ s!"| .{ctor}"
+        for arg in getExplicitArgs ci.type #[] do
+          str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+        str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
+      pure { eager with
+        edit? := some <|.ofTextEdit doc.versionedIdentifier {
+          range := doc.meta.text.utf8RangeToLspRange ⟨holePos, holePos⟩ --adapted range to insert-only
+          newText := str
+        }
+      }
+  }]
+
 /--
 Invoking tactic code action "Generate an explicit pattern match for 'induction'" in the
 following:
