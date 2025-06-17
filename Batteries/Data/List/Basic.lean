@@ -931,12 +931,6 @@ def toChunks {α} : Nat → List α → List (List α)
         go xs (acc₁.push x) acc₂
     go xs #[x] #[]
 
-theorem One1 : ([]:List α).toChunks n = [] := by
-  induction n <;> rfl
-
-theorem Two2 : (([]:List α).toChunks n).length = 0 := by
-  rw [List.length_eq_zero, One1]
-
 /-!
 We add some n-ary versions of `List.zipWith` for functions with more than two arguments.
 These can also be written in terms of `List.zip` or `List.zipWith`.
