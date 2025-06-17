@@ -52,7 +52,9 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
 @[simp] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) : (ofFnLE f)[i] = f ⟨i, h⟩ :=
   getElem_ofFnLEAux ..
 
-theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := by simp
+theorem getLsb_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb i = f i := by simp
+
+@[deprecated (since := "2025-06-17")] alias getLsb'_ofFnLE := getLsb_ofFnLE
 
 theorem getLsbD_ofFnLE (f : Fin n → Bool) (i) :
     (ofFnLE f).getLsbD i = if h : i < n then f ⟨i, h⟩ else false := by
@@ -60,8 +62,10 @@ theorem getLsbD_ofFnLE (f : Fin n → Bool) (i) :
   · next h => rw [getLsbD_eq_getElem h, getElem_ofFnLE]
   · next h => rw [getLsbD_of_ge _ _ (Nat.ge_of_not_lt h)]
 
-@[simp] theorem getMsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb' i = f i.rev := by
-  simp [getMsb'_eq_getLsb', Fin.rev]; congr 2; omega
+@[simp] theorem getMsb_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb i = f i.rev := by
+  simp [getMsb_eq_getLsb, Fin.rev]; congr 2; omega
+
+@[deprecated (since := "2025-06-17")] alias getMsb'_ofFnLE := getMsb_ofFnLE
 
 theorem getMsbD_ofFnLE (f : Fin n → Bool) (i) :
     (ofFnLE f).getMsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
@@ -88,15 +92,19 @@ theorem msb_ofFnLE (f : Fin n → Bool) :
 @[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
     (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
 
-theorem getLsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb' i = f i.rev := by
+theorem getLsb_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb i = f i.rev := by
   simp
+
+@[deprecated (since := "2025-06-17")] alias getLsb'_ofFnBE := getLsb_ofFnBE
 
 theorem getLsbD_ofFnBE (f : Fin n → Bool) (i) :
     (ofFnBE f).getLsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
   simp [ofFnBE, getLsbD_ofFnLE]
 
-@[simp] theorem getMsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb' i = f i := by
+@[simp] theorem getMsb_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb i = f i := by
   simp [ofFnBE]
+
+@[deprecated (since := "2025-06-17")] alias getMsb'_ofFnBE := getMsb_ofFnBE
 
 theorem getMsbD_ofFnBE (f : Fin n → Bool) (i) :
     (ofFnBE f).getMsbD i = if h : i < n then f ⟨i, h⟩ else false := by
