@@ -678,3 +678,14 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
+
+theorem One1 : ([]:List α).toChunks n = [] := by
+  induction n <;> rfl
+
+theorem Two2 : (([]:List α).toChunks n).length = 0 := by
+  rw [length_eq_zero_iff, One1]
+
+theorem Three3 (xs : List α) (h : xs ≠ []) : xs.toChunks 0 = [xs] := by
+  induction xs
+  · contradiction
+  · simp only [toChunks]
