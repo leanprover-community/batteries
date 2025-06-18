@@ -58,6 +58,7 @@ or `WIP` (in progress).
 To change the status label of a pull request, add a comment containing one of these options and
 _nothing else_.
 This will remove the previous label and replace it by the requested status label.
+These labels are used for triage.
 
 One of the easiest ways to contribute is to find a missing proof and complete it. The
 [`proof_wanted`](https://github.com/search?q=repo%3Aleanprover-community%2Fbatteries+language%3ALean+%2F^proof_wanted%2F&type=code)
