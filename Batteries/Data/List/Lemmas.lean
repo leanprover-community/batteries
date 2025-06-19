@@ -7,6 +7,9 @@ import Batteries.Control.ForInStep.Lemmas
 import Batteries.Data.List.Basic
 import Batteries.Tactic.Init
 import Batteries.Tactic.Alias
+import Mathlib.Algebra.Group.Nat.Units
+import Mathlib.Algebra.GroupWithZero.Divisibility
+import Mathlib.Algebra.Order.Ring.Nat
 
 namespace List
 
@@ -679,13 +682,66 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
 
-theorem One1 : ([]:List α).toChunks n = [] := by
+theorem toChunks_nil_nil : ([] : List α).toChunks n = [] := by
   induction n <;> rfl
 
-theorem Two2 : (([]:List α).toChunks n).length = 0 := by
-  rw [length_eq_zero_iff, One1]
+theorem toChunks_length_nil : (([] : List α).toChunks n).length = 0 := by
+  rw [length_eq_zero_iff, toChunks_nil_nil]
 
-theorem Three3 (xs : List α) (h : xs ≠ []) : xs.toChunks 0 = [xs] := by
+theorem toChunks_zero {xs : List α} (h : xs ≠ []) : xs.toChunks 0 = [xs] := by
   induction xs
   · contradiction
   · simp only [toChunks]
+
+theorem length_toChunks_go {α : Type u} {n : Nat} {xs : List α}
+    {acc₁ : Array α} (acc₂ : Array (List α)) (hacc₁ : acc₁.size ≤ n)
+    (hpos₁ : 0 < acc₁.size) :
+    (toChunks.go n xs acc₁ acc₂).length =
+      (acc₁.size + xs.length) / n + acc₂.size + if n ∣ acc₁.size + xs.length then 0 else 1 := by
+  induction xs generalizing acc₁ acc₂ with
+  | nil =>
+    rw [toChunks.go]
+    by_cases hn : n ∣ acc₁.size
+    · have h1 : acc₁.size = n := by
+        apply Nat.le_antisymm hacc₁
+        exact Nat.le_of_dvd hpos₁ hn
+      simp only [Array.toList_push, length_append, Array.length_toList, length_cons, length_nil,
+        Nat.zero_add, Nat.add_zero, ← h1, Nat.div_self hpos₁, Nat.add_comm, Nat.right_eq_add,
+        ite_eq_left_iff, Nat.add_one_ne_zero, imp_false, Decidable.not_not]
+      exact Nat.dvd_refl acc₁.size
+    · have h1 : acc₁.size < n := by
+        apply Nat.lt_of_le_of_ne hacc₁
+        rintro rfl
+        simp only [dvd_refl, not_true_eq_false] at hn
+      simp only [Array.toList_push, length_append, Array.length_toList, length_cons, length_nil,
+        Nat.zero_add, Nat.add_zero, Nat.div_eq_of_lt h1, hn, ↓reduceIte]
+  | cons x xs ih =>
+    rw [List.toChunks.go]
+    rw [Nat.le_iff_lt_or_eq] at hacc₁
+    obtain hacc₁ | rfl := hacc₁
+    · have hr : acc₁.size + 1 + xs.length = acc₁.size + (xs.length + 1) := by
+        rw [Nat.add_right_comm, Nat.add_assoc]
+      rw [if_neg (mt eq_of_beq (Nat.ne_of_lt hacc₁)),
+        ih acc₂ (by simpa [Nat.add_one_le_iff] using hacc₁) (by simp)]
+      simp only [Array.size_push, hr, length_cons]
+    · rw [beq_self_eq_true]
+      simp only [reduceIte, Array.mkEmpty_eq, push_toArray, nil_append, length_cons,
+        Nat.dvd_add_self_left]
+      rw [ih _ (by simpa using hpos₁) (by simp)]
+      simp [Nat.add_div_left _ hpos₁, Nat.one_add, Nat.add_assoc,
+        ← Nat.dvd_add_iff_right (Nat.dvd_refl acc₁.size)]
+
+theorem length_toChunks {α : Type u} {n : Nat} {xs : List α} :
+    (xs.toChunks n).length =
+      xs.length / n + if n ∣ xs.length then 0 else 1 := by
+  cases xs with
+  | nil => simp only [toChunks, length_nil, Nat.zero_div, dvd_zero, ↓reduceIte, add_zero]
+  | cons x xs =>
+    cases n with
+    | zero => simp only [toChunks, length_cons, length_nil, zero_add, Nat.div_zero, zero_dvd_iff,
+        AddLeftCancelMonoid.add_eq_zero, length_eq_zero_iff, one_ne_zero, and_false, ↓reduceIte]
+    | succ n =>
+      rw [toChunks, length_toChunks_go _ (by simp only [size_toArray, length_cons, length_nil,
+        zero_add, le_add_iff_nonneg_left, zero_le]) (by simp only [size_toArray, length_cons,
+          length_nil, zero_add, Nat.lt_one_iff, pos_of_gt])]
+      all_goals simp [Nat.one_add]
