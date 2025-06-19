@@ -722,7 +722,8 @@ theorem length_toChunks_go {α : Type u} {n : Nat} {xs : List α}
     · have hr : acc₁.size + 1 + xs.length = acc₁.size + (xs.length + 1) := by
         rw [Nat.add_right_comm, Nat.add_assoc]
       rw [if_neg (mt eq_of_beq (Nat.ne_of_lt hacc₁)),
-        ih acc₂ (by simpa [Nat.add_one_le_iff] using hacc₁) (by simp)]
+        ih acc₂ (by simpa [Nat.add_one_le_iff] using hacc₁) (by simp only [Array.size_push,
+          lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])]
       simp only [Array.size_push, hr, length_cons]
     · rw [beq_self_eq_true]
       simp only [reduceIte, Array.mkEmpty_eq, push_toArray, nil_append, length_cons,
