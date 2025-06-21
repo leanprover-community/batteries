@@ -1,0 +1,1 @@
+{"name":"Init.Control.Lawful","instances":[],"imports":["Init.Control.Lawful.Basic","Init.Control.Lawful.Instances","Init.Control.Lawful.Lemmas","Init.Control.Lawful.MonadLift"],"declarations":[]}
