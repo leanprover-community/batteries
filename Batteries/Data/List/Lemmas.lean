@@ -722,14 +722,14 @@ theorem length_toChunks_go {α : Type u} {n : Nat} {xs : List α}
     · have hr : acc₁.size + 1 + xs.length = acc₁.size + (xs.length + 1) := by
         rw [Nat.add_right_comm, Nat.add_assoc]
       rw [if_neg (mt eq_of_beq (Nat.ne_of_lt hacc₁)),
-        ih acc₂ (by simpa only [Array.size_push, Nat.add_one_le_iff] using hacc₁) (by simp only [Array.size_push,
-          lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])]
+        ih acc₂ (by simpa only [Array.size_push, Nat.add_one_le_iff] using hacc₁)
+        (by simp only [Array.size_push, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true])]
       simp only [Array.size_push, hr, length_cons]
     · rw [beq_self_eq_true]
       simp only [reduceIte, Array.mkEmpty_eq, push_toArray, nil_append, length_cons,
         Nat.dvd_add_self_left]
-      rw [ih _ (by simpa only [size_toArray, length_cons, length_nil, zero_add] using hpos₁) (by simp only [size_toArray, length_cons, length_nil,
-        zero_add, zero_lt_one])]
+      rw [ih _ (by simpa only [size_toArray, length_cons, length_nil, zero_add] using hpos₁) 
+        (by simp only [size_toArray, length_cons, length_nil, zero_add, zero_lt_one])]
       simp [Nat.add_div_left _ hpos₁, Nat.one_add, Nat.add_assoc,
         ← Nat.dvd_add_iff_right (Nat.dvd_refl acc₁.size)]
 
