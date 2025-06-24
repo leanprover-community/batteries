@@ -26,7 +26,7 @@ theorem dropLast_eq_eraseIdx {xs : List α} {i : Nat} (last_idx : i + 1 = xs.len
     xs.dropLast = List.eraseIdx xs i := by
   induction i generalizing xs with
   | zero =>
-    let [x] := xs
+    let ([x]) := xs
     rfl
   | succ n ih =>
     let x::xs := xs
