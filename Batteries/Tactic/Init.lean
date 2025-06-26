@@ -106,4 +106,4 @@ elab (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv => do
     let e ← Term.withSynthesize do
       Tactic.elabTermEnsuringType t (some α)
     unless ← isDefEq rhs e do throwError m!"failed to resolve{indentExpr rhs}\n=?={indentExpr e}"
-    evalTactic <| ← `(conv| tactic => $tac)
+    evalTactic <| ← `(conv| tactic => · $tac)
