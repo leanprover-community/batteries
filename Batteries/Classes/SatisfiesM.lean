@@ -289,7 +289,6 @@ instance : MonadSatisfying (EStateM ε σ) where
   val_eq {α p x} h := by
     ext s
     rw [EStateM.run_map, EStateM.run]
-    simp only
     split <;> simp_all
 
 end MonadSatisfying
