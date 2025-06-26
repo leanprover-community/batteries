@@ -98,5 +98,12 @@ example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   -- current goal: P (fun n => 0)
 ```
 -/
-macro (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv =>
-  `(conv| tactic => show (_ = $t); next => $tac)
+elab (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv => do
+  let mvarId ← getMainGoal
+  mvarId.withContext do
+    let goal ← mvarId.getType
+    let some (α, _, rhs) ← matchEq? goal | throwError "invalid 'conv' goal"
+    let e ← Term.withSynthesize do
+      Tactic.elabTermEnsuringType t (some α)
+    unless ← isDefEq rhs e do throwError m!"failed to resolve{indentExpr rhs}\n=?={indentExpr e}"
+    evalTactic <| ← `(conv| tactic => $tac)
