@@ -17,7 +17,7 @@ theorem forIn_eq_forIn_toList [Monad m]
   cases as
   simp
 
-/-! ### indexOf? -/
+/-! ### idxOf? -/
 
 open List
 
