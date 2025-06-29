@@ -1,0 +1,1 @@
+{"name":"Init.Data.Sum","instances":[],"imports":["Init.Data.Sum.Basic","Init.Data.Sum.Lemmas"],"declarations":[]}

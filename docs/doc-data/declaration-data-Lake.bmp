@@ -1,0 +1,1 @@
+{"name":"Lake","instances":[],"imports":["Lake.Build","Lake.Config","Lake.DSL","Lake.Version","Lake.CLI.Actions","Lake.Toml"],"declarations":[]}

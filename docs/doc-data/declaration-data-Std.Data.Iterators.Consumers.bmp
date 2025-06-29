@@ -1,0 +1,1 @@
+{"name":"Std.Data.Iterators.Consumers","instances":[],"imports":["Std.Data.Iterators.Consumers.Monadic","Std.Data.Iterators.Consumers.Access","Std.Data.Iterators.Consumers.Collect","Std.Data.Iterators.Consumers.Loop","Std.Data.Iterators.Consumers.Partial"],"declarations":[]}
