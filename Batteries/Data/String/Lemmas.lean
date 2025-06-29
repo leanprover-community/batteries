@@ -8,6 +8,7 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Std.Classes.Ord.String -- Not needed here, but imported to ensure instance names don't clash.
 
 namespace String
 
@@ -300,7 +301,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
     cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
-      List.tail?_cons, Option.map_some']
+      List.tail?_cons, Option.map_some]
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :

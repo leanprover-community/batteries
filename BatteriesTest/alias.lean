@@ -61,15 +61,13 @@ noncomputable def foobaz : Nat → Nat := id
 alias foobaz1 := foobaz
 
 /--
-error: failed to compile definition, consider marking it as 'noncomputable' because
-it depends on 'A.foobaz1', and it does not have executable code
+error: failed to compile definition, compiler IR check failed at 'A.foobaz2'. Error: depends on declaration 'A.foobaz1', which has no executable code; consider marking definition as 'noncomputable'
 -/
 #guard_msgs in def foobaz2 (n : Nat) := foobaz1 n
 
 noncomputable alias foobaz3 := id
 /--
-error: failed to compile definition, consider marking it as 'noncomputable' because
-it depends on 'A.foobaz3', and it does not have executable code
+error: failed to compile definition, compiler IR check failed at 'A.foobaz4'. Error: depends on declaration 'A.foobaz3', which has no executable code; consider marking definition as 'noncomputable'
 -/
 #guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
 
