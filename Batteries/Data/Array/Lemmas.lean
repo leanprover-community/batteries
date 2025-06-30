@@ -17,7 +17,7 @@ theorem forIn_eq_forIn_toList [Monad m]
   cases as
   simp
 
-/-! ### indexOf? -/
+/-! ### idxOf? -/
 
 open List
 
@@ -25,6 +25,22 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
     l.toList.idxOf? a = l.idxOf? a := by
   rcases l with ⟨l⟩
   simp
+
+/-! ### finIdxOf? -/
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem isSome_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
+    (xs.finIdxOf? a).isSome = xs.contains a := by
+  rcases xs with ⟨xs⟩
+  simp [Array.size]
+
+-- forward-port of https://github.com/leanprover/lean4/pull/8678
+@[simp]
+theorem isNone_finIdxOf?_eq [BEq α] [PartialEquivBEq α] {xs : Array α} {a : α} :
+    (xs.finIdxOf? a).isNone = !xs.contains a := by
+  rcases xs with ⟨xs⟩
+  simp [Array.size]
 
 /-! ### erase -/
 

@@ -23,7 +23,7 @@ namespace BitVec
     rfl
 
 @[simp] theorem toFin_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
-    (ofFnLEAux m f).toFin = Fin.ofNat' (2 ^ m) (Nat.ofBits f) := by
+    (ofFnLEAux m f).toFin = Fin.ofNat (2 ^ m) (Nat.ofBits f) := by
   ext; simp
 
 @[simp] theorem toNat_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toNat = Nat.ofBits f := by
