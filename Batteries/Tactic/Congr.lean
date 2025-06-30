@@ -28,7 +28,7 @@ declare_config_elab Congr.elabConfig Congr.Config
 syntax (name := congrConfig) "congr" Parser.Tactic.config (ppSpace num)? : tactic
 
 /--
-Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ HEq (f as) (f bs)`.
+Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ f as ≍ f bs`.
 * `congr n` controls the depth of the recursive applications.
   This is useful when `congr` is too aggressive in breaking down the goal.
   For example, given `⊢ f (g (x + y)) = f (g (y + x))`,
