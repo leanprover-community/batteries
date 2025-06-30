@@ -1,1 +1,2 @@
-[["unusedArguments", "imp_intro"]]
+[["unusedArguments", "imp_intro"],
+ ["unusedArguments", "Batteries.Tactic.Lint.Misc.findUnusedHaves"]]
