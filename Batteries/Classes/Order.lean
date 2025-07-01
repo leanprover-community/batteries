@@ -3,12 +3,45 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.Basic
 import Batteries.Tactic.SeqFocus
 import Std.Classes.Ord
 
-set_option linter.deprecated false
+theorem lexOrd_def [Ord α] [Ord β] :
+    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
-namespace Std.TransCmp
+namespace Batteries
+
+/-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
+class TotalBLE (le : α → α → Bool) : Prop where
+  /-- `le` is total: either `le a b` or `le b a`. -/
+  total : le a b ∨ le b a
+
+/-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
+@[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
+  cmp (f a) (f b)
+
+theorem compareOfLessAndEq_eq_lt {x y : α} [LT α] [Decidable (x < y)] [DecidableEq α] :
+    compareOfLessAndEq x y = .lt ↔ x < y := by
+  simp [compareOfLessAndEq]
+  split <;> simp
+
+end Batteries
+
+/-! Batteries features not in core Std -/
+
+namespace Std
+open Batteries (byKey compareOfLessAndEq_eq_lt)
+
+namespace OrientedCmp
+variable {cmp : α → α → Ordering} [OrientedCmp cmp]
+
+theorem le_iff_ge : cmp x y ≠ .gt ↔ cmp y x ≠ .lt :=
+  not_congr OrientedCmp.gt_iff_lt
+
+end OrientedCmp
+
+namespace TransCmp
 variable {cmp : α → α → Ordering} [TransCmp cmp]
 
 theorem le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt := by
@@ -29,14 +62,211 @@ theorem gt_of_gt_of_ge : cmp x y = .gt → cmp y z ≠ .lt → cmp x z = .gt := 
 theorem gt_of_ge_of_gt : cmp x y ≠ .lt → cmp y z = .gt → cmp x z = .gt := by
   simp only [ne_eq, ← Ordering.isGE_iff_ne_lt]; exact gt_of_isGE_of_gt
 
-end Std.TransCmp
+end TransCmp
+
+/-- `LawfulLTCmp cmp` asserts that `cmp x y = .lt` and `x < y` coincide. -/
+class LawfulLTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
+  /-- `cmp x y = .lt` holds iff `x < y` is true. -/
+  eq_lt_iff_lt : cmp x y = .lt ↔ x < y
+
+theorem LawfulLTCmp.eq_gt_iff_gt [LT α] [LawfulLTCmp (α := α) cmp] :
+    cmp x y = .gt ↔ y < x := by rw [OrientedCmp.gt_iff_lt, eq_lt_iff_lt]
+
+/-- `LawfulLECmp cmp` asserts that `(cmp x y).isLE` and `x ≤ y` coincide. -/
+class LawfulLECmp [LE α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
+  /-- `cmp x y ≠ .gt` holds iff `x ≤ y` is true. -/
+  isLE_iff_le : (cmp x y).isLE ↔ x ≤ y
+
+theorem LawfulLECmp.isGE_iff_ge [LE α] [LawfulLECmp (α := α) cmp] :
+    (cmp x y).isGE ↔ y ≤ x := by rw [← Ordering.isLE_swap, ← OrientedCmp.eq_swap, isLE_iff_le]
+
+theorem LawfulLECmp.ne_gt_iff_le [LE α] [LawfulLECmp (α := α) cmp] :
+    cmp x y ≠ .gt ↔ x ≤ y := by rw [← isLE_iff_le (cmp := cmp), Ordering.isLE_iff_ne_gt]
+
+theorem LawfulLECmp.ne_lt_iff_ge [LE α] [LawfulLECmp (α := α) cmp] :
+    cmp x y ≠ .lt ↔ y ≤ x := by rw [← isGE_iff_ge (cmp := cmp), Ordering.isGE_iff_ne_lt]
+
+/-- `LawfulBCmp cmp` asserts that the `LE`, `LT`, `BEq` are all coherent with each other
+and with `cmp`, describing a strict weak order (a linear order except for antisymmetry). -/
+class LawfulBCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) : Prop extends
+  TransCmp cmp, LawfulBEqCmp cmp, LawfulLTCmp cmp, LawfulLECmp cmp
+
+/-- `LawfulBCmp cmp` asserts that the `LE`, `LT`, `Eq` are all coherent with each other
+and with `cmp`, describing a linear order. -/
+class LawfulCmp [LE α] [LT α] (cmp : α → α → Ordering) : Prop extends
+  TransCmp cmp, LawfulEqCmp cmp, LawfulLTCmp cmp, LawfulLECmp cmp
+
+/-- Class for types where the ordering function is compatible with the `LT`. -/
+abbrev LawfulLTOrd (α) [LT α] [Ord α] := LawfulLTCmp (α := α) compare
+
+/-- Class for types where the ordering function is compatible with the `LE`. -/
+abbrev LawfulLEOrd (α) [LE α] [Ord α] := LawfulLECmp (α := α) compare
+
+/-- Class for types where the ordering function is compatible with the `LE`, `LT` and `BEq`. -/
+abbrev LawfulBOrd (α) [LE α] [LT α] [BEq α] [Ord α] := LawfulBCmp (α := α) compare
+
+instance [inst : Std.OrientedCmp cmp] : Std.OrientedCmp (flip cmp) where
+  eq_swap := inst.eq_swap
+
+instance [inst : Std.TransCmp cmp] : Std.TransCmp (flip cmp) where
+  isLE_trans h1 h2 := inst.isLE_trans h2 h1
+
+instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] :
+    Std.OrientedCmp (byKey f cmp) where
+  eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)
+
+instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] :
+    Std.TransCmp (byKey f cmp) where
+  isLE_trans h₁ h₂ := Std.TransCmp.isLE_trans (α := β) h₁ h₂
+
+instance [inst₁ : OrientedCmp cmp₁] [inst₂ : OrientedCmp cmp₂] :
+    OrientedCmp (compareLex cmp₁ cmp₂) := inferInstance
+
+instance [inst₁ : TransCmp cmp₁] [inst₂ : TransCmp cmp₂] :
+    TransCmp (compareLex cmp₁ cmp₂) := inferInstance
+
+instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) := inferInstance
+
+instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) := inferInstance
+
+theorem OrientedOrd.instOn [ord : Ord β] [OrientedOrd β] (f : α → β) : @OrientedOrd _ (ord.on f) :=
+  inferInstanceAs (@OrientedCmp _ (compareOn f))
+
+theorem TransOrd.instOn [ord : Ord β] [TransOrd β] (f : α → β) : @TransOrd _ (ord.on f) :=
+  inferInstanceAs (@TransCmp _ (compareOn f))
+
+theorem OrientedOrd.instOrdLex' (ord₁ ord₂ : Ord α) [@OrientedOrd _ ord₁] [@OrientedOrd _ ord₂] :
+    @OrientedOrd _ (ord₁.lex' ord₂) :=
+  inferInstanceAs (OrientedCmp (compareLex ord₁.compare ord₂.compare))
+
+theorem TransOrd.instOrdLex' (ord₁ ord₂ : Ord α) [@TransOrd _ ord₁] [@TransOrd _ ord₂] :
+    @TransOrd _ (ord₁.lex' ord₂) :=
+  inferInstanceAs (TransCmp (compareLex ord₁.compare ord₂.compare))
+
+theorem LawfulLTCmp.eq_compareOfLessAndEq
+    [LT α] [DecidableEq α] [LawfulEqCmp cmp] [LawfulLTCmp cmp]
+    (x y : α) [Decidable (x < y)] : cmp x y = compareOfLessAndEq x y := by
+  simp only [compareOfLessAndEq]
+  split <;> rename_i h1 <;> [skip; split <;> rename_i h2]
+  · exact LawfulLTCmp.eq_lt_iff_lt.2 h1
+  · exact LawfulEqCmp.compare_eq_iff_eq.2 h2
+  · cases e : cmp x y
+    · cases h1 (LawfulLTCmp.eq_lt_iff_lt.1 e)
+    · cases h2 (LawfulEqCmp.compare_eq_iff_eq.1 e)
+    · rfl
+
+theorem ReflCmp.compareOfLessAndEq_of_lt_irrefl [LT α] [DecidableLT α] [DecidableEq α]
+    (lt_irrefl : ∀ x : α, ¬ x < x) :
+    ReflCmp (α := α) (compareOfLessAndEq · ·) where
+  compare_self {x} := by simp [compareOfLessAndEq, if_neg (lt_irrefl x)]
+
+theorem LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl
+    [LT α] [DecidableLT α] [DecidableEq α] [BEq α] [LawfulBEq α]
+    (lt_irrefl : ∀ x : α, ¬x < x) :
+    LawfulBEqCmp (α := α) (compareOfLessAndEq · ·) where
+  compare_eq_iff_beq {x y} := by
+    simp [compareOfLessAndEq]
+    split <;> [skip; split] <;> simp [*]
+    rintro rfl; exact lt_irrefl _ ‹_›
+
+-- redundant? See `compareOfLessAndEq_of_lt_trans_of_lt_iff` in core
+theorem TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+    [LT α] [DecidableLT α] [DecidableEq α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (lt_antisymm : ∀ {x y : α}, ¬x < y → ¬y < x → x = y) :
+    TransCmp (α := α) (compareOfLessAndEq · ·) :=
+  TransOrd.compareOfLessAndEq_of_lt_trans_of_lt_iff lt_trans <| by
+    intros
+    constructor
+    · intro h₁
+      constructor
+      · intro h₂
+        apply lt_irrefl
+        exact lt_trans h₁ h₂
+      · intro | rfl => exact lt_irrefl _ h₁
+    · intro ⟨h₁, h₂⟩
+      by_contra h₃
+      apply h₂
+      exact lt_antisymm h₃ h₁
+
+-- redundant? See `compareOfLessAndEq_of_antisymm_of_trans_of_total_of_not_le` in core
+theorem TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    [LT α] [LE α] [DecidableLT α] [DecidableEq α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (not_lt : ∀ {x y : α}, ¬x < y → y ≤ x)
+    (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
+    TransCmp (α := α) (compareOfLessAndEq · ·) :=
+  .compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+    lt_irrefl lt_trans fun xy yx => le_antisymm (not_lt yx) (not_lt xy)
+
+-- make redundant?
+theorem LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+    [LT α] [DecidableLT α] [DecidableEq α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (lt_antisymm : ∀ {x y : α}, ¬x < y → ¬y < x → x = y) :
+    LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
+  { TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+      lt_irrefl lt_trans lt_antisymm with
+    eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
+
+-- make redundant?
+theorem LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    [LT α] [DecidableLT α] [DecidableEq α] [LE α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (not_lt : ∀ {x y : α}, ¬x < y → y ≤ x)
+    (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
+    LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
+  { TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+      lt_irrefl lt_trans not_lt le_antisymm with
+    eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
+
+-- make redundant?
+theorem LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    [LT α] [DecidableLT α] [DecidableEq α] [LE α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (not_lt : ∀ {x y : α}, ¬x < y ↔ y ≤ x)
+    (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
+    LawfulLECmp (α := α) (compareOfLessAndEq · ·) :=
+  have := TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+      lt_irrefl lt_trans not_lt.1 le_antisymm
+  { this with
+    isLE_iff_le := by
+      intro x y
+      simp only [Ordering.isLE_iff_ne_gt, ← not_lt]
+      apply not_congr
+      rw [this.gt_iff_lt, Batteries.compareOfLessAndEq_eq_lt] }
+
+theorem LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    [LT α] [LE α] [DecidableLT α] [DecidableLE α] [DecidableEq α]
+    (lt_irrefl : ∀ x : α, ¬x < x)
+    (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
+    (not_lt : ∀ {x y : α}, ¬x < y ↔ y ≤ x)
+    (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
+    LawfulCmp (α := α) (compareOfLessAndEq · ·) :=
+    have instT := TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+      lt_irrefl lt_trans not_lt.1 le_antisymm
+    have instLT := LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+      lt_irrefl lt_trans not_lt.1 le_antisymm
+    have instLE := LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+      lt_irrefl lt_trans not_lt le_antisymm
+    have le_refl (x : α) : x ≤ x := by rw [← not_lt]; exact lt_irrefl _
+    have not_le {x y : α} : ¬x ≤ y ↔ y < x := by simp [← not_lt]
+    { instT, instLT, instLE with
+      eq_of_compare {_  _}:= by rw [compareOfLessAndEq_eq_eq le_refl not_le]; exact id
+    }
+
+end Std
+
+/-! Deprecated Batteries comparison classes -/
+
+set_option linter.deprecated false
 
 namespace Batteries
-
-/-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
-class TotalBLE (le : α → α → Bool) : Prop where
-  /-- `le` is total: either `le a b` or `le b a`. -/
-  total : le a b ∨ le b a
 
 /-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
 @[deprecated "Std.OrientedCmp" (since := "2025-07-01")]
@@ -53,7 +283,7 @@ namespace OrientedCmp
 theorem cmp_eq_gt [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
-@[deprecated "Std.OrientedCmp.isLE_iff_isGE" (since := "2025-07-01")]
+@[deprecated "Std.OrientedCmp.le_iff_ge" (since := "2025-07-01")]
 theorem cmp_ne_gt [OrientedCmp cmp] : cmp x y ≠ .gt ↔ cmp y x ≠ .lt := not_congr cmp_eq_gt
 
 @[deprecated "Std.OrientedCmp.eq_comm" (since := "2025-07-01")]
@@ -135,12 +365,6 @@ instance [inst : OrientedCmp cmp] : OrientedCmp (flip cmp) where
 instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
   le_trans h1 h2 := inst.le_trans h2 h1
 
-instance [inst : Std.OrientedCmp cmp] : Std.OrientedCmp (flip cmp) where
-  eq_swap := inst.eq_swap
-
-instance [inst : Std.TransCmp cmp] : Std.TransCmp (flip cmp) where
-  isLE_trans h1 h2 := inst.isLE_trans h2 h1
-
 /-- `BEqCmp cmp` asserts that `cmp x y = .eq` and `x == y` coincide. -/
 @[deprecated "Std.LawfulBEqCmp" (since := "2025-07-01")]
 class BEqCmp [BEq α] (cmp : α → α → Ordering) : Prop where
@@ -154,23 +378,32 @@ theorem BEqCmp.cmp_iff_eq [BEq α] [LawfulBEq α] [BEqCmp (α := α) cmp] : cmp 
   simp [BEqCmp.cmp_iff_beq]
 
 /-- `LTCmp cmp` asserts that `cmp x y = .lt` and `x < y` coincide. -/
+@[deprecated "Std.LawfulLTCmp" (since := "2025-07-01")]
 class LTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y = .lt` holds iff `x < y` is true. -/
   cmp_iff_lt : cmp x y = .lt ↔ x < y
 
+attribute [deprecated "Std.LawfulLTCmp.eq_lt_iff_lt" (since := "2025-07-01")] LTCmp.cmp_iff_lt
+
+@[deprecated "Std.LawfulLTCmp.eq_gt_iff_gt" (since := "2025-07-01")]
 theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < x := by
   rw [OrientedCmp.cmp_eq_gt, LTCmp.cmp_iff_lt]
 
 /-- `LECmp cmp` asserts that `cmp x y ≠ .gt` and `x ≤ y` coincide. -/
+@[deprecated "Std.LawfulLECmp" (since := "2025-07-01")]
 class LECmp [LE α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y ≠ .gt` holds iff `x ≤ y` is true. -/
   cmp_iff_le : cmp x y ≠ .gt ↔ x ≤ y
 
+attribute [deprecated "Std.LawfulLECmp.ne_gt_iff_le" (since := "2025-07-01")] LECmp.cmp_iff_le
+
+@[deprecated "Std.LawfulLECmp.ne_lt_iff_ge" (since := "2025-07-01")]
 theorem LECmp.cmp_iff_ge [LE α] [LECmp (α := α) cmp] : cmp x y ≠ .lt ↔ y ≤ x := by
   rw [← OrientedCmp.cmp_ne_gt, LECmp.cmp_iff_le]
 
 /-- `LawfulCmp cmp` asserts that the `LE`, `LT`, `BEq` instances are all coherent with each other
 and with `cmp`, describing a strict weak order (a linear order except for antisymmetry). -/
+@[deprecated "Std.LawfulBCmp" (since := "2025-07-01")]
 class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) : Prop extends
   TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp
 
@@ -187,19 +420,19 @@ abbrev TransOrd (α) [Ord α] := TransCmp (α := α) compare
 abbrev BEqOrd (α) [BEq α] [Ord α] := BEqCmp (α := α) compare
 
 /-- `LTOrd α` asserts that the `Ord` instance satisfies `LTCmp`. -/
+@[deprecated "Std.LawfulLTOrd" (since := "2025-07-01")]
 abbrev LTOrd (α) [LT α] [Ord α] := LTCmp (α := α) compare
 
 /-- `LEOrd α` asserts that the `Ord` instance satisfies `LECmp`. -/
+@[deprecated "Std.LawfulLEOrd" (since := "2025-07-01")]
 abbrev LEOrd (α) [LE α] [Ord α] := LECmp (α := α) compare
 
 /-- `LawfulOrd α` asserts that the `Ord` instance satisfies `LawfulCmp`. -/
+@[deprecated "Std.LawfulBOrd" (since := "2025-07-01")]
 abbrev LawfulOrd (α) [LE α] [LT α] [BEq α] [Ord α] := LawfulCmp (α := α) compare
 
-theorem compareOfLessAndEq_eq_lt {x y : α} [LT α] [Decidable (x < y)] [DecidableEq α] :
-    compareOfLessAndEq x y = .lt ↔ x < y := by
-  simp [compareOfLessAndEq]
-  split <;> simp
-
+@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm"
+  (since := "2025-07-01")]
 protected theorem TransCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
@@ -221,7 +454,9 @@ protected theorem TransCmp.compareOfLessAndEq
   if xy : x < y then exact zy (lt_trans zx xy)
   else exact zy (lt_antisymm yx xy ▸ zx)
 
-protected theorem TransCmp.compareOfLessAndEq_of_le
+@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymmprotected"
+  (since := "2025-07-01")]
+theorem TransCmp.compareOfLessAndEq_of_le
     [LT α] [LE α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
@@ -230,6 +465,7 @@ protected theorem TransCmp.compareOfLessAndEq_of_le
     TransCmp (α := α) (compareOfLessAndEq · ·) :=
   .compareOfLessAndEq lt_irrefl lt_trans fun xy yx => le_antisymm (not_lt yx) (not_lt xy)
 
+@[deprecated "Std.LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl" (since := "2025-07-01")]
 protected theorem BEqCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [BEq α] [LawfulBEq α]
     (lt_irrefl : ∀ x : α, ¬x < x) :
@@ -239,6 +475,8 @@ protected theorem BEqCmp.compareOfLessAndEq
     split <;> [skip; split] <;> simp [*]
     rintro rfl; exact lt_irrefl _ ‹_›
 
+@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm"
+  (since := "2025-07-01")]
 protected theorem LTCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
@@ -248,6 +486,8 @@ protected theorem LTCmp.compareOfLessAndEq
   { TransCmp.compareOfLessAndEq lt_irrefl lt_trans lt_antisymm with
     cmp_iff_lt := compareOfLessAndEq_eq_lt }
 
+@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+  (since := "2025-07-01")]
 protected theorem LTCmp.compareOfLessAndEq_of_le
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [LE α]
     (lt_irrefl : ∀ x : α, ¬x < x)
@@ -258,6 +498,8 @@ protected theorem LTCmp.compareOfLessAndEq_of_le
   { TransCmp.compareOfLessAndEq_of_le lt_irrefl lt_trans not_lt le_antisymm with
     cmp_iff_lt := compareOfLessAndEq_eq_lt }
 
+@[deprecated "Std.LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+  (since := "2025-07-01")]
 protected theorem LECmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [LE α]
     (lt_irrefl : ∀ x : α, ¬x < x)
@@ -269,6 +511,8 @@ protected theorem LECmp.compareOfLessAndEq
   { this with
     cmp_iff_le := (this.cmp_ne_gt).trans <| (not_congr compareOfLessAndEq_eq_lt).trans not_lt }
 
+@[deprecated "Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+  (since := "2025-07-01")]
 protected theorem LawfulCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [BEq α] [LawfulBEq α] [LE α]
     (lt_irrefl : ∀ x : α, ¬x < x)
@@ -281,6 +525,7 @@ protected theorem LawfulCmp.compareOfLessAndEq
     LECmp.compareOfLessAndEq lt_irrefl lt_trans not_lt le_antisymm,
     BEqCmp.compareOfLessAndEq lt_irrefl with }
 
+@[deprecated "LawfulLTCmp.eq_compareOfLessAndEq" (since := "2025-07-01")]
 theorem LTCmp.eq_compareOfLessAndEq
     [LT α] [DecidableEq α] [BEq α] [LawfulBEq α] [BEqCmp cmp] [LTCmp cmp]
     (x y : α) [Decidable (x < y)] : cmp x y = compareOfLessAndEq x y := by
@@ -313,53 +558,60 @@ instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) w
 instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) where
   le_trans := TransCmp.le_trans (α := β)
 
-theorem _root_.lexOrd_def [Ord α] [Ord β] :
-    (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
-
 section «non-canonical instances»
 -- Note: the following instances seem to cause lean to fail, see:
 -- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Typeclass.20inference.20crashes/near/432836360
 
 /-- Local instance for `OrientedOrd lexOrd`. -/
+@[deprecated "instance exists" (since := "2025-07-01")]
 theorem OrientedOrd.instLexOrd [Ord α] [Ord β]
     [OrientedOrd α] [OrientedOrd β] : @OrientedOrd (α × β) lexOrd := by
   rw [OrientedOrd, lexOrd_def]; infer_instance
 
 /-- Local instance for `TransOrd lexOrd`. -/
+@[deprecated "instance exists" (since := "2025-07-01")]
 theorem TransOrd.instLexOrd [Ord α] [Ord β]
     [TransOrd α] [TransOrd β] : @TransOrd (α × β) lexOrd := by
   rw [TransOrd, lexOrd_def]; infer_instance
 
 /-- Local instance for `OrientedOrd ord.opposite`. -/
+@[deprecated "Std.OrientedOrd.opposite" (since := "2025-07-01")]
 theorem OrientedOrd.instOpposite [ord : Ord α] [inst : OrientedOrd α] :
     @OrientedOrd _ ord.opposite where symm _ _ := inst.symm ..
 
 /-- Local instance for `TransOrd ord.opposite`. -/
+@[deprecated "Std.TransOrd.opposite" (since := "2025-07-01")]
 theorem TransOrd.instOpposite [ord : Ord α] [inst : TransOrd α] : @TransOrd _ ord.opposite :=
   { OrientedOrd.instOpposite with le_trans := fun h1 h2 => inst.le_trans h2 h1 }
 
 /-- Local instance for `OrientedOrd (ord.on f)`. -/
+@[deprecated "Std.OrientedOrd.instOn" (since := "2025-07-01")]
 theorem OrientedOrd.instOn [ord : Ord β] [OrientedOrd β] (f : α → β) : @OrientedOrd _ (ord.on f) :=
   inferInstanceAs (@OrientedCmp _ (compareOn f))
 
 /-- Local instance for `TransOrd (ord.on f)`. -/
+@[deprecated "Std.TransOrd.instOn" (since := "2025-07-01")]
 theorem TransOrd.instOn [ord : Ord β] [TransOrd β] (f : α → β) : @TransOrd _ (ord.on f) :=
   inferInstanceAs (@TransCmp _ (compareOn f))
 
 /-- Local instance for `OrientedOrd (oα.lex oβ)`. -/
+@[deprecated "instance exists" (since := "2025-07-01")]
 theorem OrientedOrd.instOrdLex [oα : Ord α] [oβ : Ord β] [OrientedOrd α] [OrientedOrd β] :
     @OrientedOrd _ (oα.lex oβ) := OrientedOrd.instLexOrd
 
 /-- Local instance for `TransOrd (oα.lex oβ)`. -/
+@[deprecated "instance exists" (since := "2025-07-01")]
 theorem TransOrd.instOrdLex [oα : Ord α] [oβ : Ord β] [TransOrd α] [TransOrd β] :
     @TransOrd _ (oα.lex oβ) := TransOrd.instLexOrd
 
 /-- Local instance for `OrientedOrd (oα.lex' oβ)`. -/
+@[deprecated "Std.OrientedOrd.instOrdLex'" (since := "2025-07-01")]
 theorem OrientedOrd.instOrdLex' (ord₁ ord₂ : Ord α) [@OrientedOrd _ ord₁] [@OrientedOrd _ ord₂] :
     @OrientedOrd _ (ord₁.lex' ord₂) :=
   inferInstanceAs (OrientedCmp (compareLex ord₁.compare ord₂.compare))
 
 /-- Local instance for `TransOrd (oα.lex' oβ)`. -/
+@[deprecated "Std.TransOrd.instOrdLex'" (since := "2025-07-01")]
 theorem TransOrd.instOrdLex' (ord₁ ord₂ : Ord α) [@TransOrd _ ord₁] [@TransOrd _ ord₂] :
     @TransOrd _ (ord₁.lex' ord₂) :=
   inferInstanceAs (TransCmp (compareLex ord₁.compare ord₂.compare))
@@ -392,21 +644,10 @@ namespace Ordering
 
 open Batteries
 
-/-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
-
 instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
   symm a b := OrientedCmp.symm (f a) (f b)
 
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
-
-instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] :
-    Std.OrientedCmp (byKey f cmp) where
-  eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)
-
-instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] :
-    Std.TransCmp (byKey f cmp) where
-  isLE_trans h₁ h₂ := Std.TransCmp.isLE_trans (α := β) h₁ h₂
 
 end Ordering
