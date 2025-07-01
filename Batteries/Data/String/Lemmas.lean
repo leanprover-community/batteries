@@ -8,6 +8,7 @@ import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Std.Classes.Ord.String -- Not needed here, but imported to ensure instance names don't clash.
 
 namespace String
 
