@@ -49,7 +49,8 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     | zero => grind
     | succ i => rw [ih] <;> grind
 
-@[simp, grind =] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) : (ofFnLE f)[i] = f ⟨i, h⟩ :=
+@[simp, grind =] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) :
+    (ofFnLE f)[i] = f ⟨i, h⟩ :=
   getElem_ofFnLEAux ..
 
 @[grind =]
@@ -75,13 +76,16 @@ theorem msb_ofFnLE (f : Fin n → Bool) :
     (ofFnLE f).msb = if h : n ≠ 0 then f ⟨n-1, Nat.sub_one_lt h⟩ else false := by
   grind
 
-@[simp, grind =] theorem toNat_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toNat_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
   simp [ofFnBE]; rfl
 
-@[simp, grind =] theorem toFin_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toFin_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
   ext; simp
 
-@[simp, grind =] theorem toInt_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toInt = Int.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toInt_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toInt = Int.ofBits (f ∘ Fin.rev) := by
   simp [ofFnBE]; rfl
 
 @[simp, grind =] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
