@@ -26,7 +26,7 @@ end Classical
 
 /-! ## equality -/
 
-theorem heq_iff_eq {a b : α} : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
+theorem heq_iff_eq {a b : α} : a ≍ b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
@@ -65,10 +65,10 @@ alias congr_fun := congrFun
 alias congr_fun₂ := congrFun₂
 alias congr_fun₃ := congrFun₃
 
-theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), a ≍ a'
   | rfl, rfl => .rfl
 
-theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+theorem cast_eq_iff_heq : cast e a = a' ↔ a ≍ a' :=
   ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
 
 theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
@@ -78,20 +78,19 @@ theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → 
 
 --Porting note: new theorem. More general version of `eqRec_heq`
 theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a rfl) {a' : α} (e : a = a') :
-    HEq (@Eq.rec α a motive x a' e) x := by
+    (x : motive a rfl) {a' : α} (e : a = a') : @Eq.rec α a motive x a' e ≍ x := by
   subst e; rfl
 
 @[simp]
 theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
-    HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+    @Eq.rec α a motive x a' e ≍ y ↔ x ≍ y := by
   subst e; rfl
 
 @[simp]
 theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
-    HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+    y ≍ @Eq.rec α a motive x a' e ↔ y ≍ x := by
   subst e; rfl
 
 /-! ## miscellaneous -/
