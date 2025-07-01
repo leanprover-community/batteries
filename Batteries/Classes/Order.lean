@@ -112,6 +112,12 @@ instance [inst : OrientedCmp cmp] : OrientedCmp (flip cmp) where
 instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
   le_trans h1 h2 := inst.le_trans h2 h1
 
+instance [inst : Std.OrientedCmp cmp] : Std.OrientedCmp (flip cmp) where
+  eq_swap := inst.eq_swap
+
+instance [inst : Std.TransCmp cmp] : Std.TransCmp (flip cmp) where
+  isLE_trans h1 h2 := inst.isLE_trans h2 h1
+
 /-- `BEqCmp cmp` asserts that `cmp x y = .eq` and `x == y` coincide. -/
 @[deprecated "Std.LawfulBEqCmp" (since := "2025-07-01")]
 class BEqCmp [BEq α] (cmp : α → α → Ordering) : Prop where
@@ -365,6 +371,12 @@ open Batteries
 
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
 @[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
+
+instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
+  symm a b := OrientedCmp.symm (f a) (f b)
+
+instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
+  le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
 
 instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] : Std.OrientedCmp (byKey f cmp) where
   eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)

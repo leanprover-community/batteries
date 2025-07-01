@@ -27,8 +27,6 @@ but the function does not have to satisfy `cmp x y = .eq → x = y`, and in the 
 
 namespace Batteries
 
-open Std (TransCmp)
-
 /--
 In a red-black tree, every node has a color which is either "red" or "black"
 (this particular choice of colors is conventional). A nil node is considered black.
