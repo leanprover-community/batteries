@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Tactic.SeqFocus
+import Std.Classes.Ord
+
+set_option linter.deprecated false
 
 namespace Batteries
 
@@ -13,60 +16,78 @@ class TotalBLE (le : α → α → Bool) : Prop where
   total : le a b ∨ le b a
 
 /-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
+@[deprecated "Std.OrientedCmp" (since := "2025-07-01")]
 class OrientedCmp (cmp : α → α → Ordering) : Prop where
   /-- The comparator operation is symmetric, in the sense that if `cmp x y` equals `.lt` then
   `cmp y x = .gt` and vice versa. -/
   symm (x y) : (cmp x y).swap = cmp y x
 
+attribute [deprecated "Std.OrientedOrd.eq_swap" (since := "2025-07-01")] OrientedCmp.symm
+
 namespace OrientedCmp
 
+@[deprecated "Std.OrientedCmp.gt_iff_lt" (since := "2025-07-01")]
 theorem cmp_eq_gt [OrientedCmp cmp] : cmp x y = .gt ↔ cmp y x = .lt := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
+@[deprecated "Std.OrientedCmp.isLE_iff_isGE" (since := "2025-07-01")]
 theorem cmp_ne_gt [OrientedCmp cmp] : cmp x y ≠ .gt ↔ cmp y x ≠ .lt := not_congr cmp_eq_gt
 
+@[deprecated "Std.OrientedCmp.eq_comm" (since := "2025-07-01")]
 theorem cmp_eq_eq_symm [OrientedCmp cmp] : cmp x y = .eq ↔ cmp y x = .eq := by
   rw [← Ordering.swap_inj, symm]; exact .rfl
 
+@[deprecated "Std.ReflCmp.compare_self" (since := "2025-07-01")]
 theorem cmp_refl [OrientedCmp cmp] : cmp x x = .eq :=
   match e : cmp x x with
   | .lt => nomatch e.symm.trans (cmp_eq_gt.2 e)
   | .eq => rfl
   | .gt => nomatch (cmp_eq_gt.1 e).symm.trans e
 
+@[deprecated "Std.OrientedCmp.not_lt_of_lt"  (since := "2025-07-01")]
 theorem lt_asymm [OrientedCmp cmp] (h : cmp x y = .lt) : cmp y x ≠ .lt :=
   fun h' => nomatch h.symm.trans (cmp_eq_gt.2 h')
 
+@[deprecated "Std.OrientedCmp.not_gt_of_gt"  (since := "2025-07-01")]
 theorem gt_asymm [OrientedCmp cmp] (h : cmp x y = .gt) : cmp y x ≠ .gt :=
   mt cmp_eq_gt.1 <| lt_asymm <| cmp_eq_gt.1 h
 
 end OrientedCmp
 
 /-- `TransCmp cmp` asserts that `cmp` induces a transitive relation. -/
+@[deprecated "Std.TransCmp" (since := "2025-07-01")]
 class TransCmp (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- The comparator operation is transitive. -/
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
+
+attribute [deprecated "Std.TransCmp.isLE_trans" (since := "2025-07-01")] TransCmp.le_trans
 
 namespace TransCmp
 variable [TransCmp cmp]
 open OrientedCmp Decidable
 
+@[deprecated "Std.TransCmp.isGE_trans" (since := "2025-07-01")]
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
   have := @TransCmp.le_trans _ cmp _ z y x
   simp [cmp_eq_gt] at *; exact this h₂ h₁
 
+@[deprecated "Std.TransCmp.lt_of_isLE_of_lt" (since := "2025-07-01")]
 theorem le_lt_trans (h₁ : cmp x y ≠ .gt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans (mt cmp_eq_gt.2 h₁) h₃ h₂
 
+@[deprecated "Std.TransCmp.lt_of_lt_of_isLE" (since := "2025-07-01")]
 theorem lt_le_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z ≠ .gt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans h₃ (mt cmp_eq_gt.2 h₂) h₁
 
+@[deprecated "Std.TransCmp.lt_trans" (since := "2025-07-01")]
 theorem lt_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   le_lt_trans (gt_asymm <| cmp_eq_gt.2 h₁) h₂
 
+@[deprecated "Std.TransCmp.gt_trans" (since := "2025-07-01")]
 theorem gt_trans (h₁ : cmp x y = .gt) (h₂ : cmp y z = .gt) : cmp x z = .gt := by
   rw [cmp_eq_gt] at h₁ h₂ ⊢; exact lt_trans h₂ h₁
 
+@[deprecated "Std.TransCmp.congr_left" (since := "2025-07-01")]
 theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
   match yz : cmp y z with
   | .lt => byContradiction (ge_trans (nomatch ·.symm.trans (cmp_eq_eq_symm.1 xy)) · yz)
@@ -79,6 +100,7 @@ theorem cmp_congr_left (xy : cmp x y = .eq) : cmp x z = cmp y z :=
 theorem cmp_congr_left' (xy : cmp x y = .eq) : cmp x = cmp y :=
   funext fun _ => cmp_congr_left xy
 
+@[deprecated "Std.TransCmp.congr_right" (since := "2025-07-01")]
 theorem cmp_congr_right (yz : cmp y z = .eq) : cmp x y = cmp x z := by
   rw [← Ordering.swap_inj, symm, symm, cmp_congr_left yz]
 
@@ -91,10 +113,14 @@ instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
   le_trans h1 h2 := inst.le_trans h2 h1
 
 /-- `BEqCmp cmp` asserts that `cmp x y = .eq` and `x == y` coincide. -/
+@[deprecated "Std.LawfulBEqCmp" (since := "2025-07-01")]
 class BEqCmp [BEq α] (cmp : α → α → Ordering) : Prop where
   /-- `cmp x y = .eq` holds iff `x == y` is true. -/
   cmp_iff_beq : cmp x y = .eq ↔ x == y
 
+attribute [deprecated "Std.TransCmp.compare_eq_iff_beq" (since := "2025-07-01")] BEqCmp.cmp_iff_beq
+
+@[deprecated "Std.LawfulEqCmp.compare_eq_iff_eq" (since := "2025-07-01")]
 theorem BEqCmp.cmp_iff_eq [BEq α] [LawfulBEq α] [BEqCmp (α := α) cmp] : cmp x y = .eq ↔ x = y := by
   simp [BEqCmp.cmp_iff_beq]
 
@@ -120,12 +146,15 @@ class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) : Prop e
   TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp
 
 /-- `OrientedOrd α` asserts that the `Ord` instance satisfies `OrientedCmp`. -/
+@[deprecated "Std.OrientedOrd" (since := "2025-07-01")]
 abbrev OrientedOrd (α) [Ord α] := OrientedCmp (α := α) compare
 
 /-- `TransOrd α` asserts that the `Ord` instance satisfies `TransCmp`. -/
+@[deprecated "Std.TransOrd" (since := "2025-07-01")]
 abbrev TransOrd (α) [Ord α] := TransCmp (α := α) compare
 
 /-- `BEqOrd α` asserts that the `Ord` and `BEq` instances are coherent via `BEqCmp`. -/
+@[deprecated "Std.LawfulBEqOrd" (since := "2025-07-01")]
 abbrev BEqOrd (α) [BEq α] [Ord α] := BEqCmp (α := α) compare
 
 /-- `LTOrd α` asserts that the `Ord` instance satisfies `LTCmp`. -/
