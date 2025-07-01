@@ -238,14 +238,17 @@ We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 * The `Nonempty` wrapper is a no-op because this is already a proposition,
   but it prevents the `[Std.TransCmp cmp]` binder from being introduced when we don't want it.
 -/
-def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [Std.TransCmp cmp], cmp x y = .lt)
+def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .lt)
 
-theorem cmpLT_iff [Std.TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpLT_iff [Std.TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt :=
+  ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
 instance (cmp) [Std.TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
 
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
-def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [Std.TransCmp cmp], cmp x y = .eq)
+def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .eq)
 
 theorem cmpEq_iff [Std.TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 

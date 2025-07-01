@@ -798,7 +798,8 @@ theorem find?_insert_self [Std.TransCmp (α := α) cmp] [IsStrictCut cmp cut]
     (t.insert cmp v).find? cut = some v :=
   ht₂.insert.find?_some.2 ⟨mem_insert_self ht, hv⟩
 
-theorem mem_insert [Std.TransCmp (α := α) cmp] {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) :
+theorem mem_insert [Std.TransCmp (α := α) cmp] {t : RBNode α}
+    (ht : Balanced t c n) (ht₂ : Ordered cmp t) :
     v' ∈ t.insert cmp v ↔ (v' ∈ t ∧ t.find? (cmp v) ≠ some v') ∨ v' = v := by
   refine ⟨fun h => ?_, fun | .inl ⟨h₁, h₂⟩ => ?_ | .inr h => ?_⟩
   · match e : zoom (cmp v) t with
@@ -1216,14 +1217,16 @@ theorem findEntry?_congr [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h 
 theorem find?_congr [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h : cmp k₁ k₂ = .eq) :
     t.find? k₁ = t.find? k₂ := by simp [find?, findEntry?_congr _ h]
 
-theorem findEntry?_insert_of_eq [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h : cmp k' k = .eq) :
-    (t.insert k v).findEntry? k' = some (k, v) := RBSet.findP?_insert_of_eq _ h
+theorem findEntry?_insert_of_eq [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp)
+    (h : cmp k' k = .eq) : (t.insert k v).findEntry? k' = some (k, v) :=
+  RBSet.findP?_insert_of_eq _ h
 
 theorem find?_insert_of_eq [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h : cmp k' k = .eq) :
     (t.insert k v).find? k' = some v := by rw [find?, findEntry?_insert_of_eq _ h]; rfl
 
-theorem findEntry?_insert_of_ne [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h : cmp k' k ≠ .eq) :
-    (t.insert k v).findEntry? k' = t.findEntry? k' := RBSet.findP?_insert_of_ne _ h
+theorem findEntry?_insert_of_ne [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp)
+    (h : cmp k' k ≠ .eq) : (t.insert k v).findEntry? k' = t.findEntry? k' :=
+  RBSet.findP?_insert_of_ne _ h
 
 theorem find?_insert_of_ne [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (h : cmp k' k ≠ .eq) :
     (t.insert k v).find? k' = t.find? k' := by simp [find?, findEntry?_insert_of_ne _ h]

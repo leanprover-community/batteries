@@ -401,10 +401,12 @@ instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : Orie
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
 
-instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] : Std.OrientedCmp (byKey f cmp) where
+instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] :
+    Std.OrientedCmp (byKey f cmp) where
   eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] : Std.TransCmp (byKey f cmp) where
+instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] :
+    Std.TransCmp (byKey f cmp) where
   isLE_trans h₁ h₂ := Std.TransCmp.isLE_trans (α := β) h₁ h₂
 
 end Ordering
