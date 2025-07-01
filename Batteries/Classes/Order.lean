@@ -8,6 +8,29 @@ import Std.Classes.Ord
 
 set_option linter.deprecated false
 
+namespace Std.TransCmp
+variable {cmp : α → α → Ordering} [TransCmp cmp]
+
+theorem le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt := by
+  simp only [ne_eq, ← Ordering.isLE_iff_ne_gt]; exact isLE_trans
+
+theorem lt_of_lt_of_le : cmp x y = .lt → cmp y z ≠ .gt → cmp x z = .lt := by
+  simp only [ne_eq, ← Ordering.isLE_iff_ne_gt]; exact lt_of_lt_of_isLE
+
+theorem lt_of_le_of_lt : cmp x y ≠ .gt → cmp y z = .lt → cmp x z = .lt := by
+  simp only [ne_eq, ← Ordering.isLE_iff_ne_gt]; exact lt_of_isLE_of_lt
+
+theorem ge_trans : cmp x y ≠ .lt → cmp y z ≠ .lt → cmp x z ≠ .lt := by
+  simp only [ne_eq, ← Ordering.isGE_iff_ne_lt]; exact isGE_trans
+
+theorem gt_of_gt_of_ge : cmp x y = .gt → cmp y z ≠ .lt → cmp x z = .gt := by
+  simp only [ne_eq, ← Ordering.isGE_iff_ne_lt]; exact gt_of_gt_of_isGE
+
+theorem gt_of_ge_of_gt : cmp x y ≠ .lt → cmp y z = .gt → cmp x z = .gt := by
+  simp only [ne_eq, ← Ordering.isGE_iff_ne_lt]; exact gt_of_isGE_of_gt
+
+end Std.TransCmp
+
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
@@ -60,22 +83,22 @@ class TransCmp (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp whe
   /-- The comparator operation is transitive. -/
   le_trans : cmp x y ≠ .gt → cmp y z ≠ .gt → cmp x z ≠ .gt
 
-attribute [deprecated "Std.TransCmp.isLE_trans" (since := "2025-07-01")] TransCmp.le_trans
+attribute [deprecated "Std.TransCmp.le_trans" (since := "2025-07-01")] TransCmp.le_trans
 
 namespace TransCmp
 variable [TransCmp cmp]
 open OrientedCmp Decidable
 
-@[deprecated "Std.TransCmp.isGE_trans" (since := "2025-07-01")]
+@[deprecated "Std.TransCmp.ge_trans" (since := "2025-07-01")]
 theorem ge_trans (h₁ : cmp x y ≠ .lt) (h₂ : cmp y z ≠ .lt) : cmp x z ≠ .lt := by
   have := @TransCmp.le_trans _ cmp _ z y x
   simp [cmp_eq_gt] at *; exact this h₂ h₁
 
-@[deprecated "Std.TransCmp.lt_of_isLE_of_lt" (since := "2025-07-01")]
+@[deprecated "Std.TransCmp.lt_of_le_of_lt" (since := "2025-07-01")]
 theorem le_lt_trans (h₁ : cmp x y ≠ .gt) (h₂ : cmp y z = .lt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans (mt cmp_eq_gt.2 h₁) h₃ h₂
 
-@[deprecated "Std.TransCmp.lt_of_lt_of_isLE" (since := "2025-07-01")]
+@[deprecated "Std.TransCmp.lt_of_lt_of_le" (since := "2025-07-01")]
 theorem lt_le_trans (h₁ : cmp x y = .lt) (h₂ : cmp y z ≠ .gt) : cmp x z = .lt :=
   byContradiction fun h₃ => ge_trans h₃ (mt cmp_eq_gt.2 h₂) h₁
 
