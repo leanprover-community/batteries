@@ -366,10 +366,10 @@ open Batteries
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
 @[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
-  symm a b := OrientedCmp.symm (f a) (f b)
+instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] : Std.OrientedCmp (byKey f cmp) where
+  eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
-  le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
+instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] : Std.TransCmp (byKey f cmp) where
+  isLE_trans h₁ h₂ := Std.TransCmp.isLE_trans (α := β) h₁ h₂
 
 end Ordering
