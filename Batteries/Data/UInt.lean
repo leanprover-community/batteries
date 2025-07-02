@@ -16,8 +16,9 @@ import Batteries.Classes.Order
 
 @[simp] theorem UInt8.toUInt64_toNat (x : UInt8) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
+instance : Std.LawfulOrd UInt8 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
 
 /-! ### UInt16 -/
 
@@ -30,8 +31,9 @@ instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
 
 @[simp] theorem UInt16.toUInt64_toNat (x : UInt16) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
+instance : Std.LawfulOrd UInt16 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
 
 /-! ### UInt32 -/
 
@@ -44,8 +46,9 @@ instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
 
 @[simp] theorem UInt32.toUInt64_toNat (x : UInt32) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
+instance : Std.LawfulOrd UInt32 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
 
 /-! ### UInt64 -/
 
@@ -58,8 +61,9 @@ instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
 
 @[simp] theorem UInt64.toUInt32_toNat (x : UInt64) : x.toUInt32.toNat = x.toNat % 2 ^ 32 := rfl
 
-instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
+instance : Std.LawfulOrd UInt64 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
 
 /-! ### USize -/
 
@@ -71,5 +75,6 @@ theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by
 
 @[simp] theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd USize := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm
+instance : Std.LawfulOrd USize :=
+  Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm
