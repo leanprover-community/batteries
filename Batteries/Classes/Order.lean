@@ -457,7 +457,7 @@ protected theorem TransCmp.compareOfLessAndEq
   if xy : x < y then exact zy (lt_trans zx xy)
   else exact zy (lt_antisymm yx xy ▸ zx)
 
-@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymmprotected"
+@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
   (since := "2025-07-01")]
 theorem TransCmp.compareOfLessAndEq_of_le
     [LT α] [LE α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
