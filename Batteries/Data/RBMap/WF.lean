@@ -153,7 +153,7 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
 
 @[simp] theorem reverse_insert [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
     (insert cmp t x).reverse = insert (flip cmp) t.reverse x := by
-  simp [insert] <;> split <;> simp
+  simp [insert]; split <;> simp
 
 theorem insert_setBlack {t : RBNode α} :
     (t.insert cmp v).setBlack = (t.ins cmp v).setBlack := by
