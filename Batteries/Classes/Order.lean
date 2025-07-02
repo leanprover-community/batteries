@@ -263,6 +263,23 @@ theorem LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_an
       eq_of_compare {_  _}:= by rw [compareOfLessAndEq_eq_eq le_refl not_le]; exact id
     }
 
+instance : LawfulOrd Nat :=
+  LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    Nat.lt_irrefl Nat.lt_trans Nat.not_lt Nat.le_antisymm
+
+instance : LawfulOrd Int :=
+  LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    Int.lt_irrefl Int.lt_trans Int.not_lt Int.le_antisymm
+
+instance : LawfulOrd Bool := by
+  apply LawfulCmp.mk <;> decide
+
+instance : LawfulOrd (Fin n) where
+  eq_swap := OrientedCmp.eq_swap (α := Nat) (cmp := compare) ..
+  eq_lt_iff_lt := LawfulLTCmp.eq_lt_iff_lt (α := Nat) (cmp := compare)
+  isLE_iff_le := LawfulLECmp.isLE_iff_le (α := Nat) (cmp := compare)
+  isLE_trans := TransCmp.isLE_trans (α := Nat) (cmp := compare)
+
 end Std
 
 /-! Deprecated Batteries comparison classes -/
@@ -365,8 +382,12 @@ end TransCmp
 instance [inst : OrientedCmp cmp] : OrientedCmp (flip cmp) where
   symm _ _ := inst.symm ..
 
+example [inst : Std.OrientedCmp cmp] : Std.OrientedCmp (flip cmp) := inferInstance
+
 instance [inst : TransCmp cmp] : TransCmp (flip cmp) where
   le_trans h1 h2 := inst.le_trans h2 h1
+
+example [inst : Std.TransCmp cmp] : Std.TransCmp (flip cmp) := inferInstance
 
 /-- `BEqCmp cmp` asserts that `cmp x y = .eq` and `x == y` coincide. -/
 @[deprecated "Std.LawfulBEqCmp" (since := "2025-07-01")]
@@ -545,6 +566,9 @@ instance [inst₁ : OrientedCmp cmp₁] [inst₂ : OrientedCmp cmp₂] :
     OrientedCmp (compareLex cmp₁ cmp₂) where
   symm _ _ := by simp [compareLex, Ordering.swap_then]; rw [inst₁.symm, inst₂.symm]
 
+example [inst₁ : Std.OrientedCmp cmp₁] [inst₂ : Std.OrientedCmp cmp₂] :
+    Std.OrientedCmp (compareLex cmp₁ cmp₂) := inferInstance
+
 instance [inst₁ : TransCmp cmp₁] [inst₂ : TransCmp cmp₂] :
     TransCmp (compareLex cmp₁ cmp₂) where
   le_trans {a b c} h1 h2 := by
@@ -555,11 +579,20 @@ instance [inst₁ : TransCmp cmp₁] [inst₂ : TransCmp cmp₂] :
     | .eq => exact inst₂.le_trans (h1.2 ab) (h2.2 (inst₁.cmp_congr_left ab ▸ e1)) e2
     | .lt => exact h2.1 <| (inst₁.cmp_eq_gt).2 (inst₁.cmp_congr_left e1 ▸ ab)
 
+example [inst₁ : Std.TransCmp cmp₁] [inst₂ : Std.TransCmp cmp₂] :
+    Std.TransCmp (compareLex cmp₁ cmp₂) := inferInstance
+
 instance [Ord β] [OrientedOrd β] (f : α → β) : OrientedCmp (compareOn f) where
   symm _ _ := OrientedCmp.symm (α := β) ..
 
+example [Ord β] [Std.OrientedOrd β] (f : α → β) : Std.OrientedCmp (compareOn f) :=
+  inferInstance
+
 instance [Ord β] [TransOrd β] (f : α → β) : TransCmp (compareOn f) where
   le_trans := TransCmp.le_trans (α := β)
+
+example [Ord β] [Std.TransOrd β] (f : α → β) : Std.TransCmp (compareOn f) :=
+  inferInstance
 
 section «non-canonical instances»
 -- Note: the following instances seem to cause lean to fail, see:
@@ -624,12 +657,16 @@ end «non-canonical instances»
 instance : LawfulOrd Nat := .compareOfLessAndEq
   Nat.lt_irrefl Nat.lt_trans Nat.not_lt Nat.le_antisymm
 
+example : Std.LawfulOrd Nat := inferInstance
+
 instance : LawfulOrd (Fin n) where
   symm _ _ := OrientedCmp.symm (α := Nat) (cmp := compare) ..
   le_trans := TransCmp.le_trans (α := Nat) (cmp := compare)
   cmp_iff_beq := (BEqCmp.cmp_iff_beq (α := Nat) (cmp := compare)).trans (by simp [Fin.ext_iff])
   cmp_iff_lt := LTCmp.cmp_iff_lt (α := Nat) (cmp := compare)
   cmp_iff_le := LECmp.cmp_iff_le (α := Nat) (cmp := compare)
+
+example : Std.LawfulOrd (Fin n) := inferInstance
 
 instance : LawfulOrd Bool where
   symm := by decide
@@ -638,8 +675,12 @@ instance : LawfulOrd Bool where
   cmp_iff_lt := by decide
   cmp_iff_le := by decide
 
+example : Std.LawfulOrd Bool := inferInstance
+
 instance : LawfulOrd Int := .compareOfLessAndEq
   Int.lt_irrefl Int.lt_trans Int.not_lt Int.le_antisymm
+
+example : Std.LawfulOrd Int := inferInstance
 
 end Batteries
 
@@ -650,7 +691,14 @@ open Batteries
 instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
   symm a b := OrientedCmp.symm (f a) (f b)
 
+example (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] :
+  Std.OrientedCmp (byKey f cmp) := inferInstance
+
 instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
+
+example (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] :
+  Std.TransCmp (byKey f cmp) := inferInstance
+
 
 end Ordering
