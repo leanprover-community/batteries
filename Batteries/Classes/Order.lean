@@ -10,16 +10,16 @@ import Std.Classes.Ord
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
+/-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
+@[inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
+  cmp (f a) (f b)
+
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
 class TotalBLE (le : α → α → Bool) : Prop where
   /-- `le` is total: either `le a b` or `le b a`. -/
   total : le a b ∨ le b a
-
-/-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
-  cmp (f a) (f b)
 
 theorem compareOfLessAndEq_eq_lt {x y : α} [LT α] [Decidable (x < y)] [DecidableEq α] :
     compareOfLessAndEq x y = .lt ↔ x < y := by
@@ -31,7 +31,7 @@ end Batteries
 /-! Batteries features not in core Std -/
 
 namespace Std
-open Batteries (byKey compareOfLessAndEq_eq_lt)
+open Batteries (compareOfLessAndEq_eq_lt)
 
 namespace OrientedCmp
 variable {cmp : α → α → Ordering} [OrientedCmp cmp]
@@ -115,11 +115,11 @@ instance [inst : Std.TransCmp cmp] : Std.TransCmp (flip cmp) where
   isLE_trans h1 h2 := inst.isLE_trans h2 h1
 
 instance (f : α → β) (cmp : β → β → Ordering) [Std.OrientedCmp cmp] :
-    Std.OrientedCmp (byKey f cmp) where
+    Std.OrientedCmp (Ordering.byKey f cmp) where
   eq_swap {a b} := Std.OrientedCmp.eq_swap (a := f a) (b := f b)
 
 instance (f : α → β) (cmp : β → β → Ordering) [Std.TransCmp cmp] :
-    Std.TransCmp (byKey f cmp) where
+    Std.TransCmp (Ordering.byKey f cmp) where
   isLE_trans h₁ h₂ := Std.TransCmp.isLE_trans (α := β) h₁ h₂
 
 instance [inst₁ : OrientedCmp cmp₁] [inst₂ : OrientedCmp cmp₂] :
