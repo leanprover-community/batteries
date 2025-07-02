@@ -227,7 +227,13 @@ with rfl when elaboration results in a different term than the user intended. -/
 /--
 Return a list of unused `let_fun` terms in an expression.
 -/
-def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
+@[nolint unusedArguments]
+def findUnusedHaves (_e : Expr) : MetaM (Array MessageData) := do
+  -- adaptation note: kmill 2025-06-29. `Expr.letFun?` is deprecated.
+  -- This linter needs to be updated for `Expr.letE (nondep := true)`, but it has false
+  -- positives, so I am disabling it for now.
+  return #[]
+  /-
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
     match e.letFun? with
@@ -238,6 +244,7 @@ def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
       res.modify (·.push msg)
     | _ => return
   res.get
+  -/
 
 /-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where
