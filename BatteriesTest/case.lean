@@ -67,9 +67,9 @@ example : False ∧ True := by
 error: type mismatch
   ?right
 has type
-  True : Prop
+  True
 but is expected to have type
-  False : Prop
+  False
 -/
 #guard_msgs in
 example : False ∧ True := by
