@@ -19,8 +19,9 @@ theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ <
   simp at h₁ h₂
   exact String.le_antisymm h₂ h₁
 
-instance : Batteries.LTOrd String := .compareOfLessAndEq
-  String.lt_irrefl String.lt_trans String.lt_antisymm
+instance : Std.LawfulLTOrd String :=
+  Std.LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+    String.lt_irrefl String.lt_trans String.lt_antisymm
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl
 
