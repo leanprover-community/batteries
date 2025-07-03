@@ -10,28 +10,28 @@ example (x : Nat) : x = x := by
 
 
 def myfun : Nat → Nat → Nat --direct pattern completion here will be worked on, when the explicit match is deemed good enough.
-  | .zero => _
-  | .succ n => _
+  | .zero => sorry
+  | .succ n => sorry
 
-
+--These will be generated with underscores instead of sorry's
 def myfun2 (n:Nat) : Nat :=
   match n with
-  | .zero => _
-  | .succ n => _
+  | .zero => sorry
+  | .succ n => sorry
 
 
 
 def myfun3 (e: Lean.Expr) : Bool :=
   match e with
-  | .bvar deBruijnIndex => _
-  | .fvar fvarId => _
-  | .mvar mvarId => _
-  | .sort u => _
-  | .const declName us => _
-  | .app fn arg => _
-  | .lam binderName binderType body binderInfo => _
-  | .forallE binderName binderType body binderInfo => _
-  | .letE declName type value body nonDep => _
-  | .lit _ => _
-  | .mdata data expr => _
-  | .proj typeName idx struct => _
+  | .bvar deBruijnIndex => sorry
+  | .fvar fvarId => sorry
+  | .mvar mvarId => sorry
+  | .sort u => sorry
+  | .const declName us => sorry
+  | .app fn arg => sorry
+  | .lam binderName binderType body binderInfo => sorry
+  | .forallE binderName binderType body binderInfo => sorry
+  | .letE declName type value body nonDep => sorry
+  | .lit _ => sorry
+  | .mdata data expr => sorry
+  | .proj typeName idx struct => sorry
