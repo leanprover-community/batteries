@@ -225,7 +225,7 @@ with rfl when elaboration results in a different term than the user intended. -/
       return none
 
 /--
-Return a list of unused `let_fun` terms in an expression.
+Return a list of unused `let_fun` terms in an expression that introduce proofs.
 -/
 @[nolint unusedArguments]
 def findUnusedHaves (_e : Expr) : MetaM (Array MessageData) := do
@@ -240,6 +240,7 @@ def findUnusedHaves (_e : Expr) : MetaM (Array MessageData) := do
     | some (n, t, _, b) =>
       if n.isInternal then return
       if b.hasLooseBVars then return
+      unless ← Meta.isProp t do return
       let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
       res.modify (·.push msg)
     | _ => return
