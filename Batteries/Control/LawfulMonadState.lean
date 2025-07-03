@@ -8,6 +8,10 @@ Authors: Devon Tuma, Quang Dao
 # Laws for Monads with State
 
 This file defines a typeclass for `MonadStateOf` with compatible `get` and `set` operations.
+
+Note that we use `MonadStateOf` over `MonadState` as the first induces the second,
+but we phrase things using `MonadStateOf.set` and `MonadState.get` as those are the
+versions that are available at the top level namespace.
 -/
 
 /-- The namespaced `MonadStateOf.get` is equal to the `MonadState` provided `get`. -/
