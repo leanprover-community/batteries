@@ -188,19 +188,19 @@ end EStateM
 
 section MonadLift
 
-@[simp] theorem liftM_get {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n] :
+@[simp] theorem liftM_get {m n}  [MonadStateOf σ m] [MonadLift m n] :
     (liftM (get (m := m)) : n _) = get := rfl
 
-@[simp] theorem liftM_set {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+@[simp] theorem liftM_set {m n} [MonadStateOf σ m] [MonadLift m n]
     (s : σ) : (liftM (set (m := m) s) : n _) = set s := rfl
 
-@[simp] theorem liftM_modify {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+@[simp] theorem liftM_modify {m n} [MonadStateOf σ m] [MonadLift m n]
     (f : σ → σ) : (liftM (modify (m := m) f) : n _) = modify f := rfl
 
-@[simp] theorem liftM_modifyGet {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+@[simp] theorem liftM_modifyGet {m n} [MonadStateOf σ m] [MonadLift m n]
     (f : σ → α × σ) : (liftM (modifyGet (m := m) f) : n _) = modifyGet f := rfl
 
-@[simp] theorem liftM_getModify {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+@[simp] theorem liftM_getModify {m n} [MonadStateOf σ m] [MonadLift m n]
     (f : σ → σ) : (liftM (getModify (m := m) f) : n _) = getModify f := rfl
 
 end MonadLift
