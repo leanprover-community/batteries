@@ -7,15 +7,14 @@ Authors: Devon Tuma, Quang Dao
 /-!
 # Laws for Monads with State
 
-## Tags
-
-monad, state
+This file defines a typeclass for `MonadStateOf` with compatible `get` and `set` operations.
 -/
 
 /-- The namespaced `MonadStateOf.get` is equal to the `MonadState` provided `get`. -/
 @[simp] theorem monadStateOf_get_eq_get [MonadStateOf σ m] :
     (MonadStateOf.get : m σ) = get := rfl
 
+/-- The namespaced `MonadStateOf.modifyGet` is equal to the `MonadState` provided `modifyGet`. -/
 @[simp] theorem monadStateOf_modifyGet_eq_modifyGet [MonadStateOf σ m]
     (f : σ → α × σ) : (MonadStateOf.modifyGet f : m α) = modifyGet f := rfl
 
@@ -147,6 +146,8 @@ end LawfulMonadStateOf
 
 namespace StateT
 
+/-- `StateT` is has lawful state operations. This is applied for `StateM` as well do
+to the reducibility of that definition. -/
 instance [LawfulMonad m] : LawfulMonadStateOf σ (StateT σ m) where
   modifyGet_eq f := StateT.ext fun s => by simp
   get_bind_const mx := StateT.ext fun s => by simp
@@ -181,28 +182,40 @@ instance {ε} : LawfulMonadStateOf σ (EStateM ε σ) where
 
 end EStateM
 
-namespace OptionT
+section MonadLift
 
-instance [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
-    LawfulMonadStateOf σ (OptionT m) where
-  modifyGet_eq f := sorry
-  get_bind_const := sorry
-  get_bind_get_bind := sorry
-  get_bind_set_bind := sorry
-  set_bind_get := sorry
-  set_bind_set := sorry
+@[simp] theorem liftM_get {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n] :
+    (liftM (get (m := m)) : n _) = get := rfl
 
-end OptionT
+@[simp] theorem liftM_set {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+    (s : σ) : (liftM (set (m := m) s) : n _) = set s := rfl
 
-namespace WriterT
+@[simp] theorem liftM_modify {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+    (f : σ → σ) : (liftM (modify (m := m) f) : n _) = modify f := rfl
+
+@[simp] theorem liftM_modifyGet {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+    (f : σ → α × σ) : (liftM (modifyGet (m := m) f) : n _) = modifyGet f := rfl
+
+@[simp] theorem liftM_getModify {m n} [Monad m] [MonadStateOf σ m] [MonadLift m n]
+    (f : σ → σ) : (liftM (getModify (m := m) f) : n _) = getModify f := rfl
+
+end MonadLift
+
+namespace ReaderT
 
 instance {ρ} [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (ReaderT ρ m) where
-  modifyGet_eq f := sorry
-  get_bind_const := sorry
-  get_bind_get_bind := sorry
-  get_bind_set_bind := sorry
-  set_bind_get := sorry
-  set_bind_set := sorry
+  modifyGet_eq f := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, LawfulMonadStateOf.modifyGet_eq, ← liftM_get]
+  get_bind_const mx := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, ← liftM_get]
+  get_bind_get_bind mx := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, ← liftM_get]
+  get_bind_set_bind mx := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
+  set_bind_get s := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
+  set_bind_set s s' := ReaderT.ext fun ctx => by
+    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
 
-end WriterT
+end ReaderT
