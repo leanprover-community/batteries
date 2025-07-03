@@ -56,6 +56,8 @@ attribute [simp] get_bind_const get_bind_get_bind get_bind_set_bind set_bind_get
     (fun _ => x) <$> get (m := m) = pure x := by
   rw [map_eq_pure_bind, get_bind_const]
 
+theorem get_bind_get : (do let _ ← get (m := m); get) = get := get_bind_const get
+
 @[simp] theorem get_bind_set [LawfulMonad m] :
     (do let s ← get (m := m); set s) = return PUnit.unit := by
   simpa only [bind_pure_comp, id_map', get_map_const] using
@@ -96,6 +98,7 @@ theorem getModify_eq [LawfulMonad m] (f : σ → σ) :
     getModify (m := m) f = do let s ← get; set (f s); return s := by
   rw [getModify, modifyGet_eq, bind_map_left]
 
+/-- Version of `modifyGet_eq` that preserves an call to `modify`. -/
 theorem modifyGet_eq' [LawfulMonad m] (f : σ → α × σ) :
     modifyGet (m := m) f = do let s ← get; modify (Prod.snd ∘ f); return (f s).fst := by
   simp [modify_eq, modifyGet_eq]
@@ -106,13 +109,37 @@ theorem modifyGet_eq' [LawfulMonad m] (f : σ → α × σ) :
 @[simp] theorem getModify_id [LawfulMonad m] : getModify (m := m) id = get := by
   simp [getModify_eq]
 
-@[simp] theorem modify_modify [LawfulMonad m] (f g : σ → σ) :
-    (do modify (m := m) f; modify g) = modify (g ∘ f) := by
-  simp [modify_eq]
+@[simp] theorem set_bind_modify [LawfulMonad m] (s : σ) (f : σ → σ) :
+    (do set (m := m) s; modify f) = set (f s) := by simp [modify_eq]
 
-@[simp] theorem modify_modifyGet [LawfulMonad m] (f : σ → σ) (g : σ → α × σ) :
+@[simp] theorem set_bind_modify_bind [LawfulMonad m] (s : σ) (f : σ → σ) (mx : PUnit → m α) :
+    (do set s; let u ← modify f; mx u) = (do set (f s); mx PUnit.unit) := by
+  simp [modify_eq, ← bind_assoc]
+
+@[simp] theorem set_bind_modifyGet [LawfulMonad m] (s : σ) (f : σ → α × σ) :
+    (do set (m := m) s; modifyGet f) = (do set (f s).2; return (f s).1) := by simp [modifyGet_eq]
+
+@[simp] theorem set_bind_modifyGet_bind [LawfulMonad m] (s : σ) (f : σ → α × σ) (mx : α → m β) :
+    (do set s; let x ← modifyGet f; mx x) = (do set (f s).2; mx (f s).1) := by simp [modifyGet_eq]
+
+@[simp] theorem set_bind_getModify [LawfulMonad m] (s : σ) (f : σ → σ) :
+    (do set (m := m) s; getModify f) = (do set (f s); return s) := by simp [getModify_eq]
+
+@[simp] theorem set_bind_getModify_bind [LawfulMonad m] (s : σ) (f : σ → σ) (mx : σ → m α) :
+    (do set s; let x ← getModify f; mx x) = (do set (f s); mx s) := by
+  simp [getModify_eq, ← bind_assoc]
+
+@[simp] theorem modify_bind_modify [LawfulMonad m] (f g : σ → σ) :
+    (do modify (m := m) f; modify g) = modify (g ∘ f) := by simp [modify_eq]
+
+@[simp] theorem modify_bind_modifyGet [LawfulMonad m] (f : σ → σ) (g : σ → α × σ) :
     (do modify (m := m) f; modifyGet g) = modifyGet (g ∘ f) := by
   simp [modify_eq, modifyGet_eq]
+
+@[simp] theorem getModify_bind_modify [LawfulMonad m] (f : σ → σ) (g : σ → σ → σ) :
+    (do let s ← getModify (m := m) f; modify (g s)) =
+      (do let s ← get; modify (g s ∘ f)) := by
+  simp [modify_eq, getModify_eq]
 
 end modify
 
