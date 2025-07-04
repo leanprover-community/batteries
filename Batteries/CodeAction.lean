@@ -8,8 +8,8 @@ example (x : Nat) : x = x := by
   | zero => sorry
   | succ n _ => sorry
 
-
-def myfun : Nat → Nat → Nat --direct pattern completion here will be worked on, when the explicit match is deemed good enough.
+/-direct pattern completion here will be worked on, when the explicit match is deemed good--/
+def myfun : Nat → Nat → Nat
   | .zero => sorry
   | .succ n => sorry
 

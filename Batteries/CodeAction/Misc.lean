@@ -267,7 +267,7 @@ def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   | some (.ofTermInfo info) => pure info
   | _ => none
 
-/- Filter for the info-nodes to find the match-nodes -/
+/-- Filter for the info-nodes to find the match-nodes -/
 def isMatchTerm : (info: Info) → Bool
   | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
   | _ => false
@@ -284,7 +284,8 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
       return ⟨startPos, ←matchStx[3].getTailPos?⟩ --range until end of discriminant
   | _ => none
 
-/-- Flattens an Infotree into an array of Info-nodes that fulfill p, inspired by InfoTree.findInfo? -/
+/-- Flattens an Infotree into an array of Info-nodes that fulfill p,
+inspired by InfoTree.findInfo? -/
 partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
   let rec loop (t : InfoTree) (acc : Array Info) : Array Info :=
     match t with
@@ -311,14 +312,16 @@ def myfun2 (n:Nat) : Nat :=
 ```
 
 -/
-@[command_code_action] --i couldn't make this work with '@[command_code_action Parser.Term.match]': It never fires. So i filter it myself in Step 1.
+@[command_code_action] --i couldn't make this work with '@[command_code_action Parser.Term.match]':
+                       --It never fires. So i filter it myself in Step 1.
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   --dbg_trace "--------------------------------------------------------------"
   --dbg_trace (←node.format ctx)
   -- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match`
   let allMatchInfos := findAllInfos isMatchTerm node
 
-  -- 2. Filter these candidates within the `RequestM` monad based on the cursor being in the header lines of these matches.
+  /- 2. Filter these candidates within the `RequestM` monad based on the cursor being in the
+  header lines of these matches. -/
   let doc ← readDoc
   let relevantMatchInfos ← allMatchInfos.filterM fun matchInfo => do
     let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return false
@@ -328,14 +331,15 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     -- check if the cursor range is contained in the header range
     return (cursorRangeLsp.start ≥ headerRangeLsp.start && cursorRangeLsp.end ≤ headerRangeLsp.end)
 
-  -- 3. pick the first (and mostly only) candidate. There might sometimes be more, since some things are just contained multiple times in 'node'.
+  /- 3. pick the first (and mostly only) candidate. There might sometimes be more,
+  since some things are just contained multiple times in 'node'. -/
   let some matchInfo := relevantMatchInfos[0]? | return #[]
   --for m in relevantMatchInfos do
   --  dbg_trace "-----------------------"
   --  dbg_trace ←m.format ctx
   let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return #[]
-
-  let (discrsStx, _altsStx) ← match matchInfo.stx with -- isolate the match-discriminant (i.e. "e" of "match e")
+  /- isolate the match-discriminant (i.e. "e" of "match e") -/
+  let (discrsStx, _altsStx) ← match matchInfo.stx with
     | `(term| match $discrs:term with $alts) => pure (discrs, alts)
     | _ =>
       return #[]
@@ -345,13 +349,14 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   let some (info : TermInfo) := findTermInfo? node discrsStx | return #[]
   let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
   let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
-  let some (.inductInfo val) := snap.env.find? name | return #[] -- Find the inductive constructors of e
+  -- Find the inductive constructors of e:
+  let some (.inductInfo val) := snap.env.find? name | return #[]
 
   let eager : Lsp.CodeAction := {
     title := "Generate a list of equations for this match."
     kind? := "quickfix"
   }
-  --dbg_trace "---------------------------------------------------------------------------------------------------------"
+  --dbg_trace "-----------------------------------------------------------------------------------"
   --dbg_trace withPresent
   --dbg_trace "------------"
   --dbg_trace _altsStx
@@ -375,7 +380,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
         str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
       pure { eager with
         edit? := some <|.ofTextEdit doc.versionedIdentifier {
-          range := doc.meta.text.utf8RangeToLspRange ⟨holePos, holePos⟩ --adapted range to insert-only
+          range := doc.meta.text.utf8RangeToLspRange ⟨holePos, holePos⟩-- adapted to insert-only
           newText := str
         }
       }
