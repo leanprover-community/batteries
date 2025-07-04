@@ -272,7 +272,7 @@ def isMatchTerm : (info: Info) → Bool
   | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
   | _ => false
 
-/-- returns the String.range that encompasses 'match e (with)' -/
+/-- Returns the String.range that encompasses 'match e (with)'. -/
 def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
   match matchStx with
   | `(term| match $discr:term with $_) =>
@@ -312,7 +312,7 @@ def myfun2 (n:Nat) : Nat :=
 ```
 
 -/
-@[command_code_action] --i couldn't make this work with '@[command_code_action Parser.Term.match]':
+@[command_code_action] --I couldn't make this work with '@[command_code_action Parser.Term.match]':
                        --It never fires. So i filter it myself in Step 1.
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   --dbg_trace "--------------------------------------------------------------"
@@ -331,7 +331,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     -- check if the cursor range is contained in the header range
     return (cursorRangeLsp.start ≥ headerRangeLsp.start && cursorRangeLsp.end ≤ headerRangeLsp.end)
 
-  /- 3. pick the first (and mostly only) candidate. There might sometimes be more,
+  /- 3. Pick the first (and mostly only) candidate. There might sometimes be more,
   since some things are just contained multiple times in 'node'. -/
   let some matchInfo := relevantMatchInfos[0]? | return #[]
   --for m in relevantMatchInfos do
