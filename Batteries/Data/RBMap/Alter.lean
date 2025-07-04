@@ -164,7 +164,7 @@ theorem Zoomed.toRootOrdered {cmp} :
     ∀ {path : Path α}, path.Zoomed (cmp v) → path.RootOrdered cmp v
   | .root, h => h
   | .left .., ⟨h, hp⟩ => ⟨⟨h⟩, hp.toRootOrdered⟩
-  | .right .., ⟨h, hp⟩ => ⟨⟨OrientedCmp.cmp_eq_gt.1 h⟩, hp.toRootOrdered⟩
+  | .right .., ⟨h, hp⟩ => ⟨⟨Std.OrientedCmp.gt_iff_lt.1 h⟩, hp.toRootOrdered⟩
 
 /-- The ordering invariant for a `Path`. -/
 def Ordered (cmp : α → α → Ordering) : Path α → Prop
@@ -342,7 +342,7 @@ so it uses the element linearly if `t` is unshared.
 -/
 def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
   @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b))
-    (.of_eq fun _ => ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst cmp)⟩)
+    (.of_eq fun _ => ⟨Std.ReflCmp.compare_self (cmp := Ordering.byKey Prod.fst cmp)⟩)
 
 /-- Auxiliary definition for `alter`. -/
 def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → Option (α × β)
@@ -372,6 +372,6 @@ the ordering properties of the element, which would break the invariants.
   cases t' <;> simp [alter.adapt, RBNode.root?] <;> split <;> intro h <;> cases h
   · exact ⟨(t.2.out.1.zoom eq).2.2.2.toRootOrdered, ⟨⟩⟩
   · refine ⟨(?a).RootOrdered_congr.2 (t.2.out.1.zoom eq).2.2.1.1, ?a⟩
-    exact ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst cmp)⟩
+    exact ⟨Std.ReflCmp.compare_self (cmp := Ordering.byKey Prod.fst cmp)⟩
 
 end RBMap
