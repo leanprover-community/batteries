@@ -1,0 +1,1 @@
+{"name":"Init.Control.Lawful.MonadLift","instances":[],"imports":["Init.Control.Lawful.MonadLift.Basic","Init.Control.Lawful.MonadLift.Lemmas","Init.Control.Lawful.MonadLift.Instances"],"declarations":[]}
