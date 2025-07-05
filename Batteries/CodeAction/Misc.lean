@@ -287,14 +287,16 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
 /-- Flattens an Infotree into an array of Info-nodes that fulfill p,
 inspired by InfoTree.findInfo? -/
 partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
-  let rec loop (t : InfoTree) (acc : Array Info) : Array Info :=
+  loop t #[]
+where
+  /-- Inner loop for `findAllInfos` -/
+  loop (t : InfoTree) (acc : Array Info) : Array Info :=
     match t with
     | .context _ childTree => loop childTree acc
     | .node info children  =>
       let acc' := if p info then acc.push info else acc
       children.foldl (fun currentAcc child => loop child currentAcc) acc'
     | .hole _              => acc
-  loop t #[]
 
 /--
 Invoking tactic code action "Generate a list of equations for this match." in the
