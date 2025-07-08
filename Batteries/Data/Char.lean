@@ -15,10 +15,19 @@ instance : Batteries.LawfulOrd Char := .compareOfLessAndEq
 
 namespace Char
 
-theorem isUpper_or_isLower_iff_isAlpha {c : Char} : c.isUpper ∨ c.isLower ↔ c.isAlpha := by
+/--
+Unicode defines a "case folding" algorithm in which upper-case ASCII characters are
+mapped onto their lower-case counterparts.
+
+This abbrev standardizes on one direction (it answers the question of whether
+one should choose e.g. `toUpper` or `toLower` with respect to case insensitive logic).
+-/
+abbrev asciiCaseFold := Char.toLower
+
+theorem isAlpha_iff_isUpper_or_isLower {c : Char} : c.isAlpha ↔ c.isUpper ∨ c.isLower := by
   simp [Char.isAlpha]
 
-theorem toLower_eq_of_isLower (c : Char) : c.isLower → c.toLower = c := by
+theorem toLower_eq_of_isLower {c : Char} : c.isLower → c.toLower = c := by
   simp only [isLower, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq, toLower, ite_eq_right_iff,
     and_imp]
   intro h0 _ _ h3
@@ -32,12 +41,16 @@ theorem toLower_eq_of_not_isAlpha {c : Char} : ¬c.isAlpha → c.toLower = c := 
   have _ : c.val.toNat ≤ 90 ∧ 90 < c.val.toNat:= ⟨h3, h0 h2⟩
   omega
 
-theorem toLowerIsAlpha_iff_isAlpha {c : Char} : c.isAlpha ↔ c.toLower.isAlpha := by
+theorem isAlpha_toLower_iff_isAlpha {c : Char} : c.toLower.isAlpha ↔ c.isAlpha := by
   have isUpper_def : c.isUpper → 65 ≤ c.val ∧ c.val ≤ 90 := by
     simp only [isUpper, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq, and_imp]; exact .intro
   apply Iff.intro
   case _ =>
-    rw [← isUpper_or_isLower_iff_isAlpha]
+    by_cases hIsAlpha : c.isAlpha
+    . intro _; assumption
+    . rw [toLower_eq_of_not_isAlpha hIsAlpha]; exact id
+  case _ =>
+    rw [isAlpha_iff_isUpper_or_isLower]
     rintro (_ | _)
     .
       have hl : 65 ≤ c.val.toNat ∧ c.val.toNat ≤ 90 := isUpper_def ‹_›
@@ -46,33 +59,26 @@ theorem toLowerIsAlpha_iff_isAlpha {c : Char} : c.isAlpha ↔ c.toLower.isAlpha 
         Char.ofNatAux, hValid, UInt32.le_iff_toBitVec_le, hl]
       bv_decide
     .
-      rw [toLower_eq_of_isLower c ‹_›]
-      exact isUpper_or_isLower_iff_isAlpha.mp (.inr ‹_›)
-  case _ =>
-    by_cases hIsAlpha : c.isAlpha
-    . intro _; assumption
-    . rw [toLower_eq_of_not_isAlpha hIsAlpha]; exact id
+      rw [toLower_eq_of_isLower ‹_›]
+      exact isAlpha_iff_isUpper_or_isLower.mpr (.inr ‹_›)
 
 /--
-Prop-valued comparison of two `Char`s for *ascii*-case insensitive equality.
+Bool-valued comparison of two `Char`s for *ASCII*-case insensitive equality.
 -/
-def eqIgnoreAsciiCase (c₁ c₂ : Char) : Prop := c₁.toLower = c₂.toLower
+def beqInsensitiveAsciiCase (c₁ c₂ : Char) : Bool := c₁.toLower == c₂.toLower
+
+theorem beqInsensitiveAsciiCase.eqv : Equivalence (beqInsensitiveAsciiCase · ·) := {
+  refl _ := BEq.rfl
+  trans _ _ := by simp_all [beqInsensitiveAsciiCase]
+  symm := by simp_all [beqInsensitiveAsciiCase]}
 
 /--
-Bool-valued comparison of two `Char`s for *ascii*-case insensitive equality.
+Setoid structure on `Char` using `beqInsensitiveAsciiCase`
 -/
-def beqIgnoreAsciiCase (c₁ c₂ : Char) : Bool := c₁.toLower == c₂.toLower
+def beqInsensitiveAsciiCase.isSetoid : Setoid Char:=
+  ⟨(beqInsensitiveAsciiCase · ·), beqInsensitiveAsciiCase.eqv⟩
 
-theorem eqIgnoreAsciiCase_iff_beqIgnoreAsciiCase (c₁ c₂ : Char) :
-  c₁.eqIgnoreAsciiCase c₂ ↔ (c₁.beqIgnoreAsciiCase c₂ = true) := by
-  simp [eqIgnoreAsciiCase, beqIgnoreAsciiCase]
-
-theorem eqIgnoreAsciiCase.eqv : Equivalence eqIgnoreAsciiCase := {
-  refl _ := rfl
-  trans := fun h1 h2 => by simp only [eqIgnoreAsciiCase]; exact h1 ▸ h2
-  symm := by simp [eqIgnoreAsciiCase]; exact Eq.symm
-}
-
-instance eqIgnoreAsciiCase.isSetoid : Setoid Char:= .mk eqIgnoreAsciiCase eqIgnoreAsciiCase.eqv
-
-end Char
+/--
+ASCII-case insensitive implementation comparison returning an `Ordering`. Useful for sorting.
+-/
+def cmpInsensitiveAsciiCase (c₁ c₂ : Char) : Ordering := Ord.compare c₁.toLower c₂.toLower
