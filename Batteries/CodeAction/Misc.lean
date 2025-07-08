@@ -282,12 +282,12 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
     with $_) => --Here the $alts would go, if they were already typed. Else $_  will match "missing"
 
     -- Isolate the syntax of only the "match" atom to get the starting position:
-    let mStx ← matchStx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "match")
+    let mStx ← matchStx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "match")
     let startPos ← mStx.getPos? -- begin of 'match' keyword
 
     -- Depending on the existence of 'with', return the correct range:
-    if let some withStx := (matchStx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")) then
-      return ⟨startPos, ←withStx.getTailPos?⟩
+    if let some withStx := (matchStx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "with"))
+      then return ⟨startPos, ←withStx.getTailPos?⟩
     else
       let lastMatchDiscr ← discrs.back?
       return ⟨startPos, ←lastMatchDiscr.raw.getTailPos?⟩
@@ -370,7 +370,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   | _ => return #[]
 
   /- Reduce this to the array of match-discriminants-terms (i.e. "[n1, n2]" of "match n2,n2 ") -/
-  let some discrTerms := discrs.mapM (fun discr ↦
+  let some discrTerms := discrs.mapM (fun discr =>
     match discr with
     | `(matchDiscr| $t: term) => some t
     | `(matchDiscr| $_:ident : $t: term) => some t
@@ -378,7 +378,8 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     ) | return #[]
 
   -- Get a Bool, that tells us if "with" is already typed in:
-  let withPresent := (matchInfo.stx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")).isSome
+  let withPresent :=
+    (matchInfo.stx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "with")).isSome
 
   /- Construct a list containing for each discriminant its list of constructornames: -/
   let mut constructors : List (List Name) := []
