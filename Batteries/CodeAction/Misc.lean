@@ -307,6 +307,14 @@ where
       children.foldl (fun currentAcc child => loop child currentAcc) acc'
     | .hole _              => acc
 
+/-- Computes the cartesian product over a list of lists.
+i.e. cartesian_product [[1, 2], [3, 4]] =  [[1, 3], [1, 4], [2, 3], [2, 4]]. -/
+def cartesian_product {α : Type} : List (List α) → List (List α)
+| [] => [[]]
+| xs :: xss =>
+  let sub_products := cartesian_product xss
+  (xs.map (fun val => sub_products.map (fun sub => val :: sub))).flatten
+
 /--
 Invoking tactic code action "Generate a list of equations for this match." in the
 following:
@@ -372,14 +380,15 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   -- Get a Bool, that tells us if "with" is already typed in:
   let withPresent := (matchInfo.stx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")).isSome
 
-  -- Only use first discriminant for now:
-  let some firstDiscr := discrTerms[0]? | return #[]
-
-  let some (info : TermInfo) := findTermInfo? node firstDiscr | return #[]
-  let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
-  let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
-  -- Find the inductive constructors of e:
-  let some (.inductInfo val) := snap.env.find? name | return #[]
+  /- Construct a list containing for each discriminant its list of constructornames: -/
+  let mut constructors : List (List Name) := []
+  for discrTerm in discrTerms do
+    let some (info : TermInfo) := findTermInfo? node discrTerm | return #[]
+    let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
+    let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
+    -- Find the inductive constructors of e:
+    let some (.inductInfo val) := snap.env.find? name | return #[]
+    constructors := constructors.concat (val.ctors)
 
   let eager : Lsp.CodeAction := {
     title := "Generate a list of equations for this match."
@@ -392,7 +401,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   --dbg_trace "------------"
   --dbg_trace (←node.format ctx)
   --dbg_trace (_altsStx.raw.getArg 0)
-  return #[{ --rest is almost verbatim taken from eqnStub:
+  return #[{ --rest is lightly adapted from eqnStub:
     eager
     lazy? := some do
       let holePos := headerRangeRaw.stop --where we start inserting
@@ -400,13 +409,21 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
       let mut str := if withPresent then "" else " with"
 
       let indent := "\n".pushn ' ' (indent) --use the same indent as the 'match' line.
-      for ctor in val.ctors do
-        let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
-        let ctor := toString (ctor.updatePrefix .anonymous)
-        str := str ++ indent ++ s!"| .{ctor}"
-        for arg in getExplicitArgs ci.type #[] do
-          str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
-        str := str ++ s!" => {holeKindToHoleString info.elaborator ctor}"
+      for l in cartesian_product constructors do
+        str := str ++ indent ++ "| "
+        for ctor_idx in [:l.length] do
+          let ctor := l[ctor_idx]!
+          let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
+          let ctor_short := toString (ctor.updatePrefix .anonymous)
+          str := str ++ s!".{ctor_short}"
+          for arg in getExplicitArgs ci.type #[] do
+            /- This takes the variable names `arg` which were used in the
+            inductive type specification. When using this action with multiple (same-type)
+            arguments these will clash - but you will probably want to rename them yourself. -/
+            str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+          if ctor_idx < l.length - 1 then
+            str := str ++ ", "
+        str := str ++ s!" => _"
       pure { eager with
         edit? := some <|.ofTextEdit doc.versionedIdentifier {
           range := doc.meta.text.utf8RangeToLspRange ⟨holePos, holePos⟩-- adapted to insert-only
