@@ -362,12 +362,12 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   | _ => return #[]
 
   /- Reduce this to the array of match-discriminants-terms (i.e. "[n1, n2]" of "match n2,n2 ") -/
-  let discrTerms : Array (TSyntax `term) := discrs.map (fun discr ↦
+  let some discrTerms := discrs.mapM (fun discr ↦
     match discr with
-    | `(matchDiscr| $t: term) => t
-    | `(matchDiscr| $_:ident : $t: term) => t
-    | _ => unreachable!
-    )
+    | `(matchDiscr| $t: term) => some t
+    | `(matchDiscr| $_:ident : $t: term) => some t
+    | _ => none
+    ) | return #[]
 
   -- Get a Bool, that tells us if "with" is already typed in:
   let withPresent := (matchInfo.stx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")).isSome
