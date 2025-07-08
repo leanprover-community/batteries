@@ -275,13 +275,22 @@ def isMatchTerm : (info: Info) → Bool
 /-- Returns the String.range that encompasses 'match e (with)'. -/
 def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
   match matchStx with
-  | `(term| match $discr:term with $_) =>
+  | `(term| match
+    $[(generalizing := $generalizingVal)]?
+    $[(motive := $motiveVal)]?
+    $[$discrs:matchDiscr],*
+    with $_) => --Here the $alts would go, if they were already typed. Else $_  will match "missing"
 
-    let startPos ← matchStx[0].getPos? -- begin of 'match' keyword
-    if matchStx[4].getPos?.isSome --'with' exists in this case
-      then return ⟨startPos, ←matchStx[4].getTailPos?⟩ --range until end of 'with'
+    -- Isolate the syntax of only the "match" atom to get the starting position:
+    let mStx ← matchStx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "match")
+    let startPos ← mStx.getPos? -- begin of 'match' keyword
+
+    -- Depending on the existence of 'with', return the correct range:
+    if let some withStx := (matchStx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")) then
+      return ⟨startPos, ←withStx.getTailPos?⟩
     else
-      return ⟨startPos, ←matchStx[3].getTailPos?⟩ --range until end of discriminant
+      let lastMatchDiscr ← discrs.back?
+      return ⟨startPos, ←lastMatchDiscr.raw.getTailPos?⟩
   | _ => none
 
 /-- Flattens an Infotree into an array of Info-nodes that fulfill p,
@@ -336,19 +345,37 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   /- 3. Pick the first (and mostly only) candidate. There might sometimes be more,
   since some things are just contained multiple times in 'node'. -/
   let some matchInfo := relevantMatchInfos[0]? | return #[]
+
   --for m in relevantMatchInfos do
   --  dbg_trace "-----------------------"
   --  dbg_trace ←m.format ctx
+
   let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return #[]
-  /- isolate the match-discriminant (i.e. "e" of "match e") -/
-  let (discrsStx, _altsStx) ← match matchInfo.stx with
-    | `(term| match $discrs:term with $alts) => pure (discrs, alts)
-    | _ =>
-      return #[]
 
-  let withPresent := _altsStx.raw.hasArgs --check if "with" is already typed in.
+  /- Isolate the array of match-discriminants -/
+  let discrs ← match matchInfo.stx with
+  | `(term| match
+    $[(generalizing := $generalizingVal)]?
+    $[(motive := $motiveVal)]?
+    $[$discrs:matchDiscr],*
+    with $_) => pure discrs
+  | _ => return #[]
 
-  let some (info : TermInfo) := findTermInfo? node discrsStx | return #[]
+  /- Reduce this to the array of match-discriminants-terms (i.e. "[n1, n2]" of "match n2,n2 ") -/
+  let discrTerms : Array (TSyntax `term) := discrs.map (fun discr ↦
+    match discr with
+    | `(matchDiscr| $t: term) => t
+    | `(matchDiscr| $_:ident : $t: term) => t
+    | _ => unreachable!
+    )
+
+  -- Get a Bool, that tells us if "with" is already typed in:
+  let withPresent := (matchInfo.stx.getArgs.find? (fun s ↦ s.isAtom && s.getAtomVal == "with")).isSome
+
+  -- Only use first discriminant for now:
+  let some firstDiscr := discrTerms[0]? | return #[]
+
+  let some (info : TermInfo) := findTermInfo? node firstDiscr | return #[]
   let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
   let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
   -- Find the inductive constructors of e:
