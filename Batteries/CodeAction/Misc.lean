@@ -258,7 +258,8 @@ def getElimExprNames (elimType : Expr) : MetaM (Array (Name × Array Name)) := d
           altsInfo := altsInfo.push (xDecl.userName, args)
     pure altsInfo
 
-/-- Finds the `TermInfo` for an elaborated term `stx`. -/
+/-- Finds the `TermInfo` for an elaborated term `stx`.
+-/
 def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   match node.findInfo? fun
     | .ofTermInfo i => i.stx.getKind == stx.raw.getKind && i.stx.getRange? == stx.raw.getRange?
@@ -267,12 +268,14 @@ def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   | some (.ofTermInfo info) => pure info
   | _ => none
 
-/-- Filter for the info-nodes to find the match-nodes -/
+/-- Filter for the info-nodes to find the match-nodes
+-/
 def isMatchTerm : (info: Info) → Bool
   | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
   | _ => false
 
-/-- Returns the String.range that encompasses 'match e (with)'. -/
+/-- Returns the String.range that encompasses 'match e (with)'.
+-/
 def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
   match matchStx with
   | `(term| match
@@ -294,7 +297,8 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
   | _ => none
 
 /-- Flattens an Infotree into an array of Info-nodes that fulfill p,
-inspired by InfoTree.findInfo? -/
+inspired by InfoTree.findInfo?
+-/
 partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
   loop t #[]
 where
@@ -308,12 +312,38 @@ where
     | .hole _              => acc
 
 /-- Computes the cartesian product over a list of lists.
-i.e. cartesian_product [[1, 2], [3, 4]] =  [[1, 3], [1, 4], [2, 3], [2, 4]]. -/
+i.e. cartesian_product [[1, 2], [3, 4]] =  [[1, 3], [1, 4], [2, 3], [2, 4]].
+-/
 def cartesian_product {α : Type} : List (List α) → List (List α)
 | [] => [[]]
 | xs :: xss =>
   let sub_products := cartesian_product xss
   (xs.map (fun val => sub_products.map (fun sub => val :: sub))).flatten
+
+/-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
+'.some val'. We implement special cases for Nat and List to produce 'n + 1' instead of 'Nat.succ n'.
+-/
+def pattern_from_constructor (ctor : Name) (env: Environment): Option String := do
+  let some (.ctorInfo ci) := env.find? ctor | panic! "bad inductive"
+  let ctor_short := toString (ctor.updatePrefix .anonymous)
+  let mut str := ""
+  let explicit_args := getExplicitArgs ci.type #[]
+  match ctor with
+  | (.str (.str .anonymous "Nat") "zero") => "0"
+  /- At the moment this evaluates to "n + 1": -/
+  | (.str (.str .anonymous "Nat") "succ") => s!"{explicit_args[0]!} + 1" --
+  | (.str (.str .anonymous "List") "nil") => "[]"
+  /- At the moment this evaluates to "head :: tail": -/
+  | (.str (.str .anonymous "List") "cons") => s!"{explicit_args[0]!} :: {explicit_args[1]!}"
+  /- Default case: -/
+  | _ =>
+    str := str ++ s!".{ctor_short}"
+    for arg in explicit_args do
+    /- This takes the variable names `arg` which were used in the
+    inductive type specification. When using this action with multiple (same-type)
+    arguments these will clash - but you will probably want to rename them yourself. -/
+      str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+    return str
 
 /--
 Invoking tactic code action "Generate a list of equations for this match." in the
@@ -326,8 +356,8 @@ produces:
 ```lean
 def myfun2 (n:Nat) : Nat :=
   match n with
-  | .zero => _
-  | .succ n => _
+  | 0 => _
+  | n + 1 => _
 ```
 
 -/
@@ -369,7 +399,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     with $_) => pure discrs
   | _ => return #[]
 
-  /- Reduce this to the array of match-discriminants-terms (i.e. "[n1, n2]" of "match n2,n2 ") -/
+  /- Reduce discrs to the array of match-discriminants-terms (i.e. "[n1, n2]" in "match n2,n2"). -/
   let some discrTerms := discrs.mapM (fun discr =>
     match discr with
     | `(matchDiscr| $t: term) => some t
@@ -395,13 +425,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     title := "Generate a list of equations for this match."
     kind? := "quickfix"
   }
-  --dbg_trace "-----------------------------------------------------------------------------------"
-  --dbg_trace withPresent
-  --dbg_trace "------------"
-  --dbg_trace _altsStx
-  --dbg_trace "------------"
-  --dbg_trace (←node.format ctx)
-  --dbg_trace (_altsStx.raw.getArg 0)
+
   return #[{ --rest is lightly adapted from eqnStub:
     eager
     lazy? := some do
@@ -414,14 +438,8 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
         str := str ++ indent ++ "| "
         for ctor_idx in [:l.length] do
           let ctor := l[ctor_idx]!
-          let some (.ctorInfo ci) := snap.env.find? ctor | panic! "bad inductive"
-          let ctor_short := toString (ctor.updatePrefix .anonymous)
-          str := str ++ s!".{ctor_short}"
-          for arg in getExplicitArgs ci.type #[] do
-            /- This takes the variable names `arg` which were used in the
-            inductive type specification. When using this action with multiple (same-type)
-            arguments these will clash - but you will probably want to rename them yourself. -/
-            str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+          let some pat := pattern_from_constructor ctor snap.env | panic! "bad inductive"
+          str := str ++ pat
           if ctor_idx < l.length - 1 then
             str := str ++ ", "
         str := str ++ s!" => _"
