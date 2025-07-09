@@ -359,7 +359,20 @@ def myfun2 (n:Nat) : Nat :=
   | 0 => _
   | n + 1 => _
 ```
-
+Also has support for multiple discriminants, e.g.
+```
+def myfun3 (o: Option Bool) (m:Nat): Nat :=
+  match o, m with
+```
+can be expanded into
+```
+def myfun3 (o: Option Bool) (m:Nat): Nat :=
+  match o, m with
+  | .none, 0 => _
+  | .none, n + 1 => _
+  | .some val, 0 => _
+  | .some val, n + 1 => _
+```
 -/
 @[command_code_action] --I couldn't make this work with '@[command_code_action Parser.Term.match]':
                        --It never fires. So i filter it myself in Step 1.
