@@ -53,7 +53,7 @@ end List
 
 /-! This tests that `simpNF` is not accidentally using `quasiPatternApprox := true`. -/
 
-def eqToFun {X Y : Type} (p : X = Y) : X → Y := by rw [p]; exact id
+def eqToFun {X Y : Type} (p : X = Y) : X → Y := by rw [p]
 
 @[simp]
 theorem eqToFun_comp_eq_self {β} {X : Type} {f : β → Type}
