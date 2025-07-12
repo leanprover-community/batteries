@@ -1,0 +1,1 @@
+{"name":"Lean.ErrorExplanations","instances":[],"imports":["Lean.ErrorExplanations.CtorResultingTypeMismatch","Lean.ErrorExplanations.DependsOnNoncomputable","Lean.ErrorExplanations.InductiveParamMismatch","Lean.ErrorExplanations.InductiveParamMissing","Lean.ErrorExplanations.InvalidDottedIdent","Lean.ErrorExplanations.RedundantMatchAlt"],"declarations":[]}

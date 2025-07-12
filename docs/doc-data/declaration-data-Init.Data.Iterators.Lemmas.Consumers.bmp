@@ -1,0 +1,1 @@
+{"name":"Init.Data.Iterators.Lemmas.Consumers","instances":[],"imports":["Init.Data.Iterators.Lemmas.Consumers.Monadic","Init.Data.Iterators.Lemmas.Consumers.Collect","Init.Data.Iterators.Lemmas.Consumers.Loop"],"declarations":[]}

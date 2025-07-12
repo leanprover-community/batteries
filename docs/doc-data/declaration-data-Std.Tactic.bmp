@@ -1,0 +1,1 @@
+{"name":"Std.Tactic","instances":[],"imports":["Std.Tactic.BVDecide","Std.Tactic.Do"],"declarations":[]}
