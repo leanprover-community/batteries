@@ -181,7 +181,7 @@ abbrev LEOrd (α) [LE α] [Ord α] := LECmp (α := α) compare
 @[deprecated "Std.LawfulBOrd" (since := "2025-07-01")]
 abbrev LawfulOrd (α) [LE α] [LT α] [BEq α] [Ord α] := LawfulCmp (α := α) compare
 
-@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm"
+@[deprecated "Std.TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm"
   (since := "2025-07-01")]
 protected theorem TransCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
@@ -204,7 +204,7 @@ protected theorem TransCmp.compareOfLessAndEq
   if xy : x < y then exact zy (lt_trans zx xy)
   else exact zy (lt_antisymm yx xy ▸ zx)
 
-@[deprecated "Std.TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+@[deprecated "Std.TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm"
   (since := "2025-07-01")]
 theorem TransCmp.compareOfLessAndEq_of_le
     [LT α] [LE α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
@@ -225,7 +225,7 @@ protected theorem BEqCmp.compareOfLessAndEq
     split <;> [skip; split] <;> simp [*]
     rintro rfl; exact lt_irrefl _ ‹_›
 
-@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm"
+@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm"
   (since := "2025-07-01")]
 protected theorem LTCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α]
@@ -236,7 +236,7 @@ protected theorem LTCmp.compareOfLessAndEq
   { TransCmp.compareOfLessAndEq lt_irrefl lt_trans lt_antisymm with
     cmp_iff_lt := compareOfLessAndEq_eq_lt }
 
-@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+@[deprecated "Std.LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm"
   (since := "2025-07-01")]
 protected theorem LTCmp.compareOfLessAndEq_of_le
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [LE α]
@@ -248,7 +248,7 @@ protected theorem LTCmp.compareOfLessAndEq_of_le
   { TransCmp.compareOfLessAndEq_of_le lt_irrefl lt_trans not_lt le_antisymm with
     cmp_iff_lt := compareOfLessAndEq_eq_lt }
 
-@[deprecated "Std.LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+@[deprecated "Std.LawfulLECmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm"
   (since := "2025-07-01")]
 protected theorem LECmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [LE α]
@@ -261,7 +261,7 @@ protected theorem LECmp.compareOfLessAndEq
   { this with
     cmp_iff_le := (this.cmp_ne_gt).trans <| (not_congr compareOfLessAndEq_eq_lt).trans not_lt }
 
-@[deprecated "Std.LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm"
+@[deprecated "Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm"
   (since := "2025-07-01")]
 protected theorem LawfulCmp.compareOfLessAndEq
     [LT α] [DecidableRel (LT.lt (α := α))] [DecidableEq α] [BEq α] [LawfulBEq α] [LE α]

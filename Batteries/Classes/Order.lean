@@ -173,7 +173,7 @@ theorem LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl
     rintro rfl; exact lt_irrefl _ ‹_›
 
 -- redundant? See `compareOfLessAndEq_of_lt_trans_of_lt_iff` in core
-theorem TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+theorem TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     [LT α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
@@ -194,48 +194,48 @@ theorem TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
       exact lt_antisymm h₃ h₁
 
 -- redundant? See `compareOfLessAndEq_of_antisymm_of_trans_of_total_of_not_le` in core
-theorem TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+theorem TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     [LT α] [LE α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (not_lt : ∀ {x y : α}, ¬x < y → y ≤ x)
     (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
     TransCmp (α := α) (compareOfLessAndEq · ·) :=
-  .compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+  .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     lt_irrefl lt_trans fun xy yx => le_antisymm (not_lt yx) (not_lt xy)
 
 -- make redundant?
-theorem LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+theorem LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     [LT α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (lt_antisymm : ∀ {x y : α}, ¬x < y → ¬y < x → x = y) :
     LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
-  { TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_lt_antisymm
+  { TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
       lt_irrefl lt_trans lt_antisymm with
     eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
 
 -- make redundant?
-theorem LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+theorem LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     [LT α] [DecidableLT α] [DecidableEq α] [LE α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (not_lt : ∀ {x y : α}, ¬x < y → y ≤ x)
     (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
     LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
-  { TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+  { TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt le_antisymm with
     eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
 
 -- make redundant?
-theorem LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+theorem LawfulLECmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     [LT α] [DecidableLT α] [DecidableEq α] [LE α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (not_lt : ∀ {x y : α}, ¬x < y ↔ y ≤ x)
     (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
     LawfulLECmp (α := α) (compareOfLessAndEq · ·) :=
-  have := TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+  have := TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt.1 le_antisymm
   { this with
     isLE_iff_le := by
@@ -244,18 +244,18 @@ theorem LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_
       apply not_congr
       rw [this.gt_iff_lt, Batteries.compareOfLessAndEq_eq_lt] }
 
-theorem LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+theorem LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     [LT α] [LE α] [DecidableLT α] [DecidableLE α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (not_lt : ∀ {x y : α}, ¬x < y ↔ y ≤ x)
     (le_antisymm : ∀ {x y : α}, x ≤ y → y ≤ x → x = y) :
     LawfulCmp (α := α) (compareOfLessAndEq · ·) :=
-    have instT := TransCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    have instT := TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt.1 le_antisymm
-    have instLT := LawfulLTCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    have instLT := LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt.1 le_antisymm
-    have instLE := LawfulLECmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+    have instLE := LawfulLECmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt le_antisymm
     have le_refl (x : α) : x ≤ x := by rw [← not_lt]; exact lt_irrefl _
     have not_le {x y : α} : ¬x ≤ y ↔ y < x := by simp [← not_lt]
@@ -264,11 +264,11 @@ theorem LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_an
     }
 
 instance : LawfulOrd Nat :=
-  LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+  LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     Nat.lt_irrefl Nat.lt_trans Nat.not_lt Nat.le_antisymm
 
 instance : LawfulOrd Int :=
-  LawfulCmp.compareOfLessAndEq_of_lt_irrefl_of_lt_trans_of_not_lt_of_le_antisymm
+  LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     Int.lt_irrefl Int.lt_trans Int.not_lt Int.le_antisymm
 
 instance : LawfulOrd Bool := by
