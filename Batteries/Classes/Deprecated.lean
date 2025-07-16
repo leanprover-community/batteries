@@ -122,7 +122,8 @@ class BEqCmp [BEq α] (cmp : α → α → Ordering) : Prop where
   /-- `cmp x y = .eq` holds iff `x == y` is true. -/
   cmp_iff_beq : cmp x y = .eq ↔ x == y
 
-attribute [deprecated Std.LawfulBEqCmp.compare_eq_iff_beq (since := "2025-07-01")] BEqCmp.cmp_iff_beq
+attribute [deprecated Std.LawfulBEqCmp.compare_eq_iff_beq
+  (since := "2025-07-01")] BEqCmp.cmp_iff_beq
 
 @[deprecated Std.LawfulEqCmp.compare_eq_iff_eq (since := "2025-07-01")]
 theorem BEqCmp.cmp_iff_eq [BEq α] [LawfulBEq α] [BEqCmp (α := α) cmp] : cmp x y = .eq ↔ x = y := by
