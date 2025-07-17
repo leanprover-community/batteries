@@ -323,7 +323,7 @@ def cartesian_product {α : Type} : List (List α) → List (List α)
 /-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
 '.some val'. We implement special cases for Nat and List to produce 'n + 1' instead of 'Nat.succ n'.
 -/
-def pattern_from_constructor (ctor : Name) (env: Environment): Option String := do
+def pattern_from_constructor (ctor : Name) (env: Environment) (suffix : String): Option String := do
   let some (.ctorInfo ci) := env.find? ctor | panic! "bad inductive"
   let ctor_short := toString (ctor.updatePrefix .anonymous)
   let mut str := ""
@@ -331,18 +331,19 @@ def pattern_from_constructor (ctor : Name) (env: Environment): Option String := 
   match ctor with
   | (.str (.str .anonymous "Nat") "zero") => "0"
   /- At the moment this evaluates to "n + 1": -/
-  | (.str (.str .anonymous "Nat") "succ") => s!"{explicit_args[0]!} + 1" --
+  | (.str (.str .anonymous "Nat") "succ") => s!"{explicit_args[0]!}{suffix} + 1" --
   | (.str (.str .anonymous "List") "nil") => "[]"
   /- At the moment this evaluates to "head :: tail": -/
-  | (.str (.str .anonymous "List") "cons") => s!"{explicit_args[0]!} :: {explicit_args[1]!}"
+  | (.str (.str .anonymous "List") "cons") => s!"{explicit_args[0]!}{suffix} :: {explicit_args[1]!}{suffix}"
   /- Default case: -/
   | _ =>
     str := str ++ s!".{ctor_short}"
     for arg in explicit_args do
-    /- This takes the variable names `arg` which were used in the
-    inductive type specification. When using this action with multiple (same-type)
-    arguments these will clash - but you will probably want to rename them yourself. -/
-      str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}"
+      /- This takes the variable names `arg` which were used in the
+      inductive type specification. When using this action with multiple (same-type)
+      arguments these might clash, so we fix it by appending a suffix like `_2` -
+      you will probably want to rename these suffixed names yourself. -/
+      str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}{suffix}"
     return str
 
 /--
@@ -451,7 +452,8 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
         str := str ++ indent ++ "| "
         for ctor_idx in [:l.length] do
           let ctor := l[ctor_idx]!
-          let some pat := pattern_from_constructor ctor snap.env | panic! "bad inductive"
+          let suffix := if constructors.length ≥ 2 then s!"_{ctor_idx + 1}" else ""
+          let some pat := pattern_from_constructor ctor snap.env suffix | panic! "bad inductive"
           str := str ++ pat
           if ctor_idx < l.length - 1 then
             str := str ++ ", "
