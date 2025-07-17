@@ -108,9 +108,9 @@ can be expanded into
 def myfun3 (o: Option Bool) (m:Nat): Nat :=
   match o, m with
   | .none, 0 => _
-  | .none, n + 1 => _
-  | .some val, 0 => _
-  | .some val, n + 1 => _
+  | .none, n_2 + 1 => _
+  | .some val_1, 0 => _
+  | .some val_1, n_2 + 1 => _
 ```
 -/
 @[command_code_action] --I couldn't make this work with '@[command_code_action Parser.Term.match]':
