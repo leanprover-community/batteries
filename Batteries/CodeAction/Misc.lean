@@ -334,7 +334,8 @@ def pattern_from_constructor (ctor : Name) (env: Environment) (suffix : String):
   | (.str (.str .anonymous "Nat") "succ") => s!"{explicit_args[0]!}{suffix} + 1" --
   | (.str (.str .anonymous "List") "nil") => "[]"
   /- At the moment this evaluates to "head :: tail": -/
-  | (.str (.str .anonymous "List") "cons") => s!"{explicit_args[0]!}{suffix} :: {explicit_args[1]!}{suffix}"
+  | (.str (.str .anonymous "List") "cons") =>
+    s!"{explicit_args[0]!}{suffix} :: {explicit_args[1]!}{suffix}"
   /- Default case: -/
   | _ =>
     str := str ++ s!".{ctor_short}"
