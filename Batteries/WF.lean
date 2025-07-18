@@ -86,6 +86,13 @@ private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
   funext α r motive intro a t
   rw [Acc.ndrecOn, rec_eq_recC, Acc.ndrecOnC]
 
+/-- Introduces a predicate `p` into an accessibility relation, provided that it holds of the
+initial point. -/
+theorem restriction (p : α → Prop) {r : α → α → Prop} {a : α}
+    (acc : Acc r a) (h : p a) : Acc (fun x y => p y → p x ∧ r x y) a := by
+  induction acc with
+  | intro x _ ih => exact ⟨_, fun y hr => ih y (hr h).2 (hr h).1⟩
+
 end Acc
 
 namespace WellFounded
