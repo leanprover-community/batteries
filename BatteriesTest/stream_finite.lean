@@ -38,7 +38,7 @@ instance : Stream.Finite (Test.mk true n) :=
   Stream.Finite.ofRestrictedNext (p := (Test.decr ·))
     (fun h h' => (h h').1) rfl (wf.apply _)
 
-#guard Stream.Finite.toList (Test.mk true 3) == [2, 1, 0]
+#guard Stream.toList (Test.mk true 3) == [2, 1, 0]
 
 /--
 error: failed to synthesize
@@ -47,4 +47,4 @@ error: failed to synthesize
 Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 -/
 #guard_msgs in
-#eval Stream.Finite.toList (Test.mk false 3)
+#eval Stream.toList (Test.mk false 3)

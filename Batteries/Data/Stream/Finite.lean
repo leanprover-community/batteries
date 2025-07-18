@@ -80,6 +80,8 @@ theorem ofRestrictedNext.{u,v} [WithNextRelation.{u,v} σ α] {p : σ → Prop}
 def wrap [WithNextRelation σ α] (s : σ) [Finite s] : { s : σ // Acc Next s } :=
   ⟨s, Finite.acc⟩
 
+end Finite
+
 /-- Folds a monadic function over a finite stream from left to right. -/
 @[specialize]
 def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α → m β)
@@ -89,7 +91,7 @@ def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α
   | some (x, t) =>
     have : Finite t := .ofNext <| next_of_next?_eq_some h
     f init x >>= foldlM t f
-termination_by wrap s
+termination_by Finite.wrap s
 
 theorem foldlM_none [Monad m] [WithNextRelation σ α] {s : σ} [Finite s]
     {f : β → α → m β} (h : next? s = none) : foldlM s f init = pure init := by
@@ -114,7 +116,7 @@ def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : α → β
   | some (x, t) =>
     have : Finite t := .ofNext <| next_of_next?_eq_some h
     foldrM t f init >>= f x
-termination_by wrap s
+termination_by Finite.wrap s
 
 theorem foldrM_none [Monad m] [WithNextRelation σ α] {s : σ} [Finite s]
     {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
@@ -166,7 +168,7 @@ private theorem length_aux [WithNextRelation σ α] {s : σ} [Finite s] :
     conv => lhs; rw [foldl_some h, length_aux]
     conv => rhs; rw [foldl_some h, length_aux]
     simp +arith
-termination_by wrap s
+termination_by Finite.wrap s
 
 theorem length_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
     (h : next? s = some (x, t)) : length s = length t + 1 := by
@@ -189,7 +191,7 @@ private theorem toListRev_aux [WithNextRelation σ α] {s : σ} [Finite s] :
     conv => lhs; rw [foldl_some h, toListRev_aux]
     conv => rhs; rw [foldl_some h, toListRev_aux]
     simp
-termination_by wrap s
+termination_by Finite.wrap s
 
 theorem toListRev_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
     (h : next? s = some (x, t)) : toListRev s = toListRev t ++ [x] := by
@@ -224,7 +226,7 @@ private theorem toArray_aux [WithNextRelation σ α] {s : σ} [Finite s] :
     conv => lhs; rw [foldl_some h, toArray_aux]
     conv => rhs; rw [foldl_some h, toArray_aux]
     simp
-termination_by wrap s
+termination_by Finite.wrap s
 
 theorem toArray_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
     (h : next? s = some (x, t)) : toArray s = #[x] ++ toArray t := by
@@ -238,11 +240,9 @@ theorem toArray_toList_eq_toArray [WithNextRelation σ α] {s : σ} [Finite s] :
     have : Finite t := .ofNext <| next_of_next?_eq_some h
     simp only [toList_some h, toArray_some h]
     rw [List.toArray_cons, toArray_toList_eq_toArray]
-termination_by wrap s
+termination_by Finite.wrap s
 
 @[simp] theorem toList_eq_self (l : List α) : toList l = l := by
   induction l with
-  | nil => rw [Finite.toList_none rfl]
-  | cons x l ih => rw [Finite.toList_some rfl, ih]
-
-end Finite
+  | nil => rw [toList_none rfl]
+  | cons x l ih => rw [toList_some rfl, ih]
