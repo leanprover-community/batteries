@@ -5,7 +5,7 @@ import BatteriesTest.OpenPrivateDefs
 
 
 
-/-- error: unknown identifier 'secretNumber' -/
+/-- error: Unknown identifier `secretNumber` -/
 #guard_msgs in
 #eval secretNumber
 
