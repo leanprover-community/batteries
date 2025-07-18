@@ -1,0 +1,248 @@
+/-
+Copyright (c) 2025 François G. Dorais. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: François G. Dorais
+-/
+import Batteries.WF
+
+/-! # Finite and Well-Founded Streams -/
+
+namespace Stream
+
+/-- Class to define the next relation of a stream type. -/
+class WithNextRelation (σ : Type _) (α : outParam <| Type _) extends Stream σ α where
+  /-- Next relation for a stream type `σ`. -/
+  rel : σ → σ → Prop -- this is named `rel` to match `WellFoundedRelatiom`
+  /-- Next relation extends the default. -/
+  rel_of_next?_eq_some : next? s = some (x, t) → rel t s
+
+/-- Default next relation for a stream type. -/
+instance (priority := low) defaultNextRelation (σ) [Stream σ α] : WithNextRelation σ α where
+  rel t s := ∃ x, next? s = some (x, t)
+  rel_of_next?_eq_some h := ⟨_, h⟩
+
+/-- Next relation for a stream. -/
+abbrev Next [WithNextRelation σ α] : σ → σ → Prop := WithNextRelation.rel
+
+/-- Next relation, restricted to a subset of streams. -/
+abbrev RestrictedNext [WithNextRelation σ α] (p : σ → Prop) (s t : σ) : Prop :=
+  p t ∧ Next s t
+
+theorem next_of_next?_eq_some [WithNextRelation σ α] {s t : σ} :
+    next? s = some (x, t) → Next t s := WithNextRelation.rel_of_next?_eq_some
+
+/-- Class for well-founded stream type. -/
+class WellFounded.{u,v} (σ : Type u) (α : outParam <| Type v) extends
+  WithNextRelation σ α, WellFoundedRelation σ
+
+/-- Define a well-founded stream type instance from a well-founded relation. -/
+def WellFounded.ofRelation.{u,v} [Stream.{u,v} σ α] [inst : WellFoundedRelation σ]
+    (h : {s t : σ} → {x : α} → next? s = (x, t) → WellFoundedRelation.rel t s) :
+    Stream.WellFounded σ α := { inst with rel_of_next?_eq_some := h }
+
+/-- Define a well-founded stream type instance from a measure. -/
+def WellFounded.ofMeasure.{u,v} [Stream.{u,v} σ α] (f : σ → Nat)
+    (h : {s t : σ} → {x : α} → next? s = (x, t) → f t < f s) :
+    Stream.WellFounded σ α := { measure f with rel_of_next?_eq_some := h }
+
+macro_rules
+| `(tactic| decreasing_trivial) => `(tactic| apply Stream.next_of_next?_eq_some; assumption)
+
+instance instWellFoundedList (α) : WellFounded (List α) α :=
+  .ofMeasure List.length <| by
+    intro s t x h
+    simp only [next?] at h
+    split at h
+    · contradiction
+    · cases h; simp
+
+/-- Class for a finite stream of type `σ`. -/
+class Finite [WithNextRelation σ α] (s : σ) : Prop where
+  /-- A finite stream is accessible with respect to the `Next` relation. -/
+  acc : Acc Next s
+
+instance [WellFounded σ α] (s : σ) : Finite s where
+  acc := match WellFounded.wf (σ := σ) with | ⟨h⟩ => h s
+
+namespace Finite
+
+/-- Predecessor of a finite stream is finite. -/
+theorem ofNext [WithNextRelation σ α] {s t : σ} [Finite s] (h : Next t s) : Finite t where
+  acc := match acc (s := s) with | ⟨_, a⟩ => a _ h
+
+/-- Define a finite stream instance for a restricted subset of streams. -/
+theorem ofRestrictedNext.{u,v} [WithNextRelation.{u,v} σ α] {p : σ → Prop}
+    (H : ∀ {s t}, Next s t → p t → p s) (h : p s) (acc : Acc (RestrictedNext p) s) : Finite s where
+  acc :=
+    Subrelation.accessible (fun h₁ h₂ => ⟨H h₁ h₂, h₂, h₁⟩) (Acc.restriction p acc h)
+
+/-- Wrap a finite stream into a well-founded type for use in termination proofs. -/
+def wrap [WithNextRelation σ α] (s : σ) [Finite s] : { s : σ // Acc Next s } :=
+  ⟨s, Finite.acc⟩
+
+/-- Folds a monadic function over a finite stream from left to right. -/
+@[specialize]
+def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α → m β)
+    (init : β) : m β :=
+  match h : next? s with
+  | none => pure init
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    f init x >>= foldlM t f
+termination_by wrap s
+
+theorem foldlM_none [Monad m] [WithNextRelation σ α] {s : σ} [Finite s]
+    {f : β → α → m β} (h : next? s = none) : foldlM s f init = pure init := by
+  simp only [foldlM]
+  split <;> simp_all
+
+theorem foldlM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    {f : β → α → m β} (h : next? s = some (x, t)) : foldlM s f init = f init x >>= foldlM t f := by
+  simp only [foldlM]
+  split
+  · simp_all
+  · next heq =>
+    simp only [h, Option.some.injEq, Prod.mk.injEq] at heq
+    cases heq.1; cases heq.2; rfl
+
+/-- Folds a monadic function over a finite stream from right to left. -/
+@[specialize]
+def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : α → β → m β)
+    (init : β) : m β :=
+  match h : next? s with
+  | none => pure init
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    foldrM t f init >>= f x
+termination_by wrap s
+
+theorem foldrM_none [Monad m] [WithNextRelation σ α] {s : σ} [Finite s]
+    {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
+  rw [foldrM]
+  split <;> simp_all
+
+theorem foldrM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    {f : α → β → m β} (h : next? s = some (x, t)) : foldrM s f init = foldrM t f init >>= f x := by
+  rw [foldrM]
+  split <;> simp_all
+
+/-- Folds a function over a finite stream from left to right. -/
+@[inline]
+def foldl [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α → β) (init : β) : β :=
+  foldlM (m := Id) s f init
+
+theorem foldl_none [WithNextRelation σ α] {s : σ} [Finite s] {f : β → α → β}
+    (h : next? s = none) : foldl s f init = init := foldlM_none h
+
+theorem foldl_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t] {f : β → α → β}
+    (h : next? s = some (x, t)) : foldl s f init = foldl t f (f init x) := foldlM_some h
+
+/-- Folds a function over a finite stream from right to left. -/
+@[inline]
+def foldr [WithNextRelation σ α] (s : σ) [Finite s] (f : α → β → β) (init : β) : β :=
+  foldrM (m := Id) s f init
+
+theorem foldr_none [WithNextRelation σ α] {s : σ} [Finite s]
+    {f : α → β → β} (h : next? s = none) : foldr s f init = init :=
+  foldrM_none h
+
+theorem foldr_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) :=
+  foldrM_some h
+
+/-- Extract the length of a finite stream. -/
+def length [WithNextRelation σ α] (s : σ) [Finite s] : Nat :=
+  foldl s (fun l _ => l + 1) 0
+
+theorem length_none [WithNextRelation σ α] {s : σ} [Finite s]
+    (h : next? s = none) : length s = 0 := foldl_none h
+
+private theorem length_aux [WithNextRelation σ α] {s : σ} [Finite s] :
+    foldl s (fun l _ => l + 1) n = foldl s (fun l _ => l + 1) 0 + n := by
+  match h : next? s with
+  | none => simp [foldl_none h]
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    conv => lhs; rw [foldl_some h, length_aux]
+    conv => rhs; rw [foldl_some h, length_aux]
+    simp +arith
+termination_by wrap s
+
+theorem length_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    (h : next? s = some (x, t)) : length s = length t + 1 := by
+  simp [length, foldl_some h, length_aux (n := 1)]
+
+/-- Extract the sequence of values of a finite stream as a `List` in reverse order. -/
+def toListRev [WithNextRelation σ α] (s : σ) [Finite s] : List α :=
+  foldl s (fun r x => x :: r) []
+
+theorem toListRev_none [WithNextRelation σ α] {s : σ} [Finite s]
+    (h : next? s = none) : toListRev s = [] := by
+  simp [toListRev, foldl_none h]
+
+private theorem toListRev_aux [WithNextRelation σ α] {s : σ} [Finite s] :
+    foldl s (fun r x => x :: r) l = foldl s (fun r x => x :: r) [] ++ l := by
+  match h : next? s with
+  | none => simp [foldl_none h]
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    conv => lhs; rw [foldl_some h, toListRev_aux]
+    conv => rhs; rw [foldl_some h, toListRev_aux]
+    simp
+termination_by wrap s
+
+theorem toListRev_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    (h : next? s = some (x, t)) : toListRev s = toListRev t ++ [x] := by
+  simp [toListRev, foldl_some h, toListRev_aux (l := [x])]
+
+/-- Extract the sequence of values of a finite stream as a `List`. -/
+def toList [WithNextRelation σ α] (s : σ) [Finite s] : List α :=
+  toListRev s |>.reverse
+
+theorem toList_none [WithNextRelation σ α] {s : σ} [Finite s]
+    (h : next? s = none) : toList s = [] := by
+  simp [toList, toListRev_none h]
+
+theorem toList_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    (h : next? s = some (x, t)) : toList s = x :: toList t := by
+  simp [toList, toListRev_some h]
+
+/-- Extract the sequence of values of a finite stream as an `Array`. -/
+def toArray [WithNextRelation σ α] (s : σ) [Finite s] : Array α :=
+  foldl s Array.push #[]
+
+theorem toArray_none [WithNextRelation σ α] {s : σ} [Finite s]
+    (h : next? s = none) : toArray s = #[] := by
+  simp [toArray, foldl_none h]
+
+private theorem toArray_aux [WithNextRelation σ α] {s : σ} [Finite s] :
+    foldl s Array.push l = l ++ foldl s Array.push #[] := by
+  match h : next? s with
+  | none => simp [foldl_none h]
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    conv => lhs; rw [foldl_some h, toArray_aux]
+    conv => rhs; rw [foldl_some h, toArray_aux]
+    simp
+termination_by wrap s
+
+theorem toArray_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
+    (h : next? s = some (x, t)) : toArray s = #[x] ++ toArray t := by
+  simp [toArray, foldl_some h, toArray_aux (l := #[x])]
+
+theorem toArray_toList_eq_toArray [WithNextRelation σ α] {s : σ} [Finite s] :
+    (toList s).toArray = toArray s := by
+  match h : next? s with
+  | none => simp [toList_none h, toArray_none h]
+  | some (x, t) =>
+    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    simp only [toList_some h, toArray_some h]
+    rw [List.toArray_cons, toArray_toList_eq_toArray]
+termination_by wrap s
+
+@[simp] theorem toList_eq_self (l : List α) : toList l = l := by
+  induction l with
+  | nil => rw [Finite.toList_none rfl]
+  | cons x l ih => rw [Finite.toList_some rfl, ih]
+
+end Finite
