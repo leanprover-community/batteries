@@ -15,14 +15,6 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
-/-! ### foldr -/
-
-theorem map_foldr {g : α → β} {f : Fin n → α → α} {f' : Fin n → β → β}
-    (h : ∀ i x, g (f i x) = f' i (g x)) (x) : g (foldr n f x) = foldr n f' (g x) := by
-  induction n generalizing x with
-  | zero => simp
-  | succ n ih => simp [foldr_succ, ih, h]
-
 /-! ### sum -/
 
 @[simp] theorem sum_zero [OfNat α (nat_lit 0)] [Add α] (x : Fin 0 → α) :
