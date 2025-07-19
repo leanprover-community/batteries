@@ -130,7 +130,7 @@ def wrap [WithNextRelation σ α] (s : σ) [Finite s] : { s : σ // Acc Next s }
 end Finite
 
 /-- Folds a monadic function over a finite stream from left to right. -/
-@[specialize]
+@[inline, specialize]
 def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α → m β)
     (init : β) : m β :=
   match h : next? s with
@@ -167,39 +167,52 @@ termination_by Finite.wrap s
 
 theorem foldrM_none [Monad m] [WithNextRelation σ α] {s : σ} [Finite s]
     {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
-  rw [foldrM]
-  split <;> simp_all
+  rw [foldrM]; split <;> simp_all
 
 theorem foldrM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
     {f : α → β → m β} (h : next? s = some (x, t)) : foldrM s f init = foldrM t f init >>= f x := by
-  rw [foldrM]
-  split <;> simp_all
+  rw [foldrM]; split <;> simp_all
 
 /-- Folds a function over a finite stream from left to right. -/
-@[inline]
+@[specialize]
 def foldl [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α → β) (init : β) : β :=
-  foldlM (m := Id) s f init
+  match h : next? s with
+  | none => init
+  | some (x, t) =>
+    have : Finite t := .ofSome h
+    foldl t f (f init x)
+termination_by Finite.wrap s
 
 theorem foldl_none [WithNextRelation σ α] {s : σ} [Finite s] {f : β → α → β}
-    (h : next? s = none) : foldl s f init = init := foldlM_none h
+    (h : next? s = none) : foldl s f init = init := by
+  rw [foldl]; split <;> simp_all
 
 theorem foldl_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t] {f : β → α → β}
-    (h : next? s = some (x, t)) : foldl s f init = foldl t f (f init x) := foldlM_some h
+    (h : next? s = some (x, t)) : foldl s f init = foldl t f (f init x) := by
+  rw [foldl]; split <;> simp_all
 
 /-- Folds a function over a finite stream from right to left. -/
-@[inline]
+@[specialize]
 def foldr [WithNextRelation σ α] (s : σ) [Finite s] (f : α → β → β) (init : β) : β :=
-  foldrM (m := Id) s f init
+  match h : next? s with
+  | none => init
+  | some (x, t) =>
+    have : Finite t := .ofSome h
+    f x <| foldr t f init
+termination_by Finite.wrap s
 
 theorem foldr_none [WithNextRelation σ α] {s : σ} [Finite s]
-    {f : α → β → β} (h : next? s = none) : foldr s f init = init :=
-  foldrM_none h
+    {f : α → β → β} (h : next? s = none) : foldr s f init = init := by
+  rw [foldr]
+  split <;> simp_all
 
 theorem foldr_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
-    {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) :=
-  foldrM_some h
+    {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) := by
+  rw [foldr]
+  split <;> simp_all
 
 /-- Extract the length of a finite stream. -/
+@[inline]
 def length [WithNextRelation σ α] (s : σ) [Finite s] : Nat :=
   foldl s (fun l _ => l + 1) 0
 
@@ -222,6 +235,7 @@ theorem length_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
   simp [length, foldl_some h, length_aux (n := 1)]
 
 /-- Extract the sequence of values of a finite stream as a `List` in reverse order. -/
+@[inline]
 def toListRev [WithNextRelation σ α] (s : σ) [Finite s] : List α :=
   foldl s (fun r x => x :: r) []
 
@@ -245,6 +259,7 @@ theorem toListRev_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
   simp [toListRev, foldl_some h, toListRev_aux (l := [x])]
 
 /-- Extract the sequence of values of a finite stream as a `List`. -/
+@[inline]
 def toList [WithNextRelation σ α] (s : σ) [Finite s] : List α :=
   toListRev s |>.reverse
 
@@ -257,6 +272,7 @@ theorem toList_some [WithNextRelation σ α] {s t : σ} [Finite s] [Finite t]
   simp [toList, toListRev_some h]
 
 /-- Extract the sequence of values of a finite stream as an `Array`. -/
+@[inline]
 def toArray [WithNextRelation σ α] (s : σ) [Finite s] : Array α :=
   foldl s Array.push #[]
 
