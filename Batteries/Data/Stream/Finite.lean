@@ -5,7 +5,50 @@ Authors: François G. Dorais
 -/
 import Batteries.WF
 
-/-! # Finite and Well-Founded Streams -/
+/-! # Finite and Well-Founded Streams
+
+This file defines two main classes:
+
+- `Stream.Finite` provides a proof that a specific stream is finite.
+- `Stream.WellFounded` extends the `Stream` class and provides an instance of `Stream.Finite` for
+  every stream of the given type.
+
+The importance of these classes is that iterating along a finite stream is guaranteed to terminate.
+Therefore, it is possible to prove facts about such iterations.
+
+The `Stream.WellFounded` class is easiest to use: match on `Stream.next?` and provide a termination
+hint. The general pattern is this:
+```
+def foo [Stream.WellFounded σ α] (s : σ) : β :=
+  match _hint : Stream.next? s with
+  | none => _
+  | some (x, t) => _
+termination_by s
+```
+(The underscore in `_hint` is only to avoid the unused variable linter from complaining.)
+
+The `Stream.Finite` class is more general but is slightly trickier to use.
+```
+def foo [Stream σ α] (s : σ) [Stream.Finite s] : β :=
+  match hint : Stream.next? s with
+  | none => _
+  | some (x, t) =>
+    have : Stream.Finite t := .ofSome hint
+    _
+termination_by Stream.Finite.wrap s
+```
+Several examples of this pattern can be found below. We hope to avoid the need for the extra `have`
+at some point in the future.
+
+## Constructing `Stream.WellFounded` Classes
+
+TODO
+
+## Constructing `Stream.Finite` Classes
+
+TODO
+
+-/
 
 namespace Stream
 
@@ -70,6 +113,10 @@ namespace Finite
 theorem ofNext [WithNextRelation σ α] {s t : σ} [Finite s] (h : Next t s) : Finite t where
   acc := match acc (s := s) with | ⟨_, a⟩ => a _ h
 
+/-- Predecessor of a finite stream is finite. -/
+theorem ofSome [WithNextRelation σ α] {s t : σ} [Finite s] (h : next? s = some (x, t)) :
+  Finite t := .ofNext <| next_of_next?_eq_some h
+
 /-- Define a finite stream instance for a restricted subset of streams. -/
 theorem ofRestrictedNext.{u,v} [WithNextRelation.{u,v} σ α] {p : σ → Prop}
     (H : ∀ {s t}, Next s t → p t → p s) (h : p s) (acc : Acc (RestrictedNext p) s) : Finite s where
@@ -89,7 +136,7 @@ def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : β → α
   match h : next? s with
   | none => pure init
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     f init x >>= foldlM t f
 termination_by Finite.wrap s
 
@@ -114,7 +161,7 @@ def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Finite s] (f : α → β
   match h : next? s with
   | none => pure init
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     foldrM t f init >>= f x
 termination_by Finite.wrap s
 
@@ -164,7 +211,7 @@ private theorem length_aux [WithNextRelation σ α] {s : σ} [Finite s] :
   match h : next? s with
   | none => simp [foldl_none h]
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     conv => lhs; rw [foldl_some h, length_aux]
     conv => rhs; rw [foldl_some h, length_aux]
     simp +arith
@@ -187,7 +234,7 @@ private theorem toListRev_aux [WithNextRelation σ α] {s : σ} [Finite s] :
   match h : next? s with
   | none => simp [foldl_none h]
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     conv => lhs; rw [foldl_some h, toListRev_aux]
     conv => rhs; rw [foldl_some h, toListRev_aux]
     simp
@@ -222,7 +269,7 @@ private theorem toArray_aux [WithNextRelation σ α] {s : σ} [Finite s] :
   match h : next? s with
   | none => simp [foldl_none h]
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     conv => lhs; rw [foldl_some h, toArray_aux]
     conv => rhs; rw [foldl_some h, toArray_aux]
     simp
@@ -237,7 +284,7 @@ theorem toArray_toList_eq_toArray [WithNextRelation σ α] {s : σ} [Finite s] :
   match h : next? s with
   | none => simp [toList_none h, toArray_none h]
   | some (x, t) =>
-    have : Finite t := .ofNext <| next_of_next?_eq_some h
+    have : Finite t := .ofSome h
     simp only [toList_some h, toArray_some h]
     rw [List.toArray_cons, toArray_toList_eq_toArray]
 termination_by Finite.wrap s
