@@ -23,3 +23,9 @@ supportInterpreter = true
 [[lean_exe]]
 name = "test"
 srcDir = "scripts"
+
+# `lake exe shake` checks files for unnecessary imports.
+[[lean_exe]]
+name = "shake"
+root = "Shake.Main"
+supportInterpreter = true
