@@ -291,7 +291,6 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
   · rw [← rootD_parent, parent, parentD_eq]
     simp only [rootD, Array.length_toList, findAux_root]
     apply dif_pos
-    exact parent'_lt ..
 
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
@@ -459,7 +458,7 @@ theorem setParentBump_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
         arr[y.1].rank + 1
       else rankD arr i) :
     ¬parentD arr' i = i → rankD arr' i < rankD arr' (parentD arr' i) := by
-  simp [hP, hR] at *; split <;> rename_i h₁ <;> [simp [← h₁]; skip] <;>
+  simp only [ne_eq, hP, hR, implies_true] at *; split <;> rename_i h₁ <;> [simp [← h₁]; skip] <;>
     split <;> rename_i h₂ <;> intro h
   · simp [h₂] at h
   · simp only [rankD_eq, x.2, y.2]

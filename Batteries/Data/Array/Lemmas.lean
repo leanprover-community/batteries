@@ -11,16 +11,18 @@ import Batteries.Util.ProofWanted
 
 namespace Array
 
+@[deprecated forIn_toList (since := "2025-07-01")]
 theorem forIn_eq_forIn_toList [Monad m]
     (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
     forIn as b f = forIn as.toList b f := by
   cases as
   simp
 
-/-! ### indexOf? -/
+/-! ### idxOf? -/
 
 open List
 
+@[grind =]
 theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
     l.toList.idxOf? a = l.idxOf? a := by
   rcases l with ⟨l⟩
@@ -31,14 +33,14 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
 @[deprecated (since := "2025-02-06")] alias eraseP_toArray := List.eraseP_toArray
 @[deprecated (since := "2025-02-06")] alias erase_toArray := List.erase_toArray
 
-@[simp] theorem toList_erase [BEq α] (l : Array α) (a : α) :
+@[simp, grind =] theorem toList_erase [BEq α] (l : Array α) (a : α) :
     (l.erase a).toList = l.toList.erase a := by
   rcases l with ⟨l⟩
   simp
 
-@[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
+@[simp, grind =] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
-  simp only [eraseIdxIfInBounds]; split; simp; rfl
+  grind [eraseIdxIfInBounds]
 
 /-! ### set -/
 

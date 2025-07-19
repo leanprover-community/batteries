@@ -33,7 +33,7 @@ theorem toArrayMap_toList (l : List α) (f : α → β ) : (l.toArrayMap f).toLi
     rw [List.foldl_cons, List.map_cons, this, ← tail_ih]
 
 
-@[simp]
+@[simp, grind =]
 theorem toArrayMap_eq_toArray_map (l : List α) (f : α → β) : l.toArrayMap f = (l.map f).toArray :=
   Array.ext' (by simpa using toArrayMap_toList l f)
 
