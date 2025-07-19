@@ -1,0 +1,1 @@
+{"name":"Lean.Elab.InfoTree","instances":[],"imports":["Lean.Elab.InfoTree.Types","Lean.Elab.InfoTree.Main"],"declarations":[]}

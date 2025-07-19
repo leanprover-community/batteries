@@ -1,0 +1,1 @@
+{"name":"Init.Data.Iterators.Internal","instances":[],"imports":["Init.Data.Iterators.Internal.LawfulMonadLiftFunction","Init.Data.Iterators.Internal.Termination"],"declarations":[]}

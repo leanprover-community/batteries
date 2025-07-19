@@ -1,0 +1,1 @@
+{"name":"Init.Data.Nat.Div","instances":[],"imports":["Init.Data.Nat.Div.Basic","Init.Data.Nat.Div.Lemmas"],"declarations":[]}
