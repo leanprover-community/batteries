@@ -25,7 +25,7 @@ end EmptyPrefixTest
 
 -- Note.  This error message could be cleaned up, but left during migration from Mathlib
 /--
-error: unknown constant 'EmptyPrefixTest'
+error: Unknown constant `EmptyPrefixTest`
 -/
 #guard_msgs in
 #print prefix EmptyPrefixTest
