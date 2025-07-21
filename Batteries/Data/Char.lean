@@ -15,14 +15,20 @@ instance : Batteries.LawfulOrd Char := .compareOfLessAndEq
 
 namespace Char
 
-/--
-Unicode defines a "case folding" algorithm in which upper-case ASCII characters are
-mapped onto their lower-case counterparts.
+/-- Case folding for ASCII characters only.
 
-This abbrev standardizes on one direction (it answers the question of whether
-one should choose e.g. `toUpper` or `toLower` with respect to case insensitive logic).
+Alphabetic ASCII characters are mapped to their lowercase form, all other characters are left
+unchanged. This agrees with the Unicode case folding algorithm for ASCII characters.
+
+```
+#eval caseFoldAsciiOnly 'A' == 'a'
+#eval caseFoldAsciiOnly 'a' == 'a'
+#eval caseFoldAsciiOnly 'À` == 'À`
+#eval caseFoldAsciiOnly `à` == `à`
+#eval caseFoldAsciiOnly `$` == `$`
+```
 -/
-abbrev asciiCaseFold := Char.toLower
+abbrev caseFoldAsciiOnly := Char.toLower
 
 theorem isAlpha_iff_isUpper_or_isLower {c : Char} : c.isAlpha ↔ c.isUpper ∨ c.isLower := by
   simp [Char.isAlpha]
@@ -64,21 +70,39 @@ theorem isAlpha_toLower_iff_isAlpha {c : Char} : c.toLower.isAlpha ↔ c.isAlpha
 
 /--
 Bool-valued comparison of two `Char`s for *ASCII*-case insensitive equality.
--/
-def beqInsensitiveAsciiCase (c₁ c₂ : Char) : Bool := c₁.toLower == c₂.toLower
 
-theorem beqInsensitiveAsciiCase.eqv : Equivalence (beqInsensitiveAsciiCase · ·) := {
+```
+#eval beqCaseInsensitiveAsciiOnly 'a' 'A' -- true
+#eval beqCaseInsensitiveAsciiOnly 'a' 'a' -- true
+#eval beqCaseInsensitiveAsciiOnly '$' '$' -- true
+#eval beqCaseInsensitiveAsciiOnly 'a' 'b' -- false
+#eval beqCaseInsensitiveAsciiOnly 'γ' 'Γ' -- false
+#eval beqCaseInsensitiveAsciiOnly 'ä' 'Ä' -- false
+```
+-/
+def beqCaseInsensitiveAsciiOnly (c₁ c₂ : Char) : Bool := c₁.toLower == c₂.toLower
+
+theorem beqCaseInsensitiveAsciiOnly.eqv : Equivalence (beqCaseInsensitiveAsciiOnly · ·) := {
   refl _ := BEq.rfl
-  trans _ _ := by simp_all [beqInsensitiveAsciiCase]
-  symm := by simp_all [beqInsensitiveAsciiCase]}
+  trans _ _ := by simp_all [beqCaseInsensitiveAsciiOnly]
+  symm := by simp_all [beqCaseInsensitiveAsciiOnly]}
 
 /--
-Setoid structure on `Char` using `beqInsensitiveAsciiCase`
+Setoid structure on `Char` using `beqCaseInsensitiveAsciiOnly`
 -/
-def beqInsensitiveAsciiCase.isSetoid : Setoid Char:=
-  ⟨(beqInsensitiveAsciiCase · ·), beqInsensitiveAsciiCase.eqv⟩
+def beqCaseInsensitiveAsciiOnly.isSetoid : Setoid Char:=
+  ⟨(beqCaseInsensitiveAsciiOnly · ·), beqCaseInsensitiveAsciiOnly.eqv⟩
 
 /--
 ASCII-case insensitive implementation comparison returning an `Ordering`. Useful for sorting.
+
+```
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'A' -- eq
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'a' -- eq
+#eval cmpCaseInsensitiveAsciiOnly '$' '$' -- eq
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'b' -- lt
+#eval cmpCaseInsensitiveAsciiOnly 'γ' 'Γ' -- gt
+#eval cmpCaseInsensitiveAsciiOnly 'ä' 'Ä' -- gt
+```
 -/
-def cmpInsensitiveAsciiCase (c₁ c₂ : Char) : Ordering := Ord.compare c₁.toLower c₂.toLower
+def cmpCaseInsensitiveAsciiOnly (c₁ c₂ : Char) : Ordering := Ord.compare c₁.toLower c₂.toLower
