@@ -50,6 +50,8 @@ where
 
 /-- Computes the cartesian product over a list of lists.
 i.e. cartesian_product [[1, 2], [3, 4]] =  [[1, 3], [1, 4], [2, 3], [2, 4]].
+There is a similar List.sections, but this does the wrong ordering,
+it varies the first components the fastest.
 -/
 def cartesian_product {α : Type} : List (List α) → List (List α)
 | [] => [[]]
