@@ -11,8 +11,7 @@ def isMatchTerm : Info → Bool
   | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
   | _ => false
 
-/-- Returns the String.range that encompasses 'match e (with)'.
--/
+/-- Returns the String.range that encompasses `match e (with)`. -/
 def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
   match matchStx with
   | `(term| match
