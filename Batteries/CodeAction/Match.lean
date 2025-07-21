@@ -101,10 +101,10 @@ can be expanded into
 ```
 def myfun3 (o : Option Bool) (m : Nat) : Nat :=
   match o, m with
-  | .none, 0 => _
-  | .none, n_2 + 1 => _
-  | .some val_1, 0 => _
-  | .some val_1, n_2 + 1 => _
+  | none, 0 => _
+  | none, n_2 + 1 => _
+  | some val_1, 0 => _
+  | some val_1, n_2 + 1 => _
 ```
 -/
 @[command_code_action]
