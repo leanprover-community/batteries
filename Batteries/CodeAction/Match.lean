@@ -100,7 +100,7 @@ def myfun2 (n : Nat) : Nat :=
 ```
 Also has support for multiple discriminants, e.g.
 ```
-def myfun3 (o: Option Bool) (m:Nat): Nat :=
+def myfun3 (o : Option Bool) (m : Nat) : Nat :=
   match o, m with
 ```
 can be expanded into
