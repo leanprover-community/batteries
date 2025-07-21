@@ -36,7 +36,7 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
 partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
   loop t #[]
 where
-  /-- Inner loop for `findAllInfos` -/
+  /-- Inner loop for `findAllInfos`. -/
   loop (t : InfoTree) (acc : Array Info) : Array Info :=
     match t with
     | .context _ childTree => loop childTree acc
