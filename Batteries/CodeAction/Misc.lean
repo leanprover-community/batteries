@@ -258,8 +258,7 @@ def getElimExprNames (elimType : Expr) : MetaM (Array (Name × Array Name)) := d
           altsInfo := altsInfo.push (xDecl.userName, args)
     pure altsInfo
 
-/-- Finds the `TermInfo` for an elaborated term `stx`.
--/
+/-- Finds the `TermInfo` for an elaborated term `stx`. -/
 def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   match node.findInfo? fun
     | .ofTermInfo i => i.stx.getKind == stx.raw.getKind && i.stx.getRange? == stx.raw.getRange?
