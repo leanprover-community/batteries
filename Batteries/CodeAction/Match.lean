@@ -105,7 +105,7 @@ def myfun3 (o : Option Bool) (m : Nat) : Nat :=
 @[command_code_action] --I couldn't make this work with '@[command_code_action Parser.Term.match]':
                        --It never fires. So i filter it myself in Step 1.
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
-  -- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match`
+  /- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match` -/
   let allMatchInfos := findAllInfos isMatchTerm node
 
   /- 2. Filter these candidates within the `RequestM` monad based on the cursor being in the
