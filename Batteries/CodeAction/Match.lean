@@ -150,15 +150,16 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   let withPresent :=
     (matchInfo.stx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "with")).isSome
 
-  /- Construct a list containing for each discriminant its list of constructor names: -/
-  let mut constructors : List (List Name) := []
+  /- Construct a list containing for each discriminant its list of constructor names.
+  The list contains the first discriminant constructors last, since we are prepending in the loop.-/
+  let mut constructors_rev : List (List Name) := []
   for discrTerm in discrTerms do
     let some (info : TermInfo) := findTermInfo? node discrTerm | return #[]
     let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
     let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
     -- Find the inductive constructors of e:
     let some (.inductInfo val) := snap.env.find? name | return #[]
-    constructors := constructors.concat (val.ctors)
+    constructors_rev := val.ctors :: constructors_rev
 
   let eager : Lsp.CodeAction := {
     title := "Generate a list of equations for this match."
@@ -173,12 +174,12 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
       let mut str := if withPresent then "" else " with"
 
       let indent := "\n".pushn ' ' (indent) --use the same indent as the 'match' line.
-      let constructor_combinations := constructors.reverse.sections.map List.reverse
+      let constructor_combinations := constructors_rev.sections.map List.reverse
       for l in constructor_combinations do
         str := str ++ indent ++ "| "
         for ctor_idx in [:l.length] do
           let ctor := l[ctor_idx]!
-          let suffix := if constructors.length ≥ 2 then s!"_{ctor_idx + 1}" else ""
+          let suffix := if constructors_rev.length ≥ 2 then s!"_{ctor_idx + 1}" else ""
           let some pat := pattern_from_constructor ctor snap.env suffix | panic! "bad inductive"
           str := str ++ pat
           if ctor_idx < l.length - 1 then
