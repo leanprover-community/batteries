@@ -88,7 +88,7 @@ def pattern_from_constructor (ctor : Name) (env: Environment) (suffix : String):
 Invoking tactic code action "Generate a list of equations for this match." in the
 following:
 ```lean
-def myfun2 (n:Nat) : Nat :=
+def myfun2 (n : Nat) : Nat :=
   match n
 ```
 produces:
