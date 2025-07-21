@@ -46,7 +46,8 @@ where
     | .hole _              => acc
 
 /-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
-'.some val'. We implement special cases for Nat and List to produce 'n + 1' instead of 'Nat.succ n'.
+'.some val'. We implement special cases for Nat and List, Option and Bool to e.g.
+produce 'n + 1' instead of 'Nat.succ n'.
 -/
 def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
     : Option String := do
@@ -62,6 +63,10 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
   /- At the moment this evaluates to "head :: tail": -/
   | (.str (.str .anonymous "List") "cons") =>
     s!"{explicit_args[0]!}{suffix} :: {explicit_args[1]!}{suffix}"
+  | (.str (.str .anonymous "Option") "some") => s!"some {explicit_args[0]!}{suffix}"
+  | (.str (.str .anonymous "Option") "none") => "none"
+  | (.str (.str .anonymous "Bool") "true") => "true"
+  | (.str (.str .anonymous "Bool") "false") => "false"
   /- Default case: -/
   | _ =>
     str := str ++ s!".{ctor_short}"
