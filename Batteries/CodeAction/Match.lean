@@ -60,7 +60,7 @@ def cartesian_product {α : Type} : List (List α) → List (List α)
 /-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
 '.some val'. We implement special cases for Nat and List to produce 'n + 1' instead of 'Nat.succ n'.
 -/
-def pattern_from_constructor (ctor : Name) (env: Environment) (suffix : String): Option String := do
+def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String) : Option String := do
   let some (.ctorInfo ci) := env.find? ctor | panic! "bad inductive"
   let ctor_short := toString (ctor.updatePrefix .anonymous)
   let mut str := ""
