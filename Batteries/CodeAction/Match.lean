@@ -1,4 +1,5 @@
 import Batteries.CodeAction.Misc
+import Batteries.Data.List
 
 namespace Batteries.CodeAction
 
@@ -47,17 +48,6 @@ where
       let acc' := if p info then acc.push info else acc
       children.foldl (fun currentAcc child => loop child currentAcc) acc'
     | .hole _              => acc
-
-/-- Computes the cartesian product over a list of lists.
-i.e. cartesian_product [[1, 2], [3, 4]] =  [[1, 3], [1, 4], [2, 3], [2, 4]].
-There is a similar List.sections, but this does the wrong ordering,
-it varies the first components the fastest.
--/
-def cartesian_product {α : Type} : List (List α) → List (List α)
-| [] => [[]]
-| xs :: xss =>
-  let sub_products := cartesian_product xss
-  (xs.map (fun val => sub_products.map (fun sub => val :: sub))).flatten
 
 /-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
 '.some val'. We implement special cases for Nat and List to produce 'n + 1' instead of 'Nat.succ n'.
@@ -182,7 +172,8 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
       let mut str := if withPresent then "" else " with"
 
       let indent := "\n".pushn ' ' (indent) --use the same indent as the 'match' line.
-      for l in cartesian_product constructors do
+      let constructor_combinations := constructors.reverse.sections.map List.reverse
+      for l in constructor_combinations do
         str := str ++ indent ++ "| "
         for ctor_idx in [:l.length] do
           let ctor := l[ctor_idx]!
