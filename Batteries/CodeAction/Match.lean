@@ -74,7 +74,7 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
     return str
 
 /--
-Invoking tactic code action "Generate a list of equations for this match." in the
+Invoking tactic code action "Generate a list of alternatives for this match." in the
 following:
 ```lean
 def myfun2 (n : Nat) : Nat :=
