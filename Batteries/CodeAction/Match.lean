@@ -93,7 +93,7 @@ def myfun2 (n:Nat) : Nat :=
 ```
 produces:
 ```lean
-def myfun2 (n:Nat) : Nat :=
+def myfun2 (n : Nat) : Nat :=
   match n with
   | 0 => _
   | n + 1 => _
