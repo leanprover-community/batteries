@@ -107,9 +107,11 @@ def myfun3 (o : Option Bool) (m : Nat) : Nat :=
   | .some val_1, n_2 + 1 => _
 ```
 -/
-@[command_code_action] 
-/- I couldn't make this work with `@[command_code_action Parser.Term.match]`: it never fires. So I filter it myself in Step 1. -/
+@[command_code_action]
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
+  /- Since `match` is a term (not a command) `@[command_code_action Parser.Term.match]` will
+  not fire. So we filter `command_code_action` ourselves in Step 1 for now. -/
+
   /- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match` -/
   let allMatchInfos := findAllInfos isMatchTerm node
 
