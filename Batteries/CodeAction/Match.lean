@@ -105,7 +105,7 @@ def myfun3 (o: Option Bool) (m:Nat): Nat :=
 ```
 can be expanded into
 ```
-def myfun3 (o: Option Bool) (m:Nat): Nat :=
+def myfun3 (o : Option Bool) (m : Nat) : Nat :=
   match o, m with
   | .none, 0 => _
   | .none, n_2 + 1 => _
