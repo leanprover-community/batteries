@@ -32,9 +32,7 @@ def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
       return ⟨startPos, ←lastMatchDiscr.raw.getTailPos?⟩
   | _ => none
 
-/-- Flattens an Infotree into an array of Info-nodes that fulfill p,
-inspired by InfoTree.findInfo?
--/
+/-- Flattens an Infotree into an array of Info-nodes that fulfill p. -/
 partial def findAllInfos (p : Info → Bool) (t : InfoTree) : Array Info :=
   loop t #[]
 where
