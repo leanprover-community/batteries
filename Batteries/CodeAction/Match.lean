@@ -6,8 +6,7 @@ namespace Batteries.CodeAction
 open Lean Meta Elab Server RequestM CodeAction
 
 
-/-- Filter for the info-nodes to find the match-nodes
--/
+/-- Filter for the info-nodes to find the match-nodes. -/
 def isMatchTerm : Info → Bool
   | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
   | _ => false
