@@ -42,7 +42,7 @@ theorem Coprime.gcd_mul_left_cancel (m : Nat) (H : Coprime k n) : gcd (k * m) n 
     rw [Coprime, Nat.gcd_assoc, H.symm.gcd_eq_one, gcd_one_right]
   Nat.dvd_antisymm
     (dvd_gcd (H1.dvd_of_dvd_mul_left (gcd_dvd_left _ _)) (gcd_dvd_right _ _))
-    (gcd_dvd_gcd_mul_left _ _ _)
+    (gcd_dvd_gcd_mul_left_left _ _ _)
 
 theorem Coprime.gcd_mul_right_cancel (m : Nat) (H : Coprime k n) : gcd (m * k) n = gcd m n := by
   rw [Nat.mul_comm m k, H.gcd_mul_left_cancel m]
@@ -171,7 +171,7 @@ theorem Coprime.eq_one_of_dvd {k m : Nat} (H : Coprime k m) (d : k ∣ m) : k = 
 
 theorem Coprime.gcd_mul (k : Nat) (h : Coprime m n) : gcd k (m * n) = gcd k m * gcd k n :=
   Nat.dvd_antisymm
-    (gcd_mul_dvd_mul_gcd k m n)
+    (gcd_mul_right_dvd_mul_gcd k m n)
     ((h.gcd_both k k).mul_dvd_of_dvd_of_dvd
       (gcd_dvd_gcd_mul_right_right ..)
       (gcd_dvd_gcd_mul_left_right ..))
@@ -183,5 +183,5 @@ theorem gcd_mul_gcd_of_coprime_of_mul_eq_mul
     rw [← h]
     apply Nat.mul_dvd_mul (gcd_dvd ..).1 (gcd_dvd ..).1
   · rw [gcd_comm a, gcd_comm b]
-    refine Nat.dvd_trans ?_ (gcd_mul_dvd_mul_gcd ..)
+    refine Nat.dvd_trans ?_ (gcd_mul_right_dvd_mul_gcd ..)
     rw [h, gcd_mul_right_right d c]; apply Nat.dvd_refl

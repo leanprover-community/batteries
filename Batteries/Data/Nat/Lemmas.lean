@@ -197,7 +197,7 @@ theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
   apply testBit_lt_two_pow
   apply Nat.lt_of_lt_of_le
   · exact ofBits_lt_two_pow f
-  · exact pow_le_pow_of_le_right Nat.zero_lt_two h
+  · exact Nat.pow_le_pow_right Nat.zero_lt_two h
 
 theorem testBit_ofBits (f : Fin n → Bool) :
     (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else false := by

@@ -27,7 +27,8 @@ register_option linter.unreachableTactic : Bool := {
 
 namespace UnreachableTactic
 /-- Gets the value of the `linter.unreachableTactic` option. -/
-def getLinterUnreachableTactic (o : Options) : Bool := getLinterValue linter.unreachableTactic o
+def getLinterUnreachableTactic (o : LinterOptions) : Bool :=
+  getLinterValue linter.unreachableTactic o
 
 /-- The monad for collecting used tactic syntaxes. -/
 abbrev M := StateRefT (Std.HashMap String.Range Syntax) IO
@@ -37,7 +38,7 @@ A list of blacklisted syntax kinds, which are expected to have subterms that con
 unevaluated tactics.
 -/
 initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
-  IO.mkRef <| Std.HashSet.empty
+  IO.mkRef <| (∅ : NameHashSet)
     |>.insert ``Parser.Term.binderTactic
     |>.insert ``Lean.Parser.Term.dynamicQuot
     |>.insert ``Lean.Parser.Tactic.quotSeq
@@ -89,7 +90,7 @@ end
 
 @[inherit_doc Batteries.Linter.linter.unreachableTactic]
 def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
-  unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
+  unless getLinterUnreachableTactic (← getLinterOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
     return

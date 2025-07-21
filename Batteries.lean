@@ -7,15 +7,19 @@ import Batteries.CodeAction.Attr
 import Batteries.CodeAction.Basic
 import Batteries.CodeAction.Deprecated
 import Batteries.CodeAction.Misc
+import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Control.Lemmas
+import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic
+import Batteries.Control.OptionT
 import Batteries.Data.Array
 import Batteries.Data.AssocList
 import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
+import Batteries.Data.BitVec
 import Batteries.Data.ByteArray
 import Batteries.Data.ByteSubarray
 import Batteries.Data.Char
@@ -23,7 +27,7 @@ import Batteries.Data.DList
 import Batteries.Data.Fin
 import Batteries.Data.FloatArray
 import Batteries.Data.HashMap
-import Batteries.Data.LazyList
+import Batteries.Data.Int
 import Batteries.Data.List
 import Batteries.Data.MLList
 import Batteries.Data.NameSet
@@ -48,6 +52,7 @@ import Batteries.Lean.HashSet
 import Batteries.Lean.IO.Process
 import Batteries.Lean.Json
 import Batteries.Lean.LawfulMonad
+import Batteries.Lean.LawfulMonadLift
 import Batteries.Lean.Meta.Basic
 import Batteries.Lean.Meta.DiscrTree
 import Batteries.Lean.Meta.Expr

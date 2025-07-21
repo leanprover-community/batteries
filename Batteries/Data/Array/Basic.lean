@@ -119,8 +119,6 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
-@[deprecated (since := "2024-10-15")] alias join := flatten
-
 /-!
 ### Safe Nat Indexed Array functions
 The functions in this section offer variants of Array functions which use `Nat` indices
@@ -136,12 +134,6 @@ This will perform the update destructively provided that `a` has a reference cou
 -/
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set i x
-
-@[deprecated (since := "2024-11-24")] alias swapN := swap
-
-@[deprecated (since := "2024-11-24")] alias swapAtN := swapAt
-
-@[deprecated (since := "2024-11-20")] alias eraseIdxN := eraseIdx
 
 end Array
 
@@ -171,9 +163,9 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
     then
       let head := as.array[as.start]'(Nat.lt_of_lt_of_le h as.stop_le_array_size)
       let tail :=
-        { as with
-          start := as.start + 1
-          start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h }
+        ⟨{ as.internalRepresentation with
+           start := as.start + 1
+           start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h }⟩
       some (head, tail)
     else
       none

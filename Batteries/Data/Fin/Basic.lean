@@ -12,12 +12,6 @@ namespace Fin
 /-- `min n m` as an element of `Fin (m + 1)` -/
 def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
 
-@[deprecated (since := "2024-11-15")]
-alias enum := Array.finRange
-
-@[deprecated (since := "2024-11-15")]
-alias list := List.finRange
-
 /-- Heterogeneous monadic fold over `Fin n` from right to left:
 ```
 Fin.foldrM n f xₙ = do
@@ -91,3 +85,17 @@ This is the dependent version of `Fin.foldl`. -/
 @[inline] def dfoldl (n : Nat) (α : Fin (n + 1) → Type _)
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   dfoldlM (m := Id) n α f init
+
+/--
+`findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def findSome? (f : Fin n → Option α) : Option α :=
+  foldl n (fun r i => r <|> f i) none
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
+  findSome? <| Option.guard fun i => p i
