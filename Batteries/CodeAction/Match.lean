@@ -145,7 +145,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   let withPresent :=
     (matchInfo.stx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "with")).isSome
 
-  /- Construct a list containing for each discriminant its list of constructornames: -/
+  /- Construct a list containing for each discriminant its list of constructor names: -/
   let mut constructors : List (List Name) := []
   for discrTerm in discrTerms do
     let some (info : TermInfo) := findTermInfo? node discrTerm | return #[]
