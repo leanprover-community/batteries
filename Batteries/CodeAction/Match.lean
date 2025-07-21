@@ -116,8 +116,6 @@ def myfun3 (o : Option Bool) (m : Nat) : Nat :=
 @[command_code_action] --I couldn't make this work with '@[command_code_action Parser.Term.match]':
                        --It never fires. So i filter it myself in Step 1.
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
-  --dbg_trace "--------------------------------------------------------------"
-  --dbg_trace (←node.format ctx)
   -- 1. Find ALL ofTermInfo Info nodes that are of kind `Term.match`
   let allMatchInfos := findAllInfos isMatchTerm node
 
@@ -135,11 +133,6 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   /- 3. Pick the first (and mostly only) candidate. There might sometimes be more,
   since some things are just contained multiple times in 'node'. -/
   let some matchInfo := relevantMatchInfos[0]? | return #[]
-
-  --for m in relevantMatchInfos do
-  --  dbg_trace "-----------------------"
-  --  dbg_trace ←m.format ctx
-
   let some headerRangeRaw := getMatchHeaderRange? matchInfo.stx | return #[]
 
   /- Isolate the array of match-discriminants -/
