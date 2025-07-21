@@ -43,9 +43,9 @@ class LawfulMonadStateOf (σ : Type _) (m : Type _ → Type _) [Monad m] [MonadS
   /-- Setting the monad twice is the same as just setting to the final state. -/
   set_bind_set (s s' : σ) : (do set (m := m) s; set s') = set s'
 
-variable {σ : Type _} {m : Type _ → Type _} [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m]
-
 namespace LawfulMonadStateOf
+
+variable {σ : Type _} {m : Type _ → Type _} [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m]
 
 attribute [simp] get_bind_const get_bind_get_bind get_bind_set_bind set_bind_get set_bind_set
 
@@ -152,7 +152,7 @@ namespace StateT
 
 /-- `StateT` is has lawful state operations. This is applied for `StateM` as well do
 to the reducibility of that definition. -/
-instance [LawfulMonad m] : LawfulMonadStateOf σ (StateT σ m) where
+instance [Monad m] [LawfulMonad m] : LawfulMonadStateOf σ (StateT σ m) where
   modifyGet_eq f := StateT.ext fun s => by simp
   get_bind_const mx := StateT.ext fun s => by simp
   get_bind_get_bind mx := StateT.ext fun s => by simp
@@ -164,7 +164,7 @@ end StateT
 
 namespace StateCpsT
 
-instance : LawfulMonadStateOf σ (StateCpsT σ m) where
+instance {σ m} : LawfulMonadStateOf σ (StateCpsT σ m) where
   modifyGet_eq _ := rfl
   get_bind_const _ := rfl
   get_bind_get_bind _ := rfl
@@ -176,7 +176,7 @@ end StateCpsT
 
 namespace EStateM
 
-instance {ε} : LawfulMonadStateOf σ (EStateM ε σ) where
+instance {σ ε} : LawfulMonadStateOf σ (EStateM ε σ) where
   modifyGet_eq _ := rfl
   get_bind_const _ := rfl
   get_bind_get_bind _ := rfl
@@ -207,7 +207,7 @@ end MonadLift
 
 namespace ReaderT
 
-instance {ρ} [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
+instance {m σ ρ} [Monad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (ReaderT ρ m) where
   modifyGet_eq f := ReaderT.ext fun ctx => by
     simp [← liftM_modifyGet, LawfulMonadStateOf.modifyGet_eq, ← liftM_get]
