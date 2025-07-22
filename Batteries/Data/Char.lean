@@ -24,6 +24,12 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
   · simp [ofNat, *]
   · simp [ofNat, toNat, *]
 
+/-! ## Lemmas for ASCII-casing
+
+These facts apply for ASCII characters only. Recall that `isAlpha`, `isLower`, `isUpper`, `toLower`,
+`toUpper` do not consider characters outside the ASCII character range (code points less than 128).
+-/
+
 theorem not_isLower_of_isUpper {c : Char} : c.isUpper → ¬ c.isLower := by
   simp only [isUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
     Bool.and_eq_true, decide_eq_true_eq, isLower, not_and, Nat.not_le, and_imp]
