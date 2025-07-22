@@ -64,14 +64,14 @@ end Result
   rw [run', run', run_map]
   cases x.run s <;> rfl
 
-@[simp] theorem run_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) :
+theorem run_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) :
     (f <*> x).run s = match f.run s with
     | .ok g s => Result.map g (x.run s)
     | .error e s => .error e s := by
   simp only [seq_eq_bind, run_bind, run_map]
   cases f.run s <;> rfl
 
-@[simp] theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) :
+theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) :
     (f <*> x).run' s = match f.run s with
     | .ok g s => Option.map g (x.run' s)
     | .error _ _ => none := by
