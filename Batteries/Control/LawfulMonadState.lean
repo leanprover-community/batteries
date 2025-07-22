@@ -156,12 +156,8 @@ theorem modify_bind_get (f : σ → σ) :
 
 end modify
 
-end LawfulMonadStateOf
-
-namespace StateT
-
-/-- `StateT` is has lawful state operations. This is applied for `StateM` as well do
-to the reducibility of that definition. -/
+/-- `StateT` has lawful state operations if the underlying monad is lawful.
+This is applied for `StateM` as well due to the reducibility of that definition. -/
 instance {m σ} [Monad m] [LawfulMonad m] : LawfulMonadStateOf σ (StateT σ m) where
   modifyGet_eq f := StateT.ext fun s => by simp
   get_bind_const mx := StateT.ext fun s => by simp
@@ -170,10 +166,7 @@ instance {m σ} [Monad m] [LawfulMonad m] : LawfulMonadStateOf σ (StateT σ m) 
   set_bind_get s := StateT.ext fun s => by simp
   set_bind_set s s' := StateT.ext fun s => by simp
 
-end StateT
-
-namespace StateCpsT
-
+/-- The continuation passing state monad variant `StateCpsT` always has lawful state instance. -/
 instance {σ m} : LawfulMonadStateOf σ (StateCpsT σ m) where
   modifyGet_eq _ := rfl
   get_bind_const _ := rfl
@@ -182,10 +175,7 @@ instance {σ m} : LawfulMonadStateOf σ (StateCpsT σ m) where
   set_bind_get _ := rfl
   set_bind_set _ _ := rfl
 
-end StateCpsT
-
-namespace EStateM
-
+/-- The `EStateM` monad always has a lawful state instance. -/
 instance {σ ε} : LawfulMonadStateOf σ (EStateM ε σ) where
   modifyGet_eq _ := rfl
   get_bind_const _ := rfl
@@ -193,10 +183,6 @@ instance {σ ε} : LawfulMonadStateOf σ (EStateM ε σ) where
   get_bind_set_bind _ := rfl
   set_bind_get _ := rfl
   set_bind_set _ _ := rfl
-
-end EStateM
-
-section MonadLift
 
 @[simp] theorem liftM_get {m n}  [MonadStateOf σ m] [MonadLift m n] :
     (liftM (get (m := m)) : n _) = get := rfl
@@ -213,10 +199,8 @@ section MonadLift
 @[simp] theorem liftM_getModify {m n} [MonadStateOf σ m] [MonadLift m n]
     (f : σ → σ) : (liftM (getModify (m := m) f) : n _) = getModify f := rfl
 
-end MonadLift
-
-namespace ReaderT
-
+/-- If the underlying monad `m` has a lawful state instance, then the induced state instance on
+`ReaderT ρ m` will also be lawful. -/
 instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (ReaderT ρ m) where
   modifyGet_eq f := ReaderT.ext fun ctx => by
@@ -231,5 +215,3 @@ instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadSta
     simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
   set_bind_set s s' := ReaderT.ext fun ctx => by
     simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
-
-end ReaderT
