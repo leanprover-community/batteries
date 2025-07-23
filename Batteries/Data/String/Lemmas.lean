@@ -10,10 +10,6 @@ import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
 import Std.Classes.Ord.String -- Not needed here, but imported to ensure instance names don't clash.
 
-
--- Commented out temporarily as this is broken on nightly-2025-07-22
-/-
-
 namespace String
 
 -- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
@@ -1093,5 +1089,3 @@ theorem dropWhile_eq (p : Char → Bool) (s : String) : s.dropWhile p = ⟨s.1.d
     (s.dropWhile p).1 = s.1.dropWhile p := by rw [dropWhile_eq]
 
 end String
-
--/
