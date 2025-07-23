@@ -5,6 +5,7 @@ Authors: Sebastian Ullrich
 -/
 
 import Batteries.Control.Lemmas
+import Batteries.Control.LawfulMonadState
 
 /-!
 # Lemmas About Option Monad Transformer
@@ -73,5 +74,14 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
 
 @[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
     (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := rfl
+
+instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
+    LawfulMonadStateOf σ (OptionT m) where
+  modifyGet_eq f := by simp [← liftM_modifyGet, ← liftM_get, LawfulMonadStateOf.modifyGet_eq]
+  get_bind_const mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_get_bind mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_set_bind mx := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_get s := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_set s s' := OptionT.ext (by simp [← liftM_get, ← liftM_set])
 
 end OptionT
