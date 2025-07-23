@@ -224,7 +224,6 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
-      -- sorry
       simp only [Pos.ext_iff]
       rw [Nat.add_right_comm, Nat.add_left_comm]
       apply ne_add_utf8Size_add_self
