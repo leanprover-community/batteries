@@ -23,9 +23,9 @@ unchanged. This agrees with the Unicode case folding algorithm for ASCII charact
 ```
 #eval caseFoldAsciiOnly 'A' == 'a'
 #eval caseFoldAsciiOnly 'a' == 'a'
-#eval caseFoldAsciiOnly 'À` == 'À`
-#eval caseFoldAsciiOnly `à` == `à`
-#eval caseFoldAsciiOnly `$` == `$`
+#eval caseFoldAsciiOnly 'À' == 'À'
+#eval caseFoldAsciiOnly 'à' == 'à'
+#eval caseFoldAsciiOnly '$' == '$'
 ```
 -/
 abbrev caseFoldAsciiOnly := Char.toLower
