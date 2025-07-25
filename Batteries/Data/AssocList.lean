@@ -66,11 +66,11 @@ theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
 
 /-- `O(n)`. Fold a function over the list, from head to tail. -/
 @[inline] def foldl (f : δ → α → β → δ) (init : δ) (as : AssocList α β) : δ :=
-  Id.run (foldlM f init as)
+  Id.run (foldlM (fun d a b => pure (f d a b)) init as)
 
 @[simp] theorem foldl_eq (f : δ → α → β → δ) (init l) :
     foldl f init l = l.toList.foldl (fun d (a, b) => f d a b) init := by
-  simp [List.foldl_eq_foldlM, foldl, Id.run]
+  simp [foldl, foldlM_eq, List.idRun_foldlM]
 
 /-- Optimized version of `toList`. -/
 def toListTR (as : AssocList α β) : List (α × β) :=
@@ -78,7 +78,6 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 
 @[csimp] theorem toList_eq_toListTR : @toList = @toListTR := by
   funext α β as; simp [toListTR]
-  exact .symm <| (Array.foldl_toList_eq_map (toList as) _ id).trans (List.map_id _)
 
 /-- `O(n)`. Run monadic function `f` on all elements in the list, from head to tail. -/
 @[specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit

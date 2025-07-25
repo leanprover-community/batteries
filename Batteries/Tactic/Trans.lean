@@ -16,16 +16,10 @@ variable argument.
 /-- Compose using transitivity, homogeneous case. -/
 def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
 
-@[deprecated (since := "2024-10-18")]
-alias Trans.heq := Trans.trans
-
 namespace Batteries.Tactic
 open Lean Meta Elab
 
 initialize registerTraceClass `Tactic.trans
-
-/-- Discrimation tree settings for the `trans` extension. -/
-def transExt.config : WhnfCoreConfig := {}
 
 /-- Environment extension storing transitivity lemmas -/
 initialize transExt :
@@ -49,7 +43,7 @@ initialize registerBuiltinAttribute {
     let some xyHyp := xs.pop.back? | fail
     let .app (.app _ _) _ ← inferType yzHyp | fail
     let .app (.app _ _) _ ← inferType xyHyp | fail
-    let key ← withReducible <| DiscrTree.mkPath rel transExt.config
+    let key ← withReducible <| DiscrTree.mkPath rel
     transExt.add (decl, key) kind
 }
 
@@ -162,7 +156,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
       let s ← saveState
       trace[Tactic.trans]"trying homogeneous case"
       let lemmas :=
-        (← (transExt.getState (← getEnv)).getUnify rel transExt.config).push ``Trans.simple
+        (← (transExt.getState (← getEnv)).getUnify rel).push ``Trans.simple
       for lem in lemmas do
         trace[Tactic.trans]"trying lemma {lem}"
         try
@@ -172,7 +166,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
             let y ← (t'?.map (pure ·.1)).getD (mkFreshExprMVar ty)
             let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
             let g₂ ← mkFreshExprMVar (some <| ← mkAppM' rel #[y, z]) .synthetic
-            g.assign (← mkAppOptM lem (mkArray (arity - 2) none ++ #[some g₁, some g₂]))
+            g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
             pure <| [g₁.mvarId!, g₂.mvarId!] ++
               if let some (_, gs') := t'? then gs' else [y.mvarId!]
           return
@@ -182,7 +176,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
     trace[Tactic.trans]"trying heterogeneous case"
     let t'? ← t?.mapM (elabTermWithHoles · none (← getMainTag))
     let s ← saveState
-    for lem in (← (transExt.getState (← getEnv)).getUnify rel transExt.config).push
+    for lem in (← (transExt.getState (← getEnv)).getUnify rel).push
         ``HEq.trans |>.push ``Trans.trans do
       try
         liftMetaTactic fun g => do
@@ -200,7 +194,7 @@ elab "trans" t?:(ppSpace colGt term)? : tactic => withMainContext do
           trace[Tactic.trans]"obtained g₂: {g₂}"
           let g₁ ← mkFreshExprMVar (some <| ← mkAppM' rel #[x, y]) .synthetic
           trace[Tactic.trans]"obtained g₁: {g₁}"
-          g.assign (← mkAppOptM lem (mkArray (arity - 2) none ++ #[some g₁, some g₂]))
+          g.assign (← mkAppOptM lem (.replicate (arity - 2) none ++ #[some g₁, some g₂]))
           pure <| [g₁.mvarId!, g₂.mvarId!] ++ if let some (_, gs') := t'? then gs' else [y.mvarId!]
         return
       catch e =>

@@ -32,15 +32,6 @@ open Option Nat
   | [] => none
   | a :: l => some (a, l)
 
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
-
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
 `p`, not including that element.
@@ -148,9 +139,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -158,32 +146,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-/--
-`insertIdx n a l` inserts `a` into the list `l` after the first `n` elements of `l`
-```
-insertIdx 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]
-```
--/
-def insertIdx (n : Nat) (a : α) : List α → List α :=
-  modifyTailIdx (cons a) n
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
-
-/-- Tail-recursive version of `insertIdx`. -/
-@[inline] def insertIdxTR (n : Nat) (a : α) (l : List α) : List α := go n l #[] where
-  /-- Auxiliary for `insertIdxTR`: `insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l`. -/
-  go : Nat → List α → Array α → List α
-  | 0, l, acc => acc.toListAppend (a :: l)
-  | _, [], acc => acc.toList
-  | n+1, a :: l, acc => go n l (acc.push a)
-
-theorem insertIdxTR_go_eq : ∀ n l, insertIdxTR.go a n l acc = acc.toList ++ insertIdx n a l
-  | 0, l | _+1, [] => by simp [insertIdxTR.go, insertIdx]
-  | n+1, a :: l => by simp [insertIdxTR.go, insertIdx, insertIdxTR_go_eq n l]
-
-@[csimp] theorem insertIdx_eq_insertIdxTR : @insertIdx = @insertIdxTR := by
-  funext α f n l; simp [insertIdxTR, insertIdxTR_go_eq]
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -487,8 +449,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [Array.foldl_eq_foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  rfl
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -524,9 +485,9 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  funext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp only [product, productTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -540,23 +501,15 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp only [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
-
-/--
-`ofFn f` with `f : fin n → α` returns the list whose ith element is `f i`
-```
-ofFn f = [f 0, f 1, ... , f (n - 1)]
-```
--/
-def ofFn {n} (f : Fin n → α) : List α := Fin.foldr n (f · :: ·) []
+  simp
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
-/-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
+/-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
@@ -1096,6 +1049,3 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
-
-/-- `finRange n` lists all elements of `Fin n` in order -/
-def finRange (n : Nat) : List (Fin n) := ofFn fun i => i

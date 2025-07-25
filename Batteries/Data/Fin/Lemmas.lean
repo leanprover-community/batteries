@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
 import Batteries.Data.List.Lemmas
+import Batteries.Util.ProofWanted
 
 namespace Fin
 
@@ -14,138 +15,147 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
-/-! ### foldlM -/
+/-! ### findSome? -/
 
-theorem foldlM_loop_lt [Monad m] (f : α → Fin n → m α) (x) (h : i < n) :
-    foldlM.loop n f x i = f x ⟨i, h⟩ >>= (foldlM.loop n f . (i+1)) := by
-  rw [foldlM.loop, dif_pos h]
+@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
 
-theorem foldlM_loop_eq [Monad m] (f : α → Fin n → m α) (x) : foldlM.loop n f x n = pure x := by
-  rw [foldlM.loop, dif_neg (Nat.lt_irrefl _)]
+@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
 
-theorem foldlM_loop [Monad m] (f : α → Fin (n+1) → m α) (x) (h : i < n+1) :
-    foldlM.loop (n+1) f x i = f x ⟨i, h⟩ >>= (foldlM.loop n (fun x j => f x j.succ) . i) := by
-  if h' : i < n then
-    rw [foldlM_loop_lt _ _ h]
-    congr; funext
-    rw [foldlM_loop_lt _ _ h', foldlM_loop]; rfl
-  else
-    cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
-    rw [foldlM_loop_lt]
-    congr; funext
-    rw [foldlM_loop_eq, foldlM_loop_eq]
-termination_by n - i
+theorem findSome?_succ {f : Fin (n+1) → Option α} :
+    findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
+  simp only [findSome?, foldl_succ, Option.orElse_none, Function.comp_apply]
+  cases f 0
+  · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
+  · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
+    induction n with
+    | zero => rfl
+    | succ n ih => rw [foldl_succ, Option.orElse_some, ih (f := fun i => f i.succ)]
 
-@[simp] theorem foldlM_zero [Monad m] (f : α → Fin 0 → m α) (x) : foldlM 0 f x = pure x :=
-  foldlM_loop_eq ..
+theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
+    findSome? f = some x := by simp [findSome?_succ, h]
 
-theorem foldlM_succ [Monad m] (f : α → Fin (n+1) → m α) (x) :
-    foldlM (n+1) f x = f x 0 >>= foldlM n (fun x j => f x j.succ) := foldlM_loop ..
+theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
+    findSome? f = f 0 := by cases _h : f 0 <;> simp_all [findSome?_succ_of_some]
 
-/-! ### foldrM -/
+theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
+    findSome? f = findSome? fun i => f i.succ := by simp [findSome?_succ, h]
 
-theorem foldrM_loop_zero [Monad m] (f : Fin n → α → m α) (x) :
-    foldrM.loop n f ⟨0, Nat.zero_le _⟩ x = pure x := by
-  rw [foldrM.loop]
+theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
+    findSome? f = findSome? fun i => f i.succ := by simp_all [findSome?_succ_of_none]
 
-theorem foldrM_loop_succ [Monad m] (f : Fin n → α → m α) (x) (h : i < n) :
-    foldrM.loop n f ⟨i+1, h⟩ x = f ⟨i, h⟩ x >>= foldrM.loop n f ⟨i, Nat.le_of_lt h⟩ := by
-  rw [foldrM.loop]
+theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
+    ∃ i, f i = some x := by
+  induction n with
+  | zero => rw [findSome?_zero] at h; contradiction
+  | succ n ih =>
+    rw [findSome?_succ] at h
+    match heq : f 0 with
+    | some x =>
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_some] at h
+      exists 0
+      rw [heq, h]
+    | none =>
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_none] at h
+      match ih h with | ⟨i, _⟩ => exists i.succ
 
-theorem foldrM_loop [Monad m] [LawfulMonad m] (f : Fin (n+1) → α → m α) (x) (h : i+1 ≤ n+1) :
-    foldrM.loop (n+1) f ⟨i+1, h⟩ x =
-      foldrM.loop n (fun j => f j.succ) ⟨i, Nat.le_of_succ_le_succ h⟩ x >>= f 0 := by
-  induction i generalizing x with
-  | zero =>
-    rw [foldrM_loop_zero, foldrM_loop_succ, pure_bind]
-    conv => rhs; rw [←bind_pure (f 0 x)]
-    congr; funext; exact foldrM_loop_zero ..
-  | succ i ih =>
-    rw [foldrM_loop_succ, foldrM_loop_succ, bind_assoc]
-    congr; funext; exact ih ..
+theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
+    f i = none := by
+  induction n with
+  | zero => cases i; contradiction
+  | succ n ih =>
+    rw [findSome?_succ] at h
+    match heq : f 0 with
+    | some x =>
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_some] at h
+      contradiction
+    | none =>
+      rw [heq, Option.orElse_eq_orElse, Option.orElse_none] at h
+      cases i using Fin.cases with
+      | zero => exact heq
+      | succ i => exact ih h i
 
-@[simp] theorem foldrM_zero [Monad m] (f : Fin 0 → α → m α) (x) : foldrM 0 f x = pure x :=
-  foldrM_loop_zero ..
+@[simp] theorem findSome?_isSome_iff {f : Fin n → Option α} :
+    (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
+  simp only [Option.isSome_iff_exists]
+  constructor
+  · intro ⟨x, hx⟩
+    match exists_of_findSome?_eq_some hx with
+    | ⟨i, hi⟩ => exists i, x
+  · intro ⟨i, x, hix⟩
+    match h : findSome? f with
+    | some x => exists x
+    | none => rw [eq_none_of_findSome?_eq_none h i] at hix; contradiction
 
-theorem foldrM_succ [Monad m] [LawfulMonad m] (f : Fin (n+1) → α → m α) (x) :
-    foldrM (n+1) f x = foldrM n (fun i => f i.succ) x >>= f 0 := foldrM_loop ..
+@[simp] theorem findSome?_eq_none_iff {f : Fin n → Option α} :
+    findSome? f = none ↔ ∀ i, f i = none := by
+  constructor
+  · exact eq_none_of_findSome?_eq_none
+  · intro hf
+    match h : findSome? f with
+    | none => rfl
+    | some x =>
+      match exists_of_findSome?_eq_some h with
+      | ⟨i, h⟩ => rw [hf] at h; contradiction
 
-/-! ### foldl -/
+theorem findSome?_isNone_iff {f : Fin n → Option α} :
+    (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-theorem foldl_loop_lt (f : α → Fin n → α) (x) (h : i < n) :
-    foldl.loop n f x i = foldl.loop n f (f x ⟨i, h⟩) (i+1) := by
-  rw [foldl.loop, dif_pos h]
+theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
+    (findSome? f).map g = findSome? (Option.map g ∘ f) := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_or, ih]
 
-theorem foldl_loop_eq (f : α → Fin n → α) (x) : foldl.loop n f x n = x := by
-  rw [foldl.loop, dif_neg (Nat.lt_irrefl _)]
+theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
-theorem foldl_loop (f : α → Fin (n+1) → α) (x) (h : i < n+1) :
-    foldl.loop (n+1) f x i = foldl.loop n (fun x j => f x j.succ) (f x ⟨i, h⟩) i := by
-  if h' : i < n then
-    rw [foldl_loop_lt _ _ h]
-    rw [foldl_loop_lt _ _ h', foldl_loop]; rfl
-  else
-    cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
-    rw [foldl_loop_lt]
-    rw [foldl_loop_eq, foldl_loop_eq]
+theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
+    findSome? f = (List.finRange n).findSome? f := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
+    cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
-@[simp] theorem foldl_zero (f : α → Fin 0 → α) (x) : foldl 0 f x = x :=
-  foldl_loop_eq ..
+/-! ### Fin.find? -/
 
-theorem foldl_succ (f : α → Fin (n+1) → α) (x) :
-    foldl (n+1) f x = foldl n (fun x i => f x i.succ) (f x 0) :=
-  foldl_loop ..
+@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
 
-theorem foldl_succ_last (f : α → Fin (n+1) → α) (x) :
-    foldl (n+1) f x = f (foldl n (f · ·.castSucc) x) (last n) := by
-  rw [foldl_succ]
-  induction n generalizing x with
-  | zero => simp [foldl_succ, Fin.last]
-  | succ n ih => rw [foldl_succ, ih (f · ·.succ), foldl_succ]; simp [succ_castSucc]
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
 
-theorem foldl_eq_foldlM (f : α → Fin n → α) (x) :
-    foldl n f x = foldlM (m:=Id) n f x := by
-  induction n generalizing x <;> simp [foldl_succ, foldlM_succ, *]
+theorem find?_succ {p : Fin (n+1) → Bool} :
+    find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
+  simp only [find?, findSome?_succ, Option.guard]
+  split <;> simp [map_findSome?, Function.comp_def, Option.guard]
 
-/-! ### foldr -/
+theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i = true := by
+  match exists_of_findSome?_eq_some h with
+  | ⟨i, hi⟩ =>
+    simp only [Option.guard] at hi
+    split at hi
+    · cases hi; assumption
+    · contradiction
 
-theorem foldr_loop_zero (f : Fin n → α → α) (x) :
-    foldr.loop n f ⟨0, Nat.zero_le _⟩ x = x := by
-  rw [foldr.loop]
+theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) : p i = false := by
+  have hi := eq_none_of_findSome?_eq_none h i
+  simp only [Option.guard] at hi
+  split at hi
+  · contradiction
+  · simp [*]
 
-theorem foldr_loop_succ (f : Fin n → α → α) (x) (h : i < n) :
-    foldr.loop n f ⟨i+1, h⟩ x = foldr.loop n f ⟨i, Nat.le_of_lt h⟩ (f ⟨i, h⟩ x) := by
-  rw [foldr.loop]
+theorem find?_isSome_iff {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
+  simp [find?, findSome?_isSome_iff]
 
-theorem foldr_loop (f : Fin (n+1) → α → α) (x) (h : i+1 ≤ n+1) :
-    foldr.loop (n+1) f ⟨i+1, h⟩ x =
-      f 0 (foldr.loop n (fun j => f j.succ) ⟨i, Nat.le_of_succ_le_succ h⟩ x) := by
-  induction i generalizing x <;> simp [foldr_loop_zero, foldr_loop_succ, *]
+theorem find?_isNone_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
+  simp [find?, findSome?_isSome_iff]
 
-@[simp] theorem foldr_zero (f : Fin 0 → α → α) (x) : foldr 0 f x = x :=
-  foldr_loop_zero ..
+proof_wanted find?_eq_some_iff {p : Fin n → Bool} : find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j
 
-theorem foldr_succ (f : Fin (n+1) → α → α) (x) :
-    foldr (n+1) f x = f 0 (foldr n (fun i => f i.succ) x) := foldr_loop ..
+theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by
+  rw [← find?_isNone_iff, Option.isNone_iff_eq_none]
 
-theorem foldr_succ_last (f : Fin (n+1) → α → α) (x) :
-    foldr (n+1) f x = foldr n (f ·.castSucc) (f (last n) x) := by
-  induction n generalizing x with
-  | zero => simp [foldr_succ, Fin.last]
-  | succ n ih => rw [foldr_succ, ih (f ·.succ), foldr_succ]; simp [succ_castSucc]
-
-theorem foldr_eq_foldrM (f : Fin n → α → α) (x) :
-    foldr n f x = foldrM (m:=Id) n f x := by
-  induction n <;> simp [foldr_succ, foldrM_succ, *]
-
-theorem foldl_rev (f : Fin n → α → α) (x) :
-    foldl n (fun x i => f i.rev x) x = foldr n f x := by
-  induction n generalizing x with
-  | zero => simp
-  | succ n ih => rw [foldl_succ, foldr_succ_last, ← ih]; simp [rev_succ]
-
-theorem foldr_rev (f : α → Fin n → α) (x) :
-     foldr n (fun i x => f x i.rev) x = foldl n f x := by
-  induction n generalizing x with
-  | zero => simp
-  | succ n ih => rw [foldl_succ_last, foldr_succ, ← ih]; simp [rev_succ]
+theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [find?_succ, List.finRange_succ, List.find?_cons]
+    split <;> simp [Function.comp_def, *]

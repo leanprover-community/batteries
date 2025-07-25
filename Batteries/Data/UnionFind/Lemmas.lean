@@ -43,7 +43,7 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
     if x.1 = y then
       parentD self i
     else
-      if (self.get y).rank < (self.get x).rank then
+      if self[y.1].rank < self[x.1].rank then
         if y = i then x else parentD self i
       else
         if x = i then y else parentD self i := by
@@ -97,8 +97,8 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       this yroot xroot fun i => by simp [parent_link, h, hr]
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
-theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
-theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
+nonrec theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
+nonrec theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
 
 @[simp] theorem equiv_empty : Equiv empty a b ↔ a = b := by simp [Equiv]
 
@@ -123,8 +123,8 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
       Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
     simp [Equiv, hm, xroot, yroot]
     by_cases h1 : rootD self a = x <;> by_cases h2 : rootD self b = x <;>
-      simp [h1, h2, imp_false, Decidable.not_not]
-    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (rootD self b), *]
+      simp [h1, h2, imp_false, Decidable.not_not, -left_eq_ite_iff]
+    · simp [h2, Ne.symm h2, -left_eq_ite_iff]; split <;> simp [@eq_comm _ _ (rootD self b), *]
     · by_cases h1 : rootD self a = y <;> by_cases h2 : rootD self b = y <;>
         simp [h1, h2, @eq_comm _ _ (rootD self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr

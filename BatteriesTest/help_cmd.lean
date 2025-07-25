@@ -35,11 +35,45 @@ error: no attributes start with foobarbaz
 #help attr foobarbaz
 
 /--
-info:
-[inline]: mark definition to be inlined
+info: [inline]: mark definition to be inlined
+  Changes the inlining behavior. This attribute comes in several variants:
+  - `@[inline]`: marks the definition to be inlined when it is appropriate.
+  - `@[inline_if_reduce]`: marks the definition to be inlined if an application of it after inlining
+    and applying reduction isn't a `match` expression. This attribute can be used for inlining
+    structurally recursive functions.
+  - `@[noinline]`: marks the definition to never be inlined.
+  - `@[always_inline]`: marks the definition to always be inlined.
+  - `@[macro_inline]`: marks the definition to always be inlined at the beginning of compilation.
+    This makes it possible to define functions that evaluate some of their parameters lazily.
+    Example:
+    ```
+    @[macro_inline]
+    def test (x y : Nat) : Nat :=
+      if x = 42 then x else y
+  ⏎
+    #eval test 42 (2^1000000000000) -- doesn't compute 2^1000000000000
+    ```
+    Only non-recursive functions may be marked `@[macro_inline]`.
 
-[inline_if_reduce]: mark definition to be inlined when resultant term after reduction is not a
-`cases_on` application
+[inline_if_reduce]: mark definition to be inlined when resultant term after reduction is not a `cases_on` application
+  Changes the inlining behavior. This attribute comes in several variants:
+  - `@[inline]`: marks the definition to be inlined when it is appropriate.
+  - `@[inline_if_reduce]`: marks the definition to be inlined if an application of it after inlining
+    and applying reduction isn't a `match` expression. This attribute can be used for inlining
+    structurally recursive functions.
+  - `@[noinline]`: marks the definition to never be inlined.
+  - `@[always_inline]`: marks the definition to always be inlined.
+  - `@[macro_inline]`: marks the definition to always be inlined at the beginning of compilation.
+    This makes it possible to define functions that evaluate some of their parameters lazily.
+    Example:
+    ```
+    @[macro_inline]
+    def test (x y : Nat) : Nat :=
+      if x = 42 then x else y
+  ⏎
+    #eval test 42 (2^1000000000000) -- doesn't compute 2^1000000000000
+    ```
+    Only non-recursive functions may be marked `@[macro_inline]`.
 -/
 #guard_msgs in
 #help attr inl
@@ -148,13 +182,12 @@ error: no syntax categories start with foobarbaz
 #help cats foobarbaz
 
 /--
-info:
-category prec [Lean.Parser.Category.prec]
+info: category prec [Lean.Parser.Category.prec]
   `prec` is a builtin syntax category for precedences. A precedence is a value
   that expresses how tightly a piece of syntax binds: for example `1 + 2 * 3` is
-  parsed as `1 + (2 * 3)` because `*` has a higher pr0ecedence than `+`.
+  parsed as `1 + (2 * 3)` because `*` has a higher precedence than `+`.
   Higher numbers denote higher precedence.
-  In addition to literals like `37`, there are some special named priorities:
+  In addition to literals like `37`, there are some special named precedence levels:
   * `arg` for the precedence of function arguments
   * `max` for the highest precedence used in term parsers (not actually the maximum possible value)
   * `lead` for the precedence of terms not supposed to be used as arguments
@@ -406,7 +439,10 @@ error: no term declarations start with foobarbaz
 #help term foobarbaz
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 
@@ -416,7 +452,11 @@ syntax "default_or_ofNonempty%"... [Lean.Parser.Term.defaultOrOfNonempty]
 #help term de
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
++ term elab Lean.Elab.Term.elabDebugAssert
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 + term elab Lean.Elab.Term.elabDeclName

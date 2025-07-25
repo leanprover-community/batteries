@@ -3,7 +3,6 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Lean.Util.Paths
 import Lean.Elab.Command
 import Batteries.Tactic.Lint.Basic
 import Batteries.Tactic.OpenPrivate
@@ -53,7 +52,7 @@ sanity check, lint, cleanup, command, tactic
 -/
 
 namespace Batteries.Tactic.Lint
-open Lean
+open Lean Elab Command
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
@@ -89,9 +88,6 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
         result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
--- Note: we have to use the same context as `runTermElabM` here so that the `simpNF`
--- linter works the same as the `simp` tactic itself. See #671
-open private mkMetaContext from Lean.Elab.Command in
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
@@ -107,7 +103,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           match ← withCurrHeartbeats (linter.test decl)
-              |>.run' mkMetaContext
+              |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
               |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?
@@ -152,7 +148,7 @@ The first `drop_fn_chars` characters are stripped from the filename.
 -/
 def groupedByFilename (results : Std.HashMap Name MessageData) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
-  let sp ← if useErrorFormat then initSrcSearchPath ["."] else pure {}
+  let sp ← if useErrorFormat then getSrcSearchPath else pure {}
   let grouped : Std.HashMap Name (System.FilePath × Std.HashMap Name MessageData) ←
     results.foldM (init := {}) fun grouped declName msg => do
       let mod ← findModuleOf? declName

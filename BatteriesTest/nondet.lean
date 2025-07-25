@@ -17,7 +17,7 @@ def record (n : Nat) : M Unit := do
   discard <| restoreState (n :: (← saveState))
 
 def iotaM [Monad m] [Alternative m] [MonadBacktrack σ m] (n : Nat) : Nondet m Nat :=
-  Nondet.ofList (List.iota n)
+  Nondet.ofList (List.range' 1 n).reverse
 
 /-- info: (52, []) -/
 #guard_msgs in
@@ -39,7 +39,7 @@ def x : Nondet M Nat :=
 #guard_msgs in
 #eval show MetaM (Nat × List Nat) from StateT.run x.head []
 
-def divisors (n : Nat) : List Nat := List.iota (n - 1) |>.filter fun m => n % m = 0
+def divisors (n : Nat) : List Nat := List.range' 1 (n - 1) |>.reverse.filter fun m => n % m = 0
 example : divisors 52 = [26, 13, 4, 2, 1] := rfl
 
 def divisorsM [Monad m] [MonadBacktrack σ m] (n : Nat) : Nondet m Nat :=
