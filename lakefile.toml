@@ -8,6 +8,7 @@ linter.missingDocs = true
 
 [[lean_lib]]
 name = "Batteries"
+leanOptions = {linter.unusedSimpArgs = false}
 
 [[lean_lib]]
 name = "BatteriesTest"
@@ -23,6 +24,7 @@ supportInterpreter = true
 name = "test"
 srcDir = "scripts"
 
+# `lake exe shake` checks files for unnecessary imports.
 [[lean_exe]]
 name = "shake"
 root = "Shake.Main"

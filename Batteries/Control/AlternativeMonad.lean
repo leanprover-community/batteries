@@ -119,8 +119,8 @@ instance : AlternativeMonad Option.{u} where
 instance : LawfulAlternative Option.{u} where
   map_failure _ := rfl
   failure_seq _ := rfl
-  orElse_failure := Option.orElse_none
-  failure_orElse := Option.none_orElse
+  orElse_failure x := by cases x <;> rfl
+  failure_orElse := by simp [failure]
   orElse_assoc | some _, _, _ => rfl | none, _, _ => rfl
   map_orElse | some _ => by simp | none => by simp
 

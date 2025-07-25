@@ -23,17 +23,20 @@ namespace BitVec
     rfl
 
 @[simp] theorem toFin_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
-    (ofFnLEAux m f).toFin = Fin.ofNat' (2 ^ m) (Nat.ofBits f) := by
+    (ofFnLEAux m f).toFin = Fin.ofNat (2 ^ m) (Nat.ofBits f) := by
   ext; simp
 
-@[simp] theorem toNat_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toNat = Nat.ofBits f := by
+@[simp, grind =] theorem toNat_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toNat = Nat.ofBits f := by
   rw [ofFnLE, toNat_ofFnLEAux, Nat.mod_eq_of_lt (Nat.ofBits_lt_two_pow f)]
 
-@[simp] theorem toFin_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toFin = Fin.ofBits f := by
+@[simp, grind =] theorem toFin_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toFin = Fin.ofBits f := by
   ext; simp
 
-@[simp] theorem toInt_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toInt = Int.ofBits f := by
+@[simp, grind =] theorem toInt_ofFnLE (f : Fin n → Bool) : (ofFnLE f).toInt = Int.ofBits f := by
   simp only [BitVec.toInt, Int.ofBits, toNat_ofFnLE, Int.subNatNat_eq_coe]; rfl
+
+-- TODO: consider these for global `grind` attributes.
+attribute [local grind] Fin.succ Fin.rev Fin.last Fin.zero_eta
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by
@@ -43,65 +46,72 @@ theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
   | succ n ih =>
     simp only [Fin.foldr_succ, getElem_shiftConcat]
     cases i with
-    | zero =>
-      simp
-    | succ i =>
-      rw [ih (fun i => f i.succ)] <;> try omega
-      simp
+    | zero => grind
+    | succ i => rw [ih] <;> grind
 
-@[simp] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) : (ofFnLE f)[i] = f ⟨i, h⟩ :=
+@[simp, grind =] theorem getElem_ofFnLE (f : Fin n → Bool) (i) (h : i < n) :
+    (ofFnLE f)[i] = f ⟨i, h⟩ :=
   getElem_ofFnLEAux ..
 
-theorem getLsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb' i = f i := by simp
+@[grind =]
+theorem getLsb_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getLsb i = f i := by simp
+
+@[deprecated (since := "2025-06-17")] alias getLsb'_ofFnLE := getLsb_ofFnLE
 
 theorem getLsbD_ofFnLE (f : Fin n → Bool) (i) :
     (ofFnLE f).getLsbD i = if h : i < n then f ⟨i, h⟩ else false := by
-  split
-  · next h => rw [getLsbD_eq_getElem h, getElem_ofFnLE]
-  · next h => rw [getLsbD_ge _ _ (Nat.ge_of_not_lt h)]
+  grind
 
-@[simp] theorem getMsb'_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb' i = f i.rev := by
-  simp [getMsb'_eq_getLsb', Fin.rev]; congr 2; omega
+@[simp, grind =] theorem getMsb_ofFnLE (f : Fin n → Bool) (i) : (ofFnLE f).getMsb i = f i.rev := by
+  grind
 
+@[deprecated (since := "2025-06-17")] alias getMsb'_ofFnLE := getMsb_ofFnLE
+
+@[grind =]
 theorem getMsbD_ofFnLE (f : Fin n → Bool) (i) :
     (ofFnLE f).getMsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
-  split
-  · next h =>
-    have heq : n - 1 - i = n - (i + 1) := by omega
-    have hlt : n - (i + 1) < n := by omega
-    simp [getMsbD_eq_getLsbD, getLsbD_ofFnLE, Fin.rev, h, heq, hlt]
-  · next h => rw [getMsbD_ge _ _ (Nat.ge_of_not_lt h)]
+  grind
 
 theorem msb_ofFnLE (f : Fin n → Bool) :
     (ofFnLE f).msb = if h : n ≠ 0 then f ⟨n-1, Nat.sub_one_lt h⟩ else false := by
-  cases n <;> simp [msb_eq_getMsbD_zero, getMsbD_ofFnLE, Fin.last]
+  grind
 
-@[simp] theorem toNat_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toNat_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toNat = Nat.ofBits (f ∘ Fin.rev) := by
   simp [ofFnBE]; rfl
 
-@[simp] theorem toFin_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toFin_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toFin = Fin.ofBits (f ∘ Fin.rev) := by
   ext; simp
 
-@[simp] theorem toInt_ofFnBE (f : Fin n → Bool) : (ofFnBE f).toInt = Int.ofBits (f ∘ Fin.rev) := by
+@[simp, grind =] theorem toInt_ofFnBE (f : Fin n → Bool) :
+    (ofFnBE f).toInt = Int.ofBits (f ∘ Fin.rev) := by
   simp [ofFnBE]; rfl
 
-@[simp] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
+@[simp, grind =] theorem getElem_ofFnBE (f : Fin n → Bool) (i) (h : i < n) :
     (ofFnBE f)[i] = f (Fin.rev ⟨i, h⟩) := by simp [ofFnBE]
 
-theorem getLsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb' i = f i.rev := by
+@[grind =]
+theorem getLsb_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getLsb i = f i.rev := by
   simp
+
+@[deprecated (since := "2025-06-17")] alias getLsb'_ofFnBE := getLsb_ofFnBE
 
 theorem getLsbD_ofFnBE (f : Fin n → Bool) (i) :
     (ofFnBE f).getLsbD i = if h : i < n then f (Fin.rev ⟨i, h⟩) else false := by
-  simp [ofFnBE, getLsbD_ofFnLE]
+  grind
 
-@[simp] theorem getMsb'_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb' i = f i := by
+@[simp, grind =] theorem getMsb_ofFnBE (f : Fin n → Bool) (i) : (ofFnBE f).getMsb i = f i := by
   simp [ofFnBE]
 
+@[deprecated (since := "2025-06-17")] alias getMsb'_ofFnBE := getMsb_ofFnBE
+
+@[grind =]
 theorem getMsbD_ofFnBE (f : Fin n → Bool) (i) :
     (ofFnBE f).getMsbD i = if h : i < n then f ⟨i, h⟩ else false := by
-  simp [ofFnBE, getMsbD_ofFnLE]
+  grind
 
+@[grind =]
 theorem msb_ofFnBE (f : Fin n → Bool) :
     (ofFnBE f).msb = if h : n ≠ 0 then f ⟨0, Nat.zero_lt_of_ne_zero h⟩ else false := by
-  cases n <;> simp [ofFnBE, msb_ofFnLE, Fin.rev]
+  grind
