@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 import Batteries.Lean.EStateM
 import Batteries.Lean.Except
-import Batteries.Tactic.Lint
 
 /-!
 ## SatisfiesM
