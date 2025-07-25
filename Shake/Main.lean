@@ -7,10 +7,10 @@ import Lake.CLI.Main
 
 /-! # `lake exe shake` command
 
-This command will check mathlib (or the specified modules) and all their dependency for unused
-imports. This works by looking at generated `.olean` files to deduce required imports and ensuring
-that every import is used to contribute some constant. Because recompilation is not needed this
-is quite fast (about 8 seconds to check `Mathlib` and all dependencies), but it has some known
+This command will check the current project (or a specified target module) and all dependencies for
+unused imports. This works by looking at generated `.olean` files to deduce required imports and
+ensuring that every import is used to contribute some constant. Because recompilation is not needed
+this is quite fast (about 8 seconds to check `Mathlib` and all dependencies), but it has some known
 limitations:
 
 * Tactics that are used during elaboration generally leave no trace in the proof term, so
