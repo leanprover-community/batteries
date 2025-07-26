@@ -53,6 +53,10 @@ documentation][mathlib4 docs].
 
 # Contributing
 
+The first step to contribute is to create a fork of Batteries.
+Then add your contributions to a branch of your fork and make a PR to Batteries.
+Do not make your changes to the main branch of your fork, that may lead to complications on your end.
+
 Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
 or `WIP` (in progress).
 To change the status label of a pull request, add a comment containing one of these options and
