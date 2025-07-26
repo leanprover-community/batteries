@@ -1,0 +1,1 @@
+{"name":"Batteries.Data.List.OfFn","instances":[],"imports":["Init","Batteries.Data.List.Lemmas","Batteries.Data.Fin.Lemmas"],"declarations":[]}

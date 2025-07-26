@@ -1,0 +1,1 @@
+{"name":"Std.Data.HashMap","instances":[],"imports":["Std.Data.HashMap.Basic","Std.Data.HashMap.Lemmas","Std.Data.HashMap.AdditionalOperations"],"declarations":[]}
