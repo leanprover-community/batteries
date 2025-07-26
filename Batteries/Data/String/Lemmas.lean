@@ -734,28 +734,6 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
 
-/--
-Prop-valued comparison of two `String`s for *ascii*-case insensitive equality.
--/
-def eqIgnoreAsciiCase (s₁ s₂ : String) : Prop := s₁.toLower = s₂.toLower
-
-/--
-Bool-valued comparison of two `String`s for *ascii*-case insensitive equality.
--/
-def beqIgnoreAsciiCase (s₁ s₂ : String) : Bool := s₁.toLower == s₂.toLower
-
-theorem beqIgnoreAsciiCase_iff_eqIgnoreAsciiCase (s₁ s₂ : String) :
-  (s₁.beqIgnoreAsciiCase s₂ = true) ↔ s₁.eqIgnoreAsciiCase s₂ := by
-  simp only [beqIgnoreAsciiCase, beq_iff_eq, eqIgnoreAsciiCase]
-
-theorem eqIgnoreAsciiCase.eqv : Equivalence eqIgnoreAsciiCase := {
-  refl _ := rfl
-  trans := fun h1 h2 => by simp only [eqIgnoreAsciiCase] at *; exact h1 ▸ h2
-  symm := by simp only [eqIgnoreAsciiCase] at *; exact Eq.symm
-}
-
-instance eqIgnoreAsciiCase.isSetoid : Setoid String := ⟨eqIgnoreAsciiCase, eqIgnoreAsciiCase.eqv⟩
-
 @[simp]
 theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
   ⟨fun h => ext (id h), congrArg data⟩
