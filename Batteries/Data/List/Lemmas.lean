@@ -5,7 +5,6 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Data.List.Basic
-import Batteries.Tactic.Init
 import Batteries.Tactic.Alias
 
 namespace List

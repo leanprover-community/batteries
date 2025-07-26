@@ -3,8 +3,7 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Array.Lemmas
-import Batteries.Data.List.Pairwise
+import Batteries.Tactic.Alias
 
 namespace Array
 
