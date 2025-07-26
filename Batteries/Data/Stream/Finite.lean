@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 import Batteries.WF
+import Batteries.Data.ByteSubarray
 
 /-! # Finite and Well-Founded Streams
 
@@ -91,13 +92,71 @@ def WellFounded.ofMeasure.{u,v} [Stream.{u,v} σ α] (f : σ → Nat)
 macro_rules
 | `(tactic| decreasing_trivial) => `(tactic| apply Stream.next_of_next?_eq_some; assumption)
 
-instance instWellFoundedList (α) : WellFounded (List α) α :=
+instance (α) : WellFounded (List α) α :=
   .ofMeasure List.length <| by
-    intro s t x h
+    intro _ _ _ h
     simp only [next?] at h
     split at h
     · contradiction
     · cases h; simp
+
+instance : WellFounded Substring Char :=
+  .ofMeasure Substring.bsize <| by
+    intro _ _ _ h
+    simp only [next?] at h
+    split at h
+    · next hlt =>
+      cases h
+      simp only [Substring.bsize, String.next, String.pos_add_char, Nat.sub_eq]
+      apply Nat.sub_lt_sub_left hlt
+      apply Nat.lt_add_of_pos_right
+      exact Char.utf8Size_pos _
+    · contradiction
+
+instance (α) : WellFounded (Subarray α) α :=
+  .ofMeasure Subarray.size <| by
+    intro _ _ _ h
+    simp only [next?] at h
+    split at h
+    · cases h
+      simp only [Subarray.size, Subarray.stop, Subarray.start]
+      apply Nat.sub_one_lt
+      apply Nat.sub_ne_zero_of_lt
+      assumption
+    · contradiction
+
+instance : WellFounded Batteries.ByteSubarray UInt8 :=
+  .ofMeasure Batteries.ByteSubarray.size <| by
+    intro _ _ _ h
+    simp only [next?, bind, Option.bind] at h
+    split at h
+    · contradiction
+    · next heq =>
+      rw [getElem?_def] at heq
+      split at heq
+      · next hpos =>
+        cases h
+        simp only [Batteries.ByteSubarray.size, Batteries.ByteSubarray.popFront] at hpos ⊢
+        split
+        · next heq =>
+          simp [heq] at hpos
+        · simp
+          apply Nat.sub_one_lt
+          exact Nat.ne_zero_of_lt hpos
+      · contradiction
+      done
+
+instance : WellFounded Std.Range Nat :=
+  .ofMeasure (fun r => r.stop - r.start) <| by
+    intro _ _ _ h
+    simp only [next?] at h
+    split at h
+    · next hlt =>
+      cases h
+      apply Nat.sub_lt_sub_left hlt
+      apply Nat.lt_add_of_pos_right
+      exact Std.Range.step_pos _
+    · contradiction
 
 /-- Class for a finite stream of type `σ`. -/
 class Finite [WithNextRelation σ α] (s : σ) : Prop where
