@@ -1,0 +1,36 @@
+{"ignoreImport": ["Init", "Lean"],
+ "ignore":
+ {"Batteries.Tactic.Lint.Simp":
+  ["Batteries.Tactic.OpenPrivate", "Batteries.Util.LibraryNote"],
+  "Batteries.Tactic.Exact": ["Batteries.Tactic.Alias"],
+  "Batteries.Logic": ["Batteries.Tactic.Alias"],
+  "Batteries.Linter.UnreachableTactic":
+  ["Batteries.Tactic.Unreachable", "Lean.Parser.Syntax"],
+  "Batteries.Lean.Util.EnvSearch": ["Batteries.Tactic.Lint.Misc"],
+  "Batteries.Lean.Meta.Simp": ["Batteries.Tactic.OpenPrivate"],
+  "Batteries.Data.UnionFind.Basic":
+  ["Batteries.Tactic.Lint.Misc", "Batteries.Tactic.SeqFocus"],
+  "Batteries.Data.String.Matcher": ["Batteries.Data.String.Basic"],
+  "Batteries.Data.String.Lemmas":
+  ["Batteries.Data.String.Basic", "Batteries.Tactic.Lint.Misc"],
+  "Batteries.Data.Rat.Lemmas": ["Batteries.Tactic.SeqFocus"],
+  "Batteries.Data.Range.Lemmas":
+  ["Batteries.Tactic.Alias", "Batteries.Tactic.SeqFocus"],
+  "Batteries.Data.RBMap.Lemmas": ["Batteries.Tactic.Basic"],
+  "Batteries.Data.RBMap.Basic": ["Batteries.Tactic.Lint.Misc"],
+  "Batteries.Data.Nat.Bisect": ["Batteries.Tactic.Basic"],
+  "Batteries.Data.List.Lemmas": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.HashMap.Lemmas": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.HashMap.Basic": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.Fin.Lemmas": ["Batteries.Util.ProofWanted"],
+  "Batteries.Data.Fin.Fold": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.Char.AsciiCasing": ["Batteries.Tactic.Basic"],
+  "Batteries.Data.BitVec.Lemmas": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.Array.Pairwise": ["Batteries.Tactic.Alias"],
+  "Batteries.Data.Array.Monadic": ["Batteries.Util.ProofWanted"],
+  "Batteries.Data.Array.Lemmas": ["Batteries.Data.List.Lemmas"],
+  "Batteries.Control.Nondet.Basic": ["Batteries.Tactic.Lint.Misc"],
+  "Batteries.Control.Monad": ["Batteries.Tactic.Alias"],
+  "Batteries.Control.AlternativeMonad": ["Batteries.Control.Lemmas"],
+  "Batteries.CodeAction.Misc": ["Lean.Server.CodeActions.Provider"],
+  "Batteries.Classes.Order": ["Batteries.Tactic.SeqFocus"]}}

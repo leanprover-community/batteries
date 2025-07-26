@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 import Batteries.Classes.Order
 import Batteries.Control.ForInStep.Basic
 import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.Alias
 
 /-!
 # Red-black trees

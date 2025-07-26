@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
 import Lean.Elab.Command
 import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
 
 /-!
 # Linter frontend and commands

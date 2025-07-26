@@ -4,11 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser
 -/
 
-import Batteries.Data.Vector.Basic
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Lemmas
-import Batteries.Data.Array.Lemmas
-import Batteries.Tactic.Lint.Simp
 
 namespace Vector
 

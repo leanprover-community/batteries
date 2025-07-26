@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
 import Lean.Util.ForEachExpr
-import Lean.Meta.ForEachExpr
 import Lean.Meta.GlobalInstances
 import Lean.Meta.Check
 import Lean.Util.Recognizers
