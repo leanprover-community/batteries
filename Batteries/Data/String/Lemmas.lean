@@ -3,12 +3,12 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
-import Batteries.Data.Char
-import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
-import Std.Classes.Ord.String -- Not needed here, but imported to ensure instance names don't clash.
+import Batteries.Classes.Order
+import Batteries.Data.List.Basic
+import Std.Classes.Ord.String -- adds import only to avoid instance name collisions
 
 namespace String
 
