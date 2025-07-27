@@ -12,7 +12,9 @@
   ["Batteries.Tactic.Lint.Misc", "Batteries.Tactic.SeqFocus"],
   "Batteries.Data.String.Matcher": ["Batteries.Data.String.Basic"],
   "Batteries.Data.String.Lemmas":
-  ["Batteries.Data.String.Basic", "Batteries.Tactic.Lint.Misc"],
+  ["Batteries.Data.String.Basic",
+   "Batteries.Tactic.Lint.Misc",
+   "Std.Classes.Ord.String"],
   "Batteries.Data.Rat.Lemmas": ["Batteries.Tactic.SeqFocus"],
   "Batteries.Data.Range.Lemmas":
   ["Batteries.Tactic.Alias", "Batteries.Tactic.SeqFocus"],
