@@ -184,7 +184,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8SetAux]
   | c::cs, cs' =>
-    simp only [utf8SetAux, List.append_eq, List.cons_append]
+    simp only [utf8SetAux, List.cons_append]
     rw [if_neg]
     case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
@@ -279,7 +279,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
-      simp only [List.append_assoc, List.singleton_append, List.cons_append, utf8Len_append,
+      simp only [List.append_assoc, List.cons_append, utf8Len_append,
         utf8Len_cons, utf8Len_nil, Nat.zero_add, List.nil_append] at foo
       rw [Nat.add_right_comm, Nat.add_assoc] at foo
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
@@ -871,7 +871,7 @@ theorem take : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor l (m.take n) (m.dro
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ ?_ (by simp) (by simp)
     conv => lhs; rw [← List.take_append_drop n m]
-    simp [-List.take_append_drop, Nat.add_assoc]
+    simp [-List.take_append_drop]
 
 -- TODO: takeRight, dropRight
 
@@ -908,7 +908,7 @@ theorem all (f) : ∀ {s}, ValidFor l m r s → s.all f = m.all f
   | _, h => by simp [Substring.all, h.any, List.all_eq_not_any_not]
 
 theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.contains c ↔ c ∈ m)
-  | _, h => by simp [Substring.contains, h.any, String.contains]
+  | _, h => by simp [Substring.contains, h.any]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
