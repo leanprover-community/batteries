@@ -3,8 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Data.List.Init.Lemmas
-import Batteries.Tactic.Alias
 
 namespace List
 
@@ -139,9 +137,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -149,8 +144,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -454,8 +447,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  rfl
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -491,9 +483,9 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  funext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp only [product, productTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -507,9 +499,9 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp only [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=

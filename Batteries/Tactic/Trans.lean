@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Siddhartha Gadgil, Mario Carneiro
 -/
 import Lean.Elab.Tactic.ElabTerm
-import Batteries.Tactic.Alias
 
 /-!
 # `trans` tactic
@@ -15,9 +14,6 @@ variable argument.
 
 /-- Compose using transitivity, homogeneous case. -/
 def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
-
-@[deprecated (since := "2024-10-18")]
-alias Trans.heq := Trans.trans
 
 namespace Batteries.Tactic
 open Lean Meta Elab

@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 import Batteries.Lean.EStateM
 import Batteries.Lean.Except
-import Batteries.Tactic.Lint
 
 /-!
 ## SatisfiesM
@@ -289,7 +288,6 @@ instance : MonadSatisfying (EStateM ε σ) where
   val_eq {α p x} h := by
     ext s
     rw [EStateM.run_map, EStateM.run]
-    simp only
     split <;> simp_all
 
 end MonadSatisfying

@@ -4,29 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
 
-import Batteries.Control.Lemmas
+import Batteries.Control.LawfulMonadState
 
 /-!
 # Lemmas About Option Monad Transformer
 
 This file contains lemmas about the behavior of `OptionT` and `OptionT.run`.
 -/
-
-namespace Option
-
-@[simp] theorem elimM_pure [Monad m] [LawfulMonad m] (x : Option α) (y : m β)
-    (z : α → m β) : Option.elimM (pure x) y z = Option.elim x y z := by
-  simp [Option.elimM, Option.elim]
-
-@[simp] theorem elimM_bind [Monad m] [LawfulMonad m] (x : m α) (f : α → m (Option β))
-    (y : m γ) (z : β → m γ) : Option.elimM (x >>= f) y z = (do Option.elimM (f (← x)) y z) := by
-  simp [Option.elimM]
-
-@[simp] theorem elimM_map [Monad m] [LawfulMonad m] (x : m α) (f : α → Option β)
-    (y : m γ) (z : β → m γ) : Option.elimM (f <$> x) y z = (do Option.elim (f (← x)) y z) := by
-  simp [Option.elimM]
-
-end Option
 
 namespace OptionT
 
@@ -89,5 +73,14 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
 
 @[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
     (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := rfl
+
+instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
+    LawfulMonadStateOf σ (OptionT m) where
+  modifyGet_eq f := by simp [← liftM_modifyGet, ← liftM_get, LawfulMonadStateOf.modifyGet_eq]
+  get_bind_const mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_get_bind mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_set_bind mx := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_get s := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_set s s' := OptionT.ext (by simp [← liftM_get, ← liftM_set])
 
 end OptionT

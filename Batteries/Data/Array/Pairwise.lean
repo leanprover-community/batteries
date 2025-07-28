@@ -3,8 +3,7 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Array.Lemmas
-import Batteries.Data.List.Pairwise
+import Batteries.Tactic.Alias
 
 namespace Array
 
@@ -33,25 +32,31 @@ instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R 
     · intro h ⟨j, hj⟩ ⟨i, hlt⟩; exact h i j (Nat.lt_trans hlt hj) hj hlt
   decidable_of_iff _ this
 
+@[grind]
 theorem pairwise_empty : #[].Pairwise R := by
   unfold Pairwise; exact List.Pairwise.nil
 
+@[grind]
 theorem pairwise_singleton (R : α → α → Prop) (a) : #[a].Pairwise R := by
   unfold Pairwise; exact List.pairwise_singleton ..
 
+@[grind =]
 theorem pairwise_pair : #[a, b].Pairwise R ↔ R a b := by
   unfold Pairwise; exact List.pairwise_pair
 
+@[grind =]
 theorem pairwise_append {as bs : Array α} :
     (as ++ bs).Pairwise R ↔ as.Pairwise R ∧ bs.Pairwise R ∧ (∀ x ∈ as, ∀ y ∈ bs, R x y) := by
-  unfold Pairwise; simp [← mem_toList, toList_append, ← List.pairwise_append]
+  unfold Pairwise; simp [← mem_toList_iff, toList_append, ← List.pairwise_append]
 
+@[grind =]
 theorem pairwise_push {as : Array α} :
     (as.push a).Pairwise R ↔ as.Pairwise R ∧ (∀ x ∈ as, R x a) := by
   unfold Pairwise
-  simp [← mem_toList, push_toList, List.pairwise_append, List.pairwise_singleton,
+  simp [← mem_toList_iff, toList_push, List.pairwise_append, List.pairwise_singleton,
     List.mem_singleton]
 
+@[grind ←]
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
     (as.extract start stop).Pairwise R := by
   simp only [pairwise_iff_getElem, getElem_extract, size_extract] at h ⊢

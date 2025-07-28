@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
-import Lean.Linter.Util
 import Batteries.Lean.AttributeExtra
 
 namespace Batteries.Linter
@@ -44,7 +43,7 @@ example : True := by
 namespace UnnecessarySeqFocus
 
 /-- Gets the value of the `linter.unnecessarySeqFocus` option. -/
-def getLinterUnnecessarySeqFocus (o : Options) : Bool :=
+def getLinterUnnecessarySeqFocus (o : LinterOptions) : Bool :=
   getLinterValue linter.unnecessarySeqFocus o
 
 /--
@@ -67,7 +66,7 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.Conv.case',
     ``Parser.Tactic.rotateLeft,
     ``Parser.Tactic.rotateRight,
-    ``Parser.Tactic.tacticShow_,
+    ``Parser.Tactic.show,
     ``Parser.Tactic.tacticStop_
   ]
 
@@ -149,7 +148,7 @@ end
 
 @[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
 def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
-  unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
+  unless getLinterUnnecessarySeqFocus (← getLinterOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
     return

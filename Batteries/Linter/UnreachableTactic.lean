@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
-import Lean.Linter.Util
 import Lean.Parser.Syntax
 import Batteries.Tactic.Unreachable
 
@@ -27,7 +26,8 @@ register_option linter.unreachableTactic : Bool := {
 
 namespace UnreachableTactic
 /-- Gets the value of the `linter.unreachableTactic` option. -/
-def getLinterUnreachableTactic (o : Options) : Bool := getLinterValue linter.unreachableTactic o
+def getLinterUnreachableTactic (o : LinterOptions) : Bool :=
+  getLinterValue linter.unreachableTactic o
 
 /-- The monad for collecting used tactic syntaxes. -/
 abbrev M := StateRefT (Std.HashMap String.Range Syntax) IO
@@ -89,7 +89,7 @@ end
 
 @[inherit_doc Batteries.Linter.linter.unreachableTactic]
 def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
-  unless getLinterUnreachableTactic (← getOptions) && (← getInfoState).enabled do
+  unless getLinterUnreachableTactic (← getLinterOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
     return

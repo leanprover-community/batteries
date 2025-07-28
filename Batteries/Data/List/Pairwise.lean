@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, James Gallicchio
 -/
-import Batteries.Data.List.Count
+import Batteries.Data.List.Basic
 
 /-!
 # Pairwise relations on a list
