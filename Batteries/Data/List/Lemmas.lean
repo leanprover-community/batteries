@@ -70,7 +70,7 @@ theorem getElem?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
 
 theorem getElem?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
-  simp [getElem?_set]; split <;> subst_vars <;> simp [*, getElem?_eq_getElem h]
+  simp [getElem?_set]; split <;> subst_vars <;> simp [*]
 
 @[deprecated (since := "2025-02-15")] alias get?_set_of_lt' := getElem?_set_of_lt'
 
@@ -121,10 +121,10 @@ theorem replaceF_cons (a : α) (l : List α) :
 
 theorem replaceF_cons_of_some {l : List α} (p) (h : p a = some a') :
     (a :: l).replaceF p = a' :: l := by
-  simp [replaceF_cons, h]
+  simp [h]
 
 theorem replaceF_cons_of_none {l : List α} (p) (h : p a = none) :
-    (a :: l).replaceF p = a :: l.replaceF p := by simp [replaceF_cons, h]
+    (a :: l).replaceF p = a :: l.replaceF p := by simp [h]
 
 theorem replaceF_of_forall_none {l : List α} (h : ∀ a, a ∈ l → p a = none) : l.replaceF p = l := by
   induction l with
@@ -249,7 +249,7 @@ theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem
 @[simp]
 theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
-  simp only [product, and_imp, mem_map, Prod.mk.injEq,
+  simp only [product, mem_map, Prod.mk.injEq,
     exists_eq_right_right, mem_flatMap, iff_self]
 
 /-! ### monadic operations -/
@@ -342,8 +342,8 @@ end Diff
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
   | [], _, _ => by simp
   | x :: xs, hl, h => by
-    cases m <;> cases n <;> simp only [disjoint_cons_left, drop, not_mem_nil, disjoint_nil_left,
-      take, not_false_eq_true, and_self]
+    cases m <;> cases n <;> simp only [disjoint_cons_left, drop, disjoint_nil_left,
+      take]
     · case succ.zero => cases h
     · cases hl with | cons h₀ h₁ =>
       refine ⟨fun h => h₀ _ (mem_of_mem_drop h) rfl, ?_⟩
@@ -382,7 +382,7 @@ protected theorem Pairwise.chain (p : Pairwise R (a :: l)) : Chain R a l := by
   induction p' generalizing a with
   | nil => exact Chain.nil
   | @cons b l r' _ IH =>
-    simp only [chain_cons, forall_mem_cons] at r
+    simp only [forall_mem_cons] at r
     exact chain_cons.2 ⟨r.1, IH r'⟩
 
 /-! ### range', range -/
@@ -426,7 +426,7 @@ theorem findIdxs_cons :
   dsimp [findIdxs]
   rw [cond_eq_if]
   split <;>
-  · simp only [Nat.zero_add, foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+  · simp only [foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
     apply findIdxs_cons_aux
 
 @[simp] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
