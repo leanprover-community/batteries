@@ -63,7 +63,7 @@ def TacticCodeActions.insert (self : TacticCodeActions)
     { self with onAnyTactic := self.onAnyTactic.push action }
   else
     { self with onTactic := tacticKinds.foldl (init := self.onTactic) fun m a =>
-        m.insert a ((m.findD a #[]).push action) }
+        m.insert a ((m.getD a #[]).push action) }
 
 /-- An extension which collects all the tactic code actions. -/
 initialize tacticSeqCodeActionExt :

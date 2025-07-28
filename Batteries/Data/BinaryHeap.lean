@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, François G. Dorais
 -/
 
-import Batteries.Data.Vector.Basic
 
 namespace Batteries
 

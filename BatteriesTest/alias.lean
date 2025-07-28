@@ -50,7 +50,7 @@ example : foobar2 x = foobar x := by simp
 
 /-- doc string for Foo.barbaz -/
 protected alias Foo.barbaz := trivial
-/-- error: unknown identifier 'barbaz' -/
+/-- error: Unknown identifier `barbaz` -/
 #guard_msgs in example : True := barbaz
 example : True := Foo.barbaz
 
