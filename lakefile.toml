@@ -8,7 +8,7 @@ linter.missingDocs = true
 
 [[lean_lib]]
 name = "Batteries"
-leanOptions = {linter.unusedSimpArgs = false}
+leanOptions = {linter.unusedSimpArgs = false, backward.isDefEq.transparencyEscalation = true}
 
 [[lean_lib]]
 name = "BatteriesTest"
