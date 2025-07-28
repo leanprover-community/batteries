@@ -36,7 +36,7 @@ theorem normalize_eq {num den} (den_nz) : normalize num den den_nz =
   simp only [normalize, maybeNormalize_eq, Int.divExact_eq_ediv]
 
 @[simp] theorem normalize_zero (nz) : normalize 0 d nz = 0 := by
-  simp [normalize, Int.zero_tdiv, Int.natAbs_zero, Nat.div_self (Nat.pos_of_ne_zero nz)]; rfl
+  simp [normalize, Int.natAbs_zero, Nat.div_self (Nat.pos_of_ne_zero nz)]; rfl
 
 theorem mk_eq_normalize (num den nz c) : ⟨num, den, nz, c⟩ = normalize num den nz := by
   simp [normalize_eq, c.gcd_eq_one]
@@ -45,7 +45,7 @@ theorem normalize_self (r : Rat) : normalize r.num r.den r.den_nz = r := (mk_eq_
 
 theorem normalize_mul_left {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
     normalize (↑a * n) (a * d) (Nat.mul_ne_zero a0 d0) = normalize n d d0 := by
-  simp [normalize_eq, mk'.injEq, Int.natAbs_mul, Nat.gcd_mul_left,
+  simp [normalize_eq, Int.natAbs_mul, Nat.gcd_mul_left,
     Nat.mul_div_mul_left _ _ (Nat.pos_of_ne_zero a0), Int.natCast_mul,
     Int.mul_ediv_mul_of_pos _ _ (Int.natCast_pos.2 <| Nat.pos_of_ne_zero a0)]
 
@@ -125,7 +125,7 @@ theorem mkRat_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
   rw [← normalize_eq_mkRat z₁, ← normalize_eq_mkRat z₂, normalize_eq_iff]
 
 @[simp] theorem divInt_ofNat (num den) : num /. (den : Nat) = mkRat num den := by
-  simp [divInt, normalize_eq_mkRat]
+  simp [divInt]
 
 theorem mk_eq_divInt (num den nz c) : ⟨num, den, nz, c⟩ = num /. (den : Nat) := by
   simp [mk_eq_mkRat]
@@ -144,7 +144,7 @@ theorem neg_divInt_neg (num den) : -num /. -den = num /. den := by
   | 0 => rfl
   | Int.negSucc n =>
     simp only [divInt, Int.neg_negSucc]
-    simp [normalize_eq_mkRat, Int.neg_neg]
+    simp [normalize_eq_mkRat]
 
 theorem divInt_neg' (num den) : num /. -den = -num /. den := by rw [← neg_divInt_neg, Int.neg_neg]
 
@@ -152,7 +152,7 @@ theorem divInt_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
     n₁ /. d₁ = n₂ /. d₂ ↔ n₁ * d₂ = n₂ * d₁ := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [divInt_neg', Int.ofNat_eq_zero, Int.neg_eq_zero,
+  simp_all [divInt_neg', Int.neg_eq_zero,
     mkRat_eq_iff, Int.neg_mul, Int.mul_neg, Int.eq_neg_comm, eq_comm]
 
 theorem divInt_mul_left {a : Int} (a0 : a ≠ 0) : (a * n) /. (a * d) = n /. d := by
@@ -165,12 +165,12 @@ theorem divInt_mul_right {a : Int} (a0 : a ≠ 0) : (n * a) /. (d * a) = n /. d 
 theorem divInt_num_den (z : d ≠ 0) (h : n /. d = ⟨n', d', z', c⟩) :
     ∃ m, m ≠ 0 ∧ n = n' * m ∧ d = d' * m := by
   rcases Int.eq_nat_or_neg d with ⟨_, rfl | rfl⟩ <;>
-    simp_all [divInt_neg', Int.ofNat_eq_zero, Int.neg_eq_zero]
+    simp_all [divInt_neg', Int.neg_eq_zero]
   · have ⟨m, h₁, h₂⟩ := mkRat_num_den z h; exists m
-    simp [Int.ofNat_eq_zero, Int.natCast_mul, h₁, h₂]
+    simp [Int.natCast_mul, h₁, h₂]
   · have ⟨m, h₁, h₂⟩ := mkRat_num_den z h; exists -m
     rw [← Int.neg_inj, Int.neg_neg] at h₂
-    simp [Int.ofNat_eq_zero, Int.natCast_mul, h₁, h₂, Int.mul_neg, Int.neg_eq_zero]
+    simp [Int.natCast_mul, h₁, h₂, Int.mul_neg, Int.neg_eq_zero]
 
 @[simp] theorem ofInt_ofNat : ofInt (OfNat.ofNat n) = OfNat.ofNat n := rfl
 
@@ -215,7 +215,7 @@ theorem divInt_add_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
     n₁ /. d₁ + n₂ /. d₂ = (n₁ * d₂ + n₂ * d₁) /. (d₁ * d₂) := by
   rcases Int.eq_nat_or_neg d₁ with ⟨_, rfl | rfl⟩ <;>
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
-  simp_all [← Int.natCast_mul, Int.ofNat_eq_zero, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
+  simp_all [← Int.natCast_mul, Int.neg_eq_zero, divInt_neg', Int.mul_neg,
     Int.neg_add, Int.neg_mul, mkRat_add_mkRat]
 
 @[simp] theorem neg_num (a : Rat) : (-a).num = -a.num := rfl

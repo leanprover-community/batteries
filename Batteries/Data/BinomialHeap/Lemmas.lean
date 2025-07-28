@@ -29,7 +29,7 @@ theorem Heap.WF.size_eq :
     ∀ {s : Heap α}, s.WF le n → s.size = s.realSize
   | .nil, _ => rfl
   | .cons .., ⟨_, h₁, h₂⟩ => by
-    simp [size, Nat.shiftLeft, size_eq h₂, Nat.pow_succ, Nat.mul_succ]
-    simp [Nat.add_assoc, Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
+    simp [size, size_eq h₂]
+    simp [Nat.one_shiftLeft, h₁.realSize_eq]
 
 end Imp

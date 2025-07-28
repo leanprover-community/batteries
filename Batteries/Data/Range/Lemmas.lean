@@ -12,7 +12,7 @@ namespace Std.Range
 
 theorem size_stop_le_start : ∀ r : Range, r.stop ≤ r.start → r.size = 0
   | ⟨start, stop, step, _⟩, h => by
-    simp_all [size, Nat.div_eq_zero_iff_lt]
+    simp_all [size]
     omega
 
 @[deprecated size_stop_le_start (since := "2024-12-19")]

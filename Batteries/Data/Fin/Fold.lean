@@ -115,7 +115,7 @@ theorem dfoldl_succ_last (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (
     dfoldl (n+1) α f x = f (last n) (dfoldl n (α ∘ castSucc) (f ·.castSucc ·) x) := by
   rw [dfoldl_succ]
   induction n with
-  | zero => simp [dfoldl_succ, last]
+  | zero => simp [last]
   | succ n ih => rw [dfoldl_succ, @ih (α ∘ succ) (f ·.succ ·), dfoldl_succ]; congr
 
 theorem dfoldl_eq_dfoldlM (f : (i : Fin n) → α i.castSucc → α i.succ) (x) :
