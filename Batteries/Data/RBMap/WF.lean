@@ -119,7 +119,7 @@ theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by c
 @[simp] theorem reverse_ins [inst : @OrientedCmp α cmp] {t : RBNode α} :
     (ins cmp x t).reverse = ins (flip cmp) x t.reverse := by
   induction t <;> [skip; (rename_i c a y b iha ihb; cases c)] <;> simp [ins, flip]
-    <;> rw [← inst.symm x y] <;> split <;> simp [*, Ordering.swap, iha, ihb]
+    <;> rw [← inst.symm x y] <;> split <;> simp [*, Ordering.swap]
 
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by

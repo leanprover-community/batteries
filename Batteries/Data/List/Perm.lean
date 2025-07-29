@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import Batteries.Tactic.Alias
-import Batteries.Data.List.Pairwise
+import Batteries.Data.List.Lemmas
 
 /-!
 # List Permutations
@@ -104,7 +104,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
   | @cons₂ _ r₂ b _ ih =>
     have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
-      simp only [find?, mem_cons] at h₂
+      simp only [mem_cons] at h₂
       exact h₂.resolve_left fun e => h₁ <| e.symm ▸ bm
     obtain ⟨t₁, t₂, rfl⟩ := append_of_mem bm
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
@@ -197,7 +197,7 @@ theorem Perm.diff_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : l
       simp [h]
     else
       simp [mem_erase_of_ne h, mem_erase_of_ne (Ne.symm h), erase_comm x y]
-      split <;> simp [h]
+      split <;> simp
   | trans => simp only [*]
 
 theorem Perm.diff {l₁ l₂ t₁ t₂ : List α} (hl : l₁ ~ l₂) (ht : t₁ ~ t₂) : l₁.diff t₁ ~ l₂.diff t₂ :=
@@ -205,7 +205,7 @@ theorem Perm.diff {l₁ l₂ t₁ t₂ : List α} (hl : l₁ ~ l₂) (ht : t₁ 
 
 theorem Subperm.diff_right {l₁ l₂ : List α} (h : l₁ <+~ l₂) (t : List α) :
     l₁.diff t <+~ l₂.diff t := by
-  induction t generalizing l₁ l₂ h with simp [List.diff, elem_eq_mem, *]
+  induction t generalizing l₁ l₂ h with simp [List.diff, *]
   | cons x t ih =>
     split <;> rename_i hx1
     · simp [h.subset hx1]
