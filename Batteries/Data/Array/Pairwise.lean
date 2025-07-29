@@ -53,8 +53,7 @@ theorem pairwise_append {as bs : Array α} :
 theorem pairwise_push {as : Array α} :
     (as.push a).Pairwise R ↔ as.Pairwise R ∧ (∀ x ∈ as, R x a) := by
   unfold Pairwise
-  simp [← mem_toList_iff, toList_push, List.pairwise_append, List.pairwise_singleton,
-    List.mem_singleton]
+  simp [← mem_toList_iff, toList_push, List.pairwise_append]
 
 @[grind ←]
 theorem pairwise_extract {as : Array α} (h : as.Pairwise R) (start stop) :
