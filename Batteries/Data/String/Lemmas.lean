@@ -20,7 +20,7 @@ theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ <
   exact String.le_antisymm h₂ h₁
 
 instance : Std.LawfulLTOrd String :=
-  Std.LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
+  .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     String.lt_irrefl String.lt_trans String.lt_antisymm
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl

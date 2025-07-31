@@ -15,7 +15,7 @@ set_option linter.deprecated false
 namespace Batteries
 
 /-- `OrientedCmp cmp` asserts that `cmp` is determined by the relation `cmp x y = .lt`. -/
-@[deprecated "Std.OrientedCmp" (since := "2025-07-01")]
+@[deprecated Std.OrientedCmp (since := "2025-07-01")]
 class OrientedCmp (cmp : α → α → Ordering) : Prop where
   /-- The comparator operation is symmetric, in the sense that if `cmp x y` equals `.lt` then
   `cmp y x = .gt` and vice versa. -/
@@ -142,7 +142,7 @@ theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < 
   rw [OrientedCmp.cmp_eq_gt, LTCmp.cmp_iff_lt]
 
 /-- `LECmp cmp` asserts that `cmp x y ≠ .gt` and `x ≤ y` coincide. -/
-@[deprecated "Std.LawfulLECmp" (since := "2025-07-01")]
+@[deprecated Std.LawfulLECmp (since := "2025-07-01")]
 class LECmp [LE α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y ≠ .gt` holds iff `x ≤ y` is true. -/
   cmp_iff_le : cmp x y ≠ .gt ↔ x ≤ y
@@ -155,7 +155,7 @@ theorem LECmp.cmp_iff_ge [LE α] [LECmp (α := α) cmp] : cmp x y ≠ .lt ↔ y 
 
 /-- `LawfulCmp cmp` asserts that the `LE`, `LT`, `BEq` instances are all coherent with each other
 and with `cmp`, describing a strict weak order (a linear order except for antisymmetry). -/
-@[deprecated "Std.LawfulBCmp" (since := "2025-07-01")]
+@[deprecated Std.LawfulBCmp (since := "2025-07-01")]
 class LawfulCmp [LE α] [LT α] [BEq α] (cmp : α → α → Ordering) : Prop extends
   TransCmp cmp, BEqCmp cmp, LTCmp cmp, LECmp cmp
 
