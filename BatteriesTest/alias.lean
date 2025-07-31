@@ -98,12 +98,3 @@ warning: `A.mpId` has been deprecated: use `Iff.rfl` instead
 warning: `A.mprId` has been deprecated: use `Iff.rfl` instead
 -/
 #guard_msgs in example := And.intro @mpId @mprId
-
-/- Test environment extension -/
-
-/-- info: **Alias** of `A.foo`. -/
-#guard_msgs in
-#eval show MetaM _ from do
-  match ← Batteries.Tactic.Alias.getAliasInfo `A.foo1 with
-  | some i => IO.println i.toString
-  | none => IO.println "alias not found"

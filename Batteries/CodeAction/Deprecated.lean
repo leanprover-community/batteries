@@ -3,7 +3,8 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Server.CodeActions.Provider
+module
+public import Lean.Server.CodeActions.Provider
 
 /-!
 # Code action for @[deprecated] replacements
@@ -19,7 +20,7 @@ namespace Batteries
 open Lean Elab Server Lsp RequestM CodeAction
 
 /-- An environment extension for identifying `@[deprecated]` definitions which can be auto-fixed -/
-initialize machineApplicableDeprecated : TagDeclarationExtension ← mkTagDeclarationExtension
+public initialize machineApplicableDeprecated : TagDeclarationExtension ← mkTagDeclarationExtension
 
 namespace CodeAction
 
