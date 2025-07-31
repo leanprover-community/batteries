@@ -165,7 +165,10 @@ alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 
-@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := rfl
+-- Before we started introducing the module system in Batteries, this was a `rfl` lemma.
+-- There is probably little downside to it no longer being a `rfl` lemma,
+-- but if anyone wants to restore it we will need to add @[expose] to `Fin.foldr`.
+@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := by simp [ofBits]
 
 theorem ofBits_succ (f : Fin (n+1) → Bool) : ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat :=
   Fin.foldr_succ ..
