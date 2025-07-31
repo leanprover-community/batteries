@@ -3,8 +3,9 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+import all Batteries.Tactic.Alias
+import all Batteries.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
 
