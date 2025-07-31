@@ -122,8 +122,8 @@ theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by c
   | nil => simp [ins]
   | node c a y b iha ihb =>
     cases c <;>
-      (simp only [ins, flip, Std.OrientedCmp.eq_swap (cmp := cmp) (a := x) (b := y)]; split) <;>
-        simp_all [ins, reverse, flip, iha, ihb]
+      (simp only [ins, Std.OrientedCmp.eq_swap (cmp := cmp) (a := x) (b := y)]; split) <;>
+        simp_all [ins, reverse, flip]
 
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by

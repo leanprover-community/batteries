@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
 
-import Batteries.Control.Lemmas
 import Batteries.Control.LawfulMonadState
 
 /-!
@@ -49,7 +48,7 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
     (bind_assoc := by
       refine fun _ _ _ => OptionT.ext ?_
       simp only [run_bind, Option.elimM, bind_assoc]
-      refine bind_congr fun | some x => by simp [Option.elimM] | none => by simp [Option.elimM])
+      refine bind_congr fun | some x => by simp [Option.elimM] | none => by simp)
     (pure_bind := by intros; apply OptionT.ext; simp)
 
 @[simp] theorem run_failure [Monad m] : (failure : OptionT m α).run = pure none := rfl
@@ -82,6 +81,6 @@ instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m]
   get_bind_get_bind mx := OptionT.ext (by simp [← liftM_get])
   get_bind_set_bind mx := OptionT.ext (by simp [← liftM_get, ← liftM_set])
   set_bind_get s := OptionT.ext (by simp [← liftM_get, ← liftM_set])
-  set_bind_set s s' := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_set s s' := OptionT.ext (by simp [← liftM_set])
 
 end OptionT

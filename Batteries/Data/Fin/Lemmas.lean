@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
-import Batteries.Data.List.Lemmas
 import Batteries.Util.ProofWanted
 
 namespace Fin
@@ -23,7 +22,7 @@ attribute [norm_cast] val_last
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
-  simp only [findSome?, foldl_succ, Option.orElse_none, Function.comp_apply]
+  simp only [findSome?, foldl_succ]
   cases f 0
   · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
   · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
@@ -143,10 +142,10 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
   · simp [*]
 
 theorem find?_isSome_iff {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
-  simp [find?, findSome?_isSome_iff]
+  simp [find?]
 
 theorem find?_isNone_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
-  simp [find?, findSome?_isSome_iff]
+  simp [find?]
 
 proof_wanted find?_eq_some_iff {p : Fin n → Bool} : find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j
 
