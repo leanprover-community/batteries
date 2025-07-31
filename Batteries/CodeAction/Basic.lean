@@ -34,7 +34,7 @@ open Lean Elab Server RequestM CodeAction
     else 0
   let some result := findTactic?
     (fun pos => (doc.meta.text.utf8PosToLspPos pos).character ≤ pointerCol)
-    ⟨startPos, endPos⟩ snap.stx | return #[]
+    ⟨startPos, endPos⟩ snap.stx | return .eager #[]
   let tgtTac := match result with
     | .tactic (tac :: _)
     | .tacticSeq _ _ (_ :: tac :: _) => tac.1
@@ -42,7 +42,7 @@ open Lean Elab Server RequestM CodeAction
   let tgtRange := tgtTac.getRange?.get!
   have info := findInfoTree? tgtTac.getKind tgtRange none snap.infoTree (canonicalOnly := true)
     fun _ info => info matches .ofTacticInfo _
-  let some (ctx, node@(.node (.ofTacticInfo info) _)) := info | return #[]
+  let some (ctx, node@(.node (.ofTacticInfo info) _)) := info | return .eager #[]
   let mut out := #[]
   match result with
   | .tactic stk@((tac, _) :: _) => do
@@ -56,10 +56,10 @@ open Lean Elab Server RequestM CodeAction
   | .tacticSeq _ i stk@((seq, _) :: _) =>
     let (ctx, goals) ← if 2*i < seq.getNumArgs then
       let stx := seq[2*i]
-      let some stxRange := stx.getRange? | return #[]
+      let some stxRange := stx.getRange? | return .eager #[]
       let some (ctx, .node (.ofTacticInfo info') _) :=
           findInfoTree? stx.getKind stxRange ctx node fun _ info => (info matches .ofTacticInfo _)
-        | return #[]
+        | return .eager #[]
       pure ({ ctx with mctx := info'.mctxBefore }, info'.goalsBefore)
     else
       pure ({ ctx with mctx := info.mctxAfter }, info.goalsAfter)

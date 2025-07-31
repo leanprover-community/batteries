@@ -34,7 +34,7 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
       if h : _ then
         msgs := msgs.push (snap.cmdState.messages.toList[i]'h)
     i := i + 1
-  if msgs.isEmpty then return #[]
+  if msgs.isEmpty then return .eager #[]
   let start := doc.meta.text.lspPosToUtf8Pos params.range.start
   let stop := doc.meta.text.lspPosToUtf8Pos params.range.end
   for msg in msgs do
@@ -53,7 +53,7 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
       kind? := "quickfix"
       isPreferred? := true
     }
-    return #[{
+    return .eager #[{
       eager
       lazy? := some do
         let c' ← info.runMetaM ctx (unresolveNameGlobal c')
@@ -66,4 +66,4 @@ def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
           }
         }
     }]
-  return #[]
+  return .eager #[]
