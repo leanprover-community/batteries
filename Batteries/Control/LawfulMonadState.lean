@@ -41,7 +41,7 @@ versions that are available at the top level namespace.
 Requires that `modifyGet` is equal to the same definition with only `get` and `set`,
 that `get` is idempotent if the result isn't used, and that `get` after `set` returns
 exactly the value that was previously `set`. -/
-class LawfulMonadStateOf (σ : Type _) (m : Type _ → Type _)
+class LawfulMonadStateOf (σ : semiOutParam (Type _)) (m : Type _ → Type _)
     [Monad m] [MonadStateOf σ m] extends LawfulMonad m where
   /-- `modifyGet f` is equal to getting the state, modifying it, and returning a result. -/
   modifyGet_eq {α} (f : σ → α × σ) :
