@@ -131,12 +131,6 @@ theorem dfoldl_eq_foldl (f : Fin n → α → α) (x : α) :
 
 /-! ### `Fin.fold{l/r}{M}` equals `List.fold{l/r}{M}` -/
 
-@[deprecated (since := "2024-11-19")]
-alias foldlM_eq_foldlM_list := foldlM_eq_foldlM_finRange
-
-@[deprecated (since := "2024-11-19")]
-alias foldrM_eq_foldrM_list := foldrM_eq_foldrM_finRange
-
 theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
     foldl n f x = (List.finRange n).foldl f x := by
   induction n generalizing x with

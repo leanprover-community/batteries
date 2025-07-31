@@ -315,5 +315,3 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
-
-@[deprecated (since := "2025-01-04")] alias perm_merge := merge_perm_append
