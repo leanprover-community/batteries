@@ -1,4 +1,5 @@
 import Batteries.Classes.Cast
+import Batteries.Classes.Deprecated
 import Batteries.Classes.Order
 import Batteries.Classes.RatCast
 import Batteries.Classes.SatisfiesM
