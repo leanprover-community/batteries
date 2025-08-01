@@ -6,6 +6,7 @@ import Batteries.CodeAction
 import Batteries.CodeAction.Attr
 import Batteries.CodeAction.Basic
 import Batteries.CodeAction.Deprecated
+import Batteries.CodeAction.Match
 import Batteries.CodeAction.Misc
 import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
