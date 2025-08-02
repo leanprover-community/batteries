@@ -3,11 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, David Renshaw, François G. Dorais
 -/
-import Lean.Elab.Command
+module
+meta import Lean.Elab.Command
+meta import Lean.Compiler.NoncomputableAttr
+meta import Batteries.CodeAction.Deprecated
 import Lean.Elab.DeclarationRange
-import Lean.Compiler.NoncomputableAttr
-import Lean.DocString
-import Batteries.CodeAction.Deprecated
 
 /-!
 # The `alias` command
@@ -60,7 +60,7 @@ def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
   modifyEnv (aliasExt.addEntry · (declName, info))
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
-def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
+meta def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
   StateT.run (m := Id) (s := false) do
     arr.mapM fun s => do
       if s.name == `deprecated then
@@ -139,7 +139,7 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
+private meta def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
   let value ← mkIffMpApp mp thm.type thm.value
