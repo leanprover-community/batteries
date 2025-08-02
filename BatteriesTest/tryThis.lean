@@ -220,7 +220,7 @@ info: Grab bag:
     style? := some (.value (1/6))}
 ] with_header "Grab bag:"
 
-/-- error: no suggestions available -/
+/-- error: No suggestions available -/
 #guard_msgs in
 #demo #[]
 

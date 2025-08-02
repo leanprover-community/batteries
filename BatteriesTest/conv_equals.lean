@@ -32,7 +32,7 @@ P : (Nat → Nat) → Prop
 n : Nat
 ⊢ n - n = 0
 ---
-error: no goals to be solved
+error: No goals to be solved
 -/
 #guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
