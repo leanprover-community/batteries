@@ -64,7 +64,7 @@ example : False ∧ True := by
   case _ : False => ?left
 
 /--
-error: type mismatch
+error: Type mismatch
   ?right
 has type
   True
