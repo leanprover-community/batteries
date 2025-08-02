@@ -443,9 +443,6 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
     rw [List.erase, idxOf_cons]
     cases x == a <;> simp [ih]
 
-@[deprecated (since := "2025-01-30")]
-alias eraseIdx_indexOf_eq_erase := eraseIdx_idxOf_eq_erase
-
 theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.idxOf x ∈ xs.indexesOf x := by
   induction xs with
@@ -460,15 +457,9 @@ theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs
         specialize ih m
         simpa
 
-@[deprecated (since := "2025-01-30")]
-alias indexOf_mem_indexesOf := idxOf_mem_indexesOf
-
 theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (match l.idxOf? a with | some i => i | none => l.length) := by
   simp [idxOf, idxOf?, findIdx_eq_findIdx?]
-
-@[deprecated (since := "2025-01-30")]
-alias indexOf_eq_indexOf? := idxOf_eq_idxOf?
 
 /-! ### insertP -/
 
