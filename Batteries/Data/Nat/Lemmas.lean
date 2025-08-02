@@ -3,6 +3,7 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import Batteries.Tactic.Alias
 import Batteries.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
@@ -158,9 +159,8 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
-
-@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+@[deprecated (since := "2025-07-31")]
+alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 
