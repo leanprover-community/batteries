@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 module
 import all Batteries.Tactic.Alias
-import all Batteries.Data.Nat.Basic
+public import all Batteries.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
 
@@ -13,6 +13,8 @@ The primary purpose of the lemmas in this file is to assist with reasoning
 about sizes of objects, array indices and such. For a more thorough development
 of the theory of natural numbers, we recommend using Mathlib.
 -/
+
+public section
 
 namespace Nat
 
