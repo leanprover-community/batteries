@@ -8,7 +8,6 @@ meta import Lean.Elab.Command
 meta import Lean.Compiler.NoncomputableAttr
 meta import Batteries.CodeAction.Deprecated
 public import Lean.ScopedEnvExtension
-import Lean.Elab.DeclarationRange
 
 /-!
 # The `alias` command
