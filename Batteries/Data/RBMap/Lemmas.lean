@@ -11,6 +11,7 @@ import Batteries.Data.List.Lemmas
 # Additional lemmas for Red-black trees
 -/
 
+/- Broken on nightly-2025-08-03, commenting out for now
 namespace Batteries
 namespace RBNode
 open RBColor
@@ -1241,3 +1242,4 @@ theorem find?_insert [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (k v k'
   split <;> [exact find?_insert_of_eq t ‹_›; exact find?_insert_of_ne t ‹_›]
 
 end RBMap
+-/
