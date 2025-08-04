@@ -8,7 +8,7 @@ TEmpty.noConfusion.{u} {P : Sort u} {x1 x2 : TEmpty} (h12 : x1 = x2) : TEmpty.no
 TEmpty.noConfusionType.{u} (P : Sort u) (x1 x2 : TEmpty) : Sort u
 TEmpty.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat) (k : TEmpty.noConfusionType.withCtorType P ctorIdx)
   (k' : P) (x : TEmpty) : P
-TEmpty.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type (max 1 u)
+TEmpty.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TEmpty.rec.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 -/
@@ -64,7 +64,7 @@ TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : T
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
 TestStruct.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat)
   (k : TestStruct.noConfusionType.withCtorType P ctorIdx) (k' : P) (x : TestStruct) : P
-TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type (max 1 u)
+TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
@@ -84,7 +84,7 @@ TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : T
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
 TestStruct.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat)
   (k : TestStruct.noConfusionType.withCtorType P ctorIdx) (k' : P) (x : TestStruct) : P
-TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type (max 1 u)
+TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
