@@ -7,6 +7,7 @@ module
 meta import Lean.Elab.Command
 meta import Lean.Compiler.NoncomputableAttr
 meta import Batteries.CodeAction.Deprecated
+public import Lean.ScopedEnvExtension
 import Lean.Elab.DeclarationRange
 
 /-!
@@ -42,7 +43,6 @@ def AliasInfo.toString : AliasInfo → String
   | plain n => s!"**Alias** of `{n}`."
   | forward n => s!"**Alias** of the forward direction of `{n}`."
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
-
 
 /-- Environment extension for registering aliases -/
 initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
@@ -132,7 +132,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
 of the implication directions (determined by `mp`).
 -/
-def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
+meta def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
   Meta.forallTelescope ty fun xs ty => do
     let some (lhs, rhs) := ty.iff?
       | throwError "Target theorem must have the form `∀ x y z, a ↔ b`"
