@@ -49,7 +49,7 @@ namespace SatisfiesM
 /-- If `p` is always true, then every `x` satisfies it. -/
 theorem of_true [Functor m] [LawfulFunctor m] {x : m α}
     (h : ∀ a, p a) : SatisfiesM p x :=
-  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp_def]⟩
+  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp⟩
 
 /--
 If `p` is always true, then every `x` satisfies it.
@@ -68,7 +68,7 @@ protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
     (hx : SatisfiesM p x) (hf : ∀ {a}, p a → q (f a)) : SatisfiesM q (f <$> x) := by
   let ⟨x', hx⟩ := hx
   refine ⟨(fun ⟨a, h⟩ => ⟨f a, hf h⟩) <$> x', ?_⟩
-  rw [← hx]; simp [← comp_map, Function.comp_def]
+  rw [← hx]; simp
 
 /--
 `SatisfiesM` distributes over `<$>`, strongest postcondition version.
@@ -101,7 +101,7 @@ protected theorem seq [Applicative m] [LawfulApplicative m] {x : m α}
     (H : ∀ {f a}, p₁ f → p₂ a → q (f a)) : SatisfiesM q (f <*> x) := by
   match f, x, hf, hx with | _, _, ⟨f, rfl⟩, ⟨x, rfl⟩ => ?_
   refine ⟨(fun ⟨a, h₁⟩ ⟨b, h₂⟩ => ⟨a b, H h₁ h₂⟩) <$> f <*> x, ?_⟩
-  simp only [← pure_seq]; simp [SatisfiesM, seq_assoc]
+  simp only [← pure_seq]; simp [seq_assoc]
   simp only [← pure_seq]; simp [seq_assoc, Function.comp_def]
 
 /-- `SatisfiesM` distributes over `<*>`, strongest postcondition version. -/
@@ -209,7 +209,7 @@ theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
   · exists (fun | .ok ⟨a, h⟩ => ⟨.ok a, fun | _, rfl => h⟩ | .error e => ⟨.error e, nofun⟩) <$> f
     show _ = _ >>= _; rw [← comp_map, map_eq_pure_bind]; congr; funext a; cases a <;> rfl
   · exists ((fun | ⟨.ok a, h⟩ => .ok ⟨a, h _ rfl⟩ | ⟨.error e, _⟩ => .error e) <$> f : m _)
-    show _ >>= _ = _; simp [← comp_map, ← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
+    show _ >>= _ = _; simp [← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
 
 /--
 If a monad has `MonadSatisfying m`, then we can lift a `h : SatisfiesM (m := m) p x` predicate

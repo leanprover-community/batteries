@@ -437,7 +437,7 @@ where
 
 theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L = []
   | l :: L, h => by
-    simp only [any, foldr, Bool.or_eq_true] at h
+    simp only [any, Bool.or_eq_true] at h
     match l, h with
     | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
@@ -701,9 +701,9 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
-  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeft'TR.go]
   | a::as, b::bs => by simp [zipWithLeft'TR.go, go _ as bs]
-  simp [zipWithLeft'TR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight' f as bs` applies `f` to each
@@ -770,9 +770,9 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
-  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeftTR.go]
   | a::as, b::bs => by simp [zipWithLeftTR.go, go _ as bs]
-  simp [zipWithLeftTR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight f as bs` applies `f` to each
@@ -851,7 +851,7 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
   | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
   | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
   | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [fillNonesTR, go]
+  simp [go]
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
@@ -887,7 +887,7 @@ def takeList {α} : List α → List Nat → List (List α) × List α
       let (l, r) := xs.takeList ns; (acc.toList ++ l, r)
   | [], xs => by simp [takeListTR.go, takeList]
   | n::ns, xs => by simp [takeListTR.go, takeList, go _ ns]
-  simp [takeListTR, go]
+  simp [go]
 
 /-- Auxliary definition used to define `toChunks`.
   `toChunksAux n xs i` returns `(xs.take i, (xs.drop i).toChunks (n+1))`,

@@ -46,7 +46,7 @@ dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
-      reduced := by simp [hg, Int.natAbs_natCast] at reduced; exact reduced }
+      reduced := by simp [hg] at reduced; exact reduced }
   else { num := num.divExact g dvd_num, den := den.divExact g dvd_den, den_nz, reduced }
 
 theorem Rat.normalize.dvd_num {num : Int} {den g : Nat}
