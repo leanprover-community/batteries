@@ -829,7 +829,8 @@ dropped from `xs`.
 fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 ```
 -/
-@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")] def fillNones {α} : List (Option α) → List α → List α
+@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNones {α} : List (Option α) → List α → List α
   | [], _ => []
   | some a :: as, as' => a :: fillNones as as'
   | none :: as, [] => as.reduceOption
@@ -837,7 +838,8 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 
 set_option linter.deprecated false in
 /-- Tail-recursive version of `fillNones`. -/
-@[inline, deprecated "Deprecated without replacement." (since := "2025-08-07")] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
+@[inline, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
   /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
   go : List (Option α) → List α → Array α → List α
   | [], _, acc => acc.toList
@@ -846,7 +848,8 @@ set_option linter.deprecated false in
   | none :: as, a :: as', acc => go as as' (acc.push a)
 
 set_option linter.deprecated false in
-@[csimp, deprecated "Deprecated without replacement." (since := "2025-08-07")] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
+@[csimp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
   funext α as as'; simp [fillNonesTR]
   let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
   | [], _ => by simp [fillNonesTR.go]
