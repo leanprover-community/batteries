@@ -835,6 +835,16 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
 
+/-
+Commenting this out on `nightly-testing` for now,
+as after https://github.com/leanprover/lean4/pull/9759
+`filterMapTR.go` is private.
+
+This should be resolved locally, or alternatively
+https://github.com/leanprover-community/batteries/pull/1369
+proposes simply deprecating `fillNones` without replacement.
+-/
+/-
 /-- Tail-recursive version of `fillNones`. -/
 @[inline] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
   /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
@@ -852,6 +862,7 @@ fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
   | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
   | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
   simp [go]
+-/
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
