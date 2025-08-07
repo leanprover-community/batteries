@@ -20,6 +20,7 @@
   ["Batteries.Tactic.Alias", "Batteries.Tactic.SeqFocus"],
   "Batteries.Data.RBMap.Lemmas": ["Batteries.Tactic.Basic"],
   "Batteries.Data.RBMap.Basic": ["Batteries.Tactic.Lint.Misc"],
+  "Batteries.Data.Nat.Lemmas": ["Batteries.Tactic.Alias"],
   "Batteries.Data.Nat.Bisect": ["Batteries.Tactic.Basic"],
   "Batteries.Data.List.Lemmas": ["Batteries.Tactic.Alias"],
   "Batteries.Data.HashMap.Lemmas": ["Batteries.Tactic.Alias"],
@@ -35,4 +36,5 @@
   "Batteries.Control.Monad": ["Batteries.Tactic.Alias"],
   "Batteries.Control.AlternativeMonad": ["Batteries.Control.Lemmas"],
   "Batteries.CodeAction.Misc": ["Lean.Server.CodeActions.Provider"],
-  "Batteries.Classes.Order": ["Batteries.Tactic.SeqFocus"]}}
+  "Batteries.Classes.Order":
+  ["Batteries.Tactic.Basic", "Batteries.Tactic.SeqFocus"]}}
