@@ -204,7 +204,7 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     have := Int.dvd_iff_dvd_of_dvd_add this
     rwa [← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul,
       ← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul] at this
-  apply Nat.Coprime.mul
+  apply Nat.Coprime.mul_left
   · have := (H1 ad).2 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_left ..)
     have := (cop.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_right this
     exact Nat.eq_one_of_dvd_one <| a.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|
