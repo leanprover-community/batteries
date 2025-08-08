@@ -24,7 +24,7 @@ structure Rat where
   den_nz : den ≠ 0 := by decide
   /-- The numerator and denominator are coprime: it is in "reduced form". -/
   reduced : num.natAbs.Coprime den := by decide
-  deriving DecidableEq
+  deriving DecidableEq, Hashable
 
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
 
