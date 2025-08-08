@@ -29,10 +29,12 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
 
 /-- Returns `true` if `p` returns true for every `Char`. -/
 protected def all (p : Char → Bool) : Bool :=
-  Nat.all 1114112 fun c h =>
-    if h₁ : c < 55296 then
+  -- 0x10FFFF (1114111) is the maximal valid code point.
+  Nat.all 0x110000 fun c h =>
+    -- Surrogate code points are from 0xD800 (55296) to 0xDFFF (57343).
+    if h₁ : c < 0xD800 then
       p <| Char.ofNatAux c <| .inl h₁
-    else if h₂ : 57343 < c then
+    else if h₂ : 0xDFFF < c then
       p <| Char.ofNatAux c <| .inr ⟨h₂, h⟩
     else
       true
@@ -70,10 +72,12 @@ theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
 
 /-- Returns `true` if `p` returns true for some `Char`. -/
 protected def any (p : Char → Bool) : Bool :=
-  Nat.any 1114112 fun c h =>
-    if h₁ : c < 55296 then
+  -- 0x10FFFF (1114111) is the maximal valid code point.
+  Nat.any 0x110000 fun c h =>
+    -- Surrogate code points are from 0xD800 (55296) to 0xDFFF (57343).
+    if h₁ : c < 0xD800 then
       p <| Char.ofNatAux c <| .inl h₁
-    else if h₂ : 57343 < c then
+    else if h₂ : 0xDFFF < c then
       p <| Char.ofNatAux c <| .inr ⟨h₂, h⟩
     else
       false
