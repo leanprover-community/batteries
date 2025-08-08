@@ -232,23 +232,26 @@ instance [BEq α] : BEq (RBNode α) where
 We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 
 * In order to avoid assuming the comparator is always lawful, we use a
-  local `∀ [TransCmp cmp]` binder in the relation so that the ordering
+  local `∀ [Std.TransCmp cmp]` binder in the relation so that the ordering
   properties of the tree only need to hold if the comparator is lawful.
 * The `Nonempty` wrapper is a no-op because this is already a proposition,
-  but it prevents the `[TransCmp cmp]` binder from being introduced when we don't want it.
+  but it prevents the `[Std.TransCmp cmp]` binder from being introduced when we don't want it.
 -/
-def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
+def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .lt)
 
-theorem cmpLT_iff [TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpLT_iff [Std.TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt :=
+  ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
-instance (cmp) [TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
+instance (cmp) [Std.TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
 
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
-def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
+def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .eq)
 
-theorem cmpEq_iff [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpEq_iff [Std.TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
-instance (cmp) [TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
+instance (cmp) [Std.TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
 
 /-- `O(n)`. Verifies an ordering relation on the nodes of the tree. -/
 def isOrdered (cmp : α → α → Ordering)
@@ -572,7 +575,7 @@ def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
 
 -- This is in the Slow namespace because it is `O(n^2)` where a `O(n)` algorithm exists
 -- (see `isOrdered_iff` in `Data.RBMap.Lemmas`). Prefer `isOrdered` or the other instance.
-@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [TransCmp cmp] :
+@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [Std.TransCmp cmp] :
     ∀ t : RBNode α, Decidable (Ordered cmp t)
   | nil => inferInstanceAs (Decidable True)
   | node _ a _ b =>
