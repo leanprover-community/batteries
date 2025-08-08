@@ -3,8 +3,9 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+import all Batteries.Tactic.Alias
+public import all Batteries.Data.Nat.Basic
 
 /-! # Basic lemmas about natural numbers
 
@@ -12,6 +13,8 @@ The primary purpose of the lemmas in this file is to assist with reasoning
 about sizes of objects, array indices and such. For a more thorough development
 of the theory of natural numbers, we recommend using Mathlib.
 -/
+
+public section
 
 namespace Nat
 
@@ -164,7 +167,10 @@ alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 
-@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := rfl
+-- Before we started introducing the module system in Batteries, this was a `rfl` lemma.
+-- There is probably little downside to it no longer being a `rfl` lemma,
+-- but if anyone wants to restore it we will need to add @[expose] to `Fin.foldr`.
+@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := by simp [ofBits]
 
 theorem ofBits_succ (f : Fin (n+1) → Bool) : ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat :=
   Fin.foldr_succ ..
