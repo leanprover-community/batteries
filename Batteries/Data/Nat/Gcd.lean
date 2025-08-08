@@ -3,6 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
+import Batteries.Tactic.Alias
 
 /-!
 # Definitions and properties of `coprime`
@@ -79,11 +80,14 @@ theorem exists_coprime' (H : 0 < gcd m n) :
     ∃ g m' n', 0 < g ∧ Coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
   let ⟨m', n', h⟩ := exists_coprime m n; ⟨_, m', n', H, h⟩
 
-theorem Coprime.mul (H1 : Coprime m k) (H2 : Coprime n k) : Coprime (m * n) k :=
+theorem Coprime.mul_left (H1 : Coprime m k) (H2 : Coprime n k) : Coprime (m * n) k :=
   (H1.gcd_mul_left_cancel n).trans H2
 
+@[deprecated (since := "2025-08-04")]
+alias Coprime.mul := Coprime.mul_left
+
 theorem Coprime.mul_right (H1 : Coprime k m) (H2 : Coprime k n) : Coprime k (m * n) :=
-  (H1.symm.mul H2.symm).symm
+  (H1.symm.mul_left H2.symm).symm
 
 theorem Coprime.coprime_dvd_left (H1 : m ∣ k) (H2 : Coprime k n) : Coprime m n := by
   apply eq_one_of_dvd_one
@@ -158,7 +162,7 @@ theorem coprime_one_right : ∀ n, Coprime n 1 := gcd_one_right
 theorem Coprime.pow_left (n : Nat) (H1 : Coprime m k) : Coprime (m ^ n) k := by
   induction n with
   | zero => exact coprime_one_left _
-  | succ n ih => have hm := H1.mul ih; rwa [Nat.pow_succ, Nat.mul_comm]
+  | succ n ih => have hm := H1.mul_left ih; rwa [Nat.pow_succ, Nat.mul_comm]
 
 theorem Coprime.pow_right (n : Nat) (H1 : Coprime k m) : Coprime k (m ^ n) :=
   (H1.symm.pow_left n).symm
@@ -176,10 +180,13 @@ theorem Coprime.gcd_mul (k : Nat) (h : Coprime m n) : gcd k (m * n) = gcd k m * 
       (gcd_dvd_gcd_mul_right_right ..)
       (gcd_dvd_gcd_mul_left_right ..))
 
+theorem Coprime.mul_gcd (h : Coprime m n) (k : Nat) : gcd (m * n) k = gcd m k * gcd n k := by
+  rw [gcd_comm, h.gcd_mul, gcd_comm k, gcd_comm k]
+
 theorem gcd_mul_gcd_of_coprime_of_mul_eq_mul
     (cop : Coprime c d) (h : a * b = c * d) : a.gcd c * b.gcd c = c := by
   apply Nat.dvd_antisymm
-  · apply ((cop.gcd_left _).mul (cop.gcd_left _)).dvd_of_dvd_mul_right
+  · apply ((cop.gcd_left _).mul_left (cop.gcd_left _)).dvd_of_dvd_mul_right
     rw [← h]
     apply Nat.mul_dvd_mul (gcd_dvd ..).1 (gcd_dvd ..).1
   · rw [gcd_comm a, gcd_comm b]

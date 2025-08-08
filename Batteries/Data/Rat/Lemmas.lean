@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Rat.Basic
-import Batteries.Tactic.SeqFocus
 
 /-! # Additional lemmas about the Rational Numbers -/
 
 namespace Rat
 
+-- This is not marked as an `@[ext]` lemma as this is rarely useful for rational numbers.
 theorem ext : {p q : Rat} → p.num = q.num → p.den = q.den → p = q
   | ⟨_,_,_,_⟩, ⟨_,_,_,_⟩, rfl, rfl => rfl
 
@@ -51,7 +51,10 @@ theorem normalize_mul_left {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
 
 theorem normalize_mul_right {a : Nat} (d0 : d ≠ 0) (a0 : a ≠ 0) :
     normalize (n * a) (d * a) (Nat.mul_ne_zero d0 a0) = normalize n d d0 := by
-  rw [← normalize_mul_left (d0 := d0) a0]; congr 1 <;> [apply Int.mul_comm; apply Nat.mul_comm]
+  rw [← normalize_mul_left (d0 := d0) a0]
+  congr 1
+  · apply Int.mul_comm
+  · apply Nat.mul_comm
 
 theorem normalize_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
     normalize n₁ d₁ z₁ = normalize n₂ d₂ z₂ ↔ n₁ * d₂ = n₂ * d₁ := by
@@ -118,7 +121,10 @@ theorem mkRat_mul_left {a : Nat} (a0 : a ≠ 0) : mkRat (↑a * n) (a * d) = mkR
   rw [← normalize_eq_mkRat d0, ← normalize_mul_left d0 a0, normalize_eq_mkRat]
 
 theorem mkRat_mul_right {a : Nat} (a0 : a ≠ 0) : mkRat (n * a) (d * a) = mkRat n d := by
-  rw [← mkRat_mul_left (d := d) a0]; congr 1 <;> [apply Int.mul_comm; apply Nat.mul_comm]
+  rw [← mkRat_mul_left (d := d) a0]
+  congr 1
+  · apply Int.mul_comm
+  · apply Nat.mul_comm
 
 theorem mkRat_eq_iff (z₁ : d₁ ≠ 0) (z₂ : d₂ ≠ 0) :
     mkRat n₁ d₁ = mkRat n₂ d₂ ↔ n₁ * d₂ = n₂ * d₁ := by
@@ -271,6 +277,9 @@ theorem mul_def (a b : Rat) :
       Nat.div_mul_cancel (Nat.gcd_dvd_right ..), Nat.mul_assoc,
       Nat.div_mul_cancel (Nat.gcd_dvd_right ..)]
 
+theorem mul_def' (a b : Rat) : a * b = mkRat (a.num * b.num) (a.den * b.den) := by
+  rw [mul_def, normalize_eq_mkRat]
+
 protected theorem mul_comm (a b : Rat) : a * b = b * a := by
   simp [mul_def, normalize_eq_mkRat, Int.mul_comm, Nat.mul_comm]
 
@@ -299,7 +308,7 @@ theorem divInt_mul_divInt (n₁ n₂ : Int) {d₁ d₂} (z₁ : d₁ ≠ 0) (z�
   rcases Int.eq_nat_or_neg d₂ with ⟨_, rfl | rfl⟩ <;>
   simp_all [← Int.natCast_mul, divInt_neg', Int.mul_neg, Int.neg_mul, mkRat_mul_mkRat]
 
-theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
+theorem inv_def (a : Rat) : a.inv = (a.den : Int) /. a.num := by
   unfold Rat.inv; split
   · next h => rw [mk_eq_divInt, ← Int.natAbs_neg,
       Int.natAbs_of_nonneg (Int.le_of_lt <| Int.neg_pos_of_neg h), neg_divInt_neg]
@@ -318,6 +327,8 @@ theorem inv_def (a : Rat) : a.inv = a.den /. a.num := by
 
 theorem div_def (a b : Rat) : a / b = a * b.inv := rfl
 
+/-! ### `ofScientific` -/
+
 theorem ofScientific_true_def : Rat.ofScientific m true e = mkRat m (10 ^ e) := by
   unfold Rat.ofScientific; rw [normalize_eq_mkRat]; rfl
 
@@ -333,6 +344,8 @@ theorem ofScientific_def : Rat.ofScientific m s e =
 theorem ofScientific_ofNat_ofNat :
     Rat.ofScientific (no_index (OfNat.ofNat m)) s (no_index (OfNat.ofNat e))
       = OfScientific.ofScientific m s e := rfl
+
+/-! ### `intCast` -/
 
 @[simp] theorem intCast_den (a : Int) : (a : Rat).den = 1 := rfl
 
