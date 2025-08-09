@@ -198,7 +198,7 @@ where
 @[simp] theorem decodeProd_encodeProd (x : Fin m × Fin n) : decodeProd (encodeProd x) = x := by
   match x with
   | ⟨⟨_, _⟩, ⟨_, h⟩⟩ => simp [encodeProd, decodeProd, decodeProd.left, decodeProd.right,
-    Nat.mul_add_div (Nat.zero_lt_of_lt h), Nat.div_eq_of_lt h, Nat.mul_add_mod, Nat.mod_eq_of_lt h]
+    Nat.mul_add_div (Nat.zero_lt_of_lt h), Nat.div_eq_of_lt h, Nat.mod_eq_of_lt h]
 
 /-- Encode a dependent sum of `Fin` types. -/
 def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.sum f) :=
@@ -308,7 +308,7 @@ def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
   | succ m ih =>
     have hn : 0 < n := Nat.zero_lt_of_lt (x 0).is_lt
     split
-    · ext; simp [Nat.mul_add_mod, Nat.mod_eq_of_lt]
+    · ext; simp [Nat.mod_eq_of_lt]
     · next i hi =>
       have : decodeFun (encodeFun fun k => x k.succ) ⟨i, Nat.lt_of_succ_lt_succ hi⟩
           = x ⟨i+1, hi⟩ := by rw [ih]; rfl
@@ -366,7 +366,7 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
     funext i
     simp only [decodePi]
     split
-    · simp [encodePi, Nat.mul_add_mod, Nat.mod_eq_of_lt (x 0).is_lt]
+    · simp [encodePi, Nat.mod_eq_of_lt (x 0).is_lt]
     · next i hi =>
       have h : decodePi (f ∘ succ) (encodePi (f ∘ succ) fun i => x i.succ)
           ⟨i, Nat.lt_of_succ_lt_succ hi⟩ = x ⟨i+1, hi⟩ := by rw [ih]; rfl
@@ -385,7 +385,7 @@ def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i 
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
         have : (Fin.count fun i => P i.succ) + 1 = Fin.count (P ·) := by
-          simp +arith only [count_succ, Function.comp_def, if_pos (decide_eq_true h0)]
+          simp +arith only [count_succ, if_pos (decide_eq_true h0)]
         Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
         have : (Fin.count fun i => P i.succ) = Fin.count (P ·) := by simp [count_succ, h0]
@@ -431,7 +431,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
     simp only [decodeSubtype]
     split
     · ext; split <;> simp [encodeSubtype_zero_pos, encodeSubtype, *]; done
-    · ext; simp [encodeSubtype, count_succ, *]
+    · ext; simp [encodeSubtype, *]
 
 @[simp] theorem decodeSubtype_encodeSubtype (P : Fin n → Prop) [DecidablePred P] (x : { x // P x}) :
     decodeSubtype P (encodeSubtype P x) = x := by
