@@ -3,9 +3,6 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quang Dao
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Array.Basic
-import Batteries.Data.List.Basic
 
 namespace Fin
 
