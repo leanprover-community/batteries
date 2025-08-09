@@ -87,16 +87,16 @@ This is the dependent version of `Fin.foldl`. -/
   dfoldlM (m := Id) n α f init
 
 /-- Sum of a list indexed by `Fin n`. -/
-protected def sum [OfNat α (nat_lit 0)] [Add α] (x : Fin n → α) : α :=
+protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
   foldr n (x · + ·) 0
 
 /-- Product of a list indexed by `Fin n`. -/
-protected def prod [OfNat α (nat_lit 1)] [Mul α] (x : Fin n → α) : α :=
+protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
   foldr n (x · * ·) 1
 
 /-- Count the number of true values of a decidable predicate on `Fin n`. -/
-protected def count (P : Fin n → Prop) [DecidablePred P] : Nat :=
-  Fin.sum (if P · then 1 else 0)
+protected def count (p : Fin n → Bool) : Nat :=
+  Fin.sum (Bool.toNat ∘ p)
 
 /--
 `findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such

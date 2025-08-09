@@ -50,8 +50,13 @@ def encodeBool : Bool → Fin 2
   | false => rfl
   | true => rfl
 
-/-- Encode a character value as a `Fin` type. -/
+/-- Encode a character value as a `Fin` type.
+
+Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
+55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
+-/
 def encodeChar (c : Char) : Fin 1112064 :=
+  /- -/
   have : c.toNat < 1114112 :=
     match c.valid with
     | .inl h => Nat.lt_trans h (by decide)
@@ -61,7 +66,11 @@ def encodeChar (c : Char) : Fin 1112064 :=
   else
     ⟨c.toNat - 2048, by omega⟩
 
-/-- Decode a character value as a `Fin` type. -/
+/-- Decode a character value as a `Fin` type.
+
+Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
+55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
+-/
 @[pp_nodot] def decodeChar (i : Fin 1112064) : Char :=
   if h : i.val < 55296 then
     Char.ofNatAux i.val (by omega)
@@ -194,11 +203,11 @@ where
 /-- Encode a dependent sum of `Fin` types. -/
 def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.sum f) :=
   match n, f, x with
-  | _+1, _, ⟨0, j⟩ =>
-    ⟨j, Nat.lt_of_lt_of_le j.is_lt (sum_succ .. ▸ Nat.le_add_right ..)⟩
+  | _+1, f, ⟨0, j⟩ =>
+    ⟨j, Nat.lt_of_lt_of_le j.is_lt (sum_succ f .. ▸ Nat.le_add_right ..)⟩
   | _+1, f, ⟨⟨i+1, hi⟩, j⟩ =>
     match encodeSigma ((f ∘ succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, j⟩ with
-    | ⟨k, hk⟩ => ⟨f 0 + k, sum_succ .. ▸ Nat.add_lt_add_left hk ..⟩
+    | ⟨k, hk⟩ => ⟨f 0 + k, sum_succ f .. ▸ Nat.add_lt_add_left hk ..⟩
 
 /-- Decode a dependent sum of `Fin` types. -/
 @[pp_nodot] def decodeSigma (f : Fin n → Nat) (x : Fin (Fin.sum f)) : (i : Fin n) × Fin (f i) :=
@@ -366,37 +375,37 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
 
 /-- Encode a decidable subtype of a `Fin` type. -/
 def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i }) :
-    Fin (Fin.count P) :=
+    Fin (Fin.count (P ·)) :=
   match n, P, inst, i with
   | n+1, P, inst, ⟨0, hp⟩ =>
-    have : Fin.count P > 0 := by simp [count_succ, hp]
+    have : Fin.count (P ·) > 0 := by simp [count_succ, hp]
     ⟨0, this⟩
   | n+1, P, inst, ⟨⟨i+1, hi⟩, hp⟩ =>
     match encodeSubtype (fun i => P i.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, hp⟩ with
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
-        have : (Fin.count fun i => P i.succ) + 1 = Fin.count P := by
-          simp +arith only [count_succ, Function.comp_def, if_pos h0]
+        have : (Fin.count fun i => P i.succ) + 1 = Fin.count (P ·) := by
+          simp +arith only [count_succ, Function.comp_def, if_pos (decide_eq_true h0)]
         Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
-        have : (Fin.count fun i => P i.succ) = Fin.count P := by simp [count_succ, h0]
+        have : (Fin.count fun i => P i.succ) = Fin.count (P ·) := by simp [count_succ, h0]
         Fin.cast this ⟨k, hk⟩
 
 /-- Decode a decidable subtype of a `Fin` type. -/
-def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.count P)) :
+def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.count (P ·))) :
     { i // P i } :=
   match n, P, inst, k with
   | 0, _, _, ⟨_, h⟩ => False.elim (by simp at h)
   | n+1, P, inst, ⟨k, hk⟩ =>
     if h0 : P 0 then
-      have : Fin.count P = (Fin.count fun i => P i.succ) + 1 := by simp [count_succ, h0]
+      have : Fin.count (P ·) = (Fin.count fun i => P i.succ) + 1 := by simp [count_succ, h0]
       match k with
       | 0 => ⟨0, h0⟩
       | k + 1 =>
         match decodeSubtype (fun i => P i.succ) ⟨k, Nat.lt_of_add_lt_add_right (this ▸ hk)⟩ with
         | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
     else
-      have : Fin.count P = Fin.count fun i => P i.succ := by simp [count_succ, h0]
+      have : Fin.count (P ·) = Fin.count fun i => P i.succ := by simp [count_succ, h0]
       match decodeSubtype (fun i => P (succ i)) ⟨k, this ▸ hk⟩ with
       | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
 
@@ -415,7 +424,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
   ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
 
 @[simp] theorem encodeSubtype_decodeSubtype (P : Fin n → Prop) [DecidablePred P]
-    (x : Fin (Fin.count P)) : encodeSubtype P (decodeSubtype P x) = x := by
+    (x : Fin (Fin.count (P ·))) : encodeSubtype P (decodeSubtype P x) = x := by
   induction n with
   | zero => absurd x.is_lt; simp
   | succ n ih =>

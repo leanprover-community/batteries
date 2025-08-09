@@ -17,34 +17,34 @@ attribute [norm_cast] val_last
 
 /-! ### sum -/
 
-@[simp] theorem sum_zero [OfNat α (nat_lit 0)] [Add α] (x : Fin 0 → α) :
+@[simp] theorem sum_zero [Zero α] [Add α] (x : Fin 0 → α) :
     Fin.sum x = 0 := by
   simp [Fin.sum]
 
-theorem sum_succ [OfNat α (nat_lit 0)] [Add α] (x : Fin (n + 1) → α) :
+theorem sum_succ [Zero α] [Add α] (x : Fin (n + 1) → α) :
     Fin.sum x = x 0 + Fin.sum (x ∘ Fin.succ) := by
   simp [Fin.sum, foldr_succ]
 
 /-! ### prod -/
 
-@[simp] theorem prod_zero [OfNat α (nat_lit 1)] [Mul α] (x : Fin 0 → α) :
+@[simp] theorem prod_zero [One α] [Mul α] (x : Fin 0 → α) :
     Fin.prod x = 1 := by
   simp [Fin.prod]
 
-theorem prod_succ [OfNat α (nat_lit 1)] [Mul α] (x : Fin (n + 1) → α) :
+theorem prod_succ [One α] [Mul α] (x : Fin (n + 1) → α) :
     Fin.prod x = x 0 * Fin.prod (x ∘ Fin.succ) := by
   simp [Fin.prod, foldr_succ]
 
 /-! ### count -/
 
-@[simp] theorem count_zero (P : Fin 0 → Prop) [DecidablePred P] : Fin.count P = 0 := by
+@[simp] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
   simp [Fin.count]
 
-theorem count_succ (P : Fin (n + 1) → Prop) [DecidablePred P] : Fin.count P =
-    if P 0 then Fin.count (fun i => P i.succ) + 1 else Fin.count (fun i => P i.succ) := by
+theorem count_succ (p : Fin (n + 1) → Bool) : Fin.count p =
+    if p 0 then Fin.count (fun i => p i.succ) + 1 else Fin.count (fun i => p i.succ) := by
   split <;> simp [Fin.count, Fin.sum_succ, Nat.one_add, Function.comp_def, *]
 
-theorem count_le (P : Fin n → Prop) [DecidablePred P] : Fin.count P ≤ n := by
+theorem count_le (p : Fin n → Bool) : Fin.count p ≤ n := by
   induction n with
   | zero => simp
   | succ n ih =>
