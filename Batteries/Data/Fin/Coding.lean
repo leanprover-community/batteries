@@ -56,7 +56,6 @@ Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the sur
 55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
 -/
 def encodeChar (c : Char) : Fin 1112064 :=
-  /- -/
   have : c.toNat < 1114112 :=
     match c.valid with
     | .inl h => Nat.lt_trans h (by decide)
