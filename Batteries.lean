@@ -1,4 +1,5 @@
 import Batteries.Classes.Cast
+import Batteries.Classes.Deprecated
 import Batteries.Classes.Order
 import Batteries.Classes.RatCast
 import Batteries.Classes.SatisfiesM
@@ -11,6 +12,7 @@ import Batteries.Control.AlternativeMonad
 import Batteries.Control.ForInStep
 import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
+import Batteries.Control.LawfulMonadState
 import Batteries.Control.Lemmas
 import Batteries.Control.Monad
 import Batteries.Control.Nondet.Basic

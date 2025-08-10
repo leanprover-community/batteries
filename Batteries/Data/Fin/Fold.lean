@@ -3,6 +3,7 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais, Quang Dao
 -/
+import Batteries.Tactic.Alias
 import Batteries.Data.Fin.Basic
 
 namespace Fin
@@ -114,7 +115,7 @@ theorem dfoldl_succ_last (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (
     dfoldl (n+1) α f x = f (last n) (dfoldl n (α ∘ castSucc) (f ·.castSucc ·) x) := by
   rw [dfoldl_succ]
   induction n with
-  | zero => simp [dfoldl_succ, last]
+  | zero => simp [last]
   | succ n ih => rw [dfoldl_succ, @ih (α ∘ succ) (f ·.succ ·), dfoldl_succ]; congr
 
 theorem dfoldl_eq_dfoldlM (f : (i : Fin n) → α i.castSucc → α i.succ) (x) :
@@ -129,12 +130,6 @@ theorem dfoldl_eq_foldl (f : Fin n → α → α) (x : α) :
     congr; simp only [ih]
 
 /-! ### `Fin.fold{l/r}{M}` equals `List.fold{l/r}{M}` -/
-
-@[deprecated (since := "2024-11-19")]
-alias foldlM_eq_foldlM_list := foldlM_eq_foldlM_finRange
-
-@[deprecated (since := "2024-11-19")]
-alias foldrM_eq_foldrM_list := foldrM_eq_foldrM_finRange
 
 theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
     foldl n f x = (List.finRange n).foldl f x := by
