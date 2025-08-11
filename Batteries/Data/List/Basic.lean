@@ -836,28 +836,6 @@ def fillNones {α} : List (Option α) → List α → List α
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
 
-set_option linter.deprecated false in
-/-- Tail-recursive version of `fillNones`. -/
-@[inline, deprecated "Deprecated without replacement." (since := "2025-08-07")]
-def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
-  /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
-  go : List (Option α) → List α → Array α → List α
-  | [], _, acc => acc.toList
-  | some a :: as, as', acc => go as as' (acc.push a)
-  | none :: as, [], acc => filterMapTR.go id as acc
-  | none :: as, a :: as', acc => go as as' (acc.push a)
-
-set_option linter.deprecated false in
-@[csimp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
-theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
-  | [], _ => by simp [fillNonesTR.go]
-  | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
-  | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
-  | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [go]
-
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
 it first takes the `n₁` initial elements from `as`, then the next `n₂` ones,
