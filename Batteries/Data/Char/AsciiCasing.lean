@@ -5,6 +5,7 @@ Authors: François G. Dorais
 -/
 import Batteries.Data.Char.Basic
 import Batteries.Tactic.Basic
+import Std.Classes.Ord.String
 
 /-! # Lemmas for ASCII-casing
 
