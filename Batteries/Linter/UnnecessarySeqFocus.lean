@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Lean.Elab.Command
-import Lean.Linter.Util
 import Batteries.Lean.AttributeExtra
 
 namespace Batteries.Linter
