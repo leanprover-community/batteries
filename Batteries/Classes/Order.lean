@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import Batteries.Tactic.Basic
 import Batteries.Tactic.SeqFocus
-import Std.Classes.Ord
 
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
