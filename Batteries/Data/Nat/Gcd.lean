@@ -32,7 +32,7 @@ theorem Coprime.symm : Coprime n m → Coprime m n := (gcd_comm m n).trans
 theorem coprime_comm : Coprime n m ↔ Coprime m n := ⟨Coprime.symm, Coprime.symm⟩
 
 theorem Coprime.dvd_of_dvd_mul_right (H1 : Coprime k n) (H2 : k ∣ m * n) : k ∣ m := by
-  let t := dvd_gcd (Nat.dvd_mul_left k m) H2
+  have t := dvd_gcd (Nat.dvd_mul_left k m) H2
   rwa [gcd_mul_left, H1.gcd_eq_one, Nat.mul_one] at t
 
 theorem Coprime.dvd_of_dvd_mul_left (H1 : Coprime k m) (H2 : k ∣ m * n) : k ∣ n :=
