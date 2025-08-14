@@ -3,8 +3,6 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
-import Batteries.Data.Array.Init.Lemmas
-import Batteries.Tactic.Alias
 
 /-!
 ## Definitions on Arrays
@@ -163,9 +161,9 @@ def popHead? (as : Subarray α) : Option (α × Subarray α) :=
     then
       let head := as.array[as.start]'(Nat.lt_of_lt_of_le h as.stop_le_array_size)
       let tail :=
-        { as with
-          start := as.start + 1
-          start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h }
+        ⟨{ as.internalRepresentation with
+           start := as.start + 1
+           start_le_stop := Nat.le_of_lt_succ $ Nat.succ_lt_succ h }⟩
       some (head, tail)
     else
       none

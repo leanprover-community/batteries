@@ -44,7 +44,7 @@ lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
+documentation you need to run an HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
@@ -52,6 +52,10 @@ documentation][mathlib4 docs].
 [mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Batteries.html
 
 # Contributing
+
+The first step to contribute is to create a fork of Batteries.
+Then add your contributions to a branch of your fork and make a PR to Batteries.
+Do not make your changes to the main branch of your fork, that may lead to complications on your end.
 
 Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
 or `WIP` (in progress).
