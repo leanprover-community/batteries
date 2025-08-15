@@ -24,7 +24,7 @@ structure Rat where
   den_nz : den ≠ 0 := by decide
   /-- The numerator and denominator are coprime: it is in "reduced form". -/
   reduced : num.natAbs.Coprime den := by decide
-  deriving DecidableEq
+  deriving DecidableEq, Hashable
 
 instance : Inhabited Rat := ⟨{ num := 0 }⟩
 
@@ -46,7 +46,7 @@ dividing both `num` and `den` by `g` (which is the gcd of the two) if it is not 
   if hg : g = 1 then
     { num, den
       den_nz := by simp [hg] at den_nz; exact den_nz
-      reduced := by simp [hg, Int.natAbs_natCast] at reduced; exact reduced }
+      reduced := by simp [hg] at reduced; exact reduced }
   else { num := num.divExact g dvd_num, den := den.divExact g dvd_den, den_nz, reduced }
 
 theorem Rat.normalize.dvd_num {num : Int} {den g : Nat}
@@ -204,7 +204,7 @@ theorem add.aux (a b : Rat) {g ad bd} (hg : g = a.den.gcd b.den)
     have := Int.dvd_iff_dvd_of_dvd_add this
     rwa [← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul,
       ← Int.dvd_natAbs, Int.ofNat_dvd, Int.natAbs_mul] at this
-  apply Nat.Coprime.mul
+  apply Nat.Coprime.mul_left
   · have := (H1 ad).2 <| Nat.dvd_trans (Nat.gcd_dvd_left ..) (Nat.dvd_mul_left ..)
     have := (cop.coprime_dvd_left <| Nat.gcd_dvd_left ..).dvd_of_dvd_mul_right this
     exact Nat.eq_one_of_dvd_one <| a.reduced.gcd_eq_one ▸ Nat.dvd_gcd this <|
