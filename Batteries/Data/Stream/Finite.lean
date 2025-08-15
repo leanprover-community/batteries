@@ -159,6 +159,32 @@ instance : WellFounded Std.Range Nat :=
       exact Std.Range.step_pos _
     · contradiction
 
+section StreamIterator
+open Std.Iterators
+
+private theorem IsPlausibleSuccessorOf_eq (σ α) [Stream σ α] :
+    IterM.IsPlausibleSuccessorOf (m := Id) (α := StreamIterator σ α) =
+      InvImage (fun s s' : σ => ∃ x, next? s' = some (x, s)) (·.internalState.stream) := by
+  funext i₁ i₂
+  simp only [IterM.IsPlausibleSuccessorOf, IterM.IsPlausibleStep, InvImage, eq_iff_iff]
+  constructor
+  · intro
+    | ⟨.yield i x, heq, h⟩ =>
+      cases heq
+      exact h
+  · intro ⟨x, h⟩
+    exact ⟨.yield i₁ x, rfl, ⟨x, h⟩⟩
+
+instance (σ α) [wf : Stream.WellFounded σ α] : Finite (α := StreamIterator σ α) Id where
+  wf := by
+    rw [IsPlausibleSuccessorOf_eq]
+    refine InvImage.wf _ ?_
+    refine Subrelation.wf ?_ wf.wf
+    intro _ _ ⟨_, h⟩
+    exact next_of_next?_eq_some h
+
+end StreamIterator
+
 /-- Class for a finite stream of type `σ`. -/
 class Finite [WithNextRelation σ α] (s : σ) : Prop where
   /-- A finite stream is accessible with respect to the `Next` relation. -/
