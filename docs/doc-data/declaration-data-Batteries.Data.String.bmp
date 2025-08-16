@@ -1,0 +1,1 @@
+{"name":"Batteries.Data.String","instances":[],"imports":["Init","Batteries.Data.String.Basic","Batteries.Data.String.Lemmas","Batteries.Data.String.Matcher"],"declarations":[]}
