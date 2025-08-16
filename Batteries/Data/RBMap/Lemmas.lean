@@ -11,7 +11,6 @@ import Batteries.Data.List.Lemmas
 # Additional lemmas for Red-black trees
 -/
 
-/- Broken on nightly-2025-08-03, commenting out for now
 namespace Batteries
 namespace RBNode
 open RBColor
@@ -43,7 +42,7 @@ theorem mem_def : Mem cmp x t ↔ ∃ y ∈ t, cmp x y = .eq := Any_def
 
 theorem mem_congr [Std.TransCmp (α := α) cmp] {t : RBNode α} (h : cmp x y = .eq) :
     Mem cmp x t ↔ Mem cmp y t := by
-  rw [Mem, Mem, iff_iff_eq]; congr; funext; rw [Std.TransCmp.congr_left h]
+  rw [Mem, Mem, iff_iff_eq]; congr 1; funext; rw [Std.TransCmp.congr_left h]
 
 theorem isOrdered_iff' [Std.TransCmp (α := α) cmp] {t : RBNode α} :
     isOrdered cmp t L R ↔
@@ -956,7 +955,7 @@ theorem mem_insert [Std.TransCmp (α := α) cmp] {t : RBSet α cmp} :
   | .inr rfl => exact .inr <| Std.OrientedCmp.eq_comm.1 h₂
 
 theorem find?_congr [Std.TransCmp (α := α) cmp] (t : RBSet α cmp) (h : cmp v₁ v₂ = .eq) :
-    t.find? v₁ = t.find? v₂ := by simp only [find?]; congr; funext; rw [Std.TransCmp.congr_left h]
+    t.find? v₁ = t.find? v₂ := by simp only [find?]; congr 1; funext; rw [Std.TransCmp.congr_left h]
 
 theorem findP?_insert_of_eq [Std.TransCmp (α := α) cmp] [IsStrictCut cmp cut]
     (t : RBSet α cmp) (h : cut v = .eq) : (t.insert v).findP? cut = some v :=
@@ -1242,4 +1241,3 @@ theorem find?_insert [Std.TransCmp (α := α) cmp] (t : RBMap α β cmp) (k v k'
   split <;> [exact find?_insert_of_eq t ‹_›; exact find?_insert_of_ne t ‹_›]
 
 end RBMap
--/

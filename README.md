@@ -44,7 +44,7 @@ lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
+documentation you need to run an HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
