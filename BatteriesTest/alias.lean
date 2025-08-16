@@ -116,12 +116,3 @@ instead of
 Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId` to `Iff.rfl x`).
 -/
 #guard_msgs in example := And.intro @mpId @mprId
-
-/- Test environment extension -/
-
-/-- info: **Alias** of `A.foo`. -/
-#guard_msgs in
-#eval show MetaM _ from do
-  match ← Batteries.Tactic.Alias.getAliasInfo `A.foo1 with
-  | some i => IO.println i.toString
-  | none => IO.println "alias not found"

@@ -3,11 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, David Renshaw, François G. Dorais
 -/
-import Lean.Elab.Command
-import Lean.Elab.DeclarationRange
-import Lean.Compiler.NoncomputableAttr
-import Lean.DocString
-import Batteries.CodeAction.Deprecated
+module
+meta import Lean.Elab.Command
+meta import Lean.Compiler.NoncomputableAttr
+meta import Batteries.CodeAction.Deprecated
+public import Lean.ScopedEnvExtension
 
 /-!
 # The `alias` command
@@ -43,7 +43,6 @@ def AliasInfo.toString : AliasInfo → String
   | forward n => s!"**Alias** of the forward direction of `{n}`."
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
-
 /-- Environment extension for registering aliases -/
 initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
   registerSimpleScopedEnvExtension {
@@ -60,7 +59,7 @@ def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
   modifyEnv (aliasExt.addEntry · (declName, info))
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
-def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
+meta def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
   StateT.run (m := Id) (s := false) do
     arr.mapM fun s => do
       if s.name == `deprecated then
@@ -132,14 +131,14 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
 of the implication directions (determined by `mp`).
 -/
-def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
+meta def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
   Meta.forallTelescope ty fun xs ty => do
     let some (lhs, rhs) := ty.iff?
       | throwError "Target theorem must have the form `∀ x y z, a ↔ b`"
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
+private meta def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
   let value ← mkIffMpApp mp thm.type thm.value
