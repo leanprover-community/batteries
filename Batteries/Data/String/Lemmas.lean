@@ -738,7 +738,7 @@ theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s
 
 @[simp]
 theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
-  simp only [isEmpty_iff, map_eq_empty_iff]
+  rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
 
 @[simp]
 theorem length_map (s : String) (f : Char → Char) : (s.map f).length = s.length := by
