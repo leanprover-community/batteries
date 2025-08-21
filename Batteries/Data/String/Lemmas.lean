@@ -737,7 +737,7 @@ theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s
   simp only [map_eq, ← data_eq_nil_iff, List.map_eq_nil_iff]
 
 @[simp]
-theorem map_isEmpty_iff (s : String) (f : Char → Char) : (s.map f).isEmpty ↔ s.isEmpty := by
+theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
   simp only [isEmpty_iff, map_eq_empty_iff]
 
 @[simp]
