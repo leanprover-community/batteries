@@ -66,10 +66,10 @@ end TransCmp
 /-- `LawfulLTCmp cmp` asserts that `cmp x y = .lt` and `x < y` coincide. -/
 class LawfulLTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y = .lt` holds iff `x < y` is true. -/
-  eq_lt_iff_lt : cmp x y = .lt ↔ x < y
+  eqLT_iff_lt : cmp x y = .lt ↔ x < y
 
 theorem LawfulLTCmp.eq_gt_iff_gt [LT α] [LawfulLTCmp (α := α) cmp] :
-    cmp x y = .gt ↔ y < x := by rw [OrientedCmp.gt_iff_lt, eq_lt_iff_lt]
+    cmp x y = .gt ↔ y < x := by rw [OrientedCmp.gt_iff_lt, eqLT_iff_lt]
 
 /-- `LawfulLECmp cmp` asserts that `(cmp x y).isLE` and `x ≤ y` coincide. -/
 class LawfulLECmp [LE α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
@@ -150,10 +150,10 @@ theorem LawfulLTCmp.eq_compareOfLessAndEq
     (x y : α) [Decidable (x < y)] : cmp x y = compareOfLessAndEq x y := by
   simp only [compareOfLessAndEq]
   split <;> rename_i h1 <;> [skip; split <;> rename_i h2]
-  · exact LawfulLTCmp.eq_lt_iff_lt.2 h1
+  · exact LawfulLTCmp.eqLT_iff_lt.2 h1
   · exact LawfulEqCmp.compare_eq_iff_eq.2 h2
   · cases e : cmp x y
-    · cases h1 (LawfulLTCmp.eq_lt_iff_lt.1 e)
+    · cases h1 (LawfulLTCmp.eqLT_iff_lt.1 e)
     · cases h2 (LawfulEqCmp.compare_eq_iff_eq.1 e)
     · rfl
 
@@ -212,7 +212,7 @@ theorem LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
   { TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
       lt_irrefl lt_trans lt_antisymm with
-    eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
+    eqLT_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
 
 -- make redundant?
 theorem LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
@@ -224,7 +224,7 @@ theorem LawfulLTCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     LawfulLTCmp (α := α) (compareOfLessAndEq · ·) :=
   { TransCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       lt_irrefl lt_trans not_lt le_antisymm with
-    eq_lt_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
+    eqLT_iff_lt := Batteries.compareOfLessAndEq_eq_lt }
 
 -- make redundant?
 theorem LawfulLECmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
@@ -275,7 +275,7 @@ instance : LawfulOrd Bool := by
 
 instance : LawfulOrd (Fin n) where
   eq_swap := OrientedCmp.eq_swap (α := Nat) (cmp := compare) ..
-  eq_lt_iff_lt := LawfulLTCmp.eq_lt_iff_lt (α := Nat) (cmp := compare)
+  eqLT_iff_lt := LawfulLTCmp.eqLT_iff_lt (α := Nat) (cmp := compare)
   isLE_iff_le := LawfulLECmp.isLE_iff_le (α := Nat) (cmp := compare)
   isLE_trans := TransCmp.isLE_trans (α := Nat) (cmp := compare)
 

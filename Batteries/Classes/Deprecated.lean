@@ -135,7 +135,7 @@ class LTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cm
   /-- `cmp x y = .lt` holds iff `x < y` is true. -/
   cmp_iff_lt : cmp x y = .lt ↔ x < y
 
-attribute [deprecated Std.LawfulLTCmp.eq_lt_iff_lt (since := "2025-07-01")] LTCmp.cmp_iff_lt
+attribute [deprecated Std.LawfulLTCmp.eqLT_iff_lt (since := "2025-07-01")] LTCmp.cmp_iff_lt
 
 @[deprecated Std.LawfulLTCmp.eq_gt_iff_gt (since := "2025-07-01")]
 theorem LTCmp.cmp_iff_gt [LT α] [LTCmp (α := α) cmp] : cmp x y = .gt ↔ y < x := by
