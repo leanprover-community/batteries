@@ -3,6 +3,7 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import Batteries.Tactic.Alias
 import Batteries.Tactic.Basic
 import Batteries.Tactic.SeqFocus
 
@@ -67,6 +68,9 @@ end TransCmp
 class LawfulLTCmp [LT α] (cmp : α → α → Ordering) : Prop extends OrientedCmp cmp where
   /-- `cmp x y = .lt` holds iff `x < y` is true. -/
   eqLT_iff_lt : cmp x y = .lt ↔ x < y
+
+@[deprecated (since := "2025-08-24")]
+alias LawfulLTCmp.eq_lt_iff_lt := LawfulLTCmp.eqLT_iff_lt
 
 theorem LawfulLTCmp.eq_gt_iff_gt [LT α] [LawfulLTCmp (α := α) cmp] :
     cmp x y = .gt ↔ y < x := by rw [OrientedCmp.gt_iff_lt, eqLT_iff_lt]
