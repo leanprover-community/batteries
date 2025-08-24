@@ -6,9 +6,6 @@ info: TEmpty : Type
 TEmpty.casesOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.noConfusion.{u} {P : Sort u} {x1 x2 : TEmpty} (h12 : x1 = x2) : TEmpty.noConfusionType P x1 x2
 TEmpty.noConfusionType.{u} (P : Sort u) (x1 x2 : TEmpty) : Sort u
-TEmpty.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat) (k : TEmpty.noConfusionType.withCtorType P ctorIdx)
-  (k' : P) (x : TEmpty) : P
-TEmpty.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TEmpty.rec.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 -/
