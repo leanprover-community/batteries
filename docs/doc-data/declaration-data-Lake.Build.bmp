@@ -1,0 +1,1 @@
+{"name":"Lake.Build","instances":[],"imports":["Lake.Build.Run","Lake.Build.Module","Lake.Build.Package","Lake.Build.Library","Lake.Build.Targets","Lake.Build.Job"],"declarations":[]}
