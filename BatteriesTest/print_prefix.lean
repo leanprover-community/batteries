@@ -8,6 +8,7 @@ TEmpty.noConfusion.{u} {P : Sort u} {x1 x2 : TEmpty} (h12 : x1 = x2) : TEmpty.no
 TEmpty.noConfusionType.{u} (P : Sort u) (x1 x2 : TEmpty) : Sort u
 TEmpty.rec.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
+TEmpty.toCtorIdx : TEmpty → Nat
 -/
 #guard_msgs in
 #print prefix TEmpty -- Test type that probably won't change much.
@@ -66,6 +67,7 @@ TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → mo
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
+TestStruct.toCtorIdx : TestStruct → Nat
 -/
 #guard_msgs in
 #print prefix TestStruct
@@ -86,6 +88,7 @@ TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → mo
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
+TestStruct.toCtorIdx : TestStruct → Nat
 -/
 #guard_msgs in
 #print prefix -propositions TestStruct
@@ -115,6 +118,7 @@ TestStruct.noConfusionType.withCtor
 TestStruct.noConfusionType.withCtorType
 TestStruct.rec
 TestStruct.recOn
+TestStruct.toCtorIdx
 -/
 #guard_msgs in
 #print prefix -showTypes TestStruct
