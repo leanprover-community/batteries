@@ -45,7 +45,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
       if s.startsWith "brecOn_" || s.startsWith "below_" then return true
       if [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
-          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
+          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx", "ctorIdx"
         ].any (· == s) then
         return true
       if let some _ := isSubobjectField? env n (.mkSimple s) then
