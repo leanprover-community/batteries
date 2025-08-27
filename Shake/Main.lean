@@ -610,7 +610,7 @@ def main (args : List String) : IO UInt32 := do
     let (path, inputCtx, imports, insertion) ←
       try parseHeader srcSearchPath mod
       catch e => println! e.toString; return count
-    let text := inputCtx.input
+    let text := inputCtx.inputString.extract 0 inputCtx.endPos
 
     -- Calculate the edit result
     let mut pos : String.Pos := 0
