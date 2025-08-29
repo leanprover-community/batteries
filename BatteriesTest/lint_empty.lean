@@ -7,6 +7,7 @@ set_option linter.all true
 def natDef : String :=
 "prelude
 
+set_option genInjectivity false in
 inductive Nat where
   | zero
   | succ (n : Nat) : Nat
