@@ -1,4 +1,3 @@
-import Batteries.Data.Rat.Lemmas
 
 /-!
 # Tests for norm_cast involving `Rat`.

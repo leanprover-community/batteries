@@ -8,7 +8,6 @@ import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
 import Batteries.Classes.Order
 import Batteries.Data.List.Basic
-import Std.Classes.Ord.String -- adds import only to avoid instance name collisions
 
 namespace String
 
@@ -727,6 +726,26 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
+
+@[simp]
+theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
+  ⟨fun h => ext (id h), congrArg data⟩
+
+@[simp]
+theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
+  simp only [map_eq, ← data_eq_nil_iff, List.map_eq_nil_iff]
+
+@[simp]
+theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
+  rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
+
+@[simp]
+theorem length_map (s : String) (f : Char → Char) : (s.map f).length = s.length := by
+  simp only [length, map_eq, List.length_map]
+
+theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+  a.map f = b.map g → a.length = b.length := by
+  intro h; rw [← length_map a f, ← length_map b g, h]
 
 end String
 
