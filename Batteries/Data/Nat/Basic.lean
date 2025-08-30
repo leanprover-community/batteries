@@ -3,13 +3,15 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+module
 
+public section
 namespace Nat
 
 /--
   Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
 -/
-@[elab_as_elim]
+@[elab_as_elim, expose]
 protected def recAuxOn {motive : Nat → Sort _} (t : Nat) (zero : motive 0)
   (succ : ∀ n, motive n → motive (n+1)) : motive t := Nat.recAux zero succ t
 
@@ -32,7 +34,7 @@ termination_by f x
 /--
   Simple diagonal recursor for `Nat`
 -/
-@[elab_as_elim]
+@[elab_as_elim, expose]
 protected def recDiagAux {motive : Nat → Nat → Sort _}
   (zero_left : ∀ n, motive 0 n)
   (zero_right : ∀ m, motive m 0)
@@ -45,7 +47,7 @@ protected def recDiagAux {motive : Nat → Nat → Sort _}
 /--
   Diagonal recursor for `Nat`
 -/
-@[elab_as_elim]
+@[elab_as_elim, expose]
 protected def recDiag {motive : Nat → Nat → Sort _}
   (zero_zero : motive 0 0)
   (zero_succ : ∀ n, motive 0 n → motive 0 (n+1))
@@ -65,7 +67,7 @@ where
 /--
   Diagonal recursor for `Nat`
 -/
-@[elab_as_elim]
+@[elab_as_elim, expose]
 protected def recDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
   (zero_zero : motive 0 0)
   (zero_succ : ∀ n, motive 0 n → motive 0 (n+1))
@@ -76,7 +78,7 @@ protected def recDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
 /--
   Diagonal recursor for `Nat`
 -/
-@[elab_as_elim]
+@[elab_as_elim, expose]
 protected def casesDiagOn {motive : Nat → Nat → Sort _} (m n : Nat)
   (zero_zero : motive 0 0)
   (zero_succ : ∀ n, motive 0 (n+1))
