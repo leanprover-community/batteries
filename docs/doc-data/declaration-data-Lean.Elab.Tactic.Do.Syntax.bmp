@@ -1,0 +1,1 @@
+{"name":"Lean.Elab.Tactic.Do.Syntax","instances":[],"imports":["Init.NotationExtra","Lean.Elab.BuiltinNotation","Std.Do.PostCond","Std.Do.Triple.Basic"],"declarations":[]}

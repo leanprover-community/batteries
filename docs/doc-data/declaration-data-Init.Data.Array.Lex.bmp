@@ -1,0 +1,1 @@
+{"name":"Init.Data.Array.Lex","instances":[],"imports":["Init.Data.Array.Lex.Basic","Init.Data.Array.Lex.Lemmas"],"declarations":[]}
