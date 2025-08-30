@@ -14,6 +14,44 @@ attribute [norm_cast] val_last
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
+/-! ### sum -/
+
+@[simp] theorem sum_zero [Zero α] [Add α] (x : Fin 0 → α) :
+    Fin.sum x = 0 := by
+  simp [Fin.sum]
+
+theorem sum_succ [Zero α] [Add α] (x : Fin (n + 1) → α) :
+    Fin.sum x = x 0 + Fin.sum (x ∘ Fin.succ) := by
+  simp [Fin.sum, foldr_succ]
+
+/-! ### prod -/
+
+@[simp] theorem prod_zero [One α] [Mul α] (x : Fin 0 → α) :
+    Fin.prod x = 1 := by
+  simp [Fin.prod]
+
+theorem prod_succ [One α] [Mul α] (x : Fin (n + 1) → α) :
+    Fin.prod x = x 0 * Fin.prod (x ∘ Fin.succ) := by
+  simp [Fin.prod, foldr_succ]
+
+/-! ### count -/
+
+@[simp] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
+  simp [Fin.count]
+
+theorem count_succ (p : Fin (n + 1) → Bool) : Fin.count p =
+    if p 0 then Fin.count (fun i => p i.succ) + 1 else Fin.count (fun i => p i.succ) := by
+  split <;> simp [Fin.count, Fin.sum_succ, Nat.one_add, Function.comp_def, *]
+
+theorem count_le (p : Fin n → Bool) : Fin.count p ≤ n := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [count_succ]
+    split
+    · simp [ih]
+    · apply Nat.le_trans _ (Nat.le_succ n); simp [ih]
+
 /-! ### findSome? -/
 
 @[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
