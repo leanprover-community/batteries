@@ -40,12 +40,13 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if let Name.str n s := decl then
     if (← isAutoDecl n) then return true
     if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
-    if env.isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
+    if env.isConstructor n && ["injEq", "inj", "sizeOf_spec", "elim"].any (· == s) then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
       if s.startsWith "brecOn_" || s.startsWith "below_" then return true
       if [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
-          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
+          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx", "ctorIdx",
+          "ctorElim", "ctorElimType"
         ].any (· == s) then
         return true
       if let some _ := isSubobjectField? env n (.mkSimple s) then
