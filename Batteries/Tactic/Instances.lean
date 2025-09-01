@@ -48,7 +48,7 @@ elab (name := instancesCmd) tk:"#instances " stx:term : command => runTermElabM 
       msgs := msgs.push <| msg ++ MessageData.signature c
     for linst in ← getLocalInstances do
       if linst.className == className then
-        msgs := msgs.push m!"(local) {linst.fvar} : {← inferType linst.fvar}"
+        msgs := msgs.push m!"(local) {linst.val} : {← inferType linst.val}"
     if msgs.isEmpty then
       logInfoAt tk m!"No instances"
     else

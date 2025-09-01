@@ -199,7 +199,7 @@ info: Try this:
 
 /--
 info: Try this:
-  rfl
+  a secret message
 -/
 #guard_msgs in
 -- `Try this: rfl`
@@ -207,8 +207,8 @@ info: Try this:
 
 /--
 info: Try these:
-  • rfl
-  • rfl
+  • a secret message
+  • another secret message
 -/
 #guard_msgs in
 /-
