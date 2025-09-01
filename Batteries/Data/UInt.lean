@@ -16,8 +16,9 @@ import Batteries.Classes.Order
 
 @[simp] theorem UInt8.toUInt64_toNat (x : UInt8) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt8 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
+instance : Std.LawfulOrd UInt8 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt8.le_antisymm
 
 theorem UInt8.le_iff_toNat_le_toNat {x y : UInt8} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
 
@@ -62,8 +63,9 @@ theorem UInt8.toNat_min (x y : UInt8) : (min x y).toNat = min x.toNat y.toNat :=
 
 @[simp] theorem UInt16.toUInt64_toNat (x : UInt16) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt16 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
+instance : Std.LawfulOrd UInt16 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt16.le_antisymm
 
 theorem UInt16.le_iff_toNat_le_toNat {x y : UInt16} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
 
@@ -108,8 +110,9 @@ theorem UInt16.toNat_min (x y : UInt16) : (min x y).toNat = min x.toNat y.toNat 
 
 @[simp] theorem UInt32.toUInt64_toNat (x : UInt32) : x.toUInt64.toNat = x.toNat := rfl
 
-instance : Batteries.LawfulOrd UInt32 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
+instance : Std.LawfulOrd UInt32 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt32.le_antisymm
 
 theorem UInt32.le_iff_toNat_le_toNat {x y : UInt32} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
 
@@ -154,8 +157,9 @@ theorem UInt32.toNat_min (x y : UInt32) : (min x y).toNat = min x.toNat y.toNat 
 
 @[simp] theorem UInt64.toUInt32_toNat (x : UInt64) : x.toUInt32.toNat = x.toNat % 2 ^ 32 := rfl
 
-instance : Batteries.LawfulOrd UInt64 := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
+instance : Std.LawfulOrd UInt64 :=
+  Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt UInt64.le_antisymm
 
 theorem UInt64.le_iff_toNat_le_toNat {x y : UInt64} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
 
@@ -198,37 +202,6 @@ theorem USize.toUInt64_toNat (x : USize) : x.toUInt64.toNat = x.toNat := by simp
 
 theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := by simp
 
-instance : Batteries.LawfulOrd USize := .compareOfLessAndEq
-  (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm
-
-theorem USize.le_iff_toNat_le_toNat {x y : USize} : x ≤ y ↔ x.toNat ≤ y.toNat := .rfl
-
-theorem USize.lt_iff_toNat_lt_toNat {x y : USize} : x < y ↔ x.toNat < y.toNat := .rfl
-
-theorem USize.compare_eq_toNat_compare_toNat (x y : USize) :
-    compare x y = compare x.toNat y.toNat := by
-  simp only [compare, compareOfLessAndEq, lt_iff_toNat_lt_toNat, USize.ext_iff]
-
-theorem USize.max_def (x y : USize) : max x y = if x ≤ y then y else x := rfl
-
-theorem USize.min_def (x y : USize) : min x y = if x ≤ y then x else y := rfl
-
-theorem USize.toNat_max (x y : USize) : (max x y).toNat = max x.toNat y.toNat := by
-  rw [max_def]
-  split
-  · next h =>
-      rw [le_iff_toNat_le_toNat] at h
-      rw [Nat.max_eq_right h]
-  · next h =>
-      rw [le_iff_toNat_le_toNat] at h
-      rw [Nat.max_eq_left (Nat.le_of_not_ge h)]
-
-theorem USize.toNat_min (x y : USize) : (min x y).toNat = min x.toNat y.toNat := by
-  rw [min_def]
-  split
-  · next h =>
-      rw [le_iff_toNat_le_toNat] at h
-      rw [Nat.min_eq_left h]
-  · next h =>
-      rw [le_iff_toNat_le_toNat] at h
-      rw [Nat.min_eq_right (Nat.le_of_not_ge h)]
+instance : Std.LawfulOrd USize :=
+  Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
+    (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm

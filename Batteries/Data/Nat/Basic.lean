@@ -91,7 +91,7 @@ Integer square root function. Implemented via Newton's method.
 -/
 def sqrt (n : Nat) : Nat :=
   if n ≤ 1 then n else
-  iter n (n / 2)
+  iter n (1 <<< ((n.log2 / 2) + 1))
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
   returns the integer square root of `n`.
