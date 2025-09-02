@@ -91,3 +91,56 @@ end Stream
     match l with
     | [] => rfl
     | _::_ => simp [Stream.take, ih]
+
+/--
+The underlying state of a stream iterator.
+-/
+structure StreamIterator (σ α) [Stream σ α] where
+  /-- Underlying stream of a stream iterator. -/
+  stream : σ
+
+/--
+Returns a pure iterator for the given stream.
+
+**Termination properties:**
+
+* `Finite` instance: maybe available
+* `Productive` instance: always
+-/
+@[always_inline, inline]
+def Stream.iter [Stream σ α] (stream : σ) : Std.Iterators.Iter (α := StreamIterator σ α) α :=
+  Std.Iterators.toIterM { stream } Id α |>.toIter
+
+@[always_inline, inline]
+instance (σ α) [Stream σ α] : Std.Iterators.Iterator (StreamIterator σ α) Id α where
+  IsPlausibleStep it
+    | .yield it' _ =>
+      ∃ x, Stream.next? it.internalState.stream = some (x, it'.internalState.stream)
+    | .skip _ => False
+    | .done => Stream.next? it.internalState.stream = none
+  step it :=
+    match Stream.next? it.internalState.stream with
+    | some (out, stream) => .yield ⟨⟨stream⟩⟩ out ⟨out, rfl⟩
+    | none => .done rfl
+
+private def StreamIterator.instProductivenessRelation [Stream σ α] :
+    Std.Iterators.ProductivenessRelation (StreamIterator σ α) Id where
+  rel := emptyWf.rel
+  wf := emptyWf.wf
+  subrelation h := by cases h
+
+instance StreamIterator.instProductive [Stream σ α] :
+    Std.Iterators.Productive (StreamIterator σ α) Id :=
+  Std.Iterators.Productive.of_productivenessRelation StreamIterator.instProductivenessRelation
+
+instance StreamIterator.instIteratorLoop [Stream σ α] [Monad n] :
+    Std.Iterators.IteratorLoop (StreamIterator σ α) Id n := .defaultImplementation
+
+instance StreamIterator.instIteratorLoopPartial [Stream σ α] [Monad n] :
+    Std.Iterators.IteratorLoopPartial (StreamIterator σ α) Id n := .defaultImplementation
+
+instance StreamIterator.instIteratorCollect [Stream σ α] [Monad n] :
+    Std.Iterators.IteratorCollect (StreamIterator σ α) Id n := .defaultImplementation
+
+instance StreamIterator.instIteratorCollectPartial [Stream σ α] [Monad n] :
+    Std.Iterators.IteratorCollectPartial (StreamIterator σ α) Id n := .defaultImplementation
