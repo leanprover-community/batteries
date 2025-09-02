@@ -4,12 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, François G. Dorais
 -/
 
-import Batteries.Data.Array
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Lemmas
-import Batteries.Tactic.Alias
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.PrintPrefix
 
 /-!
 # Vectors

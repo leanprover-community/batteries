@@ -24,7 +24,7 @@ example : foo n = [n] := by
   simpa only [foo]
 
 /--
-warning: try 'simp at h' instead of 'simpa using h'
+warning: Try `simp at h` instead of `simpa using h`
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
 -/

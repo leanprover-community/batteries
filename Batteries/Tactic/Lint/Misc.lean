@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
 import Lean.Util.ForEachExpr
-import Lean.Meta.ForEachExpr
 import Lean.Meta.GlobalInstances
 import Lean.Meta.Check
 import Lean.Util.Recognizers
@@ -228,7 +227,7 @@ with rfl when elaboration results in a different term than the user intended. -/
 Return a list of unused `let_fun` terms in an expression that introduce proofs.
 -/
 @[nolint unusedArguments]
-def findUnusedHaves (_e : Expr) : MetaM (Array MessageData) := do
+def findUnusedHaves (_ : Expr) : MetaM (Array MessageData) := do
   -- adaptation note: kmill 2025-06-29. `Expr.letFun?` is deprecated.
   -- This linter needs to be updated for `Expr.letE (nondep := true)`, but it has false
   -- positives, so I am disabling it for now.
