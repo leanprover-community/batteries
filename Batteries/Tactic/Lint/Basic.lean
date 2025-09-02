@@ -84,7 +84,7 @@ initialize batteriesLinterExt :
     addImportedFn := fun nss => pure <|
       nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
     addEntryFn
-    exportEntriesFn := fun es => es.fold (fun a _ e => a.push e) #[]
+    exportEntriesFn := fun es => es.foldl (fun a _ e => a.push e) #[]
   }
 
 /--

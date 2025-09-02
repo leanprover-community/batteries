@@ -220,22 +220,20 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
-      simp only [Pos.ext_iff]
-      rw [Nat.add_right_comm, Nat.add_left_comm]
-      apply ne_add_utf8Size_add_self
+      simp only [Pos.le_iff, pos_add_char]
+      grind [Char.utf8Size_pos]
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
   simp only [prev]
-  refine (if_neg (Pos.ne_of_gt add_utf8Size_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
 
 theorem prev_of_valid' (cs cs' : List Char) :
     prev ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs.dropLast⟩ := by
   match cs, cs.eq_nil_or_concat with
-  | _, .inl rfl => rfl
+  | _, .inl rfl => apply prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [prev_of_valid]
 
 theorem front_eq (s : String) : front s = s.1.headD default := by
@@ -729,6 +727,26 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
+
+@[simp]
+theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
+  ⟨fun h => ext (id h), congrArg data⟩
+
+@[simp]
+theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
+  simp only [map_eq, ← data_eq_nil_iff, List.map_eq_nil_iff]
+
+@[simp]
+theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
+  rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
+
+@[simp]
+theorem length_map (s : String) (f : Char → Char) : (s.map f).length = s.length := by
+  simp only [length, map_eq, List.length_map]
+
+theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+  a.map f = b.map g → a.length = b.length := by
+  intro h; rw [← length_map a f, ← length_map b g, h]
 
 end String
 
