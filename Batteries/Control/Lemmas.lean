@@ -26,7 +26,8 @@ attribute [ext] ReaderT.ext
 
 @[simp] theorem run_tryCatchThe [MonadExceptOf ε m]
     (body : ReaderT ρ m α) (handler : ε → ReaderT ρ m α) (ctx : ρ) :
-    (tryCatchThe ε body handler).run ctx = tryCatchThe ε (body.run ctx) (handler · |>.run ctx) := rfl
+    (tryCatchThe ε body handler).run ctx = tryCatchThe ε (body.run ctx) (handler · |>.run ctx) :=
+  rfl
 
 end ReaderT
 
