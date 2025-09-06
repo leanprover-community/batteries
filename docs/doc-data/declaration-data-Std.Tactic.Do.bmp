@@ -1,0 +1,1 @@
+{"name":"Std.Tactic.Do","instances":[],"imports":["Std.Tactic.Do.ProofMode","Std.Tactic.Do.Syntax"],"declarations":[]}
