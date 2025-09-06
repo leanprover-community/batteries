@@ -2,9 +2,10 @@ name: Bump lean-toolchain on nightly-testing
 
 on:
   schedule:
-    - cron: '0 9 * * *'
-    # 10AM CET/1AM PT, 2 hours after lean4 starts building the nightly.
-    # Mathlib's `nightly-testing` branch is bumped one hour later.
+    - cron: '45 9/3 * * *'
+    # 10:45AM CET/1:45AM PT (and then every 3 hours thereafter),
+    # This should be 2 hours and 45 minutes after lean4 starts building the nightly.
+    # Mathlib's `nightly-testing` branch is bumped 15 minutes later.
 
 jobs:
   update-toolchain:

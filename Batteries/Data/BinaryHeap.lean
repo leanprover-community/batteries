@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, François G. Dorais
 -/
 
-import Batteries.Data.Vector.Basic
 
 namespace Batteries
 
@@ -40,8 +39,8 @@ def heapifyDown (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) :
       simp only [maxChild] at h
       split at h
       · split at h
-        · split at h <;> (cases h; simp_arith)
-        · cases h; simp_arith
+        · split at h <;> (cases h; simp +arith)
+        · cases h; simp +arith
       · contradiction
     if lt a[i] a[j] then
       heapifyDown lt (a.swap i j) j
@@ -117,8 +116,8 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
     self.popMax.size = self.size - 1 := by
   simp only [popMax, size]
   split
-  · simp_arith [*]
-  · split <;> simp_arith [*]
+  · simp +arith [*]
+  · split <;> simp +arith
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 def extractMax (self : BinaryHeap α lt) : Option α × BinaryHeap α lt :=

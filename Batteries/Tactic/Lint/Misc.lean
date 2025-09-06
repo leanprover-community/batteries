@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
 import Lean.Util.ForEachExpr
-import Lean.Meta.ForEachExpr
 import Lean.Meta.GlobalInstances
 import Lean.Meta.Check
 import Lean.Util.Recognizers
@@ -225,19 +224,27 @@ with rfl when elaboration results in a different term than the user intended. -/
       return none
 
 /--
-Return a list of unused `let_fun` terms in an expression.
+Return a list of unused `let_fun` terms in an expression that introduce proofs.
 -/
-def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
+@[nolint unusedArguments]
+def findUnusedHaves (_ : Expr) : MetaM (Array MessageData) := do
+  -- adaptation note: kmill 2025-06-29. `Expr.letFun?` is deprecated.
+  -- This linter needs to be updated for `Expr.letE (nondep := true)`, but it has false
+  -- positives, so I am disabling it for now.
+  return #[]
+  /-
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
     match e.letFun? with
     | some (n, t, _, b) =>
       if n.isInternal then return
       if b.hasLooseBVars then return
+      unless ← Meta.isProp t do return
       let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
       res.modify (·.push msg)
     | _ => return
   res.get
+  -/
 
 /-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where

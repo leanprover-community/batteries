@@ -159,9 +159,8 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
-
-@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+@[deprecated (since := "2025-07-31")]
+alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 
@@ -197,7 +196,7 @@ theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
   apply testBit_lt_two_pow
   apply Nat.lt_of_lt_of_le
   · exact ofBits_lt_two_pow f
-  · exact pow_le_pow_of_le_right Nat.zero_lt_two h
+  · exact Nat.pow_le_pow_right Nat.zero_lt_two h
 
 theorem testBit_ofBits (f : Fin n → Bool) :
     (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else false := by

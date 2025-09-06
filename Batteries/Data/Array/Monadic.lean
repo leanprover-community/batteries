@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
 import Batteries.Classes.SatisfiesM
+import Batteries.Util.ProofWanted
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
@@ -58,6 +59,13 @@ theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m
 theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
   (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
+
+proof_wanted size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as)
+
+proof_wanted size_mapFinIdxM [Monad m] [LawfulMonad m]
+    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f)
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
@@ -157,8 +165,20 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat �
       (as.mapIdxM f) :=
   SatisfiesM_mapFinIdxM as (fun i a _ => f i a) motive h0 p hs
 
+theorem size_mapFinIdxM [Monad m] [LawfulMonad m]
+    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f) :=
+  (SatisfiesM_mapFinIdxM _ _ (fun _ => True) trivial (fun _ _ _ => True)
+    (fun _ _ _ => .of_true fun _ => ⟨trivial, trivial⟩)).imp (·.2.1)
+
+theorem size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
+    SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as) :=
+  size_mapFinIdxM _ _
+
 theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = a.size) (a.modifyM i f) := by
   unfold modifyM; split
   · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
   · exact .pure rfl
+
+end Array

@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 import Batteries.Lean.EStateM
 import Batteries.Lean.Except
-import Batteries.Tactic.Lint
 
 /-!
 ## SatisfiesM
@@ -48,15 +47,15 @@ def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) 
 namespace SatisfiesM
 
 /-- If `p` is always true, then every `x` satisfies it. -/
-theorem of_true [Applicative m] [LawfulApplicative m] {x : m α}
+theorem of_true [Functor m] [LawfulFunctor m] {x : m α}
     (h : ∀ a, p a) : SatisfiesM p x :=
-  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp [← comp_map, Function.comp_def]⟩
+  ⟨(fun a => ⟨a, h a⟩) <$> x, by simp⟩
 
 /--
 If `p` is always true, then every `x` satisfies it.
 (This is the strongest postcondition version of `of_true`.)
 -/
-protected theorem trivial [Applicative m] [LawfulApplicative m] {x : m α} :
+protected theorem trivial [Functor m] [LawfulFunctor m] {x : m α} :
   SatisfiesM (fun _ => True) x := of_true fun _ => trivial
 
 /-- The `SatisfiesM p x` predicate is monotonic in `p`. -/
@@ -69,7 +68,7 @@ protected theorem map [Functor m] [LawfulFunctor m] {x : m α}
     (hx : SatisfiesM p x) (hf : ∀ {a}, p a → q (f a)) : SatisfiesM q (f <$> x) := by
   let ⟨x', hx⟩ := hx
   refine ⟨(fun ⟨a, h⟩ => ⟨f a, hf h⟩) <$> x', ?_⟩
-  rw [← hx]; simp [← comp_map, Function.comp_def]
+  rw [← hx]; simp
 
 /--
 `SatisfiesM` distributes over `<$>`, strongest postcondition version.
@@ -102,7 +101,7 @@ protected theorem seq [Applicative m] [LawfulApplicative m] {x : m α}
     (H : ∀ {f a}, p₁ f → p₂ a → q (f a)) : SatisfiesM q (f <*> x) := by
   match f, x, hf, hx with | _, _, ⟨f, rfl⟩, ⟨x, rfl⟩ => ?_
   refine ⟨(fun ⟨a, h₁⟩ ⟨b, h₂⟩ => ⟨a b, H h₁ h₂⟩) <$> f <*> x, ?_⟩
-  simp only [← pure_seq]; simp [SatisfiesM, seq_assoc]
+  simp only [← pure_seq]; simp [seq_assoc]
   simp only [← pure_seq]; simp [seq_assoc, Function.comp_def]
 
 /-- `SatisfiesM` distributes over `<*>`, strongest postcondition version. -/
@@ -210,7 +209,7 @@ theorem SatisfiesM_ExceptT_eq [Monad m] [LawfulMonad m] :
   · exists (fun | .ok ⟨a, h⟩ => ⟨.ok a, fun | _, rfl => h⟩ | .error e => ⟨.error e, nofun⟩) <$> f
     show _ = _ >>= _; rw [← comp_map, map_eq_pure_bind]; congr; funext a; cases a <;> rfl
   · exists ((fun | ⟨.ok a, h⟩ => .ok ⟨a, h _ rfl⟩ | ⟨.error e, _⟩ => .error e) <$> f : m _)
-    show _ >>= _ = _; simp [← comp_map, ← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
+    show _ >>= _ = _; simp [← bind_pure_comp]; congr; funext ⟨a, h⟩; cases a <;> rfl
 
 /--
 If a monad has `MonadSatisfying m`, then we can lift a `h : SatisfiesM (m := m) p x` predicate
@@ -275,9 +274,9 @@ instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (Except
   satisfying {α p x} h :=
     let x' := satisfying (SatisfiesM_ExceptT_eq.mp h)
     ExceptT.mk ((fun ⟨y, w⟩ => y.pmap fun a h => ⟨a, w _ h⟩) <$> x')
-  val_eq {α p x} h:= by
+  val_eq {α p x} h := by
     ext
-    rw [← MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h)]
+    refine Eq.trans ?_ (MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h))
     simp
 
 instance : MonadSatisfying (EStateM ε σ) where
@@ -289,7 +288,6 @@ instance : MonadSatisfying (EStateM ε σ) where
   val_eq {α p x} h := by
     ext s
     rw [EStateM.run_map, EStateM.run]
-    simp only
     split <;> simp_all
 
 end MonadSatisfying

@@ -290,7 +290,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let (targets, induction, using_, alts) ← match info.stx with
     | `(tactic| cases $[$[$_ :]? $targets],* $[using $u]? $(alts)?) =>
       pure (targets, false, u, alts)
-    | `(tactic| induction $[$targets],* $[using $u]? $[generalizing $_*]? $(alts)?) =>
+    | `(tactic| induction $[$[$_ :]? $targets],* $[using $u]? $[generalizing $_*]? $(alts)?) =>
       pure (targets, true, u, alts)
     | _ => return #[]
   let some discrInfos := targets.mapM (findTermInfo? node) | return #[]
