@@ -829,29 +829,12 @@ dropped from `xs`.
 fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 ```
 -/
-@[simp] def fillNones {α} : List (Option α) → List α → List α
+@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNones {α} : List (Option α) → List α → List α
   | [], _ => []
   | some a :: as, as' => a :: fillNones as as'
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
-
-/-- Tail-recursive version of `fillNones`. -/
-@[inline] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
-  /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
-  go : List (Option α) → List α → Array α → List α
-  | [], _, acc => acc.toList
-  | some a :: as, as', acc => go as as' (acc.push a)
-  | none :: as, [], acc => filterMapTR.go id as acc
-  | none :: as, a :: as', acc => go as as' (acc.push a)
-
-@[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
-  | [], _ => by simp [fillNonesTR.go]
-  | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
-  | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
-  | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [go]
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
