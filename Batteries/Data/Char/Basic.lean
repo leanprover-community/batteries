@@ -82,7 +82,7 @@ protected def any (p : Char → Bool) : Bool :=
     else
       false
 
-theorem exists_eq_true_of_any_eq_true (h : Char.any p) : ∃ c, p c := by
+theorem exists_eq_true_of_any_eq_true (h : Char.any p = true) : ∃ c, p c = true := by
   simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_true] at h
   match h with
   | ⟨⟨n, hn⟩, ⟨_, h⟩⟩ =>
