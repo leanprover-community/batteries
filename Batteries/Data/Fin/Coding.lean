@@ -9,7 +9,7 @@ import Batteries.Tactic.Basic
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Lint
 
-/-! # Coding recipes for `Fin` types
+/-! # Low-level coding recipes for `Fin` types
 
 This module collects encoding/decoding bijections to represent basic type constructors of `Fin`
 types as `Fin` types. These functions implement the isomorphism `Option (Fin n) ≃ Fin (n+1)`,
@@ -19,101 +19,128 @@ dependent products, decidable subtypes and decidable quotients.
 
 namespace Fin
 
-/-- Encode a unit value as a `Fin` type. -/
-@[nolint unusedArguments]
+/-- Encode `Empty` into `Fin 0`. -/
+def encodeEmpty : Empty → Fin 0 := (nomatch ·)
+
+/-- Decode `Empty` from `Fin 0`. -/
+def decodeEmpty : Fin 0 → Empty := (nomatch ·)
+
+@[simp] theorem encodeEmpty_decodeEmpty (x : Fin 0) : encodeEmpty (decodeEmpty x) = x := nomatch x
+
+@[simp] theorem decodeEmpty_encodeEmpty (x : Empty) : decodeEmpty (encodeEmpty x) = x := nomatch x
+
+/-- Encode `PUnit` into `Fin 1`. -/
+@[simp, nolint unusedArguments]
 def encodePUnit : PUnit → Fin 1
   | .unit => 0
 
-/-- Decode a unit value as a `Fin` type. -/
-@[pp_nodot] def decodePUnit : Fin 1 → PUnit
+/-- Decode `PUnit` from `Fin 1`. -/
+@[simp, pp_nodot] def decodePUnit : Fin 1 → PUnit
   | 0 => .unit
 
-/-- Encode a unit value as a `Fin` type. -/
+/-- Encode `Unit` into `Fin 1`. -/
 abbrev encodeUnit : Unit → Fin 1 := encodePUnit
 
-/-- Decode a unit value as a `Fin` type. -/
+/-- Decode `Unit` from `Fin 1`. -/
 @[pp_nodot] abbrev decodeUnit : Fin 1 → Unit := decodePUnit
 
-@[simp] theorem encodePUnit_decodePUnit : (x : Fin 1) → encodePUnit (decodePUnit x) = x
+theorem encodePUnit_decodePUnit : (x : Fin 1) → encodePUnit (decodePUnit x) = x
   | 0 => rfl
 
-@[simp] theorem decodePUnit_encodePUnit : (x : PUnit) → decodePUnit (encodePUnit x) = x
+theorem decodePUnit_encodePUnit : (x : PUnit) → decodePUnit (encodePUnit x) = x
   | .unit => rfl
 
-/-- Encode a boolean value as a `Fin` type. -/
-def encodeBool : Bool → Fin 2
+/-- Encode `Bool` into `Fin 2`. -/
+@[simp] def encodeBool : Bool → Fin 2
   | false => 0
   | true => 1
 
-/-- Decode a boolean value as a `Fin` type. -/
-@[pp_nodot] def decodeBool : Fin 2 → Bool
+/-- Decode `Bool` from `Fin 2`. -/
+@[simp, pp_nodot] def decodeBool : Fin 2 → Bool
   | 0 => false
   | 1 => true
 
-@[simp] theorem encodeBool_decodeBool : (x : Fin 2) → encodeBool (decodeBool x) = x
-  | 0 => rfl
-  | 1 => rfl
+theorem encodeBool_decodeBool : (x : Fin 2) → encodeBool (decodeBool x) = x
+  | 0 | 1 => rfl
 
-@[simp] theorem decodeBool_encodeBool : (x : Bool) → decodeBool (encodeBool x) = x
-  | false => rfl
-  | true => rfl
+theorem decodeBool_encodeBool : (x : Bool) → decodeBool (encodeBool x) = x
+  | false| true => rfl
 
-/-- Encode a character value as a `Fin` type.
+/-- Encode `Ordering` into `Fin 3`. -/
+@[simp] def encodeOrdering : Ordering → Fin 3
+  | .eq => 0
+  | .lt => 1
+  | .gt => 2
 
-Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
+/-- Decode `Ordering` from `Fin 3`. -/
+@[simp, pp_nodot] def decodeOrdering : Fin 3 → Ordering
+  | 0 => .eq
+  | 1 => .lt
+  | 2 => .gt
+
+theorem encodeOrdering_decodeOrdering : (x : Fin 3) → encodeOrdering (decodeOrdering x) = x
+  | 0 | 1 | 2 => rfl
+
+theorem decodeOrdering_encodeOrdering :
+    (x : Ordering) → decodeOrdering (encodeOrdering x) = x
+  | .eq | .lt | .gt => rfl
+
+/-- Encode `Char` into `Fin 1112064`.
+
+Valid character code points range from 0 to 1114111 (U+10FFFF) excluding the surrogate range from
 55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
 (See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
 -/
 def encodeChar (c : Char) : Fin 1112064 :=
-  have : c.toNat < 1114112 :=
+  have : c.toNat < 0x110000 :=
     match c.valid with
     | .inl h => Nat.lt_trans h (by decide)
     | .inr h => h.right
-  if _ : c.toNat < 55296 then
+  if _ : c.toNat < 0xD800 then
     ⟨c.toNat, by grind⟩
   else
-    ⟨c.toNat - 2048, by grind⟩
+    ⟨c.toNat - (0xE000 - 0xD800), by grind⟩
 
-/-- Decode a character value as a `Fin` type.
+/-- Decode `Char` from `Fin 1112064`.
 
 Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
 55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
 (See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
 -/
 @[pp_nodot] def decodeChar (i : Fin 1112064) : Char :=
-  if h : i.val < 55296 then
+  if h : i.val < 0xD800 then
     Char.ofNatAux i.val (by grind)
   else
-    Char.ofNatAux (i.val + 2048) (by grind)
+    Char.ofNatAux (i.val + (0xE000 - 0xD800)) (by grind)
 
 @[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
   simp only [decodeChar, encodeChar]
   split
   · simp [*]
-  · have : ¬ x.val + 2048 < 55296 := by grind
+  · have : ¬ x.val + (0xE000 - 0xD800) < 0xD800 := by grind
     simp [*]
 
 @[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
   ext; simp only [decodeChar, encodeChar]
   split
   · simp only [Char.ofNatAux, Char.toNat]; rfl
-  · have h0 : 57344 ≤ x.toNat ∧ x.toNat < 1114112 := by
+  · have h0 : 0xE000 ≤ x.toNat ∧ x.toNat < 0x110000 := by
       match x.valid with
       | .inl h => contradiction
       | .inr h =>
         constructor
         · exact Nat.add_one_le_of_lt h.left
         · exact h.right
-    have h1 : ¬ x.toNat - 2048 < 55296 := by grind
-    have h2 : 2048 ≤ x.toNat := by grind
+    have h1 : ¬ x.toNat - (0xE000 - 0xD800) < 0xD800 := by grind
+    have h2 : (0xE000 - 0xD800) ≤ x.toNat := by grind
     simp only [dif_neg h1, Char.ofNatAux, Nat.sub_add_cancel h2]; rfl
 
-/-- Decode an optional `Fin` type. -/
+/-- Encode `Option (Fin n)` into `Fin (n+1)`. -/
 def encodeOption : Option (Fin n) → Fin (n+1)
   | none => 0
   | some ⟨i, h⟩ => ⟨i+1, Nat.succ_lt_succ h⟩
 
-/-- Decode an optional `Fin` type. -/
+/-- Decode `Option (Fin n)` from `Fin (n+1)`. -/
 @[pp_nodot] def decodeOption : Fin (n+1) → Option (Fin n)
   | 0 => none
   | ⟨i+1, h⟩ => some ⟨i, Nat.lt_of_succ_lt_succ h⟩
@@ -143,12 +170,12 @@ def encodeOption : Option (Fin n) → Fin (n+1)
     · cases he
     · cases he; rfl
 
-/-- Encode a sum of `Fin` types. -/
+/-- Encode `Fin n ⊕ Fin m` into `Fin (n + m)`. -/
 def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
   | .inl x => x.castLE (Nat.le_add_right _ _)
   | .inr x => x.natAdd n
 
-/-- Decode a sum of `Fin` types. -/
+/-- Decode `Fin n ⊕ Fin m` from `Fin (n + m)`. -/
 @[pp_nodot] def decodeSum (x : Fin (n + m)) : Sum (Fin n) (Fin m) :=
   if h : x < n then
     .inl ⟨x, h⟩
@@ -179,7 +206,7 @@ def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
     · next h => simp only [coe_natAdd] at h; grind
     · next x _ => cases x; simp only [natAdd_mk, Sum.inr.injEq, mk.injEq]; grind
 
-/-- Encode a product of `Fin` types. -/
+/-- Encode `Fin m × Fin n` into `Fin (m * n)`. -/
 def encodeProd : Fin m × Fin n → Fin (m * n)
   | (⟨i, hi⟩, ⟨j, hj⟩) => Fin.mk (n * i + j) <| calc
     _ < n * i + n := Nat.add_lt_add_left hj ..
@@ -187,7 +214,7 @@ def encodeProd : Fin m × Fin n → Fin (m * n)
     _ ≤ n * m := Nat.mul_le_mul_left n (Nat.succ_le_of_lt hi)
     _ = m * n := Nat.mul_comm ..
 
-/-- Decode a product of `Fin` types. -/
+/-- Decode `Fin m × Fin n` from `Fin (m * n)`. -/
 @[pp_nodot] def decodeProd (z : Fin (m * n)) : Fin m × Fin n :=
   ⟨left, right⟩
 where
@@ -209,7 +236,7 @@ where
   | ⟨⟨_, _⟩, ⟨_, h⟩⟩ => simp [encodeProd, decodeProd, decodeProd.left, decodeProd.right,
     Nat.mul_add_div (Nat.zero_lt_of_lt h), Nat.div_eq_of_lt h, Nat.mod_eq_of_lt h]
 
-/-- Encode a dependent sum of `Fin` types. -/
+/-- Encode `(i : Fin n) × Fin (f i)` into `Fin (Fin.sum f)`. -/
 def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.sum f) :=
   match n, f, x with
   | _+1, f, ⟨0, j⟩ =>
@@ -218,7 +245,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     match encodeSigma ((f ∘ succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, j⟩ with
     | ⟨k, hk⟩ => ⟨f 0 + k, sum_succ f .. ▸ Nat.add_lt_add_left hk ..⟩
 
-/-- Decode a dependent sum of `Fin` types. -/
+/-- Decode `(i : Fin n) × Fin (f i)` from `Fin (Fin.sum f)`. -/
 @[pp_nodot] def decodeSigma (f : Fin n → Nat) (x : Fin (Fin.sum f)) : (i : Fin n) × Fin (f i) :=
   match n, f, x with
   | 0, _, ⟨_, h⟩ => False.elim (by simp at h)
@@ -272,7 +299,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
         congr
       · apply HEq.trans _ h.2; congr
 
-/-- Encode a function between `Fin` types. -/
+/-- Encode `Fin m → Fin n` into `Fin (n ^ m)`. -/
 def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
   | 0, _ => ⟨0, by simp⟩
   | m+1, f => Fin.mk (n * (encodeFun fun k => f k.succ).val + (f 0).val) <| calc
@@ -282,7 +309,7 @@ def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
     _ = n ^ m * n := Nat.mul_comm ..
     _ = n ^ (m+1) := Nat.pow_succ ..
 
-/-- Decode a function between `Fin` types. -/
+/-- Decode `Fin m → Fin n` from `Fin (n ^ m)`. -/
 @[pp_nodot] def decodeFun : {m : Nat} → Fin (n ^ m) → Fin m → Fin n
   | 0, _ => (nomatch .)
   | m+1, ⟨k, hk⟩ =>
@@ -310,7 +337,7 @@ def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
           = x ⟨i+1, hi⟩ := by rw [ih]; rfl
       simp [← this, Nat.mul_add_div hn, Nat.div_eq_of_lt]
 
-/-- Encode a dependent product of `Fin` types. -/
+/-- Encode `(i : Fin n) → Fin (f i)` into `Fin (Fin.prod f)`. -/
 def encodePi (f : Fin n → Nat) (x : (i : Fin n) → Fin (f i)) : Fin (Fin.prod f) :=
   match n, f, x with
   | 0, _, _ => ⟨0, by simp [Fin.prod]⟩
@@ -322,7 +349,7 @@ def encodePi (f : Fin n → Nat) (x : (i : Fin n) → Fin (f i)) : Fin (Fin.prod
       _ ≤ f 0 * Fin.prod (f ∘ succ) := Nat.mul_le_mul_left _ (Nat.succ_le_of_lt hk)
       _ = Fin.prod f := Eq.symm <| prod_succ ..
 
-/-- Decode a dependent product of `Fin` types. -/
+/-- Decode `(i : Fin n) → Fin (f i)` from `Fin (Fin.prod f)`. -/
 def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f i) :=
   match n, f, x with
   | 0, _, _ => (nomatch ·)
@@ -365,7 +392,7 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
       conv => rhs; rw [← h]
       congr; simp [encodePi, Nat.mul_add_div h0, Nat.div_eq_of_lt (x 0).is_lt]; rfl
 
-/-- Encode a decidable subtype of a `Fin` type. -/
+/-- Encode `{ i : Fin n // P i }` into `Fin (Fin.count P)` where `P` is a decidable predicate. -/
 def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i }) :
     Fin (Fin.count (P ·)) :=
   match n, P, inst, i with
@@ -383,7 +410,7 @@ def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i 
         have : (Fin.count fun i => P i.succ) = Fin.count (P ·) := by simp [count_succ, h0]
         Fin.cast this ⟨k, hk⟩
 
-/-- Decode a decidable subtype of a `Fin` type. -/
+/-- Decode `{ i : Fin n // P i }` from `Fin (Fin.count P)` where `P` is a decidable predicate. -/
 def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.count (P ·))) :
     { i // P i } :=
   match n, P, inst, k with
@@ -510,7 +537,7 @@ theorem getRepr_eq_getRepr_of_equiv (s : Setoid (Fin n)) [DecidableRel s.r] (h :
   apply getRepr_eq_getRepr_of_equiv
   exact getRepr_equiv ..
 
-/-- Encode decidable quotient of a `Fin` type. -/
+/-- Encode `Quotient s` into `Fin m` where `s` is a decidable setoid on `Fin n`. -/
 def encodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r] (x : Quotient s) :
     Fin (Fin.count fun i => getRepr s i = i) :=
   encodeSubtype _ <| Quotient.liftOn x (fun i => ⟨getRepr s i, getRepr_getRepr s i⟩) <| by
@@ -518,7 +545,7 @@ def encodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r] (x : Quotient s) :
     simp only [Subtype.mk.injEq]
     exact getRepr_eq_getRepr_of_equiv s h
 
-/-- Decode decidable quotient of a `Fin ` type. -/
+/-- Decode `Quotient s` from `Fin m` where `s` is a decidable setoid on `Fin n`. -/
 def decodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r]
     (i : Fin (Fin.count fun i => getRepr s i = i)) : Quotient s :=
   Quotient.mk s (decodeSubtype _ i)
