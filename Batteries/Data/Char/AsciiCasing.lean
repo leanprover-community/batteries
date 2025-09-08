@@ -5,6 +5,7 @@ Authors: François G. Dorais
 -/
 import Batteries.Data.Char.Basic
 import Batteries.Tactic.Basic
+import Std.Classes.Ord.String
 
 /-! # Lemmas for ASCII-casing
 
@@ -140,3 +141,59 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
     rw [toUpper_eq_of_isLower hl', toLower_eq_of_isUpper hu, toUpper_eq_of_not_isLower hl,
       toNat_ofNat, if_pos hv, Nat.add_sub_cancel, ofNat_toNat]
   · rw [toLower_eq_of_not_isUpper hu]
+
+/-- Case folding for ASCII characters only.
+
+Alphabetic ASCII characters are mapped to their lowercase form, all other characters are left
+unchanged. This agrees with the Unicode case folding algorithm for ASCII characters.
+
+```
+#eval caseFoldAsciiOnly 'A' == 'a'
+#eval caseFoldAsciiOnly 'a' == 'a'
+#eval caseFoldAsciiOnly 'À' == 'À'
+#eval caseFoldAsciiOnly 'à' == 'à'
+#eval caseFoldAsciiOnly '$' == '$'
+```
+-/
+abbrev caseFoldAsciiOnly := Char.toLower
+
+/--
+Bool-valued comparison of two `Char`s for *ASCII*-case insensitive equality.
+
+```
+#eval beqCaseInsensitiveAsciiOnly 'a' 'A' -- true
+#eval beqCaseInsensitiveAsciiOnly 'a' 'a' -- true
+#eval beqCaseInsensitiveAsciiOnly '$' '$' -- true
+#eval beqCaseInsensitiveAsciiOnly 'a' 'b' -- false
+#eval beqCaseInsensitiveAsciiOnly 'γ' 'Γ' -- false
+#eval beqCaseInsensitiveAsciiOnly 'ä' 'Ä' -- false
+```
+-/
+def beqCaseInsensitiveAsciiOnly (c₁ c₂ : Char) : Bool :=
+  c₁.caseFoldAsciiOnly == c₂.caseFoldAsciiOnly
+
+theorem beqCaseInsensitiveAsciiOnly.eqv : Equivalence (beqCaseInsensitiveAsciiOnly · ·) := {
+  refl _ := BEq.rfl
+  trans _ _ := by simp_all [beqCaseInsensitiveAsciiOnly]
+  symm := by simp_all [beqCaseInsensitiveAsciiOnly]}
+
+/--
+Setoid structure on `Char` using `beqCaseInsensitiveAsciiOnly`
+-/
+def beqCaseInsensitiveAsciiOnly.isSetoid : Setoid Char:=
+  ⟨(beqCaseInsensitiveAsciiOnly · ·), beqCaseInsensitiveAsciiOnly.eqv⟩
+
+/--
+ASCII-case insensitive implementation comparison returning an `Ordering`. Useful for sorting.
+
+```
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'A' -- eq
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'a' -- eq
+#eval cmpCaseInsensitiveAsciiOnly '$' '$' -- eq
+#eval cmpCaseInsensitiveAsciiOnly 'a' 'b' -- lt
+#eval cmpCaseInsensitiveAsciiOnly 'γ' 'Γ' -- gt
+#eval cmpCaseInsensitiveAsciiOnly 'ä' 'Ä' -- gt
+```
+-/
+def cmpCaseInsensitiveAsciiOnly (c₁ c₂ : Char) : Ordering :=
+  compare c₁.caseFoldAsciiOnly c₂.caseFoldAsciiOnly

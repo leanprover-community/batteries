@@ -64,12 +64,12 @@ example : False ∧ True := by
   case _ : False => ?left
 
 /--
-error: type mismatch
+error: Type mismatch
   ?right
 has type
-  True : Prop
+  True
 but is expected to have type
-  False : Prop
+  False
 -/
 #guard_msgs in
 example : False ∧ True := by
