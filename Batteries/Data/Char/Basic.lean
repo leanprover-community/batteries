@@ -6,6 +6,7 @@ Authors: Jannis Limperg, François G. Dorais
 import Batteries.Classes.Order
 
 -- Forward port of lean4#9515
+@[grind]
 theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
   simp [finRange]
 
@@ -45,13 +46,11 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
   simp only [Nat.isValidChar] at hn
   match hn with
   | .inl hn =>
-    have hn' : n < 1114112 := by omega
-    have := h ⟨n, hn'⟩ (List.mem_finRange _)
-    rwa [dif_pos hn] at this
+    specialize h ⟨n, by grind⟩
+    grind
   | .inr ⟨hn, hn'⟩ =>
-    have hn'' : ¬ n < 55296 := by omega
-    have := h ⟨n, hn'⟩ (List.mem_finRange _)
-    rwa [dif_neg hn'', dif_pos hn] at this
+    specialize h ⟨n, by grind⟩
+    grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
@@ -69,6 +68,15 @@ theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
     · split at h
       · refine ⟨ofNatAux n (.inr ⟨?_, hn⟩), h⟩; assumption
       · simp at h
+
+theorem all_eq_true_iff_forall_eq_true : Char.all p = true ↔ ∀ c, p c = true := by
+  constructor
+  · exact eq_true_of_all_eq_true
+  · intro h
+    cases heq : Char.all p
+    · obtain ⟨c, hc⟩ := exists_eq_false_of_all_eq_false heq
+      simp [h c] at hc
+    · trivial
 
 /-- Returns `true` if `p` returns true for some `Char`. -/
 protected def any (p : Char → Bool) : Bool :=
@@ -110,6 +118,15 @@ theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = fal
   have : c.toNat.isValidChar := c.valid
   rw [← c.ofNat_toNat, ofNat, dif_pos this]
   exact of_any_eq_false_aux h c.toNat this
+
+theorem any_eq_true_iff_exists_eq_true : Char.any p = true ↔ ∃ c, p c = true := by
+  constructor
+  · exact exists_eq_true_of_any_eq_true
+  · intro h
+    cases heq : Char.any p
+    · obtain ⟨c, hc⟩ := h
+      simp [eq_false_of_any_eq_false heq] at hc
+    · trivial
 
 instance (P : Char → Prop) [DecidablePred P] : Decidable (∀ c, P c) :=
   match h : Char.all (P ·) with
