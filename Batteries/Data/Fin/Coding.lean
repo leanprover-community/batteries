@@ -9,6 +9,14 @@ import Batteries.Tactic.Basic
 import Batteries.Tactic.Trans
 import Batteries.Tactic.Lint
 
+/-! # Coding recipes for `Fin` types
+
+This module collects encoding/decoding bijections to represent basic type constructors of `Fin`
+types as `Fin` types. These functions implement the isomorphism `Option (Fin n) ≃ Fin (n+1)`,
+`Fin m ⊕ Fin n ≃ Fin (m + n)`, `Fin m × Fin n ≃ Fin (m * n)`, ..., including, dependent sums,
+dependent products, decidable subtypes and decidable quotients.
+-/
+
 namespace Fin
 
 /-- Encode a unit value as a `Fin` type. -/
@@ -54,6 +62,7 @@ def encodeBool : Bool → Fin 2
 
 Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
 55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
 -/
 def encodeChar (c : Char) : Fin 1112064 :=
   have : c.toNat < 1114112 :=
@@ -61,26 +70,27 @@ def encodeChar (c : Char) : Fin 1112064 :=
     | .inl h => Nat.lt_trans h (by decide)
     | .inr h => h.right
   if _ : c.toNat < 55296 then
-    ⟨c.toNat, by omega⟩
+    ⟨c.toNat, by grind⟩
   else
-    ⟨c.toNat - 2048, by omega⟩
+    ⟨c.toNat - 2048, by grind⟩
 
 /-- Decode a character value as a `Fin` type.
 
 Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
 55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
 -/
 @[pp_nodot] def decodeChar (i : Fin 1112064) : Char :=
   if h : i.val < 55296 then
-    Char.ofNatAux i.val (by omega)
+    Char.ofNatAux i.val (by grind)
   else
-    Char.ofNatAux (i.val + 2048) (by omega)
+    Char.ofNatAux (i.val + 2048) (by grind)
 
 @[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
   simp only [decodeChar, encodeChar]
   split
   · simp [*]
-  · have : ¬ x.val + 2048 < 55296 := by omega
+  · have : ¬ x.val + 2048 < 55296 := by grind
     simp [*]
 
 @[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
@@ -94,16 +104,16 @@ Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the sur
         constructor
         · exact Nat.add_one_le_of_lt h.left
         · exact h.right
-    have h1 : ¬ x.toNat - 2048 < 55296 := by omega
-    have h2 : 2048 ≤ x.toNat := by omega
+    have h1 : ¬ x.toNat - 2048 < 55296 := by grind
+    have h2 : 2048 ≤ x.toNat := by grind
     simp only [dif_neg h1, Char.ofNatAux, Nat.sub_add_cancel h2]; rfl
 
-/-- Decode an optional `Fin` types. -/
+/-- Decode an optional `Fin` type. -/
 def encodeOption : Option (Fin n) → Fin (n+1)
   | none => 0
   | some ⟨i, h⟩ => ⟨i+1, Nat.succ_lt_succ h⟩
 
-/-- Decode an optional `Fin` types. -/
+/-- Decode an optional `Fin` type. -/
 @[pp_nodot] def decodeOption : Fin (n+1) → Option (Fin n)
   | 0 => none
   | ⟨i+1, h⟩ => some ⟨i, Nat.lt_of_succ_lt_succ h⟩
@@ -143,7 +153,7 @@ def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
   if h : x < n then
     .inl ⟨x, h⟩
   else
-    .inr ⟨x - n, by omega⟩
+    .inr ⟨x - n, by grind⟩
 
 @[simp] theorem encodeSum_decodeSum (x : Fin (n + m)) : encodeSum (decodeSum x) = x := by
   simp only [encodeSum, decodeSum]
@@ -157,17 +167,17 @@ def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
     · contradiction
     · next he =>
       cases x; cases hd
-      simp at he ⊢; omega
+      simp at he ⊢; grind
 
 @[simp] theorem decodeSum_encodeSum (x : Sum (Fin n) (Fin m)) : decodeSum (encodeSum x) = x := by
   simp only [encodeSum, decodeSum]
   split
   · split
     · simp
-    · next h => simp only [coe_castLE] at h; omega
+    · next h => simp only [coe_castLE] at h; grind
   · split
-    · next h => simp only [coe_natAdd] at h; omega
-    · next x _ => cases x; simp only [natAdd_mk, Sum.inr.injEq, mk.injEq]; omega
+    · next h => simp only [coe_natAdd] at h; grind
+    · next x _ => cases x; simp only [natAdd_mk, Sum.inr.injEq, mk.injEq]; grind
 
 /-- Encode a product of `Fin` types. -/
 def encodeProd : Fin m × Fin n → Fin (m * n)
@@ -216,10 +226,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     if hx0 : x < f 0 then
       ⟨0, ⟨x, hx0⟩⟩
     else
-      have hxf : x - f 0 < Fin.sum (f ∘ succ) := by
-        apply Nat.sub_lt_left_of_lt_add
-        · exact Nat.le_of_not_gt hx0
-        · rw [← sum_succ]; exact hx
+      have hxf : x - f 0 < Fin.sum (f ∘ succ) := by grind [sum_succ]
       match decodeSigma ((f ∘ succ)) ⟨x - f 0, hxf⟩ with
       | ⟨⟨i, hi⟩, y⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, y⟩
 
@@ -232,10 +239,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     split
     · rfl
     · next h1 =>
-      have h2 : x - f 0 < Fin.sum (f ∘ succ) := by
-        apply Nat.sub_lt_left_of_lt_add
-        · exact Nat.le_of_not_gt h1
-        · rw [← sum_succ]; exact x.is_lt
+      have h2 : x - f 0 < Fin.sum (f ∘ succ) := by grind [sum_succ]
       have : encodeSigma (f ∘ succ) (decodeSigma (f ∘ succ) ⟨x - f 0, h2⟩) = ↑x - f 0 := by
         rw [ih]
       ext; simp only [encodeSigma]
@@ -252,10 +256,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     | ⟨⟨0, _⟩, x, hx⟩ =>
       split
       · rfl
-      · next h =>
-        absurd h
-        simp only [encodeSigma]
-        exact hx
+      · grind [encodeSigma]
     | ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ =>
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
       rw [dif_neg this]
@@ -285,11 +286,7 @@ def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
 @[pp_nodot] def decodeFun : {m : Nat} → Fin (n ^ m) → Fin m → Fin n
   | 0, _ => (nomatch .)
   | m+1, ⟨k, hk⟩ =>
-    have hn : n > 0 := by
-      apply Nat.zero_lt_of_ne_zero
-      intro h
-      rw [h, Nat.pow_succ, Nat.mul_zero] at hk
-      contradiction
+    have hn : n > 0 := by grind
     fun
     | 0 => ⟨k % n, Nat.mod_lt k hn⟩
     | ⟨i+1, hi⟩ =>
@@ -298,7 +295,7 @@ def encodeFun : {m : Nat} → (Fin m → Fin n) → Fin (n ^ m)
 
 @[simp] theorem encodeFun_decodeFun (x : Fin (n ^ m)) : encodeFun (decodeFun x) = x := by
   induction m with simp only [encodeFun, decodeFun, Fin.succ]
-  | zero => simp; omega
+  | zero => grind
   | succ m ih => cases x; simp [ih]; rw [← Fin.zero_eta, Nat.div_add_mod]
 
 @[simp] theorem decodeFun_encodeFun (x : Fin m → Fin n) : decodeFun (encodeFun x) = x := by
@@ -320,8 +317,8 @@ def encodePi (f : Fin n → Nat) (x : (i : Fin n) → Fin (f i)) : Fin (Fin.prod
   | _+1, f, x =>
     match encodePi ((f ∘ succ)) (fun ⟨i, hi⟩ => x ⟨i+1, Nat.succ_lt_succ hi⟩) with
     | ⟨k, hk⟩ => Fin.mk (f 0 * k + (x 0).val) $ calc
-      _ < f 0 * k + f 0 := Nat.add_lt_add_left (x 0).isLt ..
-      _ = f 0 * (k + 1) := Nat.mul_succ ..
+      _ < f 0 * k + f 0 := by grind
+      _ = f 0 * (k + 1) := by grind
       _ ≤ f 0 * Fin.prod (f ∘ succ) := Nat.mul_le_mul_left _ (Nat.succ_le_of_lt hk)
       _ = Fin.prod f := Eq.symm <| prod_succ ..
 
@@ -330,11 +327,7 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
   match n, f, x with
   | 0, _, _ => (nomatch ·)
   | n+1, f, ⟨x, hx⟩ =>
-    have h : f 0 > 0 := by
-      apply Nat.zero_lt_of_ne_zero
-      intro h
-      rw [prod_succ, h, Nat.zero_mul] at hx
-      contradiction
+    have h : f 0 > 0 := by grind [prod_succ]
     have : x / f 0 < Fin.prod (f ∘ succ) := by
       rw [Nat.div_lt_iff_lt_mul h, Nat.mul_comm, ← prod_succ]
       exact hx

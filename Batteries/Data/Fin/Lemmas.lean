@@ -24,6 +24,12 @@ theorem sum_succ [Zero α] [Add α] (x : Fin (n + 1) → α) :
     Fin.sum x = x 0 + Fin.sum (x ∘ Fin.succ) := by
   simp [Fin.sum, foldr_succ]
 
+theorem sum_eq_sum_map_finRange [Zero α] [Add α] (x : Fin n → α) :
+    Fin.sum x = (List.finRange n |>.map x).sum := by
+  simp [Fin.sum, List.sum]
+  rw [Fin.foldr_eq_finRange_foldr]
+  rw [List.foldr_map]
+
 /-! ### prod -/
 
 @[simp] theorem prod_zero [One α] [Mul α] (x : Fin 0 → α) :
@@ -36,21 +42,16 @@ theorem prod_succ [One α] [Mul α] (x : Fin (n + 1) → α) :
 
 /-! ### count -/
 
-@[simp] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
+@[simp, grind =] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
   simp [Fin.count]
 
 theorem count_succ (p : Fin (n + 1) → Bool) : Fin.count p =
     if p 0 then Fin.count (fun i => p i.succ) + 1 else Fin.count (fun i => p i.succ) := by
   split <;> simp [Fin.count, Fin.sum_succ, Nat.one_add, Function.comp_def, *]
 
+@[grind]
 theorem count_le (p : Fin n → Bool) : Fin.count p ≤ n := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [count_succ]
-    split
-    · simp [ih]
-    · apply Nat.le_trans _ (Nat.le_succ n); simp [ih]
+  induction n with grind [count_succ]
 
 /-! ### findSome? -/
 
