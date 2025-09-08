@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
-import Batteries.Data.List.Lemmas
 import Batteries.Util.ProofWanted
 
 namespace Fin
@@ -17,41 +16,42 @@ attribute [norm_cast] val_last
 
 /-! ### sum -/
 
-@[simp] theorem sum_zero [OfNat α (nat_lit 0)] [Add α] (x : Fin 0 → α) :
+@[simp] theorem sum_zero [Zero α] [Add α] (x : Fin 0 → α) :
     Fin.sum x = 0 := by
   simp [Fin.sum]
 
-theorem sum_succ [OfNat α (nat_lit 0)] [Add α] (x : Fin (n + 1) → α) :
+theorem sum_succ [Zero α] [Add α] (x : Fin (n + 1) → α) :
     Fin.sum x = x 0 + Fin.sum (x ∘ Fin.succ) := by
   simp [Fin.sum, foldr_succ]
 
+theorem sum_eq_sum_map_finRange [Zero α] [Add α] (x : Fin n → α) :
+    Fin.sum x = (List.finRange n |>.map x).sum := by
+  simp [Fin.sum, List.sum]
+  rw [Fin.foldr_eq_finRange_foldr]
+  rw [List.foldr_map]
+
 /-! ### prod -/
 
-@[simp] theorem prod_zero [OfNat α (nat_lit 1)] [Mul α] (x : Fin 0 → α) :
+@[simp] theorem prod_zero [One α] [Mul α] (x : Fin 0 → α) :
     Fin.prod x = 1 := by
   simp [Fin.prod]
 
-theorem prod_succ [OfNat α (nat_lit 1)] [Mul α] (x : Fin (n + 1) → α) :
+theorem prod_succ [One α] [Mul α] (x : Fin (n + 1) → α) :
     Fin.prod x = x 0 * Fin.prod (x ∘ Fin.succ) := by
   simp [Fin.prod, foldr_succ]
 
 /-! ### count -/
 
-@[simp] theorem count_zero (P : Fin 0 → Prop) [DecidablePred P] : Fin.count P = 0 := by
+@[simp, grind =] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
   simp [Fin.count]
 
-theorem count_succ (P : Fin (n + 1) → Prop) [DecidablePred P] : Fin.count P =
-    if P 0 then Fin.count (fun i => P i.succ) + 1 else Fin.count (fun i => P i.succ) := by
+theorem count_succ (p : Fin (n + 1) → Bool) : Fin.count p =
+    if p 0 then Fin.count (fun i => p i.succ) + 1 else Fin.count (fun i => p i.succ) := by
   split <;> simp [Fin.count, Fin.sum_succ, Nat.one_add, Function.comp_def, *]
 
-theorem count_le (P : Fin n → Prop) [DecidablePred P] : Fin.count P ≤ n := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [count_succ]
-    split
-    · simp [ih]
-    · apply Nat.le_trans _ (Nat.le_succ n); simp [ih]
+@[grind]
+theorem count_le (p : Fin n → Bool) : Fin.count p ≤ n := by
+  induction n with grind [count_succ]
 
 /-! ### findSome? -/
 
@@ -61,7 +61,7 @@ theorem count_le (P : Fin n → Prop) [DecidablePred P] : Fin.count P ≤ n := b
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
-  simp only [findSome?, foldl_succ, Option.orElse_none, Function.comp_apply]
+  simp only [findSome?, foldl_succ]
   cases f 0
   · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
   · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
@@ -181,10 +181,10 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
   · simp [*]
 
 theorem find?_isSome_iff {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
-  simp [find?, findSome?_isSome_iff]
+  simp [find?]
 
 theorem find?_isNone_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
-  simp [find?, findSome?_isSome_iff]
+  simp [find?]
 
 proof_wanted find?_eq_some_iff {p : Fin n → Bool} : find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j
 
