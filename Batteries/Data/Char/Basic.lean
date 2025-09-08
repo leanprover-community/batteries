@@ -30,27 +30,24 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
 
 /-- Returns `true` if `p` returns true for every `Char`. -/
 protected def all (p : Char → Bool) : Bool :=
-  -- 0x10FFFF (1114111) is the maximal valid code point.
-  Nat.all 0x110000 fun c h =>
-    -- Surrogate code points are from 0xD800 (55296) to 0xDFFF (57343).
-    if h₁ : c < 0xD800 then
-      p <| Char.ofNatAux c <| .inl h₁
-    else if h₂ : 0xDFFF < c then
-      p <| Char.ofNatAux c <| .inr ⟨h₂, h⟩
-    else
-      true
+  -- Recall that character code points range from 0 to 0x10FFFF, excluding the surrogate range from
+  -- 0xD800 to 0xDFFF.
+  -- (See [Unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+  Nat.all 0xD800 (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) &&
+  Nat.all (0x110000 - 0xE000) fun c h₂ => p <| Char.ofNatAux (c + 0xE000) <| .inr (by grind)
 
 private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidChar) :
     p (.ofNatAux n hn) := by
-  simp only [Char.all, Nat.all_eq_finRange_all, List.all_eq_true] at h
+  simp only [Char.all, Nat.all_eq_finRange_all, List.all_eq_true, Bool.and_eq_true] at h
   simp only [Nat.isValidChar] at hn
   match hn with
   | .inl hn =>
-    specialize h ⟨n, by grind⟩
+    have h₁ := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    specialize h ⟨n, by grind⟩
-    grind
+    have h₂ := h.2 ⟨n - 0xE000, by omega⟩
+    simp only [Nat.reduceSub, List.mem_finRange, Nat.sub_add_cancel hn, forall_const] at h₂
+    exact h₂
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
@@ -59,15 +56,11 @@ theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
 
 theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
     ∃ c, p c = false := by
-  simp only [Char.all, Nat.all_eq_finRange_all, List.all_eq_false] at h
+  simp only [Char.all, Nat.all_eq_finRange_all, List.all_eq_false, Bool.and_eq_false_iff] at h
+  simp only [Bool.eq_false_iff]
   match h with
-  | ⟨⟨n, hn⟩, ⟨_, h⟩⟩ =>
-    simp only [Bool.eq_false_iff]
-    split at h
-    · refine ⟨ofNatAux n (.inl ?_), h⟩; assumption
-    · split at h
-      · refine ⟨ofNatAux n (.inr ⟨?_, hn⟩), h⟩; assumption
-      · simp at h
+  | .inl ⟨⟨n, hn⟩, _, h⟩ => exact ⟨Char.ofNatAux n (.inl hn), h⟩
+  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + 0xE000) (.inr (by grind)), h⟩
 
 theorem all_eq_true_iff_forall_eq_true : Char.all p = true ↔ ∀ c, p c = true := by
   constructor
@@ -80,39 +73,29 @@ theorem all_eq_true_iff_forall_eq_true : Char.all p = true ↔ ∀ c, p c = true
 
 /-- Returns `true` if `p` returns true for some `Char`. -/
 protected def any (p : Char → Bool) : Bool :=
-  -- 0x10FFFF (1114111) is the maximal valid code point.
-  Nat.any 0x110000 fun c h =>
-    -- Surrogate code points are from 0xD800 (55296) to 0xDFFF (57343).
-    if h₁ : c < 0xD800 then
-      p <| Char.ofNatAux c <| .inl h₁
-    else if h₂ : 0xDFFF < c then
-      p <| Char.ofNatAux c <| .inr ⟨h₂, h⟩
-    else
-      false
+  -- Recall that character code points range from 0 to 0x10FFFF, excluding the surrogate range from
+  -- 0xD800 to 0xDFFF.
+  -- (See [Unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+  Nat.any 0xD800 (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) ||
+  Nat.any (0x110000 - 0xE000) fun c h₂ => p <| Char.ofNatAux (c + 0xE000) <| .inr (by grind)
 
 theorem exists_eq_true_of_any_eq_true (h : Char.any p = true) : ∃ c, p c = true := by
-  simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_true] at h
+  simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_true, Bool.or_eq_true] at h
   match h with
-  | ⟨⟨n, hn⟩, ⟨_, h⟩⟩ =>
-    split at h
-    · refine ⟨ofNatAux n (.inl ?_), h⟩; assumption
-    · split at h
-      · refine ⟨ofNatAux n (.inr ⟨?_, hn⟩), h⟩; assumption
-      · simp at h
+  | .inl ⟨⟨n, hn⟩, _, h⟩ => exact ⟨Char.ofNatAux n (.inl hn), h⟩
+  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + 0xE000) (.inr (by grind)), h⟩
 
 private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.isValidChar) :
     p (.ofNatAux n hn) = false := by
-  simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_false] at h
+  simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_false, Bool.or_eq_false_iff] at h
   simp only [Nat.isValidChar] at hn
+  simp only [Bool.eq_false_iff]
   match hn with
-  | .inl hn =>
-    have hn' : n < 1114112 := by omega
-    have := h ⟨n, hn'⟩ (List.mem_finRange _)
-    rwa [← ne_eq, ← Bool.eq_false_iff, dif_pos hn] at this
+  | .inl hn => exact h.1 ⟨n, hn⟩ (List.mem_finRange _)
   | .inr ⟨hn, hn'⟩ =>
-    have hn'' : ¬ n < 55296 := by omega
-    have := h ⟨n, hn'⟩ (List.mem_finRange _)
-    rwa [← ne_eq, ← Bool.eq_false_iff, dif_neg hn'', dif_pos hn] at this
+    have h₂ := h.2 ⟨n - 0xE000, by omega⟩ (List.mem_finRange _)
+    simp only [Nat.sub_add_cancel hn] at h₂
+    exact h₂
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
   have : c.toNat.isValidChar := c.valid
