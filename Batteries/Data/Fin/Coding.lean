@@ -85,30 +85,16 @@ theorem decodeOrdering_encodeOrdering :
     (x : Ordering) → decodeOrdering (encodeOrdering x) = x
   | .eq | .lt | .gt => rfl
 
-/-- Encode `Char` into `Fin 1112064`.
-
-Valid character code points range from 0 to 1114111 (U+10FFFF) excluding the surrogate range from
-55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
-(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
--/
-def encodeChar (c : Char) : Fin 1112064 :=
-  have : c.toNat < 0x110000 :=
-    match c.valid with
-    | .inl h => Nat.lt_trans h (by decide)
-    | .inr h => h.right
+/-- Encode `Char` into `Fin Char.count`. -/
+def encodeChar (c : Char) : Fin Char.count :=
   if _ : c.toNat < 0xD800 then
     ⟨c.toNat, by grind⟩
   else
     ⟨c.toNat - (0xE000 - 0xD800), by grind⟩
 
-/-- Decode `Char` from `Fin 1112064`.
-
-Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the surrogate range from
-55296 (U+D800) to 57343 (U+DFFF). This results in 1112064 valid code points.
-(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
--/
-@[pp_nodot] def decodeChar (i : Fin 1112064) : Char :=
-  if h : i.val < 0xD800 then
+/-- Decode `Char` from `Fin Char.count`. -/
+@[pp_nodot] def decodeChar (i : Fin Char.count) : Char :=
+  if _ : i.val < 0xD800 then
     Char.ofNatAux i.val (by grind)
   else
     Char.ofNatAux (i.val + (0xE000 - 0xD800)) (by grind)
@@ -124,16 +110,9 @@ Valid character code points range from 0 to 1114112 (U+10FFFF) excluding the sur
   ext; simp only [decodeChar, encodeChar]
   split
   · simp only [Char.ofNatAux, Char.toNat]; rfl
-  · have h0 : 0xE000 ≤ x.toNat ∧ x.toNat < 0x110000 := by
-      match x.valid with
-      | .inl h => contradiction
-      | .inr h =>
-        constructor
-        · exact Nat.add_one_le_of_lt h.left
-        · exact h.right
-    have h1 : ¬ x.toNat - (0xE000 - 0xD800) < 0xD800 := by grind
-    have h2 : (0xE000 - 0xD800) ≤ x.toNat := by grind
-    simp only [dif_neg h1, Char.ofNatAux, Nat.sub_add_cancel h2]; rfl
+  · have : ¬ x.toNat - (0xE000 - 0xD800) < 0xD800 := by grind
+    have : (0xE000 - 0xD800) ≤ x.toNat := by grind
+    simp [Char.ofNatAux, *]; rfl
 
 /-- Encode `Option (Fin n)` into `Fin (n+1)`. -/
 def encodeOption : Option (Fin n) → Fin (n+1)

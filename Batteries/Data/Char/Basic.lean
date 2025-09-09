@@ -23,3 +23,38 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
   split
   · simp [ofNat, *]
   · simp [ofNat, toNat, *]
+
+/--
+Maximum character code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev max := 0x10FFFF
+
+/--
+Maximum surrogate code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev maxSurrogate := 0xDFFF
+
+/--
+Minimum surrogate code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev minSurrogate := 0xD800
+
+/--
+Number of valid character code points.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
+
+@[grind] theorem toNat_le_max (c : Char) : c.toNat ≤ Char.max := by
+  match c.valid with
+  | .inl h => simp only [toNat_val] at h; grind
+  | .inr ⟨_, h⟩ => simp only [toNat_val] at h; grind
+
+@[grind] theorem toNat_not_surrogate (c : Char) :
+    ¬(Char.minSurrogate ≤ c.toNat ∧ c.toNat ≤ Char.maxSurrogate) := by
+  match c.valid with
+  | .inl h => simp only [toNat_val] at h; grind
+  | .inr ⟨h, _⟩ => simp only [toNat_val] at h; grind
