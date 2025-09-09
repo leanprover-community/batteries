@@ -15,6 +15,9 @@ This module collects encoding/decoding bijections to represent basic type constr
 types as `Fin` types. These functions implement the isomorphism `Option (Fin n) ≃ Fin (n+1)`,
 `Fin m ⊕ Fin n ≃ Fin (m + n)`, `Fin m × Fin n ≃ Fin (m * n)`, ..., including, dependent sums,
 dependent products, decidable subtypes and decidable quotients.
+
+Only a minimal API is provided. These utility functions are intended for use in other constructions.
+Such constructions should avoid exposing these functions as they are not meant for public use.
 -/
 
 namespace Fin
@@ -30,12 +33,12 @@ def decodeEmpty : Fin 0 → Empty := (nomatch ·)
 @[simp] theorem decodeEmpty_encodeEmpty (x : Empty) : decodeEmpty (encodeEmpty x) = x := nomatch x
 
 /-- Encode `PUnit` into `Fin 1`. -/
-@[simp, nolint unusedArguments]
+@[nolint unusedArguments]
 def encodePUnit : PUnit → Fin 1
   | .unit => 0
 
 /-- Decode `PUnit` from `Fin 1`. -/
-@[simp, pp_nodot] def decodePUnit : Fin 1 → PUnit
+@[pp_nodot] def decodePUnit : Fin 1 → PUnit
   | 0 => .unit
 
 /-- Encode `Unit` into `Fin 1`. -/
@@ -44,44 +47,44 @@ abbrev encodeUnit : Unit → Fin 1 := encodePUnit
 /-- Decode `Unit` from `Fin 1`. -/
 @[pp_nodot] abbrev decodeUnit : Fin 1 → Unit := decodePUnit
 
-theorem encodePUnit_decodePUnit : (x : Fin 1) → encodePUnit (decodePUnit x) = x
+@[simp] theorem encodePUnit_decodePUnit : (x : Fin 1) → encodePUnit (decodePUnit x) = x
   | 0 => rfl
 
-theorem decodePUnit_encodePUnit : (x : PUnit) → decodePUnit (encodePUnit x) = x
+@[simp] theorem decodePUnit_encodePUnit : (x : PUnit) → decodePUnit (encodePUnit x) = x
   | .unit => rfl
 
 /-- Encode `Bool` into `Fin 2`. -/
-@[simp] def encodeBool : Bool → Fin 2
+def encodeBool : Bool → Fin 2
   | false => 0
   | true => 1
 
 /-- Decode `Bool` from `Fin 2`. -/
-@[simp, pp_nodot] def decodeBool : Fin 2 → Bool
+@[pp_nodot] def decodeBool : Fin 2 → Bool
   | 0 => false
   | 1 => true
 
-theorem encodeBool_decodeBool : (x : Fin 2) → encodeBool (decodeBool x) = x
+@[simp] theorem encodeBool_decodeBool : (x : Fin 2) → encodeBool (decodeBool x) = x
   | 0 | 1 => rfl
 
-theorem decodeBool_encodeBool : (x : Bool) → decodeBool (encodeBool x) = x
-  | false| true => rfl
+@[simp] theorem decodeBool_encodeBool : (x : Bool) → decodeBool (encodeBool x) = x
+  | false | true => rfl
 
 /-- Encode `Ordering` into `Fin 3`. -/
-@[simp] def encodeOrdering : Ordering → Fin 3
+def encodeOrdering : Ordering → Fin 3
   | .eq => 0
   | .lt => 1
   | .gt => 2
 
 /-- Decode `Ordering` from `Fin 3`. -/
-@[simp, pp_nodot] def decodeOrdering : Fin 3 → Ordering
+@[pp_nodot] def decodeOrdering : Fin 3 → Ordering
   | 0 => .eq
   | 1 => .lt
   | 2 => .gt
 
-theorem encodeOrdering_decodeOrdering : (x : Fin 3) → encodeOrdering (decodeOrdering x) = x
+@[simp] theorem encodeOrdering_decodeOrdering : (x : Fin 3) → encodeOrdering (decodeOrdering x) = x
   | 0 | 1 | 2 => rfl
 
-theorem decodeOrdering_encodeOrdering :
+@[simp] theorem decodeOrdering_encodeOrdering :
     (x : Ordering) → decodeOrdering (encodeOrdering x) = x
   | .eq | .lt | .gt => rfl
 
