@@ -101,4 +101,66 @@ partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ)
     else
       next? { m with state } stream
 
+namespace Matcher
+open Std.Iterators
+
+/-- Iterator transformer for KMP matcher. -/
+protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n α] where
+  /-- Inner iterator. -/
+  inner : IterM (α := σ) n α
+  /-- Matcher state. -/
+  state : Fin (m.table.size + 1) := 0
+
+private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
+    (it : IterM (α := m.Iterator σ n α) n σ) :
+    it.internalState.inner.Step (α := σ) → IterStep (IterM (α := m.Iterator σ n α) n σ) σ
+  | .done _ => .done
+  | .skip it' _ => .skip ⟨{it.internalState with inner := it'}⟩
+  | .yield it' x _ =>
+    let state := m.table.step x m.state
+    if state = m.table.size then
+      .yield ⟨{inner := it', state := state}⟩ it'.internalState
+    else
+      .skip ⟨{inner := it', state := state}⟩
+
+instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] :
+    Iterator (m.Iterator σ n α) n σ where
+  IsPlausibleStep it step := ∃ step', m.modifyStep it step' = step
+  step it := it.internalState.inner.step >>= fun step => pure ⟨m.modifyStep _ _, step, rfl⟩
+
+private def finitenessRelation [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [Finite σ n] :
+    FinitenessRelation (m.Iterator σ n α) n where
+  rel := InvImage IterM.IsPlausibleSuccessorOf fun it => it.internalState.inner
+  wf := InvImage.wf _ Finite.wf
+  subrelation {it it'} h := by
+    obtain ⟨_, hsucc, step, rfl⟩ := h
+    simp only [IterM.Step] at step
+    cases step with simp only [IterStep.successor, modifyStep, reduceCtorEq] at hsucc
+    | skip =>
+      cases hsucc
+      apply IterM.isPlausibleSuccessorOf_of_skip
+      assumption
+    | yield =>
+      split at hsucc
+      · next heq =>
+        cases hsucc
+        split at heq
+        · cases heq
+          apply IterM.isPlausibleSuccessorOf_of_yield
+          assumption
+        · contradiction
+      · next heq =>
+        cases hsucc
+        split at heq
+        · contradiction
+        · cases heq
+          apply IterM.isPlausibleSuccessorOf_of_yield
+          assumption
+      · contradiction
+
+instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [inst : Finite σ n] :
+    Finite (m.Iterator σ n α) n (β := σ) := .of_finitenessRelation m.finitenessRelation
+
+end Matcher
+
 end Array
