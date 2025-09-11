@@ -22,8 +22,8 @@ instance : Std.LawfulLTOrd String :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     String.lt_irrefl String.lt_trans String.lt_antisymm
 
-@[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length :=
-  List.length_asString _
+theorem mk_length (s : List Char) : (String.mk s).length = s.length := by
+  simp
 
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
@@ -88,7 +88,7 @@ end
   apply Pos.ext
   simp [String.endPos, ← String.mk_eq_asString, utf8ByteSize_mk]
 
-@[simp] theorem endPos_mk (cs : List Char) : endPos (mk cs) = ⟨utf8Len cs⟩ := by
+theorem endPos_mk (cs : List Char) : endPos (mk cs) = ⟨utf8Len cs⟩ := by
   simp
 
 @[simp]
@@ -107,21 +107,25 @@ private theorem zero_ne_addChar {i : Pos} {c : Char} : 0 ≠ i + c :=
 
 /-- A string position is valid if it is equal to the UTF-8 length of an initial substring of `s`. -/
 inductive Valid : String → Pos → Prop where
-  /-- A string position is valid if it is equal to the UTF-8 length of an initial substring of `s`. -/
+  /--
+  A string position is valid if it is equal to the UTF-8 length of an initial substring of `s`.
+  -/
   | mk (cs cs' : List Char) {p} (hp : p.1 = utf8Len cs) : Valid (String.mk (cs ++ cs')) p
 
-theorem Valid.intro {s : String} {p : Pos} (h : ∃ cs cs', cs ++ cs' = s.data ∧ p.1 = utf8Len cs) : Valid s p := by
+theorem Valid.intro {s : String} {p : Pos} (h : ∃ cs cs', cs ++ cs' = s.data ∧ p.1 = utf8Len cs) :
+    Valid s p := by
   obtain ⟨cs, cs', h₁, h₂⟩ := h
   rw [← String.asString_data (b := s), ← h₁]
   exact .mk cs cs' h₂
 
-theorem Valid.exists : {s : String} → {p : Pos} → Valid s p → ∃ cs cs', String.mk (cs ++ cs') = s ∧ p = ⟨utf8Len cs⟩
+theorem Valid.exists : {s : String} → {p : Pos} → Valid s p →
+    ∃ cs cs', String.mk (cs ++ cs') = s ∧ p = ⟨utf8Len cs⟩
   | _, _, .mk cs cs' rfl => ⟨cs, cs', rfl, rfl⟩
-
 
 @[simp] theorem valid_zero : Valid s 0 := .intro ⟨[], s.data, rfl, rfl⟩
 
-@[simp] theorem valid_endPos : Valid s (endPos s) := .intro ⟨s.data, [], by simp, by simp [endPos]⟩
+@[simp] theorem valid_endPos : Valid s (endPos s) :=
+  .intro ⟨s.data, [], by simp, by simp [endPos]⟩
 
 theorem Valid.le_endPos : ∀ {s p}, Valid s p → p ≤ endPos s
   | _, ⟨_⟩, .mk cs cs' rfl => by simp [endPos, le_iff, -String.mk_eq_asString, utf8ByteSize_mk]
@@ -177,7 +181,8 @@ theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len c
     refine utf8GetAux_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
-theorem get_of_valid (cs cs' : List Char) : get (mk (cs ++ cs')) ⟨utf8Len cs⟩ = cs'.headD default := by
+theorem get_of_valid (cs cs' : List Char) :
+    get (mk (cs ++ cs')) ⟨utf8Len cs⟩ = cs'.headD default := by
   rw [get, String.mk_eq_asString, List.data_asString]
   exact utf8GetAux_of_valid _ _ (Nat.zero_add _)
 
@@ -197,7 +202,8 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
-theorem get?_of_valid (cs cs' : List Char) : get? (cs ++ cs').asString ⟨utf8Len cs⟩ = cs'.head? := by
+theorem get?_of_valid (cs cs' : List Char) :
+    get? (cs ++ cs').asString ⟨utf8Len cs⟩ = cs'.head? := by
   rw [get?, List.data_asString]
   exact utf8GetAux?_of_valid _ _ (Nat.zero_add _)
 
@@ -216,7 +222,8 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
 theorem set_of_valid (cs cs' : List Char) (c' : Char) :
     set (mk (cs ++ cs')) ⟨utf8Len cs⟩ c' = (cs ++ cs'.modifyHead fun _ => c').asString := by
   ext
-  rw [set, List.data_asString, List.data_asString, String.mk_eq_asString, List.data_asString, utf8SetAux_of_valid _ _ _]
+  rw [set, List.data_asString, List.data_asString, String.mk_eq_asString, List.data_asString,
+    utf8SetAux_of_valid _ _ _]
   exact Nat.zero_add _
 
 theorem modify_of_valid (cs cs' : List Char) :
@@ -353,7 +360,8 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     split
     · simp only [utf8Len_cons]
       subst b
-      rw [show next (mk (l₁ ++ a :: r₁)) ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by simp [hl₁, -String.mk_eq_asString, next_of_valid]]
+      rw [show next (mk (l₁ ++ a :: r₁)) ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by
+        simp [hl₁, -String.mk_eq_asString, next_of_valid]]
       simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
         firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
           (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
@@ -369,7 +377,8 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
 theorem firstDiffPos_eq (a b : String) :
     firstDiffPos a b = ⟨utf8Len (List.takeWhile₂ (· = ·) a.data b.data).1⟩ := by
   simpa [firstDiffPos] using
-    firstDiffPos_loop_eq [] [] a.data b.data ((utf8Len a.data).min (utf8Len b.data)) 0 rfl rfl (by simp)
+    firstDiffPos_loop_eq [] [] a.data b.data
+      ((utf8Len a.data).min (utf8Len b.data)) 0 rfl rfl (by simp)
 
 theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
     go₂ s ⟨i + n⟩ ⟨e + n⟩ = go₂ s ⟨i⟩ ⟨e⟩ := by
@@ -441,7 +450,9 @@ theorem extract_of_valid (l m r : List Char) :
   simp only [extract]
   split
   · next h => rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| Nat.add_le_add_iff_left.1 h]
-  · congr; rw [List.append_assoc, String.mk_eq_asString, List.data_asString, extract.go₁_append_right _ _ _ _ _ (by rfl)]
+  · congr
+    rw [List.append_assoc, String.mk_eq_asString, List.data_asString,
+      extract.go₁_append_right _ _ _ _ _ (by rfl)]
     apply extract.go₂_append_left; apply Nat.add_comm
 
 theorem splitAux_of_valid (p l m r acc) :
@@ -461,7 +472,8 @@ theorem splitAux_of_valid (p l m r acc) :
           _ ∧ _ ∧ _),
       List.splitOnP.go, List.reverse_reverse]
     split <;> rename_i h
-    · simpa [-String.mk_eq_asString, Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r ((mk m)::acc)
+    · simpa [-String.mk_eq_asString, Nat.add_assoc]
+        using splitAux_of_valid p (l++m++[c]) [] r ((mk m)::acc)
     · simpa [-String.mk_eq_asString, Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
 theorem split_of_valid (s p) : split s p = (List.splitOnP p s.data).map mk := by
@@ -513,7 +525,8 @@ theorem valid : ∀ {it}, ValidFor l r it → Valid it
 theorem out : ∀ {it}, ValidFor l r it → it = ⟨String.mk (l.reverseAux r), ⟨utf8Len l⟩⟩
   | _, ⟨⟩ => rfl
 
-theorem out' : ∀ {it}, ValidFor l r it → it = ⟨String.mk (l.reverse ++ r), ⟨utf8Len l.reverse⟩⟩
+theorem out' :
+    ∀ {it}, ValidFor l r it → it = ⟨String.mk (l.reverse ++ r), ⟨utf8Len l.reverse⟩⟩
   | _, ⟨⟩ => by simp [List.reverseAux_eq]
 
 theorem mk' : ValidFor l r ⟨String.mk (l.reverse ++ r), ⟨utf8Len l.reverse⟩⟩ := by
@@ -528,7 +541,8 @@ theorem _root_.String.validFor_mkIterator (s) : (mkIterator s).ValidFor [] s.dat
   .of_eq _ (by simp [mkIterator]) (by simp [mkIterator])
 
 theorem remainingBytes : ∀ {it}, ValidFor l r it → it.remainingBytes = utf8Len r
-  | _, ⟨⟩ => by simp [-String.mk_eq_asString, Iterator.remainingBytes, Nat.add_sub_cancel_left]
+  | _, ⟨⟩ => by simp [-String.mk_eq_asString, Iterator.remainingBytes, Nat.add_sub_cancel_left,
+    endPos_mk]
 
 theorem toString : ∀ {it}, ValidFor l r it → it.1 = String.mk (l.reverseAux r)
   | _, ⟨⟩ => rfl
@@ -597,10 +611,11 @@ theorem toEnd (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := b
 
 theorem toEnd' (it : Iterator) : ValidFor it.s.data.reverse [] it.toEnd := by
   simp only [Iterator.toEnd]
-  exact .of_eq _ (by simp [List.reverseAux_eq]) (by simp [-size_bytes, -String.mk_eq_asString, endPos, utf8ByteSize])
+  exact .of_eq _ (by simp [List.reverseAux_eq])
+    (by simp [-size_bytes, -String.mk_eq_asString, endPos, utf8ByteSize])
 
-theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse ++ l) r it₂) :
-    it₁.extract it₂ = String.mk m := by
+theorem extract (h₁ : ValidFor l (m ++ r) it₁)
+    (h₂ : ValidFor (m.reverse ++ l) r it₂) : it₁.extract it₂ = String.mk m := by
   cases h₁.out; cases h₂.out
   simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
     List.append_assoc, ne_eq, not_true_eq_false, decide_false, utf8Len_append, utf8Len_reverse,
@@ -608,9 +623,11 @@ theorem extract (h₁ : ValidFor l (m ++ r) it₁) (h₂ : ValidFor (m.reverse +
     ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r
 
-theorem remainingToString {it} (h : ValidFor l r it) : it.remainingToString = String.mk r := by
+theorem remainingToString {it} (h : ValidFor l r it) :
+    it.remainingToString = String.mk r := by
   cases h.out
-  simpa [-String.mk_eq_asString, Iterator.remainingToString, List.reverseAux_eq] using extract_of_valid l.reverse r []
+  simpa [-String.mk_eq_asString, endPos_mk, Iterator.remainingToString, List.reverseAux_eq]
+    using extract_of_valid l.reverse r []
 
 theorem nextn : ∀ {it}, ValidFor l r it →
       ∀ n, n ≤ r.length → ValidFor ((r.take n).reverse ++ l) (r.drop n) (it.nextn n)
@@ -639,7 +656,9 @@ theorem validFor : ∀ {it}, Valid it → ∃ l r, ValidFor l r it
 theorem _root_.String.valid_mkIterator (s) : (mkIterator s).Valid := s.validFor_mkIterator.valid
 
 theorem remainingBytes_le : ∀ {it}, Valid it → it.remainingBytes ≤ utf8ByteSize it.s
-  | _, h => let ⟨l, r, h⟩ := h.validFor; by simp [-String.mk_eq_asString, utf8ByteSize_mk, h.remainingBytes, h.toString, Nat.le_add_left]
+  | _, h =>
+    let ⟨l, r, h⟩ := h.validFor
+    by simp [-String.mk_eq_asString, utf8ByteSize_mk, h.remainingBytes, h.toString, Nat.le_add_left]
 
 theorem next : ∀ {it}, Valid it → it.hasNext → Valid it.next
   | _, h, hn => by
@@ -660,9 +679,11 @@ theorem setCurr : ∀ {it}, Valid it → Valid (it.setCurr c)
 
 theorem toEnd (it : String.Iterator) : Valid it.toEnd := (ValidFor.toEnd' _).valid
 
-theorem remainingToString {it} (h : ValidFor l r it) : it.remainingToString = String.mk r := by
+theorem remainingToString {it} (h : ValidFor l r it) :
+    it.remainingToString = String.mk r := by
   cases h.out
-  simpa [-String.mk_eq_asString, Iterator.remainingToString, List.reverseAux_eq] using extract_of_valid l.reverse r []
+  simpa [-String.mk_eq_asString, endPos_mk, Iterator.remainingToString, List.reverseAux_eq]
+    using extract_of_valid l.reverse r []
 
 theorem prevn (h : Valid it) : ∀ n, Valid (it.prevn n)
   | 0 => h
@@ -741,13 +762,15 @@ theorem contains_iff (s : String) (c : Char) : contains s c ↔ c ∈ s.data := 
   simp [contains, any_iff]
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
-theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ (mk (l ++ r)) = mk (l ++ r.map f)
+theorem mapAux_of_valid (f : Char → Char) :
+    ∀ l r, mapAux f ⟨utf8Len l⟩ (mk (l ++ r)) = mk (l ++ r.map f)
   | l, [] => by unfold mapAux; simp
   | l, c::r => by
     unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
-    simp only [← String.String.mk_eq_asString, get_of_valid l (c :: r), Char.reduceDefault, List.headD_cons,
-      set_of_valid l (c :: r), List.modifyHead_cons, next_of_valid l (f c) r, List.map_cons]
+    simp only [← String.String.mk_eq_asString, get_of_valid l (c :: r), Char.reduceDefault,
+      List.headD_cons, set_of_valid l (c :: r), List.modifyHead_cons, next_of_valid l (f c) r,
+      List.map_cons]
     simpa using mapAux_of_valid f (l++[f c]) r
 
 theorem map_eq (f : Char → Char) (s) : map f s = mk (s.data.map f) := by
@@ -776,7 +799,8 @@ theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
 
 @[simp]
 theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
-  simp only [map_eq, ← data_eq_nil_iff, String.mk_eq_asString, List.data_asString, List.map_eq_nil_iff]
+  simp only [map_eq, ← data_eq_nil_iff, String.mk_eq_asString, List.data_asString,
+    List.map_eq_nil_iff]
 
 @[simp]
 theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
@@ -911,7 +935,8 @@ theorem prevn : ∀ {s}, ValidFor l (m₁.reverse ++ m₂) r s →
 theorem front : ∀ {s}, ValidFor l (c :: m) r s → s.front = c
   | _, h => h.get (m₁ := [])
 
-theorem drop : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor (l ++ m.take n) (m.drop n) r (s.drop n)
+theorem drop :
+    ∀ {s}, ValidFor l m r s → ∀ n, ValidFor (l ++ m.take n) (m.drop n) r (s.drop n)
   | s, h, n => by
     have : Substring.nextn {..} .. = _ := h.nextn (m₁ := []) n
     simp only [utf8Len_nil, Pos.mk_zero, Nat.zero_add] at this
@@ -938,7 +963,8 @@ theorem take : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor l (m.take n) (m.dro
 theorem atEnd : ∀ {s}, ValidFor l m r s → (s.atEnd ⟨p⟩ ↔ p = utf8Len m)
   | _, ⟨⟩ => by simp [Substring.atEnd, Pos.ext_iff, Nat.add_left_cancel_iff]
 
-theorem extract' : ∀ {s}, ValidFor l (ml ++ mm ++ mr) r s → ValidFor ml mm mr ⟨String.mk (ml ++ mm ++ mr), b, e⟩ →
+theorem extract' : ∀ {s}, ValidFor l (ml ++ mm ++ mr) r s →
+    ValidFor ml mm mr ⟨String.mk (ml ++ mm ++ mr), b, e⟩ →
     ∃ l' r', ValidFor l' mm r' (s.extract b e)
   | _, ⟨⟩, ⟨⟩ => by
     simp only [Substring.extract, ge_iff_le, Pos.mk_le_mk, List.append_assoc, utf8Len_append]
@@ -953,8 +979,8 @@ theorem extract' : ∀ {s}, ValidFor l (ml ++ mm ++ mr) r s → ValidFor ml mm m
           <;> try simp [Nat.add_le_add_iff_left, Nat.le_add_right]
       rw [Nat.add_assoc]
 
-theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨String.mk m, b, e⟩ →
-    ∃ l' r', ValidFor l' mm r' (s.extract b e) := by
+theorem extract : ∀ {s}, ValidFor l m r s →
+    ValidFor ml mm mr ⟨String.mk m, b, e⟩ → ∃ l' r', ValidFor l' mm r' (s.extract b e) := by
   intro s h₁ h₂
   obtain rfl : m = ml ++ mm ++ mr := by simpa using congrArg String.data h₂.str
   exact extract' h₁ h₂
@@ -962,10 +988,12 @@ theorem extract : ∀ {s}, ValidFor l m r s → ValidFor ml mm mr ⟨String.mk m
 -- TODO: splitOn
 
 theorem foldl (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldl f init = m.foldl f init
-  | _, ⟨⟩ => by simp [-String.mk_eq_asString, -List.append_assoc, Substring.foldl, foldlAux_of_valid]
+  | _, ⟨⟩ => by simp [-String.mk_eq_asString, -List.append_assoc, Substring.foldl,
+    foldlAux_of_valid]
 
 theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldr f init = m.foldr f init
-  | _, ⟨⟩ => by simp [-String.mk_eq_asString, -List.append_assoc, Substring.foldr, foldrAux_of_valid]
+  | _, ⟨⟩ => by simp [-String.mk_eq_asString, -List.append_assoc, Substring.foldr,
+    foldrAux_of_valid]
 
 theorem any (f) : ∀ {s}, ValidFor l m r s → s.any f = m.any f
   | _, ⟨⟩ => by simp [-String.mk_eq_asString, -List.append_assoc, Substring.any, anyAux_of_valid]
@@ -1013,7 +1041,8 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
     | _, _, ⟨m, rfl, rfl⟩ => exact ⟨l, m, r, by simpa using ValidFor.mk⟩
 
 theorem valid : ∀ {s}, ValidFor l m r s → Valid s
-  | _, ⟨⟩ => ⟨.intro ⟨l, m ++ r, by simp, by simp⟩, .intro ⟨l ++ m, r, by simp, by simp⟩, Nat.le_add_right ..⟩
+  | _, ⟨⟩ => ⟨.intro ⟨l, m ++ r, by simp, by simp⟩,
+    .intro ⟨l ++ m, r, by simp, by simp⟩, Nat.le_add_right ..⟩
 
 theorem _root_.String.valid_toSubstring (s : String) : Valid s :=
   s.validFor_toSubstring.valid
@@ -1077,7 +1106,8 @@ theorem data_take : ∀ {s}, Valid s → ∀ n, (s.take n).toString.data = s.toS
 -- TODO: takeRight, dropRight
 
 theorem atEnd : ∀ {s}, Valid s → (s.atEnd ⟨p⟩ ↔ p = utf8ByteSize s.toString)
-  | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [-String.String.mk_eq_asString, utf8ByteSize_mk, h.atEnd, h.toString]
+  | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [-String.String.mk_eq_asString, utf8ByteSize_mk,
+    h.atEnd, h.toString]
 
 theorem extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ → Valid (s.extract b e)
   | _, h₁, h₂ => by
@@ -1135,14 +1165,16 @@ namespace String
 theorem drop_eq (s : String) (n : Nat) : s.drop n = mk (s.data.drop n) :=
   (s.validFor_toSubstring.drop n).toString
 
-@[simp] theorem data_drop (s : String) (n : Nat) : (s.drop n).data = s.data.drop n := by simp [drop_eq]
+@[simp] theorem data_drop (s : String) (n : Nat) : (s.drop n).data = s.data.drop n := by
+  simp [drop_eq]
 
 @[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by simp [drop_eq, List.drop_nil]
 
 theorem take_eq (s : String) (n : Nat) : s.take n = mk (s.data.take n) :=
   (s.validFor_toSubstring.take n).toString
 
-@[simp] theorem data_take (s : String) (n : Nat) : (s.take n).data = s.data.take n := by simp [take_eq]
+@[simp] theorem data_take (s : String) (n : Nat) : (s.take n).data = s.data.take n := by
+  simp [take_eq]
 
 theorem takeWhile_eq (p : Char → Bool) (s : String) : s.takeWhile p = mk (s.data.takeWhile p) :=
   (s.validFor_toSubstring.takeWhile p).toString
