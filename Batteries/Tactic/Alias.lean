@@ -113,7 +113,13 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addAndCompile decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
-    addDocString' declName declMods.docString?
+    /-
+    #adaptation_note nightly-2025-09-11
+    After https://github.com/leanprover/lean4/pull/10307, the API for `addDocString'` changed.
+    The fixes here (passing `.missing`, and dropping the `Bool` part of `.docString?`)
+    are pure guesswork.
+    -/
+    addDocString' declName .missing (declMods.docString?.map (·.1))
     enableRealizationsForConst declName
     Term.applyAttributes declName declMods.attrs
     let info := (← getAliasInfo name).getD <| AliasInfo.plain name
@@ -149,7 +155,13 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     value := value
     type := type
   }
-  addDocString' declName declMods.docString?
+  /-
+  #adaptation_note nightly-2025-09-11
+  After https://github.com/leanprover/lean4/pull/10307, the API for `addDocString'` changed.
+  The fixes here (passing `.missing`, and dropping the `Bool` part of `.docString?`)
+  are pure guesswork.
+  -/
+  addDocString' declName .missing (declMods.docString?.map (·.1))
   Term.applyAttributes declName declMods.attrs
   let info := match ← getAliasInfo thm.name with
     | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
