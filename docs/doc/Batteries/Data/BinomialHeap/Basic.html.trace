@@ -1,0 +1,18 @@
+{"synthetic": false,
+ "outputs": null,
+ "log":
+ [{"message":
+   ".> ELAN=elan ELAN_HOME=/home/runner/.elan ELAN_TOOLCHAIN=leanprover/lean4:v4.23.0-rc2 LAKE=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/lake LAKE_HOME=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2 LAKE_PKG_URL_MAP={} LAKE_NO_CACHE=false LAKE_ARTIFACT_CACHE=false LAKE_CACHE_DIR=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/lake/cache LEAN=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/lean LEAN_GITHASH=ad1a017949674a947f0d6794cbf7130d642c6530 LEAN_SYSROOT=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2 LEAN_AR=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/llvm-ar LEAN_CC= LEAN_PATH=/home/runner/work/batteries/batteries/.lake/packages/MD4Lean/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/Cli/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/build/lib/lean:/home/runner/work/batteries/batteries/docs/lib/lean:/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/lib/lean LEAN_SRC_PATH=/home/runner/work/batteries/batteries/.lake/packages/MD4Lean:/home/runner/work/batteries/batteries/.lake/packages/MD4Lean:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic:/home/runner/work/batteries/batteries/.lake/packages/Cli:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4:/home/runner/work/batteries/batteries:/home/runner/work/batteries/batteries:/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/src/lean/lake PATH LD_LIBRARY_PATH=/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/lib/lean:/home/runner/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/lib:/home/runner/work/batteries/batteries/docs/lib:/home/runner/work/batteries/batteries/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/Cli/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/MD4Lean/.lake/build/lib /home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/bin/doc-gen4 single --build /home/runner/work/batteries/batteries/docs Batteries.Data.BinomialHeap.Basic https://github.com/leanprover-community/batteries/blob/a9a0cb7672b7134497c9d813e53999c9311f4037/Batteries/Data/BinomialHeap/Basic.lean",
+   "level": "trace"}],
+ "inputs":
+ [["<collection>",
+   [["/home/runner/work/batteries/batteries/docs/doc/Batteries/Classes/Order.html",
+     "3499817117656686581"],
+    ["/home/runner/work/batteries/batteries/docs/doc/Batteries/Control/ForInStep/Basic.html",
+     "2296771068391673074"]]],
+  ["/home/runner/work/batteries/batteries/docs/doc-data/references.json",
+   "11893762902049086281"],
+  ["/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/bin/doc-gen4",
+   "17342296377366482212"],
+  ["Batteries.Data.BinomialHeap.Basic:leanArts", "17221363705720612323"]],
+ "depHash": "17340238499929512455"}

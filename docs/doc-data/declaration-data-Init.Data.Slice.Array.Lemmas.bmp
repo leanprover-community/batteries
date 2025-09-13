@@ -1,0 +1,1 @@
+{"name":"Init.Data.Slice.Array.Lemmas","instances":[],"imports":["Init.Data.Array.Subarray","Init.Data.Slice.Array.Basic","Init.Data.Slice.Array.Iterator","Init.Data.Slice.Operations","Init.Data.Range.Polymorphic.Iterators","Init.Data.Range.Polymorphic.Lemmas","Init.Data.Slice.Lemmas","Init.Data.Iterators.Lemmas"],"declarations":[]}

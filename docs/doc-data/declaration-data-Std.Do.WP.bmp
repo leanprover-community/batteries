@@ -1,0 +1,1 @@
+{"name":"Std.Do.WP","instances":[],"imports":["Std.Do.WP.Basic","Std.Do.WP.Monad","Std.Do.WP.IO","Std.Do.WP.SimpLemmas"],"declarations":[]}

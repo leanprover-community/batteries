@@ -1,0 +1,1 @@
+{"name":"Std.Do.SPred","instances":[],"imports":["Std.Do.SPred.SVal","Std.Do.SPred.SPred","Std.Do.SPred.Notation","Std.Do.SPred.Laws","Std.Do.SPred.DerivedLaws"],"declarations":[]}
