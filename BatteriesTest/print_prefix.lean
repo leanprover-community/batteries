@@ -110,6 +110,7 @@ TestStruct.foo
 TestStruct.mk
 TestStruct.mk.inj
 TestStruct.mk.injEq
+TestStruct.mk.noConfusion
 TestStruct.mk.sizeOf_spec
 TestStruct.noConfusion
 TestStruct.noConfusionType
