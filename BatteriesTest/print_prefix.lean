@@ -58,6 +58,8 @@ TestStruct.mk.inj {foo bar foo✝ bar✝ : Int} :
   { foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ } → foo = foo✝ ∧ bar = bar✝
 TestStruct.mk.injEq (foo bar foo✝ bar✝ : Int) :
   ({ foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ }) = (foo = foo✝ ∧ bar = bar✝)
+TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
+  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
@@ -77,6 +79,8 @@ TestStruct.casesOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
 TestStruct.ctorIdx : TestStruct → Nat
 TestStruct.foo (self : TestStruct) : Int
 TestStruct.mk (foo bar : Int) : TestStruct
+TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
+  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
 TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
