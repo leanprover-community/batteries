@@ -87,7 +87,7 @@ theorem dfoldlM_loop [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α 
     rw [dfoldlM_loop_lt _ h' _, dfoldlM_loop]; rfl
   else
     cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
-    rw [dfoldlM_loop_lt]
+    rw [dfoldlM_loop_lt _ h]
     congr; funext
     rw [dfoldlM_loop_eq, dfoldlM_loop_eq]
 
