@@ -155,13 +155,8 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     value := value
     type := type
   }
-  /-
-  #adaptation_note nightly-2025-09-11
-  After https://github.com/leanprover/lean4/pull/10307, the API for `addDocString'` changed.
-  The fixes here (passing `.missing`, and dropping the `Bool` part of `.docString?`)
-  are pure guesswork.
-  -/
-  addDocString' declName .missing (declMods.docString?.map (·.1))
+  if let some (doc, isVerso) := declMods.docString? then
+    addDocStringOf isVerso declName (mkNullNode #[]) doc
   Term.applyAttributes declName declMods.attrs
   let info := match ← getAliasInfo thm.name with
     | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
