@@ -286,7 +286,7 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
         { s with parent := self.rootD x } := by
   rw [show self.rootD _ = (self.findAux ⟨_, self.parent'_lt x x.2⟩).root from _]
   · rw [findAux]; split <;> rfl
-  · rw [← rootD_parent, parent, parentD_eq]
+  · rw [← rootD_parent, parent, parentD_eq (Fin.is_lt _)]
     simp only [rootD, findAux_root]
     apply dif_pos
 
@@ -497,7 +497,7 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
       · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
     · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
   rankD_lt := by
-    rw [parent, parentD_eq] at yroot
+    rw [parent, parentD_eq (Fin.is_lt _)] at yroot
     simp only [linkAux, ne_eq]
     split <;> [skip; split <;> [skip; split]]
     · exact self.rankD_lt
