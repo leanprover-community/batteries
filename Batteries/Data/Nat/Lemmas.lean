@@ -159,9 +159,8 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
-
-@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+@[deprecated (since := "2025-07-31")]
+alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 

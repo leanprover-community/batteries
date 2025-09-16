@@ -44,7 +44,7 @@ lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
+documentation you need to run an HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
@@ -53,20 +53,21 @@ documentation][mathlib4 docs].
 
 # Contributing
 
+The first step to contribute is to create a fork of Batteries.
+Then add your contributions to a branch of your fork and make a PR to Batteries.
+Do not make your changes to the main branch of your fork, that may lead to complications on your end.
+
 Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
 or `WIP` (in progress).
 To change the status label of a pull request, add a comment containing one of these options and
 _nothing else_.
 This will remove the previous label and replace it by the requested status label.
+These labels are used for triage.
 
 One of the easiest ways to contribute is to find a missing proof and complete it. The
 [`proof_wanted`](https://github.com/search?q=repo%3Aleanprover-community%2Fbatteries+language%3ALean+%2F^proof_wanted%2F&type=code)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
-
-In contrast to Mathlib, Batteries uses pull requests from forks of this repository. Hence, no special permissions on this repository are required for new contributors.
-
-You can change the labels on PRs by commenting one of `awaiting-review`, `awaiting-author`, or `WIP`. This is helpful for triage.
 
 ### Mathlib Adaptations
 

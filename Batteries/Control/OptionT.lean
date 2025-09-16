@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
 
-import Batteries.Control.Lemmas
+import Batteries.Control.LawfulMonadState
 
 /-!
 # Lemmas About Option Monad Transformer
@@ -48,7 +48,7 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
     (bind_assoc := by
       refine fun _ _ _ => OptionT.ext ?_
       simp only [run_bind, Option.elimM, bind_assoc]
-      refine bind_congr fun | some x => by simp [Option.elimM] | none => by simp [Option.elimM])
+      refine bind_congr fun | some x => by simp [Option.elimM] | none => by simp)
     (pure_bind := by intros; apply OptionT.ext; simp)
 
 @[simp] theorem run_failure [Monad m] : (failure : OptionT m α).run = pure none := rfl
@@ -73,5 +73,14 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
 
 @[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
     (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := rfl
+
+instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
+    LawfulMonadStateOf σ (OptionT m) where
+  modifyGet_eq f := by simp [← liftM_modifyGet, ← liftM_get, LawfulMonadStateOf.modifyGet_eq]
+  get_bind_const mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_get_bind mx := OptionT.ext (by simp [← liftM_get])
+  get_bind_set_bind mx := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_get s := OptionT.ext (by simp [← liftM_get, ← liftM_set])
+  set_bind_set s s' := OptionT.ext (by simp [← liftM_set])
 
 end OptionT
