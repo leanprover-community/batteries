@@ -49,8 +49,8 @@ syntax withPosition("#help " colGt &"option" (colGt ppSpace Parser.rawIdent)?) :
 
 private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
-  for (name, decl) in show Lean.RBMap .. from ← getOptionDecls do
+  let mut decls : Std.TreeMap _ _ compare := {}
+  for (name, decl) in show NameMap OptionDecl from ← getOptionDecls do
     let name := name.toString false
     if let some id := id then
       if !id.isPrefixOf name then
@@ -96,7 +96,7 @@ syntax withPosition("#help " colGt (&"attr" <|> &"attribute")
 
 private def elabHelpAttr (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
   /-
   #adaptation_note
   On nightly-2024-06-21, added the `.toList` here:
@@ -179,7 +179,7 @@ syntax withPosition("#help " colGt &"cats" (colGt ppSpace Parser.rawIdent)?) : c
 
 private def elabHelpCats (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
   for (name, cat) in (Parser.parserExtension.getState (← getEnv)).categories do
     let name := name.toString false
     if let some id := id then
@@ -221,8 +221,8 @@ syntax withPosition("#help " colGt &"cat" "+"? colGt ident
 
 private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option String) :
     CommandElabM Unit := do
-  let mut decls : Lean.RBMap _ _ compare := {}
-  let mut rest : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
+  let mut rest : Std.TreeMap _ _ compare := {}
   let catName := catStx.getId.eraseMacroScopes
   let some cat := (Parser.parserExtension.getState (← getEnv)).categories.find? catName
     | throwErrorAt catStx "{catStx} is not a syntax category"
@@ -236,7 +236,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
         if !id.isPrefixOf tk then
           continue
       used := true
-      decls := decls.insert tk ((decls.findD tk #[]).push k)
+      decls := decls.insert tk ((decls.getD tk #[]).push k)
     if !used && id.isNone then
       rest := rest.insert (k.toString false) k
   let mut msg := MessageData.nil

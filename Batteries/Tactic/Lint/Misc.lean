@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
 import Lean.Util.CollectLevelParams
 import Lean.Util.ForEachExpr
-import Lean.Meta.ForEachExpr
 import Lean.Meta.GlobalInstances
 import Lean.Meta.Check
 import Lean.Util.Recognizers
@@ -67,6 +66,10 @@ We skip all declarations that contain `sorry` in their value. -/
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none -- FIXME: scoped/local instances should also not be linted
+    if let .str p _ := declName then
+      if isGlobalInstance (← getEnv) p then
+        -- auxillary functions for instances should not be linted
+        return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
