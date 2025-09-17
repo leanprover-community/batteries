@@ -53,6 +53,8 @@ private def takeNameSuffix (cnt : Nat) (name : Name) (pre : Name := .anonymous) 
 private def matchName (opts : PrintPrefixConfig)
                       (pre : Name) (cinfo : ConstantInfo) : MetaM Bool := do
   let name := cinfo.name
+  unless (← hasConst name) do  -- some compiler decls are not known to the elab env, ignore them
+    return false
   let preCnt := pre.getNumParts
   let nameCnt := name.getNumParts
   if preCnt > nameCnt then return false

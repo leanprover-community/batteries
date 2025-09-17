@@ -3,8 +3,6 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Data.List.Init.Lemmas
-import Batteries.Tactic.Alias
 
 namespace List
 
@@ -31,15 +29,6 @@ open Option Nat
 @[inline] def next? : List α → Option (α × List α)
   | [] => none
   | a :: l => some (a, l)
-
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
 
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
@@ -148,9 +137,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -158,8 +144,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -453,7 +437,7 @@ where
 
 theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L = []
   | l :: L, h => by
-    simp only [any, foldr, Bool.or_eq_true] at h
+    simp only [any, Bool.or_eq_true] at h
     match l, h with
     | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
@@ -463,8 +447,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  rfl
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -500,9 +483,9 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  funext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp only [product, productTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -516,15 +499,15 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp only [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
-/-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
+/-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
@@ -718,9 +701,9 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
-  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeft'TR.go]
   | a::as, b::bs => by simp [zipWithLeft'TR.go, go _ as bs]
-  simp [zipWithLeft'TR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight' f as bs` applies `f` to each
@@ -787,9 +770,9 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
-  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeftTR.go]
   | a::as, b::bs => by simp [zipWithLeftTR.go, go _ as bs]
-  simp [zipWithLeftTR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight f as bs` applies `f` to each
@@ -846,29 +829,12 @@ dropped from `xs`.
 fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 ```
 -/
-@[simp] def fillNones {α} : List (Option α) → List α → List α
+@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNones {α} : List (Option α) → List α → List α
   | [], _ => []
   | some a :: as, as' => a :: fillNones as as'
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
-
-/-- Tail-recursive version of `fillNones`. -/
-@[inline] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
-  /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
-  go : List (Option α) → List α → Array α → List α
-  | [], _, acc => acc.toList
-  | some a :: as, as', acc => go as as' (acc.push a)
-  | none :: as, [], acc => filterMapTR.go id as acc
-  | none :: as, a :: as', acc => go as as' (acc.push a)
-
-@[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
-  | [], _ => by simp [fillNonesTR.go]
-  | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
-  | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
-  | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [fillNonesTR, go]
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
@@ -904,7 +870,7 @@ def takeList {α} : List α → List Nat → List (List α) × List α
       let (l, r) := xs.takeList ns; (acc.toList ++ l, r)
   | [], xs => by simp [takeListTR.go, takeList]
   | n::ns, xs => by simp [takeListTR.go, takeList, go _ ns]
-  simp [takeListTR, go]
+  simp [go]
 
 /-- Auxliary definition used to define `toChunks`.
   `toChunksAux n xs i` returns `(xs.take i, (xs.drop i).toChunks (n+1))`,

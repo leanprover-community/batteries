@@ -62,7 +62,7 @@ def HeapNode.rank : HeapNode α → Nat
 where
   go {α} : ∀ s n, @rankTR.go α s n = rank s + n
   | .nil, _ => (Nat.zero_add ..).symm
-  | .node .., _ => by simp_arith only [rankTR.go, go, rank]
+  | .node .., _ => by simp +arith only [rankTR.go, go, rank]
 
 /--
 A `Heap` is the top level structure in a binomial heap.
@@ -237,7 +237,7 @@ private theorem Heap.realSize_findMin {s : Heap α}
       (by simp [hk, Nat.add_assoc]) (by simp [eq, Nat.add_assoc]) ?_
     split
     · exact hres
-    · exact ⟨m, hk, by simp [eq, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]⟩
+    · exact ⟨m, hk, by simp [eq, Nat.add_comm, Nat.add_left_comm]⟩
 
 theorem HeapNode.realSize_toHeap (s : HeapNode α) : s.toHeap.realSize = s.realSize := go s where
   go {n res} : ∀ s : HeapNode α, (toHeap.go s n res).realSize = s.realSize + res.realSize
@@ -277,7 +277,7 @@ by repeatedly pulling the minimum element out of the heap.
   match eq : s.deleteMin le with
   | none => pure init
   | some (hd, tl) => do
-    have : tl.realSize < s.realSize := by simp_arith [Heap.realSize_deleteMin eq]
+    have : tl.realSize < s.realSize := by simp +arith [Heap.realSize_deleteMin eq]
     foldM le tl (← f init hd) f
 termination_by s.realSize
 

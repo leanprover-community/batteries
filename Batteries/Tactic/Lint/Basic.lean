@@ -38,15 +38,15 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   let env ← getEnv
   if isReservedName env decl then return true
   if let Name.str n s := decl then
+    if (← isAutoDecl n) then return true
     if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
-    if env.isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
+    if env.isConstructor n && s ∈ ["injEq", "inj", "sizeOf_spec", "elim", "noConfusion"] then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
-      if s.startsWith "brecOn_" || s.startsWith "below_" || s.startsWith "binductionOn_"
-        || s.startsWith "ibelow_" then return true
-      if [casesOnSuffix, recOnSuffix, brecOnSuffix, binductionOnSuffix, belowSuffix, "ibelow",
-          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
-        ].any (· == s) then
+      if s.startsWith "brecOn_" || s.startsWith "below_" then return true
+      if s ∈ [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
+          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx", "ctorIdx",
+          "ctorElim", "ctorElimType"] then
         return true
       if let some _ := isSubobjectField? env n (.mkSimple s) then
         return true
@@ -84,7 +84,7 @@ initialize batteriesLinterExt :
     addImportedFn := fun nss => pure <|
       nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
     addEntryFn
-    exportEntriesFn := fun es => es.fold (fun a _ e => a.push e) #[]
+    exportEntriesFn := fun es => es.foldl (fun a _ e => a.push e) #[]
   }
 
 /--

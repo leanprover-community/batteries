@@ -3,11 +3,11 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
-import Batteries.Data.Char
-import Batteries.Data.List.Lemmas
 import Batteries.Data.String.Basic
 import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.SeqFocus
+import Batteries.Classes.Order
+import Batteries.Data.List.Basic
 
 namespace String
 
@@ -18,13 +18,9 @@ theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ <
   simp at h₁ h₂
   exact String.le_antisymm h₂ h₁
 
-instance : Batteries.TransOrd String := .compareOfLessAndEq
-  String.lt_irrefl String.lt_trans String.lt_antisymm
-
-instance : Batteries.LTOrd String := .compareOfLessAndEq
-  String.lt_irrefl String.lt_trans String.lt_antisymm
-
-instance : Batteries.BEqOrd String := .compareOfLessAndEq String.lt_irrefl
+instance : Std.LawfulLTOrd String :=
+  .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
+    String.lt_irrefl String.lt_trans String.lt_antisymm
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl
 
@@ -183,7 +179,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | [], [] => rfl
   | [], c::cs' => simp [← hp, utf8SetAux]
   | c::cs, cs' =>
-    simp only [utf8SetAux, List.append_eq, List.cons_append]
+    simp only [utf8SetAux, List.cons_append]
     rw [if_neg]
     case hnc => simp only [← hp, Pos.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
@@ -223,22 +219,20 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
-      simp only [Pos.ext_iff]
-      rw [Nat.add_right_comm, Nat.add_left_comm]
-      apply ne_add_utf8Size_add_self
+      simp only [Pos.le_iff, pos_add_char]
+      grind [Char.utf8Size_pos]
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     prev ⟨cs ++ c :: cs'⟩ ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
   simp only [prev]
-  refine (if_neg (Pos.ne_of_gt add_utf8Size_pos)).trans ?_
   rw [utf8PrevAux_of_valid] <;> simp
 
 theorem prev_of_valid' (cs cs' : List Char) :
     prev ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ = ⟨utf8Len cs.dropLast⟩ := by
   match cs, cs.eq_nil_or_concat with
-  | _, .inl rfl => rfl
+  | _, .inl rfl => apply prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [prev_of_valid]
 
 theorem front_eq (s : String) : front s = s.1.headD default := by
@@ -280,7 +274,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
-      simp only [List.append_assoc, List.singleton_append, List.cons_append, utf8Len_append,
+      simp only [List.append_assoc, List.cons_append, utf8Len_append,
         utf8Len_cons, utf8Len_nil, Nat.zero_add, List.nil_append] at foo
       rw [Nat.add_right_comm, Nat.add_assoc] at foo
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
@@ -300,7 +294,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
     cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
-      List.tail?_cons, Option.map_some']
+      List.tail?_cons, Option.map_some]
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
@@ -429,7 +423,7 @@ theorem splitAux_of_valid (p l m r acc) :
             extract_of_valid l m (c :: r)⟩ :
           _ ∧ _ ∧ _),
       List.splitOnP.go, List.reverse_reverse]
-    split
+    split <;> rename_i h
     · simpa [Nat.add_assoc] using splitAux_of_valid p (l++m++[c]) [] r (⟨m⟩::acc)
     · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
@@ -450,9 +444,6 @@ theorem join_eq (ss : List String) : join ss = ⟨(ss.map data).flatten⟩ := go
 
 @[simp] theorem data_join (ss : List String) : (join ss).data = (ss.map data).flatten := by
   rw [join_eq]
-
-@[deprecated (since := "2024-06-06")] alias append_nil := append_empty
-@[deprecated (since := "2024-06-06")] alias nil_append := empty_append
 
 namespace Iterator
 
@@ -736,6 +727,26 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
 
+@[simp]
+theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
+  ⟨fun h => ext (id h), congrArg data⟩
+
+@[simp]
+theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
+  simp only [map_eq, ← data_eq_nil_iff, List.map_eq_nil_iff]
+
+@[simp]
+theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
+  rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
+
+@[simp]
+theorem length_map (s : String) (f : Char → Char) : (s.map f).length = s.length := by
+  simp only [length, map_eq, List.length_map]
+
+theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+  a.map f = b.map g → a.length = b.length := by
+  intro h; rw [← length_map a f, ← length_map b g, h]
+
 end String
 
 open String
@@ -875,7 +886,7 @@ theorem take : ∀ {s}, ValidFor l m r s → ∀ n, ValidFor l (m.take n) (m.dro
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ ?_ (by simp) (by simp)
     conv => lhs; rw [← List.take_append_drop n m]
-    simp [-List.take_append_drop, Nat.add_assoc]
+    simp [-List.take_append_drop]
 
 -- TODO: takeRight, dropRight
 
@@ -912,7 +923,7 @@ theorem all (f) : ∀ {s}, ValidFor l m r s → s.all f = m.all f
   | _, h => by simp [Substring.all, h.any, List.all_eq_not_any_not]
 
 theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.contains c ↔ c ∈ m)
-  | _, h => by simp [Substring.contains, h.any, String.contains]
+  | _, h => by simp [Substring.contains, h.any]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)

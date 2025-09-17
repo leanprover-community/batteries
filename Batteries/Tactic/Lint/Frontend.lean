@@ -3,10 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Lean.Util.Paths
 import Lean.Elab.Command
 import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
 
 /-!
 # Linter frontend and commands
@@ -149,7 +147,7 @@ The first `drop_fn_chars` characters are stripped from the filename.
 -/
 def groupedByFilename (results : Std.HashMap Name MessageData) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
-  let sp ← if useErrorFormat then initSrcSearchPath ["."] else pure {}
+  let sp ← if useErrorFormat then getSrcSearchPath else pure {}
   let grouped : Std.HashMap Name (System.FilePath × Std.HashMap Name MessageData) ←
     results.foldM (init := {}) fun grouped declName msg => do
       let mod ← findModuleOf? declName

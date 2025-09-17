@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 namespace Nat
 
-
 /--
   Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
 -/
@@ -92,14 +91,24 @@ Integer square root function. Implemented via Newton's method.
 -/
 def sqrt (n : Nat) : Nat :=
   if n ≤ 1 then n else
-  iter n (n / 2)
+  iter n (1 <<< ((n.log2 / 2) + 1))
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
-  returns the integer square root of `n`. -/
-  iter (n guess : Nat) : Nat :=
+  returns the integer square root of `n`.
+
+  By default this well-founded recursion would be irreducible.
+  This prevents use `decide` to resolve `Nat.sqrt n` for small values of `n`,
+  so we mark this as `@[semireducible]`. -/
+  @[semireducible] iter (n guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
     if _h : next < guess then
       iter n next
     else
       guess
   termination_by guess
+
+/--
+Construct a natural number from a sequence of bits using little endian convention.
+-/
+@[inline] def ofBits (f : Fin n → Bool) : Nat :=
+  Fin.foldr n (fun i v => 2 * v + (f i).toNat) 0
