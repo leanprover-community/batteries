@@ -32,11 +32,11 @@ instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R 
     · intro h ⟨j, hj⟩ ⟨i, hlt⟩; exact h i j (Nat.lt_trans hlt hj) hj hlt
   decidable_of_iff _ this
 
-@[grind]
+@[grind ← ]
 theorem pairwise_empty : #[].Pairwise R := by
   unfold Pairwise; exact List.Pairwise.nil
 
-@[grind]
+@[grind ←]
 theorem pairwise_singleton (R : α → α → Prop) (a) : #[a].Pairwise R := by
   unfold Pairwise; exact List.pairwise_singleton ..
 

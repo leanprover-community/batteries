@@ -6,7 +6,7 @@ Authors: Jannis Limperg, François G. Dorais
 import Batteries.Classes.Order
 
 -- Forward port of lean4#9515
-@[grind]
+@[grind ←]
 theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
   simp [finRange]
 
