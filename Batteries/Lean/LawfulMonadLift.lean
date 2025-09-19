@@ -3,7 +3,11 @@ Copyright (c) 2025 Quang Dao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Quang Dao
 -/
-import Lean.Elab.Command
+module
+
+public import Lean.Elab.Command
+
+@[expose] public section
 
 /-!
 # Lawful instances of `MonadLift` for the Lean monad stack.

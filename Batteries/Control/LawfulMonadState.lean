@@ -3,6 +3,9 @@ Copyright (c) 2025 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma, Quang Dao
 -/
+module
+
+@[expose] public section
 
 /-!
 # Laws for Monads with State

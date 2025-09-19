@@ -3,7 +3,11 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, François G. Dorais
 -/
-import Batteries.Classes.Order
+module
+
+public import Batteries.Classes.Order
+
+@[expose] public section
 
 -- Forward port of lean4#9515
 @[grind ←]

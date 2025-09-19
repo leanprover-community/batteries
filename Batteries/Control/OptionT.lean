@@ -3,8 +3,11 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
+module
 
-import Batteries.Control.LawfulMonadState
+public import Batteries.Control.LawfulMonadState
+
+@[expose] public section
 
 /-!
 # Lemmas About Option Monad Transformer

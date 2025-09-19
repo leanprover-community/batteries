@@ -3,10 +3,14 @@ Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.Tactic.Simp.Main
-import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
-import Batteries.Util.LibraryNote
+module
+
+public meta import Lean.Meta.Tactic.Simp.Main
+public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Tactic.OpenPrivate
+public meta import Batteries.Util.LibraryNote
+
+public meta section
 open Lean Meta
 
 namespace Batteries.Tactic.Lint

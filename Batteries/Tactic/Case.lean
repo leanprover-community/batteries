@@ -3,7 +3,11 @@ Copyright (c) 2023 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import Lean.Elab.Tactic.BuiltinTactic
+module
+
+public meta import Lean.Elab.Tactic.BuiltinTactic
+
+public meta section
 
 /-!
 # Extensions to the `case` tactic

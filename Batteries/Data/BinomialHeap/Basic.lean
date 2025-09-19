@@ -3,8 +3,12 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jannis Limperg, Mario Carneiro
 -/
-import Batteries.Classes.Order
-import Batteries.Control.ForInStep.Basic
+module
+
+public import Batteries.Classes.Order
+public import Batteries.Control.ForInStep.Basic
+
+@[expose] public section
 
 namespace Batteries
 namespace BinomialHeap

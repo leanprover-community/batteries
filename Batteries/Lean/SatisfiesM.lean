@@ -3,9 +3,13 @@ Copyright (c) 2024 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Classes.SatisfiesM
-import Batteries.Lean.LawfulMonad
-import Lean.Elab.Command
+module
+
+public import Batteries.Classes.SatisfiesM
+public import Batteries.Lean.LawfulMonad
+public import Lean.Elab.Command
+
+@[expose] public section
 
 /-!
 # Construct `MonadSatisfying` instances for the Lean monad stack.
