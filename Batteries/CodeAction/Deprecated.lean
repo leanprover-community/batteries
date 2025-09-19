@@ -5,9 +5,9 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Lean.Server.CodeActions.Provider
+public meta import Lean.Server.CodeActions.Provider
 
-@[expose] public section
+public meta section
 
 /-!
 # Code action for @[deprecated] replacements

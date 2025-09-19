@@ -5,9 +5,9 @@ Authors: Gabriel Ebner
 -/
 module
 
-public import Lean.Elab.Command
+public meta import Lean.Elab.Command
 
-@[expose] public section
+public meta section
 
 /-!
 # Define the `library_note` command.
@@ -18,7 +18,7 @@ namespace Batteries.Util.LibraryNote
 open Lean
 
 /-- A library note consists of a (short) tag and a (long) note. -/
-def LibraryNoteEntry := String × String
+@[expose] def LibraryNoteEntry := String × String
 deriving Inhabited
 
 /-- Environment extension supporting `library_note`. -/

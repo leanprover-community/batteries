@@ -5,7 +5,7 @@ Authors: Mario Carneiro, François G. Dorais
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Batteries
 

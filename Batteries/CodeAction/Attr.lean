@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Lean.Server.CodeActions.Basic
+public import Lean.Compiler.IR.CompilerM
 
 @[expose] public section
 

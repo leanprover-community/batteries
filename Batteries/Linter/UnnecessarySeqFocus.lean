@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Elab.Command
 public meta import Batteries.Lean.AttributeExtra
+public meta import Lean.Linter.Basic
 
 public meta section
 
