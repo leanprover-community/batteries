@@ -339,33 +339,39 @@ protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
   | nil => grind
   | cons _ l => cases l with grind
 
+theorem pairwise_cons_cons :
+    Pairwise R (a :: b :: l) ↔ R a b ∧ Pairwise R (a :: l) ∧ Pairwise R (b :: l) := by
+  simp only [pairwise_cons, mem_cons, forall_eq_or_imp]
+  exact ⟨fun h => ⟨h.1.1, ⟨h.1.2, h.2.2⟩, h.2⟩, fun h => ⟨⟨h.1, h.2.1.1⟩, h.2.2⟩⟩
+
 /-! ### IsChain -/
 
 attribute [simp, grind ←] IsChain.nil
 attribute [simp, grind ←] IsChain.singleton
 
 @[deprecated (since := "2025-09-19")]
-alias chain_cons := isChain_cons₂
+alias chain_cons := isChain_cons_cons
 
-theorem rel_of_isChain_cons₂ {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) : R a b :=
-  (isChain_cons₂.1 p).1
-
-@[deprecated (since := "2025-09-19")]
-alias rel_of_chain_cons := rel_of_isChain_cons₂
-
-theorem isChain_of_isChain_cons₂ {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
-    IsChain R (b :: l) := (isChain_cons₂.1 p).2
+theorem rel_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) : R a b :=
+  (isChain_cons_cons.1 p).1
 
 @[deprecated (since := "2025-09-19")]
-alias chain_of_chain_cons := isChain_of_isChain_cons₂
+alias rel_of_chain_cons := rel_of_isChain_cons_cons
 
-@[grind]
-theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b⦄, R a b → S a b) {l : List α} (p : IsChain R l) :
-    IsChain S l := by induction p with grind
+theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
+    IsChain R (b :: l) := (isChain_cons_cons.1 p).2
 
-theorem IsChain.imp' {S : α → α → Prop} (HRS : ∀ ⦃a b⦄, R a b → S a b)
+@[deprecated (since := "2025-09-19")]
+alias chain_of_chain_cons := isChain_of_isChain_cons_cons
+
+theorem IsChain.imp {S : α → α → Prop} (H : Subrelation R S) {l : List α} (p : IsChain R l) :
+    IsChain S l := match p with
+  | .nil => .nil | .singleton _ => .singleton _
+  | .cons_cons hr h => .cons_cons (H hr) (IsChain.imp H h)
+
+theorem IsChain.imp' {S : α → α → Prop} (HRS : Subrelation R S)
     (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} : IsChain R (a :: l) → IsChain S (b :: l) := by
-  cases l with grind
+  cases l with grind [IsChain.imp]
 
 @[deprecated (since := "2025-09-19")]
 alias Chain.imp := IsChain.imp
@@ -376,16 +382,16 @@ alias Chain.imp' := IsChain.imp'
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
 
-protected theorem IsChain.pairwise (ht : ∀ ⦃a b c⦄, R a b → R b c → R a c) (c : IsChain R l) :
+protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     Pairwise R l := by
   induction c with
   | nil | singleton => grind
-  | cons₂ hr h p =>
-    simp at p ⊢
-    exact ⟨⟨hr, fun _ ha => ht hr <| p.1 _ ha⟩, p⟩
+  | cons_cons hr h p =>
+    simp only [pairwise_cons, mem_cons, forall_eq_or_imp] at p ⊢
+    exact ⟨⟨hr, fun _ ha => Trans.trans hr <| p.1 _ ha⟩, p⟩
 
-theorem isChain_iff_pairwise (ht : ∀ ⦃a b c⦄, R a b → R b c → R a c) :
-    IsChain R l ↔ Pairwise R l := ⟨IsChain.pairwise ht, Pairwise.isChain⟩
+theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l :=
+  ⟨IsChain.pairwise, Pairwise.isChain⟩
 
 theorem isChain_iff_getElem {l : List α} :
     IsChain R l ↔ ∀ (i : Nat) (_hi : i + 1 < l.length), R l[i] l[i + 1] := by
@@ -402,7 +408,7 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
     IsChain (fun a b => b = a + step) (range' s n step)
   | 0, _ => .nil
   | 1, _ => .singleton _
-  | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons₂ rfl
+  | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons_cons rfl
 
 @[deprecated isChain_range' (since := "2025-09-19")]
 theorem chain_succ_range' (s : Nat) (n : Nat) (step: Nat) :

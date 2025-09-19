@@ -555,8 +555,6 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-section IsChain
-
 /-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
 ```
 IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
@@ -567,26 +565,21 @@ inductive IsChain (R : α → α → Prop) : List α → Prop where
   /-- A list of length 1 is a chain. -/
   | singleton (a : α) : IsChain R [a]
   /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons₂ (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
-
-
-variable {R : α → α → Prop}
+  | cons_cons (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
 
 attribute [simp, grind ←] IsChain.nil
 attribute [simp, grind ←] IsChain.singleton
 
-@[simp, grind =] theorem isChain_cons₂ : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
-  ⟨fun | .cons₂ hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons₂ hr h⟩
+@[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
 
-instance instDecidableIsChain [h : DecidableRel R] (l : List α) : Decidable (l.IsChain R) :=
-  match l with
-  | [] => isTrue .nil
-  | a :: l => go a l
+instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
+    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
   where
     go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
       match l with
       | [] => isTrue <| .singleton a
-      | b :: l => haveI := (go b l); decidable_of_iff'  _ isChain_cons₂
+      | b :: l => haveI := (go b l); decidable_of_iff'  _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
@@ -595,14 +588,22 @@ Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
 
+set_option linter.deprecated false in
+/-- A list of length 1 is a chain. -/
+@[deprecated IsChain.singleton (since := "2025-09-19"), match_pattern]
+def Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
+
+set_option linter.deprecated false in
+/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+@[deprecated IsChain.cons_cons (since := "2025-09-19"), match_pattern]
+def Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
+
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
-
-end IsChain
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
