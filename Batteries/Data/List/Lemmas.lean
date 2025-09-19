@@ -364,12 +364,10 @@ theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a 
 @[deprecated (since := "2025-09-19")]
 alias chain_of_chain_cons := isChain_of_isChain_cons_cons
 
-theorem IsChain.imp {S : α → α → Prop} (H : Subrelation R S) {l : List α} (p : IsChain R l) :
-    IsChain S l := match p with
-  | .nil => .nil | .singleton _ => .singleton _
-  | .cons_cons hr h => .cons_cons (H hr) (IsChain.imp H h)
+theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b : α⦄, R a b → S a b) {l : List α} (p : IsChain R l) :
+    IsChain S l := by induction p with grind
 
-theorem IsChain.imp' {S : α → α → Prop} (HRS : Subrelation R S)
+theorem IsChain.imp' {S : α → α → Prop} (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
     (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} : IsChain R (a :: l) → IsChain S (b :: l) := by
   cases l with grind [IsChain.imp]
 
@@ -416,7 +414,7 @@ theorem chain_succ_range' (s : Nat) (n : Nat) (step: Nat) :
 
 theorem isChain_lt_range' (s n : Nat) {step} (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
-  (isChain_range' s n step).imp fun e => e.symm ▸ Nat.lt_add_of_pos_right h
+  (isChain_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
 
 @[deprecated isChain_lt_range' (since := "2025-09-19")]
 theorem chain_lt_range' (s n : Nat) {step} (h : 0 < step) :
