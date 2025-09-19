@@ -7,6 +7,7 @@ module
 
 public meta import Batteries.Lean.Util.EnvSearch
 public meta import Lean.Elab.Tactic.Config
+public meta import Lean.Elab.Command
 
 public meta section
 

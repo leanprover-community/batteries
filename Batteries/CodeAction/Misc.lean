@@ -5,12 +5,12 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Lean.Elab.Tactic.Induction
-public import Batteries.Lean.Position
-public import Batteries.CodeAction.Attr
-public import Lean.Server.CodeActions.Provider
+public meta import Lean.Elab.Tactic.Induction
+public meta import Batteries.Lean.Position
+public meta import Batteries.CodeAction.Attr
+public meta import Lean.Server.CodeActions.Provider
 
-@[expose] public section
+public meta section
 
 /-!
 # Miscellaneous code actions

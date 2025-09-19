@@ -7,7 +7,7 @@ module
 
 public import Lean.LocalContext
 
-@[expose] public section
+public section
 
 open Lean Lean.Meta
 

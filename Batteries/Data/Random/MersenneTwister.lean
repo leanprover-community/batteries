@@ -1,6 +1,6 @@
 module
 
-@[expose] public section
+public section
 
 /-
 Copyright (c) 2024 François G. Dorais. All rights reserved.

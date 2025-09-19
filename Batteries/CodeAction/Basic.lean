@@ -5,13 +5,13 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Lean.Elab.BuiltinTerm
-public import Lean.Elab.BuiltinNotation
-public import Lean.Server.InfoUtils
-public import Lean.Server.CodeActions.Provider
-public import Batteries.CodeAction.Attr
+public meta import Lean.Elab.BuiltinTerm
+public meta import Lean.Elab.BuiltinNotation
+public meta import Lean.Server.InfoUtils
+public meta import Lean.Server.CodeActions.Provider
+public meta import Batteries.CodeAction.Attr
 
-@[expose] public section
+public meta section
 
 /-!
 # Initial setup for code actions

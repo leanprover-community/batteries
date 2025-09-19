@@ -7,14 +7,12 @@ module
 
 public import Batteries.Tactic.Lint.Misc
 
-@[expose] public section
-
 namespace Lean
 
 /--
 Find constants in current environment that match find options and predicate.
 -/
-def getMatchingConstants {m} [Monad m] [MonadEnv m]
+public meta def getMatchingConstants {m} [Monad m] [MonadEnv m]
     (p : ConstantInfo → m Bool)
     (includeImports := true)
     : m (Array ConstantInfo) := do

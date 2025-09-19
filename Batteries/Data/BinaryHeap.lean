@@ -1,6 +1,6 @@
 module
 
-@[expose] public section
+public section
 
 /-
 Copyright (c) 2021 Mario Carneiro. All rights reserved.

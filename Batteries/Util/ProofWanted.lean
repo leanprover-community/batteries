@@ -5,10 +5,10 @@ Authors: David Thrane Christiansen
 -/
 module
 
-public import Lean.Elab.Exception
-public import Lean.Elab.Command
+public meta import Lean.Elab.Exception
+public meta import Lean.Elab.Command
 
-@[expose] public section
+public meta section
 
 
 open Lean Parser Elab Command
