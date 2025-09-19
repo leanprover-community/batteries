@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 
 /-
 Copyright (c) 2021 Mario Carneiro. All rights reserved.

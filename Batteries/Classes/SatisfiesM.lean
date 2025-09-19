@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kim Morrison
 -/
-import Batteries.Lean.EStateM
-import Batteries.Lean.Except
+module
+
+public import Batteries.Lean.EStateM
+public import Batteries.Lean.Except
+
+@[expose] public section
 
 /-!
 ## SatisfiesM

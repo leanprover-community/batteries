@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Batteries.Lean.Meta.Basic
-import Batteries.Lean.MonadBacktrack
+module
+
+public import Batteries.Lean.Meta.Basic
+public import Batteries.Lean.MonadBacktrack
+
+@[expose] public section
 
 namespace Lean.Meta.SavedState
 

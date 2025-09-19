@@ -3,8 +3,12 @@ Copyright (c) 2025 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Char.Basic
-import Batteries.Tactic.Basic
+module
+
+public import Batteries.Data.Char.Basic
+public import Batteries.Tactic.Basic
+
+@[expose] public section
 
 /-! # Lemmas for ASCII-casing
 

@@ -3,9 +3,13 @@ Copyright (c) 2024 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Edward van de Meent
 -/
-import Lean.Elab.Syntax
-import Lean.DocString
-import Batteries.Util.LibraryNote
+module
+
+public meta import Lean.Elab.Syntax
+public meta import Lean.DocString
+public meta import Batteries.Util.LibraryNote
+
+public meta section
 
 /-!
 

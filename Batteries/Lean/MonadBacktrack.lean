@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Lean.Util.MonadBacktrack
+module
+
+public import Lean.Util.MonadBacktrack
+
+@[expose] public section
 
 namespace Lean
 

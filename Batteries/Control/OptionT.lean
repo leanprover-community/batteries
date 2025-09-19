@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
 
-import Batteries.Control.LawfulMonadState
+module
+
+public import Batteries.Control.LawfulMonadState
+
+@[expose] public section
 
 /-!
 # Lemmas About Option Monad Transformer

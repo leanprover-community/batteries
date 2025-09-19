@@ -1,5 +1,9 @@
-import Batteries.CodeAction.Misc
-import Batteries.Data.List
+module
+
+public import Batteries.CodeAction.Misc
+public import Batteries.Data.List
+
+@[expose] public section
 
 namespace Batteries.CodeAction
 

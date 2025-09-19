@@ -1,1 +1,3 @@
-import Batteries.Data.Rat.Float
+module
+
+public import Batteries.Data.Rat.Float

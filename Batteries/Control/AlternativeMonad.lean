@@ -3,8 +3,12 @@ Copyright (c) 2025 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import Batteries.Control.Lemmas
-import Batteries.Control.OptionT
+module
+
+public import Batteries.Control.Lemmas
+public import Batteries.Control.OptionT
+
+@[expose] public section
 
 
 /-!

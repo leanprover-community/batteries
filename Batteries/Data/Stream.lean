@@ -1,3 +1,7 @@
+module
+
+@[expose] public section
+
 /-
 Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2. license as described in the file LICENSE.

@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
-import Batteries.Data.Nat.Lemmas
+module
+
+public import Batteries.Data.Nat.Lemmas
+
+@[expose] public section
 
 namespace Int
 
