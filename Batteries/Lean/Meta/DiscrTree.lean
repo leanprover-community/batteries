@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, Kim Morrison
 -/
 
-import Lean.Meta.DiscrTree
-import Batteries.Data.Array.Merge
-import Batteries.Lean.Meta.Expr
-import Batteries.Lean.PersistentHashMap
+module
+
+public import Lean.Meta.DiscrTree
+public import Batteries.Data.Array.Merge
+public import Batteries.Lean.Meta.Expr
+public import Batteries.Lean.PersistentHashMap
+
+@[expose] public section
 
 namespace Lean.Meta.DiscrTree
 

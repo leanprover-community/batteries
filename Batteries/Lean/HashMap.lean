@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Std.Data.HashMap.Basic
+module
+
+public import Std.Data.HashMap.Basic
+
+@[expose] public section
 namespace Std.HashMap
 
 variable [BEq α] [Hashable α]

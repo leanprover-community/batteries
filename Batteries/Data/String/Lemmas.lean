@@ -3,11 +3,15 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
-import Batteries.Data.String.Basic
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.SeqFocus
-import Batteries.Classes.Order
-import Batteries.Data.List.Basic
+module
+
+public import Batteries.Data.String.Basic
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Tactic.SeqFocus
+public import Batteries.Classes.Order
+public import Batteries.Data.List.Basic
+
+@[expose] public section
 
 namespace String
 

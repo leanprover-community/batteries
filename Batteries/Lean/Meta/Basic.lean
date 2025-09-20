@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jannis Limperg
 -/
-import Lean.Meta.Tactic.Intro
-import Batteries.Control.AlternativeMonad
+module
+
+public import Lean.Meta.Tactic.Intro
+public import Batteries.Control.AlternativeMonad
+
+@[expose] public section
 
 open Lean Lean.Meta
 

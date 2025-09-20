@@ -3,9 +3,13 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.SeqFocus
-import Batteries.Util.Panic
+module
+
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Tactic.SeqFocus
+public import Batteries.Util.Panic
+
+@[expose] public section
 
 namespace Batteries
 

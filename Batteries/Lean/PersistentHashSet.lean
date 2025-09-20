@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import Lean.Data.PersistentHashSet
+module
+
+public import Lean.Data.PersistentHashSet
+
+@[expose] public section
 
 namespace Lean.PersistentHashSet
 
