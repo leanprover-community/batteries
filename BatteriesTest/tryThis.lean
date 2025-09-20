@@ -202,7 +202,7 @@ info: Try this:
   a secret message
 -/
 #guard_msgs in
--- `Try this: rfl`
+-- `Try this: a secret message`
 #demo1 {s with messageData? := m!"a secret message"}
 
 /--
@@ -214,8 +214,8 @@ info: Try these:
 /-
 ```
 Try these:
-• rfl
-• rfl
+• a secret message
+• another secret message
 ```
 -/
 #demo #[
