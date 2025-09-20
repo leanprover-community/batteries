@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Tactic.Do.Syntax","Lean.Elab.Tactic.Do.ProofMode.Basic"],"instances":[],"name":"Lean.Elab.Tactic.Do.ProofMode.RenameI"}

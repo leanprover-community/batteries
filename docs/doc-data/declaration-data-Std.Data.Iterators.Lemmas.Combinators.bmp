@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Data.Iterators.Lemmas.Combinators.Monadic","Std.Data.Iterators.Lemmas.Combinators.Take","Std.Data.Iterators.Lemmas.Combinators.TakeWhile","Std.Data.Iterators.Lemmas.Combinators.Drop","Std.Data.Iterators.Lemmas.Combinators.DropWhile","Std.Data.Iterators.Lemmas.Combinators.Zip"],"instances":[],"name":"Std.Data.Iterators.Lemmas.Combinators"}

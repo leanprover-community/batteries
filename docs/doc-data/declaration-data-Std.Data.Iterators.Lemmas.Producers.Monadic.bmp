@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Data.Iterators.Lemmas.Producers.Monadic.Array","Std.Data.Iterators.Lemmas.Producers.Monadic.Empty","Std.Data.Iterators.Lemmas.Producers.Monadic.List"],"instances":[],"name":"Std.Data.Iterators.Lemmas.Producers.Monadic"}
