@@ -220,7 +220,7 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     rw [if_neg]
     case hnc =>
       simp only [Pos.le_iff, pos_add_char]
-      grind [Char.utf8Size_pos]
+      grind [!Char.utf8Size_pos]
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
