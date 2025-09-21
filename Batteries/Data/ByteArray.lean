@@ -62,8 +62,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### append -/
 
-@[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
-
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
