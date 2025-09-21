@@ -358,11 +358,20 @@ theorem rel_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b
 @[deprecated (since := "2025-09-19")]
 alias rel_of_chain_cons := rel_of_isChain_cons_cons
 
-theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
+theorem isChain_cons_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
     IsChain R (b :: l) := (isChain_cons_cons.1 p).2
 
 @[deprecated (since := "2025-09-19")]
-alias chain_of_chain_cons := isChain_of_isChain_cons_cons
+alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
+
+theorem isChain_of_isChain_cons {b : α} {l : List α} (p : IsChain R (b :: l)) :
+    IsChain R l := by
+  cases l
+  · exact .nil
+  · exact isChain_cons_of_isChain_cons_cons p
+
+theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
+    IsChain R l := isChain_of_isChain_cons (isChain_of_isChain_cons p)
 
 theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b : α⦄, R a b → S a b) {l : List α}
     (p : IsChain R l) : IsChain S l := by induction p with grind
