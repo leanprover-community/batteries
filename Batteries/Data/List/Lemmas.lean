@@ -376,15 +376,16 @@ theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a 
 theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b : α⦄, R a b → S a b) {l : List α}
     (p : IsChain R l) : IsChain S l := by induction p with grind
 
-theorem IsChain.imp' {S : α → α → Prop} (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
-    (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} : IsChain R (a :: l) → IsChain S (b :: l) := by
-  cases l with grind [IsChain.imp]
-
 @[deprecated (since := "2025-09-19")]
 alias Chain.imp := IsChain.imp
 
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp' := IsChain.imp'
+theorem IsChain.cons_of_imp_of_cons (h : ∀ c, R a c → R b c) :
+    IsChain R (a :: l) → IsChain R (b :: l) := by cases l <;> grind
+
+@[deprecated "Use IsChain.imp and IsChain.change_head" (since := "2025-09-19")]
+theorem Chain.imp' {S : α → α → Prop} (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
+    (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} : IsChain R (a :: l) → IsChain S (b :: l) := by
+  cases l with grind [IsChain.imp]
 
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
