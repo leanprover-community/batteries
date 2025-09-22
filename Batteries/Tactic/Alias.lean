@@ -144,15 +144,16 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
+private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : ConstantInfo) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
-  let value ← mkIffMpApp mp thm.type thm.value
+  let value ← mkIffMpApp mp thm.type (mkConst thm.name (thm.levelParams.map mkLevelParam))
   let type ← Meta.inferType value
-  addDecl <| Declaration.thmDecl { thm with
+  addDecl <| Declaration.thmDecl {
     name := declName
     value := value
     type := type
+    levelParams := thm.levelParams
   }
   if let some (doc, isVerso) := declMods.docString? then
     addDocStringOf isVerso declName (mkNullNode #[]) doc
@@ -176,7 +177,7 @@ elab (name := aliasLR) mods:declModifiers "alias "
     let name ← realizeGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
-    let .thmInfo thm ← getConstInfo name | throwError "Target must be a theorem"
+    let thm ← getConstInfo name
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
       addSide true declName declMods thm
