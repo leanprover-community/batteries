@@ -404,7 +404,7 @@ theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
 
 theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
     xs.idxOf x ∈ xs.indexesOf x := by
-  induction xs with grind?
+  induction xs with grind
 
 theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (match l.idxOf? a with | some i => i | none => l.length) := by
