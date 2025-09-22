@@ -22,13 +22,7 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 @[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
 
-@[simp] theorem data_empty : empty.data = #[] := rfl
-
-@[simp] theorem size_empty : empty.size = 0 := rfl
-
 /-! ### push -/
-
-@[simp] theorem data_push (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
 
 @[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
   Array.size_push ..
@@ -68,15 +62,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### append -/
 
-@[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
-
-@[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
-  rw [←append_eq]; simp [ByteArray.append, size]
-  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
-
-theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
-  simp only [size, append_eq, data_append]; exact Array.size_append ..
-
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
@@ -88,17 +73,6 @@ theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b
   simp [getElem_eq_data_getElem]; exact Array.getElem_append_right hle
 
 /-! ### extract -/
-
-@[simp] theorem data_extract (a : ByteArray) (start stop) :
-    (a.extract start stop).data = a.data.extract start stop := by
-  simp [extract]
-  match Nat.le_total start stop with
-  | .inl h => simp [h, Nat.add_sub_cancel']
-  | .inr h => simp [h, Nat.sub_eq_zero_of_le, Array.extract_empty_of_stop_le_start]
-
-@[simp] theorem size_extract (a : ByteArray) (start stop) :
-    (a.extract start stop).size = min stop a.size - start := by
-  simp [size]
 
 theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     start + i < a.size := by
