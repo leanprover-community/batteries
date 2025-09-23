@@ -424,7 +424,7 @@ theorem chain_succ_range' (s n step : Nat) :
 
 theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
-  (isChain_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
+  (isChain_range' s n step).imp fun | _, _, rfl => Nat.lt_add_of_pos_right h
 
 @[deprecated isChain_lt_range' (since := "2025-09-19")]
 theorem chain_lt_range' (s n : Nat) {step} (h : 0 < step) :
