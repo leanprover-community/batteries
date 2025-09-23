@@ -364,7 +364,7 @@ theorem isChain_cons_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) :
 @[deprecated (since := "2025-09-19")]
 alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
 
-theorem isChain_of_isChain_cons {b : α} {l : List α} (p : IsChain R (b :: l)) :
+theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) :
     IsChain R l := by
   cases l
   · exact .nil
