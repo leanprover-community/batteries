@@ -422,7 +422,7 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
 theorem chain_succ_range' (s n step : Nat) :
     IsChain (fun a b => b = a + step) (s :: range' (s + step) n step) := isChain_range'  _ (n + 1) _
 
-theorem isChain_lt_range' (s n : Nat) {step} (h : 0 < step) :
+theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
   (isChain_range' s n step).imp fun _ _ e => e.symm ▸ Nat.lt_add_of_pos_right h
 
