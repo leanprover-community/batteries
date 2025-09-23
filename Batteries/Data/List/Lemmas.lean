@@ -352,7 +352,7 @@ attribute [simp, grind ←] IsChain.singleton
 @[deprecated (since := "2025-09-19")]
 alias chain_cons := isChain_cons_cons
 
-theorem rel_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) : R a b :=
+theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
 @[deprecated (since := "2025-09-19")]
