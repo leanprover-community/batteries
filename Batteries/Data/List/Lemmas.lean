@@ -419,7 +419,7 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
   | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons_cons rfl
 
 @[deprecated isChain_range' (since := "2025-09-19")]
-theorem chain_succ_range' (s : Nat) (n : Nat) (step: Nat) :
+theorem chain_succ_range' (s n step : Nat) :
     IsChain (fun a b => b = a + step) (s :: range' (s + step) n step) := isChain_range'  _ (n + 1) _
 
 theorem isChain_lt_range' (s n : Nat) {step} (h : 0 < step) :
