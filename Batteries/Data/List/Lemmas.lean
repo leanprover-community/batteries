@@ -370,7 +370,7 @@ theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) :
   · exact .nil
   · exact isChain_cons_of_isChain_cons_cons p
 
-theorem isChain_of_isChain_cons_cons {a b : α} {l : List α} (p : IsChain R (a :: b :: l)) :
+theorem isChain_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) :
     IsChain R l := isChain_of_isChain_cons (isChain_of_isChain_cons p)
 
 theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b : α⦄, R a b → S a b) {l : List α}
