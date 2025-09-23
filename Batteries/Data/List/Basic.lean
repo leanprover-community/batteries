@@ -579,7 +579,7 @@ instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l :
     go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
       match l with
       | [] => isTrue <| .singleton a
-      | b :: l => haveI := (go b l); decidable_of_iff'  _ isChain_cons_cons
+      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
