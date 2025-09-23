@@ -373,7 +373,7 @@ theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) :
 theorem isChain_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) :
     IsChain R l := isChain_of_isChain_cons (isChain_of_isChain_cons p)
 
-theorem IsChain.imp {S : α → α → Prop} (H : ∀ ⦃a b : α⦄, R a b → S a b) {l : List α}
+theorem IsChain.imp (H : ∀ ⦃a b : α⦄, R a b → S a b)
     (p : IsChain R l) : IsChain S l := by induction p with grind
 
 @[deprecated (since := "2025-09-19")]
