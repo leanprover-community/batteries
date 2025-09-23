@@ -383,8 +383,8 @@ theorem IsChain.cons_of_imp_of_cons (h : ∀ c, R a c → R b c) :
     IsChain R (a :: l) → IsChain R (b :: l) := by cases l <;> grind
 
 @[deprecated "Use IsChain.imp and IsChain.change_head" (since := "2025-09-19")]
-theorem Chain.imp' {S : α → α → Prop} (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
-    (Hab : ∀ ⦃c⦄, R a c → S b c) {l : List α} : IsChain R (a :: l) → IsChain S (b :: l) := by
+theorem Chain.imp' (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
+    (Hab : ∀ ⦃c⦄, R a c → S b c) : IsChain R (a :: l) → IsChain S (b :: l) := by
   cases l with grind [IsChain.imp]
 
 @[deprecated (since := "2025-09-19")]
