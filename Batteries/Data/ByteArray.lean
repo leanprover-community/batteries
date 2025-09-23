@@ -65,8 +65,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### append -/
 
-@[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
-
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
@@ -94,7 +92,8 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
   Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
-@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := by
+  simp [ofFn]
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
@@ -102,7 +101,7 @@ theorem ofFn_succ (f : Fin (n+1) → UInt8) :
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
-  | zero => rfl
+  | zero => simp [ofFn]
   | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
