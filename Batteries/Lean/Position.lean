@@ -11,6 +11,7 @@ public import Lean.Data.Lsp.Utf16
 @[expose] public section
 
 /-- Gets the LSP range of syntax `stx`. -/
+@[deprecated Lean.FileMap.lspRangeOfStx? (since := "2025-09-23")]
 def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range :=
   text.utf8RangeToLspRange <$> stx.getRange?
 
