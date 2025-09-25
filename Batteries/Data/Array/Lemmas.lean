@@ -39,9 +39,9 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
   rcases l with ⟨l⟩
   simp
 
-@[simp, grind =] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
+@[simp] theorem size_eraseIdxIfInBounds (a : Array α) (i : Nat) :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
-  grind [eraseIdxIfInBounds]
+  grind
 
 /-! ### set -/
 
