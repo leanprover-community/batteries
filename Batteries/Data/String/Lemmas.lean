@@ -133,7 +133,7 @@ theorem Valid.le_endPos : ∀ {s p}, Valid s p → p ≤ endPos s
 end Pos
 
 theorem endPos_eq_zero (s : String) : endPos s = 0 ↔ s = "" := by
-  simp [String.ext_iff, ← utf8Len_eq_zero, Pos.ext_iff, endPos]
+  simp [Pos.ext_iff, endPos]
 
 theorem isEmpty_iff (s : String) : isEmpty s ↔ s = "" :=
   (beq_iff_eq ..).trans (endPos_eq_zero _)
@@ -792,10 +792,6 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
-
-@[simp]
-theorem data_eq_nil_iff (s : String) : s.data = [] ↔ s = "" :=
-  ⟨fun h => ext (id h), congrArg data⟩
 
 @[simp]
 theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
