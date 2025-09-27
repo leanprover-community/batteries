@@ -84,9 +84,7 @@ theorem exists_of_findSome?_eq_some' {f : Fin n → Option α} (h : findSome? f 
   grind
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
-    f i = none := by
-  rw [findSome?_eq_none_iff] at h
-  apply h
+    f i = none := findSome?_eq_none_iff.1 h i
 
 theorem exists_of_findSome?_isSome {f : Fin n → Option α} (h : (findSome? f).isSome) :
     ∃ i, (f i).isSome ∧ ∀ j < i, (f j).isNone := by
