@@ -166,7 +166,7 @@ theorem exists_of_find?_isSome' {p : Fin n → Bool} (h : (find? p).isSome) :
   have H := exists_of_find?_isSome h
   grind
 
-theorem isNone_of_find?_isNone  (h : (find? p).isNone) : ¬ p i := by
+theorem isNone_of_find?_isNone (h : (find? p).isNone) : ¬ p i := by
   simp only [Option.isNone_iff_eq_none, find?_eq_none_iff] at h ⊢
   exact h _
 
