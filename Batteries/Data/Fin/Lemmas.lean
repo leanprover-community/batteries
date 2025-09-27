@@ -75,8 +75,8 @@ theorem findSome?_isNone_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
 theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
-    ∃ i, f i = some x ∧ ∀ j < i, f j = none := by
-  rwa [findSome?_eq_some_iff] at h
+    ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
+  findSome?_eq_some_iff.1 h
 
 theorem exists_of_findSome?_eq_some' {f : Fin n → Option α} (h : findSome? f = some x) :
     ∃ i, f i = some x := by
