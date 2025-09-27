@@ -78,6 +78,11 @@ theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f =
     ∃ i, f i = some x ∧ ∀ j < i, f j = none := by
   rwa [findSome?_eq_some_iff] at h
 
+theorem exists_of_findSome?_eq_some' {f : Fin n → Option α} (h : findSome? f = some x) :
+    ∃ i, f i = some x := by
+  rw [findSome?_eq_some_iff] at h
+  grind
+
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := by
   rw [findSome?_eq_none_iff] at h
@@ -86,6 +91,11 @@ theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f 
 theorem exists_of_findSome?_isSome {f : Fin n → Option α} (h : (findSome? f).isSome) :
     ∃ i, (f i).isSome ∧ ∀ j < i, (f j).isNone := by
   rwa [findSome?_isSome_iff] at h
+
+theorem exists_of_findSome?_isSome' {f : Fin n → Option α} (h : (findSome? f).isSome) :
+    ∃ i, (f i).isSome := by
+  rw [findSome?_isSome_iff] at h
+  grind
 
 theorem isNone_of_findSome?_isNone {f : Fin n → Option α} (h : (findSome? f).isNone) :
   (f i).isNone := by
@@ -97,14 +107,9 @@ theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) 
   simp only [Option.isSome_iff_ne_none, ne_eq, findSome?_eq_none_iff]
   grind
 
-
-@[deprecated findSome?_isSome_iff (since := "2025-09-26")]
 theorem findSome?_isSome_iff' {f : Fin n → Option α} :
-    (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
-  constructor
-  · simp only [findSome?_isSome_iff, Option.isNone_iff_eq_none, forall_exists_index, and_imp]
-    exact fun _ h _ => ⟨_, h⟩
-  · exact fun ⟨_, h⟩ => isSome_findSome?_of_isSome h
+    (findSome? f).isSome ↔ ∃ i, (f i).isSome :=
+  ⟨exists_of_findSome?_isSome', fun ⟨_, h⟩ => isSome_findSome?_of_isSome h⟩
 
 theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g ∘ f) := by
@@ -160,6 +165,11 @@ theorem exists_of_find?_isSome {p : Fin n → Bool} (h : (find? p).isSome) :
     ∃ i, p i ∧ ∀ j < i, ¬ p j := by
   rwa [find?_isSome_iff] at h
 
+theorem exists_of_find?_isSome' {p : Fin n → Bool} (h : (find? p).isSome) :
+    ∃ i, p i := by
+  have H := exists_of_find?_isSome h
+  grind
+
 theorem isNone_of_find?_isNone  (h : (find? p).isNone) : ¬ p i := by
   simp only [Option.isNone_iff_eq_none, find?_eq_none_iff] at h ⊢
   exact h _
@@ -169,12 +179,8 @@ theorem isNone_of_find?_isNone  (h : (find? p).isNone) : ¬ p i := by
   simp only [Option.isSome_iff_ne_none, ne_eq, find?_eq_none_iff]
   grind
 
-@[deprecated find?_isSome_iff (since := "2025-09-26")]
-theorem find?_isSome_iff' {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i := by
-  constructor
-  · simp only [find?_isSome_iff, forall_exists_index, and_imp]
-    exact fun _ h _ => ⟨_, h⟩
-  · exact fun ⟨_, h⟩ => isSome_find?_of_isSome h
+theorem find?_isSome_iff' {p : Fin n → Bool} : (find? p).isSome ↔ ∃ i, p i :=
+  ⟨exists_of_find?_isSome', fun ⟨_, h⟩ => isSome_find?_of_isSome h⟩
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
   induction n with
