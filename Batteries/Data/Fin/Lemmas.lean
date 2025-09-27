@@ -96,9 +96,7 @@ theorem exists_of_findSome?_isSome' {f : Fin n → Option α} (h : (findSome? f)
   grind
 
 theorem isNone_of_findSome?_isNone {f : Fin n → Option α} (h : (findSome? f).isNone) :
-  (f i).isNone := by
-  simp only [Option.isNone_iff_eq_none, findSome?_eq_none_iff] at h ⊢
-  exact h _
+    (f i).isNone := findSome?_isNone_iff.1 h i
 
 theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) :
     (findSome? f).isSome := by
