@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
 import Batteries.Util.ProofWanted
+import Batteries.Tactic.Alias
 
 namespace Fin
 
@@ -152,3 +153,18 @@ theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange 
   | succ n ih =>
     rw [find?_succ, List.finRange_succ, List.find?_cons]
     split <;> simp [Function.comp_def, *]
+
+@[deprecated (since := "2025-09-28")]
+alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
+
+@[deprecated (since := "2025-09-28")]
+alias findSome?_isSome_iff := isSome_findSome?_iff
+
+@[deprecated (since := "2025-09-28")]
+alias findSome?_isNone_iff := isNone_findSome?_iff
+
+@[deprecated (since := "2025-09-28")]
+alias find?_isSome_iff := isSome_find?_iff
+
+@[deprecated (since := "2025-09-28")]
+alias find?_isNone_iff := isNone_find?_iff
