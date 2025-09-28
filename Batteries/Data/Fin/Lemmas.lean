@@ -55,12 +55,6 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
       and_true, succ_pos, forall_const, succ_lt_succ_iff, and_left_comm (b := f 0 = none),
       exists_and_left]
 
-@[simp]
-theorem isSome_findSome?_iff {f : Fin n → Option α} :
-    (findSome? f).isSome ↔ ∃ i, (f i).isSome ∧ ∀ j < i, (f j).isNone := by
-  simp only [Option.isSome_iff_exists, findSome?_eq_some_iff, exists_comm, exists_and_right,
-    Option.isNone_iff_eq_none]
-
 @[simp] theorem findSome?_eq_none_iff {f : Fin n → Option α} :
     findSome? f = none ↔ ∀ i, f i = none := by
   induction n with
@@ -74,7 +68,7 @@ theorem isSome_findSome?_iff {f : Fin n → Option α} :
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-theorem isSome_findSome?_iff_exists_isSome {f : Fin n → Option α} :
+@[simp] theorem isSome_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   simp only [Option.isSome_iff_ne_none, ne_eq, findSome?_eq_none_iff, Classical.not_forall]
 
@@ -89,10 +83,6 @@ theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α}
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := findSome?_eq_none_iff.1 h i
-
-theorem exists_of_isSome_findSome? {f : Fin n → Option α} (h : (findSome? f).isSome) :
-    ∃ i, (f i).isSome ∧ ∀ j < i, (f j).isNone := by
-  rwa [isSome_findSome?_iff] at h
 
 theorem exists_isSome_of_isSome_findSome? {f : Fin n → Option α} (h : (findSome? f).isSome) :
     ∃ i, (f i).isSome := by
@@ -139,7 +129,7 @@ theorem find?_eq_some_iff {p : Fin n → Bool} :
   simp [find?, and_assoc]
 
 theorem isSome_find?_iff {p : Fin n → Bool} :
-    (find? p).isSome ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
+    (find? p).isSome ↔ ∃ i, p i := by
   simp [find?]
 
 theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by
@@ -159,14 +149,9 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
   rw [find?_eq_none_iff] at h
   grind
 
-theorem exists_of_isSome_find? {p : Fin n → Bool} (h : (find? p).isSome) :
-    ∃ i, p i ∧ ∀ j < i, ¬ p j := by
-  rwa [isSome_find?_iff] at h
-
 theorem exists_eq_true_of_isSome_find? {p : Fin n → Bool} (h : (find? p).isSome) :
     ∃ i, p i := by
-  have H := exists_of_isSome_find? h
-  grind
+  rwa [isSome_find?_iff] at h
 
 theorem ne_true_of_isNone_find? (h : (find? p).isNone) : ¬ p i := by
   simp only [Option.isNone_iff_eq_none, find?_eq_none_iff] at h ⊢
