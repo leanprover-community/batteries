@@ -120,18 +120,14 @@ theorem find?_succ {p : Fin (n+1) → Bool} :
   split <;> simp [map_findSome?, Function.comp_def, Option.guard]
 
 theorem find?_eq_some_iff {p : Fin n → Bool} :
-    find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j := by
-  simp [find?, and_assoc]
+    find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j := by simp [find?, and_assoc]
 
 theorem isSome_find?_iff {p : Fin n → Bool} :
-    (find? p).isSome ↔ ∃ i, p i := by
-  simp [find?]
+    (find? p).isSome ↔ ∃ i, p i := by simp [find?]
 
-theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by
-  simp [find?]
+theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by simp [find?]
 
-theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by
-  simp [find?]
+theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by simp [find?]
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i :=
     (find?_eq_some_iff.mp h).1
