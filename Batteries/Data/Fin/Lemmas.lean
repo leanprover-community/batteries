@@ -80,8 +80,8 @@ theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   cases h : findSome? f with (simp only [findSome?_eq_none_iff, findSome?_eq_some_iff] at h; grind)
 
-theorem exists_min_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
-    ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
+theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
+    (h : findSome? f = some x) : ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
   findSome?_eq_some_iff.1 h
 
 theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α}
@@ -179,10 +179,10 @@ alias find?_isNone_iff := isNone_find?_iff
 
 /-! ### exists -/
 
-theorem exists_eq_true_iff_exists_min_eq_true (p : Fin n → Bool):
+theorem exists_eq_true_iff_exists_minimal_eq_true (p : Fin n → Bool):
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
   cases h : find? p <;> grind
 
-theorem exists_iff_exists_min (p : Fin n → Prop) [DecidablePred p] :
+theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
-  simpa only [decide_eq_true_eq] using exists_eq_true_iff_exists_min_eq_true (p ·)
+  simpa only [decide_eq_true_eq] using exists_eq_true_iff_exists_minimal_eq_true (p ·)
