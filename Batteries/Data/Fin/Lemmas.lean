@@ -75,8 +75,8 @@ theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
 theorem exists_of_findSome?_eq_some {f : Fin n → Option α} (h : findSome? f = some x) :
-    ∃ i, f i = some x ∧ ∀ j < i, f j = none := by
-  rwa [findSome?_eq_some_iff] at h
+    ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
+  findSome?_eq_some_iff.1 h
 
 theorem exists_of_findSome?_eq_some' {f : Fin n → Option α} (h : findSome? f = some x) :
     ∃ i, f i = some x := by
@@ -84,9 +84,7 @@ theorem exists_of_findSome?_eq_some' {f : Fin n → Option α} (h : findSome? f 
   grind
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
-    f i = none := by
-  rw [findSome?_eq_none_iff] at h
-  apply h
+    f i = none := findSome?_eq_none_iff.1 h i
 
 theorem exists_of_isSome_findSome? {f : Fin n → Option α} (h : (findSome? f).isSome) :
     ∃ i, (f i).isSome ∧ ∀ j < i, (f j).isNone := by
@@ -97,10 +95,15 @@ theorem exists_of_isSome_findSome?' {f : Fin n → Option α} (h : (findSome? f)
   rw [isSome_findSome?_iff] at h
   grind
 
+<<<<<<< HEAD
 theorem isNone_of_isNone_findSome? {f : Fin n → Option α} (h : (findSome? f).isNone) :
   (f i).isNone := by
   simp only [Option.isNone_iff_eq_none, findSome?_eq_none_iff] at h ⊢
   exact h _
+=======
+theorem isNone_of_findSome?_isNone {f : Fin n → Option α} (h : (findSome? f).isNone) :
+    (f i).isNone := findSome?_isNone_iff.1 h i
+>>>>>>> d4dad37a5d5b06603d9cbf9a3a4470273e317c26
 
 theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) :
     (findSome? f).isSome := by
@@ -170,7 +173,11 @@ theorem exists_of_isSome_find?' {p : Fin n → Bool} (h : (find? p).isSome) :
   have H := exists_of_isSome_find? h
   grind
 
+<<<<<<< HEAD
 theorem isNone_of_isNone_find?  (h : (find? p).isNone) : ¬ p i := by
+=======
+theorem isNone_of_find?_isNone (h : (find? p).isNone) : ¬ p i := by
+>>>>>>> d4dad37a5d5b06603d9cbf9a3a4470273e317c26
   simp only [Option.isNone_iff_eq_none, find?_eq_none_iff] at h ⊢
   exact h _
 
