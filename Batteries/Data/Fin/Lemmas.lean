@@ -10,6 +10,24 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
+/-! ### trivialities -/
+
+theorem not_exists_zero (P : Fin 0 → Prop) : ¬ ∃ i, P i := by
+  intro ⟨⟨_, _⟩, _⟩; contradiction
+
+theorem forall_zero (P : Fin 0 → Prop) : ∀ i, P i := by
+  intro ⟨_, _⟩; contradiction
+
+@[simp] theorem exists_one {P : Fin 1 → Prop} : (∃ i, P i) ↔ P 0 := by
+  constructor
+  · intro | ⟨0, _⟩ => assumption
+  · intro; exists 0
+
+@[simp] theorem forall_one {P : Fin 1 → Prop} : (∀ i, P i) ↔ P 0 := by
+  constructor
+  · intro h; apply h
+  · intro | _, ⟨0, _⟩ => assumption
+
 /-! ### clamp -/
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
