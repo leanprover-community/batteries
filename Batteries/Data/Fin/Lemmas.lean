@@ -16,7 +16,7 @@ theorem not_exists_fin_zero (P : Fin 0 → Prop) : ¬ ∃ i, P i := by
   intro ⟨⟨_, _⟩, _⟩; contradiction
 
 -- Forward port from lean4#NNNN
-theorem forall_fin_zero (P : Fin 0 → Prop) : ∀ i, P i := by
+@[simp] theorem forall_fin_zero (P : Fin 0 → Prop) : ∀ i, P i := by
   intro ⟨_, _⟩; contradiction
 
 -- Forward port from lean4#NNNN
