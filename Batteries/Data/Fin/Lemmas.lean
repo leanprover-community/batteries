@@ -352,3 +352,16 @@ theorem exists_eq_true_iff_exists_maximal_eq_true (p : Fin n → Bool):
 
 theorem exists_iff_exists_maximal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j, i < j → ¬ p j := by cases h : findRev? (p ·) <;> grind
+
+theorem find?_le_findRev? {p : Fin n → Bool} : find? p ≤ findRev? p := by
+  cases hl : find? p with | none => exact Option.none_le | some l =>
+  rw [find?_eq_some_iff] at hl; cases hu : findRev? p with
+  | none => simp only [findRev?_eq_none_iff] at hu; grind
+  | some u => simp only [findRev?_eq_some_iff] at hu; grind
+
+theorem map_rev_findRev? {p : Fin n → Bool} : findRev? p = Fin.rev <$> find? fun i => p i.rev := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    simp only [findRev?_succ, find?_succ, apply_ite (rev <$> ·), Option.map_eq_map,
+      Option.map_some, rev_zero, Fin.rev_succ, Option.map_map, Function.comp_def, ih]
