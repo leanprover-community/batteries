@@ -83,20 +83,18 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
   induction n with
   | zero =>
     simp only [findSome?_zero, (Option.some_ne_none _).symm, false_iff]
-    exact fun  ⟨i, _⟩ => i.elim0
+    exact fun ⟨i, _⟩ => i.elim0
   | succ n ih =>
-    simp only [findSome?_succ, Option.or_eq_some_iff, Fin.exists_fin_succ, Fin.forall_fin_succ,
-      not_lt_zero, false_implies, implies_true, and_true, succ_lt_succ_iff, succ_pos,
-      forall_const, ih, and_left_comm (b := f 0 = none), exists_and_left]
+    simp only [findSome?_succ, Option.or_eq_some_iff, exists_fin_succ, forall_fin_succ,
+      succ_lt_succ_iff, succ_pos, not_lt_zero, ih]
+    grind
 
 @[simp, grind =] theorem findSome?_eq_none_iff {f : Fin n → Option α} :
     findSome? f = none ↔ ∀ i, f i = none := by
   induction n with
   | zero =>
-    simp only [findSome?_zero, true_iff]
-    exact fun i => i.elim0
-  | succ n ih =>
-    simp only [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
+    simp only [findSome?_zero, true_iff]; exact fun i => i.elim0
+  | succ n ih => simp only [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
 
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
