@@ -76,9 +76,15 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
+@[deprecated (since := "2025-09-28")]
+alias findSome?_isNone_iff := isNone_findSome?_iff
+
 @[simp] theorem isSome_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   cases h : findSome? f with (simp only [findSome?_eq_none_iff, findSome?_eq_some_iff] at h; grind)
+
+@[deprecated (since := "2025-09-28")]
+alias findSome?_isSome_iff := isSome_findSome?_iff
 
 theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
@@ -86,6 +92,9 @@ theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
 
 theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x := by grind
+
+@[deprecated (since := "2025-09-28")]
+alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := findSome?_eq_none_iff.1 h i
@@ -133,10 +142,16 @@ theorem find?_eq_some_iff {p : Fin n → Bool} :
 theorem isSome_find?_iff {p : Fin n → Bool} :
     (find? p).isSome ↔ ∃ i, p i := by simp [find?]
 
+@[deprecated (since := "2025-09-28")]
+alias find?_isSome_iff := isSome_find?_iff
+
 @[simp, grind =]
 theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, p i = false := by simp [find?]
 
 theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, p i = false := by simp [find?]
+
+@[deprecated (since := "2025-09-28")]
+alias find?_isNone_iff := isNone_find?_iff
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i :=
     (find?_eq_some_iff.mp h).1
@@ -165,21 +180,6 @@ theorem get_find?_minimal {p : Fin n → Bool}  (h : (find? p).isSome) :
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
   (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
-
-@[deprecated (since := "2025-09-28")]
-alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
-
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isSome_iff := isSome_findSome?_iff
-
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isNone_iff := isNone_findSome?_iff
-
-@[deprecated (since := "2025-09-28")]
-alias find?_isSome_iff := isSome_find?_iff
-
-@[deprecated (since := "2025-09-28")]
-alias find?_isNone_iff := isNone_find?_iff
 
 /-! ### exists -/
 
