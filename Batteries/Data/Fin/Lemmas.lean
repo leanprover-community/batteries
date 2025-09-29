@@ -147,7 +147,7 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
-/-! ### Fin.find? -/
+/-! ### find? -/
 
 @[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
 
@@ -204,11 +204,8 @@ theorem get_find?_minimal {p : Fin n → Bool}  (h : (find? p).isSome) :
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
   (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
 
-/-! ### exists -/
-
 theorem exists_eq_true_iff_exists_minimal_eq_true (p : Fin n → Bool):
-    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, p j = false := by
-  cases h : find? p <;> grind
+    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, p j = false := by cases h : find? p <;> grind
 
 theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
