@@ -100,10 +100,10 @@ theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) 
     (findSome? f).isSome := isSome_findSome?_iff.2 ⟨_, h⟩
 
 theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
-    (findSome? f).map g = findSome? (Option.map g ∘ f) := by
+    (findSome? f).map g = findSome? (Option.map g <| f ·) := by
   induction n with
   | zero => rfl
-  | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_or, ih]
+  | succ n ih => simp [findSome?_succ, Option.map_or, ih]
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
@@ -123,44 +123,40 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
-  simp only [find?, findSome?_succ, Option.guard]
-  split <;> simp [map_findSome?, Function.comp_def, Option.guard]
+  simp only [find?, findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
+    Option.some_or, Option.none_or, map_findSome?, Option.map_if]
 
 @[simp, grind =]
 theorem find?_eq_some_iff {p : Fin n → Bool} :
-    find? p = some i ↔ p i ∧ ∀ j, j < i → ¬ p j := by simp [find?, and_assoc]
+    find? p = some i ↔ p i ∧ ∀ j, j < i → p j = false := by simp [find?, and_assoc]
 
 theorem isSome_find?_iff {p : Fin n → Bool} :
     (find? p).isSome ↔ ∃ i, p i := by simp [find?]
 
 @[simp, grind =]
-theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p i := by simp [find?]
+theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, p i = false := by simp [find?]
 
-theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, ¬ p i := by simp [find?]
+theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, p i = false := by simp [find?]
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i :=
     (find?_eq_some_iff.mp h).1
 
-theorem ne_true_of_find?_eq_some_of_lt {p : Fin n → Bool} (h : find? p = some i) :
-    ∀ j < i, ¬ p j := (find?_eq_some_iff.mp h).2
+theorem eq_false_of_find?_eq_some_of_lt {p : Fin n → Bool} (h : find? p = some i) :
+    ∀ j < i, p j = false := (find?_eq_some_iff.mp h).2
 
-theorem ne_true_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) :
-    ¬ p i := find?_eq_none_iff.1 h i
+theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) :
+    p i = false := find?_eq_none_iff.1 h i
 
 theorem exists_eq_true_of_isSome_find? {p : Fin n → Bool} (h : (find? p).isSome) :
     ∃ i, p i := isSome_find?_iff.1 h
 
-theorem ne_true_of_isNone_find? (h : (find? p).isNone) : ¬ p i := isNone_find?_iff.1 h i
+theorem eq_false_of_isNone_find? (h : (find? p).isNone) : p i = false := isNone_find?_iff.1 h i
 
  theorem isSome_find?_of_eq_true (h : p i) :
     (find? p).isSome := isSome_find?_iff.2 ⟨_, h⟩
 
-theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    rw [find?_succ, List.finRange_succ, List.find?_cons]
-    split <;> simp [Function.comp_def, *]
+theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
+  (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
 
 @[deprecated (since := "2025-09-28")]
 alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
@@ -180,9 +176,10 @@ alias find?_isNone_iff := isNone_find?_iff
 /-! ### exists -/
 
 theorem exists_eq_true_iff_exists_minimal_eq_true (p : Fin n → Bool):
-    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
+    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, p j = false := by
   cases h : find? p <;> grind
 
 theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
-  simpa only [decide_eq_true_eq] using exists_eq_true_iff_exists_minimal_eq_true (p ·)
+  simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
+    exists_eq_true_iff_exists_minimal_eq_true (p ·)
