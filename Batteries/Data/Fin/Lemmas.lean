@@ -333,8 +333,8 @@ theorem eq_false_of_isNone_findRev? {p : Fin n → Bool}  (h : (findRev? p).isNo
 theorem isSome_findRev?_of_eq_true {p : Fin n → Bool}  (h : p i) :
     (findRev? p).isSome := isSome_findRev?_iff.2 ⟨_, h⟩
 
-theorem get_findRev?_eq_true {p : Fin n → Bool} (h : (findRev? p).isSome) : p ((findRev? p).get h) :=
-  eq_true_of_findRev?_eq_some (Option.some_get _).symm
+theorem get_findRev?_eq_true {p : Fin n → Bool} (h : (findRev? p).isSome) :
+    p ((findRev? p).get h) := eq_true_of_findRev?_eq_some (Option.some_get _).symm
 
 theorem get_findRev?_minimal {p : Fin n → Bool}  (h : (findRev? p).isSome) :
     ∀ j, (findRev? p).get h < j → p j = false :=
