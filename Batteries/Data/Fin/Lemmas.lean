@@ -194,13 +194,6 @@ theorem eq_false_of_isNone_find? {p : Fin n → Bool} (h : (find? p).isNone) : p
 theorem isSome_find?_of_eq_true {p : Fin n → Bool} (h : p i) :
     (find? p).isSome := isSome_find?_iff.2 ⟨_, h⟩
 
-theorem map_find? (f : Fin n → Bool) (g : Fin n → Fin n) :
-    (find? p).map g = find? (p <| g ·) := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    simp only [find?_succ, apply_ite (Option.map g ·), Option.map_some, Option.map_map]
-
 theorem get_find?_eq_true {p : Fin n → Bool} (h : (find? p).isSome) : p ((find? p).get h) :=
   eq_true_of_find?_eq_some (Option.some_get _).symm
 
