@@ -12,12 +12,11 @@ namespace Fin
 attribute [norm_cast] val_last
 
 -- Forward port from lean4#NNNN
-theorem not_exists_fin_zero (P : Fin 0 → Prop) : ¬ ∃ i, P i := by
-  intro ⟨⟨_, _⟩, _⟩; contradiction
+@[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
+  rw [iff_true]; intro ⟨_, _⟩; contradiction
 
 -- Forward port from lean4#NNNN
-theorem forall_fin_zero (P : Fin 0 → Prop) : ∀ i, P i := by
-  intro ⟨_, _⟩; contradiction
+theorem not_exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
 
 -- Forward port from lean4#NNNN
 attribute [simp] Fin.exists_fin_one Fin.forall_fin_one
