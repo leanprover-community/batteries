@@ -188,16 +188,23 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
 theorem exists_eq_true_of_isSome_find? {p : Fin n → Bool} (h : (find? p).isSome) :
     ∃ i, p i := isSome_find?_iff.1 h
 
-theorem eq_false_of_isNone_find? {p : Fin n → Bool}  (h : (find? p).isNone) : p i = false :=
+theorem eq_false_of_isNone_find? {p : Fin n → Bool} (h : (find? p).isNone) : p i = false :=
   isNone_find?_iff.1 h i
 
-theorem isSome_find?_of_eq_true {p : Fin n → Bool}  (h : p i) :
+theorem isSome_find?_of_eq_true {p : Fin n → Bool} (h : p i) :
     (find? p).isSome := isSome_find?_iff.2 ⟨_, h⟩
+
+theorem map_find? (f : Fin n → Bool) (g : Fin n → Fin n) :
+    (find? p).map g = find? (p <| g ·) := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    simp only [find?_succ, apply_ite (Option.map g ·), Option.map_some, Option.map_map]
 
 theorem get_find?_eq_true {p : Fin n → Bool} (h : (find? p).isSome) : p ((find? p).get h) :=
   eq_true_of_find?_eq_some (Option.some_get _).symm
 
-theorem get_find?_minimal {p : Fin n → Bool}  (h : (find? p).isSome) :
+theorem get_find?_minimal {p : Fin n → Bool} (h : (find? p).isSome) :
     ∀ j, j < (find? p).get h → p j = false :=
   eq_false_of_find?_eq_some_of_lt (Option.some_get _).symm
 
@@ -327,16 +334,16 @@ theorem eq_false_of_findRev?_eq_none {p : Fin n → Bool} (h : findRev? p = none
 theorem exists_eq_true_of_isSome_findRev? {p : Fin n → Bool} (h : (findRev? p).isSome) :
     ∃ i, p i := isSome_findRev?_iff.1 h
 
-theorem eq_false_of_isNone_findRev? {p : Fin n → Bool}  (h : (findRev? p).isNone) : p i = false :=
+theorem eq_false_of_isNone_findRev? {p : Fin n → Bool} (h : (findRev? p).isNone) : p i = false :=
   isNone_findRev?_iff.1 h i
 
-theorem isSome_findRev?_of_eq_true {p : Fin n → Bool}  (h : p i) :
+theorem isSome_findRev?_of_eq_true {p : Fin n → Bool} (h : p i) :
     (findRev? p).isSome := isSome_findRev?_iff.2 ⟨_, h⟩
 
 theorem get_findRev?_eq_true {p : Fin n → Bool} (h : (findRev? p).isSome) :
     p ((findRev? p).get h) := eq_true_of_findRev?_eq_some (Option.some_get _).symm
 
-theorem get_findRev?_minimal {p : Fin n → Bool}  (h : (findRev? p).isSome) :
+theorem get_findRev?_minimal {p : Fin n → Bool} (h : (findRev? p).isSome) :
     ∀ j, (findRev? p).get h < j → p j = false :=
   eq_false_of_findRev?_eq_some_of_lt (Option.some_get _).symm
 
