@@ -150,10 +150,14 @@ theorem eq_false_of_find?_eq_none {p : Fin n → Bool} (h : find? p = none) (i) 
 theorem exists_eq_true_of_isSome_find? {p : Fin n → Bool} (h : (find? p).isSome) :
     ∃ i, p i := isSome_find?_iff.1 h
 
-theorem eq_false_of_isNone_find? (h : (find? p).isNone) : p i = false := isNone_find?_iff.1 h i
+theorem eq_false_of_isNone_find? {p : Fin n → Bool}  (h : (find? p).isNone) : p i = false :=
+  isNone_find?_iff.1 h i
 
- theorem isSome_find?_of_eq_true (h : p i) :
+theorem isSome_find?_of_eq_true {p : Fin n → Bool}  (h : p i) :
     (find? p).isSome := isSome_find?_iff.2 ⟨_, h⟩
+
+theorem get_find? {p : Fin n → Bool}  (h : (find? p).isSome) : p ((find? p).get h) :=
+  eq_true_of_find?_eq_some (Option.some_get _).symm
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
   (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
