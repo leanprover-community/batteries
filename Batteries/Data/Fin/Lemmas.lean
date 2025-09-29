@@ -139,6 +139,7 @@ theorem find?_succ {p : Fin (n+1) → Bool} :
 theorem find?_eq_some_iff {p : Fin n → Bool} :
     find? p = some i ↔ p i ∧ ∀ j, j < i → p j = false := by simp [find?, and_assoc]
 
+@[simp]
 theorem isSome_find?_iff {p : Fin n → Bool} :
     (find? p).isSome ↔ ∃ i, p i := by simp [find?]
 
@@ -191,3 +192,21 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
   simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
     exists_eq_true_iff_exists_minimal_eq_true (p ·)
+
+/-! ### any/all -/
+
+theorem any_eq_true_iff {p : Fin n → Bool} : Fin.any p = true ↔ ∃ i, p i = true := by simp
+
+theorem any_eq_false_iff {p : Fin n → Bool} : Fin.any p = false ↔ ∀ i, p i = false := by simp
+
+theorem all_eq_true_iff {p : Fin n → Bool} : Fin.all p = true ↔ ∀ i, p i = true := by simp
+
+theorem all_eq_false_iff {p : Fin n → Bool} : Fin.all p = false ↔ ∃ i, p i = false := by simp
+
+-- The instance in Lean is not tail recursive and leads to stack overflow.
+instance (p : Fin n → Prop) [DecidablePred p] : Decidable (∃ i, p i) :=
+  decidable_of_iff (Fin.any (p ·) = true) (by simp)
+
+-- The instance in Lean is not tail recursive and leads to stack overflow.
+instance (p : Fin n → Prop) [DecidablePred p] : Decidable (∀ i, p i) :=
+  decidable_of_iff (Fin.all (p ·) = true) (by simp)

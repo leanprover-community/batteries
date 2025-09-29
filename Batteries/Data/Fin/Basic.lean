@@ -96,3 +96,17 @@ The function `p` is not evaluated on further inputs after the first `i` is found
 -/
 @[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
   findSome? <| Option.guard fun i => p i
+
+/--
+Returns true if `p i` is true for some `i`.
+
+Short-circuits upon encountering the first true.
+-/
+protected abbrev any (p : Fin n → Bool) := find? p |>.isSome
+
+/--
+Returns true if `p i` is true for every `i`.
+
+Short-circuits upon encountering the first false.
+-/
+protected abbrev all (p : Fin n → Bool) := find? (! p ·) |>.isNone
