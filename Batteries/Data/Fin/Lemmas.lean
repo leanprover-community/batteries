@@ -11,6 +11,23 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
+/-! ### last -/
+
+@[simp] theorem not_last_lt (a : Fin (n + 1)) : ¬(last n) < a := Fin.not_lt.mpr (le_last a)
+
+/-! ### exists, forall -/
+
+-- TODO: deprecate duplicates in Mathlib
+
+theorem forall_fin_succ_last {P : Fin (n + 1) → Prop} :
+    (∀ i, P i) ↔ P (.last _) ∧ (∀ i : Fin n, P i.castSucc) :=
+  ⟨fun H => ⟨H _, fun _ => H _⟩, fun ⟨H0, H1⟩ i => i.lastCases H0 H1⟩
+
+theorem exists_fin_succ_last {P : Fin (n + 1) → Prop} :
+    (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) :=
+  ⟨fun ⟨i, h⟩ => i.lastCases Or.inl (fun i hi => Or.inr ⟨i, hi⟩) h,
+    fun h => h.elim (fun h => ⟨_, h⟩) (fun ⟨_, hi⟩ => ⟨_, hi⟩)⟩
+
 /-! ### foldl/foldr -/
 
 theorem foldl_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
@@ -21,9 +38,17 @@ theorem foldl_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
 
 theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
     foldr n (fun i x => op (f i) x) (op a₁ a₂) = op (foldr n (fun i x => op (f i) x) a₁) a₂ := by
-  induction n generalizing a₂ with
-  | zero => rfl
-  | succ n ih => simp only [foldr_succ, ha.assoc, ih]
+  simp only [← Fin.foldl_rev]
+  haveI : Std.Associative (flip op) := ⟨fun a b c => (ha.assoc c b a).symm⟩
+  exact foldl_assoc (op := flip op)
+
+theorem foldr_assoc_flip {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
+    foldr n (fun i x => op x (f i)) (op a₁ a₂) = op a₁ (foldr n (fun i x => op x (f i)) a₂) := by
+  simp only [← Fin.foldl_rev, foldl_assoc]
+
+theorem foldl_assoc_flip {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
+    foldl n (fun x i => op (f i) x) (op a₁ a₂) = op (foldl n (fun x i => op (f i) x) a₁) a₂ := by
+  simp only [← Fin.foldr_rev, foldr_assoc]
 
 /-! ### clamp -/
 
