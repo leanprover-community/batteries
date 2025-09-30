@@ -11,15 +11,15 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
--- Forward port from lean4#NNNN
+-- Forward port from lean4#10627
 @[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
   rw [iff_true]; intro ⟨_, _⟩; contradiction
 
--- Forward port from lean4#NNNN
+-- Forward port from lean4#10627
 theorem exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
 
--- Forward port from lean4#NNNN
-attribute [simp] Fin.exists_fin_one Fin.forall_fin_one
+-- Forward port from lean4#10627
+attribute [simp] exists_fin_one forall_fin_one exists_fin_two forall_fin_two
 
 /-! ### foldl/foldr -/
 
