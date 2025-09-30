@@ -7,7 +7,7 @@ module
 
 public import Batteries.Control.AlternativeMonad
 
-@[expose] public section
+public section
 
 /-! # Monadic lazy lists.
 
@@ -31,7 +31,7 @@ private structure Spec (m : Type u → Type u) where
   uncons : [Monad m] → listM α → m (Option (α × listM α))
   uncons? : listM α → Option (Option (α × listM α))
 
-instance : Nonempty (Spec m) := .intro
+private instance : Nonempty (Spec m) := .intro
   { listM := fun _ => PUnit
     nil := ⟨⟩
     cons := fun _ _ => ⟨⟩

@@ -7,8 +7,9 @@ module
 
 public import Lean.Meta.Tactic.Intro
 public import Batteries.Control.AlternativeMonad
+import Lean.Meta.SynthInstance
 
-@[expose] public section
+public section
 
 open Lean Lean.Meta
 
