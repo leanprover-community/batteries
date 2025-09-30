@@ -6,6 +6,7 @@ Authors: Sebastian Ullrich
 module
 
 public import Batteries.Control.LawfulMonadState
+import all Init.Control.Option
 
 @[expose] public section
 
@@ -20,9 +21,9 @@ namespace OptionT
 @[ext] theorem ext {x x' : OptionT m α} (h : x.run = x'.run) : x = x' := h
 
 @[simp] theorem run_mk {m : Type _ → Type _} (x : m (Option α)) :
-    OptionT.run (OptionT.mk x) = x := rfl
+    OptionT.run (OptionT.mk x) = x := (rfl)
 
-@[simp] theorem run_pure (a) [Monad m] : (pure a : OptionT m α).run = pure (some a) := rfl
+@[simp] theorem run_pure (a) [Monad m] : (pure a : OptionT m α).run = pure (some a) := (rfl)
 
 @[simp] theorem run_bind (f : α → OptionT m β) [Monad m] :
     (x >>= f).run = Option.elimM x.run (pure none) (run ∘ f) := by
@@ -54,7 +55,7 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
       refine bind_congr fun | some x => by simp [Option.elimM] | none => by simp)
     (pure_bind := by intros; apply OptionT.ext; simp)
 
-@[simp] theorem run_failure [Monad m] : (failure : OptionT m α).run = pure none := rfl
+@[simp] theorem run_failure [Monad m] : (failure : OptionT m α).run = pure none := (rfl)
 
 @[simp] theorem run_orElse [Monad m] (x : OptionT m α) (y : OptionT m α) :
     (x <|> y).run = Option.elimM x.run y.run (pure ∘ some) :=
@@ -75,7 +76,7 @@ instance (m) [Monad m] [LawfulMonad m] : LawfulMonad (OptionT m) :=
   refine bind_congr (fun | some _ => by simp [Option.elim] | none => by simp [Option.elim])
 
 @[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
-    (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := rfl
+    (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := (rfl)
 
 instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (OptionT m) where
