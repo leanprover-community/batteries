@@ -16,7 +16,7 @@ attribute [norm_cast] val_last
   rw [iff_true]; intro ⟨_, _⟩; contradiction
 
 -- Forward port from lean4#10627
-theorem exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
+@[simp] theorem exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
 
 -- Forward port from lean4#10627
 attribute [simp] exists_fin_one forall_fin_one exists_fin_two forall_fin_two
