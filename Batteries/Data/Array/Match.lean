@@ -114,7 +114,7 @@ protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n 
   /-- Matcher state. -/
   state : Fin (m.table.size + 1) := 0
 
-private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
+def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
     (it : IterM (α := m.Iterator σ n α) n σ) :
     it.internalState.inner.Step (α := σ) → IterStep (IterM (α := m.Iterator σ n α) n σ) σ
   | .done _ => .done

@@ -20,9 +20,9 @@ attribute [norm_cast] val_last
 
 /-! ### findSome? -/
 
-@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
+@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := by simp [findSome?]
 
-@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
+@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := by simp [findSome?, foldl_succ]
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
@@ -31,7 +31,7 @@ theorem findSome?_succ {f : Fin (n+1) → Option α} :
   · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
   · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
     induction n with
-    | zero => rfl
+    | zero => simp
     | succ n ih => rw [foldl_succ, Option.orElse_some, ih (f := fun i => f i.succ)]
 
 theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
@@ -106,7 +106,7 @@ theorem findSome?_isNone_iff {f : Fin n → Option α} :
 theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g ∘ f) := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp [findSome?_succ, Function.comp_def, Option.map_or, ih]
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
@@ -114,16 +114,17 @@ theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
 /-! ### Fin.find? -/
 
-@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
+@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp [find?]
 
-@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
+  simp only [find?, findSome?_one, Fin.isValue]; rfl
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
@@ -158,7 +159,7 @@ theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, ¬ p 
 
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     rw [find?_succ, List.finRange_succ, List.find?_cons]
     split <;> simp [Function.comp_def, *]
