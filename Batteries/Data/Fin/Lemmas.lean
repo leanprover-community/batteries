@@ -199,9 +199,18 @@ theorem any_eq_true_iff {p : Fin n → Bool} : Fin.any p = true ↔ ∃ i, p i =
 
 theorem any_eq_false_iff {p : Fin n → Bool} : Fin.any p = false ↔ ∀ i, p i = false := by simp
 
+theorem any_eq_all_finRange {p : Fin n → Bool} : Fin.any p = (List.finRange n).any p := by
+  rw [Bool.eq_iff_iff]
+  simp only [Fin.any, find?_eq_find?_finRange, List.find?_isSome, List.any_eq, decide_eq_true_eq]
+
 theorem all_eq_true_iff {p : Fin n → Bool} : Fin.all p = true ↔ ∀ i, p i = true := by simp
 
 theorem all_eq_false_iff {p : Fin n → Bool} : Fin.all p = false ↔ ∃ i, p i = false := by simp
+
+theorem all_eq_all_finRange {p : Fin n → Bool} : Fin.all p = (List.finRange n).all p := by
+  rw [Bool.eq_iff_iff]
+  simp only [Fin.all, find?_eq_find?_finRange, Option.isNone_iff_eq_none, List.find?_eq_none,
+    Bool.not_eq_eq_eq_not, Bool.not_true, Bool.not_eq_false, List.all_eq, decide_eq_true_eq]
 
 -- The instance in Lean is not tail recursive and leads to stack overflow.
 instance (p : Fin n → Prop) [DecidablePred p] : Decidable (∃ i, p i) :=
