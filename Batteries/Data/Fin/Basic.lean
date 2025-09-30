@@ -83,11 +83,11 @@ This is the dependent version of `Fin.foldl`. -/
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   dfoldlM (m := Id) n α f init
 
-/-- Sum of a list indexed by `Fin n`. -/
+/-- Sum of a tuple indexed by `Fin n`. -/
 protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
   foldr n (x · + ·) 0
 
-/-- Product of a list indexed by `Fin n`. -/
+/-- Product of a tuple indexed by `Fin n`. -/
 protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
   foldr n (x · * ·) 1
 
