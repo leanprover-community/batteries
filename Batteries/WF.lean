@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Miyahara Kō
 -/
 module
+import all Init.Prelude
+import all Init.WF
 
 @[expose] public section
 
@@ -108,7 +110,7 @@ def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : {
 
 @[simp]
 theorem val_wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) :
-    (h.wrap x).val = x := rfl
+    (h.wrap x).val = x := (rfl)
 
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/

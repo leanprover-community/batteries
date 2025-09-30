@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma, Quang Dao
 -/
 module
+import all Init.Control.StateRef
 
 @[expose] public section
 
