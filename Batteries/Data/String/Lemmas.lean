@@ -100,7 +100,8 @@ namespace Pos.Raw
 -- TODO(kmill): add `@[ext]` attribute to `String.Pos.ext` in core.
 attribute [ext (iff := false)] ext
 
-theorem lt_addChar (p : Pos.Raw) (c : Char) : p < p + c := Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
+theorem lt_addChar (p : Pos.Raw) (c : Char) : p < p + c :=
+  Nat.lt_add_of_pos_right (Char.utf8Size_pos _)
 
 private theorem zero_ne_addChar {i : Pos.Raw} {c : Char} : 0 ≠ i + c :=
   ne_of_lt add_utf8Size_pos
@@ -112,8 +113,8 @@ inductive Valid : String → Pos.Raw → Prop where
   -/
   | mk (cs cs' : List Char) {p} (hp : p.1 = utf8Len cs) : Valid (String.mk (cs ++ cs')) p
 
-theorem Valid.intro {s : String} {p : Pos.Raw} (h : ∃ cs cs', cs ++ cs' = s.data ∧ p.1 = utf8Len cs) :
-    Valid s p := by
+theorem Valid.intro {s : String} {p : Pos.Raw}
+    (h : ∃ cs cs', cs ++ cs' = s.data ∧ p.1 = utf8Len cs) : Valid s p := by
   obtain ⟨cs, cs', h₁, h₂⟩ := h
   rw [← String.asString_data (b := s), ← h₁]
   exact .mk cs cs' h₂
@@ -395,8 +396,8 @@ theorem extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
     e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
 | [], t, i, _, rfl => by cases t <;> simp [go₂]
 | c :: cs, t, i, _, rfl => by
-  simp only [List.cons_append, utf8Len_cons, go₂, Pos.Raw.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte,
-    Pos.Raw.addChar_eq, List.cons.injEq, true_and]
+  simp only [List.cons_append, utf8Len_cons, go₂, Pos.Raw.ext_iff, ne_add_utf8Size_add_self,
+    ↓reduceIte, Pos.Raw.addChar_eq, List.cons.injEq, true_and]
   apply go₂_append_left; rw [Nat.add_right_comm, Nat.add_assoc]
 
 theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
@@ -414,16 +415,16 @@ theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
 
 theorem extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos.Raw) :
     go₁ (c :: cs) 0 (b + c) (e + c) = go₁ cs 0 b e := by
-  simp only [go₁, Pos.Raw.ext_iff, Pos.Raw.byteIdx_zero, pos_add_char, Nat.ne_of_lt add_utf8Size_pos,
-    ↓reduceIte]
+  simp only [go₁, Pos.Raw.ext_iff, Pos.Raw.byteIdx_zero, pos_add_char,
+    Nat.ne_of_lt add_utf8Size_pos, ↓reduceIte]
   apply go₁_add_right_cancel
 
 theorem extract.go₁_append_right : ∀ (s t : List Char) (i b : Nat) (e : Pos.Raw),
     b = utf8Len s + i → go₁ (s ++ t) ⟨i⟩ ⟨b⟩ e = go₂ t ⟨b⟩ e
 | [], t, i, _, e, rfl => by cases t <;> simp [go₁, go₂]
 | c :: cs, t, i, _, e, rfl => by
-  simp only [go₁, utf8Len_cons, Pos.Raw.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte, List.cons_append,
-    Pos.Raw.addChar_eq]
+  simp only [go₁, utf8Len_cons, Pos.Raw.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte,
+    List.cons_append, Pos.Raw.addChar_eq]
   apply go₁_append_right; rw [Nat.add_right_comm, Nat.add_assoc]
 
 theorem extract.go₁_zero_utf8Len (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩ = s :=
@@ -440,8 +441,8 @@ theorem extract_zero_endPos (s : String) : s.extract 0 (endPos s) = s := by
   match l with
   | [] => rfl
   | c :: cs =>
-    simp only [extract, Pos.Raw.byteIdx_zero, endPos_asString, utf8Len_cons, ge_iff_le, Nat.le_zero_eq,
-      Nat.ne_of_gt add_utf8Size_pos, ↓reduceIte, List.data_asString]
+    simp only [extract, Pos.Raw.byteIdx_zero, endPos_asString, utf8Len_cons, ge_iff_le,
+      Nat.le_zero_eq, Nat.ne_of_gt add_utf8Size_pos, ↓reduceIte, List.data_asString]
     congr
     apply extract.go₁_zero_utf8Len
 
@@ -898,7 +899,8 @@ theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     rw [if_neg (mt Pos.Raw.ext_iff.1 <| Ne.symm ?a)]
     case a => simpa [Nat.add_comm] using @ne_add_utf8Size_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
-    simp only [List.append_assoc, utf8Len_append, Nat.add_assoc, Pos.Raw.add_eq] at this ⊢; rw [this]
+    simp only [List.append_assoc, utf8Len_append, Nat.add_assoc,
+      Pos.Raw.add_eq] at this ⊢; rw [this]
     simp [Nat.add_sub_cancel_left]
 
 theorem nextn_stop : ∀ {s}, ValidFor l m r s → ∀ n, s.nextn n ⟨utf8Len m⟩ = ⟨utf8Len m⟩
