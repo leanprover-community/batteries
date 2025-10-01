@@ -51,7 +51,7 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
 /-- A computable version of `Acc.rec`. Workaround until Lean has native support for this. -/
-@[specialize, elab_as_elim, semireducible] private def recC {motive : (a : α) → Acc r a → Sort v}
+@[specialize, elab_as_elim, semireducible] def recC {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
@@ -65,7 +65,7 @@ private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     recC intro (Acc.intro _ h) = intro a h (fun y hr => recC intro (h y hr)) :=
   rfl
 
-@[csimp] private theorem rec_eq_recC : @Acc.rec = @Acc.recC := by
+@[csimp] theorem rec_eq_recC : @Acc.rec = @Acc.recC := by
   funext α r motive intro a t
   induction t with
   | intro x h ih =>
@@ -73,21 +73,21 @@ private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
     congr; funext y hr; exact ih _ hr
 
 /-- A computable version of `Acc.ndrec`. Workaround until Lean has native support for this. -/
-@[inline] private abbrev ndrecC {C : α → Sort v}
+@[inline] abbrev ndrecC {C : α → Sort v}
     (m : (x : α) → ((y : α) → r y x → Acc r y) → ((y : α) → (a : r y x) → C y) → C x)
     {a : α} (n : Acc r a) : C a :=
   n.recC m
 
-@[csimp] private theorem ndrec_eq_ndrecC : @Acc.ndrec = @Acc.ndrecC := by
+@[csimp] theorem ndrec_eq_ndrecC : @Acc.ndrec = @Acc.ndrecC := by
   funext α r motive intro a t
   rw [Acc.ndrec, rec_eq_recC, Acc.ndrecC]
 
 /-- A computable version of `Acc.ndrecOn`. Workaround until Lean has native support for this. -/
-@[inline] private abbrev ndrecOnC {C : α → Sort v} {a : α} (n : Acc r a)
+@[inline] abbrev ndrecOnC {C : α → Sort v} {a : α} (n : Acc r a)
     (m : (x : α) → ((y : α) → r y x → Acc r y) → ((y : α) → r y x → C y) → C x) : C a :=
   n.recC m
 
-@[csimp] private theorem ndrecOn_eq_ndrecOnC : @Acc.ndrecOn = @Acc.ndrecOnC := by
+@[csimp] theorem ndrecOn_eq_ndrecOnC : @Acc.ndrecOn = @Acc.ndrecOnC := by
   funext α r motive intro a t
   rw [Acc.ndrecOn, rec_eq_recC, Acc.ndrecOnC]
 
@@ -114,23 +114,23 @@ theorem val_wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x :
 
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
-@[inline] private def fixFC {α : Sort u} {r : α → α → Prop}
+@[inline] def fixFC {α : Sort u} {r : α → α → Prop}
     {C : α → Sort v} (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) (a : Acc r x) : C x := by
   induction a using Acc.recC with
   | intro x₁ _ ih => exact F x₁ ih
 
-@[csimp] private theorem fixF_eq_fixFC : @fixF = @fixFC := by
+@[csimp] theorem fixF_eq_fixFC : @fixF = @fixFC := by
   funext α r C F x a
   rw [fixF, Acc.rec_eq_recC, fixFC]
 
 /-- A computable version of `fix`. Workaround until Lean has native support for this. -/
-@[specialize] private def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
+@[specialize] def fixC {α : Sort u} {C : α → Sort v} {r : α → α → Prop}
     (hwf : WellFounded r) (F : ∀ x, (∀ y, r y x → C y) → C x) (x : α) : C x :=
   F x (fun y _ => fixC hwf F y)
 termination_by hwf.wrap x
 
 unseal fixC
 
-@[csimp] private theorem fix_eq_fixC : @fix = @fixC := rfl
+@[csimp] theorem fix_eq_fixC : @fix = @fixC := rfl
 
 end WellFounded

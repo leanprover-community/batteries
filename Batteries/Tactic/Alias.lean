@@ -84,11 +84,14 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
  -/
-elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
+elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command => do
+  Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     let name ← realizeGlobalConstNoOverloadWithInfo name
-    let cinfo ← getConstInfo name
+    let cinfo ← withoutExporting do  -- to get access to `thmDecl` below
+      getConstInfo name
     let declMods ← elabModifiers mods
+    Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let declMods := { declMods with
       computeKind :=
@@ -172,11 +175,13 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
-    "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command =>
+    "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command => do
+  Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     let name ← realizeGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
+    Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let thm ← getConstInfo name
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
