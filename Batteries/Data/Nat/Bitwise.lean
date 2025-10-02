@@ -68,17 +68,17 @@ theorem eq_of_xor_eq_zero {x y : Nat} : x ^^^ y = 0 → x = y := by
 
 /-! ### injectivity lemmas -/
 
-theorem xor_right_injective {x y z : Nat} : x ^^^ y = x ^^^ z → y = z := by
-  intro h; rw [← xor_xor_cancel_left x y, ← xor_xor_cancel_left x z, h]
+theorem xor_right_injective {x : Nat} : Function.Injective (x ^^^ ·) := by
+  intro y z h; rw [← xor_xor_cancel_left x y, ← xor_xor_cancel_left x z]; simp only [h]
 
-theorem xor_right_inj {x y z : Nat} : x ^^^ y = x ^^^ z ↔ y = z :=
-  ⟨xor_right_injective, fun | rfl => rfl⟩
+theorem xor_left_injective {x : Nat} : Function.Injective (· ^^^ x) := by
+  intro y z h; rw [← xor_xor_cancel_right y x, ← xor_xor_cancel_right z x]; simp only [h]
 
-theorem xor_left_injective {x y z : Nat} : x ^^^ z = y ^^^ z → x = y := by
-  intro h; rw [← xor_xor_cancel_right x z, ← xor_xor_cancel_right y z, h]
+@[simp] theorem xor_right_inj {x y z : Nat} : x ^^^ y = x ^^^ z ↔ y = z :=
+  ⟨(xor_right_injective ·), fun | rfl => rfl⟩
 
-theorem xor_left_inj {x y z : Nat} : x ^^^ z = y ^^^ z ↔ x = y :=
-  ⟨xor_left_injective, fun | rfl => rfl⟩
+@[simp] theorem xor_left_inj {x y z : Nat} : x ^^^ z = y ^^^ z ↔ x = y :=
+  ⟨(xor_left_injective ·), fun | rfl => rfl⟩
 
 theorem and_or_right_injective {m x y : Nat} : x &&& m = y &&& m → x ||| m = y ||| m → x = y := by
   intro ha ho
