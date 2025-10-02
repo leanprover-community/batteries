@@ -25,7 +25,7 @@ def toAsciiByteArray (s : String) : ByteArray :=
   Internal implementation of `toAsciiByteArray`.
   `loop p out = out ++ toAsciiByteArray ({ s with startPos := p } : Substring)`
   -/
-  loop (p : Pos) (out : ByteArray) : ByteArray :=
+  loop (p : Pos.Raw) (out : ByteArray) : ByteArray :=
     if h : s.atEnd p then out else
     let c := s.get p
     have : utf8ByteSize s - (next s p).byteIdx < utf8ByteSize s - p.byteIdx :=

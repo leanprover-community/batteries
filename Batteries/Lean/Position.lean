@@ -12,7 +12,7 @@ def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range 
   text.utf8RangeToLspRange <$> stx.getRange?
 
 /-- Return the beginning of the line contatining character `pos`. -/
-def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
+def Lean.findLineStart (s : String) (pos : String.Pos.Raw) : String.Pos.Raw :=
   match s.revFindAux (· = '\n') pos with
   | none => 0
   | some n => ⟨n.byteIdx + 1⟩
@@ -21,7 +21,7 @@ def Lean.findLineStart (s : String) (pos : String.Pos) : String.Pos :=
 Return the indentation (number of leading spaces) of the line containing `pos`,
 and whether `pos` is the first non-whitespace character in the line.
 -/
-def Lean.findIndentAndIsStart (s : String) (pos : String.Pos) : Nat × Bool :=
+def Lean.findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
   let start := findLineStart s pos
   let body := s.findAux (· ≠ ' ') pos start
   ((body - start).1, body == pos)
