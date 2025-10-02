@@ -66,6 +66,8 @@ theorem eq_of_xor_eq_zero {x y : Nat} : x ^^^ y = 0 → x = y := by
 @[simp] theorem xor_eq_zero_iff {x y : Nat} : x ^^^ y = 0 ↔ x = y :=
   ⟨eq_of_xor_eq_zero, fun | rfl => Nat.xor_self _⟩
 
+theorem xor_ne_zero_iff {x y : Nat} : x ^^^ y ≠ 0 ↔ x ≠ y := by simp
+
 /-! ### injectivity lemmas -/
 
 theorem xor_right_injective {x : Nat} : Function.Injective (x ^^^ ·) := by
