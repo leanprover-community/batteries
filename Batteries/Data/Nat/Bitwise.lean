@@ -68,34 +68,34 @@ theorem eq_of_xor_eq_zero {x y : Nat} : x ^^^ y = 0 → x = y := by
 
 /-! ### injectivity lemmas -/
 
-theorem xor_inj_right {x y z : Nat} : x ^^^ y = x ^^^ z → y = z := by
+theorem xor_right_injective {x y z : Nat} : x ^^^ y = x ^^^ z → y = z := by
   intro h; rw [← xor_xor_cancel_left x y, ← xor_xor_cancel_left x z, h]
 
-theorem xor_inj_right_iff {x y z : Nat} : x ^^^ y = x ^^^ z ↔ y = z :=
-  ⟨xor_inj_right, fun | rfl => rfl⟩
+theorem xor_right_inj {x y z : Nat} : x ^^^ y = x ^^^ z ↔ y = z :=
+  ⟨xor_right_injective, fun | rfl => rfl⟩
 
-theorem xor_inj_left {x y z : Nat} : x ^^^ z = y ^^^ z → x = y := by
+theorem xor_left_injective {x y z : Nat} : x ^^^ z = y ^^^ z → x = y := by
   intro h; rw [← xor_xor_cancel_right x z, ← xor_xor_cancel_right y z, h]
 
-theorem xor_inj_left_iff {x y z : Nat} : x ^^^ z = y ^^^ z ↔ x = y :=
-  ⟨xor_inj_left, fun | rfl => rfl⟩
+theorem xor_left_inj {x y z : Nat} : x ^^^ z = y ^^^ z ↔ x = y :=
+  ⟨xor_left_injective, fun | rfl => rfl⟩
 
-theorem and_or_inj_right {m x y : Nat} : x &&& m = y &&& m → x ||| m = y ||| m → x = y := by
+theorem and_or_right_injective {m x y : Nat} : x &&& m = y &&& m → x ||| m = y ||| m → x = y := by
   intro ha ho
   apply Nat.eq_of_testBit_eq
   intro i
   rw [← Bool.and_or_inj_right_iff (m := m.testBit i)]
   simp [← testBit_and, ← testBit_or, ha, ho]
 
-theorem and_or_inj_right_iff {m x y : Nat} : x &&& m = y &&& m ∧ x ||| m = y ||| m ↔ x = y :=
-  ⟨fun ⟨ha, ho⟩ => and_or_inj_right ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
+theorem and_or_right_inj {m x y : Nat} : x &&& m = y &&& m ∧ x ||| m = y ||| m ↔ x = y :=
+  ⟨fun ⟨ha, ho⟩ => and_or_right_injective ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
 
-theorem and_or_inj_left {m x y : Nat} : m &&& x = m &&& y → m ||| x = m ||| y → x = y := by
+theorem and_or_left_injective {m x y : Nat} : m &&& x = m &&& y → m ||| x = m ||| y → x = y := by
   intro ha ho
   apply Nat.eq_of_testBit_eq
   intro i
   rw [← Bool.and_or_inj_left_iff (m := m.testBit i)]
   simp [← testBit_and, ← testBit_or, ha, ho]
 
-theorem and_or_inj_left_iff {m x y : Nat} : m &&& x = m &&& y ∧ m ||| x = m ||| y ↔ x = y :=
-  ⟨fun ⟨ha, ho⟩ => and_or_inj_left ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
+theorem and_or_left_inj {m x y : Nat} : m &&& x = m &&& y ∧ m ||| x = m ||| y ↔ x = y :=
+  ⟨fun ⟨ha, ho⟩ => and_or_left_injective ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
