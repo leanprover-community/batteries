@@ -466,7 +466,7 @@ abbrev getRepr (s : Setoid (Fin n)) [DecidableRel s.r] (x : Fin n) : Fin n :=
   | some y => y
   | none => False.elim <| by
     have : Fin.find? (fun y => s.r x y) |>.isSome := by
-      rw [find?_isSome_iff]
+      rw [isSome_find?_iff]
       exists x
       apply decide_eq_true
       exact Setoid.refl x
