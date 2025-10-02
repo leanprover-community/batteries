@@ -1,0 +1,101 @@
+/-
+Copyright (c) 2025 François G. Dorais. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: François G. Dorais
+-/
+
+/-! # Bitwise Lemmas
+
+This module defines properties of the bitwise operations on natural numbers.
+
+This file is complements `Init.Data.Nat.Bitwise.Lemmas` with properties that
+are not necessary for the bitvector library.
+-/
+
+namespace Nat
+
+/-! ### and -/
+
+@[simp] theorem and_self_left (a b : Nat) : a &&& (a &&& b) = a &&& b := by
+  apply Nat.eq_of_testBit_eq; simp
+
+@[simp] theorem and_self_right (a b : Nat) : ((a &&& b) &&& b) = (a &&& b) := by
+  apply Nat.eq_of_testBit_eq; simp
+
+theorem and_left_comm (x y z : Nat) : x &&& (y &&& z) = y &&& (x &&& z) := by
+  apply Nat.eq_of_testBit_eq; simp [Bool.and_left_comm]
+
+theorem and_right_comm (x y z : Nat) : (x &&& y) &&& z = (x &&& z) &&& y := by
+  apply Nat.eq_of_testBit_eq; simp [Bool.and_right_comm]
+
+/-! ### or -/
+
+@[simp] theorem or_self_left (a b : Nat) : a ||| (a ||| b) = a ||| b := by
+  apply Nat.eq_of_testBit_eq; simp
+
+@[simp] theorem or_self_right (a b : Nat) : (a ||| b) ||| b = a ||| b := by
+  apply Nat.eq_of_testBit_eq; simp
+
+theorem or_left_comm (x y z : Nat) : x ||| (y ||| z) = y ||| (x ||| z) := by
+  apply Nat.eq_of_testBit_eq; simp [Bool.or_left_comm]
+
+theorem or_right_comm (x y z : Nat) : (x ||| y) ||| z = (x ||| z) ||| y := by
+  apply Nat.eq_of_testBit_eq; simp [Bool.or_right_comm]
+
+-- Forward port of lean4#10649
+theorem and_or_distrib_right (x y z : Nat) : ((x ||| y) &&& z) = x &&& z ||| y &&& z := by
+  apply Nat.eq_of_testBit_eq; simp [Bool.and_or_distrib_right]
+
+/-! ### xor -/
+
+theorem xor_left_comm (x y z : Nat) : x ^^^ (y ^^^ z) = y ^^^ (x ^^^ z) := by
+  apply Nat.eq_of_testBit_eq; simp only [testBit_xor, Bool.xor_left_comm, implies_true]
+
+theorem xor_right_comm (x y z : Nat) : (x ^^^ y) ^^^ z = (x ^^^ z) ^^^ y := by
+  apply Nat.eq_of_testBit_eq; simp only [testBit_xor, Bool.xor_right_comm, implies_true]
+
+@[simp] theorem xor_xor_cancel_left (x y : Nat) : x ^^^ (x ^^^ y) = y := by
+  apply Nat.eq_of_testBit_eq; simp
+
+@[simp] theorem xor_xor_cancel_right (x y : Nat) : (x ^^^ y) ^^^ y = x := by
+  apply Nat.eq_of_testBit_eq; simp
+
+theorem eq_of_xor_eq_zero {x y : Nat} : x ^^^ y = 0 → x = y := by
+  intro h; rw [← xor_xor_cancel_left x y, h, xor_zero]
+
+@[simp] theorem xor_eq_zero_iff {x y : Nat} : x ^^^ y = 0 ↔ x = y :=
+  ⟨eq_of_xor_eq_zero, fun | rfl => Nat.xor_self _⟩
+
+/-! ### injectivity lemmas -/
+
+theorem xor_inj_right {x y z : Nat} : x ^^^ y = x ^^^ z → y = z := by
+  intro h; rw [← xor_xor_cancel_left x y, ← xor_xor_cancel_left x z, h]
+
+theorem xor_inj_right_iff {x y z : Nat} : x ^^^ y = x ^^^ z ↔ y = z :=
+  ⟨xor_inj_right, fun | rfl => rfl⟩
+
+theorem xor_inj_left {x y z : Nat} : x ^^^ z = y ^^^ z → x = y := by
+  intro h; rw [← xor_xor_cancel_right x z, ← xor_xor_cancel_right y z, h]
+
+theorem xor_inj_left_iff {x y z : Nat} : x ^^^ z = y ^^^ z ↔ x = y :=
+  ⟨xor_inj_left, fun | rfl => rfl⟩
+
+theorem and_or_inj_right {m x y : Nat} : x &&& m = y &&& m → x ||| m = y ||| m → x = y := by
+  intro ha ho
+  apply Nat.eq_of_testBit_eq
+  intro i
+  rw [← Bool.and_or_inj_right_iff (m := m.testBit i)]
+  simp [← testBit_and, ← testBit_or, ha, ho]
+
+theorem and_or_inj_right_iff {m x y : Nat} : x &&& m = y &&& m ∧ x ||| m = y ||| m ↔ x = y :=
+  ⟨fun ⟨ha, ho⟩ => and_or_inj_right ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
+
+theorem and_or_inj_left {m x y : Nat} : m &&& x = m &&& y → m ||| x = m ||| y → x = y := by
+  intro ha ho
+  apply Nat.eq_of_testBit_eq
+  intro i
+  rw [← Bool.and_or_inj_left_iff (m := m.testBit i)]
+  simp [← testBit_and, ← testBit_or, ha, ho]
+
+theorem and_or_inj_left_iff {m x y : Nat} : m &&& x = m &&& y ∧ m ||| x = m ||| y ↔ x = y :=
+  ⟨fun ⟨ha, ho⟩ => and_or_inj_left ha ho, fun | rfl => ⟨rfl, rfl⟩⟩
