@@ -10,7 +10,7 @@ import Batteries.WF
 
 /-! # Finite and Well-Founded Streams
 
-This file defines two main classes:
+This module defines two main classes:
 
 - `Stream.Finite` provides a proof that a specific stream is finite.
 - `Stream.WellFounded` extends the `Stream` class and provides an instance of `Stream.Finite` for
@@ -42,6 +42,19 @@ termination_by Stream.Finite.wrap s
 ```
 Several examples of this pattern can be found below. We hope to avoid the need for the extra `have`
 at some point in the future.
+
+## Connection with `Std.Iterators`
+
+While iterators from the standard library also provide support for finite iterators, the iterator
+interface is much more complex than the stream interface. This is necessary in order to support
+monadic effects and other specialized features. A stream interface for finiteness is useful for
+simple applications. The standard library already defines `Stream` instances for productive
+pure iterators. This module adds `Stream.WellFounded` instances for finite pure iterators. It also
+adds instances the other way so that `StreamIterators` from well-founded streams translate to
+finite pure iterators.
+
+This is also useful for existing stream-based libraries that want to gradually transition to
+iterators.
 -/
 
 namespace Stream
