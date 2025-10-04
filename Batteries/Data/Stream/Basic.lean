@@ -42,7 +42,7 @@ theorem fst_take_succ [Stream σ α] (s : σ) :
     split <;> simp [ih]
 
 /-- Tail recursive version of `Stream.take`. -/
-def takeTR [Stream σ α] (s : σ) (n : Nat) : List α × σ :=
+private def takeTR [Stream σ α] (s : σ) (n : Nat) : List α × σ :=
   loop s [] n
 where
   /-- Inner loop for `Stream.takeTR`. -/
@@ -52,25 +52,25 @@ where
       | none => (acc.reverse, s)
       | some (a, s) => loop s (a :: acc) n
 
-theorem fst_takeTR_loop [Stream σ α] (s : σ) (acc : List α) (n : Nat) :
+private theorem fst_takeTR_loop [Stream σ α] (s : σ) (acc : List α) (n : Nat) :
     (takeTR.loop s acc n).fst = acc.reverseAux (take s n).fst := by
   induction n generalizing acc s with
   | zero => rfl
   | succ n ih => simp only [take, takeTR.loop]; split; rfl; simp [ih]
 
-theorem fst_takeTR [Stream σ α] (s : σ) (n : Nat) : (takeTR s n).fst = (take s n).fst :=
+private theorem fst_takeTR [Stream σ α] (s : σ) (n : Nat) : (takeTR s n).fst = (take s n).fst :=
   fst_takeTR_loop ..
 
-theorem snd_takeTR_loop [Stream σ α] (s : σ) (acc : List α) (n : Nat) :
+private theorem snd_takeTR_loop [Stream σ α] (s : σ) (acc : List α) (n : Nat) :
     (takeTR.loop s acc n).snd = drop s n := by
   induction n generalizing acc s with
   | zero => rfl
   | succ n ih => simp only [takeTR.loop, drop]; split; rfl; simp [ih]
 
-theorem snd_takeTR [Stream σ α] (s : σ) (n : Nat) :
+private theorem snd_takeTR [Stream σ α] (s : σ) (n : Nat) :
     (takeTR s n).snd = drop s n := snd_takeTR_loop ..
 
-@[csimp] theorem take_eq_takeTR : @take = @takeTR := by
+@[csimp] private theorem take_eq_takeTR : @take = @takeTR := by
   funext; ext : 1; rw [fst_takeTR]; rw [snd_takeTR, snd_take_eq_drop]
 
 end Stream
@@ -92,15 +92,29 @@ end Stream
     | [] => rfl
     | _::_ => simp [Stream.take, ih]
 
-/--
-The underlying state of a stream iterator.
+/-## Stream Iterators
+
+The standard library provides iterators that behave much like streams but include many additional
+features to support monadic effects, among other things. This added functionality makes the user
+interface more complicated. By comparison, the stream interface is quite simple and easy to use.
+The standard library provides a stream interface for productive pure iterators.
+
+The following provide the reverse translation. The function `Stream.iter` converts a `Stream σ α`
+into a productive pure iterator of type `StreamIterator σ α`. Finiteness properties for streams are
+provided in `Batteries.Stream.Finite`.
+
+In addition to providing a back and forth translation between stream types and productive pure
+iterators. This functionality is also useful for existing stream-based libraries to incrementally
+convert to iterators.
 -/
+
+/-- The underlying type of a stream iterator. -/
 structure StreamIterator (σ α) [Stream σ α] where
   /-- Underlying stream of a stream iterator. -/
   stream : σ
 
 /--
-Returns a pure iterator for the given stream.
+Returns a productive pure iterator for the given stream.
 
 **Termination properties:**
 
