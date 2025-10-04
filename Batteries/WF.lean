@@ -110,6 +110,10 @@ termination_by otherWF.wrap n
 def wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) : {x : α // Acc r x} :=
   ⟨_, h.apply x⟩
 
+@[simp]
+theorem val_wrap {α : Sort u} {r : α → α → Prop} (h : WellFounded r) (x : α) :
+    (h.wrap x).val = x := rfl
+
 /-- A computable version of `WellFounded.fixF`.
 Workaround until Lean has native support for this. -/
 @[inline] private def fixFC {α : Sort u} {r : α → α → Prop}
