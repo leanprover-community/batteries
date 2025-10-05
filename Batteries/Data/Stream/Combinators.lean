@@ -19,7 +19,10 @@ next? (const 'a') = ('a', const 'a')
 ```
 -/
 structure Constant {α : Type _} (x : α)
-deriving DecidableEq
+deriving Inhabited
+
+instance : DecidableEq (Constant x)
+  | ⟨⟩, ⟨⟩ => .isTrue rfl
 
 instance (x : α) : Stream (Constant x) α where
   next? _ := some (x, ⟨⟩)
