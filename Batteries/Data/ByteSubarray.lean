@@ -88,7 +88,7 @@ where
 instance : ForIn m ByteSubarray UInt8 where
   forIn := ByteSubarray.forIn
 
-instance : Stream ByteSubarray UInt8 where
+instance : Std.Stream ByteSubarray UInt8 where
   next? s := s[0]? >>= fun x => (x, s.popFront)
 
 end Batteries.ByteSubarray

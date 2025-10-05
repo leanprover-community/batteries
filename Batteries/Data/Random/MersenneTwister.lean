@@ -129,7 +129,7 @@ where
       let x := x ^^^ x <<< t &&& c
       x ^^^ x >>> l
 
-instance (cfg) : Stream (State cfg) (BitVec cfg.wordSize) where
+instance (cfg) : Std.Stream (State cfg) (BitVec cfg.wordSize) where
   next? s := s.next
 
 /-- 32 bit Mersenne Twister (MT19937) configuration. -/

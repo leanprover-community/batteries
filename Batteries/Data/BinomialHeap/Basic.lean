@@ -532,7 +532,7 @@ def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le := as
   | none => none
   | some (a, tl) => some (a, ⟨tl, b.2.deleteMin eq⟩)
 
-instance : Stream (BinomialHeap α le) α := ⟨deleteMin⟩
+instance : Std.Stream (BinomialHeap α le) α := ⟨deleteMin⟩
 
 /--
 `O(n log n)`. Implementation of `for x in (b : BinomialHeap α le) ...` notation,
