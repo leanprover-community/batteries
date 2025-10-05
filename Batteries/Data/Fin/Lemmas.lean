@@ -199,7 +199,7 @@ theorem any_eq_true_iff {p : Fin n → Bool} : Fin.any p = true ↔ ∃ i, p i =
 
 theorem any_eq_false_iff {p : Fin n → Bool} : Fin.any p = false ↔ ∀ i, p i = false := by simp
 
-theorem any_eq_all_finRange {p : Fin n → Bool} : Fin.any p = (List.finRange n).any p := by
+theorem any_eq_any_finRange {p : Fin n → Bool} : Fin.any p = (List.finRange n).any p := by
   rw [Bool.eq_iff_iff]
   simp only [Fin.any, find?_eq_find?_finRange, List.find?_isSome, List.any_eq, decide_eq_true_eq]
 
