@@ -159,6 +159,7 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
+@[simp]
 theorem findSome?_rev {f : Fin n → Option α} : findSome? (f ·.rev) = findSomeRev? f := rfl
 
 /-! ### find? -/
@@ -228,8 +229,11 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by cases h : find? (p ·) <;> grind
 
 theorem find?_rev {p : Fin n → Bool} : find? (p ·.rev) = (findRev? p).map rev := by
-  unfold findRev? findSomeRev? find? Option.guard
+  unfold find? findRev? findSomeRev? Option.guard
   simp only [map_findSome?, Option.map_if, rev_rev]
+
+theorem map_rev_findRev? {p : Fin n → Bool} : (findRev? (p ·.rev)).map rev = find? p := by
+  simp only [← find?_rev, rev_rev]
 
 /-! ### findSomeRev? -/
 
@@ -297,6 +301,13 @@ theorem map_findSomeRev? (f : Fin n → Option α) (g : α → β) :
 
 theorem findSomeRev?_guard {p : Fin n → Bool} : findSomeRev? (Option.guard p) = findRev? p := rfl
 
+theorem bind_findSomeRev?_guard_isSome {f : Fin n → Option α} :
+    (findSomeRev? (Option.guard fun i => (f i).isSome)).bind f = findSomeRev? f := by
+  cases hf : findSomeRev? f with
+  | none => grind
+  | some x =>
+    simp only [Option.bind_eq_some_iff, findSomeRev?_eq_some_iff, Option.guard_eq_some_iff]
+    grind
 
 @[simp]
 theorem findSomeRev?_rev {f : Fin n → Option α} :
@@ -349,7 +360,7 @@ theorem isSome_findRev?_of_eq_true {p : Fin n → Bool} (h : p i) :
 theorem get_findRev?_eq_true {p : Fin n → Bool} (h : (findRev? p).isSome) :
     p ((findRev? p).get h) := eq_true_of_findRev?_eq_some (Option.some_get _).symm
 
-theorem get_findRev?_minimal {p : Fin n → Bool} (h : (findRev? p).isSome) :
+theorem get_findRev?_maximal {p : Fin n → Bool} (h : (findRev? p).isSome) :
     ∀ j, (findRev? p).get h < j → p j = false :=
   eq_false_of_findRev?_eq_some_of_lt (Option.some_get _).symm
 
@@ -359,15 +370,22 @@ theorem exists_eq_true_iff_exists_maximal_eq_true (p : Fin n → Bool):
 theorem exists_iff_exists_maximal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j, i < j → ¬ p j := by cases h : findRev? (p ·) <;> grind
 
+theorem bind_findRev?_isSome {f : Fin n → Option α} :
+    (findRev? (fun i => (f i).isSome)).bind f = findSomeRev? f := bind_findSomeRev?_guard_isSome
+
+theorem findRev?_rev {p : Fin n → Bool} : findRev? (p ·.rev) = (find? p).map rev := by
+  unfold findRev? find? findSomeRev? Option.guard
+  simp only [map_findSome?, Option.map_if, rev_rev]
+
+theorem map_rev_find? {p : Fin n → Bool} : (find? (p ·.rev)).map rev = findRev? p := by
+  simp only [← findRev?_rev, rev_rev]
+
 theorem find?_le_findRev? {p : Fin n → Bool} : find? p ≤ findRev? p := by
   cases hl : find? p with | none => exact Option.none_le | some l =>
   rw [find?_eq_some_iff] at hl; cases hu : findRev? p with
   | none => simp only [findRev?_eq_none_iff] at hu; grind
   | some u => simp only [findRev?_eq_some_iff] at hu; grind
 
-theorem map_rev_findRev? {p : Fin n → Bool} : findRev? p = Fin.rev <$> find? fun i => p i.rev := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    simp only [findRev?_succ, find?_succ, apply_ite (rev <$> ·), Option.map_eq_map,
-      Option.map_some, rev_zero, Fin.rev_succ, Option.map_map, Function.comp_def, ih]
+theorem find?_eq_findRev?_iff {p : Fin n → Bool} : find? p = findRev? p ↔
+    ∀ i j, p i = true → p j = true → i = j := by
+  cases h : findRev? p <;> grind
