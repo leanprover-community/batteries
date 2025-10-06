@@ -36,7 +36,7 @@ structure Matcher (α : Type _) extends Array.Matcher α where
   pattern := pattern
 
 /-- List stream that keeps count of items read. -/
-local instance (α) : Stream (List α × Nat) α where
+local instance (α) : Std.Stream (List α × Nat) α where
   next?
   | ([], _) => none
   | (x::xs, n) => (x, xs, n+1)
