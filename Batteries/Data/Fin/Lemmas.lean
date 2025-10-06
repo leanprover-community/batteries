@@ -61,21 +61,25 @@ theorem foldl_assoc_flip {op : α → α → α} [ha : Std.Associative op] {f : 
 @[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
-    findSome? f = (f 0).or (findSome? fun i => f i.succ) := by
+    findSome? f = (f 0).or (findSome? (f ·.succ)) := by
   simp only [findSome?, foldl_succ, Option.orElse_eq_orElse, Option.orElse_eq_or]
   exact Eq.trans (by cases (f 0) <;> rfl) foldl_assoc
 
+@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
-    findSome? f = some x := by simp [findSome?_succ, h]
+    findSome? f = some x := findSome?_succ.trans (h ▸ Option.some_or)
 
+@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
-    findSome? f = f 0 := by cases _h : f 0 <;> simp_all [findSome?_succ_of_some]
+    findSome? f = f 0 := findSome?_succ.trans (Option.or_of_isSome h)
 
+@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
-    findSome? f = findSome? fun i => f i.succ := by simp [findSome?_succ, h]
+    findSome? f = findSome? (f ·.succ) := findSome?_succ.trans (Option.or_eq_right_of_none h)
 
+@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
-    findSome? f = findSome? fun i => f i.succ := by simp_all [findSome?_succ_of_none]
+    findSome? f = findSome? (f ·.succ) := findSome?_succ.trans (Option.or_of_isNone h)
 
 @[simp, grind =]
 theorem findSome?_eq_some_iff {f : Fin n → Option α} :
@@ -83,7 +87,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
   induction n with
   | zero =>
     simp only [findSome?_zero, (Option.some_ne_none _).symm, false_iff]
-    exact fun ⟨i, _⟩ => i.elim0
+    exact (·.choose.elim0)
   | succ n ih =>
     simp only [findSome?_succ, Option.or_eq_some_iff, exists_fin_succ, forall_fin_succ,
       succ_lt_succ_iff, succ_pos, not_lt_zero, ih]
@@ -93,7 +97,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
     findSome? f = none ↔ ∀ i, f i = none := by
   induction n with
   | zero =>
-    simp only [findSome?_zero, true_iff]; exact fun i => i.elim0
+    simp only [findSome?_zero, true_iff]; exact (·.elim0)
   | succ n ih => simp only [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
 
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
@@ -139,6 +143,14 @@ theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
 
+theorem bind_findSome?_guard_isSome {f : Fin n → Option α} :
+    (findSome? (Option.guard fun i => (f i).isSome)).bind f = findSome? f := by
+  cases hf : findSome? f with
+  | none => grind
+  | some x =>
+    simp only [Option.bind_eq_some_iff, findSome?_eq_some_iff, Option.guard_eq_some_iff]
+    grind
+
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
   induction n with
@@ -147,6 +159,8 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
+theorem findSome?_rev {f : Fin n → Option α} : findSome? (f ·.rev) = findSomeRev? f := rfl
+
 /-! ### find? -/
 
 @[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
@@ -154,7 +168,7 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
 @[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
-    find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
+    find? p = if p 0 then some 0 else (find? (p ·.succ)).map Fin.succ := by
   simp only [find?, findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
     Option.some_or, Option.none_or, map_findSome?, Option.map_if]
 
@@ -201,6 +215,9 @@ theorem get_find?_minimal {p : Fin n → Bool} (h : (find? p).isSome) :
     ∀ j, j < (find? p).get h → p j = false :=
   eq_false_of_find?_eq_some_of_lt (Option.some_get _).symm
 
+theorem bind_find?_isSome {f : Fin n → Option α} :
+    (find? (fun i => (f i).isSome)).bind f = findSome? f := bind_findSome?_guard_isSome
+
 theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
   (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
 
@@ -210,6 +227,10 @@ theorem exists_eq_true_iff_exists_minimal_eq_true (p : Fin n → Bool):
 theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by cases h : find? (p ·) <;> grind
 
+theorem find?_rev {p : Fin n → Bool} : find? (p ·.rev) = (findRev? p).map rev := by
+  unfold findRev? findSomeRev? find? Option.guard
+  simp only [map_findSome?, Option.map_if, rev_rev]
+
 /-! ### findSomeRev? -/
 
 @[simp] theorem findSomeRev?_zero {f : Fin 0 → Option α} : findSomeRev? f = none := rfl
@@ -218,21 +239,8 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
 
 theorem findSomeRev?_succ {f : Fin (n+1) → Option α} :
     findSomeRev? f = (f (last n)).or (findSomeRev? fun i => f i.castSucc) := by
-  simp only [findSomeRev?, foldr_succ_last, Option.orElse_eq_orElse, Option.orElse_eq_or]
-  exact Eq.trans (by cases (f (last n)) <;> rfl) foldr_assoc_flip
-
-theorem findSomeRev?_succ_of_some {f : Fin (n+1) → Option α} (h : f (last n) = some x) :
-    findSomeRev? f = some x := by simp [findSomeRev?_succ, h]
-
-theorem findSomeRev?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f (last n)).isSome) :
-    findSomeRev? f = f (last n) := by
-  cases _h : f (last n) <;> simp_all [findSomeRev?_succ_of_some]
-
-theorem findSomeRev?_succ_of_none {f : Fin (n+1) → Option α} (h : f (last n) = none) :
-    findSomeRev? f = findSomeRev? fun i => f i.castSucc := by simp [findSomeRev?_succ, h]
-
-theorem findSomeRev?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f (last n)).isNone) :
-    findSomeRev? f = findSomeRev? fun i => f i.castSucc := by simp_all [findSomeRev?_succ_of_none]
+  unfold findSomeRev?
+  simp only [findSome?_succ, rev_succ, rev_zero]
 
 @[simp, grind =]
 theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
@@ -242,8 +250,8 @@ theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
     simp only [findSomeRev?_zero, (Option.some_ne_none _).symm, false_iff]
     exact fun  ⟨i, _⟩ => i.elim0
   | succ n ih =>
-    simp only [findSomeRev?_succ, Option.or_eq_some_iff, forall_fin_succ_last, exists_fin_succ_last,
-      castSucc_lt_castSucc_iff, castSucc_lt_last, not_last_lt, ih]
+    simp only [findSomeRev?_succ, Option.or_eq_some_iff, forall_fin_succ_last,
+      exists_fin_succ_last, castSucc_lt_castSucc_iff, castSucc_lt_last, not_last_lt, ih]
     grind
 
 @[simp, grind =] theorem findSomeRev?_eq_none_iff {f : Fin n → Option α} :
@@ -288,6 +296,11 @@ theorem map_findSomeRev? (f : Fin n → Option α) (g : α → β) :
   | succ n ih => simp [findSomeRev?_succ, Option.map_or, ih]
 
 theorem findSomeRev?_guard {p : Fin n → Bool} : findSomeRev? (Option.guard p) = findRev? p := rfl
+
+
+@[simp]
+theorem findSomeRev?_rev {f : Fin n → Option α} :
+    findSomeRev? (f ·.rev) = findSome? f := by simp only [findSomeRev?, rev_rev]
 
 /-! ### findRev? -/
 

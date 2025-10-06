@@ -95,18 +95,18 @@ element is found. The function `f` is not evaluated on further inputs after the 
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
 @[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
-  findSome? <| Option.guard fun i => p i
+  findSome? <| Option.guard p
 
 /--
 `findSomeRev? f` returns `f i` for the last `i` for which `f i` is `some _`, or `none` if no such
 element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
 -/
 @[inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
-  foldr n (fun i r => r <|> f i) none
+  findSome? (f ·.rev)
 
 /--
 `find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
 @[inline] def findRev? (p : Fin n → Bool) : Option (Fin n) :=
-  findSomeRev? <| Option.guard fun i => p i
+  findSomeRev? <| Option.guard p
