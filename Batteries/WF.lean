@@ -46,25 +46,19 @@ instance wfRel {r : α → α → Prop} : WellFoundedRelation { val // Acc r val
   wf  := ⟨fun ac => InvImage.accessible _ ac.2⟩
 
 /-- A computable version of `Acc.rec`. Workaround until Lean has native support for this. -/
-@[specialize, elab_as_elim, semireducible] private def recC {motive : (a : α) → Acc r a → Sort v}
+@[specialize, elab_as_elim] private def recC {motive : (a : α) → Acc r a → Sort v}
     (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
      ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
     {a : α} (t : Acc r a) : motive a t :=
   intro a (fun _ h => t.inv h) (fun _ hr => recC intro (t.inv hr))
 termination_by Subtype.mk a t
 
-private theorem recC_intro {motive : (a : α) → Acc r a → Sort v}
-    (intro : (x : α) → (h : ∀ (y : α), r y x → Acc r y) →
-     ((y : α) → (hr : r y x) → motive y (h y hr)) → motive x (intro x h))
-    {a : α} (h : ∀ (y : α), r y a → Acc r y) :
-    recC intro (Acc.intro _ h) = intro a h (fun y hr => recC intro (h y hr)) :=
-  rfl
-
 @[csimp] private theorem rec_eq_recC : @Acc.rec = @Acc.recC := by
   funext α r motive intro a t
   induction t with
   | intro x h ih =>
-    dsimp only [recC_intro intro h]
+    rw [recC]
+    dsimp only
     congr; funext y hr; exact ih _ hr
 
 /-- A computable version of `Acc.ndrec`. Workaround until Lean has native support for this. -/
