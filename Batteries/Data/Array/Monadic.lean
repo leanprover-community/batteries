@@ -16,8 +16,8 @@ in order to minimize dependence on `SatisfiesM`.
 
 namespace Array
 
-theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m]
-    {as : Array α} (motive : Nat → β → Prop) {init : β} (h0 : motive 0 init) {f : β → α → m β}
+theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {as : Array α} {init : β}
+    {motive : Nat → β → Prop} {f : β → α → m β} (h0 : motive 0 init)
     (hf : ∀ i : Fin as.size, ∀ b, motive i.1 b → SatisfiesM (motive (i.1 + 1)) (f b as[i])) :
     SatisfiesM (motive as.size) (as.foldlM f init) := by
   let rec go {i j b} (h₁ : j ≤ as.size) (h₂ : as.size ≤ i + j) (H : motive j b) :
@@ -30,9 +30,8 @@ theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m]
     · next hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
   simp [foldlM]; exact go (Nat.zero_le _) (Nat.le_refl _) h0
 
-theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
-    (motive : Nat → Prop) (h0 : motive 0)
-    (p : Fin as.size → β → Prop)
+theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
+    {motive : Nat → Prop} {p : Fin as.size → β → Prop} (h0 : motive 0)
     (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f as[i])) :
     SatisfiesM
       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i])
@@ -48,26 +47,19 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] (as : Array α) (f : α → m 
     simp [getElem_push] at hj ⊢; split; {apply ih₂}
     cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
 
-theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] (as : Array α) (f : α → m β)
-    (p : Fin as.size → β → Prop)
+theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
+    {p : Fin as.size → β → Prop}
     (hs : ∀ i, SatisfiesM (p i) (f as[i])) :
     SatisfiesM
       (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i])
       (Array.mapM f as) :=
-  (SatisfiesM_mapM _ _ (fun _ => True) trivial _ (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
+  (SatisfiesM_mapM (motive := fun _ => True) trivial (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
 
 theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
-  (SatisfiesM_mapM' _ _ (fun _ _ => True) (fun _ => .trivial)).imp (·.1)
+  (SatisfiesM_mapM' (fun _ => .trivial)).imp (·.1)
 
-proof_wanted size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
-    SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as)
-
-proof_wanted size_mapFinIdxM [Monad m] [LawfulMonad m]
-    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
-    SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f)
-
-theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Array α) (start stop)
+theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] {p : α → m Bool} {as : Array α}
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
     (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
       SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
@@ -91,14 +83,14 @@ theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] (p : α → m Bool) (as : Arra
   exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
 
 theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
-    (p : α → m Bool) (as : Array α) (start stop) (q : Fin as.size → Prop)
+    {p : α → m Bool} {as : Array α} {q : Fin as.size → Prop}
     (hp : ∀ i : Fin as.size, start ≤ i.1 → i.1 < stop → SatisfiesM (· = true ↔ q i) (p as[i])) :
     SatisfiesM
       (fun res => res = true ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i)
       (anyM p as start stop) := by
   cases Nat.le_total start (min stop as.size) with
   | inl hstart =>
-    refine (SatisfiesM_anyM _ _ _ _ hstart
+    refine (SatisfiesM_anyM hstart
       (fal := fun j => start ≤ j ∧ ¬ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < j ∧ q i)
       (tru := ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i) ?_ ?_).imp ?_
     · exact ⟨Nat.le_refl _, fun ⟨i, h₁, h₂, _⟩ => (Nat.not_le_of_gt h₂ h₁).elim⟩
@@ -118,8 +110,8 @@ theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
     cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
 
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
-    {as : Array α} (motive : Nat → β → Prop)
-    {init : β} (h0 : motive as.size init) {f : α → β → m β}
+    {as : Array α} {init : β} {motive : Nat → β → Prop} {f : α → β → m β}
+    (h0 : motive as.size init)
     (hf : ∀ i : Fin as.size, ∀ b, motive (i.1 + 1) b → SatisfiesM (motive i.1) (f as[i] b)) :
     SatisfiesM (motive 0) (as.foldrM f init) := by
   let rec go {i b} (hi : i ≤ as.size) (H : motive i b) :
@@ -133,11 +125,10 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
   simp [foldrM]; split; {exact go _ h0}
   · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
-theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m] (as : Array α)
-    (f : (i : Nat) → α → (h : i < as.size) → m β)
-    (motive : Nat → Prop) (h0 : motive 0)
-    (p : (i : Nat) → β → (h : i < as.size) → Prop)
-    (hs : ∀ i h, motive i → SatisfiesM (p i · h ∧ motive (i + 1)) (f i as[i] h)) :
+theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m]
+    {as : Array α} {f : (i : Nat) → α → i < as.size → m β} {motive : Nat → Prop}
+    {p : (i : Nat) → β → i < as.size → Prop}
+    (h0 : motive 0) (hs : ∀ i h, motive i → SatisfiesM (p i · h ∧ motive (i + 1)) (f i as[i] h)) :
     SatisfiesM
       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p i arr[i] h)
       (Array.mapFinIdxM as f) := by
@@ -156,27 +147,26 @@ theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m] (as : Array α)
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapFinIdxM]; exact go rfl nofun h0
 
-theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β)
-    (motive : Nat → Prop) (h0 : motive 0)
-    (p : (i : Nat) → β → (h : i < as.size) → Prop)
-    (hs : ∀ i h, motive i → SatisfiesM (p i · h ∧ motive (i + 1)) (f i as[i])) :
+theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] {as : Array α} {f : Nat → α → m β}
+    {p : (i : Nat) → β → i < as.size → Prop} {motive : Nat → Prop}
+    (h0 : motive 0) (hs : ∀ i h, motive i → SatisfiesM (p i · h ∧ motive (i + 1)) (f i as[i])) :
     SatisfiesM
       (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p i arr[i] h)
       (as.mapIdxM f) :=
-  SatisfiesM_mapFinIdxM as (fun i a _ => f i a) motive h0 p hs
+  SatisfiesM_mapFinIdxM h0 hs
 
 theorem size_mapFinIdxM [Monad m] [LawfulMonad m]
-    (as : Array α) (f : (i : Nat) → α → (h : i < as.size) → m β) :
+    (as : Array α) (f : (i : Nat) → α → i < as.size → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f) :=
-  (SatisfiesM_mapFinIdxM _ _ (fun _ => True) trivial (fun _ _ _ => True)
+  (SatisfiesM_mapFinIdxM (motive := fun _ => True) trivial
     (fun _ _ _ => .of_true fun _ => ⟨trivial, trivial⟩)).imp (·.2.1)
 
 theorem size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as) :=
   size_mapFinIdxM _ _
 
-theorem size_modifyM [Monad m] [LawfulMonad m] (a : Array α) (i : Nat) (f : α → m α) :
-    SatisfiesM (·.size = a.size) (a.modifyM i f) := by
+theorem size_modifyM [Monad m] [LawfulMonad m] (as : Array α) (i : Nat) (f : α → m α) :
+    SatisfiesM (·.size = as.size) (as.modifyM i f) := by
   unfold modifyM; split
   · exact .bind_pre <| .of_true fun _ => .pure <| by simp only [size_set]
   · exact .pure rfl
