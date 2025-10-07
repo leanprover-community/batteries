@@ -3,6 +3,9 @@ Copyright (c) 2025 Marcus Rossel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Marcus Rossel
 -/
+module
+
+@[expose] public section
 
 namespace Nat
 

@@ -3,9 +3,14 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Command
-import Lean.Parser.Syntax
-import Batteries.Tactic.Unreachable
+module
+
+public meta import Lean.Elab.Command
+public meta import Lean.Parser.Syntax
+public meta import Batteries.Tactic.Unreachable
+public meta import Lean.Linter.Basic
+
+public meta section
 
 namespace Batteries.Linter
 open Lean Elab Command Linter Std

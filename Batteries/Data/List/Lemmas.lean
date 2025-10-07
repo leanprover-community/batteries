@@ -3,9 +3,13 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import Batteries.Control.ForInStep.Lemmas
-import Batteries.Data.List.Basic
-import Batteries.Tactic.Alias
+module
+
+public import Batteries.Control.ForInStep.Lemmas
+public import Batteries.Data.List.Basic
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace List
 
