@@ -15,18 +15,73 @@ attribute [norm_cast] val_last
 
 @[simp] theorem not_last_lt (a : Fin (n + 1)) : ¬(last n) < a := Fin.not_lt.mpr (le_last a)
 
+/-! ### rev -/
+
+theorem rev_eq_iff {i j : Fin n} : rev i = j ↔ i = rev j := by
+  rw [← rev_inj, rev_rev]
+
+theorem rev_ne_iff {i j : Fin n} : rev i ≠ j ↔ i ≠ rev j := by
+  rw [ne_eq, rev_eq_iff]
+
+theorem rev_lt_iff {i j : Fin n} : rev i < j ↔ rev j < i := by
+  rw [← rev_lt_rev, rev_rev]
+
+theorem rev_le_iff {i j : Fin n} : rev i ≤ j ↔ rev j ≤ i := by
+  rw [← rev_le_rev, rev_rev]
+
+theorem lt_rev_iff {i j : Fin n} : i < rev j ↔ j < rev i := by
+  rw [← rev_lt_rev, rev_rev]
+
+theorem le_rev_iff {i j : Fin n} : i ≤ rev j ↔ j ≤ rev i := by
+  rw [← rev_le_rev, rev_rev]
+
 /-! ### exists, forall -/
 
--- TODO: deprecate duplicates in Mathlib, consider porting to core
+theorem forall_fin_rev {P : Fin n → Prop} :
+    (∀ i, P i) ↔ (∀ i : Fin n, P i.rev) :=
+  ⟨fun h i => h i.rev, fun h i => rev_rev i ▸ h i.rev⟩
+
+theorem exists_fin_rev {P : Fin n → Prop} :
+    (∃ i, P i) ↔ (∃ i : Fin n, P i.rev) :=
+  ⟨fun ⟨i, h⟩ => ⟨i.rev, rev_rev _ ▸ h⟩, fun ⟨i, h⟩ => ⟨i.rev, h⟩⟩
+
+theorem exists_fin_congr_of_rev_left {P Q : Fin n → Prop}
+    (h : (∃ i : Fin n, P i.rev) ↔ (∃ i : Fin n, Q i)) :
+    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) := exists_fin_rev.trans h
+
+theorem forall_fin_congr_of_rev_left {P Q : Fin n → Prop}
+    (h : (∀ i : Fin n, P i.rev) ↔ (∀ i : Fin n, Q i)):
+    (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i) := forall_fin_rev.trans h
+
+theorem exists_fin_congr_of_rev_right {P Q : Fin n → Prop}
+    (h : (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i.rev)) :
+    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) := h.trans exists_fin_rev.symm
+
+theorem forall_fin_congr_of_rev_right {P Q : Fin n → Prop}
+    (h : (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i.rev)):
+    (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i) := h.trans forall_fin_rev.symm
+
+theorem exists_fin_congr_of_rev_rev {P Q : Fin n → Prop}
+    (h : (∃ i : Fin n, P i.rev) ↔ (∃ i : Fin n, Q i.rev)) :
+    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) :=
+  exists_fin_congr_of_rev_left <| exists_fin_congr_of_rev_right h
+
+theorem forall_fin_congr_of_rev_rev {P Q : Fin n → Prop}
+    (h : (∀ i : Fin n, P i.rev) ↔ (∀ i : Fin n, Q i.rev)):
+    (∀ i, P i) ↔ (∀ i, Q i) :=
+  forall_fin_congr_of_rev_left <| forall_fin_congr_of_rev_right h
+
+-- TODO: deprecate duplicates in Mathlib, consider porting to core. Also I don't need these now?
 
 theorem forall_fin_succ_last {P : Fin (n + 1) → Prop} :
-    (∀ i, P i) ↔ P (.last _) ∧ (∀ i : Fin n, P i.castSucc) :=
-  ⟨fun H => ⟨H _, fun _ => H _⟩, fun ⟨H0, H1⟩ i => i.lastCases H0 H1⟩
+    (∀ i, P i) ↔ P (.last _) ∧ (∀ i : Fin n, P i.castSucc) := by
+  simp only [forall_fin_rev (P := P), forall_fin_succ, rev_zero, rev_succ,
+    forall_fin_rev (P := (P ·.castSucc))]
 
 theorem exists_fin_succ_last {P : Fin (n + 1) → Prop} :
-    (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) :=
-  ⟨fun ⟨i, h⟩ => i.lastCases Or.inl (fun i hi => Or.inr ⟨i, hi⟩) h,
-    fun h => h.elim (fun h => ⟨_, h⟩) (fun ⟨_, hi⟩ => ⟨_, hi⟩)⟩
+    (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) := by
+  simp only [exists_fin_rev (P := P), exists_fin_succ, rev_zero, rev_succ,
+    exists_fin_rev (P := (P ·.castSucc))]
 
 -- Forward port from lean4#10627
 @[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
@@ -167,9 +222,6 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
-@[simp]
-theorem findSome?_rev {f : Fin n → Option α} : findSome? (f ·.rev) = findSomeRev? f := rfl
-
 /-! ### find? -/
 
 @[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
@@ -245,6 +297,13 @@ theorem map_rev_findRev? {p : Fin n → Bool} : (findRev? (p ·.rev)).map rev = 
 
 /-! ### findSomeRev? -/
 
+@[simp]
+theorem findSome?_rev {f : Fin n → Option α} : findSome? (f ·.rev) = findSomeRev? f := rfl
+
+@[simp]
+theorem findSomeRev?_rev {f : Fin n → Option α} :
+    findSomeRev? (f ·.rev) = findSome? f := by simp only [findSomeRev?, rev_rev]
+
 @[simp] theorem findSomeRev?_zero {f : Fin 0 → Option α} : findSomeRev? f = none := rfl
 
 @[simp] theorem findSomeRev?_one {f : Fin 1 → Option α} : findSomeRev? f = f 0 := rfl
@@ -256,21 +315,15 @@ theorem findSomeRev?_succ {f : Fin (n+1) → Option α} :
 
 @[simp, grind =]
 theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
-    findSomeRev? f = some a ↔ ∃ i, f i = some a ∧ ∀ j, i < j → f j = none := by
-  induction n with
-  | zero =>
-    simp only [findSomeRev?_zero, (Option.some_ne_none _).symm,
-      forall_fin_zero, and_true, exists_fin_zero]
-  | succ n ih =>
-    simp only [findSomeRev?_succ, Option.or_eq_some_iff, forall_fin_succ_last,
-      exists_fin_succ_last, castSucc_lt_castSucc_iff, castSucc_lt_last, not_last_lt, ih]
-    grind
+    findSomeRev? f = some a ↔ ∃ i, f i = some a ∧ ∀ j, i < j → f j = none :=
+  findSome?_eq_some_iff.trans <| exists_fin_congr_of_rev_right <|
+  exists_congr fun _ => and_congr_right fun _ => forall_fin_congr_of_rev_left <|
+  forall_congr' fun _ => rev_rev _ ▸ imp_congr_left rev_lt_iff
 
 @[simp, grind =] theorem findSomeRev?_eq_none_iff {f : Fin n → Option α} :
-    findSomeRev? f = none ↔ ∀ i, f i = none := by
-  induction n with
-  | zero => simp only [findSomeRev?_zero, forall_fin_zero]
-  | succ n ih => simp only [findSomeRev?_succ, Option.or_eq_none_iff, ih, forall_fin_succ_last]
+    findSomeRev? f = none ↔ ∀ i, f i = none :=
+  findSome?_eq_none_iff.trans <| forall_fin_congr_of_rev_left <|
+  forall_congr' fun _ => rev_rev _ ▸ Iff.rfl
 
 theorem isNone_findSomeRev?_iff {f : Fin n → Option α} :
     (findSomeRev? f).isNone ↔ ∀ i, (f i).isNone := by simp
@@ -314,10 +367,6 @@ theorem bind_findSomeRev?_guard_isSome {f : Fin n → Option α} :
   | some x =>
     simp only [Option.bind_eq_some_iff, findSomeRev?_eq_some_iff, Option.guard_eq_some_iff]
     grind
-
-@[simp]
-theorem findSomeRev?_rev {f : Fin n → Option α} :
-    findSomeRev? (f ·.rev) = findSome? f := by simp only [findSomeRev?, rev_rev]
 
 /-! ### findRev? -/
 
