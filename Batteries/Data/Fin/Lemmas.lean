@@ -17,7 +17,7 @@ attribute [norm_cast] val_last
 
 /-! ### exists, forall -/
 
--- TODO: deprecate duplicates in Mathlib
+-- TODO: deprecate duplicates in Mathlib, consider porting to core
 
 theorem forall_fin_succ_last {P : Fin (n + 1) → Prop} :
     (∀ i, P i) ↔ P (.last _) ∧ (∀ i : Fin n, P i.castSucc) :=
@@ -27,6 +27,16 @@ theorem exists_fin_succ_last {P : Fin (n + 1) → Prop} :
     (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) :=
   ⟨fun ⟨i, h⟩ => i.lastCases Or.inl (fun i hi => Or.inr ⟨i, hi⟩) h,
     fun h => h.elim (fun h => ⟨_, h⟩) (fun ⟨_, hi⟩ => ⟨_, hi⟩)⟩
+
+-- Forward port from lean4#10627
+@[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
+  rw [iff_true]; intro ⟨_, _⟩; contradiction
+
+-- Forward port from lean4#10627
+@[simp] theorem exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
+
+-- Forward port from lean4#10627
+attribute [simp] exists_fin_one forall_fin_one exists_fin_two forall_fin_two
 
 /-! ### foldl/foldr -/
 

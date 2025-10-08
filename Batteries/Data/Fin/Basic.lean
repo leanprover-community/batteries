@@ -68,7 +68,7 @@ This is the dependent version of `Fin.foldlM`. -/
     pure xₙ
   ```
   -/
-  @[semireducible, specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
+  @[specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
     if h' : i < n then
       (f ⟨i, h'⟩ x) >>= loop (i + 1) (Nat.succ_lt_succ h')
     else
