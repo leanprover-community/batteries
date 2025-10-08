@@ -96,8 +96,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
     findSome? f = some a ↔ ∃ i, f i = some a ∧ ∀ j < i, f j = none := by
   induction n with
   | zero =>
-    simp only [findSome?_zero, (Option.some_ne_none _).symm, false_iff]
-    exact (·.choose.elim0)
+    simp only [findSome?_zero, reduceCtorEq, forall_fin_zero, and_true, exists_fin_zero]
   | succ n ih =>
     simp only [findSome?_succ, Option.or_eq_some_iff, exists_fin_succ, forall_fin_succ,
       succ_lt_succ_iff, succ_pos, not_lt_zero, ih]
@@ -106,8 +105,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
 @[simp, grind =] theorem findSome?_eq_none_iff {f : Fin n → Option α} :
     findSome? f = none ↔ ∀ i, f i = none := by
   induction n with
-  | zero =>
-    simp only [findSome?_zero, true_iff]; exact (·.elim0)
+  | zero => simp only [findSome?_zero, forall_fin_zero]
   | succ n ih => simp only [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
 
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
@@ -261,8 +259,8 @@ theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
     findSomeRev? f = some a ↔ ∃ i, f i = some a ∧ ∀ j, i < j → f j = none := by
   induction n with
   | zero =>
-    simp only [findSomeRev?_zero, (Option.some_ne_none _).symm, false_iff]
-    exact fun  ⟨i, _⟩ => i.elim0
+    simp only [findSomeRev?_zero, (Option.some_ne_none _).symm,
+      forall_fin_zero, and_true, exists_fin_zero]
   | succ n ih =>
     simp only [findSomeRev?_succ, Option.or_eq_some_iff, forall_fin_succ_last,
       exists_fin_succ_last, castSucc_lt_castSucc_iff, castSucc_lt_last, not_last_lt, ih]
@@ -271,9 +269,7 @@ theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
 @[simp, grind =] theorem findSomeRev?_eq_none_iff {f : Fin n → Option α} :
     findSomeRev? f = none ↔ ∀ i, f i = none := by
   induction n with
-  | zero =>
-    simp only [findSomeRev?_zero, true_iff]
-    exact fun i => i.elim0
+  | zero => simp only [findSomeRev?_zero, forall_fin_zero]
   | succ n ih => simp only [findSomeRev?_succ, Option.or_eq_none_iff, ih, forall_fin_succ_last]
 
 theorem isNone_findSomeRev?_iff {f : Fin n → Option α} :
