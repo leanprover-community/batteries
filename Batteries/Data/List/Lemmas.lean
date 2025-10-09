@@ -346,9 +346,6 @@ theorem pairwise_cons_cons :
 
 /-! ### IsChain -/
 
-attribute [simp, grind ←] IsChain.nil
-attribute [simp, grind ←] IsChain.singleton
-
 @[deprecated (since := "2025-09-19")]
 alias chain_cons := isChain_cons_cons
 
