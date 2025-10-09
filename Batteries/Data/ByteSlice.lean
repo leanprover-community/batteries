@@ -49,7 +49,7 @@ where
 instance : ForIn m ByteSlice UInt8 where
   forIn := ByteSlice.forIn
 
-instance : Stream ByteSlice UInt8 where
+instance : Std.Stream ByteSlice UInt8 where
   next? s := s[0]? >>= (·, s.popFront)
 
 instance : Coe ByteArray ByteSlice where
