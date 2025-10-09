@@ -24,7 +24,7 @@ import Batteries.Data.BinaryHeap
 import Batteries.Data.BinomialHeap
 import Batteries.Data.BitVec
 import Batteries.Data.ByteArray
-import Batteries.Data.ByteSubarray
+import Batteries.Data.ByteSlice
 import Batteries.Data.Char
 import Batteries.Data.DList
 import Batteries.Data.Fin
