@@ -222,7 +222,7 @@ and `endPos` is the position of the end of the header.
 -/
 def parseHeaderFromString (text path : String) :
     IO (System.FilePath × Parser.InputContext ×
-      TSyntaxArray ``Parser.Module.import × String.Pos) := do
+      TSyntaxArray ``Parser.Module.import × String.Pos.Raw) := do
   let inputCtx := Parser.mkInputContext text path
   let (header, parserState, msgs) ← Parser.parseHeader inputCtx
   if !msgs.toList.isEmpty then -- skip this file if there are parse errors
@@ -240,7 +240,7 @@ and `endPos` is the position of the end of the header.
 -/
 def parseHeader (srcSearchPath : SearchPath) (mod : Name) :
     IO (System.FilePath × Parser.InputContext ×
-      TSyntaxArray ``Parser.Module.import × String.Pos) := do
+      TSyntaxArray ``Parser.Module.import × String.Pos.Raw) := do
   -- Parse the input file
   let some path ← srcSearchPath.findModuleWithExt "lean" mod
     | throw <| .userError "error: failed to find source file for {mod}"
@@ -613,7 +613,7 @@ def main (args : List String) : IO UInt32 := do
     let text := inputCtx.inputString.extract 0 inputCtx.endPos
 
     -- Calculate the edit result
-    let mut pos : String.Pos := 0
+    let mut pos : String.Pos.Raw := 0
     let mut out : String := ""
     let mut seen : NameSet := {}
     for stx in imports do
