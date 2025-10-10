@@ -108,3 +108,5 @@ Construct a natural number from a sequence of bits using little endian conventio
 -/
 @[inline] def ofBits (f : Fin n → Bool) : Nat :=
   Fin.foldr n (fun i v => 2 * v + (f i).toNat) 0
+
+instance {n : Nat} : NeZero (n^0) := ⟨Nat.one_ne_zero⟩
