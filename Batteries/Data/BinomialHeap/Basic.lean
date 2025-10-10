@@ -237,7 +237,7 @@ private theorem Heap.realSize_findMin {s : Heap α}
       (by simp [hk, Nat.add_assoc]) (by simp [eq, Nat.add_assoc]) ?_
     split
     · exact hres
-    · exact ⟨m, hk, by simp [eq, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]⟩
+    · exact ⟨m, hk, by simp [eq, Nat.add_comm, Nat.add_left_comm]⟩
 
 theorem HeapNode.realSize_toHeap (s : HeapNode α) : s.toHeap.realSize = s.realSize := go s where
   go {n res} : ∀ s : HeapNode α, (toHeap.go s n res).realSize = s.realSize + res.realSize
@@ -532,7 +532,7 @@ def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le := as
   | none => none
   | some (a, tl) => some (a, ⟨tl, b.2.deleteMin eq⟩)
 
-instance : Stream (BinomialHeap α le) α := ⟨deleteMin⟩
+instance : Std.Stream (BinomialHeap α le) α := ⟨deleteMin⟩
 
 /--
 `O(n log n)`. Implementation of `for x in (b : BinomialHeap α le) ...` notation,

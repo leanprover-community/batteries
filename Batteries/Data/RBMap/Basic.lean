@@ -6,10 +6,13 @@ Authors: Leonardo de Moura, Mario Carneiro
 import Batteries.Classes.Order
 import Batteries.Control.ForInStep.Basic
 import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.Alias
 
 /-!
 # Red-black trees
+
+Note: users are recommended to use `Std.TreeMap` instead of `Batteries.RBMap`.
+`Std.TreeMap` is a mostly drop-in replacement (notably, there is no `ToStream` instance yet),
+and has more complete and consistent API. This implementation will eventually be deprecated.
 
 This module implements a type `RBMap α β cmp` which is a functional data structure for
 storing a key-value store in a binary search tree.
@@ -149,8 +152,8 @@ def toList (t : RBNode.Stream α) : List α := t.foldr (·::·) []
 
 end Stream
 
-instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
-instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
+instance : Std.ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
+instance : Std.Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
 
 /-- Returns `true` iff every element of the tree satisfies `p`. -/
 @[specialize] def all (p : α → Bool) : RBNode α → Bool
@@ -229,23 +232,26 @@ instance [BEq α] : BEq (RBNode α) where
 We say that `x < y` under the comparator `cmp` if `cmp x y = .lt`.
 
 * In order to avoid assuming the comparator is always lawful, we use a
-  local `∀ [TransCmp cmp]` binder in the relation so that the ordering
+  local `∀ [Std.TransCmp cmp]` binder in the relation so that the ordering
   properties of the tree only need to hold if the comparator is lawful.
 * The `Nonempty` wrapper is a no-op because this is already a proposition,
-  but it prevents the `[TransCmp cmp]` binder from being introduced when we don't want it.
+  but it prevents the `[Std.TransCmp cmp]` binder from being introduced when we don't want it.
 -/
-def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .lt)
+def cmpLT (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .lt)
 
-theorem cmpLT_iff [TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpLT_iff [Std.TransCmp cmp] : cmpLT cmp x y ↔ cmp x y = .lt :=
+  ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
-instance (cmp) [TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
+instance (cmp) [Std.TransCmp cmp] : Decidable (cmpLT cmp x y) := decidable_of_iff' _ cmpLT_iff
 
 /-- We say that `x ≈ y` under the comparator `cmp` if `cmp x y = .eq`. See also `cmpLT`. -/
-def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop := Nonempty (∀ [TransCmp cmp], cmp x y = .eq)
+def cmpEq (cmp : α → α → Ordering) (x y : α) : Prop :=
+  Nonempty (∀ [Std.TransCmp cmp], cmp x y = .eq)
 
-theorem cmpEq_iff [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
+theorem cmpEq_iff [Std.TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨h⟩ => h, (⟨·⟩)⟩
 
-instance (cmp) [TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
+instance (cmp) [Std.TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
 
 /-- `O(n)`. Verifies an ordering relation on the nodes of the tree. -/
 def isOrdered (cmp : α → α → Ordering)
@@ -569,7 +575,7 @@ def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
 
 -- This is in the Slow namespace because it is `O(n^2)` where a `O(n)` algorithm exists
 -- (see `isOrdered_iff` in `Data.RBMap.Lemmas`). Prefer `isOrdered` or the other instance.
-@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [TransCmp cmp] :
+@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [Std.TransCmp cmp] :
     ∀ t : RBNode α, Decidable (Ordered cmp t)
   | nil => inferInstanceAs (Decidable True)
   | node _ a _ b =>
@@ -651,7 +657,7 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp)
 instance : ForIn m (RBSet α cmp) α where
   forIn t := t.1.forIn
 
-instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
+instance : Std.ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBSet α cmp → Bool
@@ -936,8 +942,8 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 
 instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
 
-instance : ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
-  inferInstanceAs (ToStream (RBSet ..) _)
+instance : Std.ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
+  inferInstanceAs (Std.ToStream (RBSet ..) _)
 
 /-- `O(n)`. Constructs the array of keys of the map. -/
 @[inline] def keysArray (t : RBMap α β cmp) : Array α :=
@@ -985,8 +991,8 @@ def Keys.Stream.next? (t : Stream α β) : Option (α × Stream α β) :=
   | none => none
   | some ((a, _), t) => some (a, t)
 
-instance : ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
-instance : Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
+instance : Std.ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
+instance : Std.Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
 
 /-- `O(n)`. Constructs the array of values of the map. -/
 @[inline] def valuesArray (t : RBMap α β cmp) : Array β :=
@@ -1034,8 +1040,8 @@ def Values.Stream.next? (t : Stream α β) : Option (β × Stream α β) :=
   | none => none
   | some ((_, b), t) => some (b, t)
 
-instance : ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
-instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
+instance : Std.ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
+instance : Std.Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty

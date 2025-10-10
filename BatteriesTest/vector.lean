@@ -2,8 +2,6 @@ import Batteries.Data.Vector
 
 /-! ### Testing decidable quantifiers for `Vector`. -/
 
-open Batteries
-
 example : ∃ v : Vector Bool 6, v.toList.count true = 3 := by decide
 
 inductive Gate : Nat → Type

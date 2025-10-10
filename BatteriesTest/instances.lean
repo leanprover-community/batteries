@@ -10,10 +10,11 @@ error: type class instance expected
 #instances Fin 1
 
 /--
-info: 2 instances:
+info: 3 instances:
 
 instAddNat : Add Nat
-Lean.Grind.CommRing.toAdd.{u} {α : Type u} [self : Lean.Grind.CommRing α] : Add α
+(prio 100) Lean.Grind.Semiring.toAdd.{u} {α : Type u} [self : Lean.Grind.Semiring α] : Add α
+(prio 100) Lean.Grind.AddCommMonoid.toAdd.{u} {M : Type u} [self : Lean.Grind.AddCommMonoid M] : Add M
 -/
 #guard_msgs in
 #instances Add Nat

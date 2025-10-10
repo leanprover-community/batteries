@@ -52,7 +52,4 @@ theorem singleton_eq_ofThunk {α : Type _} {a : α} : singleton a = ofThunk [a] 
 theorem ofThunk_coe {α : Type _} {l : List α} : ofThunk l = ofList l :=
   rfl
 
-@[deprecated (since := "2024-10-16")] alias DList_singleton := singleton_eq_ofThunk
-@[deprecated (since := "2024-10-16")] alias DList_lazy := ofThunk_coe
-
 end Batteries.DList

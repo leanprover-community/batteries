@@ -123,10 +123,10 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
       Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
     simp [Equiv, hm, xroot, yroot]
     by_cases h1 : rootD self a = x <;> by_cases h2 : rootD self b = x <;>
-      simp [h1, h2, imp_false, Decidable.not_not]
-    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (rootD self b), *]
+      simp [h1, h2, imp_false, Decidable.not_not, -left_eq_ite_iff]
+    · simp [Ne.symm h2, -left_eq_ite_iff]; split <;> simp [@eq_comm _ _ (rootD self b), *]
     · by_cases h1 : rootD self a = y <;> by_cases h2 : rootD self b = y <;>
-        simp [h1, h2, @eq_comm _ _ (rootD self b), *]
+        simp [@eq_comm _ _ (rootD self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr
   rw [← rootD_eq_self] at xroot yroot
   obtain rfl | rfl := ha

@@ -3,14 +3,46 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Std.Data.HashMap
+import Batteries.Lean.HashMap
+import Batteries.Tactic.Alias
+
+namespace Std.HashMap
+
+variable [BEq α] [Hashable α]
+
+/--
+Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
+Note that the returned key may not be identical to the input, if `==` ignores some part
+of the value.
+```
+def hashMap := ofList [("one", 1), ("two", 2)]
+hashMap.findEntry? "one" = some ("one", 1)
+hashMap.findEntry? "three" = none
+```
+-/
+-- This could be given a more efficient low level implementation.
+@[inline]
+def findEntry? [BEq α] [Hashable α] (m : Std.HashMap α β) (k : α) : Option (α × β) :=
+  if h : k ∈ m then some (m.getKey k h, m.get k h) else none
+
+/--
+Variant of `ofList` which accepts a function that combines values of duplicated keys.
+```
+ofListWith [("one", 1), ("one", 2)] (fun v₁ v₂ => v₁ + v₂) = {"one" => 3}
+```
+-/
+def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → β) : HashMap α β :=
+  l.foldl (init := ∅) fun m p =>
+    match m[p.1]? with
+    | none   => m.insert p.1 p.2
+    | some v => m.insert p.1 <| f v p.2
+
+end Std.HashMap
 
 namespace Batteries.HashMap
 
-/-- A hash is lawful if elements which compare equal under `==` have equal hash. -/
-class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
-  /-- Two elements which compare equal under the `BEq` instance have equal hash. -/
-  hash_eq {a b : α} : a == b → hash a = hash b
+@[reducible, deprecated (since := "2025-05-31")]
+alias LawfulHashable := LawfulHashable
 
 /--
 `HashMap α β` is a key-value map which stores elements in an array using a hash function
@@ -19,9 +51,12 @@ to find the values. This allows it to have very good performance for lookups
 meaning that one should take care to use the map linearly when performing updates.
 Copies are `O(n)`.
 -/
+@[deprecated Std.HashMap (since := "2025-04-09")]
 structure _root_.Batteries.HashMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   /-- The inner `Std.HashMap` powering the `Batteries.HashMap`. -/
   inner : Std.HashMap α β
+
+set_option linter.deprecated false
 
 /-- Make a new hash map with the specified capacity. -/
 @[inline] def _root_.Batteries.mkHashMap [BEq α] [Hashable α] (capacity := 0) : HashMap α β :=
@@ -151,8 +186,8 @@ hashMap.findEntry? "three" = none
 -/
 -- This could be given a more efficient low level implementation.
 @[inline]
-def findEntry? [BEq α] [Hashable α] (m : Std.HashMap α β) (k : α) : Option (α × β) :=
-  if h : k ∈ m then some (m.getKey k h, m.get k h) else none
+def findEntry? [BEq α] [Hashable α] (m : HashMap α β) (k : α) : Option (α × β) :=
+  m.inner.findEntry? k
 
 /--
 Returns true if the element `a` is in the map.
@@ -186,6 +221,7 @@ fold (fun sum _ v => sum + v) 0 (ofList [("one", 1), ("two", 2)]) = 3
 -/
 @[inline] def fold (f : δ → α → β → δ) (init : δ) (self : HashMap α β) : δ :=
   Std.HashMap.fold f init self.inner
+
 /--
 Combines two hashmaps using a monadic function `f` to combine two values at a key.
 ```
@@ -202,10 +238,7 @@ mergeWithM mergeIfNoConflict? map1 map3 = none
 -/
 @[specialize] def mergeWithM [Monad m] (f : α → β → β → m β)
     (self other : HashMap α β) : m (HashMap α β) :=
-  other.foldM (init := self) fun m k v₂ =>
-    match m.inner[k]? with
-    | none => return m.insert k v₂
-    | some v₁ => return m.insert k (← f k v₁ v₂)
+  HashMap.mk <$> self.inner.mergeWithM f other.inner
 
 /--
 Combines two hashmaps using function `f` to combine two values at a key.
@@ -216,12 +249,7 @@ mergeWith (fun _ v₁ v₂ => v₁ + v₂ )
 ```
 -/
 @[inline] def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashMap α β :=
-  -- Implementing this function directly, rather than via `mergeWithM`, gives
-  -- us less constrained universes.
-  other.fold (init := self) fun map k v₂ =>
-    match map.inner[k]? with
-    | none => map.insert k v₂
-    | some v₁ => map.insert k $ f k v₁ v₂
+  ⟨self.inner.mergeWith f other.inner⟩
 
 /--
 Runs a monadic function over the elements in the map (in arbitrary order).
@@ -243,7 +271,7 @@ open List
 (ofList [("one", 1), ("two", 2)]).toList ~ [("one", 1), ("two", 2)]
 ```
 -/
-def toList (self : HashMap α β) : List (α × β) := self.fold (init := []) fun r k v => (k, v)::r
+def toList (self : HashMap α β) : List (α × β) := self.inner.toList
 
 /--
 Converts the map into an array of key-value pairs.
@@ -252,8 +280,7 @@ open List
 (ofList [("one", 1), ("two", 2)]).toArray.data ~ #[("one", 1), ("two", 2)].data
 ```
 -/
-def toArray (self : HashMap α β) : Array (α × β) :=
-  self.fold (init := #[]) fun r k v => r.push (k, v)
+def toArray (self : HashMap α β) : Array (α × β) := self.inner.toArray
 
 /-- The number of buckets in the hash map. -/
 def numBuckets (self : HashMap α β) : Nat := Std.HashMap.Internal.numBuckets self.inner
@@ -266,7 +293,7 @@ ofList [("one", 1), ("one", 2)] = {"one" => 2}
 ```
 -/
 def ofList [BEq α] [Hashable α] (l : List (α × β)) : HashMap α β :=
-  l.foldl (init := HashMap.empty) fun m (k, v) => m.insert k v
+  ⟨Std.HashMap.ofList l⟩
 
 /--
 Variant of `ofList` which accepts a function that combines values of duplicated keys.
@@ -275,7 +302,4 @@ ofListWith [("one", 1), ("one", 2)] (fun v₁ v₂ => v₁ + v₂) = {"one" => 3
 ```
 -/
 def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → β) : HashMap α β :=
-  l.foldl (init := HashMap.empty) fun m p =>
-    match m.find? p.1 with
-    | none   => m.insert p.1 p.2
-    | some v => m.insert p.1 <| f v p.2
+  ⟨Std.HashMap.ofListWith l f⟩

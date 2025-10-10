@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 import Batteries.Data.Array.Match
-import Batteries.Data.String.Basic
 
 namespace List
 
@@ -37,7 +36,7 @@ structure Matcher (α : Type _) extends Array.Matcher α where
   pattern := pattern
 
 /-- List stream that keeps count of items read. -/
-local instance (α) : Stream (List α × Nat) α where
+local instance (α) : Std.Stream (List α × Nat) α where
   next?
   | ([], _) => none
   | (x::xs, n) => (x, xs, n+1)

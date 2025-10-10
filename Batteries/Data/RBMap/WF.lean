@@ -28,10 +28,10 @@ theorem All_and {t : RBNode α} : t.All (fun a => p a ∧ q a) ↔ t.All p ∧ t
   induction t <;> simp [*, and_assoc, and_left_comm]
 
 protected theorem cmpLT.flip (h₁ : cmpLT cmp x y) : cmpLT (flip cmp) y x :=
-  ⟨have : TransCmp cmp := inferInstanceAs (TransCmp (flip (flip cmp))); h₁.1⟩
+  ⟨have : Std.TransCmp cmp := inferInstanceAs (Std.TransCmp (flip (flip cmp))); h₁.1⟩
 
 theorem cmpLT.trans (h₁ : cmpLT cmp x y) (h₂ : cmpLT cmp y z) : cmpLT cmp x z :=
-  ⟨TransCmp.lt_trans h₁.1 h₂.1⟩
+  ⟨Std.TransCmp.lt_trans h₁.1 h₂.1⟩
 
 theorem cmpLT.trans_l {cmp x y} (H : cmpLT cmp x y) {t : RBNode α}
     (h : t.All (cmpLT cmp y ·)) : t.All (cmpLT cmp x ·) := h.imp fun h => H.trans h
@@ -40,10 +40,10 @@ theorem cmpLT.trans_r {cmp x y} (H : cmpLT cmp x y) {a : RBNode α}
     (h : a.All (cmpLT cmp · x)) : a.All (cmpLT cmp · y) := h.imp fun h => h.trans H
 
 theorem cmpEq.lt_congr_left (H : cmpEq cmp x y) : cmpLT cmp x z ↔ cmpLT cmp y z :=
-  ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_left H.1 ▸ h⟩⟩
+  ⟨fun ⟨h⟩ => ⟨Std.TransCmp.congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨Std.TransCmp.congr_left H.1 ▸ h⟩⟩
 
 theorem cmpEq.lt_congr_right (H : cmpEq cmp y z) : cmpLT cmp x y ↔ cmpLT cmp x z :=
-  ⟨fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨TransCmp.cmp_congr_right H.1 ▸ h⟩⟩
+  ⟨fun ⟨h⟩ => ⟨Std.TransCmp.congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨Std.TransCmp.congr_right H.1 ▸ h⟩⟩
 
 @[simp] theorem reverse_reverse (t : RBNode α) : t.reverse.reverse = t := by
   induction t <;> simp [*]
@@ -116,10 +116,14 @@ protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Ba
 
 theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by cases t <;> rfl
 
-@[simp] theorem reverse_ins [inst : @OrientedCmp α cmp] {t : RBNode α} :
+@[simp] theorem reverse_ins [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
     (ins cmp x t).reverse = ins (flip cmp) x t.reverse := by
-  induction t <;> [skip; (rename_i c a y b iha ihb; cases c)] <;> simp [ins, flip]
-    <;> rw [← inst.symm x y] <;> split <;> simp [*, Ordering.swap, iha, ihb]
+  induction t with
+  | nil => simp [ins]
+  | node c a y b iha ihb =>
+    cases c <;>
+      (simp only [ins, Std.OrientedCmp.eq_swap (cmp := cmp) (a := x) (b := y)]; split) <;>
+        simp_all [ins, reverse, flip]
 
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
@@ -132,24 +136,24 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
     · next h => exact ⟨ay.ins ⟨h⟩, yb, ha.ins, hb⟩
-    · next h => exact ⟨ay, yb.ins ⟨OrientedCmp.cmp_eq_gt.1 h⟩, ha, hb.ins⟩
+    · next h => exact ⟨ay, yb.ins ⟨Std.OrientedCmp.gt_iff_lt.1 h⟩, ha, hb.ins⟩
     · next h => exact (⟨
-        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+        ay.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_left h).trans h'⟩, ha, hb⟩)
   | node black a y b, ⟨ay, yb, ha, hb⟩ => by
     unfold ins; split
     · next h => exact ha.ins.balance1 (ay.ins ⟨h⟩) yb hb
-    · next h => exact ha.balance2 ay (yb.ins ⟨OrientedCmp.cmp_eq_gt.1 h⟩) hb.ins
+    · next h => exact ha.balance2 ay (yb.ins ⟨Std.OrientedCmp.gt_iff_lt.1 h⟩) hb.ins
     · next h => exact (⟨
-        ay.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_right h).trans h'⟩,
-        yb.imp fun ⟨h'⟩ => ⟨(TransCmp.cmp_congr_left h).trans h'⟩, ha, hb⟩)
+        ay.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_right h).trans h'⟩,
+        yb.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_left h).trans h'⟩, ha, hb⟩)
 
 @[simp] theorem isRed_reverse {t : RBNode α} : t.reverse.isRed = t.isRed := by
   cases t <;> simp [isRed]
 
-@[simp] theorem reverse_insert [inst : @OrientedCmp α cmp] {t : RBNode α} :
+@[simp] theorem reverse_insert [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
     (insert cmp t x).reverse = insert (flip cmp) t.reverse x := by
-  simp [insert] <;> split <;> simp
+  simp [insert]; split <;> simp
 
 theorem insert_setBlack {t : RBNode α} :
     (t.insert cmp v).setBlack = (t.ins cmp v).setBlack := by
@@ -280,7 +284,7 @@ protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.
     (balLeft l v r).reverse = balRight r.reverse v l.reverse := by
   unfold balLeft balRight; split
   · simp
-  · rw [balLeft.match_2.eq_2 _ _ _ _ (by simp [reverse_eq_iff]; intros; solve_by_elim)]
+  · rw [balLeft.match_3.eq_2 _ _ _ _ (by simp [reverse_eq_iff]; intros; solve_by_elim)]
     split <;> simp
     rw [balRight.match_1.eq_3] <;> (simp [reverse_eq_iff]; intros; solve_by_elim)
 
@@ -573,11 +577,11 @@ open Ordering (byKey)
 instance (cmp : α → α → Ordering) (f : α → β → γ) :
     IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
   lt_mono | ⟨h⟩ => ⟨@fun _ => @h {
-    symm := fun (a₁, b₁) (a₂, b₂) =>
-      OrientedCmp.symm (cmp := byKey Prod.fst cmp) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
-    le_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
-      TransCmp.le_trans (cmp := byKey Prod.fst cmp)
-        (x := (a₁, f a₁ b₁)) (y := (a₂, f a₂ b₂)) (z := (a₃, f a₃ b₃))
+    eq_swap := @fun (a₁, b₁) (a₂, b₂) =>
+      Std.OrientedCmp.eq_swap (cmp := byKey Prod.fst cmp) (a := (a₁, f a₁ b₁)) (b := (a₂, f a₂ b₂))
+    isLE_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
+      Std.TransCmp.isLE_trans (cmp := byKey Prod.fst cmp)
+        (a := (a₁, f a₁ b₁)) (b := (a₂, f a₂ b₂)) (c := (a₃, f a₃ b₃))
   }⟩
 
 end Imp
