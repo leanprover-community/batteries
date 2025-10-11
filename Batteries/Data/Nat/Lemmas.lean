@@ -203,3 +203,6 @@ theorem testBit_ofBits (f : Fin n → Bool) :
   cases Nat.lt_or_ge i n with
   | inl h => simp [h]
   | inr h => simp [h, Nat.not_lt_of_ge h]
+
+theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
+  apply eq_of_testBit_eq; simp [testBit_ofBits]
