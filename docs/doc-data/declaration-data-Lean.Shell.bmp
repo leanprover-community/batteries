@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Frontend","Lean.Elab.ParseImportsFast","Lean.Server.Watchdog","Lean.Server.FileWorker","Lean.Compiler.IR.EmitC"],"instances":[],"name":"Lean.Shell"}
