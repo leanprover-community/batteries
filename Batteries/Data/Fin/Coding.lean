@@ -190,33 +190,17 @@ def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
 
 /-- Encode `Fin m × Fin n` into `Fin (m * n)`. -/
 def encodeProd : Fin m × Fin n → Fin (m * n)
-  | (⟨i, hi⟩, ⟨j, hj⟩) => Fin.mk (n * i + j) <| calc
-    _ < n * i + n := Nat.add_lt_add_left hj ..
-    _ = n * (i + 1) := Nat.mul_succ ..
-    _ ≤ n * m := Nat.mul_le_mul_left n (Nat.succ_le_of_lt hi)
-    _ = m * n := Nat.mul_comm ..
+  | (i, j) => mkDivMod i j
 
 /-- Decode `Fin m × Fin n` from `Fin (m * n)`. -/
 @[pp_nodot] def decodeProd (z : Fin (m * n)) : Fin m × Fin n :=
-  ⟨left, right⟩
-where
-  hn : 0 < n := by
-    apply Nat.zero_lt_of_ne_zero
-    intro h
-    absurd z.is_lt
-    simp [h]
-  /-- Left case of `decodeProd`. -/
-  left := ⟨z / n, by rw [Nat.div_lt_iff_lt_mul hn]; exact z.is_lt⟩
-  /-- Right case of `decodeProd`. -/
-  right := ⟨z % n, Nat.mod_lt _ hn⟩
+  (z.divNat, z.modNat)
 
 @[simp] theorem encodeProd_decodeProd (x : Fin (m * n)) : encodeProd (decodeProd x) = x := by
-  simp [encodeProd, decodeProd, decodeProd.left, decodeProd.right, Nat.div_add_mod]
+  simp [encodeProd, decodeProd]
 
 @[simp] theorem decodeProd_encodeProd (x : Fin m × Fin n) : decodeProd (encodeProd x) = x := by
-  match x with
-  | ⟨⟨_, _⟩, ⟨_, h⟩⟩ => simp [encodeProd, decodeProd, decodeProd.left, decodeProd.right,
-    Nat.mul_add_div (Nat.zero_lt_of_lt h), Nat.div_eq_of_lt h, Nat.mod_eq_of_lt h]
+  simp [encodeProd, decodeProd]
 
 /-- Encode `(i : Fin n) × Fin (f i)` into `Fin (Fin.sum f)`. -/
 def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.sum f) :=
