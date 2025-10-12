@@ -90,31 +90,31 @@ def encodeOrdering : Ordering → Fin 3
 
 /-- Encode `Char` into `Fin Char.count`. -/
 def encodeChar (c : Char) : Fin Char.count :=
-  if _ : c.toNat < 0xD800 then
+  if _ : c.toNat < Char.minSurrogate then
     ⟨c.toNat, by grind⟩
   else
-    ⟨c.toNat - (0xE000 - 0xD800), by grind⟩
+    ⟨c.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate), by grind⟩
 
 /-- Decode `Char` from `Fin Char.count`. -/
 @[pp_nodot] def decodeChar (i : Fin Char.count) : Char :=
   if _ : i.val < 0xD800 then
     Char.ofNatAux i.val (by grind)
   else
-    Char.ofNatAux (i.val + (0xE000 - 0xD800)) (by grind)
+    Char.ofNatAux (i.val + (Char.maxSurrogate + 1 - Char.minSurrogate)) (by grind)
 
 @[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
   simp only [decodeChar, encodeChar]
   split
   · simp [*]
-  · have : ¬ x.val + (0xE000 - 0xD800) < 0xD800 := by grind
+  · have : ¬ x.val + (Char.maxSurrogate + 1 - Char.minSurrogate) < Char.minSurrogate := by grind
     simp [*]
 
 @[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
   ext; simp only [decodeChar, encodeChar]
   split
   · simp only [Char.ofNatAux, Char.toNat]; rfl
-  · have : ¬ x.toNat - (0xE000 - 0xD800) < 0xD800 := by grind
-    have : (0xE000 - 0xD800) ≤ x.toNat := by grind
+  · have : ¬ x.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate) < Char.minSurrogate := by grind
+    have : Char.maxSurrogate + 1 - Char.minSurrogate ≤ x.toNat := by grind
     simp [Char.ofNatAux, *]; rfl
 
 /-- Encode `Option (Fin n)` into `Fin (n+1)`. -/
