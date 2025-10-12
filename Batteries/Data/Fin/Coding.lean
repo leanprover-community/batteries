@@ -208,7 +208,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
   | _+1, f, ⟨0, j⟩ =>
     ⟨j, Nat.lt_of_lt_of_le j.is_lt (sum_succ f .. ▸ Nat.le_add_right ..)⟩
   | _+1, f, ⟨⟨i+1, hi⟩, j⟩ =>
-    match encodeSigma ((f ∘ succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, j⟩ with
+    match encodeSigma ((f ·.succ)) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, j⟩ with
     | ⟨k, hk⟩ => ⟨f 0 + k, sum_succ f .. ▸ Nat.add_lt_add_left hk ..⟩
 
 /-- Decode `(i : Fin n) × Fin (f i)` from `Fin (Fin.sum f)`. -/
@@ -219,8 +219,8 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     if hx0 : x < f 0 then
       ⟨0, ⟨x, hx0⟩⟩
     else
-      have hxf : x - f 0 < Fin.sum (f ∘ succ) := by grind [sum_succ]
-      match decodeSigma ((f ∘ succ)) ⟨x - f 0, hxf⟩ with
+      have hxf : x - f 0 < Fin.sum (f ·.succ) := by grind [sum_succ]
+      match decodeSigma ((f ·.succ)) ⟨x - f 0, hxf⟩ with
       | ⟨⟨i, hi⟩, y⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, y⟩
 
 @[simp] theorem encodeSigma_decodeSigma (f : Fin n → Nat) (x : Fin (Fin.sum f)) :
@@ -232,8 +232,8 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     split
     · rfl
     · next h1 =>
-      have h2 : x - f 0 < Fin.sum (f ∘ succ) := by grind [sum_succ]
-      have : encodeSigma (f ∘ succ) (decodeSigma (f ∘ succ) ⟨x - f 0, h2⟩) = ↑x - f 0 := by
+      have h2 : x - f 0 < Fin.sum (f ·.succ) := by grind [sum_succ]
+      have : encodeSigma (f ·.succ) (decodeSigma (f ·.succ) ⟨x - f 0, h2⟩) = ↑x - f 0 := by
         rw [ih]
       ext; simp only [encodeSigma]
       conv => rhs; rw [← Nat.add_sub_of_le (Nat.le_of_not_gt h1)]
@@ -254,9 +254,9 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
       rw [dif_neg this]
       have : (encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩).1 - f 0 =
-          (encodeSigma (f ∘ Fin.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨x, hx⟩⟩).1 := by
+          (encodeSigma (f ·.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨x, hx⟩⟩).1 := by
         simp [encodeSigma, Nat.add_sub_cancel_left]
-      have h := ih (f ∘ Fin.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨x, hx⟩⟩
+      have h := ih (f ·.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨x, hx⟩⟩
       simp [Sigma.ext_iff, Fin.ext_iff] at h ⊢
       constructor
       · conv => rhs; rw [← h.1]
@@ -308,7 +308,7 @@ def encodePi (f : Fin n → Nat) (x : (i : Fin n) → Fin (f i)) : Fin (Fin.prod
   match n, f, x with
   | 0, _, _ => ⟨0, by simp [Fin.prod]⟩
   | _+1, f, x =>
-    match encodePi ((f ∘ succ)) (fun ⟨i, hi⟩ => x ⟨i+1, Nat.succ_lt_succ hi⟩) with
+    match encodePi ((f ·.succ)) (fun ⟨i, hi⟩ => x ⟨i+1, Nat.succ_lt_succ hi⟩) with
     | ⟨k, hk⟩ => Fin.mk (f 0 * k + (x 0).val) $ calc
       _ < f 0 * k + f 0 := by grind
       _ = f 0 * (k + 1) := by grind
@@ -321,10 +321,10 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
   | 0, _, _ => (nomatch ·)
   | n+1, f, ⟨x, hx⟩ =>
     have h : f 0 > 0 := by grind [prod_succ]
-    have : x / f 0 < Fin.prod (f ∘ succ) := by
+    have : x / f 0 < Fin.prod (f ·.succ) := by
       rw [Nat.div_lt_iff_lt_mul h, Nat.mul_comm, ← prod_succ]
       exact hx
-    match decodePi ((f ∘ succ)) ⟨x / f 0, this⟩ with
+    match decodePi ((f ·.succ)) ⟨x / f 0, this⟩ with
     | t => fun
       | ⟨0, _⟩ => ⟨x % f 0, Nat.mod_lt x h⟩
       | ⟨i+1, hi⟩ => t ⟨i, Nat.lt_of_succ_lt_succ hi⟩
@@ -353,8 +353,8 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
     split
     · simp [encodePi, Nat.mod_eq_of_lt (x 0).is_lt]
     · next i hi =>
-      have h : decodePi (f ∘ succ) (encodePi (f ∘ succ) fun i => x i.succ)
-          ⟨i, Nat.lt_of_succ_lt_succ hi⟩ = x ⟨i+1, hi⟩ := by rw [ih]; rfl
+      have h : decodePi (f ·.succ) (encodePi (f ·.succ) fun i => x i.succ)
+          ⟨i, Nat.lt_of_succ_lt_succ hi⟩ = x ⟨i+1, hi⟩ := by simp [ih (f ·.succ)]; done
       conv => rhs; rw [← h]
       congr; simp [encodePi, Nat.mul_add_div h0, Nat.div_eq_of_lt (x 0).is_lt]; rfl
 
@@ -363,14 +363,14 @@ def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i 
     Fin (Fin.count (P ·)) :=
   match n, P, inst, i with
   | n+1, P, inst, ⟨0, hp⟩ =>
-    have : Fin.count (P ·) > 0 := by simp [count_succ, hp]
+    have : Fin.count (P ·) > 0 := by grind [count_succ]
     ⟨0, this⟩
   | n+1, P, inst, ⟨⟨i+1, hi⟩, hp⟩ =>
     match encodeSubtype (fun i => P i.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, hp⟩ with
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
         have : (Fin.count fun i => P i.succ) + 1 = Fin.count (P ·) := by
-          simp +arith only [count_succ, if_pos (decide_eq_true h0)]
+          grind [count_succ]
         Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
         have : (Fin.count fun i => P i.succ) = Fin.count (P ·) := by simp [count_succ, h0]
@@ -383,7 +383,7 @@ def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.co
   | 0, _, _, ⟨_, h⟩ => False.elim (by simp at h)
   | n+1, P, inst, ⟨k, hk⟩ =>
     if h0 : P 0 then
-      have : Fin.count (P ·) = (Fin.count fun i => P i.succ) + 1 := by simp [count_succ, h0]
+      have : Fin.count (P ·) = (Fin.count fun i => P i.succ) + 1 := by grind [count_succ]
       match k with
       | 0 => ⟨0, h0⟩
       | k + 1 =>
@@ -395,12 +395,12 @@ def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.co
       | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
 
 theorem encodeSubtype_zero_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) :
-    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by simp [count_succ, *]⟩ := by
+    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by grind [count_succ]⟩ := by
   ext; rw [encodeSubtype.eq_def]; rfl
 
 theorem encodeSubtype_succ_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) {i : Fin n}
     (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
-      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by simp [count_succ, *]) := by
+      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by grind [count_succ]) := by
   ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
 
 theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : ¬ P 0) {i : Fin n}
