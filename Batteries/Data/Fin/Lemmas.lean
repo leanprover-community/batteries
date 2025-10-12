@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
+import Batteries.Data.Nat.Lemmas
 import Batteries.Util.ProofWanted
 import Batteries.Tactic.Alias
 
@@ -193,3 +194,20 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
   simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
     exists_eq_true_iff_exists_minimal_eq_true (p ·)
+
+/-! ### divNat / modNat / mkDivMod -/
+
+@[simp] theorem coe_divNat (i : Fin (m * n)) : (i.divNat : Nat) = i / n := rfl
+
+@[simp] theorem coe_modNat (i : Fin (m * n)) : (i.modNat : Nat) = i % n := rfl
+
+@[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j : Nat) = n * i + j := rfl
+
+@[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i := by
+  ext; simp [mkDivMod, Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
+
+@[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j := by
+  ext; simp [mkDivMod, Nat.mod_eq_of_lt]
+
+@[simp] theorem divNat_mkDivMod_modNat (k : Fin (m * n)) :
+    mkDivMod k.divNat k.modNat = k := by ext; simp [mkDivMod, Nat.div_add_mod]
