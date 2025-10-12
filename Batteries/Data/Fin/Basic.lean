@@ -94,7 +94,7 @@ protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
 
 /-- Count the number of true values of a decidable predicate on `Fin n`. -/
 protected def count (p : Fin n → Bool) : Nat :=
-  Fin.sum (Bool.toNat ∘ p)
+  Fin.sum (p · |>.toNat)
 
 /--
 `findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
