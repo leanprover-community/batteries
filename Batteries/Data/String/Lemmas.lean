@@ -161,91 +161,95 @@ def utf8InductionOn {motive : List Char → Pos.Raw → Sort u}
     else ind c cs i h (utf8InductionOn cs (i + c) p nil eq ind)
 
 theorem utf8GetAux_add_right_cancel (s : List Char) (i p n : Nat) :
-    utf8GetAux s ⟨i + n⟩ ⟨p + n⟩ = utf8GetAux s ⟨i⟩ ⟨p⟩ := by
+    Pos.Raw.utf8GetAux s ⟨i + n⟩ ⟨p + n⟩ = Pos.Raw.utf8GetAux s ⟨i⟩ ⟨p⟩ := by
   apply utf8InductionOn s ⟨i⟩ ⟨p⟩ (motive := fun s i =>
-    utf8GetAux s ⟨i.byteIdx + n⟩ ⟨p + n⟩ = utf8GetAux s i ⟨p⟩) <;>
-  simp only [utf8GetAux, Char.reduceDefault, implies_true, ↓reduceIte, ne_eq, pos_add_char]
+    Pos.Raw.utf8GetAux s ⟨i.byteIdx + n⟩ ⟨p + n⟩ = Pos.Raw.utf8GetAux s i ⟨p⟩) <;>
+  simp only [Pos.Raw.utf8GetAux, Char.reduceDefault, implies_true, ↓reduceIte, ne_eq,
+    Pos.Raw.byteIdx_add_char]
   intro c cs ⟨i⟩ h ih
-  simp only [Pos.Raw.ext_iff, Pos.Raw.addChar_eq] at h ⊢
+  simp only [Pos.Raw.ext_iff, Pos.Raw.add_char_eq] at h ⊢
   simp only [Nat.add_right_cancel_iff, h, ↓reduceIte]
   rw [Nat.add_right_comm]
   exact ih
 
 theorem utf8GetAux_addChar_right_cancel (s : List Char) (i p : Pos.Raw) (c : Char) :
-    utf8GetAux s (i + c) (p + c) = utf8GetAux s i p := utf8GetAux_add_right_cancel ..
+    Pos.Raw.utf8GetAux s (i + c) (p + c) = Pos.Raw.utf8GetAux s i p :=
+  utf8GetAux_add_right_cancel ..
 
 theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
-    utf8GetAux (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.headD default := by
+    Pos.Raw.utf8GetAux (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.headD default := by
   match cs, cs' with
   | [], [] => rfl
-  | [], c::cs' => simp [← hp, utf8GetAux]
+  | [], c::cs' => simp [← hp, Pos.Raw.utf8GetAux]
   | c::cs, cs' =>
-    simp only [List.cons_append, utf8GetAux, Char.reduceDefault]
+    simp only [List.cons_append, Pos.Raw.utf8GetAux, Char.reduceDefault]
     rw [if_neg]
     case hnc => simp only [← hp, utf8Len_cons, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
 theorem get_of_valid (cs cs' : List Char) :
-    get (mk (cs ++ cs')) ⟨utf8Len cs⟩ = cs'.headD default := by
-  rw [get, String.mk_eq_asString, List.data_asString]
+    Pos.Raw.get (mk (cs ++ cs')) ⟨utf8Len cs⟩ = cs'.headD default := by
+  rw [Pos.Raw.get, String.mk_eq_asString, List.data_asString]
   exact utf8GetAux_of_valid _ _ (Nat.zero_add _)
 
 theorem get_cons_addChar (c : Char) (cs : List Char) (i : Pos.Raw) :
     get (c :: cs).asString (i + c) = get cs.asString i := by
-  simp [get, utf8GetAux, Pos.Raw.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
+  simp [get, Pos.Raw.utf8GetAux, Pos.Raw.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
 
 theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
-    utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
+    Pos.Raw.utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
   match cs, cs' with
   | [], [] => rfl
-  | [], c::cs' => simp [← hp, utf8GetAux?]
+  | [], c::cs' => simp [← hp, Pos.Raw.utf8GetAux?]
   | c::cs, cs' =>
-    simp only [List.cons_append, utf8GetAux?]
+    simp only [List.cons_append, Pos.Raw.utf8GetAux?]
     rw [if_neg]
     case hnc => simp only [← hp, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
 theorem get?_of_valid (cs cs' : List Char) :
-    get? (cs ++ cs').asString ⟨utf8Len cs⟩ = cs'.head? := by
-  rw [get?, List.data_asString]
+    Pos.Raw.get? (cs ++ cs').asString ⟨utf8Len cs⟩ = cs'.head? := by
+  rw [Pos.Raw.get?, List.data_asString]
   exact utf8GetAux?_of_valid _ _ (Nat.zero_add _)
 
 theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
-    utf8SetAux c' (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs ++ cs'.modifyHead fun _ => c' := by
+    Pos.Raw.utf8SetAux c' (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs ++ cs'.modifyHead fun _ => c' := by
   match cs, cs' with
   | [], [] => rfl
-  | [], c::cs' => simp [← hp, utf8SetAux]
+  | [], c::cs' => simp [← hp, Pos.Raw.utf8SetAux]
   | c::cs, cs' =>
-    simp only [utf8SetAux, List.cons_append]
+    simp only [Pos.Raw.utf8SetAux, List.cons_append]
     rw [if_neg]
     case hnc => simp only [← hp, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
 
 theorem set_of_valid (cs cs' : List Char) (c' : Char) :
-    set (mk (cs ++ cs')) ⟨utf8Len cs⟩ c' = (cs ++ cs'.modifyHead fun _ => c').asString := by
+    Pos.Raw.set (mk (cs ++ cs')) ⟨utf8Len cs⟩ c' =
+      (cs ++ cs'.modifyHead fun _ => c').asString := by
   ext
-  rw [set, List.data_asString, List.data_asString, String.mk_eq_asString, List.data_asString,
-    utf8SetAux_of_valid _ _ _]
+  rw [Pos.Raw.set, List.data_asString, List.data_asString, String.mk_eq_asString,
+    List.data_asString, utf8SetAux_of_valid _ _ _]
   exact Nat.zero_add _
 
 theorem modify_of_valid (cs cs' : List Char) :
-    modify (mk (cs ++ cs')) ⟨utf8Len cs⟩ f = (cs ++ cs'.modifyHead f).asString := by
-  rw [modify, set_of_valid, get_of_valid]; cases cs' <;> rfl
+    Pos.Raw.modify (mk (cs ++ cs')) ⟨utf8Len cs⟩ f = (cs ++ cs'.modifyHead f).asString := by
+  rw [Pos.Raw.modify, set_of_valid, get_of_valid]; cases cs' <;> rfl
 
 theorem next_of_valid' (cs cs' : List Char) :
-    next (mk (cs ++ cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs + (cs'.headD default).utf8Size⟩ := by
-  simp only [next, get_of_valid]; rfl
+    Pos.Raw.next (mk (cs ++ cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs + (cs'.headD default).utf8Size⟩ := by
+  simp only [Pos.Raw.next, get_of_valid]; rfl
 
 theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
-    next (mk (cs ++ c :: cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
+    Pos.Raw.next (mk (cs ++ c :: cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
 @[simp] theorem atEnd_iff (s : String) (p : Pos.Raw) : atEnd s p ↔ s.endPos ≤ p :=
   decide_eq_true_iff
 
-theorem valid_next {p : Pos.Raw} (h : p.Valid s) (h₂ : p < s.endPos) : (next s p).Valid s := by
+theorem valid_next {p : Pos.Raw} (h : p.Valid s) (h₂ : p < s.endPos) :
+    (Pos.Raw.next s p).Valid s := by
   match s, p, h with
   | _, ⟨_⟩, .mk cs [] rfl => simp at h₂
   | _, ⟨_⟩, .mk cs (c::cs') rfl =>
@@ -254,27 +258,27 @@ theorem valid_next {p : Pos.Raw} (h : p.Valid s) (h₂ : p < s.endPos) : (next s
 
 theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
     (hp : i + (utf8Len cs + c.utf8Size) = p) :
-    utf8PrevAux (cs ++ c :: cs') ⟨i⟩ ⟨p⟩ = ⟨i + utf8Len cs⟩ := by
+    Pos.Raw.utf8PrevAux (cs ++ c :: cs') ⟨i⟩ ⟨p⟩ = ⟨i + utf8Len cs⟩ := by
   match cs with
-  | [] => simp [utf8PrevAux, ← hp, Pos.Raw.addChar_eq]
+  | [] => simp [Pos.Raw.utf8PrevAux, ← hp, Pos.Raw.add_char_eq]
   | c'::cs =>
-    simp only [utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
+    simp only [Pos.Raw.utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
     rw [if_neg]
     case hnc =>
-      simp only [Pos.Raw.le_iff, pos_add_char]
+      simp only [Pos.Raw.le_iff, Pos.Raw.byteIdx_add_char]
       grind [!Char.utf8Size_pos]
     refine (utf8PrevAux_of_valid (by simp [Nat.add_assoc, Nat.add_left_comm])).trans ?_
     simp [Nat.add_assoc, Nat.add_comm]
 
 theorem prev_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
-    prev (mk (cs ++ c :: cs')) ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
-  simp only [prev, String.mk_eq_asString, List.data_asString]
+    Pos.Raw.prev (mk (cs ++ c :: cs')) ⟨utf8Len cs + c.utf8Size⟩ = ⟨utf8Len cs⟩ := by
+  simp only [Pos.Raw.prev, String.mk_eq_asString, List.data_asString]
   rw [utf8PrevAux_of_valid] <;> simp
 
 theorem prev_of_valid' (cs cs' : List Char) :
-    prev (mk (cs ++ cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs.dropLast⟩ := by
+    Pos.Raw.prev (mk (cs ++ cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs.dropLast⟩ := by
   match cs, cs.eq_nil_or_concat with
-  | _, .inl rfl => apply prev_zero
+  | _, .inl rfl => apply Pos.Raw.prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [-String.mk_eq_asString, prev_of_valid]
 
 theorem front_eq (s : String) : front s = s.data.headD default := by
