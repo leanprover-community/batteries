@@ -289,7 +289,7 @@ theorem back_eq (s : String) : back s = s.data.getLastD default := by
   match s.data.eq_nil_or_concat with
   | .inl h => simp [h]; rfl
   | .inr ⟨cs, c, h⟩ =>
-    simp only [h, back]
+    simp only [h, back_eq]
     have : (mk (cs ++ [c])).endPos = ⟨utf8Len cs + c.utf8Size⟩ := by
       simp [-String.mk_eq_asString, endPos, utf8ByteSize_mk]
     simp [← String.mk_eq_asString, this, prev_of_valid, get_of_valid]
