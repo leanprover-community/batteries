@@ -24,4 +24,4 @@ and whether `pos` is the first non-whitespace character in the line.
 def Lean.findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
   let start := findLineStart s pos
   let body := s.findAux (· ≠ ' ') pos start
-  ((body - start).1, body == pos)
+  (start.byteDistance body, body == pos)
