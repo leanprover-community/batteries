@@ -24,6 +24,9 @@ instance : Std.LawfulLTOrd String :=
 
 @[simp] theorem mk_length (s : List Char) : (String.mk s).length = s.length := rfl
 
+theorem cons_append (c : Char) (cs : List Char) (t : String) :
+  ⟨c :: cs⟩ ++ t = ⟨c :: (cs ++ t.1)⟩ := rfl
+
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
 private theorem add_utf8Size_pos : 0 < i + Char.utf8Size c :=
@@ -100,7 +103,30 @@ theorem Valid.mk (cs cs' : List Char) : Valid ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩ :
 theorem Valid.le_endPos : ∀ {s p}, Valid s p → p ≤ endPos s
   | ⟨_⟩, ⟨_⟩, ⟨cs, cs', rfl, rfl⟩ => by simp [Nat.le_add_right]
 
+@[simp] theorem empty_valid (p : Pos) : Pos.Valid "" p ↔ p = 0 :=
+  ⟨fun hl => Pos.ext <| Nat.le_zero.mp <| hl.le_endPos, fun hr => hr ▸ Pos.valid_zero⟩
+
+theorem Valid.cons_addChar (h : Pos.Valid ⟨c :: cs⟩ (p + c)) : Pos.Valid ⟨cs⟩ p := by
+  let ⟨cs₁, cs₂, h', p_eq_len_c₁⟩ := h
+  match (List.append_eq_cons.mp h') with
+  | Or.inl ⟨_, _⟩ =>
+    simp_all [Nat.add_eq_zero_iff]
+    exact absurd p_eq_len_c₁.right.symm (Nat.ne_of_lt <| String.csize_pos c)
+  | Or.inr ⟨cs₁_tail, _, _⟩ =>
+    simp_all
+    exact (Pos.ext <| Nat.add_right_cancel p_eq_len_c₁).symm ▸ Pos.Valid.mk cs₁_tail cs₂
+
+theorem Valid.cons_zero_or_ge_head (h : Pos.Valid ⟨c :: cs⟩ p) : p = 0 ∨ p ≥ ⟨csize c⟩ := by
+  let ⟨cs₁, cs₂, h', p_eq_len_c₁⟩ := h
+  match (List.append_eq_cons.mp h') with
+  | Or.inl ⟨cs₁_nil, _⟩ =>
+    exact Or.inl <| Pos.ext (utf8Len_nil ▸ cs₁_nil ▸ p_eq_len_c₁ : p.byteIdx = 0)
+  | Or.inr ⟨_, cs₁_eq, _⟩ =>
+    rw [cs₁_eq, utf8Len, utf8ByteSize.go, Nat.add_comm] at p_eq_len_c₁
+    exact Or.inr (Nat.le.intro <| p_eq_len_c₁.symm)
+
 end Pos
+
 
 theorem endPos_eq_zero : ∀ (s : String), endPos s = 0 ↔ s = ""
   | ⟨_⟩ => Pos.ext_iff.trans <| utf8Len_eq_zero.trans ext_iff.symm
@@ -157,6 +183,28 @@ theorem get_of_valid (cs cs' : List Char) : get ⟨cs ++ cs'⟩ ⟨utf8Len cs⟩
 theorem get_cons_addChar (c : Char) (cs : List Char) (i : Pos) :
     get ⟨c :: cs⟩ (i + c) = get ⟨cs⟩ i := by
   simp [get, utf8GetAux, Pos.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
+
+@[simp] theorem get_cons_zero : (String.mk (c :: cs)).get 0 = c := rfl
+
+theorem get_append_of_valid {s t} {p : Pos} (h : p.Valid s) (h' : p ≠ endPos s) :
+    (s ++ t).get p = s.get p := by
+  match s, t, p with
+  | ⟨[]⟩, _, _ => simp_all; contradiction;
+  | ⟨_ :: _⟩, _, ⟨0⟩ => simp_all only [Pos.mk_zero, Pos.valid_zero, endPos_eq, utf8Len_cons,
+    ne_eq, cons_append, get_cons_zero]
+  | ⟨a :: l⟩, _, p@⟨k+1⟩ => next p_eq_succ =>
+    have p_ne_zero : p ≠ 0 := by rw [ne_eq, Pos.ext_iff]; simp [p_eq_succ]
+    have ⟨n, csize_a⟩ : ∃ n, p = ⟨n + csize a⟩ := by
+      apply Exists.intro (p.1 - csize a)
+      rw [Nat.sub_add_cancel]
+      simp [← p_eq_succ] at h
+      exact Or.resolve_left (h.cons_zero_or_ge_head) p_ne_zero
+    rw [endPos, ne_eq, Pos.ext_iff] at h'
+    simp_all [-p_eq_succ, (by rw [p_eq_succ] : k + 1 = p.byteIdx), Nat.add_right_cancel_iff]
+    rw [← Pos.ext_iff] at h'
+    rw [← Pos.addChar_eq, get_cons_addChar, cons_append, get_cons_addChar]
+    rw [← Pos.addChar_eq] at h
+    exact get_append_of_valid (Pos.Valid.cons_addChar h) h'
 
 theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
     utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
@@ -709,6 +757,164 @@ theorem mapAux_of_valid (f : Char → Char) : ∀ l r, mapAux f ⟨utf8Len l⟩ 
 
 theorem map_eq (f : Char → Char) (s) : map f s = ⟨s.1.map f⟩ := by
   simpa using mapAux_of_valid f [] s.1
+
+/-! ### substrEq -/
+
+@[simp] theorem substrEq_loop_rfl (s : String) (off stp : Pos) : substrEq.loop s s off off stp := by
+  rw [substrEq.loop]
+  simp only [beq_self_eq_true, Bool.true_and, dite_eq_ite, ite_eq_right_iff]
+  intro h
+  have : stp.byteIdx - (off.byteIdx + csize (get s off)) < stp.byteIdx - off.byteIdx := by
+    rw [Nat.sub_add_eq]
+    exact Nat.sub_lt (Nat.sub_pos_of_lt h) (csize_pos _)
+  exact substrEq_loop_rfl s _ _
+termination_by stp.1 - off.1
+
+theorem substrEq_rfl {s : String} {off : Pos} {n : Nat} (h : off.byteIdx + n ≤ s.endPos.byteIdx) :
+  substrEq s off s off n := by
+  simp [substrEq, substrEq_loop_rfl]
+  exact h
+
+theorem substrEq_loop_self_append {s t : String} {off stp : Pos}
+  (h_off : off.Valid s) (h_stp : stp.Valid s) : substrEq.loop s (s ++ t) off off stp := by
+  rw [substrEq.loop]
+  simp only [dite_eq_ite, ite_eq_right_iff, Bool.and_eq_true, beq_iff_eq]
+  intro offb_lt_stpb
+  have off_lt_end := (Nat.lt_of_lt_of_le offb_lt_stpb h_stp.le_endPos)
+  have off_ne_end := (fun x => Nat.ne_of_lt off_lt_end <| Pos.ext_iff.mp x)
+  rw [get_append_of_valid h_off off_ne_end]
+  apply And.intro
+  · rfl
+  · have : stp.byteIdx - (off.byteIdx + csize (get s off)) < stp.byteIdx - off.byteIdx := by
+      simpa [Nat.sub_add_eq] using Nat.sub_lt (Nat.sub_pos_of_lt offb_lt_stpb) (csize_pos _)
+    exact substrEq_loop_self_append (valid_next h_off off_lt_end) h_stp
+
+theorem substrEq_loop_cons_addChar {off : Pos} :
+  substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ (off + c) (off + c) ⟨utf8Len (c :: s)⟩
+  = substrEq.loop ⟨s⟩ ⟨t⟩ off off ⟨utf8Len s⟩ := by
+  unfold substrEq.loop
+  simp only [pos_add_char, utf8Len_cons, Nat.add_lt_add_iff_right, dite_eq_ite]
+  split
+  · next off_lt_s =>
+    simp [get_cons_addChar]
+    rw [Pos.addChar_right_comm, Pos.addChar_right_comm _ c _]
+    match h : get ⟨s⟩ off == get ⟨t⟩ off with
+    | false => simp
+    | true =>
+      simp_all
+      exact substrEq_loop_cons_addChar
+  · rfl
+decreasing_by
+  refine Nat.sub_lt_sub_left ?_ (Nat.lt_add_right_iff_pos.mpr <| csize_pos _)
+  assumption
+
+theorem substrEq_loop_cons_zero : substrEq.loop ⟨c :: s⟩ ⟨c :: t⟩ 0 0 ⟨utf8Len (c :: s)⟩
+  = substrEq.loop ⟨s⟩ ⟨t⟩ 0 0 ⟨utf8Len s⟩ := by
+  conv => lhs; rw [substrEq.loop]; simp [add_csize_pos]
+  exact substrEq_loop_cons_addChar
+
+theorem substrEq_cons : substrEq ⟨s₀ :: s⟩ 0 ⟨t₀ :: t⟩ 0 (utf8Len (s₀ :: s)) ↔
+  s₀ = t₀ ∧ substrEq ⟨s⟩ 0 ⟨t⟩ 0 (utf8Len s) := by
+  apply Iff.intro
+  · unfold substrEq
+    simp_all
+    intros slen_le_tlen h
+    have s₀_eq_t₀ : s₀ = t₀ := by rw [substrEq.loop] at h; simp_all [add_csize_pos]
+    rw [s₀_eq_t₀, ← utf8Len_cons, substrEq_loop_cons_zero] at h
+    exact ⟨s₀_eq_t₀, Nat.add_le_add_iff_right.mp (s₀_eq_t₀ ▸ slen_le_tlen), h⟩
+  · intro ⟨s₀_eq_t₀, h⟩
+    unfold substrEq at *
+    simp_all
+    rw [← @substrEq_loop_cons_zero t₀] at h
+    exact ⟨Nat.add_le_add_iff_right.mpr h.left, h.right⟩
+
+/-! ### isPrefixOf -/
+
+@[simp] theorem empty_isPrefixOf (s : String) : "".isPrefixOf s := by
+  simp [isPrefixOf, endPos, utf8ByteSize, substrEq, substrEq.loop]
+
+@[simp] theorem isPrefixOf_empty_iff_empty (s : String) : s.isPrefixOf "" ↔ s = "" := by
+  apply Iff.intro <;> intro h
+  · simp [isPrefixOf, substrEq, endPos, utf8ByteSize] at h
+    exact ext h.left
+  · simp [empty_isPrefixOf, h]
+
+@[simp] theorem isPrefixOf_self (s : String) : s.isPrefixOf s := by
+  simp [isPrefixOf, substrEq, substrEq_loop_rfl]
+
+@[simp] theorem isPrefixOf_push_self (s : String) (c : Char) : s.isPrefixOf (s.push c) := by
+  simp [isPrefixOf, substrEq, push]
+  apply And.intro
+  · rw [endPos]
+    exact Nat.le_add_right _ _
+  · have mk_data_append : mk (s.data ++ [c]) = s ++ ⟨[c]⟩ := rfl
+    rw [mk_data_append, substrEq_loop_self_append Pos.valid_zero Pos.valid_endPos]
+
+@[simp] theorem isPrefixOf_self_append (s t : String) : s.isPrefixOf (s ++ t) := by
+  simp [isPrefixOf, substrEq, substrEq_loop_self_append]
+  simp only [endPos, utf8ByteSize, utf8ByteSize.go_eq, append, utf8Len_append]
+  exact Nat.le_add_right _ _
+
+theorem isPrefixOf_cons : isPrefixOf ⟨s₀ :: s'⟩ ⟨t₀ :: t'⟩ ↔ s₀ = t₀ ∧ isPrefixOf ⟨s'⟩ ⟨t'⟩ := by
+  apply Iff.intro <;>
+  intro h
+  rw [isPrefixOf] at *
+  · exact substrEq_cons.mp h
+  · exact substrEq_cons.mpr h
+
+theorem exists_append_of_isPrefixOf {p s : String} (h : p.isPrefixOf s) : ∃ t, s = p ++ t := by
+  match p_eq : p.data, s_eq : s.data with
+  | [], [] => apply Exists.intro ""; simp_all [ext_iff]
+  | [], _ => apply Exists.intro s; simp_all [ext_iff]
+  | _, [] => rw [← ext_iff] at s_eq; simp_all
+  | p₀ :: p', s₀ :: s' =>
+    have : p'.length < p.length := by simp [ext p_eq]
+    rw [← ext_iff] at *
+    have ⟨_, p'_pre_s'⟩ := isPrefixOf_cons.mp (p_eq ▸ s_eq ▸ h)
+    have ⟨t, h'⟩ := exists_append_of_isPrefixOf p'_pre_s'
+    apply Exists.intro t
+    simp_all [ext_iff]
+termination_by p.length
+
+theorem isPrefixOf_iff_exists_append {p s : String} : p.isPrefixOf s ↔ ∃ t, s = p ++ t := by
+  apply Iff.intro
+  · intro h
+    exact exists_append_of_isPrefixOf h
+  · intro ⟨_, h⟩
+    rw [h, isPrefixOf_self_append]
+
+theorem isPrefixOf_trans : isPrefixOf s₁ s₂ → isPrefixOf s₂ s₃ → isPrefixOf s₁ s₃ := by
+  intros p₁₂ p₂₃
+  have ⟨_, a₁₂⟩ := isPrefixOf_iff_exists_append.mp p₁₂
+  have ⟨_, a₂₃⟩ := isPrefixOf_iff_exists_append.mp p₂₃
+  rw [a₂₃, a₁₂, String.append_assoc]
+  exact isPrefixOf_self_append s₁ _
+
+theorem data_isPrefixOf_iff_isPrefixOf {s t : String} : s.1.isPrefixOf t.1 ↔ s.isPrefixOf t := by
+  apply Iff.intro
+  · intro h
+    unfold List.isPrefixOf at h
+    split at h
+    · rw [← ext_iff] at *; simp_all
+    · contradiction
+    · next _ as _ _ s_eq t_eq =>
+      rw [← ext_iff] at s_eq t_eq
+      simp_all
+      have : as.length < s.length := by simp [s_eq]
+      apply isPrefixOf_cons.mpr ⟨rfl, data_isPrefixOf_iff_isPrefixOf.mp h.right⟩
+  · intro h
+    unfold List.isPrefixOf
+    split
+    · trivial
+    · have : ∀ s, s.data = [] → s = "" := fun _ => ext
+      simp_all only [isPrefixOf_empty_iff_empty]
+    · next a as b bs s_eq t_eq =>
+      rw [← ext_iff] at s_eq t_eq
+      rw [s_eq, t_eq] at h
+      simp_all
+      have : as.length < s.length := by simp [s_eq]
+      exact (isPrefixOf_cons.mp h).imp_right data_isPrefixOf_iff_isPrefixOf.mpr
+termination_by s.length
 
 -- TODO: substrEq
 -- TODO: isPrefixOf
