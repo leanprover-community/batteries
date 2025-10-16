@@ -12,10 +12,6 @@ namespace Fin
 
 attribute [norm_cast] val_last
 
-/-! ### last -/
-
-@[simp] theorem not_last_lt (a : Fin (n + 1)) : ¬(last n) < a := Fin.not_lt.mpr (le_last a)
-
 /-! ### rev -/
 
 attribute [grind] rev_lt_rev rev_le_rev rev_rev
