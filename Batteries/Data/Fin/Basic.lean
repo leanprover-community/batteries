@@ -3,6 +3,7 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quang Dao
 -/
+import Batteries.Data.Nat.Lemmas
 
 namespace Fin
 
@@ -110,3 +111,18 @@ The function `p` is not evaluated on further inputs after the first `i` is found
 -/
 @[inline] def findRev? (p : Fin n → Bool) : Option (Fin n) :=
   findSomeRev? <| Option.guard p
+
+/-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
+def divNat (i : Fin (m * n)) : Fin m :=
+  ⟨i / n, Nat.div_lt_of_lt_mul <| Nat.mul_comm m n ▸ i.is_lt⟩
+
+/-- Compute `i % n`, where `n` is a `Nat` and inferred the type of `i`. -/
+def modNat (i : Fin (m * n)) : Fin n :=
+  ⟨i % n, Nat.mod_lt _ <| Nat.pos_of_mul_pos_left i.pos⟩
+
+/--
+Compute the element of `Fin (m * n)` with quotient `i : Fin m` and remainder `j : Fin n`
+when divided by `n`.
+-/
+def mkDivMod (i : Fin m) (j : Fin n) : Fin (m * n) :=
+  ⟨n * i + j, Nat.mul_add_lt_mul_of_lt_of_lt i.is_lt j.is_lt⟩
