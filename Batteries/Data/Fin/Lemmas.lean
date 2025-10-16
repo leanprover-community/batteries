@@ -20,65 +20,6 @@ attribute [norm_cast] val_last
 
 attribute [grind] rev_lt_rev rev_le_rev rev_rev
 
-/-
-theorem rev_eq_iff {i j : Fin n} : rev i = j ↔ i = rev j := by grind
-theorem rev_ne_iff {i j : Fin n} : rev i ≠ j ↔ i ≠ rev j := by grind
-theorem rev_lt_iff {i j : Fin n} : rev i < j ↔ rev j < i := by grind
-theorem rev_le_iff {i j : Fin n} : rev i ≤ j ↔ rev j ≤ i := by grind
-theorem lt_rev_iff {i j : Fin n} : i < rev j ↔ j < rev i := by grind
-theorem le_rev_iff {i j : Fin n} : i ≤ rev j ↔ j ≤ rev i := by grind
--/
-
-/-
-/-! ### exists, forall -/
-
-theorem forall_fin_rev {P : Fin n → Prop} :
-    (∀ i, P i) ↔ (∀ i : Fin n, P i.rev) :=
-  ⟨fun h i => h i.rev, fun h i => rev_rev i ▸ h i.rev⟩
-
-theorem exists_fin_rev {P : Fin n → Prop} :
-    (∃ i, P i) ↔ (∃ i : Fin n, P i.rev) :=
-  ⟨fun ⟨i, h⟩ => ⟨i.rev, rev_rev _ ▸ h⟩, fun ⟨i, h⟩ => ⟨i.rev, h⟩⟩
-
-theorem exists_fin_congr_of_rev_left {P Q : Fin n → Prop}
-    (h : (∃ i : Fin n, P i.rev) ↔ (∃ i : Fin n, Q i)) :
-    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) := exists_fin_rev.trans h
-
-theorem forall_fin_congr_of_rev_left {P Q : Fin n → Prop}
-    (h : (∀ i : Fin n, P i.rev) ↔ (∀ i : Fin n, Q i)):
-    (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i) := forall_fin_rev.trans h
-
-theorem exists_fin_congr_of_rev_right {P Q : Fin n → Prop}
-    (h : (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i.rev)) :
-    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) := h.trans exists_fin_rev.symm
-
-theorem forall_fin_congr_of_rev_right {P Q : Fin n → Prop}
-    (h : (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i.rev)):
-    (∀ i : Fin n, P i) ↔ (∀ i : Fin n, Q i) := h.trans forall_fin_rev.symm
-
-theorem exists_fin_congr_of_rev_rev {P Q : Fin n → Prop}
-    (h : (∃ i : Fin n, P i.rev) ↔ (∃ i : Fin n, Q i.rev)) :
-    (∃ i : Fin n, P i) ↔ (∃ i : Fin n, Q i) :=
-  exists_fin_congr_of_rev_left <| exists_fin_congr_of_rev_right h
-
-theorem forall_fin_congr_of_rev_rev {P Q : Fin n → Prop}
-    (h : (∀ i : Fin n, P i.rev) ↔ (∀ i : Fin n, Q i.rev)):
-    (∀ i, P i) ↔ (∀ i, Q i) :=
-  forall_fin_congr_of_rev_left <| forall_fin_congr_of_rev_right h
-
--- TODO: deprecate duplicates in Mathlib, consider porting to core. Also I don't need these now?
-
-theorem forall_fin_succ_last {P : Fin (n + 1) → Prop} :
-    (∀ i, P i) ↔ P (.last _) ∧ (∀ i : Fin n, P i.castSucc) := by
-  simp only [forall_fin_rev (P := P), forall_fin_succ, rev_zero, rev_succ,
-    forall_fin_rev (P := (P ·.castSucc))]
-
-theorem exists_fin_succ_last {P : Fin (n + 1) → Prop} :
-    (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) := by
-  simp only [exists_fin_rev (P := P), exists_fin_succ, rev_zero, rev_succ,
-    exists_fin_rev (P := (P ·.castSucc))]
--/
-
 -- Forward port from lean4#10627
 @[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
   rw [iff_true]; intro ⟨_, _⟩; contradiction
@@ -102,14 +43,6 @@ theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
   simp only [← Fin.foldl_rev]
   haveI : Std.Associative (flip op) := ⟨fun a b c => (ha.assoc c b a).symm⟩
   exact foldl_assoc (op := flip op)
-
-theorem foldr_assoc_flip {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
-    foldr n (fun i x => op x (f i)) (op a₁ a₂) = op a₁ (foldr n (fun i x => op x (f i)) a₂) := by
-  simp only [← Fin.foldl_rev, foldl_assoc]
-
-theorem foldl_assoc_flip {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
-    foldl n (fun x i => op (f i) x) (op a₁ a₂) = op (foldl n (fun x i => op (f i) x) a₁) a₂ := by
-  simp only [← Fin.foldr_rev, foldr_assoc]
 
 /-! ### clamp -/
 
