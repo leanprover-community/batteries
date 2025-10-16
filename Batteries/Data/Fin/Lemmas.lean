@@ -445,9 +445,6 @@ theorem find?_le_findRev? {p : Fin n → Bool} : find? p ≤ findRev? p := by
 theorem find?_eq_findRev?_iff {p : Fin n → Bool} : find? p = findRev? p ↔
     ∀ i j, p i = true → p j = true → i = j := by
   cases h : findRev? p <;> grind
-    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
-  simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
-    exists_eq_true_iff_exists_minimal_eq_true (p ·)
 
 /-! ### divNat / modNat / mkDivMod -/
 
