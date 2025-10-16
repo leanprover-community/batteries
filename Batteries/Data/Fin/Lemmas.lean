@@ -18,24 +18,18 @@ attribute [norm_cast] val_last
 
 /-! ### rev -/
 
-theorem rev_eq_iff {i j : Fin n} : rev i = j ↔ i = rev j := by
-  rw [← rev_inj, rev_rev]
+attribute [grind] rev_lt_rev rev_le_rev rev_rev
 
-theorem rev_ne_iff {i j : Fin n} : rev i ≠ j ↔ i ≠ rev j := by
-  rw [ne_eq, rev_eq_iff]
+/-
+theorem rev_eq_iff {i j : Fin n} : rev i = j ↔ i = rev j := by grind
+theorem rev_ne_iff {i j : Fin n} : rev i ≠ j ↔ i ≠ rev j := by grind
+theorem rev_lt_iff {i j : Fin n} : rev i < j ↔ rev j < i := by grind
+theorem rev_le_iff {i j : Fin n} : rev i ≤ j ↔ rev j ≤ i := by grind
+theorem lt_rev_iff {i j : Fin n} : i < rev j ↔ j < rev i := by grind
+theorem le_rev_iff {i j : Fin n} : i ≤ rev j ↔ j ≤ rev i := by grind
+-/
 
-theorem rev_lt_iff {i j : Fin n} : rev i < j ↔ rev j < i := by
-  rw [← rev_lt_rev, rev_rev]
-
-theorem rev_le_iff {i j : Fin n} : rev i ≤ j ↔ rev j ≤ i := by
-  rw [← rev_le_rev, rev_rev]
-
-theorem lt_rev_iff {i j : Fin n} : i < rev j ↔ j < rev i := by
-  rw [← rev_lt_rev, rev_rev]
-
-theorem le_rev_iff {i j : Fin n} : i ≤ rev j ↔ j ≤ rev i := by
-  rw [← rev_le_rev, rev_rev]
-
+/-
 /-! ### exists, forall -/
 
 theorem forall_fin_rev {P : Fin n → Prop} :
@@ -83,6 +77,7 @@ theorem exists_fin_succ_last {P : Fin (n + 1) → Prop} :
     (∃ i, P i) ↔ P (.last _) ∨ (∃ i : Fin n, P i.castSucc) := by
   simp only [exists_fin_rev (P := P), exists_fin_succ, rev_zero, rev_succ,
     exists_fin_rev (P := (P ·.castSucc))]
+-/
 
 -- Forward port from lean4#10627
 @[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
@@ -317,14 +312,12 @@ theorem findSomeRev?_succ {f : Fin (n+1) → Option α} :
 @[simp, grind =]
 theorem findSomeRev?_eq_some_iff {f : Fin n → Option α} :
     findSomeRev? f = some a ↔ ∃ i, f i = some a ∧ ∀ j, i < j → f j = none :=
-  findSome?_eq_some_iff.trans <| exists_fin_congr_of_rev_right <|
-  exists_congr fun _ => and_congr_right fun _ => forall_fin_congr_of_rev_left <|
-  forall_congr' fun _ => rev_rev _ ▸ imp_congr_left rev_lt_iff
+  findSome?_eq_some_iff.trans <| ⟨fun ⟨i, h⟩ => ⟨i.rev, by grind,
+    fun j hj => have := h.2 j.rev; by grind⟩, fun ⟨i, _⟩ => ⟨i.rev, by grind⟩⟩
 
 @[simp, grind =] theorem findSomeRev?_eq_none_iff {f : Fin n → Option α} :
     findSomeRev? f = none ↔ ∀ i, f i = none :=
-  findSome?_eq_none_iff.trans <| forall_fin_congr_of_rev_left <|
-  forall_congr' fun _ => rev_rev _ ▸ Iff.rfl
+  findSome?_eq_none_iff.trans <| ⟨fun h i => have := h i.rev; by grind, by grind⟩
 
 theorem isNone_findSomeRev?_iff {f : Fin n → Option α} :
     (findSomeRev? f).isNone ↔ ∀ i, (f i).isNone := by simp
