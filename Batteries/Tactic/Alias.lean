@@ -88,8 +88,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     let name ← realizeGlobalConstNoOverloadWithInfo name
-    let cinfo ← withoutExporting do  -- to get access to `thmDecl` below
-      getConstInfo name
+    let cinfo ← getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
@@ -101,10 +100,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       attrs
     }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
-    let decl : Declaration := if let .thmInfo t := cinfo then
-      .thmDecl { t with
+    let decl : Declaration := if wasOriginallyTheorem (← getEnv) name then
+      .thmDecl { cinfo.toConstantVal with
         name := declName
-        value := mkConst name (t.levelParams.map mkLevelParam)
+        value := mkConst name (cinfo.toConstantVal.levelParams.map mkLevelParam)
       }
     else
       .defnDecl { cinfo.toConstantVal with
