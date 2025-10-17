@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import Batteries.Data.Fin.Basic
+import Batteries.Data.Nat.Lemmas
 import Batteries.Util.ProofWanted
 import Batteries.Tactic.Alias
 
@@ -16,7 +17,7 @@ attribute [norm_cast] val_last
 theorem foldl_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
     foldl n (fun x i => op x (f i)) (op a₁ a₂) = op a₁ (foldl n (fun x i => op x (f i)) a₂) := by
   induction n generalizing a₂ with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp only [foldl_succ, ha.assoc, ih]
 
 theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
@@ -31,9 +32,10 @@ theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
 
 /-! ### findSome? -/
 
-@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
+@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := by simp [findSome?]
 
-@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
+@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := by
+  simp [findSome?, foldl_succ]
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0).or (findSome? fun i => f i.succ) := by
@@ -111,7 +113,7 @@ theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) 
 theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g <| f ·) := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp [findSome?_succ, Option.map_or, ih]
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
@@ -119,16 +121,17 @@ theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
 /-! ### Fin.find? -/
 
-@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
+@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp [find?]
 
-@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
+  simp [find?, Option.guard]
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
@@ -191,3 +194,20 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
     (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
   simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
     exists_eq_true_iff_exists_minimal_eq_true (p ·)
+
+/-! ### divNat / modNat / mkDivMod -/
+
+@[simp] theorem coe_divNat (i : Fin (m * n)) : (i.divNat : Nat) = i / n := rfl
+
+@[simp] theorem coe_modNat (i : Fin (m * n)) : (i.modNat : Nat) = i % n := rfl
+
+@[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j : Nat) = n * i + j := rfl
+
+@[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i := by
+  ext; simp [mkDivMod, Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
+
+@[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j := by
+  ext; simp [mkDivMod, Nat.mod_eq_of_lt]
+
+@[simp] theorem divNat_mkDivMod_modNat (k : Fin (m * n)) :
+    mkDivMod k.divNat k.modNat = k := by ext; simp [mkDivMod, Nat.div_add_mod]
