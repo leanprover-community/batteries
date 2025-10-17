@@ -8,6 +8,7 @@ module
 
 public import Batteries.Classes.SatisfiesM
 public import Batteries.Util.ProofWanted
+import all Init.Data.Array.Basic  -- for unfolding `modifyM`
 
 @[expose] public section
 

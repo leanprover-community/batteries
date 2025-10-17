@@ -7,6 +7,8 @@ module
 import all Init.Prelude
 import all Init.WF
 
+set_option backward.privateInPublic true
+
 @[expose] public section
 
 /-!

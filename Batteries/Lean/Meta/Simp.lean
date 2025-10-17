@@ -7,8 +7,10 @@ module
 
 public import Lean.Elab.Tactic.Simp
 public import Batteries.Tactic.OpenPrivate
+import all Lean.Elab.Tactic.Simp  -- for accessing `mkDischargeWrapper`
 
-@[expose] public section
+
+public section
 
 /-!
 # Helper functions for using the simplifier.
@@ -32,10 +34,8 @@ def mkEqSymm (e : Expr) (r : Simp.Result) : MetaM Simp.Result :=
 def mkCast (r : Simp.Result) (e : Expr) : MetaM Expr := do
   mkAppM ``cast #[← r.getProof, e]
 
-export private mkDischargeWrapper from Lean.Elab.Tactic.Simp
-
 /-- Construct a `Simp.DischargeWrapper` from the `Syntax` for a `simp` discharger. -/
-add_decl_doc mkDischargeWrapper
+nonrec def mkDischargeWrapper := mkDischargeWrapper
 
 -- copied from core
 /--

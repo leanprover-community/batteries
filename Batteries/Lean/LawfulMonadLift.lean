@@ -6,6 +6,9 @@ Authors: Quang Dao
 module
 
 public import Lean.Elab.Command
+import all Lean.CoreM  -- for unfolding `liftIOCore`
+import all Init.System.IO  -- for unfolding `BaseIO.toEIO`
+import all Init.Control.StateRef  -- for unfolding `StateRefT'.lift`
 
 @[expose] public section
 

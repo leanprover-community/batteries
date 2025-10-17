@@ -193,6 +193,7 @@ def root! (self : UnionFind) (x : Nat) : Nat :=
 def rootD (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else x
 
+set_option backward.proofsInPublic true in  -- for `rw [root]`
 @[nolint unusedHavesSuffices]
 theorem parent_root (self : UnionFind) (x : Fin self.size) :
     (self.arr[(self.root x).1]).parent = self.root x := by

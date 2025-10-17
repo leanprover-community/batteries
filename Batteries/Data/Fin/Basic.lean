@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quan
 -/
 module
 
-import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Nat.Lemmas
 
 @[expose] public section
 

@@ -17,7 +17,7 @@ variable argument.
 -/
 
 /-- Compose using transitivity, homogeneous case. -/
-def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
+@[expose] def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
 
 namespace Batteries.Tactic
 open Lean Meta Elab
