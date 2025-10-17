@@ -3,8 +3,13 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-import Batteries.Lean.Util.EnvSearch
-import Lean.Elab.Tactic.Config
+module
+
+public meta import Batteries.Lean.Util.EnvSearch
+public meta import Lean.Elab.Tactic.Config
+public meta import Lean.Elab.Command
+
+public meta section
 
 namespace Batteries.Tactic
 open Lean Elab Command

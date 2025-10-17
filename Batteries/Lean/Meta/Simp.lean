@@ -3,8 +3,14 @@ Copyright (c) 2022 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison, Gabriel Ebner, Floris van Doorn
 -/
-import Lean.Elab.Tactic.Simp
-import Batteries.Tactic.OpenPrivate
+module
+
+public import Lean.Elab.Tactic.Simp
+public import Batteries.Tactic.OpenPrivate
+import all Lean.Elab.Tactic.Simp  -- for accessing `mkDischargeWrapper`
+
+
+public section
 
 /-!
 # Helper functions for using the simplifier.
@@ -28,10 +34,8 @@ def mkEqSymm (e : Expr) (r : Simp.Result) : MetaM Simp.Result :=
 def mkCast (r : Simp.Result) (e : Expr) : MetaM Expr := do
   mkAppM ``cast #[← r.getProof, e]
 
-export private mkDischargeWrapper from Lean.Elab.Tactic.Simp
-
 /-- Construct a `Simp.DischargeWrapper` from the `Syntax` for a `simp` discharger. -/
-add_decl_doc mkDischargeWrapper
+nonrec def mkDischargeWrapper := mkDischargeWrapper
 
 -- copied from core
 /--

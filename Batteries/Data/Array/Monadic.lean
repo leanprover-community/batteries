@@ -4,8 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import Batteries.Classes.SatisfiesM
-import Batteries.Util.ProofWanted
+module
+
+public import Batteries.Classes.SatisfiesM
+public import Batteries.Util.ProofWanted
+import all Init.Data.Array.Basic  -- for unfolding `modifyM`
+
+@[expose] public section
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
