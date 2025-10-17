@@ -96,14 +96,14 @@ example (P : Bool) (h : ¬ ¬ P) : P := by
 
 /--
 info: Try this:
-  simpa only using h
+  [apply] simpa only using h
 -/
 #guard_msgs in
 example (p : Prop) (h : p) : p := by simpa? using h
 
 /--
 info: Try this:
-  simpa only [and_true] using h
+  [apply] simpa only [and_true] using h
 -/
 #guard_msgs in
 example (p : Prop) (h : p ∧ True) : p := by simpa? using h

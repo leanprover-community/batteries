@@ -26,7 +26,7 @@ public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
 public import Batteries.Data.ByteArray
-public import Batteries.Data.ByteSubarray
+public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
 public import Batteries.Data.DList
 public import Batteries.Data.Fin

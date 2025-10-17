@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Data.Fin.Basic
+public import Batteries.Data.Nat.Lemmas
 public import Batteries.Util.ProofWanted
 public import Batteries.Tactic.Alias
 
@@ -37,7 +38,7 @@ theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
 
 @[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := by simp [findSome?]
 
-@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := by simp [findSome?, foldl_succ]
+@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
     findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
@@ -137,8 +138,7 @@ theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
 
 @[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp [find?]
 
-@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
-  simp only [find?, findSome?_one, Fin.isValue]; rfl
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
@@ -188,9 +188,16 @@ theorem get_find?_minimal {p : Fin n → Bool}  (h : (find? p).isSome) :
     ∀ j, j < (find? p).get h → p j = false :=
   eq_false_of_find?_eq_some_of_lt (Option.some_get _).symm
 
-theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [find?_succ, List.finRange_succ, List.find?_cons]
-    split <;> simp [Function.comp_def, *]
+theorem find?_eq_find?_finRange {p : Fin n → Bool} : find? p = (List.finRange n).find? p :=
+  (findSome?_eq_findSome?_finRange _).trans (List.findSome?_guard)
+
+/-! ### exists -/
+
+theorem exists_eq_true_iff_exists_minimal_eq_true (p : Fin n → Bool):
+    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, p j = false := by
+  cases h : find? p <;> grind
+
+theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
+    (∃ i, p i) ↔ ∃ i, p i ∧ ∀ j < i, ¬ p j := by
+  simpa only [decide_eq_true_iff, decide_eq_false_iff_not] using
+    exists_eq_true_iff_exists_minimal_eq_true (p ·)

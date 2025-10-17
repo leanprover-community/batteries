@@ -31,6 +31,10 @@ theorem mk_length (s : List Char) : (String.mk s).length = s.length := by
 
 attribute [simp] toList -- prefer `String.data` over `String.toList` in lemmas
 
+theorem Pos.Raw.offsetBy_eq {p q : Pos.Raw} : p.offsetBy q = ⟨q.byteIdx + p.byteIdx⟩ := by
+  ext
+  simp
+
 private theorem add_utf8Size_pos : 0 < i + Char.utf8Size c :=
   Nat.add_pos_right _ (Char.utf8Size_pos c)
 
@@ -890,11 +894,11 @@ theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
         @ne_add_utf8Size_add_self (utf8Len l + utf8Len m₁) (utf8Len m₂) c
     have := next_of_valid (l ++ m₁) c (m₂ ++ r)
-    simp only [List.append_assoc, utf8Len_append, Pos.Raw.add_eq] at this ⊢; rw [this]
+    simp only [List.append_assoc, utf8Len_append, Pos.Raw.offsetBy_eq] at this ⊢; rw [this]
     simp [Nat.add_assoc, Nat.add_sub_cancel_left]
 
 theorem next_stop : ∀ {s}, ValidFor l m r s → s.next ⟨utf8Len m⟩ = ⟨utf8Len m⟩
-  | _, ⟨⟩ => by simp [Substring.next, Pos.Raw.add_eq]
+  | _, ⟨⟩ => by simp [Substring.next, Pos.Raw.offsetBy_eq]
 
 theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.prev ⟨utf8Len m₁ + c.utf8Size⟩ = ⟨utf8Len m₁⟩
@@ -904,7 +908,7 @@ theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     case a => simpa [Nat.add_comm] using @ne_add_utf8Size_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
     simp only [List.append_assoc, utf8Len_append, Nat.add_assoc,
-      Pos.Raw.add_eq] at this ⊢; rw [this]
+      Pos.Raw.offsetBy_eq] at this ⊢; rw [this]
     simp [Nat.add_sub_cancel_left]
 
 theorem nextn_stop : ∀ {s}, ValidFor l m r s → ∀ n, s.nextn n ⟨utf8Len m⟩ = ⟨utf8Len m⟩
@@ -976,7 +980,7 @@ theorem extract' : ∀ {s}, ValidFor l (ml ++ mm ++ mr) r s →
       exact ⟨[], [], ⟨⟩⟩
     · next h =>
       refine ⟨l ++ ml, mr ++ r, .of_eq _ (by simp) ?_ ?_⟩ <;>
-        simp only [Pos.Raw.add_byteIdx, Nat.min_eq_min, utf8Len_append]
+        simp only [Pos.Raw.byteIdx_offsetBy, Nat.min_eq_min, utf8Len_append]
           <;> rw [Nat.min_eq_right]
           <;> try simp [Nat.add_le_add_iff_left, Nat.le_add_right]
       rw [Nat.add_assoc]

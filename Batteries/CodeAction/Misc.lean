@@ -303,7 +303,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
       let targets := discrInfos.map (·.expr)
       match using_ with
       | none =>
-        if Tactic.tactic.customEliminators.get (← getOptions) then
+        if tactic.customEliminators.get (← getOptions) then
           if let some elimName ← getCustomEliminator? targets induction then
             return some (← getElimExprNames (← getConstInfo elimName).type)
         matchConstInduct (← whnf (← inferType discr₀.expr)).getAppFn

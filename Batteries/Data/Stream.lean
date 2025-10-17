@@ -7,7 +7,7 @@ module
 
 @[expose] public section
 
-namespace Stream
+namespace Std.Stream
 
 /-- Drop up to `n` values from the stream `s`. -/
 def drop [Stream σ α] (s : σ) : Nat → σ

@@ -7,6 +7,5 @@ public import Batteries.Data.List.Init.Lemmas
 public import Batteries.Data.List.Lemmas
 public import Batteries.Data.List.Matcher
 public import Batteries.Data.List.Monadic
-public import Batteries.Data.List.OfFn
 public import Batteries.Data.List.Pairwise
 public import Batteries.Data.List.Perm

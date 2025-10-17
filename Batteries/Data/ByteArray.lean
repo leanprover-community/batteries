@@ -92,8 +92,7 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
   Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
-@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := by
-  simp [ofFn]
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := by simp [ofFn]
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
@@ -101,7 +100,7 @@ theorem ofFn_succ (f : Fin (n+1) → UInt8) :
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
-  | zero => simp [ofFn]
+  | zero => simp
   | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
