@@ -194,8 +194,8 @@ theorem get_of_valid (cs cs' : List Char) :
   exact utf8GetAux_of_valid _ _ (Nat.zero_add _)
 
 theorem get_cons_addChar (c : Char) (cs : List Char) (i : Pos.Raw) :
-    get (c :: cs).asString (i + c) = get cs.asString i := by
-  simp [get, Pos.Raw.utf8GetAux, Pos.Raw.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
+    (i + c).get (c :: cs).asString = i.get cs.asString := by
+  simp [Pos.Raw.get, Pos.Raw.utf8GetAux, Pos.Raw.zero_ne_addChar, utf8GetAux_addChar_right_cancel]
 
 theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len cs = p) :
     Pos.Raw.utf8GetAux? (cs ++ cs') ⟨i⟩ ⟨p⟩ = cs'.head? := by
@@ -245,7 +245,7 @@ theorem next_of_valid' (cs cs' : List Char) :
 theorem next_of_valid (cs : List Char) (c : Char) (cs' : List Char) :
     Pos.Raw.next (mk (cs ++ c :: cs')) ⟨utf8Len cs⟩ = ⟨utf8Len cs + c.utf8Size⟩ := next_of_valid' ..
 
-@[simp] theorem atEnd_iff (s : String) (p : Pos.Raw) : atEnd s p ↔ s.endPos ≤ p :=
+@[simp] theorem atEnd_iff (s : String) (p : Pos.Raw) : p.atEnd s ↔ s.endPos ≤ p :=
   decide_eq_true_iff
 
 theorem valid_next {p : Pos.Raw} (h : p.Valid s) (h₂ : p < s.endPos) :
@@ -295,7 +295,7 @@ theorem back_eq (s : String) : back s = s.data.getLastD default := by
     simp [← String.mk_eq_asString, this, prev_of_valid, get_of_valid]
 
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
-    atEnd (mk (cs ++ cs')) ⟨utf8Len cs⟩ ↔ cs' = [] := by
+    String.Pos.Raw.atEnd (mk (cs ++ cs')) ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
   cases cs' <;> simp [-String.mk_eq_asString, add_utf8Size_pos, endPos, utf8ByteSize_mk]
 
@@ -321,7 +321,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
-    simp only [next_eq, get_eq, List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
+    simp only [List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
@@ -343,7 +343,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     rw [dif_neg (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
-    simp only [prev_eq, get_eq, List.reverse_cons, List.append_assoc, List.singleton_append,
+    simp only [List.reverse_cons, List.append_assoc, List.singleton_append,
       utf8Len_cons, h2, h1]
     cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
       List.tail?_cons, Option.map_some]
@@ -364,13 +364,15 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
       dif_pos <| by
         rw [hstop, ← hl₁, ← hl₂]
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_utf8Size_pos,
-      show get (mk (l₁ ++ a :: r₁)) ⟨p⟩ = a by simp [hl₁, -String.mk_eq_asString, get_of_valid],
-      show get (mk (l₂ ++ b :: r₂)) ⟨p⟩ = b by simp [hl₂, -String.mk_eq_asString, get_of_valid]]
+      show Pos.Raw.get (mk (l₁ ++ a :: r₁)) ⟨p⟩ = a by
+        simp [hl₁, -String.mk_eq_asString, get_of_valid],
+      show Pos.Raw.get (mk (l₂ ++ b :: r₂)) ⟨p⟩ = b by
+        simp [hl₂, -String.mk_eq_asString, get_of_valid]]
     simp only [bne_iff_ne, ne_eq, ite_not, decide_eq_true_eq]
     split
     · simp only [utf8Len_cons]
       subst b
-      rw [show next (mk (l₁ ++ a :: r₁)) ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by
+      rw [show Pos.Raw.next (mk (l₁ ++ a :: r₁)) ⟨p⟩ = ⟨utf8Len l₁ + a.utf8Size⟩ by
         simp [hl₁, -String.mk_eq_asString, next_of_valid]]
       simpa [← hl₁, ← Nat.add_assoc, Nat.add_right_comm] using
         firstDiffPos_loop_eq (l₁ ++ [a]) (l₂ ++ [a]) r₁ r₂ stop (p + a.utf8Size)
@@ -475,7 +477,6 @@ theorem splitAux_of_valid (p l m r acc) :
   split
   · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
-    simp only [next_eq, extract_eq, get_eq]
     simp only [by
       simpa [-String.mk_eq_asString] using
         (⟨get_of_valid (l ++ m) (c :: r), next_of_valid (l ++ m) c r,
@@ -589,7 +590,7 @@ theorem prev : ∀ {it}, ValidFor (c :: l) r it → ValidFor l (c :: r) it.prev
 theorem prev_nil : ∀ {it}, ValidFor [] r it → ValidFor [] r it.prev
   | it, h => by
     simp only [Iterator.prev, h.toString, List.reverseAux_nil, h.pos, utf8Len_nil,
-      Pos.Raw.mk_zero, prev_zero]
+      Pos.Raw.mk_zero, Pos.Raw.prev_zero]
     constructor
 
 theorem atEnd : ∀ {it}, ValidFor l r it → (it.atEnd ↔ r = [])
@@ -630,7 +631,7 @@ theorem extract (h₁ : ValidFor l (m ++ r) it₁)
   cases h₁.out; cases h₂.out
   simp only [Iterator.extract, List.reverseAux_eq, List.reverse_append, List.reverse_reverse,
     List.append_assoc, ne_eq, not_true_eq_false, decide_false, utf8Len_append, utf8Len_reverse,
-    gt_iff_lt, pos_lt_eq, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
+    gt_iff_lt, Pos.Raw.lt_iff, Nat.not_lt.2 (Nat.le_add_left ..), Bool.or_self, Bool.false_eq_true,
     ↓reduceIte]
   simpa [Nat.add_comm] using extract_of_valid l.reverse m r
 
@@ -779,7 +780,7 @@ theorem mapAux_of_valid (f : Char → Char) :
   | l, c::r => by
     unfold mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
-    simp only [← String.String.mk_eq_asString, get_of_valid l (c :: r), Char.reduceDefault,
+    simp only [← String.mk_eq_asString, get_of_valid l (c :: r), Char.reduceDefault,
       List.headD_cons, set_of_valid l (c :: r), List.modifyHead_cons, next_of_valid l (f c) r,
       List.map_cons]
     simpa using mapAux_of_valid f (l++[f c]) r
@@ -1114,7 +1115,7 @@ theorem data_take : ∀ {s}, Valid s → ∀ n, (s.take n).toString.data = s.toS
 -- TODO: takeRight, dropRight
 
 theorem atEnd : ∀ {s}, Valid s → (s.atEnd ⟨p⟩ ↔ p = utf8ByteSize s.toString)
-  | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [-String.String.mk_eq_asString, utf8ByteSize_mk,
+  | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [-String.mk_eq_asString, utf8ByteSize_mk,
     h.atEnd, h.toString]
 
 theorem extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ → Valid (s.extract b e)
@@ -1126,7 +1127,7 @@ theorem extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ → Valid (s
     exact h₃.valid
 
 theorem toString_extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ →
-    (s.extract b e).toString = s.toString.extract b e
+    (s.extract b e).toString = String.Pos.Raw.extract s.toString b e
   | _, h₁, h₂ => by
     let ⟨l, m, r, h₁⟩ := h₁.validFor
     rw [h₁.toString] at h₂
