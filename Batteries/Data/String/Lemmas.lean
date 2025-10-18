@@ -289,7 +289,7 @@ theorem back_eq (s : String) : back s = s.data.getLastD default := by
   match s.data.eq_nil_or_concat with
   | .inl h => simp [h]; rfl
   | .inr ⟨cs, c, h⟩ =>
-    simp only [h, back_eq]
+    simp only [h, back_eq_get_prev_endPos]
     have : (mk (cs ++ [c])).endPos = ⟨utf8Len cs + c.utf8Size⟩ := by
       simp [-String.mk_eq_asString, endPos, utf8ByteSize_mk]
     simp [← String.mk_eq_asString, this, prev_of_valid, get_of_valid]
@@ -321,7 +321,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
-    simp only [List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
+    simp only [next_eq, get_eq, List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
     cases p c
     · simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, utf8Len_cons]
       have foo := findAux_of_valid p (l++[c]) m r
@@ -343,7 +343,8 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     rw [dif_neg (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
-    simp only [List.reverse_cons, List.append_assoc, List.singleton_append, utf8Len_cons, h2, h1]
+    simp only [prev_eq, get_eq, List.reverse_cons, List.append_assoc, List.singleton_append,
+      utf8Len_cons, h2, h1]
     cases p c <;> simp only [Bool.false_eq_true, ↓reduceIte, Bool.not_false, Bool.not_true,
       List.tail?_cons, Option.map_some]
     exact revFindAux_of_valid p l (c::r)
@@ -389,80 +390,80 @@ theorem firstDiffPos_eq (a b : String) :
     firstDiffPos_loop_eq [] [] a.data b.data
       ((utf8Len a.data).min (utf8Len b.data)) 0 rfl rfl (by simp)
 
-theorem extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
+theorem Pos.Raw.extract.go₂_add_right_cancel (s : List Char) (i e n : Nat) :
     go₂ s ⟨i + n⟩ ⟨e + n⟩ = go₂ s ⟨i⟩ ⟨e⟩ := by
   apply utf8InductionOn s ⟨i⟩ ⟨e⟩ (motive := fun s i =>
     go₂ s ⟨i.byteIdx + n⟩ ⟨e + n⟩ = go₂ s i ⟨e⟩)
-    <;> simp only [ne_eq, go₂, pos_add_char, implies_true, ↓reduceIte]
+    <;> simp only [ne_eq, go₂, Pos.Raw.byteIdx_add_char, implies_true, ↓reduceIte]
   intro c cs ⟨i⟩ h ih
-  simp only [Pos.Raw.ext_iff, Pos.Raw.addChar_eq] at h ⊢
+  simp only [Pos.Raw.ext_iff, Pos.Raw.add_char_eq] at h ⊢
   simp only [Nat.add_right_cancel_iff, h, ↓reduceIte, List.cons.injEq, true_and]
   rw [Nat.add_right_comm]
   exact ih
 
-theorem extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
+theorem Pos.Raw.extract.go₂_append_left : ∀ (s t : List Char) (i e : Nat),
     e = utf8Len s + i → go₂ (s ++ t) ⟨i⟩ ⟨e⟩ = s
 | [], t, i, _, rfl => by cases t <;> simp [go₂]
 | c :: cs, t, i, _, rfl => by
   simp only [List.cons_append, utf8Len_cons, go₂, Pos.Raw.ext_iff, ne_add_utf8Size_add_self,
-    ↓reduceIte, Pos.Raw.addChar_eq, List.cons.injEq, true_and]
+    ↓reduceIte, Pos.Raw.add_char_eq, List.cons.injEq, true_and]
   apply go₂_append_left; rw [Nat.add_right_comm, Nat.add_assoc]
 
-theorem extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
+theorem Pos.Raw.extract.go₁_add_right_cancel (s : List Char) (i b e n : Nat) :
     go₁ s ⟨i + n⟩ ⟨b + n⟩ ⟨e + n⟩ = go₁ s ⟨i⟩ ⟨b⟩ ⟨e⟩ := by
   apply utf8InductionOn s ⟨i⟩ ⟨b⟩ (motive := fun s i =>
     go₁ s ⟨i.byteIdx + n⟩ ⟨b + n⟩ ⟨e + n⟩ = go₁ s i ⟨b⟩ ⟨e⟩)
-    <;> simp only [ne_eq, go₁, pos_add_char, implies_true, ↓reduceIte]
+    <;> simp only [ne_eq, go₁, Pos.Raw.byteIdx_add_char, implies_true, ↓reduceIte]
   · intro c cs
     apply go₂_add_right_cancel
   · intro c cs ⟨i⟩ h ih
-    simp only [Pos.Raw.ext_iff, Pos.Raw.addChar_eq] at h ih ⊢
+    simp only [Pos.Raw.ext_iff, Pos.Raw.add_char_eq] at h ih ⊢
     simp only [Nat.add_right_cancel_iff, h, ↓reduceIte]
     rw [Nat.add_right_comm]
     exact ih
 
-theorem extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos.Raw) :
+theorem Pos.Raw.extract.go₁_cons_addChar (c : Char) (cs : List Char) (b e : Pos.Raw) :
     go₁ (c :: cs) 0 (b + c) (e + c) = go₁ cs 0 b e := by
-  simp only [go₁, Pos.Raw.ext_iff, Pos.Raw.byteIdx_zero, pos_add_char,
+  simp only [go₁, Pos.Raw.ext_iff, Pos.Raw.byteIdx_zero, byteIdx_add_char,
     Nat.ne_of_lt add_utf8Size_pos, ↓reduceIte]
   apply go₁_add_right_cancel
 
-theorem extract.go₁_append_right : ∀ (s t : List Char) (i b : Nat) (e : Pos.Raw),
+theorem Pos.Raw.extract.go₁_append_right : ∀ (s t : List Char) (i b : Nat) (e : Pos.Raw),
     b = utf8Len s + i → go₁ (s ++ t) ⟨i⟩ ⟨b⟩ e = go₂ t ⟨b⟩ e
 | [], t, i, _, e, rfl => by cases t <;> simp [go₁, go₂]
 | c :: cs, t, i, _, e, rfl => by
   simp only [go₁, utf8Len_cons, Pos.Raw.ext_iff, ne_add_utf8Size_add_self, ↓reduceIte,
-    List.cons_append, Pos.Raw.addChar_eq]
+    List.cons_append, Pos.Raw.add_char_eq]
   apply go₁_append_right; rw [Nat.add_right_comm, Nat.add_assoc]
 
-theorem extract.go₁_zero_utf8Len (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩ = s :=
+theorem Pos.Raw.extract.go₁_zero_utf8Len (s : List Char) : go₁ s 0 0 ⟨utf8Len s⟩ = s :=
   (go₁_append_right [] s 0 0 ⟨utf8Len s⟩ rfl).trans <| by
     simpa using go₂_append_left s [] 0 (utf8Len s) rfl
 
 theorem extract_cons_addChar (c : Char) (cs : List Char) (b e : Pos.Raw) :
-    extract (mk (c :: cs)) (b + c) (e + c) = extract (mk cs) b e := by
-  simp only [extract, pos_add_char, ge_iff_le, Nat.add_le_add_iff_right]
-  split <;> [rfl; simp [extract.go₁_cons_addChar]]
+    Pos.Raw.extract (mk (c :: cs)) (b + c) (e + c) = Pos.Raw.extract (mk cs) b e := by
+  simp only [Pos.Raw.extract, Pos.Raw.byteIdx_add_char, ge_iff_le, Nat.add_le_add_iff_right]
+  split <;> [rfl; simp [Pos.Raw.extract.go₁_cons_addChar]]
 
-theorem extract_zero_endPos (s : String) : s.extract 0 (endPos s) = s := by
+theorem extract_zero_endPos (s : String) : Pos.Raw.extract s 0 (endPos s) = s := by
   obtain ⟨l, rfl⟩ := s.exists_eq_asString
   match l with
   | [] => rfl
   | c :: cs =>
-    simp only [extract, Pos.Raw.byteIdx_zero, endPos_asString, utf8Len_cons, ge_iff_le,
+    simp only [Pos.Raw.extract, Pos.Raw.byteIdx_zero, endPos_asString, utf8Len_cons, ge_iff_le,
       Nat.le_zero_eq, Nat.ne_of_gt add_utf8Size_pos, ↓reduceIte, List.data_asString]
     congr
-    apply extract.go₁_zero_utf8Len
+    apply Pos.Raw.extract.go₁_zero_utf8Len
 
 theorem extract_of_valid (l m r : List Char) :
-    extract (mk (l ++ m ++ r)) ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = mk m := by
-  simp only [extract]
+    Pos.Raw.extract (mk (l ++ m ++ r)) ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = mk m := by
+  simp only [Pos.Raw.extract]
   split
   · next h => rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| Nat.add_le_add_iff_left.1 h]
   · congr
     rw [List.append_assoc, String.mk_eq_asString, List.data_asString,
-      extract.go₁_append_right _ _ _ _ _ (by rfl)]
-    apply extract.go₂_append_left; apply Nat.add_comm
+      Pos.Raw.extract.go₁_append_right _ _ _ _ _ (by rfl)]
+    apply Pos.Raw.extract.go₂_append_left; apply Nat.add_comm
 
 theorem splitAux_of_valid (p l m r acc) :
     splitAux (mk (l ++ m ++ r)) p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
@@ -474,6 +475,7 @@ theorem splitAux_of_valid (p l m r acc) :
   split
   · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
+    simp only [next_eq, extract_eq, get_eq]
     simp only [by
       simpa [-String.mk_eq_asString] using
         (⟨get_of_valid (l ++ m) (c :: r), next_of_valid (l ++ m) c r,
