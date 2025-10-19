@@ -488,8 +488,12 @@ theorem splitAux_of_valid (p l m r acc) :
         using splitAux_of_valid p (l++m++[c]) [] r ((mk m)::acc)
     · simpa [-String.mk_eq_asString, Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
 
-theorem split_of_valid (s p) : split s p = (List.splitOnP p s.data).map mk := by
-  simpa [split] using splitAux_of_valid p [] [] s.data []
+theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.data).map mk := by
+  simpa [splitToList] using splitAux_of_valid p [] [] s.data []
+
+@[deprecated splitToList_of_valid (since := "2025-10-18")]
+theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.data).map mk :=
+  splitToList_of_valid s p
 
 -- TODO: splitOn
 
