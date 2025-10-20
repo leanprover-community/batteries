@@ -341,7 +341,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
         (doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!, "")
       else (endPos, " with")
       let fallback := if let some ⟨startPos, endPos⟩ := fallback then
-        doc.meta.text.source.extract startPos endPos
+        String.Pos.Raw.extract doc.meta.text.source startPos endPos
       else
         "sorry"
       let newText := Id.run do
