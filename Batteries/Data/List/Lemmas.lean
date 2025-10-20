@@ -333,7 +333,6 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 /-! ### Pairwise -/
 
 attribute [simp, grind ←] Pairwise.nil
-attribute [-grind] pairwise_pair
 
 @[grind] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
   induction p with
