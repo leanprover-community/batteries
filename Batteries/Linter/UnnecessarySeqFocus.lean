@@ -82,7 +82,7 @@ structure Entry where
   used : Bool
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (Std.HashMap String.Range Entry) (ST ω)
+abbrev M (ω) := StateRefT (Std.HashMap Lean.Syntax.Range Entry) (ST ω)
 
 /-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
 @[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=
@@ -160,8 +160,8 @@ def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => d
   let (_, map) := runST fun _ => go.run {}
   let unused := map.fold (init := #[]) fun acc r { stx, used } =>
     if used then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
-  let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
-  let mut last : String.Range := ⟨0, 0⟩
+  let key (r : Lean.Syntax.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
+  let mut last : Lean.Syntax.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unused.qsort (key ·.1 < key ·.1) do
     if last.start ≤ r.start && r.stop ≤ last.stop then continue
     logLint linter.unnecessarySeqFocus stx
