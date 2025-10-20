@@ -334,7 +334,7 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 
 attribute [simp, grind ←] Pairwise.nil
 
-@[grind] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
+@[grind →] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
   induction p with
   | nil => grind
   | cons _ l => cases l with grind
@@ -386,7 +386,7 @@ theorem Chain.imp' (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
 
-@[grind] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
+@[grind →] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     Pairwise R l := by
   induction c with
   | nil | singleton => grind
