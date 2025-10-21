@@ -3,11 +3,16 @@ Copyright (c) 2023 Bulhwi Cha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bulhwi Cha, Mario Carneiro
 -/
-import Batteries.Data.String.Basic
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.SeqFocus
-import Batteries.Classes.Order
-import Batteries.Data.List.Basic
+module
+
+public import Batteries.Data.String.Basic
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Tactic.SeqFocus
+public import Batteries.Classes.Order
+public import Batteries.Data.List.Basic
+import all Init.Data.String.Basic  -- for unfolding `isEmpty`
+
+@[expose] public section
 
 namespace String
 
@@ -300,16 +305,16 @@ theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
   cases cs' <;> simp [-String.mk_eq_asString, add_utf8Size_pos, endPos, utf8ByteSize_mk]
 
 unseal posOfAux findAux in
-theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := rfl
+theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := (rfl)
 
 unseal posOfAux findAux in
-theorem posOf_eq (s c) : posOf s c = find s (· == c) := rfl
+theorem posOf_eq (s c) : posOf s c = find s (· == c) := (rfl)
 
 unseal revPosOfAux revFindAux in
-theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := rfl
+theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := (rfl)
 
 unseal revPosOfAux revFindAux in
-theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := rfl
+theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := (rfl)
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
 theorem findAux_of_valid (p) : ∀ l m r,

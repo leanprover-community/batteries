@@ -3,8 +3,12 @@ Copyright (c) 2023 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Lean.System.IO
-import Batteries.Data.MLList.Basic
+module
+
+public import Batteries.Lean.System.IO
+public import Batteries.Data.MLList.Basic
+
+@[expose] public section
 
 /-!
 # IO operations using monadic lazy lists.

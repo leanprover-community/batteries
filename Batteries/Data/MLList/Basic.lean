@@ -3,7 +3,11 @@ Copyright (c) 2018 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Kim Morrison
 -/
-import Batteries.Control.AlternativeMonad
+module
+
+public import Batteries.Control.AlternativeMonad
+
+public section
 
 /-! # Monadic lazy lists.
 
@@ -27,7 +31,7 @@ private structure Spec (m : Type u → Type u) where
   uncons : [Monad m] → listM α → m (Option (α × listM α))
   uncons? : listM α → Option (Option (α × listM α))
 
-instance : Nonempty (Spec m) := .intro
+private instance : Nonempty (Spec m) := .intro
   { listM := fun _ => PUnit
     nil := ⟨⟩
     cons := fun _ _ => ⟨⟩

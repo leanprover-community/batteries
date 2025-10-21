@@ -3,9 +3,14 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Miyahara Kō
 -/
-import Lean.Meta.Tactic.Congr
-import Lean.Elab.Tactic.Config
-import Lean.Elab.Tactic.Ext
+module
+
+public meta import Lean.Meta.Tactic.Congr
+public meta import Lean.Elab.Tactic.Config
+public meta import Lean.Elab.Tactic.Ext
+public meta import Lean.Elab.Tactic.RCases
+
+public meta section
 
 /-! # `congr with` tactic, `rcongr` tactic -/
 

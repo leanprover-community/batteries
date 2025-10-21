@@ -1,5 +1,7 @@
-import Batteries.Data.RBMap.Alter
-import Batteries.Data.RBMap.Basic
-import Batteries.Data.RBMap.Depth
-import Batteries.Data.RBMap.Lemmas
-import Batteries.Data.RBMap.WF
+module
+
+public import Batteries.Data.RBMap.Alter
+public import Batteries.Data.RBMap.Basic
+public import Batteries.Data.RBMap.Depth
+public import Batteries.Data.RBMap.Lemmas
+public import Batteries.Data.RBMap.WF
