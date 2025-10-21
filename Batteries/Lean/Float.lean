@@ -68,7 +68,7 @@ def toStringFull (f : Float) : String :=
       else
         let rem := Nat.repr ((2^e + v' % 2^e) * 5^e)
         let rem := rem.dropRightWhile (· == '0')
-        s!"{intPart}.{String.Pos.Raw.extract rem ⟨1⟩ rem.endPos}"
+        s!"{intPart}.{String.Pos.Raw.extract rem ⟨1⟩ rem.rawEndPos}"
     if v < 0 then s!"-{s}" else s
   else f.toString -- inf, -inf, nan
 
