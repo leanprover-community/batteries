@@ -126,7 +126,8 @@ private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
 instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] :
     Iterator (m.Iterator σ n α) n σ where
   IsPlausibleStep it step := ∃ step', m.modifyStep it step' = step
-  step it := it.internalState.inner.step >>= fun step => pure ⟨m.modifyStep _ _, step, rfl⟩
+  step it := it.internalState.inner.step >>=
+    fun step => pure (.deflate ⟨m.modifyStep _ _, step.inflate, rfl⟩)
 
 private def finitenessRelation [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [Finite σ n] :
     FinitenessRelation (m.Iterator σ n α) n where
