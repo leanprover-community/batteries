@@ -4,7 +4,7 @@ Released under Apache 2. license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
-namespace Stream
+namespace Std.Stream
 
 /-- Drop up to `n` values from the stream `s`. -/
 def drop [Stream σ α] (s : σ) : Nat → σ
