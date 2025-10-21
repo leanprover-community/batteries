@@ -39,9 +39,6 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 /-! ### set -/
 
-@[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v i.isLt := rfl
-
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
   Array.size_set ..

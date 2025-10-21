@@ -29,11 +29,11 @@ def toAsciiByteArray (s : String) : ByteArray :=
   `loop p out = out ++ toAsciiByteArray ({ s with startPos := p } : Substring)`
   -/
   loop (p : Pos.Raw) (out : ByteArray) : ByteArray :=
-    if h : s.atEnd p then out else
-    let c := s.get p
-    have : utf8ByteSize s - (next s p).byteIdx < utf8ByteSize s - p.byteIdx :=
+    if h : p.atEnd s then out else
+    let c := p.get s
+    have : utf8ByteSize s - (Pos.Raw.next s p).byteIdx < utf8ByteSize s - p.byteIdx :=
       Nat.sub_lt_sub_left (Nat.lt_of_not_le <| mt decide_eq_true h)
         (Nat.lt_add_of_pos_right (Char.utf8Size_pos _))
-    loop (s.next p) (out.push c.toUInt8)
+    loop (p.next s) (out.push c.toUInt8)
     termination_by utf8ByteSize s - p.byteIdx
   loop 0 ByteArray.empty
