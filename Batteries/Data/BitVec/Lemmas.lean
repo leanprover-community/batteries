@@ -36,7 +36,7 @@ namespace BitVec
   simp only [BitVec.toInt, Int.ofBits, toNat_ofFnLE, Int.subNatNat_eq_coe]; rfl
 
 -- TODO: consider these for global `grind` attributes.
-attribute [local grind] Fin.succ Fin.rev Fin.last Fin.zero_eta
+attribute [local grind =] Fin.succ Fin.rev Fin.last Fin.zero_eta
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by

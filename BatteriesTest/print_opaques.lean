@@ -39,7 +39,7 @@ info: 'Std.HashMap.insert' depends on opaque or partial definitions: [System.Pla
 #print opaques Std.HashMap.insert
 
 /--
-info: 'Stream.forIn' depends on opaque or partial definitions: [_private.Init.Data.Stream.0.Stream.forIn.visit]
+info: 'Std.Stream.forIn' depends on opaque or partial definitions: [_private.Init.Data.Stream.0.Std.Stream.forIn.visit]
 -/
 #guard_msgs in
-#print opaques Stream.forIn
+#print opaques Std.Stream.forIn

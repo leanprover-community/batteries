@@ -862,9 +862,9 @@ theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
     forIn (m := m) t init f = forIn t.toList init f := RBNode.forIn_eq_forIn_toList
 
-theorem toStream_eq {t : RBSet α cmp} : toStream t = t.1.toStream .nil := rfl
+theorem toStream_eq {t : RBSet α cmp} : Std.toStream t = t.1.toStream .nil := rfl
 
-@[simp] theorem toStream_toList {t : RBSet α cmp} : (toStream t).toList = t.toList := by
+@[simp] theorem toStream_toList {t : RBSet α cmp} : (Std.toStream t).toList = t.toList := by
   simp [toStream_eq]
 
 theorem isEmpty_iff_toList_eq_nil {t : RBSet α cmp} :
@@ -1146,9 +1146,9 @@ theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBMap α β cmp} :
 theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBMap α β cmp} :
     forIn (m := m) t init f = forIn t.toList init f := RBNode.forIn_eq_forIn_toList
 
-theorem toStream_eq {t : RBMap α β cmp} : toStream t = t.1.toStream .nil := rfl
+theorem toStream_eq {t : RBMap α β cmp} : Std.toStream t = t.1.toStream .nil := rfl
 
-@[simp] theorem toStream_toList {t : RBMap α β cmp} : (toStream t).toList = t.toList :=
+@[simp] theorem toStream_toList {t : RBMap α β cmp} : (Std.toStream t).toList = t.toList :=
   RBSet.toStream_toList
 
 theorem toList_sorted {t : RBMap α β cmp} : t.toList.Pairwise (RBNode.cmpLT (cmp ·.1 ·.1)) :=

@@ -7,13 +7,13 @@ set_option linter.missingDocs false
 
 /--
 info: Try this:
-  simp only [Nat.add_comm]
+  [apply] simp only [Nat.add_comm]
 -/
 #guard_msgs in
 example : x + 1 = 1 + x := by simp? [Nat.add_comm, Nat.mul_comm]
 /--
 info: Try this:
-  dsimp only [Nat.reduceAdd]
+  [apply] dsimp only [Nat.reduceAdd]
 -/
 #guard_msgs in
 example : 1 + 1 = 2 := by dsimp?
@@ -27,10 +27,10 @@ example : 1 + 1 = 2 := by dsimp?
 
 /--
 info: Try this:
-  simp only [foo, bar]
+  [apply] simp only [foo, bar]
 ---
 info: Try this:
-  simp only [foo, baz]
+  [apply] simp only [foo, baz]
 -/
 #guard_msgs in
 example : foo x y = 1 + y := by
@@ -40,7 +40,7 @@ example : foo x y = 1 + y := by
 
 /--
 info: Try this:
-  simp only [foo, bar, baz]
+  [apply] simp only [foo, bar, baz]
 -/
 #guard_msgs in
 example : foo x y = 1 + y := by

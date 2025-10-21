@@ -299,7 +299,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
       let targets := discrInfos.map (·.expr)
       match using_ with
       | none =>
-        if Tactic.tactic.customEliminators.get (← getOptions) then
+        if tactic.customEliminators.get (← getOptions) then
           if let some elimName ← getCustomEliminator? targets induction then
             return some (← getElimExprNames (← getConstInfo elimName).type)
         matchConstInduct (← whnf (← inferType discr₀.expr)).getAppFn
@@ -341,7 +341,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
         (doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!, "")
       else (endPos, " with")
       let fallback := if let some ⟨startPos, endPos⟩ := fallback then
-        doc.meta.text.source.extract startPos endPos
+        String.Pos.Raw.extract doc.meta.text.source startPos endPos
       else
         "sorry"
       let newText := Id.run do

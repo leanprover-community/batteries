@@ -152,8 +152,8 @@ def toList (t : RBNode.Stream α) : List α := t.foldr (·::·) []
 
 end Stream
 
-instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
-instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
+instance : Std.ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
+instance : Std.Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
 
 /-- Returns `true` iff every element of the tree satisfies `p`. -/
 @[specialize] def all (p : α → Bool) : RBNode α → Bool
@@ -657,7 +657,7 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp)
 instance : ForIn m (RBSet α cmp) α where
   forIn t := t.1.forIn
 
-instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
+instance : Std.ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBSet α cmp → Bool
@@ -942,8 +942,8 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 
 instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
 
-instance : ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
-  inferInstanceAs (ToStream (RBSet ..) _)
+instance : Std.ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
+  inferInstanceAs (Std.ToStream (RBSet ..) _)
 
 /-- `O(n)`. Constructs the array of keys of the map. -/
 @[inline] def keysArray (t : RBMap α β cmp) : Array α :=
@@ -991,8 +991,8 @@ def Keys.Stream.next? (t : Stream α β) : Option (α × Stream α β) :=
   | none => none
   | some ((a, _), t) => some (a, t)
 
-instance : ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
-instance : Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
+instance : Std.ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
+instance : Std.Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
 
 /-- `O(n)`. Constructs the array of values of the map. -/
 @[inline] def valuesArray (t : RBMap α β cmp) : Array β :=
@@ -1040,8 +1040,8 @@ def Values.Stream.next? (t : Stream α β) : Option (β × Stream α β) :=
   | none => none
   | some ((_, b), t) => some (b, t)
 
-instance : ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
-instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
+instance : Std.ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
+instance : Std.Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty
