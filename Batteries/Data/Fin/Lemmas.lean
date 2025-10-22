@@ -30,6 +30,54 @@ theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
 
 @[simp] theorem coe_clamp (n m : Nat) : (clamp n m : Nat) = min n m := rfl
 
+/-! ### sum -/
+
+@[simp, grind =]
+theorem sum_zero [Zero α] [Add α] (x : Fin 0 → α) :
+    Fin.sum x = 0 := by
+  simp [Fin.sum]
+
+theorem sum_succ [Zero α] [Add α] (x : Fin (n + 1) → α) :
+    Fin.sum x = x 0 + Fin.sum (x ·.succ) := by
+  simp [Fin.sum, foldr_succ]
+
+theorem sum_eq_sum_map_finRange [Zero α] [Add α] (x : Fin n → α) :
+    Fin.sum x = (List.finRange n |>.map x).sum := by
+  simp [Fin.sum, List.sum]
+  rw [Fin.foldr_eq_finRange_foldr]
+  rw [List.foldr_map]
+
+/-! ### prod -/
+
+@[simp] theorem prod_zero [One α] [Mul α] (x : Fin 0 → α) :
+    Fin.prod x = 1 := by
+  simp [Fin.prod]
+
+theorem prod_succ [One α] [Mul α] (x : Fin (n + 1) → α) :
+    Fin.prod x = x 0 * Fin.prod (x ·.succ) := by
+  simp [Fin.prod, foldr_succ]
+
+/-! ### count -/
+
+@[simp, grind =] theorem count_zero (p : Fin 0 → Bool) : Fin.count p = 0 := by
+  simp [Fin.count]
+
+@[simp, grind =] theorem count_one (p : Fin 1 → Bool) : Fin.count p = (p 0).toNat := by
+  simp [Fin.count, Fin.sum_succ]
+
+theorem count_succ (p : Fin (n + 1) → Bool) :
+    Fin.count p = (p 0).toNat + Fin.count (p ·.succ) := by
+  simp [Fin.count, Fin.sum_succ]
+
+@[grind]
+theorem count_le (p : Fin n → Bool) : Fin.count p ≤ n := by
+  induction n with simp only [count_zero, count_succ, Nat.le_refl]
+  | succ _ ih =>
+    rw [Nat.add_comm]
+    apply Nat.add_le_add
+    · exact ih ..
+    · exact Bool.toNat_le ..
+
 /-! ### findSome? -/
 
 @[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := by simp [findSome?]
