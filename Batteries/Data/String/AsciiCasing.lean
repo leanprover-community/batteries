@@ -3,8 +3,12 @@ Copyright (c) 2025 Christopher Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Bailey, F. G. Dorais
 -/
-import Batteries.Data.Char
-import Batteries.Data.Char.AsciiCasing
+module
+
+public import Batteries.Data.Char
+public import Batteries.Data.Char.AsciiCasing
+
+@[expose] public section
 
 namespace String
 

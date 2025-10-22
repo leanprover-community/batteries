@@ -3,8 +3,12 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sebastian Ullrich
 -/
+module
 
-import Batteries.Control.LawfulMonadState
+public import Batteries.Control.LawfulMonadState
+import all Init.Control.Option
+
+@[expose] public section
 
 /-!
 # Lemmas About Option Monad Transformer
@@ -21,7 +25,7 @@ namespace OptionT
     (Functor.mapConst y x).run = Option.map (Function.const α y) <$> x.run := run_map _ _
 
 @[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
-    (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := rfl
+    (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := (rfl)
 
 instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (OptionT m) where
