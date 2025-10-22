@@ -3,7 +3,11 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import Batteries.Util.LibraryNote
+module
+
+public import Batteries.Util.LibraryNote
+
+@[expose] public section
 
 library_note "coercion into rings"
 /--

@@ -3,8 +3,11 @@ Copyright (c) 2025 François G. Dorais. All rights reserved.
 Released under Apache 2. license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
 
-import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Nat.Lemmas
+
+@[expose] public section
 
 namespace Fin
 

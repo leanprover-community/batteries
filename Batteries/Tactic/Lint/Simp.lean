@@ -3,10 +3,15 @@ Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.Tactic.Simp.Main
-import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
-import Batteries.Util.LibraryNote
+module
+
+public meta import Lean.Meta.Tactic.Simp.Main
+public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Tactic.OpenPrivate
+public meta import Batteries.Util.LibraryNote
+import all Lean.Meta.Tactic.Simp.SimpTheorems
+
+public meta section
 open Lean Meta
 
 namespace Batteries.Tactic.Lint
@@ -37,7 +42,6 @@ def isCondition (h : Expr) : MetaM Bool := do
   if ldecl.binderInfo.isInstImplicit then return false
   isProp ldecl.type
 
-open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
 def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM (Array α) :=
   withReducible do
