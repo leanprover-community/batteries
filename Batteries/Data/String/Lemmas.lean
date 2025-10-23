@@ -11,6 +11,10 @@ public import Batteries.Tactic.SeqFocus
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
 import all Init.Data.String.Basic  -- for unfolding `isEmpty`
+import all Init.Data.String.Substring  -- for unfolding `Substring` functions
+import all Init.Data.String.Iterator  -- for unfolding `Iterator` functions
+import all Init.Data.String.Extra  -- for unfolding `Substring.toIterator`
+import all Init.Data.String.TakeDrop  -- for unfolding `drop`
 
 @[expose] public section
 
