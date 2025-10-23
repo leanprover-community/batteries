@@ -5,6 +5,8 @@ defaultTargets = ["Batteries", "runLinter"]
 
 [leanOptions]
 linter.missingDocs = true
+experimental.module = true
+backward.privateInPublic.warn = false
 
 [[lean_lib]]
 name = "Batteries"
