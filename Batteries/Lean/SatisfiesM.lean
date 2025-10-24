@@ -17,27 +17,23 @@ public import Lean.Elab.Command
 
 open Lean Elab Term Tactic Command
 
--- Note: as of nightly-2025-10-23, after https://github.com/leanprover/lean4/pull/10625
--- these instances need to be re-implemented.
--- See `Batteries.Lean.LawfulMonad` first.
+instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
+instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
+instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
 
--- instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
--- instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
--- instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
+instance : MonadSatisfying (EST ε σ) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
 
--- instance : MonadSatisfying (EST ε σ) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
+instance : MonadSatisfying CoreM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ (EIO _))
 
--- instance : MonadSatisfying CoreM :=
---   inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ (EIO _))
+instance : MonadSatisfying MetaM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ CoreM)
 
--- instance : MonadSatisfying MetaM :=
---   inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ CoreM)
+instance : MonadSatisfying TermElabM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ MetaM)
 
--- instance : MonadSatisfying TermElabM :=
---   inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ MetaM)
+instance : MonadSatisfying TacticM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ TermElabM)
 
--- instance : MonadSatisfying TacticM :=
---   inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ TermElabM)
-
--- instance : MonadSatisfying CommandElabM :=
---   inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ (EIO _))
+instance : MonadSatisfying CommandElabM :=
+  inferInstanceAs <| MonadSatisfying (ReaderT _ $ StateRefT' _ _ (EIO _))
