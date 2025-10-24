@@ -168,8 +168,8 @@ end Pos.Raw
 theorem endPos_eq_zero (s : String) : rawEndPos s = 0 ↔ s = "" :=
   rawEndPos_eq_zero_iff
 
-theorem isEmpty_iff (s : String) : isEmpty s ↔ s = "" :=
-  (beq_iff_eq ..).trans rawEndPos_eq_zero_iff
+theorem isEmpty_iff (s : String) : isEmpty s ↔ s = "" := by
+  simp [isEmpty]
 
 /--
 Induction along the valid positions in a list of characters.
