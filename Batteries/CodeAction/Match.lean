@@ -16,7 +16,7 @@ def isMatchTerm : Info → Bool
   | _ => false
 
 /-- Returns the String.range that encompasses `match e (with)`. -/
-def getMatchHeaderRange? (matchStx : Syntax) : Option String.Range := do
+def getMatchHeaderRange? (matchStx : Syntax) : Option Lean.Syntax.Range := do
   match matchStx with
   | `(term| match
     $[(generalizing := $generalizingVal)]?
