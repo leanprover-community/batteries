@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.Iterators.Combinators.Monadic.FilterMap","Init.Data.Iterators.Combinators.Monadic.FlatMap","Init.Data.Iterators.Combinators.Monadic.ULift"],"instances":[],"name":"Init.Data.Iterators.Combinators.Monadic"}

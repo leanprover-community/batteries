@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Data.Iterators.Combinators.Monadic","Std.Data.Iterators.Combinators.Take","Std.Data.Iterators.Combinators.TakeWhile","Std.Data.Iterators.Combinators.Drop","Std.Data.Iterators.Combinators.DropWhile","Std.Data.Iterators.Combinators.StepSize","Std.Data.Iterators.Combinators.Zip"],"instances":[],"name":"Std.Data.Iterators.Combinators"}

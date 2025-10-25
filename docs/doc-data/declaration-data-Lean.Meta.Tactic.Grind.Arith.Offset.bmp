@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Tactic.Grind.Arith.Offset.Main","Lean.Meta.Tactic.Grind.Arith.Offset.Proof","Lean.Meta.Tactic.Grind.Arith.Offset.Util","Lean.Meta.Tactic.Grind.Arith.Offset.Types"],"instances":[],"name":"Lean.Meta.Tactic.Grind.Arith.Offset"}

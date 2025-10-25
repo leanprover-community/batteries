@@ -1,0 +1,21 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": null,
+ "log":
+ [{"message":
+   ".> ELAN=elan ELAN_HOME=/home/runner/.elan ELAN_TOOLCHAIN=leanprover/lean4:v4.25.0-rc2 LAKE=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/bin/lake LAKE_HOME=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2 LAKE_PKG_URL_MAP={} LAKE_NO_CACHE=false LAKE_ARTIFACT_CACHE=false LAKE_CACHE_KEY= LAKE_CACHE_ARTIFACT_ENDPOINT= LAKE_CACHE_REVISION_ENDPOINT= LEAN=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/bin/lean LEAN_SYSROOT=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2 LEAN_AR=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/bin/llvm-ar LEAN_CC= LAKE_CACHE_DIR=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/lake/cache LEAN_PATH=/home/runner/work/batteries/batteries/.lake/packages/MD4Lean/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/Cli/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/lib/lean:/home/runner/work/batteries/batteries/.lake/build/lib/lean:/home/runner/work/batteries/batteries/docs/lib/lean:/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/lib/lean LEAN_SRC_PATH=/home/runner/work/batteries/batteries/.lake/packages/MD4Lean:/home/runner/work/batteries/batteries/.lake/packages/MD4Lean:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic:/home/runner/work/batteries/batteries/.lake/packages/Cli:/home/runner/work/batteries/batteries/.lake/packages/Cli:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4:/home/runner/work/batteries/batteries:/home/runner/work/batteries/batteries:/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/src/lean/lake LEAN_GITHASH=744f98064b056ee27fc8c97f524797c8cc96f436 PATH LD_LIBRARY_PATH=/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/lib/lean:/home/runner/.elan/toolchains/leanprover--lean4---v4.25.0-rc2/lib:/home/runner/work/batteries/batteries/docs/lib:/home/runner/work/batteries/batteries/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/Cli/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/UnicodeBasic/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/BibtexQuery/.lake/build/lib:/home/runner/work/batteries/batteries/.lake/packages/MD4Lean/.lake/build/lib /home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/bin/doc-gen4 single --build /home/runner/work/batteries/batteries/docs Batteries.Lean.Meta.DiscrTree https://github.com/leanprover-community/batteries/blob/c44068fa1b40041e6df42bd67639b690eb2764ca/Batteries/Lean/Meta/DiscrTree.lean",
+   "level": "trace"}],
+ "inputs":
+ [["<collection>",
+   [["/home/runner/work/batteries/batteries/docs/doc/Batteries/Data/Array/Merge.html",
+     "6d5e48129c9fda2b"],
+    ["/home/runner/work/batteries/batteries/docs/doc/Batteries/Lean/Meta/Expr.html",
+     "d5d972eaef35be10"],
+    ["/home/runner/work/batteries/batteries/docs/doc/Batteries/Lean/PersistentHashMap.html",
+     "3d6d43a17bbfbd87"]]],
+  ["/home/runner/work/batteries/batteries/docs/doc-data/references.json",
+   "a50f2257f35adb49"],
+  ["/home/runner/work/batteries/batteries/.lake/packages/doc-gen4/.lake/build/bin/doc-gen4",
+   "5cf44e1a034e282a"],
+  ["Batteries.Lean.Meta.DiscrTree:leanArts", "ad4f093aefec6ef4"]],
+ "depHash": "6220317ea9d265b1"}
