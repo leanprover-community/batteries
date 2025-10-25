@@ -3,6 +3,9 @@ Copyright (c) 2023 F. G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace Array
 
@@ -61,7 +64,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α := xs.foldl (·.extend) default
 
 /-- Make prefix table from a pattern stream -/
-partial def mkPrefixTableOfStream [BEq α] [Stream σ α] (stream : σ) : PrefixTable α :=
+partial def mkPrefixTableOfStream [BEq α] [Std.Stream σ α] (stream : σ) : PrefixTable α :=
   loop default stream
 where
   /-- Inner loop for `mkPrefixTableOfStream` -/
@@ -82,7 +85,7 @@ def Matcher.ofArray [BEq α] (pat : Array α) : Matcher α where
   table := mkPrefixTable pat
 
 /-- Make a KMP matcher for a given a pattern stream -/
-def Matcher.ofStream [BEq α] [Stream σ α] (pat : σ) : Matcher α where
+def Matcher.ofStream [BEq α] [Std.Stream σ α] (pat : σ) : Matcher α where
   table := mkPrefixTableOfStream pat
 
 /-- Find next match from a given stream
@@ -90,7 +93,7 @@ def Matcher.ofStream [BEq α] [Stream σ α] (pat : σ) : Matcher α where
   Runs the stream until it reads a sequence that matches the sought pattern, then returns the stream
   state at that point and an updated matcher state.
 -/
-partial def Matcher.next? [BEq α] [Stream σ α] (m : Matcher α) (stream : σ) :
+partial def Matcher.next? [BEq α] [Std.Stream σ α] (m : Matcher α) (stream : σ) :
     Option (σ × Matcher α) :=
   match Stream.next? stream with
   | none => none
@@ -111,7 +114,8 @@ protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n 
   /-- Matcher state. -/
   state : Fin (m.table.size + 1) := 0
 
-private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
+/-- Implementation datail for `Matcher.Iterator`. -/
+def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
     (it : IterM (α := m.Iterator σ n α) n σ) :
     it.internalState.inner.Step (α := σ) → IterStep (IterM (α := m.Iterator σ n α) n σ) σ
   | .done _ => .done
@@ -126,7 +130,8 @@ private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
 instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] :
     Iterator (m.Iterator σ n α) n σ where
   IsPlausibleStep it step := ∃ step', m.modifyStep it step' = step
-  step it := it.internalState.inner.step >>= fun step => pure ⟨m.modifyStep _ _, step, rfl⟩
+  step it := it.internalState.inner.step >>=
+    fun step => pure (.deflate ⟨m.modifyStep _ _, step.inflate, rfl⟩)
 
 private def finitenessRelation [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [Finite σ n] :
     FinitenessRelation (m.Iterator σ n α) n where

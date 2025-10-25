@@ -3,8 +3,12 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Nat.Basic
+
+@[expose] public section
 
 /-! # Basic lemmas about natural numbers
 
@@ -203,3 +207,17 @@ theorem testBit_ofBits (f : Fin n → Bool) :
   cases Nat.lt_or_ge i n with
   | inl h => simp [h]
   | inr h => simp [h, Nat.not_lt_of_ge h]
+
+/-! ### Misc -/
+
+theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    n * x + y < m * n := calc
+  _ < n * x + n := Nat.add_lt_add_left hy _
+  _ = n * (x + 1) := Nat.mul_add_one .. |>.symm
+  _ ≤ n * m := Nat.mul_le_mul_left _ hx
+  _ = m * n := Nat.mul_comm ..
+
+theorem add_mul_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    x + m * y < m * n := by
+  rw [Nat.add_comm, Nat.mul_comm _ n]
+  exact mul_add_lt_mul_of_lt_of_lt hy hx

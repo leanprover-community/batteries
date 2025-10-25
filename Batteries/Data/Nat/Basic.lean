@@ -3,6 +3,9 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+module
+
+@[expose] public section
 
 namespace Nat
 
@@ -94,12 +97,8 @@ def sqrt (n : Nat) : Nat :=
   iter n (1 <<< ((n.log2 / 2) + 1))
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
-  returns the integer square root of `n`.
-
-  By default this well-founded recursion would be irreducible.
-  This prevents use `decide` to resolve `Nat.sqrt n` for small values of `n`,
-  so we mark this as `@[semireducible]`. -/
-  @[semireducible] iter (n guess : Nat) : Nat :=
+  returns the integer square root of `n`. -/
+  iter (n guess : Nat) : Nat :=
     let next := (guess + n / guess) / 2
     if _h : next < guess then
       iter n next
