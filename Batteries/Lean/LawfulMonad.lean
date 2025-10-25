@@ -15,6 +15,9 @@ public import Lean.Elab.Command
 
 open Lean Elab Term Tactic Command
 
+-- Note: as of nightly-2025-10-23, after https://github.com/leanprover/lean4/pull/10625
+-- these instances need to be re-implemented.
+
 -- instance : LawfulMonad (EIO ε) := inferInstanceAs <| LawfulMonad (EStateM _ _)
 -- instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (EIO _)
 -- instance : LawfulMonad IO := inferInstanceAs <| LawfulMonad (EIO _)
