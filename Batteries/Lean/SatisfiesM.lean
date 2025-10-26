@@ -8,6 +8,7 @@ module
 public import Batteries.Classes.SatisfiesM
 public import Batteries.Lean.LawfulMonad
 public import Lean.Elab.Command
+import all Init.System.ST
 
 @[expose] public section
 
@@ -19,7 +20,6 @@ open Lean Elab Term Tactic Command
 
 -- Note: as of nightly-2025-10-23, after https://github.com/leanprover/lean4/pull/10625
 -- these instances need to be re-implemented.
--- See `Batteries.Lean.LawfulMonad` first.
 
 -- instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
 -- instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
