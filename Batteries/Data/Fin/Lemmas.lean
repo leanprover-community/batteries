@@ -50,19 +50,15 @@ theorem findSome?_succ {f : Fin (n+1) → Option α} :
   simp only [findSome?, foldl_succ, Option.orElse_eq_orElse, Option.orElse_eq_or]
   exact Eq.trans (by cases (f 0) <;> rfl) foldl_assoc
 
-@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
     findSome? f = some x := findSome?_succ.trans (h ▸ Option.some_or)
 
-@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_isSome {f : Fin (n+1) → Option α} (h : (f 0).isSome) :
     findSome? f = f 0 := findSome?_succ.trans (Option.or_of_isSome h)
 
-@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_none {f : Fin (n+1) → Option α} (h : f 0 = none) :
     findSome? f = findSome? (f ·.succ) := findSome?_succ.trans (Option.or_eq_right_of_none h)
 
-@[deprecated findSome?_succ (since := "2025-10-06")]
 theorem findSome?_succ_of_isNone {f : Fin (n+1) → Option α} (h : (f 0).isNone) :
     findSome? f = findSome? (f ·.succ) := findSome?_succ.trans (Option.or_of_isNone h)
 
@@ -128,6 +124,7 @@ theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find
 
 theorem bind_findSome?_guard_isSome {f : Fin n → Option α} :
     (findSome? (Option.guard fun i => (f i).isSome)).bind f = findSome? f := by
+
   cases hf : findSome? f with
   | none => grind
   | some x =>
@@ -313,8 +310,7 @@ theorem isSome_findRev?_iff {p : Fin n → Bool} :
 theorem findRev?_eq_none_iff {p : Fin n → Bool} : findRev? p = none ↔ ∀ i, p i = false := by
   simp [findRev?]
 
-theorem isNone_findRev?_iff {p : Fin n → Bool} : (findRev? p).isNone ↔ ∀ i, p i = false := by
-  simp [findRev?]
+theorem isNone_findRev?_iff {p : Fin n → Bool} : (findRev? p).isNone ↔ ∀ i, p i = false := by simp
 
 theorem eq_true_of_findRev?_eq_some {p : Fin n → Bool} (h : findRev? p = some i) : p i :=
     (findRev?_eq_some_iff.mp h).1
