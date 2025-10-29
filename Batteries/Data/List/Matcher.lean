@@ -3,7 +3,11 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Array.Match
+module
+
+public import Batteries.Data.Array.Match
+
+@[expose] public section
 
 namespace List
 
