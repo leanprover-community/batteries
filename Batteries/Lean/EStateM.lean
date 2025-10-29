@@ -70,14 +70,14 @@ theorem run_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ) 
     (f <*> x).run s = match f.run s with
     | .ok g s => Result.map g (x.run s)
     | .error e s => .error e s := by
-  simp only [seq_eq_bind, run_bind, run_map]
+  simp only [seq_eq_bind_map, run_bind, run_map]
   cases f.run s <;> rfl
 
 theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ) :
     (f <*> x).run' s = match f.run s with
     | .ok g s => Option.map g (x.run' s)
     | .error _ _ => none := by
-  simp only [seq_eq_bind, run'_bind, run'_map]
+  simp only [seq_eq_bind_map, run'_bind, run'_map]
   cases f.run s <;> rfl
 
 @[simp] theorem run_seqLeft (x : EStateM ε σ α) (y : EStateM ε σ β) (s : σ) :
