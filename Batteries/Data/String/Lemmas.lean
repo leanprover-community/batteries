@@ -10,12 +10,14 @@ public import Batteries.Tactic.Lint.Misc
 public import Batteries.Tactic.SeqFocus
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
+public import Batteries.Data.String.Legacy
 import all Init.Data.String.Defs  -- for unfolding `isEmpty`
 import all Init.Data.String.Substring  -- for unfolding `Substring` functions
 import all Init.Data.String.Iterator  -- for unfolding `Iterator` functions
 import all Init.Data.String.Extra  -- for unfolding `Substring.toIterator`
 import all Init.Data.String.TakeDrop  -- for unfolding `drop`
 import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
+import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
 
 @[expose] public section
 
@@ -814,17 +816,17 @@ theorem contains_iff (s : String) (c : Char) : contains s c ↔ c ∈ s.data := 
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
 theorem mapAux_of_valid (f : Char → Char) :
-    ∀ l r, mapAux f ⟨utf8Len l⟩ (mk (l ++ r)) = mk (l ++ r.map f)
-  | l, [] => by unfold mapAux; simp
+    ∀ l r, Legacy.mapAux f ⟨utf8Len l⟩ (mk (l ++ r)) = mk (l ++ r.map f)
+  | l, [] => by unfold Legacy.mapAux; simp
   | l, c::r => by
-    unfold mapAux
+    unfold Legacy.mapAux
     rw [dif_neg (by rw [atEnd_of_valid]; simp)]
     simp only [← String.mk_eq_asString, get_of_valid l (c :: r), Char.reduceDefault,
       List.headD_cons, set_of_valid l (c :: r), List.modifyHead_cons, next_of_valid l (f c) r,
       List.map_cons]
     simpa using mapAux_of_valid f (l++[f c]) r
 
-theorem map_eq (f : Char → Char) (s) : map f s = mk (s.data.map f) := by
+theorem map_eq (f : Char → Char) (s) : Legacy.map f s = mk (s.data.map f) := by
   simpa using mapAux_of_valid f [] s.data
 
 -- TODO: substrEq
@@ -845,20 +847,21 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
     simpa [← Nat.add_assoc, Nat.add_right_comm] using takeWhileAux_of_valid p (l++[c]) m r
 
 @[simp]
-theorem map_eq_empty_iff (s : String) (f : Char → Char) : (s.map f) = "" ↔ s = "" := by
+theorem map_eq_empty_iff (s : String) (f : Char → Char) : (Legacy.map f s) = "" ↔ s = "" := by
   simp only [map_eq, ← data_eq_nil_iff, String.mk_eq_asString, List.data_asString,
     List.map_eq_nil_iff]
 
 @[simp]
-theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) : (s.map f).isEmpty = s.isEmpty := by
+theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) :
+    (Legacy.map f s).isEmpty = s.isEmpty := by
   rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
 
 @[simp]
-theorem length_map (s : String) (f : Char → Char) : (s.map f).length = s.length := by
+theorem length_map (s : String) (f : Char → Char) : (Legacy.map f s).length = s.length := by
   simp only [← length_data, map_eq, String.mk_eq_asString, List.data_asString, List.length_map]
 
 theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
-  a.map f = b.map g → a.length = b.length := by
+  Legacy.map f a = Legacy.map g b → a.length = b.length := by
   intro h; rw [← length_map a f, ← length_map b g, h]
 
 end String
