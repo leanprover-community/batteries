@@ -3,8 +3,12 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais, Quang Dao
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Fin.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Fin.Basic
+
+@[expose] public section
 
 namespace Fin
 

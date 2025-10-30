@@ -4,7 +4,12 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, François G. Dorais
 -/
-import Std
+module
+
+public import Std.Data.ByteSlice
+import all Std.Data.ByteSlice  -- for unfolding `ByteSlice.size`
+
+@[expose] public section
 
 namespace ByteSlice
 
@@ -49,7 +54,7 @@ where
 instance : ForIn m ByteSlice UInt8 where
   forIn := ByteSlice.forIn
 
-instance : Stream ByteSlice UInt8 where
+instance : Std.Stream ByteSlice UInt8 where
   next? s := s[0]? >>= (·, s.popFront)
 
 instance : Coe ByteArray ByteSlice where
@@ -167,7 +172,7 @@ where
 instance : ForIn m ByteSubarray UInt8 where
   forIn := ByteSubarray.forIn
 
-instance : Stream ByteSubarray UInt8 where
+instance : Std.Stream ByteSubarray UInt8 where
   next? s := s[0]? >>= fun x => (x, s.popFront)
 
 end Batteries.ByteSubarray
