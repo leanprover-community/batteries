@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 
+module
+
 /-! # Bitwise Lemmas
 
 This module defines properties of the bitwise operations on natural numbers.
