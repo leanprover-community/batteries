@@ -154,39 +154,22 @@ def encodeOption : Option (Fin n) → Fin (n+1)
 
 /-- Encode `Fin n ⊕ Fin m` into `Fin (n + m)`. -/
 def encodeSum : Sum (Fin n) (Fin m) → Fin (n + m)
-  | .inl x => x.castLE (Nat.le_add_right _ _)
-  | .inr x => x.natAdd n
+  | .inl x => x.castAdd _
+  | .inr x => x.natAdd _
 
 /-- Decode `Fin n ⊕ Fin m` from `Fin (n + m)`. -/
 @[pp_nodot] def decodeSum (x : Fin (n + m)) : Sum (Fin n) (Fin m) :=
-  if h : x < n then
-    .inl ⟨x, h⟩
-  else
-    .inr ⟨x - n, by grind⟩
+  x.addCases .inl .inr
 
-@[simp] theorem encodeSum_decodeSum (x : Fin (n + m)) : encodeSum (decodeSum x) = x := by
+@[simp] theorem encodeSum_decodeSum (x : Fin (n + m)) :
+    encodeSum (decodeSum x) = x := by
   simp only [encodeSum, decodeSum]
-  split
-  · next hd =>
-    split at hd
-    · cases hd; rfl
-    · contradiction
-  · next hd =>
-    split at hd
-    · contradiction
-    · next he =>
-      cases x; cases hd
-      simp at he ⊢; grind
+  cases x using addCases <;> simp
 
-@[simp] theorem decodeSum_encodeSum (x : Sum (Fin n) (Fin m)) : decodeSum (encodeSum x) = x := by
+@[simp] theorem decodeSum_encodeSum (x : Sum (Fin n) (Fin m)) :
+    decodeSum (encodeSum x) = x := by
   simp only [encodeSum, decodeSum]
-  split
-  · split
-    · simp
-    · next h => simp only [coe_castLE] at h; grind
-  · split
-    · next h => simp only [coe_natAdd] at h; grind
-    · next x _ => cases x; simp only [natAdd_mk, Sum.inr.injEq, mk.injEq]; grind
+  cases x <;> simp
 
 /-- Encode `Fin m × Fin n` into `Fin (m * n)`. -/
 def encodeProd : Fin m × Fin n → Fin (m * n)
