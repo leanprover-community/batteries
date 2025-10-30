@@ -213,10 +213,10 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
 @[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j : Nat) = n * i + j := rfl
 
 @[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i := by
-  ext; simp [mkDivMod, Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
+  ext; simp [Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
 
 @[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j := by
-  ext; simp [mkDivMod, Nat.mod_eq_of_lt]
+  ext; simp [Nat.mod_eq_of_lt]
 
 @[simp] theorem divNat_mkDivMod_modNat (k : Fin (m * n)) :
-    mkDivMod k.divNat k.modNat = k := by ext; simp [mkDivMod, Nat.div_add_mod]
+    mkDivMod k.divNat k.modNat = k := by ext; simp [Nat.div_add_mod]
