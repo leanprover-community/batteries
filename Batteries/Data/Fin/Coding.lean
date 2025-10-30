@@ -3,11 +3,15 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Char
-import Batteries.Data.Fin.Lemmas
-import Batteries.Tactic.Basic
-import Batteries.Tactic.Trans
-import Batteries.Tactic.Lint
+module
+
+public import Batteries.Data.Char
+public import Batteries.Data.Fin.Lemmas
+public import Batteries.Tactic.Basic
+public import Batteries.Tactic.Trans
+public import Batteries.Tactic.Lint
+
+@[expose] public section
 
 /-! # Low-level coding recipes for `Fin` types
 
