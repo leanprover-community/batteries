@@ -3,8 +3,12 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: E.W.Ayers, Mario Carneiro
 -/
-import Batteries.Lean.Float
-import Lean.Data.Json.FromToJson.Basic
+module
+
+public import Batteries.Lean.Float
+public import Lean.Data.Json.FromToJson.Basic
+
+@[expose] public section
 
 open Lean
 
