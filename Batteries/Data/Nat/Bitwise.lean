@@ -42,10 +42,6 @@ theorem or_left_comm (x y z : Nat) : x ||| (y ||| z) = y ||| (x ||| z) := by
 theorem or_right_comm (x y z : Nat) : (x ||| y) ||| z = (x ||| z) ||| y := by
   apply Nat.eq_of_testBit_eq; simp [Bool.or_right_comm]
 
--- Forward port of lean4#10649
-theorem and_or_distrib_right (x y z : Nat) : ((x ||| y) &&& z) = x &&& z ||| y &&& z := by
-  apply Nat.eq_of_testBit_eq; simp [Bool.and_or_distrib_right]
-
 /-! ### xor -/
 
 theorem xor_left_comm (x y z : Nat) : x ^^^ (y ^^^ z) = y ^^^ (x ^^^ z) := by

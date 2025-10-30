@@ -3,37 +3,31 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.Fin.Basic
-import Batteries.Data.Nat.Lemmas
-import Batteries.Util.ProofWanted
-import Batteries.Tactic.Alias
+module
+
+public import Batteries.Data.Fin.Basic
+public import Batteries.Data.Nat.Lemmas
+public import Batteries.Util.ProofWanted
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace Fin
 
 attribute [norm_cast] val_last
-
--- Forward port from lean4#10627
-@[simp] theorem forall_fin_zero {P : Fin 0 → Prop} : (∀ i, P i) ↔ True := by
-  rw [iff_true]; intro ⟨_, _⟩; contradiction
-
--- Forward port from lean4#10627
-@[simp] theorem exists_fin_zero {P : Fin 0 → Prop} : (∃ i, P i) ↔ False := by simp
-
--- Forward port from lean4#10627
-attribute [simp] exists_fin_one forall_fin_one exists_fin_two forall_fin_two
 
 /-! ### foldl/foldr -/
 
 theorem foldl_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
     foldl n (fun x i => op x (f i)) (op a₁ a₂) = op a₁ (foldl n (fun x i => op x (f i)) a₂) := by
   induction n generalizing a₂ with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp only [foldl_succ, ha.assoc, ih]
 
 theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n → α} {a₁ a₂} :
     foldr n (fun i x => op (f i) x) (op a₁ a₂) = op (foldr n (fun i x => op (f i) x) a₁) a₂ := by
   induction n generalizing a₂ with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp only [foldr_succ, ha.assoc, ih]
 
 /-! ### clamp -/
@@ -42,14 +36,20 @@ theorem foldr_assoc {op : α → α → α} [ha : Std.Associative op] {f : Fin n
 
 /-! ### findSome? -/
 
-@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := rfl
+@[simp] theorem findSome?_zero {f : Fin 0 → Option α} : findSome? f = none := by simp [findSome?]
 
-@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := rfl
+@[simp] theorem findSome?_one {f : Fin 1 → Option α} : findSome? f = f 0 := by
+  simp [findSome?, foldl_succ]
 
 theorem findSome?_succ {f : Fin (n+1) → Option α} :
-    findSome? f = (f 0).or (findSome? fun i => f i.succ) := by
-  simp only [findSome?, foldl_succ, Option.orElse_eq_orElse, Option.orElse_eq_or]
-  exact Eq.trans (by cases (f 0) <;> rfl) foldl_assoc
+    findSome? f = (f 0 <|> findSome? fun i => f i.succ) := by
+  simp only [findSome?, foldl_succ]
+  cases f 0
+  · rw [Option.orElse_eq_orElse, Option.orElse_none, Option.orElse_none]
+  · simp only [Option.orElse_some, Option.orElse_eq_orElse, Option.orElse_none]
+    induction n with
+    | zero => simp
+    | succ n ih => rw [foldl_succ, Option.orElse_some, ih (f := fun i => f i.succ)]
 
 theorem findSome?_succ_of_some {f : Fin (n+1) → Option α} (h : f 0 = some x) :
     findSome? f = some x := by simp [findSome?_succ, h]
@@ -71,7 +71,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
     simp only [findSome?_zero, (Option.some_ne_none _).symm, false_iff]
     exact fun  ⟨i, _⟩ => i.elim0
   | succ n ih =>
-    simp only [findSome?_succ, Option.or_eq_some_iff, Fin.exists_fin_succ, Fin.forall_fin_succ,
+    simp [findSome?_succ, Option.or_eq_some_iff, Fin.exists_fin_succ, Fin.forall_fin_succ,
       not_lt_zero, false_implies, implies_true, and_true, succ_lt_succ_iff, succ_pos,
       forall_const, ih, and_left_comm (b := f 0 = none), exists_and_left]
 
@@ -82,7 +82,7 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
     simp only [findSome?_zero, true_iff]
     exact fun i => i.elim0
   | succ n ih =>
-    simp only [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
+    simp [findSome?_succ, Option.or_eq_none_iff, ih, forall_fin_succ]
 
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
@@ -122,7 +122,7 @@ theorem isSome_findSome?_of_isSome {f : Fin n → Option α} (h : (f i).isSome) 
 theorem map_findSome? (f : Fin n → Option α) (g : α → β) :
     (findSome? f).map g = findSome? (Option.map g <| f ·) := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp [findSome?_succ, Option.map_or, ih]
 
 theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find? p := rfl
@@ -130,20 +130,21 @@ theorem findSome?_guard {p : Fin n → Bool} : findSome? (Option.guard p) = find
 theorem findSome?_eq_findSome?_finRange (f : Fin n → Option α) :
     findSome? f = (List.finRange n).findSome? f := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih =>
     rw [findSome?_succ, List.finRange_succ, List.findSome?_cons]
     cases f 0 <;> simp [ih, List.findSome?_map, Function.comp_def]
 
 /-! ### Fin.find? -/
 
-@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := rfl
+@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp [find?]
 
-@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := rfl
+@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
+  simp [find?, Option.guard]
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? fun i => p i.succ).map Fin.succ := by
-  simp only [find?, findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
+  simp [find?, findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
     Option.some_or, Option.none_or, map_findSome?, Option.map_if]
 
 @[simp, grind =]
@@ -212,10 +213,10 @@ theorem exists_iff_exists_minimal (p : Fin n → Prop) [DecidablePred p] :
 @[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j : Nat) = n * i + j := rfl
 
 @[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i := by
-  ext; simp [mkDivMod, Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
+  ext; simp [Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
 
 @[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j := by
-  ext; simp [mkDivMod, Nat.mod_eq_of_lt]
+  ext; simp [Nat.mod_eq_of_lt]
 
 @[simp] theorem divNat_mkDivMod_modNat (k : Fin (m * n)) :
-    mkDivMod k.divNat k.modNat = k := by ext; simp [mkDivMod, Nat.div_add_mod]
+    mkDivMod k.divNat k.modNat = k := by ext; simp [Nat.div_add_mod]
