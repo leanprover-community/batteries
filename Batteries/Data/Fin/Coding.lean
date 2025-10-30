@@ -97,7 +97,7 @@ def encodeChar (c : Char) : Fin Char.count :=
   if _ : c.toNat < Char.minSurrogate then
     ⟨c.toNat, by grind⟩
   else
-    ⟨c.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate), by grind⟩
+    ⟨c.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate), by cases c; grind [Char.toNat]⟩
 
 /-- Decode `Char` from `Fin Char.count`. -/
 @[pp_nodot] def decodeChar (i : Fin Char.count) : Char :=
@@ -117,7 +117,8 @@ def encodeChar (c : Char) : Fin Char.count :=
   ext; simp only [decodeChar, encodeChar]
   split
   · simp only [Char.ofNatAux, Char.toNat]; rfl
-  · have : ¬ x.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate) < Char.minSurrogate := by grind
+  · have : ¬ x.toNat - (Char.maxSurrogate + 1 - Char.minSurrogate) < Char.minSurrogate := by
+      cases x; grind [Char.toNat]
     have : Char.maxSurrogate + 1 - Char.minSurrogate ≤ x.toNat := by grind
     simp [Char.ofNatAux, *]; rfl
 
