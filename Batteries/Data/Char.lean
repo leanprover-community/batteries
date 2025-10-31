@@ -1,2 +1,4 @@
-import Batteries.Data.Char.AsciiCasing
-import Batteries.Data.Char.Basic
+module
+
+public import Batteries.Data.Char.AsciiCasing
+public import Batteries.Data.Char.Basic

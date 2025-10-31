@@ -3,8 +3,12 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jannis Limperg, Mario Carneiro
 -/
-import Batteries.Classes.Order
-import Batteries.Control.ForInStep.Basic
+module
+
+public import Batteries.Classes.Order
+public import Batteries.Control.ForInStep.Basic
+
+@[expose] public section
 
 namespace Batteries
 namespace BinomialHeap
@@ -51,13 +55,13 @@ def HeapNode.rank : HeapNode α → Nat
   | .node _ _ s => s.rank + 1
 
 /-- Tail-recursive version of `HeapNode.rank`. -/
-@[inline] private def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
+@[inline] def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
   /-- Computes `s.rank + r` -/
   go : HeapNode α → Nat → Nat
   | .nil, r => r
   | .node _ _ s, r => go s (r + 1)
 
-@[csimp] private theorem HeapNode.rankTR_eq : @rankTR = @rank := by
+@[csimp] theorem HeapNode.rankTR_eq : @rankTR = @rank := by
   funext α s; exact go s 0
 where
   go {α} : ∀ s n, @rankTR.go α s n = rank s + n
