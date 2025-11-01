@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Constructions.CasesOn","Lean.Meta.Constructions.NoConfusion","Lean.Meta.Constructions.RecOn","Lean.Meta.Constructions.BRecOn","Lean.Meta.Constructions.CasesOnSameCtor"],"instances":[],"name":"Lean.Meta.Constructions"}

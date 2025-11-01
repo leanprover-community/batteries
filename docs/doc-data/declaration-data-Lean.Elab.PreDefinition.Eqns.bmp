@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.PreDefinition.EqnsUtils","Lean.Meta.Match.MatchEqs","Lean.Meta.Tactic.Simp.Main","Lean.Meta.Tactic.Split"],"instances":[],"name":"Lean.Elab.PreDefinition.Eqns"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Linter.Util","Lean.Linter.Builtin","Lean.Linter.ConstructorAsVariable","Lean.Linter.Deprecated","Lean.Linter.DocsOnAlt","Lean.Linter.UnusedVariables","Lean.Linter.MissingDocs","Lean.Linter.Omit","Lean.Linter.List","Lean.Linter.Sets","Lean.Linter.UnusedSimpArgs"],"instances":[],"name":"Lean.Linter"}

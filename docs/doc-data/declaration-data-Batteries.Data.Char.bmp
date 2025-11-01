@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Batteries.Data.Char.AsciiCasing","Batteries.Data.Char.Basic"],"instances":[],"name":"Batteries.Data.Char"}

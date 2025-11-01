@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Do.ProofMode.MGoal","Lean.PrettyPrinter.Delaborator.Basic","Std.Do.SPred.Notation.Basic"],"instances":[],"name":"Lean.Elab.Tactic.Do.ProofMode.Delab"}
