@@ -3,8 +3,12 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Syntax
-import Lean.Data.Lsp.Utf16
+module
+
+public import Lean.Syntax
+public import Lean.Data.Lsp.Utf16
+
+@[expose] public section
 
 /-- Gets the LSP range of syntax `stx`. -/
 @[deprecated Lean.FileMap.lspRangeOfStx? (since := "2025-09-23")]
