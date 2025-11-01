@@ -17,24 +17,24 @@ public section
 namespace String
 
 private noncomputable def utf8ByteSize' : String → Nat
-  | s => go s.data
+  | s => go s.toList
 where
   go : List Char → Nat
   | []    => 0
   | c::cs => go cs + c.utf8Size
 
 private theorem utf8ByteSize'_eq (s : String) : s.utf8ByteSize' = s.utf8ByteSize := by
-  suffices ∀ l, utf8ByteSize'.go l = l.asString.utf8ByteSize by
-    obtain ⟨m, rfl⟩ := s.exists_eq_asString
-    rw [utf8ByteSize', this, asString_data]
+  suffices ∀ l, utf8ByteSize'.go l = (ofList l).utf8ByteSize by
+    obtain ⟨m, rfl⟩ := s.exists_eq_ofList
+    rw [utf8ByteSize', this, ofList_toList]
   intro l
   induction l with
   | nil => simp [utf8ByteSize'.go]
   | cons c cs ih =>
-    rw [utf8ByteSize'.go, ih, ← List.singleton_append, List.asString_append,
+    rw [utf8ByteSize'.go, ih, ← List.singleton_append, String.ofList_append,
       utf8ByteSize_append, Nat.add_comm]
     congr
-    rw [← size_bytes, List.bytes_asString, List.utf8Encode_singleton,
+    rw [← size_bytes, String.bytes_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
 
 private theorem set_next_add (s : String) (i : Pos.Raw) (c : Char) (b₁ b₂)
@@ -57,7 +57,7 @@ private theorem set_next_add (s : String) (i : Pos.Raw) (c : Char) (b₁ b₂)
     next =>
       rw [Nat.add_assoc] at h ⊢
       refine foo cs (a + c') b₁ (c'.utf8Size + b₂) h
-  exact foo s.data 0 _ _ h
+  exact foo s.toList 0 _ _ h
 
 private theorem mapAux_lemma (s : String) (i : Pos.Raw) (c : Char) (h : ¬i.atEnd s) :
     (i.set s c).rawEndPos.1 - (i.next (i.set s c)).1 < s.rawEndPos.1 - i.1 := by
