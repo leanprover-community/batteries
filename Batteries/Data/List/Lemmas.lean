@@ -660,3 +660,65 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
+
+/-! ### sum/prod -/
+
+theorem prod_eq_foldr [Mul α] [One α] {l : List α} :
+    l.prod = l.foldr (· * ·) 1 := rfl
+
+@[simp, grind =]
+theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
+
+@[simp, grind =]
+theorem prod_cons [Mul α] [One α] {a : α} {l : List α} : (a :: l).prod = a * l.prod := rfl
+
+theorem prod_one_cons [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1] {l : List α} :
+    (1 :: l).prod = l.prod := by simp [Std.LawfulLeftIdentity.left_id]
+
+theorem prod_singleton [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a : α} :
+  [a].prod = a := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem prod_pair [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a b : α} :
+  [a, b].prod = a * b := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem prod_append [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).prod = l₁.prod * l₂.prod := by
+  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem prod_concat [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l : List α} {a : α} :
+    (l.concat a).prod = l.prod * a := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem prod_flatten [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l : List (List α)} :
+    l.flatten.prod = (l.map prod).prod := by
+  induction l with simp [*]
+
+theorem sum_eq_foldr [Add α] [Zero α] {l : List α} :
+    l.sum = l.foldr (· + ·) 0 := rfl
+
+theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
+    (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
+
+theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a : α} :
+  [a].sum = a := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
+  [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem sum_append [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
+  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
+    (l.concat a).sum = l.sum + a := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
+    l.flatten.sum = (l.map sum).sum := by
+  induction l with simp [*]
