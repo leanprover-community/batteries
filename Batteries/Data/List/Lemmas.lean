@@ -338,15 +338,14 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 
 attribute [simp, grind ←] Pairwise.nil
 
-protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
+@[grind →] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
   induction p with
   | nil => grind
   | cons _ l => cases l with grind
 
-theorem pairwise_cons_cons :
+@[grind =] theorem pairwise_cons_cons :
     Pairwise R (a :: b :: l) ↔ R a b ∧ Pairwise R (a :: l) ∧ Pairwise R (b :: l) := by
-  simp only [pairwise_cons, mem_cons, forall_eq_or_imp]
-  exact ⟨fun h => ⟨h.1.1, ⟨h.1.2, h.2.2⟩, h.2⟩, fun h => ⟨⟨h.1, h.2.1.1⟩, h.2.2⟩⟩
+  grind [pairwise_cons]
 
 /-! ### IsChain -/
 
@@ -391,7 +390,7 @@ theorem Chain.imp' (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
 
-protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
+@[grind →] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     Pairwise R l := by
   induction c with
   | nil | singleton => grind
@@ -399,8 +398,7 @@ protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     simp only [pairwise_cons, mem_cons, forall_eq_or_imp] at p ⊢
     exact ⟨⟨hr, fun _ ha => Trans.trans hr <| p.1 _ ha⟩, p⟩
 
-theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l :=
-  ⟨IsChain.pairwise, Pairwise.isChain⟩
+theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by grind
 
 theorem isChain_iff_getElem {l : List α} :
     IsChain R l ↔ ∀ (i : Nat) (_hi : i + 1 < l.length), R l[i] l[i + 1] := by
@@ -449,7 +447,7 @@ theorem findIdxs_cons :
     (x :: xs : List α).findIdxs p =
       bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
   dsimp [findIdxs]
-  rw [cond_eq_if]
+  rw [cond_eq_ite]
   split <;>
   · simp only [foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
     apply findIdxs_cons_aux
