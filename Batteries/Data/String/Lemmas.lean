@@ -880,8 +880,12 @@ theorem Legacy.length_map (s : String) (f : Char → Char) : (Legacy.map f s).le
   simp only [← length_toList, map_eq, String.toList_ofList, List.length_map]
 
 theorem Legacy.length_eq_of_map_eq {a b : String} {f g : Char → Char} :
-  Legacy.map f a = Legacy.map g b → a.length = b.length := by
+    Legacy.map f a = Legacy.map g b → a.length = b.length := by
   intro h; rw [← length_map a f, ← length_map b g, h]
+
+theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+    map f a = map g b → a.length = b.length := by
+  intro h; rw [← @length_map f a, ← @length_map g b, h]
 
 end String
 
