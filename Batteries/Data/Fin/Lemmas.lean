@@ -18,7 +18,7 @@ attribute [norm_cast] val_last
 
 /-! ### rev -/
 
-attribute [grind] rev_lt_rev rev_le_rev rev_rev
+attribute [grind =] rev_lt_rev rev_le_rev rev_rev
 
 /-! ### foldl/foldr -/
 
@@ -214,9 +214,9 @@ theorem bind_findSomeRev?_guard_isSome {f : Fin n → Option α} :
 
 /-! ### find? -/
 
-@[simp] theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp
+theorem find?_zero {p : Fin 0 → Bool} : find? p = none := by simp
 
-@[simp] theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
+theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none := by
   simp [Option.guard]
 
 theorem find?_succ {p : Fin (n+1) → Bool} :
@@ -224,7 +224,7 @@ theorem find?_succ {p : Fin (n+1) → Bool} :
   simp only [findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
     Option.some_or, Option.none_or, map_findSome?, Option.map_if]
 
-@[simp, grind =]
+@[grind =]
 theorem find?_eq_some_iff {p : Fin n → Bool} :
     find? p = some i ↔ p i ∧ ∀ j, j < i → p j = false := by simp [and_assoc]
 
@@ -234,7 +234,7 @@ theorem isSome_find?_iff {p : Fin n → Bool} :
 @[deprecated (since := "2025-09-28")]
 alias find?_isSome_iff := isSome_find?_iff
 
-@[simp, grind =]
+@[grind =]
 theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, p i = false := by simp
 
 theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, p i = false := by simp
@@ -287,7 +287,7 @@ theorem map_rev_findRev? {p : Fin n → Bool} : (findRev? (p ·.rev)).map rev = 
 
 /-! ### findRev? -/
 
-@[simp] theorem findRev?_zero {p : Fin 0 → Bool} : findRev? p = none := by grind
+theorem findRev?_zero {p : Fin 0 → Bool} : findRev? p = none := by grind
 
 theorem findRev?_succ {p : Fin (n+1) → Bool} :
     findRev? p = if p (last n) then some (last n)
@@ -295,14 +295,14 @@ theorem findRev?_succ {p : Fin (n+1) → Bool} :
   simp only [findSomeRev?_succ, Option.guard, fun a => apply_ite (Option.or · a),
     Option.some_or, Option.none_or, map_findSomeRev?, Option.map_if]
 
-@[simp] theorem findRev?_one {p : Fin 1 → Bool} : findRev? p = if p 0 then some 0 else none := by
+theorem findRev?_one {p : Fin 1 → Bool} : findRev? p = if p 0 then some 0 else none := by
   grind [findRev?_succ]
 
-@[simp, grind =]
+@[grind =]
 theorem findRev?_eq_some_iff {p : Fin n → Bool} :
     findRev? p = some i ↔ p i ∧ ∀ j, i < j → p j = false := by simp [and_assoc]
 
-@[simp, grind =]
+@[grind =]
 theorem findRev?_eq_none_iff {p : Fin n → Bool} : findRev? p = none ↔ ∀ i, p i = false := by simp
 
 theorem isSome_findRev?_iff {p : Fin n → Bool} :
