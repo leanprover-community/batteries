@@ -18,6 +18,7 @@ attribute [norm_cast] val_last
 
 /-! ### rev -/
 
+-- Forward port of lean4#11065
 attribute [grind =] rev_lt_rev rev_le_rev rev_rev
 
 /-! ### foldl/foldr -/
