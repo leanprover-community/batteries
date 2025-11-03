@@ -876,12 +876,16 @@ theorem map_isEmpty_eq_isEmpty (s : String) (f : Char → Char) :
   rw [Bool.eq_iff_iff]; simp [isEmpty_iff, map_eq_empty_iff]
 
 @[simp]
-theorem length_map (s : String) (f : Char → Char) : (Legacy.map f s).length = s.length := by
+theorem Legacy.length_map (s : String) (f : Char → Char) : (Legacy.map f s).length = s.length := by
   simp only [← length_toList, map_eq, String.toList_ofList, List.length_map]
 
-theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
-  Legacy.map f a = Legacy.map g b → a.length = b.length := by
+theorem Legacy.length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+    Legacy.map f a = Legacy.map g b → a.length = b.length := by
   intro h; rw [← length_map a f, ← length_map b g, h]
+
+theorem length_eq_of_map_eq {a b : String} {f g : Char → Char} :
+    map f a = map g b → a.length = b.length := by
+  intro h; rw [← @length_map f a, ← @length_map g b, h]
 
 end String
 
