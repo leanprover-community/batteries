@@ -6,6 +6,8 @@ Authors: François G. Dorais
 
 module
 
+@[expose] public section
+
 /-! # Bitwise Lemmas
 
 This module defines properties of the bitwise operations on natural numbers.
