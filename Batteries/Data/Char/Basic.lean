@@ -6,13 +6,9 @@ Authors: Jannis Limperg, François G. Dorais
 module
 
 public import Batteries.Classes.Order
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
-
--- Forward port of lean4#9515
-@[grind ←]
-theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
-  simp [finRange]
 
 namespace Char
 
