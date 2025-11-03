@@ -3,6 +3,9 @@ Copyright (c) 2023 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace ByteArray
 
@@ -35,9 +38,6 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.getElem_push_lt ..
 
 /-! ### set -/
-
-@[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v i.isLt := rfl
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=

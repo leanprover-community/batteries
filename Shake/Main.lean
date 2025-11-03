@@ -610,7 +610,7 @@ def main (args : List String) : IO UInt32 := do
     let (path, inputCtx, imports, insertion) ←
       try parseHeader srcSearchPath mod
       catch e => println! e.toString; return count
-    let text := inputCtx.inputString.extract 0 inputCtx.endPos
+    let text := String.Pos.Raw.extract inputCtx.inputString 0 inputCtx.endPos
 
     -- Calculate the edit result
     let mut pos : String.Pos.Raw := 0
@@ -619,16 +619,16 @@ def main (args : List String) : IO UInt32 := do
     for stx in imports do
       let mod := importId stx
       if remove.contains mod || seen.contains mod then
-        out := out ++ text.extract pos stx.raw.getPos?.get!
+        out := out ++ String.Pos.Raw.extract text pos stx.raw.getPos?.get!
         -- We use the end position of the syntax, but include whitespace up to the first newline
         pos := text.findAux (· == '\n') text.endPos stx.raw.getTailPos?.get! |>.increaseBy 1
       seen := seen.insert mod
-    out := out ++ text.extract pos insertion
+    out := out ++ String.Pos.Raw.extract text pos insertion
     for mod in add do
       if !seen.contains mod then
         seen := seen.insert mod
         out := out ++ s!"import {mod}\n"
-    out := out ++ text.extract insertion text.endPos
+    out := out ++ String.Pos.Raw.extract text insertion text.endPos
 
     IO.FS.writeFile path out
     return count + 1

@@ -3,7 +3,11 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, François G. Dorais
 -/
-import Batteries.Classes.Order
+module
+
+public import Batteries.Classes.Order
+
+@[expose] public section
 
 -- Forward port of lean4#9515
 @[grind ←]
@@ -78,7 +82,8 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by grind⟩
+    -- https://github.com/leanprover/lean4/issues/11059
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
@@ -123,7 +128,9 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
     grind
   | .inr ⟨hn, hn'⟩ =>
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by grind⟩ (List.mem_finRange _)
+    -- https://github.com/leanprover/lean4/issues/11059
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+      (List.mem_finRange _)
     grind
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
