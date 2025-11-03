@@ -208,6 +208,9 @@ theorem testBit_ofBits (f : Fin n → Bool) :
   | inl h => simp [h]
   | inr h => simp [h, Nat.not_lt_of_ge h]
 
+theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
+  apply eq_of_testBit_eq; simp [testBit_ofBits]
+
 /-! ### Misc -/
 
 theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
