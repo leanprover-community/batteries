@@ -16,7 +16,8 @@ structure BinaryHeap (α) (lt : α → α → Bool) where
 
 namespace BinaryHeap
 
-private def maxChild (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
+/---/
+def maxChild (lt : α → α → Bool) (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
   let left := 2 * i.1 + 1
   let right := left + 1
   if hleft : left < sz then
