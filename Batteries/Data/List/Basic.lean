@@ -6,8 +6,6 @@ Authors: Leonardo de Moura
 
 module
 
-import Batteries.Data.Array.Init.Lemmas
-
 @[expose] public section
 
 namespace List
@@ -339,9 +337,9 @@ def sublistsFast (l : List α) : List (List α) :=
   (l.foldr f #[[]]).toList
 
 @[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
-    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ _ => by
-  simp only [Array.push_push_eq_append, Array.mkEmpty_eq,
-    ← Array.toList_flatMap, Array.flatMap_eq_foldl]
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
