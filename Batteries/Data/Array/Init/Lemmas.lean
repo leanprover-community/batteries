@@ -12,4 +12,3 @@ module
 While this file is currently empty, it is intended as a home for any lemmas which are required for
 definitions in `Batteries.Data.Array.Basic`, but which are not provided by Lean.
 -/
-
