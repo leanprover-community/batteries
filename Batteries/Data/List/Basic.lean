@@ -5,6 +5,7 @@ Authors: Leonardo de Moura
 -/
 
 module
+import Batteries.Tactic.Alias
 
 @[expose] public section
 
@@ -220,38 +221,45 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
 -/
-@[simp, specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : _ := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (s : _ := 0) → α
   | [], _ => init
-  | b :: l, i => foldlIdx f (f i init b) l (i+1)
+  | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
 /--
 Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index.
 -/
 -- TODO(Mario): tail recursive / array-based implementation
-@[simp, specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
-    (l : List α) → (start : _ := 0) → β
+@[specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
+    (l : List α) → (s : _ := 0) → β
   | [], _ => init
-  | a :: l, i => f i a (foldrIdx f init l (i+1))
+  | a :: l, s => f s a (foldrIdx f init l (s + 1))
 
 /-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) : List Nat :=
-  foldrIdx (fun i a is => if p a then i :: is else is) [] l
+@[inline] def findIdxs (p : α → Bool) (l : List α) (s : _ := 0) : List Nat :=
+  foldrIdx (fun i a is => bif p a then i :: is else is) [] l s
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
-  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) (s : _ := 0) : List (Nat × α) :=
+  foldrIdx (fun i a l => bif p a then (i, a) :: l else l) [] l s
+
+@[deprecated (since := "2025-11-06")]
+alias indexesValues := findIdxsValues
 
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) (l : List α) (s : _ := 0) : List Nat :=
+  findIdxs (· == a) l s
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.

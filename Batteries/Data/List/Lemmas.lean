@@ -92,17 +92,15 @@ theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
 
 /-! ### findIdx? -/
 
-theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
-    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by grind
+@[deprecated (since := "2025-11-06")]
+alias findIdx_eq_findIdx? := findIdx_eq_getD_findIdx?
 
 /-! ### replaceF -/
 
 theorem replaceF_nil : [].replaceF p = [] := rfl
 
 theorem replaceF_cons (a : α) (l : List α) :
-    (a :: l).replaceF p = match p a with
-      | none => a :: replaceF p l
-      | some a' => a' :: l := rfl
+    (a :: l).replaceF p = (p a).elim (a :: replaceF p l) (· :: l) := by grind [replaceF]
 
 theorem replaceF_cons_of_some {l : List α} (p) (h : p a = some a') :
     (a :: l).replaceF p = a' :: l := by
@@ -429,47 +427,106 @@ theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
 theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
-/-! ### indexOf and indexesOf -/
+/-! ### foldrIdx -/
 
-theorem foldrIdx_start :
-    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
-  induction xs generalizing f i s with grind [foldrIdx]
+@[grind =] theorem foldrIdx_nil : ([] : List α).foldrIdx f i s = i := rfl
 
-@[simp] theorem foldrIdx_cons :
+@[grind =] theorem foldrIdx_cons :
     (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
 
-theorem findIdxs_cons_aux (p : α → Bool) :
-    foldrIdx (fun i a is => if p a = true then (i + 1) :: is else is) [] xs s =
-      map (· + 1) (foldrIdx (fun i a is => if p a = true then i :: is else is) [] xs s) := by
-  induction xs generalizing s with grind [foldrIdx]
+@[grind =] theorem foldrIdx_start :
+    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
+  induction xs generalizing f s with grind
 
-theorem findIdxs_cons :
-    (x :: xs : List α).findIdxs p =
-      bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
-  dsimp [findIdxs]
-  rw [cond_eq_if]
-  split <;>
-  · simp only [foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
-    apply findIdxs_cons_aux
+/-! ### foldlIdx -/
 
-@[simp, grind =] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+@[grind =] theorem foldlIdx_nil : ([] : List α).foldlIdx f i s = i := rfl
 
-@[grind =]
-theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
-    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
-  simp [indexesOf, findIdxs_cons]
+@[grind =] theorem foldlIdx_cons :
+    (x :: xs : List α).foldlIdx f i s = foldlIdx f (f s i x) xs (s + 1) := rfl
+
+theorem foldlIdx_start :
+    (xs : List α).foldlIdx f i s = (xs : List α).foldlIdx (fun i => f (i + s)) i := by
+  induction xs generalizing f i s with grind
+
+/-! ### findIdxs -/
+
+@[grind =] theorem findIdxs_nil : ([] : List α).findIdxs p s = [] := rfl
+
+@[grind =] theorem findIdxs_cons :
+    (x :: xs : List α).findIdxs p s =
+      bif p x then s :: xs.findIdxs p (s + 1) else xs.findIdxs p (s + 1) := rfl
+
+theorem findIdxs_start :
+    (xs : List α).findIdxs p s = (xs.findIdxs p).map (· + s) := by
+  induction xs generalizing s <;> grind [map_inj_left]
+
+theorem ge_of_mem_findIdxs : ∀ y ∈ (xs : List α).findIdxs p s, s ≤ y := by
+  induction xs generalizing s <;> grind
+
+theorem lt_add_of_mem_findIdxs : ∀ y ∈ (xs : List α).findIdxs p s, y < xs.length + s := by
+  induction xs generalizing s with grind
+
+theorem lt_of_mem_findIdxs : ∀ y ∈ (xs : List α).findIdxs p, y < xs.length :=
+  lt_add_of_mem_findIdxs
+
+@[simp, grind =] theorem length_findIdxs : ((xs : List α).findIdxs p s).length = xs.countP p := by
+  induction xs generalizing s <;> grind
+
+@[simp, grind =]
+theorem findIdxs_append :
+    ((xs : List α) ++ ys).findIdxs p s = xs.findIdxs p s ++ ys.findIdxs p (s + xs.length) := by
+  induction xs generalizing s <;> grind
+
+@[simp, grind =]
+theorem findIdxs_take :
+    ((xs : List α).take n).findIdxs p s = (xs.findIdxs p s).take ((xs.take n).countP p) := by
+  induction xs generalizing n s <;> cases n <;> grind
+
+@[simp, grind =]
+theorem getElem_zero_findIdxs_eq_findIdx_add (hs : 0 < ((xs : List α).findIdxs p s).length) :
+    (xs.findIdxs p s)[0] = xs.findIdx p + s := by induction xs generalizing s <;> grind
+
+theorem getElem_zero_findIdxs_eq_findIdx (hs : 0 < ((xs : List α).findIdxs p).length) :
+    (xs.findIdxs p)[0] = xs.findIdx p := getElem_zero_findIdxs_eq_findIdx_add hs
+
+@[simp, grind =>]
+theorem findIdx_add_mem_findIdxs {xs : List α}
+    (h : xs.findIdx p < xs.length) : xs.findIdx p + s ∈ xs.findIdxs p s := by
+  grind [mem_iff_getElem]
+
+theorem findIdx_mem_findIdxs {xs : List α} (h : xs.findIdx p < xs.length) :
+    xs.findIdx p ∈ xs.findIdxs p := findIdx_add_mem_findIdxs h
+
+/-! ### idxOf -/
 
 @[simp] theorem eraseIdx_idxOf_eq_erase [BEq α] (a : α) (l : List α) :
     l.eraseIdx (l.idxOf a) = l.erase a := by
   induction l with grind
 
-theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
-    xs.idxOf x ∈ xs.indexesOf x := by
-  induction xs with grind
+@[grind =] theorem idxOf_eq_getD_idxOf? [BEq α] (a : α) (l : List α) :
+    l.idxOf a = (l.idxOf? a).getD l.length := by
+  simp [idxOf, idxOf?, findIdx_eq_getD_findIdx?]
 
-theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
-    l.idxOf a = (match l.idxOf? a with | some i => i | none => l.length) := by
-  simp [idxOf, idxOf?, findIdx_eq_findIdx?]
+@[deprecated (since := "2025-11-06")]
+alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
+
+/-! ### idxsOf -/
+
+@[grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x s = [] := rfl
+
+@[grind =] theorem idxsOf_cons [BEq α] : (x :: xs : List α).idxsOf y s =
+    bif x == y then s :: xs.idxsOf y (s + 1) else xs.idxsOf y (s + 1) := rfl
+
+theorem idxsOf_start [BEq α] :
+    (xs : List α).idxsOf y s = (xs.idxsOf y).map (· + s) := findIdxs_start
+
+theorem idxOf_add_mem_idxsOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.idxOf x + s ∈ xs.idxsOf x s := by
+  induction xs generalizing s <;> grind
+
+theorem idxOf_mem_idxsOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.idxOf x ∈ xs.idxsOf x := idxOf_add_mem_idxsOf m
 
 /-! ### insertP -/
 
