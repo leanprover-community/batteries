@@ -69,7 +69,7 @@ abbrev MGen := ReaderT Config <| StateRefT GState MetaM
 
 /-- Inserts a prop/fvar pair into the `propToFVar` map. -/
 def MGen.insertFVar (prop fvar : Expr) : MGen Unit :=
-  modify fun s ↦ { s with propToFVar := s.propToFVar.insert prop fvar }
+  modify fun s => { s with propToFVar := s.propToFVar.insert prop fvar }
 
 /-- Context for the `MAbs` monad. -/
 structure AContext where
@@ -131,7 +131,7 @@ def MAbs.insertProof (prop pf : Expr) : MAbs Unit := do
     unless ← Lean.MetavarContext.isWellFormed (← read).initLCtx prop do
       throwError "insertProof: proof{indentD prop}\nis not well-formed in the initial context\n\
         fvars: {(← read).fvars}"
-  modify fun s ↦
+  modify fun s =>
     { s with
       generalizations := s.generalizations.push (prop, pf)
       propToProof := s.propToProof.insert prop pf }
@@ -241,16 +241,16 @@ where
     if e.isAtomic then
       return e
     else
-      checkCache (e, ty?) fun _ ↦ do
+      checkCache (e, ty?) fun _ => do
         if ← isProof e then
           visitProof e ty?
         else
           match e with
           | .forallE n t b i =>
-            withLocalDecl n i (← visit t none) fun x ↦ MAbs.withLocal x do
+            withLocalDecl n i (← visit t none) fun x => MAbs.withLocal x do
               mkForallFVars #[x] (← visit (b.instantiate1 x) none)
           | .lam n t b i => do
-            withLocalDecl n i (← visit t none) fun x ↦ MAbs.withLocal x do
+            withLocalDecl n i (← visit t none) fun x => MAbs.withLocal x do
               let ty'? ←
                 if let some ty := ty? then
                   let .forallE _ _ tyB _ ← whnfD ty
@@ -261,10 +261,10 @@ where
               mkLambdaFVars #[x] (← visit (b.instantiate1 x) ty'?)
           | .letE n t v b nondep =>
             let t' ← visit t none
-            mapLetDecl n t' (← visit v t') (nondep := nondep) fun x ↦ MAbs.withLocal x do
+            mapLetDecl n t' (← visit v t') (nondep := nondep) fun x => MAbs.withLocal x do
               visit (b.instantiate1 x) ty?
           | .app .. =>
-            e.withApp fun f args ↦ do
+            e.withApp fun f args => do
               let f' ← visit f none
               let argTys ← appArgExpectedTypes f' args ty?
               let mut args' := #[]
