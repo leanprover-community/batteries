@@ -237,13 +237,99 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
   simp only [product, mem_map, Prod.mk.injEq,
     exists_eq_right_right, mem_flatMap, iff_self]
 
-/-! ### monadic operations -/
+/-! ### scanl -/
 
-theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
-    (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
-    forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
-  induction l generalizing init <;> simp [*]
-  congr; ext (b | b) <;> simp
+theorem length_scanl (f : α → β → α) (a : α) (l : List β) :
+    (scanl f a l).length = l.length + 1 := by
+  induction l generalizing a with
+  | nil => simp
+  | cons b l ih => simp [ih]
+
+theorem getElem_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat)
+    (h : i < (scanl f a l).length) :
+    (scanl f a l)[i] = foldl f a (l.take i) := by
+  induction l generalizing a i with
+  | nil => simp at h ⊢; done
+  | cons b l ih =>
+    cases i with
+    | zero => simp
+    | succ i =>
+      simp
+      apply ih
+
+theorem getElem?_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat) :
+    (scanl f a l)[i]? = if i ≤ l.length then some (foldl f a (l.take i)) else none := by
+  split
+  · rename_i h
+    have : i < (scanl f a l).length := by simp [length_scanl]; omega
+    simp [getElem?_eq_getElem this, getElem_scanl f a l i this]
+  · rename_i h
+    have : (scanl f a l).length ≤ i := by simp [length_scanl]; omega
+    simp [getElem?_eq_none this]
+
+theorem take_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat) :
+    (scanl f a l).take (i + 1) = scanl f a (l.take i) := by
+  induction l generalizing a i with
+  | nil => simp
+  | cons b l ih =>
+    cases i with
+    | zero => simp
+    | succ i => simp [ih]
+
+/-! ### partialSums -/
+
+theorem length_partialSums (l : List Nat) :
+    (partialSums l).length = l.length + 1 := by
+  simp [partialSums, length_scanl]
+
+-- Helper: foldl and foldr are equivalent for addition on Nat
+theorem foldl_add_eq_foldr_add (l : List Nat) (a : Nat) :
+    foldl (·+·) a l = a + foldr (·+·) 0 l := by
+  induction l generalizing a with
+  | nil => simp
+  | cons b l ih =>
+    simp [ih]
+    omega
+
+theorem getElem_partialSums (l : List Nat) (i : Nat) (h : i < (partialSums l).length) :
+    (partialSums l)[i] = (l.take i).sum := by
+  simp only [partialSums, getElem_scanl, List.sum]
+  rw [foldl_add_eq_foldr_add]
+  simp
+
+theorem getElem?_partialSums (l : List Nat) (i : Nat) :
+    (partialSums l)[i]? = if i ≤ l.length then some (l.take i).sum else none := by
+  simp [partialSums, getElem?_scanl, List.sum]
+  split <;> rename_i h
+  · rw [foldl_add_eq_foldr_add]; simp
+  · rfl
+
+theorem take_partialSums (l : List Nat) (i : Nat) :
+    l.partialSums.take (i + 1) = (l.take i).partialSums := by
+  simp [partialSums, take_scanl]
+
+/-! ### flatten -/
+
+/--
+The key theorem for `List.flatten`: taking the first `n` elements of a flattened list
+can be expressed as the flattening of the first `m` complete sublists, plus the first
+`k` elements of the `m`-th sublist.
+
+This provides a computational way to understand `take` on `flatten`, and is the basis
+for the more general `take_flatten` theorem that works for any `n` (not just `n < length`).
+
+TODO: Complete the proof. This requires:
+1. Using `Nat.find` to locate which sublist contains the `n`-th element
+2. Index arithmetic using the partial sums of lengths
+3. Careful case analysis on boundaries
+
+See Vlad's proof in the Zulip thread for a complete but unstructured proof.
+-/
+theorem take_flatten_of_lt {L : List (List α)} {n : Nat} (h : n < L.flatten.length) :
+    ∃ m k : Nat, ∃ mlt : m < L.length,
+    k < (L.get ⟨m, mlt⟩).length ∧ L.flatten.take n =
+    (L.take m).flatten ++ (L.get ⟨m, mlt⟩).take k := by
+  sorry
 
 /-! ### diff -/
 

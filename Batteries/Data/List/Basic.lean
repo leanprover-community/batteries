@@ -206,6 +206,13 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
   funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
 
 /--
+Compute cumulative sums for a list of natural numbers.
+
+Example: `partialSums [3, 2, 4] = [0, 3, 5, 9]`
+-/
+def partialSums (l : List Nat) : List Nat := scanl (·+·) 0 l
+
+/--
 Fold a function `f` over the list from the right, returning the list of partial results.
 ```
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
