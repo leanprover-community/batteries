@@ -554,7 +554,7 @@ theorem getElem_zero_findIdxs_eq_findIdx_add (h : 0 < ((xs : List α).findIdxs p
 theorem getElem_zero_findIdxs_eq_findIdx (h : 0 < ((xs : List α).findIdxs p).length) :
     (xs.findIdxs p)[0] = xs.findIdx p := getElem_zero_findIdxs_eq_findIdx_add h
 
-@[simp, grind =>]
+@[grind =>]
 theorem findIdx_add_mem_findIdxs (s : Nat)
     (h : (xs : List α).findIdx p < xs.length) : xs.findIdx p + s ∈ xs.findIdxs p s := by
   grind [mem_iff_getElem]
@@ -689,7 +689,7 @@ theorem getElem_zero_idxsOf_eq_idxOf_add (h : 0 < ((xs : List α).idxsOf x s).le
 theorem getElem_zero_idxsOf_eq_idxOf (h : 0 < ((xs : List α).idxsOf x).length) :
     (xs.idxsOf x)[0] = xs.idxOf x := getElem_zero_idxsOf_eq_idxOf_add h
 
-@[simp, grind =>]
+@[grind =>]
 theorem idxOf_add_mem_idxsOf (s : Nat)
     (h : (xs : List α).idxOf x < xs.length) : xs.idxOf x + s ∈ xs.idxsOf x s :=
   findIdx_add_mem_findIdxs s h
