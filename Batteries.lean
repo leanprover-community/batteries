@@ -1,114 +1,116 @@
-import Batteries.Classes.Cast
-import Batteries.Classes.Deprecated
-import Batteries.Classes.Order
-import Batteries.Classes.RatCast
-import Batteries.Classes.SatisfiesM
-import Batteries.CodeAction
-import Batteries.CodeAction.Attr
-import Batteries.CodeAction.Basic
-import Batteries.CodeAction.Deprecated
-import Batteries.CodeAction.Match
-import Batteries.CodeAction.Misc
-import Batteries.Control.AlternativeMonad
-import Batteries.Control.ForInStep
-import Batteries.Control.ForInStep.Basic
-import Batteries.Control.ForInStep.Lemmas
-import Batteries.Control.LawfulMonadState
-import Batteries.Control.Lemmas
-import Batteries.Control.Monad
-import Batteries.Control.Nondet.Basic
-import Batteries.Control.OptionT
-import Batteries.Data.Array
-import Batteries.Data.AssocList
-import Batteries.Data.BinaryHeap
-import Batteries.Data.BinomialHeap
-import Batteries.Data.BitVec
-import Batteries.Data.ByteArray
-import Batteries.Data.ByteSlice
-import Batteries.Data.Char
-import Batteries.Data.DList
-import Batteries.Data.Fin
-import Batteries.Data.FloatArray
-import Batteries.Data.HashMap
-import Batteries.Data.Int
-import Batteries.Data.List
-import Batteries.Data.MLList
-import Batteries.Data.NameSet
-import Batteries.Data.Nat
-import Batteries.Data.PairingHeap
-import Batteries.Data.RBMap
-import Batteries.Data.Random
-import Batteries.Data.Range
-import Batteries.Data.Rat
-import Batteries.Data.Stream
-import Batteries.Data.String
-import Batteries.Data.UInt
-import Batteries.Data.UnionFind
-import Batteries.Data.Vector
-import Batteries.Lean.AttributeExtra
-import Batteries.Lean.EStateM
-import Batteries.Lean.Except
-import Batteries.Lean.Expr
-import Batteries.Lean.Float
-import Batteries.Lean.HashMap
-import Batteries.Lean.HashSet
-import Batteries.Lean.IO.Process
-import Batteries.Lean.Json
-import Batteries.Lean.LawfulMonad
-import Batteries.Lean.LawfulMonadLift
-import Batteries.Lean.Meta.Basic
-import Batteries.Lean.Meta.DiscrTree
-import Batteries.Lean.Meta.Expr
-import Batteries.Lean.Meta.Inaccessible
-import Batteries.Lean.Meta.InstantiateMVars
-import Batteries.Lean.Meta.SavedState
-import Batteries.Lean.Meta.Simp
-import Batteries.Lean.Meta.UnusedNames
-import Batteries.Lean.MonadBacktrack
-import Batteries.Lean.NameMapAttribute
-import Batteries.Lean.PersistentHashMap
-import Batteries.Lean.PersistentHashSet
-import Batteries.Lean.Position
-import Batteries.Lean.SatisfiesM
-import Batteries.Lean.Syntax
-import Batteries.Lean.System.IO
-import Batteries.Lean.TagAttribute
-import Batteries.Lean.Util.EnvSearch
-import Batteries.Linter
-import Batteries.Linter.UnnecessarySeqFocus
-import Batteries.Linter.UnreachableTactic
-import Batteries.Logic
-import Batteries.Tactic.Alias
-import Batteries.Tactic.Basic
-import Batteries.Tactic.Case
-import Batteries.Tactic.Congr
-import Batteries.Tactic.Exact
-import Batteries.Tactic.GeneralizeProofs
-import Batteries.Tactic.HelpCmd
-import Batteries.Tactic.Init
-import Batteries.Tactic.Instances
-import Batteries.Tactic.Lemma
-import Batteries.Tactic.Lint
-import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.Lint.Frontend
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.Lint.Simp
-import Batteries.Tactic.Lint.TypeClass
-import Batteries.Tactic.NoMatch
-import Batteries.Tactic.OpenPrivate
-import Batteries.Tactic.PermuteGoals
-import Batteries.Tactic.PrintDependents
-import Batteries.Tactic.PrintOpaques
-import Batteries.Tactic.PrintPrefix
-import Batteries.Tactic.SeqFocus
-import Batteries.Tactic.ShowUnused
-import Batteries.Tactic.SqueezeScope
-import Batteries.Tactic.Trans
-import Batteries.Tactic.Unreachable
-import Batteries.Util.Cache
-import Batteries.Util.ExtendedBinder
-import Batteries.Util.LibraryNote
-import Batteries.Util.Panic
-import Batteries.Util.Pickle
-import Batteries.Util.ProofWanted
-import Batteries.WF
+module
+
+public import Batteries.Classes.Cast
+public import Batteries.Classes.Deprecated
+public import Batteries.Classes.Order
+public import Batteries.Classes.RatCast
+public import Batteries.Classes.SatisfiesM
+public import Batteries.CodeAction
+public import Batteries.CodeAction.Attr
+public import Batteries.CodeAction.Basic
+public import Batteries.CodeAction.Deprecated
+public import Batteries.CodeAction.Match
+public import Batteries.CodeAction.Misc
+public import Batteries.Control.AlternativeMonad
+public import Batteries.Control.ForInStep
+public import Batteries.Control.ForInStep.Basic
+public import Batteries.Control.ForInStep.Lemmas
+public import Batteries.Control.LawfulMonadState
+public import Batteries.Control.Lemmas
+public import Batteries.Control.Monad
+public import Batteries.Control.Nondet.Basic
+public import Batteries.Control.OptionT
+public import Batteries.Data.Array
+public import Batteries.Data.AssocList
+public import Batteries.Data.BinaryHeap
+public import Batteries.Data.BinomialHeap
+public import Batteries.Data.BitVec
+public import Batteries.Data.ByteArray
+public import Batteries.Data.ByteSlice
+public import Batteries.Data.Char
+public import Batteries.Data.DList
+public import Batteries.Data.Fin
+public import Batteries.Data.FloatArray
+public import Batteries.Data.HashMap
+public import Batteries.Data.Int
+public import Batteries.Data.List
+public import Batteries.Data.MLList
+public import Batteries.Data.NameSet
+public import Batteries.Data.Nat
+public import Batteries.Data.PairingHeap
+public import Batteries.Data.RBMap
+public import Batteries.Data.Random
+public import Batteries.Data.Range
+public import Batteries.Data.Rat
+public import Batteries.Data.Stream
+public import Batteries.Data.String
+public import Batteries.Data.UInt
+public import Batteries.Data.UnionFind
+public import Batteries.Data.Vector
+public import Batteries.Lean.AttributeExtra
+public import Batteries.Lean.EStateM
+public import Batteries.Lean.Except
+public import Batteries.Lean.Expr
+public import Batteries.Lean.Float
+public import Batteries.Lean.HashMap
+public import Batteries.Lean.HashSet
+public import Batteries.Lean.IO.Process
+public import Batteries.Lean.Json
+public import Batteries.Lean.LawfulMonad
+public import Batteries.Lean.LawfulMonadLift
+public import Batteries.Lean.Meta.Basic
+public import Batteries.Lean.Meta.DiscrTree
+public import Batteries.Lean.Meta.Expr
+public import Batteries.Lean.Meta.Inaccessible
+public import Batteries.Lean.Meta.InstantiateMVars
+public import Batteries.Lean.Meta.SavedState
+public import Batteries.Lean.Meta.Simp
+public import Batteries.Lean.Meta.UnusedNames
+public import Batteries.Lean.MonadBacktrack
+public import Batteries.Lean.NameMapAttribute
+public import Batteries.Lean.PersistentHashMap
+public import Batteries.Lean.PersistentHashSet
+public import Batteries.Lean.Position
+public import Batteries.Lean.SatisfiesM
+public import Batteries.Lean.Syntax
+public import Batteries.Lean.System.IO
+public import Batteries.Lean.TagAttribute
+public import Batteries.Lean.Util.EnvSearch
+public import Batteries.Linter
+public import Batteries.Linter.UnnecessarySeqFocus
+public import Batteries.Linter.UnreachableTactic
+public import Batteries.Logic
+public import Batteries.Tactic.Alias
+public import Batteries.Tactic.Basic
+public import Batteries.Tactic.Case
+public import Batteries.Tactic.Congr
+public import Batteries.Tactic.Exact
+public import Batteries.Tactic.GeneralizeProofs
+public import Batteries.Tactic.HelpCmd
+public import Batteries.Tactic.Init
+public import Batteries.Tactic.Instances
+public import Batteries.Tactic.Lemma
+public import Batteries.Tactic.Lint
+public import Batteries.Tactic.Lint.Basic
+public import Batteries.Tactic.Lint.Frontend
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Tactic.Lint.Simp
+public import Batteries.Tactic.Lint.TypeClass
+public import Batteries.Tactic.NoMatch
+public import Batteries.Tactic.OpenPrivate
+public import Batteries.Tactic.PermuteGoals
+public import Batteries.Tactic.PrintDependents
+public import Batteries.Tactic.PrintOpaques
+public import Batteries.Tactic.PrintPrefix
+public import Batteries.Tactic.SeqFocus
+public import Batteries.Tactic.ShowUnused
+public import Batteries.Tactic.SqueezeScope
+public import Batteries.Tactic.Trans
+public import Batteries.Tactic.Unreachable
+public import Batteries.Util.Cache
+public import Batteries.Util.ExtendedBinder
+public import Batteries.Util.LibraryNote
+public import Batteries.Util.Panic
+public import Batteries.Util.Pickle
+public import Batteries.Util.ProofWanted
+public import Batteries.WF
