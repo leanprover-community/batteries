@@ -9,7 +9,6 @@ public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
 public import Batteries.Tactic.Alias
 meta import Batteries.Tactic.Init
-meta import Batteries.Tactic.GeneralizeProofs
 
 @[expose] public section
 
@@ -338,16 +337,15 @@ theorem take_partialSums (l : List Nat) (i : Nat) :
 
 @[simp]
 theorem lt_findIdx_iff (xs : List α) (p : α → Bool) (i : Nat) :
-    i < xs.findIdx p ↔ ∃ h : i < xs.length, ∀ j, (hj : j ≤ i) → ¬ p xs[j] := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih =>
-    simp [findIdx_cons, cond_eq_ite]
-    split <;> rename_i h
-    · simp
-      intro h'
-      exact ⟨0, sorry, h⟩
-    · sorry
+    i < xs.findIdx p ↔ ∃ h : i < xs.length, ∀ j, (hj : j ≤ i) → p xs[j] = false :=
+  ⟨fun h => ⟨by have := findIdx_le_length (xs := xs) (p := p); grind,
+    fun j hj => by apply not_of_lt_findIdx; grind⟩,
+    fun ⟨h, w⟩ => by apply lt_findIdx_of_not h; simpa using w⟩
+
+@[simp]
+theorem findIdx_map (xs : List α) (f : α → β) (p : β → Bool) :
+    (xs.map f).findIdx p = xs.findIdx (p ∘ f) := by
+  induction xs with simp_all [findIdx_cons]
 
 /-! ### flatten -/
 
@@ -375,7 +373,7 @@ theorem getElem_flatten_aux₁ (L : List (List α)) (i : Nat) (h : i < L.flatten
 theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
     let j := (L.map length).partialSums.findIdx (· > i) - 1
     have hj : j < L.length := getElem_flatten_aux₁ L i h
-      let k := i - (L.take j).flatten.length
+    let k := i - (L.take j).flatten.length
     k < L[j].length := sorry
 
 /--
@@ -408,16 +406,19 @@ theorem getElem_flatten (L : List (List α)) (i : Nat) (h : i < L.flatten.length
     · rw [ih]
       have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums =
           findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
-        sorry
+        simp [partialSums_cons, findIdx_cons, Function.comp_def]
+        congr
+        funext x
+        grind
       simp only [this]
       simp only [getElem_cons]
-      split
-      · sorry
-      congr 1
-      rw [take_cons]
-      · simp
-        omega
-      · simp
+      split <;> rename_i h''
+      · simp [findIdx_eq] at h''
+      · congr 1
+        rw [take_cons]
+        · simp
+          omega
+        · simp
 
 /--
 Taking the first `i` elements of a flattened list
