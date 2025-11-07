@@ -8,6 +8,8 @@ module
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
 public import Batteries.Tactic.Alias
+meta import Batteries.Tactic.Init
+meta import Batteries.Tactic.GeneralizeProofs
 
 @[expose] public section
 
@@ -278,12 +280,33 @@ theorem take_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat) :
 
 /-! ### partialSums -/
 
+@[simp, grind =]
+theorem partialSums_nil : partialSums [] = [0] := rfl
+
+private theorem scanl_add (a : Nat) (l : List Nat) :
+    scanl (·+·) a l = (scanl (·+·) 0 l).map (a + ·) := by
+  induction l generalizing a with
+  | nil => rfl
+  | cons b l ih =>
+    simp only [scanl, List.map_cons, Nat.add_zero, Nat.zero_add]
+    rw [ih (a + b), ih b]
+    simp only [List.map_map]
+    congr 1
+    ext x
+    simp [Function.comp_def, Nat.add_assoc]
+
+theorem partialSums_cons (a : Nat) (l : List Nat) :
+    partialSums (a :: l) = 0 :: (partialSums l).map (a + ·) := by
+  simp only [partialSums, scanl, Nat.zero_add]
+  rw [scanl_add]
+
+@[simp, grind =]
 theorem length_partialSums (l : List Nat) :
     (partialSums l).length = l.length + 1 := by
   simp [partialSums, length_scanl]
 
 -- Helper: foldl and foldr are equivalent for addition on Nat
-theorem foldl_add_eq_foldr_add (l : List Nat) (a : Nat) :
+private theorem foldl_add_eq_foldr_add (l : List Nat) (a : Nat) :
     foldl (·+·) a l = a + foldr (·+·) 0 l := by
   induction l generalizing a with
   | nil => simp
@@ -291,12 +314,14 @@ theorem foldl_add_eq_foldr_add (l : List Nat) (a : Nat) :
     simp [ih]
     omega
 
+@[simp, grind =]
 theorem getElem_partialSums (l : List Nat) (i : Nat) (h : i < (partialSums l).length) :
     (partialSums l)[i] = (l.take i).sum := by
   simp only [partialSums, getElem_scanl, List.sum]
   rw [foldl_add_eq_foldr_add]
   simp
 
+@[grind =]
 theorem getElem?_partialSums (l : List Nat) (i : Nat) :
     (partialSums l)[i]? = if i ≤ l.length then some (l.take i).sum else none := by
   simp [partialSums, getElem?_scanl, List.sum]
@@ -304,31 +329,109 @@ theorem getElem?_partialSums (l : List Nat) (i : Nat) :
   · rw [foldl_add_eq_foldr_add]; simp
   · rfl
 
+@[simp, grind =]
 theorem take_partialSums (l : List Nat) (i : Nat) :
     l.partialSums.take (i + 1) = (l.take i).partialSums := by
   simp [partialSums, take_scanl]
 
+/-! ### findIdx -/
+
+@[simp]
+theorem lt_findIdx_iff (xs : List α) (p : α → Bool) (i : Nat) :
+    i < xs.findIdx p ↔ ∃ h : i < xs.length, ∀ j, (hj : j ≤ i) → ¬ p xs[j] := by
+  induction xs with
+  | nil => simp
+  | cons x xs ih =>
+    simp [findIdx_cons, cond_eq_ite]
+    split <;> rename_i h
+    · simp
+      intro h'
+      exact ⟨0, sorry, h⟩
+    · sorry
+
 /-! ### flatten -/
 
+theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
+    L.flatten.length ∈ (L.map length).partialSums := by
+  induction L with
+  | nil => simp
+  | cons l L ih =>
+    simp [flatten_cons, partialSums_cons]
+    right
+    simpa using ih
+
+theorem getElem_flatten_aux₁ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    (L.map length).partialSums.findIdx (· > i) - 1 < L.length := by
+  have := findIdx_lt_length_of_exists (xs := (L.map length).partialSums) (p := fun x => decide (x > i))
+  specialize this ⟨L.flatten.length,
+    length_flatten_mem_partialSums_map_length L, by grind⟩
+  simp at this
+  simp
+  have : 0 < findIdx (fun x => decide (i < x)) (map length L).partialSums := by
+    by_contra w
+    simp at w
+  omega
+
+theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    let j := (L.map length).partialSums.findIdx (· > i) - 1
+    have hj : j < L.length := getElem_flatten_aux₁ L i h
+      let k := i - (L.take j).flatten.length
+    k < L[j].length := sorry
+
 /--
-The key theorem for `List.flatten`: taking the first `n` elements of a flattened list
-can be expressed as the flattening of the first `m` complete sublists, plus the first
-`k` elements of the `m`-th sublist.
+Indexing into a flattened list: `L.flatten[i]` equals `L[j][k]` where
+`j` is the sublist index and `k` is the offset within that sublist.
 
-This provides a computational way to understand `take` on `flatten`, and is the basis
-for the more general `take_flatten` theorem that works for any `n` (not just `n < length`).
+The indices are computed as:
+- `j` is one less than where the cumulative sum first exceeds `i`
+- `k` is `i` minus the total length of the first `j` sublists
 
-TODO: Complete the proof. This requires:
-1. Using `Nat.find` to locate which sublist contains the `n`-th element
-2. Index arithmetic using the partial sums of lengths
-3. Careful case analysis on boundaries
-
-See Vlad's proof in the Zulip thread for a complete but unstructured proof.
+This theorem states that these indices are in range and the equality holds.
 -/
-theorem take_flatten_of_lt {L : List (List α)} {n : Nat} (h : n < L.flatten.length) :
-    ∃ m k : Nat, ∃ mlt : m < L.length,
-    k < (L.get ⟨m, mlt⟩).length ∧ L.flatten.take n =
-    (L.take m).flatten ++ (L.get ⟨m, mlt⟩).take k := by
+theorem getElem_flatten (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    L.flatten[i] =
+      let j := (L.map length).partialSums.findIdx (· > i) - 1
+      have hj : j < L.length := getElem_flatten_aux₁ L i h
+      let k := i - (L.take j).flatten.length
+      have hk : k < L[j].length := getElem_flatten_aux₂ L i h
+      L[j][k] := by
+  induction L generalizing i with
+  | nil => simp at h
+  | cons l L ih =>
+    simp only [flatten_cons, getElem_append]
+    split <;> rename_i h'
+    · have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums = 1 := by
+        simp [partialSums_cons, findIdx_cons]
+        rw [findIdx_eq] <;> grind
+      simp only [this]
+      simp
+    · rw [ih]
+      have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums =
+          findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
+        sorry
+      simp only [this]
+      simp only [getElem_cons]
+      split
+      · sorry
+      congr 1
+      rw [take_cons]
+      · simp
+        omega
+      · simp
+
+/--
+Taking the first `i` elements of a flattened list
+can be expressed as the flattening of the first `j` complete sublists, plus the first
+`k` elements of the `j`-th sublist.
+
+The indices are computed as:
+- `j` is one less than where the cumulative sum first exceeds `i`
+- `k` is `i` minus the total length of the first `j` sublists
+-/
+theorem take_flatten (L : List (List α)) (i : Nat) :
+    let j := (L.map length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k := by
   sorry
 
 /-! ### diff -/
