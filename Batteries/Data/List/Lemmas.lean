@@ -322,6 +322,45 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
 
 end Diff
 
+/-! ### scanl -/
+
+theorem length_scanl (f : α → β → α) (a : α) (l : List β) :
+    (scanl f a l).length = l.length + 1 := by
+  induction l generalizing a with
+  | nil => simp
+  | cons b l ih => simp [ih]
+
+theorem getElem_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat)
+    (h : i < (scanl f a l).length) :
+    (scanl f a l)[i] = foldl f a (l.take i) := by
+  induction l generalizing a i with
+  | nil => simp at h ⊢; done
+  | cons b l ih =>
+    cases i with
+    | zero => simp
+    | succ i =>
+      simp
+      apply ih
+
+theorem getElem?_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat) :
+    (scanl f a l)[i]? = if i ≤ l.length then some (foldl f a (l.take i)) else none := by
+  split
+  · rename_i h
+    have : i < (scanl f a l).length := by simp [length_scanl]; omega
+    simp [getElem?_eq_getElem this, getElem_scanl f a l i this]
+  · rename_i h
+    have : (scanl f a l).length ≤ i := by simp [length_scanl]; omega
+    simp [getElem?_eq_none this]
+
+theorem take_scanl (f : α → β → α) (a : α) (l : List β) (i : Nat) :
+    (scanl f a l).take (i + 1) = scanl f a (l.take i) := by
+  induction l generalizing a i with
+  | nil => simp
+  | cons b l ih =>
+    cases i with
+    | zero => simp
+    | succ i => simp [ih]
+
 /-! ### drop -/
 
 theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint (l.take m) (l.drop n)
