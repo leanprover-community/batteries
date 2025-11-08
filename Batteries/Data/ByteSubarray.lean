@@ -85,7 +85,7 @@ where
       | ForInStep.done b  => pure b
       | ForInStep.yield b => loop i (Nat.le_of_succ_le h) b
 
-instance [Monad m] : ForIn m ByteSubarray UInt8 where
+instance : ForIn m ByteSubarray UInt8 where
   forIn := ByteSubarray.forIn
 
 instance : Stream ByteSubarray UInt8 where
