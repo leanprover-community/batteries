@@ -32,7 +32,7 @@ One difference is that it the tactic tries to propagate expected types so that
 we get `1 < [1, 2].length` in the above example rather than `1 < Nat.succ 1`.
 -/
 
-meta section
+public meta section
 
 namespace Batteries.Tactic
 open Lean Meta Elab Parser.Tactic Elab.Tactic
