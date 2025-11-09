@@ -30,7 +30,7 @@ theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] :=
 
 @[simp, grind =]
 theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = b :: scanl f (f b a) l := by
-  simp only [scanl, singleton_append]
+  simp only [scanl]
 
 @[simp]
 theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
