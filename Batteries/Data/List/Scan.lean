@@ -85,6 +85,12 @@ theorem scanl_append {f : β → α → β} (l₁ l₂ : List α) :
   case nil => cases l₂ <;> simp
   case cons head tail ih => simp [ih]
 
+theorem scanl_map {f : β → γ → β} {g : α → γ} (b : β) (l : List α) :
+    scanl f b (l.map g) = scanl (fun acc x => f acc (g x)) b l := by
+  induction l generalizing b
+  case nil => simp
+  case cons head tail ih => simp [ih]
+
 /-! ### List.scanr -/
 
 @[simp, grind =]
@@ -148,6 +154,13 @@ theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = foldr f
 theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
     (scanr f b l)[i]? = some (foldr f b (l.drop i)) := by
   simp [h]
+
+theorem scanr_map {f : α → β → β} {g : γ → α} (b : β) (l : List γ) :
+    scanr f b (l.map g) = scanr (fun x acc => f (g x) acc) b l := by
+  suffices ∀ l, foldr f b (l.map g) = foldr (fun x acc => f (g x) acc) b l from by
+    induction l generalizing b <;> simp [*]
+  intro l
+  induction l <;> simp [*]
 
 @[simp, grind =]
 theorem scanl_reverse {f : β → α → β} (b : β) (l : List α) :
