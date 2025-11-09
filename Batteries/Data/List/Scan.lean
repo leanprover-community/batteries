@@ -29,7 +29,7 @@ theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] :=
   rfl
 
 @[simp, grind =]
-theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = [b] ++ scanl f (f b a) l := by
+theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = b :: scanl f (f b a) l := by
   simp only [scanl, singleton_append]
 
 @[simp]
@@ -51,10 +51,12 @@ theorem getElem_scanl {f : α → β → α} (h : i < (scanl f a l).length) :
   | nil => simp
   | cons _ _ ih => cases i <;> simp [ih]
 
+@[grind =]
 theorem getElem?_scanl {f : α → β → α} :
     (scanl f a l)[i]? = if i ≤ l.length then some (foldl f a (l.take i)) else none := by
   grind
 
+@[grind _=_]
 theorem take_scanl {f : α → β → α} (a : α) (l : List β) (i : Nat) :
     (scanl f a l).take (i + 1) = scanl f a (l.take i) := by
   induction l generalizing a i with
@@ -160,6 +162,7 @@ theorem getLast?_scanr {f : α → β → β} : (scanr f b l).getLast? = some b 
 theorem tail_scanr {f : α → β → β} (h : 0 < l.length) :
     (scanr f b l).tail = scanr f b l.tail := by induction l <;> simp_all
 
+@[grind _=_]
 theorem drop_scanr {f : α → β → β} (h : i ≤ l.length) :
     (scanr f b l).drop i = scanr f b (l.drop i) := by
   induction i generalizing l with
@@ -173,6 +176,7 @@ theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).length) :
   | nil => simp
   | cons _ _ ih => cases i <;> simp [ih] at h ⊢
 
+@[grind =]
 theorem getElem?_scanr {f : α → β → β} (h : i < l.length + 1) :
     (scanr f b l)[i]? = if i < l.length + 1 then some (foldr f b (l.drop i)) else none := by
   grind
