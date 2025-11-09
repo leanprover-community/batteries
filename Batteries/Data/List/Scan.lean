@@ -33,6 +33,10 @@ theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = [b] ++ scanl f 
   simp only [scanl, singleton_append]
 
 @[simp]
+theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
+  simp
+
+@[simp]
 theorem scanl_ne_nil {f : β → α → β} : scanl f b l ≠ [] := by
   cases l <;> simp
 
@@ -66,6 +70,18 @@ theorem getElem_scanl_zero {f : β → α → β} : (scanl f b l)[0] = b := by
 @[simp]
 theorem head_scanl {f : β → α → β} (h : scanl f b l ≠ []) :
     (scanl f b l).head h = b := by grind
+
+theorem getLast_scanl {f : β → α → β} (h : scanl f b l ≠ []) :
+    (scanl f b l).getLast h = foldl f b l := by
+  induction l generalizing b
+  case nil => simp
+  case cons head tail ih => simp [getLast_cons, scanl_ne_nil, ih]
+
+theorem getLast?_scanl {f : β → α → β} : (scanl f b l).getLast? = some (foldl f b l) := by
+  simp [getLast?]
+  split
+  · exact absurd ‹_› scanl_ne_nil
+  · simp [←‹_›, getLast_scanl]
 
 theorem getElem?_succ_scanl {f : β → α → β} : (scanl f b l)[i + 1]? =
     (scanl f b l)[i]?.bind fun x => l[i]?.map fun y => f x y := by
@@ -110,6 +126,10 @@ theorem scanr_cons {f : α → β → β} :
   | cons _ _ ih => simp only [foldr, ih]
 
 @[simp]
+theorem scanr_singleton {f : α → β → β} : scanr f b [a] = [f a b, b] := by
+  simp
+
+@[simp]
 theorem scanr_iff_nil {f : α → β → β} (c : β) : scanr f b l = [c] ↔ c = b ∧ l = [] := by
   constructor <;> cases l <;> simp_all
 
@@ -124,6 +144,18 @@ theorem scanr_append {f : α → β → β} (l₁ l₂ : List α) :
 @[simp]
 theorem head_scanr {f : α → β → β} (h : scanr f b l ≠ []) :
     (scanr f b l).head h = foldr f b l := by cases l <;> simp
+
+theorem getLast_scanr {f : α → β → β} (h : scanr f b l ≠ []) :
+    (scanr f b l).getLast h = b := by
+  induction l
+  case nil => simp
+  case cons head tail ih => simp [getLast_cons, scanr_ne_nil, ih]
+
+theorem getLast?_scanr {f : α → β → β} : (scanr f b l).getLast? = some b := by
+  simp [getLast?]
+  split
+  · exact absurd ‹_› scanr_ne_nil
+  · simp [←‹_›, getLast_scanr]
 
 theorem tail_scanr {f : α → β → β} (h : 0 < l.length) :
     (scanr f b l).tail = scanr f b l.tail := by induction l <;> simp_all
@@ -148,7 +180,7 @@ theorem getElem?_scanr {f : α → β → β} (h : i < l.length + 1) :
 theorem getElem_scanr_zero {f : α → β → β} : (scanr f b l)[0] = foldr f b l := by
   simp
 
-theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = foldr f b l := by
+theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = some (foldr f b l) := by
   simp
 
 theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
