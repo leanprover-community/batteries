@@ -79,6 +79,12 @@ theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b l).len
   | zero => cases l <;> simp at h ⊢
   | succ _ ih => cases l <;> simp [ih] at h ⊢
 
+theorem scanl_append {f : β → α → β} (l₁ l₂ : List α) :
+    scanl f b (l₁ ++ l₂) = scanl f b l₁ ++ (scanl f (foldl f b l₁) l₂).tail := by
+  induction l₁ generalizing b
+  case nil => cases l₂ <;> simp
+  case cons head tail ih => simp [ih]
+
 /-! ### List.scanr -/
 
 @[simp, grind =]
@@ -142,3 +148,17 @@ theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = foldr f
 theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
     (scanr f b l)[i]? = some (foldr f b (l.drop i)) := by
   simp [h]
+
+@[simp, grind =]
+theorem scanl_reverse {f : β → α → β} (b : β) (l : List α) :
+    scanl f b l.reverse = reverse (scanr (flip f) b l) := by
+  induction l generalizing b
+  case nil => rfl
+  case cons head tail ih => simp [scanl_append, ih]; rfl
+
+@[simp, grind =]
+theorem scanr_reverse {f : α → β → β} (b : β) (l : List α) :
+    scanr f b l.reverse = reverse (scanl (flip f) b l) := by
+  induction l generalizing b
+  case nil => rfl
+  case cons head tail ih => simp [scanr_append, ih]; rfl
