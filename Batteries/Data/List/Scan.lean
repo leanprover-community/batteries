@@ -32,7 +32,6 @@ theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] :=
 theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = b :: scanl f (f b a) l := by
   simp only [scanl]
 
-@[simp]
 theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
   simp
 
@@ -127,7 +126,6 @@ theorem scanr_cons {f : α → β → β} :
   | nil => rfl
   | cons _ _ ih => simp only [foldr, ih]
 
-@[simp]
 theorem scanr_singleton {f : α → β → β} : scanr f b [a] = [f a b, b] := by
   simp
 
