@@ -9,8 +9,8 @@ public import Batteries.Classes.Order
 
 @[expose] public section
 
--- Forward port of lean4#9515
-@[grind ←]
+-- Forward port of https://github.com/leanprover/lean4/pull/9515
+@[simp, grind ←]
 theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
   simp [finRange]
 
