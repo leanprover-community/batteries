@@ -221,7 +221,7 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
 -/
-@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : _ := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
@@ -231,19 +231,19 @@ also receives each element's index.
 -/
 -- TODO(Mario): tail recursive / array-based implementation
 @[specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
-    (l : List α) → (start : _ := 0) → β
+    (l : List α) → (start : Nat := 0) → β
   | [], _ => init
   | a :: l, s => f s a (foldrIdx f init l (s + 1))
 
 /-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) (start : _ := 0) : List Nat :=
+@[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : _ := 0) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => bif p a then (i, a) :: l else l) [] l start
 
 @[deprecated (since := "2025-11-06")]
@@ -255,8 +255,8 @@ alias indexesValues := findIdxsValues
 idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def idxsOf [BEq α] (a : α) (l : List α) (start : _ := 0) : List Nat :=
-  findIdxs (· == a) l s
+@[inline] def idxsOf [BEq α] (a : α) (l : List α) (start : Nat := 0) : List Nat :=
+  findIdxs (· == a) l start
 
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
