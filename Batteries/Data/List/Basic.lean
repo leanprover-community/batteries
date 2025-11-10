@@ -5,7 +5,7 @@ Authors: Leonardo de Moura
 -/
 
 module
-import Batteries.Tactic.Alias
+public import Batteries.Tactic.Alias
 
 @[expose] public section
 

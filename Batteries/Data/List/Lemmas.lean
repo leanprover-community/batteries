@@ -7,7 +7,6 @@ module
 
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
-public import Batteries.Tactic.Alias
 
 @[expose] public section
 
