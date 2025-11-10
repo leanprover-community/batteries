@@ -229,7 +229,6 @@ also receives each element's index.
 Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index.
 -/
--- TODO(Mario): tail recursive / array-based implementation
 @[specialize] def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
     (l : List α) → (start : Nat := 0) → β
   | [], _ => init
@@ -241,15 +240,10 @@ also receives each element's index.
   (as.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + as.size)).1
 
 @[csimp] theorem foldrIdx_eq_foldrIdxTR : @foldrIdx = @foldrIdxTR := by
-  funext α β f i xs s; simp only [foldrIdxTR]
-  have go xs s : (xs : List α).foldr
-    (fun (a : α) (xa : β × Nat) => (f (xa.2 - 1) a xa.1, xa.2 - 1)) (i, s + xs.length) =
-    (foldrIdx f i xs s, s) := by
-    induction xs generalizing s with | nil | cons x xs IH
-    · rfl
-    · rw [foldr_cons, length_cons, Nat.add_comm _ 1, ← Nat.add_assoc, IH]
-      simp [foldrIdx]
-  simp [go]
+  funext _ _ f
+  have go i xs s : xs.foldr (fun a xa => (f (xa.2 - 1) a xa.1, xa.2 - 1)) (i, s + xs.length) =
+    (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
+  grind [foldrIdxTR]
 
 /-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
 @[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
