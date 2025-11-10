@@ -601,7 +601,7 @@ theorem unzip_findIdxsValues :
 alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
 
 @[simp, grind =]
-theorem getElem_idx_idxOf [BEq α] [LawfulBEq α] {x : α} {xs : List α} (h : idxOf x xs < xs.length) :
+theorem getElem_idxOf [BEq α] [LawfulBEq α] {x : α} {xs : List α} (h : idxOf x xs < xs.length) :
     xs[xs.idxOf x] = x := by induction xs <;> grind
 
 @[simp, grind =]
