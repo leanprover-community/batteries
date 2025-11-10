@@ -36,34 +36,32 @@ theorem count_concat [LawfulBEq α] (a : α) (l : List α) :
 
 /-- For a fixed list, given the index of an element,
   find the corresponding element and multiplicity. -/
-def idxToCountElem [EquivBEq α] (xs : List α) (i : Fin (xs.length)) :
-    (x : α) × (Fin (xs.count x)) := ⟨xs[i], ⟨(xs.idxsOf xs[i]).idxOf ↑i, by grind⟩⟩
+def idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
+    (x : α) × Fin (xs.count x) := ⟨xs[i], (xs.idxsOf xs[i]).idxOf ↑i, by grind⟩
 
 @[simp, grind =]
-theorem fst_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin (xs.length)) :
+theorem fst_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
   (xs.idxToCountElem i).fst = xs[(i : Nat)] := rfl
 
 @[simp, grind =]
-theorem val_snd_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin (xs.length)) :
-  (xs.idxToCountElem i).snd = (xs.idxsOf xs[i]).idxOf ↑i := rfl
+theorem val_snd_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
+  (xs.idxToCountElem i).snd = (xs.idxsOf xs[(i : Nat)]).idxOf ↑i := rfl
 
 /-- For a fixed list, given an element and its multiplicity,
   find the corresponding index. -/
-def countElemToIdx (xs : List α) (xj : (x : α) × (Fin (xs.count x))) : Fin (xs.length) :=
+def countElemToIdx (xs : List α) (xj : (x : α) × Fin (xs.count x)) : Fin xs.length :=
   ⟨(xs.idxsOf xj.1)[xj.2], by grind⟩
 
 @[simp, grind =]
-theorem val_countElemToIdx (xs : List α) (xj : (x : α) × (Fin (xs.count x))) :
-  xs.countElemToIdx xj = (xs.idxsOf xj.1)[xj.2] := rfl
+theorem val_countElemToIdx (xs : List α) (xj : (x : α) × Fin (xs.count x)) :
+  xs.countElemToIdx xj = (xs.idxsOf xj.1)[(xj.2 : Nat)] := rfl
 
 theorem countElemToIdx_idxToCountElem {xs : List α} [LawfulBEq α]
-    (xj : (x : α) × (Fin (xs.count x))) :
-    xs.idxToCountElem (xs.countElemToIdx xj) = xj := Sigma.ext (by simp) <| by
-  have H {k l : Nat} (h : k = l) {i : Fin k} {j : Fin l} : i ≍ j ↔ i.val = j := by
-    subst h; simp [Fin.ext_iff]
-  unfold countElemToIdx idxToCountElem; simp [H]
+    (xj : (x : α) × Fin (xs.count x)) :
+    xs.idxToCountElem (xs.countElemToIdx xj) = xj := by
+  have H {k l} : k = l → {i : Fin k} → {j : Fin l} → (i : Nat) = j → i ≍ j := by grind [Fin.ext_iff]
+  simp [H, Sigma.ext_iff]
 
 theorem idxToCountElem_countElemToIdx {xs : List α} [LawfulBEq α]
-    (i : Fin (xs.length)) :
-    xs.countElemToIdx (xs.idxToCountElem i) = i := by
-  unfold countElemToIdx idxToCountElem; simp
+    (i : Fin xs.length) :
+    xs.countElemToIdx (xs.idxToCountElem i) = i := Fin.ext <| by simp
