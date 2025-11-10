@@ -444,8 +444,11 @@ theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     (x :: xs : List α).foldrIdx f i s = f s x (foldrIdx f i xs (s + 1)) := rfl
 
 @[grind =] theorem foldrIdx_start :
-    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
-  induction xs generalizing f s with grind
+    (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (f <| · + s) i := by
+  induction xs generalizing f s <;> grind
+
+theorem foldrIdx_const : (xs : List α).foldrIdx (Function.const Nat f) i s = xs.foldr f i := by
+  induction xs <;> grind
 
 /-! ### foldlIdx -/
 
@@ -455,8 +458,11 @@ theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     (x :: xs : List α).foldlIdx f i s = foldlIdx f (f s i x) xs (s + 1) := rfl
 
 theorem foldlIdx_start :
-    (xs : List α).foldlIdx f i s = (xs : List α).foldlIdx (fun i => f (i + s)) i := by
-  induction xs generalizing f i s with grind
+    (xs : List α).foldlIdx f i s = (xs : List α).foldlIdx (f <| · + s) i := by
+  induction xs generalizing f i s <;> grind [Function.comp_def]
+
+theorem foldlIdx_const : (xs : List α).foldlIdx (Function.const Nat f) i s = xs.foldl f i := by
+  induction xs generalizing i s <;> grind
 
 /-! ### findIdxs -/
 
