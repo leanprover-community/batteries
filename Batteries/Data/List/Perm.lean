@@ -85,7 +85,7 @@ end Subperm
 theorem Subperm.countP_le (p : α → Bool) {l₁ l₂ : List α} : l₁ <+~ l₂ → countP p l₁ ≤ countP p l₂
   | ⟨_l, p', s⟩ => p'.countP_eq p ▸ s.countP_le
 
-theorem Subperm.count_le [DecidableEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) :
+theorem Subperm.count_le [BEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) :
     count a l₁ ≤ count a l₂ := s.countP_le _
 
 theorem subperm_cons (a : α) {l₁ l₂ : List α} : a :: l₁ <+~ a :: l₂ ↔ l₁ <+~ l₂ := by
@@ -168,9 +168,9 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
       exact (d.1 this).elim
     | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
-section DecidableEq
+section LawfulBEq
 
-variable [DecidableEq α]
+variable [BEq α] [LawfulBEq α]
 
 theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   if h : a ∈ l then
@@ -178,6 +178,7 @@ theorem subperm_cons_erase (a : α) (l : List α) : l <+~ a :: l.erase a :=
   else
     (erase_of_not_mem h).symm ▸ (sublist_cons_self _ _).subperm
 
+omit [LawfulBEq α] in
 theorem erase_subperm (a : α) (l : List α) : l.erase a <+~ l := erase_sublist.subperm
 
 theorem Subperm.erase {l₁ l₂ : List α} (a : α) (h : l₁ <+~ l₂) : l₁.erase a <+~ l₂.erase a :=
@@ -279,6 +280,13 @@ theorem Subperm.cons_left {l₁ l₂ : List α} (h : l₁ <+~ l₂) (x : α) (hx
     refine h y ?_
     simpa [hy'] using hy
 
+omit [LawfulBEq α] in -- TODO: replace `Perm.insert` in core
+theorem Perm.insert' {l₁ l₂ : List α} (h : l₁ ~ l₂) (a : α) : l₁.insert a ~ l₂.insert a := by
+  simp only [List.insert, h.contains_eq]
+  split
+  · assumption
+  · exact h.cons _
+
 theorem Perm.union_right {l₁ l₂ : List α} (t₁ : List α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ := by
   induction h with
   | nil => rfl
@@ -294,6 +302,7 @@ theorem Perm.union_left (l : List α) {t₁ t₂ : List α} (h : t₁ ~ t₂) : 
 theorem Perm.union {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∪ t₁ ~ l₂ ∪ t₂ :=
   (p₁.union_right t₁).trans (p₂.union_left l₂)
 
+omit [LawfulBEq α] in
 theorem Perm.inter_right {l₁ l₂ : List α} (t₁ : List α) : l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
 
 theorem Perm.inter_left (l : List α) {t₁ t₂ : List α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
@@ -302,7 +311,7 @@ theorem Perm.inter_left (l : List α) {t₁ t₂ : List α} (p : t₁ ~ t₂) : 
 theorem Perm.inter {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
   p₂.inter_left l₂ ▸ p₁.inter_right t₁
 
-end DecidableEq
+end LawfulBEq
 
 theorem Perm.flatten_congr :
     ∀ {l₁ l₂ : List (List α)} (_ : List.Forall₂ (· ~ ·) l₁ l₂), l₁.flatten ~ l₂.flatten
