@@ -466,11 +466,14 @@ theorem foldlIdx_const : (xs : List α).foldlIdx (Function.const Nat f) i s = xs
 
 /-! ### findIdxs -/
 
-@[grind =] theorem findIdxs_nil : ([] : List α).findIdxs p s = [] := rfl
+@[simp, grind =] theorem findIdxs_nil : ([] : List α).findIdxs p s = [] := rfl
 
-@[grind =] theorem findIdxs_cons :
+@[simp, grind =] theorem findIdxs_cons :
     (x :: xs : List α).findIdxs p s =
       bif p x then s :: xs.findIdxs p (s + 1) else xs.findIdxs p (s + 1) := rfl
+
+theorem findIdxs_singleton :
+    [x].findIdxs p s = if p x then [s] else [] := by grind
 
 theorem findIdxs_start :
     (xs : List α).findIdxs p s = (xs.findIdxs p).map (· + s) := by
@@ -575,10 +578,15 @@ theorem findIdx_mem_findIdxs (h : (xs : List α).findIdx p < xs.length) :
 
 /-! ### findIdxsValues -/
 
-@[simp, grind =]
+@[grind =]
 theorem findIdxsValues_eq_zip_filter_findIdxs :
     (xs : List α).findIdxsValues p s = (xs.findIdxs p s).zip (xs.filter p) := by
   induction xs generalizing s <;> grind [findIdxsValues]
+
+@[simp, grind =]
+theorem unzip_findIdxsValues :
+    ((xs : List α).findIdxsValues p s).unzip = (xs.findIdxs p s, xs.filter p) := by
+  grind [unzip_zip]
 
 /-! ### idxOf -/
 
@@ -607,9 +615,9 @@ section
 
 variable [BEq α]
 
-@[grind =] theorem idxsOf_nil  : ([] : List α).idxsOf x s = [] := rfl
+@[simp, grind =] theorem idxsOf_nil  : ([] : List α).idxsOf x s = [] := rfl
 
-@[grind =] theorem idxsOf_cons : (x :: xs : List α).idxsOf y s =
+@[simp, grind =] theorem idxsOf_cons : (x :: xs : List α).idxsOf y s =
     bif x == y then s :: xs.idxsOf y (s + 1) else xs.idxsOf y (s + 1) := rfl
 
 theorem idxsOf_start :
