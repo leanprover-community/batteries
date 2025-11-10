@@ -243,11 +243,11 @@ also receives each element's index.
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def idxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
 
 @[deprecated (since := "2025-11-06")]
-alias indexsValues := idxsValues
+alias indexsValues := findIdxsValues
 
 /--
 `idxsOf a l` is the list of all indexes of `a` in `l`. For example:
