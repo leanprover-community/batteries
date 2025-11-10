@@ -611,112 +611,104 @@ theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs
 
 /-! ### idxsOf -/
 
-section
+@[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x s = [] := rfl
 
-variable [BEq α]
-
-@[simp, grind =] theorem idxsOf_nil  : ([] : List α).idxsOf x s = [] := rfl
-
-@[simp, grind =] theorem idxsOf_cons : (x :: xs : List α).idxsOf y s =
+@[simp, grind =] theorem idxsOf_cons [BEq α] : (x :: xs : List α).idxsOf y s =
     bif x == y then s :: xs.idxsOf y (s + 1) else xs.idxsOf y (s + 1) := rfl
 
-theorem idxsOf_start :
+theorem idxsOf_start [BEq α] :
     (xs : List α).idxsOf x s = (xs.idxsOf x).map (· + s) := findIdxs_start
 
 @[simp, grind =]
-theorem mem_idxsOf_iff_getElem_sub_pos :
+theorem mem_idxsOf_iff_getElem_sub_pos [BEq α] :
     i ∈ (xs : List α).idxsOf x s ↔ s ≤ i ∧
     ∃ (hix : i - s < xs.length), xs[i - s] == x := mem_findIdxs_iff_getElem_sub_pos
 
-theorem mem_idxsOf_iff_exists_getElem_pos :
+theorem mem_idxsOf_iff_exists_getElem_pos [BEq α] :
     i ∈ (xs : List α).idxsOf x ↔ ∃ (hix : i < xs.length), xs[i] == x := by grind
 
-theorem mem_idxsOf_iff_getElem_pos (hi : i < (xs : List α).length) :
+theorem mem_idxsOf_iff_getElem_pos [BEq α] (hi : i < (xs : List α).length) :
     i ∈ xs.idxsOf x ↔ xs[i] == x := by grind
 
-theorem ge_of_mem_idxsOf : ∀ y ∈ (xs : List α).idxsOf x s, s ≤ y := by grind
+theorem ge_of_mem_idxsOf [BEq α] : ∀ y ∈ (xs : List α).idxsOf x s, s ≤ y := by grind
 
-theorem lt_add_of_mem_idxsOf :
+theorem lt_add_of_mem_idxsOf [BEq α] :
     ∀ y ∈ (xs : List α).idxsOf x s, y < xs.length + s := by grind
 
-theorem idxsOf_eq_nil_iff :
+theorem idxsOf_eq_nil_iff [BEq α] :
     (xs : List α).idxsOf x s = [] ↔ ∀ y ∈ xs, (y == x) = false := findIdxs_eq_nil_iff
 
-@[simp, grind =] theorem length_idxsOf :
+@[simp, grind =] theorem length_idxsOf [BEq α] :
     ((xs : List α).idxsOf x s).length = xs.count x := length_findIdxs
 
 @[simp, grind .]
-theorem pairwise_idxsOf : ((xs : List α).idxsOf x s).Pairwise (· < ·) :=
+theorem pairwise_idxsOf [BEq α] : ((xs : List α).idxsOf x s).Pairwise (· < ·) :=
   pairwise_findIdxs
 
 @[simp, grind .]
-theorem isChain_idxsOf : ((xs : List α).idxsOf x s).IsChain (· < ·) :=
+theorem isChain_idxsOf [BEq α] : ((xs : List α).idxsOf x s).IsChain (· < ·) :=
   pairwise_idxsOf.isChain
 
 @[simp, grind .]
-theorem nodup_idxsOf : ((xs : List α).idxsOf x s).Nodup :=
+theorem nodup_idxsOf [BEq α] : ((xs : List α).idxsOf x s).Nodup :=
   pairwise_idxsOf.imp (by grind)
 
 @[simp, grind =]
-theorem idxsOf_map {f : β → α} :
+theorem idxsOf_map [BEq α] {f : β → α} :
     ((xs : List β).map f).idxsOf x s = xs.findIdxs (f · == x) s := findIdxs_map
 
 @[simp, grind =]
-theorem idxsOf_append :
+theorem idxsOf_append [BEq α] :
     ((xs : List α) ++ ys).idxsOf x s = xs.idxsOf x s ++ ys.idxsOf x (s + xs.length) :=
   findIdxs_append
 
 @[simp, grind =]
-theorem idxsOf_take :
+theorem idxsOf_take [BEq α] :
     ((xs : List α).take n).idxsOf x s = (xs.idxsOf x s).take ((xs.take n).count x) :=
   findIdxs_take
 
 @[simp, grind =>]
-theorem le_getElem_idxsOf (h : i < ((xs : List α).idxsOf x s).length) :
+theorem le_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     s ≤ (xs.idxsOf x s)[i] := by grind [getElem_mem]
 
 @[simp, grind =>]
-theorem getElem_idxsOf_lt (h : i < ((xs : List α).idxsOf x s).length) :
+theorem getElem_idxsOf_lt [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     (xs.idxsOf x s)[i] < xs.length + s := by grind [getElem_mem]
 
-theorem getElem_getElem_idxsOf_sub (s : Nat)
+theorem getElem_getElem_idxsOf_sub [BEq α] (s : Nat)
     (h : i < ((xs : List α).idxsOf x s).length) :
     haveI : (idxsOf x xs s)[i] - s < xs.length := by grind
     xs[(xs.idxsOf x s)[i] - s] == x := getElem_getElem_findIdxs_sub s h
 
 @[grind =>]
-theorem getElem_getElem_idxsOf
-    (h : i < ((xs : List α).idxsOf x).length) :
+theorem getElem_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
     xs[(xs.idxsOf x)[i]] == x := getElem_getElem_findIdxs h
 
 @[simp]
-theorem getElem_getElem_idxsOf_of_lawful [LawfulBEq α]
+theorem getElem_getElem_idxsOf_of_lawful [BEq α] [LawfulBEq α]
     (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
     xs[(xs.idxsOf x)[i]] = x := by grind
 
 @[grind =>]
-theorem mem_idxsOf_getElem (h : i < (xs : List α).length) [EquivBEq α] :
+theorem mem_idxsOf_getElem [BEq α] [EquivBEq α] (h : i < (xs : List α).length) :
     i ∈ idxsOf xs[i] xs := by grind
 
 @[grind =]
-theorem getElem_zero_idxsOf_eq_idxOf_add (h : 0 < ((xs : List α).idxsOf x s).length) :
+theorem getElem_zero_idxsOf_eq_idxOf_add [BEq α] (h : 0 < ((xs : List α).idxsOf x s).length) :
     (xs.idxsOf x s)[0] = xs.idxOf x + s := getElem_zero_findIdxs_eq_findIdx_add h
 
 @[simp]
-theorem getElem_zero_idxsOf_eq_idxOf (h : 0 < ((xs : List α).idxsOf x).length) :
+theorem getElem_zero_idxsOf_eq_idxOf [BEq α] (h : 0 < ((xs : List α).idxsOf x).length) :
     (xs.idxsOf x)[0] = xs.idxOf x := getElem_zero_idxsOf_eq_idxOf_add h
 
 @[grind =>]
-theorem idxOf_add_mem_idxsOf (s : Nat)
-    (h : (xs : List α).idxOf x < xs.length) : xs.idxOf x + s ∈ xs.idxsOf x s :=
-  findIdx_add_mem_findIdxs s h
+theorem idxOf_add_mem_idxsOf [BEq α] (s : Nat) (h : (xs : List α).idxOf x < xs.length) :
+    xs.idxOf x + s ∈ xs.idxsOf x s := findIdx_add_mem_findIdxs s h
 
-theorem idxOf_mem_idxsOf {xs : List α} (h : xs.idxOf x < xs.length) :
+theorem idxOf_mem_idxsOf [BEq α] (h : (xs : List α).idxOf x < xs.length) :
     xs.idxOf x ∈ xs.idxsOf x := idxOf_add_mem_idxsOf 0 h
-
-end section
 
 /-! ### insertP -/
 
