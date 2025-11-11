@@ -12,6 +12,17 @@ public import Batteries.Data.List.Basic
 
 namespace List
 
+/-! ### count -/
+theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
+    {i : Nat} {hi} : (xs.take (i + 1)).count xs[i] = (xs.take i).count xs[i] + 1 := by
+  grind [take_append_getElem]
+
+@[grind =>]
+theorem count_getElem_take_lt_count [BEq α] [EquivBEq α] {xs : List α}
+    {i : Nat} {hi} : (xs.take i).count (xs[i]'hi) < xs.count xs[i] :=
+  Nat.lt_of_succ_le (Nat.le_trans (Nat.le_of_eq count_getElem_take_succ.symm) <|
+    (take_sublist _ _).count_le _)
+
 /-! ### zip -/
 
 attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
@@ -898,26 +909,24 @@ theorem idxOfNth_le_length [BEq α] {xs : List α} :
 
 /-! ### countPBefore -/
 
-@[simp, grind =] theorem countPBefore_cons_zero {a : α} (ha : p (a :: xs)[0]):
-    (a :: xs).countPBefore p 0 _ ha = 0 := rfl
+@[simp, grind =] theorem countPBefore_nil : ([] : List α).countPBefore p n = 0 := rfl
 
-@[simp, grind =] theorem countPBefore_cons_succ {a : α} {i : Nat} :
-    {_hi : i + 1 < (a :: xs).length} → (hip : p (a :: xs)[i + 1]) →
-    (a :: xs).countPBefore p (i + 1) _hi hip = xs.countPBefore p i _ hip + if p a then 1 else 0 := by
-  have H i hi hip s : countPBefore.go (p : α → Bool) xs i hi hip s =
-      (xs : List α).countPBefore p i hi hip + s := by
-    induction xs generalizing i s with | nil | cons a xs IH <;> cases i <;>
-    grind [countPBefore, countPBefore.go, cases Nat]
-  induction xs <;> grind [countPBefore, countPBefore.go]
+@[simp, grind =] theorem countPBefore_cons_zero {a : α} :
+    (a :: xs).countPBefore p 0 = 0 := rfl
 
-@[simp, grind =] theorem countPBefore_zero {p : α → Bool} {hxs : 0 < xs.length} (hxsp : p xs[0]) :
-    (xs : List α).countPBefore p 0 hxsp = 0 := by
-  cases xs <;> grind [countPBefore]
+@[simp, grind =] theorem countPBefore_cons_succ {a : α} :
+    (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i + if p a then 1 else 0 := by
+  have H : ∀ i s, countPBefore.go (p : α → Bool) xs i s = (xs : List α).countPBefore p i + s := by
+    induction xs <;> grind [countPBefore, countPBefore.go, cases Nat]
+  induction xs generalizing i <;> grind [countPBefore, countPBefore.go]
+
+@[simp, grind =] theorem countPBefore_zero :
+    (xs : List α).countPBefore p 0 = 0 := by grind [cases List]
 
 @[grind =]
 theorem countPBefore_cons {a : α} :
     (a :: xs).countPBefore p i = xs.countPBefore p (i - 1) + if 0 < i ∧ p a then 1 else 0 := by
-  cases i <;> grind
+   grind [cases Nat, cases Bool]
 
 @[grind =]
 theorem countPBefore_cons_of_neg {a : α} (h : p a = false) :
@@ -927,7 +936,9 @@ theorem countPBefore_cons_succ_of_pos {a : α} (h : p a) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i + 1 := by grind
 
 theorem countPBefore_eq_countP_take : (xs : List α).countPBefore p i = (xs.take i).countP p := by
-  induction xs generalizing i <;> cases i <;> grind
+  induction xs generalizing i <;> cases i
+  · grind
+  · simp
 
 theorem countPBefore_le_countP {xs : List α} :
     xs.countPBefore p i ≤ xs.countP p := by

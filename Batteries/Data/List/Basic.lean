@@ -291,19 +291,18 @@ alias indexesOf := idxsOf
 def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
   xs.findIdxNth (· == a) n
 
-/-- `countPBefore p xs i hip`, given an index `i` at which `p xs[i]` is true, counts the
-number of `x` in `xs` before the `i`th index at which `p x` is true. -/
-def countPBefore (p : α → Bool) (xs : List α) (i : Nat) (hi : i < xs.length) (hip : p xs[i]) :
-    Nat := go xs i hi hip where
-  @[specialize] go : (xs : List α) → (i : Nat) → (hi : i < xs.length) →
-      (hip : p xs[i]) → (s : Nat := 0) → Nat
-  | a :: xs, 0, _ => fun _ s => s
-  | a :: xs, i + 1, _ => fun hip s => go xs i _ hip (bif p a then s + 1 else s)
+/-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `n`th index at
+which `p x` is true. -/
+def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i where
+  @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat := 0) → Nat
+  | [], _, s => s
+  | _ :: _, 0, s => s
+  | a :: xs, i + 1, s => go xs i (bif p a then s + 1 else s)
 
-/-- `countBefore x xs n`, given an index `i`, counts the number of `x` in `xs` before the `i`th index
-    for which `a == xs[i]` is true, assuming a reflexive `BEq` instance. -/
-def countBefore [BEq α] [ReflBEq α] (xs : List α) (i : Nat) (hi : i < xs.length) : Nat :=
-    xs.countPBefore (· == xs[i]) i hi BEq.rfl
+/-- `countBefore x xs n` counts the number of `x` in `xs` before the
+    `n`th index for which `x == a` is true. -/
+def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
+    countPBefore (· == a)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
