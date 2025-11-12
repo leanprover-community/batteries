@@ -619,7 +619,7 @@ theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
 theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
-/-! ### indexOf and indexesOf -/
+/-! ### idxOf and idxsOf -/
 
 theorem foldrIdx_start :
     (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
@@ -639,22 +639,22 @@ theorem findIdxs_cons :
   dsimp [findIdxs]
   rw [cond_eq_ite]
   split <;>
-  · simp only [foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+  · simp [foldrIdx_start, Nat.add_zero, true_and]
     apply findIdxs_cons_aux
 
-@[simp, grind =] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+@[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x = [] := rfl
 
 @[grind =]
-theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
-    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
-  simp [indexesOf, findIdxs_cons]
+theorem idxsOf_cons [BEq α] : (x :: xs : List α).idxsOf y =
+    bif x == y then 0 :: (xs.idxsOf y).map (· + 1) else (xs.idxsOf y).map (· + 1) := by
+  simp [idxsOf, findIdxs_cons]
 
 @[simp] theorem eraseIdx_idxOf_eq_erase [BEq α] (a : α) (l : List α) :
     l.eraseIdx (l.idxOf a) = l.erase a := by
   induction l with grind
 
-theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
-    xs.idxOf x ∈ xs.indexesOf x := by
+theorem idxOf_mem_idxsOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.idxOf x ∈ xs.idxsOf x := by
   induction xs with grind
 
 theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :
