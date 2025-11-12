@@ -3,6 +3,9 @@ Copyright (c) 2023 F. G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace Array
 
@@ -55,7 +58,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
     rw [Array.getElem_push]
     split
     · exact t.valid ..
-    · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
+    · next h => exact Nat.le_trans (Nat.lt_succ_iff.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
 
 /-- Make prefix table from a pattern array -/
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α := xs.foldl (·.extend) default
@@ -111,7 +114,8 @@ protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n 
   /-- Matcher state. -/
   state : Fin (m.table.size + 1) := 0
 
-private def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
+/-- Implementation datail for `Matcher.Iterator`. -/
+def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
     (it : IterM (α := m.Iterator σ n α) n σ) :
     it.internalState.inner.Step (α := σ) → IterStep (IterM (α := m.Iterator σ n α) n σ) σ
   | .done _ => .done

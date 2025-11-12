@@ -3,6 +3,9 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+module
+
+@[expose] public section
 
 namespace Nat
 
@@ -108,3 +111,6 @@ Construct a natural number from a sequence of bits using little endian conventio
 -/
 @[inline] def ofBits (f : Fin n → Bool) : Nat :=
   Fin.foldr n (fun i v => 2 * v + (f i).toNat) 0
+
+-- Forward port of lean4#10739
+instance {n : Nat} : NeZero (n^0) := ⟨Nat.one_ne_zero⟩

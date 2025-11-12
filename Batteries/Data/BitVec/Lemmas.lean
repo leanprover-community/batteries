@@ -3,11 +3,15 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.BitVec.Basic
-import Batteries.Data.Fin.OfBits
-import Batteries.Data.Nat.Lemmas
-import Batteries.Data.Int
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.BitVec.Basic
+public import Batteries.Data.Fin.OfBits
+public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Int
+
+@[expose] public section
 
 namespace BitVec
 
