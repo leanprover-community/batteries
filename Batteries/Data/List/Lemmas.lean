@@ -333,20 +333,6 @@ theorem take_partialSums (l : List Nat) (i : Nat) :
     l.partialSums.take (i + 1) = (l.take i).partialSums := by
   simp [partialSums, take_scanl]
 
-/-! ### findIdx -/
-
-@[simp]
-theorem lt_findIdx_iff (xs : List α) (p : α → Bool) (i : Nat) :
-    i < xs.findIdx p ↔ ∃ h : i < xs.length, ∀ j, (hj : j ≤ i) → p xs[j] = false :=
-  ⟨fun h => ⟨by have := findIdx_le_length (xs := xs) (p := p); grind,
-    fun j hj => by apply not_of_lt_findIdx; grind⟩,
-    fun ⟨h, w⟩ => by apply lt_findIdx_of_not h; simpa using w⟩
-
-@[simp]
-theorem findIdx_map (xs : List α) (f : α → β) (p : β → Bool) :
-    (xs.map f).findIdx p = xs.findIdx (p ∘ f) := by
-  induction xs with simp_all [findIdx_cons]
-
 /-! ### flatten -/
 
 theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
