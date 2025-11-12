@@ -104,7 +104,7 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
   let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
   let ctx := { fileName := "", fileMap := default }
   let state := { env }
-  Prod.fst <$> (CoreM.toIO · ctx state) do withExporting do
+  Prod.fst <$> (CoreM.toIO · ctx state) do
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
     let results ← lintCore decls linters
