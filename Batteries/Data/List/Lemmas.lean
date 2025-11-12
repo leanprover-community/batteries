@@ -8,7 +8,6 @@ module
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
 public import Batteries.Tactic.Alias
-meta import Batteries.Tactic.Init
 
 @[expose] public section
 
@@ -237,6 +236,14 @@ theorem pair_mem_product {xs : List α} {ys : List β} {x : α} {y : β} :
     (x, y) ∈ product xs ys ↔ x ∈ xs ∧ y ∈ ys := by
   simp only [product, mem_map, Prod.mk.injEq,
     exists_eq_right_right, mem_flatMap, iff_self]
+
+/-! ### monadic operations -/
+
+theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
+    (f : α → β → m (ForInStep β)) (l : List α) (init : β) :
+    forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
+  induction l generalizing init <;> simp [*]
+  congr; ext (b | b) <;> simp
 
 /-! ### diff -/
 
