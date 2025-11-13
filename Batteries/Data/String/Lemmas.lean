@@ -566,7 +566,7 @@ theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten :=
 theorem data_join (ss : List String) : (join ss).toList = (ss.map toList).flatten :=
   toList_join ss
 
-namespace Iterator
+namespace Legacy.Iterator
 
 @[simp] theorem forward_eq_nextn : forward = nextn := by
   funext it n; induction n generalizing it <;> simp [forward, nextn, *]
@@ -750,7 +750,7 @@ theorem setCurr : ∀ {it}, Valid it → Valid (it.setCurr c)
     let ⟨l, r, h⟩ := h.validFor
     exact h.setCurr'.valid
 
-theorem toEnd (it : String.Iterator) : Valid it.toEnd := (ValidFor.toEnd' _).valid
+theorem toEnd (it : String.Legacy.Iterator) : Valid it.toEnd := (ValidFor.toEnd' _).valid
 
 theorem remainingToString {it} (h : ValidFor l r it) :
     it.remainingToString = String.ofList r := by
@@ -763,7 +763,7 @@ theorem prevn (h : Valid it) : ∀ n, Valid (it.prevn n)
   | n+1 => h.prev.prevn n
 
 end Valid
-end Iterator
+end Legacy.Iterator
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
@@ -945,9 +945,9 @@ theorem isEmpty : ∀ {s}, ValidFor l m r s → (s.isEmpty ↔ m = [])
 theorem toString : ∀ {s}, ValidFor l m r s → s.toString = String.ofList m
   | _, ⟨⟩ => extract_of_valid l m r
 
-theorem toIterator : ∀ {s}, ValidFor l m r s → s.toIterator.ValidFor l.reverse (m ++ r)
+theorem toIterator : ∀ {s}, ValidFor l m r s → s.toLegacyIterator.ValidFor l.reverse (m ++ r)
   | _, h => by
-    simp only [Substring.toIterator]
+    simp only [Substring.toLegacyIterator]
     exact .of_eq _ (by simp [h.str, List.reverseAux_eq]) (by simp [h.startPos])
 
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
