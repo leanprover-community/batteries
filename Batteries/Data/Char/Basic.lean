@@ -9,11 +9,6 @@ public import Batteries.Classes.Order
 
 @[expose] public section
 
--- Forward port of lean4#9515
-@[grind ←]
-theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
-  simp [finRange]
-
 namespace Char
 
 theorem le_antisymm_iff {x y : Char} : x = y ↔ x ≤ y ∧ y ≤ x :=

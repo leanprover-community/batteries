@@ -5,6 +5,7 @@ Authors: Leonardo de Moura
 -/
 
 module
+import Batteries.Tactic.Alias
 
 @[expose] public section
 
@@ -242,16 +243,22 @@ also receives each element's index.
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
 
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
+
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
