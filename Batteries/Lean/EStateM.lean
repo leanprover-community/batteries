@@ -3,6 +3,10 @@ Copyright (c) 2024 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
+module
+import all Init.Control.EState
+
+@[expose] public section
 
 namespace EStateM
 
@@ -66,14 +70,14 @@ theorem run_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ) 
     (f <*> x).run s = match f.run s with
     | .ok g s => Result.map g (x.run s)
     | .error e s => .error e s := by
-  simp only [seq_eq_bind, run_bind, run_map]
+  simp only [seq_eq_bind_map, run_bind, run_map]
   cases f.run s <;> rfl
 
 theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ) :
     (f <*> x).run' s = match f.run s with
     | .ok g s => Option.map g (x.run' s)
     | .error _ _ => none := by
-  simp only [seq_eq_bind, run'_bind, run'_map]
+  simp only [seq_eq_bind_map, run'_bind, run'_map]
   cases f.run s <;> rfl
 
 @[simp] theorem run_seqLeft (x : EStateM ε σ α) (y : EStateM ε σ β) (s : σ) :
@@ -205,10 +209,10 @@ theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ)
 
 @[simp] theorem run_fromStateM (x : StateM σ α) (s : σ) :
     (fromStateM x : EStateM ε σ α).run s =
-    Result.ok (x.run s).1 (x.run s).2 := rfl
+    Result.ok (x.run s).1 (x.run s).2 := (rfl)
 
 @[simp] theorem run'_fromStateM (x : StateM σ α) (s : σ) :
-    (fromStateM x : EStateM ε σ α).run' s = some (x.run' s) := rfl
+    (fromStateM x : EStateM ε σ α).run' s = some (x.run' s) := (rfl)
 
 @[ext] theorem ext {ε σ α} {x y : EStateM ε σ α} (h : ∀ s, x.run s = y.run s) : x = y := by
   funext s
