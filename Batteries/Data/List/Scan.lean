@@ -6,6 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 module
 
 public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
@@ -209,3 +210,42 @@ theorem scanr_reverse {f : α → β → β} (b : β) (l : List α) :
   induction l generalizing b
   case nil => rfl
   case cons head tail ih => simp [scanr_append, ih]; rfl
+
+/-! ### partialSums/partialProd -/
+
+@[simp, grind =]
+theorem length_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.length = l.length + 1 := by
+  simp [partialSums]
+
+@[simp, grind =]
+theorem partialSums_nil [Add α] [Zero α] : ([] : List α).partialSums = [0] := rfl
+
+theorem partialSums_cons [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    (a :: l).partialSums = 0 :: l.partialSums.map (a + ·) := by
+  simp only [partialSums, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
+  induction l generalizing a with
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a + b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
+
+@[simp, grind =]
+theorem getElem_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} (h : i < l.partialSums.length) :
+    l.partialSums[i] = (l.take i).sum := by
+  simp [partialSums, sum_eq_foldl]
+
+@[simp, grind =]
+theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} (h : i < l.partialSums.length) :
+    l.partialSums[i]? = if i ≤ l.length then some (l.take i).sum else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.take (i+1) = (l.take i).partialSums := by
+  simp [partialSums, take_scanl]
