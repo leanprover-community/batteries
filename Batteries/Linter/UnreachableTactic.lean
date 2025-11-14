@@ -49,6 +49,7 @@ initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
     |>.insert ``Lean.Parser.Tactic.tacticStop_
     |>.insert ``Lean.Parser.Command.notation
     |>.insert ``Lean.Parser.Command.mixfix
+    |>.insert ``Lean.Parser.Command.registerTryTactic
     |>.insert ``Lean.Parser.Tactic.discharger
 
 /-- Is this a syntax kind that contains intentionally unevaluated tactic subterms? -/
