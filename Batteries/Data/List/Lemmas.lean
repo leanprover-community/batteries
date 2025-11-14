@@ -3,9 +3,13 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import Batteries.Control.ForInStep.Lemmas
-import Batteries.Data.List.Basic
-import Batteries.Tactic.Alias
+module
+
+public import Batteries.Control.ForInStep.Lemmas
+public import Batteries.Data.List.Basic
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace List
 
@@ -334,15 +338,14 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 
 attribute [simp, grind ←] Pairwise.nil
 
-protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
+@[grind →] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
   induction p with
   | nil => grind
   | cons _ l => cases l with grind
 
-theorem pairwise_cons_cons :
+@[grind =] theorem pairwise_cons_cons :
     Pairwise R (a :: b :: l) ↔ R a b ∧ Pairwise R (a :: l) ∧ Pairwise R (b :: l) := by
-  simp only [pairwise_cons, mem_cons, forall_eq_or_imp]
-  exact ⟨fun h => ⟨h.1.1, ⟨h.1.2, h.2.2⟩, h.2⟩, fun h => ⟨⟨h.1, h.2.1.1⟩, h.2.2⟩⟩
+  grind [pairwise_cons]
 
 /-! ### IsChain -/
 
@@ -387,7 +390,7 @@ theorem Chain.imp' (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
 
-protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
+@[grind →] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     Pairwise R l := by
   induction c with
   | nil | singleton => grind
@@ -395,8 +398,7 @@ protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
     simp only [pairwise_cons, mem_cons, forall_eq_or_imp] at p ⊢
     exact ⟨⟨hr, fun _ ha => Trans.trans hr <| p.1 _ ha⟩, p⟩
 
-theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l :=
-  ⟨IsChain.pairwise, Pairwise.isChain⟩
+theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by grind
 
 theorem isChain_iff_getElem {l : List α} :
     IsChain R l ↔ ∀ (i : Nat) (_hi : i + 1 < l.length), R l[i] l[i + 1] := by
@@ -427,7 +429,7 @@ theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
 theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
-/-! ### indexOf and indexesOf -/
+/-! ### idxOf and idxsOf -/
 
 theorem foldrIdx_start :
     (xs : List α).foldrIdx f i s = (xs : List α).foldrIdx (fun i => f (i + s)) i := by
@@ -447,22 +449,22 @@ theorem findIdxs_cons :
   dsimp [findIdxs]
   rw [cond_eq_if]
   split <;>
-  · simp only [foldrIdx_start, Nat.add_zero, cons.injEq, true_and]
+  · simp [foldrIdx_start, Nat.add_zero, true_and]
     apply findIdxs_cons_aux
 
-@[simp, grind =] theorem indexesOf_nil [BEq α] : ([] : List α).indexesOf x = [] := rfl
+@[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x = [] := rfl
 
 @[grind =]
-theorem indexesOf_cons [BEq α] : (x :: xs : List α).indexesOf y =
-    bif x == y then 0 :: (xs.indexesOf y).map (· + 1) else (xs.indexesOf y).map (· + 1) := by
-  simp [indexesOf, findIdxs_cons]
+theorem idxsOf_cons [BEq α] : (x :: xs : List α).idxsOf y =
+    bif x == y then 0 :: (xs.idxsOf y).map (· + 1) else (xs.idxsOf y).map (· + 1) := by
+  simp [idxsOf, findIdxs_cons]
 
 @[simp] theorem eraseIdx_idxOf_eq_erase [BEq α] (a : α) (l : List α) :
     l.eraseIdx (l.idxOf a) = l.erase a := by
   induction l with grind
 
-theorem idxOf_mem_indexesOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
-    xs.idxOf x ∈ xs.indexesOf x := by
+theorem idxOf_mem_idxsOf [BEq α] [LawfulBEq α] {xs : List α} (m : x ∈ xs) :
+    xs.idxOf x ∈ xs.idxsOf x := by
   induction xs with grind
 
 theorem idxOf_eq_idxOf? [BEq α] (a : α) (l : List α) :

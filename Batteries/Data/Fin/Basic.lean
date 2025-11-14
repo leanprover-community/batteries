@@ -3,7 +3,11 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quang Dao
 -/
-import Batteries.Data.Nat.Lemmas
+module
+
+public import Batteries.Data.Nat.Lemmas
+
+@[expose] public section
 
 namespace Fin
 
@@ -92,11 +96,26 @@ element is found. The function `f` is not evaluated on further inputs after the 
   foldl n (fun r i => r <|> f i) none
 
 /--
+`findSomeRev? f` returns `f i` for the last `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
+  findSome? (f ·.rev)
+
+
+/--
 `find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
-@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
-  findSome? <| Option.guard fun i => p i
+@[inline] abbrev find? (p : Fin n → Bool) : Option (Fin n) :=
+  findSome? <| Option.guard p
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] abbrev findRev? (p : Fin n → Bool) : Option (Fin n) :=
+  findSomeRev? <| Option.guard p
 
 /-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
 def divNat (i : Fin (m * n)) : Fin m :=

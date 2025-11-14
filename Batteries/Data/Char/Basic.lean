@@ -3,10 +3,14 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, François G. Dorais
 -/
-import Batteries.Classes.Order
+module
 
--- Forward port of lean4#9515
-@[grind]
+public import Batteries.Classes.Order
+
+@[expose] public section
+
+-- Forward port of https://github.com/leanprover/lean4/pull/9515
+@[simp, grind ←]
 theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
   simp [finRange]
 
@@ -53,12 +57,12 @@ Number of valid character code points.
 -/
 protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
 
-@[grind] theorem toNat_le_max (c : Char) : c.toNat ≤ Char.max := by
+@[grind .] theorem toNat_le_max (c : Char) : c.toNat ≤ Char.max := by
   match c.valid with
   | .inl h => simp only [toNat_val] at h; grind
   | .inr ⟨_, h⟩ => simp only [toNat_val] at h; grind
 
-@[grind] theorem toNat_not_surrogate (c : Char) :
+@[grind .] theorem toNat_not_surrogate (c : Char) :
     ¬(Char.minSurrogate ≤ c.toNat ∧ c.toNat ≤ Char.maxSurrogate) := by
   match c.valid with
   | .inl h => simp only [toNat_val] at h; grind
