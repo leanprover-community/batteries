@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Elab.Command
 public meta import Lean.Parser.Syntax
+public meta import Init.Try
 public meta import Batteries.Tactic.Unreachable
 public meta import Lean.Linter.Basic
 
