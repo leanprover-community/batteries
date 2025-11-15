@@ -1090,7 +1090,7 @@ def partialSums [Add α] [Zero α] (l : List α) : List α :=
   l.scanl (· + ·) 0
 
 /--
-Computes the partial sums of the elements of a list.
+Computes the partial products of the elements of a list.
 
 Examples:
 

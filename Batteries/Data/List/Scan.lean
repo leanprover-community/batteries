@@ -249,3 +249,40 @@ theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· 
 theorem take_partialSums [Add α] [Zero α] {l : List α} :
     l.partialSums.take (i+1) = (l.take i).partialSums := by
   simp [partialSums, take_scanl]
+
+@[simp, grind =]
+theorem length_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.length = l.length + 1 := by
+  simp [partialProds]
+
+@[simp, grind =]
+theorem partialProds_nil [Mul α] [One α] : ([] : List α).partialProds = [1] := rfl
+
+theorem partialProds_cons [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    (a :: l).partialProds = 1 :: l.partialProds.map (a * ·) := by
+  simp only [partialProds, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
+  induction l generalizing a with
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a * b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
+
+@[simp, grind =]
+theorem getElem_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} (h : i < l.partialProds.length) :
+    l.partialProds[i] = (l.take i).prod := by
+  simp [partialProds, prod_eq_foldl]
+
+@[simp, grind =]
+theorem getElem?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    l.partialProds[i]? = if i ≤ l.length then some (l.take i).prod else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.take (i+1) = (l.take i).partialProds := by
+  simp [partialProds, take_scanl]
