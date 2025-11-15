@@ -241,7 +241,7 @@ theorem getElem_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· +
 
 @[simp, grind =]
 theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
-    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} (h : i < l.partialSums.length) :
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
     l.partialSums[i]? = if i ≤ l.length then some (l.take i).sum else none := by
   split <;> grind
 
