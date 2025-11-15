@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Grind.Basic","Lean.Meta.Tactic.Grind.Intro","Lean.Elab.SyntheticMVars"],"instances":[],"name":"Lean.Elab.Tactic.Grind.Have"}

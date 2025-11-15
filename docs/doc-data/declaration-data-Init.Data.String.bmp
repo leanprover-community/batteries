@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Basic","Init.Data.String.Bootstrap","Init.Data.String.Decode","Init.Data.String.Extra","Init.Data.String.Lemmas","Init.Data.String.Repr","Init.Data.String.Bootstrap","Init.Data.String.Slice","Init.Data.String.Pattern","Init.Data.String.Stream"],"instances":[],"name":"Init.Data.String"}

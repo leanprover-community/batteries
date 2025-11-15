@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Grind.Basic","Init.Grind.Interactive","Lean.Meta.Tactic.TryThis","Lean.Meta.Tactic.Grind.Action","Lean.Meta.Tactic.Grind.EMatchAction","Lean.Meta.Tactic.Grind.Split"],"instances":[],"name":"Lean.Elab.Tactic.Grind.Trace"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.PrettyPrinter.Delaborator.Options","Lean.PrettyPrinter.Delaborator.SubExpr","Lean.PrettyPrinter.Delaborator.TopDownAnalyze","Lean.PrettyPrinter.Delaborator.Basic","Lean.PrettyPrinter.Delaborator.Builtins"],"instances":[],"name":"Lean.PrettyPrinter.Delaborator"}

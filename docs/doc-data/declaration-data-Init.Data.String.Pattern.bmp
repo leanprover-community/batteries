@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Pattern.Basic","Init.Data.String.Pattern.Char","Init.Data.String.Pattern.String","Init.Data.String.Pattern.Pred"],"instances":[],"name":"Init.Data.String.Pattern"}
