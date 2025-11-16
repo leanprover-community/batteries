@@ -290,7 +290,7 @@ theorem partialProds_append [Mul α] [One α] [Std.Associative (α := α) (· * 
   induction l₁ generalizing l₂ with
   | nil => cases l₂ <;> simp [partialProds, Std.LawfulLeftIdentity.left_id]
   | cons _ _ ih =>
-    simp only [cons_append, partialProds_cons, ih, map_tail, map_append, map_map, sum_cons,
+    simp only [cons_append, partialProds_cons, ih, map_tail, map_append, map_map, prod_cons,
       cons.injEq, append_cancel_left_eq, true_and]
     congr 2; funext; simp [Std.Associative.assoc]
 
