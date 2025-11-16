@@ -218,6 +218,10 @@ theorem length_partialSums [Add α] [Zero α] {l : List α} :
     l.partialSums.length = l.length + 1 := by
   simp [partialSums]
 
+@[simp]
+theorem partialSums_ne_nil [Add α] [Zero α] {l : List α} :
+    l.partialSums ≠ [] := by simp [ne_nil_iff_length_pos]
+
 @[simp, grind =]
 theorem partialSums_nil [Add α] [Zero α] : ([] : List α).partialSums = [0] := rfl
 
@@ -232,6 +236,16 @@ theorem partialSums_cons [Add α] [Zero α] [Std.Associative (α := α) (· + ·
     simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
     rw [ih (a := b), ih (a := a + b), map_map]
     congr; funext; simp [Std.Associative.assoc]
+
+theorem partialSums_append [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialSums = l₁.partialSums ++ l₂.partialSums.tail.map (l₁.sum + · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialSums, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialSums_cons, ih, map_tail, map_append, map_map, sum_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
 
 @[simp, grind =]
 theorem getElem_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
@@ -269,6 +283,16 @@ theorem partialProds_cons [Mul α] [One α] [Std.Associative (α := α) (· * ·
     simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
     rw [ih (a := b), ih (a := a * b), map_map]
     congr; funext; simp [Std.Associative.assoc]
+
+theorem partialProds_append [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialProds = l₁.partialProds ++ l₂.partialProds.tail.map (l₁.prod * · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialProds, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialProds_cons, ih, map_tail, map_append, map_map, sum_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
 
 @[simp, grind =]
 theorem getElem_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
