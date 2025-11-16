@@ -19,9 +19,9 @@ where
   /-- Auxiliary definition for `merge`. -/
   go (acc : Array α) (i j : Nat) : Array α :=
     if hi : i ≥ xs.size then
-      acc ++ ys[j:]
+      acc ++ ys[j...*].copy
     else if hj : j ≥ ys.size then
-      acc ++ xs[i:]
+      acc ++ xs[i...*].copy
     else
       let x := xs[i]
       let y := ys[j]
@@ -42,9 +42,9 @@ where
   /-- Auxiliary definition for `mergeDedupWith`. -/
   go (acc : Array α) (i j : Nat) : Array α :=
     if hi : i ≥ xs.size then
-      acc ++ ys[j:]
+      acc ++ ys[j...*].copy
     else if hj : j ≥ ys.size then
-      acc ++ xs[i:]
+      acc ++ xs[i...*].copy
     else
       let x := xs[i]
       let y := ys[j]

@@ -224,7 +224,7 @@ def removeAfterDoneAction : TacticCodeAction := fun _ _ _ stk node => do
   unless info.goalsBefore.isEmpty do return #[]
   let _ :: (seq, i) :: _ := stk | return #[]
   let some stop := seq.getTailPos? | return #[]
-  let some prev := (seq.setArgs seq.getArgs[:i]).getTailPos? | return #[]
+  let some prev := (seq.setArgs seq.getArgs[:i].copy).getTailPos? | return #[]
   let doc ← readDoc
   let eager := {
     title := "Remove tactics after 'no goals'"
@@ -414,7 +414,7 @@ def addSubgoalsActionCore (params : Lsp.CodeActionParams)
         let some range2 := tac.getRange? true | return eager
         range := range2
       else
-        let trimmed := seq.modifyArgs (·[:2*i])
+        let trimmed := seq.modifyArgs (·[*...(2*i)].copy)
         let some tail := trimmed.getTailPos? true | return eager
         (range, newText) := (⟨tail, tail⟩, indent)
         let cursor := doc.meta.text.lspPosToUtf8Pos params.range.end
