@@ -236,8 +236,7 @@ also receives each element's index.
 
 /-- A tail-recursive version of `foldrIdx`. -/
 @[inline] def foldrIdxTR (f : Nat → α → β → β) (init : β) (l : List α) (start : Nat := 0) : β :=
-  let as := l.toArray
-  (as.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + as.size)).1
+  l.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + l.length) |>.1
 
 @[csimp] theorem foldrIdx_eq_foldrIdxTR : @foldrIdx = @foldrIdxTR := by
   funext _ _ f
