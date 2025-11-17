@@ -16,6 +16,11 @@ namespace List
 
 attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
 
+/-! ### zipIdx -/
+
+attribute [grind =] zipIdx_nil zipIdx_cons
+
+
 /-! ### toArray-/
 
 @[deprecated List.getElem_toArray (since := "2025-09-11")]
@@ -449,6 +454,10 @@ theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
 theorem foldrIdx_const : (xs : List α).foldrIdx (Function.const Nat f) i s = xs.foldr f i := by
   induction xs <;> grind
 
+theorem foldrIdx_eq_foldr_zipIdx : (xs : List α).foldrIdx f i s =
+    (xs.zipIdx s).foldr (fun ab => f ab.2 ab.1) i := by
+  induction xs generalizing s <;> grind
+
 /-! ### foldlIdx -/
 
 @[simp, grind =] theorem foldlIdx_nil : ([] : List α).foldlIdx f i s = i := rfl
@@ -461,6 +470,10 @@ theorem foldlIdx_start :
   induction xs generalizing f i s <;> grind [Function.comp_def]
 
 theorem foldlIdx_const : (xs : List α).foldlIdx (Function.const Nat f) i s = xs.foldl f i := by
+  induction xs generalizing i s <;> grind
+
+theorem foldlIdx_eq_foldl_zipIdx : (xs : List α).foldlIdx f i s =
+    (xs.zipIdx s).foldl (fun b ab => f ab.2 b ab.1) i := by
   induction xs generalizing i s <;> grind
 
 /-! ### findIdxs -/
@@ -478,6 +491,10 @@ theorem findIdxs_singleton :
 theorem findIdxs_start :
     (xs : List α).findIdxs p s = (xs.findIdxs p).map (· + s) := by
   induction xs generalizing s <;> grind [map_inj_left]
+
+theorem findIdxs_eq_filterMap_zipIdx : (xs : List α).findIdxs p s =
+    ((xs.zipIdx s).filterMap fun ab => bif p ab.1 then ab.2 else none) := by
+  induction xs generalizing s <;> grind
 
 @[simp, grind =]
 theorem mem_findIdxs_iff_getElem_sub_pos :
@@ -618,6 +635,10 @@ theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs
 
 theorem idxsOf_start [BEq α] :
     (xs : List α).idxsOf x s = (xs.idxsOf x).map (· + s) := findIdxs_start
+
+theorem idxsOf_eq_filterMap_zipIdx [BEq α] : (xs : List α).idxsOf x s =
+    ((xs.zipIdx s).filterMap fun ab => bif ab.1 == x then ab.2 else none) :=
+  findIdxs_eq_filterMap_zipIdx
 
 @[simp, grind =]
 theorem mem_idxsOf_iff_getElem_sub_pos [BEq α] :
