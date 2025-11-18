@@ -56,6 +56,3 @@ def ofBits (f : Fin n → Bool) :=
 theorem testBit_ofBits (f : Fin n → Bool) :
     (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else decide (ofBits f < 0) := by
   split <;> simp_all
-
--- Forward port of lean4#10739
-instance {n : Int} : NeZero (n^0) := ⟨by simp⟩
