@@ -545,10 +545,14 @@ theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map 
 
 -- TODO: splitOn
 
-@[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
+@[simp] theorem toString_toRawSubstring (s : String) : s.toRawSubstring.toString = s :=
   extract_zero_rawEndPos _
 
-attribute [simp] toSubstring'
+@[deprecated toString_toRawSubstring (since := "2025-11-18")]
+theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
+  toString_toRawSubstring s
+
+attribute [simp] toRawSubstring'
 
 theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten := by
   suffices ∀ (ss : List String) t, ss.foldl (· ++ ·) t =
