@@ -22,7 +22,7 @@ namespace Batteries.UnionFind
     parentD (arr.push ⟨arr.size, 0⟩) a = parentD arr a := by
   simp [parentD]; split <;> split <;> try simp [Array.getElem_push, *]
   · next h1 h2 =>
-    simp [Nat.lt_succ] at h1 h2
+    simp [Nat.lt_succ_iff] at h1 h2
     exact Nat.le_antisymm h2 h1
   · next h1 h2 => cases h1 (Nat.lt_succ_of_lt h2)
 

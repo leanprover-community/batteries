@@ -447,7 +447,7 @@ theorem findIdxs_cons :
     (x :: xs : List α).findIdxs p =
       bif p x then 0 :: (xs.findIdxs p).map (· + 1) else (xs.findIdxs p).map (· + 1) := by
   dsimp [findIdxs]
-  rw [cond_eq_if]
+  rw [cond_eq_ite]
   split <;>
   · simp [foldrIdx_start, Nat.add_zero, true_and]
     apply findIdxs_cons_aux

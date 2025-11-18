@@ -58,4 +58,4 @@ theorem testBit_ofBits (f : Fin n → Bool) :
   split <;> simp_all
 
 -- Forward port of lean4#10739
-instance {n : Int} : NeZero (n^0) := ⟨Int.one_ne_zero⟩
+instance {n : Int} : NeZero (n^0) := ⟨by simp⟩

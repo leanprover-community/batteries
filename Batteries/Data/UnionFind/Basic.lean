@@ -145,7 +145,7 @@ theorem rank'_lt_rankMax (self : UnionFind) (i : Nat) (h) : (self.arr[i]).rank <
     | a::l, _, List.Mem.head _ => by dsimp; apply Nat.le_max_left
     | a::l, _, .tail _ h => by dsimp; exact Nat.le_trans (go h) (Nat.le_max_right ..)
   simp only [rankMax, ← Array.foldr_toList]
-  exact Nat.lt_succ.2 <| go (self.arr.toList.getElem_mem _)
+  exact Nat.lt_succ_iff.2 <| go (self.arr.toList.getElem_mem _)
 
 theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
     rankD self.arr i < self.rankMax := by

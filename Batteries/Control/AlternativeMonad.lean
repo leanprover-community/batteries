@@ -104,7 +104,7 @@ section AlternativeMonad
 
 @[simp] theorem seq_failure [AlternativeMonad m] [LawfulAlternative m] [LawfulMonad m]
     (x : m (α → β)) : x <*> failure = x *> failure := by
-  simp only [seq_eq_bind, map_failure, seqRight_eq, bind_map_left]
+  simp only [seq_eq_bind_map, map_failure, seqRight_eq, bind_map_left]
 
 end AlternativeMonad
 
