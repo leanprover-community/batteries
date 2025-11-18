@@ -13,7 +13,7 @@ open Lean Lean.Meta
 
 namespace Lean.Name
 
-private def parseIndexSuffix (s : Substring) : Option Nat :=
+private def parseIndexSuffix (s : Substring.Raw) : Option Nat :=
   if s.isEmpty then
     none
   else if s.front == '_' then
