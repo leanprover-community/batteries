@@ -956,7 +956,8 @@ theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m
 theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + c.utf8Size⟩
   | _, ⟨⟩ => by
-    simp only [Substring.Raw.next, utf8Len_append, utf8Len_cons, List.append_assoc, List.cons_append]
+    simp only [Substring.Raw.next, utf8Len_append, utf8Len_cons, List.append_assoc,
+      List.cons_append]
     rw [if_neg (mt Pos.Raw.ext_iff.1 ?a)]
     case a =>
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
