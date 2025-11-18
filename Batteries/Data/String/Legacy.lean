@@ -92,4 +92,70 @@ Examples:
 @[inline] def Legacy.map (f : Char → Char) (s : String) : String :=
   mapAux f 0 s
 
+/--
+Removes the specified number of characters (Unicode code points) from the start of the string.
+
+If `n` is greater than `s.length`, returns `""`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.drop`.
+
+Examples:
+ * `"red green blue".drop 4 = "green blue"`
+ * `"red green blue".drop 10 = "blue"`
+ * `"red green blue".drop 50 = ""`
+-/
+@[inline] def Legacy.drop (s : String) (n : Nat) : String :=
+  (s.toRawSubstring.drop n).toString
+
+/--
+Creates a new string that contains the first `n` characters (Unicode code points) of `s`.
+
+If `n` is greater than `s.length`, returns `s`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.take`.
+
+Examples:
+* `"red green blue".take 3 = "red"`
+* `"red green blue".take 1 = "r"`
+* `"red green blue".take 0 = ""`
+* `"red green blue".take 100 = "red green blue"`
+-/
+@[inline] def Legacy.take (s : String) (n : Nat) : String :=
+  (s.toRawSubstring.take n).toString
+
+/--
+Creates a new string that contains the longest prefix of `s` in which `p` returns `true` for all
+characters.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.takeWhile`.
+
+Examples:
+* `"red green blue".takeWhile (·.isLetter) = "red"`
+* `"red green blue".takeWhile (· == 'r') = "r"`
+* `"red green blue".takeWhile (· != 'n') = "red gree"`
+* `"red green blue".takeWhile (fun _ => true) = "red green blue"`
+-/
+@[inline] def Legacy.takeWhile (s : String) (p : Char → Bool) : String :=
+  (s.toRawSubstring.takeWhile p).toString
+
+/--
+Creates a new string by removing the longest prefix from `s` in which `p` returns `true` for all
+characters.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.takeWhile`.
+
+Examples:
+* `"red green blue".dropWhile (·.isLetter) = " green blue"`
+* `"red green blue".dropWhile (· == 'r') = "ed green blue"`
+* `"red green blue".dropWhile (· != 'n') = "n blue"`
+* `"red green blue".dropWhile (fun _ => true) = ""`
+-/
+@[inline] def Legacy.dropWhile (s : String) (p : Char → Bool) : String :=
+  (s.toRawSubstring.dropWhile p).toString
+
+
 end String

@@ -1239,32 +1239,34 @@ end Substring.Raw
 
 namespace String
 
-theorem drop_eq (s : String) (n : Nat) : s.drop n = ofList (s.toList.drop n) :=
+theorem drop_eq (s : String) (n : Nat) : Legacy.drop s n = ofList (s.toList.drop n) :=
   (s.validFor_toSubstring.drop n).toString
 
-@[simp] theorem toList_drop (s : String) (n : Nat) : (s.drop n).toList = s.toList.drop n := by
+@[simp] theorem toList_drop (s : String) (n : Nat) :
+    (Legacy.drop s n).toList = s.toList.drop n := by
   simp [drop_eq]
 
-@[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by simp [drop_eq, List.drop_nil]
+@[simp] theorem drop_empty {n : Nat} : Legacy.drop "" n = "" := by simp [drop_eq, List.drop_nil]
 
-theorem take_eq (s : String) (n : Nat) : s.take n = ofList (s.toList.take n) :=
+theorem take_eq (s : String) (n : Nat) : Legacy.take s n = ofList (s.toList.take n) :=
   (s.validFor_toSubstring.take n).toString
 
-@[simp] theorem toList_take (s : String) (n : Nat) : (s.take n).toList = s.toList.take n := by
+@[simp] theorem toList_take (s : String) (n : Nat) :
+    (Legacy.take s n).toList = s.toList.take n := by
   simp [take_eq]
 
 theorem takeWhile_eq (p : Char → Bool) (s : String) :
-    s.takeWhile p = ofList (s.toList.takeWhile p) :=
+    Legacy.takeWhile s p = ofList (s.toList.takeWhile p) :=
   (s.validFor_toSubstring.takeWhile p).toString
 
 @[simp] theorem toList_takeWhile (p : Char → Bool) (s : String) :
-    (s.takeWhile p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
+    (Legacy.takeWhile s p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
 
 theorem dropWhile_eq (p : Char → Bool) (s : String) :
-    s.dropWhile p = ofList (s.toList.dropWhile p) :=
+    Legacy.dropWhile s p = ofList (s.toList.dropWhile p) :=
   (s.validFor_toSubstring.dropWhile p).toString
 
 @[simp] theorem toList_dropWhile (p : Char → Bool) (s : String) :
-    (s.dropWhile p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
+    (Legacy.dropWhile s p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
 
 end String
