@@ -52,7 +52,8 @@ partial def Matcher.findAll (m : Matcher) (s : Substring.Raw) : Array Substring.
   loop s m.toMatcher #[]
 where
   /-- Accumulator loop for `String.Matcher.findAll` -/
-  loop (s : Substring.Raw) (am : Array.Matcher Char) (occs : Array Substring.Raw) : Array Substring.Raw :=
+  loop (s : Substring.Raw) (am : Array.Matcher Char) (occs : Array Substring.Raw) :
+      Array Substring.Raw :=
     match am.next? s with
     | none => occs
     | some (s, am) =>
