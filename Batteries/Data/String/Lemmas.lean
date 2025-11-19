@@ -545,7 +545,7 @@ theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map 
 
 -- TODO: splitOn
 
-@[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
+@[simp] theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
   extract_zero_rawEndPos _
 
 attribute [simp] toSubstring'
@@ -767,17 +767,19 @@ end Legacy.Iterator
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
-    offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
-  | l, [], r, n => by unfold offsetOfPosAux; simp
+    String.Pos.Raw.offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n =
+      n + m.length
+  | l, [], r, n => by unfold String.Pos.Raw.offsetOfPosAux; simp
   | l, c::m, r, n => by
-    unfold offsetOfPosAux
+    unfold String.Pos.Raw.offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
-theorem offsetOfPos_of_valid (l r) : offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
+theorem offsetOfPos_of_valid (l r) :
+    String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
