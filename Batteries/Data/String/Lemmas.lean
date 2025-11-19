@@ -545,7 +545,7 @@ theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map 
 
 -- TODO: splitOn
 
-@[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
+@[simp] theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
   extract_zero_rawEndPos _
 
 attribute [simp] toSubstring'
@@ -767,17 +767,19 @@ end Legacy.Iterator
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
-    offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
-  | l, [], r, n => by unfold offsetOfPosAux; simp
+    String.Pos.Raw.offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n =
+      n + m.length
+  | l, [], r, n => by unfold String.Pos.Raw.offsetOfPosAux; simp
   | l, c::m, r, n => by
-    unfold offsetOfPosAux
+    unfold String.Pos.Raw.offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
-theorem offsetOfPos_of_valid (l r) : offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
+theorem offsetOfPos_of_valid (l r) :
+    String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
@@ -1239,32 +1241,34 @@ end Substring.Raw
 
 namespace String
 
-theorem drop_eq (s : String) (n : Nat) : s.drop n = ofList (s.toList.drop n) :=
+theorem drop_eq (s : String) (n : Nat) : Legacy.drop s n = ofList (s.toList.drop n) :=
   (s.validFor_toSubstring.drop n).toString
 
-@[simp] theorem toList_drop (s : String) (n : Nat) : (s.drop n).toList = s.toList.drop n := by
+@[simp] theorem toList_drop (s : String) (n : Nat) :
+    (Legacy.drop s n).toList = s.toList.drop n := by
   simp [drop_eq]
 
-@[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by simp [drop_eq, List.drop_nil]
+@[simp] theorem drop_empty {n : Nat} : Legacy.drop "" n = "" := by simp [drop_eq, List.drop_nil]
 
-theorem take_eq (s : String) (n : Nat) : s.take n = ofList (s.toList.take n) :=
+theorem take_eq (s : String) (n : Nat) : Legacy.take s n = ofList (s.toList.take n) :=
   (s.validFor_toSubstring.take n).toString
 
-@[simp] theorem toList_take (s : String) (n : Nat) : (s.take n).toList = s.toList.take n := by
+@[simp] theorem toList_take (s : String) (n : Nat) :
+    (Legacy.take s n).toList = s.toList.take n := by
   simp [take_eq]
 
 theorem takeWhile_eq (p : Char → Bool) (s : String) :
-    s.takeWhile p = ofList (s.toList.takeWhile p) :=
+    Legacy.takeWhile s p = ofList (s.toList.takeWhile p) :=
   (s.validFor_toSubstring.takeWhile p).toString
 
 @[simp] theorem toList_takeWhile (p : Char → Bool) (s : String) :
-    (s.takeWhile p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
+    (Legacy.takeWhile s p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
 
 theorem dropWhile_eq (p : Char → Bool) (s : String) :
-    s.dropWhile p = ofList (s.toList.dropWhile p) :=
+    Legacy.dropWhile s p = ofList (s.toList.dropWhile p) :=
   (s.validFor_toSubstring.dropWhile p).toString
 
 @[simp] theorem toList_dropWhile (p : Char → Bool) (s : String) :
-    (s.dropWhile p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
+    (Legacy.dropWhile s p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
 
 end String
