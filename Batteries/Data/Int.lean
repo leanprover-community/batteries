@@ -3,8 +3,11 @@ Copyright (c) 2025 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
 
-import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Nat.Lemmas
+
+@[expose] public section
 
 namespace Int
 
@@ -53,3 +56,6 @@ def ofBits (f : Fin n → Bool) :=
 theorem testBit_ofBits (f : Fin n → Bool) :
     (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else decide (ofBits f < 0) := by
   split <;> simp_all
+
+-- Forward port of lean4#10739
+instance {n : Int} : NeZero (n^0) := ⟨by simp⟩

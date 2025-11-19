@@ -3,12 +3,9 @@ Copyright (c) 2024 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser
 -/
+module
 
-import Batteries.Data.Vector.Basic
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Lemmas
-import Batteries.Data.Array.Lemmas
-import Batteries.Tactic.Lint.Simp
+@[expose] public section
 
 namespace Vector
 

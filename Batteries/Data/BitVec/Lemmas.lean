@@ -3,11 +3,15 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
 
-import Batteries.Data.BitVec.Basic
-import Batteries.Data.Fin.OfBits
-import Batteries.Data.Nat.Lemmas
-import Batteries.Data.Int
+public import Batteries.Tactic.Alias
+public import Batteries.Data.BitVec.Basic
+public import Batteries.Data.Fin.OfBits
+public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Int
+
+@[expose] public section
 
 namespace BitVec
 
@@ -36,7 +40,7 @@ namespace BitVec
   simp only [BitVec.toInt, Int.ofBits, toNat_ofFnLE, Int.subNatNat_eq_coe]; rfl
 
 -- TODO: consider these for global `grind` attributes.
-attribute [local grind] Fin.succ Fin.rev Fin.last Fin.zero_eta
+attribute [local grind =] Fin.succ Fin.rev Fin.last Fin.zero_eta
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by

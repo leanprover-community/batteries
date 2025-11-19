@@ -3,7 +3,11 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.BinomialHeap.Basic
+module
+
+public import Batteries.Data.BinomialHeap.Basic
+
+@[expose] public section
 
 namespace Batteries.BinomialHeap
 namespace Imp
@@ -29,7 +33,7 @@ theorem Heap.WF.size_eq :
     ∀ {s : Heap α}, s.WF le n → s.size = s.realSize
   | .nil, _ => rfl
   | .cons .., ⟨_, h₁, h₂⟩ => by
-    simp [size, Nat.shiftLeft, size_eq h₂, Nat.pow_succ, Nat.mul_succ]
-    simp [Nat.add_assoc, Nat.one_shiftLeft, h₁.realSize_eq, h₂.size_eq]
+    simp [size, size_eq h₂]
+    simp [Nat.one_shiftLeft, h₁.realSize_eq]
 
 end Imp

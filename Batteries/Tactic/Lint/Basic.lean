@@ -3,9 +3,13 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Lean.Structure
-import Lean.Elab.InfoTree.Main
-import Lean.Elab.Exception
+module
+
+public meta import Lean.Structure
+public meta import Lean.Elab.InfoTree.Main
+public meta import Lean.Elab.Exception
+
+public meta section
 
 open Lean Meta
 
@@ -40,13 +44,13 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if let Name.str n s := decl then
     if (← isAutoDecl n) then return true
     if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
-    if env.isConstructor n && ["injEq", "inj", "sizeOf_spec"].any (· == s) then
+    if env.isConstructor n && s ∈ ["injEq", "inj", "sizeOf_spec", "elim", "noConfusion"] then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
       if s.startsWith "brecOn_" || s.startsWith "below_" then return true
-      if [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
-          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx"
-        ].any (· == s) then
+      if s ∈ [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
+          "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx", "ctorIdx",
+          "ctorElim", "ctorElimType"] then
         return true
       if let some _ := isSubobjectField? env n (.mkSimple s) then
         return true

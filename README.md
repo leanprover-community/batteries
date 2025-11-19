@@ -44,7 +44,7 @@ lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
+documentation you need to run an HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
@@ -75,12 +75,13 @@ Batteries PRs often affect Mathlib, a key component of the Lean ecosystem.
 When Batteries changes in a significant way, Mathlib must adapt promptly.
 When necessary, Batteries contributors are expected to either create an adaptation PR on Mathlib, or ask for assistance for and to collaborate with this necessary process.
 
-Every Batteries PR has an automatically created Mathlib branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+Every Batteries PR has an automatically created [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
 This is a clone of Mathlib where the Batteries requirement points to the Batteries PR branch instead of the main branch.
 Batteries uses this branch to check whether the Batteries PR needs Mathlib adaptations.
 A tag `builds-mathlib` will be issued when this branch needs no adaptation; a tag `breaks-mathlib` will be issued when the branch does need an adaptation.
 
 The first step in creating an adaptation PR is to switch to the `batteries-pr-testing-N` branch and push changes to that branch until the Mathlib CI process works.
+You may need to ask for write access to [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) to do that.
 Changes to the Batteries PR will be integrated automatically as you work on this process.
 Do not redirect the Batteries requirement to main until the Batteries PR is merged.
 Please ask questions to Batteries and Mathlib maintainers if you run into issues with this process.

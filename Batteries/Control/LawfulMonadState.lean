@@ -3,6 +3,10 @@ Copyright (c) 2025 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma, Quang Dao
 -/
+module
+import all Init.Control.StateRef
+
+@[expose] public section
 
 /-!
 # Laws for Monads with State
@@ -41,7 +45,7 @@ versions that are available at the top level namespace.
 Requires that `modifyGet` is equal to the same definition with only `get` and `set`,
 that `get` is idempotent if the result isn't used, and that `get` after `set` returns
 exactly the value that was previously `set`. -/
-class LawfulMonadStateOf (σ : Type _) (m : Type _ → Type _)
+class LawfulMonadStateOf (σ : semiOutParam (Type _)) (m : Type _ → Type _)
     [Monad m] [MonadStateOf σ m] extends LawfulMonad m where
   /-- `modifyGet f` is equal to getting the state, modifying it, and returning a result. -/
   modifyGet_eq {α} (f : σ → α × σ) :
@@ -85,7 +89,7 @@ theorem get_bind_get : (do let _ ← get (m := m); get) = get := get_bind_const 
 
 @[simp] theorem get_bind_map_set (f : σ → PUnit → α) :
     (do let s ← get (m := m); f s <$> set s) = (do return f (← get) PUnit.unit) := by
-  simp [map_eq_pure_bind, bind_assoc, -bind_pure_comp]
+  simp [map_eq_pure_bind, -bind_pure_comp]
 
 @[simp] theorem set_bind_get_bind (s : σ) (f : σ → m α) :
     (do set s; let s' ← get; f s') = (do set s; f s) := by
@@ -206,15 +210,15 @@ instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadSta
   modifyGet_eq f := ReaderT.ext fun ctx => by
     simp [← liftM_modifyGet, LawfulMonadStateOf.modifyGet_eq, ← liftM_get]
   get_bind_const mx := ReaderT.ext fun ctx => by
-    simp [← liftM_modifyGet, ← liftM_get]
+    simp [← liftM_get]
   get_bind_get_bind mx := ReaderT.ext fun ctx => by
-    simp [← liftM_modifyGet, ← liftM_get]
+    simp [← liftM_get]
   get_bind_set_bind mx := ReaderT.ext fun ctx => by
-    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
+    simp [← liftM_get, ← liftM_set]
   set_bind_get s := ReaderT.ext fun ctx => by
-    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
+    simp [← liftM_get, ← liftM_set]
   set_bind_set s s' := ReaderT.ext fun ctx => by
-    simp [← liftM_modifyGet, ← liftM_get, ← liftM_set]
+    simp [← liftM_set]
 
 instance {m ω σ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (StateRefT' ω σ m) :=
