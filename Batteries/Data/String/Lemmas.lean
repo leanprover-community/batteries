@@ -18,6 +18,7 @@ import all Init.Data.String.Extra  -- for unfolding `Substring.toIterator`
 import all Init.Data.String.TakeDrop  -- for unfolding `drop`
 import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
+import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
 @[expose] public section
 
@@ -515,8 +516,6 @@ theorem extract_of_valid (l m r : List Char) :
       Pos.Raw.extract.go₁_append_right _ _ _ _ _ (by rfl)]
     apply Pos.Raw.extract.go₂_append_left; apply Nat.add_comm
 
--- Commented out as failing on nightly-2025-11-20.
-/-
 theorem splitAux_of_valid (p l m r acc) :
     splitAux (ofList (l ++ m ++ r)) p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map ofList := by
@@ -544,7 +543,6 @@ theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList
 @[deprecated splitToList_of_valid (since := "2025-10-18")]
 theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList :=
   splitToList_of_valid s p
--/
 
 -- TODO: splitOn
 
