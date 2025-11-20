@@ -33,6 +33,8 @@ The main operations defined are:
   dropping some values. It runs in time `O(l₁.length + l₂.length)`.
 -/
 
+open Std
+
 namespace Batteries
 
 /-!
@@ -102,7 +104,7 @@ theorem ltHeadKey?_of_le [TransCmp cmp] (h : cmp x a ≠ .gt) (w : LTHeadKey? cm
   dsimp [LTHeadKey?]
   split
   · simp
-  · exact TransCmp.le_lt_trans h
+  · exact TransCmp.lt_of_le_of_lt h
 
 /--
 A relation on two `AssocList`s, asserting that the head key of the first list is at most
