@@ -1,3 +1,7 @@
-import Batteries.Data.String.Basic
-import Batteries.Data.String.Lemmas
-import Batteries.Data.String.Matcher
+module
+
+public import Batteries.Data.String.AsciiCasing
+public import Batteries.Data.String.Basic
+public import Batteries.Data.String.Legacy
+public import Batteries.Data.String.Lemmas
+public import Batteries.Data.String.Matcher

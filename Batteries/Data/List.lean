@@ -1,12 +1,12 @@
-import Batteries.Data.List.ArrayMap
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Count
-import Batteries.Data.List.EraseIdx
-import Batteries.Data.List.FinRange
-import Batteries.Data.List.Init.Lemmas
-import Batteries.Data.List.Lemmas
-import Batteries.Data.List.Matcher
-import Batteries.Data.List.Monadic
-import Batteries.Data.List.OfFn
-import Batteries.Data.List.Pairwise
-import Batteries.Data.List.Perm
+module
+
+public import Batteries.Data.List.ArrayMap
+public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Count
+public import Batteries.Data.List.Init.Lemmas
+public import Batteries.Data.List.Lemmas
+public import Batteries.Data.List.Matcher
+public import Batteries.Data.List.Monadic
+public import Batteries.Data.List.Pairwise
+public import Batteries.Data.List.Perm
+public import Batteries.Data.List.Scan

@@ -3,8 +3,11 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+module
 
-import Std.Data.HashSet
+public import Std.Data.HashSet.Basic
+
+@[expose] public section
 
 namespace Std.HashSet
 
@@ -32,13 +35,3 @@ def allM [Monad m] (s : HashSet α) (f : α → m Bool) : m Bool := do
 
 instance : BEq (HashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
-
-/--
-`O(1)` amortized. Similar to `insert`, but also returns a Boolean flag indicating whether an
-existing entry has been replaced with `a => b`.
--/
-@[inline, deprecated containsThenInsert (since := "2024-09-17")]
-def insert' (s : HashSet α) (a : α) : HashSet α × Bool :=
-  let oldSize := s.size
-  let s := s.insert a
-  (s, s.size == oldSize)

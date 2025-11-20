@@ -35,6 +35,12 @@ jobs:
           ref: master
           fetch-depth: 0
 
+      - name: Add nightly-testing remote
+        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+        run: |
+          git remote add nightly-testing https://github.com/leanprover-community/mathlib4-nightly-testing.git
+          git fetch nightly-testing
+
       - name: Install elan
         if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
         run: |
@@ -85,4 +91,4 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
         run: |
-          git push origin batteries-pr-testing-$PR_NUMBER
+          git push nightly-testing batteries-pr-testing-$PR_NUMBER

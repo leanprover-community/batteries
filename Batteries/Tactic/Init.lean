@@ -3,7 +3,11 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.ElabTerm
+module
+
+public meta import Lean.Elab.Tactic.ElabTerm
+
+public meta section
 
 /-!
 # Simple tactics that are used throughout Batteries.
@@ -42,15 +46,19 @@ macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic
     | none => Unhygienic.run `(_%$tk)
   `(tactic| first
     | guard_target = Not _; intro $e:term
-    | refine Decidable.byContradiction fun $e => ?_
-    | refine Classical.byContradiction fun $e => ?_)
+    | refine @Decidable.byContradiction _ _ fun $e => ?_
+    | refine @Classical.byContradiction _ fun $e => ?_)
 
 /--
 Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
 If `p` is a negation `¬q` then the goal is changed to `⊢ q` instead.
 -/
 macro "absurd " h:term : tactic =>
-  `(tactic| first | refine absurd ?_ $h | refine absurd $h ?_)
+  -- we can't use `( :)` here as that would make `·` behave weirdly.
+  `(tactic|
+    first
+    | refine @absurd _ _ ?_ $h
+    | refine @absurd _ _ $h ?_)
 
 /-- `split_ands` applies `And.intro` until it does not make progress. -/
 syntax "split_ands" : tactic

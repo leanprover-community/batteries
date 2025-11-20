@@ -3,8 +3,13 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2. license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace FloatArray
+
+attribute [ext] FloatArray
 
 /--
 Unsafe optimized implementation of `mapM`.

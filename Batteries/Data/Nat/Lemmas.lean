@@ -3,8 +3,12 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Nat.Basic
+
+@[expose] public section
 
 /-! # Basic lemmas about natural numbers
 
@@ -159,6 +163,64 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
+@[deprecated (since := "2025-07-31")]
+alias sum_append := List.sum_append_nat
 
-@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+/-! ### ofBits -/
+
+@[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := rfl
+
+theorem ofBits_succ (f : Fin (n+1) → Bool) : ofBits f = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat :=
+  Fin.foldr_succ ..
+
+theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    calc ofBits f
+        = 2 * ofBits (f ∘ Fin.succ) + (f 0).toNat := ofBits_succ ..
+      _ < 2 * (ofBits (f ∘ Fin.succ) + 1) := Nat.add_lt_add_left (Bool.toNat_lt _) ..
+      _ ≤ 2 * 2 ^ n := Nat.mul_le_mul_left 2 (ih ..)
+      _ = 2 ^ (n + 1) := Nat.pow_add_one' .. |>.symm
+
+@[simp] theorem testBit_ofBits_lt (f : Fin n → Bool) (i : Nat) (h : i < n) :
+    (ofBits f).testBit i = f ⟨i, h⟩ := by
+  induction n generalizing i with
+  | zero => contradiction
+  | succ n ih =>
+    simp only [ofBits_succ]
+    match i with
+    | 0 => simp [mod_eq_of_lt (Bool.toNat_lt _)]
+    | i+1 =>
+      rw [testBit_add_one, mul_add_div Nat.zero_lt_two, Nat.div_eq_of_lt (Bool.toNat_lt _)]
+      exact ih (f ∘ Fin.succ) i (Nat.lt_of_succ_lt_succ h)
+
+@[simp] theorem testBit_ofBits_ge (f : Fin n → Bool) (i : Nat) (h : n ≤ i) :
+    (ofBits f).testBit i = false := by
+  apply testBit_lt_two_pow
+  apply Nat.lt_of_lt_of_le
+  · exact ofBits_lt_two_pow f
+  · exact Nat.pow_le_pow_right Nat.zero_lt_two h
+
+theorem testBit_ofBits (f : Fin n → Bool) :
+    (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else false := by
+  cases Nat.lt_or_ge i n with
+  | inl h => simp [h]
+  | inr h => simp [h, Nat.not_lt_of_ge h]
+
+theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
+  apply eq_of_testBit_eq; simp [testBit_ofBits]
+
+/-! ### Misc -/
+
+theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    n * x + y < m * n := calc
+  _ < n * x + n := Nat.add_lt_add_left hy _
+  _ = n * (x + 1) := Nat.mul_add_one .. |>.symm
+  _ ≤ n * m := Nat.mul_le_mul_left _ hx
+  _ = m * n := Nat.mul_comm ..
+
+theorem add_mul_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    x + m * y < m * n := by
+  rw [Nat.add_comm, Nat.mul_comm _ n]
+  exact mul_add_lt_mul_of_lt_of_lt hy hx

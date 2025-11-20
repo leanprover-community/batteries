@@ -3,7 +3,11 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.UnionFind.Basic
+module
+
+public import Batteries.Data.UnionFind.Basic
+
+@[expose] public section
 
 namespace Batteries.UnionFind
 
@@ -18,7 +22,7 @@ namespace Batteries.UnionFind
     parentD (arr.push ⟨arr.size, 0⟩) a = parentD arr a := by
   simp [parentD]; split <;> split <;> try simp [Array.getElem_push, *]
   · next h1 h2 =>
-    simp [Nat.lt_succ] at h1 h2
+    simp [Nat.lt_succ_iff] at h1 h2
     exact Nat.le_antisymm h2 h1
   · next h1 h2 => cases h1 (Nat.lt_succ_of_lt h2)
 
@@ -97,8 +101,8 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       this yroot xroot fun i => by simp [parent_link, h, hr]
 
 nonrec theorem Equiv.rfl : Equiv self a a := rfl
-theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
-theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
+nonrec theorem Equiv.symm : Equiv self a b → Equiv self b a := .symm
+nonrec theorem Equiv.trans : Equiv self a b → Equiv self b c → Equiv self a c := .trans
 
 @[simp] theorem equiv_empty : Equiv empty a b ↔ a = b := by simp [Equiv]
 
@@ -123,10 +127,10 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
       Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
     simp [Equiv, hm, xroot, yroot]
     by_cases h1 : rootD self a = x <;> by_cases h2 : rootD self b = x <;>
-      simp [h1, h2, imp_false, Decidable.not_not]
-    · simp [h2, Ne.symm h2]; split <;> simp [@eq_comm _ _ (rootD self b), *]
+      simp [h1, h2, imp_false, Decidable.not_not, -left_eq_ite_iff]
+    · simp [Ne.symm h2, -left_eq_ite_iff]; split <;> simp [@eq_comm _ _ (rootD self b), *]
     · by_cases h1 : rootD self a = y <;> by_cases h2 : rootD self b = y <;>
-        simp [h1, h2, @eq_comm _ _ (rootD self b), *]
+        simp [@eq_comm _ _ (rootD self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr
   rw [← rootD_eq_self] at xroot yroot
   obtain rfl | rfl := ha

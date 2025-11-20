@@ -3,7 +3,11 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.SimpTrace
+module
+
+public meta import Lean.Elab.Tactic.SimpTrace
+
+public meta section
 
 /-!
 # `squeeze_scope` tactic
@@ -95,7 +99,7 @@ elab_rules : tactic
     let stx := tac.raw
     let stats ← match stx.getKind with
     | ``Parser.Tactic.simp => do
-      let { ctx, simprocs, dischargeWrapper } ←
+      let { ctx, simprocs, dischargeWrapper, .. } ←
         withMainContext <| mkSimpContext stx (eraseLocal := false)
       dischargeWrapper.with fun discharge? =>
         simpLocation ctx simprocs discharge? (expandOptLocation stx[5])

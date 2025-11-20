@@ -3,8 +3,13 @@ Copyright (c) 2023 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Tactic.Lint.Misc
-import Batteries.Data.MLList.Basic
+module
+
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Data.MLList.Basic
+import Lean.Util.MonadBacktrack
+
+@[expose] public section
 
 /-!
 # A nondeterminism monad.
@@ -50,8 +55,10 @@ structure Nondet (m : Type → Type) [MonadBacktrack σ m] (α : Type) : Type wh
   toMLList : MLList m (α × σ)
 
 namespace Nondet
+variable {m : Type → Type}
 
-variable {m : Type → Type} [Monad m] [MonadBacktrack σ m]
+section Monad
+variable [Monad m] [MonadBacktrack σ m]
 
 /-- The empty nondeterministic value. -/
 def nil : Nondet m α := .mk .nil
@@ -87,13 +94,10 @@ def singletonM (x : m α) : Nondet m α :=
 /-- Convert a value to the singleton nondeterministic value. -/
 def singleton (x : α) : Nondet m α := singletonM (pure x)
 
-/-- `Nondet m` is a monad. -/
-instance : Monad (Nondet m) where
+/-- `Nondet m` is an alternative monad. -/
+instance : AlternativeMonad (Nondet m) where
   pure a := singletonM (pure a)
   bind := bind
-
-/-- `Nondet m` is an alternative monad. -/
-instance : Alternative (Nondet m) where
   failure := .nil
   orElse x y := .mk <| x.toMLList.append fun _ => (y ()).toMLList
 
@@ -165,21 +169,6 @@ partial def iterate (f : α → Nondet m α) (a : α) : Nondet m α :=
   singleton a <|> (f a).bind (iterate f)
 
 /--
-Find the first alternative in a nondeterministic value, as a monadic value.
--/
-def head [Alternative m] (L : Nondet m α) : m α := do
-  let (x, s) ← L.toMLList.head
-  restoreState s
-  return x
-
-/--
-Find the value of a monadic function on the first alternative in a nondeterministic value
-where the function succeeds.
--/
-def firstM [Alternative m] (L : Nondet m α) (f : α → m (Option β)) : m β :=
-  L.filterMapM f |>.head
-
-/--
 Convert a non-deterministic value into a lazy list, by discarding the backtrackable state.
 -/
 def toMLList' (L : Nondet m α) : MLList m α := L.toMLList.map (·.1)
@@ -193,6 +182,28 @@ def toList (L : Nondet m α) : m (List (α × σ)) := L.toMLList.force
 Convert a non-deterministic value into a list in the monad, by discarding the backtrackable state.
 -/
 def toList' (L : Nondet m α) : m (List α) := L.toMLList.map (·.1) |>.force
+
+end Monad
+
+section AlternativeMonad
+variable [AlternativeMonad m] [MonadBacktrack σ m]
+
+/--
+Find the first alternative in a nondeterministic value, as a monadic value.
+-/
+def head (L : Nondet m α) : m α := do
+  let (x, s) ← L.toMLList.head
+  restoreState s
+  return x
+
+/--
+Find the value of a monadic function on the first alternative in a nondeterministic value
+where the function succeeds.
+-/
+def firstM (L : Nondet m α) (f : α → m (Option β)) : m β :=
+  L.filterMapM f |>.head
+
+end AlternativeMonad
 
 end Nondet
 
