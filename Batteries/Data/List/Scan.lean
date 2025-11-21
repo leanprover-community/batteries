@@ -7,6 +7,7 @@ module
 
 public import Batteries.Data.List.Basic
 meta import Batteries.Tactic.Init
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
@@ -211,62 +212,105 @@ theorem scanr_reverse {f : α → β → β} (b : β) (l : List α) :
   case nil => rfl
   case cons head tail ih => simp [scanr_append, ih]; rfl
 
-
-/-! ### partialSums -/
+/-! ### partialSums/partialProd -/
 
 @[simp, grind =]
-theorem partialSums_nil : partialSums [] = [0] := rfl
+theorem length_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.length = l.length + 1 := by
+  simp [partialSums]
 
-private theorem scanl_add (a : Nat) (l : List Nat) :
-    scanl (·+·) a l = (scanl (·+·) 0 l).map (a + ·) := by
+@[simp]
+theorem partialSums_ne_nil [Add α] [Zero α] {l : List α} :
+    l.partialSums ≠ [] := by simp [ne_nil_iff_length_pos]
+
+@[simp, grind =]
+theorem partialSums_nil [Add α] [Zero α] : ([] : List α).partialSums = [0] := rfl
+
+theorem partialSums_cons [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    (a :: l).partialSums = 0 :: l.partialSums.map (a + ·) := by
+  simp only [partialSums, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
   induction l generalizing a with
-  | nil => rfl
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
   | cons b l ih =>
-    simp only [scanl, List.map_cons, Nat.add_zero, Nat.zero_add]
-    rw [ih (a + b), ih b]
-    simp only [List.map_map]
-    congr 1
-    ext x
-    simp [Function.comp_def, Nat.add_assoc]
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a + b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
 
-theorem partialSums_cons (a : Nat) (l : List Nat) :
-    partialSums (a :: l) = 0 :: (partialSums l).map (a + ·) := by
-  simp only [partialSums, scanl, Nat.zero_add]
-  rw [scanl_add]
-
-@[simp, grind =]
-theorem length_partialSums (l : List Nat) :
-    (partialSums l).length = l.length + 1 := by
-  simp [partialSums, length_scanl]
-
--- Helper: foldl and foldr are equivalent for addition on Nat
-private theorem foldl_add_eq_foldr_add (l : List Nat) (a : Nat) :
-    foldl (·+·) a l = a + foldr (·+·) 0 l := by
-  induction l generalizing a with
-  | nil => simp
-  | cons b l ih =>
-    simp [ih]
-    omega
+theorem partialSums_append [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialSums = l₁.partialSums ++ l₂.partialSums.tail.map (l₁.sum + · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialSums, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialSums_cons, ih, map_tail, map_append, map_map, sum_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
 
 @[simp, grind =]
-theorem getElem_partialSums (l : List Nat) (i : Nat) (h : i < (partialSums l).length) :
-    (partialSums l)[i] = (l.take i).sum := by
-  simp only [partialSums, getElem_scanl, List.sum]
-  rw [foldl_add_eq_foldr_add]
-  simp
-
-@[grind =]
-theorem getElem?_partialSums (l : List Nat) (i : Nat) :
-    (partialSums l)[i]? = if i ≤ l.length then some (l.take i).sum else none := by
-  simp [partialSums, getElem?_scanl, List.sum]
-  split <;> rename_i h
-  · rw [foldl_add_eq_foldr_add]; simp
-  · rfl
+theorem getElem_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} (h : i < l.partialSums.length) :
+    l.partialSums[i] = (l.take i).sum := by
+  simp [partialSums, sum_eq_foldl]
 
 @[simp, grind =]
-theorem take_partialSums (l : List Nat) (i : Nat) :
-    l.partialSums.take (i + 1) = (l.take i).partialSums := by
+theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    l.partialSums[i]? = if i ≤ l.length then some (l.take i).sum else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.take (i+1) = (l.take i).partialSums := by
   simp [partialSums, take_scanl]
+
+@[simp, grind =]
+theorem length_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.length = l.length + 1 := by
+  simp [partialProds]
+
+@[simp, grind =]
+theorem partialProds_nil [Mul α] [One α] : ([] : List α).partialProds = [1] := rfl
+
+theorem partialProds_cons [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    (a :: l).partialProds = 1 :: l.partialProds.map (a * ·) := by
+  simp only [partialProds, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
+  induction l generalizing a with
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a * b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
+
+theorem partialProds_append [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialProds = l₁.partialProds ++ l₂.partialProds.tail.map (l₁.prod * · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialProds, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialProds_cons, ih, map_tail, map_append, map_map, prod_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
+
+@[simp, grind =]
+theorem getElem_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} (h : i < l.partialProds.length) :
+    l.partialProds[i] = (l.take i).prod := by
+  simp [partialProds, prod_eq_foldl]
+
+@[simp, grind =]
+theorem getElem?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    l.partialProds[i]? = if i ≤ l.length then some (l.take i).prod else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.take (i+1) = (l.take i).partialProds := by
+  simp [partialProds, take_scanl]
 
 /-! ### flatten -/
 

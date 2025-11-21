@@ -208,13 +208,6 @@ theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
   funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
 
 /--
-Compute cumulative sums for a list of natural numbers.
-
-Example: `partialSums [3, 2, 4] = [0, 3, 5, 9]`
--/
-def partialSums (l : List Nat) : List Nat := scanl (·+·) 0 l
-
-/--
 Fold a function `f` over the list from the right, returning the list of partial results.
 ```
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
@@ -1084,3 +1077,25 @@ Examples:
 -/
 @[expose] def prod [Mul α] [One α] (xs : List α) : α :=
   xs.foldr (· * ·) 1
+
+/--
+Computes the partial sums of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialSums = [0, 0 + a, (0 + a) + b, ((0 + a) + b) + c]`
+`[1, 2, 3].partialSums = [0, 1, 3, 6]`
+-/
+def partialSums [Add α] [Zero α] (l : List α) : List α :=
+  l.scanl (· + ·) 0
+
+/--
+Computes the partial products of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialProds = [1, 1 * a, (1 * a) * b, ((1 * a) * b) * c]`
+`[2, 3, 5].partialProds = [1, 2, 6, 30]`
+-/
+def partialProds [Mul α] [One α] (l : List α) : List α :=
+  l.scanl (· * ·) 1
