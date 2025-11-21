@@ -18,6 +18,7 @@ import all Init.Data.String.Extra  -- for unfolding `Substring.toIterator`
 import all Init.Data.String.TakeDrop  -- for unfolding `drop`
 import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
+import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
 @[expose] public section
 
