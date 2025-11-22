@@ -6,6 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 module
 
 public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
@@ -209,3 +210,103 @@ theorem scanr_reverse {f : α → β → β} (b : β) (l : List α) :
   induction l generalizing b
   case nil => rfl
   case cons head tail ih => simp [scanr_append, ih]; rfl
+
+/-! ### partialSums/partialProd -/
+
+@[simp, grind =]
+theorem length_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.length = l.length + 1 := by
+  simp [partialSums]
+
+@[simp]
+theorem partialSums_ne_nil [Add α] [Zero α] {l : List α} :
+    l.partialSums ≠ [] := by simp [ne_nil_iff_length_pos]
+
+@[simp, grind =]
+theorem partialSums_nil [Add α] [Zero α] : ([] : List α).partialSums = [0] := rfl
+
+theorem partialSums_cons [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    (a :: l).partialSums = 0 :: l.partialSums.map (a + ·) := by
+  simp only [partialSums, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
+  induction l generalizing a with
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a + b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
+
+theorem partialSums_append [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialSums = l₁.partialSums ++ l₂.partialSums.tail.map (l₁.sum + · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialSums, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialSums_cons, ih, map_tail, map_append, map_map, sum_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
+
+@[simp, grind =]
+theorem getElem_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} (h : i < l.partialSums.length) :
+    l.partialSums[i] = (l.take i).sum := by
+  simp [partialSums, sum_eq_foldl]
+
+@[simp, grind =]
+theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    l.partialSums[i]? = if i ≤ l.length then some (l.take i).sum else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialSums [Add α] [Zero α] {l : List α} :
+    l.partialSums.take (i+1) = (l.take i).partialSums := by
+  simp [partialSums, take_scanl]
+
+@[simp, grind =]
+theorem length_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.length = l.length + 1 := by
+  simp [partialProds]
+
+@[simp, grind =]
+theorem partialProds_nil [Mul α] [One α] : ([] : List α).partialProds = [1] := rfl
+
+theorem partialProds_cons [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    (a :: l).partialProds = 1 :: l.partialProds.map (a * ·) := by
+  simp only [partialProds, scanl, Std.LawfulLeftIdentity.left_id, cons.injEq]
+  induction l generalizing a with
+  | nil =>
+    simp only [Std.LawfulRightIdentity.right_id, scanl, map_cons, map_nil]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, Std.LawfulRightIdentity.right_id]
+    rw [ih (a := b), ih (a := a * b), map_map]
+    congr; funext; simp [Std.Associative.assoc]
+
+theorem partialProds_append [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l₁ l₂ : List α} :
+    (l₁ ++ l₂).partialProds = l₁.partialProds ++ l₂.partialProds.tail.map (l₁.prod * · ) := by
+  induction l₁ generalizing l₂ with
+  | nil => cases l₂ <;> simp [partialProds, Std.LawfulLeftIdentity.left_id]
+  | cons _ _ ih =>
+    simp only [cons_append, partialProds_cons, ih, map_tail, map_append, map_map, prod_cons,
+      cons.injEq, append_cancel_left_eq, true_and]
+    congr 2; funext; simp [Std.Associative.assoc]
+
+@[simp, grind =]
+theorem getElem_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} (h : i < l.partialProds.length) :
+    l.partialProds[i] = (l.take i).prod := by
+  simp [partialProds, prod_eq_foldl]
+
+@[simp, grind =]
+theorem getElem?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    l.partialProds[i]? = if i ≤ l.length then some (l.take i).prod else none := by
+  split <;> grind
+
+@[simp, grind =]
+theorem take_partialProds [Mul α] [One α] {l : List α} :
+    l.partialProds.take (i+1) = (l.take i).partialProds := by
+  simp [partialProds, take_scanl]
