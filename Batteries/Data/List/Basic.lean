@@ -3,7 +3,9 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
+
 module
+import Batteries.Tactic.Alias
 
 @[expose] public section
 
@@ -241,16 +243,22 @@ also receives each element's index.
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
 
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
+
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -335,11 +343,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
--- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
--- TODO(batteries#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
--- `Batteries/Data/List/Lemmas.lean`.
-attribute [implemented_by sublistsFast] sublists
+@[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
@@ -1066,7 +1073,7 @@ Computes the product of the elements of a list.
 Examples:
 
 [a, b, c].prod = a * (b * (c * 1))
-[1, 2, 5].prod = 10
+[2, 3, 5].prod = 30
 -/
-def prod [Mul α] [One α] (xs : List α) : α :=
+@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
   xs.foldr (· * ·) 1
