@@ -4,11 +4,9 @@ inductive TEmpty : Type
 /--
 info: TEmpty : Type
 TEmpty.casesOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
+TEmpty.ctorIdx : TEmpty → Nat
 TEmpty.noConfusion.{u} {P : Sort u} {x1 x2 : TEmpty} (h12 : x1 = x2) : TEmpty.noConfusionType P x1 x2
 TEmpty.noConfusionType.{u} (P : Sort u) (x1 x2 : TEmpty) : Sort u
-TEmpty.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat) (k : TEmpty.noConfusionType.withCtorType P ctorIdx)
-  (k' : P) (x : TEmpty) : P
-TEmpty.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TEmpty.rec.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 -/
@@ -53,18 +51,18 @@ info: TestStruct : Type
 TestStruct.bar (self : TestStruct) : Int
 TestStruct.casesOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
+TestStruct.ctorIdx : TestStruct → Nat
 TestStruct.foo (self : TestStruct) : Int
 TestStruct.mk (foo bar : Int) : TestStruct
 TestStruct.mk.inj {foo bar foo✝ bar✝ : Int} :
   { foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ } → foo = foo✝ ∧ bar = bar✝
 TestStruct.mk.injEq (foo bar foo✝ bar✝ : Int) :
   ({ foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ }) = (foo = foo✝ ∧ bar = bar✝)
+TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
+  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
 TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
-TestStruct.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat)
-  (k : TestStruct.noConfusionType.withCtorType P ctorIdx) (k' : P) (x : TestStruct) : P
-TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
@@ -78,13 +76,13 @@ info: TestStruct : Type
 TestStruct.bar (self : TestStruct) : Int
 TestStruct.casesOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
   (mk : (foo bar : Int) → motive { foo := foo, bar := bar }) : motive t
+TestStruct.ctorIdx : TestStruct → Nat
 TestStruct.foo (self : TestStruct) : Int
 TestStruct.mk (foo bar : Int) : TestStruct
+TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
+  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
 TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
 TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
-TestStruct.noConfusionType.withCtor.{u} (P : Type u) (ctorIdx : Nat)
-  (k : TestStruct.noConfusionType.withCtorType P ctorIdx) (k' : P) (x : TestStruct) : P
-TestStruct.noConfusionType.withCtorType.{u} (P : Type u) (ctorIdx : Nat) : Type u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
@@ -107,15 +105,15 @@ TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 
 info: TestStruct
 TestStruct.bar
 TestStruct.casesOn
+TestStruct.ctorIdx
 TestStruct.foo
 TestStruct.mk
 TestStruct.mk.inj
 TestStruct.mk.injEq
+TestStruct.mk.noConfusion
 TestStruct.mk.sizeOf_spec
 TestStruct.noConfusion
 TestStruct.noConfusionType
-TestStruct.noConfusionType.withCtor
-TestStruct.noConfusionType.withCtorType
 TestStruct.rec
 TestStruct.recOn
 -/
@@ -157,10 +155,16 @@ private inductive TestInd where
 /--
 info: TestInd : Type
 TestInd.bar : TestInd
+TestInd.bar.elim.{u} {motive : TestInd → Sort u} (t : TestInd) (h : t.ctorIdx = 1) (bar : motive TestInd.bar) : motive t
 TestInd.bar.sizeOf_spec : sizeOf TestInd.bar = 1
 TestInd.casesOn.{u} {motive : TestInd → Sort u} (t : TestInd) (foo : motive TestInd.foo) (bar : motive TestInd.bar) :
   motive t
+TestInd.ctorElim.{u} {motive : TestInd → Sort u} (ctorIdx : Nat) (t : TestInd) (h : ctorIdx = t.ctorIdx)
+  (k : TestInd.ctorElimType ctorIdx) : motive t
+TestInd.ctorElimType.{u} {motive : TestInd → Sort u} (ctorIdx : Nat) : Sort (max 1 u)
+TestInd.ctorIdx : TestInd → Nat
 TestInd.foo : TestInd
+TestInd.foo.elim.{u} {motive : TestInd → Sort u} (t : TestInd) (h : t.ctorIdx = 0) (foo : motive TestInd.foo) : motive t
 TestInd.foo.sizeOf_spec : sizeOf TestInd.foo = 1
 TestInd.noConfusion.{v✝} {P : Sort v✝} {x y : TestInd} (h : x = y) : TestInd.noConfusionType P x y
 TestInd.noConfusionType.{v✝} (P : Sort v✝) (x y : TestInd) : Sort v✝

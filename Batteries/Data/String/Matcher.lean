@@ -3,8 +3,12 @@ Copyright (c) 2023 F. G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: F. G. Dorais
 -/
-import Batteries.Data.Array.Match
-import Batteries.Data.String.Basic
+module
+
+public import Batteries.Data.Array.Match
+public import Batteries.Data.String.Basic
+
+@[expose] public section
 
 namespace String
 
@@ -29,10 +33,10 @@ def m := Matcher.ofString "abba"
 -/
 structure Matcher extends Array.Matcher Char where
   /-- The pattern for the matcher -/
-  pattern : Substring
+  pattern : Substring.Raw
 
 /-- Make KMP matcher from pattern substring -/
-@[inline] def Matcher.ofSubstring (pattern : Substring) : Matcher where
+@[inline] def Matcher.ofSubstring (pattern : Substring.Raw) : Matcher where
   toMatcher := Array.Matcher.ofStream pattern
   pattern := pattern
 
@@ -44,11 +48,12 @@ structure Matcher extends Array.Matcher Char where
 abbrev Matcher.patternSize (m : Matcher) : Nat := m.pattern.bsize
 
 /-- Find all substrings of `s` matching `m.pattern`. -/
-partial def Matcher.findAll (m : Matcher) (s : Substring) : Array Substring :=
+partial def Matcher.findAll (m : Matcher) (s : Substring.Raw) : Array Substring.Raw :=
   loop s m.toMatcher #[]
 where
   /-- Accumulator loop for `String.Matcher.findAll` -/
-  loop (s : Substring) (am : Array.Matcher Char) (occs : Array Substring) : Array Substring :=
+  loop (s : Substring.Raw) (am : Array.Matcher Char) (occs : Array Substring.Raw) :
+      Array Substring.Raw :=
     match am.next? s with
     | none => occs
     | some (s, am) =>
@@ -57,7 +62,7 @@ where
         stopPos := s.startPos }
 
 /-- Find the first substring of `s` matching `m.pattern`, or `none` if no such substring exists. -/
-def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
+def Matcher.find? (m : Matcher) (s : Substring.Raw) : Option Substring.Raw :=
   match m.next? s with
   | none => none
   | some (s, _) =>
@@ -67,41 +72,57 @@ def Matcher.find? (m : Matcher) (s : Substring) : Option Substring :=
 
 end String
 
-namespace Substring
+namespace Substring.Raw
 
 /--
 Returns all the substrings of `s` that match `pattern`.
 -/
-@[inline] def findAllSubstr (s pattern : Substring) : Array Substring :=
+@[inline] def findAllSubstr (s pattern : Substring.Raw) : Array Substring.Raw :=
   (String.Matcher.ofSubstring pattern).findAll s
 
 /--
 Returns the first substring of `s` that matches `pattern`,
 or `none` if there is no such substring.
 -/
-@[inline] def findSubstr? (s pattern : Substring) : Option Substring :=
+@[inline] def findSubstr? (s pattern : Substring.Raw) : Option Substring.Raw :=
   (String.Matcher.ofSubstring pattern).find? s
 
 /--
 Returns true iff `pattern` occurs as a substring of `s`.
 -/
-@[inline] def containsSubstr (s pattern : Substring) : Bool :=
+@[inline] def containsSubstr (s pattern : Substring.Raw) : Bool :=
   s.findSubstr? pattern |>.isSome
 
-end Substring
+end Substring.Raw
+
+section Deprecations
+
+@[deprecated Substring.Raw.findAllSubstr (since := "2025-11-16"),
+  inherit_doc Substring.Raw.findAllSubstr]
+abbrev Substring.findAllSubstr := Substring.Raw.findAllSubstr
+
+@[deprecated Substring.Raw.findSubstr? (since := "2025-11-16"),
+  inherit_doc Substring.Raw.findSubstr?]
+abbrev Substring.findSubstr? := Substring.Raw.findSubstr?
+
+@[deprecated Substring.Raw.containsSubstr (since := "2025-11-16"),
+  inherit_doc Substring.Raw.containsSubstr]
+abbrev Substring.containsSubstr := Substring.Raw.containsSubstr
+
+end Deprecations
 
 namespace String
 
-@[inherit_doc Substring.findAllSubstr]
-abbrev findAllSubstr (s : String) (pattern : Substring) : Array Substring :=
+@[inherit_doc Substring.Raw.findAllSubstr]
+abbrev findAllSubstr (s : String) (pattern : Substring.Raw) : Array Substring.Raw :=
   (String.Matcher.ofSubstring pattern).findAll s
 
-@[inherit_doc Substring.findSubstr?]
-abbrev findSubstr? (s : String) (pattern : Substring) : Option Substring :=
+@[inherit_doc Substring.Raw.findSubstr?]
+abbrev findSubstr? (s : String) (pattern : Substring.Raw) : Option Substring.Raw :=
   s.toSubstring.findSubstr? pattern
 
-@[inherit_doc Substring.containsSubstr]
-abbrev containsSubstr (s : String) (pattern : Substring) : Bool :=
+@[inherit_doc Substring.Raw.containsSubstr]
+abbrev containsSubstr (s : String) (pattern : Substring.Raw) : Bool :=
   s.toSubstring.containsSubstr pattern
 
 end String

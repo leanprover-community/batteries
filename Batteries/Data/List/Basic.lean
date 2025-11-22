@@ -4,6 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 
+module
+import Batteries.Tactic.Alias
+
+@[expose] public section
+
 namespace List
 
 /-! ## New definitions -/
@@ -238,16 +243,22 @@ also receives each element's index.
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
 
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
+
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -332,11 +343,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
--- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
--- TODO(batteries#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
--- `Batteries/Data/List/Lemmas.lean`.
-attribute [implemented_by sublistsFast] sublists
+@[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
@@ -555,29 +565,55 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-section Chain
+/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+```
+IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
+``` -/
+inductive IsChain (R : α → α → Prop) : List α → Prop where
+  /-- A list of length 0 is a chain. -/
+  | nil : IsChain R []
+  /-- A list of length 1 is a chain. -/
+  | singleton (a : α) : IsChain R [a]
+  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+  | cons_cons (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
 
-variable (R : α → α → Prop)
+attribute [simp, grind ←] IsChain.nil
+attribute [simp, grind ←] IsChain.singleton
+
+@[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
+
+instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
+    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
+  where
+    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+      match l with
+      | [] => isTrue <| .singleton a
+      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-inductive Chain : α → List α → Prop
-  /-- A chain of length 1 is trivially a chain. -/
-  | nil {a : α} : Chain a []
-  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
+
+set_option linter.deprecated false in
+/-- A list of length 1 is a chain. -/
+@[deprecated IsChain.singleton (since := "2025-09-19")]
+theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
+
+set_option linter.deprecated false in
+/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+@[deprecated IsChain.cons_cons (since := "2025-09-19")]
+theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-def Chain' : List α → Prop
-  | [] => True
-  | a :: l => Chain R a l
-
-end Chain
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
@@ -1030,3 +1066,14 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+Computes the product of the elements of a list.
+
+Examples:
+
+[a, b, c].prod = a * (b * (c * 1))
+[2, 3, 5].prod = 30
+-/
+@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
+  xs.foldr (· * ·) 1

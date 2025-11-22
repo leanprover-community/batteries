@@ -62,8 +62,8 @@ def modulePath (name : Name) : FilePath :=
 
 def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
   let imports := imports.qsort (·.toString < ·.toString)
-  let lines := imports.map (s!"import {·}\n")
-  let contents := String.join lines.toList
+  let lines := imports.map (s!"public import {·}\n")
+  let contents := String.join ("module\n" :: "\n" :: lines.toList)
   IO.println s!"Generating {path}"
   IO.FS.writeFile path contents
 

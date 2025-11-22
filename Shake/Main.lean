@@ -222,7 +222,7 @@ and `endPos` is the position of the end of the header.
 -/
 def parseHeaderFromString (text path : String) :
     IO (System.FilePath × Parser.InputContext ×
-      TSyntaxArray ``Parser.Module.import × String.Pos) := do
+      TSyntaxArray ``Parser.Module.import × String.Pos.Raw) := do
   let inputCtx := Parser.mkInputContext text path
   let (header, parserState, msgs) ← Parser.parseHeader inputCtx
   if !msgs.toList.isEmpty then -- skip this file if there are parse errors
@@ -230,7 +230,7 @@ def parseHeaderFromString (text path : String) :
     throw <| .userError "parse errors in file"
   -- the insertion point for `add` is the first newline after the imports
   let insertion := header.raw.getTailPos?.getD parserState.pos
-  let insertion := text.findAux (· == '\n') text.endPos insertion + ⟨1⟩
+  let insertion := text.findAux (· == '\n') text.endPos insertion |>.increaseBy 1
   pure (path, inputCtx, .mk header.raw[2].getArgs, insertion)
 
 /-- Parse a source file to extract the location of the import lines, for edits and error messages.
@@ -240,7 +240,7 @@ and `endPos` is the position of the end of the header.
 -/
 def parseHeader (srcSearchPath : SearchPath) (mod : Name) :
     IO (System.FilePath × Parser.InputContext ×
-      TSyntaxArray ``Parser.Module.import × String.Pos) := do
+      TSyntaxArray ``Parser.Module.import × String.Pos.Raw) := do
   -- Parse the input file
   let some path ← srcSearchPath.findModuleWithExt "lean" mod
     | throw <| .userError "error: failed to find source file for {mod}"
@@ -610,25 +610,25 @@ def main (args : List String) : IO UInt32 := do
     let (path, inputCtx, imports, insertion) ←
       try parseHeader srcSearchPath mod
       catch e => println! e.toString; return count
-    let text := inputCtx.input
+    let text := String.Pos.Raw.extract inputCtx.inputString 0 inputCtx.endPos
 
     -- Calculate the edit result
-    let mut pos : String.Pos := 0
+    let mut pos : String.Pos.Raw := 0
     let mut out : String := ""
     let mut seen : NameSet := {}
     for stx in imports do
       let mod := importId stx
       if remove.contains mod || seen.contains mod then
-        out := out ++ text.extract pos stx.raw.getPos?.get!
+        out := out ++ String.Pos.Raw.extract text pos stx.raw.getPos?.get!
         -- We use the end position of the syntax, but include whitespace up to the first newline
-        pos := text.findAux (· == '\n') text.endPos stx.raw.getTailPos?.get! + ⟨1⟩
+        pos := text.findAux (· == '\n') text.endPos stx.raw.getTailPos?.get! |>.increaseBy 1
       seen := seen.insert mod
-    out := out ++ text.extract pos insertion
+    out := out ++ String.Pos.Raw.extract text pos insertion
     for mod in add do
       if !seen.contains mod then
         seen := seen.insert mod
         out := out ++ s!"import {mod}\n"
-    out := out ++ text.extract insertion text.endPos
+    out := out ++ String.Pos.Raw.extract text insertion text.endPos
 
     IO.FS.writeFile path out
     return count + 1
