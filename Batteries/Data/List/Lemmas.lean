@@ -660,3 +660,47 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
+
+/-! ### sum, prod -/
+
+@[simp]
+theorem sum_one [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] (x : α) :
+    [x].sum = x := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp]
+theorem sum_two [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] (x y : α) :
+    [x, y].sum = x + y := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem sum_append [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulLeftIdentity (α := α) (· + ·) 0] (xs ys : List α):
+    (xs ++ ys).sum = xs.sum + ys.sum := by
+  induction xs with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem sum_flatten [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulLeftIdentity (α := α) (· + ·) 0] (xss : List (List α)) :
+    xss.flatten.sum = (xss.map fun xs => xs.sum).sum := by
+  induction xss with simp [sum_append, *]
+
+@[simp]
+theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
+
+@[simp]
+theorem prod_cons [Mul α] [One α] (x : α) (xs : List α) : (x :: xs).prod = x * xs.prod := rfl
+
+@[simp]
+theorem prod_one [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] (x : α) :
+    [x].prod = x := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp]
+theorem prod_two [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] (x y : α) :
+    [x, y].prod = x * y := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem prod_append [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulLeftIdentity (α := α) (· * ·) 1] (xs ys : List α) :
+    (xs ++ ys).prod = xs.prod * ys.prod := by
+  induction xs with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem prod_flatten [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulLeftIdentity (α := α) (· * ·) 1] (xss : List (List α)) :
+    xss.flatten.prod = (xss.map fun xs => xs.prod).prod := by
+  induction xss with simp [prod_append, *]

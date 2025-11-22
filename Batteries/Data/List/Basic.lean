@@ -1059,3 +1059,14 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+Computes the product of the elements of a list.
+
+Examples:
+
+[a, b, c].prod = a * (b * (c * 1))
+[1, 2, 5].prod = 10
+-/
+def prod [Mul α] [One α] (xs : List α) : α :=
+  xs.foldr (· * ·) 1

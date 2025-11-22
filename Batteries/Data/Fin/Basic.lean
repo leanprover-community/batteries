@@ -89,15 +89,15 @@ This is the dependent version of `Fin.foldl`. -/
   dfoldlM (m := Id) n α f init
 
 /-- Sum of a tuple indexed by `Fin n`. -/
-protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
+@[inline] protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
   foldr n (x · + ·) 0
 
 /-- Product of a tuple indexed by `Fin n`. -/
-protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
+@[inline] protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
   foldr n (x · * ·) 1
 
 /-- Count the number of true values of a decidable predicate on `Fin n`. -/
-protected def count (p : Fin n → Bool) : Nat :=
+@[inline] protected def countP (p : Fin n → Bool) : Nat :=
   Fin.sum (p · |>.toNat)
 
 /--
