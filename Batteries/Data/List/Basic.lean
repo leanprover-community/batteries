@@ -5,7 +5,7 @@ Authors: Leonardo de Moura
 -/
 
 module
-import Batteries.Tactic.Alias
+public import Batteries.Tactic.Alias
 
 @[expose] public section
 
@@ -221,30 +221,39 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index.
 -/
-@[simp, specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : _ := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
   | [], _ => init
-  | b :: l, i => foldlIdx f (f i init b) l (i+1)
+  | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
 /--
 Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index.
 -/
--- TODO(Mario): tail recursive / array-based implementation
-@[simp, specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
-    (l : List α) → (start : _ := 0) → β
+@[specialize] def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
+    (l : List α) → (start : Nat := 0) → β
   | [], _ => init
-  | a :: l, i => f i a (foldrIdx f init l (i+1))
+  | a :: l, s => f s a (foldrIdx f init l (s + 1))
+
+/-- A tail-recursive version of `foldrIdx`. -/
+@[inline] def foldrIdxTR (f : Nat → α → β → β) (init : β) (l : List α) (start : Nat := 0) : β :=
+  l.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + l.length) |>.1
+
+@[csimp] theorem foldrIdx_eq_foldrIdxTR : @foldrIdx = @foldrIdxTR := by
+  funext _ _ f
+  have go i xs s : xs.foldr (fun a xa => (f (xa.2 - 1) a xa.1, xa.2 - 1)) (i, s + xs.length) =
+    (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
+  grind [foldrIdxTR]
 
 /-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) : List Nat :=
-  foldrIdx (fun i a is => if p a then i :: is else is) [] l
+@[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
+  foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
-  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
+  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
 
 @[deprecated (since := "2025-11-06")]
 alias indexsValues := findIdxsValues
@@ -255,7 +264,8 @@ alias indexsValues := findIdxsValues
 idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def idxsOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
+  xs.findIdxs (· == a) start
 
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
