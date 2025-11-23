@@ -158,4 +158,30 @@ Examples:
   (s.toRawSubstring.dropWhile p).toString
 
 
+/--
+Returns the first character in `s`. If `s = ""`, returns `(default : Char)`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.front`.
+
+Examples:
+* `"abc".front = 'a'`
+* `"".front = (default : Char)`
+-/
+@[inline, expose] def Legacy.front (s : String) : Char :=
+  Pos.Raw.get s 0
+
+/--
+Returns the last character in `s`. If `s = ""`, returns `(default : Char)`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.back`.
+
+Examples:
+* `"abc".back = 'c'`
+* `"".back = (default : Char)`
+-/
+@[inline, expose] def Legacy.back (s : String) : Char :=
+  (s.rawEndPos.prev s).get s
+
 end String
