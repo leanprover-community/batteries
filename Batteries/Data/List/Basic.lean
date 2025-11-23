@@ -79,7 +79,7 @@ will be retained (but order will otherwise be preserved).
 -/
 @[inline] protected def union [BEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
 
-instance [BEq α] : Union (List α) := ⟨List.union⟩
+instance [BEq α] [LawfulBEq α] : Union (List α) := ⟨List.union⟩
 
 /--
 Constructs the intersection of two lists, by filtering the elements of `l₁` that are in `l₂`.
@@ -87,7 +87,7 @@ Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1
 -/
 @[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
-instance [BEq α] : Inter (List α) := ⟨List.inter⟩
+instance [BEq α] [LawfulBEq α] : Inter (List α) := ⟨List.inter⟩
 
 /--
 Split a list at an index. Ensures the left list always has the specified length

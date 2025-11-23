@@ -204,25 +204,20 @@ theorem disjoint_of_disjoint_append_right_right (d : Disjoint l (l₁ ++ l₂)) 
 
 /-! ### union -/
 
-section union
+theorem union_def [BEq α] [LawfulBEq α] (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
 
-variable [BEq α]
+@[simp, grind =] theorem nil_union [BEq α] [LawfulBEq α] (l : List α) : nil ∪ l = l := by
+  simp [List.union_def, foldr]
 
-theorem union_def (l₁ l₂ : List α)  : l₁ ∪ l₂ = foldr .insert l₂ l₁ := rfl
-
-@[simp, grind =] theorem nil_union (l : List α) : nil ∪ l = l := by simp [List.union_def, foldr]
-
-@[simp, grind =] theorem cons_union (a : α) (l₁ l₂ : List α) :
+@[simp, grind =] theorem cons_union [BEq α] [LawfulBEq α] (a : α) (l₁ l₂ : List α) :
     (a :: l₁) ∪ l₂ = (l₁ ∪ l₂).insert a := by simp [List.union_def, foldr]
 
-@[simp, grind =] theorem mem_union_iff [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
+@[simp, grind =] theorem mem_union_iff [BEq α] [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∪ l₂ ↔ x ∈ l₁ ∨ x ∈ l₂ := by induction l₁ <;> simp [*, or_assoc]
-
-end union
 
 /-! ### inter -/
 
-theorem inter_def [BEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem · l₂) l₁ := rfl
+theorem inter_def [BEq α] [LawfulBEq α] (l₁ l₂ : List α)  : l₁ ∩ l₂ = filter (elem · l₂) l₁ := rfl
 
 @[simp, grind =] theorem mem_inter_iff [BEq α] [LawfulBEq α] {x : α} {l₁ l₂ : List α} :
     x ∈ l₁ ∩ l₂ ↔ x ∈ l₁ ∧ x ∈ l₂ := by

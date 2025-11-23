@@ -295,7 +295,8 @@ theorem Perm.union [BEq α] [LawfulBEq α] {l₁ l₂ t₁ t₂ : List α} (p₁
     l₁ ∪ t₁ ~ l₂ ∪ t₂ :=
   (p₁.union_right t₁).trans (p₂.union_left l₂)
 
-theorem Perm.inter_right [BEq α] (t₁ : List α) : l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
+theorem Perm.inter_right [BEq α] [LawfulBEq α] (t₁ : List α) :
+    l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
 
 theorem Perm.inter_left [BEq α] [LawfulBEq α] (l : List α) (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
   filter_congr fun a _ => by simpa using p.mem_iff (a := a)
