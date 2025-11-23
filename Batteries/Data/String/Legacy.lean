@@ -146,7 +146,7 @@ Creates a new string by removing the longest prefix from `s` in which `p` return
 characters.
 
 This is an old implementation, preserved here for users of the lemmas in
-`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.takeWhile`.
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.dropWhile`.
 
 Examples:
 * `"red green blue".dropWhile (·.isLetter) = " green blue"`
@@ -157,5 +157,48 @@ Examples:
 @[inline] def Legacy.dropWhile (s : String) (p : Char → Bool) : String :=
   (s.toRawSubstring.dropWhile p).toString
 
+/--
+Auxiliary definition for `String.Legacy.foldl`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.foldlAux`.
+-/
+@[specialize] def Legacy.foldlAux {α : Type u} (f : α → Char → α) (s : String) (stopPos : Pos.Raw)
+    (i : Pos.Raw) (a : α) : α :=
+  if h : i < stopPos then
+    have := Nat.sub_lt_sub_left h (Pos.Raw.lt_next s i)
+    foldlAux f s stopPos (i.next s) (f a (i.get s))
+  else a
+termination_by stopPos.1 - i.1
+
+/--
+Folds a function over a string from the left, accumulating a value starting with `init`. The
+accumulated value is combined with each character in order, using `f`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.foldl`.
+
+Examples:
+ * `"coffee tea water".foldl (fun n c => if c.isWhitespace then n + 1 else n) 0 = 2`
+ * `"coffee tea and water".foldl (fun n c => if c.isWhitespace then n + 1 else n) 0 = 3`
+ * `"coffee tea water".foldl (·.push ·) "" = "coffee tea water"`
+-/
+@[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : String) : α :=
+  foldlAux f s s.rawEndPos 0 init
 
 end String
+
+namespace Substring.Raw
+
+/--
+Folds a function over a substring from the left, accumulating a value starting with `init`. The
+accumulated value is combined with each character in order, using `f`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `Substring.Raw.foldl`.
+-/
+@[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : Substring.Raw) : α :=
+  match s with
+  | ⟨s, b, e⟩ => String.Legacy.foldlAux f s e b init
+
+end Substring.Raw
