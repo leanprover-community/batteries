@@ -516,8 +516,6 @@ theorem extract_of_valid (l m r : List Char) :
       Pos.Raw.extract.go₁_append_right _ _ _ _ _ (by rfl)]
     apply Pos.Raw.extract.go₂_append_left; apply Nat.add_comm
 
--- Commented out as failing on nightly-2025-11-20.
-/-
 theorem splitAux_of_valid (p l m r acc) :
     splitAux (ofList (l ++ m ++ r)) p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
       acc.reverse ++ (List.splitOnP.go p r m.reverse).map ofList := by
@@ -545,7 +543,6 @@ theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList
 @[deprecated splitToList_of_valid (since := "2025-10-18")]
 theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList :=
   splitToList_of_valid s p
--/
 
 -- TODO: splitOn
 
@@ -786,22 +783,19 @@ theorem offsetOfPos_of_valid (l r) :
     String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
--- Commented out, failing on nightly-2025-11-22.
-/-
-@[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.Legacy.foldlAux
 theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
-    foldlAux f (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
-  | l, [], r, a => by unfold foldlAux; simp
+    Legacy.foldlAux f (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
+  | l, [], r, a => by unfold Legacy.foldlAux; simp
   | l, c::m, r, a => by
-    unfold foldlAux
+    unfold Legacy.foldlAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r),
       get_of_valid l (c :: (m ++ r)), Char.reduceDefault, List.headD_cons, List.foldl_cons]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
-theorem foldl_eq (f : α → Char → α) (s a) : foldl f a s = s.toList.foldl f a := by
+theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.foldl f a := by
   simpa using foldlAux_of_valid f [] s.toList [] a
--/
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
@@ -1073,12 +1067,10 @@ theorem extract : ∀ {s}, ValidFor l m r s →
 
 -- TODO: splitOn
 
--- Commented out, failing on nightly-2025-11-22.
-/-
-theorem foldl (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldl f init = m.foldl f init
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.foldl,
+theorem foldl (f) (init : α) :
+    ∀ {s}, ValidFor l m r s → Legacy.foldl f init s = m.foldl f init
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.Legacy.foldl,
     foldlAux_of_valid]
--/
 
 theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldr f init = m.foldr f init
   | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.foldr,
@@ -1215,11 +1207,9 @@ theorem toString_extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ →
     have ⟨l', r', h₃⟩ := h₁.extract h₂
     rw [h₃.toString, h₁.toString, ← h₂.toString, toString]
 
--- Commented out, failing on nightly-2025-11-22.
-/-
-theorem foldl (f) (init : α) : ∀ {s}, Valid s → s.foldl f init = s.toString.toList.foldl f init
+theorem foldl (f) (init : α) :
+    ∀ {s}, Valid s → Legacy.foldl f init s = s.toString.toList.foldl f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldl, h.toString]
--/
 
 theorem foldr (f) (init : α) : ∀ {s}, Valid s → s.foldr f init = s.toString.toList.foldr f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldr, h.toString]
