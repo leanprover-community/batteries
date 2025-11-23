@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.LibrarySuggestions.Basic","Lean.LibrarySuggestions.SymbolFrequency","Lean.LibrarySuggestions.MePo","Lean.LibrarySuggestions.SineQuaNon","Lean.LibrarySuggestions.Default"],"instances":[],"name":"Lean.LibrarySuggestions"}

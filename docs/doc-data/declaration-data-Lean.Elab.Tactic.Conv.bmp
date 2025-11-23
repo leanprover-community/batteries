@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Conv.Basic","Lean.Elab.Tactic.Conv.Congr","Lean.Elab.Tactic.Conv.Rewrite","Lean.Elab.Tactic.Conv.Change","Lean.Elab.Tactic.Conv.Lets","Lean.Elab.Tactic.Conv.Simp","Lean.Elab.Tactic.Conv.Pattern","Lean.Elab.Tactic.Conv.Delta","Lean.Elab.Tactic.Conv.Unfold"],"instances":[],"name":"Lean.Elab.Tactic.Conv"}

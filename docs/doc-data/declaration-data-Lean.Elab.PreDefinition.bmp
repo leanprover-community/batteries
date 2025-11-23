@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.PreDefinition.Basic","Lean.Elab.PreDefinition.Structural","Lean.Elab.PreDefinition.Main","Lean.Elab.PreDefinition.MkInhabitant","Lean.Elab.PreDefinition.WF","Lean.Elab.PreDefinition.EqnsUtils","Lean.Elab.PreDefinition.Eqns","Lean.Elab.PreDefinition.EqUnfold"],"instances":[],"name":"Lean.Elab.PreDefinition"}
