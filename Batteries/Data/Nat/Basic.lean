@@ -3,9 +3,11 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+module
+
+@[expose] public section
 
 namespace Nat
-
 
 /--
   Recursor identical to `Nat.recOn` but uses notations `0` for `Nat.zero` and `·+1` for `Nat.succ`
@@ -92,7 +94,7 @@ Integer square root function. Implemented via Newton's method.
 -/
 def sqrt (n : Nat) : Nat :=
   if n ≤ 1 then n else
-  iter n (n / 2)
+  iter n (1 <<< ((n.log2 / 2) + 1))
 where
   /-- Auxiliary for `sqrt`. If `guess` is greater than the integer square root of `n`,
   returns the integer square root of `n`. -/
@@ -103,3 +105,12 @@ where
     else
       guess
   termination_by guess
+
+/--
+Construct a natural number from a sequence of bits using little endian convention.
+-/
+@[inline] def ofBits (f : Fin n → Bool) : Nat :=
+  Fin.foldr n (fun i v => 2 * v + (f i).toNat) 0
+
+-- Forward port of lean4#10739
+instance {n : Nat} : NeZero (n^0) := ⟨Nat.one_ne_zero⟩

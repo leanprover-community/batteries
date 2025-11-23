@@ -3,7 +3,11 @@ Copyright (c) 2022 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Elab.Command
+module
+
+public meta import Lean.Elab.Command
+
+public meta section
 
 /-!
 # Define the `library_note` command.
@@ -14,7 +18,7 @@ namespace Batteries.Util.LibraryNote
 open Lean
 
 /-- A library note consists of a (short) tag and a (long) note. -/
-def LibraryNoteEntry := String × String
+@[expose] def LibraryNoteEntry := String × String
 deriving Inhabited
 
 /-- Environment extension supporting `library_note`. -/

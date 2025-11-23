@@ -1,8 +1,14 @@
-import Batteries.Tactic.Where
+-- None of these imports are really necessary, except to create namespace mentioned below.
+import Lean.Elab.Term
+import Lean.Elab.Command
+import Batteries.Data.UnionFind.Basic
 
 -- Return to pristine state
 set_option linter.missingDocs false
 set_option internal.cmdlineSnapshots false
+set_option backward.privateInPublic.warn true
+set_option experimental.module false
+set_option Elab.inServer false
 
 /-- info: -- In root namespace with initial scope -/
 #guard_msgs in #where
@@ -68,6 +74,6 @@ open Array renaming map -> listMap
 info: open Lean Lean.Meta
 open Lean.Elab hiding TermElabM
 open Lean.Elab.Command Batteries
-open listMap → Array.map
+open Array renaming map → listMap
 -/
 #guard_msgs in #where

@@ -3,7 +3,11 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Batteries.Data.List.Basic
+module
+
+public import Batteries.Data.List.Basic
+
+@[expose] public section
 
 namespace Batteries
 
@@ -66,11 +70,11 @@ theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
 
 /-- `O(n)`. Fold a function over the list, from head to tail. -/
 @[inline] def foldl (f : δ → α → β → δ) (init : δ) (as : AssocList α β) : δ :=
-  Id.run (foldlM f init as)
+  Id.run (foldlM (fun d a b => pure (f d a b)) init as)
 
 @[simp] theorem foldl_eq (f : δ → α → β → δ) (init l) :
     foldl f init l = l.toList.foldl (fun d (a, b) => f d a b) init := by
-  simp [List.foldl_eq_foldlM, foldl, Id.run]
+  simp [foldl, foldlM_eq]
 
 /-- Optimized version of `toList`. -/
 def toListTR (as : AssocList α β) : List (α × β) :=
@@ -78,7 +82,6 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 
 @[csimp] theorem toList_eq_toListTR : @toList = @toListTR := by
   funext α β as; simp [toListTR]
-  exact .symm <| (Array.foldl_toList_eq_map (toList as) _ id).trans (List.map_id _)
 
 /-- `O(n)`. Run monadic function `f` on all elements in the list, from head to tail. -/
 @[specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit
@@ -253,8 +256,8 @@ def pop? : AssocList α β → Option ((α × β) × AssocList α β)
   | nil => none
   | cons a b l => some ((a, b), l)
 
-instance : ToStream (AssocList α β) (AssocList α β) := ⟨fun x => x⟩
-instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
+instance : Std.ToStream (AssocList α β) (AssocList α β) := ⟨fun x => x⟩
+instance : Std.Stream (AssocList α β) (α × β) := ⟨pop?⟩
 
 /-- Converts a list into an `AssocList`. This is the inverse function to `AssocList.toList`. -/
 @[simp] def _root_.List.toAssocList : List (α × β) → AssocList α β

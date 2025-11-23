@@ -3,8 +3,11 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Data.List.Init.Lemmas
+
+module
 import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace List
 
@@ -31,15 +34,6 @@ open Option Nat
 @[inline] def next? : List α → Option (α × List α)
   | [] => none
   | a :: l => some (a, l)
-
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
 
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
@@ -148,9 +142,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -158,8 +149,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -254,16 +243,22 @@ also receives each element's index.
 Returns the elements of `l` that satisfy `p` together with their indexes in
 `l`. The returned list is ordered by index.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
 
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
+
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf a [a, b, a, a] = [0, 2, 3]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -348,11 +343,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
--- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
--- TODO(batteries#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
--- `Batteries/Data/List/Lemmas.lean`.
-attribute [implemented_by sublistsFast] sublists
+@[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
@@ -453,7 +447,7 @@ where
 
 theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L = []
   | l :: L, h => by
-    simp only [any, foldr, Bool.or_eq_true] at h
+    simp only [any, Bool.or_eq_true] at h
     match l, h with
     | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
@@ -463,8 +457,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  rfl
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -500,9 +493,9 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  funext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp only [product, productTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -516,15 +509,15 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp only [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
-/-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
+/-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
@@ -572,29 +565,55 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-section Chain
+/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+```
+IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
+``` -/
+inductive IsChain (R : α → α → Prop) : List α → Prop where
+  /-- A list of length 0 is a chain. -/
+  | nil : IsChain R []
+  /-- A list of length 1 is a chain. -/
+  | singleton (a : α) : IsChain R [a]
+  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+  | cons_cons (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
 
-variable (R : α → α → Prop)
+attribute [simp, grind ←] IsChain.nil
+attribute [simp, grind ←] IsChain.singleton
+
+@[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
+
+instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
+    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
+  where
+    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+      match l with
+      | [] => isTrue <| .singleton a
+      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-inductive Chain : α → List α → Prop
-  /-- A chain of length 1 is trivially a chain. -/
-  | nil {a : α} : Chain a []
-  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
+
+set_option linter.deprecated false in
+/-- A list of length 1 is a chain. -/
+@[deprecated IsChain.singleton (since := "2025-09-19")]
+theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
+
+set_option linter.deprecated false in
+/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+@[deprecated IsChain.cons_cons (since := "2025-09-19")]
+theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-def Chain' : List α → Prop
-  | [] => True
-  | a :: l => Chain R a l
-
-end Chain
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
@@ -718,9 +737,9 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
-  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeft'TR.go]
   | a::as, b::bs => by simp [zipWithLeft'TR.go, go _ as bs]
-  simp [zipWithLeft'TR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight' f as bs` applies `f` to each
@@ -787,9 +806,9 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
-  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeftTR.go]
   | a::as, b::bs => by simp [zipWithLeftTR.go, go _ as bs]
-  simp [zipWithLeftTR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight f as bs` applies `f` to each
@@ -846,29 +865,12 @@ dropped from `xs`.
 fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 ```
 -/
-@[simp] def fillNones {α} : List (Option α) → List α → List α
+@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNones {α} : List (Option α) → List α → List α
   | [], _ => []
   | some a :: as, as' => a :: fillNones as as'
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
-
-/-- Tail-recursive version of `fillNones`. -/
-@[inline] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
-  /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
-  go : List (Option α) → List α → Array α → List α
-  | [], _, acc => acc.toList
-  | some a :: as, as', acc => go as as' (acc.push a)
-  | none :: as, [], acc => filterMapTR.go id as acc
-  | none :: as, a :: as', acc => go as as' (acc.push a)
-
-@[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
-  | [], _ => by simp [fillNonesTR.go]
-  | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
-  | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
-  | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [fillNonesTR, go]
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
@@ -904,7 +906,7 @@ def takeList {α} : List α → List Nat → List (List α) × List α
       let (l, r) := xs.takeList ns; (acc.toList ++ l, r)
   | [], xs => by simp [takeListTR.go, takeList]
   | n::ns, xs => by simp [takeListTR.go, takeList, go _ ns]
-  simp [takeListTR, go]
+  simp [go]
 
 /-- Auxliary definition used to define `toChunks`.
   `toChunksAux n xs i` returns `(xs.take i, (xs.drop i).toChunks (n+1))`,
@@ -1064,3 +1066,14 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+Computes the product of the elements of a list.
+
+Examples:
+
+[a, b, c].prod = a * (b * (c * 1))
+[2, 3, 5].prod = 30
+-/
+@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
+  xs.foldr (· * ·) 1

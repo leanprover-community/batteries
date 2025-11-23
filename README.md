@@ -44,7 +44,7 @@ lake build Batteries:docs
 ```
 
 The top-level HTML file will be located at `docs/doc/index.html`, though to actually expose the
-documentation you need to run a HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
+documentation you need to run an HTTP server (e.g. `python3 -m http.server`) in the `docs/doc` directory.
 
 Note that documentation for the latest nightly of `batteries` is also available as part of [the Mathlib 4
 documentation][mathlib4 docs].
@@ -53,17 +53,43 @@ documentation][mathlib4 docs].
 
 # Contributing
 
+The first step to contribute is to create a fork of Batteries.
+Then add your contributions to a branch of your fork and make a PR to Batteries.
+Do not make your changes to the main branch of your fork, that may lead to complications on your end.
+
 Every pull request should have exactly one of the status labels `awaiting-review`, `awaiting-author`
 or `WIP` (in progress).
 To change the status label of a pull request, add a comment containing one of these options and
 _nothing else_.
 This will remove the previous label and replace it by the requested status label.
+These labels are used for triage.
 
 One of the easiest ways to contribute is to find a missing proof and complete it. The
-[`proof_wanted`](https://github.com/search?q=repo%3Aleanprover-community%2Fbatteries+proof_wanted+language%3ALean&type=code&l=Lean)
+[`proof_wanted`](https://github.com/search?q=repo%3Aleanprover-community%2Fbatteries+language%3ALean+%2F^proof_wanted%2F&type=code)
 declaration documents statements that have been identified as being useful, but that have not yet
 been proven.
 
-In contrast to mathlib, `batteries` uses pull requests from forks of this repository. Hence, no special permissions on this repository are required for new contributors.
+### Mathlib Adaptations
 
-You can change the labels on PRs by commenting one of `awaiting-review`, `awaiting-author`, or `WIP`. This is helpful for triage.
+Batteries PRs often affect Mathlib, a key component of the Lean ecosystem.
+When Batteries changes in a significant way, Mathlib must adapt promptly.
+When necessary, Batteries contributors are expected to either create an adaptation PR on Mathlib, or ask for assistance for and to collaborate with this necessary process.
+
+Every Batteries PR has an automatically created [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+This is a clone of Mathlib where the Batteries requirement points to the Batteries PR branch instead of the main branch.
+Batteries uses this branch to check whether the Batteries PR needs Mathlib adaptations.
+A tag `builds-mathlib` will be issued when this branch needs no adaptation; a tag `breaks-mathlib` will be issued when the branch does need an adaptation.
+
+The first step in creating an adaptation PR is to switch to the `batteries-pr-testing-N` branch and push changes to that branch until the Mathlib CI process works.
+You may need to ask for write access to [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) to do that.
+Changes to the Batteries PR will be integrated automatically as you work on this process.
+Do not redirect the Batteries requirement to main until the Batteries PR is merged.
+Please ask questions to Batteries and Mathlib maintainers if you run into issues with this process.
+
+When everything works, create an adaptation PR on Mathlib from the `batteries-pr-testing-N` branch.
+You may need to ping a Mathlib maintainer to review the PR, ask if you don't know who to ping.
+Once the Mathlib adaptation PR and the original Batteries PR have been reviewed and accepted, the Batteries PR will be merged first. Then, the Mathlib PR's lakefile needs to be repointed to the Batteries main branch: change the Batteries line to
+```lean
+require "leanprover-community" / "batteries" @ git "main"
+```
+Once CI once again checks out on Mathlib, the adaptation PR can be merged using the regular Mathlib process.

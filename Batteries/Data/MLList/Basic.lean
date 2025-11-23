@@ -3,6 +3,11 @@ Copyright (c) 2018 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Kim Morrison
 -/
+module
+
+public import Batteries.Control.AlternativeMonad
+
+public section
 
 /-! # Monadic lazy lists.
 
@@ -26,7 +31,7 @@ private structure Spec (m : Type u → Type u) where
   uncons : [Monad m] → listM α → m (Option (α × listM α))
   uncons? : listM α → Option (Option (α × listM α))
 
-instance : Nonempty (Spec m) := .intro
+private instance : Nonempty (Spec m) := .intro
   { listM := fun _ => PUnit
     nil := ⟨⟩
     cons := fun _ _ => ⟨⟩
@@ -448,7 +453,7 @@ partial def fold [Monad m] (f : β → α → β) (init : β) (L : MLList m α) 
 Return the head of a monadic lazy list, as a value in the monad.
 Fails if the list is empty.
 -/
-def head [Monad m] [Alternative m] (L : MLList m α) : m α := do
+def head [AlternativeMonad m] (L : MLList m α) : m α := do
   let some (r, _) ← L.uncons | failure
   return r
 
@@ -456,18 +461,16 @@ def head [Monad m] [Alternative m] (L : MLList m α) : m α := do
 Apply a function returning values inside the monad to a monadic lazy list,
 returning only the first successful result.
 -/
-def firstM [Monad m] [Alternative m] (L : MLList m α) (f : α → m (Option β)) : m β :=
+def firstM [AlternativeMonad m] (L : MLList m α) (f : α → m (Option β)) : m β :=
   (L.filterMapM f).head
 
 /-- Return the first value on which a predicate returns true. -/
-def first [Monad m] [Alternative m] (L : MLList m α) (p : α → Bool) : m α := (L.filter p).head
+def first [AlternativeMonad m] (L : MLList m α) (p : α → Bool) : m α := (L.filter p).head
 
-instance [Monad m] : Monad (MLList m) where
+instance [Monad m] : AlternativeMonad (MLList m) where
   pure a := cons a nil
   map := map
   bind := bind
-
-instance [Monad m] : Alternative (MLList m) where
   failure := nil
   orElse := MLList.append
 

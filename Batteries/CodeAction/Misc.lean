@@ -3,10 +3,14 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.Induction
-import Batteries.Lean.Position
-import Batteries.CodeAction.Attr
-import Lean.Server.CodeActions.Provider
+module
+
+public meta import Lean.Elab.Tactic.Induction
+public meta import Batteries.Lean.Position
+public meta import Batteries.CodeAction.Attr
+public meta import Lean.Server.CodeActions.Provider
+
+public meta section
 
 /-!
 # Miscellaneous code actions
@@ -290,7 +294,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
   let (targets, induction, using_, alts) ← match info.stx with
     | `(tactic| cases $[$[$_ :]? $targets],* $[using $u]? $(alts)?) =>
       pure (targets, false, u, alts)
-    | `(tactic| induction $[$targets],* $[using $u]? $[generalizing $_*]? $(alts)?) =>
+    | `(tactic| induction $[$[$_ :]? $targets],* $[using $u]? $[generalizing $_*]? $(alts)?) =>
       pure (targets, true, u, alts)
     | _ => return #[]
   let some discrInfos := targets.mapM (findTermInfo? node) | return #[]
@@ -299,7 +303,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
       let targets := discrInfos.map (·.expr)
       match using_ with
       | none =>
-        if Tactic.tactic.customEliminators.get (← getOptions) then
+        if tactic.customEliminators.get (← getOptions) then
           if let some elimName ← getCustomEliminator? targets induction then
             return some (← getElimExprNames (← getConstInfo elimName).type)
         matchConstInduct (← whnf (← inferType discr₀.expr)).getAppFn
@@ -341,7 +345,7 @@ def casesExpand : TacticCodeAction := fun _ snap ctx _ node => do
         (doc.meta.text.utf8PosToLspPos stx'.getTailPos?.get!, "")
       else (endPos, " with")
       let fallback := if let some ⟨startPos, endPos⟩ := fallback then
-        doc.meta.text.source.extract startPos endPos
+        String.Pos.Raw.extract doc.meta.text.source startPos endPos
       else
         "sorry"
       let newText := Id.run do

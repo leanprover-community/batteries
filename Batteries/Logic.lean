@@ -3,7 +3,11 @@ Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
+module
+
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)
@@ -26,7 +30,7 @@ end Classical
 
 /-! ## equality -/
 
-theorem heq_iff_eq : HEq a b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
+theorem heq_iff_eq {a b : α} : a ≍ b ↔ a = b := ⟨eq_of_heq, heq_of_eq⟩
 
 @[simp] theorem eq_rec_constant {α : Sort _} {a a' : α} {β : Sort _} (y : β) (h : a = a') :
     (@Eq.rec α a (fun _ _ => β) y a' h) = y := by cases h; rfl
@@ -52,9 +56,6 @@ theorem funext₃ {β : α → Sort _} {γ : ∀ a, β a → Sort _} {δ : ∀ a
     {f g : ∀ a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
   funext fun _ => funext₂ <| h _
 
-@[deprecated (since := "2024-10-17")]
-protected alias Function.funext_iff := funext_iff
-
 protected theorem Eq.congr (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) : x₁ = x₂ ↔ y₁ = y₂ := by
   subst h₁; subst h₂; rfl
 
@@ -68,10 +69,10 @@ alias congr_fun := congrFun
 alias congr_fun₂ := congrFun₂
 alias congr_fun₃ := congrFun₃
 
-theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), HEq a a'
+theorem heq_of_cast_eq : ∀ (e : α = β) (_ : cast e a = a'), a ≍ a'
   | rfl, rfl => .rfl
 
-theorem cast_eq_iff_heq : cast e a = a' ↔ HEq a a' :=
+theorem cast_eq_iff_heq : cast e a = a' ↔ a ≍ a' :=
   ⟨heq_of_cast_eq _, fun h => by cases h; rfl⟩
 
 theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
@@ -81,20 +82,19 @@ theorem eqRec_eq_cast {α : Sort _} {a : α} {motive : (a' : α) → a = a' → 
 
 --Porting note: new theorem. More general version of `eqRec_heq`
 theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
-    (x : motive a rfl) {a' : α} (e : a = a') :
-    HEq (@Eq.rec α a motive x a' e) x := by
+    (x : motive a rfl) {a' : α} (e : a = a') : @Eq.rec α a motive x a' e ≍ x := by
   subst e; rfl
 
 @[simp]
 theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
-    HEq (@Eq.rec α a motive x a' e) y ↔ HEq x y := by
+    @Eq.rec α a motive x a' e ≍ y ↔ x ≍ y := by
   subst e; rfl
 
 @[simp]
 theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
-    HEq y (@Eq.rec α a motive x a' e) ↔ HEq y x := by
+    y ≍ @Eq.rec α a motive x a' e ↔ y ≍ x := by
   subst e; rfl
 
 /-! ## miscellaneous -/

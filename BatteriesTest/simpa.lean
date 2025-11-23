@@ -16,15 +16,17 @@ section unnecessarySimpa
 
 /--
 warning: try 'simp' instead of 'simpa'
-note: this linter can be disabled with `set_option linter.unnecessarySimpa false`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
 -/
 #guard_msgs in
 example : foo n = [n] := by
   simpa only [foo]
 
 /--
-warning: try 'simp at h' instead of 'simpa using h'
-note: this linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Try `simp at h` instead of `simpa using h`
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
 -/
 #guard_msgs in
 example (h : foo n ≠ [n]) : False := by
@@ -92,10 +94,16 @@ example (P : Bool) (h : ¬ ¬ P) : P := by
   have : ¬ ¬ P := h
   simpa
 
-/-- info: Try this: simpa only using h -/
+/--
+info: Try this:
+  [apply] simpa only using h
+-/
 #guard_msgs in
 example (p : Prop) (h : p) : p := by simpa? using h
 
-/-- info: Try this: simpa only [and_true] using h -/
+/--
+info: Try this:
+  [apply] simpa only [and_true] using h
+-/
 #guard_msgs in
 example (p : Prop) (h : p ∧ True) : p := by simpa? using h
