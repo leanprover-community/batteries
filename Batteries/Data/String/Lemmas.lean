@@ -343,25 +343,25 @@ theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
   rw [atEnd_iff]
   cases cs' <;> simp [add_utf8Size_pos, rawEndPos, utf8ByteSize_ofList]
 
-unseal posOfAux findAux in
-theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := (rfl)
+unseal Legacy.posOfAux Legacy.findAux in
+theorem posOfAux_eq (s c) : Legacy.posOfAux s c = Legacy.findAux s (· == c) := (rfl)
 
-unseal posOfAux findAux in
-theorem posOf_eq (s c) : posOf s c = find s (· == c) := (rfl)
+unseal Legacy.posOfAux Legacy.findAux in
+theorem posOf_eq (s c) : Legacy.posOf s c = Legacy.find s (· == c) := (rfl)
 
-unseal revPosOfAux revFindAux in
-theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := (rfl)
+unseal Legacy.revPosOfAux Legacy.revFindAux in
+theorem revPosOfAux_eq (s c) : Legacy.revPosOfAux s c = Legacy.revFindAux s (· == c) := (rfl)
 
-unseal revPosOfAux revFindAux in
-theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := (rfl)
+unseal Legacy.revPosOfAux Legacy.revFindAux in
+theorem revPosOf_eq (s c) : Legacy.revPosOf s c = Legacy.revFind s (· == c) := (rfl)
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
 theorem findAux_of_valid (p) : ∀ l m r,
-    findAux (ofList (l ++ m ++ r)) p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
+    Legacy.findAux (ofList (l ++ m ++ r)) p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
     ⟨utf8Len l + utf8Len (m.takeWhile (!p ·))⟩
-  | l, [], r => by unfold findAux List.takeWhile; simp
+  | l, [], r => by unfold Legacy.findAux List.takeWhile; simp
   | l, c::m, r => by
-    unfold findAux List.takeWhile
+    unfold Legacy.findAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
@@ -375,16 +375,16 @@ theorem findAux_of_valid (p) : ∀ l m r,
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
     · simp
 
-theorem find_of_valid (p s) : find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
+theorem find_of_valid (p s) : Legacy.find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
   simpa using findAux_of_valid p [] s.toList []
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.revFindAux
 theorem revFindAux_of_valid (p) : ∀ l r,
-    revFindAux (ofList (l.reverse ++ r)) p ⟨utf8Len l⟩ =
+    Legacy.revFindAux (ofList (l.reverse ++ r)) p ⟨utf8Len l⟩ =
       (l.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩)
-  | [], r => by unfold revFindAux List.dropWhile; simp
+  | [], r => by unfold Legacy.revFindAux List.dropWhile; simp
   | c::l, r => by
-    unfold revFindAux List.dropWhile
+    unfold Legacy.revFindAux List.dropWhile
     rw [dif_neg (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
@@ -395,7 +395,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
-    revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
+    Legacy.revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
   simpa using revFindAux_of_valid p s.toList.reverse []
 
 theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
