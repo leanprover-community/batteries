@@ -325,10 +325,12 @@ theorem prev_of_valid' (cs cs' : List Char) :
   | _, .inl rfl => apply Pos.Raw.prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [prev_of_valid, -ofList_append]
 
-theorem front_eq (s : String) : front s = s.toList.headD default := by
-  unfold front; simpa using get_of_valid [] s.toList
+theorem front_eq (s : String) : Legacy.front s = s.toList.headD default := by
+  unfold Legacy.front; simpa using get_of_valid [] s.toList
 
-theorem back_eq (s : String) : back s = s.toList.getLastD default := by
+theorem back_eq_get_prev_rawEndPos {s : String} : Legacy.back s = (s.rawEndPos.prev s).get s := rfl
+
+theorem back_eq (s : String) : Legacy.back s = s.toList.getLastD default := by
   conv => lhs; rw [← s.ofList_toList]
   match s.toList.eq_nil_or_concat with
   | .inl h => simp [h]; rfl
