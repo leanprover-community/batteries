@@ -17,7 +17,7 @@ def Lean.FileMap.rangeOfStx? (text : FileMap) (stx : Syntax) : Option Lsp.Range 
 
 /-- Return the beginning of the line contatining character `pos`. -/
 def Lean.findLineStart (s : String) (pos : String.Pos.Raw) : String.Pos.Raw :=
-  (s.pos! pos).revFind? '\n' |>.map (·.next!) |>.getD s.startValidPos |>.offset
+  (s.pos! pos).revFind? '\n' |>.map (·.next!) |>.getD s.startPos |>.offset
 
 /--
 Return the indentation (number of leading spaces) of the line containing `pos`,
