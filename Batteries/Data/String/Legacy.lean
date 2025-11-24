@@ -186,6 +186,153 @@ Examples:
 @[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : String) : α :=
   foldlAux f s s.rawEndPos 0 init
 
+/--
+Returns the first character in `s`. If `s = ""`, returns `(default : Char)`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.front`.
+
+Examples:
+* `"abc".front = 'a'`
+* `"".front = (default : Char)`
+-/
+@[inline, expose] def Legacy.front (s : String) : Char :=
+  Pos.Raw.get s 0
+
+/--
+Returns the last character in `s`. If `s = ""`, returns `(default : Char)`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.back`.
+
+Examples:
+* `"abc".back = 'c'`
+* `"".back = (default : Char)`
+-/
+@[inline, expose] def Legacy.back (s : String) : Char :=
+  (s.rawEndPos.prev s).get s
+
+/--
+Auxuliary definition for `String.Legacy.posOf`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+def Legacy.posOfAux (s : String) (c : Char) (stopPos : Pos.Raw) (pos : Pos.Raw) : Pos.Raw :=
+  if h : pos < stopPos then
+    if pos.get s == c then pos
+    else
+      have := Nat.sub_lt_sub_left h (Pos.Raw.lt_next s pos)
+      posOfAux s c stopPos (pos.next s)
+  else pos
+termination_by stopPos.1 - pos.1
+
+/--
+Returns the position of the first occurrence of a character, `c`, in a string `s`. If `s` does not
+contain `c`, returns `s.rawEndPos`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+* `"abcba".posOf 'a' = ⟨0⟩`
+* `"abcba".posOf 'z' = ⟨5⟩`
+* `"L∃∀N".posOf '∀' = ⟨4⟩`
+-/
+@[inline] def Legacy.posOf (s : String) (c : Char) : Pos.Raw :=
+  posOfAux s c s.rawEndPos 0
+
+/--
+Auxuliary definition for `String.Legacy.revPosOf`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+def Legacy.revPosOfAux (s : String) (c : Char) (pos : Pos.Raw) : Option Pos.Raw :=
+  if h : pos = 0 then none
+  else
+    have := Pos.Raw.prev_lt_of_pos s pos h
+    let pos := pos.prev s
+    if pos.get s == c then some pos
+    else revPosOfAux s c pos
+termination_by pos.1
+
+/--
+Returns the position of the last occurrence of a character, `c`, in a string `s`. If `s` does not
+contain `c`, returns `none`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+* `"abcabc".revPosOf 'a' = some ⟨3⟩`
+* `"abcabc".revPosOf 'z' = none`
+* `"L∃∀N".revPosOf '∀' = some ⟨4⟩`
+-/
+@[inline] def Legacy.revPosOf (s : String) (c : Char) : Option Pos.Raw :=
+  revPosOfAux s c s.rawEndPos
+
+/--
+Auxuliary definition for `String.Legacy.find`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+def Legacy.findAux (s : String) (p : Char → Bool) (stopPos : Pos.Raw) (pos : Pos.Raw) : Pos.Raw :=
+  if h : pos < stopPos then
+    if p (pos.get s) then pos
+    else
+      have := Nat.sub_lt_sub_left h (Pos.Raw.lt_next s pos)
+      findAux s p stopPos (pos.next s)
+  else pos
+termination_by stopPos.1 - pos.1
+
+/--
+Finds the position of the first character in a string for which the Boolean predicate `p` returns
+`true`. If there is no such character in the string, then the end position of the string is
+returned.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+ * `"coffee tea water".find (·.isWhitespace) = ⟨6⟩`
+ * `"tea".find (· == 'X') = ⟨3⟩`
+ * `"".find (· == 'X') = ⟨0⟩`
+-/
+@[inline] def Legacy.find (s : String) (p : Char → Bool) : Pos.Raw :=
+  findAux s p s.rawEndPos 0
+
+/--
+Auxuliary definition for `String.Legacy.revFind`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+def Legacy.revFindAux (s : String) (p : Char → Bool) (pos : Pos.Raw) : Option Pos.Raw :=
+  if h : pos = 0 then none
+  else
+    have := Pos.Raw.prev_lt_of_pos s pos h
+    let pos := pos.prev s
+    if p (pos.get s) then some pos
+    else revFindAux s p pos
+termination_by pos.1
+
+/--
+Finds the position of the last character in a string for which the Boolean predicate `p` returns
+`true`. If there is no such character in the string, then `none` is returned.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+ * `"coffee tea water".revFind (·.isWhitespace) = some ⟨10⟩`
+ * `"tea".revFind (· == 'X') = none`
+ * `"".revFind (· == 'X') = none`
+-/
+@[inline] def Legacy.revFind (s : String) (p : Char → Bool) : Option Pos.Raw :=
+  revFindAux s p s.rawEndPos
+
 end String
 
 namespace Substring.Raw
