@@ -16,6 +16,10 @@ namespace List
 
 attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
 
+/-! ### zipIdx -/
+
+attribute [grind =] zipIdx_nil zipIdx_cons
+
 /-! ### toArray-/
 
 @[deprecated List.getElem_toArray (since := "2025-09-11")]
@@ -449,6 +453,10 @@ theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
 theorem foldrIdx_const : (xs : List α).foldrIdx (Function.const Nat f) i s = xs.foldr f i := by
   induction xs <;> grind
 
+theorem foldrIdx_eq_foldr_zipIdx : (xs : List α).foldrIdx f i s =
+    (xs.zipIdx s).foldr (fun ab => f ab.2 ab.1) i := by
+  induction xs generalizing s <;> grind
+
 /-! ### foldlIdx -/
 
 @[simp, grind =] theorem foldlIdx_nil : ([] : List α).foldlIdx f i s = i := rfl
@@ -463,13 +471,18 @@ theorem foldlIdx_start :
 theorem foldlIdx_const : (xs : List α).foldlIdx (Function.const Nat f) i s = xs.foldl f i := by
   induction xs generalizing i s <;> grind
 
+theorem foldlIdx_eq_foldl_zipIdx : (xs : List α).foldlIdx f i s =
+    (xs.zipIdx s).foldl (fun b ab => f ab.2 b ab.1) i := by
+  induction xs generalizing i s <;> grind
+
 /-! ### findIdxs -/
 
 @[simp, grind =] theorem findIdxs_nil : ([] : List α).findIdxs p s = [] := rfl
 
 @[simp, grind =] theorem findIdxs_cons :
     (x :: xs : List α).findIdxs p s =
-      bif p x then s :: xs.findIdxs p (s + 1) else xs.findIdxs p (s + 1) := rfl
+    if p x then s :: xs.findIdxs p (s + 1) else xs.findIdxs p (s + 1) := by
+  grind [findIdxs]
 
 theorem findIdxs_singleton :
     [x].findIdxs p s = if p x then [s] else [] := by grind
@@ -477,6 +490,10 @@ theorem findIdxs_singleton :
 theorem findIdxs_start :
     (xs : List α).findIdxs p s = (xs.findIdxs p).map (· + s) := by
   induction xs generalizing s <;> grind [map_inj_left]
+
+theorem findIdxs_eq_filterMap_zipIdx : (xs : List α).findIdxs p s =
+    ((xs.zipIdx s).filterMap fun ab => bif p ab.1 then ab.2 else none) := by
+  induction xs generalizing s <;> grind
 
 @[simp, grind =]
 theorem mem_findIdxs_iff_getElem_sub_pos :
@@ -613,10 +630,14 @@ theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs
 @[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x s = [] := rfl
 
 @[simp, grind =] theorem idxsOf_cons [BEq α] : (x :: xs : List α).idxsOf y s =
-    bif x == y then s :: xs.idxsOf y (s + 1) else xs.idxsOf y (s + 1) := rfl
+    if x == y then s :: xs.idxsOf y (s + 1) else xs.idxsOf y (s + 1) := findIdxs_cons
 
 theorem idxsOf_start [BEq α] :
     (xs : List α).idxsOf x s = (xs.idxsOf x).map (· + s) := findIdxs_start
+
+theorem idxsOf_eq_filterMap_zipIdx [BEq α] : (xs : List α).idxsOf x s =
+    ((xs.zipIdx s).filterMap fun ab => bif ab.1 == x then ab.2 else none) :=
+  findIdxs_eq_filterMap_zipIdx
 
 @[simp, grind =]
 theorem mem_idxsOf_iff_getElem_sub_pos [BEq α] :
@@ -674,21 +695,27 @@ theorem le_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x s).length) 
 theorem getElem_idxsOf_lt [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     (xs.idxsOf x s)[i] < xs.length + s := by grind [getElem_mem]
 
+@[grind =>]
 theorem getElem_getElem_idxsOf_sub [BEq α] (s : Nat)
     (h : i < ((xs : List α).idxsOf x s).length) :
     haveI : (idxsOf x xs s)[i] - s < xs.length := by grind
     xs[(xs.idxsOf x s)[i] - s] == x := getElem_getElem_findIdxs_sub s h
 
-@[grind =>]
+@[simp]
+theorem getElem_getElem_idxsOf_sub_of_lawful [BEq α] [LawfulBEq α] (s : Nat)
+    (h : i < ((xs : List α).idxsOf x s).length) :
+    haveI : (idxsOf x xs s)[i] - s < xs.length := by grind
+    xs[(xs.idxsOf x s)[i] - s] = x := by grind [getElem_getElem_idxsOf_sub]
+
 theorem getElem_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-    xs[(xs.idxsOf x)[i]] == x := getElem_getElem_findIdxs h
+    xs[(xs.idxsOf x)[i]] == x := by grind
 
 @[simp]
 theorem getElem_getElem_idxsOf_of_lawful [BEq α] [LawfulBEq α]
     (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-    xs[(xs.idxsOf x)[i]] = x := by grind
+  xs[(xs.idxsOf x)[i]] = x := by grind
 
 @[grind =>]
 theorem mem_idxsOf_getElem [BEq α] [EquivBEq α] (h : i < (xs : List α).length) :
@@ -898,3 +925,88 @@ theorem append_eq_of_isPrefixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : List α}
     (h : xs.isSuffixOf? ys = some zs) : zs ++ xs = ys := by simp_all
+
+/-! ### sum/prod -/
+
+private theorem foldr_eq_foldl_aux (f : α → α → α) (init : α) [Std.Associative f]
+    [Std.LawfulIdentity f init] {l : List α} :
+    l.foldl f a = f a (l.foldl f init) := by
+  induction l generalizing a with
+  | nil => simp [Std.LawfulRightIdentity.right_id]
+  | cons b l ih =>
+    simp [Std.LawfulLeftIdentity.left_id, ih (a := f a b), ih (a := b), Std.Associative.assoc]
+
+theorem foldr_eq_foldl (f : α → α → α) (init : α) [Std.Associative f]
+    [Std.LawfulIdentity f init] {l : List α} :
+    l.foldr f init = l.foldl f init := by
+  induction l with
+  | nil => rfl
+  | cons a l ih => simp [ih, Std.LawfulLeftIdentity.left_id, foldr_eq_foldl_aux (a := a)]
+
+@[simp, grind =]
+theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
+
+@[simp, grind =]
+theorem prod_cons [Mul α] [One α] {a : α} {l : List α} : (a :: l).prod = a * l.prod := rfl
+
+theorem prod_one_cons [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1] {l : List α} :
+    (1 :: l).prod = l.prod := by simp [Std.LawfulLeftIdentity.left_id]
+
+theorem prod_singleton [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a : α} :
+  [a].prod = a := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem prod_pair [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a b : α} :
+  [a, b].prod = a * b := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem prod_append [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).prod = l₁.prod * l₂.prod := by
+  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem prod_concat [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l : List α} {a : α} :
+    (l.concat a).prod = l.prod * a := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem prod_flatten [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] {l : List (List α)} :
+    l.flatten.prod = (l.map prod).prod := by
+  induction l with simp [*]
+
+theorem prod_eq_foldr [Mul α] [One α] {l : List α} :
+    l.prod = l.foldr (· * ·) 1 := rfl
+
+theorem prod_eq_foldl [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    l.prod = l.foldl (· * ·) 1 := foldr_eq_foldl ..
+
+theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
+    (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
+
+theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a : α} :
+  [a].sum = a := by simp [Std.LawfulRightIdentity.right_id]
+
+theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
+  [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem sum_append [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
+  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+
+theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
+    (l.concat a).sum = l.sum + a := by simp [Std.LawfulRightIdentity.right_id]
+
+@[simp, grind =]
+theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
+    l.flatten.sum = (l.map sum).sum := by
+  induction l with simp [*]
+
+theorem sum_eq_foldr [Add α] [Zero α] {l : List α} :
+    l.sum = l.foldr (· + ·) 0 := rfl
+
+theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    l.sum = l.foldl (· + ·) 0 := foldr_eq_foldl ..
