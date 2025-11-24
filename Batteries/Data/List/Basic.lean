@@ -219,7 +219,9 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
 @[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
   | [], _ => init
@@ -227,9 +229,11 @@ also receives each element's index.
 
 /--
 Fold a list from right to left as with `foldr`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
-@[specialize] def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
+def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
     (l : List α) → (start : Nat := 0) → β
   | [], _ => init
   | a :: l, s => f s a (foldrIdx f init l (s + 1))
@@ -244,13 +248,16 @@ also receives each element's index.
     (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
   grind [foldrIdxTR]
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
+/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
+equal to `start` and less than `l.length + start`).  -/
 @[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
-`l`. The returned list is ordered by index.
+`l` added to an optional parameter `start`. The returned list is ordered by index.
+We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 -/
 @[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
@@ -259,9 +266,11 @@ Returns the elements of `l` that satisfy `p` together with their indexes in
 alias indexsValues := findIdxsValues
 
 /--
-`idxsOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `start`. For example:
 ```
-idxsOf a [a, b, a, a] = [0, 2, 3]
+idxsOf b [a, b, a, a] = [1]
+idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 ```
 -/
 @[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=

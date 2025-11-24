@@ -20,7 +20,6 @@ attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
 
 attribute [grind =] zipIdx_nil zipIdx_cons
 
-
 /-! ### toArray-/
 
 @[deprecated List.getElem_toArray (since := "2025-09-11")]
