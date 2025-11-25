@@ -64,7 +64,7 @@ theorem utf8ByteSize_ofList (cs) : utf8ByteSize (String.ofList cs) = utf8Len cs 
     rw [utf8Len, ← ih, ← List.singleton_append, String.ofList_append,
       utf8ByteSize_append, Nat.add_comm]
     congr
-    rw [← size_bytes, String.bytes_ofList, List.utf8Encode_singleton,
+    rw [← size_toByteArray, String.toByteArray_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
 
 @[deprecated utf8ByteSize_ofList (since := "2025-10-31")]
@@ -688,7 +688,7 @@ theorem toEnd (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := b
 theorem toEnd' (it : Iterator) : ValidFor it.s.toList.reverse [] it.toEnd := by
   simp only [Iterator.toEnd]
   exact .of_eq _ (by simp [List.reverseAux_eq])
-    (by simp [-size_bytes, rawEndPos, utf8ByteSize])
+    (by simp [-size_toByteArray, rawEndPos, utf8ByteSize])
 
 theorem extract (h₁ : ValidFor l (m ++ r) it₁)
     (h₂ : ValidFor (m.reverse ++ l) r it₂) : it₁.extract it₂ = String.ofList m := by
@@ -1111,7 +1111,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
   | ⟨_, ⟨_⟩, ⟨_⟩⟩, ⟨.mk l mr rfl, t, h⟩ => by
     obtain ⟨lm, r, h₁, h₂⟩ := t.exists
     have e : lm ++ r = l ++ mr := by
-      simpa [← String.ofList_inj, ← String.bytes_inj] using h₁
+      simpa [← String.ofList_inj, ← String.toByteArray_inj] using h₁
     obtain rfl := Pos.Raw.ext_iff.1 h₂
     simp only [Pos.Raw.mk_le_mk] at *
     have := (or_iff_right_iff_imp.2 fun h => ?x).1 (List.append_eq_append_iff.1 e)
