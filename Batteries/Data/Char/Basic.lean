@@ -3,12 +3,11 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, François G. Dorais
 -/
-import Batteries.Classes.Order
+module
 
--- Forward port of lean4#9515
-@[grind ←]
-theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
-  simp [finRange]
+public import Batteries.Classes.Order
+
+@[expose] public section
 
 namespace Char
 
@@ -29,26 +28,58 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
   · simp [ofNat, *]
   · simp [ofNat, toNat, *]
 
+/--
+Maximum character code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev max := 0x10FFFF
+
+/--
+Maximum surrogate code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev maxSurrogate := 0xDFFF
+
+/--
+Minimum surrogate code point.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev minSurrogate := 0xD800
+
+/--
+Number of valid character code points.
+(See [unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
+-/
+protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
+
+@[grind .] theorem toNat_le_max (c : Char) : c.toNat ≤ Char.max := by
+  match c.valid with
+  | .inl h => simp only [toNat_val] at h; grind
+  | .inr ⟨_, h⟩ => simp only [toNat_val] at h; grind
+
+@[grind .] theorem toNat_not_surrogate (c : Char) :
+    ¬(Char.minSurrogate ≤ c.toNat ∧ c.toNat ≤ Char.maxSurrogate) := by
+  match c.valid with
+  | .inl h => simp only [toNat_val] at h; grind
+  | .inr ⟨h, _⟩ => simp only [toNat_val] at h; grind
+
 /-- Returns `true` if `p` returns true for every `Char`. -/
 protected def all (p : Char → Bool) : Bool :=
-  -- Recall that character code points range from 0 to 0x10FFFF, excluding the surrogate range from
-  -- 0xD800 to 0xDFFF.
-  -- (See [Unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
-  Nat.all 0xD800 (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) &&
-  Nat.all (0x110000 - 0xE000) fun c h₂ => p <| Char.ofNatAux (c + 0xE000) <| .inr (by grind)
+  Nat.all Char.minSurrogate (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) &&
+  Nat.all (Char.max - Char.maxSurrogate) fun c h₂ =>
+    p <| Char.ofNatAux (c + (Char.maxSurrogate + 1)) <| .inr (by grind)
 
 private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidChar) :
     p (.ofNatAux n hn) := by
   simp only [Char.all, Nat.all_eq_finRange_all, List.all_eq_true, Bool.and_eq_true] at h
-  simp only [Nat.isValidChar] at hn
   match hn with
   | .inl hn =>
-    have h₁ := h.1 ⟨n, by grind⟩
+    have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    have h₂ := h.2 ⟨n - 0xE000, by omega⟩
-    simp only [Nat.reduceSub, List.mem_finRange, Nat.sub_add_cancel hn, forall_const] at h₂
-    exact h₂
+    -- https://github.com/leanprover/lean4/issues/11059
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
+    grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
@@ -61,7 +92,7 @@ theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
   simp only [Bool.eq_false_iff]
   match h with
   | .inl ⟨⟨n, hn⟩, _, h⟩ => exact ⟨Char.ofNatAux n (.inl hn), h⟩
-  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + 0xE000) (.inr (by grind)), h⟩
+  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + (Char.maxSurrogate + 1)) (.inr (by grind)), h⟩
 
 theorem all_eq_true_iff_forall_eq_true : Char.all p = true ↔ ∀ c, p c = true := by
   constructor
@@ -74,29 +105,28 @@ theorem all_eq_true_iff_forall_eq_true : Char.all p = true ↔ ∀ c, p c = true
 
 /-- Returns `true` if `p` returns true for some `Char`. -/
 protected def any (p : Char → Bool) : Bool :=
-  -- Recall that character code points range from 0 to 0x10FFFF, excluding the surrogate range from
-  -- 0xD800 to 0xDFFF.
-  -- (See [Unicode scalar value](https://www.unicode.org/glossary/#unicode_scalar_value).)
-  Nat.any 0xD800 (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) ||
-  Nat.any (0x110000 - 0xE000) fun c h₂ => p <| Char.ofNatAux (c + 0xE000) <| .inr (by grind)
+  Nat.any Char.minSurrogate (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) ||
+  Nat.any (Char.max - Char.maxSurrogate) fun c h₂ =>
+    p <| Char.ofNatAux (c + Char.maxSurrogate + 1) <| .inr (by grind)
 
 theorem exists_eq_true_of_any_eq_true (h : Char.any p = true) : ∃ c, p c = true := by
   simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_true, Bool.or_eq_true] at h
   match h with
   | .inl ⟨⟨n, hn⟩, _, h⟩ => exact ⟨Char.ofNatAux n (.inl hn), h⟩
-  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + 0xE000) (.inr (by grind)), h⟩
+  | .inr ⟨⟨n, _⟩, _, h⟩ => exact ⟨Char.ofNatAux (n + Char.maxSurrogate + 1) (.inr (by grind)), h⟩
 
 private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.isValidChar) :
     p (.ofNatAux n hn) = false := by
   simp only [Char.any, Nat.any_eq_finRange_any, List.any_eq_false, Bool.or_eq_false_iff] at h
-  simp only [Nat.isValidChar] at hn
-  simp only [Bool.eq_false_iff]
   match hn with
-  | .inl hn => exact h.1 ⟨n, hn⟩ (List.mem_finRange _)
+  | .inl hn =>
+    have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
+    grind
   | .inr ⟨hn, hn'⟩ =>
-    have h₂ := h.2 ⟨n - 0xE000, by omega⟩ (List.mem_finRange _)
-    simp only [Nat.sub_add_cancel hn] at h₂
-    exact h₂
+    -- https://github.com/leanprover/lean4/issues/11059
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+      (List.mem_finRange _)
+    grind
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
   have : c.toNat.isValidChar := c.valid

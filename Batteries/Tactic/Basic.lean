@@ -1,7 +1,9 @@
-import Lean.Elab.Tactic.ElabTerm
-import Batteries.Linter
-import Batteries.Tactic.Init
-import Batteries.Tactic.SeqFocus
-import Batteries.Util.ProofWanted
+module
+
+public meta import Lean.Elab.Tactic.ElabTerm
+public meta import Batteries.Linter
+public meta import Batteries.Tactic.Init
+public meta import Batteries.Tactic.SeqFocus
+public meta import Batteries.Util.ProofWanted
 
 -- This is an import only file for common tactics used throughout Batteries
