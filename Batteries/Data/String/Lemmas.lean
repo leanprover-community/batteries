@@ -801,24 +801,24 @@ theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
-    foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
+    Legacy.foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
   rw [← m.reverse_reverse]
-  induction m.reverse generalizing r a with (unfold foldrAux; simp)
+  induction m.reverse generalizing r a with (unfold Legacy.foldrAux; simp)
   | cons c m IH =>
     rw [if_pos add_utf8Size_pos]
     simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
 
-theorem foldr_eq (f : Char → α → α) (s a) : foldr f a s = s.toList.foldr f a := by
+theorem foldr_eq (f : Char → α → α) (s a) : Legacy.foldr f a s = s.toList.foldr f a := by
   simpa using foldrAux_of_valid f [] s.toList [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.anyAux
 theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
-    anyAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
-  | l, [], r => by unfold anyAux; simp
+    Legacy.anyAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
+  | l, [], r => by unfold Legacy.anyAux; simp
   | l, c::m, r => by
-    unfold anyAux
+    unfold Legacy.anyAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r),
@@ -826,18 +826,20 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
-theorem any_eq (s : String) (p : Char → Bool) : any s p = s.toList.any p := by
+theorem any_eq (s : String) (p : Char → Bool) : Legacy.any s p = s.toList.any p := by
   simpa using anyAux_of_valid p [] s.toList []
 
-theorem any_iff (s : String) (p : Char → Bool) : any s p ↔ ∃ c ∈ s.toList, p c := by simp [any_eq]
+theorem any_iff (s : String) (p : Char → Bool) :
+    Legacy.any s p ↔ ∃ c ∈ s.toList, p c := by simp [any_eq]
 
-theorem all_eq (s : String) (p : Char → Bool) : all s p = s.toList.all p := by
-  rw [all, any_eq, List.all_eq_not_any_not]
+theorem all_eq (s : String) (p : Char → Bool) : Legacy.all s p = s.toList.all p := by
+  rw [Legacy.all, any_eq, List.all_eq_not_any_not]
 
-theorem all_iff (s : String) (p : Char → Bool) : all s p ↔ ∀ c ∈ s.toList, p c := by simp [all_eq]
+theorem all_iff (s : String) (p : Char → Bool) :
+    Legacy.all s p ↔ ∀ c ∈ s.toList, p c := by simp [all_eq]
 
-theorem contains_iff (s : String) (c : Char) : contains s c ↔ c ∈ s.toList := by
-  simp [contains, any_iff]
+theorem contains_iff (s : String) (c : Char) : Legacy.contains s c ↔ c ∈ s.toList := by
+  simp [Legacy.contains, any_iff]
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
 theorem mapAux_of_valid (f : Char → Char) :
@@ -1074,18 +1076,19 @@ theorem foldl (f) (init : α) :
   | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.Legacy.foldl,
     foldlAux_of_valid]
 
-theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldr f init = m.foldr f init
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.foldr,
+theorem foldr (f) (init : α) :
+    ∀ {s}, ValidFor l m r s → Legacy.foldr f init s = m.foldr f init
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.Legacy.foldr,
     foldrAux_of_valid]
 
-theorem any (f) : ∀ {s}, ValidFor l m r s → s.any f = m.any f
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.any, anyAux_of_valid]
+theorem any (f) : ∀ {s}, ValidFor l m r s → Legacy.any s f = m.any f
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Legacy.any, anyAux_of_valid]
 
-theorem all (f) : ∀ {s}, ValidFor l m r s → s.all f = m.all f
-  | _, h => by simp [Substring.Raw.all, h.any, List.all_eq_not_any_not]
+theorem all (f) : ∀ {s}, ValidFor l m r s → Legacy.all s f = m.all f
+  | _, h => by simp [Legacy.all, h.any, List.all_eq_not_any_not]
 
-theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.contains c ↔ c ∈ m)
-  | _, h => by simp [Substring.Raw.contains, h.any]
+theorem contains (c) : ∀ {s}, ValidFor l m r s → (Legacy.contains s c ↔ c ∈ m)
+  | _, h => by simp [Legacy.contains, h.any]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
@@ -1213,16 +1216,17 @@ theorem foldl (f) (init : α) :
     ∀ {s}, Valid s → Legacy.foldl f init s = s.toString.toList.foldl f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldl, h.toString]
 
-theorem foldr (f) (init : α) : ∀ {s}, Valid s → s.foldr f init = s.toString.toList.foldr f init
+theorem foldr (f) (init : α) :
+    ∀ {s}, Valid s → Legacy.foldr f init s = s.toString.toList.foldr f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldr, h.toString]
 
-theorem any (f) : ∀ {s}, Valid s → s.any f = s.toString.toList.any f
+theorem any (f) : ∀ {s}, Valid s → Legacy.any s f = s.toString.toList.any f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.any, h.toString]
 
-theorem all (f) : ∀ {s}, Valid s → s.all f = s.toString.toList.all f
+theorem all (f) : ∀ {s}, Valid s → Legacy.all s f = s.toString.toList.all f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.all, h.toString]
 
-theorem contains (c) : ∀ {s}, Valid s → (s.contains c ↔ c ∈ s.toString.toList)
+theorem contains (c) : ∀ {s}, Valid s → (Legacy.contains s c ↔ c ∈ s.toString.toList)
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.contains, h.toString]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.takeWhile p)
