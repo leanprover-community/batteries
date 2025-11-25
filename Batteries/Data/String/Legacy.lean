@@ -34,7 +34,7 @@ private theorem utf8ByteSize'_eq (s : String) : s.utf8ByteSize' = s.utf8ByteSize
     rw [utf8ByteSize'.go, ih, ← List.singleton_append, String.ofList_append,
       utf8ByteSize_append, Nat.add_comm]
     congr
-    rw [← size_bytes, String.bytes_ofList, List.utf8Encode_singleton,
+    rw [← size_toByteArray, String.toByteArray_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
 
 private theorem set_next_add (s : String) (i : Pos.Raw) (c : Char) (b₁ b₂)
