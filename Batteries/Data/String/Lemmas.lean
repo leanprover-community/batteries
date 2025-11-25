@@ -801,7 +801,8 @@ theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
-    Legacy.foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
+    Legacy.foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
+      m.foldr f a := by
   rw [← m.reverse_reverse]
   induction m.reverse generalizing r a with (unfold Legacy.foldrAux; simp)
   | cons c m IH =>
