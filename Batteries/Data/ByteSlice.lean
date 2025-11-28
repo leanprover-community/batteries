@@ -51,7 +51,7 @@ where
       | ForInStep.done b  => pure b
       | ForInStep.yield b => loop i (Nat.le_of_succ_le h) b
 
-instance : ForIn m ByteSlice UInt8 where
+instance [Monad m] : ForIn m ByteSlice UInt8 where
   forIn := ByteSlice.forIn
 
 instance : Std.Stream ByteSlice UInt8 where
@@ -169,7 +169,7 @@ where
       | ForInStep.done b  => pure b
       | ForInStep.yield b => loop i (Nat.le_of_succ_le h) b
 
-instance : ForIn m ByteSubarray UInt8 where
+instance [Monad m] : ForIn m ByteSubarray UInt8 where
   forIn := ByteSubarray.forIn
 
 instance : Std.Stream ByteSubarray UInt8 where

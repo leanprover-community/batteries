@@ -333,6 +333,101 @@ Examples:
 @[inline] def Legacy.revFind (s : String) (p : Char → Bool) : Option Pos.Raw :=
   revFindAux s p s.rawEndPos
 
+/--
+Auxuliary definition for `String.Legacy.foldr`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[specialize] def Legacy.foldrAux {α : Type u} (f : Char → α → α) (a : α) (s : String)
+    (i begPos : Pos.Raw) : α :=
+  if h : begPos < i then
+    have := Pos.Raw.prev_lt_of_pos s i <| mt (congrArg String.Pos.Raw.byteIdx) <|
+      Ne.symm <| Nat.ne_of_lt <| Nat.lt_of_le_of_lt (Nat.zero_le _) h
+    let i := i.prev s
+    let a := f (i.get s) a
+    foldrAux f a s i begPos
+  else a
+termination_by i.1
+
+/--
+Folds a function over a string from the right, accumulating a value starting with `init`. The
+accumulated value is combined with each character in reverse order, using `f`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+ * `"coffee tea water".foldr (fun c n => if c.isWhitespace then n + 1 else n) 0 = 2`
+ * `"coffee tea and water".foldr (fun c n => if c.isWhitespace then n + 1 else n) 0 = 3`
+ * `"coffee tea water".foldr (fun c s => c.push s) "" = "retaw dna aet eeffoc"`
+-/
+@[inline] def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : String) : α :=
+  foldrAux f init s s.rawEndPos 0
+
+/--
+Auxuliary definition for `String.Legacy.any`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[specialize] def Legacy.anyAux (s : String) (stopPos : Pos.Raw) (p : Char → Bool) (i : Pos.Raw) :
+    Bool :=
+  if h : i < stopPos then
+    if p (i.get s) then true
+    else
+      have := Nat.sub_lt_sub_left h (Pos.Raw.lt_next s i)
+      anyAux s stopPos p (i.next s)
+  else false
+termination_by stopPos.1 - i.1
+
+/--
+Checks whether there is a character in a string for which the Boolean predicate `p` returns `true`.
+
+Short-circuits at the first character for which `p` returns `true`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+ * `"brown".any (·.isLetter) = true`
+ * `"brown".any (·.isWhitespace) = false`
+ * `"brown and orange".any (·.isLetter) = true`
+ * `"".any (fun _ => false) = false`
+-/
+@[inline] def Legacy.any (s : String) (p : Char → Bool) : Bool :=
+  anyAux s s.rawEndPos p 0
+
+/--
+Checks whether the Boolean predicate `p` returns `true` for every character in a string.
+
+Short-circuits at the first character for which `p` returns `false`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+ * `"brown".all (·.isLetter) = true`
+ * `"brown and orange".all (·.isLetter) = false`
+ * `"".all (fun _ => false) = true`
+-/
+@[inline] def Legacy.all (s : String) (p : Char → Bool) : Bool :=
+  !Legacy.any s (fun c => !p c)
+
+/--
+Checks whether a string contains the specified character.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+
+Examples:
+* `"green".contains 'e' = true`
+* `"green".contains 'x' = false`
+* `"".contains 'x' = false`
+-/
+@[inline] def Legacy.contains (s : String) (c : Char) : Bool :=
+  Legacy.any s (fun a => a == c)
+
 end String
 
 namespace Substring.Raw
@@ -347,5 +442,48 @@ This is an old implementation, preserved here for users of the lemmas in
 @[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : Substring.Raw) : α :=
   match s with
   | ⟨s, b, e⟩ => String.Legacy.foldlAux f s e b init
+
+/--
+Folds a function over a substring from the right, accumulating a value starting with `init`. The
+accumulated value is combined with each character in reverse order, using `f`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[inline] def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : Substring.Raw) : α :=
+  match s with
+  | ⟨s, b, e⟩ => String.Legacy.foldrAux f init s e b
+
+/--
+Checks whether the Boolean predicate `p` returns `true` for any character in a substring.
+
+Short-circuits at the first character for which `p` returns `true`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[inline] def Legacy.any (s : Substring.Raw) (p : Char → Bool) : Bool :=
+  match s with
+  | ⟨s, b, e⟩ => String.Legacy.anyAux s e p b
+
+/--
+Checks whether the Boolean predicate `p` returns `true` for every character in a substring.
+
+Short-circuits at the first character for which `p` returns `false`.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[inline] def Legacy.all (s : Substring.Raw) (p : Char → Bool) : Bool :=
+  !Legacy.any s (fun c => !p c)
+
+/--
+Checks whether a substring contains the specified character.
+
+This is an old implementation, preserved here for users of the lemmas in
+`Batteries.Data.String.Lemmas`.
+-/
+@[inline] def Legacy.contains (s : Substring.Raw) (c : Char) : Bool :=
+  Legacy.any s (fun a => a == c)
 
 end Substring.Raw
