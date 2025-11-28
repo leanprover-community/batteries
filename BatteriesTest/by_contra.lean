@@ -21,12 +21,12 @@ example (P : Prop) [Decidable P] : nonDecid P = decid P := by
 
 example (P : Prop) : P → P := by
   by_contra
-  guard_hyp ‹_› : ¬(P → P)
+  guard_hyp this : ¬(P → P)
   exact ‹¬(P → P)› id
 
 example (P : Prop) : {_ : P} → P := by
   by_contra
-  guard_hyp ‹_› : ¬(P → P)
+  guard_hyp this : ¬(P → P)
   exact ‹¬(P → P)› id
 
 /-!
@@ -42,7 +42,7 @@ case left
 ---
 error: unsolved goals
 case right
-x✝ : ¬True
+this : ¬True
 ⊢ False
 -/
 #guard_msgs in
@@ -50,3 +50,36 @@ example : True ∧ True := by
   constructor
   · skip
   · by_contra
+
+example (n : Nat) (h : n ≠ 0) : n ≠ 0 := by
+  by_contra rfl
+  simp only [Ne, not_true_eq_false] at h
+
+example (p q : Prop) (hnp : ¬ p) : ¬ (p ∧ q) := by
+  by_contra ⟨hp, _⟩
+  exact hnp hp
+
+example (p q : Prop) (hnp : ¬ p) (hnq : ¬ q) : ¬ (p ∨ q) := by
+  by_contra hp | hq
+  · exact hnp hp
+  · exact hnq hq
+
+/--
+error: unsolved goals
+n : Nat
+this : n ≠ 0
+⊢ False
+-/
+#guard_msgs in
+example (n : Nat) : n = 0 := by
+  by_contra : n ≠ 0
+
+/--
+error: unsolved goals
+n : Nat
+h_ne : n ≠ 0
+⊢ False
+-/
+#guard_msgs in
+example (n : Nat) : n = 0 := by
+  by_contra h_ne : n ≠ 0
