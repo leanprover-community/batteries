@@ -1,5 +1,5 @@
 import Batteries.Tactic.Basic
-open Batteries.Tactic
+
 private def nonDecid (P : Prop) (x : P) : P := by
   by_contra h
   guard_hyp h : ¬P
