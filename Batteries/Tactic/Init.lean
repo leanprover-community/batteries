@@ -53,8 +53,8 @@ introducing a hypothesis `h : ¬p` and proving `False`.
 syntax (name := byContra) "by_contra" (ppSpace colGt rcasesPatMed)? (" : " term)? : tactic
 
 macro_rules
-| `(tactic| by_contra $[$pat?]? $[: $ty?]?) => do
-  let pat ← pat?.getDM `(rcasesPatMed| $(mkIdent `this):ident)
+| `(tactic| by_contra%$tk $[$pat?]? $[: $ty?]?) => do
+  let pat ← pat?.getDM `(rcasesPatMed| $(mkIdentFrom tk `this):ident)
   `(tactic| (by_contra_core; rintro ($pat:rcasesPatMed) $[: $ty?]?))
 
 /--
