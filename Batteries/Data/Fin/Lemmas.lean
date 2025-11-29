@@ -84,7 +84,7 @@ theorem countP_succ (p : Fin (n + 1) → Bool) :
     Fin.countP p = (p 0).toNat + Fin.countP (p ·.succ) := by
   simp [Fin.countP, List.finRange_succ]; rfl
 
-@[simp, grind .]
+@[simp, grind =]
 theorem countP_eq_countP_map_finRange (x : Fin n → Bool) :
     Fin.countP x = (List.finRange n).countP x := by
   induction n with
