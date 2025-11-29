@@ -32,22 +32,30 @@ elab (name := exacts) "exacts " "[" hs:term,* "]" : tactic => do
   evalTactic (← `(tactic| done))
 
 /--
+`by_contra_core` is the component of `by_contra` that turns the goal into the form `p → False`.
+`by_contra h` is defined as `by_contra_core` followed by `rintro h`.
+* If the goal is a negation `¬q`, the goal becomes `q → False`.
+* If the goal has a `Decidable` instance, it uses `Decidable.byContradiction` instead of
+  `Classical.byContradiction`.
+-/
+scoped macro "by_contra_core" : tactic => `(tactic| first
+  | guard_target = Not _; change _ → False
+  | refine @Decidable.byContradiction _ _ ?_
+  | refine @Classical.byContradiction _ ?_)
+
+/--
 `by_contra h` proves `⊢ p` by contradiction,
 introducing a hypothesis `h : ¬p` and proving `False`.
 * If `p` is a negation `¬q`, `h : q` will be introduced instead of `¬¬q`.
 * If `p` is decidable, it uses `Decidable.byContradiction` instead of `Classical.byContradiction`.
-* If `h` is omitted, the introduced variable `_: ¬p` will be anonymous.
+* If `h` is omitted, the introduced variable will be called `this`.
 -/
-macro (name := byContra) tk:"by_contra" e?:(ppSpace colGt binderIdent)? : tactic => do
-  let e := match e? with
-    | some e => match e with
-      | `(binderIdent| $e:ident) => e
-      | e => Unhygienic.run `(_%$e) -- HACK: hover fails without Unhygienic here
-    | none => Unhygienic.run `(_%$tk)
-  `(tactic| first
-    | guard_target = Not _; intro $e:term
-    | refine @Decidable.byContradiction _ _ fun $e => ?_
-    | refine @Classical.byContradiction _ fun $e => ?_)
+syntax (name := byContra) "by_contra" (ppSpace colGt rcasesPatMed)? (" : " term)? : tactic
+
+macro_rules
+| `(tactic| by_contra $[$pat?]? $[: $ty?]?) => do
+  let pat ← pat?.getDM `(rcasesPatMed| $(mkIdent `this):ident)
+  `(tactic| (by_contra_core; rintro ($pat:rcasesPatMed) $[: $ty?]?))
 
 /--
 Given a proof `h` of `p`, `absurd h` changes the goal to `⊢ ¬ p`.
