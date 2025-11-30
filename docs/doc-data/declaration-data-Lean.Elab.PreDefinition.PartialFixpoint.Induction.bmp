@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Match.MatcherApp.Transform","Lean.Meta.Injective","Lean.Meta.ArgsPacker","Lean.Elab.PreDefinition.PartialFixpoint.Eqns","Lean.Meta.Tactic.ElimInfo","Init.Internal.Order.Basic"],"instances":[],"name":"Lean.Elab.PreDefinition.PartialFixpoint.Induction"}

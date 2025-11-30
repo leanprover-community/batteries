@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Match.MatcherApp.Basic","Lean.Meta.Match.MatcherApp.Transform"],"instances":[],"name":"Lean.Meta.Match.MatcherApp"}

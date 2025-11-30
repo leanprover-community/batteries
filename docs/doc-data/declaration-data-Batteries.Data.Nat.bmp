@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Batteries.Data.Nat.Basic","Batteries.Data.Nat.Bisect","Batteries.Data.Nat.Bitwise","Batteries.Data.Nat.Digits","Batteries.Data.Nat.Gcd","Batteries.Data.Nat.Lemmas"],"instances":[],"name":"Batteries.Data.Nat"}
