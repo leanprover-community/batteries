@@ -13,6 +13,16 @@ namespace List
 
 /-! ## New definitions -/
 
+/-- Returns the longest common prefix of two lists. -/
+def commonPrefix [DecidableEq α] : (l₁ l₂ : List α) → List α
+  | [], _ => []
+  | _, [] => []
+  | a₁::l₁, a₂::l₂ =>
+    if a₁ = a₂ then
+      a₁ :: (commonPrefix l₁ l₂)
+    else
+      []
+
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
