@@ -6,7 +6,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 module
 
 public import Batteries.Tactic.Alias
-public import Batteries.Data.List.Lemmas
+public import Batteries.Data.List.Count
 import Batteries.Util.ProofWanted
 
 @[expose] public section
@@ -331,7 +331,7 @@ theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ 
 -/
 def Subperm.finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs.Subperm ys)
     (i : Fin (xs.length)) : Fin (ys.length) :=
-  ⟨ys.idxOfIdx xs i i.isLt, idxOfIdx_lt (hxy.count_le _)⟩
+  ys.countToIdx xs[i.1] <| (xs.idxToCount i).castLE (hxy.count_le _)
 
 @[simp, grind =]
 theorem coe_finToFin [BEq α] [ReflBEq α] {xs ys : List α} {hxy : xs.Subperm ys}
