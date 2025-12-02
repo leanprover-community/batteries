@@ -223,7 +223,8 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
+@[specialize] def foldlIdx {α : Type u} {β : Type v} (f : Nat → α → β → α) (init : α) :
+    List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
@@ -248,9 +249,9 @@ def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : 
     (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
   grind [foldrIdxTR]
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
-optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
-equal to `start` and less than `l.length + start`).  -/
+/-- `findIdxs p l s` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `s` (so that the members of `findIdxs p l s` will be greater than or
+equal to `s` and less than `l.length + s`).  -/
 @[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
@@ -265,9 +266,16 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[deprecated (since := "2025-11-06")]
 alias indexsValues := findIdxsValues
 
+/-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`. -/
+@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n where
+  @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat := 0) → Nat
+  | [], _, s => s
+  | a :: xs, 0, s => bif p a then s else go xs 0 (s + 1)
+  | a :: xs, n + 1, s => bif p a then go xs n (s + 1) else go xs (n + 1) (s + 1)
+
 /--
-`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
-optional parameter `start`. For example:
+`idxsOf a l s` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `s`. For example:
 ```
 idxsOf b [a, b, a, a] = [1]
 idxsOf a [a, b, a, a] 5 = [5, 7, 8]
@@ -278,6 +286,24 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
+
+/-- `idxOfNth p xs n` returns the index of the `n`th instance of `a` in `xs`. -/
+def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
+  xs.findIdxNth (· == a) n
+
+/-- `countPBefore p xs i hip`, given an index `i` at which `p xs[i]` is true, counts the
+number of `x` in `xs` before the `i`th index at which `p x` is true. -/
+def countPBefore (p : α → Bool) (xs : List α) (i : Nat) (hi : i < xs.length) (hip : p xs[i]) :
+    Nat := go xs i hi hip where
+  @[specialize] go : (xs : List α) → (i : Nat) → (hi : i < xs.length) →
+      (hip : p xs[i]) → (s : Nat := 0) → Nat
+  | a :: xs, 0, _ => fun _ s => s
+  | a :: xs, i + 1, _ => fun hip s => go xs i _ hip (bif p a then s + 1 else s)
+
+/-- `countBefore x xs n`, given an index `i`, counts the number of `x` in `xs` before the `i`th index
+    for which `a == xs[i]` is true, assuming a reflexive `BEq` instance. -/
+def countBefore [BEq α] [ReflBEq α] (xs : List α) (i : Nat) (hi : i < xs.length) : Nat :=
+    xs.countPBefore (· == xs[i]) i hi BEq.rfl
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.

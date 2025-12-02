@@ -34,10 +34,12 @@ variable [BEq α]
 theorem count_concat [LawfulBEq α] (a : α) (l : List α) :
     count a (concat l a) = succ (count a l) := by simp
 
+
+
 /-- For a fixed list, given the index of an element,
   find the corresponding element and multiplicity. -/
 def idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
-    (x : α) × Fin (xs.count x) := ⟨xs[i], (xs.idxsOf xs[i]).idxOf ↑i, by grind⟩
+    (x : α) × Fin (xs.count x) := ⟨xs[i], (xs.idxsOf xs[i]).idxOf i.val, by grind⟩
 
 @[simp, grind =]
 theorem fst_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
@@ -45,16 +47,16 @@ theorem fst_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
 
 @[simp, grind =]
 theorem val_snd_idxToCountElem [EquivBEq α] (xs : List α) (i : Fin xs.length) :
-  (xs.idxToCountElem i).snd = (xs.idxsOf xs[(i : Nat)]).idxOf ↑i := rfl
+  (xs.idxToCountElem i).snd = (xs.idxsOf xs[(i : Nat)]).idxOf i.1 := rfl
 
 /-- For a fixed list, given an element and its multiplicity,
   find the corresponding index. -/
 def countElemToIdx (xs : List α) (xj : (x : α) × Fin (xs.count x)) : Fin xs.length :=
-  ⟨(xs.idxsOf xj.1)[xj.2], by grind⟩
+  ⟨(xs.idxsOf xj.1)[xj.2.1], xs.getElem_idxsOf_lt_add _⟩
 
 @[simp, grind =]
 theorem val_countElemToIdx (xs : List α) (xj : (x : α) × Fin (xs.count x)) :
-  xs.countElemToIdx xj = (xs.idxsOf xj.1)[(xj.2 : Nat)] := rfl
+  xs.countElemToIdx xj = (xs.idxsOf xj.1)[xj.2.1] := rfl
 
 theorem countElemToIdx_idxToCountElem {xs : List α} [LawfulBEq α]
     (xj : (x : α) × Fin (xs.count x)) :
