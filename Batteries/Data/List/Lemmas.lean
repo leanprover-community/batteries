@@ -922,7 +922,8 @@ theorem getElem_idxOfNth_beq {xs : List α} [BEq α] {hxs : xs.idxOfNth x n < xs
 grind_pattern getElem_idxOfNth_beq => xs[xs.idxOfNth x n]
 
 @[simp, grind =>]
-theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α] {hxs : xs.idxOfNth x n < xs.length} :
+theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α]
+    {hxs : xs.idxOfNth x n < xs.length} :
     xs[xs.idxOfNth x n] = x := eq_of_beq getElem_idxOfNth_beq
 
 theorem exists_idxOfNth_eq_of_beq {xs : List α} [BEq α] {hixs : i < xs.length} (hip : xs[i] == x) :
@@ -1139,7 +1140,7 @@ theorem idxOfIdx_idxOfIdx [BEq α] [LawfulBEq α] {xs ys : List α} {i : Nat}
   simp [countBefore_idxOfNth_of_lt_count (Nat.lt_of_lt_of_le
     (xs.countBefore_lt_count_of_lt_length_of_beq hi BEq.rfl) hxy),
     idxOfNth_countBefore_of_lt_length_of_beq hi BEq.rfl]
-    
+
 /-! ### insertP -/
 
 theorem insertP_loop (a : α) (l r : List α) :
