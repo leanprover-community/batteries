@@ -267,11 +267,11 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 alias indexsValues := findIdxsValues
 
 /-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`. -/
-@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n where
-  @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat := 0) → Nat
+@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
+  @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat) → Nat
   | [], _, s => s
   | a :: xs, 0, s => bif p a then s else go xs 0 (s + 1)
-  | a :: xs, n + 1, s => bif p a then go xs n (s + 1) else go xs (n + 1) (s + 1)
+  | a :: xs, n + 1, s => go xs (n + bif !(p a) then 1 else 0) (s + 1)
 
 /--
 `idxsOf a l s` is the list of all indexes of `a` in `l`,  added to an
@@ -293,16 +293,20 @@ def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
 
 /-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `n`th index at
 which `p x` is true. -/
-def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i where
-  @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat := 0) → Nat
-  | [], _, s => s
+def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
+  @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
   | _ :: _, 0, s => s
   | a :: xs, i + 1, s => go xs i (bif p a then s + 1 else s)
+  | [], _, s => s
 
 /-- `countBefore x xs n` counts the number of `x` in `xs` before the
     `n`th index for which `x == a` is true. -/
 def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
-    countPBefore (· == a)
+  countPBefore (· == a)
+
+/-- `idxOfIdx ys xs i` -/
+def idxOfIdx [BEq α] (ys xs : List α) (i : Nat) (hi : i < xs.length) : Nat :=
+  ys.idxOfNth xs[i] (xs.countBefore xs[i] i)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
