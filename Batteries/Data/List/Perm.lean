@@ -378,12 +378,12 @@ theorem Perm.subperm_finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs 
     hxy.subperm.finToFin = hxy.finToFin := rfl
 
 theorem Perm.finToFin_finToFin_symm [BEq α] [LawfulBEq α] {xs ys : List α} (hxy : xs ~ ys)
-    {i : Fin (ys.length)} : hxy.finToFin (hxy.symm.finToFin i) = i := by
-  simp [Fin.ext_iff, hxy.symm.subperm]
+    {i : Fin (ys.length)} : hxy.finToFin (hxy.symm.finToFin i) = i :=
+  Fin.ext <| by simp [hxy.symm.subperm]
 
 theorem Perm.finToFin_symm_finToFin [BEq α] [LawfulBEq α] {xs ys : List α} (hxy : xs ~ ys)
-    {i : Fin (xs.length)} : hxy.symm.finToFin (hxy.finToFin i) = i := by
-  simp [Fin.ext_iff, hxy.subperm]
+    {i : Fin (xs.length)} : hxy.symm.finToFin (hxy.finToFin i) = i :=
+  Fin.ext <| by simp [hxy.subperm]
 
 theorem Perm.getElem_finToFin_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
     (hxy : xs.Perm ys) (i : Fin (xs.length)) : ys[(hxy.finToFin i : Nat)] = xs[(i : Nat)] :=
