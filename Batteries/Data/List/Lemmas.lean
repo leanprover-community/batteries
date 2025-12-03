@@ -632,7 +632,7 @@ theorem unzip_findIdxsValues :
     induction xs <;> grind [findIdxNth, findIdxNth.go, cases Nat]
   grind [findIdxNth, findIdxNth.go]
 
-@[simp, grind =]
+@[grind =]
 theorem findIdxNth_cons {a : α} :
     (a :: xs).findIdxNth p n = if n = 0 then if p a then 0 else xs.findIdxNth p 0 + 1 else
     (if p a then xs.findIdxNth p (n - 1) else xs.findIdxNth p n) + 1 := by cases n <;> grind
@@ -884,7 +884,7 @@ theorem idxOf_mem_idxsOf [BEq α] (h : (xs : List α).idxOf x < xs.length) :
     (a :: xs).idxOfNth x (n + 1) = (if a == x then xs.idxOfNth x n else
     xs.idxOfNth x (n + 1)) + 1 := findIdxNth_cons_succ
 
-@[simp, grind =]
+@[grind =]
 theorem idxOfNth_cons [BEq α] {a : α} :
     (a :: xs).idxOfNth x n = if n = 0 then if a == x then 0 else xs.idxOfNth x 0 + 1 else
     (if a == x then xs.idxOfNth x (n - 1) else xs.idxOfNth x n) + 1 := by cases n <;> grind
@@ -1098,9 +1098,11 @@ theorem countBefore_le_count [BEq α] {xs : List α} :
     xs.countBefore x i ≤ xs.count x := by
   induction xs generalizing i <;> cases i <;> grind
 
+@[simp]
 theorem countBefore_idxOfNth_of_lt_count [BEq α] {xs : List α} (hn : n < xs.count x) :
      xs.countBefore x (xs.idxOfNth x n) = n := countPBefore_findIdxNth_of_lt_countP hn
 
+@[simp]
 theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} (hi : i < xs.length)
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hi hip
@@ -1110,36 +1112,18 @@ theorem countBefore_lt_count_of_lt_length_of_beq [BEq α] {xs : List α} (hi : i
     (hip : xs[i] == x) : xs.countBefore x i < xs.count x :=
   countPBefore_lt_countP_of_lt_length_of_pos _ hip
 
-theorem countBefore_of_ge_length [BEq α] {xs : List α} (hi : xs.length ≤ i) :
-    xs.countBefore x i = xs.count x := countPBefore_of_ge_length hi
-
-/-! ### idxOfIdx -/
+@[simp, grind =>]
+theorem idxOfNth_countBefore_getElem [BEq α] [ReflBEq α] {xs : List α}
+    {hi : i < xs.length} : xs.idxOfNth xs[i] (xs.countBefore xs[i] i) = i :=
+  idxOfNth_countBefore_of_lt_length_of_beq hi BEq.rfl
 
 @[simp, grind =>]
-theorem idxOfIdx_lt [BEq α] [ReflBEq α] {xs ys : List α} {i : Nat}
-    {hi : i < xs.length} (hxy : xs.count xs[i] ≤ ys.count xs[i]) :
-    ys.idxOfIdx xs i hi < ys.length :=
-  idxOfNth_lt_length_of_lt_count <| Nat.lt_of_lt_of_le
-    (countBefore_lt_count_of_lt_length_of_beq hi BEq.rfl) hxy
+theorem countBefore_lt_count_getElem [BEq α] [ReflBEq α] {xs : List α} {hi : i < xs.length} :
+    xs.countBefore xs[i] i < xs.count xs[i] :=
+  countBefore_lt_count_of_lt_length_of_beq hi BEq.rfl
 
-@[simp]
-theorem getElem_idxOfIdx_beq_getElem [BEq α] [ReflBEq α] {xs ys : List α} {i : Nat}
-    {hi : i < xs.length} (hxy : xs.count xs[i] ≤ ys.count xs[i]) :
-    ys[ys.idxOfIdx xs i hi]'(idxOfIdx_lt hxy) == xs[i] := getElem_idxOfNth_beq
-
-@[simp, grind =]
-theorem getElem_idxOfIdx_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α} {i : Nat}
-    {hi : i < xs.length} (hxy : xs.count xs[i] ≤ ys.count xs[i]) :
-    ys[ys.idxOfIdx xs i hi]'(idxOfIdx_lt hxy) = xs[i] :=
-  eq_of_beq (getElem_idxOfIdx_beq_getElem hxy)
-
-theorem idxOfIdx_idxOfIdx [BEq α] [LawfulBEq α] {xs ys : List α} {i : Nat}
-    {hi : i < xs.length} (hxy : xs.count xs[i] ≤ ys.count xs[i]) :
-    xs.idxOfIdx ys (ys.idxOfIdx xs i hi) (idxOfIdx_lt hxy) = i := by
-  unfold idxOfIdx
-  simp [countBefore_idxOfNth_of_lt_count (Nat.lt_of_lt_of_le
-    (xs.countBefore_lt_count_of_lt_length_of_beq hi BEq.rfl) hxy),
-    idxOfNth_countBefore_of_lt_length_of_beq hi BEq.rfl]
+theorem countBefore_of_ge_length [BEq α] {xs : List α} (hi : xs.length ≤ i) :
+    xs.countBefore x i = xs.count x := countPBefore_of_ge_length hi
 
 /-! ### insertP -/
 

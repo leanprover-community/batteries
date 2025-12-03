@@ -59,9 +59,8 @@ theorem countToIdx_getElem_idxToCount [BEq α] [ReflBEq α] {xs: List α} {i : F
 theorem getElem_countToIdx_beq [BEq α] {xs: List α} {x : α} {i : Fin (xs.count x)} :
     xs[(xs.countToIdx x i : Nat)] == x := getElem_idxOfNth_beq
 
-@[simp, grind =]
 theorem getElem_countToIdx_eq [BEq α] [LawfulBEq α] {xs: List α} {x : α} {i : Fin (xs.count x)} :
-    xs[(xs.countToIdx x i : Nat)] = x := getElem_idxOfNth_eq
+    xs[(xs.countToIdx x i : Nat)] = x := by simp
 
 @[simp, grind =]
 theorem coe_idxToCount_countToIdx [BEq α] [LawfulBEq α] {xs: List α} {x : α}
