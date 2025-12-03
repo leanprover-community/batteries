@@ -63,6 +63,6 @@ theorem getElem_countToIdx_eq [BEq α] [LawfulBEq α] {xs: List α} {x : α} {i 
     xs[(xs.countToIdx x i : Nat)] = x := by simp
 
 @[simp, grind =]
-theorem coe_idxToCount_countToIdx [BEq α] [LawfulBEq α] {xs: List α} {x : α}
-    {i : Fin (xs.count x)} : (xs.idxToCount (xs.countToIdx x i) : Nat) = i := by
-  simp [countBefore_idxOfNth_of_lt_count]
+theorem idxToCount_countToIdx [BEq α] [LawfulBEq α] {xs: List α} {x : α}
+    {i : Fin (xs.count x)} : xs.idxToCount (xs.countToIdx x i) = i.cast (by grind) :=
+  Fin.ext <| by simp

@@ -637,19 +637,15 @@ theorem findIdxNth_cons {a : α} :
     (a :: xs).findIdxNth p n = if n = 0 then if p a then 0 else xs.findIdxNth p 0 + 1 else
     (if p a then xs.findIdxNth p (n - 1) else xs.findIdxNth p n) + 1 := by cases n <;> grind
 
-@[simp, grind =]
 theorem findIdxNth_cons_of_neg {a : α} (h : p a = false) :
     (a :: xs).findIdxNth p n = xs.findIdxNth p n + 1 := by grind
 
-@[simp, grind =]
 theorem findIdxNth_cons_of_pos {a : α} (h : p a) :
     (a :: xs).findIdxNth p n = if n = 0 then 0 else
     xs.findIdxNth p (n - 1) + 1 := by grind
 
-@[simp, grind =]
 theorem findIdxNth_cons_zero_of_pos {a : α} (h : p a) :
     (a :: xs).findIdxNth p 0 = 0 := by grind
-@[simp, grind =]
 theorem findIdxNth_cons_succ_of_pos {a : α} (h : p a) :
     (a :: xs).findIdxNth p (n + 1) = xs.findIdxNth p n + 1 := by grind
 
@@ -991,12 +987,12 @@ theorem idxOfNth_eq_idxOfNth_of_ge_countP_ge_countP [BEq α] {xs : List α}
     induction xs <;> grind [countPBefore, countPBefore.go, cases Nat]
   induction xs generalizing i <;> grind [countPBefore, countPBefore.go]
 
-@[simp, grind =] theorem countPBefore_zero :
+@[simp] theorem countPBefore_zero :
     (xs : List α).countPBefore p 0 = 0 := by grind [cases List]
 
 theorem countPBefore_cons {a : α} :
     (a :: xs).countPBefore p i = xs.countPBefore p (i - 1) + if i ≠ 0 ∧ p a then 1 else 0 := by
-  cases i <;> grind
+  cases xs <;> cases i <;> grind
 
 theorem countPBefore_cons_succ_of_neg {a : α} (h : p a = false) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i := by grind
@@ -1102,7 +1098,6 @@ theorem countBefore_le_count [BEq α] {xs : List α} :
 theorem countBefore_idxOfNth_of_lt_count [BEq α] {xs : List α} (hn : n < xs.count x) :
      xs.countBefore x (xs.idxOfNth x n) = n := countPBefore_findIdxNth_of_lt_countP hn
 
-@[simp]
 theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} (hi : i < xs.length)
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hi hip
