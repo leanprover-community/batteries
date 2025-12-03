@@ -13,7 +13,7 @@ public meta section
 # Define the `library_note` command.
 -/
 
-namespace Batteries.Util.LibraryNote
+namespace Batteries.Util
 
 open Lean
 
@@ -21,6 +21,8 @@ open Lean
 in its doc-string. -/
 @[expose] def LibraryNote := Unit
 deriving Inhabited
+
+namespace LibraryNote
 
 /-- Entry for library notes in the environment extension.
 
