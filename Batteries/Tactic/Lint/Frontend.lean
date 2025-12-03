@@ -3,8 +3,12 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Lean.Elab.Command
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Elab.Command
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 /-!
 # Linter frontend and commands

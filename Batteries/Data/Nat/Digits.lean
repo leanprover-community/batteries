@@ -3,6 +3,10 @@ Copyright (c) 2025 Marcus Rossel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Marcus Rossel
 -/
+module
+import all Init.Data.Repr  -- for unfolding... everything
+
+@[expose] public section
 
 namespace Nat
 

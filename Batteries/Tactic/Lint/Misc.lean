@@ -3,13 +3,17 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
-import Lean.Util.CollectLevelParams
-import Lean.Util.ForEachExpr
-import Lean.Meta.GlobalInstances
-import Lean.Meta.Check
-import Lean.Util.Recognizers
-import Lean.DocString
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Util.CollectLevelParams
+public meta import Lean.Util.ForEachExpr
+public meta import Lean.Meta.GlobalInstances
+public meta import Lean.Meta.Check
+public meta import Lean.Util.Recognizers
+public meta import Lean.DocString
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 open Lean Meta Std
 
@@ -66,6 +70,10 @@ We skip all declarations that contain `sorry` in their value. -/
   test declName := do
     if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
       return none -- FIXME: scoped/local instances should also not be linted
+    if let .str p _ := declName then
+      if isGlobalInstance (← getEnv) p then
+        -- auxillary functions for instances should not be linted
+        return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none

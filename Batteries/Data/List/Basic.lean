@@ -4,6 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 
+module
+public import Batteries.Tactic.Alias
+
+@[expose] public section
+
 namespace List
 
 /-! ## New definitions -/
@@ -214,40 +219,65 @@ def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
-@[simp, specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : _ := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
   | [], _ => init
-  | b :: l, i => foldlIdx f (f i init b) l (i+1)
+  | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
 /--
 Fold a list from right to left as with `foldr`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
--- TODO(Mario): tail recursive / array-based implementation
-@[simp, specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
-    (l : List α) → (start : _ := 0) → β
+def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
+    (l : List α) → (start : Nat := 0) → β
   | [], _ => init
-  | a :: l, i => f i a (foldrIdx f init l (i+1))
+  | a :: l, s => f s a (foldrIdx f init l (s + 1))
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) : List Nat :=
-  foldrIdx (fun i a is => if p a then i :: is else is) [] l
+/-- A tail-recursive version of `foldrIdx`. -/
+@[inline] def foldrIdxTR (f : Nat → α → β → β) (init : β) (l : List α) (start : Nat := 0) : β :=
+  l.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + l.length) |>.1
+
+@[csimp] theorem foldrIdx_eq_foldrIdxTR : @foldrIdx = @foldrIdxTR := by
+  funext _ _ f
+  have go i xs s : xs.foldr (fun a xa => (f (xa.2 - 1) a xa.1, xa.2 - 1)) (i, s + xs.length) =
+    (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
+  grind [foldrIdxTR]
+
+/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
+equal to `start` and less than `l.length + start`).  -/
+@[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
+  foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
-`l`. The returned list is ordered by index.
+`l` added to an optional parameter `start`. The returned list is ordered by index.
+We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
-  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
+  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
+
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
 
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `start`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf b [a, b, a, a] = [1]
+idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
+  xs.findIdxs (· == a) start
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -332,11 +362,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
--- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
--- TODO(batteries#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
--- `Batteries/Data/List/Lemmas.lean`.
-attribute [implemented_by sublistsFast] sublists
+@[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
@@ -555,29 +584,55 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-section Chain
+/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+```
+IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
+``` -/
+inductive IsChain (R : α → α → Prop) : List α → Prop where
+  /-- A list of length 0 is a chain. -/
+  | nil : IsChain R []
+  /-- A list of length 1 is a chain. -/
+  | singleton (a : α) : IsChain R [a]
+  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+  | cons_cons (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
 
-variable (R : α → α → Prop)
+attribute [simp, grind ←] IsChain.nil
+attribute [simp, grind ←] IsChain.singleton
+
+@[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
+
+instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
+    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
+  where
+    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+      match l with
+      | [] => isTrue <| .singleton a
+      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-inductive Chain : α → List α → Prop
-  /-- A chain of length 1 is trivially a chain. -/
-  | nil {a : α} : Chain a []
-  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
+
+set_option linter.deprecated false in
+/-- A list of length 1 is a chain. -/
+@[deprecated IsChain.singleton (since := "2025-09-19")]
+theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
+
+set_option linter.deprecated false in
+/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+@[deprecated IsChain.cons_cons (since := "2025-09-19")]
+theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-def Chain' : List α → Prop
-  | [] => True
-  | a :: l => Chain R a l
-
-end Chain
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
 /-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
 Defined as `pwFilter (≠)`.
@@ -1030,3 +1085,14 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+Computes the product of the elements of a list.
+
+Examples:
+
+[a, b, c].prod = a * (b * (c * 1))
+[2, 3, 5].prod = 30
+-/
+@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
+  xs.foldr (· * ·) 1

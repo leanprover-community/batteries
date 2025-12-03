@@ -3,6 +3,11 @@ Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quang Dao
 -/
+module
+
+public import Batteries.Data.Nat.Lemmas
+
+@[expose] public section
 
 namespace Fin
 
@@ -68,7 +73,7 @@ This is the dependent version of `Fin.foldlM`. -/
     pure xₙ
   ```
   -/
-  @[semireducible, specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
+  @[specialize] loop (i : Nat) (h : i < n + 1) (x : α ⟨i, h⟩) : m (α (last n)) :=
     if h' : i < n then
       (f ⟨i, h'⟩ x) >>= loop (i + 1) (Nat.succ_lt_succ h')
     else
@@ -83,6 +88,18 @@ This is the dependent version of `Fin.foldl`. -/
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   dfoldlM (m := Id) n α f init
 
+/-- Sum of a tuple indexed by `Fin n`. -/
+@[inline] protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
+  foldr n (x · + ·) 0
+
+/-- Product of a tuple indexed by `Fin n`. -/
+@[inline] protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
+  foldr n (x · * ·) 1
+
+/-- Count the number of true values of a decidable predicate on `Fin n`. -/
+@[inline] protected def countP (p : Fin n → Bool) : Nat :=
+  Fin.sum (p · |>.toNat)
+
 /--
 `findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
 element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
@@ -91,8 +108,38 @@ element is found. The function `f` is not evaluated on further inputs after the 
   foldl n (fun r i => r <|> f i) none
 
 /--
+`findSomeRev? f` returns `f i` for the last `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
+  findSome? (f ·.rev)
+
+
+/--
 `find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
-@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
-  findSome? <| Option.guard fun i => p i
+@[inline] abbrev find? (p : Fin n → Bool) : Option (Fin n) :=
+  findSome? <| Option.guard p
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] abbrev findRev? (p : Fin n → Bool) : Option (Fin n) :=
+  findSomeRev? <| Option.guard p
+
+/-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
+def divNat (i : Fin (m * n)) : Fin m :=
+  ⟨i / n, Nat.div_lt_of_lt_mul <| Nat.mul_comm m n ▸ i.is_lt⟩
+
+/-- Compute `i % n`, where `n` is a `Nat` and inferred the type of `i`. -/
+def modNat (i : Fin (m * n)) : Fin n :=
+  ⟨i % n, Nat.mod_lt _ <| Nat.pos_of_mul_pos_left i.pos⟩
+
+/--
+Compute the element of `Fin (m * n)` with quotient `i : Fin m` and remainder `j : Fin n`
+when divided by `n`.
+-/
+def mkDivMod (i : Fin m) (j : Fin n) : Fin (m * n) :=
+  ⟨n * i + j, Nat.mul_add_lt_mul_of_lt_of_lt i.is_lt j.is_lt⟩

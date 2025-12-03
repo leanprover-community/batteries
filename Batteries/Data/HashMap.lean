@@ -1,1 +1,3 @@
-import Batteries.Data.HashMap.Basic
+module
+
+public import Batteries.Data.HashMap.Basic
