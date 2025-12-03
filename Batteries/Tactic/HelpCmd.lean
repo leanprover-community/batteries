@@ -322,7 +322,8 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       ← valid_entries.filterMapM
         fun x => do
-          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x | return none
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x |
+            return none
           return "library_note " ++ x.toString (escape := true) ++ "\n" ++
             "/-- " ++ doc.trim ++ " -/"
 
