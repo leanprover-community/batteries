@@ -5,8 +5,8 @@ inductive TEmpty : Type
 info: TEmpty : Type
 TEmpty.casesOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.ctorIdx : TEmpty → Nat
-TEmpty.noConfusion.{u} {P : Sort u} {x1 x2 : TEmpty} (h12 : x1 = x2) : TEmpty.noConfusionType P x1 x2
-TEmpty.noConfusionType.{u} (P : Sort u) (x1 x2 : TEmpty) : Sort u
+TEmpty.noConfusion.{u} {P : Sort u} {t t' : TEmpty} (eq : t = t') : TEmpty.noConfusionType P t t'
+TEmpty.noConfusionType.{u} (P : Sort u) (t t' : TEmpty) : Sort u
 TEmpty.rec.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 TEmpty.recOn.{u} (motive : TEmpty → Sort u) (t : TEmpty) : motive t
 -/
@@ -58,11 +58,11 @@ TestStruct.mk.inj {foo bar foo✝ bar✝ : Int} :
   { foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ } → foo = foo✝ ∧ bar = bar✝
 TestStruct.mk.injEq (foo bar foo✝ bar✝ : Int) :
   ({ foo := foo, bar := bar } = { foo := foo✝, bar := bar✝ }) = (foo = foo✝ ∧ bar = bar✝)
-TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
-  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
+TestStruct.mk.noConfusion.{u} {P : Sort u} {foo bar foo' bar' : Int}
+  (eq : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
 TestStruct.mk.sizeOf_spec (foo bar : Int) : sizeOf { foo := foo, bar := bar } = 1 + sizeOf foo + sizeOf bar
-TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
-TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
+TestStruct.noConfusion.{u} {P : Sort u} {t t' : TestStruct} (eq : t = t') : TestStruct.noConfusionType P t t'
+TestStruct.noConfusionType.{u} (P : Sort u) (t t' : TestStruct) : Sort u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
@@ -79,10 +79,10 @@ TestStruct.casesOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
 TestStruct.ctorIdx : TestStruct → Nat
 TestStruct.foo (self : TestStruct) : Int
 TestStruct.mk (foo bar : Int) : TestStruct
-TestStruct.mk.noConfusion.{u} (P : Sort u) (foo bar foo' bar' : Int)
-  (h : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
-TestStruct.noConfusion.{u} {P : Sort u} {x1 x2 : TestStruct} (h12 : x1 = x2) : TestStruct.noConfusionType P x1 x2
-TestStruct.noConfusionType.{u} (P : Sort u) (x1 x2 : TestStruct) : Sort u
+TestStruct.mk.noConfusion.{u} {P : Sort u} {foo bar foo' bar' : Int}
+  (eq : { foo := foo, bar := bar } = { foo := foo', bar := bar' }) (k : foo = foo' → bar = bar' → P) : P
+TestStruct.noConfusion.{u} {P : Sort u} {t t' : TestStruct} (eq : t = t') : TestStruct.noConfusionType P t t'
+TestStruct.noConfusionType.{u} (P : Sort u) (t t' : TestStruct) : Sort u
 TestStruct.rec.{u} {motive : TestStruct → Sort u} (mk : (foo bar : Int) → motive { foo := foo, bar := bar })
   (t : TestStruct) : motive t
 TestStruct.recOn.{u} {motive : TestStruct → Sort u} (t : TestStruct)
