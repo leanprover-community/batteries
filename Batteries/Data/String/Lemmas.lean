@@ -18,6 +18,7 @@ import all Init.Data.String.Extra  -- for unfolding `Substring.toIterator`
 import all Init.Data.String.TakeDrop  -- for unfolding `drop`
 import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
+import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
 @[expose] public section
 
@@ -63,7 +64,7 @@ theorem utf8ByteSize_ofList (cs) : utf8ByteSize (String.ofList cs) = utf8Len cs 
     rw [utf8Len, ← ih, ← List.singleton_append, String.ofList_append,
       utf8ByteSize_append, Nat.add_comm]
     congr
-    rw [← size_bytes, String.bytes_ofList, List.utf8Encode_singleton,
+    rw [← size_toByteArray, String.toByteArray_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
 
 @[deprecated utf8ByteSize_ofList (since := "2025-10-31")]
@@ -324,10 +325,12 @@ theorem prev_of_valid' (cs cs' : List Char) :
   | _, .inl rfl => apply Pos.Raw.prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [prev_of_valid, -ofList_append]
 
-theorem front_eq (s : String) : front s = s.toList.headD default := by
-  unfold front; simpa using get_of_valid [] s.toList
+theorem front_eq (s : String) : Legacy.front s = s.toList.headD default := by
+  unfold Legacy.front; simpa using get_of_valid [] s.toList
 
-theorem back_eq (s : String) : back s = s.toList.getLastD default := by
+theorem back_eq_get_prev_rawEndPos {s : String} : Legacy.back s = (s.rawEndPos.prev s).get s := rfl
+
+theorem back_eq (s : String) : Legacy.back s = s.toList.getLastD default := by
   conv => lhs; rw [← s.ofList_toList]
   match s.toList.eq_nil_or_concat with
   | .inl h => simp [h]; rfl
@@ -342,25 +345,25 @@ theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
   rw [atEnd_iff]
   cases cs' <;> simp [add_utf8Size_pos, rawEndPos, utf8ByteSize_ofList]
 
-unseal posOfAux findAux in
-theorem posOfAux_eq (s c) : posOfAux s c = findAux s (· == c) := (rfl)
+unseal Legacy.posOfAux Legacy.findAux in
+theorem posOfAux_eq (s c) : Legacy.posOfAux s c = Legacy.findAux s (· == c) := (rfl)
 
-unseal posOfAux findAux in
-theorem posOf_eq (s c) : posOf s c = find s (· == c) := (rfl)
+unseal Legacy.posOfAux Legacy.findAux in
+theorem posOf_eq (s c) : Legacy.posOf s c = Legacy.find s (· == c) := (rfl)
 
-unseal revPosOfAux revFindAux in
-theorem revPosOfAux_eq (s c) : revPosOfAux s c = revFindAux s (· == c) := (rfl)
+unseal Legacy.revPosOfAux Legacy.revFindAux in
+theorem revPosOfAux_eq (s c) : Legacy.revPosOfAux s c = Legacy.revFindAux s (· == c) := (rfl)
 
-unseal revPosOfAux revFindAux in
-theorem revPosOf_eq (s c) : revPosOf s c = revFind s (· == c) := (rfl)
+unseal Legacy.revPosOfAux Legacy.revFindAux in
+theorem revPosOf_eq (s c) : Legacy.revPosOf s c = Legacy.revFind s (· == c) := (rfl)
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.findAux
 theorem findAux_of_valid (p) : ∀ l m r,
-    findAux (ofList (l ++ m ++ r)) p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
+    Legacy.findAux (ofList (l ++ m ++ r)) p ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
     ⟨utf8Len l + utf8Len (m.takeWhile (!p ·))⟩
-  | l, [], r => by unfold findAux List.takeWhile; simp
+  | l, [], r => by unfold Legacy.findAux List.takeWhile; simp
   | l, c::m, r => by
-    unfold findAux List.takeWhile
+    unfold Legacy.findAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
@@ -374,16 +377,16 @@ theorem findAux_of_valid (p) : ∀ l m r,
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
     · simp
 
-theorem find_of_valid (p s) : find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
+theorem find_of_valid (p s) : Legacy.find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
   simpa using findAux_of_valid p [] s.toList []
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.revFindAux
 theorem revFindAux_of_valid (p) : ∀ l r,
-    revFindAux (ofList (l.reverse ++ r)) p ⟨utf8Len l⟩ =
+    Legacy.revFindAux (ofList (l.reverse ++ r)) p ⟨utf8Len l⟩ =
       (l.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩)
-  | [], r => by unfold revFindAux List.dropWhile; simp
+  | [], r => by unfold Legacy.revFindAux List.dropWhile; simp
   | c::l, r => by
-    unfold revFindAux List.dropWhile
+    unfold Legacy.revFindAux List.dropWhile
     rw [dif_neg (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
@@ -394,7 +397,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
     exact revFindAux_of_valid p l (c::r)
 
 theorem revFind_of_valid (p s) :
-    revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
+    Legacy.revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
   simpa using revFindAux_of_valid p s.toList.reverse []
 
 theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
@@ -545,7 +548,7 @@ theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map 
 
 -- TODO: splitOn
 
-@[simp] theorem toString_toSubstring (s : String) : s.toSubstring.toString = s :=
+@[simp] theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
   extract_zero_rawEndPos _
 
 attribute [simp] toSubstring'
@@ -566,7 +569,7 @@ theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten :=
 theorem data_join (ss : List String) : (join ss).toList = (ss.map toList).flatten :=
   toList_join ss
 
-namespace Iterator
+namespace Legacy.Iterator
 
 @[simp] theorem forward_eq_nextn : forward = nextn := by
   funext it n; induction n generalizing it <;> simp [forward, nextn, *]
@@ -685,7 +688,7 @@ theorem toEnd (h : ValidFor l r it) : ValidFor (r.reverse ++ l) [] it.toEnd := b
 theorem toEnd' (it : Iterator) : ValidFor it.s.toList.reverse [] it.toEnd := by
   simp only [Iterator.toEnd]
   exact .of_eq _ (by simp [List.reverseAux_eq])
-    (by simp [-size_bytes, rawEndPos, utf8ByteSize])
+    (by simp [-size_toByteArray, rawEndPos, utf8ByteSize])
 
 theorem extract (h₁ : ValidFor l (m ++ r) it₁)
     (h₂ : ValidFor (m.reverse ++ l) r it₂) : it₁.extract it₂ = String.ofList m := by
@@ -750,7 +753,7 @@ theorem setCurr : ∀ {it}, Valid it → Valid (it.setCurr c)
     let ⟨l, r, h⟩ := h.validFor
     exact h.setCurr'.valid
 
-theorem toEnd (it : String.Iterator) : Valid it.toEnd := (ValidFor.toEnd' _).valid
+theorem toEnd (it : String.Legacy.Iterator) : Valid it.toEnd := (ValidFor.toEnd' _).valid
 
 theorem remainingToString {it} (h : ValidFor l r it) :
     it.remainingToString = String.ofList r := by
@@ -763,57 +766,60 @@ theorem prevn (h : Valid it) : ∀ n, Valid (it.prevn n)
   | n+1 => h.prev.prevn n
 
 end Valid
-end Iterator
+end Legacy.Iterator
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.offsetOfPosAux
 theorem offsetOfPosAux_of_valid : ∀ l m r n,
-    offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n = n + m.length
-  | l, [], r, n => by unfold offsetOfPosAux; simp
+    String.Pos.Raw.offsetOfPosAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ n =
+      n + m.length
+  | l, [], r, n => by unfold String.Pos.Raw.offsetOfPosAux; simp
   | l, c::m, r, n => by
-    unfold offsetOfPosAux
+    unfold String.Pos.Raw.offsetOfPosAux
     rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
-theorem offsetOfPos_of_valid (l r) : offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
+theorem offsetOfPos_of_valid (l r) :
+    String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
 
-@[nolint unusedHavesSuffices] -- false positive from unfolding String.foldlAux
+@[nolint unusedHavesSuffices] -- false positive from unfolding String.Legacy.foldlAux
 theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
-    foldlAux f (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
-  | l, [], r, a => by unfold foldlAux; simp
+    Legacy.foldlAux f (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ a = m.foldl f a
+  | l, [], r, a => by unfold Legacy.foldlAux; simp
   | l, c::m, r, a => by
-    unfold foldlAux
+    unfold Legacy.foldlAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r),
       get_of_valid l (c :: (m ++ r)), Char.reduceDefault, List.headD_cons, List.foldl_cons]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
-theorem foldl_eq (f : α → Char → α) (s a) : foldl f a s = s.toList.foldl f a := by
+theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.foldl f a := by
   simpa using foldlAux_of_valid f [] s.toList [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
-    foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ = m.foldr f a := by
+    Legacy.foldrAux f a (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ ⟨utf8Len l⟩ =
+      m.foldr f a := by
   rw [← m.reverse_reverse]
-  induction m.reverse generalizing r a with (unfold foldrAux; simp)
+  induction m.reverse generalizing r a with (unfold Legacy.foldrAux; simp)
   | cons c m IH =>
     rw [if_pos add_utf8Size_pos]
     simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
 
-theorem foldr_eq (f : Char → α → α) (s a) : foldr f a s = s.toList.foldr f a := by
+theorem foldr_eq (f : Char → α → α) (s a) : Legacy.foldr f a s = s.toList.foldr f a := by
   simpa using foldrAux_of_valid f [] s.toList [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.anyAux
 theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
-    anyAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
-  | l, [], r => by unfold anyAux; simp
+    Legacy.anyAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ = m.any p
+  | l, [], r => by unfold Legacy.anyAux; simp
   | l, c::m, r => by
-    unfold anyAux
+    unfold Legacy.anyAux
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r),
@@ -821,18 +827,20 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
-theorem any_eq (s : String) (p : Char → Bool) : any s p = s.toList.any p := by
+theorem any_eq (s : String) (p : Char → Bool) : Legacy.any s p = s.toList.any p := by
   simpa using anyAux_of_valid p [] s.toList []
 
-theorem any_iff (s : String) (p : Char → Bool) : any s p ↔ ∃ c ∈ s.toList, p c := by simp [any_eq]
+theorem any_iff (s : String) (p : Char → Bool) :
+    Legacy.any s p ↔ ∃ c ∈ s.toList, p c := by simp [any_eq]
 
-theorem all_eq (s : String) (p : Char → Bool) : all s p = s.toList.all p := by
-  rw [all, any_eq, List.all_eq_not_any_not]
+theorem all_eq (s : String) (p : Char → Bool) : Legacy.all s p = s.toList.all p := by
+  rw [Legacy.all, any_eq, List.all_eq_not_any_not]
 
-theorem all_iff (s : String) (p : Char → Bool) : all s p ↔ ∀ c ∈ s.toList, p c := by simp [all_eq]
+theorem all_iff (s : String) (p : Char → Bool) :
+    Legacy.all s p ↔ ∀ c ∈ s.toList, p c := by simp [all_eq]
 
-theorem contains_iff (s : String) (c : Char) : contains s c ↔ c ∈ s.toList := by
-  simp [contains, any_iff]
+theorem contains_iff (s : String) (c : Char) : Legacy.contains s c ↔ c ∈ s.toList := by
+  simp [Legacy.contains, any_iff]
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.mapAux
 theorem mapAux_of_valid (f : Char → Char) :
@@ -855,11 +863,11 @@ theorem map_eq (f : Char → Char) (s) : Legacy.map f s = ofList (s.toList.map f
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.takeWhileAux
 theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
-    Substring.takeWhileAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ =
+    Substring.Raw.takeWhileAux (ofList (l ++ m ++ r)) ⟨utf8Len l + utf8Len m⟩ p ⟨utf8Len l⟩ =
       ⟨utf8Len l + utf8Len (m.takeWhile p)⟩
-  | l, [], r => by unfold Substring.takeWhileAux List.takeWhile; simp
+  | l, [], r => by unfold Substring.Raw.takeWhileAux List.takeWhile; simp
   | l, c::m, r => by
-    unfold Substring.takeWhileAux List.takeWhile
+    unfold Substring.Raw.takeWhileAux List.takeWhile
     rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
@@ -891,10 +899,10 @@ end String
 
 open String
 
-namespace Substring
+namespace Substring.Raw
 
 /-- Validity for a substring. -/
-structure Valid (s : Substring) : Prop where
+structure Valid (s : Substring.Raw) : Prop where
   /-- The start position of a valid substring is valid. -/
   startValid : s.startPos.Valid s.str
   /-- The stop position of a valid substring is valid. -/
@@ -906,7 +914,7 @@ theorem Valid_default : Valid default := ⟨Pos.Raw.valid_zero, Pos.Raw.valid_ze
 
 /-- A substring is represented by three lists `l m r`, where `m` is the middle section
 (the actual substring) and `l ++ m ++ r` is the underlying string. -/
-inductive ValidFor (l m r : List Char) : Substring → Prop
+inductive ValidFor (l m r : List Char) : Substring.Raw → Prop
   /-- The constructor for `ValidFor`. -/
   | mk : ValidFor l m r ⟨String.ofList (l ++ m ++ r), ⟨utf8Len l⟩, ⟨utf8Len l + utf8Len m⟩⟩
 
@@ -925,7 +933,7 @@ theorem of_eq : ∀ s,
     exact ⟨⟩
 
 theorem _root_.String.validFor_toSubstring (s : String) : ValidFor [] s.toList [] s :=
-  .of_eq _ (by simp [toSubstring]) rfl (by simp [toSubstring, rawEndPos])
+  .of_eq _ (by simp [toRawSubstring]) rfl (by simp [toRawSubstring, rawEndPos])
 
 theorem str : ∀ {s}, ValidFor l m r s → s.str = String.ofList (l ++ m ++ r)
   | _, ⟨⟩ => rfl
@@ -937,17 +945,17 @@ theorem stopPos : ∀ {s}, ValidFor l m r s → s.stopPos = ⟨utf8Len l + utf8L
   | _, ⟨⟩ => rfl
 
 theorem bsize : ∀ {s}, ValidFor l m r s → s.bsize = utf8Len m
-  | _, ⟨⟩ => by simp [Substring.bsize, Nat.add_sub_cancel_left]
+  | _, ⟨⟩ => by simp [Substring.Raw.bsize, Nat.add_sub_cancel_left]
 
 theorem isEmpty : ∀ {s}, ValidFor l m r s → (s.isEmpty ↔ m = [])
-  | _, h => by simp [Substring.isEmpty, h.bsize]
+  | _, h => by simp [Substring.Raw.isEmpty, h.bsize]
 
 theorem toString : ∀ {s}, ValidFor l m r s → s.toString = String.ofList m
   | _, ⟨⟩ => extract_of_valid l m r
 
-theorem toIterator : ∀ {s}, ValidFor l m r s → s.toIterator.ValidFor l.reverse (m ++ r)
+theorem toIterator : ∀ {s}, ValidFor l m r s → s.toLegacyIterator.ValidFor l.reverse (m ++ r)
   | _, h => by
-    simp only [Substring.toIterator]
+    simp only [Substring.Raw.toLegacyIterator]
     exact .of_eq _ (by simp [h.str, List.reverseAux_eq]) (by simp [h.startPos])
 
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
@@ -956,7 +964,8 @@ theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m
 theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + c.utf8Size⟩
   | _, ⟨⟩ => by
-    simp only [Substring.next, utf8Len_append, utf8Len_cons, List.append_assoc, List.cons_append]
+    simp only [Substring.Raw.next, utf8Len_append, utf8Len_cons, List.append_assoc,
+      List.cons_append]
     rw [if_neg (mt Pos.Raw.ext_iff.1 ?a)]
     case a =>
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
@@ -966,12 +975,12 @@ theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     simp [Nat.add_assoc, Nat.add_sub_cancel_left]
 
 theorem next_stop : ∀ {s}, ValidFor l m r s → s.next ⟨utf8Len m⟩ = ⟨utf8Len m⟩
-  | _, ⟨⟩ => by simp [Substring.next, Pos.Raw.offsetBy_eq]
+  | _, ⟨⟩ => by simp [Substring.Raw.next, Pos.Raw.offsetBy_eq]
 
 theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.prev ⟨utf8Len m₁ + c.utf8Size⟩ = ⟨utf8Len m₁⟩
   | _, ⟨⟩ => by
-    simp only [Substring.prev, List.append_assoc, List.cons_append]
+    simp only [Substring.Raw.prev, List.append_assoc, List.cons_append]
     rw [if_neg (mt Pos.Raw.ext_iff.1 <| Ne.symm ?a)]
     case a => simpa [Nat.add_comm] using @ne_add_utf8Size_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
@@ -981,13 +990,13 @@ theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
 
 theorem nextn_stop : ∀ {s}, ValidFor l m r s → ∀ n, s.nextn n ⟨utf8Len m⟩ = ⟨utf8Len m⟩
   | _, _, 0 => rfl
-  | _, h, n+1 => by simp [Substring.nextn, h.next_stop, h.nextn_stop n]
+  | _, h, n+1 => by simp [Substring.Raw.nextn, h.next_stop, h.nextn_stop n]
 
 theorem nextn : ∀ {s}, ValidFor l (m₁ ++ m₂) r s →
     ∀ n, s.nextn n ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + utf8Len (m₂.take n)⟩
-  | _, _, 0 => by simp [Substring.nextn]
+  | _, _, 0 => by simp [Substring.Raw.nextn]
   | s, h, n+1 => by
-    simp only [Substring.nextn]
+    simp only [Substring.Raw.nextn]
     match m₂ with
     | [] => simp at h; simp [h.next_stop, h.nextn_stop]
     | c::m₂ =>
@@ -997,9 +1006,9 @@ theorem nextn : ∀ {s}, ValidFor l (m₁ ++ m₂) r s →
 
 theorem prevn : ∀ {s}, ValidFor l (m₁.reverse ++ m₂) r s →
     ∀ n, s.prevn n ⟨utf8Len m₁⟩ = ⟨utf8Len (m₁.drop n)⟩
-  | _, _, 0 => by simp [Substring.prevn]
+  | _, _, 0 => by simp [Substring.Raw.prevn]
   | s, h, n+1 => by
-    simp only [Substring.prevn]
+    simp only [Substring.Raw.prevn]
     match m₁ with
     | [] => simp
     | c::m₁ =>
@@ -1012,9 +1021,9 @@ theorem front : ∀ {s}, ValidFor l (c :: m) r s → s.front = c
 theorem drop :
     ∀ {s}, ValidFor l m r s → ∀ n, ValidFor (l ++ m.take n) (m.drop n) r (s.drop n)
   | s, h, n => by
-    have : Substring.nextn {..} .. = _ := h.nextn (m₁ := []) n
+    have : Substring.Raw.nextn {..} .. = _ := h.nextn (m₁ := []) n
     simp only [utf8Len_nil, Pos.Raw.mk_zero, Nat.zero_add] at this
-    simp only [Substring.drop, this]
+    simp only [Substring.Raw.drop, this]
     simp only [h.str, List.append_assoc, h.startPos, h.stopPos]
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ (by simp) (by simp) ?_
@@ -1024,9 +1033,9 @@ theorem drop :
 theorem take : ∀ {s}, ValidFor l m r s →
     ∀ n, ValidFor l (m.take n) (m.drop n ++ r) (s.take n)
   | s, h, n => by
-    have : Substring.nextn {..} .. = _ := h.nextn (m₁ := []) n
+    have : Substring.Raw.nextn {..} .. = _ := h.nextn (m₁ := []) n
     simp at this
-    simp only [Substring.take, this]
+    simp only [Substring.Raw.take, this]
     simp only [h.str, List.append_assoc, h.startPos]
     rw [← List.take_append_drop n m] at h
     refine .of_eq _ ?_ (by simp) (by simp)
@@ -1036,13 +1045,14 @@ theorem take : ∀ {s}, ValidFor l m r s →
 -- TODO: takeRight, dropRight
 
 theorem atEnd : ∀ {s}, ValidFor l m r s → (s.atEnd ⟨p⟩ ↔ p = utf8Len m)
-  | _, ⟨⟩ => by simp [Substring.atEnd, Pos.Raw.ext_iff, Nat.add_left_cancel_iff]
+  | _, ⟨⟩ => by simp [Substring.Raw.atEnd, Pos.Raw.ext_iff, Nat.add_left_cancel_iff]
 
 theorem extract' : ∀ {s}, ValidFor l (ml ++ mm ++ mr) r s →
     ValidFor ml mm mr ⟨String.ofList (ml ++ mm ++ mr), b, e⟩ →
     ∃ l' r', ValidFor l' mm r' (s.extract b e)
   | _, ⟨⟩, ⟨⟩ => by
-    simp only [Substring.extract, ge_iff_le, Pos.Raw.mk_le_mk, List.append_assoc, utf8Len_append]
+    simp only [Substring.Raw.extract, ge_iff_le, Pos.Raw.mk_le_mk, List.append_assoc,
+      utf8Len_append]
     split
     · next h =>
       rw [utf8Len_eq_zero.1 <| Nat.le_zero.1 <| Nat.add_le_add_iff_left.1 h]
@@ -1062,34 +1072,36 @@ theorem extract : ∀ {s}, ValidFor l m r s →
 
 -- TODO: splitOn
 
-theorem foldl (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldl f init = m.foldl f init
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.foldl,
+theorem foldl (f) (init : α) :
+    ∀ {s}, ValidFor l m r s → Legacy.foldl f init s = m.foldl f init
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.Legacy.foldl,
     foldlAux_of_valid]
 
-theorem foldr (f) (init : α) : ∀ {s}, ValidFor l m r s → s.foldr f init = m.foldr f init
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.foldr,
+theorem foldr (f) (init : α) :
+    ∀ {s}, ValidFor l m r s → Legacy.foldr f init s = m.foldr f init
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.Raw.Legacy.foldr,
     foldrAux_of_valid]
 
-theorem any (f) : ∀ {s}, ValidFor l m r s → s.any f = m.any f
-  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Substring.any, anyAux_of_valid]
+theorem any (f) : ∀ {s}, ValidFor l m r s → Legacy.any s f = m.any f
+  | _, ⟨⟩ => by simp [-ofList_append, -List.append_assoc, Legacy.any, anyAux_of_valid]
 
-theorem all (f) : ∀ {s}, ValidFor l m r s → s.all f = m.all f
-  | _, h => by simp [Substring.all, h.any, List.all_eq_not_any_not]
+theorem all (f) : ∀ {s}, ValidFor l m r s → Legacy.all s f = m.all f
+  | _, h => by simp [Legacy.all, h.any, List.all_eq_not_any_not]
 
-theorem contains (c) : ∀ {s}, ValidFor l m r s → (s.contains c ↔ c ∈ m)
-  | _, h => by simp [Substring.contains, h.any]
+theorem contains (c) : ∀ {s}, ValidFor l m r s → (Legacy.contains s c ↔ c ∈ m)
+  | _, h => by simp [Legacy.contains, h.any]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor l (m.takeWhile p) (m.dropWhile p ++ r) (s.takeWhile p)
   | _, ⟨⟩ => by
-    simp only [Substring.takeWhile, takeWhileAux_of_valid]
+    simp only [Substring.Raw.takeWhile, takeWhileAux_of_valid]
     apply ValidFor.of_eq <;> simp
     rw [← List.append_assoc, List.takeWhile_append_dropWhile]
 
 theorem dropWhile (p : Char → Bool) : ∀ {s}, ValidFor l m r s →
     ValidFor (l ++ m.takeWhile p) (m.dropWhile p) r (s.dropWhile p)
   | _, ⟨⟩ => by
-    simp only [Substring.dropWhile, takeWhileAux_of_valid]
+    simp only [Substring.Raw.dropWhile, takeWhileAux_of_valid]
     apply ValidFor.of_eq <;> simp
     rw [Nat.add_assoc, ← utf8Len_append (m.takeWhile p), List.takeWhile_append_dropWhile]
 
@@ -1103,7 +1115,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
   | ⟨_, ⟨_⟩, ⟨_⟩⟩, ⟨.mk l mr rfl, t, h⟩ => by
     obtain ⟨lm, r, h₁, h₂⟩ := t.exists
     have e : lm ++ r = l ++ mr := by
-      simpa [← String.ofList_inj, ← String.bytes_inj] using h₁
+      simpa [← String.ofList_inj, ← String.toByteArray_inj] using h₁
     obtain rfl := Pos.Raw.ext_iff.1 h₂
     simp only [Pos.Raw.mk_le_mk] at *
     have := (or_iff_right_iff_imp.2 fun h => ?x).1 (List.append_eq_append_iff.1 e)
@@ -1201,19 +1213,21 @@ theorem toString_extract : ∀ {s}, Valid s → Valid ⟨s.toString, b, e⟩ →
     have ⟨l', r', h₃⟩ := h₁.extract h₂
     rw [h₃.toString, h₁.toString, ← h₂.toString, toString]
 
-theorem foldl (f) (init : α) : ∀ {s}, Valid s → s.foldl f init = s.toString.toList.foldl f init
+theorem foldl (f) (init : α) :
+    ∀ {s}, Valid s → Legacy.foldl f init s = s.toString.toList.foldl f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldl, h.toString]
 
-theorem foldr (f) (init : α) : ∀ {s}, Valid s → s.foldr f init = s.toString.toList.foldr f init
+theorem foldr (f) (init : α) :
+    ∀ {s}, Valid s → Legacy.foldr f init s = s.toString.toList.foldr f init
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.foldr, h.toString]
 
-theorem any (f) : ∀ {s}, Valid s → s.any f = s.toString.toList.any f
+theorem any (f) : ∀ {s}, Valid s → Legacy.any s f = s.toString.toList.any f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.any, h.toString]
 
-theorem all (f) : ∀ {s}, Valid s → s.all f = s.toString.toList.all f
+theorem all (f) : ∀ {s}, Valid s → Legacy.all s f = s.toString.toList.all f
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.all, h.toString]
 
-theorem contains (c) : ∀ {s}, Valid s → (s.contains c ↔ c ∈ s.toString.toList)
+theorem contains (c) : ∀ {s}, Valid s → (Legacy.contains s c ↔ c ∈ s.toString.toList)
   | _, h => let ⟨_, _, _, h⟩ := h.validFor; by simp [h.contains, h.toString]
 
 theorem takeWhile (p : Char → Bool) : ∀ {s}, Valid s → Valid (s.takeWhile p)
@@ -1233,36 +1247,38 @@ theorem data_dropWhile (p) : ∀ {s}, Valid s →
 -- TODO: takeRightWhile
 
 end Valid
-end Substring
+end Substring.Raw
 
 namespace String
 
-theorem drop_eq (s : String) (n : Nat) : s.drop n = ofList (s.toList.drop n) :=
+theorem drop_eq (s : String) (n : Nat) : Legacy.drop s n = ofList (s.toList.drop n) :=
   (s.validFor_toSubstring.drop n).toString
 
-@[simp] theorem toList_drop (s : String) (n : Nat) : (s.drop n).toList = s.toList.drop n := by
+@[simp] theorem toList_drop (s : String) (n : Nat) :
+    (Legacy.drop s n).toList = s.toList.drop n := by
   simp [drop_eq]
 
-@[simp] theorem drop_empty {n : Nat} : "".drop n = "" := by simp [drop_eq, List.drop_nil]
+@[simp] theorem drop_empty {n : Nat} : Legacy.drop "" n = "" := by simp [drop_eq, List.drop_nil]
 
-theorem take_eq (s : String) (n : Nat) : s.take n = ofList (s.toList.take n) :=
+theorem take_eq (s : String) (n : Nat) : Legacy.take s n = ofList (s.toList.take n) :=
   (s.validFor_toSubstring.take n).toString
 
-@[simp] theorem toList_take (s : String) (n : Nat) : (s.take n).toList = s.toList.take n := by
+@[simp] theorem toList_take (s : String) (n : Nat) :
+    (Legacy.take s n).toList = s.toList.take n := by
   simp [take_eq]
 
 theorem takeWhile_eq (p : Char → Bool) (s : String) :
-    s.takeWhile p = ofList (s.toList.takeWhile p) :=
+    Legacy.takeWhile s p = ofList (s.toList.takeWhile p) :=
   (s.validFor_toSubstring.takeWhile p).toString
 
 @[simp] theorem toList_takeWhile (p : Char → Bool) (s : String) :
-    (s.takeWhile p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
+    (Legacy.takeWhile s p).toList = s.toList.takeWhile p := by simp [takeWhile_eq]
 
 theorem dropWhile_eq (p : Char → Bool) (s : String) :
-    s.dropWhile p = ofList (s.toList.dropWhile p) :=
+    Legacy.dropWhile s p = ofList (s.toList.dropWhile p) :=
   (s.validFor_toSubstring.dropWhile p).toString
 
 @[simp] theorem toList_dropWhile (p : Char → Bool) (s : String) :
-    (s.dropWhile p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
+    (Legacy.dropWhile s p).toList = s.toList.dropWhile p := by simp [dropWhile_eq]
 
 end String
