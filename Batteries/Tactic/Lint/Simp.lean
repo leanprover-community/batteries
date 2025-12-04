@@ -102,8 +102,10 @@ def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (higherOrder :
 @[env_linter] def simpNF : Linter where
   noErrorsFound := "All left-hand sides of simp lemmas are in simp-normal form."
   errorsFound := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
-see note [simp-normal form] for tips how to debug this.
-https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
+Please change the lemma to make sure their left-hand sides are in simp normal form.
+To learn about simp normal forms, see
+https://leanprover-community.github.io/extras/simp.html#simp-normal-form
+and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/."
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     withConfig Elab.Term.setElabConfig do
