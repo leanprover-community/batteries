@@ -928,11 +928,6 @@ theorem append_eq_of_isSuffixOf?_eq_some [BEq α] [LawfulBEq α] {xs ys zs : Lis
 
 /-! ### finRange -/
 
--- Forward port of lean4#9515
-@[simp, grind ←]
-theorem mem_finRange (x : Fin n) : x ∈ finRange n := by
-  simp [finRange]
-
 theorem get_finRange (i : Fin (finRange n).length) :
     (finRange n).get i = Fin.cast length_finRange i := by simp
 
