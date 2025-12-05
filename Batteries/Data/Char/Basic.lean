@@ -6,6 +6,7 @@ Authors: Jannis Limperg, François G. Dorais
 module
 
 public import Batteries.Classes.Order
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
