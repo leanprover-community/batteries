@@ -283,11 +283,6 @@ elab_rules : command
   | `(#help cat $[+%$more]? $cat $id:ident) => elabHelpCat more cat (id.getId.toString false)
   | `(#help cat $[+%$more]? $cat $id:str) => elabHelpCat more cat id.getString
 
-/--
-format the string to be included in a single markdown bullet
--/
-private def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
-
 open Lean Parser Batteries.Util.LibraryNote in
 /--
 `#help note "foo"` searches for all library notes whose
@@ -320,9 +315,12 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
     logError "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
-      grouped_valid_entries.map
-        fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
-          "\n\n".intercalate (l.map (·.snd.trimAscii.copy.makeBullet))
+      ← valid_entries.filterMapM
+        fun x => do
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x |
+            return none
+          return "library_note " ++ x.toString (escape := true) ++ "\n" ++
+            "/-- " ++ doc.trimAscii ++ " -/"
 
 /--
 The command `#help term` shows all term syntaxes that have been defined in the current environment.
