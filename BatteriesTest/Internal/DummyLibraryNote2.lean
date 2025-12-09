@@ -1,6 +1,6 @@
 import BatteriesTest.Internal.DummyLibraryNote
 
-library_note "test" /--
+library_note "test3" /--
 3: this is a note in a different file importing the above testnotes,
 but still imported by the actual testfile.
 -/
