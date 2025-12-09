@@ -303,17 +303,20 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
   let local_entries := (libraryNoteExt.getEntries env).reverse
   let imported_entries := (libraryNoteExt.toEnvExtension.getState env).importedEntries
 
+  -- The key for searching and sorting library notes is their value as a string,
+  -- without any «escaping using french quotes».
+  let key (n : LibraryNoteEntry) := n.toString (escape := false)
+
   -- filter for the appropriate notes while casting to list
   let label_prefix := name.getString
   let imported_entries_filtered := imported_entries.flatten.toList.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst then some x else none
-  let valid_entries := imported_entries_filtered ++ local_entries.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst then some x else none
-  let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
-    |>.splitBy (·.fst == ·.fst)
+    fun x => if label_prefix.isPrefixOf (key x) then some x else none
+  let valid_entries := (imported_entries_filtered ++ local_entries.filterMap
+    fun x => if label_prefix.isPrefixOf (key x) then some x else none)
+    |>.mergeSort (key · ≤ key ·)
 
   -- display results in a readable style
-  if grouped_valid_entries.isEmpty then
+  if valid_entries.isEmpty then
     logError "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
