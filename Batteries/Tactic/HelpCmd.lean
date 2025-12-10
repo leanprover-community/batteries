@@ -283,11 +283,6 @@ elab_rules : command
   | `(#help cat $[+%$more]? $cat $id:ident) => elabHelpCat more cat (id.getId.toString false)
   | `(#help cat $[+%$more]? $cat $id:str) => elabHelpCat more cat id.getString
 
-/--
-format the string to be included in a single markdown bullet
--/
-private def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
-
 open Lean Parser Batteries.Util.LibraryNote in
 /--
 `#help note "foo"` searches for all library notes whose
