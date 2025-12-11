@@ -8,7 +8,7 @@ module
 public meta import Lean.Structure
 public meta import Lean.Elab.InfoTree.Main
 public meta import Lean.Elab.Exception
-meta import Lean.ExtraModUses
+public meta import Lean.ExtraModUses
 
 public meta section
 
