@@ -24,9 +24,6 @@ namespace OptionT
 @[simp] theorem run_mapConst [Monad m] [LawfulMonad m] (x : OptionT m α) (y : β) :
     (Functor.mapConst y x).run = Option.map (Function.const α y) <$> x.run := run_map _ _
 
-@[simp] theorem run_monadMap {n} [MonadFunctorT n m] (f : ∀ {α}, n α → n α) :
-    (monadMap (@f) x : OptionT m α).run = monadMap (@f) x.run := (rfl)
-
 instance [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (OptionT m) where
   modifyGet_eq f := by simp [← liftM_modifyGet, ← liftM_get, LawfulMonadStateOf.modifyGet_eq]
