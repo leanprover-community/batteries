@@ -12,27 +12,26 @@ public import Lean.Attributes
 namespace Lean
 
 /-- Maps declaration names to `α`. -/
--- This has been renamed to avoid conflict with the one in Lean.IdentifierSuggestion
-def NameMapExtension' (α : Type) := SimplePersistentEnvExtension (Name × α) (NameMap α)
+def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (NameMap α)
 
-instance : Inhabited (NameMapExtension' α) :=
+instance : Inhabited (NameMapExtension α) :=
   inferInstanceAs <| Inhabited (SimplePersistentEnvExtension ..)
 
 /-- Look up a value in the given extension in the environment. -/
-def NameMapExtension'.find? (ext : NameMapExtension' α) (env : Environment) : Name → Option α :=
+def NameMapExtension.find? (ext : NameMapExtension α) (env : Environment) : Name → Option α :=
   (SimplePersistentEnvExtension.getState ext env).find?
 
-/-- Add the given k,v pair to the NameMapExtension'. -/
-def NameMapExtension'.add [Monad M] [MonadEnv M] [MonadError M]
-  (ext : NameMapExtension' α) (k : Name) (v : α) :  M Unit := do
+/-- Add the given k,v pair to the NameMapExtension. -/
+def NameMapExtension.add [Monad M] [MonadEnv M] [MonadError M]
+  (ext : NameMapExtension α) (k : Name) (v : α) :  M Unit := do
   if let some _ := ext.find? (← getEnv) k then
     throwError "Already exists entry for {ext.name} {k}"
   else
      ext.addEntry (← getEnv) (k, v) |> setEnv
 
 /-- Registers a new extension with the given name and type. -/
-def registerNameMapExtension' (α) (name : Name := by exact decl_name%) :
-    IO (NameMapExtension' α) := do
+def registerNameMapExtension (α) (name : Name := by exact decl_name%) :
+    IO (NameMapExtension α) := do
   registerSimplePersistentEnvExtension {
     name
     addImportedFn := fun ass =>
@@ -57,8 +56,8 @@ structure NameMapAttributeImpl (α : Type) where
 
 /-- Similar to `registerParametricAttribute` except that attributes do not
 have to be assigned in the same file as the declaration. -/
-def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExtension' α) := do
-  let ext ← registerNameMapExtension' α impl.ref
+def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExtension α) := do
+  let ext ← registerNameMapExtension α impl.ref
   registerBuiltinAttribute {
     name := impl.name
     descr := impl.descr
