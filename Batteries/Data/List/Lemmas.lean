@@ -543,7 +543,7 @@ theorem findIdxs_append :
 @[simp, grind =]
 theorem findIdxs_take :
     ((xs : List α).take n).findIdxs p s = (xs.findIdxs p s).take ((xs.take n).countP p) := by
-  induction xs generalizing n s <;> cases n <;> grind
+  induction xs generalizing n s <;> cases n <;> grind [countP_eq_length_filter]
 
 @[simp, grind =>]
 theorem le_getElem_findIdxs (h : i < ((xs : List α).findIdxs p s).length) :

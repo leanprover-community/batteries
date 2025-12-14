@@ -119,10 +119,10 @@ abbrev findAllSubstr (s : String) (pattern : Substring.Raw) : Array Substring.Ra
 
 @[inherit_doc Substring.Raw.findSubstr?]
 abbrev findSubstr? (s : String) (pattern : Substring.Raw) : Option Substring.Raw :=
-  s.toSubstring.findSubstr? pattern
+  s.toRawSubstring.findSubstr? pattern
 
 @[inherit_doc Substring.Raw.containsSubstr]
 abbrev containsSubstr (s : String) (pattern : Substring.Raw) : Bool :=
-  s.toSubstring.containsSubstr pattern
+  s.toRawSubstring.containsSubstr pattern
 
 end String

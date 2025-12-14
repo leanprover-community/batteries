@@ -115,7 +115,7 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
       | ForInStep.done d  => pure d
       | ForInStep.yield d => t.forIn d f
 
-instance [Monad m] [MonadLiftT m n] : ForIn n (MLList m α) α where
+instance [Monad m] [Monad n] [MonadLiftT m n] : ForIn n (MLList m α) α where
   forIn := MLList.forIn
 
 /-- Construct a singleton monadic lazy list from a single monadic value. -/

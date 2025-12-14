@@ -242,7 +242,7 @@ with key equal to `a` to have key `a` and value `f a' b`.
     | ForInStep.done d  => pure d
     | ForInStep.yield d => es.forIn d f
 
-instance : ForIn m (AssocList α β) (α × β) where
+instance [Monad m] : ForIn m (AssocList α β) (α × β) where
   forIn := AssocList.forIn
 
 @[simp] theorem forIn_eq [Monad m] (l : AssocList α β) (init : δ)
