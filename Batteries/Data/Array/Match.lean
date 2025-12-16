@@ -105,7 +105,7 @@ partial def Matcher.next? [BEq α] [Std.Stream σ α] (m : Matcher α) (stream :
       next? { m with state } stream
 
 namespace Matcher
-open Std.Iterators
+open Std Std.Iterators
 
 /-- Iterator transformer for KMP matcher. -/
 protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n α] where
