@@ -17,7 +17,7 @@ example : 1 = 1 := by
   rfl <;> simp
 
 /--
-warning: declaration uses 'sorry'
+warning: declaration uses `sorry`
 -/
 #guard_msgs in
 example : 1 = 1 := by
