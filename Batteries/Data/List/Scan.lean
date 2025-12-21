@@ -20,10 +20,12 @@ namespace List
 
 /-! ### List.scanl -/
 
-@[simp, grind =]
+@[simp]
 theorem length_scanl {f : β → α → β} (b : β) (l : List α) :
     length (scanl f b l) = l.length + 1 := by
   induction l generalizing b <;> simp_all
+
+grind_pattern length_scanl => scanl f b l
 
 @[simp, grind =]
 theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] :=
@@ -40,16 +42,19 @@ theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := b
 theorem scanl_ne_nil {f : β → α → β} : scanl f b l ≠ [] := by
   cases l <;> simp
 
+-- This pattern can be removed after moving to a lean version containing
+-- https://github.com/leanprover/lean4/pull/11760
+local grind_pattern List.eq_nil_of_length_eq_zero => l.length where
+  guard l.length = 0
+
 @[simp]
 theorem scanl_iff_nil {f : β → α → β} (c : β) : scanl f b l = [c] ↔ c = b ∧ l = [] := by
-  constructor <;> cases l <;> simp_all
+  grind
 
 @[simp, grind =]
 theorem getElem_scanl {f : α → β → α} (h : i < (scanl f a l).length) :
     (scanl f a l)[i] = foldl f a (l.take i) := by
-  induction l generalizing a i with
-  | nil => simp
-  | cons _ _ ih => cases i <;> simp [ih]
+  induction l generalizing a i with grind [cases Nat]
 
 @[grind =]
 theorem getElem?_scanl {f : α → β → α} :
@@ -59,9 +64,7 @@ theorem getElem?_scanl {f : α → β → α} :
 @[grind _=_]
 theorem take_scanl {f : α → β → α} (a : α) (l : List β) (i : Nat) :
     (scanl f a l).take (i + 1) = scanl f a (l.take i) := by
-  induction l generalizing a i with
-  | nil => simp
-  | cons _ _ ih => cases i <;> simp [ih]
+  induction l generalizing a i with grind [cases Nat]
 
 theorem getElem?_scanl_zero {f : β → α → β} : (scanl f b l)[0]? = some b := by
   simp
@@ -70,44 +73,40 @@ theorem getElem_scanl_zero {f : β → α → β} : (scanl f b l)[0] = b := by
   simp
 
 @[simp]
-theorem head_scanl {f : β → α → β} (h : scanl f b l ≠ []) :
-    (scanl f b l).head h = b := by grind
+theorem head_scanl {f : β → α → β} (h : scanl f b l ≠ []) : (scanl f b l).head h = b := by
+  grind
 
 theorem getLast_scanl {f : β → α → β} (h : scanl f b l ≠ []) :
     (scanl f b l).getLast h = foldl f b l := by
-  induction l generalizing b
-  case nil => simp
-  case cons head tail ih => simp [getLast_cons, scanl_ne_nil, ih]
+  grind
 
 theorem getLast?_scanl {f : β → α → β} : (scanl f b l).getLast? = some (foldl f b l) := by
-  simp [getLast?]
-  split
-  · exact absurd ‹_› scanl_ne_nil
-  · simp [←‹_›, getLast_scanl]
+  grind
 
-theorem getElem?_succ_scanl {f : β → α → β} : (scanl f b l)[i + 1]? =
-    (scanl f b l)[i]?.bind fun x => l[i]?.map fun y => f x y := by
-  induction l generalizing b i with
-  | nil => simp
-  | cons _ _ ih => cases i <;> simp [ih]
+@[grind =]
+theorem tail_scanl {f : β → α → β} (h : 0 < l.length) :
+    (scanl f b l).tail = scanl f (f b (l.head (by grind))) l.tail := by
+  induction l with grind
+
+theorem getElem?_succ_scanl {f : β → α → β} :
+    (scanl f b l)[i + 1]? = (scanl f b l)[i]?.bind fun x => l[i]?.map fun y => f x y := by
+  grind [List.take_add_one] -- TODO: should this be a global grind pattern?
 
 theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b l).length) :
     (scanl f b l)[i + 1] = f (l.scanl f b)[i] (l[i]'(by grind)) := by
-  induction i generalizing b l with
-  | zero => cases l <;> simp at h ⊢
-  | succ _ ih => cases l <;> simp [ih] at h ⊢
+  grind [List.take_add_one]
 
+@[grind =]
 theorem scanl_append {f : β → α → β} (l₁ l₂ : List α) :
     scanl f b (l₁ ++ l₂) = scanl f b l₁ ++ (scanl f (foldl f b l₁) l₂).tail := by
   induction l₁ generalizing b
   case nil => cases l₂ <;> simp
   case cons head tail ih => simp [ih]
 
+@[grind =]
 theorem scanl_map {f : β → γ → β} {g : α → γ} (b : β) (l : List α) :
     scanl f b (l.map g) = scanl (fun acc x => f acc (g x)) b l := by
-  induction l generalizing b
-  case nil => simp
-  case cons head tail ih => simp [ih]
+  induction l generalizing b with grind
 
 /-! ### List.scanr -/
 
@@ -122,58 +121,53 @@ theorem scanr_ne_nil {f : α → β → β} : scanr f b l ≠ [] := by
 @[simp, grind =]
 theorem scanr_cons {f : α → β → β} :
     scanr f b (a :: l) = foldr f b (a :: l) :: scanr f b l := by
-  simp only [scanr, foldr, cons.injEq, and_true]
-  induction l generalizing a with
-  | nil => rfl
-  | cons _ _ ih => simp only [foldr, ih]
+  simp only [scanr]
+  induction l generalizing a with grind
 
 theorem scanr_singleton {f : α → β → β} : scanr f b [a] = [f a b, b] := by
   simp
 
 @[simp]
-theorem scanr_iff_nil {f : α → β → β} (c : β) : scanr f b l = [c] ↔ c = b ∧ l = [] := by
-  constructor <;> cases l <;> simp_all
-
-@[simp, grind =]
 theorem length_scanr {f : α → β → β} (b : β) (l : List α) :
     length (scanr f b l) = l.length + 1 := by induction l <;> simp_all
 
+grind_pattern length_scanr => scanr f b l
+
+@[simp]
+theorem scanr_iff_nil {f : α → β → β} (c : β) : scanr f b l = [c] ↔ c = b ∧ l = [] := by
+  grind
+
+@[grind =]
 theorem scanr_append {f : α → β → β} (l₁ l₂ : List α) :
     scanr f b (l₁ ++ l₂) = (scanr f (foldr f b l₂) l₁) ++ (scanr f b l₂).tail := by
   induction l₁ <;> induction l₂ <;> simp [*]
 
 @[simp]
-theorem head_scanr {f : α → β → β} (h : scanr f b l ≠ []) :
-    (scanr f b l).head h = foldr f b l := by cases l <;> simp
+theorem head_scanr {f : α → β → β} (h : scanr f b l ≠ []) : (scanr f b l).head h = foldr f b l := by
+  cases l <;> grind
 
+@[grind =]
 theorem getLast_scanr {f : α → β → β} (h : scanr f b l ≠ []) :
     (scanr f b l).getLast h = b := by
-  induction l
-  case nil => simp
-  case cons head tail ih => simp [getLast_cons, scanr_ne_nil, ih]
+  induction l with grind [scanr_ne_nil]
 
 theorem getLast?_scanr {f : α → β → β} : (scanr f b l).getLast? = some b := by
-  simp [getLast?]
-  split
-  · exact absurd ‹_› scanr_ne_nil
-  · simp [←‹_›, getLast_scanr]
+  simp only [getLast?]
+  grind
 
+@[grind =]
 theorem tail_scanr {f : α → β → β} (h : 0 < l.length) :
-    (scanr f b l).tail = scanr f b l.tail := by induction l <;> simp_all
+    (scanr f b l).tail = scanr f b l.tail := by induction l with simp_all
 
 @[grind _=_]
 theorem drop_scanr {f : α → β → β} (h : i ≤ l.length) :
     (scanr f b l).drop i = scanr f b (l.drop i) := by
-  induction i generalizing l with
-  | zero => simp
-  | succ => cases l <;> simp_all
+  induction i generalizing l with grind [cases List]
 
 @[simp, grind =]
 theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).length) :
     (scanr f b l)[i] = foldr f b (l.drop i) := by
-  induction l generalizing i with
-  | nil => simp
-  | cons _ _ ih => cases i <;> simp [ih] at h ⊢
+  induction l generalizing i with grind [cases Nat]
 
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} (h : i < l.length + 1) :
@@ -190,12 +184,13 @@ theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
     (scanr f b l)[i]? = some (foldr f b (l.drop i)) := by
   simp [h]
 
+@[grind =]
 theorem scanr_map {f : α → β → β} {g : γ → α} (b : β) (l : List γ) :
     scanr f b (l.map g) = scanr (fun x acc => f (g x) acc) b l := by
   suffices ∀ l, foldr f b (l.map g) = foldr (fun x acc => f (g x) acc) b l from by
-    induction l generalizing b <;> simp [*]
+    induction l generalizing b with simp [*]
   intro l
-  induction l <;> simp [*]
+  induction l with simp [*]
 
 @[simp, grind =]
 theorem scanl_reverse {f : β → α → β} (b : β) (l : List α) :
