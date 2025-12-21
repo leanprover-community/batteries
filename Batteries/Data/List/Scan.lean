@@ -44,7 +44,7 @@ theorem scanl_ne_nil {f : β → α → β} : scanl f b l ≠ [] := by
 
 -- This pattern can be removed after moving to a lean version containing
 -- https://github.com/leanprover/lean4/pull/11760
-grind_pattern List.eq_nil_of_length_eq_zero => l.length where
+local grind_pattern List.eq_nil_of_length_eq_zero => l.length where
   guard l.length = 0
 
 @[simp]
