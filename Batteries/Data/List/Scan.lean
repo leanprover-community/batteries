@@ -121,10 +121,8 @@ theorem scanr_ne_nil {f : α → β → β} : scanr f b l ≠ [] := by
 @[simp, grind =]
 theorem scanr_cons {f : α → β → β} :
     scanr f b (a :: l) = foldr f b (a :: l) :: scanr f b l := by
-  simp only [scanr, foldr, cons.injEq, and_true]
-  induction l generalizing a with
-  | nil => rfl
-  | cons _ _ ih => simp only [foldr, ih]
+  simp only [scanr]
+  induction l generalizing a with grind
 
 theorem scanr_singleton {f : α → β → β} : scanr f b [a] = [f a b, b] := by
   simp
