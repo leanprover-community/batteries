@@ -111,8 +111,12 @@ initialize registerBuiltinAttribute {
       Elab.addConstInfo stx declName
       throwError
         "invalid attribute `env_linter`, linter `{shortName}` has already been declared"
-    /- Just as linters must be global, linter declarations must be accessible from `#lint`, and
-    thus must be `public` and `meta` -/
+    /- Just as `env_linter`s must be `global`, they also must be accessible from `#lint`, and thus
+    must be `public` and `meta`.
+
+    `Linter.mk` is already `meta` and thus will likely cause an error anyway, but the explicit
+    instruction to mark this declaration `meta` might help the user resolve that and similar
+    errors. -/
     let isPublic := !isPrivateName decl; let isMeta := isMarkedMeta (← getEnv) decl
     unless isPublic && isMeta do
       let mut modifiers := []
