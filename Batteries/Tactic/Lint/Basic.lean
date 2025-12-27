@@ -8,6 +8,7 @@ module
 public meta import Lean.Structure
 public meta import Lean.Elab.InfoTree.Main
 public meta import Lean.Elab.Exception
+public meta import Lean.ExtraModUses
 
 public meta section
 
@@ -145,6 +146,7 @@ initialize nolintAttr : ParametricAttribute (Array Name) ←
         let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName
           | throwError "linter '{shortName}' not found"
         Elab.addConstInfo id declName
+        recordExtraModUseFromDecl (isMeta := false) declName
         pure shortName
       | _ => Elab.throwUnsupportedSyntax
   }
