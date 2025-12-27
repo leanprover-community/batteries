@@ -1,0 +1,109 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Elab.Tactic.Omega</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Lean.Elab.Tactic.Omega";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Elab</span>.<span class="name">Tactic</span>.<span class="name">Omega</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Elab/Tactic/Omega.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Lean/Elab/Tactic/Omega/Frontend.html">Lean.Elab.Tactic.Omega.Frontend</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Elab.Tactic.Omega" class="imported-by-list"></ul></details></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="omega"><code>omega</code> <a class="hover-link" href="#omega">#</a></h1><p>This is an implementation of the <code>omega</code> algorithm, currently without &quot;dark&quot; and &quot;grey&quot; shadows,
+although the framework should be compatible with adding that part of the algorithm later.</p><p>The implementation closely follows William Pugh's
+&quot;The omega test: a fast and practical integer programming algorithm for dependence analysis&quot;
+<a href="https://doi.org/10.1145/125826.125848">https://doi.org/10.1145/125826.125848</a>.</p><p>The <code>MetaM</code> level <code>omega</code> tactic takes a <code><a href="../../.././Init/Prelude.html#List">List</a> Expr</code> of facts,
+and tries to discharge the goal by proving <code><a href="../../.././Init/Prelude.html#False">False</a></code>.</p><p>The user-facing <code>omega</code> tactic first calls <code>false_or_by_contra</code>, and then invokes the <code>omega</code> tactic
+on all hypotheses.</p><h3 class="markdown-heading" id="Pre-processing">Pre-processing <a class="hover-link" href="#Pre-processing">#</a></h3><p>In the <code>false_or_by_contra</code> step, we:</p><ul>
+<li>if the goal is <code><a href="../../.././Init/Prelude.html#False">False</a></code>, do nothing,</li>
+<li>if the goal is <code>¬ P</code>, introduce <code>P</code>,</li>
+<li>if the goal is <code>x ≠ y</code>, introduce <code>x = y</code>,</li>
+<li>otherwise, for a goal <code>P</code>, replace it with <code>¬ ¬ P</code> and introduce <code>¬ P</code>.</li>
+</ul><p>The <code>omega</code> tactic pre-processes the hypotheses in the following ways:</p><ul>
+<li>Replace <code>x &gt; y</code> for <code>x y : <a href="../../.././Init/Prelude.html#Nat">Nat</a></code> or <code>x y : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a></code> with <code>x ≥ y + 1</code>.</li>
+<li>Given <code>x ≥ y</code> for <code>x : <a href="../../.././Init/Prelude.html#Nat">Nat</a></code>, replace it with <code>(x : Int) ≥ (y : Int)</code>.</li>
+<li>Push <code><a href="../../.././Init/Prelude.html#Nat">Nat</a></code>-to-<code><a href="../../.././Init/Data/Int/Basic.html#Int">Int</a></code> coercions inwards across <code>+</code>, <code>*</code>, <code>/</code>, <code>%</code>.</li>
+<li>Replace <code>k ∣ x</code> for a literal <code>k : <a href="../../.././Init/Prelude.html#Nat">Nat</a></code> with <code>x % k = 0</code>,
+and replace <code>¬ k ∣ x</code> with <code>x % k &gt; 0</code>.</li>
+<li>If <code>x / m</code> appears, for some <code>x : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a></code> and literal <code>m : <a href="../../.././Init/Prelude.html#Nat">Nat</a></code>,
+replace <code>x / m</code> with a new variable <code>α</code> and add the constraints
+<code>0 ≤ - m * α + x ≤ m - 1</code>.</li>
+<li>If <code>x % m</code> appears, similarly, introduce the same new constraints
+but replace <code>x % m</code> with <code>- m * α + x</code>.</li>
+<li>Split conjunctions, existentials, and subtypes.</li>
+<li>Record, for each appearance of <code>(a - b : Int)</code> with <code>a b : <a href="../../.././Init/Prelude.html#Nat">Nat</a></code>, the disjunction
+<code>b ≤ a ∧ ((a - b : Nat) : Int) = a - b ∨ a &lt; b ∧ ((a - b : Nat) : Int) = 0</code>.
+We don't immediately split this; see the discussion below for how disjunctions are handled.</li>
+</ul><p>After this preprocessing stage, we have a collection of linear inequalities
+(all using <code>≤</code> rather than <code>&lt;</code>) and equalities in some set of atoms.</p><p>TODO: We should identify atoms up to associativity and commutativity,
+so that <code>omega</code> can handle problems such as <code>a * b &lt; 0 &amp;&amp; b * a &gt; 0 → <a href="../../.././Init/Prelude.html#False">False</a></code>.
+This should be a relatively easy modification of the <code>lookup</code> function in <code>OmegaM</code>.
+After doing so, we could allow the preprocessor to distribute multiplication over addition.</p><h3 class="markdown-heading" id="Normalization">Normalization <a class="hover-link" href="#Normalization">#</a></h3><p>Throughout the remainder of the algorithm, we apply the following normalization steps to
+all linear constraints:</p><ul>
+<li>Make the leading coefficient positive (thus giving us both upper and lower bounds).</li>
+<li>Divide through by the GCD of the coefficients, rounding the constant terms appropriately.</li>
+<li>Whenever we have both an upper and lower bound for the same coefficients,
+check they are compatible. If they are tight, mark the pair of constraints as an equality.
+If they are inconsistent, stop further processing.</li>
+</ul><h3 class="markdown-heading" id="Solving-equalities">Solving equalities <a class="hover-link" href="#Solving-equalities">#</a></h3><p>The next step is to solve all equalities.</p><p>We first solve any equalities that have a <code>±1</code> coefficient;
+these allow us to eliminate that variable.</p><p>After this, there may be equalities remaining with all coefficients having absolute value greater
+than one. We select an equality <code>c₀ + ∑ cᵢ * xᵢ = 0</code> with smallest minimal absolute value
+of the <code>cᵢ</code>, breaking ties by preferring equalities with smallest maximal absolute value.
+We let <code>m = ∣cⱼ| + 1</code> where <code>cⱼ</code> is the coefficient with smallest absolute value..
+We then add the new equality <code>(bmod c₀ m) + ∑ (bmod cᵢ m) xᵢ = m α</code> with <code>α</code> being a new variable.
+Here <code>bmod</code> is &quot;balanced mod&quot;, taking values in <code>[- m/2, (m - 1)/2]</code>.
+This equality holds (for some value of <code>α</code>) because the left hand side differs from the left hand
+side of the original equality by a multiple of <code>m</code>.
+Moreover, in this equality the coefficient of <code>xⱼ</code> is <code>±1</code>, so we can solve and eliminate <code>xⱼ</code>.</p><p>So far this isn't progress: we've introduced a new variable and eliminated a variable.
+However, this process terminates, as the pair <code>(c, C)</code> lexicographically decreases,
+where <code>c</code> is the smallest minimal absolute value and <code>C</code> is the smallest maximal absolute value
+amongst those equalities with minimal absolute value <code>c</code>.
+(Happily because we're running this in metaprogramming code, we don't actually need to prove this
+termination! If we later want to upgrade to a decision procedure, or to produce counterexamples
+we would need to do this. It's certainly possible, and existed in an earlier prototype version.)</p><h3 class="markdown-heading" id="Solving-inequalities">Solving inequalities <a class="hover-link" href="#Solving-inequalities">#</a></h3><p>After solving all equalities, we turn to the inequalities.</p><p>We need to select a variable to eliminate; this choice is discussed below.</p><h4 class="markdown-heading" id="Shadows">Shadows <a class="hover-link" href="#Shadows">#</a></h4><p>The omega algorithm indicates we should consider three subproblems,
+called the &quot;real&quot;, &quot;dark&quot;, and &quot;grey&quot; shadows.
+(In fact the &quot;grey&quot; shadow is a disjunction of potentially many problems.)
+Our problem is satisfiable if and only if the real shadow is satisfiable
+and either the dark or grey shadow is satisfiable.</p><p>Currently we do not implement either the dark or grey shadows, and thus if the real shadow is
+satisfiable we must fail, and report that we couldn't find a contradiction, even though the
+problem may be unsatisfiable.</p><p>In practical problems, it appears to be relatively rare that we fail because of not handling the
+dark and grey shadows.</p><p>Fortunately, in many cases it is possible to choose a variable to eliminate such that
+the real and dark shadows coincide, and the grey shadows are empty. In this situation
+we don't lose anything by ignoring the dark and grey shadows.
+We call this situation an exact elimination.
+A sufficient condition for exactness is that either all upper bounds on <code>xᵢ</code> have unit coefficient,
+or all lower bounds on <code>xᵢ</code> have unit coefficient.
+We always prefer to select the value of <code>i</code> so that this condition holds, if possible.
+We break ties by preferring to select a value of <code>i</code> that minimizes the number of new constraints
+introduced in the real shadow.</p><h4 class="markdown-heading" id="The-real-shadow-Fourier-Motzkin-elimination">The real shadow: Fourier-Motzkin elimination <a class="hover-link" href="#The-real-shadow-Fourier-Motzkin-elimination">#</a></h4><p>The real shadow for a variable <code>i</code> is just the Fourier-Motzkin elimination.</p><p>We begin by discarding all inequalities involving the variable <code>i</code>.</p><p>Then, for each pair of constraints <code>f ≤ c * xᵢ</code> and <code>c' * xᵢ ≤ f'</code>
+with both <code>c</code> and <code>c'</code> positive (i.e. for each pair of an lower and upper bound on <code>xᵢ</code>)
+we introduce the new constraint <code>c * f' - c' * f ≥ 0</code>.</p><p>(Note that if there are only upper bounds on <code>xᵢ</code>, or only lower bounds on <code>xᵢ</code> this step
+simply discards inequalities.)</p><h4 class="markdown-heading" id="The-dark-and-grey-shadows">The dark and grey shadows <a class="hover-link" href="#The-dark-and-grey-shadows">#</a></h4><p>For each such new constraint <code>c' * f - c * f' ≤ 0</code>, we either have the strengthening
+<code>c * f' - c' * f ≥ c * c' - c - c' + 1</code>
+or we do not, i.e.
+<code>c * f' - c' * f ≤ c * c' - c - c'</code>.
+In the latter case, combining this inequality with <code>f' ≥ c' * xᵢ</code> we obtain
+<code>c' * (c * xᵢ - f) ≤ c * c' - c - c'</code>
+and as we already have <code>c * xᵢ - f ≥ 0</code>,
+we conclude that <code>c * xᵢ - f = j</code> for some <code>j = 0, 1, ..., (c * c' - c - c')/c'</code>
+(with, as usual the division rounded down).</p><p>Note that the largest possible value of <code>j</code> occurs with <code>c'</code> is as large as possible.</p><p>Thus the &quot;dark&quot; shadow is the variant of the real shadow where we replace each new inequality
+with its strengthening.
+The &quot;grey&quot; shadows are the union of the problems obtained by taking
+a lower bound <code>f ≤ c * xᵢ</code> for <code>xᵢ</code> and some <code>j = 0, 1, ..., (c * m - c - m)/m</code>, where <code>m</code>
+is the largest coefficient <code>c'</code> appearing in an upper bound <code>c' * xᵢ ≤ f'</code> for <code>xᵢ</code>,
+and adding to the original problem (i.e. without doing any Fourier-Motzkin elimination) the single
+new equation <code>c * xᵢ - f = j</code>, and the inequalities
+<code>c * xᵢ - f &gt; (c * m - c - m)/m</code> for each previously considered lower bound.</p><p>As stated above, the satisfiability of the original problem is in fact equivalent to
+the satisfiability of the real shadow, <em>and</em> the satisfiability of <em>either</em> the dark shadow,
+or at least one of the grey shadows.</p><p>TODO: implement the dark and grey shadows!</p><h3 class="markdown-heading" id="Disjunctions">Disjunctions <a class="hover-link" href="#Disjunctions">#</a></h3><p>The omega algorithm as described above accumulates various disjunctions,
+either coming from natural subtraction, or from the dark and grey shadows.</p><p>When we encounter such a disjunction, we store it in a list of disjunctions,
+but do not immediately split it.</p><p>Instead we first try to find a contradiction (i.e. by eliminating equalities and inequalities)
+without the disjunctive hypothesis.
+If this fails, we then retrieve the first disjunction from the list, split it,
+and try to find a contradiction in both branches.</p><p>(Note that we make no attempt to optimize the order in which we split disjunctions:
+it's currently on a first in first out basis.)</p><p>The work done eliminating equalities can be reused when splitting disjunctions,
+but we need to redo all the work eliminating inequalities in each branch.</p><h2 class="markdown-heading" id="Future-work">Future work <a class="hover-link" href="#Future-work">#</a></h2><ul>
+<li>Implementation of dark and grey shadows.</li>
+<li>Identification of atoms up to associativity and commutativity of monomials.</li>
+<li>Further optimization.<ul>
+<li>Some data is recomputed unnecessarily, e.g. the GCDs of coefficients.</li>
+</ul>
+</li>
+<li>Sparse representation of coefficients.<ul>
+<li>I have a branch in which this is implemented, modulo some proofs about algebraic operations
+on sparse arrays.</li>
+</ul>
+</li>
+<li>Case splitting on <code>Int.abs</code>?</li>
+</ul></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

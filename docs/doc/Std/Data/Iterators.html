@@ -1,0 +1,51 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Data.Iterators</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Std.Data.Iterators";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Data</span>.<span class="name">Iterators</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Init/Data/Iterators/Internal.html">Init.Data.Iterators.Internal</a></li><li><a href="../.././Std/Data/Iterators/Combinators.html">Std.Data.Iterators.Combinators</a></li><li><a href="../.././Std/Data/Iterators/Lemmas.html">Std.Data.Iterators.Lemmas</a></li><li><a href="../.././Std/Data/Iterators/Producers.html">Std.Data.Iterators.Producers</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Data.Iterators" class="imported-by-list"></ul></details></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="Iterators">Iterators <a class="hover-link" href="#Iterators">#</a></h1><p>The <code><a href="../.././Std/Data/Iterators.html">Std.Data.Iterators</a></code> module provides a uniform abstraction over data that can be iterated over
+in a sequential way, with a focus on convenience and efficiency. It is heavily inspired by Rust's
+iterator library and Haskell's <code>streamly</code>.</p><p>An iterator is an abstraction of a sequence of values that may or may not terminate. For example,
+every list can be traversed with an iterator via <code><a href="../.././Init/Data/Iterators/Producers/List.html#List.iter">List.iter</a></code>.</p><p>Most users of the iterator API will just put together existing library functions that
+create, combine and consume iterators. Consider a simple example:</p><pre><code class="language-lean">-- [1, 2, 3].iter : Iter (α := ListIterator α) <a href="../.././Init/Prelude.html#Nat">Nat</a> (α being implicit)
+#check [1, 2, 3].iter
+
+-- 12
+#eval [1, 2, 3].iter.map (· * 2) |&gt;.fold (init := 0) (· + ·)
+</code></pre><p>An iterator that emits values in <code>β</code> is an element of the type <code>Iter (α := ?) β</code>. The implicit
+type argument <code>α</code> contains stateful information about the iterator. <code>IterM (α := ?) m β</code> represents
+iterators over a monad <code>m</code>. In both cases, the implementation is provided by a typeclass
+<code>Iterator α m β</code>, where <code>m</code> is a monad in which the iteration happens.</p><p>The heart of an iterator <code>it : Iter β</code> is its <code>it.step</code> function, which returns <code>it.Step α β</code>.
+Here, <code>it.Step</code> is a type that either (1) provides an output value in <code>β</code> and a
+successor iterator (<code>yield</code>), (2) provides only a successor iterator with no output (<code>skip</code>), or
+(3) signals that the iterator has finished and will provide no more outputs (<code>done</code>).
+For technical reasons related to termination proofs, the returned <code>it.Step</code> also contains proof
+that it is a &quot;plausible&quot; step obtained from <code>it</code>.</p><p>The <code>step</code> function can also be used by hand:</p><pre><code class="language-lean">def sumrec (l : <a href="../.././Init/Prelude.html#List">List</a> Nat) : <a href="../.././Init/Prelude.html#Nat">Nat</a> :=
+  go (l.iter.map (2 * ·)) 0
+where
+  go it acc :=
+    match it.step with
+    | .yield it' n _ =&gt; go it' (acc + n)
+    | .skip it' _ =&gt; go it' acc
+    | .done _ =&gt; acc
+  termination_by it.finitelyManySteps
+</code></pre><p>In general, iterators do not need to terminate after finitely many steps. This example
+works because the iterator type at hand has an instance of the <code><a href="../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Std.Iterators.Finite</a></code> typeclass.
+Iterators that may not terminate but will not end up in an infinite sequence of <code>.skip</code>
+steps are called productive. This behavior is encoded in the <code><a href="../.././Init/Data/Iterators/Basic.html#Std.Iterators.Productive">Std.Iterators.Productive</a></code> typeclass.</p><h2 class="markdown-heading" id="Stability">Stability <a class="hover-link" href="#Stability">#</a></h2><p>The API for the usage of iterators provided in this module can be considered stable, as well as
+the API for the verification of programs using iterators, unless explicitly stated otherwise.</p><p>Contrarily, the API for implementation of new iterators, including the design of the <code>Iterator</code>
+typeclass, is still experimental and will change in the future. It is already planned that there
+will be a breaking change to make the iterators more flexible with regard to universes, a change
+that needs to wait for a language feature.</p><h2 class="markdown-heading" id="Module-structure">Module structure <a class="hover-link" href="#Module-structure">#</a></h2><p>A distinction that cuts through the whole module is that between pure and monadic
+iterators. Each submodule contains a dedicated <code>Monadic</code> sub-submodule.</p><p>Depending on whether functionality is needed in <code>Init</code>, modules might exist in <code>Init</code> or in <code><a href="../.././Std.html">Std</a></code>.
+The following module names can then be found under <code>Init.Data.Iterators</code>, <code><a href="../.././Std/Data/Iterators.html">Std.Data.Iterators</a></code> or
+both.</p><h3 class="markdown-heading" id="Basic-iterator-API">Basic iterator API <a class="hover-link" href="#Basic-iterator-API">#</a></h3><ul>
+<li><code>Basic</code> defines <code>Iter</code> and <code>IterM</code> as well as <code>Iterator</code>, <code>Finite</code>
+and <code>Productive</code> typeclasses.</li>
+<li><code>Producers</code> provides iterator implementations for common data types.</li>
+<li><code>Consumers</code> provides functions that take one or more iterators, iterate over them and potentially
+return some result. Examples are the <code>toList</code> function and an instance for the <code><a href="../.././Init/Core.html#ForIn">ForIn</a></code> typeclass.
+These operations allow for what is also known as <em>internal iteration</em>, where the caller delegates
+the control flow during the iteration to the called consumer.</li>
+<li><code>Combinators</code> will provide operations that transform one or more iterators into a new iterator
+as soon as the first such combinator has been implemented.</li>
+</ul><h3 class="markdown-heading" id="Verification-API">Verification API <a class="hover-link" href="#Verification-API">#</a></h3><p><code>Lemmas</code> provides the means to verify programs that use iterators.</p><p>In particular, <code>Lemmas.<a href="../.././Init/Core.html#Equivalence">Equivalence</a></code> develops the theory of equivalences of iterators.</p><h3 class="markdown-heading" id="Implementation-details">Implementation details <a class="hover-link" href="#Implementation-details">#</a></h3><p><code>Internal</code> contains code that should not be relied upon because it may change in the future.
+This whole module is explicitly experimental and it is not advisable for downstream users to
+expect stability to implement their own iterators at this point in time.</p></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
