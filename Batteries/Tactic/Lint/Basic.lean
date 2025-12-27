@@ -119,11 +119,10 @@ initialize registerBuiltinAttribute {
     errors. -/
     let isPublic := !isPrivateName decl; let isMeta := isMarkedMeta (← getEnv) decl
     unless isPublic && isMeta do
-      let mut modifiers := []
-      unless isMeta   do modifiers := "meta"   :: modifiers
-      unless isPublic do modifiers := "public" :: modifiers
       throwError "invalid attribute `env_linter`, \
-        declaration `{.ofConstName decl}` must be marked `{" ".intercalate modifiers}`"
+        declaration `{.ofConstName decl}` must be marked as `public` and `meta`\
+        {if isPublic then " but is only marked `public`" else ""}\
+        {if isMeta then " but is only marked `meta`" else ""}"
     let constInfo ← getConstInfo decl
     unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
       throwError "`{.ofConstName decl}` must have type `{.ofConstName ``Linter}`, got \
