@@ -116,3 +116,28 @@ theorem forall_mem_pwFilter [DecidableRel (α := α) R]
         have := find?_some e
         apply (neg_trans (H k (mem_of_find?_eq_some e))).resolve_right
         rw [decide_eq_true_iff] at this; exact this
+
+/-! ### eraseDup -/
+
+@[simp]
+theorem mem_eraseDup [BEq α] [LawfulBEq α] {a : α} {l : List α} :
+    a ∈ l.eraseDup ↔ a ∈ l := by
+  constructor
+  · intro h; exact pwFilter_subset l h
+  · intro h
+    induction l with
+    | nil => exact h
+    | cons x xs ih =>
+      simp only [mem_cons] at h
+      -- Split once: does `x` survive the pwFilter step?
+      by_cases hx : ∀ y ∈ xs.eraseDup, (x != y) = true
+      · -- x kept: eraseDup (x::xs) = x :: eraseDup xs
+        rw [eraseDup, pwFilter_cons_of_pos hx, mem_cons]
+        rcases h with rfl | hxs
+        · left; rfl
+        · right; exact ih hxs
+      · -- x dropped: eraseDup (x::xs) = eraseDup xs
+        rw [eraseDup, pwFilter_cons_of_neg hx]
+        rcases h with rfl | hxs
+        · simp_all [eraseDup] -- extracts witness showing a ∈ xs.eraseDup
+        · exact ih hxs

@@ -97,6 +97,17 @@ theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
     xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
   rw [erase_eq_eraseP', eraseP_eq_self_iff]
 
+/-! ### eraseDups -/
+
+theorem mem_eraseDupsBy_loop [BEq α] [LawfulBEq α] {a : α} {l acc : List α} :
+    a ∈ eraseDupsBy.loop (· == ·) l acc ↔ a ∈ l ∨ a ∈ acc := by
+  fun_induction eraseDupsBy.loop with grind
+
+@[simp]
+theorem mem_eraseDups [BEq α] [LawfulBEq α] {a : α} {l : List α} :
+    a ∈ l.eraseDups ↔ a ∈ l := by
+  simp only [eraseDups, eraseDupsBy, mem_eraseDupsBy_loop, not_mem_nil, or_false]
+
 /-! ### findIdx? -/
 
 @[deprecated findIdx_eq_getD_findIdx? (since := "2025-11-06")]
