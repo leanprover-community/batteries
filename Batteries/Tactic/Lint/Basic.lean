@@ -105,15 +105,25 @@ initialize registerBuiltinAttribute {
   descr := "Use this declaration as a linting test in #lint"
   add   := fun decl stx kind => do
     let dflt := stx[1].isNone
-    unless kind == .global do throwError "invalid attribute 'env_linter', must be global"
+    unless kind == .global do throwError "invalid attribute `env_linter`, must be global"
     let shortName := decl.updatePrefix .anonymous
     if let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName then
       Elab.addConstInfo stx declName
       throwError
-        "invalid attribute 'env_linter', linter '{shortName}' has already been declared"
+        "invalid attribute `env_linter`, linter `{shortName}` has already been declared"
+    /- Just as linters must be global, linter declarations must be accessible from `#lint`, and
+    thus must be `public` and `meta` -/
+    let isPublic := !isPrivateName decl; let isMeta := isMarkedMeta (← getEnv) decl
+    unless isPublic && isMeta do
+      let mut modifiers := []
+      unless isMeta   do modifiers := "meta"   :: modifiers
+      unless isPublic do modifiers := "public" :: modifiers
+      throwError "invalid attribute `env_linter`, \
+        declaration `{.ofConstName decl}` must be marked `{" ".intercalate modifiers}`"
     let constInfo ← getConstInfo decl
     unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
-      throwError "must have type Linter, got {constInfo.type}"
+      throwError "`{.ofConstName decl}` must have type `{.ofConstName ``Linter}`, got \
+        `{constInfo.type}`"
     modifyEnv fun env => batteriesLinterExt.addEntry env (decl, dflt)
 }
 
