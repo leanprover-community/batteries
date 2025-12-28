@@ -183,25 +183,60 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
+
+/--
+Folds a monadic function over a list from the left, accumulating partial results starting with `init`. The
+accumulated values are combined with the each element of the list in order, using `f`.
+
+This is a tail-recursive implementation. For an easier-to-reason-about version please see the non-tail-recursive `List.scanlM'.
+These cannot be shown to be equivalent to one another without a `LawfulMonad` constraint on `m`
+-/
+@[inline]
+def scanlM [Monad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
+  go l init (#[])
+where
+  @[specialize] go : List β → α → Array α → m (List α)
+    | [], a, acc => pure $ acc.toListAppend [a]
+    | b :: l, prev, acc => do
+      let next ← f prev b
+      go l next (acc.push prev)
+
+
+/--
+Folds a monadic function over a list from the left, accumulating partial results starting with `init`. The
+accumulated values are combined with the each element of the list in order, using `f`.
+
+Unlike `List.scanr` this function _is_ stack safe.
+-/
+@[inline, specialize]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) := do
+    List.reverse <$> scanlM (flip f) init xs.reverse
+
+
+-- TODO: determine if scanl, scanlTR, and scanr should just be implemented in terms of scanlM', scanlM, and scanrM
+-- save duplicated code/theorems on the one hand. On the other, you lose some of the simple-to-reason about structure
+-- standard library does not implement map in terms of mapM or fold in terms of foldM (for List, it does for Array)
+
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
-@[simp] def scanl (f : α → β → α) (a : α) : List β → List α
-  | [] => [a]
-  | b :: l => a :: scanl f (f a b) l
+-- This could be defined in terms of scanlM' but this has a very easy to reason about structure...
+def scanl (f : β → α → β) (init : β) : List α → List β
+  | [] => [init]
+  | b :: l => init :: scanl f (f init b) l
 
 /-- Tail-recursive version of `scanl`. -/
-@[inline] def scanlTR (f : α → β → α) (a : α) (l : List β) : List α := go l a #[] where
+@[inline] def scanlTR (f : β → α → β) (init : β) (as : List α) : List β := go as init #[] where
   /-- Auxiliary for `scanlTR`: `scanlTR.go f l a acc = acc.toList ++ scanl f a l`. -/
-  @[specialize] go : List β → α → Array α → List α
+  @[specialize] go : List α → β → Array β → List β
   | [], a, acc => acc.toListAppend [a]
   | b :: l, a, acc => go l (f a b) (acc.push a)
 
 theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
-  | [] => by simp [scanlTR.go, scanl]
+  | [] => by simp [scanl, scanlTR.go]
   | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
 
 @[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
@@ -213,8 +248,10 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
-def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
-  let (b', l') := l.foldr (fun a (b', l') => (f a b', b' :: l')) (b, [])
+-- Should this just be defined in terms of scanrM?
+@[inline]
+def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
+  let (b', l') := as.foldr (fun a (b', l') => (f a b', b' :: l')) (init, [])
   b' :: l'
 
 /--
