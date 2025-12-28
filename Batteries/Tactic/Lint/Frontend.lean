@@ -127,6 +127,9 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   let env ← getEnv
   let options ← getOptions -- TODO: sanitize options?
+  traceLint
+      s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
+      inIO currentModule
 
   let tasks : Array (NamedLinter × Array (Name × Task (Option MessageData))) ←
     linters.mapM fun linter => do
@@ -143,7 +146,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
           | Except.ok msg? => pure msg?
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
-  tasks.mapM fun (linter, decls) => do
+  let result ← tasks.mapM fun (linter, decls) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
     for (declName, msg?) in decls do
@@ -153,6 +156,9 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       s!"(2/2) {if msgs.isEmpty then "Passed!" else s!"Failed with {msgs.size} messages."}"
       inIO currentModule linter.name
     pure (linter, msgs)
+  traceLint "Completed linting!" inIO currentModule
+  return result
+
 
 /-- Sorts a map with declaration keys as names by line number. -/
 def sortResults (results : Std.HashMap Name α) : CoreM <| Array (Name × α) := do

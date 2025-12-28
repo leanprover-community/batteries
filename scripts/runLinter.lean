@@ -155,11 +155,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-    traceLint
-      s!"Collected linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
-      (inIO := true) (currentModule := module)
     let results ← lintCore decls linters (inIO := true) (currentModule := module)
-    traceLint "Completed linting!" (inIO := true) (currentModule := module)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
