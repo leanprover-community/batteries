@@ -112,7 +112,10 @@ theorem mem_eraseDups [BEq α] [LawfulBEq α] {a : α} {l : List α} :
   simp only [eraseDups, eraseDupsBy, mem_eraseDupsBy_loop, not_mem_nil, or_false]
 
 theorem eraseDupsBy_append_singleton {a : α} {as : List α} {r : α → α → Bool} :
-    eraseDupsBy r (as ++ [a]) = if ∀ x ∈ eraseDupsBy r as, r a x = false then eraseDupsBy r as ++ [a] else eraseDupsBy r as := by
+    eraseDupsBy r (as ++ [a]) =
+      if ∀ x ∈ eraseDupsBy r as, r a x = false
+      then eraseDupsBy r as ++ [a]
+      else eraseDupsBy r as := by
   match as with
   | [] => simp [eraseDupsBy_cons]
   | b :: t =>
