@@ -91,6 +91,30 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
         result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. It seems that
+`trace` messages in a running `CoreM` are not propagated through to `IO` in the current setup.
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
+  if inIO then
+    if ← getBoolOption `trace.Batteries.Lint then
+      IO.println msg
+  else
+    trace[Batteries.Lint] msg
+
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
+`currentModule` and `linter`.
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
+    CoreM Unit :=
+  traceLintCore (inIO := inIO)
+    s!"[{if let some m := currentModule then s!"{m}" else "<no-module>"}]\
+      {if let some l := linterName then s!"({l}):" else ""} \
+      {msg}"
+
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
@@ -278,3 +302,5 @@ elab "#list_linters" : command => do
   for (name, dflt) in result do
     msg := msg ++ m!"\n{name}{if dflt then " (*)" else ""}"
   logInfo msg
+
+initialize registerTraceClass `Batteries.Lint
