@@ -142,13 +142,24 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     pure #[]
   unsafe Lean.enableInitializersExecution
   let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
-  let ctx := { fileName := "", fileMap := default }
+  let mut opts : Options := {}
+  if trace then opts := opts.setBool `trace.Batteries.Lint true
+  let ctx := {
+    fileName := ""
+    fileMap := default
+    options := opts  }
   let state := { env }
   Prod.fst <$> (CoreM.toIO · ctx state) do
+    traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-    let results ← lintCore decls linters
+    traceLint
+      s!"Collected linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
+      (inIO := true) (currentModule := module)
+    let results ← lintCore decls linters (inIO := true) (currentModule := module)
+    traceLint "Completed linting!" (inIO := true) (currentModule := module)
     if update then
+      traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
         .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
         .flatten <| results.map fun (linter, decls) =>

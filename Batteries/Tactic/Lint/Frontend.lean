@@ -119,7 +119,9 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
 -/
-def lintCore (decls : Array Name) (linters : Array NamedLinter) :
+def lintCore (decls : Array Name) (linters : Array NamedLinter)
+    -- For tracing:
+    (currentModule : Option Name := none) (inIO : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   let env ← getEnv
   let options ← getOptions -- TODO: sanitize options?
@@ -129,7 +131,10 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
-          match ← withCurrHeartbeats (linter.test decl)
+          let act : MetaM (Option MessageData) := withCurrHeartbeats do
+            traceLint "(0/2) Starting..." inIO currentModule linter.name
+            linter.test decl
+          match ← act
               |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
               |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
@@ -137,10 +142,12 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
   tasks.mapM fun (linter, decls) => do
+    traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
     for (declName, msg?) in decls do
       if let some msg := msg?.get then
         msgs := msgs.insert declName msg
+    traceLint "(2/2) Complete!" inIO currentModule linter.name
     pure (linter, msgs)
 
 /-- Sorts a map with declaration keys as names by line number. -/
