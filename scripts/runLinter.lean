@@ -37,23 +37,53 @@ def resolveDefaultRootModules : IO (Array Name) := do
       #[]
   return defaultTargetModules
 
+/-- Arguments for `runLinter`. -/
+structure LinterConfig where
+  /-- Whether to update nolints. Default is `false`; set to `true` with `--update`. -/
+  update : Bool := false
+  /-- Whether to throw an error if necessary oleans are not already present (as opposed to building
+  them). Default is `false`; set to `true` with `--no-build`. -/
+  noBuild : Bool := false
+  /-- Whether to enable tracing. Default is `false`; set to `true` with `--trace` or `-v`. -/
+  trace := false
+
+@[always_inline, inline]
+private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
+  | Except.error errs => Except.error <| e :: errs
+  | Except.ok _       => Except.error [e]
+
 /--
 Parse args list for `runLinter`
 and return a pair of the update and specified module arguments.
 
 Throws an exception if unable to parse the arguments.
 Returns `none` for the specified module if no module is specified.-/
-def parseLinterArgs (args: List String) : Except String (Bool × Option Name) :=
-  let (update, moreArgs) :=
-    match args with
-    | "--update" :: args => (true, args)
-    | _ => (false, args)
-  match moreArgs with
-    | [] => Except.ok (update, none)
-    | [mod] => match mod.toName with
-      | .anonymous => Except.error "cannot convert module to Name"
-      | name => Except.ok (update, some name)
-    | _ => Except.error "cannot parse arguments"
+def parseLinterArgs (args : List String) :
+    Except (List String) (LinterConfig × Option Name) :=
+  go {} args
+where
+  go (parsed : LinterConfig) : List String → Except (List String) (LinterConfig × Option Name)
+    | arg :: args@(_ :: _) => Id.run do
+      if let some parsed := parseArg arg parsed then
+        go parsed args
+      else
+        go parsed args |>.consError s!"could not parse argument '{arg}'"
+    | [last] => match last.toName with
+      | .anonymous =>
+        if let some parsed := parseArg last parsed then
+          Except.ok (parsed, none)
+        else
+          Except.error [s!"could not convert module '{last}' to `Name`"]
+      | mod => Except.ok (parsed, some mod)
+    | [] => Except.ok (parsed, none) -- only reachable with no arguments
+  parseArg (arg : String) (parsed : LinterConfig) : Option LinterConfig :=
+    if arg == "--update" then
+      some { parsed with update := true }
+    else if arg == "--no-build" then
+      some { parsed with noBuild := true }
+    else if arg == "--trace" || arg == "-v" then
+      some { parsed with trace := true }
+    else none
 
 /--
 Return an array of the modules to lint.
@@ -72,7 +102,8 @@ def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := 
     return defaultModules
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
-unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
+unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
+  let { update, noBuild, trace } := cfg
   initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
@@ -127,7 +158,7 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]`
 
 Runs the linters on all declarations in the given module
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
@@ -136,13 +167,13 @@ to be nolinted.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
-  let (update, specifiedModule) ← match linterArgs with
+  let (cfg, mod?) ← match linterArgs with
     | Except.ok args => pure args
-    | Except.error msg => do
-      IO.eprintln s!"Error parsing args: {msg}"
+    | Except.error msgs => do
+      IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]"
       IO.Process.exit 1
 
-  let modulesToLint ← determineModulesToLint specifiedModule
+  let modulesToLint ← determineModulesToLint mod?
 
-  modulesToLint.forM <| runLinterOnModule update
+  modulesToLint.forM <| runLinterOnModule cfg
