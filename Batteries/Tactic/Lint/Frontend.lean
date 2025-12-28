@@ -104,15 +104,15 @@ def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
     trace[Batteries.Lint] msg
 
 /-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
-`currentModule` and `linter`.
+`currentModule` and `linter` (if present).
 
 This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
 @[macro_inline, expose]
 def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
     CoreM Unit :=
   traceLintCore (inIO := inIO)
-    s!"[{if let some m := currentModule then s!"{m}" else "<no-module>"}]\
-      {if let some l := linterName then s!"({l}):" else ""} \
+    s!"{if let some m := currentModule then s!"[{m}] " else ""}\
+      {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
 /--
@@ -147,7 +147,9 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     for (declName, msg?) in decls do
       if let some msg := msg?.get then
         msgs := msgs.insert declName msg
-    traceLint "(2/2) Complete!" inIO currentModule linter.name
+    traceLint
+      s!"(2/2) {if msgs.isEmpty then "Passed!" else s!"Failed with {msgs.size} messages."}"
+      inIO currentModule linter.name
     pure (linter, msgs)
 
 /-- Sorts a map with declaration keys as names by line number. -/
