@@ -107,25 +107,34 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
-    -- run `lake build module` (and ignore result) if the file hasn't been built yet
-    let child ← IO.Process.spawn {
-      cmd := (← IO.getEnv "LAKE").getD "lake"
-      args := #["build", s!"+{module}"]
-      stdin := .null
-    }
-    _ ← child.wait
+    if noBuild then
+      IO.println s!"Could not find olean for module `{module}` at given path:\n  {mFile}"
+      IO.Process.exit 1
+    else
+      -- run `lake build module` (and ignore result) if the file hasn't been built yet
+      let child ← IO.Process.spawn {
+        cmd := (← IO.getEnv "LAKE").getD "lake"
+        args := #["build", s!"+{module}"]
+        stdin := .null
+      }
+      _ ← child.wait
   -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
   -- the linters are ineffective. So we import it here.
   let lintModule := `Batteries.Tactic.Lint
   let lintFile ← findOLean lintModule
   unless (← lintFile.pathExists) do
-    -- run `lake build +Batteries.Tactic.Lint` (and ignore result) if the file hasn't been built yet
-    let child ← IO.Process.spawn {
-      cmd := (← IO.getEnv "LAKE").getD "lake"
-      args := #["build", s!"+{lintModule}"]
-      stdin := .null
-    }
-    _ ← child.wait
+    if noBuild then
+      IO.println s!"Could not find olean for linting module `{lintModule}` at given path:\n  \
+        {lintFile}"
+      IO.Process.exit 1
+    else
+      -- run `lake build +Batteries.Tactic.Lint` (and ignore result) if the file is not built yet
+      let child ← IO.Process.spawn {
+        cmd := (← IO.getEnv "LAKE").getD "lake"
+        args := #["build", s!"+{lintModule}"]
+        stdin := .null
+      }
+      _ ← child.wait
   let nolintsFile : FilePath := "scripts/nolints.json"
   let nolints ← if ← nolintsFile.pathExists then
     readJsonFile NoLints nolintsFile
