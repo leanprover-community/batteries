@@ -40,7 +40,7 @@ def resolveDefaultRootModules : IO (Array Name) := do
 /-- Arguments for `runLinter`. -/
 structure LinterConfig where
   /-- Whether to update nolints. Default is `false`; set to `true` with `--update`. -/
-  update : Bool := false
+  updateNoLints : Bool := false
   /-- Whether to throw an error if necessary oleans are not already present (as opposed to building
   them). Default is `false`; set to `true` with `--no-build`. -/
   noBuild : Bool := false
@@ -78,7 +78,7 @@ where
     | [] => Except.ok (parsed, none) -- only reachable with no arguments
   parseArg (arg : String) (parsed : LinterConfig) : Option LinterConfig :=
     if arg == "--update" then
-      some { parsed with update := true }
+      some { parsed with updateNoLints := true }
     else if arg == "--no-build" then
       some { parsed with noBuild := true }
     else if arg == "--trace" || arg == "-v" then
@@ -103,7 +103,7 @@ def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := 
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
-  let { update, noBuild, trace } := cfg
+  let { updateNoLints, noBuild, trace } := cfg
   initSearchPath (← findSysroot)
   let mFile ← findOLean module
   unless (← mFile.pathExists) do
@@ -158,7 +158,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       (inIO := true) (currentModule := module)
     let results ← lintCore decls linters (inIO := true) (currentModule := module)
     traceLint "Completed linting!" (inIO := true) (currentModule := module)
-    if update then
+    if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
         .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
