@@ -53,8 +53,8 @@ private def Except.consError (e : ε) : Except (List ε) α → Except (List ε)
   | Except.ok _       => Except.error [e]
 
 /--
-Parse args list for `runLinter`
-and return a pair of the update and specified module arguments.
+Parse args list for `runLinter` and return the config and specified module arguments. Default
+config settings are determined by the default values for fields of `LinterConfig`.
 
 Throws an exception if unable to parse the arguments.
 Returns `none` for the specified module if no module is specified.-/
@@ -63,27 +63,26 @@ def parseLinterArgs (args : List String) :
   go {} args
 where
   go (parsed : LinterConfig) : List String → Except (List String) (LinterConfig × Option Name)
-    | arg :: args@(_ :: _) => Id.run do
-      if let some parsed := parseArg arg parsed then
+    | arg :: args@(_ :: _) =>
+      if let some parsed := parseArg parsed arg then
         go parsed args
       else
         go parsed args |>.consError s!"could not parse argument '{arg}'"
-    | [last] => match last.toName with
-      | .anonymous =>
-        if let some parsed := parseArg last parsed then
-          Except.ok (parsed, none)
-        else
-          Except.error [s!"could not convert module '{last}' to `Name`"]
-      | mod => Except.ok (parsed, some mod)
+    | [last] =>
+      -- Try to parse it as a config argument, then as a module specification
+      if let some parsed := parseArg parsed last then
+        Except.ok (parsed, none)
+      else
+        match last.toName with
+        | .anonymous => Except.error [s!"could not convert module '{last}' to `Name`"]
+        | mod => Except.ok (parsed, some mod)
     | [] => Except.ok (parsed, none) -- only reachable with no arguments
-  parseArg (arg : String) (parsed : LinterConfig) : Option LinterConfig :=
-    if arg == "--update" then
-      some { parsed with updateNoLints := true }
-    else if arg == "--no-build" then
-      some { parsed with noBuild := true }
-    else if arg == "--trace" || arg == "-v" then
-      some { parsed with trace := true }
-    else none
+  parseArg (parsed : LinterConfig) : String → Option LinterConfig
+    | "--update"   => some { parsed with updateNoLints := true }
+    | "--no-build" => some { parsed with noBuild := true }
+    | "--trace"
+    | "-v"         => some { parsed with trace := true }
+    | _ => none
 
 /--
 Return an array of the modules to lint.
