@@ -104,36 +104,37 @@ def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := 
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
   let { updateNoLints, noBuild, trace } := cfg
   initSearchPath (← findSysroot)
-  let mFile ← findOLean module
-  unless (← mFile.pathExists) do
-    if noBuild then
-      IO.println s!"Could not find olean for module `{module}` at given path:\n  {mFile}"
-      IO.Process.exit 1
-    else
-      -- run `lake build module` (and ignore result) if the file hasn't been built yet
-      let child ← IO.Process.spawn {
-        cmd := (← IO.getEnv "LAKE").getD "lake"
-        args := #["build", s!"+{module}"]
-        stdin := .null
-      }
-      _ ← child.wait
+  let rec
+    /-- Builds `module` if the filepath `olean` does not exist. Throws if olean is not found and
+    `noBuild := true`. -/
+    buildIfNeeded (module : Name) : IO Unit := do
+      let olean ← findOLean module
+      unless (← olean.pathExists) do
+        if noBuild then
+          IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+            {olean}"
+          IO.Process.exit 1
+        else
+          if trace then
+            IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+              {olean}\n\
+              Building `{module}`."
+          -- run `lake build +module` (and ignore result) if the file hasn't been built yet
+          let child ← IO.Process.spawn {
+            cmd := (← IO.getEnv "LAKE").getD "lake"
+            args := #["build", s!"+{module}"]
+            stdin := .null
+          }
+          _ ← child.wait
+          -- TODO: handle build failing, e.g. by use of `run`
+          if trace then
+            IO.println s!"Finished building `{module}`."
+
+  buildIfNeeded module
   -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
   -- the linters are ineffective. So we import it here.
   let lintModule := `Batteries.Tactic.Lint
-  let lintFile ← findOLean lintModule
-  unless (← lintFile.pathExists) do
-    if noBuild then
-      IO.println s!"Could not find olean for linting module `{lintModule}` at given path:\n  \
-        {lintFile}"
-      IO.Process.exit 1
-    else
-      -- run `lake build +Batteries.Tactic.Lint` (and ignore result) if the file is not built yet
-      let child ← IO.Process.spawn {
-        cmd := (← IO.getEnv "LAKE").getD "lake"
-        args := #["build", s!"+{lintModule}"]
-        stdin := .null
-      }
-      _ ← child.wait
+  buildIfNeeded lintModule
   let nolintsFile : FilePath := "scripts/nolints.json"
   let nolints ← if ← nolintsFile.pathExists then
     readJsonFile NoLints nolintsFile
@@ -142,7 +143,9 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   unsafe Lean.enableInitializersExecution
   let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
   let mut opts : Options := {}
-  if trace then opts := opts.setBool `trace.Batteries.Lint true
+  -- Propagate `trace` to `CoreM`
+  if trace then
+    opts := opts.setBool `trace.Batteries.Lint true
   let ctx := {
     fileName := ""
     fileMap := default
