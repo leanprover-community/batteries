@@ -5,7 +5,6 @@ Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 module
 
-public import Batteries.Data.List.Basic
 @[expose] public section
 
 /-!
