@@ -130,11 +130,11 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
 
   let tasks : Array (NamedLinter × Array (Name × Task (Option MessageData))) ←
     linters.mapM fun linter => do
+      traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           let act : MetaM (Option MessageData) := withCurrHeartbeats do
-            traceLint "(0/2) Starting..." inIO currentModule linter.name
             linter.test decl
           match ← act
               |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
