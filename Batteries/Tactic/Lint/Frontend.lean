@@ -92,7 +92,9 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
   pure result
 
 /-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. It seems that
-`trace` messages in a running `CoreM` are not propagated through to `IO` in the current setup.
+`trace` messages in a running `CoreM` are not propagated through to `IO` in the current setup. We
+use `IO.println` directly instead of running `printTraces` at the end of our `CoreM` action so that
+trace messages are printed to stdout immediately, and are not lost if any part of the action hangs.
 
 This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
 @[macro_inline, expose]
