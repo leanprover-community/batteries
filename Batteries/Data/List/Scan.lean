@@ -208,7 +208,7 @@ accumulated values are combined with the each element of the list in order, usin
 This is the non-tail-recursive implementation that is easier to reason about. For a more performant version, see `List.scanlM`
 These are equivalent when `m` is a `LawfulMonad`,
 -/
-def scanlM' [Monad m] (f : α → β → m α) (init : α) : List β → m (List α) 
+def scanlM' [Monad m] (f : α → β → m α) (init : α) : List β → m (List α)
   | [] => pure [init]
   | x :: xs => return init :: (← scanlM' f (← f init x) xs)
 
@@ -217,7 +217,7 @@ theorem scanlM'_nil [Monad m] {f : β → α → m β} {init: β} : scanlM' f in
 
 @[simp]
 theorem scanlM'_cons [Monad m] {f : β → α → m β} {init: β} : scanlM' f init (x :: xs) = return init :: (← scanlM' f (← f init x) xs) := rfl
-    
+
 theorem scanlM'_eq_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : List α}
     : scanlM' f init as = scanlM f init as := by
   simp [scanlM, go_eq_scanlM']
@@ -238,8 +238,8 @@ theorem scanrM_cons [Monad m] [LawfulMonad m] {f : α → β → m β} {init : �
 theorem scanrM_nil [Monad m] [LawfulMonad m] {f : α → β → m β} {init: β} : scanrM f init [] = pure [init] := by simp [scanrM]
 
 @[simp, grind =]
-theorem scanlM_cons [Monad m] [LawfulMonad m] {f : β → α → m β} {init: β} 
-  : (x :: xs).scanlM f init = return init :: (← scanlM f (← f init x) xs) 
+theorem scanlM_cons [Monad m] [LawfulMonad m] {f : β → α → m β} {init: β}
+  : (x :: xs).scanlM f init = return init :: (← scanlM f (← f init x) xs)
   := by simp [← scanlM'_eq_scanlM]
 
 
@@ -248,7 +248,7 @@ theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {b : �
     scanlM f b l.reverse = reverse <$> (scanrM (flip f) b l) := by
   simp only [scanrM, Functor.map_map, reverse_reverse, id_map']
   rfl
-  
+
 @[simp]
 theorem scanlM_pure [Monad m] [LawfulMonad m] {f: β → α → β} {init: β} {as : List α}
   : as.scanlM (m := m) (pure <| f · ·) init = pure (as.scanl f init)
@@ -271,23 +271,23 @@ theorem idRun_scanrM {f : α → β → Id β} {init : β} {as : List α }
   := scanrM_pure
 
 @[simp, grind =]
-theorem scanlM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} {init : β} 
+theorem scanlM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} {init : β}
   : (as.map f).scanlM g init = as.scanlM (g · <| f ·) init
   := by induction as generalizing g init with grind
 
 @[simp, grind =]
-theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} {init : β} 
+theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} {init : β}
   : (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init
-  := by 
+  := by
     unfold scanrM flip
     simp [← map_reverse]
 
 theorem scanl_eq_scanlM {f : β → α → β} {init : β} {as: List α}
-  : as.scanl f init = (as.scanlM (m := Id) (pure <| f · ·) init).run 
+  : as.scanl f init = (as.scanlM (m := Id) (pure <| f · ·) init).run
   := by simp
 
 theorem scanr_eq_scanrM (f : α → β → β) {init : β} {as : List α}
-  : as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run 
+  : as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run
   := by simp
 
 theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} {b : β} {l : List α} :
