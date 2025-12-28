@@ -310,7 +310,6 @@ example [Monad m] (f : α → β → m α) :
 @[implemented_by scanrMUnsafe]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Array α) (start := as.size) (stop := 0) : m (Array β) :=
   let start := min start as.size
-  let stop := min stop start
   loop f init as start stop (Nat.min_le_right _ _) #[]
 where
   loop (f : α → β → m β) (init : β) (as : Array α)

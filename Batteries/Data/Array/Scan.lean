@@ -334,16 +334,11 @@ theorem back?_scanr {f : α → β → β} {init : β} {as : Array α}
 
 -- TODO: rewrite without requiring LawfulMonad?
 -- In principle it probably shouldn't require it its just that scanlM_loop_toList does
--- Also maybe try to simplify this proof?
 theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α} {start stop : Nat}
   : as.scanrM f init start stop = (as.extract stop start).scanrM f init
   := by
     rw (occs := [1]) [scanrM]
     rw [scanrM_loop_toList, ← scanrM_toList]
-    simp_all only [List.reverse_nil, List.append_nil, bind_pure_comp, toList_extract,
-      List.extract_eq_drop_take, mk.injEq, implies_true, map_inj_right_of_nonempty]
-    congr 1
-    rw [List.ext_getElem_iff]
-    grind
+    grind [List.take_eq_take_iff, toList_extract]
 
  end Array
