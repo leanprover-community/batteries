@@ -634,7 +634,7 @@ Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `eraseDup l` removes duplicates from `l` (keeping the last occurrence).
 Defined as `pwFilter (≠)`.
 
     eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/

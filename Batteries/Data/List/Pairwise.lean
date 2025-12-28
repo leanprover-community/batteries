@@ -119,6 +119,8 @@ theorem forall_mem_pwFilter [DecidableRel (α := α) R]
 
 /-! ### eraseDup -/
 
+/-- Membership is preserved by `eraseDup` (which keeps the last occurrence of duplicates):
+an element is in the deduplicated list iff it was in the original list. -/
 @[simp]
 theorem mem_eraseDup [BEq α] [LawfulBEq α] {a : α} {l : List α} :
     a ∈ l.eraseDup ↔ a ∈ l := by

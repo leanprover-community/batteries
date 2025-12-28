@@ -7,6 +7,7 @@ module
 
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Pairwise
 
 @[expose] public section
 
@@ -103,10 +104,44 @@ theorem mem_eraseDupsBy_loop [BEq α] [LawfulBEq α] {a : α} {l acc : List α} 
     a ∈ eraseDupsBy.loop (· == ·) l acc ↔ a ∈ l ∨ a ∈ acc := by
   fun_induction eraseDupsBy.loop with grind
 
+/-- Membership is preserved by `eraseDups` (which keeps the first occurrence of duplicates):
+an element is in the deduplicated list iff it was in the original list. -/
 @[simp]
 theorem mem_eraseDups [BEq α] [LawfulBEq α] {a : α} {l : List α} :
     a ∈ l.eraseDups ↔ a ∈ l := by
   simp only [eraseDups, eraseDupsBy, mem_eraseDupsBy_loop, not_mem_nil, or_false]
+
+theorem eraseDupsBy_append_singleton {a : α} {as : List α} {r : α → α → Bool} :
+    eraseDupsBy r (as ++ [a]) = if ∀ x ∈ eraseDupsBy r as, r a x = false then eraseDupsBy r as ++ [a] else eraseDupsBy r as := by
+  match as with
+  | [] => simp [eraseDupsBy_cons]
+  | b :: t =>
+    have := eraseDupsBy_append_singleton (r := r) (a := a) (as := t.filter (!r · b))
+    simp only [cons_append, eraseDupsBy_cons, Bool.decide_eq_false, filter_append, filter_cons,
+      Bool.not_eq_eq_eq_not, Bool.not_true, filter_nil, mem_cons, forall_eq_or_imp]
+    cases h : r a b
+    · simp [this, apply_ite (b :: ·)]
+    · simp
+termination_by as.length
+decreasing_by grind
+
+theorem pwFilter_eq_eraseDupsBy (r : α → α → Prop) [DecidableRel r] (as : List α) :
+    as.pwFilter r = (as.reverse.eraseDupsBy fun a b => !r a b).reverse := by
+  rw [← reverse_inj, reverse_reverse]
+  induction as with
+  | nil => simp
+  | cons a t ih =>
+    simp only [reverse_cons, eraseDupsBy_append_singleton, ← ih, mem_reverse, Bool.not_eq_eq_eq_not,
+      Bool.not_false, decide_eq_true_eq]
+    split <;> rename_i h
+    · rw [pwFilter_cons_of_pos h, reverse_cons]
+    · rw [pwFilter_cons_of_neg h]
+
+/-- `eraseDup` is equivalent to reversing, applying `eraseDups`, and reversing back. -/
+theorem eraseDup_eq_eraseDups [BEq α] (as : List α) :
+    as.eraseDup = as.reverse.eraseDups.reverse := by
+  rw [eraseDup, pwFilter_eq_eraseDupsBy, eraseDups]
+  simp [bne]
 
 /-! ### findIdx? -/
 
