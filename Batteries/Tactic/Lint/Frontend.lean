@@ -138,7 +138,11 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
           let act : MetaM (Option MessageData) := withCurrHeartbeats do
-            linter.test decl
+            let result ← linter.test decl
+            if inIO then
+              -- Ensure any trace messages are propagated to stdout
+              printTraces
+            return result
           match ← act
               |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
               |>.run' {options, fileName := "", fileMap := default} {env}
