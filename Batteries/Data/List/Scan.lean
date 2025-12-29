@@ -171,7 +171,7 @@ theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).length) :
   induction l generalizing i with grind [cases Nat]
 
 @[grind =]
-theorem getElem?_scanr {f : α → β → β} (h : i < l.length + 1) :
+theorem getElem?_scanr {f : α → β → β} :
     (scanr f b l)[i]? = if i < l.length + 1 then some (foldr f b (l.drop i)) else none := by
   grind
 
@@ -286,7 +286,7 @@ theorem scanl_eq_scanlM {f : β → α → β} {init : β} {as: List α}
   : as.scanl f init = (as.scanlM (m := Id) (pure <| f · ·) init).run
   := by simp
 
-theorem scanr_eq_scanrM (f : α → β → β) {init : β} {as : List α}
+theorem scanr_eq_scanrM {f : α → β → β} {init : β} {as : List α}
   : as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run
   := by simp
 

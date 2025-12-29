@@ -42,11 +42,13 @@ private theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
                , show stop - (start + 1) = n by omega
                , ih
                ]
+
 theorem scanlM_toList [Monad m] [LawfulMonad m]
-    {f : β → α → m β} {init : β} {as : Array α} :
-    (return (← as.toList.scanlM f init).toArray) = as.scanlM f init := by
-  unfold scanlM
-  simp [Array.scanlM_loop_toList, ←Array.length_toList]
+  {f : β → α → m β} {init : β} {as : Array α}
+  : List.toArray <$> as.toList.scanlM f init = as.scanlM f init
+  := by
+    unfold scanlM
+    simp [Array.scanlM_loop_toList, ←Array.length_toList]
 
 
 @[simp, grind =]
@@ -93,7 +95,7 @@ private theorem scanrM_loop_toList [Monad m] [LawfulMonad m]
 
 
 theorem scanrM_toList [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α}
-  : (return (← as.toList.scanrM f init).toArray) = as.scanrM f init
+  : List.toArray <$> as.toList.scanrM f init = as.scanrM f init
   := by
     unfold scanrM
     simp [Array.scanrM_loop_toList, ← Array.length_toList]
@@ -106,6 +108,24 @@ theorem toList_scanrM [Monad m] [LawfulMonad m]
   := by
     rw [← scanrM_toList]
     simp
+
+-- TODO: rewrite without requiring LawfulMonad?
+-- In principle it probably shouldn't require it its just that scanlM_loop_toList does
+theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α} {start stop : Nat}
+  : as.scanlM f init start stop = (as.extract start stop).scanlM f init
+  := by
+    rw (occs := [1]) [scanlM]
+    rw [scanlM_loop_toList, ← scanlM_toList, bind_pure_comp]
+    grind [List.take_eq_take_iff, toList_extract]
+
+-- TODO: rewrite without requiring LawfulMonad?
+-- In principle it probably shouldn't require it its just that scanlM_loop_toList does
+theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α} {start stop : Nat}
+  : as.scanrM f init start stop = (as.extract stop start).scanrM f init
+  := by
+    rw (occs := [1]) [scanrM]
+    rw [scanrM_loop_toList, ← scanrM_toList, bind_pure_comp]
+    grind [List.take_eq_take_iff, toList_extract]
 
 @[simp, grind=]
 theorem scanlM_empty [Monad m] {f : β → α → m β} {init : β}
@@ -160,14 +180,12 @@ theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ �
     repeat rw [← scanrM_toList]
     simp
 
+
+/-- ### Array.scanl -/
+
 theorem scanl_eq_scanlM {f : β → α → β} {init : β} {as: Array α}
   : as.scanl f init = (as.scanlM (m := Id) (pure <| f · ·) init).run
   := by simp
-
-theorem scanr_eq_scanrM {f : α → β → β} {init : β} {as : Array α}
-  : as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run
-  := by simp
-
 
 theorem scanl_toList {f: β → α → β} {init : β} {as : Array α}
   : (as.toList.scanl f init).toArray = as.scanl f init
@@ -176,22 +194,10 @@ theorem scanl_toList {f: β → α → β} {init : β} {as : Array α}
     simp
 
 
-theorem scanr_toList {f : α → β → β} {init : β} {as : Array α}
-  : (as.toList.scanr f init).toArray = as.scanr f init
-  := by
-    rw [scanr_eq_scanrM, ← scanrM_toList]
-    simp
-
-
 @[simp, grind =]
 theorem toList_scanl {f : β → α → β} {init : β} {as: Array α}
   : (as.scanl f init).toList = as.toList.scanl f init
   := by rw [← scanl_toList]
-
-@[simp, grind =]
-theorem toList_scanr {f : α → β → β} {init : β} {as : Array α}
-  : (as.scanr f init).toList = as.toList.scanr f init
-  := by rw [← scanr_toList]
 
 @[simp]
 theorem size_scanl {f : β → α → β} (init : β) (as : Array α)
@@ -279,6 +285,7 @@ theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array
     repeat rw [← scanl_toList]
     simp [List.scanl_map]
 
+@[simp, grind=]
 theorem back_scanl {f : β → α → β} {init : β} {as : Array α}
   : (as.scanl f init).back = as.foldl f init
   := by simp [Array.back_eq_getElem]
@@ -287,16 +294,23 @@ theorem back_scanl? {f : β → α → β} {init : β} {as : Array α}
   : (as.scanl f init).back? = some (as.foldl f init)
   := by simp [Array.back?_eq_getElem?]
 
--- TODO: rewrite without requiring LawfulMonad?
--- In principle it probably shouldn't require it its just that scanlM_loop_toList does
-theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α} {start stop : Nat}
-  : as.scanlM f init start stop = (as.extract start stop).scanlM f init
-  := by
-    rw (occs := [1]) [scanlM]
-    rw [scanlM_loop_toList, ← scanlM_toList]
-    grind [List.take_eq_take_iff, toList_extract]
 
 /-! ### Array.scanr -/
+
+theorem scanr_eq_scanrM {f : α → β → β} {init : β} {as : Array α}
+  : as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run
+  := by simp
+
+theorem scanr_toList {f : α → β → β} {init : β} {as : Array α}
+  : (as.toList.scanr f init).toArray = as.scanr f init
+  := by
+    rw [scanr_eq_scanrM, ← scanrM_toList]
+    simp
+
+@[simp, grind =]
+theorem toList_scanr {f : α → β → β} {init : β} {as : Array α}
+  : (as.scanr f init).toList = as.toList.scanr f init
+  := by rw [← scanr_toList]
 
 @[simp]
 theorem size_scanr {f : α → β → β} (init : β) (as : Array α)
@@ -324,21 +338,53 @@ theorem scanr_push {f : α → β → β} {init : β} {a : α} {as : Array α}
     apply toList_inj.mp
     grind
 
+@[simp, grind=]
 theorem back_scanr {f : α → β → β} {init: β} {as : Array α}
   : (as.scanr f init).back = init
   := by simp [←getLast_toList, List.getLast_scanr]
 
 theorem back?_scanr {f : α → β → β} {init : β} {as : Array α}
   : (as.scanr f init).back? = some init
-  := by simp[←getLast?_toList, List.getLast?_scanr]
+  := by simp [←getLast?_toList, List.getLast?_scanr]
 
--- TODO: rewrite without requiring LawfulMonad?
--- In principle it probably shouldn't require it its just that scanlM_loop_toList does
-theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α} {start stop : Nat}
-  : as.scanrM f init start stop = (as.extract stop start).scanrM f init
+@[simp, grind=]
+theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size)
+  : (scanr f b l)[i] = foldr f b (l.drop i)
+  := by simp only [← foldr_toList, ← scanr_toList, ←getElem_toList, List.getElem_scanr, toList_drop]
+
+@[grind =]
+theorem getElem?_scanr {f : α → β → β}
+  : (scanr f b as)[i]? = if i < as.size + 1 then some (foldr f b (as.drop i)) else none
   := by
-    rw (occs := [1]) [scanrM]
-    rw [scanrM_loop_toList, ← scanrM_toList]
-    grind [List.take_eq_take_iff, toList_extract]
+    simp_all only [← foldr_toList, ← scanr_toList, List.getElem?_toArray, toList_drop]
+    rw [← length_toList]
+    apply List.getElem?_scanr
+
+
+
+@[simp, grind=]
+theorem getElem_scanr_zero {f : α → β → β}
+  : (scanr f init as)[0] = as.foldr f init
+  := by simp
+
+@[simp, grind=]
+theorem getElem?_scanr_zero {f : α → β → β}
+  : (scanr f init as)[0]? = some (as.foldr f init )
+  := by simp
+
+@[grind =]
+theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array α)
+  : scanr f init (as.map g) = scanr (fun x acc => f (g x) acc) init as
+  := by
+    repeat rw [← scanr_toList]
+    simp [List.scanr_map]
+
+@[simp, grind =]
+theorem scanl_reverse {f : β → α → β} {init : β} {as : Array α}
+  : scanl f init as.reverse = reverse (scanr (flip f) init as)
+  := by
+    apply toList_inj.mp
+    simp only [← scanl_toList, ← scanr_toList]
+    simp
 
  end Array
