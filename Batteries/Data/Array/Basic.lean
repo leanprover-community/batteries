@@ -157,32 +157,6 @@ private theorem nat_index_eq_usize_index {n : Nat} {a : Array α} {h : a.size_fi
 unsafe def unsafe_size_fits_usize {a: Array α} : Array.size_fits_usize (a := a) := lcProof
 
 
---private theorem USize.sub_one_lt {a : USize} (h : 0 < a) : a - 1 < a := by
---  have h' : 0 < a.toNat := h
---  simp only [USize.lt_iff_toNat_lt]
---  rw [USize.toNat_sub_of_le]
---    <;> simp [USize.toNat_one, USize.le_iff_toNat_le]
---    <;> omega
---
----- 4. stop < start → stop ≤ start - 1
---theorem USize.le_sub_one_of_lt {a b : USize} (h : a < b) : a ≤ b - 1 := by
---  grind only [USize.le_iff_toNat_le, USize.lt_iff_toNat_lt, USize.toNat_sub_of_le]
---
---private theorem USize.lt_add_one' {a : USize} (h : a.toNat + 1 < USize.size) : a < a + 1 := by
---  apply USize.lt_add_one
---  intro heq
---  simp only [USize.neg_one_eq] at heq
---  have : a.toNat = USize.size - 1 := by
---    simp only [heq, USize.toNat_ofNatLT]
---  omega
-
-
-
-
-  -- a = USize.size - 1 means a.toNat = USize.size - 1
-  -- so a.toNat + 1 = USize.size, contradicting h
-
-
 @[inline]
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0) (stop := as.size) : m (Array β) :=
   let stop := min stop as.size

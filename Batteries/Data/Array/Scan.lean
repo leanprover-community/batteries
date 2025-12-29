@@ -20,7 +20,7 @@ Prove basic results about `Array.scanl`, `Array.scanr`, `Array.scanlM` and `Arra
 
 namespace Array
 
-private theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
+theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
     {f : β → α → m β} {as : Array α}
     {start stop : Nat} {h : stop ≤ as.size}
     {acc : Array β} {init : β}
@@ -43,8 +43,7 @@ private theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
                , ih
                ]
 
-theorem scanlM_toList [Monad m] [LawfulMonad m]
-  {f : β → α → m β} {init : β} {as : Array α}
+theorem scanlM_toList [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α}
   : List.toArray <$> as.toList.scanlM f init = as.scanlM f init
   := by
     unfold scanlM
@@ -52,8 +51,7 @@ theorem scanlM_toList [Monad m] [LawfulMonad m]
 
 
 @[simp, grind =]
-theorem toList_scanlM [Monad m] [LawfulMonad m]
-  {f : β → α → m β} {init : β} {as : Array α}
+theorem toList_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α}
   : toList <$> as.scanlM f init = as.toList.scanlM f init
   := by
     rw [← scanlM_toList]
@@ -61,7 +59,7 @@ theorem toList_scanlM [Monad m] [LawfulMonad m]
 
 
 -- TODO: come back and simplify this proof? And/or simplify the structure of Arrat.scacnrM to make it more amenable
-private theorem scanrM_loop_toList [Monad m] [LawfulMonad m]
+theorem scanrM_loop_toList [Monad m] [LawfulMonad m]
     {f : α → β → m β} {as : Array α} {init : β}
     {start stop : Nat} {h : start ≤ as.size}
     {acc : Array β}
@@ -111,7 +109,7 @@ theorem toList_scanrM [Monad m] [LawfulMonad m]
 
 -- TODO: rewrite without requiring LawfulMonad?
 -- In principle it probably shouldn't require it its just that scanlM_loop_toList does
-theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α} {start stop : Nat}
+theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α} {start stop : Nat}
   : as.scanlM f init start stop = (as.extract start stop).scanlM f init
   := by
     rw (occs := [1]) [scanlM]
@@ -120,7 +118,7 @@ theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {init 
 
 -- TODO: rewrite without requiring LawfulMonad?
 -- In principle it probably shouldn't require it its just that scanlM_loop_toList does
-theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α} {start stop : Nat}
+theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Array α} {start stop : Nat}
   : as.scanrM f init start stop = (as.extract stop start).scanrM f init
   := by
     rw (occs := [1]) [scanrM]
@@ -277,7 +275,6 @@ theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α}
     repeat rw [← scanl_toList]
     simp [List.scanl_append]
 
-
 @[grind =]
 theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array α)
   : scanl f init (as.map g) = scanl (f · <| g ·) init as
@@ -356,11 +353,8 @@ theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size)
 theorem getElem?_scanr {f : α → β → β}
   : (scanr f b as)[i]? = if i < as.size + 1 then some (foldr f b (as.drop i)) else none
   := by
-    simp_all only [← foldr_toList, ← scanr_toList, List.getElem?_toArray, toList_drop]
-    rw [← length_toList]
-    apply List.getElem?_scanr
-
-
+    simp only [← foldr_toList, ← scanr_toList, List.getElem?_toArray, toList_drop]
+    simp only [← length_toList, List.getElem?_scanr]
 
 @[simp, grind=]
 theorem getElem_scanr_zero {f : α → β → β}
@@ -388,3 +382,18 @@ theorem scanl_reverse {f : β → α → β} {init : β} {as : Array α}
     simp
 
  end Array
+
+namespace Subarray
+theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Subarray α}
+  : as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init
+  := by 
+    unfold scanlM
+    apply Array.scanlM_extract
+
+theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Subarray α}
+  : as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init
+  := by 
+    unfold scanrM
+    apply Array.scanrM_extract
+end Subarray
+
