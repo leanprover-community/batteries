@@ -126,9 +126,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
             stdin := .null
           }
           _ ← child.wait
-          -- TODO: handle build failing, e.g. by use of `run`
-          if trace then
-            IO.println s!"Finished building `{module}`."
+          -- No need to trace on completion, lake's "Build completed successfully" reaches stdout
 
   buildIfNeeded module
   -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
