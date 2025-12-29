@@ -62,6 +62,7 @@ def parseLinterArgs (args : List String) :
     Except (List String) (LinterConfig × Option Name) :=
   go {} args
 where
+  /-- Traverses the list, handling the last element as a module and erroring if parsing fails. -/
   go (parsed : LinterConfig) : List String → Except (List String) (LinterConfig × Option Name)
     | arg :: args@(_ :: _) =>
       if let some parsed := parseArg parsed arg then
@@ -77,6 +78,7 @@ where
         | .anonymous => Except.error [s!"could not convert module '{last}' to `Name`"]
         | mod => Except.ok (parsed, some mod)
     | [] => Except.ok (parsed, none) -- only reachable with no arguments
+  /-- Parses a single config argument. -/
   parseArg (parsed : LinterConfig) : String → Option LinterConfig
     | "--update"   => some { parsed with updateNoLints := true }
     | "--no-build" => some { parsed with noBuild := true }
