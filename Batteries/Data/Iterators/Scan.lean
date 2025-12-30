@@ -94,51 +94,57 @@ instance {o : Type w → Type x} [Iterator α m β] [Monad n] [MonadLiftT m n] [
   .defaultImplementation
 
 /-- Finiteness relation for `ScanM`-/
-def FiniteRel [Iterator α m β] (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
+def finRel [Iterator α m β] (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
   match scanIt.internalState.emittedInit, scanIt'.internalState.emittedInit with
   | false, true => True
   | true, true => (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSuccessorOf ⟨scanIt.internalState.inner⟩
   | _, _ => False
 
-theorem acc_emittedTrue [Iterator α m β] [Finite α m (β := β)]
-    (innerIt : IterM m β)
-    (acc_inner : Acc IterM.IsPlausibleSuccessorOf innerIt)
+private theorem acc_finRel_emittedTrue [Iterator α m β] [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
+    (innerIt : IterM m β)
+    (acc_inner : Acc (IterM.IsPlausibleSuccessorOf (m := m) (β := β)) innerIt)
     (hemit : scanIt.internalState.emittedInit = true)
-    (heq : scanIt.internalState.inner = innerIt.internalState)
-  : Acc FiniteRel scanIt
+    (heq : scanIt.internalState.inner = innerIt.internalState := by rfl)
+  : Acc finRel scanIt
   := by
     induction acc_inner generalizing scanIt
     constructor
     intro scanIt' _
-    by_cases scanIt'.internalState.emittedInit <;> simp_all only [FiniteRel]
+    by_cases scanIt'.internalState.emittedInit <;> simp_all only [finRel]
     grind only [IterM.IsPlausibleSuccessorOf]
 
-theorem acc_emittedFalse [Iterator α m β] [Finite α m (β := β)]
+private theorem acc_finRel_emittedFalse [Iterator α m β] [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
     (hemit : scanIt.internalState.emittedInit = false) :
-    Acc FiniteRel scanIt := by
+    Acc finRel scanIt := by
   constructor
   intro iter' _
-  by_cases iter'.internalState.emittedInit <;> simp_all [FiniteRel]
-  refine acc_emittedTrue ⟨_⟩ ?_ _ ‹_› rfl;
-  apply Finite.wf.apply
+  by_cases iter'.internalState.emittedInit
+  . exact acc_finRel_emittedTrue _ ⟨_⟩ (Finite.wf.apply _) ‹_›
+  -- this leads to a contradiction
+  . simp_all [finRel]
+    
   
+theorem acc_finRel [Iterator α m β] [Finite α m (β := β)]
+    (scanIt : @IterM (ScanM α m n β γ f) n γ) 
+  : Acc finRel scanIt 
+  := by
+    by_cases h : scanIt.internalState.emittedInit
+    . exact acc_finRel_emittedTrue scanIt ⟨scanIt.internalState.inner⟩ (Finite.wf.apply _) h
+    . exact acc_finRel_emittedFalse scanIt (by simp only [h])
+
+
 instance instFinRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] : 
     FinitenessRelation (ScanM α m n β γ f) n where
-  rel := FiniteRel
-
-  wf := ⟨fun scanIt => 
-    if h : scanIt.internalState.emittedInit
-    then acc_emittedTrue ⟨scanIt.internalState.inner⟩ (Finite.wf.apply _) scanIt h rfl
-    else acc_emittedFalse scanIt (by simp [h])⟩
-
+  rel := finRel
+  wf := ⟨acc_finRel⟩
   subrelation := by
     rintro _ _ ⟨_, hsucc_eq, hplaus⟩ 
     cases hplaus  
       <;> simp_all only [IterStep.successor, Option.some.injEq, reduceCtorEq]
       <;> subst hsucc_eq
-      <;> simp_all only [FiniteRel]
+      <;> simp_all only [finRel]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_› 
     . exact IterM.isPlausibleSuccessorOf_of_skip  ‹_›
 
