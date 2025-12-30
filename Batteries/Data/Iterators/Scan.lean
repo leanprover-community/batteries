@@ -117,23 +117,20 @@ private theorem acc_finRel_emittedTrue [Iterator α m β] [Finite α m (β := β
 
 private theorem acc_finRel_emittedFalse [Iterator α m β] [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
-    (hemit : scanIt.internalState.emittedInit = false) :
-    Acc finRel scanIt := by
-  constructor
-  intro iter' _
-  by_cases iter'.internalState.emittedInit
-  . exact acc_finRel_emittedTrue _ ⟨_⟩ (Finite.wf.apply _) ‹_›
-  -- this leads to a contradiction
-  . simp_all [finRel]
+    (hemit : scanIt.internalState.emittedInit = false) 
+  : Acc finRel scanIt := by
+    constructor
+    intro iter' _
+    by_cases iter'.internalState.emittedInit
+    . exact acc_finRel_emittedTrue _ ⟨_⟩ (Finite.wf.apply _) ‹_›
+    -- this leads to a contradiction
+    . simp_all [finRel]
     
   
-theorem acc_finRel [Iterator α m β] [Finite α m (β := β)]
-    (scanIt : @IterM (ScanM α m n β γ f) n γ) 
-  : Acc finRel scanIt 
-  := by
-    by_cases h : scanIt.internalState.emittedInit
-    . exact acc_finRel_emittedTrue scanIt ⟨scanIt.internalState.inner⟩ (Finite.wf.apply _) h
-    . exact acc_finRel_emittedFalse scanIt (by simp only [h])
+theorem acc_finRel [Iterator α m β] [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) : Acc finRel scanIt :=
+  if h : scanIt.internalState.emittedInit 
+    then acc_finRel_emittedTrue scanIt ⟨scanIt.internalState.inner⟩ (Finite.wf.apply _) h
+    else acc_finRel_emittedFalse scanIt (by simp only [h])
 
 
 instance instFinRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] : 
