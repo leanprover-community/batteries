@@ -109,10 +109,11 @@ private theorem acc_finRel_emittedTrue [Iterator α m β] [Finite α m (β := β
   : Acc finRel scanIt
   := by
     induction acc_inner generalizing scanIt
+    rename_i ih
     constructor
     intro scanIt' _
     by_cases scanIt'.internalState.emittedInit <;> simp_all only [finRel]
-    grind only [IterM.IsPlausibleSuccessorOf]
+    exact ih ⟨scanIt'.internalState.inner⟩ ‹_› scanIt' ‹_› rfl
 
 private theorem acc_finRel_emittedFalse [Iterator α m β] [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
