@@ -191,7 +191,6 @@ theorem scanl_toList {f: β → α → β} {init : β} {as : Array α}
     rw [scanl_eq_scanlM, ← scanlM_toList]
     simp
 
-
 @[simp, grind =]
 theorem toList_scanl {f : β → α → β} {init : β} {as: Array α}
   : (as.scanl f init).toList = as.toList.scanl f init
@@ -380,19 +379,18 @@ theorem scanl_reverse {f : β → α → β} {init : β} {as : Array α}
     apply toList_inj.mp
     simp only [← scanl_toList, ← scanr_toList]
     simp
-
  end Array
 
 namespace Subarray
 theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Subarray α}
   : as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init
-  := by 
+  := by
     unfold scanlM
     apply Array.scanlM_extract
 
 theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Subarray α}
   : as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init
-  := by 
+  := by
     unfold scanrM
     apply Array.scanrM_extract
 end Subarray
