@@ -1,6 +1,7 @@
 module
 public import Batteries.Data.Iterators.Scan
 public import Batteries.Data.List.Scan
+public import Batteries.Data.Array.Scan
 
 public section
 
@@ -69,5 +70,40 @@ theorem Iter.toList_scan [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) 
   : (it.scan f init).toList = List.scanl f init it.toList
   := by simp [Iter.scan]
+
+@[simp]
+theorem IterM.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) 
+  : (it.scanM f init).toArray = Array.scanlM f init it.toArray
+  := by
+    repeat rw [← toArray_toList]
+    rw [IterM.toList_scanM, ← Array.scanlM_toList]
+    congr
+
+@[simp]
+theorem Iter.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) 
+    : (it.scanM f init).toArray = Array.scanlM f init it.toArray
+    := by
+      unfold Iter.scanM
+      apply IterM.toArray_scanM
+
+@[simp]
+theorem IterM.toArray_scan [Iterator α Id β] [Finite α Id]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) 
+  : (it.scan f init).toArray = Array.scanl f init it.toArray
+  := by simp [Array.scanl_eq_scanlM, scan, pure, Id.run]
+
+@[simp]
+theorem Iter.toArray_scan [Iterator α Id β] [Finite α Id]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) 
+  : (it.scan f init).toArray = Array.scanl f init it.toArray
+  := by 
+    unfold scan
+    apply IterM.toArray_scan
 
 end Std.Iterators
