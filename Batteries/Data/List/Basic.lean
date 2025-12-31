@@ -210,7 +210,7 @@ Folds a monadic function over a list from the left, accumulating partial results
 Unlike `List.scanr` this function _is_ stack safe.
 -/
 @[inline, specialize]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) := do
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
     List.reverse <$> scanlM (flip f) init xs.reverse
 
 
@@ -235,7 +235,6 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
--- Should this just be defined in terms of scanrM?
 @[inline]
 def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanrM (pure <| f · ·) init
