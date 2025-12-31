@@ -130,7 +130,7 @@ theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m]
 @[simp]
 theorem length_scanl {f : β → α → β} (b : β) (l : List α)
   : length (scanl f b l) = l.length + 1
-  := by induction l generalizing b <;> simp_all [←scanlM'_eq_scanlM, scanl, pure, bind, Id.run]
+  := by induction l generalizing b <;> simp_all [scanl, pure, bind, Id.run]
 
 grind_pattern length_scanl => scanl f b l
 
