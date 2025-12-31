@@ -114,7 +114,9 @@ theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {init 
   := by
     rw (occs := [1]) [scanlM]
     rw [scanlM_loop_toList, ← scanlM_toList, bind_pure_comp]
-    grind [List.take_eq_take_iff, toList_extract]
+    simp_all [← length_toList]
+    grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
+
 
 -- TODO: rewrite without requiring LawfulMonad?
 -- In principle it probably shouldn't require it its just that scanlM_loop_toList does

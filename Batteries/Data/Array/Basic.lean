@@ -160,7 +160,7 @@ unsafe def unsafe_size_fits_usize {a: Array α} : Array.size_fits_usize (a := a)
 @[inline]
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0) (stop := as.size) : m (Array β) :=
   let stop := min stop as.size
-  let start := min start stop
+  let start := min start as.size
 
   loop f init as
     (start := USize.ofNat start)
@@ -190,7 +190,7 @@ Fold an effectful function `f` over the array from the left, returning the list 
 -/
 @[implemented_by scanlMFast]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0) (stop := as.size) : m (Array β) :=
-  loop f init as start (min stop as.size) (Nat.min_le_right _ _) #[]
+  loop f init as (min start as.size) (min stop as.size) (Nat.min_le_right _ _) #[]
 where
   loop (f : β → α → m β) (init : β ) (as : Array α)
        (start stop : Nat)
@@ -201,6 +201,50 @@ where
       loop f (← f init as[start]) as (start + 1) stop h_stop (acc.push init)
     else
       pure <| acc.push init
+
+private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
+    {f : β → α → m β} {init : β} {as : Array α}
+    {h_size : as.size_fits_usize}
+    {start stop : Nat}
+    {h_start : start ≤ as.size}
+    {h_stop : stop ≤ as.size}
+    {acc : Array β}
+    : scanlM.loop f init as start stop h_stop acc
+    = scanlMFast.loop f init as
+        (USize.ofNat start)
+        (USize.ofNat stop)
+        (by rw [USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt h_stop h_size)]; exact h_stop)
+        acc
+    := by
+      generalize h_n : stop - start = n
+      induction n using Nat.strongRecOn generalizing start acc init
+      rename_i n ih
+      rw [scanlM.loop, scanlMFast.loop]
+      have h_stop_usize : (USize.ofNat stop).toNat = stop := nat_index_eq_usize_index (h := h_size) (hn := h_stop)
+      have h_start_usize : (USize.ofNat start).toNat = start := nat_index_eq_usize_index (h := h_size) (hn := h_start)
+      split
+      case isTrue h_lt =>
+        simp_all only [USize.toNat_ofNat', ↓reduceDIte, uget, show USize.ofNat start < USize.ofNat stop by simp_all [USize.lt_iff_toNat_lt]]
+        apply bind_congr
+        intro next
+        have h_start_succ : USize.ofNat start + 1 = USize.ofNat (start + 1) := by
+          simp_all only [← USize.toNat_inj, USize.toNat_add]
+          grind [USize.size_eq]
+        rw [h_start_succ]
+        apply ih (stop - (start + 1)) <;> omega
+      case isFalse h_nlt => grind [USize.lt_iff_toNat_lt]
+
+-- this theorem establishes that given the (unprovable) assumption that as.size < USize.size, the scanlMFast and scanlM are equivalent
+private theorem scanlM_eq_scanlMFast [Monad m]
+    {f : β → α → m β} {init : β} {as : Array α}
+    {h_size : as.size_fits_usize}
+    {start stop : Nat}
+  : scanlM f init as start stop = scanlMFast f init as start stop
+  := by
+    unfold scanlM scanlMFast
+    apply scanlM_loop_eq_scanlMFast_loop
+    simp_all only [gt_iff_lt]
+    apply Nat.min_le_right
 
 
 -- TODO: A lot of grinding here, simplify?
