@@ -59,7 +59,7 @@ inductive IsPlausibleStep [Iterator α m β]
       IsPlausibleStep it .done
 
 
-instance [Iterator α m β] [Monad n] [MonadLiftT m n] :
+instance instIterator [Iterator α m β] [Monad n] [MonadLiftT m n] :
     Iterator (ScanM α m n β γ f) n γ where
 
   IsPlausibleStep := IsPlausibleStep
@@ -206,7 +206,7 @@ it.scanM   init---a'-b'-c'-⊥
 
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
-@[inline]
+@[inline, expose]
 def IterM.scanM {n : Type w → Type w''} [Iterator α m β]
     [Monad n] [MonadLiftT m n] (f : γ → β → n γ) (init : γ)
     (it : IterM (α := α) m β) :=
