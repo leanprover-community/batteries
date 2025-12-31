@@ -293,9 +293,9 @@ theorem scanr_eq_scanrM {f : α → β → β} {init : β} {as : List α}
 theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} {b : β} {l : List α} :
     scanrM f b l = reverse <$> scanlM (flip f) b l.reverse := by
   have h := scanlM_reverse (f := flip f) (b := b) (l := l)
-  unfold flip
-  unfold flip at h
+  unfold flip at *
   simp_all
+
 /-! ### partialSums/partialProd -/
 
 @[simp, grind =]
