@@ -196,6 +196,7 @@ def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start
   (stop := as.size) : m (Array β) :=
   loop f init as (min start as.size) (min stop as.size) (Nat.min_le_right _ _) #[]
 where
+  /-- auxiliary tail-recursive function for scanlM -/
   loop (f : β → α → m β) (init : β ) (as : Array α)
        (start stop : Nat)
        (h_stop : stop ≤ as.size)
@@ -344,6 +345,7 @@ def scanrM [Monad m]
   let start := min start as.size
   loop f init as start stop (Nat.min_le_right _ _) #[]
 where
+  /-- auxiliary tail-recursive function for scanrM -/
   loop (f : α → β → m β) (init : β) (as : Array α)
        (start stop : Nat)
        (h_start : start ≤ as.size)

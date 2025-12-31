@@ -143,15 +143,16 @@ theorem scanrM_extract [Monad m] [LawfulMonad m]
     grind [List.take_eq_take_iff, toList_extract]
 
 @[simp, grind=]
-theorem scanlM_empty [Monad m] {f : β → α → m β} {init : β}
-  : #[].scanlM f init = pure #[init] := by simp [scanlM, scanlM.loop]
+theorem scanlM_empty [Monad m] {f : β → α → m β} {init : β} {start stop : Nat}
+  : #[].scanlM f init start stop = pure #[init] := by simp [scanlM, scanlM.loop]
 
 @[simp, grind=]
-theorem scanrM_empty [Monad m] {f : α → β → m β} {init : β}
-  : #[].scanrM f init = pure #[init] := by simp [scanrM, scanrM.loop]
+theorem scanrM_empty [Monad m] {f : α → β → m β} {init : β} {start stop : Nat}
+  : #[].scanrM f init start stop = pure #[init] := by simp [scanrM, scanrM.loop]
 
 @[simp]
-theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Array α}
+theorem scanlM_reverse [Monad m] [LawfulMonad m]
+    {f : β → α → m β} {init : β} {as : Array α}
   : as.reverse.scanlM f init = Array.reverse <$> (as.scanrM (flip f) init)
   := by
     rw [← scanlM_toList, ← scanrM_toList]
@@ -375,12 +376,10 @@ theorem getElem?_scanr {f : α → β → β}
     simp only [← foldr_toList, ← scanr_toList, List.getElem?_toArray, toList_drop]
     simp only [← length_toList, List.getElem?_scanr]
 
-@[simp, grind=]
 theorem getElem_scanr_zero {f : α → β → β}
   : (scanr f init as)[0] = as.foldr f init
   := by simp
 
-@[simp, grind=]
 theorem getElem?_scanr_zero {f : α → β → β}
   : (scanr f init as)[0]? = some (as.foldr f init )
   := by simp
@@ -405,13 +404,13 @@ theorem scanl_reverse {f : β → α → β} {init : β} {as : Array α}
 namespace Subarray
 theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {init : β} {as : Subarray α}
   : as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init
-  := by 
+  := by
     unfold scanlM
     apply Array.scanlM_extract
 
 theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : Subarray α}
   : as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init
-  := by 
+  := by
     unfold scanrM
     apply Array.scanrM_extract
 end Subarray
