@@ -114,4 +114,3 @@ public import Batteries.Util.LibraryNote
 public import Batteries.Util.Panic
 public import Batteries.Util.Pickle
 public import Batteries.Util.ProofWanted
-public import Batteries.WF
