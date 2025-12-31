@@ -68,14 +68,14 @@ theorem IterM.toList_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
     {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β)
   : (it.scan f init).toList = List.scanl f init it.toList
-  := by simp [List.scanl_eq_scanlM, scan, pure, Id.run]
+  := by simp [scan, List.scanl, Id.run]
 
 @[simp]
 theorem Iter.toList_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
     {f : γ → β → γ} {init : γ} (it : Iter (α := α) β)
   : (it.scan f init).toList = List.scanl f init it.toList
-  := by simp [Iter.scan]
+  := by simp [Iter.scan, List.scanl]
 
 @[simp]
 theorem IterM.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
