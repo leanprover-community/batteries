@@ -1,5 +1,4 @@
 module
-prelude
 public import Batteries.Data.Iterators.Scan
 public import Batteries.Data.List.Scan
 
@@ -8,9 +7,8 @@ public section
 
 namespace Std.Iterators
 
-private abbrev IterM.toScanIterM [Iterator α Id β] [Monad m] [MonadLiftT Id m]
-    (it : IterM (α := α) Id β) (f : γ → β → m γ) (acc : γ) (emittedInit : Bool := false) : IterM (α := ScanM α Id m β γ f) m γ :=
-  toIterM ⟨it.internalState, acc, emittedInit⟩ m γ
+private theorem toIterM_eq_mk {state : ScanM α m n β γ f} :
+    (toIterM state n γ : IterM n γ) = { internalState := state } := rfl
 
 private theorem toList_scanM_emittedTrue [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
   [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
@@ -36,28 +34,40 @@ private theorem toList_scanM_emittedTrue [Iterator α Id β] [Finite α Id] [Mon
     | ⟨.done, hp⟩ =>
       simp_all
 
-
-@[local simp ←]
-private theorem toIterM_eq_mk {state : ScanM α m n β γ f} :
-    (toIterM state n γ : IterM n γ) = { internalState := state } := rfl
-
-
-private theorem toList_scanM_emittedFalse [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
-    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {acc : γ} {it : IterM (α := α) Id β} :
-    (toIterM (⟨it.internalState, acc, false⟩ : ScanM α Id m β γ f) m γ).toList = 
-    List.scanlM f acc it.toList := by
-  rw [IterM.toList_eq_match_step]
-  simp only [Iterator.step, ScanM.instIterator, IterM.step]
-  simp_all [liftM, monadLift, Id.run, toList_scanM_emittedTrue]
-  rw [← List.scanlM_cons_head_tail f acc it.toList]
-  simp
-
+@[simp]
 theorem IterM.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
-    (it.scanM f init).toList = List.scanlM f init it.toList := by
-  simp only [IterM.scanM]
-  rw [toList_scanM_emittedFalse]
+    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) 
+  : (it.scanM f init).toList = List.scanlM f init it.toList 
+  := by
+    simp only [IterM.scanM]
+    rw [IterM.toList_eq_match_step]
+    simp only [Iterator.step, ScanM.instIterator, IterM.step]
+    simp_all [liftM, monadLift, Id.run, ←toIterM_eq_mk, toList_scanM_emittedTrue]
+    rw [← List.scanlM_cons_head_tail f init it.toList]
+    simp
+
+@[simp]
+theorem Iter.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) 
+    : (it.scanM f init).toList = List.scanlM f init it.toList 
+    := by
+      unfold Iter.scanM
+      apply IterM.toList_scanM
+
+@[simp]
+theorem IterM.toList_scan [Iterator α Id β] [Finite α Id]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) 
+  : (it.scan f init).toList = List.scanl f init it.toList 
+  := by simp [List.scanl_eq_scanlM, scan, pure, Id.run]
+
+@[simp]
+theorem Iter.toList_scan [Iterator α Id β] [Finite α Id]
+    [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
+    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) 
+  : (it.scan f init).toList = List.scanl f init it.toList
+  := by simp [Iter.scan]
 
 end Std.Iterators
