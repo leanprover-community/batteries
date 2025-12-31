@@ -296,6 +296,10 @@ theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m] {f : α → β → m 
   unfold flip at *
   simp_all
 
+ theorem scanlM_cons_head_tail [Monad m] [LawfulMonad m] (f : γ → β → m γ) (init : γ) (xs : List β) 
+  : (return (init :: (← List.scanlM f init xs).tail)) = List.scanlM f init xs 
+  := by induction xs generalizing init <;> simp_all
+
 /-! ### partialSums/partialProd -/
 
 @[simp, grind =]
