@@ -209,30 +209,30 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
     {h_start : start ≤ as.size}
     {h_stop : stop ≤ as.size}
     {acc : Array β}
-    : scanlM.loop f init as start stop h_stop acc
-    = scanlMFast.loop f init as
-        (USize.ofNat start)
-        (USize.ofNat stop)
-        (by rw [USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt h_stop h_size)]; exact h_stop)
-        acc
-    := by
-      generalize h_n : stop - start = n
-      induction n using Nat.strongRecOn generalizing start acc init
-      rename_i n ih
-      rw [scanlM.loop, scanlMFast.loop]
-      have h_stop_usize : (USize.ofNat stop).toNat = stop := nat_index_eq_usize_index (h := h_size) (hn := h_stop)
-      have h_start_usize : (USize.ofNat start).toNat = start := nat_index_eq_usize_index (h := h_size) (hn := h_start)
-      split
-      case isTrue h_lt =>
-        simp_all only [USize.toNat_ofNat', ↓reduceDIte, uget, show USize.ofNat start < USize.ofNat stop by simp_all [USize.lt_iff_toNat_lt]]
-        apply bind_congr
-        intro next
-        have h_start_succ : USize.ofNat start + 1 = USize.ofNat (start + 1) := by
-          simp_all only [← USize.toNat_inj, USize.toNat_add]
-          grind [USize.size_eq]
-        rw [h_start_succ]
-        apply ih (stop - (start + 1)) <;> omega
-      case isFalse h_nlt => grind [USize.lt_iff_toNat_lt]
+  : scanlM.loop f init as start stop h_stop acc
+  = scanlMFast.loop f init as
+      (USize.ofNat start)
+      (USize.ofNat stop)
+      (by rw [USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt h_stop h_size)]; exact h_stop)
+      acc
+  := by
+    generalize h_n : stop - start = n
+    induction n using Nat.strongRecOn generalizing start acc init
+    rename_i n ih
+    rw [scanlM.loop, scanlMFast.loop]
+    have h_stop_usize : (USize.ofNat stop).toNat = stop := nat_index_eq_usize_index (h := h_size) (hn := h_stop)
+    have h_start_usize : (USize.ofNat start).toNat = start := nat_index_eq_usize_index (h := h_size) (hn := h_start)
+    split
+    case isTrue h_lt =>
+      simp_all only [USize.toNat_ofNat', ↓reduceDIte, uget, show USize.ofNat start < USize.ofNat stop by simp_all [USize.lt_iff_toNat_lt]]
+      apply bind_congr
+      intro next
+      have h_start_succ : USize.ofNat start + 1 = USize.ofNat (start + 1) := by
+        simp_all only [← USize.toNat_inj, USize.toNat_add]
+        grind [USize.size_eq]
+      rw [h_start_succ]
+      apply ih (stop - (start + 1)) <;> omega
+    case isFalse h_nlt => grind [USize.lt_iff_toNat_lt]
 
 -- this theorem establishes that given the (unprovable) assumption that as.size < USize.size, the scanlMFast and scanlM are equivalent
 private theorem scanlM_eq_scanlMFast [Monad m]
