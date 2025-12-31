@@ -213,12 +213,6 @@ Unlike `List.scanr` this function _is_ stack safe.
 def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
     List.reverse <$> scanlM (flip f) init xs.reverse
 
-
--- TODO: determine if scanl, scanlTR, and scanr should just be implemented in terms of scanlM',
--- scanlM, and scanrM save duplicated code/theorems on the one hand. On the other, you lose some of
--- the simple-to-reason about structure standard library does not implement map in terms of mapM or
--- fold in terms of foldM (for List, it does for Array)
-
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
