@@ -19,18 +19,18 @@ structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
 
 namespace ScanM
 
-variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''} {f : γ → β → n γ}
+variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''} {f : γ → β → n γ} [Iterator α m β]
 /--
 `it.IsPlausibleStep` is the proposition that `step` is a possible next step from the `scanM` iterator `it`.
 This is mostly an internal implementation detail used to prove termination.
 -/
-inductive IsPlausibleStep [Iterator α m β]
+inductive IsPlausibleStep
     (it : @IterM (ScanM α m n β γ f) n γ) : IterStep (@IterM (ScanM α m n β γ f) n γ) γ → Prop where
 
   /-- If we haven't emitted anything yet (emittedInit is false),
       we set it to true and do not update the internal iterator state
   -/
-  | yieldInit :
+  | yieldInit {it' : IterM n γ} {out : γ} :
       it.internalState.emittedInit = false →
       it'.internalState.emittedInit = true →
       it'.internalState.inner = it.internalState.inner →
@@ -38,18 +38,18 @@ inductive IsPlausibleStep [Iterator α m β]
   /-- After `emittedInit` is set to true, we yield when the inner iterator does.
       The resulting state has emittedInit set to true and the updated internal iterator state.
   -/
-  | yieldNext :
+  | yieldNext {innerIt' : IterM m β} {b : β} {it': IterM n γ} {out : γ}:
       it.internalState.emittedInit = true
-      → Iterator.IsPlausibleStep (⟨it.internalState.inner⟩ : IterM m β) (.yield innerIt' b)
+      → Iterator.IsPlausibleStep ⟨it.internalState.inner⟩ (.yield innerIt' b)
       → it'.internalState.inner = innerIt'.internalState
       → it'.internalState.emittedInit = true
       → IsPlausibleStep it (.yield it' out)
   /-- After `emittedInit` is set to true, we skip when the inner iterator does.
       Our resulting state is identical, except with an updated inner iterator
   -/
-  | skip :
+  | skip {innerIt' : IterM m β} {it' : IterM n γ}:
       it.internalState.emittedInit = true
-      → Iterator.IsPlausibleStep (⟨it.internalState.inner⟩ : IterM m β) (.skip innerIt')
+      → Iterator.IsPlausibleStep ⟨it.internalState.inner⟩ (.skip innerIt')
       → it' = ⟨{it.internalState with inner := innerIt'.internalState}⟩
       → IsPlausibleStep it (.skip it')
   /-- We are done when emittedInit is true and the internal iterator is done -/
@@ -59,12 +59,12 @@ inductive IsPlausibleStep [Iterator α m β]
       IsPlausibleStep it .done
 
 
-instance instIterator [Iterator α m β] [Monad n] [MonadLiftT m n] :
+instance instIterator [Monad n] [MonadLiftT m n] :
     Iterator (ScanM α m n β γ f) n γ where
 
   IsPlausibleStep := IsPlausibleStep
   step it := do
-    if h : !it.internalState.emittedInit then
+    if h : it.internalState.emittedInit = false then
       pure <| .deflate <| .yield
         ⟨{ it.internalState with emittedInit := true }⟩
         it.internalState.acc
@@ -85,22 +85,22 @@ instance instIterator [Iterator α m β] [Monad n] [MonadLiftT m n] :
       | ⟨.done, hp⟩ =>
         pure <| .deflate <| .done (.done (by simpa using h) hp)
 
-instance [Iterator α m β] [Monad n] [MonadLiftT m n] :
+instance [Monad n] [MonadLiftT m n] :
     IteratorLoop (ScanM α m n β γ f) n n :=
   .defaultImplementation
 
-instance {o : Type w → Type x} [Iterator α m β] [Monad n] [MonadLiftT m n] [Monad o] [MonadLiftT n o] :
+instance {o : Type w → Type x} [Monad n] [MonadLiftT m n] [Monad o] [MonadLiftT n o] :
     IteratorCollect (ScanM α m n β γ f) n o :=
   .defaultImplementation
 
 /-- Finiteness relation for `ScanM`-/
-def finRel [Iterator α m β] (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
+private def finRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
   match scanIt.internalState.emittedInit, scanIt'.internalState.emittedInit with
   | false, true => True
   | true, true => (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSuccessorOf ⟨scanIt.internalState.inner⟩
   | _, _ => False
 
-private theorem acc_finRel_emittedTrue [Iterator α m β] [Finite α m (β := β)]
+private theorem acc_finRel_emittedTrue [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
     (hemit : scanIt.internalState.emittedInit = true)
   : Acc finRel scanIt
@@ -113,7 +113,7 @@ private theorem acc_finRel_emittedTrue [Iterator α m β] [Finite α m (β := β
     by_cases scanIt'.internalState.emittedInit <;> simp_all only [finRel]
     exact ih ⟨scanIt'.internalState.inner⟩ ‹_› scanIt' ‹_› rfl
 
-private theorem acc_finRel_emittedFalse [Iterator α m β] [Finite α m (β := β)]
+private theorem acc_finRel_emittedFalse [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
     (hemit : scanIt.internalState.emittedInit = false) 
   : Acc finRel scanIt := by
@@ -125,13 +125,13 @@ private theorem acc_finRel_emittedFalse [Iterator α m β] [Finite α m (β := �
     . simp_all [finRel]
     
   
-theorem acc_finRel [Iterator α m β] [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) : Acc finRel scanIt :=
+private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) : Acc finRel scanIt :=
   if h : scanIt.internalState.emittedInit 
     then acc_finRel_emittedTrue _ ‹_›
     else acc_finRel_emittedFalse _ (by simp only [h])
 
 
-instance instFinRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] : 
+private instance instFinRel [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] : 
     FinitenessRelation (ScanM α m n β γ f) n where
   rel := finRel
   wf := ⟨acc_finRel⟩
@@ -144,22 +144,22 @@ instance instFinRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Fin
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_› 
     . exact IterM.isPlausibleSuccessorOf_of_skip  ‹_›
 
-instance [Iterator α m β] [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Finite (ScanM α m n β γ f) n :=
+instance [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Finite (ScanM α m n β γ f) n :=
   .of_finitenessRelation instFinRel
 
 
 /-- Productiveness relation for ScanM -/
-def prodRel [Iterator α m β] (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
+private def prodRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
   (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf ⟨scanIt.internalState.inner⟩
 
-theorem acc_prodRel [Iterator α m β] [Productive α m (β := β)]
+private theorem acc_prodRel [Productive α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ) 
   : Acc prodRel scanIt 
   := by
     generalize hgen : (⟨scanIt.internalState.inner⟩ : IterM m β) = innerIt
     induction Productive.wf.apply innerIt generalizing scanIt with grind only [prodRel, Acc]
 
-instance instProdRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Productive α m (β := β)] : 
+private instance instProdRel [Monad m] [Monad n] [MonadLiftT m n] [Productive α m (β := β)] : 
     ProductivenessRelation (ScanM α m n β γ f) n where
   rel := prodRel
   wf := ⟨acc_prodRel⟩
@@ -167,7 +167,7 @@ instance instProdRel [Iterator α m β] [Monad m] [Monad n] [MonadLiftT m n] [Pr
     intro _ _ hsucc
     cases hsucc <;> simp_all [prodRel, IterM.IsPlausibleSkipSuccessorOf]
 
-instance [Iterator α m β] [Productive α m (β := β)] [Monad m][Monad n] [MonadLiftT m n] : Productive (ScanM α m n β γ f) n :=
+instance [Productive α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Productive (ScanM α m n β γ f) n :=
   .of_productivenessRelation instProdRel
 
 end ScanM
@@ -207,7 +207,7 @@ it.scanM   init---a'-b'-c'-⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scanM {n : Type w → Type w''} [Iterator α m β]
+def IterM.scanM {n : Type w → Type w''}
     [Monad n] [MonadLiftT m n] (f : γ → β → n γ) (init : γ)
     (it : IterM (α := α) m β) :=
   toIterM { inner := it.internalState, acc := init, emittedInit := false : ScanM α m n β γ f } n γ
@@ -237,20 +237,20 @@ it.scan   init---a'-b'-c'-⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 
-@[inline]
-def IterM.scan [Iterator α m β] [Monad m]
+@[inline, expose]
+def IterM.scan [Monad m]
     (f : γ → β → γ) (init : γ) (it : IterM (α := α) m β) :=
   IterM.scanM (m := m) (n := m) (pure <| f · ·) init it
 
 end Monadic
 
-@[inline, inherit_doc IterM.scanM]
-def Iter.scanM {n : Type w → Type w''} [Iterator α Id β] [Monad n] [MonadLiftT Id n]
+@[inline, expose, inherit_doc IterM.scanM]
+def Iter.scanM {n : Type w → Type w''} [Monad n] [MonadLiftT Id n]
     (f : γ → β → n γ) (init : γ) (it : Iter (α := α) β) :=
   IterM.scanM f init it.toIterM
 
-@[inline, inherit_doc IterM.scan]
-def Iter.scan [Iterator α Id β] (f : γ → β → γ) (init : γ) (it : Iter (α := α) β) :=
+@[inline, expose, inherit_doc IterM.scan]
+def Iter.scan (f : γ → β → γ) (init : γ) (it : Iter (α := α) β) :=
   Iter.scanM (n := Id) (pure <| f · ·) init it |>.toIter
 
 end Combinators
