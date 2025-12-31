@@ -115,7 +115,7 @@ private theorem acc_finRel_emittedTrue [Finite α m (β := β)]
 
 private theorem acc_finRel_emittedFalse [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
-    (hemit : scanIt.internalState.emittedInit = false) 
+    (hemit : scanIt.internalState.emittedInit = false)
   : Acc finRel scanIt := by
     constructor
     intro iter' _
@@ -123,25 +123,25 @@ private theorem acc_finRel_emittedFalse [Finite α m (β := β)]
     . exact acc_finRel_emittedTrue _ ‹_›
     -- this leads to a contradiction
     . simp_all [finRel]
-    
-  
+
+
 private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) : Acc finRel scanIt :=
-  if h : scanIt.internalState.emittedInit 
+  if h : scanIt.internalState.emittedInit
     then acc_finRel_emittedTrue _ ‹_›
     else acc_finRel_emittedFalse _ (by simp only [h])
 
 
-private instance instFinRel [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] : 
+private instance instFinRel [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] :
     FinitenessRelation (ScanM α m n β γ f) n where
   rel := finRel
   wf := ⟨acc_finRel⟩
   subrelation := by
-    rintro _ _ ⟨_, hsucc_eq, hplaus⟩ 
-    cases hplaus  
+    rintro _ _ ⟨_, hsucc_eq, hplaus⟩
+    cases hplaus
       <;> simp_all only [IterStep.successor, Option.some.injEq, reduceCtorEq]
       <;> subst hsucc_eq
       <;> simp_all only [finRel]
-    . exact IterM.isPlausibleSuccessorOf_of_yield ‹_› 
+    . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip  ‹_›
 
 instance [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Finite (ScanM α m n β γ f) n :=
@@ -153,13 +153,13 @@ private def prodRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop
   (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf ⟨scanIt.internalState.inner⟩
 
 private theorem acc_prodRel [Productive α m (β := β)]
-    (scanIt : @IterM (ScanM α m n β γ f) n γ) 
-  : Acc prodRel scanIt 
+    (scanIt : @IterM (ScanM α m n β γ f) n γ)
+  : Acc prodRel scanIt
   := by
     generalize hgen : (⟨scanIt.internalState.inner⟩ : IterM m β) = innerIt
     induction Productive.wf.apply innerIt generalizing scanIt with grind only [prodRel, Acc]
 
-private instance instProdRel [Monad m] [Monad n] [MonadLiftT m n] [Productive α m (β := β)] : 
+private instance instProdRel [Monad m] [Monad n] [MonadLiftT m n] [Productive α m (β := β)] :
     ProductivenessRelation (ScanM α m n β γ f) n where
   rel := prodRel
   wf := ⟨acc_prodRel⟩
@@ -183,7 +183,7 @@ variable {m : Type w → Type w'} [Iterator α m β]
 If `it` is an iterator, then `it.scanM f init` is another iterator that folds a
 monadic function `f` over the values emitted by `it`, producing an iterator of
 partial results. The first value emitted by the resulting iterator is always
-`pure init`. 
+`pure init`.
 
 The base iterator `it` being monadic in `m`, `f` can return values in any monad `n`
 for which a `MonadLiftT m n` instance is available.
@@ -216,7 +216,7 @@ def IterM.scanM {n : Type w → Type w''}
 If `it` is an iterator, then `it.scan f init` is another iterator that folds a
 pure function `f` over the values emitted by `it`, producing an iterator of
 partial results. The first value emitted by the resulting iterator is always
-`init`. 
+`init`.
 
 If `f` is monadic, `it.scanM` can be used instead.
 

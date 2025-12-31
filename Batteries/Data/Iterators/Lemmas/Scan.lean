@@ -13,9 +13,9 @@ private theorem toIterM_eq_mk {state : ScanM α m n β γ f} :
 
 private theorem toList_scanM_emittedTrue [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
   [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-  {f : γ → β → m γ} {acc : γ} {it : IterM (α := α) Id β} 
-  : (toIterM (m := m) (β := γ) (⟨it.internalState, acc, true⟩ : ScanM α Id m β γ f)).toList 
-    = (return (← List.scanlM f acc (← it.toList)).tail) 
+  {f : γ → β → m γ} {acc : γ} {it : IterM (α := α) Id β}
+  : (toIterM (m := m) (β := γ) (⟨it.internalState, acc, true⟩ : ScanM α Id m β γ f)).toList
+    = (return (← List.scanlM f acc (← it.toList)).tail)
   := by
     induction it using IterM.inductSteps generalizing acc
     rename_i it ihy ihs
@@ -38,8 +38,8 @@ private theorem toList_scanM_emittedTrue [Iterator α Id β] [Finite α Id] [Mon
 @[simp]
 theorem IterM.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) 
-  : (it.scanM f init).toList = List.scanlM f init it.toList 
+    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β)
+  : (it.scanM f init).toList = List.scanlM f init it.toList
   := by
     simp only [IterM.scanM]
     rw [IterM.toList_eq_match_step]
@@ -51,8 +51,8 @@ theorem IterM.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulM
 @[simp]
 theorem Iter.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) 
-    : (it.scanM f init).toList = List.scanlM f init it.toList 
+    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β)
+    : (it.scanM f init).toList = List.scanlM f init it.toList
     := by
       unfold Iter.scanM
       apply IterM.toList_scanM
@@ -60,21 +60,21 @@ theorem Iter.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMo
 @[simp]
 theorem IterM.toList_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) 
-  : (it.scan f init).toList = List.scanl f init it.toList 
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β)
+  : (it.scan f init).toList = List.scanl f init it.toList
   := by simp [List.scanl_eq_scanlM, scan, pure, Id.run]
 
 @[simp]
 theorem Iter.toList_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) 
+    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β)
   : (it.scan f init).toList = List.scanl f init it.toList
   := by simp [Iter.scan]
 
 @[simp]
 theorem IterM.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) 
+    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β)
   : (it.scanM f init).toArray = Array.scanlM f init it.toArray
   := by
     repeat rw [← toArray_toList]
@@ -84,7 +84,7 @@ theorem IterM.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [Lawful
 @[simp]
 theorem Iter.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulMonad m]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) 
+    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β)
     : (it.scanM f init).toArray = Array.scanlM f init it.toArray
     := by
       unfold Iter.scanM
@@ -93,16 +93,16 @@ theorem Iter.toArray_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulM
 @[simp]
 theorem IterM.toArray_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) 
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β)
   : (it.scan f init).toArray = Array.scanl f init it.toArray
   := by simp [Array.scanl_eq_scanlM, scan, pure, Id.run]
 
 @[simp]
 theorem Iter.toArray_scan [Iterator α Id β] [Finite α Id]
     [IteratorCollect α Id Id (β := β)] [LawfulIteratorCollect α Id Id (β := β)]
-    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) 
+    {f : γ → β → γ} {init : γ} (it : Iter (α := α) β)
   : (it.scan f init).toArray = Array.scanl f init it.toArray
-  := by 
+  := by
     unfold scan
     apply IterM.toArray_scan
 
