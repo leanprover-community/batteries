@@ -196,6 +196,7 @@ a `LawfulMonad` constraint on `m`
 def scanlM [Monad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
   go l init (#[])
 where
+  /-- auxiliary helper function for tail-recursive scanlM implementation -/
   @[specialize] go : List β → α → Array α → m (List α)
     | [], a, acc => pure $ acc.toListAppend [a]
     | b :: l, prev, acc => do

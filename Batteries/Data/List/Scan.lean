@@ -59,7 +59,7 @@ theorem scanlM_nil [Monad m] [LawfulMonad m] {f : β → α → m β} {init: β}
   := by simp [← scanlM'_eq_scanlM]
 
 -- TODO: prove sometihng more interesting? hard to do with arbitrary effects...
-theorem scanrM_cons [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β}
+theorem scanrM_cons [Monad m] {f : α → β → m β} {init : β}
     {x : α} {xs : List α}
   : List.scanrM f init (x :: xs) = List.reverse <$> List.scanlM (flip f) init (xs.reverse ++ [x])
   := by simp only [List.scanrM, List.reverse_cons]
