@@ -137,12 +137,12 @@ grind_pattern length_scanl => scanl f b l
 @[simp, grind =]
 theorem scanl_nil {f : β → α → β} (b : β)
   : scanl f b [] = [b]
-  := by simp [scanl, ← scanlM'_eq_scanlM]
+  := by simp [scanl]
 
 @[simp, grind =]
 theorem scanl_cons {f : β → α → β}
   : scanl f b (a :: l) = b :: scanl f (f b a) l
-  := by simp [scanl, ← scanlM'_eq_scanlM]
+  := by simp [scanl]
 
 theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
   simp
