@@ -58,8 +58,7 @@ theorem scanlM_nil [Monad m] [LawfulMonad m] {f : β → α → m β} {init: β}
   : scanlM f init [] = pure [init]
   := by simp [← scanlM'_eq_scanlM]
 
--- TODO: prove sometihng more interesting? hard to do with arbitrary effects...
-theorem scanrM_cons [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β}
+theorem scanrM_cons [Monad m] {f : α → β → m β} {init : β}
     {x : α} {xs : List α}
   : List.scanrM f init (x :: xs) = List.reverse <$> List.scanlM (flip f) init (xs.reverse ++ [x])
   := by simp only [List.scanrM, List.reverse_cons]
@@ -130,19 +129,19 @@ theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m]
 @[simp]
 theorem length_scanl {f : β → α → β} (b : β) (l : List α)
   : length (scanl f b l) = l.length + 1
-  := by induction l generalizing b <;> simp_all [←scanlM'_eq_scanlM, scanl, pure, bind, Id.run]
+  := by induction l generalizing b <;> simp_all [scanl, pure, bind, Id.run]
 
 grind_pattern length_scanl => scanl f b l
 
 @[simp, grind =]
 theorem scanl_nil {f : β → α → β} (b : β)
   : scanl f b [] = [b]
-  := by simp [scanl, ← scanlM'_eq_scanlM]
+  := by simp [scanl]
 
 @[simp, grind =]
 theorem scanl_cons {f : β → α → β}
   : scanl f b (a :: l) = b :: scanl f (f b a) l
-  := by simp [scanl, ← scanlM'_eq_scanlM]
+  := by simp [scanl]
 
 theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
   simp

@@ -196,6 +196,7 @@ a `LawfulMonad` constraint on `m`
 def scanlM [Monad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
   go l init (#[])
 where
+  /-- auxiliary helper function for tail-recursive scanlM implementation -/
   @[specialize] go : List β → α → Array α → m (List α)
     | [], a, acc => pure $ acc.toListAppend [a]
     | b :: l, prev, acc => do
@@ -210,14 +211,8 @@ Folds a monadic function over a list from the left, accumulating partial results
 Unlike `List.scanr` this function _is_ stack safe.
 -/
 @[inline, specialize]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) := do
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
     List.reverse <$> scanlM (flip f) init xs.reverse
-
-
--- TODO: determine if scanl, scanlTR, and scanr should just be implemented in terms of scanlM',
--- scanlM, and scanrM save duplicated code/theorems on the one hand. On the other, you lose some of
--- the simple-to-reason about structure standard library does not implement map in terms of mapM or
--- fold in terms of foldM (for List, it does for Array)
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
@@ -235,7 +230,6 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
--- Should this just be defined in terms of scanrM?
 @[inline]
 def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanrM (pure <| f · ·) init
