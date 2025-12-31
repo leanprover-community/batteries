@@ -177,7 +177,7 @@ section Combinators
 variable {α β γ : Type w}
 
 section Monadic
-variable {m : Type w → Type w'}
+variable {m : Type w → Type w'} [Iterator α m β]
 
 /--
 If `it` is an iterator, then `it.scanM f init` is another iterator that folds a
@@ -245,12 +245,12 @@ def IterM.scan [Monad m]
 end Monadic
 
 @[inline, expose, inherit_doc IterM.scanM]
-def Iter.scanM {n : Type w → Type w''} [Monad n] [MonadLiftT Id n]
+def Iter.scanM {n : Type w → Type w''} [Iterator α Id β] [Monad n] [MonadLiftT Id n]
     (f : γ → β → n γ) (init : γ) (it : Iter (α := α) β) :=
   IterM.scanM f init it.toIterM
 
 @[inline, expose, inherit_doc IterM.scan]
-def Iter.scan (f : γ → β → γ) (init : γ) (it : Iter (α := α) β) :=
+def Iter.scan [Iterator α Id β] (f : γ → β → γ) (init : γ) (it : Iter (α := α) β) :=
   Iter.scanM (n := Id) (pure <| f · ·) init it |>.toIter
 
 end Combinators
