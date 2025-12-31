@@ -14,8 +14,8 @@ namespace Std.Iterators
 /--
   Internal state for the ScanM combinator
 -/
-structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'') (β : Type w) (γ : Type w)
-    (f : γ → β → n γ) where
+structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'') (β : Type w)
+    (γ : Type w) (f : γ → β → n γ) where
   /-- Inner iterator -/
   inner : α
   /-- Current accumulated value -/
@@ -25,13 +25,14 @@ structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
 
 namespace ScanM
 
-variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''} {f : γ → β → n γ} [Iterator α m β]
+variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
+    {f : γ → β → n γ} [Iterator α m β]
 /--
 `it.IsPlausibleStep` is the proposition that `step` is a possible next step from the `scanM` iterator `it`.
 This is mostly an internal implementation detail used to prove termination.
 -/
-inductive IsPlausibleStep
-    (it : @IterM (ScanM α m n β γ f) n γ) : IterStep (@IterM (ScanM α m n β γ f) n γ) γ → Prop where
+inductive IsPlausibleStep (it : @IterM (ScanM α m n β γ f) n γ)
+    : IterStep (@IterM (ScanM α m n β γ f) n γ) γ → Prop where
 
   /-- If we haven't emitted anything yet (emittedInit is false),
       we set it to true and do not update the internal iterator state
@@ -103,7 +104,8 @@ instance {o : Type w → Type x} [Monad n] [MonadLiftT m n] [Monad o] [MonadLift
 private def finRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
   match scanIt.internalState.emittedInit, scanIt'.internalState.emittedInit with
   | false, true => True
-  | true, true => (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSuccessorOf ⟨scanIt.internalState.inner⟩
+  | true, true => (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSuccessorOf
+                    ⟨scanIt.internalState.inner⟩
   | _, _ => False
 
 private theorem acc_finRel_emittedTrue [Finite α m (β := β)]
@@ -131,7 +133,8 @@ private theorem acc_finRel_emittedFalse [Finite α m (β := β)]
     . simp_all [finRel]
 
 
-private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) : Acc finRel scanIt :=
+private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ)
+    : Acc finRel scanIt :=
   if h : scanIt.internalState.emittedInit
     then acc_finRel_emittedTrue _ ‹_›
     else acc_finRel_emittedFalse _ (by simp only [h])
@@ -150,13 +153,15 @@ private instance instFinRel [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (�
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip  ‹_›
 
-instance [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Finite (ScanM α m n β γ f) n :=
+instance [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n]
+    : Finite (ScanM α m n β γ f) n :=
   .of_finitenessRelation instFinRel
 
 
 /-- Productiveness relation for ScanM -/
 private def prodRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
-  (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf ⟨scanIt.internalState.inner⟩
+  (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf
+    ⟨scanIt.internalState.inner⟩
 
 private theorem acc_prodRel [Productive α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
@@ -173,7 +178,8 @@ private instance instProdRel [Monad m] [Monad n] [MonadLiftT m n] [Productive α
     intro _ _ hsucc
     cases hsucc <;> simp_all [prodRel, IterM.IsPlausibleSkipSuccessorOf]
 
-instance [Productive α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] : Productive (ScanM α m n β γ f) n :=
+instance [Productive α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n]
+    : Productive (ScanM α m n β γ f) n :=
   .of_productivenessRelation instProdRel
 
 end ScanM
