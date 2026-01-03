@@ -6,7 +6,7 @@ Authors: Leonardo de Moura
 
 module
 public import Batteries.Tactic.Alias
-
+public import Batteries.Tactic.Lint.Misc
 @[expose] public section
 
 namespace List
@@ -192,8 +192,17 @@ This is a tail-recursive implementation. For an easier-to-reason-about version p
 non-tail-recursive `List.scanlM'. These cannot be shown to be equivalent to one another without
 a `LawfulMonad` constraint on `m`
 -/
-@[inline]
-def scanlM [Monad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
+-- false positive for LawfulMonad instance
+@[nolint unusedArguments]
+def scanlM [Monad m] [LawfulMonad m] (f : α → β → m α) (init : α) : List β → m (List α)
+  | [] => pure [init]
+  | x :: xs => return init :: (← scanlM f (← f init x) xs)
+
+
+/-- Tail-recursive implementation of `scanlM`-/
+-- false positive for LawfulMonad instance
+@[nolint unusedArguments, inline]
+def scanlMTR [Monad m] [LawfulMonad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
   go l init (#[])
 where
   /-- auxiliary helper function for tail-recursive scanlM implementation -/
@@ -203,6 +212,13 @@ where
       let next ← f prev b
       go l next (acc.push prev)
 
+private theorem go_eq_scanlM [Monad m] [LawfulMonad m]
+    {f : β → α → m β} {init : β} {acc : Array β} {as : List α}
+  : scanlMTR.go f as init acc = (acc.toList ++ ·) <$> scanlM f init as
+  := by induction as generalizing init acc with simp_all [scanlMTR.go, scanlM]
+
+@[csimp]
+theorem scanlM_eq_scanlMTR : @scanlM = @scanlMTR := by funext; simp [scanlMTR, go_eq_scanlM]
 
 /--
 Folds a monadic function over a list from the left, accumulating partial results starting with
@@ -211,7 +227,7 @@ Folds a monadic function over a list from the left, accumulating partial results
 Unlike `List.scanr` this function _is_ stack safe.
 -/
 @[inline, specialize]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+def scanrM [Monad m] [LawfulMonad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
     List.reverse <$> scanlM (flip f) init xs.reverse
 
 /--
