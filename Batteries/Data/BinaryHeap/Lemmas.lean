@@ -24,21 +24,9 @@ def WF.at [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
 def WF.below [Ord α] (a : Vector α sz) (i : Nat) : Prop
   := ∀ j : Fin sz, i < j.val → WF.at a j
 
-theorem WF.at_leaf [Ord α] {a : Vector α sz} {i : Fin sz}
-    (h : sz ≤ 2 * i.val + 1)
-    : WF.at a i := by
-  simp only [WF.at]
-  constructor <;> intro hbound <;> omega
-
-theorem WF.below_of_ge_half [Ord α] (a : Vector α sz)
-    : WF.below a (sz / 2) := by
-  intro j hj
-  apply WF.at_leaf
-  omega
-
 /-- A `BinaryHeap` satisfies the max-heap property. -/
-def WF [Ord α] (self : BinaryHeap α) : Prop :=
-  ∀ i : Fin self.size, WF.at self.vector i
+def WF [Ord α] (self : BinaryHeap α) : Prop
+  := ∀ i : Fin self.size, WF.at self.vector i
 
 /-- If maxChild returns none, there are no children in bounds. -/
 theorem maxChild_none_iff [Ord α] (a : Vector α sz) (i : Fin sz)
@@ -113,16 +101,13 @@ private theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α s
 theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz)
     (hk : k < ↑i)
   : (heapifyDown ↑a ↑i)[↑k] = a[↑k]
-  := by
-    induction a, i using heapifyDown.induct <;> grind [heapifyDown]
+  := by induction a, i using heapifyDown.induct <;> grind [heapifyDown]
 
 /-- WF.below is monotone: larger threshold means weaker condition. -/
 theorem WF.below_mono {a : Vector α sz} {i j : Nat}  [Ord α]
     (hij : i ≤ j) (hbelow : WF.below a i)
   : WF.below a j
-  := by
-  intro k hk
-  grind [WF.below]
+  := by grind [WF.below]
 
 /-- The value at position i after heapifyDown is some value from the original subtree. -/
 theorem WF.below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
@@ -132,8 +117,7 @@ theorem WF.below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
     intro k hk_gt_j
     have hk_gt_i : i.val < k.val := Nat.lt_trans ‹_› ‹_›
     obtain ⟨_, _⟩ := hbelow k hk_gt_i
-    simp only [WF.at]
-    constructor <;> intro h <;> grind
+    grind [WF.at]
 
 
 theorem WF.root_ge_subtree [Ord α] [Std.TransOrd α] [Std.ReflOrd α]
@@ -166,8 +150,8 @@ termination_by sz - i
 theorem heapifyDown_get_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : Fin sz}
     {k : Nat} (hk : k < sz)
     (hnsub : ¬InSubtree i k)
-    : (heapifyDown a i)[k] = a[k] :=
-  heapifyDown_get_of_not_inSubtree (k := ⟨k, hk⟩) hnsub
+    : (heapifyDown a i)[k] = a[k]
+  := heapifyDown_get_of_not_inSubtree (k := ⟨k, hk⟩) hnsub
 
 /-- heapifyDown at j preserves WF.at k when i < k < j and j is a child of i -/
 theorem heapifyDown_preserves_wf_at_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
@@ -183,13 +167,13 @@ theorem heapifyDown_preserves_wf_at_of_lt [Ord α] {a : Vector α sz} {i j k : F
     have : (a.swap i j)[k] = a[k] := Vector.getElem_swap_of_ne (by omega) (by omega)
     constructor <;> grind only [heapifyDown_get_of_not_inSubtree, heapifyDown_get_of_not_inSubtree',
       InSubtree.le, InSubtree.trans, InSubtree.not_of_lt, InSubtree.right, InSubtree.left,
-      InSubtree.refl, = Vector.getElem_swap]
+      InSubtree.refl, = Vector.getElem_swap, Fin.getElem_fin]
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α] [Std.ReflOrd α]
     {a : Vector α sz} {j : Fin sz} {v : α}
     (hge : ∀ k : Fin sz, InSubtree j.val k.val → (compare v a[k]).isGE)
-    : (compare v (heapifyDown a j)[j]).isGE := by grind [heapifyDown]
+  : (compare v (heapifyDown a j)[j]).isGE := by grind [heapifyDown]
 
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
@@ -199,18 +183,19 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [St
     (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.below a i)
     (k : Fin sz) (hsub : InSubtree ↑j ↑k)
-    : (compare a[j] (a.swap i j)[k]).isGE := by
-  by_cases hk_eq_j : ↑k = ↑j
-  · unfold Ordering.isGE
-    rw [Std.OrientedOrd.eq_swap]
-    simp_all
-  · skip
-    have : (a.swap ↑i ↑j)[↑k] = a[↑k] := by grind [Vector.getElem_swap_of_ne]
-    simp only [this]
-    exact WF.root_ge_subtree j.isLt
-      (hwf_at := hbelow j h_ij)
-      (hwf_below := WF.below_mono (by omega) hbelow)
-      (hsub := hsub)
+  : (compare a[j] (a.swap i j)[k]).isGE
+  := by
+    by_cases hk_eq_j : ↑k = ↑j
+    · unfold Ordering.isGE
+      rw [Std.OrientedOrd.eq_swap]
+      simp_all
+    · skip
+      have : (a.swap ↑i ↑j)[↑k] = a[↑k] := by grind [Vector.getElem_swap_of_ne]
+      simp only [this]
+      exact WF.root_ge_subtree j.isLt
+        (hwf_at := hbelow j h_ij)
+        (hwf_below := WF.below_mono (by omega) hbelow)
+        (hsub := hsub)
 
 theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α] {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.below a i.val)
@@ -255,23 +240,24 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.Refl
 theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
     (n : Nat) (a : Vector α sz) (h : n ≤ sz)
     (hinv : ∀ k : Fin sz, n ≤ k.val → WF.at a k)
-    : ∀ k : Fin sz, WF.at (mkHeap.loop n a h) k := by
-  induction n generalizing a with
-  | zero =>
-    grind [mkHeap.loop]
-  | succ i ih =>
-    simp only [mkHeap.loop]
-    have hi_lt : i < sz := by omega
-    obtain ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
-    have hinv' : ∀ k : Fin sz, i ≤ k.val → WF.at (heapifyDown a ⟨i, hi_lt⟩) k := by
-      intro k hk
-      by_cases hk_eq : k = i
-      · grind
-      · exact hwf_below k (by grind)
-    exact ih _ _ hinv'
+    : ∀ k : Fin sz, WF.at (mkHeap.loop n a h) k
+  := by
+    induction n generalizing a with
+    | zero =>
+      grind [mkHeap.loop]
+    | succ i ih =>
+      have hi_lt : i < sz := by omega
+      obtain ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
+      have hinv' : ∀ k : Fin sz, i ≤ k.val → WF.at (heapifyDown a ⟨i, hi_lt⟩) k := by
+        intro k hk
+        by_cases hk_eq : k = i
+        · grind
+        · have hlt : i < k := by omega
+          exact hwf_below k hlt
+      exact ih _ _ hinv'
 
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
     (a : Vector α sz)
-    : ∀ k : Fin sz, WF.at (mkHeap a) k := by
-  grind [mkHeap, mkHeap.loop_wf, WF.at_leaf]
+  : ∀ k : Fin sz, WF.at (mkHeap a) k
+  := by grind [mkHeap, mkHeap.loop_wf, WF.at]
 end BinaryHeap
