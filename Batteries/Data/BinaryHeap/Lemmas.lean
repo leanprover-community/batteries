@@ -1,5 +1,5 @@
 module
-public import Batteries.Data.BinaryHeap
+public import Batteries.Data.BinaryHeap.Basic
 public section
 
 namespace Batteries.BinaryHeap
@@ -258,6 +258,6 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.Refl
 
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
     (a : Vector α sz)
-  : WF (mkHeap a) k
+  : WF (mkHeap a)
   := by grind [mkHeap, mkHeap.loop_wf, WF.at, WF]
 end BinaryHeap
