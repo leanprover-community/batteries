@@ -220,7 +220,7 @@ Fold a function `f` over the list from the left, returning the list of partial r
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
--- This could be defined in terms of scanlM' but this has a very easy to reason about structure...
+@[inline]
 def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanlM (pure <| f · ·) init
 
