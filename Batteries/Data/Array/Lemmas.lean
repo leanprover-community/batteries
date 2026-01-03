@@ -45,7 +45,7 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
 
 theorem toList_drop {as: Array α} {n : Nat}
   : (as.drop n).toList = as.toList.drop n
-  := by simp only [*, drop, toList_extract, size_eq_length_toList, List.drop_eq_extract]
+  := by simp only [drop, toList_extract, size_eq_length_toList, List.drop_eq_extract]
 
 /-! ### set -/
 
