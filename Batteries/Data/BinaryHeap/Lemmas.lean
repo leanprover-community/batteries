@@ -25,8 +25,8 @@ def WF.below [Ord α] (a : Vector α sz) (i : Nat) : Prop
   := ∀ j : Fin sz, i < j.val → WF.at a j
 
 /-- A `BinaryHeap` satisfies the max-heap property. -/
-def WF [Ord α] (self : BinaryHeap α) : Prop
-  := ∀ i : Fin self.size, WF.at self.vector i
+def WF [Ord α] (v : Vector α sz) : Prop
+  := ∀ i : Fin sz, WF.at v i
 
 /-- If maxChild returns none, there are no children in bounds. -/
 theorem maxChild_none_iff [Ord α] (a : Vector α sz) (i : Fin sz)
@@ -258,6 +258,6 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.Refl
 
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
     (a : Vector α sz)
-  : ∀ k : Fin sz, WF.at (mkHeap a) k
-  := by grind [mkHeap, mkHeap.loop_wf, WF.at]
+  : WF (mkHeap a) k
+  := by grind [mkHeap, mkHeap.loop_wf, WF.at, WF]
 end BinaryHeap
