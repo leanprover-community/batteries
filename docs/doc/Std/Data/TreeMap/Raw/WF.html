@@ -1,0 +1,353 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../../.././style.css"></link><link rel="icon" href="../../../.././favicon.svg"></link><link rel="mask-icon" href="../../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Data.TreeMap.Raw.WF</title><script defer="true" src="../../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../../.././";</script><script>const MODULE_NAME="Std.Data.TreeMap.Raw.WF";</script><script type="module" src="../../../.././jump-src.js"></script><script type="module" src="../../../.././search.js"></script><script type="module" src="../../../.././expand-nav.js"></script><script type="module" src="../../../.././how-about.js"></script><script type="module" src="../../../.././instances.js"></script><script type="module" src="../../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Data</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../../.././Std/Data/DTreeMap/Raw/WF.html">Std.Data.DTreeMap.Raw.WF</a></li><li><a href="../../../.././Std/Data/TreeMap/Raw/AdditionalOperations.html">Std.Data.TreeMap.Raw.AdditionalOperations</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Data.TreeMap.Raw.WF" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.empty"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">empty</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.emptyc"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">emptyc</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.erase"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">erase</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.insert"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insert</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.insertIfNew"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertIfNew</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.containsThenInsert"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">containsThenInsert</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.containsThenInsertIfNew"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">containsThenInsertIfNew</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.getThenInsertIfNew?"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">getThenInsertIfNew?</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.filter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">filter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.filterMap"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">filterMap</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.partition_fst"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">partition_fst</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.partition_snd"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">partition_snd</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.eraseMany"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">eraseMany</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.insertMany"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertMany</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.insertManyIfNewUnit"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertManyIfNewUnit</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.ofList"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">ofList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.ofArray"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">ofArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.alter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">alter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.modify"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">modify</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.unitOfList"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">unitOfList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.unitOfArray"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">unitOfArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.mergeWith"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">mergeWith</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.union"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">union</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.inter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">inter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.TreeMap.Raw.WF.diff"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">diff</span></a></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="Well-formedness-proofs-for-raw-tree-maps">Well-formedness proofs for raw tree maps <a class="hover-link" href="#Well-formedness-proofs-for-raw-tree-maps">#</a></h1><p>This file contains well-formedness proofs about <code><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html">Std.Data.TreeMap.Raw.Basic</a></code>. Most of the lemmas require
+<code>TransCmp cmp</code> for the comparison function <code>cmp</code>.</p></div><div class="decl" id="Std.TreeMap.Raw.WF.empty"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L32-L33">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.empty"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">empty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.empty">Raw.empty</a>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.emptyc"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L35-L36">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.emptyc"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">emptyc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Init/Core.html#EmptyCollection.emptyCollection">∅</a>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.erase"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L38-L40">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.erase"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">erase</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.erase">erase</a></span> <span class="fn">a</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.insert"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L42-L44">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.insert"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insert</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.insert">insert</a></span> <span class="fn">a</span> <span class="fn">b</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.insertIfNew"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L46-L48">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.insertIfNew"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertIfNew</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.insertIfNew">insertIfNew</a></span> <span class="fn">a</span> <span class="fn">b</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.containsThenInsert"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L50-L52">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.containsThenInsert"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">containsThenInsert</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.containsThenInsert">containsThenInsert</a></span> <span class="fn">a</span> <span class="fn">b</span>)</span>.<a href="../../../.././Init/Prelude.html#Prod.snd">snd</a></span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.containsThenInsertIfNew"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L54-L56">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.containsThenInsertIfNew"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">containsThenInsertIfNew</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.containsThenInsertIfNew">containsThenInsertIfNew</a></span> <span class="fn">a</span> <span class="fn">b</span>)</span>.<a href="../../../.././Init/Prelude.html#Prod.snd">snd</a></span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.getThenInsertIfNew?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L58-L60">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.getThenInsertIfNew?"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">getThenInsertIfNew?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.getThenInsertIfNew?">getThenInsertIfNew?</a></span> <span class="fn">a</span> <span class="fn">b</span>)</span>.<a href="../../../.././Init/Prelude.html#Prod.snd">snd</a></span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.filter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L62-L64">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.filter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">filter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <a href="../../../.././Init/Prelude.html#Bool">Bool</a></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.filter">Raw.filter</a> <span class="fn">f</span> <span class="fn">t</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.filterMap"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L66-L68">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.filterMap"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">filterMap</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><a href="../../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span></span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/AdditionalOperations.html#Std.TreeMap.Raw.filterMap">Raw.filterMap</a> <span class="fn">f</span> <span class="fn">t</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.partition_fst"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L70-L72">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.partition_fst"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">partition_fst</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <a href="../../../.././Init/Prelude.html#Bool">Bool</a></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.partition">partition</a> <span class="fn">f</span> <span class="fn">t</span>)</span>.<a href="../../../.././Init/Prelude.html#Prod.fst">fst</a></span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.partition_snd"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L74-L76">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.partition_snd"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">partition_snd</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <a href="../../../.././Init/Prelude.html#Bool">Bool</a></span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.partition">partition</a> <span class="fn">f</span> <span class="fn">t</span>)</span>.<a href="../../../.././Init/Prelude.html#Prod.snd">snd</a></span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.eraseMany"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L78-L80">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.eraseMany"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">eraseMany</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ρ</span> : <a href="../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#ForIn">ForIn</a> <a href="../../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">ρ</span> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">l</span> : <span class="fn">ρ</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.eraseMany">eraseMany</a></span> <span class="fn">l</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.insertMany"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L82-L84">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.insertMany"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertMany</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ρ</span> : <a href="../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#ForIn">ForIn</a> <a href="../../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">ρ</span> (<span class="fn">α</span> <a href="../../../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span>)</span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">l</span> : <span class="fn">ρ</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.insertMany">insertMany</a></span> <span class="fn">l</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.insertManyIfNewUnit"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L86-L88">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.insertManyIfNewUnit"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">insertManyIfNewUnit</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">ρ</span> : <a href="../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Core.html#ForIn">ForIn</a> <a href="../../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">ρ</span> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">l</span> : <span class="fn">ρ</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <a href="../../../.././Init/Prelude.html#Unit">Unit</a> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.insertManyIfNewUnit">insertManyIfNewUnit</a></span> <span class="fn">l</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.ofList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L90-L92">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.ofList"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">ofList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">l</span> : <span class="fn"><a href="../../../.././Init/Prelude.html#List">List</a> (<span class="fn">α</span> <a href="../../../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span>)</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.ofList">Raw.ofList</a> <span class="fn">l</span> <span class="fn">cmp</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.ofArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L94-L96">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.ofArray"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">ofArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn"><a href="../../../.././Init/Prelude.html#Array">Array</a> (<span class="fn">α</span> <a href="../../../.././Init/Prelude.html#Prod">×</a> <span class="fn">β</span>)</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.ofArray">Raw.ofArray</a> <span class="fn">a</span> <span class="fn">cmp</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.alter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L98-L100">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.alter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">alter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn"><a href="../../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span></span> → <span class="fn"><a href="../../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.alter">alter</a></span> <span class="fn">a</span> <span class="fn">f</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.modify"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L102-L104">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.modify"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">modify</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn"><span class="fn">t</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.modify">modify</a></span> <span class="fn">a</span> <span class="fn">f</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.unitOfList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L106-L108">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.unitOfList"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">unitOfList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">l</span> : <span class="fn"><a href="../../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.unitOfList">Raw.unitOfList</a> <span class="fn">l</span> <span class="fn">cmp</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.unitOfArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L110-L112">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.unitOfArray"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">unitOfArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn"><a href="../../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.unitOfArray">Raw.unitOfArray</a> <span class="fn">a</span> <span class="fn">cmp</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.mergeWith"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L114-L116">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.mergeWith"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">mergeWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">mergeFn</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span> → <span class="fn">β</span></span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t₁ </span><span class="fn">t₂</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">t₁</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.mergeWith">Raw.mergeWith</a> <span class="fn">mergeFn</span> <span class="fn">t₁</span> <span class="fn">t₂</span>)</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.union"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L118-L120">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.union"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">union</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t₁ </span><span class="fn">t₂</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn"><span class="fn">t₁</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn"><span class="fn">t₂</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<span class="fn">t₁</span> <a href="../../../.././Init/Core.html#Union.union">∪</a> <span class="fn">t₂</span>).<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.inter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L122-L124">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.inter"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">inter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t₁ </span><span class="fn">t₂</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn"><span class="fn">t₁</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<span class="fn">t₁</span> <a href="../../../.././Init/Core.html#Inter.inter">∩</a> <span class="fn">t₂</span>).<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div><div class="decl" id="Std.TreeMap.Raw.WF.diff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/TreeMap/Raw/WF.lean#L126-L128">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Data/TreeMap/Raw/WF.html#Std.TreeMap.Raw.WF.diff"><span class="name">Std</span>.<span class="name">TreeMap</span>.<span class="name">Raw</span>.<span class="name">WF</span>.<span class="name">diff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">cmp</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α</span> → <a href="../../../.././Init/Data/Ord/Basic.html#Ordering">Ordering</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Data/Order/Ord.html#Std.TransCmp">TransCmp</a> <span class="fn">cmp</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">t₁ </span><span class="fn">t₂</span> : <span class="fn"><a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw">Raw</a> <span class="fn">α</span> <span class="fn">β</span> <span class="fn">cmp</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn"><span class="fn">t₁</span>.<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<span class="fn">t₁</span> <a href="../../../.././Init/Core.html#SDiff.sdiff">\</a> <span class="fn">t₂</span>).<a href="../../../.././Std/Data/TreeMap/Raw/Basic.html#Std.TreeMap.Raw.WF">WF</a></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

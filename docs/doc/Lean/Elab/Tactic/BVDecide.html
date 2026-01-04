@@ -1,0 +1,61 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Elab.Tactic.BVDecide</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Lean.Elab.Tactic.BVDecide";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Elab</span>.<span class="name">Tactic</span>.<span class="name">BVDecide</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Elab/Tactic/BVDecide.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Lean/Elab/Tactic/BVDecide/External.html">Lean.Elab.Tactic.BVDecide.External</a></li><li><a href="../../.././Lean/Elab/Tactic/BVDecide/Frontend.html">Lean.Elab.Tactic.BVDecide.Frontend</a></li><li><a href="../../.././Lean/Elab/Tactic/BVDecide/LRAT.html">Lean.Elab.Tactic.BVDecide.LRAT</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Elab.Tactic.BVDecide" class="imported-by-list"></ul></details></div></nav><main>
+<div class="mod_doc"><p>This directory offers three different SAT tactics for proving goals involving <code><a href="../../.././Init/Prelude.html#BitVec">BitVec</a></code> and <code><a href="../../.././Init/Prelude.html#Bool">Bool</a></code>:</p><ol>
+<li><code>bv_decide</code> takes the goal, hands it over to a SAT solver and verifies the generated LRAT
+UNSAT proof to prove the goal.</li>
+<li><code>bv_check file.lrat</code> can prove the same things as <code>bv_decide</code>. However instead of
+dynamically handing the goal to a SAT solver to obtain an LRAT proof, the LRAT proof is read from
+<code>file.lrat</code>. This allows users that do not have a SAT solver installed to verify proofs.</li>
+<li><code>bv_decide?</code> offers a code action to turn a <code>bv_decide</code> invocation automatically into a
+<code>bv_check</code> one.</li>
+</ol><p>There are also some options to influence the behavior of <code>bv_decide</code> and friends:</p><ul>
+<li><code>sat.solver</code>: the name of the SAT solver used by <code>bv_decide</code>. It goes through 3 steps to determine
+which solver to use:<ol>
+<li>If sat.solver is set to something != &quot;&quot; it will use that.</li>
+<li>If sat.solver is set to &quot;&quot; it will check if there is a cadical binary next to the executing
+program. Usually that program is going to be <code>lean</code> itself and we do ship a <code>cadical</code> next to it.</li>
+<li>If that does not succeed try to call <code>cadical</code> from PATH.</li>
+</ol>
+</li>
+<li><code>sat.timeout</code>: The timeout for waiting for the SAT solver in seconds, default 10.</li>
+<li><code>sat.trimProofs</code>: Whether to run the trimming algorithm on LRAT proofs, default true.</li>
+<li><code>sat.binaryProofs</code>: Whether to use the binary LRAT proof format, default true.</li>
+<li><code>trace.Meta.Tactic.bv</code> and <code>trace.Meta.Tactic.sat</code> for inspecting the inner workings of <code>bv_decide</code>.</li>
+<li><code>debug.skipKernelTC</code>: may be set to true to disable actually checking the LRAT proof.
+<code>bv_decide</code> will still run bitblasting + SAT solving so this option essentially trusts the SAT
+solver.</li>
+</ul><h2 class="markdown-heading" id="Architecture">Architecture <a class="hover-link" href="#Architecture">#</a></h2><p><code>bv_decide</code> roughly runs through the following steps:</p><ol>
+<li>Apply <code>false_or_by_contra</code> to start a proof by contradiction.</li>
+<li>Apply the <code>bv_normalize</code> and <code>seval</code> simp set to all hypotheses. This has two effects:<ol>
+<li>It applies a subset of the rewrite rules from <a href="https://github.com/bitwuzla/bitwuzla">Bitwuzla</a>
+for simplification of the expressions.</li>
+<li>It turns all hypotheses that might be of interest for the remainder of the tactic into the form
+<code>x = true</code> where <code>x</code> is a mixture of <code><a href="../../.././Init/Prelude.html#Bool">Bool</a></code> and fixed width <code><a href="../../.././Init/Prelude.html#BitVec">BitVec</a></code> expressions.</li>
+</ol>
+</li>
+<li>Use proof by reflection to reduce the proof to showing that an SMT-LIB-syntax-like value that
+represents the conjunction of all relevant assumptions is UNSAT.</li>
+<li>Use a verified bitblasting algorithm to turn that expression into an AIG.
+The bitblasting algorithms are collected from various other bitblasters, including Bitwuzla and
+Z3 and verified using Lean's <code><a href="../../.././Init/Prelude.html#BitVec">BitVec</a></code> theory.</li>
+<li>Turn the AIG into a CNF.</li>
+<li>Run CaDiCal on the CNF to obtain an LRAT proof that the CNF is UNSAT. If CaDiCal returns SAT
+instead the tactic aborts here and presents a counterexample.</li>
+<li>Use an LRAT checker with a soundness proof in Lean to show that the LRAT proof is correct.</li>
+<li>Chain all the proofs so far to demonstrate that the original goal holds.</li>
+</ol><h2 class="markdown-heading" id="Axioms">Axioms <a class="hover-link" href="#Axioms">#</a></h2><p><code>bv_decide</code> makes use of proof by reflection and <code>ofReduceBool</code>, thus adding the Lean compiler to
+the trusted code base.</p><h2 class="markdown-heading" id="Adding-a-new-primitive">Adding a new primitive <a class="hover-link" href="#Adding-a-new-primitive">#</a></h2><p><code>bv_decide</code> knows two kinds of primitives:</p><ol>
+<li>The ones that can be reduced to already existing ones.</li>
+<li>The ones that cannot.</li>
+</ol><p>For the first kind the steps to adding them are very simple, go to <code><a href="../../.././Std/Tactic/BVDecide/Normalize.html">Std.Tactic.BVDecide.Normalize</a></code>
+and add the reduction lemma into the <code>bv_normalize</code> simp set. Don't forget to add a test!</p><p>For the second kind more steps are involved:</p><ol>
+<li>Add a new constructor to <code>BVExpr</code>/<code>BVPred</code></li>
+<li>Add a bitblasting algorithm for the new constructor to <code><a href="../../.././Std/Tactic/BVDecide/Bitblast/BVExpr/Circuit/Impl.html">Std.Tactic.BVDecide.Bitblast.BVExpr.Circuit.Impl</a></code>.</li>
+<li>Verify that algorithm in <code><a href="../../.././Std/Tactic/BVDecide/Bitblast/BVExpr/Circuit/Lemmas.html">Std.Tactic.BVDecide.Bitblast.BVExpr.Circuit.Lemmas</a></code>.</li>
+<li>Integrate it with either the expression or predicate bitblaster and use the proof above to verify it.</li>
+<li>Add simplification lemmas for the primitive to <code>bv_normalize</code> in <code><a href="../../.././Std/Tactic/BVDecide/Normalize.html">Std.Tactic.BVDecide.Normalize</a></code>.
+If there are multiple ways to write the primitive (e.g. with TC based notation and without) you
+should normalize for one notation here.</li>
+<li>Add the reflection code to <code><a href="../../.././Lean/Elab/Tactic/BVDecide/Frontend/BVDecide.html">Lean.Elab.Tactic.BVDecide.Frontend.BVDecide</a></code></li>
+<li>Add a test!</li>
+</ol></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
