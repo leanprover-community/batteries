@@ -157,11 +157,18 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
     let results ← lintCore decls linters (inIO := true) (currentModule := module)
     if updateNoLints then
-      traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
-      writeJsonFile (α := NoLints) nolintsFile <|
-        .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
-        .flatten <| results.map fun (linter, decls) =>
-        decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
+      traceLint (inIO := true) (currentModule := module)
+        s!"Updating nolints file at {nolintsFile}..."
+      -- The new nolints file consists of declarations in the original nolints file which
+      -- are either not being linted here or have been linted here and still fail.
+      let (newNolints, erasedNolints) := nolints.partition fun (linterName, decl) =>
+        !decls.contains decl || results.any fun (linter, res) =>
+          linter.name == linterName && res.contains decl
+      traceLint (inIO := true) (currentModule := module) <|
+        if erasedNolints.isEmpty then s!"No nolints have been erased." else
+          s!"Erased the following nolints:\n  \
+            {"\n  ".intercalate <| erasedNolints.toList.map toString}"
+      writeJsonFile (α := NoLints) nolintsFile newNolints
     let results := results.map fun (linter, decls) =>
       .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
         if linter.name == linter' then decls.erase decl' else decls
