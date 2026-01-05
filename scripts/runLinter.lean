@@ -162,6 +162,15 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
         .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
         .flatten <| results.map fun (linter, decls) =>
         decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
+    if trace then
+      let mut nolintTally : Std.HashMap Name Nat := {}
+      for (linter, _) in nolints do
+        nolintTally := nolintTally.alter linter fun
+          | none   => some 1
+          | some n => some (n+1)
+      let msgs := nolintTally.toList.map fun (linter, n) => s!"{linter}: {n}"
+      IO.println s!"{nolintsFile} summary (number of nolints per linter):\n  \
+        {"\n  ".intercalate msgs}"
     let results := results.map fun (linter, decls) =>
       .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
         if linter.name == linter' then decls.erase decl' else decls
