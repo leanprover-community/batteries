@@ -113,14 +113,14 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       let olean ← findOLean module
       unless (← olean.pathExists) do
         if noBuild then
-          IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+          IO.println s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
             {olean}"
           IO.Process.exit 1
         else
           if trace then
-            IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+            IO.println s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
               {olean}\n\
-              Building `{module}`."
+              [{module}] Building `{module}`."
           -- run `lake build +module` (and ignore result) if the file hasn't been built yet
           let child ← IO.Process.spawn {
             cmd := (← IO.getEnv "LAKE").getD "lake"
@@ -169,7 +169,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
           | none   => some 1
           | some n => some (n+1)
       let msgs := nolintTally.toList.map fun (linter, n) => s!"{linter}: {n}"
-      IO.println s!"{nolintsFile} summary (number of nolints per linter):\n  \
+      IO.println s!"[{module}] {nolintsFile} summary (number of nolints per linter):\n  \
         {"\n  ".intercalate msgs}"
     let results := results.map fun (linter, decls) =>
       .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
