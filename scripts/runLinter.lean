@@ -180,8 +180,14 @@ Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Bas
 
 Runs the linters on all declarations in the given module
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
+
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
 to be nolinted.
+
+If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged to stdout.
+
+If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
+which drive the linting itself are not present.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -189,7 +195,8 @@ unsafe def main (args : List String) : IO Unit := do
     | Except.ok args => pure args
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
-      IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]"
+      IO.eprintln "Usage: \
+        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]"
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mod?
