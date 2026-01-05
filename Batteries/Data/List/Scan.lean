@@ -73,12 +73,13 @@ theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m]
 @[simp, grind =]
 theorem scanrM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : List α} :
     scanrM f init as.reverse = reverse <$> (scanlM (flip f) init as) := by
-  grind [scanrM_eq_scanlM_reverse]
+  simp [scanrM_eq_scanlM_reverse (as := as.reverse)]
+
 
 @[simp, grind =]
 theorem scanlM_reverse [Monad m] {f : β → α → m β} {init : β} {as : List α} :
     scanlM f init as.reverse = reverse <$> (scanrM (flip f) init as) := by
-  grind [scanlM_eq_scanrM_reverse]
+  simp [scanlM_eq_scanrM_reverse (as := as.reverse)]
 
 
 theorem scanlM_pure [Monad m] [LawfulMonad m] {f: β → α → β} {init: β} {as : List α} :
