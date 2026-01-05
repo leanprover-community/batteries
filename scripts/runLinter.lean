@@ -113,7 +113,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       let olean ← findOLean module
       unless (← olean.pathExists) do
         if noBuild then
-          IO.println s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
+          IO.eprintln s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
             {olean}"
           IO.Process.exit 1
         else
