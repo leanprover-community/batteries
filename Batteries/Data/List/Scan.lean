@@ -50,12 +50,12 @@ theorem scanlM_cons [Monad m] [LawfulMonad m] {f : α → β → m α} :
   simp [scanlM, scanAuxM_cons]
 
 
-@[simp, grind=]
+@[simp, grind =]
 theorem scanrM_concat [Monad m] [LawfulMonad m] {f : α → β → m β} :
     scanrM f init (xs ++ [x]) = return (← scanrM f (← f x init) xs) ++ [init] := by
   simp [scanrM, flip, scanAuxM_cons]
 
-@[simp, grind=]
+@[simp, grind =]
 theorem scanrM_nil [Monad m] {f : α → β → m β} :
     scanrM f init [] = return [init] := rfl
 
@@ -65,11 +65,10 @@ theorem scanlM_eq_scanrM_reverse [Monad m] {f : β → α → m β} {init : β} 
   rfl
 
 theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m]
-    {f : α → β → m β}{init : β} {as : List α}
-  : scanrM f init as = reverse <$> (scanlM (flip f) init as.reverse)
-  := by
-    simp only [scanlM_eq_scanrM_reverse, reverse_reverse, id_map', Functor.map_map]
-    rfl
+    {f : α → β → m β}{init : β} {as : List α} :
+    scanrM f init as = reverse <$> (scanlM (flip f) init as.reverse) := by
+  simp only [scanlM_eq_scanrM_reverse, reverse_reverse, id_map', Functor.map_map]
+  rfl
 
 @[simp, grind =]
 theorem scanrM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : List α} :
@@ -86,55 +85,51 @@ theorem scanlM_pure [Monad m] [LawfulMonad m] {f: β → α → β} {init: β} {
     as.scanlM (m := m) (pure <| f · ·) init = pure (as.scanl f init) := by
   induction as generalizing init with simp_all [scanlM_cons, scanl]
 
-theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {init : β} {as : List α}
-    : as.scanrM (m := m) (pure <| f · · ) init = pure (as.scanr f init) := by
+theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {init : β} {as : List α} :
+    as.scanrM (m := m) (pure <| f · · ) init = pure (as.scanr f init) := by
   simp only [scanrM_eq_scanlM_reverse]
   unfold flip
   simp only [scanlM_pure, map_pure, scanr,  scanrM_eq_scanlM_reverse]
   rfl
 
+theorem idRun_scanlM {f : β → α → Id β} {init : β} {as : List α} :
+    (as.scanlM f init).run = as.scanl (f · · |>.run) init :=
+  scanlM_pure
 
-theorem idRun_scanlM {f : β → α → Id β} {init : β} {as : List α}
-  : (as.scanlM f init).run = as.scanl (f · · |>.run) init
-  := scanlM_pure
-
-theorem idRun_scanrM {f : α → β → Id β} {init : β} {as : List α }
-  : (as.scanrM f init).run = as.scanr (f · · |>.run) init
-  := scanrM_pure
+theorem idRun_scanrM {f : α → β → Id β} {init : β} {as : List α} :
+    (as.scanrM f init).run = as.scanr (f · · |>.run) init :=
+  scanrM_pure
 
 @[simp, grind =]
 theorem scanlM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} {init : β}
-  : (as.map f).scanlM g init = as.scanlM (g · <| f ·) init
-  := by induction as generalizing g init with grind
+    {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} {init : β} :
+    (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
+  induction as generalizing g init with grind
 
 @[simp, grind =]
 theorem scanrM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} {init : β}
-  : (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init
-  := by
-    simp only [← map_reverse, scanlM_map, scanrM_eq_scanlM_reverse]
-    rfl
+    {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} {init : β} :
+    (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
+  simp only [← map_reverse, scanlM_map, scanrM_eq_scanlM_reverse]
+  rfl
 
 
 /-! ### `List.scanl` and `List.scanr` -/
 
 @[simp]
-theorem length_scanl {f : β → α → β} (init : β) (as : List α)
-  : length (scanl f init as) = as.length + 1
-  := by induction as generalizing init <;> simp_all [scanl, pure, bind, Id.run]
+theorem length_scanl {f : β → α → β} (init : β) (as : List α) :
+    length (scanl f init as) = as.length + 1 := by
+  induction as generalizing init <;> simp_all [scanl, pure, bind, Id.run]
 
 grind_pattern length_scanl => scanl f init as
 
 @[simp, grind =]
-theorem scanl_nil {f : β → α → β} (b : β)
-  : scanl f b [] = [b]
-  := by simp [scanl]
+theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] := by simp [scanl]
 
 @[simp, grind =]
-theorem scanl_cons {f : β → α → β}
-  : scanl f b (a :: l) = b :: scanl f (f b a) l
-  := by simp [scanl]
+theorem scanl_cons {f : β → α → β} :
+    scanl f b (a :: l) = b :: scanl f (f b a) l := by
+  simp [scanl]
 
 theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
   simp
@@ -224,12 +219,11 @@ theorem scanr_nil {f : α → β → β} (b : β) : scanr f b [] = [b] := by sim
 
 
 @[simp, grind =]
-theorem scanr_cons {f : α → β → β}
-  : scanr f b (a :: l) = foldr f b (a :: l) :: scanr f b l
-  := by
-    simp only [scanr_eq_scanl_reverse, reverse_cons, scanl_append]
-    unfold flip
-    simp
+theorem scanr_cons {f : α → β → β} :
+    scanr f b (a :: l) = foldr f b (a :: l) :: scanr f b l := by
+  simp only [scanr_eq_scanl_reverse, reverse_cons, scanl_append]
+  unfold flip
+  simp
 
 
 @[simp]
@@ -254,7 +248,8 @@ theorem scanr_append {f : α → β → β} (l₁ l₂ : List α) :
   induction l₁ <;> induction l₂ <;> simp [*]
 
 @[simp]
-theorem head_scanr {f : α → β → β} (h : scanr f b l ≠ []) : (scanr f b l).head h = foldr f b l := by
+theorem head_scanr {f : α → β → β} (h : scanr f b l ≠ []) :
+    (scanr f b l).head h = foldr f b l := by
   cases l <;> grind
 
 @[grind =]
@@ -288,7 +283,8 @@ theorem getElem?_scanr {f : α → β → β} :
 theorem getElem_scanr_zero {f : α → β → β} : (scanr f b l)[0] = foldr f b l := by
   simp
 
-theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = some (foldr f b l) := by
+theorem getElem?_scanr_zero {f : α → β → β} :
+    (scanr f b l)[0]? = some (foldr f b l) := by
   simp
 
 theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
@@ -321,9 +317,8 @@ theorem partialSums_ne_nil [Add α] [Zero α] {l : List α} :
     l.partialSums ≠ [] := by simp [ne_nil_iff_length_pos]
 
 @[simp, grind =]
-theorem partialSums_nil [Add α] [Zero α]
-  : ([] : List α).partialSums = [0]
-  := by simp [partialSums]
+theorem partialSums_nil [Add α] [Zero α] : ([] : List α).partialSums = [0] := by
+  simp [partialSums]
 
 theorem partialSums_cons [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
     [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :

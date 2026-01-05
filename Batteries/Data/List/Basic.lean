@@ -197,10 +197,6 @@ where
 /--
 Folds a monadic function over a list from the left, accumulating partial results starting with
 `init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-This is a tail-recursive implementation. For an easier-to-reason-about version please see the
-non-tail-recursive `List.scanlM'. These cannot be shown to be equivalent to one another without
-a `LawfulMonad` constraint on `m`
 -/
 @[inline]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
