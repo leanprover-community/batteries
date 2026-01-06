@@ -10,7 +10,7 @@ public section
 namespace Batteries
 
 /-- A max-heap data structure. -/
-structure BinaryHeap (α) where
+structure BinaryHeap (α: Type w) where
   /-- `O(1)`. Get data array for a `BinaryHeap`. -/
   arr : Array α
 
@@ -34,6 +34,7 @@ def maxChild [Ord α] (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
+@[expose]
 def heapifyDown [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match h : maxChild a i with

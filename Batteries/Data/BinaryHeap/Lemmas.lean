@@ -127,11 +127,17 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     WF.exceptAt (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
-  · grind only [usr Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap]
+  · have : (i.val - 1) / 2 ≠ i := by omega
+    simp_all
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
     · obtain ⟨hleft, hright⟩ := hchildren
       have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
-      grind only [Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap, InSubtree.trans, InSubtree.le]
+      have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
+      rcases hk_is_child with hk_left | hk_right
+      · have : 2 * i.val + 1 < sz := by omega
+        simp_all
+      · have : 2 * i.val + 2 < sz := by omega
+        simp_all
     · unfold exceptAt parent at *
       grind only [Fin.ext_iff, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap,
         !Std.TransOrd.isLE_trans]
@@ -152,11 +158,10 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     unfold WF.exceptAt WF.parent at hexcept
     by_cases hli : targetIdx = i.val
     · have hji : j ≠ i.val := by omega
-      grind only [Std.OrientedOrd.eq_swap, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap]
+      grind only [= Fin.getElem_fin, = Vector.getElem_swap]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
       have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only [Fin.ext_iff]) (by grind only)
-      by_cases hj_pos : 0 < j <;> grind only [Std.OrientedOrd.eq_swap, usr Fin.isLt,
-        = Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
+      by_cases hj_pos : 0 < j <;> grind only [ = Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinomialHeap is well-formed
   iff all nodes are ≤ their parent.
