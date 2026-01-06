@@ -47,6 +47,7 @@ public def WF [Ord α] (v : Vector α sz) : Prop :=
   ∀ i : Fin sz, WF.children v i
 
 namespace WF
+variable {α : Type w} {sz : Nat}
 /-- All nodes at indices greater than `i` are well-formed (according to WF.children)
     Used when verifying `heapifyDown`
 -/
@@ -67,12 +68,12 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
   obtain ⟨_, _⟩ := hbelow k hk_gt_i
   grind [WF.children]
 
-theorem root_ge_subtree [Ord α] [Std.TransOrd α] [Std.ReflOrd α]
+theorem root_ge_subtree [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {j : Nat} (hj : j < sz) {hwf_at : WF.children a ⟨j, hj⟩}
     {hwf_below : WF.below a j} {k : Nat} {hk : k < sz} {hsub : InSubtree j k} :
     (compare a[j] a[k]).isGE := by
   induction hsub
-  case refl => grind [Std.ReflOrd.isLE_rfl, Ordering.isGE]
+  case refl => grind [Ordering.isGE]
   all_goals
     obtain ⟨hwf_m, _⟩ : WF.children a ⟨‹_›, by omega⟩ := by grind [WF.below]
     grind [Std.TransOrd.isGE_trans, WF.children]
@@ -210,8 +211,8 @@ private theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz
   grind [Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE, Ordering.isLT, maxChild]
 
 @[grind =]
-private theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j : Fin sz)
-    (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
+private theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
+    (i j : Fin sz) (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
     compare a[↑j] a[2 * ↑i + 2] |>.isGE := by
   grind [Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE, Ordering.isLT, maxChild]
 
@@ -248,7 +249,7 @@ theorem heapifyDown_get_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : Fin s
   heapifyDown_get_of_not_inSubtree (k := ⟨k, hk⟩) hnsub
 
 /-- heapifyDown at j preserves WF.children k when i < k < j and j is a child of i -/
-theorem heapifyDown_preserves_wf_at_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
+theorem heapifyDown_preserves_wf_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
     (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
     (hik : i < k) (hkj : k < j) (hwf : WF.children a k) :
     WF.children (heapifyDown (a.swap ↑i ↑j) ↑j) ↑k := by
@@ -272,14 +273,14 @@ theorem heapifyDown_preserves_wf_at_of_lt [Ord α] {a : Vector α sz} {i j k : F
 
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
-theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α] [Std.ReflOrd α]
+theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {j : Fin sz} {v : α}
     (hge : ∀ k : Fin sz, InSubtree j.val k.val → (compare v a[k]).isGE) :
     (compare v (heapifyDown a j)[j]).isGE := by grind [heapifyDown]
 
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
-theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.below a i) (k : Fin sz) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j)[k]).isGE := by
@@ -297,7 +298,7 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [St
       (hsub := hsub)
     ]
 
-theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.below a i) :
     WF.children (heapifyDown a i) i ∧ WF.below (heapifyDown a i) i := by
@@ -339,7 +340,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.Refl
       intro k
       split
       . grind only
-      . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_preserves_wf_at_of_lt,
+      . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_preserves_wf_children_of_lt,
         WF.children, WF.below, usr Fin.isLt, = Fin.getElem_fin, WF.below]
 
     exact ⟨hchildren, hbelow⟩
@@ -353,7 +354,7 @@ end heapifyDown
 section heapifyUp
 /-- heapifyUp fixes the heap when the only violation is at i
     and i's children are already ≤ i's parent -/
-theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (a : Vector α sz) (i : Fin sz)
     (hexcept : WF.exceptAt a i)
     (hchildren : WF.childLeParent a i) :
@@ -371,16 +372,20 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [S
   | case3 a i hisucc j h_nlt =>
     simp_all only [heapifyUp, j]
     apply WF.bottomUp_of_exceptAt_and_parent a ⟨i+1, by omega⟩ hexcept
-    exact WF.parent_of_isGE a ⟨i+1, by omega⟩ (by grind only) (by grind [Ordering.isLT, Ordering.isGE])
+    exact WF.parent_of_isGE a
+      ⟨i+1, by omega⟩
+      (by grind only)
+      (by grind [Ordering.isLT, Ordering.isGE])
 
-theorem heapifyUp_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem heapifyUp_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (a : Vector α sz) (i : Fin sz) (hexcept : WF.exceptAt a i) (hchildren : WF.childLeParent a i) :
     WF (heapifyUp a i) := by
   rw [WF.iff_bottomUp]
   simp_all [heapifyUp_wf_bottomUp]
+
 end heapifyUp
 
-theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (n : Nat) (a : Vector α sz) (h : n ≤ sz)
     (hinv : ∀ k : Fin sz, n ≤ k.val → WF.children a k) :
     ∀ k : Fin sz, WF.children (mkHeap.loop n a h) k := by
@@ -401,8 +406,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.Refl
 
 public section
 
-
-theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] [Std.ReflOrd α]
+theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (a : Vector α sz) :
     WF (mkHeap a) := by
   grind [mkHeap, mkHeap.loop_wf, WF.children, WF]
