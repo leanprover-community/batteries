@@ -34,7 +34,6 @@ def maxChild [Ord α] (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
-@[expose]
 def heapifyDown [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match h : maxChild a i with
@@ -170,15 +169,15 @@ def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
 open Batteries in
 
 private def revOrd [Ord α] : Ord α where
-  compare x y := compare y x
+  compare x y := compare x y |>.swap
 
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
-@[inline]
+@[inline, specialize]
 def Array.heapSort [Ord α] (a : Array α) : Array α :=
   loop (instOrd := revOrd) (@Array.toBinaryHeap _ revOrd a ) #[]
 where
   /-- Inner loop for `heapSort`. -/
-  @[specialize] loop [instOrd : Ord α] (a : Batteries.BinaryHeap α) (out : Array α) : Array α :=
+  loop [instOrd : Ord α] (a : Batteries.BinaryHeap α) (out : Array α) : Array α :=
     match e: a.max with
     | none => out
     | some x =>
