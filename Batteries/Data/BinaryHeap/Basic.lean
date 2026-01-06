@@ -5,7 +5,7 @@ Authors: Mario Carneiro, François G. Dorais
 -/
 module
 
-public section
+@[expose] public section
 
 namespace Batteries
 
@@ -62,6 +62,7 @@ where
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` up to restore the max-heap property. -/
+@[expose]
 def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match i with
@@ -103,6 +104,7 @@ def max (self : BinaryHeap α) : Option α := self.1[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`.
 Call `max` first to actually retrieve the maximum element. -/
+@[expose]
 def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
   if h0 : self.size = 0 then self else
     have hs : self.size - 1 < self.size := Nat.pred_lt h0
@@ -171,11 +173,11 @@ def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
 open Batteries in
 
 /-- Wrapper for reversed `Ord` instance, used internally by `heapSort`. -/
-private structure RevOrd (α : Type _) where
+structure RevOrd (α : Type _) where
   /-- The wrapped value. -/
   val : α
 
-private instance [Ord α] : Ord (RevOrd α) where
+instance [Ord α] : Ord (RevOrd α) where
   compare x y := match compare x.val y.val with
     | .lt => .gt
     | .eq => .eq
