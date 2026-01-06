@@ -10,7 +10,6 @@ public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
-
 /-!
 # List scan
 
@@ -21,10 +20,9 @@ namespace List
 
 /-! ### `List.scanlM` and `List.scanrM` -/
 
-
 @[local simp]
 theorem scanAuxM.go_eq_append_map [Monad m] [LawfulMonad m] {f : α → β → m α} :
-  go f xs last acc = (· ++ acc) <$> scanAuxM f last xs := by
+    go f xs last acc = (· ++ acc) <$> scanAuxM f last xs := by
   unfold scanAuxM
   induction xs generalizing last acc with
   | nil => simp [scanAuxM.go]
@@ -43,12 +41,10 @@ theorem scanlM_nil [Monad m] [LawfulMonad m] {f : α → β → m α} :
     scanlM f init [] = return [init] := by
   simp [scanlM, scanAuxM_nil]
 
-
 @[simp, grind =]
 theorem scanlM_cons [Monad m] [LawfulMonad m] {f : α → β → m α} :
     scanlM f init (x :: xs) = return init :: (← scanlM f (← f init x) xs) := by
   simp [scanlM, scanAuxM_cons]
-
 
 @[simp, grind =]
 theorem scanrM_concat [Monad m] [LawfulMonad m] {f : α → β → m β} :
@@ -59,67 +55,62 @@ theorem scanrM_concat [Monad m] [LawfulMonad m] {f : α → β → m β} :
 theorem scanrM_nil [Monad m] {f : α → β → m β} :
     scanrM f init [] = return [init] := rfl
 
-theorem scanlM_eq_scanrM_reverse [Monad m] {f : β → α → m β} {init : β} {as : List α} :
+theorem scanlM_eq_scanrM_reverse [Monad m] {f : β → α → m β} :
     scanlM f init as = reverse <$> (scanrM (flip f) init as.reverse) := by
   simp only [scanrM, reverse_reverse]
   rfl
 
-theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m]
-    {f : α → β → m β}{init : β} {as : List α} :
+theorem scanrM_eq_scanlM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} :
     scanrM f init as = reverse <$> (scanlM (flip f) init as.reverse) := by
   simp only [scanlM_eq_scanrM_reverse, reverse_reverse, id_map', Functor.map_map]
   rfl
 
 @[simp, grind =]
-theorem scanrM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} {init : β} {as : List α} :
+theorem scanrM_reverse [Monad m] [LawfulMonad m] {f : α → β → m β} :
     scanrM f init as.reverse = reverse <$> (scanlM (flip f) init as) := by
   simp [scanrM_eq_scanlM_reverse (as := as.reverse)]
 
-
 @[simp, grind =]
-theorem scanlM_reverse [Monad m] {f : β → α → m β} {init : β} {as : List α} :
+theorem scanlM_reverse [Monad m] {f : β → α → m β} :
     scanlM f init as.reverse = reverse <$> (scanrM (flip f) init as) := by
   simp [scanlM_eq_scanrM_reverse (as := as.reverse)]
 
-
-theorem scanlM_pure [Monad m] [LawfulMonad m] {f: β → α → β} {init: β} {as : List α} :
+theorem scanlM_pure [Monad m] [LawfulMonad m] {f: β → α → β} {as : List α} :
     as.scanlM (m := m) (pure <| f · ·) init = pure (as.scanl f init) := by
   induction as generalizing init with simp_all [scanlM_cons, scanl]
 
-theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {init : β} {as : List α} :
+theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {as : List α} :
     as.scanrM (m := m) (pure <| f · · ) init = pure (as.scanr f init) := by
   simp only [scanrM_eq_scanlM_reverse]
   unfold flip
   simp only [scanlM_pure, map_pure, scanr,  scanrM_eq_scanlM_reverse]
   rfl
 
-theorem idRun_scanlM {f : β → α → Id β} {init : β} {as : List α} :
+theorem idRun_scanlM {f : β → α → Id β} {as : List α} :
     (as.scanlM f init).run = as.scanl (f · · |>.run) init :=
   scanlM_pure
 
-theorem idRun_scanrM {f : α → β → Id β} {init : β} {as : List α} :
+theorem idRun_scanrM {f : α → β → Id β} {as : List α} :
     (as.scanrM f init).run = as.scanr (f · · |>.run) init :=
   scanrM_pure
 
 @[simp, grind =]
 theorem scanlM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} {init : β} :
+    {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} :
     (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
   induction as generalizing g init with grind
 
 @[simp, grind =]
 theorem scanrM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} {init : β} :
+    {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} :
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
   simp only [← map_reverse, scanlM_map, scanrM_eq_scanlM_reverse]
   rfl
 
-
 /-! ### `List.scanl` and `List.scanr` -/
 
 @[simp]
-theorem length_scanl {f : β → α → β} (init : β) (as : List α) :
-    length (scanl f init as) = as.length + 1 := by
+theorem length_scanl {f : β → α → β} : (scanl f init as).length = as.length + 1 := by
   induction as generalizing init <;> simp_all [scanl, pure, bind, Id.run]
 
 grind_pattern length_scanl => scanl f init as
@@ -128,12 +119,10 @@ grind_pattern length_scanl => scanl f init as
 theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] := by simp [scanl]
 
 @[simp, grind =]
-theorem scanl_cons {f : β → α → β} :
-    scanl f b (a :: l) = b :: scanl f (f b a) l := by
+theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = b :: scanl f (f b a) l := by
   simp [scanl]
 
-theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by
-  simp
+theorem scanl_singleton {f : β → α → β} : scanl f b [a] = [b, f b a] := by simp
 
 @[simp]
 theorem scanl_ne_nil {f : β → α → β} : scanl f b l ≠ [] := by
@@ -205,12 +194,12 @@ theorem scanl_map {f : β → γ → β} {g : α → γ} (init : β) (as : List 
     scanl f init (as.map g) = scanl (fun acc x => f acc (g x)) init as := by
   induction as generalizing init with grind
 
-theorem scanl_eq_scanr_reverse  {f : β → α → β} {init : β} {as : List α} :
+theorem scanl_eq_scanr_reverse  {f : β → α → β} :
     scanl f init as = reverse (scanr (flip f) init as.reverse) := by
   simp only [scanl, scanr, Id.run, scanrM_reverse, Functor.map, reverse_reverse]
   rfl
 
-theorem scanr_eq_scanl_reverse  {f : α → β → β} {init : β} {as : List α} :
+theorem scanr_eq_scanl_reverse  {f : α → β → β} :
     scanr f init as = reverse (scanl (flip f) init as.reverse) := by
   simp only [scanl_eq_scanr_reverse, reverse_reverse]
   rfl
@@ -218,14 +207,12 @@ theorem scanr_eq_scanl_reverse  {f : α → β → β} {init : β} {as : List α
 @[simp, grind =]
 theorem scanr_nil {f : α → β → β} (b : β) : scanr f b [] = [b] := by simp [scanr]
 
-
 @[simp, grind =]
 theorem scanr_cons {f : α → β → β} :
     scanr f b (a :: l) = foldr f b (a :: l) :: scanr f b l := by
   simp only [scanr_eq_scanl_reverse, reverse_cons, scanl_append]
   unfold flip
   simp
-
 
 @[simp]
 theorem scanr_ne_nil {f : α → β → β} : scanr f b l ≠ [] := by cases l <;> simp

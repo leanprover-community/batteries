@@ -203,14 +203,12 @@ def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (Lis
   List.reverse <$> scanAuxM f init l
 
 /--
-Folds a monadic function over a list from the left, accumulating partial results starting with
+Folds a monadic function over a list from the right, accumulating partial results starting with
 `init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-Unlike `List.scanr` this function _is_ stack safe.
 -/
 @[inline]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
-    scanAuxM (flip f) init xs.reverse
+  scanAuxM (flip f) init xs.reverse
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
