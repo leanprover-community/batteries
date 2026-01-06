@@ -575,7 +575,7 @@ where
 
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
-`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
+`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDups`), and `pwFilter (·<·)` finds
 a maximal increasing subsequence in `l`. For example,
 ```
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
@@ -634,11 +634,9 @@ Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-Defined as `pwFilter (≠)`.
-
-    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
+/-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
+@[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
+abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
@@ -1096,3 +1094,25 @@ Examples:
 -/
 @[expose] def prod [Mul α] [One α] (xs : List α) : α :=
   xs.foldr (· * ·) 1
+
+/--
+Computes the partial sums of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialSums = [0, 0 + a, (0 + a) + b, ((0 + a) + b) + c]`
+`[1, 2, 3].partialSums = [0, 1, 3, 6]`
+-/
+def partialSums [Add α] [Zero α] (l : List α) : List α :=
+  l.scanl (· + ·) 0
+
+/--
+Computes the partial products of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialProds = [1, 1 * a, (1 * a) * b, ((1 * a) * b) * c]`
+`[2, 3, 5].partialProds = [1, 2, 6, 30]`
+-/
+def partialProds [Mul α] [One α] (l : List α) : List α :=
+  l.scanl (· * ·) 1
