@@ -113,14 +113,14 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       let olean ← findOLean module
       unless (← olean.pathExists) do
         if noBuild then
-          IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+          IO.eprintln s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
             {olean}"
           IO.Process.exit 1
         else
           if trace then
-            IO.println s!"Could not find olean for module `{module}` at given path:\n  \
+            IO.println s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
               {olean}\n\
-              Building `{module}`."
+              [{module}] Building `{module}`."
           -- run `lake build +module` (and ignore result) if the file hasn't been built yet
           let child ← IO.Process.spawn {
             cmd := (← IO.getEnv "LAKE").getD "lake"
@@ -162,6 +162,15 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
         .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
         .flatten <| results.map fun (linter, decls) =>
         decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
+    if trace then
+      let mut nolintTally : Std.HashMap Name Nat := {}
+      for (linter, _) in nolints do
+        nolintTally := nolintTally.alter linter fun
+          | none   => some 1
+          | some n => some (n+1)
+      let msgs := nolintTally.toList.map fun (linter, n) => s!"{linter}: {n}"
+      IO.println s!"[{module}] {nolintsFile} summary (number of nolints per linter):\n  \
+        {"\n  ".intercalate msgs}"
     let results := results.map fun (linter, decls) =>
       .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
         if linter.name == linter' then decls.erase decl' else decls
@@ -180,8 +189,14 @@ Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Bas
 
 Runs the linters on all declarations in the given module
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
+
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
 to be nolinted.
+
+If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged to stdout.
+
+If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
+which drive the linting itself are not present.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -189,7 +204,8 @@ unsafe def main (args : List String) : IO Unit := do
     | Except.ok args => pure args
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
-      IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]"
+      IO.eprintln "Usage: \
+        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]"
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mod?
