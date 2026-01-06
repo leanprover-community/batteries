@@ -96,13 +96,13 @@ theorem idRun_scanrM {f : α → β → Id β} {as : List α} :
 
 @[simp, grind =]
 theorem scanlM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: β → α₂ → m β} {as : List α₁} :
+    {f : α₁ → α₂} {g: β → α₂ → m β} {as : List α₁} :
     (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
   induction as generalizing g init with grind
 
 @[simp, grind =]
 theorem scanrM_map [Monad m] [LawfulMonad m]
-    {f : α₁ → α₂ } {g: α₂ → β → m β} {as : List α₁} :
+    {f : α₁ → α₂} {g: α₂ → β → m β} {as : List α₁} :
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
   simp only [← map_reverse, scanlM_map, scanrM_eq_scanlM_reverse]
   rfl
@@ -116,7 +116,7 @@ theorem length_scanl {f : β → α → β} : (scanl f init as).length = as.leng
 grind_pattern length_scanl => scanl f init as
 
 @[simp, grind =]
-theorem scanl_nil {f : β → α → β} (b : β) : scanl f b [] = [b] := by simp [scanl]
+theorem scanl_nil {f : β → α → β} : scanl f init [] = [init] := by simp [scanl]
 
 @[simp, grind =]
 theorem scanl_cons {f : β → α → β} : scanl f b (a :: l) = b :: scanl f (f b a) l := by
@@ -183,18 +183,18 @@ theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b l).len
   grind [List.take_add_one]
 
 @[grind =]
-theorem scanl_append {f : β → α → β} (l₁ l₂ : List α) :
+theorem scanl_append {f : β → α → β} {l₁ l₂ : List α} :
     scanl f b (l₁ ++ l₂) = scanl f b l₁ ++ (scanl f (foldl f b l₁) l₂).tail := by
   induction l₁ generalizing b
   case nil => cases l₂ <;> simp
   case cons head tail ih => simp [ih]
 
 @[grind =]
-theorem scanl_map {f : β → γ → β} {g : α → γ} (init : β) (as : List α) :
+theorem scanl_map {f : β → γ → β} {g : α → γ} {as : List α} :
     scanl f init (as.map g) = scanl (fun acc x => f acc (g x)) init as := by
   induction as generalizing init with grind
 
-theorem scanl_eq_scanr_reverse  {f : β → α → β} :
+theorem scanl_eq_scanr_reverse {f : β → α → β} :
     scanl f init as = reverse (scanr (flip f) init as.reverse) := by
   simp only [scanl, scanr, Id.run, scanrM_reverse, Functor.map, reverse_reverse]
   rfl
@@ -205,7 +205,7 @@ theorem scanr_eq_scanl_reverse  {f : α → β → β} :
   rfl
 
 @[simp, grind =]
-theorem scanr_nil {f : α → β → β} (b : β) : scanr f b [] = [b] := by simp [scanr]
+theorem scanr_nil {f : α → β → β} : scanr f init [] = [init] := by simp [scanr]
 
 @[simp, grind =]
 theorem scanr_cons {f : α → β → β} :
@@ -221,7 +221,7 @@ theorem scanr_singleton {f : α → β → β} : scanr f b [a] = [f a b, b] := b
   simp
 
 @[simp]
-theorem length_scanr {f : α → β → β} (init : β) (as : List α) :
+theorem length_scanr {f : α → β → β} {as : List α} :
     length (scanr f init as) = as.length + 1 := by induction as <;> simp_all
 
 grind_pattern length_scanr => scanr f init as
@@ -271,8 +271,7 @@ theorem getElem?_scanr {f : α → β → β} :
 theorem getElem_scanr_zero {f : α → β → β} : (scanr f b l)[0] = foldr f b l := by
   simp
 
-theorem getElem?_scanr_zero {f : α → β → β} :
-    (scanr f b l)[0]? = some (foldr f b l) := by
+theorem getElem?_scanr_zero {f : α → β → β} : (scanr f b l)[0]? = some (foldr f b l) := by
   simp
 
 theorem getElem?_scanr_of_lt {f : α → β → β} (h : i < l.length + 1) :
@@ -288,7 +287,7 @@ theorem scanr_map {f : α → β → β} {g : γ → α} (b : β) (l : List γ) 
   induction l with simp [*]
 
 @[simp, grind =]
-theorem scanl_reverse {f : β → α → β} (init : β) (as : List α) :
+theorem scanl_reverse {f : β → α → β} {as : List α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
   induction as generalizing init <;> simp_all [scanl_append]
   rfl
