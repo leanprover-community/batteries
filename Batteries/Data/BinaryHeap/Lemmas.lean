@@ -1,4 +1,5 @@
 module
+import all Batteries.Data.BinaryHeap.Basic
 public import Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
@@ -66,7 +67,18 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
   intro k hk_gt_j
   have hk_gt_i : i.val < k.val := Nat.lt_trans ‹_› ‹_›
   obtain ⟨_, _⟩ := hbelow k hk_gt_i
-  grind [WF.children]
+  constructor
+  -- grind can take care of this, but it's slow
+  case' left => let targetIdx := 2 * k.val + 1
+  case' right => let targetIdx := 2 * k.val + 2
+  all_goals
+    intro _
+    have : k.val ≠ j.val := by omega
+    have : k.val ≠ i.val := by omega
+    have : targetIdx ≠ i.val := by omega
+    have : targetIdx ≠ j.val := by omega
+    simp_all [targetIdx]
+
 
 theorem root_ge_subtree [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {j : Nat} (hj : j < sz) {hwf_at : WF.children a ⟨j, hj⟩}
@@ -115,13 +127,14 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     WF.exceptAt (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
-  · grind [Std.OrientedOrd.eq_swap]
+  · grind only [usr Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap]
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
     · obtain ⟨hleft, hright⟩ := hchildren
       have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
-      grind
+      grind only [Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap, InSubtree.trans, InSubtree.le]
     · unfold exceptAt parent at *
-      grind [Std.TransOrd.isLE_trans, Fin.ext_iff]
+      grind only [Fin.ext_iff, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap,
+        !Std.TransOrd.isLE_trans]
 
 /-- If exceptAt a i, swap preserves childLeParent at parent -/
 theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -139,10 +152,11 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     unfold WF.exceptAt WF.parent at hexcept
     by_cases hli : targetIdx = i.val
     · have hji : j ≠ i.val := by omega
-      grind [Std.OrientedOrd.eq_swap]
+      grind only [Std.OrientedOrd.eq_swap, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
       have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only [Fin.ext_iff]) (by grind only)
-      by_cases hj_pos : 0 < j <;> grind [Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap]
+      by_cases hj_pos : 0 < j <;> grind only [Std.OrientedOrd.eq_swap, usr Fin.isLt,
+        = Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinomialHeap is well-formed
   iff all nodes are ≤ their parent.
@@ -219,7 +233,7 @@ private theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α s
 /-- heapifyDown doesn't modify positions before the starting index. -/
 @[grind=]
 theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
-    (heapifyDown ↑a ↑i)[↑k] = a[↑k] := by
+    (heapifyDown a i)[k] = a[k] := by
   induction a, i using heapifyDown.induct <;> grind [heapifyDown]
 
 

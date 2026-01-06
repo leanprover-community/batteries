@@ -1,4 +1,4 @@
 module
 
-public import Batteries.Data.BinomialHeap.Basic
-public import Batteries.Data.BinomialHeap.Lemmas
+public import Batteries.Data.BinaryHeap.Basic
+public import Batteries.Data.BinaryHeap.Lemmas
