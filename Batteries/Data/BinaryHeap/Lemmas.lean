@@ -60,7 +60,9 @@ theorem below_mono {a : Vector α sz} {i j : Nat}  [Ord α]
     (hij : i ≤ j) (hbelow : WF.below a i) : WF.below a j := by
   grind [WF.below]
 
-/-- The value at position i after heapifyDown is some value from the original subtree. -/
+/-- if i < j, and the heap is well formed below i, then a[i] and a[j] can be swapped
+  and the heap will still be well-formed below j
+  --/
 theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
     {hbelow : WF.below a i} {hij : i < j} :
     WF.below (a.swap i j) j := by
