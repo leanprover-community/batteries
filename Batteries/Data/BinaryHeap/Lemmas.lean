@@ -161,7 +161,8 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [= Fin.getElem_fin, = Vector.getElem_swap]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
       have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only [Fin.ext_iff]) (by grind only)
-      by_cases hj_pos : 0 < j <;> grind only [ = Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
+      by_cases hj_pos : 0 < j <;>
+        grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinomialHeap is well-formed
   iff all nodes are ≤ their parent.
