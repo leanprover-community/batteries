@@ -184,51 +184,31 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
 
-/--
-Folds a monadic function over a list from the left, accumulating partial results starting with
-`init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-This is a tail-recursive implementation. For an easier-to-reason-about version please see the
-non-tail-recursive `List.scanlM'. These cannot be shown to be equivalent to one another without
-a `LawfulMonad` constraint on `m`
--/
--- false positive for LawfulMonad instance
-@[nolint unusedArguments]
-def scanlM [Monad m] [LawfulMonad m] (f : α → β → m α) (init : α) : List β → m (List α)
-  | [] => pure [init]
-  | x :: xs => return init :: (← scanlM f (← f init x) xs)
-
-
-/-- Tail-recursive implementation of `scanlM`-/
--- false positive for LawfulMonad instance
-@[nolint unusedArguments, inline]
-def scanlMTR [Monad m] [LawfulMonad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
-  go l init (#[])
+/-- Tail-recursive helper function for `scanlM` and `scanrM` -/
+@[inline]
+def scanAuxM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  go l init []
 where
-  /-- auxiliary helper function for tail-recursive scanlM implementation -/
-  @[specialize] go : List β → α → Array α → m (List α)
-    | [], a, acc => pure $ acc.toListAppend [a]
-    | b :: l, prev, acc => do
-      let next ← f prev b
-      go l next (acc.push prev)
-
-private theorem go_eq_scanlM [Monad m] [LawfulMonad m]
-    {f : β → α → m β} {init : β} {acc : Array β} {as : List α}
-  : scanlMTR.go f as init acc = (acc.toList ++ ·) <$> scanlM f init as
-  := by induction as generalizing init acc with simp_all [scanlMTR.go, scanlM]
-
-@[csimp]
-theorem scanlM_eq_scanlMTR : @scanlM = @scanlMTR := by funext; simp [scanlMTR, go_eq_scanlM]
+  /-- Auxiliary for `scanAuxM` -/
+  @[specialize] go : List α → β → List β → m (List β)
+    | [], last, acc => pure <| last :: acc
+    | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
 
 /--
 Folds a monadic function over a list from the left, accumulating partial results starting with
 `init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-Unlike `List.scanr` this function _is_ stack safe.
 -/
-@[inline, specialize]
-def scanrM [Monad m] [LawfulMonad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
-    List.reverse <$> scanlM (flip f) init xs.reverse
+@[inline]
+def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  List.reverse <$> scanAuxM f init l
+
+/--
+Folds a monadic function over a list from the right, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+  scanAuxM (flip f) init xs.reverse
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
@@ -236,7 +216,7 @@ Fold a function `f` over the list from the left, returning the list of partial r
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
--- This could be defined in terms of scanlM' but this has a very easy to reason about structure...
+@[inline]
 def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanlM (pure <| f · ·) init
 
