@@ -90,10 +90,8 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
             (by simp; omega : n < (List.drop stop as.toList).length)]
           simp [List.reverse_append, List.getElem_drop, h_eq]
 
-      simp_all only [ Array.toList_push , List.reverse_append , List.reverse_cons
-                     , Functor.map_map
-                    , List.scanrM
-                    ]
+      simp_all only [Array.toList_push, List.reverse_append, List.reverse_cons,
+        Functor.map_map , List.scanrM_eq_scanlM_reverse]
       simp_all [flip]
 
 
