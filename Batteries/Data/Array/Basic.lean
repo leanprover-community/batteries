@@ -142,7 +142,7 @@ abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tac
   This is guaranteed by the Array docs but it is unprovable.
   May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
 -/
-abbrev size_fits_usize {a : Array α}: Prop := a.size < USize.size
+private abbrev size_fits_usize {a : Array α}: Prop := a.size < USize.size
 
 @[grind .]
 private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
@@ -156,7 +156,8 @@ private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
   Can be used in unsafe functions to write more efficient implementations
   that avoid boxed integer arithmetic.
 -/
-unsafe def unsafe_size_fits_usize {a: Array α} : Array.size_fits_usize (a := a) := lcProof
+private unsafe def unsafe_size_fits_usize {a: Array α} : Array.size_fits_usize (a := a) :=
+  lcProof
 
 
 @[inline]
@@ -235,7 +236,7 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
       intro next
       have h_start_succ : USize.ofNat start + 1 = USize.ofNat (start + 1) := by
         simp_all only [← USize.toNat_inj, USize.toNat_add]
-        grind [USize.size_eq]
+        grind only [USize.size_eq, nat_index_eq_usize_index]
       rw [h_start_succ]
       apply ih (stop - (start + 1)) <;> omega
     case isFalse h_nlt => grind [USize.lt_iff_toNat_lt]
@@ -254,12 +255,6 @@ private theorem scanlM_eq_scanlMFast [Monad m]
     apply Nat.min_le_right
 
 
--- TODO: A lot of grinding here, simplify? factor out some common helper lemmas? Note that while
--- scanlMFast and scanlM had almost the exact same structure, scanrMFast and scanrM differ somehat
--- more The reference implementation works by iterating over `as` backwards, pushing to accumulator,
--- and then reversing it at the end However, as confirmed via benchmarking, it is faster to
--- initialize the array via `Array.replicate init`, and then iterate backwards Currently requires a
--- lot of `grinding` to avoid lcProof in the bounds checks.
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Array α)
     (h_size : as.size_fits_usize) (start := as.size) (stop := 0) : m (Array β) :=
@@ -302,7 +297,8 @@ where
       pure acc
   termination_by start.toNat - stop.toNat
   decreasing_by
-    grind only [USize.lt_iff_toNat_lt, USize.toNat_sub, USize.toNat_sub_of_le, USize.le_iff_toNat_le]
+    grind only [USize.lt_iff_toNat_lt, USize.toNat_sub,
+      USize.toNat_sub_of_le, USize.le_iff_toNat_le]
 
 
 @[inline]
