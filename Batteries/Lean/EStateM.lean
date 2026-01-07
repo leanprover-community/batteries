@@ -40,9 +40,6 @@ end Result
 
 @[simp] theorem dummyRestore_apply (s : σ) : EStateM.dummyRestore s = Function.const _ s := rfl
 
-@[simp] theorem run_pure (x : α) (s : σ) :
-    (pure x : EStateM ε σ α).run s = Result.ok x s := rfl
-
 @[simp] theorem run'_pure (x : α) (s : σ) :
     (pure x : EStateM ε σ α).run' s = some x := rfl
 
@@ -104,26 +101,14 @@ theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ)
   rw [run', run_seqRight]
   cases x.run s <;> rfl
 
-@[simp] theorem run_get (s : σ) :
-    (get : EStateM ε σ σ).run s = Result.ok s s := rfl
-
 @[simp] theorem run'_get (s : σ) :
     (get : EStateM ε σ σ).run' s = some s := rfl
-
-@[simp] theorem run_set (v s : σ) :
-    (set v : EStateM ε σ PUnit).run s = Result.ok PUnit.unit v := rfl
 
 @[simp] theorem run'_set (v s : σ) :
     (set v : EStateM ε σ PUnit).run' s = some PUnit.unit := rfl
 
-@[simp] theorem run_modify (f : σ → σ) (s : σ) :
-    (modify f : EStateM ε σ PUnit).run s = Result.ok PUnit.unit (f s) := rfl
-
 @[simp] theorem run'_modify (f : σ → σ) (s : σ) :
     (modify f : EStateM ε σ PUnit).run' s = some PUnit.unit := rfl
-
-@[simp] theorem run_modifyGet (f : σ → α × σ) (s : σ) :
-    (modifyGet f : EStateM ε σ α).run s = Result.ok (f s).1 (f s).2 := rfl
 
 @[simp] theorem run'_modifyGet (f : σ → α × σ) (s : σ) :
     (modifyGet f : EStateM ε σ α).run' s = some (f s).1 := rfl
@@ -133,9 +118,6 @@ theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ)
 
 @[simp] theorem run'_getModify (f : σ → σ) (s : σ) :
     (getModify f : EStateM ε σ σ).run' s = some s := rfl
-
-@[simp] theorem run_throw (e : ε) (s : σ) :
-    (throw e : EStateM ε σ α).run s = Result.error e s := rfl
 
 @[simp] theorem run'_throw (e : ε) (s : σ) :
     (throw e : EStateM ε σ α).run' s = none := rfl
