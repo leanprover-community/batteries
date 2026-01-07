@@ -338,7 +338,9 @@ theorem Subperm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (hx
 -/
 def Subperm.finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs.Subperm ys)
     (i : Fin (xs.length)) : Fin (ys.length) :=
-  ys.countToIdx xs[i.1] <| (xs.idxToCount i).castLE (hxy.count_le _)
+  ⟨ys.idxOfNth xs[i.1] (xs.countBefore xs[i.1] i),
+    idxOfNth_lt_length_of_lt_count
+    (Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (hxy.count_le _))⟩
 
 @[simp, grind =]
 theorem coe_finToFin [BEq α] [ReflBEq α] {xs ys : List α} {hxy : xs.Subperm ys}

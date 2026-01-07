@@ -21,7 +21,6 @@ open Nat
 
 namespace List
 
-
 /-! ### count -/
 
 section count
@@ -32,37 +31,41 @@ theorem count_singleton' [DecidableEq α] (a b : α) : count a [b] = if b = a th
 theorem count_concat [BEq α] [LawfulBEq α] (a : α) (l : List α) :
     count a (concat l a) = succ (count a l) := by simp
 
-/-! ### countToIdx, idxToCount -/
+/-! ### idxToSigmaCount, sigmaCountToIdx -/
 
-/-- `idxToCount` is a `Fin`-to-`Fin` wrapper for `countBefore`. -/
-def idxToCount [BEq α] [ReflBEq α] (xs: List α) (i : Fin (xs.length)) :
-    Fin (xs.count xs[i.1]) :=
-  ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
-
-@[simp, grind =]
-theorem coe_idxToCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
-    (xs.idxToCount i : Nat) = xs.countBefore xs[i.1] i := rfl
-
-/-- `countToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`. -/
-def countToIdx [BEq α] (xs: List α) (x : α) (i : Fin (xs.count x)) :
-    Fin (xs.length) := ⟨xs.idxOfNth x i, idxOfNth_lt_length_of_lt_count i.isLt⟩
+/-- `idxToSigmaCount` is a `Fin`-to-`Fin` wrapper for `countBefore`. -/
+def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin (xs.length)) :
+    (x : α) × Fin (xs.count x) :=
+  ⟨xs[i.1], xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
 
 @[simp, grind =]
-theorem coe_countToIdx [BEq α] {xs: List α} {x : α} {i : Fin (xs.count x)} :
-    (xs.countToIdx x i : Nat) = xs.idxOfNth x i := rfl
+theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    (xs.idxToSigmaCount i).1 = xs[i.1] := rfl
 
 @[simp, grind =]
-theorem countToIdx_getElem_idxToCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
-    xs.countToIdx xs[i.1] (xs.idxToCount i) = i :=
+theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    (xs.idxToSigmaCount i).2 =
+    ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩ := rfl
+
+
+@[simp, grind =]
+theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    ((xs.idxToSigmaCount i).2 : Nat) = xs.countBefore xs[i.1] i := rfl
+
+/-- `sigmaCountToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`. -/
+def sigmaCountToIdx [BEq α] (xs: List α) (xc : (x : α) × Fin (xs.count x)) :
+    Fin (xs.length) := ⟨xs.idxOfNth xc.1 xc.2, idxOfNth_lt_length_of_lt_count xc.2.isLt⟩
+
+@[simp, grind =]
+theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.count x)} :
+    (xs.sigmaCountToIdx xc : Nat) = xs.idxOfNth xc.1 xc.2 := rfl
+
+@[simp, grind =]
+theorem sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α}
+    {i : Fin (xs.length)} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
   Fin.ext <| idxOfNth_countBefore_of_lt_length_of_beq _ BEq.rfl
 
-theorem getElem_countToIdx_beq [BEq α] {xs: List α} {x : α} {i : Fin (xs.count x)} :
-    xs[(xs.countToIdx x i : Nat)] == x := getElem_idxOfNth_beq
-
-theorem getElem_countToIdx_eq [BEq α] [LawfulBEq α] {xs: List α} {x : α} {i : Fin (xs.count x)} :
-    xs[(xs.countToIdx x i : Nat)] = x := by simp
-
 @[simp, grind =]
-theorem idxToCount_countToIdx [BEq α] [LawfulBEq α] {xs: List α} {x : α}
-    {i : Fin (xs.count x)} : xs.idxToCount (xs.countToIdx x i) = i.cast (by grind) :=
-  Fin.ext <| by simp
+theorem idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α}
+    {xc : (x : α) × Fin (xs.count x)} : xs.idxToSigmaCount (xs.sigmaCountToIdx xc) = xc :=
+  Sigma.ext getElem_idxOfNth_eq (heq_of_eqRec_eq (by simp) (by grind))

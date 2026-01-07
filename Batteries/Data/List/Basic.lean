@@ -305,8 +305,8 @@ alias indexesOf := idxsOf
 def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
   xs.findIdxNth (· == a) n
 
-/-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `n`th index at
-which `p x` is true. -/
+/-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
+which `p x = true`. -/
 def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
   /-- Auxiliary for `countPBefore`: `countPBefore.go p l i acc = countPBefore p l i + acc`. -/
   @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
@@ -315,7 +315,7 @@ def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 w
   | [], _, s => s
 
 /-- `countBefore x xs n` counts the number of `x` in `xs` before the
-    `n`th index for which `x == a` is true. -/
+    `i`th index for which `x == a` is true. -/
 def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
   countPBefore (· == a)
 
