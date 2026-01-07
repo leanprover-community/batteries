@@ -35,7 +35,7 @@ theorem count_concat [BEq α] [LawfulBEq α] (a : α) (l : List α) :
 /-! ### countToIdx, idxToCount -/
 
 /-- `idxToCount` is a `Fin`-to-`Fin` wrapper for `countBefore`. -/
-def idxToCount [BEq α] [ReflBEq α] {xs: List α} (i : Fin (xs.length)) :
+def idxToCount [BEq α] [ReflBEq α] (xs: List α) (i : Fin (xs.length)) :
     Fin (xs.count xs[i.1]) :=
   ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
 
@@ -44,7 +44,7 @@ theorem coe_idxToCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)}
     (xs.idxToCount i : Nat) = xs.countBefore xs[i.1] i := rfl
 
 /-- `countToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`. -/
-def countToIdx [BEq α] {xs: List α} (x : α) (i : Fin (xs.count x)) :
+def countToIdx [BEq α] (xs: List α) (x : α) (i : Fin (xs.count x)) :
     Fin (xs.length) := ⟨xs.idxOfNth x i, idxOfNth_lt_length_of_lt_count i.isLt⟩
 
 @[simp, grind =]
