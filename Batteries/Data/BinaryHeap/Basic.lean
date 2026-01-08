@@ -85,10 +85,10 @@ def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 def size (self : BinaryHeap α) : Nat := self.1.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
+@[expose]
 def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.1, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
-@[expose]
 def get (self : BinaryHeap α) (i : Fin self.size) : α := self.1[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
@@ -100,7 +100,6 @@ def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
   simp [size, insert]
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
-@[expose]
 def max (self : BinaryHeap α) : Option α := self.1[0]?
 
 -- Helper function that performs popMax on the underlying vector
@@ -178,7 +177,7 @@ def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
 open Batteries in
 
 private def revOrd [Ord α] : Ord α where
-  compare x y := compare x y |>.swap
+  compare x y := compare y x
 
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
 @[inline, specialize]
