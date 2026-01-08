@@ -275,6 +275,40 @@ theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF (
   constructor <;> intro _
   . exact hleft (by grind only [!vector_size])
   . exact hright (by grind only [!vector_size])
+
+/-- Setting a larger value preserves WF.exceptAt -/
+theorem exceptAt_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {v : Vector α sz} {i : Fin sz} {x : α}
+    (hbu : WF.bottomUp v) (h_ge : compare x v[i] |>.isGE) :
+    WF.exceptAt (v.set i x) i := by
+  intro j hji hj_pos
+  by_cases hparent_eq : (j.val - 1) / 2 = i.val
+  all_goals
+    have hj_parent := hbu j hj_pos
+    grind only [Std.OrientedOrd.eq_swap, = Fin.getElem_fin, = Vector.getElem_set,
+      !Ordering.isGE_swap, !Std.TransOrd.isLE_trans]
+
+/-- Setting a larger value preserves WF.childLeParent when original heap is well-formed -/
+theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {v : Vector α sz} {i : Fin sz} {x : α}
+    (htd : WF.topDown v) (hbu : WF.bottomUp v) (h_ge : compare x v[i] |>.isGE) :
+    WF.childLeParent (v.set i x) i := by
+  unfold WF.childLeParent
+  let parent := (i.val - 1) / 2
+  obtain ⟨htd_left, htd_right⟩ := htd i
+  constructor
+  case' left  => intro hchild; have h_child := htd_left hchild
+  case' right => intro hchild; have h_child := htd_right hchild
+  all_goals
+    by_cases hi : i.val = 0
+    · -- i = 0, so parent = 0 = i
+      have hset_parent : (v.set i x)[parent] = x := by simp_all [parent]
+      grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
+        Vector.getElem_set]
+    · -- i ≠ 0, so parent ≠ i
+      have h_parent := hbu i (by omega)
+      grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
+        WF.parent, Vector.getElem_set]
 end WF
 
 
@@ -583,7 +617,8 @@ theorem popMaxVec_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   case isFalse hne =>
     split
     case isTrue hnz =>
-      have hbelow : WF.below (h.swap 0 (h.size - 1) |>.pop) 0 := by grind only [swap_pop_wf_below wf]
+      have hbelow : WF.below (h.swap 0 (h.size - 1) |>.pop) 0 := by
+        grind only [swap_pop_wf_below wf]
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     case isFalse hle =>
       grind only [WF.children, WF.topDown]
@@ -663,5 +698,20 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 end
+
+theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
+    {i : Fin self.size} {x : α} {h_ge : compare x (self.get i) |>.isGE} {h_wf : WF self} :
+    WF (self.increaseKey i x) := by
+  unfold increaseKey
+  generalize hv : self.vector = v
+  have htd : WF.topDown v := by simp_all [WF]
+  have hbu : WF.bottomUp v := by rw [← WF.iff_bottomUp]; exact htd
+  have h_ge' : compare x v[i] |>.isGE := by
+    simp_all [get, ← hv, vector]
+  suffices WF.bottomUp (heapifyUp (v.set i x) i) by
+    rw [← WF.iff_bottomUp] at this
+    exact WF.topDown_toArray this
+  simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
+
 
 end BinaryHeap

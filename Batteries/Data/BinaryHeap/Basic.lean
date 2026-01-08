@@ -103,6 +103,8 @@ def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
 @[expose]
 def max (self : BinaryHeap α) : Option α := self.1[0]?
 
+-- Helper function that performs popMax on the underlying vector
+-- Exists because it made verification somewhat easier
 private def popMaxVec [Ord α] (v : Vector α sz) : Vector α (sz - 1)  :=
   if h0 : sz = 0 then
     (by omega : sz = sz - 1 ) ▸ v
