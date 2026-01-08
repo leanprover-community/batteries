@@ -36,6 +36,9 @@ protected def rangeMinWith [ord : Ord α]
   xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
+@[inherit_doc Array.rangeMinWith, deprecated Array.rangeMinWith (since := "2025-01-08")]
+protected def minWith := @Array.rangeMinWith
+
 /--
 Find the first minimal element of an array. If the array is empty, `d` is
 returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
@@ -48,6 +51,9 @@ protected def rangeMinD [ord : Ord α]
     xs.rangeMinWith xs[start] (start + 1) stop
   else
     d
+
+@[inherit_doc Array.rangeMinD, deprecated Array.rangeMinD (since := "2025-01-08")]
+protected def minD := @Array.rangeMinD
 
 /--
 Find the first minimal element of an array. If the array is empty, `none` is
@@ -72,6 +78,9 @@ protected def rangeMinI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinD default start stop
 
+@[inherit_doc Array.rangeMinI, deprecated Array.rangeMinI (since := "2025-01-08")]
+protected def minI := @Array.rangeMinI
+
 /--
 Returns the first maximal element among `d` and elements of the array.
 If `start` and `stop` are given, only the subarray `xs[start...stop]` is
@@ -82,6 +91,9 @@ protected def rangeMaxWith [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinWith (ord := ord.opposite) d start stop
 
+@[inherit_doc Array.rangeMaxWith, deprecated Array.rangeMaxWith (since := "2025-01-08")]
+protected def maxWith := @Array.rangeMaxWith
+
 /--
 Find the first maximal element of an array. If the array is empty, `d` is
 returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
@@ -91,6 +103,9 @@ considered.
 protected def rangeMaxD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinD (ord := ord.opposite) d start stop
+
+@[inherit_doc Array.rangeMaxD, deprecated Array.rangeMaxD (since := "2025-01-08")]
+protected def maxD := @Array.rangeMaxD
 
 /--
 Find the first maximal element of an array. If the array is empty, `none` is
@@ -111,6 +126,9 @@ considered.
 protected def rangeMaxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinI (ord := ord.opposite) start stop
+
+@[inherit_doc Array.rangeMaxI, deprecated Array.rangeMaxI (since := "2025-01-08")]
+protected def maxI := @Array.rangeMaxI
 
 /-!
 ### Safe Nat Indexed Array functions
