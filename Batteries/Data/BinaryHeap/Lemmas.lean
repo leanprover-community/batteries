@@ -95,6 +95,27 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
   obtain ⟨_, _⟩ := hbelow k hk_gt_i
   constructor <;> grind only [= Fin.getElem_fin, = Vector.getElem_swap]
 
+/-- Setting a smaller value preserves WF.below -/
+theorem set_smaller_wf_below [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
+    (htd : WF.topDown v) :
+    WF.below (v.set i x) i := by
+  intro j hj
+  obtain ⟨hwf_jl, hwf_jr⟩ := htd j
+  have h_inej: i.val ≠ j.val := by omega
+  constructor
+    <;> intro _
+    <;> grind only [Vector.getElem_set, Fin.getElem_fin]
+
+/-- For k < i where neither child equals i, set at i preserves WF.children at k -/
+theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
+    (hwf : WF.children v k) (hki : k.val ≠ i.val)
+    (hleft_ne : 2 * k.val + 1 ≠ i.val) (hright_ne : 2 * k.val + 2 ≠ i.val) :
+    WF.children (v.set i x) k := by
+  obtain ⟨hwf_left, hwf_right⟩ := hwf
+  constructor <;> intro hbound <;>
+    grind only [= Fin.getElem_fin, = Vector.getElem_set]
+
+
 /-- WF.topDown follows from WF.children at 0 and WF.below at 0 -/
 theorem topDown_iff_at_below_zero [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
    WF.children a ⟨0, h0⟩ ∧  WF.below a 0 ↔ WF.topDown a := by
@@ -107,8 +128,6 @@ theorem topDown_iff_at_below_zero [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
   . grind only [children, topDown, below]
 
 
-
-
 theorem root_ge_subtree [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {j : Nat} (hj : j < sz) {hwf_at : WF.children a ⟨j, hj⟩}
     {hwf_below : WF.below a j} {k : Nat} {hk : k < sz} {hsub : InSubtree j k} :
@@ -118,6 +137,26 @@ theorem root_ge_subtree [Ord α] [Std.TransOrd α]
   all_goals
     obtain ⟨hwf_m, _⟩ : WF.children a ⟨‹_›, by omega⟩ := by grind [WF.below]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
+
+/-- Parent dominates all descendants after setting a smaller value -/
+theorem parent_dominates_set_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {v : Vector α sz} {i : Fin sz} {x : α}
+    (htd : WF.topDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val)
+    (m : Fin sz) (hsub : InSubtree i.val m.val) :
+    (compare v[(i.val - 1) / 2] (v.set i x)[m]).isGE := by
+  let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
+  have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
+  obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
+  have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
+  by_cases hm_eq : m.val = i.val
+  · grind only [Std.OrientedOrd.eq_swap, = Fin.getElem_fin, !Std.TransOrd.isGE_trans,
+    = Vector.getElem_set, !Ordering.isGE_swap]
+  · have : i.val ≠ m.val := by omega
+    simp_all only [Fin.getElem_fin, ne_eq, not_false_eq_true, Vector.getElem_set_ne]
+    have h_parent_to_i : InSubtree parent.val i.val := by grind only [InSubtree]
+    exact WF.root_ge_subtree parent.isLt (hwf_at := htd parent)
+      (hwf_below := fun j _ => htd j) (hsub := InSubtree.trans h_parent_to_i hsub)
+
 
 theorem max_ge_all [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hwf : WF.topDown a) (hne : 0 < sz) (k : Fin sz) :
@@ -165,17 +204,14 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     WF.exceptAt (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
-  · have : (i.val - 1) / 2 ≠ i := by omega
-    simp_all
+  · simp_all
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
     · obtain ⟨hleft, hright⟩ := hchildren
       have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
       have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
       rcases hk_is_child with hk_left | hk_right
-      · have : 2 * i.val + 1 < sz := by omega
-        simp_all
-      · have : 2 * i.val + 2 < sz := by omega
-        simp_all
+      · simp_all [show 2 * i.val + 1 < sz by omega]
+      · simp_all [show 2 * i.val + 2 < sz by omega]
     · unfold exceptAt parent at *
       grind only [Fin.ext_iff, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap,
         !Std.TransOrd.isLE_trans]
@@ -316,29 +352,52 @@ theorem heapifyDown_get_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : Fin s
     {k : Nat} (hk : k < sz) (hnsub : ¬InSubtree i k) :
     (heapifyDown a i)[k] = a[k] :=
   heapifyDown_get_of_not_inSubtree (k := ⟨k, hk⟩) hnsub
+/-- heapifyDown preserves WF.children at k when k and its children are outside the subtree -/
 
-/-- heapifyDown at j preserves WF.children k when i < k < j and j is a child of i -/
-theorem heapifyDown_preserves_wf_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
-    (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
-    (hik : i < k) (hkj : k < j) (hwf : WF.children a k) :
-    WF.children (heapifyDown (a.swap ↑i ↑j) ↑j) ↑k := by
+theorem heapifyDown_preserves_wf_children_of_not_inSubtree [Ord α] {a b : Vector α sz} {i k : Fin sz}
+    (hnsub_k : ¬InSubtree i k)
+    (hk_eq : a[k] = b[k])
+    (hleft_eq : ∀ h : 2 * k.val + 1 < sz, a[2 * k.val + 1] = b[2 * k.val + 1])
+    (hright_eq : ∀ h : 2 * k.val + 2 < sz, a[2 * k.val + 2] = b[2 * k.val + 2])
+    (hwf : WF.children b k)
+    (hnsub_left : ∀ h : 2 * k.val + 1 < sz, ¬InSubtree i.val (2 * k.val + 1)
+      := by grind only [InSubtree.not_of_lt])
+    (hnsub_right : ∀ h : 2 * k.val + 2 < sz, ¬InSubtree i.val (2 * k.val + 2)
+      := by grind only [InSubtree.not_of_lt])
+    :
+    WF.children (heapifyDown a i) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
-  have hnsub_k : ¬InSubtree j k := InSubtree.not_of_lt (by omega)
-  have : (a.swap i j)[k] = a[k] := Vector.getElem_swap_of_ne (by omega) (by omega)
   constructor
-  case' left =>  let targetIdx := 2 * k.val + 1
-  case' right => let targetIdx := 2 * k.val + 2
-
+  case' left =>  let childIdx := 2 * k.val + 1
+  case' right => let childIdx := 2 * k.val + 2
   all_goals
     intro hbound
-    have : ¬InSubtree j targetIdx := by grind only [InSubtree.not_of_lt]
     rw [heapifyDown_get_of_not_inSubtree hnsub_k,
-        heapifyDown_get_of_not_inSubtree' hbound this]
-    have : (a.swap i j)[targetIdx] = a[targetIdx]
-      := Vector.getElem_swap_of_ne (by omega) (by omega)
-    simp_all [targetIdx]
+        heapifyDown_get_of_not_inSubtree' hbound (by grind only)]
+    simp_all
 
+/-- heapifyDown at j preserves WF.children k when i < k < j and j is a child of i -/
+theorem heapifyDown_swap_preserves_wf_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
+    (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
+    (hik : i < k) (hkj : k < j) (hwf : WF.children a k) :
+    WF.children (heapifyDown (a.swap ↑i ↑j) ↑j) ↑k :=
+  heapifyDown_preserves_wf_children_of_not_inSubtree
+    (InSubtree.not_of_lt (by omega))
+    (Vector.getElem_swap_of_ne (by omega) (by omega))
+    (fun _ => Vector.getElem_swap_of_ne (by omega) (by omega))
+    (fun _ => Vector.getElem_swap_of_ne (by omega) (by omega))
+    hwf
 
+theorem heapifyDown_preserves_wf_children_outside [Ord α] {v : Vector α sz} {i k : Fin sz}
+    (hki : k < i) (hwf : WF.children v k)
+    (hleft_ne : 2 * k.val + 1 ≠ i.val) (hright_ne : 2 * k.val + 2 ≠ i.val) :
+    WF.children (heapifyDown v i) k :=
+  heapifyDown_preserves_wf_children_of_not_inSubtree
+    (InSubtree.not_of_lt hki)
+    rfl
+    (fun _ => rfl)
+    (fun _ => rfl)
+    hwf
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
@@ -347,6 +406,33 @@ theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
     (compare v (heapifyDown a j)[j]).isGE := by
   grind only [heapifyDown, InSubtree, Fin.getElem_fin, maxChild_isChild,
     = heapifyDown_preserves_prefix, = Vector.getElem_swap]
+
+/-- heapifyDown at i preserves WF.children at parent of i when value decreased -/
+theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {v : Vector α sz} {i : Fin sz} {x : α}
+    (htd : WF.topDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val) :
+    WF.children (heapifyDown (v.set i x) i) ⟨(i.val - 1) / 2, by omega⟩ := by
+  let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
+  have h_parent_lt_i : parent < i := by grind only [Lean.Grind.toInt_fin]
+  have hk_not_sub : ¬InSubtree i parent := InSubtree.not_of_lt h_parent_lt_i
+  obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
+  have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
+  constructor
+  case' left  => let childIdx := 2 * parent.val + 1
+  case' right => let childIdx := 2 * parent.val + 2
+  all_goals
+    intro hside
+    rw [heapifyDown_get_of_not_inSubtree hk_not_sub]
+    have : parent.val ≠ i.val := by omega
+    simp_all only [Fin.getElem_fin]
+    rw [Vector.getElem_set_ne (i := i.val) (j := parent.val) _ _ (by omega)]
+    by_cases heq : childIdx = i.val
+    · simp only [parent, heq, childIdx]
+      exact heapifyDown_root_bounded (WF.parent_dominates_set_subtree htd h_le hi)
+    . have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
+      rw [heapifyDown_get_of_not_inSubtree' hside hsub]
+      rw [Vector.getElem_set_ne _ _ (by simp_all only [ne_eq]; omega)]
+      simp_all [childIdx, parent]
 
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
@@ -413,7 +499,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       intro k
       split
       . grind only
-      . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_preserves_wf_children_of_lt,
+      . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
         WF.children, WF.below, = Fin.getElem_fin]
 
     exact ⟨hchildren, hbelow⟩
@@ -550,14 +636,36 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     WF (self.popMax) := by
   grind only [popMax, WF, popMaxVec_wf, WF.topDown_toArray]
 
---theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
---    {i : Fin self.size} {x : α} {h_leq : compare x (self.get i) |>.isLE} {h_wf : WF self} :
---    WF (self.decreaseKey i x) := by
---  unfold decreaseKey
---  generalize hv : self.vector = v
---  have : WF.topDown v := by simp_all [WF]
---  suffices WF.topDown (heapifyDown (v.set i x) i) by
---    exact WF.topDown_toArray this
+theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
+    {i : Fin self.size} {x : α} {h_leq : compare x (self.get i) |>.isLE} {h_wf : WF self} :
+    WF (self.decreaseKey i x) := by
+  unfold decreaseKey
+
+  generalize hv : self.vector = v
+  have htd : WF.topDown v := by simp_all [WF]
+  have h_leq' : compare x v[i] |>.isLE := by
+    have : self.size = self.arr.size := by simp [size]
+    simp_all [get, ← hv, vector]
+
+  suffices WF.topDown (heapifyDown (v.set i x) i) by
+    exact WF.topDown_toArray this
+
+  have hbelow : WF.below (v.set i x) i := WF.set_smaller_wf_below htd
+  have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
+
+  intro k
+  rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
+  · by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
+    · have hk_eq : k = ⟨(i.val - 1) / 2, by omega⟩ := by ext; exact hk_parent.1
+      rw [hk_eq]
+      exact heapifyDown_preserves_wf_parent htd h_leq' hk_parent.2
+    · have hleft_ne : 2 * k.val + 1 ≠ i.val := by omega
+      have hright_ne : 2 * k.val + 2 ≠ i.val := by omega
+      have hwf_set : WF.children (v.set i x) k :=
+              WF.set_preserves_wf_children_of_ne (htd k) (by omega) hleft_ne hright_ne
+      exact heapifyDown_preserves_wf_children_outside hki hwf_set hleft_ne hright_ne
+  · exact Fin.ext hki_eq ▸ hchildren_i
+  · exact hbelow_i k hik
 end
 
 end BinaryHeap

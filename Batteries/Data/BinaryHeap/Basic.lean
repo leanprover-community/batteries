@@ -88,6 +88,7 @@ def size (self : BinaryHeap α) : Nat := self.1.size
 def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.1, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
+@[expose]
 def get (self : BinaryHeap α) (i : Fin self.size) : α := self.1[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
