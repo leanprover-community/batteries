@@ -315,7 +315,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : Binary
   have h_clp : WF.childLeParent (self.vector.push x) ⟨self.vector.size, h_sz⟩ := by
     grind only [WF.childLeParent]
   simp only [WF, WF.iff_bottomUp]
-  have := heapifyUp_wf_bottomUp (self.vector.push x) ⟨self.vector.size, h_sz⟩ h_ea h_clp
+  have := heapifyUp_wf_bottomUp h_ea h_clp
   rw [← Vector.mk_toArray (xs := (heapifyUp _ _))] at this
   grind only [vector, size]
 
