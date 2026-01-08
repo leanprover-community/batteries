@@ -317,7 +317,10 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       ← valid_entries.filterMapM
         fun x => do
-          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x |
+          -- Use encoded name (spaces → underscores) for docstring lookup,
+          -- matching the declaration name created by `library_note`
+          let encodedName := encodeNameForExport x
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append encodedName |
             return none
           return "library_note " ++ x.toString (escape := true) ++ "\n" ++
             "/-- " ++ doc.trimAscii ++ " -/"

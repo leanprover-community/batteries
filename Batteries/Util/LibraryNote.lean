@@ -31,6 +31,23 @@ We only store the name, and look up the constant's docstring to find its content
 @[expose] def LibraryNoteEntry := Name
 deriving Inhabited
 
+/-- Encode a name to be safe for the Lean export format.
+
+The current export format (used by `lean4export` and consumed by external type checkers like
+`nanoda_lib`) does not support whitespace in declaration names. Library notes often have
+human-readable names with spaces like `«my library note»`, which would produce declarations
+like `LibraryNote.«my library note»` that cannot be exported.
+
+This function replaces spaces with underscores to produce export-safe names like
+`LibraryNote.my_library_note`.
+-/
+def encodeNameForExport (n : Name) : Name :=
+  n.componentsRev.foldl (init := .anonymous) fun acc c =>
+    match c with
+    | .str _ s => .str acc (s.replace " " "_")
+    | .num _ k => .num acc k
+    | .anonymous => acc
+
 /-- Environment extension supporting `library_note`. -/
 initialize libraryNoteExt : SimplePersistentEnvExtension LibraryNoteEntry (Array LibraryNoteEntry) ←
   registerSimplePersistentEnvExtension {
@@ -46,15 +63,21 @@ This can then be cross-referenced using
 -- See note [some tag]
 ```
 in doc-comments.
-You can access the contents using, for example, `#print LibraryNote.«my note»`.
+You can access the contents using, for example, `#print LibraryNote.my_note`.
+(Note: spaces in the name are converted to underscores in the declaration name for
+compatibility with the Lean export format.)
 Use `#help note "some tag"` to display all notes with the tag `"some tag"` in the infoview.
 This command can be imported from Batteries.Tactic.HelpCmd .
 -/
 elab "library_note " name:ident ppSpace dc:docComment : command => do
-  modifyEnv (libraryNoteExt.addEntry · name.getId)
+  let origName := name.getId
+  -- Store original name (with spaces) for lookup via `#help note`
+  modifyEnv (libraryNoteExt.addEntry · origName)
+  -- Use encoded name (spaces → underscores) for declaration, for export format compatibility
+  let safeName := encodeNameForExport origName
   let stx ← `(
     $dc:docComment
-    def $(mkIdent (`_root_.LibraryNote ++ name.getId)) : LibraryNote :=
+    def $(mkIdent (`_root_.LibraryNote ++ safeName)) : LibraryNote :=
       default)
   elabCommandTopLevel stx
 
