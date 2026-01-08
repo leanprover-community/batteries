@@ -183,29 +183,42 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
+
+/-- Tail-recursive helper function for `scanlM` and `scanrM` -/
+@[inline]
+def scanAuxM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  go l init []
+where
+  /-- Auxiliary for `scanAuxM` -/
+  @[specialize] go : List α → β → List β → m (List β)
+    | [], last, acc => pure <| last :: acc
+    | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
+
+/--
+Folds a monadic function over a list from the left, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  List.reverse <$> scanAuxM f init l
+
+/--
+Folds a monadic function over a list from the right, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+  scanAuxM (flip f) init xs.reverse
+
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
-@[simp] def scanl (f : α → β → α) (a : α) : List β → List α
-  | [] => [a]
-  | b :: l => a :: scanl f (f a b) l
-
-/-- Tail-recursive version of `scanl`. -/
-@[inline] def scanlTR (f : α → β → α) (a : α) (l : List β) : List α := go l a #[] where
-  /-- Auxiliary for `scanlTR`: `scanlTR.go f l a acc = acc.toList ++ scanl f a l`. -/
-  @[specialize] go : List β → α → Array α → List α
-  | [], a, acc => acc.toListAppend [a]
-  | b :: l, a, acc => go l (f a b) (acc.push a)
-
-theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
-  | [] => by simp [scanlTR.go, scanl]
-  | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
-
-@[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
+@[inline]
+def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanlM (pure <| f · ·) init
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -213,9 +226,9 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
-def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
-  let (b', l') := l.foldr (fun a (b', l') => (f a b', b' :: l')) (b, [])
-  b' :: l'
+@[inline]
+def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanrM (pure <| f · ·) init
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
@@ -575,7 +588,7 @@ where
 
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
-`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
+`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDups`), and `pwFilter (·<·)` finds
 a maximal increasing subsequence in `l`. For example,
 ```
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
@@ -634,11 +647,9 @@ Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-Defined as `pwFilter (≠)`.
-
-    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
+/-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
+@[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
+abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
