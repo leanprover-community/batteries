@@ -359,8 +359,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
     have : self.size = self.arr.size := by simp [size]
     simp_all [get, ← hv, vector]
 
-  suffices WF.topDown (heapifyDown (v.set i x) i) by
-    exact WF.topDown_toArray this
+  apply WF.topDown_toArray
 
   have hbelow : WF.below (v.set i x) i := WF.set_smaller_wf_below htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
@@ -389,9 +388,8 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
   have hbu : WF.bottomUp v := by rw [← WF.iff_bottomUp]; exact htd
   have h_ge' : compare x v[i] |>.isGE := by
     simp_all [get, ← hv, vector]
-  suffices WF.bottomUp (heapifyUp (v.set i x) i) by
-    rw [← WF.iff_bottomUp] at this
-    exact WF.topDown_toArray this
+  apply WF.topDown_toArray
+  rw [WF.iff_bottomUp]
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
 
 
