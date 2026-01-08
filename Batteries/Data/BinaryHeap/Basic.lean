@@ -81,6 +81,7 @@ instance : EmptyCollection (BinaryHeap α) := ⟨empty⟩
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
+@[expose]
 def size (self : BinaryHeap α) : Nat := self.1.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
@@ -98,26 +99,30 @@ def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
   simp [size, insert]
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
+@[expose]
 def max (self : BinaryHeap α) : Option α := self.1[0]?
+
+private def popMaxVec [Ord α] (v : Vector α sz) : Vector α (sz - 1)  :=
+  if h0 : sz = 0 then
+    (by omega : sz = sz - 1 ) ▸ v
+  else
+    have hs : sz - 1 < sz := by omega
+    have h0 : 0 < sz := Nat.zero_lt_of_ne_zero h0
+    let v := v.swap 0 (sz - 1) |>.pop
+    if h : 0 < sz - 1 then
+      heapifyDown v ⟨0, h⟩
+    else
+      v
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`.
 Call `max` first to actually retrieve the maximum element. -/
+@[inline]
 def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
-  if h0 : self.size = 0 then self else
-    have hs : self.size - 1 < self.size := Nat.pred_lt h0
-    have h0 : 0 < self.size := Nat.zero_lt_of_ne_zero h0
-    let v := self.vector.swap _ _ h0 hs |>.pop
-    if h : 0 < self.size - 1 then
-      ⟨heapifyDown v ⟨0, h⟩ |>.toArray⟩
-    else
-      ⟨v.toArray⟩
+  ⟨popMaxVec self.vector |>.toArray⟩
 
 @[simp] theorem size_popMax [Ord α] (self : BinaryHeap α) :
     self.popMax.size = self.size - 1 := by
-  simp only [popMax, size]
-  split
-  · simp +arith [*]
-  · split <;> simp +arith
+  simp [popMax, size]
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
