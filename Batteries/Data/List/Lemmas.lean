@@ -957,7 +957,7 @@ theorem idxOfNth_eq_idxOfNth_of_ge_countP_ge_countP [BEq α] {xs : List α}
 
 /-! ### countPBefore -/
 
-@[simp, grind =]  theorem countPBefore_nil : ([] : List α).countPBefore p n = 0 := rfl
+@[simp, grind =] theorem countPBefore_nil : ([] : List α).countPBefore p n = 0 := rfl
 
 @[grind =]
 theorem countPBefore_cons {a : α} :
@@ -968,7 +968,7 @@ theorem countPBefore_cons {a : α} :
     induction xs <;> grind [countPBefore, countPBefore.go, cases Nat]
   cases i <;> grind [countPBefore, countPBefore.go]
 
-@[simp] theorem countPBefore_cons_zero {a : α} :
+theorem countPBefore_cons_zero {a : α} :
     (a :: xs).countPBefore p 0 = 0 := by grind
 
 @[simp] theorem countPBefore_cons_succ {a : α} :
@@ -978,13 +978,20 @@ theorem countPBefore_cons {a : α} :
 @[simp, grind =] theorem countPBefore_zero :
     (xs : List α).countPBefore p 0 = 0 := by grind [cases List]
 
+@[grind =]
+theorem countPBefore_succ :
+    (xs : List α).countPBefore p (i + 1) =
+    if h : xs = [] then 0 else
+    if p (xs.head h) then xs.tail.countPBefore p i + 1
+    else xs.tail.countPBefore p i := by grind [cases List]
+
 theorem countPBefore_cons_succ_of_neg {a : α} (h : p a = false) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i := by grind
 theorem countPBefore_cons_succ_of_pos {a : α} (h : p a) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i + 1 := by grind
 
 theorem countPBefore_eq_countP_take : (xs : List α).countPBefore p i = (xs.take i).countP p := by
-  induction xs generalizing i <;> cases i <;> grind
+  induction xs generalizing i <;> grind [cases Nat]
 
 theorem countPBefore_of_ge_length {xs : List α} (hi : xs.length ≤ i) :
     xs.countPBefore p i = xs.countP p := by
@@ -1000,7 +1007,7 @@ theorem findIdxNth_countPBefore_of_lt_length_of_pos {xs : List α} (hi : i < xs.
 
 @[simp, grind =>]
 theorem countPBefore_findIdxNth_of_lt_countP {xs : List α} :
-    n < xs.countP p → (xs.countPBefore p (xs.findIdxNth p n)) = n := by
+    n < xs.countP p → xs.countPBefore p (xs.findIdxNth p n) = n := by
   induction xs generalizing n <;> grind
 
 theorem pos_iff_exists_findIdxNth {xs : List α} {hixs : i < xs.length} :
