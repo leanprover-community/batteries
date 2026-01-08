@@ -18,25 +18,20 @@ inductive InSubtree (root : Nat) : Nat → Prop
 
 namespace InSubtree
 
-@[grind .]
 theorem le  (ins : InSubtree j k) : j ≤ k := by
   induction ins <;> omega
 
-@[grind .]
 theorem not_of_lt (hlt : k < j): ¬InSubtree j k := by
   intro hsub
   have := hsub.le
   omega
 
-@[grind .]
 theorem lt_of_ne (hsub : InSubtree j k) (hne : j ≠ k) : j < k := by grind only [hsub.le]
 
-@[grind .]
 theorem trans (hij : InSubtree i j) (hjk : InSubtree j k) : InSubtree i k := by
   induction hjk with grind only [InSubtree]
 
 /-- Every index lies in the subtree rooted at 0. -/
-@[grind .]
 theorem zero_root (a : Nat) : InSubtree 0 a := by
   induction a using Nat.strongRecOn with
   | _ n ih =>
@@ -130,7 +125,8 @@ theorem root_ge_subtree [Ord α] [Std.TransOrd α]
   induction hsub
   case refl => grind only [Ordering.isGE]
   all_goals
-    obtain ⟨hwf_m, _⟩ : WF.children a ⟨‹_›, by omega⟩ := by grind [WF.below]
+    obtain ⟨hwf_m, _⟩ : WF.children a ⟨‹_›, by omega⟩ := by
+      grind only [WF.below, InSubtree.not_of_lt]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- Parent dominates all descendants after setting a smaller value -/
@@ -268,7 +264,7 @@ theorem bottomUp_of_exceptAt_and_parent [Ord α] (a : Vector α sz) (i : Fin sz)
   grind only [bottomUp, parent, exceptAt]
 
 
-theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF (mk v.toArray) := by
+theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF ⟨v.toArray⟩ := by
   rintro ⟨ival, _⟩
   obtain ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor <;> intro _

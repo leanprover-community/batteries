@@ -13,33 +13,28 @@ theorem maxChild_none_iff [Ord α] (a : Vector α sz) (i : Fin sz) :
   grind only [maxChild]
 
 /-- maxChild returns some iff there is at least one child. -/
-@[grind =]
 theorem maxChild_some_iff [Ord α] (a : Vector α sz) (i : Fin sz) :
     (maxChild a i).isSome ↔ 2 * i.val + 1 < sz := by
   grind only [maxChild, = Option.isSome_none, = Option.isSome_some]
 
 /-- If maxChild returns some j, then j is a child of i. -/
-@[grind .]
 theorem maxChild_isChild [Ord α] (a : Vector α sz) (i : Fin sz) (j : Fin sz)
     (h : maxChild a i = some j) :
     j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2 := by
   grind only [maxChild, = Option.isSome_none, = Option.isSome_some]
 
 /-- maxChild returns an index greater than i. -/
-@[grind .]
 theorem maxChild_gt [Ord α] (a : Vector α sz) (i : Fin sz) (j : Fin sz)
     (h : maxChild a i = some j) : i < j := by
   grind only [maxChild, Lean.Grind.toInt_fin]
 
 
-@[grind =]
 theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j : Fin sz)
     (hmc : maxChild a i = some j) (hleft : 2 * i.val + 1 < sz) :
     compare a[j] a[2 * i.val + 1] |>.isGE := by
   grind only [Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE, Ordering.isLT, maxChild,
   Fin.getElem_fin]
 
-@[grind =]
 theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
     (i j : Fin sz) (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
     compare a[↑j] a[2 * ↑i + 2] |>.isGE := by
@@ -47,7 +42,6 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
     Ordering.isGE, Ordering.isLT, maxChild]
 
 /-- heapifyDown doesn't modify positions before the starting index. -/
-@[grind=]
 theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
     (heapifyDown a i)[k] = a[k] := by
   induction a, i using heapifyDown.induct <;> grind [heapifyDown]
@@ -67,8 +61,12 @@ theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz
 
   rename_i j
   split <;> try rfl
-  have hij : i < j := by grind
-  have hnsub_j : ¬InSubtree j k := by grind
+  have hij : i < j := by grind only [maxChild_gt]
+
+  have hnsub_j : ¬InSubtree j k := by
+    grind only [InSubtree.not_of_lt, maxChild_isChild,
+      InSubtree.lt_of_ne, InSubtree.trans, InSubtree]
+
   rw [heapifyDown_get_of_not_inSubtree hnsub_j]
   grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
 termination_by sz - i
