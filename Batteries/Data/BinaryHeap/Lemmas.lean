@@ -291,23 +291,6 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
         exact hwf_below k hlt
     exact ih _ _ hinv'
 
-theorem popMaxVec_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    (h : Vector α sz) (wf : WF.topDown h) : WF.topDown (popMaxVec h) := by
-  unfold popMaxVec
-  simp only
-  split
-  case isTrue h =>
-    subst h
-    simp [wf]
-  case isFalse hne =>
-    split
-    case isTrue hnz =>
-      have hbelow : WF.below (h.swap 0 (h.size - 1) |>.pop) 0 := by
-        grind only [WF.below_swap_pop wf]
-      simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
-    case isFalse hle =>
-      grind only [WF.children, WF.topDown]
-
 public section
 
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] (a : Vector α sz) :
@@ -352,8 +335,18 @@ theorem max_eq_none_iff {self : BinaryHeap α} : self.max = none ↔ self.size =
 
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {self : BinaryHeap α} {h_wf : WF self} :
-    WF (self.popMax) := by
-  grind only [popMax, WF, popMaxVec_wf, WF.topDown_toArray]
+    WF (self.popMax') := by
+  unfold popMax'
+  generalize hv : self.vector = v
+  have htd : WF.topDown v := by simp_all [WF]
+  simp only
+  split
+  . simp_all [WF]
+  . split <;> apply WF.topDown_toArray
+    . have hbelow : WF.below (v.swap 0 (v.size - 1) |>.pop) 0 := by
+        grind only [WF.below_swap_pop htd]
+      simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
+    . grind only [WF.children, WF.topDown]
 
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
     {i : Fin self.size} {x : α} {h_leq : compare x (self.get i) |>.isLE} {h_wf : WF self} :
@@ -400,5 +393,6 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
     rw [← WF.iff_bottomUp] at this
     exact WF.topDown_toArray this
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
+
 
 end BinaryHeap
