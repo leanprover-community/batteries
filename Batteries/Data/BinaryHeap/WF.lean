@@ -148,8 +148,8 @@ theorem parent_dominates_set_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd
     exact WF.root_ge_subtree parent.isLt (hwf_at := htd parent)
       (hwf_below := fun j _ => htd j) (hsub := InSubtree.trans h_parent_to_i hsub)
 
-/-- The maximum element (root) is greater than or equal to all heap elements. -/
-theorem max_ge_all [Ord α] [Std.TransOrd α]
+/-- The root element is greater than or equal to all heap elements. -/
+theorem root_ge_all [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hwf : WF.topDown a) (hne : 0 < sz) (k : Fin sz) :
     (compare a[0] a[k]).isGE :=
   root_ge_subtree hne

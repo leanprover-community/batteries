@@ -323,7 +323,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : Binary
 theorem max_ge_all [Ord α] [Std.TransOrd α]
     {self : BinaryHeap α} (hwf : WF self) (h : self.size > 0) :
     ∃ x, self.max = some x ∧ ∀ i : Fin self.size, (compare x (self.get i)).isGE :=
-  ⟨self.arr[0], by simp [max], (WF.max_ge_all hwf h ·)⟩
+  ⟨self.arr[0], by simp [max], WF.root_ge_all hwf h⟩
 
 theorem max_eq_none_iff {self : BinaryHeap α} : self.max = none ↔ self.size = 0 := by
   simp [max, size]
