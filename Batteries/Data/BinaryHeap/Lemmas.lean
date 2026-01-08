@@ -101,10 +101,7 @@ theorem set_smaller_wf_below [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
     WF.below (v.set i x) i := by
   intro j hj
   obtain ⟨hwf_jl, hwf_jr⟩ := htd j
-  have h_inej: i.val ≠ j.val := by omega
-  constructor
-    <;> intro _
-    <;> grind only [Vector.getElem_set, Fin.getElem_fin]
+  grind only [Vector.getElem_set, Fin.getElem_fin, WF.children]
 
 /-- For k < i where neither child equals i, set at i preserves WF.children at k -/
 theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
@@ -112,8 +109,7 @@ theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin s
     (hleft_ne : 2 * k.val + 1 ≠ i.val) (hright_ne : 2 * k.val + 2 ≠ i.val) :
     WF.children (v.set i x) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
-  constructor <;> intro hbound <;>
-    grind only [= Fin.getElem_fin, = Vector.getElem_set]
+  grind only [Vector.getElem_set, Fin.getElem_fin, WF.children]
 
 
 /-- WF.topDown follows from WF.children at 0 and WF.below at 0 -/
