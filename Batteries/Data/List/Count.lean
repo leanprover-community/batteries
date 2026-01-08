@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 module
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
@@ -20,13 +21,51 @@ open Nat
 
 namespace List
 
-
 /-! ### count -/
 
 section count
 
-variable [DecidableEq α]
+theorem count_singleton' [DecidableEq α] (a b : α) : count a [b] = if b = a then 1 else 0 :=
+  count_singleton.trans (by grind)
 
-theorem count_singleton' (a b : α) : count a [b] = if b = a then 1 else 0 := by simp [count_cons]
+theorem count_concat [BEq α] [LawfulBEq α] (a : α) (l : List α) :
+    count a (concat l a) = succ (count a l) := by simp
 
-theorem count_concat (a : α) (l : List α) : count a (concat l a) = succ (count a l) := by simp
+/-! ### idxToSigmaCount, sigmaCountToIdx -/
+
+/-- `idxToSigmaCount` is a `Fin`-to-`Fin` wrapper for `countBefore`. -/
+def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin (xs.length)) :
+    (x : α) × Fin (xs.count x) :=
+  ⟨xs[i.1], xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
+
+@[simp, grind =]
+theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    (xs.idxToSigmaCount i).1 = xs[i.1] := rfl
+
+@[simp, grind =]
+theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    (xs.idxToSigmaCount i).2 =
+    ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩ := rfl
+
+
+@[simp, grind =]
+theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+    ((xs.idxToSigmaCount i).2 : Nat) = xs.countBefore xs[i.1] i := rfl
+
+/-- `sigmaCountToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`. -/
+def sigmaCountToIdx [BEq α] (xs: List α) (xc : (x : α) × Fin (xs.count x)) :
+    Fin (xs.length) := ⟨xs.idxOfNth xc.1 xc.2, idxOfNth_lt_length_of_lt_count xc.2.isLt⟩
+
+@[simp, grind =]
+theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.count x)} :
+    (xs.sigmaCountToIdx xc : Nat) = xs.idxOfNth xc.1 xc.2 := rfl
+
+@[simp, grind =]
+theorem sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α}
+    {i : Fin (xs.length)} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
+  Fin.ext <| idxOfNth_countBefore_of_lt_length_of_beq _ BEq.rfl
+
+@[simp, grind =]
+theorem idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α}
+    {xc : (x : α) × Fin (xs.count x)} : xs.idxToSigmaCount (xs.sigmaCountToIdx xc) = xc :=
+  Sigma.ext getElem_idxOfNth_eq (heq_of_eqRec_eq (by simp) (by grind))
