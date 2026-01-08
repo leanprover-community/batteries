@@ -37,6 +37,7 @@ public import Batteries.Data.List
 public import Batteries.Data.MLList
 public import Batteries.Data.NameSet
 public import Batteries.Data.Nat
+public import Batteries.Data.OrderedAssocList
 public import Batteries.Data.PairingHeap
 public import Batteries.Data.RBMap
 public import Batteries.Data.Random
