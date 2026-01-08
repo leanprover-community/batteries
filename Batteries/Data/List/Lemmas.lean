@@ -1053,11 +1053,11 @@ theorem countBefore_eq_count_take [BEq α] :
     (xs : List α).countBefore x i = (xs.take i).count x := by
   induction xs generalizing i <;> cases i <;> grind
 
-@[simp, grind =>]
+@[grind =>]
 theorem countBefore_idxOfNth_of_lt_count [BEq α] {xs : List α} (hn : n < xs.count x) :
      xs.countBefore x (xs.idxOfNth x n) = n := countPBefore_findIdxNth_of_lt_countP hn
 
-@[simp, grind =>]
+@[grind =>]
 theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} (hi : i < xs.length)
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hi hip
