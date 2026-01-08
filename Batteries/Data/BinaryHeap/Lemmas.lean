@@ -335,8 +335,8 @@ theorem max_eq_none_iff {self : BinaryHeap α} : self.max = none ↔ self.size =
 
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {self : BinaryHeap α} {h_wf : WF self} :
-    WF (self.popMax') := by
-  unfold popMax'
+    WF (self.popMax) := by
+  unfold popMax
   generalize hv : self.vector = v
   have htd : WF.topDown v := by simp_all [WF]
   simp only
