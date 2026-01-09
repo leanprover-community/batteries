@@ -302,7 +302,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 public section
 
 @[simp]
-theorem size_empty [Ord α] : (@empty α).size = 0 := by
+theorem size_empty : (@empty α).size = 0 := by
   simp_all [empty, size]
 
 @[simp, grind .]
@@ -354,7 +354,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
 
 theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
 
-theorem mem_insert [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α} :
+theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
   unfold insert
   simp [mem_def]
@@ -362,7 +362,7 @@ theorem mem_insert [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binar
   rw [Vector.Perm.mem_iff this (a := y)]
   grind only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push]
 
-theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
+theorem mem_iff_get {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
   simp_all [mem_def, get, Array.mem_iff_getElem, size]
   constructor
