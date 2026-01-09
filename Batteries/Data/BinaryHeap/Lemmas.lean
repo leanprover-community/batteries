@@ -428,7 +428,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
       exact heapifyDown_preserves_wf_children_outside hki hwf_set hleft_ne hright_ne
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
-end
+
 
 @[grind .]
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
@@ -455,3 +455,5 @@ open Batteries.BinaryHeap in
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
+
+end
