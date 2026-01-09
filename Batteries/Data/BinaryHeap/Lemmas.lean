@@ -445,3 +445,13 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
 
 end BinaryHeap
+
+open Batteries.BinaryHeap in
+theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Array α} :
+    WF (a.toBinaryHeap) := by
+  simp [WF.topDown_toArray, Array.toBinaryHeap]
+
+open Batteries.BinaryHeap in
+theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
+    WF (Batteries.Vector.toBinaryHeap a) := by
+  simp [WF.topDown_toArray, Vector.toBinaryHeap]
