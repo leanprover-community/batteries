@@ -1,8 +1,8 @@
 module
-import all Batteries.Data.BinaryHeap.Basic
 public import Batteries.Data.BinaryHeap.Basic
 public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
+import all Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
 
@@ -156,6 +156,12 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
       simp_all [childIdx, parent]
 
 
+theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
+    (heapifyDown a i).Perm a
+  := by
+    induction a, i using heapifyDown.induct with grind only
+      [Vector.swap_perm, heapifyDown, Vector.Perm.rfl, Vector.Perm.trans]
+
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
@@ -169,7 +175,7 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       (by grind only [InSubtree.not_of_lt])
       (by omega)
     simp_all [
-      WF.root_ge_subtree j.isLt
+      WF.parent_ge_subtree
       (hwf_at := hbelow j h_ij)
       (hwf_below := WF.below_mono (by omega) hbelow)
       (hsub := hsub)
@@ -267,6 +273,13 @@ theorem heapifyUp_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   rw [WF.iff_bottomUp]
   simp_all [heapifyUp_wf_bottomUp]
 
+theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
+    (heapifyUp a i).Perm a
+  := by
+    induction a, i using heapifyUp.induct
+    all_goals
+      unfold heapifyUp
+      grind only [Vector.Perm.trans, Vector.swap_perm, heapifyUp, Vector.Perm.rfl]
 end heapifyUp
 
 theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -288,6 +301,19 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
 public section
 
+@[simp]
+theorem size_empty [Ord α] : (@empty α).size = 0 := by
+  simp_all [empty, size]
+
+@[simp, grind .]
+theorem empty_wf [Ord α] :  WF (empty : BinaryHeap α) := by
+  simp [empty, WF, vector, WF.topDown_empty]
+
+@[simp, grind .]
+theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
+  simp [WF, singleton, vector, WF.topDown_singleton]
+
+@[simp, grind .]
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF.topDown (mkHeap a) := by
   unfold mkHeap
@@ -299,59 +325,94 @@ theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α
     exfalso
     omega
 
-theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
-    {x : α} (h_wf : self.WF) :
-    (self.insert x).WF := by
+@[simp]
+theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
+    (heap.insert x).size = heap.size + 1 := by
+  simp [size, insert]
+
+@[grind .]
+theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+    {x : α} (h_wf : heap.WF) :
+    (heap.insert x).WF := by
+  skip
   unfold insert
-  have h_sz : self.vector.size < (self.vector.push x).size := by grind only [size_insert]
-  have h_ea : WF.exceptAt (self.vector.push x) ⟨self.vector.size, h_sz⟩ := by
+  have h_sz : heap.vector.size < (heap.vector.push x).size := by grind only [size_insert]
+  have h_ea : WF.exceptAt (heap.vector.push x) ⟨heap.vector.size, h_sz⟩ := by
     intro i _
     unfold WF at h_wf
     rw [WF.iff_bottomUp] at h_wf
     unfold WF.bottomUp at h_wf
-    have : i < self.vector.size := by grind only
+    have : i < heap.vector.size := by grind only
     intro h_nz
     grind [h_wf ⟨i.val, by omega⟩ h_nz]
-  have h_clp : WF.childLeParent (self.vector.push x) ⟨self.vector.size, h_sz⟩ := by
+  have h_clp : WF.childLeParent (heap.vector.push x) ⟨heap.vector.size, h_sz⟩ := by
     grind only [WF.childLeParent]
   simp only [WF, WF.iff_bottomUp]
   have := heapifyUp_wf_bottomUp h_ea h_clp
   rw [← Vector.mk_toArray (xs := (heapifyUp _ _))] at this
   grind only [vector, size]
 
-/-- Correctness of max: it returns an element ≥ all elements in the heap -/
-theorem max_ge_all [Ord α] [Std.TransOrd α]
-    {self : BinaryHeap α} (hwf : WF self) (h : self.size > 0) :
-    ∃ x, self.max = some x ∧ ∀ i : Fin self.size, (compare x (self.get i)).isGE :=
-  ⟨self.arr[0], by simp [max], WF.root_ge_all hwf h⟩
+theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
 
-theorem max_eq_none_iff {self : BinaryHeap α} : self.max = none ↔ self.size = 0 := by
+theorem mem_insert [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α} :
+    y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
+  unfold insert
+  simp [mem_def]
+  have := heapifyUp_perm (a := heap.vector.push x) (i := ⟨heap.size, by omega⟩)
+  rw [Vector.Perm.mem_iff this (a := y)]
+  grind only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push]
+
+theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
+    a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
+  simp_all [mem_def, get, Array.mem_iff_getElem, size]
+  constructor
+  . rintro ⟨x, y, z⟩
+    exact ⟨⟨x, y⟩, z⟩
+  . rintro ⟨⟨x, y⟩, z⟩
+    exact ⟨x, y, z⟩
+
+/-- Correctness of max: it returns an element ≥ all elements in the heap -/
+@[grind .]
+theorem max_ge_all [Ord α] [Std.TransOrd α]
+    {heap : BinaryHeap α} (hwf : WF heap) (h : heap.size > 0) :
+    ∃ x, heap.max = some x ∧ ∀ v ∈ heap, (compare x v).isGE :=
+  ⟨heap.arr[0], by simp [max], by
+    intro v vin
+    simp_all only [mem_def]
+    obtain ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp vin
+    have :=  WF.root_ge_all hwf h ⟨idx, h_sz⟩
+    simp_all [vector]
+   ⟩
+
+@[simp]
+theorem max_eq_none_iff {heap : BinaryHeap α} : heap.max = none ↔ heap.size = 0 := by
   simp [max, size]
 
-
+@[grind .]
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    {self : BinaryHeap α} (h_wf : WF self) :
-    WF (self.popMax) := by
+    {heap : BinaryHeap α} (h_wf : WF heap) :
+    WF (heap.popMax) := by
   unfold popMax
-  have htd : WF.topDown self.vector := by simp_all [WF]
+  have htd : WF.topDown heap.vector := by simp_all [WF]
   simp only
   split
   . simp_all [WF]
   . split <;> apply WF.topDown_toArray
-    . have hbelow : WF.below (self.vector.swap 0 (self.size - 1) |>.pop) 0 := by
+    . have hbelow : WF.below (heap.vector.swap 0 (heap.size - 1) |>.pop) 0 := by
         grind only [WF.below_swap_pop htd]
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.children, WF.topDown]
 
-theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
-    {i : Fin self.size} (h_wf : WF self) (h_leq : compare x (self.get i) |>.isLE) :
-    WF (self.decreaseKey i x) := by
+@[grind .]
+theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+    {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
+    WF (heap.decreaseKey i x) := by
   unfold decreaseKey
 
   apply WF.topDown_toArray
-  have htd : WF.topDown self.vector := by simp_all [WF]
+  have htd : WF.topDown heap.vector := by simp_all [WF]
 
-  have hbelow : WF.below (self.vector.set i x) i := WF.set_smaller_wf_below htd
+  have hbelow : WF.below (heap.vector.set i x) i := WF.set_smaller_wf_below htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
 
   intro k
@@ -362,18 +423,19 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
       exact heapifyDown_preserves_wf_parent htd h_leq hk_parent.2
     · have hleft_ne : 2 * k.val + 1 ≠ i.val := by omega
       have hright_ne : 2 * k.val + 2 ≠ i.val := by omega
-      have hwf_set : WF.children (self.vector.set i x) k :=
+      have hwf_set : WF.children (heap.vector.set i x) k :=
               WF.set_preserves_wf_children_of_ne (htd k) (by omega) hleft_ne hright_ne
       exact heapifyDown_preserves_wf_children_outside hki hwf_set hleft_ne hright_ne
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 end
 
-theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : BinaryHeap α}
-    {i : Fin self.size} (h_wf : WF self) (h_ge : compare x (self.get i) |>.isGE) :
-    WF (self.increaseKey i x) := by
+@[grind .]
+theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+    {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
+    WF (heap.increaseKey i x) := by
   unfold increaseKey
-  generalize hv : self.vector = v
+  generalize hv : heap.vector = v
   have htd : WF.topDown v := by simp_all [WF]
   have hbu : WF.bottomUp v := by rw [← WF.iff_bottomUp]; exact htd
   have h_ge' : compare x v[i] |>.isGE := by
@@ -381,6 +443,5 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {self : B
   apply WF.topDown_toArray
   rw [WF.iff_bottomUp]
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
-
 
 end BinaryHeap

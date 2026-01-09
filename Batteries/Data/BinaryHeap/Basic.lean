@@ -61,6 +61,7 @@ where
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` up to restore the max-heap property. -/
+@[expose]
 def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match i with
@@ -76,6 +77,8 @@ def empty : BinaryHeap α := ⟨#[]⟩
 
 instance : Inhabited (BinaryHeap α) := ⟨empty⟩
 instance : EmptyCollection (BinaryHeap α) := ⟨empty⟩
+instance : Membership α (BinaryHeap α) where
+  mem h x := x ∈ h.arr
 
 /-- `O(1)`. Build a one-element heap. -/
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
@@ -95,10 +98,6 @@ def get (self : BinaryHeap α) (i : Fin self.size) : α := self.1[i]'(i.2)
 def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
 
-@[simp] theorem size_insert [Ord α] (self : BinaryHeap α) (x : α) :
-    (self.insert x).size = self.size + 1 := by
-  simp [size, insert]
-
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 def max (self : BinaryHeap α) : Option α := self.1[0]?
 
@@ -114,6 +113,7 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
     else
       ⟨v.toArray⟩
 
+-- declared here because it is used in heapSort
 @[simp] theorem size_popMax [Ord α] (self : BinaryHeap α) :
     self.popMax.size = self.size - 1 := by
   simp only [popMax, size]

@@ -105,6 +105,13 @@ theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin s
   obtain ⟨hwf_left, hwf_right⟩ := hwf
   grind only [Vector.getElem_set, Fin.getElem_fin, WF.children]
 
+theorem topDown_empty [Ord α] : WF.topDown (#v[] : Vector α 0) := by
+  simp [topDown]
+
+
+theorem topDown_singleton [Ord α] {x : α} : WF.topDown #v[x] := by
+  simp [topDown, children]
+
 
 /-- WF.topDown follows from WF.children at 0 and WF.below at 0 -/
 theorem topDown_iff_at_below_zero [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
@@ -118,9 +125,9 @@ theorem topDown_iff_at_below_zero [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
   . grind only [children, topDown, below]
 
 /-- A node dominates all descendants in its subtree in a well-formed heap. -/
-theorem root_ge_subtree [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {j : Nat} (hj : j < sz) {hwf_at : WF.children a ⟨j, hj⟩}
-    {hwf_below : WF.below a j} {k : Nat} {hk : k < sz} {hsub : InSubtree j k} :
+theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
+    {a : Vector α sz} {j k : Nat} {hk : k < sz} {hj : j < sz} (hwf_at : WF.children a ⟨j, hj⟩)
+    (hwf_below : WF.below a j) (hsub : InSubtree j k) :
     (compare a[j] a[k]).isGE := by
   induction hsub
   case refl => grind only [Ordering.isGE]
@@ -145,17 +152,18 @@ theorem parent_dominates_set_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd
   · have : i.val ≠ m.val := by omega
     simp_all only [Fin.getElem_fin, ne_eq, not_false_eq_true, Vector.getElem_set_ne]
     have h_parent_to_i : InSubtree parent.val i.val := by grind only [InSubtree]
-    exact WF.root_ge_subtree parent.isLt (hwf_at := htd parent)
-      (hwf_below := fun j _ => htd j) (hsub := InSubtree.trans h_parent_to_i hsub)
+    exact WF.parent_ge_subtree
+      (hwf_at := htd parent)
+      (hwf_below := fun j _ => htd j)
+      (hsub := InSubtree.trans h_parent_to_i hsub)
 
 /-- The root element is greater than or equal to all heap elements. -/
 theorem root_ge_all [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hwf : WF.topDown a) (hne : 0 < sz) (k : Fin sz) :
     (compare a[0] a[k]).isGE :=
-  root_ge_subtree hne
+  parent_ge_subtree
     (hwf_at := hwf ⟨0, hne⟩)
     (hwf_below := fun j _ => hwf j)
-    (hk := k.isLt)
     (hsub := InSubtree.zero_root k.val)
 
 /-- "Dual" correctness property to WF.children. A node should be <= its parent
