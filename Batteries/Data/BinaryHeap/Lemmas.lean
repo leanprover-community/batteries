@@ -371,18 +371,14 @@ theorem mem_iff_get {heap : BinaryHeap α} :
   . rintro ⟨⟨x, y⟩, z⟩
     exact ⟨x, y, z⟩
 
-/-- Correctness of max: it returns an element ≥ all elements in the heap -/
 @[grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
-    {heap : BinaryHeap α} (hwf : WF heap) (h : heap.size > 0) :
-    ∃ x, heap.max = some x ∧ ∀ v ∈ heap, (compare x v).isGE :=
-  ⟨heap.arr[0], by simp [max], by
-    intro v vin
-    simp_all only [mem_def]
-    obtain ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp vin
-    have :=  WF.root_ge_all hwf h ⟨idx, h_sz⟩
-    simp_all [vector]
-   ⟩
+    {heap : BinaryHeap α} {y: α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
+    let root := heap.max.get (by simp_all [max, size])
+    compare root y |>.isGE := by
+  obtain ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
+  have :=  WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
+  simp_all [vector, max]
 
 @[simp]
 theorem max_eq_none_iff {heap : BinaryHeap α} : heap.max = none ↔ heap.size = 0 := by
