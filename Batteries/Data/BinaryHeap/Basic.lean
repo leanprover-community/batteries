@@ -101,7 +101,8 @@ def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 def max (self : BinaryHeap α) : Option α := self.1[0]?
 
-/-- `O(log n)`. Remove the maximum element from a `BinaryHeap`.-/
+/-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
+Call `max` first to actually retrieve the maximum element. -/
 @[expose]
 def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
   if h0 : self.size = 0 then self else
@@ -113,7 +114,6 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
     else
       ⟨v.toArray⟩
 
--- declared here because it is used in heapSort
 @[simp] theorem size_popMax [Ord α] (self : BinaryHeap α) :
     self.popMax.size = self.size - 1 := by
   simp only [popMax, size]
